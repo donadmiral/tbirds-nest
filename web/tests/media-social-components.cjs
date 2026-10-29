@@ -9,6 +9,9 @@ const ts = require('typescript');
 // tests execute PostCard, MediaGallery, their shared hook/store, write helper,
 // and confirmed comment-count publisher together through their real handlers.
 const sources = new Map();
+sources.set('../../shared/collaborationPeople', ts.transpileModule(fs.readFileSync(path.join(__dirname, '../../shared/collaborationPeople.ts'), 'utf8'), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+}).outputText);
 for (const file of ['components/PostCard.tsx', 'components/MediaGallery.tsx', 'lib/usePostInteractions.ts',
   'lib/postInteractionState.ts', 'lib/interactions.ts', 'lib/commentCounts.ts', 'lib/profileLookup.ts']) {
   sources.set('@/' + file.replace(/\.tsx?$/, ''), ts.transpileModule(fs.readFileSync(path.join(__dirname, '..', file), 'utf8'), {

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Shell from '@/components/Shell';
 import { requirePermission } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
+import { isMissingAdminRpc } from '@/lib/adminRpcAvailability';
 
 export const dynamic = 'force-dynamic';
 type Request = { id: string; user_id: string; reason: string; status: string; created_at: string; full_name: string | null; username: string | null };
@@ -13,6 +14,15 @@ export default async function DeletionRequests({ searchParams }: { searchParams:
   const { data, error } = await serviceClient().rpc('triniti_admin_deletion_requests', {
     p_actor_id: admin.id, p_session_id: admin.sessionId, p_page: page,
   });
+  if (isMissingAdminRpc(error, 'triniti_admin_deletion_requests')) {
+    return <Shell admin={admin} active="/users" title="Deletion requests" sub="The deletion review queue is unavailable on this deployment.">
+      <p role="status" className="my-4 rounded-xl border border-[var(--line)] bg-[var(--panel)] p-5">Deletion requests cannot be loaded until the review service is available. This page does not confirm that there are no pending requests or that any personal data has been erased. Contact the platform administrator.</p>
+      <nav aria-label="Deletion queue recovery" className="flex flex-wrap gap-4 text-sm">
+        <Link href="/users" className="underline">Back to users</Link>
+        <a href={'/users/deletions?page=' + page} className="underline">Check availability again</a>
+      </nav>
+    </Shell>;
+  }
   if (error || !Array.isArray(data?.rows) || !Number.isSafeInteger(data?.total)) throw new Error('Deletion requests could not be loaded.');
   const rows = data.rows as Request[];
   return <Shell admin={admin} active="/users" title="Deletion requests" sub="Disabled accounts awaiting review of retention and outstanding obligations.">

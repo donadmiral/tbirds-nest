@@ -3,6 +3,7 @@
 import { hydratePostMedia } from "@/lib/contentMedia";
 import { withTimeout } from "@/lib/withTimeout";
 import { productDestination } from "../../shared/productDestination";
+import { uniqueCollaborators, collaborationName } from "../../shared/collaborationPeople";
 
 import { profilePath } from "@/lib/profileLookup";
 import { usePollFlag } from "@/lib/pollCheck";
@@ -137,17 +138,22 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
   const [heart, setHeart] = useState(false);
   const [repostMenu, setRepostMenu] = useState(false);
   const [likesOpen, setLikesOpen] = useState(false);
-  const [collabNames, setCollabNames] = useState<{ name: string; username: string; verified: boolean; tier: string | null }[]>([]);
+  const [collabNames, setCollabNames] = useState<{ id: string; name: string; username: string; verified: boolean; tier: string | null }[]>([]);
   const [collabsOpen, setCollabsOpen] = useState(false);
   useEffect(() => {
     let dead = false;
-    supabase.from("post_collaborators").select("status, profile:profiles!post_collaborators_user_id_fkey(username, full_name, is_verified, verified_tier)").eq("post_id", post.post_id).eq("status", "accepted").then(({ data }) => {
+    setCollabNames([]); setCollabsOpen(false);
+    supabase.from("post_collaborators").select("user_id, status, profile:profiles!post_collaborators_user_id_fkey(username, full_name, is_verified, verified_tier)").eq("post_id", post.post_id).eq("status", "accepted").then(({ data }) => {
       if (dead) return;
-      type Pr = { username?: string | null; full_name?: string | null; is_verified?: boolean | null; verified_tier?: string | null }; const names = ((data ?? []) as { profile?: Pr | Pr[] }[]).map((r) => { const pr = Array.isArray(r.profile) ? r.profile[0] : r.profile; return pr ? { name: pr.full_name || pr.username || "", username: pr.username || "", verified: !!pr.is_verified, tier: pr.verified_tier ?? null } : null; }).filter((x): x is { name: string; username: string; verified: boolean; tier: string | null } => !!x && !!x.name);
-      setCollabNames(names);
+      type Pr = { username?: string | null; full_name?: string | null; is_verified?: boolean | null; verified_tier?: string | null };
+      const names = ((data ?? []) as { user_id: string; profile?: Pr | Pr[] }[]).flatMap(r => {
+        const pr = Array.isArray(r.profile) ? r.profile[0] : r.profile;
+        return pr ? [{ id: r.user_id, name: collaborationName(pr, post.author_name), username: pr.username || '', verified: !!pr.is_verified, tier: pr.verified_tier ?? null }] : [];
+      });
+      setCollabNames(uniqueCollaborators(names, post.author_id));
     });
     return () => { dead = true; };
-  }, [supabase, post.post_id]);
+  }, [supabase, post.post_id, post.author_id, post.author_name]);
   const [listKind, setListKind] = useState<"likes" | "reposts" | "bookmarks">("likes");
   const [expanded, setExpanded] = useState(false);
   // Comments open right under the card, so the post and its video stay in view while you read and reply.
@@ -261,7 +267,22 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
                 <PersonName name={post.author_name ?? ""} verified={post.author_verified} tier={post.author_verified_tier ?? undefined} userId={post.author_id} className="text-[15.5px] font-semibold text-ink" badgeSize={15} />
               </span>
             </Link>
-            {collabNames.length === 1 ? <span className="ml-1 inline-flex items-center gap-1 font-semibold text-ink">× <Link href={"/" + collabNames[0].username} onClick={(e) => e.stopPropagation()} className="hover:underline"><PersonName name={collabNames[0].name} verified={collabNames[0].verified} tier={collabNames[0].tier} badgeSize={14} /></Link></span> : collabNames.length > 1 ? <span className="relative ml-1 font-semibold text-ink"><button type="button" onClick={(e) => { e.stopPropagation(); setCollabsOpen((v) => !v); }} className="hover:underline">× {collabNames.length} others</button>{collabsOpen ? <span className="absolute left-0 top-full z-20 mt-1 flex w-56 flex-col rounded-xl border border-ink/10 bg-white p-2 shadow-lg">{collabNames.map((x) => <Link key={x.username} href={"/" + x.username} onClick={(e) => e.stopPropagation()} className="rounded-lg px-2 py-1.5 text-[13px] hover:bg-surface"><PersonName name={x.name} verified={x.verified} tier={x.tier} badgeSize={13} /><span className="ml-1 text-muted">@{x.username}</span></Link>)}</span> : null}</span> : null}
+            {collabNames.length === 1 ? (
+              <span className="inline-flex min-w-0 items-center gap-1.5 text-[14px]">
+                <span className="text-secondary">with</span>
+                <Link href={profilePath(collabNames[0].username, collabNames[0].id)} aria-label={`Collaborator ${collabNames[0].name}${collabNames[0].username ? ', @' + collabNames[0].username : ''}`} onClick={e => e.stopPropagation()} className="font-semibold text-ink hover:underline">
+                  <PersonName name={collabNames[0].name} verified={collabNames[0].verified} tier={collabNames[0].tier} badgeSize={14} />
+                </Link>
+              </span>
+            ) : collabNames.length > 1 ? (
+              <span className="relative text-[14px] text-ink">
+                <span className="text-secondary">with </span>
+                <button type="button" aria-expanded={collabsOpen} aria-label={`View ${collabNames.length} collaborators`} onClick={e => { e.stopPropagation(); setCollabsOpen(value => !value); }} onKeyDown={e => { if (e.key === 'Escape') setCollabsOpen(false); }} className="font-semibold hover:underline">{collabNames.length} collaborators</button>
+                {collabsOpen ? <span className="absolute left-0 top-full z-20 mt-2 flex w-60 max-w-[80vw] flex-col rounded-xl border border-ink/15 bg-white p-2 shadow-lg">
+                  {collabNames.map(person => <Link key={person.id} href={profilePath(person.username, person.id)} onClick={e => { e.stopPropagation(); setCollabsOpen(false); }} className="flex min-h-11 flex-col justify-center rounded-lg px-2 py-1.5 text-[13px] hover:bg-surface"><PersonName name={person.name} verified={person.verified} tier={person.tier} badgeSize={13} />{person.username ? <span className="text-muted">@{person.username}</span> : null}</Link>)}
+                </span> : null}
+              </span>
+            ) : null}
             </div>
             <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[13px] text-muted">
               {post.author_username ? <Link href={profileHref} className="truncate hover:underline">@{post.author_username}</Link> : null}

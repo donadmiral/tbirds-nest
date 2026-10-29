@@ -24,16 +24,16 @@ test('owner changes clear prior books and late requests cannot restore them',asy
 function imageHarness(initial){
  const state=[],runtime={jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})};let cursor=0,retries=0,props=initial;
  const react={useState(value){const i=cursor++;if(!(i in state))state[i]=value;return[state[i],next=>{state[i]=typeof next==='function'?next(state[i]):next;}];}};
- const module={exports:{}};vm.runInNewContext(compile(read('src/components/memory/MemoryPageImage.tsx')),{module,exports:module.exports,require:n=>n==='react'?react:n==='react/jsx-runtime'?runtime:n==='react-native'?{View:'View',Text:'Text',TouchableOpacity:'Button'}:{Image:'Image'}});
+ const module={exports:{}};vm.runInNewContext(compile(read('src/components/memory/MemoryPageImage.tsx')),{module,exports:module.exports,require:n=>n==='react'?react:n==='react/jsx-runtime'?runtime:n==='react-native'?{View:'View',Text:'Text',TouchableOpacity:'Button'}:n.endsWith('StoryPixelImage')?{default:'Image',__esModule:true}:{Image:'Image'}});
  return{render(next){if(next)props=next;cursor=0;return module.exports.default({...props,onRetry:()=>retries++});},get retries(){return retries;}};
 }
 function walk(x){return Array.isArray(x)?x.flatMap(walk):x&&typeof x==='object'?[x,...walk(x.props?.children)]:[];}
 test('book images use full originals, fall back to posters, and offer a working retry after both fail',()=>{
- const h=imageHarness({uri:'full.jpg',thumbnail:'poster.jpg'});let tree=h.render();assert.equal(tree.props.source.uri,'full.jpg');tree.props.onError();
- tree=h.render();assert.equal(tree.props.source.uri,'poster.jpg');tree.props.onError();tree=h.render();const button=walk(tree).find(n=>n.type==='Button');assert.equal(button.props.accessibilityLabel,'Retry memory image');button.props.onPress();assert.equal(h.retries,1);assert.equal(h.render().props.source.uri,'full.jpg');
+ const h=imageHarness({uri:'full.jpg',thumbnail:'poster.jpg'});let tree=h.render();assert.equal(tree.props.uri,'full.jpg');tree.props.onError();
+ tree=h.render();assert.equal(tree.props.uri,'poster.jpg');tree.props.onError();tree=h.render();const button=walk(tree).find(n=>n.type==='Button');assert.equal(button.props.accessibilityLabel,'Retry memory image');button.props.onPress();assert.equal(h.retries,1);assert.equal(h.render().props.uri,'full.jpg');
 });
 test('a renewed signed image source can display after the old source failed',()=>{
- const h=imageHarness({uri:'photo?old'});h.render().props.onError();assert.equal(h.render().type,'View');assert.equal(h.render({uri:'photo?new'}).props.source.uri,'photo?new');
+ const h=imageHarness({uri:'photo?old'});h.render().props.onError();assert.equal(h.render().type,'View');assert.equal(h.render({uri:'photo?new'}).props.uri,'photo?new');
 });
 test('screen navigation delegates to the reader that owns and locks the turn',()=>{
  const src=read('src/screens/profile/MemoryAlbumScreen.tsx'),start=src.indexOf('  const flipTo = useCallback'),end=src.indexOf('  const openPicker',start),directions=[];
@@ -73,9 +73,9 @@ test('leaving a book during add does not add subsequent selected stories or upda
  assert.equal(calls.length,1);assert.deepEqual(closed,[]);assert.deepEqual(reloads,[]);assert.equal(scope.saveLock.current,false);
 });
 test('closing a book cancels its pending page animation before it can change the page',()=>{
- const src=read('src/screens/profile/MemoryAlbumScreen.tsx'),start=src.indexOf('  const closeBook = useCallback'),end=src.indexOf('  const flipTo',start),stops=[],opened=[];
- const scope={bookGeneration:{current:3},pageTurn:{current:{cancel:()=>stops.push(true)}},setOpened:v=>opened.push(v),setGrid(){},coverAnim:{},reduceMotion:false,Animated:{timing:()=>({start(){}})},Easing:{out:x=>x,cubic:x=>x},useCallback:f=>f};
- vm.runInNewContext(compile(src.slice(start,end)+'\nthis.closeBook=closeBook;'),scope);scope.closeBook();assert.equal(scope.bookGeneration.current,4);assert.deepEqual(stops,[true]);assert.deepEqual(opened,[false]);
+ const src=read('src/screens/profile/MemoryAlbumScreen.tsx'),start=src.indexOf('  const closeBook = useCallback'),end=src.indexOf('  const playBook',start),stops=[],opened=[],playing=[];
+ const scope={bookGeneration:{current:3},pageTurn:{current:{cancel:()=>stops.push(true)}},setOpened:v=>opened.push(v),setGrid(){},setPlayMode(){},setPlaying:value=>playing.push(value),coverAnim:{},reduceMotion:false,Animated:{timing:()=>({start(){}})},Easing:{out:x=>x,cubic:x=>x},useCallback:f=>f};
+ vm.runInNewContext(compile(src.slice(start,end)+'\nthis.closeBook=closeBook;'),scope);scope.closeBook();assert.equal(scope.bookGeneration.current,4);assert.deepEqual(stops,[true]);assert.deepEqual(opened,[false]);assert.deepEqual(playing,[false]);
 });
 
 

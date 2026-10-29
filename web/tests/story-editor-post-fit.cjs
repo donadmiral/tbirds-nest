@@ -72,7 +72,7 @@ function editor({ value = [sticker()], autoCommit = true, ...layoutOverrides } =
   const { StoryEditor } = moduleFrom('web/components/StoryEditor.tsx', {
     require: p => imports[p] || new Proxy({}, { get: (_, key) => key }),
     document: { activeElement: null, body: { style: {} }, addEventListener() {}, removeEventListener() {} }, window: {},
-    HTMLElement: class {}, requestAnimationFrame: () => 0, cancelAnimationFrame() {}, setTimeout, clearTimeout,
+    crypto: { randomUUID: () => 'text-' + Math.random() }, HTMLElement: class {}, requestAnimationFrame: () => 0, cancelAnimationFrame() {}, setTimeout, clearTimeout,
   });
   const props = { value, children: null, onChange(next) { writes.push(next); if (autoCommit) { props.value = next; dirty = true; } } };
   function render() {
@@ -155,4 +155,47 @@ test('multiline preview captions include their real footer height in fitting', (
   assertFits({ stageWidth: 470, stageHeight: 836, cardWidth: 352, cardHeight: actualHeight, top: 60, bottom: 676 }, h.props.value[0]);
   h.resize({ cardHeight: actualHeight + 80, dockTop: 610 });
   assertFits({ stageWidth: 470, stageHeight: 836, cardWidth: 352, cardHeight: actualHeight + 80, top: 60, bottom: 610 }, h.props.value[0]); h.unmount();
+});
+
+
+test('adding and saving story text keeps a shared text-only post and its source link', () => {
+  const original = sticker({ postMediaUrl: null, postText: 'A post without a photograph.' });
+  const h = editor({ value: [original], cardHeight: 170 });
+  nodes(h.tree).find(n => n.props['aria-label'] === 'Add story text').props.onClick();
+  let tree = h.tree;
+  assert.ok(nodes(tree).some(n => n.props['data-story-post-id'] === original.id));
+  nodes(tree).find(n => n.props['aria-label'] === 'Story text').props.onChange({ target: { value: 'My response' } });
+  nodes(h.tree).find(n => n.props['aria-label'] === 'Done editing sticker').props.onClick();
+  h.tree;
+  assert.equal(h.props.value.find(s => s.id === original.id).postText, original.postText);
+  assert.equal(h.props.value.find(s => s.id === original.id).postId, original.postId);
+  assert.equal(h.props.value.find(s => s.kind === 'text').text, 'My response');
+  h.unmount();
+});
+
+test('cancel or an empty new text layer never deletes the shared post', () => {
+  for (const action of ['cancel', 'empty']) {
+    const h = editor({ value: [sticker({ postMediaUrl: null, postText: 'Only words' })] });
+    nodes(h.tree).find(n => n.props['aria-label'] === 'Add story text').props.onClick();
+    const tree = h.tree;
+    if (action === 'cancel') nodes(tree).find(n => n.type === 'button' && n.props.children === 'Cancel').props.onClick();
+    else nodes(tree).find(n => n.props['aria-label'] === 'Done editing sticker').props.onClick();
+    h.tree;
+    assert.equal(h.props.value.length, 1); assert.equal(h.props.value[0].postText, 'Only words');
+    h.unmount();
+  }
+});
+
+test('the shared-post placement editor does not expose the empty metadata field as editable words', () => {
+  const h = editor();
+  nodes(h.tree).find(n => n.props['data-story-post-id'] === 'post').props.onClick();
+  let tree = h.tree;
+  assert.ok(!nodes(tree).some(n => n.type === 'textarea'));
+  const size = nodes(tree).find(n => n.props['aria-label'] === 'Sticker size');
+  size.props.onChange({ target: { value: '0.8' } });
+  nodes(h.tree).find(n => n.props['aria-label'] === 'Done editing sticker').props.onClick();
+  h.tree;
+  assert.equal(h.props.value.length, 1); assert.equal(h.props.value[0].scale, .8);
+  assert.equal(h.props.value[0].postId, 'source');
+  h.unmount();
 });

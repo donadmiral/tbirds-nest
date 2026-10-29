@@ -68,8 +68,10 @@ import ListingDetailScreen  from '../screens/market/ListingDetailScreen';
 import CreateListingScreen  from '../screens/market/CreateListingScreen';
 import { BlurView } from 'expo-blur';
 import AdaptiveTabBar from '../components/AdaptiveTabBar';
+import ProfileTabAvatar from '../components/ProfileTabAvatar';
 
 import ConversationsScreen     from '../screens/messages/ConversationsScreen';
+import NewMessageScreen        from '../screens/messages/NewMessageScreen';
 import ChatScreen              from '../screens/messages/ChatScreen';
 import MemoryAlbumScreen       from '../screens/profile/MemoryAlbumScreen';
 import GroupManagementScreen   from '../screens/messages/GroupManagementScreen';
@@ -174,7 +176,7 @@ function MessagesStackNav() {
     <MsgStack.Navigator screenOptions={{ headerShown: false }}>
       <MsgStack.Screen name="Conversations"    component={ConversationsScreen} />
       <MsgStack.Screen name="CreateGroup"      component={CreateGroupScreen} />
-      <MsgStack.Screen name="FindPeople"       component={NetworkScreen} />
+      <MsgStack.Screen name="FindPeople"       component={NewMessageScreen} />
       <MsgStack.Screen name="GroupManagement"  component={GroupManagementScreen} />
       <MsgStack.Screen name="MessageRequests"  component={MessageRequestsScreen} />
       <MsgStack.Screen name="SavedMessages"    component={SavedMessagesScreen} />
@@ -328,6 +330,8 @@ function MainTabs() {
         tabBarAccessibilityLabel: route.name === 'Feed' ? 'Home' : route.name,
         tabBarButton: (props) => <TabBarButton {...props} reduceMotion={accessibility.reduceMotion} />,
         tabBarIcon: ({ focused, color, size }) => {
+          if (route.name === 'Profile') return <ProfileTabAvatar userId={userId} uri={profile?.avatar_url}
+            name={profile?.full_name || profile?.username} focused={focused} size={size + 2} />;
           const iconName = getTabIcon(route.name, focused);
           if (route.name === 'Feed' && unreadNotifs > 0) {
             return (
@@ -560,7 +564,8 @@ export default function AppNavigator() {
                 <RootStack.Screen name="ArticleCompose"       component={ArticleComposeScreen} />
                 <RootStack.Screen name="TrendFeed"            component={TrendFeedScreen} />
                 <RootStack.Screen name="UserProfile"          component={UserProfileScreen} />
-                <RootStack.Screen name="Chat"                 component={ChatScreen} />
+                <RootStack.Screen name="Chat" component={ChatScreen} getId={({ params }: any) =>
+                  `${useAuthStore.getState().profile?.id ?? ''}:${params?.actAsId ?? ''}:${params?.conversationId || params?.userId || params?.otherUser?.id || 'new'}`} />
                 <RootStack.Screen name="MemoryAlbum"          component={MemoryAlbumScreen} />
                 <RootStack.Screen name="MessageRequests"      component={MessageRequestsScreen} />
                 <RootStack.Screen name="GroupManagement"      component={GroupManagementScreen} />

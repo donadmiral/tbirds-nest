@@ -110,7 +110,7 @@ test('short iPhones keep post editor actions pinned and all media tools horizont
 test('native shared-post stories show caption, uncropped media, handle and a working glass post link', () => {
   const view = load('src/components/stories/PostStoryCard.tsx'), opened = [];
   const tree = view.render({ sticker: { postId: 'post', postText: 'Caption above', postMediaUrl: 'photo.jpg', postMediaType: 'image', postMediaWidth: 1000, postMediaHeight: 1600, postMediaCount: 4, postAuthorName: 'Creator', postUsername: 'creator' }, interactive: true, onOpenPost: () => opened.push('post') });
-  const nodes = walk(tree), caption = nodes.findIndex(n => n.props.children === 'Caption above'), image = nodes.findIndex(n => n.type === 'Image' && n.props.resizeMode === 'contain'), author = nodes.findIndex(n => n.props.children === '@creator');
+  const nodes = walk(tree), caption = nodes.findIndex(n => n.props.children === 'Caption above'), image = nodes.findIndex(n => n.type === './StoryPixelImage' && n.props.fit === 'contain' && n.props.uri === 'photo.jpg'), author = nodes.findIndex(n => n.props.children === '@creator');
   assert.ok(caption < image && image < author);
   assert.equal(flat(nodes[0].props.style).backgroundColor, 'transparent');
   const mediaWrap = nodes.find(n => n.type === 'View' && walk(n).includes(nodes[image]) && flat(n.props.style).overflow === 'hidden');

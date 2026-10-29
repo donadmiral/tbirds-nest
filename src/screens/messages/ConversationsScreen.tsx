@@ -1,3 +1,4 @@
+import { conversationUnreadCounts } from '../../../shared/messageReceipts';
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import { TapTopFlatList } from '../../components/TapTopList';
 import EmptyState from '../../components/EmptyState';
@@ -70,7 +71,7 @@ function avatarColor(id: string) {
 }
 
 export default function ConversationsScreen({ navigation }: any) {
-  useTheme();
+  const { t, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
   const userId = profile?.id ?? null;
@@ -86,6 +87,8 @@ export default function ConversationsScreen({ navigation }: any) {
     }
   }, [showArchived, conversations]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const loadGeneration = useRef(0);
   const [search, setSearch]  = useState('');
   const [tab, setTab]        = useState<'all' | 'groups' | 'unread'>('all');
   // Reuses the same source the story strip draws from, so a ring here and a
@@ -106,7 +109,7 @@ export default function ConversationsScreen({ navigation }: any) {
   const mountedRef = useRef(true);
   const initialLoadDoneRef = useRef(false);
   const accountRef = useRef(userId); accountRef.current = userId;
-  useEffect(() => { setConversations([]); initialLoadDoneRef.current = false; }, [userId]);
+  useEffect(() => { setConversations([]); setLoadError(null); initialLoadDoneRef.current = false; loadGeneration.current++; }, [userId]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -144,38 +147,45 @@ useEffect(() => {
   }, [userId, conversations]);
 
   const load = useCallback(async () => {
-    if (!userId) return;
+    if (!userId) { setLoading(false); return; }
+    const generation = ++loadGeneration.current;
+    const current = () => mountedRef.current && accountRef.current === userId && generation === loadGeneration.current;
+    setLoadError(null);
     if (!initialLoadDoneRef.current) setLoading(true);
     try {
       // Load DMs
-      const { data: dmConvs } = await supabase
+      const { data: dmConvs, error: dmError } = await supabase
         .from('conversations')
         .select('*')
         .or(`user_1.eq.${userId},user_2.eq.${userId}`)
         .eq('is_group', false)
         .order('last_message_time', { ascending: false });
 
+      if (dmError) throw dmError;
+
       // Load group convs via conversation_members
-      const { data: memberRows } = await supabase
+      const { data: memberRows, error: memberError } = await supabase
         .from('conversation_members')
         .select('conversation_id')
         .eq('user_id', userId);
 
+      if (memberError) throw memberError;
       const groupIds = (memberRows || []).map((r: any) => r.conversation_id);
       let groupConvs: any[] = [];
       if (groupIds.length > 0) {
-        const { data: gc } = await supabase
+        const { data: gc, error: groupError } = await supabase
           .from('conversations')
           .select('*')
           .in('id', groupIds)
           .eq('is_group', true)
           .order('last_message_time', { ascending: false });
+        if (groupError) throw groupError;
         groupConvs = gc || [];
       }
 
       const allConvs = [...(dmConvs || []), ...await signGroupAvatars(groupConvs)];
       if (allConvs.length === 0) {
-        if (mountedRef.current && accountRef.current === userId) setConversations([]);
+        if (current()) setConversations([]);
         return;
       }
 
@@ -198,17 +208,15 @@ useEffect(() => {
         .filter(Boolean);
       const profileMap: Record<string, any> = {};
       if (dmOtherIds.length > 0) {
-        const { data: profs } = await supabase
+        const { data: profs, error: profileError } = await supabase
           .from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier').in('id', dmOtherIds);
+        if (profileError) throw profileError;
         (profs || []).forEach((p: any) => { profileMap[p.id] = p; });
       }
 
       // Unread counts
       const { data: unreadData } = await supabase.rpc('get_unread_counts');
-      const unreadMap: Record<string, number> = {};
-      (unreadData || []).forEach((m: any) => {
-        unreadMap[m.conversation_id] = (unreadMap[m.conversation_id] || 0) + (m.unread || 0);
-      });
+      const unreadMap = conversationUnreadCounts(unreadData);
 
       const list: Conversation[] = allConvs
         .filter((c: any) => !(settingsMap[c.id]?.is_deleted))
@@ -249,10 +257,10 @@ useEffect(() => {
         return tb - ta;
       });
 
-      if (mountedRef.current && accountRef.current === userId) setConversations(list);
-    } catch (e) { console.log('[Conversations] load error:', e); }
+      if (current()) setConversations(list);
+    } catch { if (current()) setLoadError('Your conversations could not be refreshed. Please try again.'); }
     finally {
-      if (mountedRef.current && accountRef.current === userId) { setLoading(false); initialLoadDoneRef.current = true; }
+      if (current()) { setLoading(false); initialLoadDoneRef.current = true; }
     }
   }, [userId]);
 
@@ -652,22 +660,22 @@ const swipeActions = (item: Conversation) => (
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       {/* Header */}
       <View style={s.head}>
         <Text style={s.title}>Messages</Text>
         <View style={{ flexDirection: 'row', gap: 8 }}>
-          <TouchableOpacity style={s.iconBtn} onPress={() => navigation.navigate('Channels')}>
-            <Feather name="radio" size={18} color="#0B1E3D" />
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Channels" style={s.iconBtn} onPress={() => navigation.navigate('Channels')}>
+            <Feather name="radio" size={18} color={t.ink.primary} />
           </TouchableOpacity>
-          <TouchableOpacity style={s.iconBtn} onPress={() => navigation.navigate('CallLog')}>
-            <Feather name="phone" size={18} color="#374151" />
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Call history" style={s.iconBtn} onPress={() => navigation.navigate('CallLog')}>
+            <Feather name="phone" size={18} color={t.ink.secondary} />
           </TouchableOpacity>
-          <TouchableOpacity style={s.iconBtn} onPress={() => navigation.navigate('StarredMessages')}>
-            <Feather name="bookmark" size={18} color="#374151" />
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Saved messages" style={s.iconBtn} onPress={() => navigation.navigate('StarredMessages')}>
+            <Feather name="bookmark" size={18} color={t.ink.secondary} />
           </TouchableOpacity>
-          <TouchableOpacity style={s.newBtn} onPress={() => navigation.navigate('FindPeople')} activeOpacity={0.8}>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="New message" style={s.newBtn} onPress={() => navigation.navigate('FindPeople')} activeOpacity={0.8}>
             <Ionicons name="create" size={15} color="#FFF" />
             <Text style={s.newBtnTxt}>New</Text>
           </TouchableOpacity>
@@ -676,14 +684,14 @@ const swipeActions = (item: Conversation) => (
 
       {/* Search */}
       <View style={s.searchWrap}>
-        <Feather name="search" size={15} color="#8E8E93" />
+        <Feather name="search" size={15} color={t.ink.secondary} />
         <TextInput
           value={search} onChangeText={setSearch}
           placeholder="Search messages"
           placeholderTextColor={getTheme().ink.secondary} style={s.searchInput}
           autoCapitalize="none" returnKeyType="search"
         />
-        {search.length > 0 && <TouchableOpacity onPress={() => setSearch('')}><Feather name="x" size={15} color="#8E8E93" /></TouchableOpacity>}
+        {search.length > 0 && <TouchableOpacity onPress={() => setSearch('')}><Feather name="x" size={15} color={t.ink.secondary} /></TouchableOpacity>}
       </View>
 
       {/* Tabs */}
@@ -698,9 +706,10 @@ const swipeActions = (item: Conversation) => (
       </View>
 
       {/* List */}
+      {loadError ? <View style={{ paddingHorizontal: 16, paddingVertical: 10 }}><Text accessibilityRole="alert" style={{ color: t.ink.secondary }}>{loadError}</Text><TouchableOpacity accessibilityRole="button" onPress={() => void load()} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={{ color: t.status.link }}>Retry conversations</Text></TouchableOpacity></View> : null}
       {loading ? (
         <View style={s.center}><ConversationsSkeleton /></View>
-      ) : filtered.length === 0 ? (
+      ) : loadError && conversations.length === 0 ? <View style={s.center} /> : filtered.length === 0 ? (
         <View style={s.empty}>
           <Feather name="message-circle" size={44} color="#E5E5EA" />
           <Text style={s.emptyTitle}>{search ? 'No results' : tab === 'unread' ? 'All caught up' : 'No messages yet'}</Text>
@@ -734,7 +743,7 @@ const swipeActions = (item: Conversation) => (
               {showArchived && (
                 <TouchableOpacity onPress={() => setShowArchived(false)} activeOpacity={0.7}
                   style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 12 }}>
-                  <Feather name="chevron-left" size={20} color="#0B1E3D" />
+                  <Feather name="chevron-left" size={20} color={t.ink.primary} />
                   <Text style={{ fontSize: 15.5, fontWeight: '700', color: '#0B1E3D' }}>Archived chats</Text>
                 </TouchableOpacity>
               )}

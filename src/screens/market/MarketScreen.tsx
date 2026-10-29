@@ -290,7 +290,7 @@ export default function MarketScreen({ navigation }: any) {
         <ListRowSkeleton />
       ) : listings.length === 0 && !loadFailed ? (
         <View style={s.center}>
-          <Feather name="shopping-bag" size={40} color="#E5E5EA" />
+          <Feather name="shopping-bag" size={40} color={t.ink.muted} />
           <Text style={s.emptyTitle}>Nothing here yet</Text>
           <Text style={s.emptyTxt}>Be the first to list something for sale.</Text>
         </View>

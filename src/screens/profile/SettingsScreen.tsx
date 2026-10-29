@@ -280,11 +280,12 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
           { text: 'Cancel', style: 'cancel' },
         ]);
       } },
-      { icon: 'moon', color: getTheme().ink.primary, label: 'Appearance', sub: (() => { const m = useThemeStore.getState().mode; return m === 'dark' ? 'Dark' : m === 'light' ? 'Light' : 'Follows your phone'; })(), onPress: () => {
-        Alert.alert('Appearance', 'Light, dark, or whatever your phone is set to', [
+      { icon: 'moon', color: getTheme().ink.primary, label: 'Appearance', sub: (() => { const m = useThemeStore.getState().mode; return m === 'lightsOut' ? 'Lights out' : m === 'dark' ? 'Dim' : m === 'light' ? 'Light' : 'Follows your phone'; })(), onPress: () => {
+        Alert.alert('Appearance', 'Choose a light, dim, or black background.', [
           { text: 'Follow my phone', onPress: () => useThemeStore.getState().setMode('system') },
           { text: 'Light', onPress: () => useThemeStore.getState().setMode('light') },
-          { text: 'Dark', onPress: () => useThemeStore.getState().setMode('dark') },
+          { text: 'Dim', onPress: () => useThemeStore.getState().setMode('dark') },
+          { text: 'Lights out', onPress: () => useThemeStore.getState().setMode('lightsOut') },
           { text: 'Cancel', style: 'cancel' },
         ]);
       } },
@@ -370,7 +371,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
     { title: 'Support', rows: [
       { icon: 'help-circle', color: getTheme().ink.primary, label: 'Help & Support', sub: 'FAQs, submit a ticket', onPress: () => navigation.navigate('HelpSupport') },
       { icon: 'mail', color: getTheme().ink.primary, label: 'Contact Us', sub: 'support@platinumcircles.app', onPress: () => Linking.openURL('mailto:support@platinumcircles.app?subject=PlatinumCircles%20Inquiry').catch(() => Alert.alert('No mail app', 'Email us at support@platinumcircles.app')) },
-      { icon: 'star', color: getTheme().ink.primary, label: 'Rate the App', sub: 'Share your feedback', onPress: () => Alert.alert('Thank you!', 'App Store rating coming soon.') },
+      { icon: 'star', color: getTheme().ink.primary, label: 'Rate the App', sub: 'Available after the public App Store release', chevron: false },
     ]},
     { title: 'Legal', rows: [
       { icon: 'file-text', color: getTheme().ink.secondary, label: 'Terms of Service', onPress: () => navigation.navigate('Terms') },
@@ -380,7 +381,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
       { icon: 'refresh-cw', color: getTheme().ink.primary, label: 'Switch Account', sub: 'Up to five accounts on this phone; long-press the Profile tab any time', onPress: () => useAccountsStore.getState().openSwitcher() },
       { icon: 'log-out', color: getTheme().ink.primary, label: 'Sign Out', onPress: handleSignOut },
       { icon: 'moon', color: getTheme().ink.secondary, label: 'Deactivate Account', sub: 'Hide your profile temporarily', onPress: handleDeactivate },
-      { icon: 'trash-2', color: '#FF3B30', label: 'Delete Account', sub: 'Permanently remove all your data', danger: true, onPress: () => { setDeleteConfirmTxt(''); setDeleteModal(true); } },
+      { icon: 'trash-2', color: '#FF3B30', label: 'Delete Account', sub: 'Permanently delete this account', danger: true, onPress: () => { setDeleteConfirmTxt(''); setDeleteModal(true); } },
     ]},
   ];
 
@@ -719,7 +720,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
               <Feather name="alert-triangle" size={24} color="#FF3B30" />
               <Text style={s.deleteWarningTitle}>This action is permanent</Text>
               <Text style={s.deleteWarningTxt}>
-                All your data will be permanently deleted, including your profile, posts, messages, connections, and all other content. This cannot be undone.
+                Your account and app records will be deleted. This cannot be undone. Uploaded files are not automatically erased by this action. Contact support if you also need those files removed.
               </Text>
             </View>
             <Text style={s.modalFieldLabel}>Type DELETE to confirm</Text>

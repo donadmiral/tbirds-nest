@@ -1,5 +1,5 @@
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput, Image,
   FlatList, ActivityIndicator, StatusBar, Alert, KeyboardAvoidingView, Platform, ScrollView,
@@ -9,6 +9,8 @@ import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
+import { messagesBack, openChatFromComposer } from '../../navigation/messagesNavigation';
+import { searchMessagePeople } from '../../../shared/peopleSearch';
 
 type Candidate = {
   id: string;
@@ -29,10 +31,18 @@ function initials(n?: string | null) {
 }
 
 export default function CreateGroupScreen({ navigation }: any) {
-  useTheme();
+  const { t, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
   const myId = profile?.id ?? null;
+  const owner = useRef(myId); owner.current = myId;
+  const alive = useRef(true);
+  const creatingRef = useRef(false);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
 
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Candidate[]>([]);
@@ -42,11 +52,13 @@ export default function CreateGroupScreen({ navigation }: any) {
   const [initialList, setInitialList] = useState<Candidate[]>([]);
   const [loadingInitial, setLoadingInitial] = useState(true);
 
+  useEffect(() => { setSelected([]); setGroupName(''); setQuery(''); }, [myId]);
+
   useEffect(() => {
-    if (!myId) return;
+    if (!myId) { setInitialList([]); setLoadingInitial(false); return; }
     let cancelled = false;
     (async () => {
-      setLoadingInitial(true);
+      setLoadingInitial(true); setLoadError(null);
       try {
         const { data: rows, error: fErr } = await supabase
           .from('follows')
@@ -54,9 +66,7 @@ export default function CreateGroupScreen({ navigation }: any) {
           .eq('follower_id', myId)
           .limit(50);
 
-        if (fErr) {
-          console.log('[CreateGroup follows error]', fErr);
-        }
+        if (fErr) throw fErr;
 
         const otherIds = Array.from(new Set(
           (rows || [])
@@ -69,38 +79,34 @@ export default function CreateGroupScreen({ navigation }: any) {
           return;
         }
 
-        const { data: profs } = await supabase
+        const { data: profs, error: profileError } = await supabase
           .from('profiles')
           .select('id, full_name, username, avatar_url')
           .in('id', otherIds)
           .limit(50);
 
+        if (profileError) throw profileError;
         if (!cancelled) setInitialList((profs || []) as Candidate[]);
       } catch (e) {
-        console.log('[CreateGroup initial]', e);
+        if (!cancelled) setLoadError('Your connections could not be loaded. Search for a person or retry.');
       } finally {
         if (!cancelled) setLoadingInitial(false);
       }
     })();
     return () => { cancelled = true; };
-  }, [myId]);
+  }, [myId, attempt]);
 
   useEffect(() => {
-    if (!query.trim() || query.trim().length < 2) {
-      setResults([]);
-      return;
-    }
-    const t = setTimeout(async () => {
-      const q = query.trim();
-      const { data } = await supabase
-        .from('profiles')
-        .select('id, full_name, username, avatar_url')
-        .or(`full_name.ilike.%${q}%,username.ilike.%${q}%`)
-        .neq('id', myId)
-        .limit(20);
-      setResults((data || []) as Candidate[]);
+    let current = true;
+    setResults([]); setSearchError(null); setSearching(!!query.trim() && !!myId);
+    if (!query.trim() || !myId) return;
+    const timer = setTimeout(() => {
+      void searchMessagePeople(supabase, myId, query).then(people => {
+        if (current) setResults(people);
+      }, () => { if (current) setSearchError('People could not be loaded. Edit your search to retry.'); })
+        .finally(() => { if (current) setSearching(false); });
     }, 250);
-    return () => clearTimeout(t);
+    return () => { current = false; clearTimeout(timer); };
   }, [query, myId]);
 
   const isSelected = useCallback(
@@ -120,7 +126,7 @@ export default function CreateGroupScreen({ navigation }: any) {
   };
 
   const createGroup = async () => {
-    if (!myId || creating) return;
+    if (!myId || creatingRef.current) return;
     if (selected.length < 1) {
       Alert.alert('Add at least 1 member', 'A group needs at least one other person.');
       return;
@@ -130,7 +136,9 @@ export default function CreateGroupScreen({ navigation }: any) {
       return;
     }
 
+    creatingRef.current = true;
     setCreating(true);
+    const current = () => alive.current && owner.current === myId;
     try {
       const memberIds = selected.map(s => s.id);
 
@@ -143,30 +151,19 @@ export default function CreateGroupScreen({ navigation }: any) {
         throw error || new Error('Could not create group');
       }
 
+      if (!current()) return;
       const name = groupName.trim();
-      const parent = navigation.getParent();
-      navigation.goBack();
-      setTimeout(() => {
-        if (parent) {
-          parent.navigate('Chat', {
-            conversationId: newConvId,
-            isGroup: true,
-            groupName: name,
-            groupEmoji: '💬',
-            userName: name,
-          });
-        }
-      }, 50);
+      openChatFromComposer(navigation, { conversationId: newConvId, isGroup: true, groupName: name, groupEmoji: '💬', userName: name });
     } catch (e: any) {
-      console.log('[CreateGroup error]', e);
-      Alert.alert('Error', e?.message || 'Could not create group.');
+      if (current()) Alert.alert('Could not create group', e?.message || 'Please try again.');
     } finally {
-      setCreating(false);
+      creatingRef.current = false;
+      if (current()) setCreating(false);
     }
   };
 
   const canCreate = selected.length >= 1 && groupName.trim().length > 0 && !creating;
-  const displayList: Candidate[] = query.trim().length >= 2 ? results : initialList;
+  const displayList: Candidate[] = query.trim().length > 0 ? results : initialList;
 
   const renderCandidate = ({ item }: { item: Candidate }) => {
     const picked = isSelected(item.id);
@@ -192,7 +189,7 @@ export default function CreateGroupScreen({ navigation }: any) {
           ) : null}
         </View>
         <View style={[s.checkbox, picked && s.checkboxOn]}>
-          {picked && <Feather name="check" size={14} color="#FFF" />}
+          {picked && <Feather name="check" size={14} color={t.ink.inverse} />}
         </View>
       </TouchableOpacity>
     );
@@ -200,14 +197,14 @@ export default function CreateGroupScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={s.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-            <Feather name="chevron-left" size={26} color="#000" />
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Cancel new group" onPress={() => messagesBack(navigation)} style={s.backBtn}>
+            <Feather name="chevron-left" size={26} color={t.ink.primary} />
           </TouchableOpacity>
           <View style={{ flex: 1 }}>
             <Text style={s.title}>New group</Text>
@@ -222,7 +219,7 @@ export default function CreateGroupScreen({ navigation }: any) {
             activeOpacity={0.8}
           >
             {creating ? (
-              <ActivityIndicator color="#FFF" size={14} />
+              <ActivityIndicator color={t.ink.inverse} size={14} />
             ) : (
               <Text style={s.createBtnTxt}>Create</Text>
             )}
@@ -230,12 +227,12 @@ export default function CreateGroupScreen({ navigation }: any) {
         </View>
 
         <View style={s.nameWrap}>
-          <Feather name="users" size={18} color="#6B7280" />
+          <Feather name="users" size={18} color={t.ink.secondary} />
           <TextInput
             value={groupName}
             onChangeText={setGroupName}
             placeholder="Group name"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={t.ink.muted}
             style={s.nameInput}
             maxLength={60}
           />
@@ -265,7 +262,7 @@ export default function CreateGroupScreen({ navigation }: any) {
                   <Text style={s.chipTxt} numberOfLines={1}>
                     {(c.full_name || 'User').split(' ')[0]}
                   </Text>
-                  <Feather name="x" size={12} color="#6B7280" />
+                  <Feather name="x" size={12} color={t.ink.secondary} />
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -273,7 +270,7 @@ export default function CreateGroupScreen({ navigation }: any) {
         )}
 
         <View style={s.searchWrap}>
-          <Feather name="search" size={15} color="#8E8E93" />
+          <Feather name="search" size={15} color={t.ink.secondary} />
           <TextInput
             value={query}
             onChangeText={setQuery}
@@ -285,23 +282,25 @@ export default function CreateGroupScreen({ navigation }: any) {
           />
           {query.length > 0 && (
             <TouchableOpacity onPress={() => setQuery('')}>
-              <Feather name="x" size={15} color="#8E8E93" />
+              <Feather name="x" size={15} color={t.ink.secondary} />
             </TouchableOpacity>
           )}
         </View>
 
-        {loadingInitial && displayList.length === 0 ? (
+        {loadError && !query.trim() ? <View style={{ paddingHorizontal: 16 }}><Text accessibilityRole="alert" style={s.emptySub}>{loadError}</Text><TouchableOpacity accessibilityRole="button" onPress={() => setAttempt(value => value + 1)} style={s.backBtn}><Text style={{ color: t.status.link }}>Retry</Text></TouchableOpacity></View> : null}
+        {searchError ? <Text accessibilityRole="alert" style={s.emptySub}>{searchError}</Text> : null}
+        {(query.trim() ? searching : loadingInitial) && displayList.length === 0 ? (
           <View style={s.loader}>
-            <ActivityIndicator color="#000" />
+            <ActivityIndicator color={t.ink.primary} />
           </View>
         ) : displayList.length === 0 ? (
           <View style={s.empty}>
-            <Feather name="users" size={40} color="#D1D5DB" />
+            <Feather name="users" size={40} color={t.ink.muted} />
             <Text style={s.emptyTitle}>
-              {query.trim().length >= 2 ? 'No results' : 'No connections yet'}
+              {query.trim().length > 0 ? 'No results' : 'No connections yet'}
             </Text>
             <Text style={s.emptySub}>
-              {query.trim().length >= 2
+              {query.trim().length > 0
                 ? 'Try a different name.'
                 : 'Search for people by name or username.'}
             </Text>
@@ -314,7 +313,7 @@ export default function CreateGroupScreen({ navigation }: any) {
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={{ paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + 24 }}
             ListHeaderComponent={
-              query.trim().length < 2 && initialList.length > 0 ? (
+              query.trim().length === 0 && initialList.length > 0 ? (
                 <Text style={s.sectionLabel}>YOUR CONNECTIONS</Text>
               ) : null
             }
@@ -333,13 +332,13 @@ const s = themedSheet((t) => ({
     paddingHorizontal: 8,
     paddingVertical: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: t.surface.hairline,
   },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  title: { fontSize: 18, fontWeight: '700', color: '#000' },
-  subtitle: { fontSize: 12, color: '#6B7280', marginTop: 1 },
+  title: { fontSize: 18, fontWeight: '700', color: t.ink.primary },
+  subtitle: { fontSize: 12, color: t.ink.secondary, marginTop: 1 },
   createBtn: {
-    backgroundColor: '#000',
+    backgroundColor: t.brand.base,
     borderRadius: 12,
     paddingHorizontal: 18,
     paddingVertical: 9,
@@ -356,31 +355,31 @@ const s = themedSheet((t) => ({
     marginHorizontal: 14,
     marginTop: 14,
     marginBottom: 10,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: t.surface.sunken,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
   },
-  nameInput: { flex: 1, fontSize: 15, fontWeight: '500', color: '#000', padding: 0 },
+  nameInput: { flex: 1, fontSize: 15, fontWeight: '500', color: t.ink.primary, padding: 0 },
 
   chipsWrap: {
     paddingVertical: 8,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: t.surface.hairline,
   },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#EFF6FF',
+    backgroundColor: t.status.linkBg,
     borderRadius: 20,
     paddingLeft: 4,
     paddingRight: 10,
     paddingVertical: 4,
   },
   chipAvatar: { width: 24, height: 24, borderRadius: 12 },
-  chipAvatarTxt: { fontSize: 11, fontWeight: '700', color: t.ink.inverse },
-  chipTxt: { fontSize: 12, fontWeight: '600', color: '#1D4ED8', maxWidth: 80 },
+  chipAvatarTxt: { fontSize: 11, fontWeight: '700', color: '#FFFFFF' },
+  chipTxt: { fontSize: 12, fontWeight: '600', color: t.status.link, maxWidth: 80 },
 
   searchWrap: {
     flexDirection: 'row',
@@ -397,13 +396,13 @@ const s = themedSheet((t) => ({
 
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, gap: 10 },
-  emptyTitle: { fontSize: 17, fontWeight: '600', color: '#000' },
-  emptySub: { fontSize: 13, color: '#8E8E93', textAlign: 'center' },
+  emptyTitle: { fontSize: 17, fontWeight: '600', color: t.ink.primary },
+  emptySub: { fontSize: 13, color: t.ink.secondary, textAlign: 'center' },
 
   sectionLabel: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#8E8E93',
+    color: t.ink.secondary,
     letterSpacing: 0.8,
     paddingHorizontal: 16,
     paddingTop: 12,
@@ -417,20 +416,20 @@ const s = themedSheet((t) => ({
     paddingVertical: 10,
   },
   candidateAvatar: { width: 44, height: 44, borderRadius: 22 },
-  candidateAvatarTxt: { fontSize: 14, fontWeight: '800', color: t.ink.inverse },
-  candidateName: { fontSize: 15, fontWeight: '600', color: '#000' },
-  candidateHandle: { fontSize: 12, color: '#8E8E93', marginTop: 2 },
+  candidateAvatarTxt: { fontSize: 14, fontWeight: '800', color: '#FFFFFF' },
+  candidateName: { fontSize: 15, fontWeight: '600', color: t.ink.primary },
+  candidateHandle: { fontSize: 12, color: t.ink.secondary, marginTop: 2 },
   checkbox: {
     width: 22,
     height: 22,
     borderRadius: 11,
     borderWidth: 1.5,
-    borderColor: '#D1D5DB',
+    borderColor: t.ink.muted,
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkboxOn: {
-    backgroundColor: '#000',
-    borderColor: '#000',
+    backgroundColor: t.brand.base,
+    borderColor: t.brand.base,
   },
 }));

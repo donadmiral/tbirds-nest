@@ -1,3 +1,4 @@
+import StoryPixelImage from './StoryPixelImage';
 import React, { useCallback, useEffect, useRef } from 'react';
 import {
   View,
@@ -123,6 +124,7 @@ type MediaCanvasProps = {
   onTransformChange: (transform: MediaTransform) => void;
   onFitToggle: () => void;
   interactive: boolean;
+  showControls?: boolean;
   /** Space at the bottom of the canvas that chrome occupies (caption bar,
    *  Post button, home indicator) so canvas controls never sit under it. */
   bottomInset?: number;
@@ -156,6 +158,7 @@ export default function MediaCanvas({
   onTransformChange,
   onFitToggle,
   interactive,
+  showControls = true,
   bottomInset = 0,
   bg = null,
   videoMuted = false,
@@ -222,6 +225,7 @@ export default function MediaCanvas({
     const ch = containerH.current;
     if (cw === 0 || ch === 0) return;
     const t: MediaTransform = {
+      ...mediaTransform,
       scale,
       translateNX: txPx / cw,
       translateNY: tyPx / ch,
@@ -229,7 +233,7 @@ export default function MediaCanvas({
     };
     prevTransformRef.current = t;
     onTransformChange(t);
-  }, [mediaFit, onTransformChange]);
+  }, [mediaFit, mediaTransform, onTransformChange]);
 
   // ── Gesture handler refs for simultaneousHandlers ──
   const pinchRef = useRef<PinchGestureHandler>(null);
@@ -376,7 +380,7 @@ export default function MediaCanvas({
   }, [gesturesEnabled, imageW, imageH, mediaFit, imgScale, imgTx, imgTy, persistTransform]);
 
   // ── Fit/fill toggle button visibility ──
-  const showFitToggle = interactive && imageW > 0 && imageH > 0;
+  const showFitToggle = showControls && interactive && imageW > 0 && imageH > 0;
 
   // ── Image resizeMode ──
   const resizeMode = mediaFit === 'contain' ? 'contain' : 'cover';
@@ -404,11 +408,7 @@ export default function MediaCanvas({
       {mediaType === 'video' && ExpoVideoView && useExpoVideoPlayer ? (
         <StoryVideoLayer key={localUri} uri={localUri} fit={resizeMode as any} muted={videoMuted} paused={videoPaused} volume={videoVolume} speed={videoSpeed} preservesPitch={videoPreservesPitch} trimStart={trimStart} trimEnd={trimEnd} onPlayer={onVideoPlayer} />
       ) : (
-        <Image
-          source={{ uri: localUri }}
-          style={styles.media}
-          resizeMode={resizeMode}
-        />
+        <StoryPixelImage uri={localUri} style={styles.media} fit={resizeMode} />
       )}
     </Animated.View>
   ) : null;

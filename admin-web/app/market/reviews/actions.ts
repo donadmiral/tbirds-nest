@@ -2,6 +2,7 @@
 import { revalidatePath } from "next/cache";
 import { requirePermission } from "@/lib/adminAuth";
 import { serviceClient } from "@/lib/supabaseAdmin";
+import { isMissingAdminRpc } from "@/lib/adminRpcAvailability";
 const UUID = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 export async function moderateReview(data: FormData) {
   const admin = await requirePermission("report_listing");
@@ -33,6 +34,9 @@ export async function moderateReview(data: FormData) {
     p_action: action,
     p_reason: reason,
   });
+  if (isMissingAdminRpc(error, 'moderate_seller_review')) {
+    return { success: false, error: 'Review decisions are unavailable on this deployment. No review was changed. Contact the platform administrator.' };
+  }
   if (error)
     return {
       success: false,

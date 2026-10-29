@@ -6,7 +6,7 @@ import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Appearance } from 'react-native';
 
-export type ThemeMode = 'system' | 'light' | 'dark';
+export type ThemeMode = 'system' | 'light' | 'dark' | 'lightsOut';
 type Resolved = 'light' | 'dark';
 
 type State = {
@@ -20,7 +20,7 @@ type State = {
 const KEY = 'pc.theme.mode';
 let preferenceRevision = 0;
 const systemNow = (): Resolved => (Appearance.getColorScheme() === 'dark' ? 'dark' : 'light');
-const resolve = (mode: ThemeMode, system: Resolved): Resolved => (mode === 'system' ? system : mode);
+const resolve = (mode: ThemeMode, system: Resolved): Resolved => mode === 'system' ? system : mode === 'light' ? 'light' : 'dark';
 
 export const useThemeStore = create<State>((set, get) => ({
   mode: 'system',
@@ -31,7 +31,7 @@ export const useThemeStore = create<State>((set, get) => ({
     try {
       const v = await AsyncStorage.getItem(KEY);
       if (revision !== preferenceRevision) return;
-      const mode: ThemeMode = v === 'light' || v === 'dark' ? v : 'system';
+      const mode: ThemeMode = v === 'light' || v === 'dark' || v === 'lightsOut' ? v : 'system';
       set({ mode, resolved: resolve(mode, get().system) });
     } catch {}
   },

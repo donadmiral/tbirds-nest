@@ -1,6 +1,6 @@
 import VerifiedBadge from "../VerifiedBadge";
 import TierName from "../TierName";
-import { themedSheet } from "../../theme/useTheme";
+import { themedSheet, useTheme } from "../../theme/useTheme";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   View,
@@ -21,7 +21,6 @@ import {
 } from "../../../shared/marketReviews";
 import ReportListingSheet from "./ReportListingSheet";
 const GOLD = "#F5A623";
-const NAVY = "#0B1E3D";
 function Stars({
   value,
   size = 14,
@@ -31,6 +30,7 @@ function Stars({
   size?: number;
   onPick?: (n: number) => void;
 }) {
+  const { t } = useTheme();
   const gap = Math.max(2, Math.round(size * 0.12));
   const rowW = size * 5 + gap * 4;
   const pct = Math.max(0, Math.min(1, value / 5));
@@ -56,7 +56,7 @@ function Stars({
             <Ionicons
               name={n <= value ? "star" : "star-outline"}
               size={size}
-              color={n <= value ? GOLD : "#C7C7CC"}
+              color={n <= value ? GOLD : t.ink.muted}
             />
           </TouchableOpacity>
         ))}
@@ -68,7 +68,7 @@ function Stars({
     <View style={{ width: rowW, height: size }}>
       <View style={{ flexDirection: "row", gap }}>
         {[0, 1, 2, 3, 4].map((i) => (
-          <Ionicons key={"b" + i} name="star" size={size} color="#E6E6EA" />
+          <Ionicons key={"b" + i} name="star" size={size} color={t.ink.faint} />
         ))}
       </View>
       <View
@@ -100,6 +100,7 @@ export default function SellerReviews({
   listingId?: string;
   currentUserId?: string | null;
 }) {
+  const { t, isDark } = useTheme();
   const [storedPage, setPage] = useState<ReviewPage | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -273,7 +274,7 @@ export default function SellerReviews({
           style={s.writeBtn}
           onPress={() => setWriting(true)}
         >
-          <Feather name="edit-2" size={14} color={NAVY} />
+          <Feather name="edit-2" size={14} color={t.ink.primary} />
           <Text style={s.writeTxt}>Write or edit a review</Text>
         </TouchableOpacity>
       )}
@@ -295,7 +296,7 @@ export default function SellerReviews({
                 s.writeBtn,
                 {
                   borderWidth: 1,
-                  borderColor: order === o.id ? NAVY : "transparent",
+                  borderColor: order === o.id ? t.ink.primary : "transparent",
                 },
               ]}
               onPress={() => {
@@ -329,7 +330,8 @@ export default function SellerReviews({
                 editable={!busy}
                 accessibilityLabel="Your review"
                 placeholder="Share how the deal went"
-                placeholderTextColor="#8E8E93"
+                placeholderTextColor={t.ink.muted}
+                keyboardAppearance={isDark ? "dark" : "light"}
                 multiline
                 maxLength={2000}
               />
@@ -351,7 +353,7 @@ export default function SellerReviews({
                   disabled={!order || !rating || busy || loading}
                 >
                   {busy ? (
-                    <ActivityIndicator color="#FFF" />
+                    <ActivityIndicator color={t.ink.inverse} />
                   ) : (
                     <Text style={s.postTxt}>Save review</Text>
                   )}
@@ -419,18 +421,18 @@ const s = themedSheet((t) => ({
     paddingHorizontal: 16,
     paddingTop: 20,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#E5E5EA",
+    borderTopColor: t.surface.hairline,
     marginTop: 18,
   },
   center: { paddingVertical: 24, alignItems: "center" },
   heading: {
     fontSize: 17,
     fontWeight: "800",
-    color: "#0A0A0A",
+    color: t.ink.primary,
     letterSpacing: -0.4,
     marginBottom: 12,
   },
-  none: { fontSize: 14, color: "#8E8E93", paddingBottom: 8 },
+  none: { fontSize: 14, color: t.ink.muted, paddingBottom: 8 },
   summary: {
     flexDirection: "row",
     gap: 20,
@@ -441,18 +443,18 @@ const s = themedSheet((t) => ({
   score: {
     fontSize: 38,
     fontWeight: "800",
-    color: "#0A0A0A",
+    color: t.ink.primary,
     letterSpacing: -1.5,
   },
-  countTxt: { fontSize: 12, color: "#8E8E93" },
+  countTxt: { fontSize: 12, color: t.ink.muted },
   barsCol: { flex: 1, gap: 4 },
   barRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  barNum: { fontSize: 11, color: "#8E8E93", width: 8 },
+  barNum: { fontSize: 11, color: t.ink.muted, width: 8 },
   barTrack: {
     flex: 1,
     height: 6,
     borderRadius: 3,
-    backgroundColor: "#EFEFF4",
+    backgroundColor: t.surface.hairline,
     overflow: "hidden",
   },
   barFill: { height: "100%", backgroundColor: GOLD, borderRadius: 3 },
@@ -461,15 +463,17 @@ const s = themedSheet((t) => ({
     alignItems: "center",
     gap: 7,
     alignSelf: "flex-start",
-    backgroundColor: "#F2F2F7",
+    backgroundColor: t.surface.sunken,
     borderRadius: 12,
     paddingHorizontal: 14,
+    minHeight: 44,
+    justifyContent: "center",
     paddingVertical: 9,
     marginBottom: 14,
   },
-  writeTxt: { fontSize: 14, fontWeight: "700", color: NAVY },
+  writeTxt: { fontSize: 14, fontWeight: "700", color: t.ink.primary },
   composer: {
-    backgroundColor: "#F7F8FA",
+    backgroundColor: t.surface.sunken,
     borderRadius: 14,
     padding: 14,
     gap: 10,
@@ -478,7 +482,7 @@ const s = themedSheet((t) => ({
   input: {
     minHeight: 60,
     fontSize: 14.5,
-    color: "#0A0A0A",
+    color: t.ink.primary,
     textAlignVertical: "top",
   },
   composerActions: {
@@ -487,18 +491,20 @@ const s = themedSheet((t) => ({
     alignItems: "center",
     gap: 16,
   },
-  cancel: { fontSize: 14.5, color: "#8E8E93", fontWeight: "600" },
+  cancel: { fontSize: 14.5, color: t.ink.muted, fontWeight: "600" },
   post: {
-    backgroundColor: NAVY,
+    backgroundColor: t.brand.base,
     borderRadius: 12,
     paddingHorizontal: 20,
+    minHeight: 44,
+    justifyContent: "center",
     paddingVertical: 9,
   },
   postTxt: { color: t.ink.inverse, fontSize: 14.5, fontWeight: "700" },
   review: {
     paddingVertical: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#EFEFF4",
+    borderTopColor: t.surface.hairline,
   },
   reviewHead: {
     flexDirection: "row",
@@ -506,7 +512,7 @@ const s = themedSheet((t) => ({
     justifyContent: "space-between",
     marginBottom: 4,
   },
-  reviewer: { fontSize: 14.5, fontWeight: "700", color: "#0A0A0A" },
-  comment: { fontSize: 14, color: "#3C3C43", lineHeight: 19 },
-  date: { fontSize: 11.5, color: "#8E8E93", marginTop: 5 },
+  reviewer: { fontSize: 14.5, fontWeight: "700", color: t.ink.primary },
+  comment: { fontSize: 14, color: t.ink.secondary, lineHeight: 19 },
+  date: { fontSize: 11.5, color: t.ink.muted, marginTop: 5 },
 }));

@@ -12,7 +12,7 @@ const source = fs.readFileSync(path.join(__dirname, '../components/ThemeProvider
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 } }).outputText;
 function scenario({ saved = null, systemDark = false, unavailable = false } = {}) {
   const slots = [], listeners = new Map(), mediaListeners = new Set(), applied = [];
-  let cursor = 0, dirty = true, effects = [], tree;
+  let cursor = 0, dirty = true, effects = [], tree, lightsOut = false;
   const same = (a, b) => a && b && a.length === b.length && a.every((value, i) => Object.is(value, b[i]));
   const hooks = {
     createContext: () => ({ Provider: 'ThemeContext' }),
@@ -22,14 +22,14 @@ function scenario({ saved = null, systemDark = false, unavailable = false } = {}
   const media = { get matches() { return systemDark; }, addEventListener: (_, fn) => mediaListeners.add(fn), removeEventListener: (_, fn) => mediaListeners.delete(fn) };
   const storage = { getItem() { if (unavailable) throw Error('Storage blocked'); return saved; }, setItem(_, value) { if (unavailable) throw Error('Storage blocked'); saved = value; } };
   const browser = { localStorage: storage, matchMedia: () => media, addEventListener: (name, fn) => listeners.set(name, fn), removeEventListener: name => listeners.delete(name) };
-  const document = { documentElement: { classList: { toggle(name, value) { assert.equal(name, 'dark'); applied.push(value); } } } };
+  const document = { documentElement: { classList: { toggle(name, value) { if(name==='dark') applied.push(value); else if(name==='lights-out') lightsOut=value; else assert.fail('Unknown theme class'); } } } };
   const module = { exports: {} };
   vm.runInNewContext(compiled, { module, exports: module.exports, window: browser, document,
     require: name => name === 'react' ? hooks : { jsx: (type, props) => ({ type, props }) } });
   function render() { let turns = 0; while (dirty) { if (++turns > 20) throw Error('Render loop'); dirty = false; cursor = 0; tree = module.exports.ThemeProvider({ children: 'page' }); const pending = effects; effects = []; pending.forEach(fn => fn()); } }
   render();
   return {
-    get dark() { return applied.at(-1); }, get saved() { return saved; }, get applied() { return applied; }, get theme() { return tree.props.value.theme; },
+    get dark() { return applied.at(-1); }, get lightsOut() { return lightsOut; }, get saved() { return saved; }, get applied() { return applied; }, get theme() { return tree.props.value.theme; },
     choose(value) { tree.props.value.choose(value); render(); },
     system(value) { systemDark = value; [...mediaListeners].forEach(fn => fn()); render(); },
     storage(key, value) { saved = value; listeners.get('storage')?.({ key, newValue: value }); render(); },
@@ -70,9 +70,19 @@ function visit(node) { if (ts.isPropertyAssignment(node) && node.name.getText(la
 visit(layout);
 test('before-paint script matches provider defaults, saved choices and blocked storage', () => {
   assert.ok(bootstrap);
-  for (const [saved, systemDark, blocked, expected] of [[null, true, false, true], ['light', true, false, false], ['dark', false, false, true], ['invalid', false, false, false], [null, true, true, true]]) {
+  for (const [saved, systemDark, blocked, expected] of [[null, true, false, true], ['light', true, false, false], ['dark', false, false, true], ['lightsOut',false,false,true], ['invalid', false, false, false], [null, true, true, true]]) {
     let applied;
-    vm.runInNewContext(bootstrap, { localStorage: { getItem() { if (blocked) throw Error('Storage blocked'); return saved; } }, matchMedia: () => ({ matches: systemDark }), document: { documentElement: { classList: { toggle: (_, value) => { applied = value; } } } } });
+    vm.runInNewContext(bootstrap, { localStorage: { getItem() { if (blocked) throw Error('Storage blocked'); return saved; } }, matchMedia: () => ({ matches: systemDark }), document: { documentElement: { classList: { toggle: (name, value) => { if(name==='dark') applied = value; } } } } });
     assert.equal(applied, expected);
   }
+});
+
+
+test('lights out persists separately from dim and follows cross-tab updates', () => {
+  const h = scenario({saved:'lightsOut',systemDark:false});
+  assert.equal(h.theme,'lightsOut'); assert.equal(h.dark,true); assert.equal(h.lightsOut,true);
+  h.choose('dark'); assert.equal(h.dark,true); assert.equal(h.lightsOut,false);
+  h.choose('lightsOut'); assert.equal(h.saved,'lightsOut'); assert.equal(h.lightsOut,true);
+  h.choose('system'); assert.equal(h.dark,false); assert.equal(h.lightsOut,false);
+  h.storage('pc:theme','lightsOut'); assert.equal(h.lightsOut,true); h.unmount();
 });

@@ -687,8 +687,8 @@ function SettingsSeg({ me, reload }: { me: Me; reload: () => Promise<void> }) {
                 <Text style={s.cardTxt}>{d.label || 'Device'} <Text style={{ color: d.status === 'approved' ? '#1C8C4E' : '#8E8E93', fontSize: 11, fontWeight: '800' }}>{String(d.status).toUpperCase()}</Text></Text>
                 <Text style={s.cardMeta}>{String(d.device_id).slice(0, 12)} · {new Date(d.created_at).toLocaleDateString()}</Text>
               </View>
-              {isAdmin && d.status !== 'approved' ? <TouchableOpacity style={s.approveBtn} onPress={() => act(() => supabase.rpc('studio_set_device', { p_device: d.id, p_status: 'approved' }))}><Feather name="check" size={15} color={getTheme().ink.inverse} /></TouchableOpacity> : null}
-              {isAdmin ? <TouchableOpacity style={s.denyBtn} onPress={() => Alert.alert('Remove device?', 'It will need approval again.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Remove', style: 'destructive', onPress: () => act(() => supabase.rpc('studio_set_device', { p_device: d.id, p_status: 'removed' })) }])}><Feather name="x" size={15} color={getTheme().ink.secondary} /></TouchableOpacity> : null}
+              {isAdmin && d.status !== 'approved' ? <TouchableOpacity style={s.approveBtn} onPress={() => act(() => supabase.rpc('studio_set_device', { p_device: d.id, p_action: 'approve' }))}><Feather name="check" size={15} color={getTheme().ink.inverse} /></TouchableOpacity> : null}
+              {isAdmin ? <TouchableOpacity style={s.denyBtn} onPress={() => Alert.alert('Remove device?', 'It will need approval again.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Remove', style: 'destructive', onPress: () => act(() => supabase.rpc('studio_set_device', { p_device: d.id, p_action: 'remove' })) }])}><Feather name="x" size={15} color={getTheme().ink.secondary} /></TouchableOpacity> : null}
             </View>
           ))}
       </ScrollView>

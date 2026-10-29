@@ -5,7 +5,7 @@ import { MessageButton } from "@/components/MessageButton";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
-import { ArrowLeft, BookOpen, ChevronLeft, ChevronRight, Grid3x3, Pencil, Plus, Settings2, Trash2, X, Check, ArrowUp, ArrowDown, Volume2, VolumeX } from "lucide-react";
+import { ArrowLeft, BookOpen, ChevronLeft, ChevronRight, Grid3x3, Pencil, Plus, Settings2, Trash2, X, Check, ArrowUp, ArrowDown, Volume2, VolumeX, Play, Pause } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import {
   getMemoryBook, saveBookPresentation, updateMemoryPage, swapMemoryPages, deleteMemoryPage,
@@ -22,6 +22,9 @@ import {useMemoryDialog} from './memory/useMemoryDialog';
 import { PostSoundtrack } from './PostSoundtrack';
 import { MemoryStoryFrame } from './memory/MemoryStoryFrame';
 import { memoryStoryRecipe, memoryStorySeek, memoryStoryStickers } from '../../shared/memoryStoryPresentation';
+
+import { memoryPhotoDuration } from '../../shared/memoryPlayback';
+import { useMemoryPlayback } from '../../shared/useMemoryPlayback';
 
 const AUDIENCES = [
   { key: "profile", label: "Everyone who can view my profile" },
@@ -43,13 +46,17 @@ function fmtDate(s: string | null) {
 // A video page: plays muted on open (the phone starts muted too), one tap on
 // the speaker toggles sound, and a Message pill opens a DM with the owner
 // when you are looking at someone else's album.
-function MemoryVideo({ src, poster, page, ownerId, active, onRetry }: { src: string; poster?: string; page: MemoryPage; ownerId: string; active: boolean; onRetry: () => void }) {
+function MemoryVideo({ src, poster, page, ownerId, active, onRetry, onEnd, onProgress }: { src: string; poster?: string; page: MemoryPage; ownerId: string; active: boolean; onRetry: () => void; onEnd?:()=>void; onProgress?:(progress:number)=>void }) {
   const recipe=memoryStoryRecipe(page.media_transform);
   const [clock,setClock]=useState(recipe.start);
   const [muted, setMuted] = useState(true);
   const [failed, setFailed] = useState(false);
   const ref=useRef<HTMLVideoElement|null>(null),resumeAfterTurn=useRef(false);
   const playbackWindow=useRef(recipe);
+  const completion=useRef({onEnd,onProgress,done:false});completion.current.onEnd=onEnd;completion.current.onProgress=onProgress;
+  const finish=(video:HTMLVideoElement)=>{if(!completion.current.onEnd)return false;video.pause();if(!completion.current.done){completion.current.done=true;completion.current.onProgress?.(1);completion.current.onEnd();}return true;};
+  useEffect(()=>{completion.current.done=false;},[src,!!onEnd]);
+  useEffect(()=>{if(onEnd&&active){const video=ref.current;if(video&&!document.hidden&&document.documentElement.dataset.platinumCallActive!=='true')void video.play().catch(()=>{});}},[src,active,!!onEnd]);
   const configure=(video:HTMLVideoElement,seek=false)=>{const window=memoryStoryRecipe(page.media_transform,video.duration);playbackWindow.current=window;video.playbackRate=recipe.speed;video.volume=recipe.volume;if(recipe.volume===0)video.muted=true;if(seek||memoryStorySeek(video.currentTime,window)!=null){try{video.currentTime=window.start;}catch{}}};
   useEffect(()=>{const video=ref.current;if(video)configure(video,true);setClock(recipe.start);},[src,recipe.start,recipe.end,recipe.speed,recipe.volume]);
   // timeupdate can be hundreds of milliseconds apart. Guard the excerpt on
@@ -59,7 +66,7 @@ function MemoryVideo({ src, poster, page, ownerId, active, onRetry }: { src: str
     let disposed=false,frame:number|null=null;
     const nativeFrames=typeof video.requestVideoFrameCallback==='function';
     const cancel=()=>{if(frame!=null){if(nativeFrames)video.cancelVideoFrameCallback(frame);else cancelAnimationFrame(frame);frame=null;}};
-    const tick=()=>{frame=null;if(disposed||video.paused||document.hidden||document.documentElement.dataset.platinumCallActive==='true')return;const seek=memoryStorySeek(video.currentTime,playbackWindow.current);if(seek!=null){video.currentTime=seek;setClock(seek);}schedule();};
+    const tick=()=>{frame=null;if(disposed||video.paused||document.hidden||document.documentElement.dataset.platinumCallActive==='true')return;const window=playbackWindow.current;if(window.end!=null&&video.currentTime>=window.end-.025&&finish(video))return;const seek=memoryStorySeek(video.currentTime,window);if(seek!=null){video.currentTime=seek;setClock(seek);}schedule();};
     const schedule=()=>{if(!disposed&&frame==null&&!video.paused)frame=nativeFrames?video.requestVideoFrameCallback(tick):requestAnimationFrame(tick);};
     video.addEventListener('play',schedule);video.addEventListener('pause',cancel);schedule();
     return()=>{disposed=true;cancel();video.removeEventListener('play',schedule);video.removeEventListener('pause',cancel);};
@@ -69,7 +76,7 @@ function MemoryVideo({ src, poster, page, ownerId, active, onRetry }: { src: str
   if(!src||failed)return <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-[#0B1E3D] p-4 text-center text-sm text-white"><p>This memory video could not play.</p><button type="button" className="min-h-11 rounded-full border border-white/35 px-4 py-2 font-semibold" onClick={()=>{setFailed(false);onRetry();}}>Retry memory video</button></div>;
   return (
     <div className="relative h-full w-full">
-      <MemoryStoryFrame page={page} clock={clock}>{style=><video ref={ref} src={src} poster={poster} controls playsInline loop muted={muted||recipe.volume===0} onError={()=>setFailed(true)} onLoadedMetadata={event=>{configure(event.currentTarget,true);setClock(recipe.start);}} onPlay={event=>{if(!active||document.hidden||document.documentElement.dataset.platinumCallActive==='true')event.currentTarget.pause();else configure(event.currentTarget);}} onTimeUpdate={event=>{const video=event.currentTarget;if(!active)return;const seek=memoryStorySeek(video.currentTime,playbackWindow.current);if(seek!=null)video.currentTime=seek;setClock(seek??video.currentTime);}} onSeeking={event=>{if(active)configure(event.currentTarget);}} style={style} className="h-full w-full object-contain" />}</MemoryStoryFrame>
+      <MemoryStoryFrame page={page} clock={clock}>{style=><video ref={ref} src={src} poster={poster} controls playsInline loop={!onEnd} muted={muted||recipe.volume===0} onError={()=>setFailed(true)} onLoadedMetadata={event=>{configure(event.currentTarget,true);setClock(recipe.start);}} onPlay={event=>{if(!active||document.hidden||document.documentElement.dataset.platinumCallActive==='true')event.currentTarget.pause();else configure(event.currentTarget);}} onTimeUpdate={event=>{const video=event.currentTarget;if(!active)return;const window=playbackWindow.current;if(window.end!=null)completion.current.onProgress?.(Math.max(0,Math.min(1,(video.currentTime-window.start)/(window.end-window.start))));if(window.end!=null&&video.currentTime>=window.end-.025&&finish(video))return;const seek=memoryStorySeek(video.currentTime,window);if(seek!=null)video.currentTime=seek;setClock(seek??video.currentTime);}} onEnded={event=>{if(active)finish(event.currentTarget);}} onSeeking={event=>{if(active)configure(event.currentTarget);}} style={style} className="h-full w-full object-contain" />}</MemoryStoryFrame>
       <div className="pointer-events-none absolute right-2 top-2 z-10 flex items-center gap-2">
         <button type="button" disabled={recipe.volume===0} onClick={() => setMuted((v) => !v)} aria-label={recipe.volume===0?"Original video sound is off":muted ? "Unmute original video sound" : "Mute original video sound"} className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur hover:bg-white/30">
           {muted ? <VolumeX size={15} /> : <Volume2 size={15} />}
@@ -86,6 +93,14 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
   const [album, setAlbum] = useState<MemoryAlbum | null>(null);
   const [likedPages, setLikedPages] = useState<Set<string>>(new Set());
   const [idx, setIdx] = useState(0);
+  const [playMode, setPlayMode] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  const [playRun, setPlayRun] = useState(0);
+  const [foreground, setForeground] = useState(true);
+  const [readyPage, setReadyPage] = useState('');
+  const [videoProgress, setVideoProgress] = useState(0);
+  const [reduceMotion, setReduceMotion] = useState(false);
+  useEffect(()=>{const media=matchMedia('(prefers-reduced-motion: reduce)');const motion=()=>setReduceMotion(media.matches);motion();media.addEventListener('change',motion);const visibility=()=>setForeground(!document.hidden);visibility();document.addEventListener('visibilitychange',visibility);const stop=()=>setPlaying(false);window.addEventListener('platinum:stop-media',stop);return()=>{media.removeEventListener('change',motion);document.removeEventListener('visibilitychange',visibility);window.removeEventListener('platinum:stop-media',stop);};},[]);
   const [view, setView] = useState<"cover" | "book" | "grid">("cover");
   const pageTurn=useRef<MemoryPageTurnHandle>(null);
   const [turning,setTurning]=useState(false);
@@ -145,12 +160,19 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
   }, [uid, album, supabase]);
 
   const pages = useMemo(() => album?.pages ?? [], [album]);
-  useEffect(() => { setAlbum(null); setIdx(0); setManage(false); setAdding(false); setView("cover"); setLikedPages(new Set()); setMutationError(''); setNextBook(null); }, [ownerId]);
+  useEffect(() => { setAlbum(null); setIdx(0); setManage(false); setAdding(false); setView("cover"); setPlayMode(false); setPlaying(false); setLikedPages(new Set()); setMutationError(''); setNextBook(null); }, [ownerId]);
   useEffect(() => { setIdx(i => Math.min(i, Math.max(0, pages.length - 1))); }, [pages.length]);
   const page = pages[idx];
   const artwork = memoryArtwork(album?.cover_design, album?.cover_color);
 
   const go = useCallback((d: number) => {pageTurn.current?.turn(d<0?-1:1);}, []);
+  const finishPage=useCallback(()=>{if(idx>=pages.length-1)setPlaying(false);else pageTurn.current?.turn(1);},[idx,pages.length]);
+  const movieActive=playMode&&playing&&foreground&&view==='book'&&!turning&&!manage&&!adding;
+  const photoProgress=useMemoryPlayback(`${album?.id}:${page?.id}:${playRun}`,movieActive&&page?.media_type!=='video'&&(!page?.media_url||readyPage===page?.id),memoryPhotoDuration(page),finishPage);
+  useEffect(()=>{setReadyPage('');setVideoProgress(0);},[page?.id,playRun]);
+  const openBook=()=>{setPlayMode(false);setPlaying(false);setView('book');};
+  const closeBook=()=>{setPlaying(false);setPlayMode(false);setView('cover');};
+  const playBook=()=>{setIdx(0);setPlayRun(value=>value+1);setPlayMode(true);setPlaying(true);setView('book');};
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -178,7 +200,7 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
   return (
     <div className="mx-auto w-full max-w-[720px] px-3 pb-16">
       <div className="sticky top-0 z-20 -mx-3 mb-4 flex items-center gap-2 border-b border-ink/10 bg-[var(--chrome-glass)] px-3 py-2.5 backdrop-blur-md">
-        <button onClick={() => view==='cover'?history.back():setView('cover')} className="rounded-full p-2 text-ink/60 hover:bg-black/5" aria-label="Back"><ArrowLeft size={18} /></button>
+        <button onClick={() => view==='cover'?history.back():closeBook()} className="rounded-full p-2 text-ink/60 hover:bg-black/5" aria-label="Back"><ArrowLeft size={18} /></button>
         <p className="min-w-0 flex-1 truncate text-center font-display text-[23px] text-ink">{album.title}</p>
         {view!=="cover"&&<button onClick={() => setView(view === "book" ? "grid" : "book")} className="min-h-11 min-w-11 rounded-full p-2 text-ink/70 hover:bg-black/10" aria-label={view === "book" ? "View all pages" : "Read book"}>
           {view === "book" ? <Grid3x3 size={19} /> : <BookOpen size={19} />}
@@ -191,14 +213,15 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
         ) : null}
       </div>
 
-      <PostSoundtrack key={album.id} selection={album.soundtrack} use="memory_album" active={view==='book'&&!turning&&!manage&&!adding} className="mb-3" />
+      <PostSoundtrack key={album.id} selection={album.soundtrack} use="memory_album" active={view==='book'&&foreground&&(!playMode||playing)&&!manage&&!adding} autoPlay={playMode} controls={!playMode} className="mb-3" />
       {mutationError&&<p role="alert" className="mb-3 text-sm text-danger">{mutationError}</p>}
       {view === "cover" ? (
         <section className="mx-auto flex max-w-[360px] flex-col items-center px-5 pb-8 pt-8 sm:pt-10">
-          <button type="button" aria-label={'Open '+album.title} onClick={()=>setView('book')} className="w-full max-w-[300px] text-left transition-transform hover:-translate-y-1"><ResponsiveMemoryBookCover title={album.title} subtitle={album.subtitle} color={album.cover_color} design={album.cover_design} {...memoryCoverMedia(album.cover_page??memoryCoverPage(pages,album.cover_story_id))}/></button>
+          <button type="button" aria-label={'Open '+album.title} onClick={openBook} className="w-full max-w-[300px] text-left transition-transform hover:-translate-y-1"><ResponsiveMemoryBookCover title={album.title} subtitle={album.subtitle} color={album.cover_color} design={album.cover_design} {...memoryCoverMedia(album.cover_page??memoryCoverPage(pages,album.cover_story_id))}/></button>
           {album.subtitle&&<p className="mt-7 text-center font-display text-[23px] leading-tight text-ink">{album.subtitle}</p>}
           <p className="mt-3 text-sm text-muted">{pages.length} {pages.length===1?'memory':'memories'}</p>
-          <button onClick={()=>setView('book')} className="mt-7 min-h-12 w-full rounded-2xl bg-[#142642] px-6 py-3 font-display text-[23px] text-white">Open book</button>
+          <button onClick={openBook} className="mt-7 min-h-12 w-full rounded-2xl bg-[#142642] px-6 py-3 font-display text-[23px] text-[#FFFFFF]">Open book</button>
+          {pages.length>0&&<button type="button" onClick={playBook} className="mt-3 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-ink/20 px-6 py-3 font-semibold text-ink"><Play size={18}/>Play book</button>}
           {album.is_owner&&<button onClick={()=>setAdding(true)} className="mt-3 min-h-12 w-full rounded-2xl border border-ink/15 px-6 py-3 text-sm text-ink">+ Add memories</button>}
         </section>
       ) : pages.length === 0 ? (
@@ -212,7 +235,7 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           {pages.map((pg, i) => (
             <button key={pg.id} aria-label={pg.caption||pg.story_caption||`Memory ${i+1}, ${fmtDate(pg.taken_at)}`} onClick={() => { setIdx(i); setView("book"); }} className="border-l-[6px] bg-[#FBF7EE] p-3 pb-5 text-left shadow-[0_3px_10px_rgba(22,24,28,0.1)] transition-transform hover:-translate-y-0.5" style={{borderLeftColor:artwork.spine}}>
-              <span className="mb-3 block text-center font-display text-[10px] text-[#96765C]">{String(i+1).padStart(2,'0')}</span><span className="relative block aspect-[4/5] overflow-hidden bg-ink/5">
+              <span className="mb-3 block text-center font-display text-[10px] text-[#6F614A]">{String(i+1).padStart(2,'0')}</span><span className="relative block aspect-[4/5] overflow-hidden bg-ink/5">
                 <MemoryStoryPreview key={[pg.id,pg.media_url,pg.thumbnail_url,mediaAttempt].join(':')} story={{...pg,caption:pg.story_caption||pg.caption,stickers_json:pg.stickers}}/>
               </span>
               <span className="mt-2 block truncate text-center font-display text-[12px] text-[#5a5140]">{pg.caption || fmtDate(pg.taken_at)}</span>
@@ -222,14 +245,14 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
       ) : (
         <div>
           <MemoryPageTurn ref={pageTurn} key={album.id} pageIds={pages.map(p=>p.id)} index={idx} active={view==='book'&&!manage&&!adding} spine={artwork.spine} title={album.title} onCommit={setIdx} onTurningChange={setTurning} renderPreview={i=><MemoryTurnPreview page={pages[i]??{}} index={i}/>}>
-                <p className="mb-4 text-center font-display text-[11px] tracking-widest text-[#98765A]">{String(idx+1).padStart(2,'0')} ─</p>
+                <p className="mb-4 text-center font-display text-[11px] tracking-widest text-[#6F614A]">{String(idx+1).padStart(2,'0')} ─</p>
                 {page ? (
                   <div className={"flex min-h-0 flex-1 flex-col "+(page.style === "polaroid" ? "border border-[#DCD4C7] bg-[#FFFCF6] p-1.5 pb-3" : "")}>
-                    <div className="relative min-h-0 flex-1 overflow-hidden bg-ink">
+                    <div className="media-frame relative min-h-0 flex-1 overflow-hidden bg-ink">
                       {page.media_type === "video" && (page.media_url || !postSticker(page)) ? (
-                        <MemoryVideo key={[page.id,page.media_url,mediaAttempt].join(':')} src={page.media_url ?? ''} poster={page.thumbnail_url ?? undefined} page={page} ownerId={album.user_id ?? ownerId} active={view==='book'&&!turning&&!manage&&!adding} onRetry={retryMedia} />
+                        <MemoryVideo key={[page.id,page.media_url,mediaAttempt,playRun].join(':')} src={page.media_url ?? ''} poster={page.thumbnail_url ?? undefined} page={page} ownerId={album.user_id ?? ownerId} active={view==='book'&&foreground&&(!playMode||playing)&&!turning&&!manage&&!adding} onRetry={retryMedia} onEnd={playMode?finishPage:undefined} onProgress={setVideoProgress} />
                       ) : page.media_url || page.thumbnail_url || (page.media_type === "image" && !postSticker(page)) ? (
-                        <MemoryStoryFrame key={[page.id,page.media_url,page.thumbnail_url,mediaAttempt].join(':')} page={page}>{style=><MemoryPageImage src={page.media_url} poster={page.thumbnail_url} style={style} onRetry={retryMedia} />}</MemoryStoryFrame>
+                        <MemoryStoryFrame key={[page.id,page.media_url,page.thumbnail_url,mediaAttempt,playRun].join(':')} page={page}>{style=><MemoryPageImage src={page.media_url} poster={page.thumbnail_url} style={{...style,transform:`${style.transform||''} scale(${playMode&&!reduceMotion?1+photoProgress*.06:1})`,transition:reduceMotion?'none':'transform .15s linear'}} onRetry={retryMedia} onReady={()=>setReadyPage(page.id)} />}</MemoryStoryFrame>
                       ) : postSticker(page) ? ((): any => { const ps: any = postSticker(page); return (
                         <div className="flex h-full w-full flex-col justify-center gap-2 bg-[#101826] p-5">
                           <p className="text-[11px] font-bold uppercase tracking-wide text-white/50">Shared post</p>
@@ -247,12 +270,14 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
                         </div>}</MemoryStoryFrame>
                       )}
                     </div>
-                    <PageCaption key={page.id + "-cap"} page={page} isOwner={album.is_owner} onSaved={load} />
+                    <PageCaption key={page.id + "-cap"} page={page} isOwner={album.is_owner&&!movieActive} onSaved={load} />
                   </div>
                 ) : null}
           </MemoryPageTurn>
+          {playMode&&<div role="progressbar" aria-label="Memory playback" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((page?.media_type==='video'?videoProgress:photoProgress)*100)} className="mx-auto mt-4 h-1 max-w-[440px] overflow-hidden rounded-full bg-ink/15"><div className="h-full bg-ink transition-[width] duration-100" style={{width:`${(page?.media_type==='video'?videoProgress:photoProgress)*100}%`}}/></div>}
           <div className="mt-4 flex items-center justify-center gap-3">
             <button onClick={() => go(-1)} disabled={turning||idx === 0} className="min-h-11 min-w-11 rounded-full border border-ink/10 bg-[var(--canvas)] p-2.5 text-ink/70 backdrop-blur disabled:opacity-30" aria-label="Previous page"><ChevronLeft size={18} /></button>
+            <button type="button" aria-label={playMode&&playing?'Pause book':'Play book'} onClick={()=>{if(!playMode){setPlayMode(true);setPlaying(true);}else if(!playing&&idx>=pages.length-1&&(photoProgress>=1||videoProgress>=.99))playBook();else setPlaying(value=>!value);}} className="min-h-11 min-w-11 rounded-full border border-ink/15 p-2.5 text-ink">{playMode&&playing?<Pause size={18}/>:<Play size={18}/>}</button>
             <span aria-live="polite" aria-atomic="true" className="rounded-full border border-ink/10 bg-[var(--canvas)] px-4 py-1.5 text-[13px] font-semibold text-ink/70 backdrop-blur">{idx + 1} / {pages.length}</span>
             <button onClick={async () => {const sid=page?.story_id;if(!sid||reactionLock.current)return;reactionLock.current=true;const generation=loadGeneration.current;try{const {data,error}=await supabase.rpc('toggle_story_reaction',{p_story_id:sid,p_emoji:'❤️'});if(error)throw error;if(generation===loadGeneration.current)setLikedPages(prev=>{const next=new Set(prev);if(data?.reacted)next.add(sid);else next.delete(sid);return next;});}catch{setMutationError('Your reaction could not save. Retry.');}finally{reactionLock.current=false;}}} className={"rounded-full border border-ink/10 bg-[var(--canvas)] p-2.5 backdrop-blur " + (page && likedPages.has(String((page as any).story_id)) ? "text-danger" : "text-muted")} aria-label="Love this memory">{"\u2764"}</button>
             <button onClick={() => go(1)} disabled={turning||idx >= pages.length - 1} className="min-h-11 min-w-11 rounded-full border border-ink/10 bg-[var(--canvas)] p-2.5 text-ink/70 backdrop-blur disabled:opacity-30" aria-label="Next page"><ChevronRight size={18} /></button>
@@ -452,7 +477,7 @@ function ManageAlbum({ album, onClose }: { album: MemoryAlbum; onClose: () => vo
 
         {error&&<p role="alert" className="mt-3 text-sm text-danger">{error}</p>}
         <button disabled={busy} onClick={async () => {if(busy)return;setBusy(true);setError('');try{if(!await saveBookPresentation(album.id,title.trim()||'Memories',color,audience,design,subtitle,coverStoryId))throw Error();onClose();}catch{setError('Book settings could not save. Your choices are kept.');}finally{setBusy(false);} }}
-          className="mt-4 min-h-12 w-full rounded-2xl bg-[#142642] py-3 text-sm font-semibold text-white disabled:opacity-50">{busy?'Saving…':'Save book'}</button>
+          className="mt-4 min-h-12 w-full rounded-2xl bg-[#142642] py-3 text-sm font-semibold text-[#FFFFFF] disabled:opacity-50">{busy?'Saving…':'Save book'}</button>
       </div>
     </div>
   );

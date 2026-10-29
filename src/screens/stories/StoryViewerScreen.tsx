@@ -1,3 +1,7 @@
+import StoryPixelImage, { StoryPhotoLookContext } from '../../components/stories/StoryPixelImage';
+import { countdownReminderId, setStoryCountdownReminder } from '../../../shared/storyCountdownReminder';
+import { storyPhotoSpatialAdjust } from '../../../shared/storyColorMatrix';
+import { memoryStoryRecipe } from '../../../shared/memoryStoryPresentation';
 import * as ImagePicker from 'expo-image-picker';
 import AddYoursThreadSheet from '../../components/stories/AddYoursThreadSheet';
 import TierName from '../../components/TierName';
@@ -131,14 +135,10 @@ function initials(name?: string | null) { if (!name) return 'U'; const p = name.
 
 function timeAgo(iso?: string | null): string { if (!iso) return ''; const diff = Date.now() - new Date(iso).getTime(); const m = Math.floor(diff / 60000); const h = Math.floor(m / 60); if (m < 1) return 'Just now'; if (m < 60) return `${m}m ago`; if (h < 24) return `${h}h ago`; return `${Math.floor(h / 24)}d ago`; }
 
-function parseMediaTransform(raw: any): { scale: number; translateNX: number; translateNY: number; fit: 'cover' | 'contain' } | null {
+function parseMediaTransform(raw: any): import('../../services/storiesService').MediaTransform | null {
   if (!raw || typeof raw !== 'object') return null;
-  const scale = typeof raw.scale === 'number' ? raw.scale : null;
-  const translateNX = typeof raw.translateNX === 'number' ? raw.translateNX : null;
-  const translateNY = typeof raw.translateNY === 'number' ? raw.translateNY : null;
-  const fit = (raw.fit === 'cover' || raw.fit === 'contain') ? raw.fit : null;
-  if (scale === null && translateNX === null && translateNY === null && fit === null) return null;
-  return { scale: scale ?? 1, translateNX: translateNX ?? 0, translateNY: translateNY ?? 0, fit: fit ?? 'contain' };
+  const recipe = memoryStoryRecipe(raw);
+  return { scale: recipe.scale, translateNX: recipe.x, translateNY: recipe.y, fit: recipe.fit, adjust: recipe.adjust, bg: recipe.bg, filterAmt: recipe.filterAmt, trimStart: recipe.start, ...(recipe.end == null ? {} : { trimEnd: recipe.end }), speed: recipe.speed, mix: { orig: recipe.volume * 100, music: typeof raw.mix?.music === 'number' ? raw.mix.music : 100 } };
 }
 
 function parseDualLayout(raw: any): ParsedDualLayout | null {
@@ -244,6 +244,8 @@ export default function StoryViewerScreen() {
   const activityHandoffTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (activityHandoffTimer.current) clearTimeout(activityHandoffTimer.current); }, []);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsSaving, setSettingsSaving] = useState<string | null>(null);
+  const settingsBusy = useRef(new Set<string>());
   const [viewers, setViewers] = useState<StoryViewer[]>([]);
   const [loadingViewers, setLoadingViewers] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -432,7 +434,14 @@ export default function StoryViewerScreen() {
     const own = currentStory.user_id === myId;
     const responses: Record<string, any> = {}, counts: Record<string, number> = {}, averages: Record<string, number> = {}, quizCounts: Record<string, Record<string, number>> = {};
     void Promise.all(stickers.map(async sticker => {
-      if (!own) { const response = await storiesService.getMyStickerResponse(currentStory.id, sticker.id); if (response) responses[sticker.id] = response; }
+      if (!own) {
+        const response = await storiesService.getMyStickerResponse(currentStory.id, sticker.id);
+        if (response && sticker.kind === 'countdown') {
+          const permissions = await Notifications.getPermissionsAsync();
+          const scheduled = permissions.granted ? await Notifications.getAllScheduledNotificationsAsync() : [];
+          if (scheduled.some(request => request.identifier === countdownReminderId(myId, currentStory.id, sticker.id))) responses[sticker.id] = response;
+        } else if (response) responses[sticker.id] = response;
+      }
       if (own || ['slider','quiz','addyours'].includes(sticker.kind || '')) {
         const summary = await storiesService.getStickerSummary(currentStory.id, sticker.id);
         counts[sticker.id] = summary.count;
@@ -620,6 +629,10 @@ export default function StoryViewerScreen() {
   // Questions box: the answer sheet. The field on the card opens it; Send records the answer.
   const [questionAnswer, setQuestionAnswer] = useState<{ stickerId: string; prompt: string } | null>(null);
   const [answerText, setAnswerText] = useState('');
+  const [answerSending, setAnswerSending] = useState(false);
+  const answerSheet = useRef(questionAnswer); answerSheet.current = questionAnswer;
+  const responseBusy = useRef(new Set<string>());
+  useEffect(() => { setQuestionAnswer(null); setAnswerText(''); setAnswerSending(false); }, [currentStory?.id, myId]);
   const handleEngagementTap = useCallback((stickerId: string) => {
     pauseFor('engagement');
     const list = (storiesRef.current[storyIndexRef.current]?.stickers_json || []) as any[];
@@ -628,16 +641,36 @@ export default function StoryViewerScreen() {
     setQuestionAnswer({ stickerId, prompt: st?.questionPrompt || st?.text || 'Question' });
   }, [pauseFor]);
   const sendQuestionAnswer = useCallback(async () => {
-    const v = answerText.trim(); if (!v || !questionAnswer || !currentStory) return;
+    const v = answerText.trim(); if (!v || !questionAnswer || !currentStory || !myId) return;
+    const storyId = currentStory.id, viewer = myId, key = viewer + ':' + storyId + ':' + questionAnswer.stickerId;
+    if (responseBusy.current.has(key)) return;
+    responseBusy.current.add(key); setAnswerSending(true);
+    const current = () => viewerRef.current === viewer && storiesRef.current[storyIndexRef.current]?.id === storyId && answerSheet.current === questionAnswer;
     try {
-      await storiesService.submitStickerResponse({ storyId: currentStory.id, stickerId: questionAnswer.stickerId, responseType: 'question', textValue: v });
-      dispatchEngagement({ type: 'SET_RESPONSE', stickerId: questionAnswer.stickerId, value: { text_value: v } });
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch (e: any) { Alert.alert('Not sent', e?.message || 'Try again.'); }
-    setQuestionAnswer(null); setAnswerText(''); resumeFrom('engagement');
-  }, [answerText, questionAnswer, currentStory, resumeFrom]);
-  const handleSliderSubmit = useCallback(async (stickerId: string, value: number) => { if (!currentStory) return; try { await storiesService.submitStickerResponse({ storyId: currentStory.id, stickerId, responseType: 'slider', numberValue: value }); dispatchEngagement({ type: 'SET_RESPONSE', stickerId, value: { number_value: value } }); } catch (e) { console.log('[SliderSubmit]', e); } }, [currentStory?.id]);
-  const handleQuizSubmit = useCallback(async (stickerId: string, optionId: string) => { if (!currentStory) return; try { await storiesService.submitStickerResponse({ storyId: currentStory.id, stickerId, responseType: 'quiz', optionId }); dispatchEngagement({ type: 'SET_RESPONSE', stickerId, value: { option_id: optionId } }); } catch (e) { console.log('[QuizSubmit]', e); } }, [currentStory?.id]);
+      const saved = await storiesService.submitStickerResponse({ storyId, stickerId: questionAnswer.stickerId, responseType: 'question', textValue: v });
+      if (!saved) throw new Error('Your answer was not confirmed. Your text is kept so you can retry.');
+      if (!current()) return;
+      dispatchEngagement({ type: 'SET_RESPONSE', stickerId: questionAnswer.stickerId, value: saved });
+      setQuestionAnswer(null); setAnswerText(''); resumeFrom('engagement');
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    } catch (e: any) { if (current()) Alert.alert('Not sent', e?.message || 'Your answer is kept. Try again.'); }
+    finally { responseBusy.current.delete(key); if (current()) setAnswerSending(false); }
+  }, [answerText, questionAnswer, currentStory, myId, resumeFrom]);
+  const submitChoice = useCallback(async (stickerId: string, responseType: 'slider' | 'quiz', value: number | string) => {
+    if (!currentStory || !myId) return;
+    const storyId = currentStory.id, viewer = myId, key = viewer + ':' + storyId + ':' + stickerId;
+    if (responseBusy.current.has(key)) return;
+    responseBusy.current.add(key);
+    const current = () => viewerRef.current === viewer && storiesRef.current[storyIndexRef.current]?.id === storyId;
+    try {
+      const saved = await storiesService.submitStickerResponse({ storyId, stickerId, responseType, ...(responseType === 'slider' ? { numberValue: Number(value) } : { optionId: String(value) }) });
+      if (!saved) throw new Error('Your response was not confirmed. Try again.');
+      if (current()) dispatchEngagement({ type: 'SET_RESPONSE', stickerId, value: saved });
+    } catch (error: any) { if (current()) Alert.alert('Response not saved', error?.message || 'Please try again.'); }
+    finally { responseBusy.current.delete(key); }
+  }, [currentStory, myId]);
+  const handleSliderSubmit = useCallback((stickerId: string, value: number) => submitChoice(stickerId, 'slider', value), [submitChoice]);
+  const handleQuizSubmit = useCallback((stickerId: string, optionId: string) => submitChoice(stickerId, 'quiz', optionId), [submitChoice]);
   const [addYoursThread, setAddYoursThread] = useState<{ prompt: string; originStoryId: string | null; originStickerId: string | null } | null>(null);
   const handleAddYoursThread = useCallback((sticker: any) => { if (!currentStory) return; pauseFor('thread'); setAddYoursThread({ prompt: sticker.addYoursPrompt || sticker.text || 'Add yours', originStoryId: sticker.addYoursOriginStoryId || currentStory.id, originStickerId: sticker.addYoursOriginStickerId || sticker.id }); }, [currentStory, pauseFor]);
   const handleCountdownShare = useCallback((sticker: any) => {
@@ -690,7 +723,7 @@ export default function StoryViewerScreen() {
   }, [responsesSheet.title, responsesSheet.type, pickBackgroundThen]);
   const handleAddYours = useCallback(async (sticker: any) => {
     if (!currentStory) return;
-    try { await storiesService.submitStickerResponse({ storyId: currentStory.id, stickerId: sticker.id, responseType: 'addyours', textValue: 'joined' }); dispatchEngagement({ type: 'SET_RESPONSE', stickerId: sticker.id, value: { text_value: 'joined' } }); } catch (e: any) { Alert.alert('Not saved', String(e?.message || e)); }
+    // The publisher joins this prompt only after the new story is confirmed.
     const seed = { id: 'ay_' + Date.now(), text: sticker.addYoursPrompt || sticker.text || 'Add yours', color: '#FFFFFF', nx: 0.5, ny: 0.2, scale: 1, rotation: 0, kind: 'addyours', addYoursPrompt: sticker.addYoursPrompt || sticker.text, addYoursOriginStoryId: sticker.addYoursOriginStoryId || currentStory.id, addYoursOriginStickerId: sticker.addYoursOriginStickerId || sticker.id };
     // Instagram's flow: pick the photo first, then the composer opens with it and the prompt already on it.
     let picked: any = null;
@@ -704,18 +737,44 @@ export default function StoryViewerScreen() {
     if (!currentStory) return;
     try { await storiesService.submitStickerResponse({ storyId: currentStory.id, stickerId: sticker.id, responseType: 'notify', textValue: 'signed' }); dispatchEngagement({ type: 'SET_RESPONSE', stickerId: sticker.id, value: { text_value: 'signed' } }); Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch (e: any) { Alert.alert('Not saved', String(e?.message || e)); }
   }, [currentStory]);
-  const handleNotifySend = useCallback(async (sticker: any) => {
-    if (!currentStory) return;
-    const { data, error } = await supabase.rpc('send_sticker_notify', { p_story_id: currentStory.id, p_sticker_id: sticker.id });
-    if (error) { Alert.alert('Not sent', error.message); return; }
-    Alert.alert('Sent', (Number(data) || 0) + ' people were notified.');
-  }, [currentStory]);
-  const handleCountdownRemind = useCallback(async (sticker: any) => { if (!currentStory) return; const targetIso = sticker?.countdownTarget; const when = targetIso ? new Date(targetIso) : null; try { if (when && when.getTime() > Date.now()) { const perm = await Notifications.getPermissionsAsync(); if (!perm.granted) { await Notifications.requestPermissionsAsync(); } await Notifications.scheduleNotificationAsync({ content: { title: (sticker.countdownTitle || sticker.text || 'Countdown'), body: 'The countdown just ended.' }, trigger: when as any }); } await storiesService.submitStickerResponse({ storyId: currentStory.id, stickerId: sticker.id, responseType: 'countdown', textValue: 'remind' }); dispatchEngagement({ type: 'SET_RESPONSE', stickerId: sticker.id, value: { text_value: 'remind' } }); Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch (e) { console.log('[CountdownRemind]', e); } }, [currentStory?.id]);
+  const reminderBusy = useRef(new Set<string>());
+  const handleCountdownRemind = useCallback(async (sticker: any) => {
+    if (!currentStory || !myId) return;
+    const storyId = currentStory.id, key = countdownReminderId(myId, storyId, sticker.id);
+    if (reminderBusy.current.has(key)) return;
+    reminderBusy.current.add(key);
+    try {
+      await setStoryCountdownReminder({ userId: myId, storyId, stickerId: sticker.id, title: sticker.countdownTitle || sticker.text || 'Countdown', target: sticker.countdownTarget || '' }, {
+        getPermissions: Notifications.getPermissionsAsync,
+        requestPermissions: () => Notifications.requestPermissionsAsync(),
+        scheduled: Notifications.getAllScheduledNotificationsAsync,
+        schedule: input => Notifications.scheduleNotificationAsync({ identifier: input.identifier, content: { title: input.title, body: 'The countdown just ended.', data: { storyId: input.storyId, stickerId: input.stickerId } }, trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: input.date } }),
+        cancel: Notifications.cancelScheduledNotificationAsync,
+        record: () => storiesService.submitStickerResponse({ storyId, stickerId: sticker.id, responseType: 'countdown' }),
+      });
+      if (storiesRef.current[storyIndexRef.current]?.id === storyId) dispatchEngagement({ type: 'SET_RESPONSE', stickerId: sticker.id, value: { text_value: 'remind' } });
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    } catch (error: any) { Alert.alert('Reminder not set', error?.message || 'Please try again.'); }
+    finally { reminderBusy.current.delete(key); }
+  }, [currentStory, myId]);
   const handleViewResponses = useCallback((stickerId: string, responseType: 'question' | 'slider' | 'quiz' | 'magic') => { const stickerList = (storiesRef.current[storyIndexRef.current]?.stickers_json || []) as StoryTextSticker[]; const sticker = stickerList.find(s => s.id === stickerId); pauseFor('responsesSheet'); dispatchResponsesSheet({ type: 'OPEN', stickerId, responseType, title: sticker?.questionPrompt || sticker?.sliderLabel || sticker?.quizQuestion || sticker?.text || '', quizOptions: sticker?.quizOptions }); }, [pauseFor]);
 
   const isOwn = currentStory?.user_id === myId;
-  const engagementProps = useMemo(() => ({ isOwn: isOwn ?? false, storyId: currentStory?.id ?? '', myResponses: engagement.responses, responseCounts: engagement.counts, responseAverages: engagement.averages, quizResponseCounts: engagement.quizCounts, onTapQuestionAnswer: handleEngagementTap, onSubmitSlider: handleSliderSubmit, onCountdownRemind: handleCountdownRemind, onAddYours: handleAddYours, onAddYoursThread: handleAddYoursThread, onCountdownShare: handleCountdownShare, onNotifySignUp: handleNotifySignUp, onNotifySend: handleNotifySend, onMagicAnswer: handleMagicAnswer, onMagicHold: (h: boolean) => { if (h) pauseFor('magic'); else resumeFrom('magic'); }, onSelectQuizOption: handleQuizSubmit, onViewResponses: handleViewResponses, onSliderDragStart: () => pauseFor('sliderDrag'), onSliderDragEnd: () => resumeFrom('sliderDrag') }), [isOwn, currentStory?.id, engagement, handleEngagementTap, handleSliderSubmit, handleQuizSubmit, handleCountdownRemind, handleAddYours, handleAddYoursThread, handleCountdownShare, handleNotifySignUp, handleNotifySend, handleMagicAnswer, handleViewResponses, pauseFor, resumeFrom]);
+  const engagementProps = useMemo(() => ({ isOwn: isOwn ?? false, storyId: currentStory?.id ?? '', myResponses: engagement.responses, responseCounts: engagement.counts, responseAverages: engagement.averages, quizResponseCounts: engagement.quizCounts, onTapQuestionAnswer: handleEngagementTap, onSubmitSlider: handleSliderSubmit, onCountdownRemind: handleCountdownRemind, onAddYours: handleAddYours, onAddYoursThread: handleAddYoursThread, onCountdownShare: handleCountdownShare, onNotifySignUp: handleNotifySignUp, onMagicAnswer: handleMagicAnswer, onMagicHold: (h: boolean) => { if (h) pauseFor('magic'); else resumeFrom('magic'); }, onSelectQuizOption: handleQuizSubmit, onViewResponses: handleViewResponses, onSliderDragStart: () => pauseFor('sliderDrag'), onSliderDragEnd: () => resumeFrom('sliderDrag') }), [isOwn, currentStory?.id, engagement, handleEngagementTap, handleSliderSubmit, handleQuizSubmit, handleCountdownRemind, handleAddYours, handleAddYoursThread, handleCountdownShare, handleNotifySignUp, handleMagicAnswer, handleViewResponses, pauseFor, resumeFrom]);
   const handleMediaLayout = useCallback((e: LayoutChangeEvent) => { const { width, height } = e.nativeEvent.layout; setMediaSize(prev => { if (prev.w === width && prev.h === height) return prev; return { w: width, h: height }; }); }, []);
+  const changeStorySettings = useCallback(async (patch: { allow_replies?: boolean; allow_reactions?: boolean; allow_sharing?: boolean }) => {
+    if (!currentStory || !myId || currentStory.user_id !== myId) return;
+    const storyId = currentStory.id, viewer = myId, key = viewer + ':' + storyId;
+    if (settingsBusy.current.has(key)) return;
+    settingsBusy.current.add(key); setSettingsSaving(storyId);
+    const current = () => viewerRef.current === viewer && storiesRef.current[storyIndexRef.current]?.id === storyId;
+    try {
+      const { data, error } = await supabase.from('stories').update(patch).eq('id', storyId).eq('user_id', viewer).select('id').maybeSingle();
+      if (error || !data) throw error || new Error('The setting was not saved. Refresh this story and try again.');
+      if (current()) setStories(previous => previous.map(story => story.id === storyId ? { ...story, ...patch } : story));
+    } catch (error: any) { if (current()) Alert.alert('Setting not saved', error?.message || 'Please try again.'); }
+    finally { settingsBusy.current.delete(key); if (current()) setSettingsSaving(null); }
+  }, [currentStory, myId]);
 
   // Dual reconstruction
   const dualLayout = useMemo(() => parseDualLayout((currentStory as any)?.dual_layout), [currentStory]);
@@ -772,8 +831,8 @@ export default function StoryViewerScreen() {
     const secondaryStyle = isVertical ? { position: 'absolute' as const, left: (SCREEN_W + SPLIT_GAP) / 2, top: 0, width: (SCREEN_W - SPLIT_GAP) / 2, height: SCREEN_H } : { position: 'absolute' as const, left: 0, top: (SCREEN_H + SPLIT_GAP) / 2, width: SCREEN_W, height: (SCREEN_H - SPLIT_GAP) / 2 };
     return (
       <ReAnimated.View style={[StyleSheet.absoluteFill, { zIndex: 1 }, dualSwapAnimStyle]}>
-        <View style={[primaryStyle, { overflow: 'hidden' }]}><Image source={effectivePrimaryUrl ? { uri: effectivePrimaryUrl } : undefined} style={{ width: SCREEN_W, height: SCREEN_H }} resizeMode="cover" fadeDuration={0} onLoadEnd={() => setMediaReady(true)} onError={() => { setMediaError(true); setMediaReady(true); }} /></View>
-        <View style={[secondaryStyle, { overflow: 'hidden' }]}><TouchableOpacity activeOpacity={0.9} onPress={handleDualSwapTap} style={{ flex: 1 }}><Image source={effectiveSecondaryUrl ? { uri: effectiveSecondaryUrl } : undefined} style={{ width: SCREEN_W, height: SCREEN_H }} resizeMode="cover" fadeDuration={0} /></TouchableOpacity></View>
+        <View style={[primaryStyle, { overflow: 'hidden' }]}><StoryPixelImage uri={effectivePrimaryUrl || ''} style={{ width: SCREEN_W, height: SCREEN_H }} fit="cover" onLoad={() => setMediaReady(true)} onError={() => { setMediaError(true); setMediaReady(true); }} /></View>
+        <View style={[secondaryStyle, { overflow: 'hidden' }]}><TouchableOpacity activeOpacity={0.9} onPress={handleDualSwapTap} style={{ flex: 1 }}><StoryPixelImage uri={effectiveSecondaryUrl || ''} style={{ width: SCREEN_W, height: SCREEN_H }} fit="cover" /></TouchableOpacity></View>
         {isVertical && <View style={{ position: 'absolute', left: (SCREEN_W - SPLIT_GAP) / 2, top: 0, width: SPLIT_GAP, height: SCREEN_H, backgroundColor: '#020408' }} />}
         {!isVertical && <View style={{ position: 'absolute', left: 0, top: (SCREEN_H - SPLIT_GAP) / 2, width: SCREEN_W, height: SPLIT_GAP, backgroundColor: '#020408' }} />}
       </ReAnimated.View>
@@ -785,14 +844,14 @@ export default function StoryViewerScreen() {
     return (
       <ReAnimated.View style={[s.dualBubble, dualBubbleViewStyle, { zIndex: 2 }, dualSwapAnimStyle, bubbleEntryAnimStyle]} pointerEvents="box-only">
         <TouchableOpacity activeOpacity={0.9} onPress={handleDualSwapTap} style={{ flex: 1 }}>
-          <Image source={{ uri: effectiveSecondaryUrl }} style={s.dualBubbleImg} resizeMode="cover" fadeDuration={0} />
+          <StoryPixelImage uri={effectiveSecondaryUrl} style={s.dualBubbleImg} fit="cover" />
         </TouchableOpacity>
       </ReAnimated.View>
     );
   };
 
   return (
-    <Animated.View style={[s.root, { transform: [{ translateY }, { scale: translateY.interpolate({ inputRange: [-SCREEN_H * 0.3, 0, SCREEN_H], outputRange: [1, 1, 0.92], extrapolate: 'clamp' }) }] }]} {...panResponder.panHandlers}
+    <StoryPhotoLookContext.Provider value={{ filterId: currentStory?.filter_id, filterAmt: mediaMt?.filterAmt, adjust: mediaMt?.adjust }}><Animated.View style={[s.root, { transform: [{ translateY }, { scale: translateY.interpolate({ inputRange: [-SCREEN_H * 0.3, 0, SCREEN_H], outputRange: [1, 1, 0.92], extrapolate: 'clamp' }) }] }]} {...panResponder.panHandlers}
       onTouchStart={beginSurfaceHold} onTouchEnd={endSurfaceHold} onTouchCancel={endSurfaceHold}
       onTouchMove={event => { if ((event.nativeEvent.touches?.length ?? 1) !== 1 || Math.hypot(event.nativeEvent.pageX - surfaceHold.current.x, event.nativeEvent.pageY - surfaceHold.current.y) > 12) endSurfaceHold(); }}>
       <StatusBar hidden />
@@ -806,16 +865,16 @@ export default function StoryViewerScreen() {
         {hasDual && isSplitMode ? renderSplitDual() : (
           <ZoomableMedia onZoomChange={(z) => { if (z) pauseFor('zoom'); else resumeFrom('zoom'); }}>
           <ReAnimated.View style={[StyleSheet.absoluteFill, activeMediaAnimStyle, { zIndex: 1 }]}>
-            {isText ? ((() => { const sharedPhoto = stickers.find(s => s.kind === 'post' && s.postMediaType !== 'video' && s.postMediaUrl)?.postMediaUrl; if (sharedPhoto) return <View style={s.media}><Image source={{ uri: sharedPhoto }} style={StyleSheet.absoluteFill} resizeMode="cover" blurRadius={32} /><View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,.48)' }]} /></View>; const bg = (currentStory as any)?.text_background; if (bg?.kind === 'gradient' && bg.colors?.length === 2) { return (<LinearGradient colors={bg.colors} start={bg.direction === 'diagonal' ? { x: 0, y: 0 } : { x: 0.5, y: 0 }} end={bg.direction === 'diagonal' ? { x: 1, y: 1 } : { x: 0.5, y: 1 }} style={s.media} />); } const solidColor = bg?.kind === 'solid' && bg.color ? bg.color : '#0B1E3D'; return <View style={[s.media, { backgroundColor: solidColor }]} />; })()
+            {isText ? ((() => { if (mediaMt?.bg) return <BackgroundLayer bg={mediaMt.bg} mediaUrl={stickers.find(s => s.kind === 'post' && s.postMediaType !== 'video')?.postMediaUrl || null} />; const sharedPhoto = stickers.find(s => s.kind === 'post' && s.postMediaType !== 'video' && s.postMediaUrl)?.postMediaUrl; if (sharedPhoto) return <View style={s.media}><Image source={{ uri: sharedPhoto }} style={StyleSheet.absoluteFill} resizeMode="cover" blurRadius={32} /><View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,.48)' }]} /></View>; const bg = (currentStory as any)?.text_background; if (bg?.kind === 'gradient' && bg.colors?.length === 2) { return (<LinearGradient colors={bg.colors} start={bg.direction === 'diagonal' ? { x: 0, y: 0 } : { x: 0.5, y: 0 }} end={bg.direction === 'diagonal' ? { x: 1, y: 1 } : { x: 0.5, y: 1 }} style={s.media} />); } const solidColor = bg?.kind === 'solid' && bg.color ? bg.color : '#0B1E3D'; return <View style={[s.media, { backgroundColor: solidColor }]} />; })()
             ) : isVideo ? (<>{mediaFitMode === 'contain' && (<View key={'vbg-' + currentStory.id} style={[s.media, { position: 'absolute', zIndex: -1 }]} pointerEvents="none"><BackgroundLayer bg={(mediaMt as any)?.bg || null} mediaUrl={null} /></View>)}<VideoView pointerEvents="none" key={'v-' + currentStory.id} style={[s.media, mediaHasTransform && mediaMt ? { transform: [{ translateX: mediaMt.translateNX * mediaSize.w }, { translateY: mediaMt.translateNY * mediaSize.h }, { scale: mediaMt.scale }] } : undefined] as any} player={videoPlayer} contentFit={mediaFitMode} nativeControls={false} onFirstFrameRender={() => setMediaReady(true)} /></>
-            ) : (<>{mediaFitMode === 'contain' && currentStory.media_url && (<View key={'bg-' + currentStory.id} style={[s.media, { position: 'absolute', zIndex: -1 }]} pointerEvents="none"><BackgroundLayer bg={(mediaMt as any)?.bg || null} mediaUrl={currentStory.media_url} /></View>)}<ExpoImage key={'m-' + currentStory.id} source={hasDual && effectivePrimaryUrl ? { uri: effectivePrimaryUrl } : (currentStory.media_url ? { uri: currentStory.media_url } : undefined)} style={[s.media, mediaHasTransform && !hasDual ? { transform: [{ translateX: mediaMt!.translateNX * mediaSize.w }, { translateY: mediaMt!.translateNY * mediaSize.h }, { scale: mediaMt!.scale }] } : undefined]} contentFit={mediaFitMode} transition={0} cachePolicy="memory-disk" onLoad={() => setMediaReady(true)} onError={() => { setMediaError(true); setMediaReady(true); }} /></>)}
+            ) : (<>{mediaFitMode === 'contain' && currentStory.media_url && (<View key={'bg-' + currentStory.id} style={[s.media, { position: 'absolute', zIndex: -1 }]} pointerEvents="none"><BackgroundLayer bg={(mediaMt as any)?.bg || null} mediaUrl={currentStory.media_url} /></View>)}<StoryPixelImage key={'m-' + currentStory.id} uri={(hasDual && effectivePrimaryUrl ? effectivePrimaryUrl : currentStory.media_url) || ''} style={[s.media, mediaHasTransform && !hasDual ? { transform: [{ translateX: mediaMt!.translateNX * mediaSize.w }, { translateY: mediaMt!.translateNY * mediaSize.h }, { scale: mediaMt!.scale }] } : undefined]} fit={mediaFitMode} onLoad={() => setMediaReady(true)} onError={() => { setMediaError(true); setMediaReady(true); }} /></>)}
           </ReAnimated.View>
           </ZoomableMedia>
         )}
         </ReAnimated.View>
 
-        <FilterLayer filterId={((currentStory as any)?.filter_id as string) || null} zIndex={2} amt={(mediaMt as any)?.filterAmt} />
-        <AdjustLayer adjust={(mediaMt as any)?.adjust || null} zIndex={2} />
+        <FilterLayer filterId={isVideo || isText ? ((currentStory as any)?.filter_id as string) || null : null} zIndex={2} amt={(mediaMt as any)?.filterAmt} />
+        <AdjustLayer adjust={isVideo || isText ? mediaMt?.adjust || null : storyPhotoSpatialAdjust(mediaMt?.adjust)} zIndex={2} />
         <DrawingLayer strokes={(((stickers.find(sx => (sx as any).kind === 'drawing') as any)?.strokes) || null) as any} width={mediaSize.w} height={mediaSize.h} zIndex={3} />
         {renderPipDual()}
         {mediaError && (<View style={{ ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', zIndex: 4 }}><Feather name="image" size={28} color="rgba(245,240,235,0.08)" /><TouchableOpacity accessibilityRole="button" onPress={() => { storyAudio.retry(); void loadForCurrentUser(); }}><Text style={{ color: '#FFFFFF', fontSize: 14, marginTop: 14 }}>Media unavailable. Tap to retry.</Text></TouchableOpacity></View>)}
@@ -873,7 +932,8 @@ export default function StoryViewerScreen() {
           allowReplies={(currentStory as any).allow_replies !== false}
           allowReactions={(currentStory as any).allow_reactions !== false}
           allowSharing={(currentStory as any).allow_sharing !== false}
-          onChange={async (patch) => { setStories(prev => prev.map(st => st.id === currentStory.id ? ({ ...st, ...patch } as any) : st)); try { await supabase.from('stories').update(patch).eq('id', currentStory.id); } catch (e) { console.log('[StorySettings]', e); } }}
+          updating={settingsSaving === currentStory.id}
+          onChange={changeStorySettings}
         />
       )}
 
@@ -933,13 +993,13 @@ export default function StoryViewerScreen() {
             <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '800', textAlign: 'center', marginTop: 4, marginBottom: 12 }}>{questionAnswer?.prompt}</Text>
             <TextInput value={answerText} onChangeText={setAnswerText} placeholder="Type your answer" placeholderTextColor="rgba(255,255,255,0.4)" autoFocus maxLength={200} multiline
               style={{ minHeight: 48, maxHeight: 120, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.08)', color: '#FFFFFF', paddingHorizontal: 14, paddingVertical: 12, fontSize: 15 }} />
-            <TouchableOpacity onPress={sendQuestionAnswer} disabled={!answerText.trim()} activeOpacity={0.85} style={{ marginTop: 12, height: 48, borderRadius: 14, backgroundColor: answerText.trim() ? '#C9BFB0' : 'rgba(201,191,176,0.35)', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#0B1E3D', fontSize: 15, fontWeight: '800' }}>Send</Text></TouchableOpacity>
+            <TouchableOpacity onPress={sendQuestionAnswer} disabled={answerSending || !answerText.trim()} activeOpacity={0.85} style={{ marginTop: 12, height: 48, borderRadius: 14, backgroundColor: answerText.trim() ? '#C9BFB0' : 'rgba(201,191,176,0.35)', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#0B1E3D', fontSize: 15, fontWeight: '800' }}>{answerSending ? 'Sending…' : 'Send'}</Text></TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
       </Modal>
       <AddYoursThreadSheet visible={!!addYoursThread} prompt={addYoursThread?.prompt || ''} originStoryId={addYoursThread?.originStoryId || null} originStickerId={addYoursThread?.originStickerId || null} onClose={() => { setAddYoursThread(null); resumeFrom('thread'); }} onOpen={(uid) => { saveAndGoBack(); setTimeout(() => (navigation as any).navigate('StoryViewer', { userId: uid }), 200); }} />
       {responsesSheet.open && (<StickerResponsesSheet visible={responsesSheet.open} onShareResponse={handleShareResponse} onMessageResponder={handleMessageResponder} onShareResults={handleShareResults} onClose={() => { dispatchResponsesSheet({ type: 'CLOSE' }); resumeFrom('responsesSheet'); }} storyId={currentStory.id} stickerId={responsesSheet.stickerId} responseType={responsesSheet.type} title={responsesSheet.title} quizOptions={responsesSheet.quizOptions} />)}
-    </Animated.View>
+    </Animated.View></StoryPhotoLookContext.Provider>
   );
 }
 

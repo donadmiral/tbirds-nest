@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useSyncExternalStore } from "react";
 
-export type Theme = "light" | "dark" | "system";
+export type Theme = "light" | "dark" | "lightsOut" | "system";
 export const THEME_KEY = "pc:theme";
 const ThemeContext = createContext<{ theme: Theme; choose: (theme: Theme) => void } | null>(null);
 // Browser-only preference store; the server snapshot is always deterministic.
@@ -10,12 +10,13 @@ let sessionTheme: Theme | null = null;
 const listeners = new Set<() => void>();
 
 function normalizeTheme(value: string | null): Theme {
-  return value === "light" || value === "dark" ? value : "system";
+  return value === "light" || value === "dark" || value === "lightsOut" ? value : "system";
 }
 
 export function applyTheme(theme: Theme) {
-  const dark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  const dark = theme === "dark" || theme === 'lightsOut' || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
   document.documentElement.classList.toggle("dark", dark);
+  document.documentElement.classList.toggle('lights-out', theme === 'lightsOut');
 }
 
 function readTheme(): Theme {

@@ -38,7 +38,7 @@ export default function RootLayout({
         {/* Applies the saved appearance before paint so dark users see no flash. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: "(function(){var t='system';try{var s=localStorage.getItem('pc:theme');if(s==='dark'||s==='light')t=s}catch(e){}document.documentElement.classList.toggle('dark',t==='dark'||(t==='system'&&matchMedia('(prefers-color-scheme: dark)').matches))})()",
+            __html: "(function(){var t='system';try{var s=localStorage.getItem('pc:theme');if(s==='dark'||s==='light'||s==='lightsOut')t=s}catch(e){}document.documentElement.classList.toggle('dark',t==='dark'||t==='lightsOut'||(t==='system'&&matchMedia('(prefers-color-scheme: dark)').matches));document.documentElement.classList.toggle('lights-out',t==='lightsOut')})()",
           }}
         />
       </head>

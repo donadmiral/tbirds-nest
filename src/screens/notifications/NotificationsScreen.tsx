@@ -1,6 +1,6 @@
 import { ListRowSkeleton } from '../../components/skeletons';
 import { showMessage } from 'react-native-flash-message';
-import { themedSheet, getTheme } from '../../theme/useTheme';
+import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import { Alert, ScrollView } from 'react-native';
 import { TapTopSectionList } from '../../components/TapTopList';
 import EmptyState from '../../components/EmptyState';
@@ -221,6 +221,7 @@ function sectionFor(iso: string): string {
 
 export default function NotificationsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const { t, isDark } = useTheme();
   const { profile } = useAuthStore();
   const userId = useAuthStore(state => state.session?.user.id || '');
 
@@ -465,7 +466,7 @@ export default function NotificationsScreen({ navigation }: any) {
             <Image source={{ uri: (item.actor_avatar || item.other_avatars?.[0]) as string }} style={s.avatar} />
           ) : (
             <View style={[s.avatar, s.avatarFb]}>
-              {item.type === 'system' ? <Feather name="shield" size={20} color="#FFFFFF" /> : <Text style={s.avatarTxt}>{item.actor_name ? initials(item.actor_name) : item.others_count > 0 ? String(item.others_count + 1) : 'U'}</Text>}
+              {item.type === 'system' ? <Feather name="shield" size={20} color={t.ink.inverse} /> : <Text style={s.avatarTxt}>{item.actor_name ? initials(item.actor_name) : item.others_count > 0 ? String(item.others_count + 1) : 'U'}</Text>}
             </View>
           )}
           {badge ? (
@@ -484,7 +485,7 @@ export default function NotificationsScreen({ navigation }: any) {
             {item.other_avatars?.length ? (
               <View style={{ flexDirection: 'row', marginRight: 6 }}>
                 {item.other_avatars.slice(0, 3).map((u, i) => (
-                  <Image key={i} source={{ uri: u }} style={{ width: 16, height: 16, borderRadius: 8, marginLeft: i ? -5 : 0, borderWidth: 1, borderColor: '#FFFFFF' }} />
+                  <Image key={i} source={{ uri: u }} style={{ width: 16, height: 16, borderRadius: 8, marginLeft: i ? -5 : 0, borderWidth: 1, borderColor: t.surface.canvas }} />
                 ))}
               </View>
             ) : null}
@@ -556,9 +557,9 @@ export default function NotificationsScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={t.surface.canvas} />
       <View style={s.header}>
-        <TouchableOpacity onPress={() => { if (navigation.canGoBack()) navigation.goBack(); else navigation.navigate('Feed'); }} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={{ marginRight: 10 }} accessibilityRole="button" accessibilityLabel="Go back"><Feather name="chevron-left" size={26} color="#0B1E3D" /></TouchableOpacity><Text style={s.title}>Activity</Text>
+        <TouchableOpacity onPress={() => { if (navigation.canGoBack()) navigation.goBack(); else navigation.navigate('Feed'); }} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={{ marginRight: 10 }} accessibilityRole="button" accessibilityLabel="Go back"><Feather name="chevron-left" size={26} color={t.ink.primary} /></TouchableOpacity><Text style={s.title}>Activity</Text>
         {unreadTotal > 0 ? (
           <TouchableOpacity onPress={markAllRead} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
             <Text style={s.markAll}>Mark all read</Text>
@@ -594,7 +595,7 @@ export default function NotificationsScreen({ navigation }: any) {
                 </TouchableOpacity>
               ))}
             </ScrollView>
-          {reqCount > 0 ? <TouchableOpacity activeOpacity={0.8} onPress={() => (navigation as any).navigate('FollowRequests')} style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginTop: 10, marginBottom: 4, borderWidth: 1.2, borderColor: 'rgba(11,30,61,0.12)', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: 'rgba(11,30,61,0.03)' }}><View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', marginRight: 10 }}><Feather name="user-plus" size={16} color="#FFFFFF" /></View><View style={{ flex: 1 }}><Text style={{ fontSize: 14.5, fontWeight: '700', color: '#0B1E3D' }}>Follow requests</Text><Text style={{ fontSize: 12, color: 'rgba(11,30,61,0.5)', marginTop: 1 }}>{reqCount} waiting for your answer</Text></View><Text style={{ fontSize: 20, color: 'rgba(11,30,61,0.35)' }}>{'\u203a'}</Text></TouchableOpacity> : null}</>} ListEmptyComponent={<EmptyState icon="bell" title="Nothing new" line="Likes, comments, follows and requests land here." />}
+          {reqCount > 0 ? <TouchableOpacity activeOpacity={0.8} onPress={() => (navigation as any).navigate('FollowRequests')} style={{ flexDirection: 'row', alignItems: 'center', marginHorizontal: 16, marginTop: 10, marginBottom: 4, borderWidth: 1.2, borderColor: t.surface.hairline, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: t.brand.tintBg }}><View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: t.brand.base, alignItems: 'center', justifyContent: 'center', marginRight: 10 }}><Feather name="user-plus" size={16} color={t.ink.inverse} /></View><View style={{ flex: 1 }}><Text style={{ fontSize: 14.5, fontWeight: '700', color: t.ink.primary }}>Follow requests</Text><Text style={{ fontSize: 12, color: t.ink.secondary, marginTop: 1 }}>{reqCount} waiting for your answer</Text></View><Text style={{ fontSize: 20, color: t.ink.muted }}>{'\u203a'}</Text></TouchableOpacity> : null}</>} ListEmptyComponent={<EmptyState icon="bell" title="Nothing new" line="Likes, comments, follows and requests land here." />}
           sections={sections}
           keyExtractor={(r: { notification_id: string }) => r.notification_id}
           renderItem={renderRow}
@@ -638,10 +639,10 @@ const s = themedSheet((t) => ({
 
   row: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: 16, paddingVertical: 11 },
   unreadDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#F04A5C' },
-  chip: { paddingHorizontal: 13, paddingVertical: 6, borderRadius: 99, backgroundColor: 'rgba(0,0,0,0.05)' },
-  chipOn: { backgroundColor: '#E8E0D0' },
-  chipTxt: { fontSize: 12.5, fontWeight: '700', color: 'rgba(11,30,61,0.55)' },
-  chipTxtOn: { color: '#0A0A0A' },
+  chip: { paddingHorizontal: 13, paddingVertical: 6, minHeight: 44, justifyContent: 'center', borderRadius: 99, backgroundColor: t.surface.sunken },
+  chipOn: { backgroundColor: t.brand.base },
+  chipTxt: { fontSize: 12.5, fontWeight: '700', color: t.ink.secondary },
+  chipTxtOn: { color: t.ink.inverse },
   rowUnread: { backgroundColor: t.brand.tintBg },
 
   avatarWrap: { position: 'relative' },
@@ -660,7 +661,7 @@ const s = themedSheet((t) => ({
   lead: { fontWeight: fontWeight.bold, color: t.ink.primary },
   rest: { color: t.ink.secondary },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  time: { fontSize: typeSize.micro, color: t.ink.faint },
+  time: { fontSize: typeSize.micro, color: t.ink.muted },
   count: { fontSize: typeSize.micro, fontWeight: fontWeight.bold, color: t.brand.base },
 
   requestRow: { flexDirection: 'row', gap: 8, marginTop: 7 },

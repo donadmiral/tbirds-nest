@@ -51,7 +51,7 @@ export async function AppShell({
     <div className="min-h-screen">
       <a href="#main-content" className={chrome.skipLink}>Skip to content</a>
       <Nav name={profile?.full_name ?? "Member"} username={profile?.username ?? ""} business={profile?.account_type === "business"} avatarUrl={profile?.avatar_url ?? null} verified={!!profile?.is_verified} tier={profile?.verified_tier ?? null} />
-      <MobileTabBar />
+      <MobileTabBar userId={data.user.id} username={profile?.username} name={profile?.full_name} avatarUrl={profile?.avatar_url} business={profile?.account_type === 'business'} />
       <WebCallLayer />
       <GlobalMediaLightbox />
       <GlobalBack />

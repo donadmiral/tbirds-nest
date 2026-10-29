@@ -12,6 +12,7 @@ import { Feather } from '@expo/vector-icons';
 import VerifiedBadge from '../VerifiedBadge';
 import TierName from '../TierName';
 
+import StoryPixelImage from './StoryPixelImage';
 export const STORY_CARD_W = 200;
 export const STORY_CARD_H = 356;
 
@@ -21,7 +22,7 @@ export default function StoryReshareCard({ sticker, onOpen, onOpenProfile }: { s
   const isVideo = s.storyMediaType === 'video';
   const body = (
     <View style={c.card}>
-      {img ? <Image source={{ uri: img }} style={StyleSheet.absoluteFill} resizeMode="contain" /> : <View style={[StyleSheet.absoluteFill, { backgroundColor: '#0B1E3D' }]} />}
+      {img ? <StoryPixelImage uri={img} style={StyleSheet.absoluteFill} fit="contain" /> : <View style={[StyleSheet.absoluteFill, { backgroundColor: '#0B1E3D' }]} />}
       <View style={c.shadeTop} pointerEvents="none" />
       <View style={c.head}>
         {s.storyAuthorAvatar ? <Image source={{ uri: s.storyAuthorAvatar }} style={c.avatar} /> : <View style={[c.avatar, { backgroundColor: 'rgba(255,255,255,0.25)' }]} />}

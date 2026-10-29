@@ -120,9 +120,10 @@ export type MediaTransform = {
   // Creative engine extras — all optional, replayed by phone + web viewers
   trimStart?: number;
   trimEnd?: number;
+  speed?: number;
   filterAmt?: number;
   bg?: { kind: 'blur' | 'color' | 'gradient' | 'none'; a?: string; b?: string } | null;
-  adjust?: { bri?: number; warm?: number; tint?: number; sat?: number; fade?: number; vig?: number } | null;
+  adjust?: { bri?: number; con?: number; warm?: number; tint?: number; sat?: number; hi?: number; sh?: number; fade?: number; grain?: number; vig?: number } | null;
   mix?: { orig?: number; music?: number } | null;
 };
 
@@ -388,6 +389,7 @@ export async function uploadAndCreateStory(params: {
   if (existing) {
     await finishStorySound(existing.id, audio, publication);
     await finishStoryRecipients(existing.id, audience, sharedWith, publication);
+    await finishStoryPromptJoins(existing.id, existing.stickers_json, publication);
     return existing;
   }
   if (mediaType !== 'text' && !localUri) throw new Error('localUri required for image/video');
@@ -527,7 +529,7 @@ export async function uploadAndCreateStory(params: {
   if (textBackground) {
     insertPayload.text_background = textBackground;
   }
-  if (mediaTransform && (mediaTransform.scale !== 1 || mediaTransform.translateNX !== 0 || mediaTransform.translateNY !== 0 || mediaTransform.fit !== 'cover' || (mediaTransform as any).trimStart != null || (mediaTransform as any).trimEnd != null || (mediaTransform as any).bg || (mediaTransform as any).adjust || (mediaTransform as any).mix || (mediaTransform as any).filterAmt != null)) {
+  if (mediaTransform && (mediaTransform.scale !== 1 || mediaTransform.translateNX !== 0 || mediaTransform.translateNY !== 0 || mediaTransform.fit !== 'cover' || mediaTransform.speed != null || (mediaTransform as any).trimStart != null || (mediaTransform as any).trimEnd != null || (mediaTransform as any).bg || (mediaTransform as any).adjust || (mediaTransform as any).mix || (mediaTransform as any).filterAmt != null)) {
     insertPayload.media_transform = mediaTransform;
   }
   if (category) {
@@ -567,7 +569,29 @@ export async function uploadAndCreateStory(params: {
   }
 
   await finishStoryRecipients(data.id, audience, sharedWith, publication);
+  await finishStoryPromptJoins(data.id, publishedStickers, publication);
   return data as StoryRow;
+}
+
+async function finishStoryPromptJoins(storyId: string, stickers: StoryTextSticker[] | null | undefined, publication: PublicationAttempt) {
+  // Native publication is checkpointed across requests. A prompt response must
+  // reference the confirmed new story, never the act of opening the composer.
+  // submit_sticker_response is idempotent for this viewer/source sticker, so
+  // an unconfirmed join can be retried without creating another story.
+  const prompts = new Map<string, StoryTextSticker>();
+  for (const sticker of stickers || []) {
+    if (sticker.kind === 'addyours' && sticker.addYoursOriginStoryId && sticker.addYoursOriginStickerId) {
+      prompts.set(sticker.addYoursOriginStoryId + ':' + sticker.addYoursOriginStickerId, sticker);
+    }
+  }
+  for (const sticker of prompts.values()) {
+    await publication.check();
+    const { data, error } = await supabase.rpc('submit_sticker_response', {
+      p_story_id: sticker.addYoursOriginStoryId, p_sticker_id: sticker.addYoursOriginStickerId,
+      p_response_type: 'addyours', p_text_value: storyId, p_number_value: null, p_option_id: null,
+    });
+    if (error || !data) throw new Error('Your story was saved, but joining this Add yours prompt was not confirmed. Retry to finish joining.');
+  }
 }
 
 async function finishStorySound(storyId: string, audio: StoryAudioDraft | null | undefined, publication: PublicationAttempt) {
@@ -920,13 +944,13 @@ export const storiesService = {
     });
     if (error) {
       console.log('[storiesService.getStickerResponses]', error.message);
-      return [];
+      throw error;
     }
     return (data || []) as StickerResponse[];
   },
 
   async getStickerSummary(storyId: string, stickerId: string): Promise<{ count: number; average: number | null; options: Record<string, number> }> {
-    const { data, error } = await supabase.rpc('get_sticker_response_summary', { p_story_id: storyId, p_sticker_id: stickerId });
+    const { data, error } = await supabase.rpc('get_story_sticker_summary', { p_story_id: storyId, p_sticker_id: stickerId });
     if (error) throw error;
     return data as { count: number; average: number | null; options: Record<string, number> };
   },
@@ -938,7 +962,7 @@ export const storiesService = {
     });
     if (error) {
       console.log('[storiesService.getMyStickerResponse]', error.message);
-      return null;
+      throw error;
     }
     return data as StickerResponse | null;
   },

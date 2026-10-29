@@ -15,6 +15,8 @@ import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { AdjustOverlay, BgLayer, DrawSvg, EngineSticker, animStyle, extraFontCss, STICKER_ANIM_CSS } from "@/components/StoryEngine";
 
 import { SharedPostStory } from "./SharedPostStory";
+import { StoryPhotoLookContext, StoryPixelGrade } from './StoryPixelGrade';
+import { storyPhotoSpatialAdjust } from '../../shared/storyColorMatrix';
 import { stickerCss } from "./storyTextAppearance";
 
 import { currentTextMentions } from "../../shared/storyMentions";
@@ -624,7 +626,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
+    <StoryPhotoLookContext.Provider value={{ filterId: story?.filter_id, filterAmt: story?.media_transform?.filterAmt, adjust: story?.media_transform?.adjust }}><div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
       <style>{"@keyframes heartpop { 0% { transform: scale(0.3); opacity: 0; } 30% { transform: scale(1.18); opacity: 1; } 70% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.05); opacity: 0; } }"}</style>
       <button onClick={onClose} className="absolute right-4 top-4 z-30 hidden h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 md:flex" aria-label="Close story viewer">
         <X size={20} />
@@ -677,7 +679,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
             {!mediaReady && story.media_url ? (
               <span className="absolute inset-0 z-[1] animate-pulse bg-white/[0.06]" aria-hidden />
             ) : null}
-            {story.media_type === "text" ? (() => { const sharedPhoto = story.stickers_json?.find(s => s.kind === "post" && s.postMediaType !== "video" && s.postMediaUrl)?.postMediaUrl; return sharedPhoto ? <div className="pointer-events-none absolute inset-0"><img src={sharedPhoto} alt="" className="h-full w-full scale-110 object-cover blur-2xl" /><div className="absolute inset-0 bg-black/50" /></div> : null; })() : null}
+            {story.media_type === "text" ? (() => { if (story.media_transform?.bg) return <BgLayer bg={story.media_transform.bg} mediaUrl={story.stickers_json?.find(s => s.kind === 'post' && s.postMediaType !== 'video')?.postMediaUrl || null} />; const sharedPhoto = story.stickers_json?.find(s => s.kind === "post" && s.postMediaType !== "video" && s.postMediaUrl)?.postMediaUrl; return sharedPhoto ? <div className="pointer-events-none absolute inset-0"><img src={sharedPhoto} alt="" className="h-full w-full scale-110 object-cover blur-2xl" /><div className="absolute inset-0 bg-black/50" /></div> : null; })() : null}
             {story.media_transform?.bg && story.media_transform?.fit === "contain" ? (
               <div className="pointer-events-none absolute inset-0 z-0"><BgLayer bg={story.media_transform.bg} mediaUrl={story.media_type === "image" ? story.media_url : null} /></div>
             ) : null}
@@ -700,7 +702,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
               />
             ) : story.media_url ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <StoryPixelGrade className="h-full w-full"><img
                 key={story.id + "-" + mediaRetry}
                 src={story.media_url}
                 alt=""
@@ -708,7 +710,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
                 onError={() => { if (currentStoryRef.current === story.id) { readyStoryRef.current = null; setFailedStoryId(story.id); } }}
                 className="h-full w-full"
                 style={mediaStyle(story.media_transform)}
-              />
+              /></StoryPixelGrade>
             ) : null}
             {failedStoryId === story.id ? (
               <div role="alert" className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-black/70 px-6 text-center text-sm text-white">
@@ -716,8 +718,8 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
                 <button className="rounded-full border border-white/50 px-4 py-2" onClick={() => void refreshCurrentMedia()}>Retry</button>
               </div>
             ) : null}
-            <FilterOverlay filterId={story.filter_id} amt={story.media_transform?.filterAmt ?? 100} />
-            <AdjustOverlay adjust={story.media_transform?.adjust || null} />
+            <FilterOverlay filterId={story.media_type === 'image' ? null : story.filter_id} amt={story.media_transform?.filterAmt ?? 100} />
+            <AdjustOverlay adjust={story.media_type === 'image' ? storyPhotoSpatialAdjust(story.media_transform?.adjust) : story.media_transform?.adjust || null} />
             <DrawSvg stickers={story.stickers_json} />
             <style dangerouslySetInnerHTML={{ __html: STICKER_ANIM_CSS }} />
             {storyAudioUrl ? (
@@ -825,7 +827,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
         {actionError ? <p role="alert" className="absolute inset-x-4 bottom-24 z-30 rounded-lg bg-black/80 px-3 py-2 text-center text-sm text-white">{actionError}</p> : null}
         {viewersOpen && story ? <ViewersSheet storyId={story.id} viewsCount={story.views_count} audience={story.audience} onSettings={() => { setViewersOpen(false); setMoreOpen(true); overlayPausedRef.current = true; }} onClose={() => { setViewersOpen(false); overlayPausedRef.current = false; resumeNow(); }} /> : null}
       </div>
-    </div>
+    </div></StoryPhotoLookContext.Provider>
   );
 }
 

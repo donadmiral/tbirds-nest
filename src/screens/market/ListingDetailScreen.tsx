@@ -272,7 +272,7 @@ export default function ListingDetailScreen({ navigation, route }: any) {
               {listing.seller?.username ? <Text style={s.sellerHandle}>@{listing.seller.username}</Text> : null}
               <SellerTrust sellerId={listing.seller_id} />
             </View>
-            <Feather name="chevron-right" size={18} color="#C7C7CC" />
+            <Feather name="chevron-right" size={18} color={getTheme().ink.muted} />
           </TouchableOpacity>
         </View>
 

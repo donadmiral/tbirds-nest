@@ -51,7 +51,7 @@ const classes = {
   select: pick(player, n => player.tag(n) === 'select'),
   textarea: pick(comments, n => comments.tag(n) === 'textarea'),
   send: pick(comments, n => comments.tag(n) === 'button' && comments.classes(n).includes('bg-pearl')),
-  commentMenu: pick(comments, n => comments.tag(n) === 'span' && comments.classes(n).includes('bg-navy')),
+  commentMenu: pick(comments, n => comments.tag(n) === 'span' && comments.classes(n).includes('bg-white')),
   copyComment: pick(comments, n => comments.tag(n) === 'button' && comments.text(n).includes('Copy text')),
   popup: pick(menu, n => menu.tag(n) === 'div' && menu.classes(n).includes('bg-white')),
   popupItem: pick(menu, n => menu.tag(n) === 'button' && menu.text(n).includes('Copy post text')),
@@ -164,7 +164,7 @@ for (const dark of [false, true]) {
     contrast('Send disabled', resolve(send.color, vars), utility(classes.send, 'background-color', vars), bg, 4.5, opacityValue(disabledOpacity));
     const inputBg = utility(classes.comments, 'background-color', vars, '[&_textarea]');
     contrast('placeholder', resolve(rule('.theater-comments textarea::placeholder').color, vars), inputBg, bg);
-    const menuBg = utility(classes.commentMenu, 'background-color', vars);
+    const menuBg = resolve(rule('.theater-comments span.bg-white')['background-color'], vars) || utility(classes.commentMenu, 'background-color', vars);
     contrast('comment menu text and inherited icon', utility(classes.copyComment, 'color', vars), menuBg, bg);
     contrast('comment menu hover', utility(classes.copyComment, 'color', vars), utility(classes.copyComment, 'background-color', vars, 'hover'), menuBg);
     // The scoped override must be unlayered to beat the descendant utility.

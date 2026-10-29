@@ -14,6 +14,11 @@ import { Feather } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
+import { hydratePostMedia, withoutPrivateMedia } from '../../services/contentMedia';
+import { normalizeProfilePost } from '../../utils/profilePost';
+import { profileRead } from '../../utils/profileRead';
+import { useProfileMediaRefresh } from '../../hooks/useProfileMediaRefresh';
+import { useIsFocused } from '@react-navigation/native';
 
 type Tab = 'people' | 'posts' | 'jobs' | 'market';
 
@@ -48,6 +53,8 @@ export default function SearchScreen({ navigation }: any) {
   const { t, isDark } = useTheme();
   const { profile } = useAuthStore();
   const myId = profile?.id ?? null;
+  const focused = useIsFocused();
+  const recentKey = `${RECENT_KEY}:${myId || 'signed-out'}`;
 
   const [query, setQuery] = useState('');
   const [activeTab, setActiveTab] = useState<Tab>('people');
@@ -62,86 +69,113 @@ export default function SearchScreen({ navigation }: any) {
   const [trendingTags, setTrendingTags] = useState<any[]>([]);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
+  const request = useRef(0), mounted = useRef(true);
+  const identity = useRef({ myId });
+  if (identity.current.myId !== myId) identity.current = { myId };
+  const scope = `${myId}:${query.trim()}:${postMode}`;
+  const searchScope = useRef(scope); searchScope.current = scope;
+  const [visibleScope, setVisibleScope] = useState('');
+  const [errors, setErrors] = useState<Partial<Record<Tab, string>>>({});
+  useProfileMediaRefresh(posts, setPosts, scope, focused && activeTab === 'posts', message => setErrors(previous => ({ ...previous, posts: message })));
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; request.current++; }; }, []);
   useEffect(() => {
-    AsyncStorage.getItem(RECENT_KEY).then(v => {
-      if (v) try { setRecent(JSON.parse(v)); } catch {}
-    });
-  }, []);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const { data } = await supabase.rpc('get_trending_topics', { p_limit: 8 });
-        setTrendingTags((data ?? []) as any[]);
-      } catch {}
-    })();
-  }, []);
+    let alive = true;
+    setRecent([]); setQuery(''); setPeople([]); setPosts([]); setJobs([]); setListings([]); setTrendingTags([]); setErrors({});
+    request.current++;
+    if (myId) {
+      AsyncStorage.getItem(recentKey).then(value => {
+        if (!alive || !value) return;
+        try { const saved = JSON.parse(value); if (Array.isArray(saved)) setRecent(saved.filter(item => typeof item === 'string').slice(0, MAX_RECENT)); } catch {}
+      }).catch(() => {});
+      void Promise.resolve(supabase.rpc('get_trending_topics', { p_limit: 8 })).then(({ data, error }) => {
+        if (alive && !error) setTrendingTags(data || []);
+      }).catch(() => {});
+    }
+    return () => { alive = false; };
+  }, [myId, recentKey]);
 
   const saveRecent = useCallback(async (term: string) => {
-    const t = term.trim();
-    if (!t) return;
-    setRecent(prev => {
-      const next = [t, ...prev.filter(x => x.toLowerCase() !== t.toLowerCase())].slice(0, MAX_RECENT);
-      AsyncStorage.setItem(RECENT_KEY, JSON.stringify(next)).catch(() => {});
+    const value = term.trim();
+    if (!value || !myId) return;
+    setRecent(previous => {
+      const next = [value, ...previous.filter(item => item.toLowerCase() !== value.toLowerCase())].slice(0, MAX_RECENT);
+      void AsyncStorage.setItem(recentKey, JSON.stringify(next)).catch(() => {});
       return next;
     });
-  }, []);
+  }, [recentKey, myId]);
 
   const clearRecent = async () => {
     setRecent([]);
-    await AsyncStorage.removeItem(RECENT_KEY);
+    await AsyncStorage.removeItem(recentKey).catch(() => {});
   };
 
   const runSearch = useCallback(async (term: string) => {
-    const q = term.trim();
-    if (!q) {
-      setPeople([]); setPosts([]); setJobs([]);
-      return;
-    }
-    setLoading(true);
+    const q = term.trim(), owner = identity.current, version = ++request.current;
+    const expected = `${myId}:${q}:${postMode}`;
+    const current = () => mounted.current && owner === identity.current && version === request.current && searchScope.current === expected;
+    if (!current()) return;
+    if (!q || !myId) { setPeople([]); setPosts([]); setJobs([]); setListings([]); setLoading(false); setErrors({}); setVisibleScope(expected); return; }
+    setLoading(true); setErrors({});
+    const readRows = async (request: any): Promise<any[]> => {
+      const { data, error } = await profileRead(request) as any;
+      if (error) throw error;
+      return data || [];
+    };
     try {
-      const like = `%${q}%`;
-
-      const { data: blk } = await supabase.from('blocked_users').select('blocker_id, blocked_id').or('blocker_id.eq.' + (myId ?? '') + ',blocked_id.eq.' + (myId ?? ''));
-      const blockedSet = new Set<string>((blk ?? []).map((b: any) => (b.blocker_id === myId ? b.blocked_id : b.blocker_id)));
-
-      const [pplRes, postRes, jobRes, mktRes] = await Promise.all([
-        supabase.rpc('search_people', { p_q: q, p_limit: 25 }),
-        supabase.rpc('search_posts', { p_q: q, p_mode: postMode, p_limit: 20 }),
-        supabase.rpc('search_jobs_fts', { p_q: q, p_limit: 20 }),
-        supabase.rpc('search_listings_fts', { p_q: q, p_limit: 20 }),
+      const [blocked, peopleResult, postResult, jobResult, marketResult] = await Promise.allSettled([
+        readRows(supabase.from('blocked_users').select('blocker_id, blocked_id').or(`blocker_id.eq.${myId},blocked_id.eq.${myId}`)),
+        readRows(supabase.rpc('search_people', { p_q: q, p_limit: 25 })),
+        readRows(supabase.rpc('search_posts', { p_q: q, p_mode: postMode, p_limit: 20 })),
+        readRows(supabase.rpc('search_jobs_fts', { p_q: q, p_limit: 20 })),
+        readRows(supabase.rpc('search_listings_fts', { p_q: q, p_limit: 20 })),
       ]);
-
-      const postList = postRes.data || [];
-      postList.forEach((p: any) => { if (p.post_id && !p.id) { p.id = p.post_id; p.user_id = p.author_id; p.profile = { id: p.author_id, full_name: p.author_name, username: p.author_username, avatar_url: p.author_avatar }; } });
-      if (postList.length) {
-        const authorIds = Array.from(new Set(postList.map((p: any) => p.user_id)));
-        const { data: authors } = await supabase
-          .from('profiles')
-          .select('id, full_name, username, avatar_url')
-          .in('id', authorIds);
-        const authorMap: Record<string, any> = {};
-        (authors || []).forEach((a: any) => { authorMap[a.id] = a; });
-        postList.forEach((p: any) => { p.profile = authorMap[p.user_id]; });
+      if (!current()) return;
+      // Do not publish any result if the viewer's block restrictions were unavailable.
+      if (blocked.status === 'rejected') throw new Error('Privacy settings could not load. Please retry.');
+      const blockedIds = new Set(blocked.value.map(row => row.blocker_id === myId ? row.blocked_id : row.blocker_id));
+      const nextErrors: Partial<Record<Tab, string>> = {};
+      if (peopleResult.status === 'fulfilled') setPeople(peopleResult.value.filter(row => !blockedIds.has(row.id)));
+      else { setPeople([]); nextErrors.people = 'People could not load. Please retry.'; }
+      if (jobResult.status === 'fulfilled') setJobs(jobResult.value);
+      else { setJobs([]); nextErrors.jobs = 'Jobs could not load. Please retry.'; }
+      if (marketResult.status === 'fulfilled') setListings(marketResult.value.filter(row => !blockedIds.has(row.seller_id)));
+      else { setListings([]); nextErrors.market = 'Market results could not load. Please retry.'; }
+      const postRows = postResult.status === 'fulfilled' ? postResult.value.map(row => ({ ...row,
+        id: row.id || row.post_id, user_id: row.user_id || row.author_id,
+        post_media: Array.isArray(row.media) ? row.media : row.post_media || [],
+        profile: row.profile || { id: row.user_id || row.author_id, full_name: row.author_name, username: row.author_username, avatar_url: row.author_avatar },
+        _mediaExpected: !!(row.media?.length || row.post_media?.length || row.media_url),
+      })).filter(row => !blockedIds.has(row.user_id)) : [];
+      setPosts(withoutPrivateMedia(postRows).map(row => normalizeProfilePost({ ...row, _mediaPending: true })));
+      if (postResult.status === 'rejected') nextErrors.posts = 'Posts could not load. Please retry.';
+      setErrors(nextErrors); setVisibleScope(expected); setLoading(false);
+      if (postRows.length) {
+        try {
+          const media = await profileRead(hydratePostMedia(postRows), 25000);
+          if (current()) setPosts(media.map(normalizeProfilePost));
+        } catch {
+          if (current()) {
+            setPosts(withoutPrivateMedia(postRows).map(normalizeProfilePost));
+            setErrors(previous => ({ ...previous, posts: 'Photos and videos could not load. Tap Retry to restore access.' }));
+          }
+        }
       }
-
-      setPeople((pplRes.data || []).filter((p: any) => !blockedSet.has(p.id)));
-      setPosts(postList);
-      setJobs(jobRes.data || []);
-      setListings(((mktRes.data || []) as any[]).filter((l: any) => !blockedSet.has(l.seller_id)));
-      void supabase.rpc('log_search_event', { p_query: q, p_vertical: 'all' });
-    } catch (e) {
-      console.log('SEARCH_ERR', e);
-    } finally {
-      setLoading(false);
-    }
+      if (current()) void Promise.resolve(supabase.rpc('log_search_event', { p_query: q, p_vertical: 'all' })).catch(() => {});
+    } catch (error: any) {
+      if (current()) {
+        setPeople([]); setPosts([]); setJobs([]); setListings([]); setVisibleScope(expected);
+        const message = error?.message || 'Search could not load. Please retry.';
+        setErrors({ people: message, posts: message, jobs: message, market: message });
+      }
+    } finally { if (current()) setLoading(false); }
   }, [myId, postMode]);
 
   useEffect(() => {
+    request.current++;
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => { runSearch(query); }, 300);
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    setLoading(!!query.trim()); setErrors({});
+    debounceRef.current = setTimeout(() => void runSearch(query), 300);
+    return () => { request.current++; if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [query, runSearch]);
 
   const submitSearch = () => {
@@ -150,11 +184,11 @@ export default function SearchScreen({ navigation }: any) {
   };
 
   const activeCount = useMemo(() => ({
-    people: people.length,
-    posts:  posts.length,
-    jobs:   jobs.length,
-    market: 0,
-  }), [people, posts, jobs]);
+    people: visibleScope === scope ? people.length : 0,
+    posts: visibleScope === scope ? posts.length : 0,
+    jobs: visibleScope === scope ? jobs.length : 0,
+    market: visibleScope === scope ? listings.length : 0,
+  }), [people, posts, jobs, listings, scope, visibleScope]);
 
   const renderPerson = ({ item }: { item: any }) => (
     <TouchableOpacity
@@ -174,7 +208,7 @@ export default function SearchScreen({ navigation }: any) {
         {item.degree_program ? <Text style={s.personMeta} numberOfLines={1}>{item.degree_program}{item.cohort ? ` · ${item.cohort}` : ''}</Text> : null}
         {item.location ? <Text style={s.personMeta}>📍 {item.location}</Text> : null}
       </View>
-      <Feather name="chevron-right" size={18} color="#C7C7CC" />
+      <Feather name="chevron-right" size={18} color={t.ink.muted} />
     </TouchableOpacity>
   );
 
@@ -197,7 +231,8 @@ export default function SearchScreen({ navigation }: any) {
         </View>
       </View>
       <Text style={s.postBody} numberOfLines={3}>{item.content || item.body || ''}</Text>
-      {(() => { const mm = Array.isArray(item.media) && item.media[0] ? item.media[0] : (item.media_url ? { url: item.media_url, media_type: 'image' } : null); if (!mm) return null; if (mm.media_type === 'video') return (<View style={[s.postMedia, { backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }]}><VideoThumb uri={mm.url} fill chip={false} /><View style={{ position: 'absolute', width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }}><Feather name="play" size={18} color="#FFFFFF" /></View></View>); return <Image source={{ uri: mm.url }} style={s.postMedia} />; })()}
+      {item.mediaPending ? <View style={s.mediaState} accessibilityRole="progressbar" accessibilityLabel="Loading post media"><ActivityIndicator color={t.ink.muted}/></View> : item.mediaUnavailable ? <TouchableOpacity accessibilityRole="button" onPress={() => void runSearch(query)} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={s.postTime}>A photo or video could not load. Tap to retry.</Text></TouchableOpacity> : null}
+      {(() => { const mm = Array.isArray(item.media) && item.media[0] ? item.media[0] : (item.media_url ? { url: item.media_url, media_type: 'image' } : null); if (!mm) return null; if (mm.media_type === 'video') return (<View style={[s.postMedia, { backgroundColor: t.surface.sunken, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }]}><VideoThumb uri={mm.url} fill chip={false} /><View style={{ position: 'absolute', width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }}><Feather name="play" size={18} color="#FFFFFF" /></View></View>); return <Image source={{ uri: mm.url }} style={s.postMedia} />; })()}
       <View style={s.postStats}>
         <Text style={s.postStat}>♥ {item.likes_count || 0}</Text>
         <Text style={s.postStat}>💬 {item.comments_count || 0}</Text>
@@ -209,9 +244,9 @@ export default function SearchScreen({ navigation }: any) {
     <TouchableOpacity
       style={s.jobRow}
       activeOpacity={0.85}
-      onPress={() => { saveRecent(query); navigation.navigate('Jobs', { screen: 'JobsMain' }); }}
+      onPress={() => { saveRecent(query); navigation.navigate('JobDetail', { job: item }); }}
     >
-      <View style={[s.jobBadge, { backgroundColor: '#EFF6FF' }]}>
+      <View style={[s.jobBadge, { backgroundColor: t.status.linkBg }]}>
         <Text style={s.jobBadgeTxt}>💼</Text>
       </View>
       <View style={{ flex: 1 }}>
@@ -221,7 +256,7 @@ export default function SearchScreen({ navigation }: any) {
           {[item.location, item.category, item.salary_range].filter(Boolean).join(' · ')}
         </Text>
       </View>
-      <Feather name="chevron-right" size={18} color="#C7C7CC" />
+      <Feather name="chevron-right" size={18} color={t.ink.muted} />
     </TouchableOpacity>
   );
 
@@ -232,18 +267,18 @@ export default function SearchScreen({ navigation }: any) {
       activeOpacity={0.8}
     >
       {Array.isArray(item.images) && item.images.length > 0
-        ? <Image source={{ uri: item.images[0] }} style={{ width: 52, height: 52, borderRadius: 10, backgroundColor: '#EFEFF4' }} />
-        : <View style={{ width: 52, height: 52, borderRadius: 10, backgroundColor: '#EFEFF4', alignItems: 'center', justifyContent: 'center' }}><Feather name="shopping-bag" size={20} color={t.ink.secondary} /></View>}
+        ? <Image source={{ uri: item.images[0] }} style={{ width: 52, height: 52, borderRadius: 10, backgroundColor: t.surface.sunken }} />
+        : <View style={{ width: 52, height: 52, borderRadius: 10, backgroundColor: t.surface.sunken, alignItems: 'center', justifyContent: 'center' }}><Feather name="shopping-bag" size={20} color={t.ink.secondary} /></View>}
       <View style={{ flex: 1, marginLeft: 10 }}>
         <Text style={s.jobTitle} numberOfLines={1}>{item.title}</Text>
         <Text style={s.jobCompany} numberOfLines={1}>{item.currency === 'ZWG' ? 'ZWG' : '$'}{item.price}</Text>
         <Text style={s.jobMeta} numberOfLines={1}>{[item.condition, item.location_city].filter(Boolean).join(' · ')}</Text>
       </View>
-      <Feather name="chevron-right" size={18} color="#C7C7CC" />
+      <Feather name="chevron-right" size={18} color={t.ink.muted} />
     </TouchableOpacity>
   );
 
-  const currentData =
+  const currentData = visibleScope !== scope ? [] :
     activeTab === 'people' ? people :
     activeTab === 'posts'  ? posts  :
     activeTab === 'market' ? listings :
@@ -256,7 +291,7 @@ export default function SearchScreen({ navigation }: any) {
     renderJob;
 
   const showResults = query.trim().length > 0;
-  const postModeBar = activeTab === 'posts' && showResults ? (<View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingBottom: 6 }}>{(['top', 'latest'] as const).map(m => (<TouchableOpacity key={m} onPress={() => setPostMode(m)} style={{ paddingHorizontal: 14, paddingVertical: 6, borderRadius: 999, backgroundColor: postMode === m ? '#0B1E3D' : 'rgba(11,30,61,0.06)' }}><Text style={{ fontSize: 12.5, fontWeight: '700', color: postMode === m ? '#FFF' : '#0B1E3D' }}>{m === 'top' ? 'Top' : 'Latest'}</Text></TouchableOpacity>))}</View>) : null;
+  const postModeBar = activeTab === 'posts' && showResults ? (<View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingBottom: 6 }}>{(['top', 'latest'] as const).map(m => (<TouchableOpacity key={m} onPress={() => setPostMode(m)} style={{ paddingHorizontal: 14, paddingVertical: 6, borderRadius: 999, backgroundColor: postMode === m ? t.brand.base : t.surface.sunken }}><Text style={{ fontSize: 12.5, fontWeight: '700', color: postMode === m ? t.ink.inverse : t.ink.primary }}>{m === 'top' ? 'Top' : 'Latest'}</Text></TouchableOpacity>))}</View>) : null;
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
@@ -265,7 +300,7 @@ export default function SearchScreen({ navigation }: any) {
       <View style={s.header}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <TouchableOpacity
-            onPress={() => navigation.goBack()}
+            onPress={() => { if (navigation.canGoBack()) navigation.goBack(); else navigation.navigate('Main', { screen: 'Feed', params: { screen: 'FeedMain' } }); }}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             accessibilityRole="button"
             accessibilityLabel="Go back"
@@ -283,6 +318,7 @@ export default function SearchScreen({ navigation }: any) {
             accessibilityLabel="Search Platinum"
             autoCorrect={false}
             placeholderTextColor={t.ink.secondary}
+            keyboardAppearance={isDark ? "dark" : "light"}
             style={s.searchInput}
             autoFocus
             returnKeyType="search"
@@ -327,10 +363,10 @@ export default function SearchScreen({ navigation }: any) {
                 <View style={{ marginBottom: 18, paddingHorizontal: 14, paddingTop: 8 }}>
                   <Text style={[s.recentTitle, { marginBottom: 10 }]}>Trending</Text>
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                    {trendingTags.map((t: any) => (
-                      <TouchableOpacity key={t.tag} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: 'rgba(11,30,61,0.05)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.10)' }} onPress={() => (navigation as any).navigate('TrendFeed', { tag: t.tag })} activeOpacity={0.75}>
-                        <Feather name="trending-up" size={12} color="#0B1E3D" />
-                        <Text style={{ fontSize: 13, fontWeight: '600', color: '#0B1E3D' }}>#{t.tag}</Text>
+                    {trendingTags.map((topic: any) => (
+                      <TouchableOpacity key={topic.tag} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: t.surface.sunken, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline }} onPress={() => (navigation as any).navigate('TrendFeed', { tag: topic.tag })} activeOpacity={0.75}>
+                        <Feather name="trending-up" size={12} color={t.ink.primary} />
+                        <Text style={{ fontSize: 13, fontWeight: '600', color: t.ink.primary }}>#{topic.tag}</Text>
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -339,7 +375,7 @@ export default function SearchScreen({ navigation }: any) {
               {recent.length > 0 ? (
               <View style={s.recentHeader}>
                 <Text style={s.recentTitle}>Recent</Text>
-                <TouchableOpacity onPress={clearRecent}><Text style={s.recentClear}>Clear</Text></TouchableOpacity>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel="Clear recent searches" style={{ minHeight: 44, justifyContent: 'center' }} onPress={clearRecent}><Text style={s.recentClear}>Clear</Text></TouchableOpacity>
               </View>
             ) : null}
             </View>
@@ -349,7 +385,7 @@ export default function SearchScreen({ navigation }: any) {
           keyboardDismissMode="on-drag"
           ListEmptyComponent={
             <View style={s.emptyIntro}>
-              <Feather name="search" size={44} color="#E5E5EA" />
+              <Feather name="search" size={44} color={t.ink.muted} />
               <Text style={s.emptyIntroTitle}>Discover the community</Text>
               <Text style={s.emptyIntroSub}>Find people, posts, jobs, and the Market.</Text>
             </View>
@@ -359,28 +395,31 @@ export default function SearchScreen({ navigation }: any) {
               <Feather name="clock" size={15} color={t.ink.secondary} />
               <Text style={s.recentTxt} numberOfLines={1}>{item}</Text>
               <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel={`Remove ${item} from recent searches`}
+                style={{ minHeight: 44, minWidth: 44, alignItems: 'center', justifyContent: 'center' }}
                 onPress={() => {
                   setRecent(prev => {
                     const next = prev.filter(x => x !== item);
-                    AsyncStorage.setItem(RECENT_KEY, JSON.stringify(next)).catch(() => {});
+                    AsyncStorage.setItem(recentKey, JSON.stringify(next)).catch(() => {});
                     return next;
                   });
                 }}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <Feather name="x" size={15} color="#C7C7CC" />
+                <Feather name="x" size={15} color={t.ink.muted} />
               </TouchableOpacity>
             </TouchableOpacity>
           )}
         />
-      ) : loading && currentData.length === 0 ? (
+      ) : (loading || visibleScope !== scope) && currentData.length === 0 ? (
         <View style={s.loader}>
           <ListRowSkeleton rows={6} />
           <Text style={s.loaderTxt}>Searching...</Text>
         </View>
       ) : (
         <FlatList automaticallyAdjustKeyboardInsets={true}
-          data={currentData} ListHeaderComponent={postModeBar}
+          data={currentData} ListHeaderComponent={<>{postModeBar}{!!errors[activeTab] && <TouchableOpacity accessibilityRole="button" onPress={() => void runSearch(query)} style={s.error}><Text accessibilityRole="alert" style={s.emptyResultsSub}>{errors[activeTab]}</Text><Text style={s.retryText}>Retry</Text></TouchableOpacity>}</>}
           keyExtractor={(item: any) => item.id}
           renderItem={currentRenderer as any}
           contentContainerStyle={[
@@ -390,7 +429,7 @@ export default function SearchScreen({ navigation }: any) {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
-          ListEmptyComponent={
+          ListEmptyComponent={errors[activeTab] ? null :
             <View style={s.emptyResults}>
               <Text style={s.emptyResultsEmoji}>🔍</Text>
               <Text style={s.emptyResultsTitle}>No {activeTab} found</Text>
@@ -404,6 +443,9 @@ export default function SearchScreen({ navigation }: any) {
 }
 
 const s = themedSheet((t) => ({
+  error: { padding: 16, borderRadius: 12, backgroundColor: t.surface.sunken, marginBottom: 12 },
+  retryText: { marginTop: 10, color: t.ink.primary, fontWeight: '700', textAlign: 'center' },
+  mediaState: { minHeight: 100, marginTop: 8, backgroundColor: t.surface.sunken, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 10, gap: 10 },
   title: { fontSize: 28, fontWeight: '800', color: t.ink.primary, letterSpacing: -0.5 },
@@ -450,12 +492,12 @@ const s = themedSheet((t) => ({
   personRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     paddingVertical: 11, paddingHorizontal: 4,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F5F5F5',
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline,
   },
   avatar: { width: 48, height: 48, borderRadius: 24 },
-  avatarFb: { backgroundColor: '#DBEAFE', alignItems: 'center', justifyContent: 'center' },
-  avatarTxt: { fontSize: 16, fontWeight: '700', color: '#1D4ED8' },
-  avatarTxtSm: { fontSize: 12, fontWeight: '700', color: '#1D4ED8' },
+  avatarFb: { backgroundColor: t.status.linkBg, alignItems: 'center', justifyContent: 'center' },
+  avatarTxt: { fontSize: 16, fontWeight: '700', color: t.status.link },
+  avatarTxtSm: { fontSize: 12, fontWeight: '700', color: t.status.link },
   personName: { fontSize: 15, fontWeight: '700', color: t.ink.primary },
   personHandle: { fontSize: 13, color: t.status.link, marginTop: 1 },
   personMeta: { fontSize: 12, color: t.ink.secondary, marginTop: 1 },

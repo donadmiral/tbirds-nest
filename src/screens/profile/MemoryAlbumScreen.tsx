@@ -1,5 +1,6 @@
 import { themedSheet, useTheme } from '../../theme/useTheme';
 import VideoThumb from '../../components/VideoThumb';
+import StoryPixelImage from '../../components/stories/StoryPixelImage';
 import MemoryPageImage from '../../components/memory/MemoryPageImage';
 import MemoryStoryFrame, { type MemoryStoryPage } from '../../components/memory/MemoryStoryFrame';
 import { memoryAlbumStoryLayers, memoryStoryRecipe, memoryStorySeek, memoryStoryStickers } from '../../../shared/memoryStoryPresentation';
@@ -30,6 +31,8 @@ import MemoryBookCover from '../../components/memory/MemoryBookCover';
 import { MemoryStoryTile } from '../../components/memory/MemoryBookDesigner';
 import MemoryAudienceEditor from '../../components/memory/MemoryAudienceEditor';
 import { memoryArtwork, memoryCoverMedia, memoryCoverPage, MEMORY_FEATURED_DESIGNS as MEMORY_DESIGNS } from '../../../shared/memoryBookDesign';
+import { memoryPhotoDuration } from '../../../shared/memoryPlayback';
+import { useMemoryPlayback } from '../../../shared/useMemoryPlayback';
 import { useSoundtrackPlayer } from '../../hooks/useSoundtrackPlayer';
 const PAGE_CREAM = '#FBF6EC';
 
@@ -44,6 +47,15 @@ const AUDIENCES = [
 export default function MemoryAlbumScreen({ route, navigation }: any) {
   const { t, isDark } = useTheme();
   const focused = useIsFocused();
+  const { callState } = useCallContext();
+  const [playMode, setPlayMode] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  const [playRun, setPlayRun] = useState(0);
+  const [foreground, setForeground] = useState(AppState.currentState === 'active');
+  const [readyPage, setReadyPage] = useState('');
+  const [videoProgress, setVideoProgress] = useState(0);
+  const motionScale = useRef(new Animated.Value(1)).current;
+  useEffect(() => { const app = AppState.addEventListener('change', state => setForeground(state === 'active')); return () => app.remove(); }, []);
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const [design, setDesign] = useState('keepsake');
   const [reduceMotion, setReduceMotion] = useState(false);
@@ -148,7 +160,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
     bookGeneration.current++; loadGeneration.current++;
     coverAnim.stopAnimation(); pageTurn.current?.cancel();
     coverAnim.setValue(0); idxRef.current=0;
-    setOpened(false); setGrid(false); setIdx(0); setAlbum(null); setBookId(albumIdParam);
+    setOpened(false); setGrid(false); setPlayMode(false); setPlaying(false); setIdx(0); setAlbum(null); setBookId(albumIdParam);
     setPlayingUrl(null); setPicker(false); setSettings(false); setPageActions(null); pendingPageAction.current=null; setCaptionFor(null);
     setMyStories([]); setChosen(new Set()); setAdding(false); setStoriesLoading(false); setMutationError(''); setLoadError(null); setLoading(true);
     return () => { bookGeneration.current++; coverAnim.stopAnimation(); pageTurn.current?.cancel(); };
@@ -164,7 +176,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
 
   useEffect(() => { setDesign(album?.cover_design || 'keepsake'); }, [album]);
   useEffect(() => { let alive=true; setNextBook(null); if (!viewerId || !bookId) return; void supabase.rpc('get_memory_albums',{p_owner:ownerId}).then(({data,error})=>{if(!alive||error)return;const list=(data?.books??[]).filter((b:any)=>data?.is_owner||b.count>0);const index=list.findIndex((b:any)=>b.id===bookId);if(index>=0&&index+1<list.length)setNextBook(list[index+1].id);});return()=>{alive=false;};},[ownerId,bookId,viewerId]);
-  const music = useSoundtrackPlayer({ selection: album?.soundtrack ?? null, use: 'memory_album', active: focused && opened && !turning && !grid && !pageActions && !settings && !picker && !playingUrl });
+  const music = useSoundtrackPlayer({ selection: album?.soundtrack ?? null, use: 'memory_album', active: focused && foreground && callState === 'idle' && opened && (!playMode || playing) && !grid && !pageActions && !settings && !picker && !captionFor && !playingUrl });
 
   const artwork = memoryArtwork(album?.cover_design, album?.cover_color);
   const pages: any[] = useMemo(
@@ -173,6 +185,12 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
   );
 
   useEffect(() => { if (idx > 0 && idx >= pages.length) setIdx(Math.max(0, pages.length - 1)); }, [pages.length, idx]);
+  const playbackPage = pages[idx];
+  const movieActive = focused && foreground && callState === 'idle' && opened && playMode && playing && !turning && !grid && !pageActions && !settings && !picker && !captionFor && !playingUrl;
+  const finishPage = useCallback(() => { if (idxRef.current >= pages.length - 1) setPlaying(false); else pageTurn.current?.turn(1); }, [pages.length]);
+  const photoProgress = useMemoryPlayback(`${bookId}:${playbackPage?.id}:${playRun}`, movieActive && playbackPage?.media_type !== 'video' && (!playbackPage?.media_url || readyPage === playbackPage?.id), memoryPhotoDuration(playbackPage), finishPage);
+  useEffect(() => { setReadyPage(''); setVideoProgress(0); }, [playbackPage?.id, playRun]);
+  useEffect(() => { const animation = Animated.timing(motionScale, { toValue: playMode && !reduceMotion ? 1 + photoProgress * .06 : 1, duration: reduceMotion ? 0 : 120, useNativeDriver: true }); animation.start(); return () => animation.stop(); }, [motionScale, playMode, reduceMotion, photoProgress]);
 
   const openBook = useCallback(() => {
     const generation=bookGeneration.current;
@@ -182,9 +200,11 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
   const closeBook = useCallback(() => {
     bookGeneration.current++;
     pageTurn.current?.cancel();
-    setOpened(false); setGrid(false);
+    setOpened(false); setGrid(false); setPlayMode(false); setPlaying(false);
     Animated.timing(coverAnim, { toValue: 0, duration: reduceMotion ? 0 : 220, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
   }, [coverAnim, reduceMotion]);
+
+  const playBook = useCallback(() => { idxRef.current = 0; setIdx(0); setPlayRun(value => value + 1); setPlayMode(true); setPlaying(true); openBook(); }, [openBook]);
 
   const flipTo = useCallback((dir:1|-1)=>{pageTurn.current?.turn(dir);},[]);
 
@@ -289,8 +309,8 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
           <View style={{ width: 26 }} />
         </View>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 }}>
-          <Feather name="lock" size={22} color="#9AA6B8" />
-          <Text style={{ marginTop: 10, fontSize: 13.5, color: '#5B6B84', textAlign: 'center' }}>This album is private.</Text>
+          <Feather name="lock" size={22} color={t.ink.muted} />
+          <Text style={{ marginTop: 10, fontSize: 13.5, color: t.ink.secondary, textAlign: 'center' }}>This album is private.</Text>
         </View>
       </SafeAreaView>
     );
@@ -329,23 +349,24 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
             </TouchableOpacity>
           </Animated.View>
           <Text style={{fontFamily:Platform.OS==='ios'?'Georgia':'serif',fontSize:21,color:t.ink.primary,marginTop:22}}>{ownerName?'By '+ownerName:album.subtitle||album.title}</Text><Text style={{color:t.ink.secondary,fontSize:13,marginTop:7}}>{pages.length} {pages.length===1?'memory':'memories'}</Text><TouchableOpacity accessibilityRole="button" onPress={openBook} style={{width:bookW,marginTop:22,backgroundColor:'#142642',borderRadius:18,alignItems:'center',padding:15}}><Text style={{color:'#FFF',fontFamily:Platform.OS==='ios'?'Georgia':'serif',fontSize:20}}>Open book</Text></TouchableOpacity>
+          {pages.length > 0 && <TouchableOpacity accessibilityRole="button" accessibilityLabel="Play book automatically" onPress={playBook} style={{width:bookW,marginTop:10,borderWidth:1,borderColor:t.surface.hairline,borderRadius:18,alignItems:'center',padding:15,flexDirection:'row',justifyContent:'center',gap:8}}><Feather name="play" size={18} color={t.ink.primary}/><Text style={{color:t.ink.primary,fontWeight:'700'}}>Play book</Text></TouchableOpacity>}
           {album.is_owner ? (
             <TouchableOpacity onPress={openPicker} activeOpacity={0.9} style={[st.fab, { position: 'relative', bottom: 0, marginTop: 10, width:bookW, borderRadius:18, justifyContent:'center' }]}>
-              <Feather name="plus" size={18} color="#FFFFFF" />
+              <Feather name="plus" size={18} color={t.ink.inverse} />
               <Text style={st.fabTxt}>Add memories</Text>
             </TouchableOpacity>
           ) : null}
         </View>
       ) : grid ? <ScrollView contentContainerStyle={{padding:18,paddingBottom:40}}><Text style={{fontSize:13,color:t.ink.secondary,textAlign:'center',marginBottom:20}}>{pages.length} pages · Select a page to read or edit</Text><View style={{flexDirection:'row',flexWrap:'wrap',gap:14}}>{pages.map((pg:any,i:number)=><TouchableOpacity key={pg.id} accessibilityLabel={'Open memory '+(i+1)} onPress={()=>{idxRef.current=i;setIdx(i);setGrid(false);}} style={{width:(screenWidth-50)/2,backgroundColor:PAGE_CREAM,borderLeftWidth:6,borderColor:artwork.spine,padding:10,shadowColor:'#000',shadowOpacity:.1,shadowRadius:5,shadowOffset:{width:0,height:3}}}><Text style={{fontFamily:Platform.OS==='ios'?'Georgia':'serif',color:'#142642',textAlign:'center',fontSize:10,marginBottom:10}}>{String(i+1).padStart(2,'0')}</Text><View style={{height:(screenWidth-50)/2*1.15,overflow:'hidden'}}><MemoryStoryTile story={pg}/></View><Text numberOfLines={2} style={{fontFamily:Platform.OS==='ios'?'Georgia':'serif',fontSize:13,color:'#142642',marginTop:10}}>{pg.caption||fmtDate(pg.taken_at)}</Text></TouchableOpacity>)}</View>{album.is_owner&&<TouchableOpacity onPress={openPicker} style={{padding:16,alignItems:'center',marginTop:20,borderWidth:1,borderStyle:'dashed',borderRadius:14,borderColor:t.surface.hairline}}><Text style={{color:t.ink.primary}}>+ Add memories</Text></TouchableOpacity>}</ScrollView> : (
         <View style={{ flex: 1, alignItems: 'center',overflow:'hidden' }}>
-          <MemoryPageTurn ref={pageTurn} key={bookId} pageIds={pages.map(p=>p.id)} index={idx} width={pageWidth} height={pageHeight} active={focused&&!pageActions&&!settings&&!picker&&!playingUrl} reduceMotion={reduceMotion} spine={artwork.spine} title={album.title} onCommit={i=>{idxRef.current=i;setIdx(i);}} onTurningChange={setTurning} renderPreview={i=><MemoryTurnPreview page={pages[i]??{}} index={i}/>}>
-              <Text style={{textAlign:'center',fontFamily:Platform.OS==='ios'?'Georgia':'serif',fontSize:10,color:'#9A725B',marginBottom:12}}>{String(idx+1).padStart(2,'0')} ─</Text>
+          <MemoryPageTurn ref={pageTurn} key={bookId} pageIds={pages.map(p=>p.id)} index={idx} width={pageWidth} height={pageHeight} active={focused&&!pageActions&&!settings&&!picker&&!captionFor&&!playingUrl} reduceMotion={reduceMotion} spine={artwork.spine} title={album.title} onCommit={i=>{idxRef.current=i;setIdx(i);}} onTurningChange={setTurning} renderPreview={i=><MemoryTurnPreview page={pages[i]??{}} index={i}/>}>
+              <Text style={{textAlign:'center',fontFamily:Platform.OS==='ios'?'Georgia':'serif',fontSize:10,color:'#6F614A',marginBottom:12}}>{String(idx+1).padStart(2,'0')} ─</Text>
               {pages.length === 0 ? (
                 <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 26 }}>
                   <Text style={st.emptyTxt}>{album.is_owner ? 'This book is empty.\nAdd your first memory.' : 'No memories yet.'}</Text>
                   {album.is_owner ? (
                     <TouchableOpacity onPress={openPicker} style={[st.fab, { position: 'relative', bottom: 0, marginTop: 18 }]}>
-                      <Feather name="plus" size={16} color="#FFF" /><Text style={st.fabTxt}>Add memories</Text>
+                      <Feather name="plus" size={16} color={t.ink.inverse} /><Text style={st.fabTxt}>Add memories</Text>
                     </TouchableOpacity>
                   ) : null}
                 </View>
@@ -354,18 +375,18 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
                   <View style={[st.polaroid, page?.style==='full'&&{padding:0,borderWidth:0}]}>
                     <View style={st.polImgWrap}>
                       {(() => { const stks = memoryStoryStickers(page?.stickers); const pk = stks.find((k: any) => k && k.kind === 'post'); if (pk) return (
-                        <View style={{ flex: 1, backgroundColor: '#0E1B33', borderRadius: 6, padding: 12 }}>
+                        <MemoryStoryFrame page={page}>{()=> <View style={{ flex: 1, backgroundColor: '#0E1B33', borderRadius: 6, padding: 12 }}>
                           <Text style={{ color: '#C9BFB0', fontSize: 11.5, fontWeight: '700', marginBottom: 6 }} numberOfLines={1}>{pk.postAuthorName || 'Shared post'}</Text>
                           {pk.postText ? <Text style={{ color: '#F5F0EB', fontSize: 13.5, lineHeight: 19 }} numberOfLines={4}>{pk.postText}</Text> : null}
                           {pk.postMediaUrl ? (pk.postMediaType === 'video' ? (
                             <TouchableOpacity activeOpacity={0.9} onPress={() => setPlayingUrl(pk.postMediaUrl)} style={{ marginTop: 8, flex: 1, minHeight: 150, borderRadius: 8, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}><VideoThumb uri={pk.postMediaUrl} fill chip={false} /><View style={{ position: 'absolute', width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }}><Feather name="play" size={19} color="#FFFFFF" /></View></TouchableOpacity>
                           ) : (
-                            <ExpoImage source={{ uri: pk.postMediaUrl }} style={{ marginTop: 8, flex: 1, minHeight: 150, borderRadius: 8 }} contentFit="contain" />
+                            <StoryPixelImage uri={pk.postMediaUrl} style={{ marginTop: 8, flex: 1, minHeight: 150, borderRadius: 8 }} fit="contain" />
                           )) : null}
                           <TouchableOpacity disabled={!pk.postId} onPress={()=>navigation.push('PostTop',{postId:pk.postId})}><Text style={{ color: '#D8E2F0', fontSize: 12, marginTop: 8 }}>View full post →</Text></TouchableOpacity>
-                        </View>
-                      ); if (page?.media_type === 'video') return (<View style={{ flex: 1 }}><PageVideo key={[page.id,page.media_url,mediaAttempt].join(':')} url={page.media_url} page={page} active={focused&&!turning&&!pageActions&&!settings&&!picker&&!playingUrl} onRetry={retryMedia} /><TouchableOpacity accessibilityRole="button" accessibilityLabel="Open memory video full screen" hitSlop={6} disabled={!page.media_url} onPress={() => setPlayingUrl(page.media_url)} style={{ position: 'absolute', right: 8, bottom: 8, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }}><Feather name="maximize-2" size={15} color="#FFFFFF" /></TouchableOpacity></View>); if (page?.media_type === 'image' || page?.media_url || page?.thumbnail_url) return (
-                        <MemoryStoryFrame key={[page.id,page.media_url,page.thumbnail_url,mediaAttempt].join(':')} page={page}>{({fit,style})=><View style={style}><MemoryPageImage uri={page.media_url} thumbnail={page.thumbnail_url} fit={fit} onRetry={retryMedia} /></View>}</MemoryStoryFrame>
+                        </View>}</MemoryStoryFrame>
+                      ); if (page?.media_type === 'video') return (<View style={{ flex: 1 }}><PageVideo key={[page.id,page.media_url,mediaAttempt,playRun].join(':')} url={page.media_url} page={page} active={focused&&foreground&&(!playMode||playing)&&!turning&&!pageActions&&!settings&&!picker&&!captionFor&&!playingUrl} onRetry={retryMedia} onEnd={playMode ? finishPage : undefined} onProgress={setVideoProgress} /><TouchableOpacity accessibilityRole="button" accessibilityLabel="Open memory video full screen" hitSlop={6} disabled={!page.media_url} onPress={() => setPlayingUrl(page.media_url)} style={{ position: 'absolute', right: 8, bottom: 8, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }}><Feather name="maximize-2" size={15} color="#FFFFFF" /></TouchableOpacity></View>); if (page?.media_type === 'image' || page?.media_url || page?.thumbnail_url) return (
+                        <MemoryStoryFrame key={[page.id,page.media_url,page.thumbnail_url,mediaAttempt,playRun].join(':')} page={page}>{({fit,style})=><Animated.View style={[style,{transform:[...(Array.isArray(style.transform)?style.transform:[]),{scale:motionScale}]}]}><MemoryPageImage uri={page.media_url} thumbnail={page.thumbnail_url} fit={fit} onRetry={retryMedia} onReady={()=>setReadyPage(page.id)} /></Animated.View>}</MemoryStoryFrame>
                       ); return (
                         <MemoryStoryFrame page={page}>{()=> <View style={{ flex: 1, borderRadius: 6, alignItems: 'center', justifyContent: 'center', padding: 14 }}>
                           <Text style={{ color: '#F5F0EB', fontSize: 15, fontWeight: '600', textAlign: 'center', lineHeight: 22 }} numberOfLines={6}>{page?.story_caption || page?.caption || (memoryStoryStickers(page?.stickers).length ? '' : 'A moment')}</Text>
@@ -382,12 +403,14 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
               )}
           </MemoryPageTurn>
 
+          {playMode && <View style={{width:pageWidth,marginTop:10}}><View accessibilityRole="progressbar" accessibilityLabel="Memory playback" accessibilityValue={{min:0,max:100,now:Math.round((playbackPage?.media_type==='video'?videoProgress:photoProgress)*100)}} style={{height:3,backgroundColor:t.surface.hairline,borderRadius:2,overflow:'hidden'}}><View style={{height:3,width:`${(playbackPage?.media_type==='video'?videoProgress:photoProgress)*100}%`,backgroundColor:t.ink.primary}}/></View></View>}
           {!!nextBook && idx>=pages.length-1 && <TouchableOpacity onPress={()=>navigation.replace('MemoryAlbum',{ownerId,albumId:nextBook})}><Text style={{color:t.ink.primary,padding:12,fontWeight:'700'}}>Next book →</Text></TouchableOpacity>}
           {pages.length > 0 ? (
             <View style={st.pagerRow}>
               <TouchableOpacity accessibilityRole="button" accessibilityLabel="Previous memory" onPress={() => flipTo(-1)} disabled={turning||idx === 0} style={[st.pagerBtn, idx === 0 && { opacity: 0.35 }]}>
                 <Feather name="chevron-left" size={17} color={t.ink.primary} />
               </TouchableOpacity>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel={playMode&&playing?'Pause book':'Play book'} onPress={()=>{if(!playMode){setPlayMode(true);setPlaying(true);}else if(!playing&&idx>=pages.length-1&&(photoProgress>=1||videoProgress>=.99)){idxRef.current=0;setIdx(0);setPlayRun(n=>n+1);setPlaying(true);}else setPlaying(value=>!value);}} style={st.pagerBtn}><Feather name={playMode&&playing?'pause':'play'} size={17} color={t.ink.primary}/></TouchableOpacity>
               <View style={st.pagerPill}><Text accessibilityLiveRegion="polite" accessibilityLabel={`Page ${idx+1} of ${pages.length}`} style={st.pagerTxt}>{idx + 1} / {pages.length}</Text></View>
               <TouchableOpacity accessibilityRole="button" accessibilityLabel="Next memory" onPress={() => flipTo(1)} disabled={turning||idx >= pages.length - 1} style={[st.pagerBtn, idx >= pages.length - 1 && { opacity: 0.35 }]}>
                 <Feather name="chevron-right" size={17} color={t.ink.primary} />
@@ -454,7 +477,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
         <View style={st.sheetWrap}>
           <TouchableOpacity accessibilityLabel="Close page options" onPress={()=>setPageActions(null)} style={StyleSheet.absoluteFill}/>
           <View style={st.sheet}><Text style={st.sheetTitle}>Page options</Text>
-            <ScrollView style={{flexGrow:0}}>{(pageActions??[]).map((action,i)=><TouchableOpacity key={i} accessibilityRole="button" onPress={()=>{if(Platform.OS==='ios')pendingPageAction.current=action.onPress??null;setPageActions(null);if(Platform.OS!=='ios')void action.onPress?.();}} style={{minHeight:48,paddingVertical:13,borderBottomWidth:StyleSheet.hairlineWidth,borderColor:t.surface.hairline}}><Text style={{fontSize:16,color:action.style==='destructive'?'#B43A48':t.ink.primary,fontWeight:action.style==='cancel'?'700':'400'}}>{action.text}</Text></TouchableOpacity>)}</ScrollView>
+            <ScrollView style={{flexGrow:0}}>{(pageActions??[]).map((action,i)=><TouchableOpacity key={i} accessibilityRole="button" onPress={()=>{if(Platform.OS==='ios')pendingPageAction.current=action.onPress??null;setPageActions(null);if(Platform.OS!=='ios')void action.onPress?.();}} style={{minHeight:48,paddingVertical:13,borderBottomWidth:StyleSheet.hairlineWidth,borderColor:t.surface.hairline}}><Text style={{fontSize:16,color:action.style==='destructive'?t.status.danger:t.ink.primary,fontWeight:action.style==='cancel'?'700':'400'}}>{action.text}</Text></TouchableOpacity>)}</ScrollView>
           </View>
         </View>
       </Modal>
@@ -465,8 +488,8 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
           <View style={st.sheet}>
             <Text style={st.sheetTitle}>Book settings</Text>
             <ScrollView style={{ flexGrow: 0 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-              <TextInput value={title} onChangeText={setTitle} placeholder="Memories" placeholderTextColor="#9AA6B8" style={st.input} maxLength={30} />
-              <TextInput accessibilityLabel="Book subtitle" value={subtitle} onChangeText={setSubtitle} placeholder="A small line to remember it by" placeholderTextColor="#9AA6B8" style={st.input} maxLength={120} />
+              <TextInput value={title} onChangeText={setTitle} placeholder="Memories" placeholderTextColor={t.ink.muted} keyboardAppearance={isDark ? "dark" : "light"} style={st.input} maxLength={30} />
+              <TextInput accessibilityLabel="Book subtitle" value={subtitle} onChangeText={setSubtitle} placeholder="A small line to remember it by" placeholderTextColor={t.ink.muted} keyboardAppearance={isDark ? "dark" : "light"} style={st.input} maxLength={120} />
               <View style={{alignItems:'center',paddingVertical:18}}><MemoryBookCover title={title||'Memories'} subtitle={subtitle} color={color} design={design} {...memoryCoverMedia(memoryCoverPage(pages,coverStoryId))} width={168} height={220}/></View>
               <Text style={st.lbl}>Cover memory</Text>
               {pages.length ? <ScrollView horizontal contentContainerStyle={{gap:10,paddingVertical:6}}>{pages.map((pg:any,i:number)=><TouchableOpacity key={pg.id} accessibilityLabel={'Use memory '+(i+1)+' on the cover'} accessibilityState={{selected:coverStoryId===pg.story_id}} onPress={()=>setCoverStoryId(pg.story_id)} style={{width:68,height:86,borderWidth:coverStoryId===pg.story_id?3:1,borderColor:coverStoryId===pg.story_id?t.ink.primary:t.surface.hairline,borderRadius:8,overflow:'hidden'}}><MemoryStoryTile story={pg}/></TouchableOpacity>)}</ScrollView> : <Text style={{color:t.ink.secondary,fontSize:13}}>Add memories to choose a photo or video cover.</Text>}
@@ -490,7 +513,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
               {!!mutationError&&<Text style={{color:t.ink.secondary,marginVertical:8}}>{mutationError}</Text>}
             </ScrollView>
             <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 18, marginTop: 14 }}>
-              <TouchableOpacity onPress={() => setSettings(false)}><Text style={{ color: '#5B6B84', fontWeight: '700' }}>Cancel</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => setSettings(false)}><Text style={{ color: t.ink.secondary, fontWeight: '700' }}>Cancel</Text></TouchableOpacity>
               <TouchableOpacity onPress={saveSettings}><Text style={{ color: t.ink.primary, fontWeight: '800' }}>Save</Text></TouchableOpacity>
             </View>
           </View>
@@ -508,9 +531,9 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
           <View style={st.sheet}>
             <Text style={st.sheetTitle}>Caption</Text>
             {!!mutationError&&<Text style={{color:t.ink.secondary}}>{mutationError}</Text>}
-            <TextInput value={captionText} onChangeText={setCaptionText} placeholder="Say something about this memory" placeholderTextColor="#9AA6B8" style={[st.input, { minHeight: 60, textAlignVertical: 'top' }]} multiline maxLength={140} />
+            <TextInput value={captionText} onChangeText={setCaptionText} placeholder="Say something about this memory" placeholderTextColor={t.ink.muted} keyboardAppearance={isDark ? "dark" : "light"} style={[st.input, { minHeight: 60, textAlignVertical: 'top' }]} multiline maxLength={140} />
             <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 18, marginTop: 8 }}>
-              <TouchableOpacity onPress={() => setCaptionFor(null)}><Text style={{ color: '#5B6B84', fontWeight: '700' }}>Cancel</Text></TouchableOpacity>
+              <TouchableOpacity onPress={() => setCaptionFor(null)}><Text style={{ color: t.ink.secondary, fontWeight: '700' }}>Cancel</Text></TouchableOpacity>
               <TouchableOpacity onPress={saveCaption}><Text style={{ color: t.ink.primary, fontWeight: '800' }}>Save</Text></TouchableOpacity>
             </View>
           </View>
@@ -547,32 +570,32 @@ const st = themedSheet((t) => ({
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10 },
   topTitle: { fontFamily:Platform.OS==='ios'?'Georgia':'serif', fontSize: 21, fontWeight: '500', color: t.ink.primary },
   polaroid: { flex: 1, backgroundColor: PAGE_CREAM, borderRadius: 0, padding: 4, paddingBottom: 10, borderWidth: StyleSheet.hairlineWidth, borderColor:'#E3DAC8' },
-  polImgWrap: { flex: 1, borderRadius: 4, overflow: 'hidden', backgroundColor: t.brand.base },
+  polImgWrap: { flex: 1, borderRadius: 4, overflow: 'hidden', backgroundColor: '#0B1E3D' },
   handCaption: { fontFamily:Platform.OS==='ios'?'Georgia':'serif', fontSize: 17, fontStyle: 'italic', fontWeight: '600', color: '#5a5140', marginTop: 12, minHeight: 20 },
-  handDate: { fontSize: 11.5, fontStyle: 'italic', color: '#8b7f68' },
+  handDate: { fontSize: 11.5, fontStyle: 'italic', color: '#6F614A' },
   pagerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 14 },
   pagerBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: t.surface.canvas, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
   pagerPill: { backgroundColor: t.surface.canvas, borderRadius: 16, paddingHorizontal: 16, paddingVertical: 8, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
   pagerTxt: { fontSize: 13, fontWeight: '800', color: t.ink.primary },
-  emptyTxt: { fontSize: 13.5, color: '#8b7f68', textAlign: 'center', lineHeight: 20 },
+  emptyTxt: { fontSize: 13.5, color: '#5A5140', textAlign: 'center', lineHeight: 20 },
   fab: { position: 'absolute', bottom: 26, alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: 7, backgroundColor: t.brand.base, borderRadius: 999, paddingHorizontal: 18, paddingVertical: 12, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 6 },
   fabTxt: { color: t.ink.inverse, fontSize: 13.5, fontWeight: '800' },
   vidBadge: { position: 'absolute', top: 6, right: 6, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 8, paddingHorizontal: 5, paddingVertical: 2.5 },
   checkWrap: { position: 'absolute', top: 6, left: 6, width: 20, height: 20, borderRadius: 10, backgroundColor: '#1D7A38', alignItems: 'center', justifyContent: 'center' },
   inChip: { position: 'absolute', bottom: 6, left: 6, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 7, paddingHorizontal: 6, paddingVertical: 2 },
-  inChipTxt: { color: t.ink.inverse, fontSize: 9.5, fontWeight: '700' },
-  sheetWrap: { flex: 1, backgroundColor: 'rgba(11,30,61,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 26 },
+  inChipTxt: { color: '#FFFFFF', fontSize: 9.5, fontWeight: '700' },
+  sheetWrap: { flex: 1, backgroundColor: t.surface.scrim, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 26 },
   sheet: { alignSelf: 'stretch', backgroundColor: t.surface.canvas, borderRadius: 16, padding: 16, maxHeight: '82%' },
   sheetTitle: { fontFamily:Platform.OS==='ios'?'Georgia':'serif', fontSize: 23, fontWeight: '500', color: t.ink.primary, marginBottom: 10 },
-  input: { borderWidth: 1, borderColor: '#E1E6EE', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, fontSize: 14, color: t.ink.primary, marginBottom: 12 },
-  lbl: { fontSize: 11, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase', color: '#5B6B84', marginBottom: 8, marginTop: 2 },
-  audRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: '#E7EAF0', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 7 },
-  audRowOn: { borderColor: t.ink.primary, backgroundColor: 'rgba(11,30,61,0.03)' },
+  input: { borderWidth: 1, borderColor: t.surface.hairline, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, fontSize: 14, color: t.ink.primary, marginBottom: 12 },
+  lbl: { fontSize: 11, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase', color: t.ink.secondary, marginBottom: 8, marginTop: 2 },
+  audRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: t.surface.hairline, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 7 },
+  audRowOn: { borderColor: t.ink.primary, backgroundColor: t.brand.tintBg },
   audTxt: { fontSize: 13, color: t.ink.primary, flex: 1, marginRight: 8 },
-  hint: { fontSize: 11.5, color: '#5B6B84', marginBottom: 4 },
+  hint: { fontSize: 11.5, color: t.ink.secondary, marginBottom: 4 },
 }));
 
-function PageVideo({ url, page, active, onRetry, controls = false }: { url: string; page?: MemoryStoryPage | null; active:boolean; onRetry:()=>void; controls?:boolean }) {
+function PageVideo({ url, page, active, onRetry, controls = false, onEnd, onProgress }: { url: string; page?: MemoryStoryPage | null; active:boolean; onRetry:()=>void; controls?:boolean; onEnd?:()=>void; onProgress?:(progress:number)=>void }) {
   // duration_sec can describe the selected excerpt; the player knows source duration.
   const recipe = memoryStoryRecipe(page?.media_transform);
   const pv = useVideoPlayer(url, pp => { pp.loop = true; pp.muted = true; pp.timeUpdateEventInterval = .05; });
@@ -580,6 +603,8 @@ function PageVideo({ url, page, active, onRetry, controls = false }: { url: stri
   const [failed,setFailed]=useState(false);
   const [clock,setClock]=useState(recipe.start);
   const activeRef=useRef(active);activeRef.current=active;
+  const completion=useRef({onEnd,onProgress,done:false});completion.current.onEnd=onEnd;completion.current.onProgress=onProgress;
+  useEffect(()=>{pv.loop=!onEnd;completion.current.done=false;},[pv,url,!!onEnd]);
   useEffect(()=>{
     let initialized=false;
     let window=recipe;
@@ -588,12 +613,15 @@ function PageVideo({ url, page, active, onRetry, controls = false }: { url: stri
     const status=pv.addListener('statusChange',({status})=>{setFailed(status==='error');if(status==='readyToPlay')apply();});
     const time=pv.addListener('timeUpdate',({currentTime})=>{
       if(!activeRef.current)return;
+      if(window.end!=null)completion.current.onProgress?.(Math.max(0,Math.min(1,(currentTime-window.start)/(window.end-window.start))));
+      if(completion.current.onEnd&&window.end!=null&&currentTime>=window.end-.025){try{pv.pause();}catch{}if(!completion.current.done){completion.current.done=true;completion.current.onEnd();}return;}
       const seek=memoryStorySeek(currentTime,window);
       try{if(seek!=null)pv.currentTime=seek;}catch{}
       setClock(seek??currentTime);
     });
+    const ended=pv.addListener('playToEnd',()=>{if(activeRef.current&&completion.current.onEnd&&!completion.current.done){completion.current.done=true;completion.current.onProgress?.(1);completion.current.onEnd();}});
     setFailed(pv.status==='error');
-    return()=>{status.remove();time.remove();};
+    return()=>{status.remove();time.remove();ended.remove();};
   },[pv,recipe.start,recipe.end,recipe.speed,recipe.volume]);
   useEffect(()=>{try{pv.muted=muted||recipe.volume===0;pv.volume=recipe.volume;}catch{}},[pv,muted,recipe.volume]);
   useMemoryVideoLifecycle(pv,active);

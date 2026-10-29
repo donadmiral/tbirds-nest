@@ -45,6 +45,7 @@ function harness(options = {}) {
     },
     rpc: async (name, args) => {
       calls.push({ rpc: name, args });
+      if (options.rpc) return options.rpc(name, args);
       return { data: name === 'get_story_poll' ? { id: 'poll-1', options: [] } : null, error: null };
     },
   };
@@ -273,4 +274,29 @@ test('shipping music-disabled native publisher ignores restored soundtrack metad
     assert.equal(h.calls.filter(c => c.upload).length, 1);
     assert.equal(h.calls.filter(c => c.rpc && /sound/.test(c.rpc)).length, 0);
   }
+});
+
+
+test('native Add yours joins only after a confirmed new story and retries the same saved story', async () => {
+  let attempts = 0;
+  const prompt = { id: 'joined-prompt', kind: 'addyours', text: 'Your view', nx: .5, ny: .3, addYoursOriginStoryId: 'origin-story', addYoursOriginStickerId: 'origin-prompt' };
+  const h = harness({ drafts: [draft('join-draft', { stickers: [prompt] })], rpc: async (name, args) => {
+    if (name === 'submit_sticker_response') return ++attempts === 1 ? { data: null, error: { code: '42501', message: 'Temporarily unavailable' } } : { data: { id: 'answer', text_value: args.p_text_value }, error: null };
+    return { data: null, error: null };
+  } });
+  assert.equal(h.calls.length, 0);
+  await h.render().publishAll();
+  assert.equal(tableCalls(h, 'stories').length, 1); assert.equal(h.drafts[0].uploadState, 'error'); assert.equal(h.success.length, 0);
+  assert.match(h.drafts[0].errorMsg, /story was saved.*Add yours/);
+  const joined = h.calls.find(c => c.rpc === 'submit_sticker_response');
+  assert.equal(joined.args.p_text_value, 'story-1'); assert.equal(joined.args.p_response_type, 'addyours');
+  assert.ok(h.calls.indexOf(joined) > h.calls.findIndex(c => c.table === 'stories'));
+  await h.render().publishAll();
+  assert.equal(tableCalls(h, 'stories').length, 1); assert.equal(attempts, 2); assert.equal(h.drafts[0].uploadState, 'done');
+});
+
+test('native story speed persists even when it is the only non-default media edit', async () => {
+  const h = harness({ drafts: [draft('speed-only', { mediaType: 'video', localUri: 'file:///video.mp4', mediaTransform: { scale: 1, translateNX: 0, translateNY: 0, fit: 'cover', speed: 1.5 } })] });
+  await h.render().publishAll();
+  assert.equal(tableCalls(h, 'stories')[0].row.media_transform.speed, 1.5);
 });

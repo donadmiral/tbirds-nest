@@ -2,6 +2,7 @@
 import { revalidatePath } from 'next/cache';
 import { requirePermission } from './adminAuth';
 import { serviceClient } from './supabaseAdmin';
+import { isMissingAdminRpc } from './adminRpcAvailability';
 
 export async function updateSupportTriage(form: FormData) {
   const admin = await requirePermission('support');
@@ -20,6 +21,9 @@ export async function updateSupportTriage(form: FormData) {
     p_version: version, p_assigned_to: assigned || null, p_priority: value('priority'),
     p_queue: value('queue'), p_escalated: escalated === 'true', p_reason: value('reason'),
   });
+  if (isMissingAdminRpc(error, 'admin_support_triage_update')) {
+    return { success: false, error: 'Assignment tools are unavailable on this deployment. No assignment was changed. Contact the platform administrator.' };
+  }
   if (error || data?.success !== true || data?.command_key !== key) {
     if (error?.message?.includes('TRIAGE_CHANGED')) return { success: false, error: 'Another staff member updated this case. Reload to review their changes.' };
     if (error?.message?.includes('INVALID_ASSIGNEE')) return { success: false, error: 'Select an active support staff member.' };

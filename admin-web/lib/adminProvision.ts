@@ -3,6 +3,7 @@ import { createHmac, randomUUID } from 'node:crypto';
 import type { User } from '@supabase/supabase-js';
 import { requirePermission } from './adminAuth';
 import { serviceClient } from './supabaseAdmin';
+import { isMissingAdminRpc } from './adminRpcAvailability';
 
 const failure = (error: string) => ({ success: false as const, error });
 const uuid = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
@@ -25,6 +26,9 @@ export async function provisionAccount(kind: 'staff' | 'business', form: FormDat
   const svc = serviceClient();
   const args = { p_actor_id: admin.id, p_session_id: admin.sessionId, p_key: key, p_kind: kind, p_payload: payload };
   const reserved = await svc.rpc('triniti_admin_provision', { ...args, p_phase: 'reserve' });
+  if (isMissingAdminRpc(reserved.error, 'triniti_admin_provision')) {
+    return failure('Account setup is unavailable on this deployment. No account was created. Contact the platform administrator.');
+  }
   if (reserved.error || reserved.data?.success !== true) {
     const errors: Record<string, string> = {
       EMAIL_ALREADY_IN_USE: 'This email already has an account. Use the staff desk to manage existing staff.',
@@ -62,6 +66,9 @@ export async function provisionAccount(kind: 'staff' | 'business', form: FormDat
     }
   }
   const finished = await svc.rpc('triniti_admin_provision', { ...args, p_phase: 'finish' });
+  if (isMissingAdminRpc(finished.error, 'triniti_admin_provision')) {
+    return failure('Account setup is unavailable on this deployment. The reserved account identity may already exist. Keep the same form details and contact the platform administrator to complete setup.');
+  }
   if (finished.error || finished.data?.success !== true || finished.data?.complete !== true) {
     return failure('Account setup is pending. Retry the same details to finish it.');
   }

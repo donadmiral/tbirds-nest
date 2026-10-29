@@ -17,6 +17,7 @@ export function normalizeProfilePost(row: any) {
     likes_count: row.likes_count ?? 0, comments_count: row.comments_count ?? 0,
     reposts_count: row.reposts_count ?? 0, created_at: row.created_at,
     media_url: row.media_url || null, media, user_id: row.user_id,
-    mediaUnavailable: candidates.length > media.length,
+    mediaPending: row._mediaPending === true && (candidates.length > 0 || row._mediaExpected === true),
+    mediaUnavailable: row._mediaPending !== true && (candidates.length > media.length || row._mediaExpected === true && media.length === 0),
   };
 }

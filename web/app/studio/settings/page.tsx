@@ -234,8 +234,8 @@ export default function SettingsPage() {
             <span className="font-mono text-[11px] text-muted">{d.device_id.slice(0, 12)}</span>
             <span className={"rounded px-1.5 py-0.5 text-[10.5px] font-semibold uppercase " + (d.status === "approved" ? "bg-success/15 text-success" : "bg-pearl/15 text-accent")}>{d.status}</span>
             <span className="ml-auto" />
-            {isAdmin && d.status !== "approved" ? <button onClick={() => act(() => supabase.rpc("studio_set_device", { p_device: d.id, p_status: "approved" }))} className="rounded-md bg-success/15 px-2.5 py-1 text-[12px] font-semibold text-success">Approve</button> : null}
-            {isAdmin ? <button onClick={() => confirm("Remove this device? It will need approval again.") && act(() => supabase.rpc("studio_set_device", { p_device: d.id, p_status: "removed" }))} className="rounded-md px-2 py-1 text-[12px] text-danger">Remove</button> : null}
+            {isAdmin && d.status !== "approved" ? <button onClick={() => act(() => supabase.rpc("studio_set_device", { p_device: d.id, p_action: "approve" }))} className="rounded-md bg-success/15 px-2.5 py-1 text-[12px] font-semibold text-success">Approve</button> : null}
+            {isAdmin ? <button onClick={() => confirm("Remove this device? It will need approval again.") && act(() => supabase.rpc("studio_set_device", { p_device: d.id, p_action: "remove" }))} className="rounded-md px-2 py-1 text-[12px] text-danger">Remove</button> : null}
           </div>
         ))}
         {info.signins.length ? (

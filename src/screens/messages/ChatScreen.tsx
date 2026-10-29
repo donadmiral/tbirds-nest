@@ -1,3 +1,4 @@
+import { messagesBack } from '../../navigation/messagesNavigation';
 import { ChatSkeleton } from '../../components/skeletons';
 import { useTheme, themedSheet } from '../../theme/useTheme';
 import TierName from '../../components/TierName';
@@ -480,7 +481,7 @@ export default function ChatScreen() {
     const saved = useDraftStore.getState().drafts[conversationId];
     if (saved) setMessage(saved);
   }, [conversationId]);
-  const { t } = useTheme();
+  const { t, isDark } = useTheme();
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [hasOlder, setHasOlder] = useState(false);
@@ -2119,11 +2120,11 @@ const pickAndSendDocument = useCallback(async () => {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right', 'bottom']}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={t.surface.canvas} />
 
       <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.6} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(11,30,61,0.06)', alignItems: 'center', justifyContent: 'center' }}><Ionicons name="chevron-back" size={22} color={t.ink.primary} /></View>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Back to conversations" onPress={() => messagesBack(navigation)} style={s.backBtn} activeOpacity={0.6} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: t.brand.tintBg, alignItems: 'center', justifyContent: 'center' }}><Ionicons name="chevron-back" size={22} color={t.ink.primary} /></View>
         </TouchableOpacity>
         <TouchableOpacity style={s.headerCenter} activeOpacity={0.7}
           onPress={() => setShowInfoModal(true)}>

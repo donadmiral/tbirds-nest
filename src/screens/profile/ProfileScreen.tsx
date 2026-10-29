@@ -16,13 +16,14 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import ProfileHeader from '../../components/ProfileHeader';
-import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
+import { useFocusEffect, useIsFocused, useNavigation, useRoute } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 
 import { supabase } from '../../services/supabase';
 import { hydratePostMedia, withoutPrivateMedia } from '../../services/contentMedia';
 import { profileRead } from '../../utils/profileRead';
+import { useProfileMediaRefresh } from '../../hooks/useProfileMediaRefresh';
 import { normalizeProfilePost } from '../../utils/profilePost';
 import MemoryAlbumCard from '../../components/MemoryAlbumCard';
 import { useAuthStore } from '../../stores/authStore';
@@ -52,6 +53,7 @@ type Post = {
   media_url: string | null;
   media: PostMedia[];
   mediaUnavailable?: boolean;
+  mediaPending?: boolean;
   user_id: string;
   _repostLabel?: string | null;
   _repostedAt?: string | null;
@@ -172,6 +174,12 @@ export default function ProfileScreen() {
     } catch (e) { console.log('[loadHighlights]', e); }
   }, [userId]);
 
+  const profileFocused = useIsFocused();
+  useProfileMediaRefresh(tabPosts, setTabPosts, userId || '', profileFocused && activeTab === 'posts', setTabError);
+  useProfileMediaRefresh(tabReposts, setTabReposts, userId || '', profileFocused && activeTab === 'reposts', setTabError);
+  useProfileMediaRefresh(tabSaved, setTabSaved, userId || '', profileFocused && activeTab === 'saved', setTabError);
+  useProfileMediaRefresh(tabTagged, setTabTagged, userId || '', profileFocused && activeTab === 'tagged', setTabError);
+
   const loadTabContent = useCallback(async (tab: ProfileTab) => {
     const owner = scope.current, request = ++tabRequest.current;
     const current = () => mounted.current && scope.current === owner && request === tabRequest.current;
@@ -179,6 +187,7 @@ export default function ProfileScreen() {
     setTabLoading(!tabLoadedRef.current[tab]);
     setTabError(null);
     let succeeded = false;
+    let pendingRows: any[] | null = null;
     const queryPosts = async (configure: (query: any) => any): Promise<any[]> => {
       const execute = (selection: string) => profileRead<{ data: any[] | null; error: any }>(configure(supabase.from('posts').select(selection)));
       let result = await execute('*, post_media(id, url, media_type, width, height, sort_order, edit)');
@@ -226,7 +235,7 @@ export default function ProfileScreen() {
       // The database has authorized these rows. Show their metadata immediately,
       // with private references removed, while the separate media request runs.
       // A signing outage must not hide every post behind a global spinner.
-      if (!tabLoadedRef.current[tab] || rows.length === 0) publish(withoutPrivateMedia(rows));
+      if (!tabLoadedRef.current[tab] || rows.length === 0) { pendingRows = rows.map(row => ({ ...row, _mediaExpected: !!(row.post_media?.length || row.media_url || row.image_url) })); publish(withoutPrivateMedia(pendingRows).map(row => ({ ...row, _mediaPending: true }))); }
       setTabLoading(false);
       tabLoadedRef.current[tab] = true;
       succeeded = true;
@@ -270,7 +279,7 @@ export default function ProfileScreen() {
         }
       })();
     } catch (error: any) {
-      if (current()) setTabError(error?.message || 'Could not load these posts. Please retry.');
+      if (current()) { if (pendingRows) publish(withoutPrivateMedia(pendingRows)); setTabError(error?.message || 'Could not load these posts. Please retry.'); }
     } finally {
       if (current()) { setTabLoading(false); if (succeeded) tabLoadedRef.current[tab] = true; }
     }
@@ -401,13 +410,13 @@ export default function ProfileScreen() {
           <TouchableOpacity onPress={() => {
             const buttons: any[] = [];
             if (isOwnPost) { buttons.push({ text: 'Delete post', style: 'destructive' as const, onPress: () => { Alert.alert('Delete post?', 'This will permanently remove your post.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: async () => { const { error } = await supabase.from('posts').delete().eq('id', post.id); if (error) { Alert.alert('Could not delete', error.message); return; } void load(); setContentRevision(value => value + 1); } }]); } }); }
-            buttons.push({ text: 'Share post', onPress: async () => { await Share.share({ message: post.content || 'Check out this post on PlatinumCircles' }); } });
+            buttons.push({ text: 'Share post', onPress: async () => { try { await Share.share({ message: (post.content ? post.content + '\n\n' : '') + 'https://platinumcircles.app/post/' + post.id }); } catch { Alert.alert('Could not share', 'The share sheet could not open. Please try again.'); } } });
             buttons.push({ text: 'Cancel', style: 'cancel' as const });
             Alert.alert(undefined as any, undefined, buttons);
           }} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={{ padding: 4 }}><Feather name="more-horizontal" size={18} color={t.ink.muted} /></TouchableOpacity>
         </View>
         {post.content ? <Text style={st.postContent} numberOfLines={3}>{post.content}</Text> : null}
-        {post.mediaUnavailable ? <Text style={{color:t.ink.muted,paddingVertical:12}}>Some media is unavailable.</Text> : null}
+        {post.mediaPending ? <View accessibilityRole="progressbar" accessibilityLabel="Loading photos and videos" style={{height:148,alignItems:'center',justifyContent:'center',backgroundColor:t.surface.sunken}}><ActivityIndicator color={t.ink.muted}/><Text style={{color:t.ink.muted,marginTop:8}}>Loading media…</Text></View> : post.mediaUnavailable ? <TouchableOpacity accessibilityRole="button" onPress={() => void loadTabContent(activeTab)} style={{paddingVertical:12}}><Text style={{color:t.ink.muted}}>A photo or video could not load. Tap to retry.</Text></TouchableOpacity> : null}
         {post.media.length > 0 && (
           <View>
             <ScrollView horizontal directionalLockEnabled showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }} contentContainerStyle={{ gap: 6 }}>

@@ -81,6 +81,8 @@ function scenario(initial = [row(1)], options = {}) {
   const runtime = { jsx: (type,props,key) => ({ type,props,key }), jsxs: (type,props,key) => ({ type,props,key }), Fragment: 'Fragment' };
   const cache = new Map();
   const stored = new Map();
+  const location = { pathname: '/messages', search: options.search || '' };
+  const browserHistory = { state: {}, pushState(state, _, url) { this.state = state; location.search = new URL(url, 'https://example.test').search; }, replaceState(state, _, url) { this.state = state; location.search = new URL(url, 'https://example.test').search; } };
   const browserDocument = { body: { style: {} }, visibilityState: options.hidden ? 'hidden' : 'visible', hasFocus: () => options.focused !== false,
     addEventListener(name, fn) { const set = browserEvents.get(name) || new Set(); set.add(fn); browserEvents.set(name, set); }, removeEventListener(name, fn) { browserEvents.get(name)?.delete(fn); } };
   const localStorage = { get length() { return stored.size; }, key: i => [...stored.keys()][i], getItem: key => stored.get(key) ?? null, setItem: (key,value) => stored.set(key,value), removeItem: key => stored.delete(key) }; 
@@ -96,7 +98,7 @@ function scenario(initial = [row(1)], options = {}) {
     if (!sources[name]) return new Proxy({}, { get: (_,key) => String(key) });
     const module = { exports: {} }; cache.set(name,module);
     vm.runInNewContext(sources[name], { module, exports: module.exports, require: load, process:{env:options.env||{}}, Error, URLSearchParams, AbortController, crypto: require('node:crypto').webcrypto,
-      window: { localStorage, addEventListener: browserDocument.addEventListener, removeEventListener: browserDocument.removeEventListener, location: { search: '' }, matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }), scrollTo() {} }, document: browserDocument,
+      window: { localStorage, addEventListener: browserDocument.addEventListener, removeEventListener: browserDocument.removeEventListener, location, history: browserHistory, matchMedia: () => ({ matches: !!options.narrow, addEventListener() {}, removeEventListener() {} }), scrollTo() {} }, document: browserDocument,
       navigator: options.navigator || {}, MediaRecorder: options.MediaRecorder, Blob,
       setTimeout, clearTimeout, setInterval: () => 1, clearInterval() {}, requestAnimationFrame: fn => { const timer = setTimeout(fn,0); timers.add(timer); return timer; }, cancelAnimationFrame: clearTimeout,
       ResizeObserver: class { observe() {} disconnect() {} }, MutationObserver: class { observe() {} disconnect() {} },
@@ -106,7 +108,7 @@ function scenario(initial = [row(1)], options = {}) {
   const dom = { children: [], style: {}, scrollTop: 0, scrollHeight: 100, clientHeight: 50, value: 'selected-file', addEventListener(name, fn) { domEvents.set(name, fn); }, removeEventListener(name) { domEvents.delete(name); } };
   function render() { for (let i=0; dirty && i<25; i++) { dirty=false; cursor=0; tree=Component({}); nodes(tree).forEach(node => { if (node.props?.ref) node.props.ref.current=dom; }); const pending=effects; effects=[]; pending.forEach(effect => effect()); } assert.equal(dirty,false,'render settles'); }
   render();
-  return { client, rows: () => rows, writes, reads, rpcs, dom, listeners,
+  return { client, rows: () => rows, writes, reads, rpcs, dom, listeners, location,
     find: predicate => nodes(tree).find(predicate), all: predicate => nodes(tree).filter(predicate),
     get text() { return nodes(tree).filter(node => typeof node.type !== 'function').map(text).join(' '); },
     click(label) { const n = nodes(tree).find(node => (node.type==='button' || node.props?.role==='button') && (text(node).trim()===label || node.props?.['aria-label']===label || node.props?.title===label)); assert.ok(n,'missing button '+label); assert.ok(!n.props.disabled,'button disabled '+label); const result=n.props.onClick(); render(); return result; },
@@ -114,7 +116,7 @@ function scenario(initial = [row(1)], options = {}) {
     draft(value) { const n=nodes(tree).find(node => node.type==='textarea'); n.props.onChange({target:{value}}); render(); },
     changeUser(value) { authUser = value; authListener('SIGNED_IN', value ? { user: { id: value } } : null); render(); },
     setRead(fn) { readOverride=fn; }, setWrite(fn) { writeOverride=fn; }, setRpcFailure(value) { rpcFailure=value; },
-    event(name) { for (const fn of browserEvents.get(name) || []) fn(); render(); },
+    event(name, payload = {}) { for (const fn of browserEvents.get(name) || []) fn(payload); render(); },
     visible(value) { browserDocument.visibilityState = value ? 'visible' : 'hidden'; this.event('visibilitychange'); },
     focused(value) { options.focused = value; this.event('focus'); },
     scroll(top, height = 1000) { dom.scrollHeight = height; dom.scrollTop = top; domEvents.get('scroll')?.(); render(); },
@@ -266,4 +268,37 @@ test('GIF and sticker actions use durable message delivery and preserve the chos
 test('story replies expose the authorized story route without copying story media',async()=>{
   const storyId=id(42),app=scenario([row(1,{media_type:'link',media_url:JSON.stringify({pcStory:1,storyId})})]);await app.flush();await app.open('a');await app.flush();
   assert.ok(app.find(n=>n.type==='Link'&&n.props.href==='/story/'+storyId));assert.equal(app.all(n=>['img','video'].includes(n.type)).length,0);app.unmount();
+});
+
+
+test('compact chat Back preserves the draft and cannot reopen itself from an old deep link', async () => {
+  const app = scenario(undefined, { narrow: true, search: '?c=a' }); await app.flush();
+  assert.ok(app.find(node => node.type === 'textarea'));
+  app.draft('Saved before exit'); await app.click('Back to conversations'); await app.flush();
+  assert.equal(app.find(node => node.type === 'textarea'), undefined);
+  assert.equal(app.location.search, '');
+  await app.open('a'); await app.flush();
+  assert.equal(app.find(node => node.type === 'textarea').props.value, 'Saved before exit');
+  app.unmount();
+});
+
+test('Escape cancels an edit first, restores the unsent draft, then returns to the inbox', async () => {
+  const app = scenario(undefined, { narrow: true }); await app.flush(); await app.open('a'); await app.flush();
+  app.draft('Original draft'); app.click('Edit'); app.draft('Uncommitted edit');
+  app.event('keydown', { key: 'Escape', preventDefault() {} }); await app.flush();
+  assert.equal(app.find(node => node.type === 'textarea').props.value, 'Original draft');
+  assert.equal(app.writes.filter(call => call.table === 'messages' && call.op === 'update').length, 0);
+  app.event('keydown', { key: 'Escape', preventDefault() {} }); await app.flush();
+  assert.equal(app.find(node => node.type === 'textarea'), undefined);
+  app.unmount();
+});
+
+test('browser Back closes a compact conversation without a stale history response restoring it', async () => {
+  const app = scenario(undefined, { narrow: true }); await app.flush();
+  const wait = deferred(); app.setRead(call => call.table === 'messages' ? wait.promise : null);
+  const opening = app.open('a'); await app.flush();
+  app.location.search = ''; app.event('popstate');
+  wait.resolve({ data: [row(1)], error: null }); await opening; await app.flush();
+  assert.equal(app.find(node => node.type === 'textarea'), undefined);
+  assert.ok(!app.text.includes('Message 1')); app.unmount();
 });

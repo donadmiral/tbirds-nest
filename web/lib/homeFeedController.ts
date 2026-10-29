@@ -1,6 +1,7 @@
 import type { FeedRow } from './feed';
 import { createFeedSnapshotStore } from '../../shared/feedSnapshot';
 import { isMarketplacePost } from '../../shared/marketplaceRecommendations';
+import { createFeedTabCache } from '../../shared/feedTabCache';
 
 export type FeedMode = 'for_you' | 'latest' | 'trending';
 export type FeedSeed = { owner: string; rows: FeedRow[]; mutedWords: string[]; error: string | null };
@@ -29,6 +30,7 @@ export function createHomeFeedController(client: Client, seed: FeedSeed, snapsho
     loading: false, loadingMore: false, hasMore: seed.rows.length >= PAGE_SIZE, pending: 0, error: seed.error };
   let cursor = seed.rows.length ? seed.rows[seed.rows.length - 1] : null;
   let words = seed.mutedWords;
+  const tabs = createFeedTabCache<{ rows: FeedRow[]; cursor: FeedRow | null; hasMore: boolean; pending: number }>();
   let revision = 0, pageRevision = 0, disposed = false, liveResolved = !seed.error, refreshing = false;
   const hidden = new Set<string>(), listeners = new Set<() => void>(), active = new Set<AbortController>();
   const publish = (patch: Partial<HomeFeedState>) => { state = { ...state, ...patch }; listeners.forEach(fn => fn()); };
@@ -103,7 +105,8 @@ export function createHomeFeedController(client: Client, seed: FeedSeed, snapsho
       } else rows = incoming;
       rows = (await hydrate(rows)).map(row => ({ ...row, media: (row.media ?? []).filter(item => typeof item.url === 'string' && item.url.length > 0) }));
       if (!valid()) return;
-      const keepCursor = background && existing.length > 0;
+      // Snapshot rows may be cached before the first network page establishes a cursor.
+      const keepCursor = background && existing.length > 0 && cursor !== null;
       if (!keepCursor) cursor = raw.length ? raw[raw.length - 1] : null;
       liveResolved = true;
       publish({ rows, pending, loading: false, loadingMore: false, hasMore: keepCursor ? state.hasMore : raw.length >= PAGE_SIZE });
@@ -135,10 +138,20 @@ export function createHomeFeedController(client: Client, seed: FeedSeed, snapsho
       await Promise.all([restored, fresh]);
     },
     load,
-    setMode(mode: FeedMode) { if (mode === state.mode) return; cursor = null; publish({ mode, rows: [], pending: 0, hasMore: false }); void load(false); },
+    setMode(mode: FeedMode) {
+      if (mode === state.mode) return;
+      // Save only an established result. A request interrupted by another tab
+      // must not turn that tab's next visit into a cached empty state.
+      if (!state.loading && !state.error) tabs.save(state.mode, { rows: state.rows, cursor, hasMore: state.hasMore, pending: state.pending });
+      const restored = tabs.read(mode);
+      cursor = restored?.cursor ?? null;
+      publish({ mode, rows: restored?.rows.filter(row => !hidden.has(row.post_id)) ?? [], pending: restored?.pending ?? 0,
+        hasMore: restored?.hasMore ?? false, loading: !restored, loadingMore: false, error: null });
+      void load(false, !!restored);
+    },
     setOwner(owner: string | null) {
       if (owner === state.owner) return;
-      revision++; pageRevision++; cancel(); refreshing = false; snapshots.setAccount(owner); hidden.clear(); words = []; cursor = null; liveResolved = false;
+      revision++; pageRevision++; cancel(); refreshing = false; snapshots.setAccount(owner); hidden.clear(); tabs.clear(); words = []; cursor = null; liveResolved = false;
       publish({ owner, rows: [], pending: 0, hasMore: false, loading: !!owner, loadingMore: false, error: null });
       if (owner) queueMicrotask(() => { if (state.owner === owner) void load(); });
     },
@@ -146,6 +159,6 @@ export function createHomeFeedController(client: Client, seed: FeedSeed, snapsho
       hidden.add(postId); if (state.owner) void snapshots.clear(state.owner);
       publish({ rows: state.rows.filter(row => row.post_id !== postId) });
     },
-    dispose() { disposed = true; revision++; pageRevision++; cancel(); listeners.clear(); },
+    dispose() { disposed = true; revision++; pageRevision++; cancel(); tabs.clear(); listeners.clear(); },
   };
 }

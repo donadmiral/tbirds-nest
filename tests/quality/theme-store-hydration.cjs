@@ -19,3 +19,11 @@ test('explicit appearance is preserved when the operating system changes',async(
  const h=setup('dark'),pending=h.store.getState().init();h.resolve();await pending;h.system('light');assert.equal(h.store.getState().resolved,'dark');
  await h.store.getState().setMode('system');assert.equal(h.store.getState().resolved,'light');h.system('dark');assert.equal(h.store.getState().resolved,'dark');
 });
+
+
+test('lights out is a distinct persisted dark palette and survives system changes',async()=>{
+ const h=setup('lightsOut'),pending=h.store.getState().init();h.resolve();await pending;
+ assert.equal(h.store.getState().mode,'lightsOut');assert.equal(h.store.getState().resolved,'dark');
+ h.system('light');assert.equal(h.store.getState().mode,'lightsOut');assert.equal(h.store.getState().resolved,'dark');
+ await h.store.getState().setMode('dark');assert.equal(h.store.getState().resolved,'dark');assert.equal(h.writes.at(-1)[1],'dark');
+});

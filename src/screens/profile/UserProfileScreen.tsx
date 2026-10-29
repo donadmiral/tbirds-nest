@@ -1,3 +1,4 @@
+import { useIsFocused } from '@react-navigation/native';
 import { takePrefetched } from '../../lib/screenTransition';
 import { useAfterTransition } from '../../lib/screenTransition';
 import { ProfileSkeleton } from '../../components/skeletons';
@@ -21,6 +22,7 @@ import { BusinessProducts, BusinessReviews, SellerListings } from '../../compone
 import { supabase } from '../../services/supabase';
 import { hydratePostMedia, withoutPrivateMedia } from '../../services/contentMedia';
 import { profileRead } from '../../utils/profileRead';
+import { useProfileMediaRefresh } from '../../hooks/useProfileMediaRefresh';
 import { normalizeProfilePost } from '../../utils/profilePost';
 import MemoryAlbumCard from '../../components/MemoryAlbumCard';
 import { useAuthStore } from '../../stores/authStore';
@@ -51,6 +53,7 @@ type Post = {
   media_url: string | null;
   media: PostMedia[];
   mediaUnavailable?: boolean;
+  mediaPending?: boolean;
 };
 
 function initials(n?: string | null) {
@@ -140,6 +143,9 @@ export default function UserProfileScreen() {
     ]);
   };
 
+  const profileFocused = useIsFocused();
+  useProfileMediaRefresh(posts, setPosts, `${myId}:${targetId}`, profileFocused, setContentError);
+
   const load = useCallback(async () => {
     const owner = scope.current, request = ++loadRequest.current;
     const current = () => mounted.current && scope.current === owner && request === loadRequest.current;
@@ -185,7 +191,7 @@ export default function UserProfileScreen() {
       if (result.error) throw result.error;
       if (!current()) return;
       const rows = (result.data || []).filter((row: any) => !row.archived_at);
-      setPosts(previous => previous.length && rows.length ? previous : withoutPrivateMedia(rows).map(normalizeProfilePost));
+      setPosts(previous => previous.length && rows.length ? previous : withoutPrivateMedia(rows.map(row => ({ ...row, _mediaPending: true, _mediaExpected: !!(row.post_media?.length || row.media_url || row.image_url) }))).map(normalizeProfilePost));
       setContentLoading(false);
       const authorized = await profileRead(hydratePostMedia(rows), 25000);
       if (!current()) return;
@@ -193,7 +199,7 @@ export default function UserProfileScreen() {
       // get_profile already returns viewer_follows/viewer_requested. Repeating
       // those queries after media added another dependency to the loading gate.
 
-    } catch (e: any) { if (current()) { if (!headerLoaded) setLoadError(e?.message || 'Could not load this profile. Please retry.'); setContentError(e?.message || 'Could not load posts. Please retry.'); } }
+    } catch (e: any) { if (current()) { setPosts(previous => previous.map(post => ({ ...post, mediaPending: false, mediaUnavailable: post.mediaPending ? true : post.mediaUnavailable }))); if (!headerLoaded) setLoadError(e?.message || 'Could not load this profile. Please retry.'); setContentError(e?.message || 'Could not load posts. Please retry.'); } }
     finally { if (current()) { setLoading(false); setContentLoading(false); setRefreshing(false); } }
   }, [targetId, myId]);
 
@@ -446,7 +452,7 @@ export default function UserProfileScreen() {
                           buttons.push({
                             text: 'Share post',
                             onPress: async () => {
-                              await Share.share({ message: post.content || 'Check out this post on PlatinumCircles' });
+                              try { await Share.share({ message: (post.content ? post.content + '\n\n' : '') + 'https://platinumcircles.app/post/' + post.id }); } catch { Alert.alert('Could not share', 'The share sheet could not open. Please try again.'); }
                             },
                           });
                           buttons.push({ text: 'Cancel', style: 'cancel' as const });
@@ -459,7 +465,7 @@ export default function UserProfileScreen() {
                       </TouchableOpacity>
                     </View>
                     <TouchableOpacity activeOpacity={0.85} onPress={() => navigation.navigate('Post', { postId: post.id })}>
-                      {post.mediaUnavailable ? <Text style={{color:t.ink.muted,paddingVertical:12}}>Some media is unavailable.</Text> : null}
+                      {post.mediaPending ? <View accessibilityRole="progressbar" accessibilityLabel="Loading photos and videos" style={{height:150,alignItems:'center',justifyContent:'center',backgroundColor:t.surface.sunken}}><ActivityIndicator color={t.ink.muted}/><Text style={{color:t.ink.muted,marginTop:8}}>Loading media…</Text></View> : post.mediaUnavailable ? <TouchableOpacity accessibilityRole="button" onPress={() => void load()} style={{paddingVertical:12}}><Text style={{color:t.ink.muted}}>A photo or video could not load. Tap to retry.</Text></TouchableOpacity> : null}
                     {post.media.length > 0 ? (
                         <View style={{ marginBottom: 10 }}>
                           <ScrollView horizontal directionalLockEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>

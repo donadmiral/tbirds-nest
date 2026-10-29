@@ -13,6 +13,12 @@ const compiled = file => ts.transpileModule(fs.readFileSync(path.join(root, file
 }).outputText;
 const commentSource = compiled('components/Comments.tsx');
 const cardSource = compiled('components/PostCard.tsx');
+const sharedModules = {};
+for (const name of ['collaborationPeople', 'commentHighlights']) {
+  const module = { exports: {} };
+  vm.runInNewContext(compiled('../shared/' + name + '.ts'), { module, exports: module.exports, Set, Promise });
+  sharedModules['../../shared/' + name] = module.exports;
+}
 const profileModule = { exports: {} };
 vm.runInNewContext(compiled('lib/profileLookup.ts'), { module: profileModule, exports: profileModule.exports });
 // Keep the new test helper available when running original component sources.
@@ -85,6 +91,7 @@ function scenario(initialCount = 0) {
     vm.runInNewContext(kind === 'comments' ? commentSource : cardSource, {
       module, exports: module.exports, window, CustomEvent, alert: message => alerts.push(message), setTimeout, clearTimeout,
       require(id) {
+        if (sharedModules[id]) return sharedModules[id];
         if (id === 'react') return hooks;
         if (id === 'react/jsx-runtime') return runtime;
         if (id === '@/lib/commentCounts') return helper;

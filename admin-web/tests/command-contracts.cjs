@@ -101,3 +101,29 @@ test('incomplete setup and password truncation are explicit errors',async()=>{
  assert.equal((await provisionAccount('staff',form({email:'staff@example.test',role:'support_agent',password:'é'.repeat(40)}))).success,false);
  assert.equal(mock.calls.length,previous);
 });
+
+test('missing provisioning reports unavailable before any account identity is created', async () => {
+ for (const error of [
+  {code:'PGRST202',message:'Could not find the function public.triniti_admin_provision(p_actor_id, p_phase) in the schema cache'},
+  {code:'42883',message:'function public.triniti_admin_provision(uuid, text) does not exist'},
+ ]) {
+  const calls=[];
+  const {provisionAccount}=load('adminProvision', {rpc:async(name,args)=>{calls.push({name,args});return {data:null,error};},auth:{admin:{createUser(){throw new Error('must not create an account');},getUserById(){throw new Error('must not read an account');}}}});
+  const result=await provisionAccount('staff',form({email:'staff@example.test',role:'support_agent',password:'unique-test-password'}));
+  assert.equal(result.success,false);assert.match(result.error,/unavailable on this deployment/);assert.match(result.error,/No account was created/);assert.doesNotMatch(result.error,/retry/i);assert.equal(calls.length,1);
+ }
+});
+test('a provisioning endpoint lost after reservation preserves the partial-setup warning', async () => {
+ const mock=provisionMock();const rpc=mock.svc.rpc;
+ mock.svc.rpc=async(name,args)=>{const result=await rpc(name,args);return args.p_phase==='finish'?{data:null,error:{code:'PGRST202',message:'Could not find the function public.triniti_admin_provision() in the schema cache'}}:result;};
+ const {provisionAccount}=load('adminProvision',mock.svc);
+ const result=await provisionAccount('staff',form({email:'staff@example.test',role:'support_agent',password:'unique-test-password'}));
+ assert.equal(result.success,false);assert.match(result.error,/reserved account identity may already exist/);assert.doesNotMatch(result.error,/No account was created/);assert.equal(mock.calls.filter(c=>c.create).length,1);
+});
+test('provisioning permission and dependency errors retain uncertainty instead of claiming endpoint absence', async () => {
+ for (const error of [{code:'42501',message:'permission denied'},{code:'42883',message:'function private_dependency(uuid) does not exist'},{code:'PGRST003',message:'Pool timeout'}]) {
+  const {provisionAccount}=load('adminProvision',{rpc:async()=>({data:null,error})});
+  const result=await provisionAccount('staff',form({email:'staff@example.test',role:'support_agent',password:'unique-test-password'}));
+  assert.equal(result.success,false);assert.doesNotMatch(result.error,/unavailable on this deployment|No account was created/);
+ }
+});

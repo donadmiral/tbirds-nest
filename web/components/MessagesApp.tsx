@@ -81,6 +81,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const uidRef = useRef(uid);
   uidRef.current = uid;
   const drafts = useRef(new Map<string, string>());
+  const dismissedTarget = useRef<string | null>(null);
   const [attachmentDraft, setAttachmentDraft] = useState<File | null>(null);
   const [draft, setDraft] = useState("");
   const [query, setQuery] = useState("");
@@ -215,7 +216,15 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     if (componentLive.current && generation === accountGeneration.current && activeRef.current?.id === conversationId) setPinnedMessage(row && !row.deleted_at ? row as Msg : null);
   }, [supabase]);
 
-  const openConv = useCallback(async (c: Conv) => {
+  const openConv = useCallback(async (c: Conv, updateUrl = true) => {
+    dismissedTarget.current = null;
+    if (updateUrl && window.history) {
+      const search = new URLSearchParams(window.location.search);
+      if (search.get('c') !== c.id) {
+        search.set('c', c.id);
+        window.history.pushState({ ...window.history.state, pcConversation: true }, '', `${window.location.pathname}?${search}`);
+      }
+    }
     const generation = ++historyGeneration.current;
     activeRef.current = c;
     setActive(c);
@@ -289,8 +298,8 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       if (!current() || uidRef.current !== id) return;
       setConvs(list);
       const target = new URLSearchParams(window.location.search).get('c');
-      const selected = target ? list.find(item => item.id === target) : null;
-      if (selected && !activeRef.current) void openConv(selected);
+      const selected = target && target !== dismissedTarget.current ? list.find(item => item.id === target) : null;
+      if (selected && !activeRef.current) void openConv(selected, false);
     } catch { if (current()) setConversationError('Conversations could not be loaded. Please try again.'); }
     finally { if (current()) setLoadingConvs(false); }
   }, [supabase, context, openConv]);
@@ -657,6 +666,45 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     </Link>
   ) : null;
 
+  function closeConversation(updateUrl = true) {
+    dismissedTarget.current = activeRef.current?.id || null;
+    activeRef.current = null;
+    historyGeneration.current++;
+    historyReady.current = false;
+    setActive(null); setMsgs([]); setDraft(''); setLoadingMsgs(false); setHistoryError(null);
+    setEditing(null); setReplyTo(null); setForwarding(null); setGifMode(null); setShareDetails(null); setPrivateMedia(null);
+    setActionError(null); setNotice(null); setCountering(null);
+    if (recRef.current || recorderPending.current) stopRecording(false);
+    if (updateUrl && window.history) {
+      const search = new URLSearchParams(window.location.search); search.delete('c');
+      window.history.replaceState(window.history.state, '', window.location.pathname + (search.size ? '?' + search.toString() : ''));
+    }
+  }
+  useEffect(() => {
+    const onPopState = () => {
+      const id = new URLSearchParams(window.location.search).get('c');
+      const target = id ? convs.find(conversation => conversation.id === id) : null;
+      if (target && activeRef.current?.id !== id) void openConv(target, false);
+      else if (!target && activeRef.current) closeConversation(false);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || !activeRef.current) return;
+      event.preventDefault();
+      if (privateMedia) setPrivateMedia(null);
+      else if (shareDetails) setShareDetails(null);
+      else if (gifMode) setGifMode(null);
+      else if (forwarding) setForwarding(null);
+      else if (editing) { setEditing(null); setDraft(drafts.current.get(activeRef.current.id) || ''); }
+      else if (replyTo) setReplyTo(null);
+      else if (countering) setCountering(null);
+      else if (recording || recorderPending.current) stopRecording(false);
+      else closeConversation();
+    };
+    window.addEventListener('popstate', onPopState);
+    document.addEventListener('keydown', onKey);
+    return () => { window.removeEventListener('popstate', onPopState); document.removeEventListener('keydown', onKey); };
+  }, [convs, openConv, privateMedia, shareDetails, gifMode, forwarding, editing, replyTo, countering, recording]);
+
   const typingLine = otherTyping ? <p className="text-[12px] text-accent">typing…</p> : null;
 
   const convButton = (c: Conv) => (
@@ -754,7 +802,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
           <>
             <header className="border-b border-ink/10 pb-3">
               <div className="flex items-center gap-3">
-                <button onClick={() => { activeRef.current = null; ++historyGeneration.current; setActive(null); }} className="rounded-md p-1.5 text-secondary transition-colors duration-[140ms] hover:bg-surface hover:text-ink" title="Back">←</button>
+                <button onClick={() => closeConversation()} className="rounded-md p-1.5 text-secondary transition-colors duration-[140ms] hover:bg-surface hover:text-ink" title="Back" aria-label="Back to conversations">←</button>
                 <StoryAvatar userId={active.other_id} name={active.title} avatarUrl={active.avatar} size={36} />
                 <div className="min-w-0">
                   <p className="flex items-center gap-1 text-[15px] font-semibold text-ink"><span className="truncate">{active.title}</span>{!active.is_group && active.other_id ? <VerifiedBadge userId={active.other_id} size={13} /> : null}</p>

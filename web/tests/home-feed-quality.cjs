@@ -17,16 +17,16 @@ function load(file, overrides = {}) {
 }
 const shared = load('../shared/feedSnapshot.ts');
 const marketplace = load('../shared/marketplaceRecommendations.ts');
-const { createHomeFeedController, filterMutedFeedRows } = load('lib/homeFeedController.ts', { '../../shared/feedSnapshot': shared, '../../shared/marketplaceRecommendations': marketplace });
+const { createHomeFeedController, filterMutedFeedRows } = load('lib/homeFeedController.ts', { '../../shared/feedSnapshot': shared, '../../shared/marketplaceRecommendations': marketplace, '../../shared/feedTabCache': load('../shared/feedTabCache.ts') });
 const row = (id, likes = 0) => ({ post_id: id, author_id: 'author', content: 'Visible content ' + id, created_at: '2026-10-22T12:00:00Z', media: [], products: [], likes_count: likes, sort_key: 100 });
 const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
 const tick = () => new Promise(resolve => setImmediate(resolve));
-function harness(seedRows = [row('first')]) {
+function harness(seedRows = [row('first')], seedError = null) {
   const calls = [], saved = new Map(), measurements = [];
   let reply = async (_name, args) => ({ data: args.p_ids ? args.p_ids.map(post_id => ({ post_id, snapshot_eligible: true })) : [row('fresh')], error: null });
   const cache = shared.createFeedSnapshotStore({ getItem: async key => saved.get(key) ?? null, setItem: async (key,value) => saved.set(key,value), removeItem: async key => saved.delete(key) });
   const client = { rpc(name,args) { calls.push({name,args}); return reply(name,args); } };
-  const seed = { owner: 'alice', rows: seedRows, mutedWords: [], error: null };
+  const seed = { owner: 'alice', rows: seedRows, mutedWords: [], error: seedError };
   const controller = createHomeFeedController(client, seed, cache, event => measurements.push(event));
   return {controller,client,seed,calls,cache,saved,measurements,setReply(fn){reply=fn;}};
 }
@@ -114,4 +114,52 @@ test('initial feed fails closed when mute preferences cannot be loaded', async (
   const client = { rpc: async () => ({ data: [row('muted')], error: null }), from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: Error('preferences unavailable') }) }) }) }) };
   const result = await initial.loadInitialFeed(client, 'alice');
   assert.equal(result.rows.length, 0); assert.ok(result.error);
+});
+
+test('returning from Trending restores For You without publishing a transient empty state', async () => {
+  const h = harness([row('remembered')]), pending = deferred(), seen=[];
+  h.setReply(async (name,args) => ({data:args.p_ids?args.p_ids.map(post_id=>({post_id,snapshot_eligible:true})):[row('trending')],error:null}));
+  h.controller.setMode('trending'); await tick();
+  h.setReply((name,args) => name==='get_feed'?pending.promise:Promise.resolve({data:args.p_ids.map(post_id=>({post_id,snapshot_eligible:true})),error:null}));
+  h.controller.subscribe(()=>seen.push(h.controller.getSnapshot()));
+  h.controller.setMode('for_you');
+  assert.equal(h.controller.getSnapshot().rows[0].post_id,'remembered');
+  assert.ok(seen.every(state=>state.mode!=='for_you'||state.rows.length>0));
+  pending.resolve({data:[row('remembered',3)],error:null});await tick();
+  assert.equal(h.controller.getSnapshot().rows[0].likes_count,3);h.controller.dispose();
+});
+
+test('a restored tab cannot expose the previous account and hidden posts stay hidden', async () => {
+  const h=harness([row('remembered')]);
+  h.setReply(async(name,args)=>({data:args.p_ids?[]:[row('trend')],error:null}));
+  h.controller.setMode('trending');await tick();h.controller.hide('remembered');
+  h.controller.setMode('for_you');assert.equal(h.controller.getSnapshot().rows.length,0);
+  h.controller.setOwner(null);h.controller.setMode('trending');assert.equal(h.controller.getSnapshot().rows.length,0);h.controller.dispose();
+});
+
+
+test('a disk snapshot cached before the first response acquires a real cursor after returning to its tab', async () => {
+  const h = harness([], 'offline'), original = deferred();
+  h.cache.setAccount('alice');
+  await h.cache.write('alice', 'forYou', [row('snapshot')], new Set(['snapshot']));
+  let firstRequest = true;
+  h.setReply(async (name, args) => {
+    if (name === 'get_feed_visibility') return { data: args.p_ids.map(post_id => ({ post_id, snapshot_eligible: true })), error: null };
+    if (args.p_mode === 'for_you' && firstRequest) { firstRequest = false; return original.promise; }
+    if (args.p_mode === 'trending') return { data: [row('trend')], error: null };
+    if (args.p_cursor_id) return { data: [row('next-page')], error: null };
+    return { data: Array.from({ length: 20 }, (_, i) => row(i === 0 ? 'snapshot' : 'fresh-' + i)), error: null };
+  });
+  const initial = h.controller.start(); await tick();
+  assert.equal(h.controller.getSnapshot().rows[0].post_id, 'snapshot');
+  h.controller.setMode('trending'); await tick();
+  h.controller.setMode('for_you'); await tick();
+  assert.equal(h.controller.getSnapshot().rows[0].post_id, 'snapshot');
+  assert.equal(h.controller.getSnapshot().hasMore, true, 'confirmed first page replaces the snapshot pagination state');
+  await h.controller.load(true);
+  assert.equal(h.calls.filter(call => call.name === 'get_feed').at(-1).args.p_cursor_id, 'fresh-19');
+  assert.ok(h.controller.getSnapshot().rows.some(item => item.post_id === 'next-page'));
+  original.resolve({ data: [row('obsolete')], error: null }); await initial;
+  assert.ok(!h.controller.getSnapshot().rows.some(item => item.post_id === 'obsolete'));
+  h.controller.dispose();
 });

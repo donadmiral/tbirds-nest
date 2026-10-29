@@ -138,3 +138,11 @@ test('a media outage leaves the authorized post content usable and a retry repla
   await h.run('posts');assert.equal(h.state.posts[0].id,'post');assert.equal(h.state.posts[0].media.length,0);assert.equal(h.state.loading,false);assert.match(h.state.error,/Signing unavailable/);
   await h.run('posts');assert.equal(h.state.posts[0].media[0].url,'signed.jpg');assert.equal(h.state.error,null);
 });
+
+
+test('pending media is a loading state, not an unavailable photo; text-only posts never display a media spinner',()=>{
+ const pending=normalize({id:'photo',_mediaPending:true,post_media:[{url:null}]});assert.equal(pending.mediaPending,true);assert.equal(pending.mediaUnavailable,false);
+ const text=normalize({id:'text',content:'A text post',_mediaPending:true,post_media:[]});assert.equal(text.mediaPending,false);
+ const legacy=normalize({id:'old',_mediaPending:true,_mediaExpected:true,media_url:null});assert.equal(legacy.mediaPending,true);
+ assert.equal(normalize({...legacy,_mediaPending:false}).mediaUnavailable,true);
+});
