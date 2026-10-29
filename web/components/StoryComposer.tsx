@@ -12,6 +12,8 @@ import { searchPeople, type AccessPerson } from "@/lib/memoryAlbum";
 import { publicationError } from "@/lib/publication";
 import { checkUploadableBytes } from "@/lib/media";
 import { hydrateStoryDraftMedia } from "@/lib/contentMedia";
+import { canonicalContentMedia } from "../../shared/contentMedia";
+import { loadPostStorySticker } from "@/lib/storyPostShare";
 import { StoryTiming } from "@/components/StoryTiming";
 import { StoryCapture } from "@/components/StoryCapture";
 import { publishStoryClipQueue, readStoryClipQueue, type StoryClipQueue } from "@/lib/storyClipQueue";
@@ -22,12 +24,14 @@ import { StoryStickerPreview } from "@/components/StoryStickerPreview";
 import { AdjustOverlay, BgLayer, DrawSvg } from "@/components/StoryEngine";
 import studio from "./StoryStudio.module.css";
 import { StoryAudioEditor } from "@/components/StoryAudioEditor";
+import { MUSIC_CATALOG_ENABLED } from "../../shared/musicAvailability";
 import type { StoryAudioDraft } from "@/lib/storyAudio";
 
 type Draft = {
   id: string; user_id: string; media_url: string | null; media_type: string; caption: string | null;
   audience: string; shared_with: string[]; duration_sec: number | null; created_at: string;
   preview_media_url?: string | null;
+  preview_stickers?: StoryTextSticker[];
   audio_draft?: StoryAudioDraft | null; allow_replies?: boolean;
   filter_id?: string | null; stickers_json?: StoryTextSticker[]; media_transform?: StoryMediaTransform | null; text_background?: { colors: string[] } | null;
 };
@@ -106,6 +110,9 @@ function ComposerInner() {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const draftRequest = useRef(0);
   const appliedRouteDraft = useRef<string | null>(null);
+  const appliedRoutePost = useRef<string | null>(null);
+  const [postLoadRetry, setPostLoadRetry] = useState(0);
+  const [postLoadFailed, setPostLoadFailed] = useState(false);
 
   const snapshotClip = (): Clip => ({ id: activeClipId, mediaUrl, previewUrl, mediaType, durationSec, caption, stickers, transform, background, filterId, audioDraft, draftId });
   const currentClips = (): Clip[] => {
@@ -118,7 +125,7 @@ function ComposerInner() {
     activeClip.current = { id: clip.id, mediaUrl: clip.mediaUrl };
     videoPreview.current?.pause(); setActiveClipId(clip.id); setMediaUrl(clip.mediaUrl); replacePreview(clip.previewUrl); setMediaType(clip.mediaType);
     setDurationSec(clip.durationSec); setCaption(clip.caption); setStickers(clip.stickers); setTransform(clip.transform); setBackground(clip.background);
-    setFilterId(clip.filterId); setAudioDraft(clip.audioDraft); setDraftId(clip.draftId); setClock(clip.transform.trimStart || 0); setEditorKey(k => k + 1);
+    setFilterId(clip.filterId); setAudioDraft(MUSIC_CATALOG_ENABLED ? clip.audioDraft : null); setDraftId(clip.draftId); setClock(clip.transform.trimStart || 0); setEditorKey(k => k + 1);
   };
   const chooseClip = (id: string) => { if (busyRef.current || publication.current) return; const all = currentClips(); const next = all.find(clip => clip.id === id); if (!next) return; setClips(all); activateClip(next); };
   const removeClip = (id: string) => {
@@ -186,6 +193,7 @@ function ComposerInner() {
         localPreviews.current.forEach(url => URL.revokeObjectURL(url)); localPreviews.current.clear();
         publishedRef.current = false;
         appliedRouteDraft.current = null;
+        appliedRoutePost.current = null; setPostLoadFailed(false);
         setComposeStep("edit"); setEditToolsOpen(false); setAudienceOpen(false); setDrafts([]); setDraftId(null); setMediaUrl(null); replacePreview(null); setMediaType("image");
         setCaption(""); setAudioDraft(null); setPeople([]); setAudience("everyone"); setFilterId(null); setDurationSec(null);
         setStickers([]); setTransform({ scale: 1, translateNX: 0, translateNY: 0, fit: "contain" }); setEditorKey(k => k + 1);
@@ -254,6 +262,34 @@ function ComposerInner() {
   }, [uid]);
 
   useEffect(() => {
+    const postId = params.get('post');
+    if (!uid || !postId || params.get('draft') || params.get('join') || appliedRoutePost.current === postId) return;
+    if (clipQueue.current || publication.current || busyRef.current || mediaUrl || mediaType === 'text') {
+      setError('Finish your current story before adding this post.');
+      return;
+    }
+    const owner = uid, version = ownerVersion.current;
+    let cancelled = false, finished = false;
+    const check = () => { assertOwner(owner, version); if (cancelled) throw new Error('This post preview was cancelled.'); };
+    busyRef.current = true; setBusy('post-load'); setPostLoadFailed(false); setError(null);
+    void runBounded(loadPostStorySticker(supabase, postId, check)).then(sticker => {
+      check();
+      appliedRoutePost.current = postId;
+      setMediaType('text'); setMediaUrl(null); replacePreview(null); setDurationSec(null);
+      setStickers([sticker]); setBackground({ colors: ['#111518', '#41474F'] });
+      setTransform({ scale: 1, translateNX: 0, translateNY: 0, fit: 'contain' });
+      setFilterId(null); setAudioDraft(null); setDraftId(null); setCaption('');
+      setClips([]); setActiveClipId('primary'); setComposeStep('edit'); setEditorKey(k => k + 1);
+    }).catch(failure => {
+      if (!cancelled && isCurrent(owner, version)) { setPostLoadFailed(true); setError(publicationError(failure)); }
+    }).finally(() => {
+      finished = true;
+      if (!cancelled && isCurrent(owner, version)) { busyRef.current = false; setBusy(null); }
+    });
+    return () => { cancelled = true; if (!finished && isCurrent(owner, version)) { busyRef.current = false; setBusy(current => current === 'post-load' ? null : current); } };
+  }, [uid, params, supabase, postLoadRetry]);
+
+  useEffect(() => {
     const origin = params.get("join"), stickerId = params.get("sticker");
     if (!uid || !origin || !stickerId || publication.current) return;
     let cancelled = false;
@@ -279,7 +315,7 @@ function ComposerInner() {
     const rows = (data ?? []) as Draft[];
     const previews = await runBounded(hydrateStoryDraftMedia(rows, supabase));
     assertOwner(owner, version);
-    setDrafts(rows.map((row, index) => ({ ...row, preview_media_url: previews[index]?.media_url ?? null })));
+    setDrafts(rows.map((row, index) => ({ ...row, preview_media_url: previews[index]?.media_url ?? null, preview_stickers: previews[index]?.stickers_json ?? [] })));
   };
   useEffect(() => {
     if (!uid) return;
@@ -318,10 +354,10 @@ function ComposerInner() {
     setError(null);
     setPeople([]);
     setFilterId(d.filter_id ?? null);
-    setStickers(d.stickers_json ?? []); setTransform(d.media_transform ?? { scale: 1, translateNX: 0, translateNY: 0, fit: "contain" });
+    setStickers(d.preview_stickers ?? []); setTransform(d.media_transform ?? { scale: 1, translateNX: 0, translateNY: 0, fit: "contain" });
     if (d.text_background) setBackground(d.text_background);
     setEditorKey(k => k + 1);
-    setAudioDraft(d.audio_draft ?? null); setAllowReplies(d.allow_replies !== false);
+    setAudioDraft(MUSIC_CATALOG_ENABLED ? d.audio_draft ?? null : null); setAllowReplies(d.allow_replies !== false);
     setDraftId(d.id);
     setMediaUrl(d.media_url);
     setMediaType(d.media_type === "video" ? "video" : d.media_type === "text" ? "text" : "image");
@@ -395,15 +431,15 @@ function ComposerInner() {
     if (!uid || !all.length || busyRef.current || publishedRef.current || !isCurrent(uid, ownerVersion.current)) return;
     const owner = uid, version = ownerVersion.current;
     if (audience === "only_with" && people.length === 0) { setError("Choose at least one person to share with."); return; }
-    const empty = all.findIndex(clip => clip.mediaType === "text" && !clip.stickers.some(s => s.text.trim()));
+    const empty = all.findIndex(clip => clip.mediaType === "text" && !clip.stickers.some(s => s.text.trim() || s.kind === 'post' && s.postId));
     if (empty >= 0) { activateClip(all[empty]); setComposeStep('edit'); setError(`Add text or a sticker to clip ${empty + 1}.`); return; }
     if (!clipQueue.current || clipQueue.current.editable) {
       const confirmed = clipQueue.current?.clips.filter(clip => !!clip.storyId) || [];
       clipQueue.current = { version: 1, clips: [...confirmed, ...all.map(clip => ({ clipId: clip.id, requestId: crypto.randomUUID(), payload: {
         media_url: clip.mediaUrl, media_type: clip.mediaType, caption: clip.caption.trim() || null, audience, allow_replies: allowReplies,
-        filter_id: clip.filterId, stickers_json: clip.stickers, media_transform: clip.transform, text_background: clip.mediaType === "text" ? clip.background : null,
+        filter_id: clip.filterId, stickers_json: canonicalContentMedia(clip.stickers, process.env.NEXT_PUBLIC_SUPABASE_URL!), media_transform: clip.transform, text_background: clip.mediaType === "text" ? clip.background : null,
         duration_sec: clip.mediaType === "video" ? Math.round(Math.max(1, Math.min(60, (clip.transform.trimEnd ?? clip.durationSec ?? 10) - (clip.transform.trimStart ?? 0)))) : null,
-        shared_with: people.map(p => p.id), draft_id: clip.draftId, audio_draft: clip.audioDraft,
+        shared_with: people.map(p => p.id), draft_id: clip.draftId, audio_draft: MUSIC_CATALOG_ENABLED ? clip.audioDraft : null,
       } }))] };
     }
     const batch = clipQueue.current;
@@ -450,7 +486,7 @@ function ComposerInner() {
         await checkOwner(owner, version);
         const id = clip.draftId || draftSaveIds.current.get(clip.id) || crypto.randomUUID();
         draftSaveIds.current.set(clip.id, id);
-        const payload = { id, user_id: owner, media_url: clip.mediaUrl, media_type: clip.mediaType, caption: clip.caption.trim() || null, audience, allow_replies: allowReplies, shared_with: people.map(p => p.id), duration_sec: clip.durationSec, audio_draft: clip.audioDraft, filter_id: clip.filterId, stickers_json: clip.stickers, media_transform: clip.transform, text_background: clip.mediaType === "text" ? clip.background : null };
+        const payload = { id, user_id: owner, media_url: clip.mediaUrl, media_type: clip.mediaType, caption: clip.caption.trim() || null, audience, allow_replies: allowReplies, shared_with: people.map(p => p.id), duration_sec: clip.durationSec, ...(MUSIC_CATALOG_ENABLED ? { audio_draft: clip.audioDraft } : {}), filter_id: clip.filterId, stickers_json: canonicalContentMedia(clip.stickers, process.env.NEXT_PUBLIC_SUPABASE_URL!), media_transform: clip.transform, text_background: clip.mediaType === "text" ? clip.background : null };
         const { data, error: saveError } = await runBounded(supabase.from("story_drafts").upsert(payload, { onConflict: "id" }).select("id,user_id").single());
         assertOwner(owner, version); if (saveError || !data || data.user_id !== owner) throw saveError || new Error('Could not confirm the saved draft.');
         clip.draftId = id; if (clip.id === activeClipId) setDraftId(id);
@@ -495,7 +531,7 @@ function ComposerInner() {
   const allClips = currentClips();
   const mediaStyle = { objectFit: transform.fit === "contain" ? "contain" as const : "cover" as const, transform: `translate(${(transform.translateNX || 0) * 100}%, ${(transform.translateNY || 0) * 100}%) scale(${transform.scale || 1})` };
   const mediaPreview = (reviewOnly = false) => <>
-    {mediaType === "text" ? <div className="h-full w-full" style={{ background: `linear-gradient(160deg,${background.colors.join(",")})` }} /> : <>
+    {mediaType === "text" ? <><div className="h-full w-full" style={{ background: `linear-gradient(160deg,${background.colors.join(",")})` }} />{(() => { const photo = stickers.find(sticker => sticker.kind === 'post' && sticker.postMediaType !== 'video' && sticker.postMediaUrl)?.postMediaUrl; return photo ? <div className="pointer-events-none absolute inset-0"><img src={photo} alt="" className="h-full w-full scale-110 object-cover blur-2xl" /><div className="absolute inset-0 bg-black/50" /></div> : null; })()}</> : <>
       {transform.bg && transform.fit === "contain" ? <BgLayer bg={transform.bg} mediaUrl={mediaType === "image" ? previewUrl : null} /> : null}
       {mediaType === "video" ? <video ref={reviewOnly ? undefined : videoPreview} src={previewUrl ?? undefined} controls={false} playsInline muted={reviewOnly} preload="metadata" className="relative h-full w-full" style={mediaStyle} onLoadedMetadata={e => { const actualDuration = e.currentTarget.duration; if (!reviewOnly && !publication.current && Number.isFinite(actualDuration) && actualDuration > 0 && !durationSec) { setDurationSec(actualDuration); setTransform(t => ({ ...t, trimStart: t.trimStart ?? 0, trimEnd: t.trimEnd ?? Math.min(actualDuration, 60) })); } e.currentTarget.playbackRate = transform.speed || 1; if ((transform.trimStart || 0) > 0) e.currentTarget.currentTime = transform.trimStart || 0; }} onTimeUpdate={e => { const v = e.currentTarget; setClock(v.currentTime); if (!v.paused && transform.trimEnd && v.currentTime >= transform.trimEnd) { v.pause(); v.currentTime = transform.trimStart ?? 0; } }} onPause={() => setPreviewPlaying(false)} onPlay={e => { setPreviewPlaying(true); e.currentTarget.playbackRate = transform.speed || 1; if (e.currentTarget.currentTime < (transform.trimStart ?? 0) || transform.trimEnd && e.currentTarget.currentTime >= transform.trimEnd) e.currentTarget.currentTime = transform.trimStart ?? 0; }} /> :
         // eslint-disable-next-line @next/next/no-img-element
@@ -522,6 +558,8 @@ function ComposerInner() {
     </header>
     {publicationStatus.published && publicationStatus.postId && uid ? <section className="mx-4 space-y-4 rounded-2xl bg-[#faf6ee] p-5 text-[#0B1E3D]"><p role="status" className="text-lg font-semibold">{sharedIds.length > 1 ? `${sharedIds.length} moments are shared.` : 'Your moment is shared.'}</p><p className="text-sm text-[#69717a]">Keep them in a memory book to revisit later.</p>{(sharedIds.length ? sharedIds : [publicationStatus.postId]).map((id,index) => <div key={id}>{sharedIds.length > 1 ? <p className="mb-2 text-sm font-medium">Clip {index + 1}</p> : null}<SaveToMemory storyId={id} ownerId={uid} inline /></div>)}<Link href="/home" className="block rounded-full bg-[#0B1E3D] px-4 py-3 text-center text-sm font-semibold text-white">Done</Link></section> : null}
     {!publicationStatus.published ? <>
+      {busy === 'post-load' ? <p role="status" className="px-5 py-4 text-center text-sm text-white/80">Preparing this post for your story…</p> : null}
+      {postLoadFailed ? <button type="button" className={studio.button} disabled={!!busy} onClick={() => setPostLoadRetry(value => value + 1)}>Retry loading post</button> : null}
       <fieldset disabled={!uid || !!busy || publicationStatus.locked} className="contents">
         {!hasMedia ? <>
           {drafts.length ? <section className="px-4"><h2 className={studio.sectionTitle}>Your drafts</h2><div className={studio.drafts}>{drafts.map(draft => <div key={draft.id} className={studio.draft}><button type="button" aria-label="Continue saved story" onClick={() => void applyDraft(draft)} className={studio.draftMedia}>{draft.preview_media_url ? draft.media_type === "video" ? <video src={draft.preview_media_url} muted playsInline preload="metadata" /> :
@@ -529,7 +567,7 @@ function ComposerInner() {
             <img src={draft.preview_media_url} alt="" /> : "Aa"}</button><button type="button" onClick={() => void deleteDraft(draft)} className={studio.draftRemove} aria-label="Delete draft"><X size={15} /></button></div>)}</div></section> : null}
           <section className={studio.capture}><span className="mb-1 flex h-20 w-20 items-center justify-center rounded-full border border-white/20 bg-white/5"><ImagePlus size={32} strokeWidth={1.3} /></span><h2 className={studio.captureTitle}>A moment worth sharing.</h2><p className={studio.captureHint}>Choose a photo or video, then make it your own.</p><button type="button" onClick={() => setCameraOpen(true)} className={studio.primary}><Camera size={20} />Open camera</button><button type="button" onClick={() => fileRef.current?.click()} disabled={busy === "upload"} className={studio.button}><ImagePlus size={18} />{busy === "upload" ? "Uploading…" : "Add photo or video"}</button><button type="button" onClick={() => { setMediaType("text"); setComposeStep("edit"); }} className={studio.button}><Type size={18} />Create with text</button></section>
         </> : <>
-          <div hidden={composeStep !== "edit"}><StoryEditor key={editorKey} onOpenDraw={openDraw} onTogglePreview={mediaType === "video" ? togglePreview : undefined} previewPlaying={previewPlaying} clips={allClips.map(clip => ({ id: clip.id, selected: clip.id === activeClipId, thumbnail: clip.mediaType === "text" ? "Aa" : clip.mediaType === "video" ? <video src={clip.previewUrl ?? undefined} playsInline muted preload="metadata" /> : <img src={clip.previewUrl ?? undefined} alt="" /> }))} onSelectClip={chooseClip} onRemoveClip={removeClip} onAddClip={allClips.length + (clipQueue.current?.clips.filter(c => c.storyId).length || 0) < 10 ? () => fileRef.current?.click() : undefined} onOpenMusic={() => { videoPreview.current?.pause(); setMusicOpen(true); }} onOpenTiming={mediaType === "video" ? () => setTimingOpen(true) : undefined} duration={durationSec || 15} clock={mediaType === "video" ? clock : undefined} value={stickers} onChange={setStickers} onNext={review} onOpenEdit={() => { videoPreview.current?.pause(); editSnapshot.current = { transform, filterId }; setEditTab("adjust"); setEditToolsOpen(true); }} onClose={removeMedia} audience={audienceLabel} onAudience={() => setAudienceOpen(true)} thumbnail={mediaType === "text" ? "Aa" : mediaType === "video" ? <video src={previewUrl ?? undefined} playsInline muted preload="metadata" /> :
+          <div hidden={composeStep !== "edit"}><StoryEditor key={editorKey} onOpenDraw={openDraw} onTogglePreview={mediaType === "video" ? togglePreview : undefined} previewPlaying={previewPlaying} clips={allClips.map(clip => ({ id: clip.id, selected: clip.id === activeClipId, thumbnail: clip.mediaType === "text" ? "Aa" : clip.mediaType === "video" ? <video src={clip.previewUrl ?? undefined} playsInline muted preload="metadata" /> : <img src={clip.previewUrl ?? undefined} alt="" /> }))} onSelectClip={chooseClip} onRemoveClip={removeClip} onAddClip={allClips.length + (clipQueue.current?.clips.filter(c => c.storyId).length || 0) < 10 ? () => fileRef.current?.click() : undefined} onOpenMusic={MUSIC_CATALOG_ENABLED || mediaType === "video" ? () => { videoPreview.current?.pause(); setMusicOpen(true); } : undefined} onOpenTiming={mediaType === "video" ? () => setTimingOpen(true) : undefined} duration={durationSec || 15} clock={mediaType === "video" ? clock : undefined} value={stickers} onChange={setStickers} onNext={review} onOpenEdit={() => { videoPreview.current?.pause(); editSnapshot.current = { transform, filterId }; setEditTab("adjust"); setEditToolsOpen(true); }} onClose={removeMedia} audience={audienceLabel} onAudience={() => setAudienceOpen(true)} thumbnail={mediaType === "text" ? "Aa" : mediaType === "video" ? <video src={previewUrl ?? undefined} playsInline muted preload="metadata" /> :
             // eslint-disable-next-line @next/next/no-img-element
             <img src={previewUrl ?? undefined} alt="" />}>{mediaPreview()}</StoryEditor></div>
           {composeStep === "share" ? <section className={studio.share}>
@@ -564,8 +602,8 @@ function ComposerInner() {
         {drawSession && uid === drawSession.owner && ownerVersion.current === drawSession.version && activeClipId === drawSession.clipId && mediaUrl === drawSession.mediaUrl ? <StoryDrawStudio key={drawSession.owner + ':' + drawSession.version + ':' + drawSession.clipId + ':' + (drawSession.mediaUrl || '')} scopeKey={drawSession.owner + ':' + drawSession.version + ':' + drawSession.clipId + ':' + (drawSession.mediaUrl || '')} strokes={drawSession.strokes} onApply={applyDrawing} onCancel={() => setDrawSession(null)}>
           {mediaPreview(true)}<div className="pointer-events-none absolute inset-0">{stickers.filter(sticker => sticker.kind !== 'drawing').map(sticker => <span key={sticker.id} style={{ position: 'absolute', maxWidth: '80%', left: `${sticker.nx * 100}%`, top: `${sticker.ny * 100}%`, transform: `translate(-50%, -50%) rotate(${sticker.rotation}rad) scale(${sticker.scale})` }}><StoryStickerPreview sticker={sticker} /></span>)}</div>
         </StoryDrawStudio> : null}
-        {musicOpen && uid ? <div className={studio.overlay} onClick={e => { if (e.target === e.currentTarget && !busy) setMusicOpen(false); }}><section role="dialog" aria-modal="true" aria-label="Story music" className={studio.sheet}><div className={studio.handle} /><div className={studio.sheetHeader}><button type="button" className={studio.icon} aria-label="Close music" onClick={() => setMusicOpen(false)} disabled={!!busy}><X size={20} /></button><h2 className={studio.sheetTitle}>Music</h2></div><StoryAudioEditor key={uid + activeClipId} owner={uid} value={audioDraft} onChange={setAudioDraft} mix={transform.mix ?? {}} onMixChange={mix => setTransform(t => ({ ...t, mix }))} isVideo={mediaType === "video"} disabled={!!busy || publicationStatus.locked} onBusyChange={active => { busyRef.current = active; setBusy(active ? "audio-upload" : null); if (active) videoPreview.current?.pause(); }} /></section></div> : null}
-        {timingOpen && mediaType === 'video' ? <StoryTiming url={previewUrl} duration={durationSec || 15} start={transform.trimStart || 0} end={transform.trimEnd ?? Math.min(durationSec || 15, 60)} clock={clock} playing={previewPlaying} stickers={stickers} audioTitle={audioDraft?.title} onClose={() => setTimingOpen(false)} onToggle={() => { const video = videoPreview.current; if (!video) return; if (video.paused) void video.play().catch(() => {}); else video.pause(); }} onSeek={time => { const video = videoPreview.current; if (video) { video.pause(); video.currentTime = time; setClock(time); } }} onTrim={(start,end) => setTransform(t => ({ ...t, trimStart: start, trimEnd: end }))} onChange={setStickers} /> : null}
+        {musicOpen && uid ? <div className={studio.overlay} onClick={e => { if (e.target === e.currentTarget && !busy) setMusicOpen(false); }}><section role="dialog" aria-modal="true" aria-label={MUSIC_CATALOG_ENABLED ? "Story music" : "Original video sound"} className={studio.sheet}><div className={studio.handle} /><div className={studio.sheetHeader}><button type="button" className={studio.icon} aria-label="Close sound controls" onClick={() => setMusicOpen(false)} disabled={!!busy}><X size={20} /></button><h2 className={studio.sheetTitle}>{MUSIC_CATALOG_ENABLED ? "Music" : "Video sound"}</h2></div><StoryAudioEditor key={uid + activeClipId} owner={uid} value={audioDraft} onChange={setAudioDraft} mix={transform.mix ?? {}} onMixChange={mix => setTransform(t => ({ ...t, mix }))} isVideo={mediaType === "video"} disabled={!!busy || publicationStatus.locked} onBusyChange={active => { busyRef.current = active; setBusy(active ? "audio-upload" : null); if (active) videoPreview.current?.pause(); }} /></section></div> : null}
+        {timingOpen && mediaType === 'video' ? <StoryTiming url={previewUrl} duration={durationSec || 15} start={transform.trimStart || 0} end={transform.trimEnd ?? Math.min(durationSec || 15, 60)} clock={clock} playing={previewPlaying} stickers={stickers} audioTitle={MUSIC_CATALOG_ENABLED ? audioDraft?.title : undefined} onClose={() => setTimingOpen(false)} onToggle={() => { const video = videoPreview.current; if (!video) return; if (video.paused) void video.play().catch(() => {}); else video.pause(); }} onSeek={time => { const video = videoPreview.current; if (video) { video.pause(); video.currentTime = time; setClock(time); } }} onTrim={(start,end) => setTransform(t => ({ ...t, trimStart: start, trimEnd: end }))} onChange={setStickers} /> : null}
       </fieldset>
       {error ? <p role="alert" className={`${studio.error} px-5`}>{error}</p> : null}
       {busy === "upload" || busy === "draft-load" ? <p role="status" className="px-5 py-4 text-center text-sm text-[#d9c5a7]">{busy === "upload" ? `Preparing clip ${uploadProgress.index} of ${uploadProgress.total}…` : "Opening your draft…"}</p> : null}

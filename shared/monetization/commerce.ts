@@ -1,5 +1,6 @@
 import { validMinor } from './domain';
 import { withFinanceDeadline } from './client';
+import { CREATOR_COMMERCE_ENABLED, CREATOR_COMMERCE_UNAVAILABLE } from './availability';
 
 export type CreatorProduct = { id: string; kind: 'subscription' | 'tip' | 'gift'; title: string; amount_minor: string; active: boolean; period_days: number | null };
 export type CreatorCommerce = {
@@ -32,11 +33,13 @@ export function parseCreatorCommerce(value: unknown, owner: string): CreatorComm
   return v;
 }
 export async function readCreatorCommerce(client: Rpc, owner: string): Promise<CreatorCommerce> {
+  if (!CREATOR_COMMERCE_ENABLED) throw new Error(CREATOR_COMMERCE_UNAVAILABLE);
   const { data, error } = await withFinanceDeadline(client.rpc('creator_commerce_snapshot', { p_expected_user: owner }), 'Creator products took too long to load. Refresh to try again.');
   if (error) throw new Error('Creator products and purchases are unavailable. Refresh to try again.');
   return parseCreatorCommerce(data, owner);
 }
 export async function saveCreatorProduct(client: Rpc, owner: string, product: CreatorProduct): Promise<string> {
+  if (!CREATOR_COMMERCE_ENABLED) throw new Error(CREATOR_COMMERCE_UNAVAILABLE);
   if (!uuid(owner) || !uuid(product.id) || !kinds.includes(product.kind) || !title(product.title) || !validMinor(product.amount_minor, true) || BigInt(product.amount_minor) > BigInt(1000000) ||
     typeof product.active !== 'boolean' || (product.kind === 'subscription' ? !Number.isInteger(product.period_days) || product.period_days! < 1 || product.period_days! > 366 : product.period_days !== null)) throw new Error('Check the product name, price and access period.');
   const { data, error } = await withFinanceDeadline(client.rpc('creator_save_product', { p_expected_user: owner, p_id: product.id, p_kind: product.kind, p_title: product.title.trim(), p_amount_minor: product.amount_minor, p_period_days: product.period_days, p_active: product.active }), 'Your product change is unconfirmed. Refresh before retrying.');

@@ -4,6 +4,7 @@
  * All values persist as plain JSON inside media_transform so the web
  * viewer replays them from the same numbers.
  */
+import { MUSIC_CATALOG_ENABLED } from '../../../shared/musicAvailability';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, Modal, TouchableOpacity, StyleSheet, PanResponder, TextInput, ScrollView, ActivityIndicator, Dimensions, useWindowDimensions } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
@@ -269,14 +270,14 @@ export function AudioMixSheet({ visible, onClose, isVideo, hasMusic, mix, onChan
   visible: boolean; onClose: () => void; isVideo: boolean; hasMusic: boolean;
   mix: StoryMix; onChange: (m: StoryMix) => void;
 }) {
-  if (!visible) return null;
+  if (!visible || (!MUSIC_CATALOG_ENABLED && !isVideo)) return null;
   const orig = typeof mix.orig === 'number' ? mix.orig : 100;
   const music = typeof mix.music === 'number' ? mix.music : 100;
   return (
     <View style={pp.dockWrap} pointerEvents="box-none">
       <View style={pp.dock}>
         <View style={pp.dockHead}>
-          <Text style={pp.dockTitle}>Sound mix</Text>
+          <Text style={pp.dockTitle}>{MUSIC_CATALOG_ENABLED ? 'Sound mix' : 'Video sound'}</Text>
           <TouchableOpacity onPress={onClose} style={pp.dockDone} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
             <Text style={pp.dockDoneTxt}>Done</Text>
           </TouchableOpacity>
@@ -293,15 +294,15 @@ export function AudioMixSheet({ visible, onClose, isVideo, hasMusic, mix, onChan
         ) : (
           <Text style={pp.dockHint}>Photo story — only music plays.</Text>
         )}
-        <View style={pp.row}>
+        {MUSIC_CATALOG_ENABLED && <View style={pp.row}>
           <TouchableOpacity onPress={() => onChange({ ...mix, music: music === 0 ? 100 : 0 })} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
             <Feather name={music === 0 ? 'volume-x' : 'music'} size={18} color="#FFF" />
           </TouchableOpacity>
           <Text style={pp.rowLabel}>Music</Text>
           <MiniSlider value={music} min={0} max={100} onChange={v => onChange({ ...mix, music: v })} width={170} />
           <Text style={pp.rowVal}>{music}</Text>
-        </View>
-        {!hasMusic && <Text style={pp.dockHint}>Add music from the tray to hear this channel.</Text>}
+        </View>}
+        {MUSIC_CATALOG_ENABLED && !hasMusic && <Text style={pp.dockHint}>Add music from the tray to hear this channel.</Text>}
         <Text style={pp.dockHint}>Original audio is never deleted — the mix just sets playback volume.</Text>
       </View>
     </View>

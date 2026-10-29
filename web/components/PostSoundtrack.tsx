@@ -2,9 +2,10 @@
 import {useEffect,useRef,useState} from 'react';
 import {getSoundtrack} from '@/lib/soundtrack';
 import {readSoundtrack,soundtrackTime,type SoundtrackSelection,type SoundtrackUse,type SoundtrackClock} from '../../shared/soundtrack';
+import {MUSIC_CATALOG_ENABLED} from '../../shared/musicAvailability';
 export function PostSoundtrack({selection,use='post',active=true,clock,className='',autoPlay=false,controls=true}:{selection:SoundtrackSelection|null|undefined;use?:SoundtrackUse;active?:boolean;clock?:SoundtrackClock;className?:string;autoPlay?:boolean;controls?:boolean}) {
  const [playing,setPlaying]=useState(autoPlay),[error,setError]=useState<string|null>(null),[attempt,setAttempt]=useState(0);
- const selectedValue=readSoundtrack(selection);
+ const selectedValue=MUSIC_CATALOG_ENABLED?readSoundtrack(selection):null;
  const ref=useRef<HTMLAudioElement|null>(null),inputs=useRef({active,clock,playing,selection:selectedValue});inputs.current={active,clock,playing,selection:selectedValue};
  const key=selectedValue?.soundId??'';
  const [requestedKey,setRequestedKey]=useState(active&&autoPlay?key:null);
@@ -31,7 +32,7 @@ export function PostSoundtrack({selection,use='post',active=true,clock,className
   return()=>{disposed=true;clearInterval(timer);clearInterval(rights);document.removeEventListener('visibilitychange',hide);window.removeEventListener('platinum:stop-media',stop);if(audio){audio.pause();audio.removeAttribute('src');audio.load();}if(ref.current===audio)ref.current=null;};
  },[key,use,attempt,requestedKey]);
  useEffect(()=>{if(!active||!playing||clock?.playing===false)ref.current?.pause();},[active,playing,clock?.playing]);
- if(!readSoundtrack(selection))return null;
+ if(!MUSIC_CATALOG_ENABLED||!readSoundtrack(selection))return null;
  if(!controls)return error?<div className={className}><button type="button" onClick={()=>{setAttempt(n=>n+1);setError(null);setPlaying(true);}} className="rounded-lg bg-black/80 px-3 py-2 text-sm text-white">{error} Retry</button></div>:null;
  return <div className={className}><button type="button" className="rounded-full bg-black/70 px-3 py-1.5 text-xs text-white" onClick={e=>{e.stopPropagation();if(document.documentElement.dataset.platinumCallActive==='true')return;if(error){setAttempt(n=>n+1);setError(null);}else if(!playing&&active&&(!clock||clock.playing)){void ref.current?.play().catch(()=>{});}setPlaying(v=>!v);}}>{playing?'Pause music':'Play music'}</button>{error?<span role="status" className="ml-2 rounded bg-black/80 px-2 text-xs text-white">{error}</span>:null}</div>;
 }

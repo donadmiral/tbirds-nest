@@ -9,7 +9,7 @@ const compile = source => ts.transpileModule(source, { compilerOptions: { jsx: t
 const runtime = { jsx: (type, props) => typeof type === 'function' ? type(props) : { type, props }, jsxs: (type, props) => typeof type === 'function' ? type(props) : { type, props }, Fragment: 'Fragment' };
 function walk(node, out = []) { if (Array.isArray(node)) node.forEach(n => walk(n, out)); else if (node && typeof node === 'object') { out.push(node); walk(node.props?.children, out); } return out; }
 const flat = value => Object.assign({}, ...[value].flat(Infinity).filter(Boolean));
-function load(file, { ios = true, height = 812 } = {}) {
+function load(file, { ios = true, height = 812, musicAvailable = true } = {}) {
   let cursor = 0, mounting = true, timerId = 0;
   const state = [], effects = [], cleanups = [], timers = new Map(), keyboard = {};
   const hooks = {
@@ -23,7 +23,7 @@ function load(file, { ios = true, height = 812 } = {}) {
   Object.assign(native, { AppState: { addEventListener() { return { remove() {} }; } }, StyleSheet: { create: x => x, hairlineWidth: 1, absoluteFill: { position: 'absolute' } }, Platform: { OS: ios ? 'ios' : 'android' }, useWindowDimensions: () => ({ height, width: 320 }), Keyboard: { dismiss() {}, addListener(name, fn) { keyboard[name] = fn; return { remove() { delete keyboard[name]; } }; } } });
   const module = { exports: {} };
   vm.runInNewContext(compile(fs.readFileSync(path.join(root, file), 'utf8')), { module, exports: module.exports,
-    require(name) { if (name === 'react') return hooks; if (name === 'react/jsx-runtime') return runtime; if (name === 'react-native') return native; if (name === '@expo/vector-icons') return { Feather: 'Feather' }; if (name === './StickerIcons') return { default: 'StickerIcon' }; if (name === './StickerGalleryPreview') return { default: 'StickerGalleryPreview' }; if (name.endsWith('/SafeArea')) return { useSafeAreaInsets: () => ({ top: 20, bottom: 0 }) }; if (name.endsWith('/CallContext')) return { useCallContext: () => ({ callState: 'idle' }) }; if (name === 'expo-av') return { Audio: { setAudioModeAsync: async () => {} } }; if (name.endsWith('/storiesService')) return { storiesService: { listStorySounds: async () => [] } }; if (name.endsWith('/AppleMusicSheet')) return { AppleMusicPicker: 'AppleMusicPicker' }; throw Error(name); },
+    require(name) { if (name.endsWith('/musicAvailability')) { if (musicAvailable) return { MUSIC_CATALOG_ENABLED: true }; const exported = {}; vm.runInNewContext(compile(fs.readFileSync(path.join(root, 'shared/musicAvailability.ts'), 'utf8')), { exports: exported }); return exported; } if (name === 'react') return hooks; if (name === 'react/jsx-runtime') return runtime; if (name === 'react-native') return native; if (name === '@expo/vector-icons') return { Feather: 'Feather' }; if (name === './StickerIcons') return { default: 'StickerIcon' }; if (name === './StickerGalleryPreview') return { default: 'StickerGalleryPreview' }; if (name.endsWith('/SafeArea')) return { useSafeAreaInsets: () => ({ top: 20, bottom: 0 }) }; if (name.endsWith('/CallContext')) return { useCallContext: () => ({ callState: 'idle' }) }; if (name === 'expo-av') return { Audio: { setAudioModeAsync: async () => {} } }; if (name.endsWith('/storiesService')) return { storiesService: { listStorySounds: async () => [] } }; if (name.endsWith('/AppleMusicSheet')) return { AppleMusicPicker: 'AppleMusicPicker' }; throw Error(name); },
     setTimeout(fn) { const id = ++timerId; timers.set(id, () => { timers.delete(id); fn(); }); return id; }, clearTimeout(id) { timers.delete(id); },
   });
   return { ...module.exports, keyboard, timers, render(props) { cursor = 0; const tree = module.exports.default(props); mounting = false; while (effects.length) { const cleanup = effects.shift()(); if (cleanup) cleanups.push(cleanup); } return tree; }, unmount() { cleanups.forEach(fn => fn()); } };
@@ -117,4 +117,10 @@ test('short iPhone music search stays above the keyboard with a pinned close act
   tree = music.render(props); nodes = walk(tree);
   assert.equal(nodes.filter(n => n.type === 'Modal').length,1); assert.ok(nodes.some(n => n.type === 'AppleMusicPicker')); assert.ok(nodes.some(n => n.props.accessibilityLabel === 'Back to music'));
   music.unmount();
+});
+
+test('shipping music-disabled native sheet mounts no recorder, catalog list, keyboard listener or modal', () => {
+ const music=load('src/components/stories/MusicSheet.tsx',{musicAvailable:false});
+ assert.equal(music.render({visible:true,current:null,onClose(){},onSelect(){},onRemove(){}}),null);
+ assert.equal(Object.keys(music.keyboard).length,0);assert.equal(music.timers.size,0);music.unmount();
 });

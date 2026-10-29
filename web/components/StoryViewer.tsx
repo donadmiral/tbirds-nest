@@ -1,5 +1,6 @@
 "use client";
 
+import { MUSIC_CATALOG_ENABLED } from '../../shared/musicAvailability';
 import { useCallback, useEffect, useRef, useState } from "react";
 import { displayImageUrl } from "@/lib/media";
 import { X, ChevronLeft, ChevronRight, Volume2, VolumeX, Eye, Trash2, Music, Heart, Smile, Send, BadgeCheck, AtSign, MessageCircle, Repeat2, Bookmark, Play, Pause, MoreHorizontal, Settings2, Globe2 } from "lucide-react";
@@ -255,7 +256,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
     });
     return () => { videos.forEach(video => { video.removeAttribute("src"); video.load(); }); };
   }, [stories, itemIdx]);
-  const storyAudioUrl = story?.audio_url ?? null;
+  const storyAudioUrl = MUSIC_CATALOG_ENABLED ? story?.audio_url ?? null : null;
   const isOwn = !!(uid && story && uid === story.user_id);
   useEffect(() => { setPoll(null); if (!story) return; let dead = false; getStoryPoll(story.id).then((p) => { if (!dead) setPoll(p); }).catch(() => {}); return () => { dead = true; }; }, [story?.id]);
   // Only the author and mentioned people get rows back (RLS), so a normal
@@ -511,7 +512,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
       ? Math.max(1000, (story.duration_sec ?? 10) * 1000)
       : IMAGE_DURATION_MS;
     if (isVideo && hasTrim) dur = Math.max(800, ((mtx.trimEnd as number) - (mtx.trimStart as number)) * 1000);
-    if (!isVideo && story.audio_url && story.audio_duration_sec && story.audio_duration_sec > 0) {
+    if (MUSIC_CATALOG_ENABLED && !isVideo && story.audio_url && story.audio_duration_sec && story.audio_duration_sec > 0) {
       dur = Math.min(Math.max(dur, story.audio_duration_sec * 1000), MAX_AUDIO_MS);
     }
     durRef.current = dur;

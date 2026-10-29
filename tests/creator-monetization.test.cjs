@@ -26,14 +26,12 @@ test('commerce rejects cross-account records, impossible live readiness and malf
   assert.throws(()=>commerce.parseCreatorCommerce({...value,capabilities:{...value.capabilities,recurring_enabled:true}},owner));
   assert.throws(()=>commerce.parseCreatorCommerce({...value,subscriptions:[{creator_id:owner,starts_at:'2026-11-01',ends_at:'2026-10-01',auto_renew:false}]},owner));
 });
-test('product saves send exact prices and owner; a missing response is never confirmation',async()=>{
+test('excluded creator product writes are unavailable before any RPC is issued',async()=>{
   const owner='10000000-0000-4000-8000-000000000001',id='20000000-0000-4000-8000-000000000001';
   const product={id,kind:'subscription',title:'Monthly access',amount_minor:'199',active:false,period_days:30};
-  let captured;
-  const result=await commerce.saveCreatorProduct({rpc:async(name,args)=>{captured={name,args};return {data:id,error:null};}},owner,product);
-  assert.equal(result,id);assert.equal(captured.name,'creator_save_product');assert.equal(captured.args.p_expected_user,owner);assert.equal(captured.args.p_amount_minor,'199');assert.equal(captured.args.p_active,false);
-  await assert.rejects(()=>commerce.saveCreatorProduct({rpc:async()=>({data:null,error:null})},owner,product),/could not be confirmed/);
-  await assert.rejects(()=>commerce.saveCreatorProduct({rpc:async()=>assert.fail('invalid input must not submit')},owner,{...product,amount_minor:'1.99'}));
+  let calls=0;const rpc=async()=>{calls++;return{data:id,error:null};};
+  await assert.rejects(()=>commerce.saveCreatorProduct({rpc},owner,product),/unavailable in this release/);
+  assert.equal(calls,0);
 });
 test('USD parses exact decimal strings without floating-point rounding',()=>{
   assert.equal(domain.usdToMinor('90071992547409.93'),'9007199254740993');

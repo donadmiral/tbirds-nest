@@ -7,11 +7,13 @@ import Shell from '@/components/Shell';
 import ReviewForm from './ReviewForm';
 import { formatMinor } from '../../../../shared/monetization/domain';
 import { providerIssue } from '../../../../shared/payments/providerStatus';
+import { FINANCE_OPERATIONS_ENABLED, FINANCE_OPERATIONS_UNAVAILABLE } from '../../../../shared/monetization/availability';
 export const dynamic='force-dynamic';
 type Enrollment={user_id:string;status:string;accepted_terms_version:string|null;public_reason:string|null;updated_at:string};
 type Payout={id:string;user_id:string;currency:string;amount_minor:string;environment:string;status:string;provider_reference:string|null;last_error:string|null;created_at:string};
 export default async function CreatorFinancePage({searchParams}:{searchParams:Promise<Record<string,string|string[]|undefined>>}) {
   const admin=await requireDesk('/payments');if(!['super_admin','platform_admin','finance_admin'].includes(admin.role))notFound();
+  if(!FINANCE_OPERATIONS_ENABLED)return <Shell admin={admin} active="/payments" title="Creator finance" sub="Creator records"><p>{FINANCE_OPERATIONS_UNAVAILABLE}</p><Link className="inline-flex min-h-11 items-center underline" href="/dashboard">Back to operations</Link></Shell>;
   const query=await searchParams;
   const beforeAt=typeof query.before_at==='string'?query.before_at:null,beforeId=typeof query.before_id==='string'?query.before_id:null;
   const {data,error}=await serviceClient().rpc('creator_finance_admin_snapshot',{p_actor:admin.id,p_session:admin.sessionId,p_before_at:beforeAt,p_before_id:beforeId});

@@ -4,6 +4,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const ts = require('typescript');
+const presentationModule={exports:{}};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname,'../../shared/memoryStoryPresentation.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module:presentationModule,exports:presentationModule.exports});
 function deferred() { let resolve, reject; const promise = new Promise((yes, no) => { resolve = yes; reject = no; }); return { promise, resolve, reject }; }
 function scenario(platform) {
   const file = platform === 'web' ? 'web/components/MemoryAlbum.tsx' : 'src/screens/profile/MemoryAlbumScreen.tsx';
@@ -13,6 +15,7 @@ function scenario(platform) {
   assert.ok(start >= 0 && end > start);
   const request = deferred(), albums = [], errors = [];
   const scope = {
+    memoryAlbumStoryLayers:presentationModule.exports.memoryAlbumStoryLayers,
     useCallback: fn => fn, authReady: true, ownerId: 'album-owner', uid: 'viewer', viewerId: 'viewer', albumIdParam: 'album-id',
     loadGeneration: { current: 0 }, viewerRef: { current: 'viewer' },
     getMemoryBook: () => request.promise,

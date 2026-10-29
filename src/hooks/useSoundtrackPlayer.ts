@@ -4,12 +4,13 @@ import {Audio} from 'expo-av';
 import {useCallContext} from '../contexts/CallContext';
 import {getSoundtrack} from '../services/soundtrackService';
 import {readSoundtrack,soundtrackTime,type SoundtrackSelection,type SoundtrackUse,type SoundtrackClock} from '../../shared/soundtrack';
+import {MUSIC_CATALOG_ENABLED} from '../../shared/musicAvailability';
 
 /** One bounded excerpt. A supplied media clock remains authoritative after seeks/stalls. */
 export function useSoundtrackPlayer({selection,use,active,clock}:{selection:SoundtrackSelection|null|undefined;use:SoundtrackUse;active:boolean;clock?:SoundtrackClock}) {
  const {callState}=useCallContext();
  const [error,setError]=useState<string|null>(null),[loading,setLoading]=useState(false),[attempt,setAttempt]=useState(0);
- const selectedValue=readSoundtrack(selection);
+ const selectedValue=MUSIC_CATALOG_ENABLED?readSoundtrack(selection):null;
  const input=useRef({active,clock,callState,selection:selectedValue}); input.current={active,clock,callState,selection:selectedValue};
  const sound=useRef<Audio.Sound|null>(null),generation=useRef(0),busy=useRef(false);
  const key=selectedValue?.soundId??'';

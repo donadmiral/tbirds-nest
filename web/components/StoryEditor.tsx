@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { StoryTextSticker } from "@/lib/stories";
 import { moveStorySticker, storyStickerLabel } from "../../shared/storyCanvas";
-import { ArrowRight, ChevronDown, Globe2, Link2, MapPin, Music, MoreHorizontal, Pause, Pencil, Play, Plus, Redo2, Search, SlidersHorizontal, Smile, Star, Type, Undo2, X } from "lucide-react";
+import { MUSIC_CATALOG_ENABLED } from "../../shared/musicAvailability";
+import { ArrowRight, ChevronDown, Globe2, Link2, MapPin, Music, MoreHorizontal, Pause, Pencil, Play, Plus, Redo2, Search, SlidersHorizontal, Smile, Star, Type, Undo2, Volume2, X } from "lucide-react";
 import studio from "./StoryStudio.module.css";
 import { stickerCss } from "./storyTextAppearance";
 import { DrawSvg, extraFontCss, STICKER_ANIM_CSS } from "./StoryEngine";
@@ -186,7 +187,7 @@ export function StoryEditor({ children, value, onChange, onNext, onOpenEdit, onC
         <span className={studio.topbarSpacer} />
         <button type="button" className={studio.icon} aria-label="Add story text" onClick={() => openKind("text")}><Type size={22} /></button>
         <button type="button" className={studio.icon} aria-label="Open story stickers" onClick={() => { setPanel("gallery"); setError(null); }}><Smile size={22} /></button>
-        {onOpenMusic ? <button type="button" className={studio.icon} aria-label="Choose story music or original audio" onClick={onOpenMusic}><Music size={21} /></button> : null}
+        {onOpenMusic ? <button type="button" className={studio.icon} aria-label={MUSIC_CATALOG_ENABLED ? "Choose story music or original audio" : "Adjust original video sound"} onClick={onOpenMusic}>{MUSIC_CATALOG_ENABLED ? <Music size={21} /> : <Volume2 size={21} />}</button> : null}
         {onOpenEdit ? <button type="button" className={studio.icon} aria-label="Edit story media" onClick={onOpenEdit}><MoreHorizontal size={23} /></button> : null}
       </div>
       {onTogglePreview ? <button type="button" className={`${studio.icon} ${studio.previewPlay}`} aria-label={previewPlaying ? "Pause story preview" : "Play story preview"} onClick={onTogglePreview}>{previewPlaying ? <Pause size={19} /> : <Play size={19} />}</button> : null}
@@ -196,7 +197,7 @@ export function StoryEditor({ children, value, onChange, onNext, onOpenEdit, onC
         <div className={studio.dockTools} style={{ overflowX: "auto", paddingBottom: 2 }}>
           <button type="button" className={studio.dockTool} onClick={() => openKind("text")}><Type size={24} />Text</button>
           <button type="button" className={studio.dockTool} onClick={() => { setPanel("gallery"); setError(null); }}><Smile size={24} />Stickers</button>
-          {onOpenMusic ? <button type="button" className={studio.dockTool} onClick={onOpenMusic}><Music size={23} />Music</button> : null}
+          {onOpenMusic ? <button type="button" className={studio.dockTool} onClick={onOpenMusic}>{MUSIC_CATALOG_ENABLED ? <><Music size={23} />Music</> : <><Volume2 size={23} />Sound</>}</button> : null}
           {onOpenDraw ? <button type="button" className={studio.dockTool} aria-label="Draw on story" onClick={onOpenDraw}><Pencil size={22} />Draw</button> : null}
           {onOpenEdit ? <button type="button" className={studio.dockTool} onClick={onOpenEdit}><SlidersHorizontal size={22} />Edit</button> : null}
           {onNext ? <button type="button" className={`${studio.primary} ${studio.next}`} onClick={onNext}>Next<ArrowRight size={18} /></button> : null}

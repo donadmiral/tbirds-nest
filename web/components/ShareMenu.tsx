@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Share2, Link2, Send, Check } from "lucide-react";
+import { Share2, Link2, Send, Check, CirclePlus } from "lucide-react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { loadConversations, type Conv } from "@/lib/messages";
 import { sharePostToConversation } from "@/lib/postSharing";
@@ -171,6 +172,7 @@ export function ShareMenu({ postId, sharesCount }: { postId: string; sharesCount
             )
           ) : (
             <>
+              <Link href={'/story/new?post=' + encodeURIComponent(postId)} onClick={(e) => { e.stopPropagation(); setOpen(false); }} className={item}><CirclePlus size={15} /> Add to story</Link>
               <button onClick={(e) => { e.stopPropagation(); copyLink(); }} className={item} disabled={busy || !!sent}>
                 {copied ? <Check size={15} className="text-success" /> : <Link2 size={15} />} Copy link
               </button>

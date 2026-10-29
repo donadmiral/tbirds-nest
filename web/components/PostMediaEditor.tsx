@@ -150,7 +150,7 @@ export function PostMediaEditor({item,index,total,onClose,onSave}:{item:PostEdit
 }
 
 function Slider({label,value,min,max,step=1,unit='',onChange}:{label:string;value:number;min:number;max:number;step?:number;unit?:string;onChange:(v:number)=>void}) {
-  return <label className={s.slider}><span className={s.sliderTitle}><span>{label}</span><output>{Math.round(value*100)/100}{unit}</output></span><input type="range" min={min} max={max} step={step} value={value} onChange={e=>onChange(Number(e.target.value))}/></label>;
+  return <label className={s.slider}><span className={s.sliderTitle}><span>{label}</span><output>{Math.round(value*100)/100}{unit}</output></span><input type="range" aria-label={label} min={min} max={max} step={step} value={value} onChange={e=>onChange(Number(e.target.value))}/></label>;
 }
 function Filmstrip({frames,duration,start,end,at}:{frames:string[];duration:number;start:number;end:number;at:number}) {
   return <div className={s.filmstrip} aria-label="Video timeline">{frames.map((url,i)=><img src={url} key={i} alt=""/>)}{duration>0?<><span className={s.trimShade} style={{left:0,width:`${start/duration*100}%`}}/><span className={s.trimShade} style={{right:0,width:`${(1-end/duration)*100}%`}}/><span className={s.marker} style={{left:`${Math.min(99.5,at/duration*100)}%`}}/></>:null}</div>;

@@ -42,6 +42,7 @@ function load(file, { width = 320, height = 568, thumbnail = async () => ({ uri:
       return { __esModule: true, default: name, ...Object.fromEntries(['Heart', 'MessageCircle', 'Repeat2', 'Bookmark', 'VolumeX', 'BadgeCheck'].map(n => [n,n])) };
     }, setTimeout(fn) { const id = ++timerId; timers.set(id, () => { timers.delete(id); return fn(); }); return id; }, clearTimeout(id) { timers.delete(id); },
     TIER_COLORS: {}, Heart: 'Heart', MessageCircle: 'MessageCircle', Repeat2: 'Repeat2', Bookmark: 'Bookmark', VolumeX: 'VolumeX', BadgeCheck: 'BadgeCheck',
+    ResizeObserver: class { observe() {} disconnect() {} },
   });
   return { timers, render(props, name = 'default') { cursor = 0; const tree = module.exports[name](props); while (effects.length) effects.shift()(); return tree; }, unmount() { cleanups.forEach(fn => fn?.()); } };
 }
@@ -135,6 +136,18 @@ test('web shared-post stories use the same complete photo layout and retain post
   const viewer = fs.readFileSync(path.join(root,'web/components/StoryViewer.tsx'),'utf8');
   assert.match(viewer, /sharedPhoto[\s\S]*blur-2xl/);
   view.unmount();
+});
+
+test('scaled story-review thumbnails lay out a shared post in the original stage coordinates',()=>{
+ const view=load('web/components/SharedPostStory.tsx');
+ const props={sticker:{id:'share',nx:.5,ny:.5,kind:'post',postId:'post-id',postText:'Caption',postMediaType:'image',postMediaUrl:'photo.jpg',postMediaWidth:1000,postMediaHeight:1600},paused:true,preview:false};
+ const first=view.render(props,'SharedPostStory');
+ const stage={clientWidth:390,clientHeight:693,getBoundingClientRect:()=>({width:136,height:242})};
+ first.props.ref.current={closest:()=>stage,parentElement:stage};
+ view.render({...props,preview:true},'SharedPostStory');
+ const measured=view.render({...props,preview:true},'SharedPostStory');
+ assert.ok(measured.props.style.width>200);assert.ok(measured.props.style.width<=390*.9);
+ view.unmount();
 });
 
 test('completed video cover decoding follows the edited attachment through reorder and ignores a newer edit',async()=>{

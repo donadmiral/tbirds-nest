@@ -20,6 +20,8 @@ import { MemoryPageImage } from './memory/MemoryPageImage';
 import {MemoryPageTurn,MemoryTurnPreview,type MemoryPageTurnHandle} from './memory/MemoryPageTurn';
 import {useMemoryDialog} from './memory/useMemoryDialog';
 import { PostSoundtrack } from './PostSoundtrack';
+import { MemoryStoryFrame } from './memory/MemoryStoryFrame';
+import { memoryStoryRecipe, memoryStorySeek, memoryStoryStickers } from '../../shared/memoryStoryPresentation';
 
 const AUDIENCES = [
   { key: "profile", label: "Everyone who can view my profile" },
@@ -29,7 +31,7 @@ const AUDIENCES = [
 ];
 
 function postSticker(pg: any) {
-  try { const arr = Array.isArray(pg?.stickers) ? pg.stickers : []; return arr.find((s: any) => s && s.kind === "post") || null; } catch { return null; }
+  try { const arr = memoryStoryStickers(pg?.stickers); return arr.find((s: any) => s && s.kind === "post") || null; } catch { return null; }
 }
 
 function fmtDate(s: string | null) {
@@ -41,18 +43,35 @@ function fmtDate(s: string | null) {
 // A video page: plays muted on open (the phone starts muted too), one tap on
 // the speaker toggles sound, and a Message pill opens a DM with the owner
 // when you are looking at someone else's album.
-function MemoryVideo({ src, poster, ownerId, active, onRetry }: { src: string; poster?: string; ownerId: string; active: boolean; onRetry: () => void }) {
+function MemoryVideo({ src, poster, page, ownerId, active, onRetry }: { src: string; poster?: string; page: MemoryPage; ownerId: string; active: boolean; onRetry: () => void }) {
+  const recipe=memoryStoryRecipe(page.media_transform);
+  const [clock,setClock]=useState(recipe.start);
   const [muted, setMuted] = useState(true);
   const [failed, setFailed] = useState(false);
   const ref=useRef<HTMLVideoElement|null>(null),resumeAfterTurn=useRef(false);
+  const playbackWindow=useRef(recipe);
+  const configure=(video:HTMLVideoElement,seek=false)=>{const window=memoryStoryRecipe(page.media_transform,video.duration);playbackWindow.current=window;video.playbackRate=recipe.speed;video.volume=recipe.volume;if(recipe.volume===0)video.muted=true;if(seek||memoryStorySeek(video.currentTime,window)!=null){try{video.currentTime=window.start;}catch{}}};
+  useEffect(()=>{const video=ref.current;if(video)configure(video,true);setClock(recipe.start);},[src,recipe.start,recipe.end,recipe.speed,recipe.volume]);
+  // timeupdate can be hundreds of milliseconds apart. Guard the excerpt on
+  // decoded frames, while keeping the same video element and pause intent.
+  useEffect(()=>{
+    const video=ref.current;if(!video||!active)return;
+    let disposed=false,frame:number|null=null;
+    const nativeFrames=typeof video.requestVideoFrameCallback==='function';
+    const cancel=()=>{if(frame!=null){if(nativeFrames)video.cancelVideoFrameCallback(frame);else cancelAnimationFrame(frame);frame=null;}};
+    const tick=()=>{frame=null;if(disposed||video.paused||document.hidden||document.documentElement.dataset.platinumCallActive==='true')return;const seek=memoryStorySeek(video.currentTime,playbackWindow.current);if(seek!=null){video.currentTime=seek;setClock(seek);}schedule();};
+    const schedule=()=>{if(!disposed&&frame==null&&!video.paused)frame=nativeFrames?video.requestVideoFrameCallback(tick):requestAnimationFrame(tick);};
+    video.addEventListener('play',schedule);video.addEventListener('pause',cancel);schedule();
+    return()=>{disposed=true;cancel();video.removeEventListener('play',schedule);video.removeEventListener('pause',cancel);};
+  },[src,active,recipe.start,recipe.end]);
   useEffect(()=>{const video=ref.current;if(!video)return;if(!active){resumeAfterTurn.current=!video.paused;video.pause();}else if(resumeAfterTurn.current&&!document.hidden&&document.documentElement.dataset.platinumCallActive!=='true'){resumeAfterTurn.current=false;void video.play().catch(()=>{});}},[active]);
   useEffect(()=>{const stop=()=>ref.current?.pause();const hidden=()=>{if(document.hidden)stop();};window.addEventListener("platinum:stop-media",stop);document.addEventListener("visibilitychange",hidden);return()=>{stop();window.removeEventListener("platinum:stop-media",stop);document.removeEventListener("visibilitychange",hidden);};},[]);
   if(!src||failed)return <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-[#0B1E3D] p-4 text-center text-sm text-white"><p>This memory video could not play.</p><button type="button" className="min-h-11 rounded-full border border-white/35 px-4 py-2 font-semibold" onClick={()=>{setFailed(false);onRetry();}}>Retry memory video</button></div>;
   return (
     <div className="relative h-full w-full">
-      <video ref={ref} src={src} poster={poster} controls playsInline muted={muted} onError={()=>setFailed(true)} onPlay={()=>{if(!active||document.hidden||document.documentElement.dataset.platinumCallActive==='true')ref.current?.pause();}} className="h-full w-full object-contain" />
-      <div className="pointer-events-none absolute right-2 top-2 flex items-center gap-2">
-        <button type="button" onClick={() => setMuted((v) => !v)} aria-label={muted ? "Unmute" : "Mute"} className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur hover:bg-white/30">
+      <MemoryStoryFrame page={page} clock={clock}>{style=><video ref={ref} src={src} poster={poster} controls playsInline loop muted={muted||recipe.volume===0} onError={()=>setFailed(true)} onLoadedMetadata={event=>{configure(event.currentTarget,true);setClock(recipe.start);}} onPlay={event=>{if(!active||document.hidden||document.documentElement.dataset.platinumCallActive==='true')event.currentTarget.pause();else configure(event.currentTarget);}} onTimeUpdate={event=>{const video=event.currentTarget;if(!active)return;const seek=memoryStorySeek(video.currentTime,playbackWindow.current);if(seek!=null)video.currentTime=seek;setClock(seek??video.currentTime);}} onSeeking={event=>{if(active)configure(event.currentTarget);}} style={style} className="h-full w-full object-contain" />}</MemoryStoryFrame>
+      <div className="pointer-events-none absolute right-2 top-2 z-10 flex items-center gap-2">
+        <button type="button" disabled={recipe.volume===0} onClick={() => setMuted((v) => !v)} aria-label={recipe.volume===0?"Original video sound is off":muted ? "Unmute original video sound" : "Mute original video sound"} className="pointer-events-auto flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur hover:bg-white/30">
           {muted ? <VolumeX size={15} /> : <Volume2 size={15} />}
         </button>
         <span className="pointer-events-auto [&>button]:border-0 [&>button]:bg-[#C9BFB0] [&>button]:px-3 [&>button]:py-1.5 [&>button]:text-[12px] [&>button]:text-[#0B1E3D]"><MessageButton profileId={ownerId} /></span>
@@ -208,9 +227,9 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
                   <div className={"flex min-h-0 flex-1 flex-col "+(page.style === "polaroid" ? "border border-[#DCD4C7] bg-[#FFFCF6] p-1.5 pb-3" : "")}>
                     <div className="relative min-h-0 flex-1 overflow-hidden bg-ink">
                       {page.media_type === "video" && (page.media_url || !postSticker(page)) ? (
-                        <MemoryVideo key={[page.id,page.media_url,mediaAttempt].join(':')} src={page.media_url ?? ''} poster={page.thumbnail_url ?? undefined} ownerId={album.user_id ?? ownerId} active={view==='book'&&!turning&&!manage&&!adding} onRetry={retryMedia} />
+                        <MemoryVideo key={[page.id,page.media_url,mediaAttempt].join(':')} src={page.media_url ?? ''} poster={page.thumbnail_url ?? undefined} page={page} ownerId={album.user_id ?? ownerId} active={view==='book'&&!turning&&!manage&&!adding} onRetry={retryMedia} />
                       ) : page.media_url || page.thumbnail_url || (page.media_type === "image" && !postSticker(page)) ? (
-                        <MemoryPageImage key={[page.id,page.media_url,page.thumbnail_url,mediaAttempt].join(':')} src={page.media_url} poster={page.thumbnail_url} onRetry={retryMedia} />
+                        <MemoryStoryFrame key={[page.id,page.media_url,page.thumbnail_url,mediaAttempt].join(':')} page={page}>{style=><MemoryPageImage src={page.media_url} poster={page.thumbnail_url} style={style} onRetry={retryMedia} />}</MemoryStoryFrame>
                       ) : postSticker(page) ? ((): any => { const ps: any = postSticker(page); return (
                         <div className="flex h-full w-full flex-col justify-center gap-2 bg-[#101826] p-5">
                           <p className="text-[11px] font-bold uppercase tracking-wide text-white/50">Shared post</p>
@@ -222,11 +241,11 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
                           ) : null}
                           {ps.postId&&<Link href={"/post/"+ps.postId} className="mt-2 rounded-full bg-white/15 px-3 py-2 text-center text-sm text-white">View full post</Link>}
                         </div>
-                      ); })() : page.story_caption ? (
-                        <div className="flex h-full w-full items-center justify-center bg-[#0B1E3D] p-6">
+                      ); })() : (
+                        <MemoryStoryFrame key={page.id} page={page}>{()=> <div className="flex h-full w-full items-center justify-center p-6">
                           <p className="text-center font-display text-[19px] leading-relaxed text-white">{page.story_caption}</p>
-                        </div>
-                      ) : null}
+                        </div>}</MemoryStoryFrame>
+                      )}
                     </div>
                     <PageCaption key={page.id + "-cap"} page={page} isOwner={album.is_owner} onSaved={load} />
                   </div>

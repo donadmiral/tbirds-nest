@@ -1,14 +1,23 @@
 'use client';
+import { MUSIC_CATALOG_ENABLED } from '../../shared/musicAvailability';
 import { useEffect, useRef, useState } from 'react';
 import { Bookmark, Check, Music2, Pause, Play, Search, Upload } from 'lucide-react';
 import { listStorySounds, storyAudioPreview, uploadStoryAudio, type StoryAudioDraft, type StorySound } from '@/lib/storyAudio';
 import studio from './StoryStudio.module.css';
 
-export function StoryAudioEditor({ owner, value, onChange, mix, onMixChange, isVideo, disabled, onBusyChange }: {
+type StoryAudioEditorProps = {
   owner: string; value: StoryAudioDraft | null; onChange: (audio: StoryAudioDraft | null) => void;
   mix: { orig?: number; music?: number }; onMixChange: (mix: { orig?: number; music?: number }) => void;
   isVideo: boolean; disabled: boolean; onBusyChange: (busy: boolean) => void;
-}) {
+};
+
+export function StoryAudioEditor(props: StoryAudioEditorProps) {
+  if (MUSIC_CATALOG_ENABLED) return <EnabledStoryAudioEditor {...props} />;
+  if (!props.isVideo) return null;
+  return <section className={studio.musicStudio} aria-label="Original video sound"><div className={studio.musicMix}><label>Video sound<input aria-label="Video sound volume" type="range" min="0" max="100" value={props.mix.orig ?? 100} disabled={props.disabled} onChange={event => props.onMixChange({ ...props.mix, orig: Number(event.target.value) })} /></label></div></section>;
+}
+
+function EnabledStoryAudioEditor({ owner, value, onChange, mix, onMixChange, isVideo, disabled, onBusyChange }: StoryAudioEditorProps) {
   const [loading, setLoading] = useState(false), [rows, setRows] = useState<StorySound[]>([]), [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false), [attested, setAttested] = useState(false), [url, setUrl] = useState<string | null>(null), [retry, setRetry] = useState(0);
   const [tab, setTab] = useState<'foryou' | 'saved' | 'browse'>('foryou'), [query, setQuery] = useState(''), [saved, setSaved] = useState<string[]>([]), [uploadOpen, setUploadOpen] = useState(false);

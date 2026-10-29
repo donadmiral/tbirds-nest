@@ -1,14 +1,17 @@
+import { MUSIC_CATALOG_ENABLED, MUSIC_UNAVAILABLE_MESSAGE } from '../../shared/musicAvailability';
 import { createClient } from './supabase/client';
 import { hydrateSoundMedia, hydrateUploadMedia } from './contentMedia';
 
 export type StoryAudioDraft = { kind: 'voiceover' | 'sound'; url?: string | null; soundId?: string | null; title: string; durationSec: number; rightsAttested?: boolean; addToSounds?: boolean };
 export type StorySound = { id: string; title: string; url: string; duration_sec: number; source: string; rights_status: string };
 export async function listStorySounds(client = createClient()) {
+  if (!MUSIC_CATALOG_ENABLED) return [];
   const { data, error } = await client.rpc('list_playable_sounds', { p_use: 'story', p_query: '', p_limit: 100 });
   if (error) throw new Error('Sounds could not load. Please retry.');
   return ((data ?? []) as (StorySound & { max_excerpt_sec?: number })[]).map(sound => ({...sound, duration_sec: Math.min(sound.duration_sec || 30, sound.max_excerpt_sec || 30, 30)}));
 }
 export async function storyAudioPreview(audio: StoryAudioDraft, client = createClient()): Promise<string | null> {
+  if (!MUSIC_CATALOG_ENABLED) return null;
   if (audio.kind === 'voiceover') {
     const [row] = await hydrateUploadMedia([{ url: audio.url }], client); return row.url ?? null;
   }
@@ -26,6 +29,7 @@ export function readAudioDuration(file: File): Promise<number> {
   });
 }
 export async function uploadStoryAudio(file: File, owner: string, client = createClient()): Promise<StoryAudioDraft> {
+  if (!MUSIC_CATALOG_ENABLED) throw new Error(MUSIC_UNAVAILABLE_MESSAGE);
   const type = file.type.split(';')[0].toLowerCase();
   const formats: Record<string, string> = { 'audio/mpeg': 'mp3', 'audio/mp4': 'm4a', 'audio/x-m4a': 'm4a', 'audio/webm': 'webm', 'audio/ogg': 'ogg', 'audio/aac': 'aac' };
   if (!formats[type] || file.size > 15 * 1024 * 1024) throw new Error('Choose an MP3, M4A, AAC, Ogg or WebM recording under 15 MB.');

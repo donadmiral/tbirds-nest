@@ -20,6 +20,7 @@ import { PublicationAttempt, publicationError } from "@/lib/publication";
 import SoundtrackPicker from "./SoundtrackPicker";
 import { postLookRecipe } from "../../shared/postMediaEditing";
 import type {SoundtrackSelection} from "../../shared/soundtrack";
+import { MUSIC_CATALOG_ENABLED } from "../../shared/musicAvailability";
 
 type Media = { file: File; preview: string; width: number; height: number; isVideo: boolean; alt: string; tags?: MediaTagDraft[]; edit?: PostMediaEditRecipe | null; coverFile?:File|null; coverPreview?:string|null };
 type MediaTagDraft = { user_id: string; nx: number; ny: number; full_name: string | null; username: string | null; avatar_url: string | null };
@@ -317,7 +318,9 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
             throw new Error("Upload failed on \u201C" + p.file.name + "\u201D: " + upErr.message);
           }
           const { data: pub } = supabase.storage.from("post-media").getPublicUrl(path);
-          let recipe: PostMediaEditRecipe = {...p.edit,...(i===0&&soundtrack?{soundtrack}:{})};
+          const {soundtrack:previousSoundtrack,...savedRecipe}=p.edit??{};
+          const chosenSoundtrack=i===0&&soundtrack?soundtrack:previousSoundtrack;
+          let recipe: PostMediaEditRecipe = {...savedRecipe,...(MUSIC_CATALOG_ENABLED&&chosenSoundtrack?{soundtrack:chosenSoundtrack}:{})};
           if(p.isVideo) {
             const cover=p.coverFile?await prepareImageCover(p.coverFile):await capturePostCover(p.preview,recipe.coverAt??recipe.trimStart??0);
             const coverPath=uid+"/"+stablePostId+"_"+i+"_cover.jpg";

@@ -10,6 +10,7 @@ const flush = async () => { for (let i = 0; i < 12; i++) await Promise.resolve()
 const defer = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { resolve, promise }; };
 function execute(source, globals) {
   const js = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } }).outputText;
+  globals.MUSIC_CATALOG_ENABLED ??= false;
   vm.runInNewContext(js, globals);
 }
 function effect(source, marker, end) {

@@ -2,12 +2,15 @@
 
 import { hydrateMemoryAlbumMedia, hydrateStoryMedia } from "@/lib/contentMedia";
 import { createClient } from "@/lib/supabase/client";
+import type { StoryMediaTransform, StoryRow } from "@/lib/stories";
+import { memoryAlbumStoryLayers } from '../../shared/memoryStoryPresentation';
 
 export type MemoryPage = {
   id: string; media_url: string | null; media_type: string;
   thumbnail_url: string | null; caption: string | null;
   style?: "polaroid" | "full"; taken_at: string | null; sort_order: number;
-  story_id?: string; kind?: string; story_caption?: string | null; text_background?: string | null; stickers?: any;
+  story_id?: string; kind?: string; story_caption?: string | null; text_background?: StoryRow["text_background"]; stickers?: StoryRow["stickers_json"] | string;
+  media_transform?: StoryMediaTransform | null; filter_id?: string | null;
   duration_sec?: number | null; dual_front_url?: string | null; audio_url?: string | null; audio_title?: string | null;
 };
 export type MemoryAlbum = {
@@ -25,7 +28,7 @@ export async function getMemoryAlbum(ownerId: string): Promise<MemoryAlbum | nul
   const { data, error } = await supabase.rpc("get_memory_album", { p_owner: ownerId });
   if (error) throw error;
   if (!data) return null;
-  const [album] = await hydrateMemoryAlbumMedia([data as MemoryAlbum], supabase);
+  const [album] = await hydrateMemoryAlbumMedia([memoryAlbumStoryLayers(data as MemoryAlbum)], supabase);
   return album;
 }
 
@@ -53,21 +56,13 @@ export async function getMemoryBook(albumId: string): Promise<MemoryAlbum | null
   const { data, error } = await supabase.rpc("get_memory_book", { p_album: albumId });
   if (error) throw error;
   if (!data) return null;
-  const [album] = await hydrateMemoryAlbumMedia([data as MemoryAlbum], supabase);
+  const [album] = await hydrateMemoryAlbumMedia([memoryAlbumStoryLayers(data as MemoryAlbum)], supabase);
   return album;
 }
 
 export async function addMemoryPage(storyId: string, albumId?: string): Promise<boolean> {
   const supabase = createClient();
   const { error } = await supabase.rpc("add_memory_page", { p_story_id: storyId, p_album_id: albumId ?? null });
-  return !error;
-}
-
-export async function saveAlbumSettings(title: string, cover: string, audience: string, albumId: string, design = "keepsake", soundtrack: MemoryAlbum["soundtrack"] = null): Promise<boolean> {
-  const supabase = createClient();
-  const { error } = await supabase.rpc("save_memory_book_design", {
-    p_album: albumId, p_title: title, p_cover_color: cover, p_audience: audience, p_cover_design: design, p_soundtrack: soundtrack,
-  });
   return !error;
 }
 

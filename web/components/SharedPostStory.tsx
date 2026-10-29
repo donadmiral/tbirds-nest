@@ -16,7 +16,14 @@ export function SharedPostStory({ sticker, paused, preview = false }: { sticker:
   useEffect(() => {
     const parent = preview ? ref.current?.closest('[data-story-stage]') : ref.current?.parentElement;
     if (!parent) return;
-    const measure = () => { const r = parent.getBoundingClientRect(); if (r.width && r.height) setStage({ width: r.width, height: r.height }); };
+    const measure = () => {
+      // Review thumbnails scale the whole story stage. Lay out in its local
+      // coordinates so that the card is scaled exactly once with that stage.
+      const r = parent.getBoundingClientRect();
+      const width = preview ? parent.clientWidth : r.width;
+      const height = preview ? parent.clientHeight : r.height;
+      if (width && height) setStage({ width, height });
+    };
     measure();
     const observer = new ResizeObserver(measure); observer.observe(parent);
     return () => observer.disconnect();

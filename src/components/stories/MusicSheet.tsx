@@ -1,4 +1,5 @@
 /** Original recording/reuse and Apple Music sharing use separate rights paths. */
+import { MUSIC_CATALOG_ENABLED } from '../../../shared/musicAvailability';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, FlatList, ActivityIndicator, StyleSheet, AppState, TextInput, Keyboard, Platform, ScrollView, useWindowDimensions } from 'react-native';
 import { Feather } from '@expo/vector-icons';
@@ -20,7 +21,11 @@ type Props = {
 type Tab = 'record' | 'sounds' | 'saved' | 'library';
 const fmtSec = (seconds: number | null | undefined) => `0:${String(Math.max(0, Math.round(seconds || 0))).padStart(2, '0')}`;
 
-export default function MusicSheet({ visible, onClose, current, onSelect, onRemove, disabled, onShareTrack, userId }: Props) {
+export default function MusicSheet(props: Props) {
+  return MUSIC_CATALOG_ENABLED ? <EnabledMusicSheet {...props} /> : null;
+}
+
+function EnabledMusicSheet({ visible, onClose, current, onSelect, onRemove, disabled, onShareTrack, userId }: Props) {
   const { callState } = useCallContext();
   const callActive = useRef(callState !== 'idle'); callActive.current = callState !== 'idle';
   const [tab, setTab] = useState<Tab>('sounds');

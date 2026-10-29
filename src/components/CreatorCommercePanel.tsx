@@ -7,6 +7,7 @@ import { themedSheet, useTheme } from '../theme/useTheme';
 import { readCreatorCommerce, saveCreatorProduct, type CreatorCommerce, type CreatorProduct } from '../../shared/monetization/commerce';
 import { formatMinor, usdToMinor } from '../../shared/monetization/domain';
 import { REVENUE_SHARES, REVENUE_LABELS, REVENUE_POLICY_VERSION } from '../../shared/monetization/policy';
+import { CREATOR_COMMERCE_ENABLED, CREATOR_COMMERCE_UNAVAILABLE } from '../../shared/monetization/availability';
 function newId() { const b = new Uint8Array(16); globalThis.crypto.getRandomValues(b); b[6] = (b[6] & 15) | 64; b[8] = (b[8] & 63) | 128; const h = Array.from(b, n => n.toString(16).padStart(2, '0')).join(''); return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`; }
 export default function CreatorCommercePanel({ owner, approved }: { owner: string; approved: boolean }) {
   const { t } = useTheme();
@@ -21,7 +22,7 @@ export default function CreatorCommercePanel({ owner, approved }: { owner: strin
     catch (e) { if (live.current && generation.current === run) { setData(null); setError(e instanceof Error ? e.message : 'Could not load creator products.'); } }
     finally { if (live.current && generation.current === run) setLoading(false); }
   }
-  useEffect(() => { live.current = true; void load(); return () => { live.current = false; generation.current++; }; }, [owner]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!CREATOR_COMMERCE_ENABLED) return; live.current = true; void load(); return () => { live.current = false; generation.current++; }; }, [owner]); // eslint-disable-line react-hooks/exhaustive-deps
   async function save(existing?: CreatorProduct) {
     if (lock.current) return; lock.current = true; setBusy(true); setError('');
     try {
@@ -34,6 +35,7 @@ export default function CreatorCommercePanel({ owner, approved }: { owner: strin
     } catch (e) { if (live.current) setError(e instanceof Error ? e.message : 'Could not save this product.'); }
     finally { if (live.current) { lock.current = false; setBusy(false); } }
   }
+  if (!CREATOR_COMMERCE_ENABLED) return <View style={s.card}><Text style={s.heading}>Products and purchases</Text><Text style={s.body}>{CREATOR_COMMERCE_UNAVAILABLE}</Text></View>;
   return <View style={s.card}>
     <View style={s.row}><Text style={s.heading}>Products and purchases</Text><TouchableOpacity accessibilityRole="button" disabled={loading || busy} style={s.touch} onPress={() => void load()}><Text style={s.link}>Refresh</Text></TouchableOpacity></View>
     {error ? <Text accessibilityRole="alert" style={s.error}>{error}</Text> : null}

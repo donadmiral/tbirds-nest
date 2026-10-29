@@ -9,6 +9,7 @@ import { Donut, StackBars, Empty, type Slice } from '@/components/Viz';
 import { fmt, ago } from '@/lib/fmt';
 import { isPaymentInFlight, paymentCurrency } from '@/lib/paymentReporting';
 import { bridgeConnectionStatus, providerIssue } from '../../../shared/payments/providerStatus';
+import { FINANCE_OPERATIONS_ENABLED, FINANCE_OPERATIONS_UNAVAILABLE } from '../../../shared/monetization/availability';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,6 +35,7 @@ function money(n: string, cur?: string) {
 export default async function PaymentsPage({ searchParams }: { searchParams: Promise<PaymentSearch> }) {
   const search = paymentSearch(await searchParams);
   const admin = await requireDesk('/payments');
+  if (!FINANCE_OPERATIONS_ENABLED) return <Shell admin={admin} active="/payments" title="Payments" sub="Financial reporting"><p>{FINANCE_OPERATIONS_UNAVAILABLE}</p><Link className="inline-flex min-h-11 items-center underline" href="/dashboard">Back to operations</Link></Shell>;
   const svc = serviceClient();
 
   const now = Date.now();

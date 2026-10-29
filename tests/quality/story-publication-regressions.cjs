@@ -50,6 +50,7 @@ function harness(options = {}) {
   };
   const actors = { authorId: () => actorId };
   const service = load('src/services/storiesService.ts', {
+    '../../shared/musicAvailability': options.musicAvailable === false ? load('shared/musicAvailability.ts', {}) : { MUSIC_CATALOG_ENABLED: true, MUSIC_UNAVAILABLE_MESSAGE: 'Unavailable fixture' },
     '../../shared/contentMedia': { canonicalContentMedia: value => value },
     './supabase': { supabase: client }, '../utils/publication': publication, '../stores/actorStore': actors,
     './contentMedia': { hydrateStoryMedia: async rows => rows, hydrateSoundMedia: async rows => rows },
@@ -260,4 +261,16 @@ test('native reply controls are stored in the original story insert for each cli
   const h = harness({ drafts: [draft('off', { allowReplies: false }), draft('default')] });
   await h.render().publishAll();
   const inserts = tableCalls(h, 'stories'); assert.equal(inserts.length,2); assert.equal(inserts[0].row.allow_replies,false); assert.equal(inserts[1].row.allow_replies,true);
+});
+
+
+test('shipping music-disabled native publisher ignores restored soundtrack metadata and preserves original video mix', async () => {
+  for (const audio of [{ kind: 'sound', soundId: 'old-sound' }, { kind: 'voiceover', localUri: 'file:old-audio.m4a', rightsAttested: true, addToSounds: true, durationSec: 10 }]) {
+    const h = harness({ musicAvailable: false, drafts: [draft('retained', { mediaType: 'video', localUri: 'file:video.mp4', audio, mediaTransform: { scale: 1, translateNX: 0, translateNY: 0, fit: 'contain', trimStart: 2, trimEnd: 8, mix: { orig: 65, music: 45 } } })] });
+    await h.render().publishAll();
+    const written = tableCalls(h, 'stories')[0]?.row;
+    assert.ok(written); assert.equal(written.audio_url, undefined); assert.equal(written.media_transform.mix.orig, 65); assert.equal(written.media_transform.trimStart, 2);
+    assert.equal(h.calls.filter(c => c.upload).length, 1);
+    assert.equal(h.calls.filter(c => c.rpc && /sound/.test(c.rpc)).length, 0);
+  }
 });

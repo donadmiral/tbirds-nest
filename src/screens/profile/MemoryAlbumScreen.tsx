@@ -1,6 +1,8 @@
 import { themedSheet, useTheme } from '../../theme/useTheme';
 import VideoThumb from '../../components/VideoThumb';
 import MemoryPageImage from '../../components/memory/MemoryPageImage';
+import MemoryStoryFrame, { type MemoryStoryPage } from '../../components/memory/MemoryStoryFrame';
+import { memoryAlbumStoryLayers, memoryStoryRecipe, memoryStorySeek, memoryStoryStickers } from '../../../shared/memoryStoryPresentation';
 import MemoryPageTurn,{MemoryTurnPreview,type MemoryPageTurnHandle} from '../../components/memory/MemoryPageTurn';
 /**
  * MemoryAlbumScreen — the memory book.
@@ -121,9 +123,12 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
         ? await supabase.rpc('get_memory_book', { p_album: albumIdParam })
         : await supabase.rpc('get_memory_album', { p_owner: ownerId });
       if (error) throw error;
-      const [hydrated] = data ? await hydrateMemoryAlbumMedia([data]) : [];
+      const [hydrated] = data ? await hydrateMemoryAlbumMedia([memoryAlbumStoryLayers(data)]) : [];
       if (generation !== loadGeneration.current || viewerRef.current !== viewerId) return;
       setAlbum(hydrated ?? null); setLoadError(null);
+      // A successful refresh may remove a page or revoke its source. Do not
+      // keep its former signed URL alive in the expanded player.
+      setPlayingUrl(current=>current&&(hydrated?.pages??[]).some((page:any)=>page.media_url===current||memoryStoryStickers(page.stickers).some(sticker=>sticker.kind==='post'&&sticker.postMediaUrl===current))?current:null);
       if (data) {
         setTitle(data.title || 'Memories'); setSubtitle(data.subtitle || ''); setCoverStoryId(data.cover_story_id || null); setColor(data.cover_color || 'blush'); setAud(data.audience || 'profile');
         if (data.id) setBookId(data.id);
@@ -348,7 +353,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
                 <View style={{flex:1,minHeight:0}}>
                   <View style={[st.polaroid, page?.style==='full'&&{padding:0,borderWidth:0}]}>
                     <View style={st.polImgWrap}>
-                      {(() => { const stks = Array.isArray(page?.stickers) ? page.stickers : []; const pk = stks.find((k: any) => k && k.kind === 'post'); if (pk) return (
+                      {(() => { const stks = memoryStoryStickers(page?.stickers); const pk = stks.find((k: any) => k && k.kind === 'post'); if (pk) return (
                         <View style={{ flex: 1, backgroundColor: '#0E1B33', borderRadius: 6, padding: 12 }}>
                           <Text style={{ color: '#C9BFB0', fontSize: 11.5, fontWeight: '700', marginBottom: 6 }} numberOfLines={1}>{pk.postAuthorName || 'Shared post'}</Text>
                           {pk.postText ? <Text style={{ color: '#F5F0EB', fontSize: 13.5, lineHeight: 19 }} numberOfLines={4}>{pk.postText}</Text> : null}
@@ -359,12 +364,12 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
                           )) : null}
                           <TouchableOpacity disabled={!pk.postId} onPress={()=>navigation.push('PostTop',{postId:pk.postId})}><Text style={{ color: '#D8E2F0', fontSize: 12, marginTop: 8 }}>View full post →</Text></TouchableOpacity>
                         </View>
-                      ); if (page?.media_type === 'video') return (<View style={{ flex: 1 }}><PageVideo key={[page.id,page.media_url,mediaAttempt].join(':')} url={page.media_url} active={focused&&!turning&&!pageActions&&!settings&&!picker&&!playingUrl} onRetry={retryMedia} /><TouchableOpacity accessibilityRole="button" accessibilityLabel="Open memory video full screen" hitSlop={6} disabled={!page.media_url} onPress={() => setPlayingUrl(page.media_url)} style={{ position: 'absolute', right: 8, bottom: 8, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }}><Feather name="maximize-2" size={15} color="#FFFFFF" /></TouchableOpacity></View>); if (page?.media_type === 'image' || page?.media_url || page?.thumbnail_url) return (
-                        <MemoryPageImage key={[page.id,page.media_url,page.thumbnail_url,mediaAttempt].join(':')} uri={page.media_url} thumbnail={page.thumbnail_url} onRetry={retryMedia} />
+                      ); if (page?.media_type === 'video') return (<View style={{ flex: 1 }}><PageVideo key={[page.id,page.media_url,mediaAttempt].join(':')} url={page.media_url} page={page} active={focused&&!turning&&!pageActions&&!settings&&!picker&&!playingUrl} onRetry={retryMedia} /><TouchableOpacity accessibilityRole="button" accessibilityLabel="Open memory video full screen" hitSlop={6} disabled={!page.media_url} onPress={() => setPlayingUrl(page.media_url)} style={{ position: 'absolute', right: 8, bottom: 8, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }}><Feather name="maximize-2" size={15} color="#FFFFFF" /></TouchableOpacity></View>); if (page?.media_type === 'image' || page?.media_url || page?.thumbnail_url) return (
+                        <MemoryStoryFrame key={[page.id,page.media_url,page.thumbnail_url,mediaAttempt].join(':')} page={page}>{({fit,style})=><View style={style}><MemoryPageImage uri={page.media_url} thumbnail={page.thumbnail_url} fit={fit} onRetry={retryMedia} /></View>}</MemoryStoryFrame>
                       ); return (
-                        <View style={{ flex: 1, backgroundColor: '#0B1E3D', borderRadius: 6, alignItems: 'center', justifyContent: 'center', padding: 14 }}>
-                          <Text style={{ color: '#F5F0EB', fontSize: 15, fontWeight: '600', textAlign: 'center', lineHeight: 22 }} numberOfLines={6}>{page?.story_caption || page?.caption || 'A moment'}</Text>
-                        </View>
+                        <MemoryStoryFrame page={page}>{()=> <View style={{ flex: 1, borderRadius: 6, alignItems: 'center', justifyContent: 'center', padding: 14 }}>
+                          <Text style={{ color: '#F5F0EB', fontSize: 15, fontWeight: '600', textAlign: 'center', lineHeight: 22 }} numberOfLines={6}>{page?.story_caption || page?.caption || (memoryStoryStickers(page?.stickers).length ? '' : 'A moment')}</Text>
+                        </View>}</MemoryStoryFrame>
                       ); })()}
                     </View>
                     <Text numberOfLines={2} style={st.handCaption}>{page?.caption || ' '}</Text>
@@ -494,7 +499,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
       </Modal>
 
       {playingUrl ? (
-        <MemoryVideo url={playingUrl} topInset={Math.max(insets.top, 12)} onClose={() => setPlayingUrl(null)} onMessage={viewerId && ownerId && viewerId !== ownerId ? () => { setPlayingUrl(null); (navigation as any).navigate('Chat', { userId: ownerId, userName: ownerName || undefined, otherUser: { id: ownerId, full_name: ownerName || '', username: ownerUsername || '', avatar_url: ownerAvatar || null } }); } : undefined} />
+        <MemoryVideo url={playingUrl} page={playingUrl===page?.media_url?page:null} topInset={Math.max(insets.top, 12)} onClose={() => setPlayingUrl(null)} onMessage={viewerId && ownerId && viewerId !== ownerId ? () => { setPlayingUrl(null); (navigation as any).navigate('Chat', { userId: ownerId, userName: ownerName || undefined, otherUser: { id: ownerId, full_name: ownerName || '', username: ownerUsername || '', avatar_url: ownerAvatar || null } }); } : undefined} />
       ) : null}
 
       <Modal visible={!!captionFor} transparent animationType="fade" onRequestClose={() => setCaptionFor(null)}>
@@ -516,19 +521,12 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
   );
 }
 
-function MemoryVideo({ url, topInset, onClose, onMessage }: { url: string; topInset: number; onClose: () => void; onMessage?: () => void }) {
-  const player = useVideoPlayer(url, p => { p.loop = true; p.muted = false; });
-  useMemoryVideoLifecycle(player,true);
-  const [muted, setMuted] = React.useState(false);
-  const toggleMute = () => { setMuted(v => { const nv = !v; try { (player as any).muted = nv; } catch {} return nv; }); };
+function MemoryVideo({ url, page, topInset, onClose, onMessage }: { url: string; page?: MemoryStoryPage | null; topInset: number; onClose: () => void; onMessage?: () => void }) {
   return (
     <Modal visible transparent={false} animationType="fade" onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: '#000' }}>
-        <VideoView player={player} style={{ flex: 1 }} contentFit="contain" nativeControls />
+        <PageVideo url={url} page={page} active onRetry={onClose} controls />
         <View style={{ position: 'absolute', top: topInset + 6, right: 14, flexDirection: 'row', gap: 10 }}>
-          <TouchableOpacity onPress={toggleMute} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center' }} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityLabel={muted ? 'Unmute' : 'Mute'}>
-            <Feather name={muted ? 'volume-x' : 'volume-2'} size={18} color="#FFFFFF" />
-          </TouchableOpacity>
           {onMessage ? (
             <TouchableOpacity onPress={onMessage} style={{ height: 36, borderRadius: 18, paddingHorizontal: 14, backgroundColor: '#C9BFB0', flexDirection: 'row', alignItems: 'center', gap: 6 }} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityLabel="Message">
               <Feather name="send" size={15} color="#0B1E3D" />
@@ -536,7 +534,7 @@ function MemoryVideo({ url, topInset, onClose, onMessage }: { url: string; topIn
             </TouchableOpacity>
           ) : null}
         </View>
-        <TouchableOpacity onPress={onClose} style={{ position: 'absolute', top: topInset + 6, left: 14, width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center' }}>
+        <TouchableOpacity accessibilityLabel="Close memory video" onPress={onClose} style={{ position: 'absolute', top: topInset + 6, left: 14, width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center' }}>
           <Feather name="x" size={20} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
@@ -574,27 +572,54 @@ const st = themedSheet((t) => ({
   hint: { fontSize: 11.5, color: '#5B6B84', marginBottom: 4 },
 }));
 
-function PageVideo({ url, active, onRetry }: { url: string; active:boolean; onRetry:()=>void }) {
-  const pv = useVideoPlayer(url, pp => { pp.loop = true; pp.muted = true; });
-  useMemoryVideoLifecycle(pv,active);
+function PageVideo({ url, page, active, onRetry, controls = false }: { url: string; page?: MemoryStoryPage | null; active:boolean; onRetry:()=>void; controls?:boolean }) {
+  // duration_sec can describe the selected excerpt; the player knows source duration.
+  const recipe = memoryStoryRecipe(page?.media_transform);
+  const pv = useVideoPlayer(url, pp => { pp.loop = true; pp.muted = true; pp.timeUpdateEventInterval = .05; });
   const [muted, setMuted] = React.useState(true);
   const [failed,setFailed]=useState(false);
-  useEffect(()=>{setFailed(pv.status==='error');const sub=pv.addListener('statusChange',({status})=>setFailed(status==='error'));return()=>sub.remove();},[pv]);
+  const [clock,setClock]=useState(recipe.start);
+  const activeRef=useRef(active);activeRef.current=active;
+  useEffect(()=>{
+    let initialized=false;
+    let window=recipe;
+    const apply=()=>{try{window=memoryStoryRecipe({trimStart:recipe.start,trimEnd:recipe.end},pv.duration);pv.playbackRate=recipe.speed;pv.volume=recipe.volume;if(!initialized){pv.currentTime=window.start;setClock(window.start);initialized=pv.status==='readyToPlay';}}catch{}};
+    apply();
+    const status=pv.addListener('statusChange',({status})=>{setFailed(status==='error');if(status==='readyToPlay')apply();});
+    const time=pv.addListener('timeUpdate',({currentTime})=>{
+      if(!activeRef.current)return;
+      const seek=memoryStorySeek(currentTime,window);
+      try{if(seek!=null)pv.currentTime=seek;}catch{}
+      setClock(seek??currentTime);
+    });
+    setFailed(pv.status==='error');
+    return()=>{status.remove();time.remove();};
+  },[pv,recipe.start,recipe.end,recipe.speed,recipe.volume]);
+  useEffect(()=>{try{pv.muted=muted||recipe.volume===0;pv.volume=recipe.volume;}catch{}},[pv,muted,recipe.volume]);
+  useMemoryVideoLifecycle(pv,active);
   if(!url||failed)return <TouchableOpacity accessibilityRole="button" accessibilityLabel="Retry memory video" onPress={onRetry} style={{flex:1,alignItems:'center',justifyContent:'center',backgroundColor:'#0B1E3D',padding:16}}><Text style={{color:'#FFFFFF',textAlign:'center'}}>This memory video could not play. Tap to retry.</Text></TouchableOpacity>;
   return (
     <View style={{ width: '100%', height: '100%' }}>
-      <VideoView player={pv} style={{ width: '100%', height: '100%' }} contentFit="contain" nativeControls={false} />
-      <TouchableOpacity onPress={() => setMuted(v => { const nv = !v; try { (pv as any).muted = nv; } catch {} return nv; })} style={{ position: 'absolute', left: 8, bottom: 8, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }} accessibilityLabel={muted ? 'Unmute' : 'Mute'}>
+      <MemoryStoryFrame page={page} clock={clock}>{({fit,style})=><VideoView player={pv} style={style} contentFit={fit} nativeControls={controls} />}</MemoryStoryFrame>
+      {recipe.volume>0&&<TouchableOpacity onPress={() => setMuted(v=>!v)} style={{ position: 'absolute', left: 8, bottom: controls?54:8, width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }} accessibilityLabel={muted ? 'Unmute original video sound' : 'Mute original video sound'}>
         <Feather name={muted ? 'volume-x' : 'volume-2'} size={15} color="#FFFFFF" />
-      </TouchableOpacity>
+      </TouchableOpacity>}
     </View>
   );
 }
+
 function useMemoryVideoLifecycle(player:ReturnType<typeof useVideoPlayer>,active:boolean){
   const {callState}=useCallContext();
+  const intent=useRef({player,blocked:true,resume:true});
+  if(intent.current.player!==player)intent.current={player,blocked:true,resume:true};
   useEffect(()=>{
-    const sync=()=>{try{if(active&&callState==='idle'&&AppState.currentState==='active')player.play();else player.pause();}catch{}};
+    const sync=()=>{try{
+      const allowed=active&&callState==='idle'&&AppState.currentState==='active';
+      if(!allowed){if(!intent.current.blocked)intent.current.resume=player.playing;intent.current.blocked=true;player.pause();}
+      else if(intent.current.blocked){intent.current.blocked=false;if(intent.current.resume)player.play();}
+    }catch{}};
     sync();const sub=AppState.addEventListener('change',sync);
-    return()=>{sub.remove();try{player.pause();}catch{}};
+    return()=>sub.remove();
   },[player,active,callState]);
+  useEffect(()=>()=>{try{player.pause();}catch{}},[player]);
 }

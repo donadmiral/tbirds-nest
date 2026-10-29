@@ -1,18 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import type { CSSProperties } from 'react';
 
 /** The full memory stays sharp. A poster is only a fallback for failed media. */
-export function MemoryPageImage({ src, poster, onRetry }: {
+export function MemoryPageImage({ src, poster, onRetry, style }: {
   src?: string | null;
   poster?: string | null;
   onRetry: () => void;
+  style?: CSSProperties;
 }) {
   const [failed, setFailed] = useState<Set<string>>(new Set());
   const image = [src, poster].find(value => value && !failed.has(value));
   if (image) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={image} alt="Memory photograph" className="h-full w-full object-contain"
+    return <img src={image} alt="Memory photograph" className="h-full w-full object-contain" style={style}
       onError={() => setFailed(previous => new Set(previous).add(image))} />;
   }
   return <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-[#0B1E3D] p-4 text-center text-sm text-white">

@@ -1,5 +1,6 @@
 import { parseCreatorSnapshot, validMinor, type CreatorSnapshot } from './domain';
 import { parseCreatorStatement, type StatementCursor } from './statement';
+import { FINANCE_OPERATIONS_ENABLED, FINANCE_OPERATIONS_UNAVAILABLE } from './availability';
 export type FinanceClient = {
   rpc(name: string, args?: Record<string, unknown>): PromiseLike<{ data: unknown; error: { message?: string; code?: string } | null }>;
 };
@@ -26,6 +27,7 @@ export async function applyToCreatorProgram(client: FinanceClient, owner: string
   if (error || !['applied', 'approved', 'rejected', 'suspended'].includes(String(data))) throw new Error(uncertain);
 }
 export async function readCreatorStatement(client: FinanceClient, owner: string, cursor: StatementCursor|null=null) {
+  if (!FINANCE_OPERATIONS_ENABLED) throw new Error(FINANCE_OPERATIONS_UNAVAILABLE);
   const {data,error}=await withFinanceDeadline(client.rpc('creator_statement',{p_expected_user:owner,p_limit:50,p_before_at:cursor?.created_at??null,p_before_id:cursor?.id??null}),'Your statement took too long. Please retry.');
   if(error) throw new Error('Could not load your statement. Please retry.');
   return parseCreatorStatement(data,owner);

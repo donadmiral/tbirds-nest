@@ -37,7 +37,7 @@ function picker(platform,options={}){
  const storage={getItem:async key=>saved.get(key)??null,setItem:async(key,value)=>{writes.push({key,value});saved.set(key,value);}};
  const props={visible:true,value:null,use:'post',ownerId:'account-a',originalAudio:true,onChange:value=>changes.push(value),onClose:()=>{closed++;},renderPreview:(selection,active)=>{previews.push({selection,active});return jsx.jsx('Draft',{selection,active});},...options.props};
  const native={View:'View',Text:'Text',TextInput:'Input',TouchableOpacity:'Button',ActivityIndicator:'Spinner',Modal:'Modal',ScrollView:'ScrollView',KeyboardAvoidingView:'KeyboardAvoidingView',Platform:{OS:'ios'},Keyboard:{dismiss:()=>{dismissed++;}},StyleSheet:{create:x=>x},useWindowDimensions:()=>({width:390,height:844})};
- const mods={react:h.react,'react/jsx-runtime':jsx,'react-native':native,'@expo/vector-icons':{Feather:'Icon'},'@react-native-async-storage/async-storage':{default:storage,__esModule:true},'./stories/storyPanels':{MiniSlider:'Slider'},'./SafeArea':{SafeAreaView:'SafeArea'},'../services/soundtrackService':{getSoundtrack:get,listSoundtracks:list},'../hooks/useSoundtrackPlayer':{useSoundtrackPlayer:args=>{audio.push(args);return{error:'',retry(){}};}},'../../shared/soundtrack':soundtrack,'../../shared/soundtrackPicker':control,'@/lib/soundtrack':{getSoundtrack:get,listSoundtracks:list},'./PostSoundtrack':{PostSoundtrack:'Soundtrack'},'./SoundtrackPicker.module.css':{default:new Proxy({},{get:(_,k)=>k}),__esModule:true},'lucide-react':new Proxy({},{get:(_,k)=>k})};
+ const mods={react:h.react,'react/jsx-runtime':jsx,'react-native':native,'@expo/vector-icons':{Feather:'Icon'},'@react-native-async-storage/async-storage':{default:storage,__esModule:true},'./stories/storyPanels':{MiniSlider:'Slider'},'./SafeArea':{SafeAreaView:'SafeArea'},'../services/soundtrackService':{getSoundtrack:get,listSoundtracks:list},'../hooks/useSoundtrackPlayer':{useSoundtrackPlayer:args=>{audio.push(args);return{error:'',retry(){}};}},'../../shared/soundtrack':soundtrack,'../../shared/musicAvailability':options.musicAvailable===false?compile('shared/musicAvailability.ts'):{MUSIC_CATALOG_ENABLED:true,MUSIC_UNAVAILABLE_MESSAGE:'Unavailable fixture'},'../../shared/soundtrackPicker':control,'@/lib/soundtrack':{getSoundtrack:get,listSoundtracks:list},'./PostSoundtrack':{PostSoundtrack:'Soundtrack'},'./SoundtrackPicker.module.css':{default:new Proxy({},{get:(_,k)=>k}),__esModule:true},'lucide-react':new Proxy({},{get:(_,k)=>k})};
  const document={activeElement:null};
  const global={...time,document,HTMLElement:class{},localStorage:{getItem:key=>saved.get(key)??null,setItem:(key,value)=>{writes.push({key,value});saved.set(key,value);}},require:name=>{assert.ok(name in mods,name);return mods[name];}};
  const component=compile(platform==='native'?'src/components/SoundtrackPicker.tsx':'web/components/SoundtrackPicker.tsx',global).default;
@@ -165,13 +165,13 @@ test('web photo draft exposes music play controls outside the picker and respect
  const h=webDraft({item:{preview:'blob:fixture-photo',width:390,height:600,isVideo:false}});assert.equal(h.soundtrack.controls,true);assert.equal(h.soundtrack.autoPlay,false);h.update({autoPlay:true,active:false});assert.equal(h.soundtrack.controls,false);assert.equal(h.soundtrack.active,false);h.dispose();
 });
 
-function webAudio(initial={}){
+function webAudio(initial={},musicAvailable=true){
  const h=hooks(),audio=[],intervals=new Map(),events=new Map();let denied=false;
  const document={hidden:false,documentElement:{dataset:{}},addEventListener(name,fn){if(!events.has(name))events.set(name,new Set());events.get(name).add(fn);},removeEventListener:(name,fn)=>events.get(name)?.delete(fn)};
  const window={addEventListener:document.addEventListener,removeEventListener:document.removeEventListener};
  class Audio{constructor(url){this.url=url;this.paused=true;this.currentTime=0;audio.push(this);}play(){this.paused=false;return Promise.resolve();}pause(){this.paused=true;}removeAttribute(name){if(name==='src')this.url=null;}load(){}}
  const props={selection:choice,autoPlay:true,controls:false,active:true,clock:{time:2,playing:true,rate:1.5},...initial};
- const mods={react:h.react,'react/jsx-runtime':jsx,'@/lib/soundtrack':{getSoundtrack:async()=>{if(denied)throw Error('revoked');return first;}},'../../shared/soundtrack':soundtrack};
+ const mods={react:h.react,'react/jsx-runtime':jsx,'@/lib/soundtrack':{getSoundtrack:async()=>{if(denied)throw Error('revoked');return first;}},'../../shared/soundtrack':soundtrack,'../../shared/musicAvailability':musicAvailable?{MUSIC_CATALOG_ENABLED:true}:compile('shared/musicAvailability.ts')};
  const component=compile('web/components/PostSoundtrack.tsx',{require:name=>{assert.ok(name in mods,name);return mods[name];},document,window,Audio,setInterval(fn,ms){const key={fn,ms};intervals.set(key,key);return key;},clearInterval:key=>intervals.delete(key)}).PostSoundtrack;
  h.mount(()=>component(props));
  return{...h,get nodes(){return h.nodes;},audio,intervals,document,update(next){Object.assign(props,next);h.render(true);},event(name){for(const fn of events.get(name)??[])fn();h.render();},tick(ms){for(const t of [...intervals.values()])if(t.ms===ms)t.fn();h.render();},deny(){denied=true;}};
@@ -190,3 +190,9 @@ test('controlled web soundtrack rights failure remains closed with a reachable r
  const h=webAudio();await h.flush();h.deny();h.tick(30000);await h.flush();assert.equal(h.audio[0].paused,true);h.update({active:false});h.update({active:true});h.tick(200);assert.equal(h.audio[0].paused,true,'parent play cannot override revoked rights');
  const retry=h.nodes.find(n=>n.type==='button');assert.ok(retry);assert.match(words(retry),/no longer available.*Retry/);retry.props.onClick();h.render();await h.flush();assert.equal(h.audio.length,1,'failed reauthorization never creates another audio stream');h.dispose();
 });
+
+for(const platform of ['native','web'])test(platform+' shipping music gate shows a clear unavailable state and never requests catalog or rights data',async()=>{
+ const h=picker(platform,{musicAvailable:false,props:{value:choice}});await h.load();assert.equal(h.reads.length,0);assert.equal(h.checks.length,0);assert.equal(h.writes.length,0);assert.ok(h.nodes.some(n=>words(n)==='Music unavailable'));assert.equal(h.nodes.some(n=>(n.props?.accessibilityLabel??n.props?.['aria-label'])==='Search music'),false);assert.ok(h.audio.every(call=>!call.selection));h.press('Remove selected music');assert.equal(h.changes[0],null);assert.equal(h.closed,1);h.dispose();
+});
+
+test('web playback remains silent and exposes no fake play/retry control for disabled catalog selections',async()=>{const h=webAudio({controls:true},false);await h.flush();h.tick(30000);await h.flush();assert.equal(h.audio.length,0);assert.equal(h.intervals.size,0);assert.equal(h.nodes.length,0);h.dispose();});

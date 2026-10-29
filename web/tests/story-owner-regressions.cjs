@@ -18,7 +18,7 @@ function scenario(options = {}) {
   let owner = 'a', listener, cursor = 0, tree, dirty = true, effects = [], mounted = true, updatesAfterUnmount = 0, nextTimer = 0, nextUuid = 0;
   const slots = [], timers = new Map(), writes = [], reads = [], uploads = [], videos = [], revoked = [], navigation = [];
   const router = { push: href => navigation.push(href) };
-  const params = { get: () => null };
+  const params = { get: key => options.params?.[key] ?? null };
   const same = (a,b) => a && b && a.length === b.length && a.every((item,i) => Object.is(item,b[i]));
   const hooks = {
     Suspense: 'Suspense',
@@ -54,10 +54,14 @@ function scenario(options = {}) {
   const storage = new Map();
   const common={sessionStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},console,Promise,Set,Map,Error,crypto:{randomUUID:()=> 'upload-'+(++nextUuid)},
     setTimeout:(callback,ms)=>{const id=++nextTimer;timers.set(id,{callback,ms});return id;},clearTimeout:id=>timers.delete(id),
-    URL:{createObjectURL:()=> 'blob:preview',revokeObjectURL:value=>revoked.push(value)},
+    URL:class extends URL { static createObjectURL(){return 'blob:preview';} static revokeObjectURL(value){revoked.push(value);} },
+    process:{env:{NEXT_PUBLIC_SUPABASE_URL:'https://media.test'}},
     document:{createElement:()=>{ const video={removeAttribute(){},load(){this.cleaned=true;},duration:10};videos.push(video);return video;}},
   };
   function load(code) { const module={exports:{}};vm.runInNewContext(code,{...common,module,exports:module.exports,require:name=>{
+    if(name==='../../shared/musicAvailability')return options.musicAvailable===false?load(compile('../shared/musicAvailability.ts')):{MUSIC_CATALOG_ENABLED:true};
+    if(name==='../../shared/contentMedia')return load(compile('../shared/contentMedia.ts'));
+    if(name==='@/lib/storyPostShare')return{loadPostStorySticker:async(_client,id,check)=>{const result=await options.loadPost(id,owner);check();return result;}};
     if(name==='react')return hooks;if(name==='react/jsx-runtime')return runtime;
     if(name==='next/navigation')return{useRouter:()=>router,useSearchParams:()=>params};
     if(name==='next/link')return{__esModule:true,default:'Link'};
@@ -172,7 +176,7 @@ test('saved story draft keeps its filter and stickers in the owner-scoped write'
   const h=scenario({loadDrafts:()=>({data:[row],error:null})}); await h.flush(); await h.openDraft(); await h.flush();
   await h.button('Update draft').props.onClick(); await h.flush();
   const saved=h.writes.find(w=>w.table==='story_drafts'); assert.equal(saved.payload.filter_id,'warm');
-  assert.deepEqual(saved.payload.stickers_json,row.stickers_json); assert.deepEqual(saved.payload.media_transform,row.media_transform);
+  assert.deepEqual(JSON.parse(JSON.stringify(saved.payload.stickers_json)),row.stickers_json); assert.deepEqual(saved.payload.media_transform,row.media_transform);
   assert.equal(saved.op,'upsert'); assert.equal(saved.payload.user_id,'a'); h.unmount();
 });
 
@@ -234,4 +238,56 @@ test('drawing applies only to its original clip and preserves other sticker meta
 });
 test('drawing cancel and stale account callbacks cannot change the active story',async()=>{
  const h=scenario();await h.flush();h.pick();await h.flush();h.editor().props.onOpenDraw();h.render();let draw=nodes(h.tree).find(n=>n.type==='StoryDrawStudio');draw.props.onCancel();h.render();assert.equal(h.editor().props.value.length,0);h.editor().props.onOpenDraw();h.render();draw=nodes(h.tree).find(n=>n.type==='StoryDrawStudio');h.changeOwner('b');await h.flush();h.pick();await h.flush();draw.props.onApply([{tool:'pen',color:'#FFFFFF',width:8,points:[{x:.2,y:.3}]}]);h.render();assert.equal(h.editor().props.value.length,0);assert.equal(nodes(h.tree).some(n=>n.type==='StoryDrawStudio'),false);h.unmount();
+});
+
+test('shipping music-disabled drafts omit absent audio column and publishing keeps only original video sound',async()=>{
+ const oldAudio={kind:'sound',soundId:'old-sound',title:'Old recording',durationSec:12};
+ for(const action of ['Update draft','Share story']){
+  const d={...draft('a'),audio_draft:oldAudio,media_transform:{scale:1,translateNX:0,translateNY:0,fit:'contain',mix:{orig:47,music:80},trimStart:2,trimEnd:8}};
+  const h=scenario({musicAvailable:false,loadDrafts:()=>({data:[d],error:null})});await h.flush();await h.openDraft();await h.flush();
+  assert.equal(h.editor().props.onOpenMusic,undefined);
+  await h.button(action).props.onClick();await h.flush();
+  const written=h.writes.find(w=>w.table===(action==='Update draft'?'story_drafts':'publish_story_v2'));
+  const payload=action==='Update draft'?written.payload:written.payload.p_story;
+  assert.equal(payload.media_transform.mix.orig,47);assert.equal(payload.media_transform.trimStart,2);
+  if(action==='Update draft')assert.equal(Object.hasOwn(payload,'audio_draft'),false);else assert.equal(payload.audio_draft,null);
+  h.unmount();
+ }
+});
+
+const sharedPostFixture = token => ({
+ id:'post-11111111-1111-4111-8111-111111111111',kind:'post',postId:'11111111-1111-4111-8111-111111111111',
+ text:'',style:'classic',color:'#FFFFFF',nx:.5,ny:.5,scale:1,rotation:0,
+ postAuthorName:'Public author',postUsername:'public',postText:'A public moment',postMediaType:'image',
+ postMediaUrl:'https://media.test/storage/v1/object/sign/post-media/public/photo.jpg?token='+token,
+});
+test('feed post route opens the editable card and publishes canonical references without extra text',async()=>{
+ const sticker=sharedPostFixture('preview-only');
+ const h=scenario({params:{post:sticker.postId},loadPost:async()=>sticker,musicAvailable:false});await h.flush();
+ assert.equal(h.editor().props.value[0].postMediaUrl,sticker.postMediaUrl);
+ assert.ok(nodes(h.tree).some(n=>n.type==='img'&&n.props.src===sticker.postMediaUrl&&n.props.className.includes('blur')));
+ await h.button('Share story').props.onClick();await h.flush();
+ const payload=h.writes.find(w=>w.table==='publish_story_v2')?.payload.p_story;
+ assert.ok(payload);assert.equal(payload.media_type,'text');assert.equal(payload.stickers_json[0].postId,sticker.postId);
+ assert.equal(payload.stickers_json[0].postMediaUrl,'https://media.test/storage/v1/object/public/post-media/public/photo.jpg');
+ assert.ok(!JSON.stringify(payload).includes('preview-only'));h.unmount();
+});
+test('post preview from an old account cannot populate or unlock the next account',async()=>{
+ const a=defer(),b=defer();const h=scenario({params:{post:sharedPostFixture('').postId},loadPost:(_id,owner)=>owner==='a'?a.promise:b.promise});
+ await h.flush();h.changeOwner('b');await h.flush();a.resolve(sharedPostFixture('a'));await h.flush();
+ assert.equal(h.editor(),undefined);assert.match(h.text,/Preparing this post/);
+ b.resolve(sharedPostFixture('b'));await h.flush();assert.equal(h.editor().props.value[0].postMediaUrl,sharedPostFixture('b').postMediaUrl);h.unmount();
+});
+test('a failed post preview exposes retry and successful retry opens the same source once',async()=>{
+ let tries=0;const sticker=sharedPostFixture('safe');const h=scenario({params:{post:sticker.postId},loadPost:async()=>{if(++tries===1)throw Error('Preview connection failed');return sticker;}});
+ await h.flush();assert.equal(h.editor(),undefined);assert.match(h.text,/Preview connection failed/);
+ h.button('Retry loading post').props.onClick();await h.flush();assert.equal(tries,2);assert.equal(h.editor().props.value.length,1);h.unmount();
+});
+test('saved shared-post drafts display signed media and save only canonical media',async()=>{
+ const preview=sharedPostFixture('draft-preview');const canonical={...preview,postMediaUrl:'https://media.test/storage/v1/object/public/post-media/public/photo.jpg'};
+ const row={...draft('a'),stickers_json:[canonical]};
+ const h=scenario({loadDrafts:async()=>({data:[row],error:null}),hydrateDrafts:async rows=>rows.map(r=>({...r,stickers_json:[preview]}))});await h.flush();await h.openDraft();await h.flush();
+ assert.equal(h.editor().props.value[0].postMediaUrl,preview.postMediaUrl);
+ await h.button('Update draft').props.onClick();await h.flush();
+ assert.equal(h.writes.find(w=>w.table==='story_drafts').payload.stickers_json[0].postMediaUrl,canonical.postMediaUrl);h.unmount();
 });

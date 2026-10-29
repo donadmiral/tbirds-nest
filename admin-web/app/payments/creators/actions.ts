@@ -2,9 +2,11 @@
 import { revalidatePath } from 'next/cache';
 import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
+import { FINANCE_OPERATIONS_ENABLED, FINANCE_OPERATIONS_UNAVAILABLE } from '../../../../shared/monetization/availability';
 export async function reviewCreator(_state:{error:string}|null,form:FormData):Promise<{error:string}> {
   const admin=await requireDesk('/payments');
   if(!['super_admin','platform_admin','finance_admin'].includes(admin.role)) throw new Error('Finance permission is required.');
+  if(!FINANCE_OPERATIONS_ENABLED)return {error:FINANCE_OPERATIONS_UNAVAILABLE};
   const key=String(form.get('command_key')||'');
   const {data,error}=await serviceClient().rpc('creator_finance_review',{
     p_actor:admin.id,p_session:admin.sessionId,p_key:key,p_user:String(form.get('user_id')||''),

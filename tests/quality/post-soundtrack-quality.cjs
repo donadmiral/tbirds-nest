@@ -22,12 +22,12 @@ test('music clock follows seek, trim and repeat positions without accumulating d
  const bounded=music.constrainSoundtrack({...selection,startSec:98,durationSec:40},{duration_sec:30,max_excerpt_sec:15});
  assert.equal(bounded.startSec,15);assert.equal(bounded.durationSec,15);
 });
-function publicationFixture({failTable,loseTable,failUpload=0,switchOnTable}={}) {
+function publicationFixture({failTable,loseTable,failUpload=0,switchOnTable,musicAvailable=false}={}) {
  const text=fs.readFileSync(path.join(root,'src/screens/feed/FeedScreen.tsx'),'utf8');
  const start=text.indexOf('  const createPost = async () => {'),end=text.indexOf('  const loadMore =',start);
  const rows={},calls=[],alerts=[],uploads=[];let id=0,failed=false,owner='owner',author='owner';
  const context={
-   publicationBusy:{current:false},publicationAttempt:{current:null},userId:'owner',composerText:'Hello',
+   MUSIC_CATALOG_ENABLED:musicAvailable,publicationBusy:{current:false},publicationAttempt:{current:null},userId:'owner',composerText:'Hello',
    composerMedia:[{uri:'file://photo.jpg',type:'image',ext:'jpg',width:100,height:100,edit:{rotation:90,flipX:true,tags:[{user_id:'friend',nx:.3,ny:.7}]}}],
    composerSoundtrack:selection,exclusivePost:false,innovationPost:false,innoField:null,innoStage:null,
    postAudience:'everyone',commentPolicy:'everyone',postCategory:null,articleTitle:'',quotingPost:null,threadingPost:null,
@@ -47,7 +47,7 @@ function publicationFixture({failTable,loseTable,failUpload=0,switchOnTable}={})
  return{context,rows,calls,alerts,uploads,restoreOwner(){owner='owner';},switchAuthor(){author='business';}};
 }
 test('failed media attachment retries original post and preserves soundtrack, edits and tags',async()=>{
- const h=publicationFixture({failTable:'post_media'});await h.context.publish();
+ const h=publicationFixture({failTable:'post_media',musicAvailable:true});await h.context.publish();
  assert.equal(h.rows.posts.size,1);assert.ok(h.context.publicationAttempt.current);assert.equal(h.uploads.length,1);
  await h.context.publish();assert.equal(h.rows.posts.size,1);assert.equal(h.rows.post_media.size,1);assert.equal(h.rows.post_media_tags.size,1);assert.equal(h.rows.post_collaborators.size,1);assert.equal(h.rows.post_poll_options.size,2);assert.equal(h.uploads.length,1);
  const media=[...h.rows.post_media.values()][0];assert.equal(media.edit.rotation,90);assert.equal(media.edit.flipX,true);assert.deepEqual(media.edit.soundtrack,selection);assert.equal(media.edit.tags,undefined);assert.equal(h.context.publicationAttempt.current,null);
@@ -77,4 +77,8 @@ test('a cover upload failure cannot publish a video with a broken preview, and r
  h.context.composerMedia=[{uri:'file://clip.mp4',type:'video',ext:'mp4',edit:{aspectRatio:.8,coverAt:2}}];
  await h.context.publish();assert.equal(h.rows.posts,undefined);assert.equal(h.rows.post_media,undefined);const originalId=h.context.publicationAttempt.current.postId;
  await h.context.publish();assert.equal(h.rows.posts.size,1);assert.equal([...h.rows.posts.values()][0].id,originalId);assert.equal(h.rows.post_media.size,1);assert.ok([...h.rows.post_media.values()][0].edit.coverUrl);
+});
+
+test('the non-music release omits selected and saved soundtrack metadata without changing original video edits',async()=>{
+ const h=publicationFixture();h.context.pollOpts=null;h.context.composerMedia=[{uri:'file://video.mp4',type:'video',ext:'mp4',edit:{soundtrack:selection,muted:false,trimStart:2,trimEnd:8,speed:1.25,coverAt:2}}];await h.context.publish();assert.equal(h.alerts.length,0);const row=[...h.rows.post_media.values()][0];assert.equal(row.edit.soundtrack,undefined);assert.equal(row.edit.muted,false);assert.equal(row.edit.trimStart,2);assert.equal(row.edit.trimEnd,8);assert.equal(row.edit.speed,1.25);
 });

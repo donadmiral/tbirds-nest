@@ -53,6 +53,7 @@ import * as VideoThumbnails from 'expo-video-thumbnails';
 import * as Crypto from 'expo-crypto';
 
 import type { SoundtrackSelection } from '../../../shared/soundtrack';
+import { MUSIC_CATALOG_ENABLED } from '../../../shared/musicAvailability';
 import SoundtrackPicker from '../../components/SoundtrackPicker';
 import { postLookRecipe } from '../../../shared/postMediaEditing';
 import { Image as ExpoImage } from 'expo-image';
@@ -1631,8 +1632,9 @@ export default function FeedScreen({ navigation }: any) {
               setPostProgress({completed:i,total:media.length,label:`Uploading ${video?'video':'photo'} ${i+1} of ${media.length}`});
               const safe = await ensureUploadSafe(m.uri, video ? 'video' : 'image', safeExtFromUri(m.uri, video ? 'mp4' : 'jpg'));
               const url = await upload(safe.uri, safe.mime, `${owner}/${postId}_${i}.${safe.ext}`);
-              const { tags: _tags, coverLocalUri, ...recipe } = m.edit ?? {};
-              const edit: any = { ...recipe, ...(i === 0 && composerSoundtrack ? { soundtrack: composerSoundtrack } : {}) };
+              const { tags: _tags, coverLocalUri, soundtrack: previousSoundtrack, ...recipe } = m.edit ?? {};
+              const chosenSoundtrack = i === 0 && composerSoundtrack ? composerSoundtrack : previousSoundtrack;
+              const edit: any = { ...recipe, ...(MUSIC_CATALOG_ENABLED && chosenSoundtrack ? { soundtrack: chosenSoundtrack } : {}) };
               if (video) {
                 const at = Math.max(0, Number(m.edit?.coverAt ?? m.edit?.trimStart ?? 0));
                 const thumb = coverLocalUri ? {uri:coverLocalUri} : await VideoThumbnails.getThumbnailAsync(m.uri, { time: Math.round(at * 1000), quality: 0.9 });

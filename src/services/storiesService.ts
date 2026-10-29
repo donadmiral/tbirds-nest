@@ -1,3 +1,4 @@
+import { MUSIC_CATALOG_ENABLED, MUSIC_UNAVAILABLE_MESSAGE } from '../../shared/musicAvailability';
 import { canonicalContentMedia } from '../../shared/contentMedia';
 import { supabase } from './supabase';
 import { hydrateStoryMedia, hydrateSoundMedia, hydrateHighlightMedia } from './contentMedia';
@@ -365,9 +366,12 @@ export async function uploadAndCreateStory(params: {
     category,
     dualFrontLocalUri,
     dualLayout,
-    audio,
+    audio: requestedAudio,
     filterId,
   } = params;
+  // Restored drafts keep their visual edits and the original audio in the video.
+  // Catalog/voiceover uploads and sound publication are outside this release.
+  const audio = MUSIC_CATALOG_ENABLED ? requestedAudio : null;
   const preUploadedUrl = (params as any).preUploadedUrl ?? null;
   const preUploadedThumb = (params as any).preUploadedThumb ?? null;
 
@@ -566,7 +570,7 @@ export async function uploadAndCreateStory(params: {
 }
 
 async function finishStorySound(storyId: string, audio: StoryAudioDraft | null | undefined, publication: PublicationAttempt) {
-  if (audio?.kind !== 'voiceover' || !audio.addToSounds) return;
+  if (!MUSIC_CATALOG_ENABLED || audio?.kind !== 'voiceover' || !audio.addToSounds) return;
   if (!audio.rightsAttested) throw new Error('Confirm the rights to your original sound before making it reusable.');
   await publication.check();
   // This RPC is idempotent per story, so a lost response is safe to retry.
@@ -586,6 +590,7 @@ export const storiesService = {
   uploadAndCreateStory,
 
   async getStorySound(id: string): Promise<StorySound> {
+    if (!MUSIC_CATALOG_ENABLED) throw new Error(MUSIC_UNAVAILABLE_MESSAGE);
     const { data: sounds, error } = await supabase.rpc('get_playable_sound', { p_sound_id: id, p_use: 'story' });
     const data = sounds?.[0];
     if (error || !data) throw new Error('This sound is no longer available. Choose another sound.');
@@ -595,6 +600,7 @@ export const storiesService = {
   },
 
   async listStorySounds(source: 'original' | 'library', limit = 50): Promise<StorySound[]> {
+    if (!MUSIC_CATALOG_ENABLED) return [];
     const { data, error } = await supabase.rpc('list_playable_sounds', { p_use: 'story', p_limit: Math.min(100, Math.max(1, Math.trunc(limit) || 50)), p_query: '' });
     if (error) throw new Error('Sounds could not be loaded. Please try again.');
     return hydrateSoundMedia(((data || []) as (StorySound & { max_excerpt_sec?: number })[]).filter(sound => sound.source === source).map(sound => ({...sound, duration_sec: Math.min(sound.duration_sec || 30, sound.max_excerpt_sec || 30, 30)})));
