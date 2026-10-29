@@ -22,7 +22,7 @@ const permissions = load('lib/permissions.ts');
 const fmt = load('lib/fmt.ts');
 const ticket = { id: 'ticket-1', user_id: 'member-1', kind: 'general', subject: 'My existing support request', status: 'open', created_at: '2026-10-28T10:00:00Z', updated_at: null };
 const member = { id: 'member-1', full_name: 'Member One', username: 'member', created_at: '2025-01-01T00:00:00Z' };
-const assignment = { ticket_id: ticket.id, assigned_to: 'staff-1', assigned_name: 'Assigned Agent', priority: 'high', queue: 'account', escalated: true, version: 4, response_due_at: '2026-10-29T12:00:00Z' };
+const assignment = { ticket_id: ticket.id, assigned_to: 'staff-1', assigned_name: 'Assigned Agent', priority: 'high', queue: 'account', escalated: true, version: 4, response_due_at: '2026-10-29T12:00:00Z', support_commands_available: false };
 const missing = name => ({ code: 'PGRST202', message: `Could not find the function public.${name}() in the schema cache` });
 
 function elements(tree, type) {
@@ -128,15 +128,42 @@ test('missing assignment capability leaves the conversation read-only, with no m
   assert.equal(h.requests.some(request => request.url.pathname.endsWith('/admin_users')), false);
 });
 
-test('available assignments preserve returned ownership, priority and existing permitted forms', async () => {
+test('available assignments preserve ownership and priority without exposing unavailable reply or status actions', async () => {
   const list = await harness({ available: true }).list();
   const fields = elements(list, 'Desk')[0].props.rows[0].detail.fields;
   assert.equal(fields.find(field => field.label === 'Owner').value, assignment.assigned_name);
   assert.equal(fields.find(field => field.label === 'Priority / queue').value, 'high / account / escalated');
-  const detail = await harness({ available: true }).detail();
-  assert.deepEqual(elements(detail, 'CommandForm').map(form => form.props.scope), ['supportTriage', 'sendTicketReply', 'setTicketStatus']);
+  const h = harness({ available: true }), detail = await h.detail();
+  assert.deepEqual(elements(detail, 'CommandForm').map(form => form.props.scope), ['supportTriage']);
   assert.equal(elements(detail, 'select').find(select => select.props.name === 'assigned_to').props.defaultValue, assignment.assigned_to);
-  assert.doesNotMatch(textOf(detail), /unavailable on this deployment/);
+  assert.match(textOf(detail), /Save assignment/);
+  assert.match(textOf(detail), /Replies and ticket status changes are unavailable on this deployment/);
+  assert.match(textOf(detail), /This message must remain readable/);
+  assert.doesNotMatch(textOf(detail), /Assignment tools are unavailable|Send reply|Mark solved|Reopen/);
+  assert.equal(elements(detail, 'textarea').length, 0);
+  assert.deepEqual(h.requests.filter(request => request.url.pathname.includes('/rpc/')).map(request => request.url.pathname.split('/').at(-1)), ['admin_support_triage_read']);
+});
+
+test('reply and status controls require an explicit command capability without probing a mutating RPC', async () => {
+  for (const [status, button] of [['open', 'Mark solved'], ['solved', 'Reopen']]) {
+    const h = harness({ available: true, tickets: [{ ...ticket, status }], triageRows: [{ ...assignment, support_commands_available: true }] });
+    const detail = await h.detail();
+    assert.deepEqual(elements(detail, 'CommandForm').map(form => form.props.scope), ['supportTriage', 'sendTicketReply', 'setTicketStatus']);
+    assert.match(textOf(detail), /Send reply/);
+    assert.ok(elements(detail, 'button').some(element => textOf(element).trim() === button));
+    assert.doesNotMatch(textOf(detail), /unavailable on this deployment/);
+    assert.deepEqual(h.requests.filter(request => request.url.pathname.includes('/rpc/')).map(request => request.url.pathname.split('/').at(-1)), ['admin_support_triage_read']);
+  }
+});
+
+test('legacy or malformed command capability never disables assignments or enables reply and status actions', async () => {
+  for (const capability of [undefined, null, 'true', 1]) {
+    const detail = await harness({ available: true, triageRows: [{ ...assignment, support_commands_available: capability }] }).detail();
+    assert.deepEqual(elements(detail, 'CommandForm').map(form => form.props.scope), ['supportTriage']);
+    assert.match(textOf(detail), /Save assignment/);
+    assert.match(textOf(detail), /Replies and ticket status changes are unavailable on this deployment/);
+    assert.doesNotMatch(textOf(detail), /Send reply|Mark solved|Reopen/);
+  }
 });
 
 test('real support transport, permission and malformed-response errors do not turn into an unavailable fallback', async () => {
