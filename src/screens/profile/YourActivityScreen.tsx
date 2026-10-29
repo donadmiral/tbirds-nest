@@ -1,3 +1,5 @@
+import SettingsExit from '../../components/SettingsExit';
+import { settingsBack } from '../../navigation/settingsNavigation';
 /**
  * Your activity: likes, comments, reposts and saves, newest first, each with
  * the post it happened on. Instagram's page of the same name.
@@ -23,7 +25,7 @@ function ago(iso: string): string { const m = Math.floor((Date.now() - new Date(
 export default function YourActivityScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
-  const { t } = useTheme();
+  const { t, isDark } = useTheme();
   const { profile } = useAuthStore();
   const [kind, setKind] = useState<Kind>('likes');
   const [items, setItems] = useState<Item[]>([]);
@@ -52,11 +54,11 @@ export default function YourActivityScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="chevron-left" size={26} color={t.ink.primary} /></TouchableOpacity>
+        <TouchableOpacity onPress={() => settingsBack(navigation, 'Settings')} style={s.backBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="chevron-left" size={26} color={t.ink.primary} /></TouchableOpacity>
         <Text style={s.title}>Your activity</Text>
-        <View style={{ width: 40 }} />
+        <SettingsExit navigation={navigation} />
       </View>
       <View style={s.tabs}>
         {TABS.map((x) => (

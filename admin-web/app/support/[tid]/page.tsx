@@ -27,14 +27,15 @@ export default async function TicketPage({ params, searchParams }: { params: Pro
   const { data: t, error: ticketError } = await svc.from('support_tickets').select('*').eq('id', tid).maybeSingle();
   if (ticketError) throw new Error('Support ticket could not be loaded.');
   if (!t) redirect('/support');
-  const [messages, profile, assignments, staff] = await Promise.all([
+  const [messages, profile, assignments] = await Promise.all([
     svc.from('support_messages').select('*', { count: 'exact' }).eq('ticket_id', t.id).order('created_at', { ascending: false }).order('id', { ascending: false }).range(start, start + SUPPORT_MESSAGE_PAGE_SIZE - 1),
     svc.from('profiles').select('id, full_name, username').eq('id', t.user_id).maybeSingle(),
     readSupportTriage([t.id]),
-    svc.from('admin_users').select('user_id,role').eq('active', true).in('role', ['super_admin', 'platform_admin', 'trust_safety', 'support_agent']).limit(100),
   ]);
-  if (messages.error || messages.count === null || profile.error || staff.error) throw new Error('Support conversation could not be loaded.');
-  const triage = assignments.get(t.id)!;
+  if (messages.error || messages.count === null || profile.error) throw new Error('Support conversation could not be loaded.');
+  const triage = assignments.available ? assignments.tickets.get(t.id) : undefined;
+  const staff = triage ? await svc.from('admin_users').select('user_id,role').eq('active', true).in('role', ['super_admin', 'platform_admin', 'trust_safety', 'support_agent']).limit(100) : { data: [], error: null };
+  if (staff.error) throw new Error('Support staff could not be loaded.');
   const staffIds = (staff.data ?? []).map(member => member.user_id as string);
   const staffProfiles = staffIds.length ? await svc.from('profiles').select('id,full_name,username').in('id', staffIds) : { data: [], error: null };
   if (staffProfiles.error) throw new Error('Support staff could not be loaded.');
@@ -61,6 +62,7 @@ export default async function TicketPage({ params, searchParams }: { params: Pro
 
       <div className="mb-4 rounded-[12px] border border-[#E5E4E0] bg-white p-5">
         <h2 className="text-sm font-bold">Case ownership and priority</h2>
+        {triage ? <>
         <p className="my-2 text-xs text-[#5A5D64]">Internal response targets: urgent 15 minutes, high 1 hour, normal 24 hours, low 72 hours. These targets do not promise staffed coverage.</p>
         {triage.response_due_at ? <p className="mb-3 text-sm">Response due {new Date(triage.response_due_at).toLocaleString()}{Date.parse(triage.response_due_at) < Date.now() ? ' · Overdue' : ''}</p> : null}
         <PermissionGate role={admin.role} permission="support"><CommandForm scope="supportTriage" action={updateSupportTriage} className="flex flex-wrap items-end gap-3">
@@ -72,6 +74,7 @@ export default async function TicketPage({ params, searchParams }: { params: Pro
           <label className="w-full text-sm">Reason<input name="reason" required minLength={3} maxLength={2000} className="block w-full rounded-lg border p-2" placeholder="Why this owner, priority or escalation is appropriate" /></label>
           <button className="rounded-lg bg-[#0B1E3D] px-4 py-2 text-sm font-bold text-white">Save assignment</button>
         </CommandForm></PermissionGate>
+        </> : <p role="status" className="mt-2 text-sm">Assignment tools are unavailable on this deployment. Ticket details and conversation history remain available.</p>}
       </div>
 
       <div className="mb-4 rounded-[12px] border border-[#E5E4E0] bg-white p-5">
@@ -95,7 +98,7 @@ export default async function TicketPage({ params, searchParams }: { params: Pro
         ))}
       </div>
 
-      <div className="rounded-[12px] border border-[#E5E4E0] bg-white p-5">
+      {triage ? <div className="rounded-[12px] border border-[#E5E4E0] bg-white p-5">
         <p className="mb-2 text-[10.5px] font-bold uppercase tracking-wider text-[#9A9DA4]">Reply to the member</p>
         <PermissionGate role={admin.role} permission="support"><CommandForm scope="sendTicketReply" action={sendTicketReply}>
           <input type="hidden" name="tid" value={t.id} />
@@ -114,7 +117,7 @@ export default async function TicketPage({ params, searchParams }: { params: Pro
             {t.status !== 'solved' ? 'Mark solved' : 'Reopen'}
           </button>
         </CommandForm></PermissionGate>
-      </div>
+      </div> : <p className="rounded-[12px] border border-[#E5E4E0] bg-white p-5 text-sm">Support changes are unavailable on this deployment. This conversation is read-only.</p>}
     </Shell>
   );
 }

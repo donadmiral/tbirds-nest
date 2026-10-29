@@ -1,10 +1,12 @@
+import SettingsExit from '../../components/SettingsExit';
+import { settingsBack } from '../../navigation/settingsNavigation';
 /**
  * FollowRequestsScreen.tsx
  * Shows pending follow requests for private account users.
  * Place at: src/screens/profile/FollowRequestsScreen.tsx
  */
 import { ListRowSkeleton } from '../../components/skeletons';
-import { themedSheet } from '../../theme/useTheme';
+import { themedSheet, useTheme } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList,
@@ -16,10 +18,6 @@ import { useNavigation } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 
-const NAVY = '#0B1E3D';
-const TEXT_PRIMARY = '#000000';
-const TEXT_SECONDARY = 'rgba(11,30,61,0.42)';
-const HAIRLINE = 'rgba(11,30,61,0.08)';
 
 type FollowRequest = {
   id: string;
@@ -53,6 +51,7 @@ function relTime(d?: string | null) {
 
 export default function FollowRequestsScreen() {
   const navigation = useNavigation<any>();
+  const { t, isDark } = useTheme();
   const { profile } = useAuthStore();
   const userId = profile?.id ?? null;
 
@@ -166,7 +165,7 @@ export default function FollowRequestsScreen() {
             disabled={busy}
             activeOpacity={0.7}
           >
-            <Feather name="x" size={16} color={TEXT_SECONDARY} />
+            <Feather name="x" size={16} color={t.ink.muted} />
           </TouchableOpacity>
         </View>
       </View>
@@ -175,18 +174,18 @@ export default function FollowRequestsScreen() {
 
   return (
     <SafeAreaView style={st.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <View style={st.header}>
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={() => settingsBack(navigation, 'Settings')}
           style={st.backBtn}
           activeOpacity={0.7}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <Feather name="chevron-left" size={26} color={NAVY} />
+          <Feather name="chevron-left" size={26} color={t.brand.base} />
         </TouchableOpacity>
         <Text style={st.headerTitle}>Follow Requests</Text>
-        <View style={{ width: 40 }} />
+        <SettingsExit navigation={navigation} />
       </View>
 
       {loading ? (
@@ -198,7 +197,7 @@ export default function FollowRequestsScreen() {
           renderItem={renderItem}
           contentContainerStyle={{ paddingBottom: 40 }}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={NAVY} />
+            <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={t.brand.base} />
           }
           ListEmptyComponent={
             <View style={st.empty}>
@@ -219,9 +218,9 @@ const st = themedSheet((t) => ({
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 12, paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline,
   },
-  headerTitle: { fontSize: 17, fontWeight: '600', color: TEXT_PRIMARY, flex: 1, textAlign: 'center' },
+  headerTitle: { fontSize: 17, fontWeight: '600', color: t.ink.primary, flex: 1, textAlign: 'center' },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
   row: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -231,14 +230,14 @@ const st = themedSheet((t) => ({
   rowLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: 12, marginRight: 12 },
   avatar: { width: 50, height: 50, borderRadius: 25 },
   avatarFb: { backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
-  avatarFbTxt: { fontSize: 18, fontWeight: '700', color: NAVY },
-  name: { fontSize: 15, fontWeight: '600', color: TEXT_PRIMARY },
-  username: { fontSize: 13, color: NAVY, fontWeight: '500', marginTop: 1 },
-  program: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 2 },
-  time: { fontSize: 11, color: t.ink.faint, marginTop: 2 },
+  avatarFbTxt: { fontSize: 18, fontWeight: '700', color: t.brand.base },
+  name: { fontSize: 15, fontWeight: '600', color: t.ink.primary },
+  username: { fontSize: 13, color: t.brand.base, fontWeight: '500', marginTop: 1 },
+  program: { fontSize: 12, color: t.ink.muted, marginTop: 2 },
+  time: { fontSize: 11, color: t.ink.muted, marginTop: 2 },
   actions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   acceptBtn: {
-    backgroundColor: NAVY, borderRadius: 10,
+    backgroundColor: t.brand.base, borderRadius: 10,
     paddingHorizontal: 16, paddingVertical: 8,
     minWidth: 70, alignItems: 'center',
   },
@@ -248,6 +247,6 @@ const st = themedSheet((t) => ({
     backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center',
   },
   empty: { alignItems: 'center', paddingVertical: 80, paddingHorizontal: 32, gap: 8 },
-  emptyTitle: { fontSize: 18, fontWeight: '600', color: TEXT_PRIMARY },
-  emptySub: { fontSize: 14, color: TEXT_SECONDARY, textAlign: 'center', lineHeight: 20 },
+  emptyTitle: { fontSize: 18, fontWeight: '600', color: t.ink.primary },
+  emptySub: { fontSize: 14, color: t.ink.muted, textAlign: 'center', lineHeight: 20 },
 }));

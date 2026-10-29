@@ -8,7 +8,7 @@ function compile(file,globals={},pick){
  vm.runInNewContext(ts.transpileModule(code,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText,{module,exports:module.exports,console,setTimeout,clearTimeout,...globals},{filename:file});
  return module.exports;
 }
-const soundtrack=compile('shared/soundtrack.ts'),editing=compile('shared/postMediaEditing.ts');
+const soundtrack=compile('shared/soundtrack.ts'),editing=compile('shared/postMediaEditing.ts'),voice=compile('shared/postVoiceEffects.ts');
 const jsx={jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})};
 const walk=node=>Array.isArray(node)?node.flatMap(walk):node&&typeof node==='object'?[node,...walk(node.props?.children)]:[];
 const words=node=>Array.isArray(node)?node.map(words).join(' '):typeof node==='string'?node:node&&typeof node==='object'?words(node.props?.children):'';
@@ -106,7 +106,7 @@ function nativeDraft(initial={}){
  };
  const props={media:{uri:'file://fixture-video.mp4',type:'video',width:390,height:600,edit:{trimStart:4,trimEnd:9,speed:1.5}},soundtrack:choice,...initial};
  const native={AppState:{currentState:'active',addEventListener(_,cb){foreground.add(cb);return{remove:()=>foreground.delete(cb)};}},Image:'Image',View:'View',Text:'Text',TouchableOpacity:'Button',StyleSheet:{absoluteFill:{}}};
- const mods={react:h.react,'react/jsx-runtime':jsx,'react-native':native,'expo-video':{VideoView:'Video',useVideoPlayer(source,setup){if(source!==loadedSource){loadedSource=source;setup(player);}return player;}},'@expo/vector-icons':{Feather:'Icon'},'./stories/storyPanels':{AdjustLayer:'Adjust'},'./stories/StoryFilters':{FilterLayer:'Filter'},'./PostCaption':{default:'Caption',__esModule:true},'./PostSoundtrack':{default:'Soundtrack',__esModule:true},'../contexts/CallContext':{useCallContext:()=>({callState})},'../../shared/postMediaEditing':editing};
+ const mods={react:h.react,'react/jsx-runtime':jsx,'react-native':native,'expo-video':{VideoView:'Video',useVideoPlayer(source,setup){if(source!==loadedSource){loadedSource=source;setup(player);}return player;}},'@expo/vector-icons':{Feather:'Icon'},'./stories/storyPanels':{AdjustLayer:'Adjust'},'./stories/StoryFilters':{FilterLayer:'Filter'},'./PostCaption':{default:'Caption',__esModule:true},'./PostSoundtrack':{default:'Soundtrack',__esModule:true},'../contexts/CallContext':{useCallContext:()=>({callState})},'../../shared/postMediaEditing':editing,'../../shared/postVoiceEffects':voice};
  const component=compile('src/components/PostDraftPreview.tsx',{require:name=>{assert.ok(name in mods,name);return mods[name];}}).default;
  h.mount(()=>component(props));
  return{...h,get nodes(){return h.nodes;},props,player,seeks,calls,get soundtrack(){return h.nodes.find(n=>n.type==='Soundtrack')?.props;},emit(name,event){if(name==='statusChange')player.status=event.status;for(const cb of events.get(name)??[])cb(event);h.render();},update(next){Object.assign(props,next);h.render(true);},foreground(state){for(const cb of foreground)cb(state);h.render();},call(state){callState=state;h.render(true);},get listenerCount(){return [...events.values()].reduce((n,v)=>n+v.size,0);}};
@@ -142,7 +142,7 @@ function webDraft(initial={}){
   play(){calls.push('play');this.paused=false;return Promise.resolve();},pause(){calls.push('pause');this.paused=true;},
  };
  const props={item:{preview:'blob:fixture-video',width:390,height:600,isVideo:true,edit:{trimStart:4,trimEnd:9,speed:1.5}},soundtrack:choice,...initial};
- const mod=compile('web/components/PostMediaEditor.tsx',{...h.react,...editing,filterCss:()=>'',PostFilterTint:'Tint',AdjustOverlay:'Adjust',PostCaption:'Caption',PostSoundtrack:'Soundtrack',document,window,require:name=>{assert.equal(name,'react/jsx-runtime');return jsx;}},['postMediaStyle','PostDraftPreview']);
+ const mod=compile('web/components/PostMediaEditor.tsx',{...h.react,...editing,...voice,filterCss:()=>'',PostFilterTint:'Tint',AdjustOverlay:'Adjust',PostCaption:'Caption',PostSoundtrack:'Soundtrack',document,window,require:name=>{assert.equal(name,'react/jsx-runtime');return jsx;}},['postMediaStyle','PostDraftPreview']);
  h.mount(()=>mod.PostDraftPreview(props),tree=>{const node=walk(tree).find(n=>n.type==='video');if(node?.props.ref)node.props.ref.current=element;});
  return{...h,get nodes(){return h.nodes;},props,element,seeks,calls,document,get soundtrack(){return h.nodes.find(n=>n.type==='Soundtrack')?.props;},emit(name){const node=h.nodes.find(n=>n.type==='video');assert.ok(node);node.props[name]({currentTarget:element});h.render();},update(next){Object.assign(props,next);h.render(true);},event(name){for(const cb of listeners.get(name)??[])cb();h.render();},get listenerCount(){return [...listeners.values()].reduce((n,v)=>n+v.size,0);}};
 }

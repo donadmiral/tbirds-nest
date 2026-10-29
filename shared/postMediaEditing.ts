@@ -9,6 +9,7 @@ export type PostCaptionCue = {
 };
 
 export type PostFrameRecipe = {
+  voiceEffect?: import('./postVoiceEffects').PostVoiceEffect | null;
   aspectRatio?: number;
   aspect?: 'original' | 'square' | 'portrait' | 'landscape';
   captions?: PostCaptionCue[];

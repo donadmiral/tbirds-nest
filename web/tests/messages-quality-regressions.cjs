@@ -14,6 +14,8 @@ const sources = {
   '../../shared/messageContent': compile(path.join(root, '../shared/messageContent.ts')),
   '../../shared/chatAttachmentCards': compile(path.join(root, '../shared/chatAttachmentCards.ts')),
   '../../shared/messageHistory': compile(path.join(root, '../shared/messageHistory.ts')),
+  '../../shared/messageReceipts': compile(path.join(root, '../shared/messageReceipts.ts')),
+  '../../shared/storyMessageReference': compile(path.join(root, '../shared/storyMessageReference.ts')),
 };
 function moduleFor(code) { const module = { exports: {} }; vm.runInNewContext(code, { module, exports: module.exports, require: name => sources[name] ? moduleFor(sources[name]) : ({}) }); return module.exports; }
 const history = moduleFor(sources['../../shared/messageHistory']);
@@ -21,13 +23,13 @@ const actions = moduleFor(sources['@/lib/messageActions']);
 const id = n => '00000000-0000-4000-8000-' + String(n).padStart(12, '0');
 const row = (n, props = {}) => ({ id: id(n), conversation_id: 'a', sender_id: 'me', receiver_id: 'other', text: 'Message ' + n, media_url: null, media_type: null, reply_to_id: null, created_at: '2026-10-20T10:00:00.123456+00:00', ...props });
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
-const text = node => typeof node === 'string' || typeof node === 'number' ? String(node) : Array.isArray(node) ? node.map(text).join('') : text(node?.props?.children ?? '');
+const text = node => typeof node === 'string' || typeof node === 'number' ? String(node) : Array.isArray(node) ? node.map(text).join('') : node?.type === 'RichText' ? node.props.text : text(node?.props?.children ?? '');
 function nodes(tree) { const out = []; const walk = node => { if (Array.isArray(node)) return node.forEach(walk); if (!node || typeof node !== 'object') return; out.push(node); if (typeof node.type === 'function') walk(node.type(node.props)); else walk(node.props?.children); }; walk(tree); return out; }
 
 function scenario(initial = [row(1)], options = {}) {
   let rows = [...initial], reactions = [], pins = {}, tree, dirty = true, effects = [], cursor = 0;
-  const slots = [], writes = [], reads = [], rpcs = [], listeners = [], timers = new Set();
-  const convs = ['a', 'b'].map(value => ({ id: value, title: 'Conversation ' + value, other_id: 'other', context: 'personal', is_group: false, unread: 0, last_message: '', last_message_time: null }));
+  const slots = [], writes = [], reads = [], rpcs = [], listeners = [], timers = new Set(), browserEvents = new Map(), domEvents = new Map();
+  const convs = ['a', 'b'].map(value => ({ id: value, title: 'Conversation ' + value, other_id: 'other', context: 'personal', is_group: !!options.group, unread: 0, last_message: '', last_message_time: null }));
   let readOverride, writeOverride, rpcFailure = false;
   let authUser = 'me', authListener;
   const execute = async call => {
@@ -79,6 +81,8 @@ function scenario(initial = [row(1)], options = {}) {
   const runtime = { jsx: (type,props,key) => ({ type,props,key }), jsxs: (type,props,key) => ({ type,props,key }), Fragment: 'Fragment' };
   const cache = new Map();
   const stored = new Map();
+  const browserDocument = { body: { style: {} }, visibilityState: options.hidden ? 'hidden' : 'visible', hasFocus: () => options.focused !== false,
+    addEventListener(name, fn) { const set = browserEvents.get(name) || new Set(); set.add(fn); browserEvents.set(name, set); }, removeEventListener(name, fn) { browserEvents.get(name)?.delete(fn); } };
   const localStorage = { get length() { return stored.size; }, key: i => [...stored.keys()][i], getItem: key => stored.get(key) ?? null, setItem: (key,value) => stored.set(key,value), removeItem: key => stored.delete(key) }; 
   const load = name => {
     if (cache.has(name)) return cache.get(name).exports;
@@ -92,14 +96,14 @@ function scenario(initial = [row(1)], options = {}) {
     if (!sources[name]) return new Proxy({}, { get: (_,key) => String(key) });
     const module = { exports: {} }; cache.set(name,module);
     vm.runInNewContext(sources[name], { module, exports: module.exports, require: load, process:{env:options.env||{}}, Error, URLSearchParams, AbortController, crypto: require('node:crypto').webcrypto,
-      window: { localStorage, addEventListener() {}, removeEventListener() {}, location: { search: '' }, matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }), scrollTo() {} }, document: { body: { style: {} } },
+      window: { localStorage, addEventListener: browserDocument.addEventListener, removeEventListener: browserDocument.removeEventListener, location: { search: '' }, matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }), scrollTo() {} }, document: browserDocument,
       navigator: options.navigator || {}, MediaRecorder: options.MediaRecorder, Blob,
       setTimeout, clearTimeout, setInterval: () => 1, clearInterval() {}, requestAnimationFrame: fn => { const timer = setTimeout(fn,0); timers.add(timer); return timer; }, cancelAnimationFrame: clearTimeout,
       ResizeObserver: class { observe() {} disconnect() {} }, MutationObserver: class { observe() {} disconnect() {} },
     }); return module.exports;
   };
   const Component = load('@/components/MessagesApp').MessagesApp;
-  const dom = { children: [], style: {}, scrollTop: 0, scrollHeight: 100, clientHeight: 50, value: 'selected-file', addEventListener() {}, removeEventListener() {} };
+  const dom = { children: [], style: {}, scrollTop: 0, scrollHeight: 100, clientHeight: 50, value: 'selected-file', addEventListener(name, fn) { domEvents.set(name, fn); }, removeEventListener(name) { domEvents.delete(name); } };
   function render() { for (let i=0; dirty && i<25; i++) { dirty=false; cursor=0; tree=Component({}); nodes(tree).forEach(node => { if (node.props?.ref) node.props.ref.current=dom; }); const pending=effects; effects=[]; pending.forEach(effect => effect()); } assert.equal(dirty,false,'render settles'); }
   render();
   return { client, rows: () => rows, writes, reads, rpcs, dom, listeners,
@@ -110,6 +114,10 @@ function scenario(initial = [row(1)], options = {}) {
     draft(value) { const n=nodes(tree).find(node => node.type==='textarea'); n.props.onChange({target:{value}}); render(); },
     changeUser(value) { authUser = value; authListener('SIGNED_IN', value ? { user: { id: value } } : null); render(); },
     setRead(fn) { readOverride=fn; }, setWrite(fn) { writeOverride=fn; }, setRpcFailure(value) { rpcFailure=value; },
+    event(name) { for (const fn of browserEvents.get(name) || []) fn(); render(); },
+    visible(value) { browserDocument.visibilityState = value ? 'visible' : 'hidden'; this.event('visibilitychange'); },
+    focused(value) { options.focused = value; this.event('focus'); },
+    scroll(top, height = 1000) { dom.scrollHeight = height; dom.scrollTop = top; domEvents.get('scroll')?.(); render(); },
     async flush() { for(let i=0;i<8;i++){ await new Promise(resolve=>setImmediate(resolve)); render(); } },
     unmount() { slots.forEach(slot=>slot?.cleanup?.()); timers.forEach(clearTimeout); },
   };
@@ -233,4 +241,29 @@ test('private sessions remain disabled by default during the phone and server cu
  assert.ok(app.text.includes('Open in phone app'));assert.equal(app.find(n=>n.type==='PrivateMediaViewer'),undefined);
  assert.equal(app.find(n=>n.type==='button'&&text(n)==='Open private attachment'),undefined);
  assert.equal(app.rpcs.some(c=>c.name.includes('private_media')),false);app.unmount();
+});
+
+test('hidden or unfocused web chat does not acknowledge read until it becomes visible and focused',async()=>{
+  const app=scenario([row(1,{sender_id:'other',receiver_id:'me'})],{hidden:true});await app.flush();await app.open('a');await app.flush();
+  assert.equal(app.rpcs.filter(c=>c.name.startsWith('mark_conversation_read')).length,0);
+  app.focused(false);app.visible(true);await app.flush();assert.equal(app.rpcs.filter(c=>c.name.startsWith('mark_conversation_read')).length,0);
+  app.focused(true);await app.flush();const reads=app.rpcs.filter(c=>c.name.startsWith('mark_conversation_read'));assert.equal(reads.length,1);assert.equal(reads[0].name,'mark_conversation_read');assert.equal(reads[0].args.p_conv_id,'a');app.unmount();
+});
+test('new messages received while reading history stay unread until returning to latest',async()=>{
+  const app=scenario([row(1,{sender_id:'other',receiver_id:'me'})]);await app.flush();await app.open('a');await app.flush();await new Promise(r=>setTimeout(r,5));await app.flush();
+  const before=app.rpcs.filter(c=>c.name.startsWith('mark_conversation_read')).length;app.scroll(0);
+  const receive=app.listeners.find(l=>l.filter.table==='messages'&&l.filter.event==='INSERT');await receive.callback({new:row(2,{sender_id:'other',receiver_id:'me'})});await app.flush();await new Promise(r=>setTimeout(r,45));await app.flush();
+  assert.equal(app.rpcs.filter(c=>c.name.startsWith('mark_conversation_read')).length,before);
+  app.scroll(950);await app.flush();assert.equal(app.rpcs.filter(c=>c.name.startsWith('mark_conversation_read')).length,before+1);app.unmount();
+});
+test('GIF and sticker actions use durable message delivery and preserve the chosen media kind',async()=>{
+  for (const [button,kind] of [['GIFs','gif'],['Stickers','sticker']]) {
+    const app=scenario();await app.flush();await app.open('a');await app.flush();app.click(button);await app.flush();
+    const picker=app.find(n=>n.type==='GifPicker');assert.ok(picker);await picker.props.onPick({url:'https://media.giphy.com/media/example/giphy.gif',width:300,height:200});await app.flush();
+    const write=app.writes.find(c=>c.table==='messages'&&c.op==='insert');assert.equal(write.input[0].media_type,kind);assert.equal(write.input[0].conversation_id,'a');assert.match(write.input[0].id,/^[0-9a-f-]{36}$/);app.unmount();
+  }
+});
+test('story replies expose the authorized story route without copying story media',async()=>{
+  const storyId=id(42),app=scenario([row(1,{media_type:'link',media_url:JSON.stringify({pcStory:1,storyId})})]);await app.flush();await app.open('a');await app.flush();
+  assert.ok(app.find(n=>n.type==='Link'&&n.props.href==='/story/'+storyId));assert.equal(app.all(n=>['img','video'].includes(n.type)).length,0);app.unmount();
 });

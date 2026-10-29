@@ -7,6 +7,8 @@ import { Feather } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import { supabase } from '../../services/supabase';
 import { CATEGORIES } from '../../constants/categories';
+import { useAuthStore } from '../../stores/authStore';
+import { StudioLoadError } from '../../components/StudioLoadError';
 
 const NAVY = '#0B1E3D';
 export const COMM_COLORS: Record<string, string> = {
@@ -22,6 +24,7 @@ export default function ChannelsScreen() {
   useTheme();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
+  const uid = useAuthStore(state => state.session?.user.id || '');
   const [tab, setTab] = useState<'channels' | 'communities'>('channels');
   const [query, setQuery] = useState('');
   const [rows, setRows] = useState<any[]>([]);
@@ -41,18 +44,33 @@ export default function ChannelsScreen() {
   const [gCat, setGCat] = useState<string | null>(null);
   const [gBusy, setGBusy] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const request = useRef(0), mounted = useRef(true);
+  const locks = useRef(new Set<string>());
+  const owner = useRef(uid); owner.current = uid;
+  const searchScope = useRef(''); searchScope.current = uid + ':' + tab + ':' + query.trim();
+  const currentAccount = () => mounted.current && owner.current === uid && !!uid && useAuthStore.getState().session?.user.id === uid;
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; ++request.current; }; }, []);
+  useEffect(() => { setCreateOpen(false); setCommOpen(false); setCName(''); setCDesc(''); setGName(''); setGDesc(''); setGRules(''); setCreating(false); setGBusy(false); }, [uid]);
 
   const load = useCallback(async (q: string, which: 'channels' | 'communities') => {
+    const identity = uid + ':' + which + ':' + q;
+    if (!mounted.current || searchScope.current !== identity) return;
+    const run = ++request.current;
+    const current = () => mounted.current && run === request.current && searchScope.current === identity;
+    setLoading(true); setLoadError(null);
     try {
       if (which === 'channels') {
         const { data, error } = await supabase.rpc('get_channels', { p_query: q || null, p_limit: 40 });
-        if (!error) setRows(data || []);
+        if (error) throw error;
+        if (current()) setRows(data || []);
       } else {
-        const [{ data, error }, { data: inv }] = await Promise.all([
+        const [{ data, error }, { data: inv, error: inviteError }] = await Promise.all([
           supabase.rpc('get_communities', { p_query: q || null, p_limit: 40 }),
           supabase.rpc('get_my_community_invites'),
         ]);
-        if (!error) {
+        if (error || inviteError) throw error || inviteError;
+        if (current()) {
           // Invitations sit at the top of the directory; accepting one admits you even to an invite-only community.
           const invited = new Set(((inv || []) as any[]).map((i: any) => i.id));
           const base = ((data || []) as any[]).map((r: any) => ({ ...r, has_invite: invited.has(r.id) }));
@@ -60,12 +78,13 @@ export default function ChannelsScreen() {
           setCommRows([...extra, ...base].sort((x: any, y: any) => (y.has_invite ? 1 : 0) - (x.has_invite ? 1 : 0)));
         }
       }
-    } finally { setLoading(false); }
-  }, []);
+    } catch { if (current()) setLoadError('The directory could not be loaded. Please try again.'); }
+    finally { if (current()) setLoading(false); }
+  }, [uid]);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    setLoading(true);
+    ++request.current; setRows([]); setCommRows([]); setLoadError(null); setLoading(true);
     debounceRef.current = setTimeout(() => load(query.trim(), tab), 250);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [query, tab, load]);
@@ -78,26 +97,35 @@ export default function ChannelsScreen() {
   };
 
   const joinAndOpen = async (item: any) => {
+    const key = uid + ':join:' + item.id;
+    if (!currentAccount() || locks.current.has(key)) return;
+    locks.current.add(key);
     try {
       const { error } = await supabase.rpc('join_channel', { p_channel: item.id });
       if (error) throw error;
+      if (!currentAccount()) return;
       setRows(prev => prev.map(r => r.id === item.id ? { ...r, is_member: true, my_role: r.my_role || 'member', member_count: (r.member_count || 0) + 1 } : r));
       openChannel({ ...item, is_member: true, my_role: item.my_role || 'member', member_count: (item.member_count || 0) + 1 });
-    } catch (e: any) { Alert.alert('Could not join', e?.message || 'Please try again.'); }
+    } catch (e: any) { if (currentAccount()) Alert.alert('Could not join', e?.message || 'Please try again.'); }
+    finally { locks.current.delete(key); }
   };
 
   const createChannel = async () => {
     const nm = cName.trim();
-    if (!nm || creating) return;
-    setCreating(true);
+    const key = uid + ':create-channel';
+    if (!nm || !currentAccount() || locks.current.has(key)) return;
+    locks.current.add(key); setCreating(true);
     try {
       const { data, error } = await supabase.rpc('create_channel', { p_name: nm, p_description: cDesc.trim() || null, p_audience: cAud });
       if (error) throw error;
+      if (!currentAccount()) return;
+      const channel = typeof data === 'string' ? { id: data, name: nm } : data;
+      if (!channel?.id) throw new Error('Creation was not confirmed. Refresh the directory before retrying.');
       setCreateOpen(false); setCName(''); setCDesc(''); setCAud('everyone');
-      load(query.trim(), 'channels');
-      navigation.navigate('Channel', { channelId: (data as any).id, name: (data as any).name, memberCount: 1, myRole: 'owner', isMember: true });
-    } catch (e: any) { Alert.alert('Could not create channel', e?.message || 'Please try again.'); }
-    finally { setCreating(false); }
+      void load(query.trim(), 'channels');
+      navigation.navigate('Channel', { channelId: channel.id, name: channel.name || nm, memberCount: 1, myRole: 'owner', isMember: true });
+    } catch (e: any) { if (currentAccount()) Alert.alert('Could not create channel', e?.message || 'Refresh the directory before retrying.'); }
+    finally { locks.current.delete(key); if (currentAccount()) setCreating(false); }
   };
 
   const openCommunity = (item: any) => {
@@ -109,33 +137,41 @@ export default function ChannelsScreen() {
   };
 
   const joinCommunity = async (item: any) => {
+    const key = uid + ':join-community:' + item.id;
+    if (!currentAccount() || locks.current.has(key)) return;
+    locks.current.add(key);
     try {
       const { data, error } = await supabase.rpc('join_community', { p_community: item.id });
       if (error) throw error;
+      if (!currentAccount()) return;
       if (data === 'joined') {
         setCommRows(prev => prev.map(r => r.id === item.id ? { ...r, is_member: true, my_role: r.my_role || 'member', member_count: (r.member_count || 0) + 1 } : r));
         openCommunity({ ...item, is_member: true, my_role: item.my_role || 'member' });
       } else {
         setCommRows(prev => prev.map(r => r.id === item.id ? { ...r, has_pending: true } : r));
       }
-    } catch (e: any) { Alert.alert('Could not join', e?.message || 'Please try again.'); }
+    } catch (e: any) { if (currentAccount()) Alert.alert('Could not join', e?.message || 'Please try again.'); }
+    finally { locks.current.delete(key); }
   };
 
   const createCommunity = async () => {
     const nm = gName.trim();
-    if (!nm || gBusy) return;
-    setGBusy(true);
+    const key = uid + ':create-community';
+    if (!nm || !currentAccount() || locks.current.has(key)) return;
+    locks.current.add(key); setGBusy(true);
     try {
       const { data, error } = await supabase.rpc('create_community', {
         p_name: nm, p_description: gDesc.trim() || null, p_category: gCat,
         p_join_mode: gMode, p_cover_color: gColor, p_rules: gRules.trim() || null,
       });
       if (error) throw error;
+      if (!currentAccount()) return;
+      if (!data || typeof data !== 'string') throw new Error('Creation was not confirmed. Refresh the directory before retrying.');
       setCommOpen(false); setGName(''); setGDesc(''); setGRules(''); setGMode('open'); setGColor('sky'); setGCat(null);
-      load(query.trim(), 'communities');
+      void load(query.trim(), 'communities');
       navigation.navigate('Community', { communityId: data as string, name: nm, coverColor: gColor, iconUrl: null, memberCount: 1, myRole: 'owner', isMember: true });
-    } catch (e: any) { Alert.alert('Could not create community', e?.message || 'Please try again.'); }
-    finally { setGBusy(false); }
+    } catch (e: any) { if (currentAccount()) Alert.alert('Could not create community', e?.message || 'Refresh the directory before retrying.'); }
+    finally { locks.current.delete(key); if (currentAccount()) setGBusy(false); }
   };
 
   const renderRow = ({ item }: { item: any }) => (
@@ -219,7 +255,7 @@ export default function ChannelsScreen() {
         <TextInput style={s.searchInput} placeholder={tab === 'channels' ? 'Search channels' : 'Search communities'} placeholderTextColor={getTheme().ink.secondary} value={query} onChangeText={setQuery} autoCapitalize="none" autoCorrect={false} />
         {query.length > 0 ? <TouchableOpacity onPress={() => setQuery('')}><Feather name="x-circle" size={16} color="#C7C7CC" /></TouchableOpacity> : null}
       </View>
-      {loading ? (
+      {loadError ? <StudioLoadError message={loadError} onRetry={() => void load(query.trim(), tab)} busy={loading} /> : loading ? (
         <View style={s.center}><ActivityIndicator color={NAVY} /></View>
       ) : tab === 'channels' ? (
         rows.length === 0 ? (
@@ -245,11 +281,11 @@ export default function ChannelsScreen() {
         )
       )}
 
-      <Modal visible={createOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setCreateOpen(false)}>
+      <Modal visible={createOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { if (!creating) setCreateOpen(false); }}>
         <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF' }}>
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
             <View style={s.modalHeader}>
-              <TouchableOpacity onPress={() => setCreateOpen(false)} style={{ width: 60 }}><Text style={s.modalCancel}>Cancel</Text></TouchableOpacity>
+              <TouchableOpacity disabled={creating} onPress={() => setCreateOpen(false)} style={{ width: 60 }}><Text style={s.modalCancel}>Cancel</Text></TouchableOpacity>
               <Text style={s.modalTitle}>New channel</Text>
               <TouchableOpacity onPress={createChannel} disabled={!cName.trim() || creating} style={{ width: 60, alignItems: 'flex-end' }}>
                 {creating ? <ActivityIndicator size="small" color={NAVY} /> : <Text style={[s.modalCreate, !cName.trim() && { opacity: 0.35 }]}>Create</Text>}
@@ -280,11 +316,11 @@ export default function ChannelsScreen() {
         </SafeAreaView>
       </Modal>
 
-      <Modal visible={commOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setCommOpen(false)}>
+      <Modal visible={commOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { if (!gBusy) setCommOpen(false); }}>
         <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF' }}>
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
             <View style={s.modalHeader}>
-              <TouchableOpacity onPress={() => setCommOpen(false)} style={{ width: 60 }}><Text style={s.modalCancel}>Cancel</Text></TouchableOpacity>
+              <TouchableOpacity disabled={gBusy} onPress={() => setCommOpen(false)} style={{ width: 60 }}><Text style={s.modalCancel}>Cancel</Text></TouchableOpacity>
               <Text style={s.modalTitle}>New community</Text>
               <TouchableOpacity onPress={createCommunity} disabled={!gName.trim() || gBusy} style={{ width: 60, alignItems: 'flex-end' }}>
                 {gBusy ? <ActivityIndicator size="small" color={NAVY} /> : <Text style={[s.modalCreate, !gName.trim() && { opacity: 0.35 }]}>Create</Text>}

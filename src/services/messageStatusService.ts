@@ -38,7 +38,7 @@ export const messageStatusService = {
    */
   async markConversationViewed(conversationId: string, currentUserId: string) {
     const { error } = await supabase.rpc('mark_conversation_read', {
-      p_conversation_id: conversationId,
+      p_conv_id: conversationId,
       p_user_id: currentUserId,
     });
     if (error) throw error;

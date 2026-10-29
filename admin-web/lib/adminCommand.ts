@@ -2,6 +2,7 @@ import 'server-only';
 import { requirePermission } from './adminAuth';
 import { serviceClient } from './supabaseAdmin';
 import type { Permission } from './permissions';
+import { isMissingAdminRpc } from './adminRpcAvailability';
 
 export async function runAdminCommand(operation: string, permission: Permission, form: FormData) {
   if (operation === 'dismissReport') permission = form.get('table') === 'listing_reports' ? 'report_listing' : 'report_post';
@@ -17,6 +18,9 @@ export async function runAdminCommand(operation: string, permission: Permission,
   const { data, error } = await serviceClient().rpc('triniti_platinum_admin_command', {
     p_actor_id: admin.id, p_session_id: admin.sessionId, p_key: key, p_operation: operation, p_payload: payload,
   });
+  if (isMissingAdminRpc(error, 'triniti_platinum_admin_command')) {
+    return { success: false as const, error: 'This action is unavailable on this deployment. No change was made. Contact the platform administrator.' };
+  }
   if (error || data?.success !== true || data?.command_key !== key) {
     const messages: Record<string, string> = {
       TARGET_NOT_FOUND: 'This record no longer exists.', APPLICATION_NOT_PENDING: 'This application has already been reviewed.',

@@ -1,4 +1,6 @@
+import { postPlaybackSettings } from '../../shared/postVoiceEffects';
 import { postAspectRatio, type PostFrameRecipe } from '../../shared/postMediaEditing';
+import { carouselIndex } from '../../shared/carouselNavigation';
 import PostCaption from './PostCaption';
 /**
  * PostCarousel.tsx
@@ -27,7 +29,7 @@ import {
 import { Image as ExpoImage } from 'expo-image';
 import { VideoView } from 'expo-video';
 import { useSharedVideo } from '../lib/videoEngine';
-import { useMediaTags, TagLayer } from './MediaRenderer';
+import { useMediaTags, TagLayer, PinchInspect } from './MediaRenderer';
 import { FilterLayer } from './stories/StoryFilters';
 import { AdjustLayer } from './stories/storyPanels';
 import { useIsFocused } from '@react-navigation/native';
@@ -56,6 +58,9 @@ type Props = {
   flush?: boolean;
   /** Keep the video view attached even without owning the engine (the comments stage during its handoff). */
   holdView?: boolean;
+  initialIndex?: number;
+  maxHeight?: number;
+  fullFrame?: boolean;
 };
 
 // 4:5 portrait = height is 1.25x width (same as Instagram)
@@ -64,13 +69,13 @@ const HEIGHT_RATIO = 5 / 4; // 1.25
 // Feed sound rule: autoplay muted; once the user unmutes, new videos inherit sound this session
 let sessionMuted = true;
 
-function CarouselImage({ uri, width, height, edit }: { uri: string; width: number; height: number; edit?: CarouselMedia['edit'] }) {
+function CarouselImage({ uri, width, height, edit, fullFrame }: { uri: string; width: number; height: number; edit?: CarouselMedia['edit']; fullFrame?: boolean }) {
   const [loaded, setLoaded] = useState(false);
-  const fit = edit?.fit === 'contain' ? 'contain' : 'cover';
+  const fit = edit?.fit === 'contain' || (fullFrame && !edit?.aspect && !edit?.aspectRatio) ? 'contain' : 'cover';
   const hasXform = !!(edit?.scale && edit.scale !== 1) || !!edit?.translateNX || !!edit?.translateNY || !!edit?.rotation || !!edit?.flipX;
   const xform = hasXform ? [{ translateX: (edit?.translateNX || 0) * width }, { translateY: (edit?.translateNY || 0) * height }, { scale: edit?.scale || 1 },{rotate: `${edit?.rotation || 0}deg`},{scaleX:edit?.flipX?-1:1}] : undefined;
 
-  return (
+  const image = (
     <View style={{ width, height, backgroundColor: '#F0F0F0' }}>
       <ExpoImage
         source={{ uri }}
@@ -92,20 +97,23 @@ function CarouselImage({ uri, width, height, edit }: { uri: string; width: numbe
       )}
     </View>
   );
+  return fullFrame ? <PinchInspect>{image}</PinchInspect> : image;
 }
 
 function CarouselVideo({
-  uri, width, height, isVisible, isScreenActive, onTapOverride, onExpand, poster, edit, postId, holdView, soundtrack,
+  uri, width, height, isVisible, isScreenActive, onTapOverride, onExpand, poster, edit, postId, holdView, soundtrack, fullFrame,
 }: {
   soundtrack?: SoundtrackSelection|null; uri: string; width: number; height: number; poster?: string | null; edit?: CarouselMedia['edit']; postId?: string | null; holdView?: boolean;
   isVisible: boolean; isScreenActive: boolean;
   onTapOverride?: (at?: number) => void;
   onExpand?: (at?: number) => void;
+  fullFrame?: boolean;
 }) {
 // expo-video hands you a player object rather than a component ref, so
   // seeking and muting are property writes instead of async calls.
   // One engine for the app: this surface owns it while it is on screen and in front.
-  const { player, owns } = useSharedVideo({ uri, visible: isVisible, screenActive: isScreenActive, postId: postId ?? null, rate: (edit as any)?.speed || 1, muted: sessionMuted || !!(edit as any)?.muted });
+  const voicePlayback = postPlaybackSettings(edit);
+  const { player, owns } = useSharedVideo({ uri, visible: isVisible, screenActive: isScreenActive, postId: postId ?? null, rate: voicePlayback.rate, preservesPitch: voicePlayback.preservesPitch, muted: sessionMuted || !!(edit as any)?.muted });
   // Data saver: with autoplay off, videos hold at their poster until tapped.
   const [paused, setPaused] = useState(false);
   // Data saver: reactive — flipping the setting applies to every card at once.
@@ -117,7 +125,7 @@ function CarouselVideo({
   const postedMuted = !!(edit as any)?.muted;
   const [muted, setMuted] = useState(sessionMuted);
   const [progress, setProgress] = useState(0);
-  const [musicClock,setMusicClock] = useState({time:0,playing:false,rate:edit?.speed||1});
+  const [musicClock,setMusicClock] = useState({time:0,playing:false,rate:voicePlayback.rate});
   const [showControls, setShowControls] = useState(false);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const controlsOpacity = useRef(new Animated.Value(0)).current;
@@ -134,13 +142,13 @@ function CarouselVideo({
       const d = player.duration;
       const start=edit?.trimStart||0,end=edit?.trimEnd||d;
       if(player.currentTime<start||end>start&&player.currentTime>=end)player.currentTime=start;
-      setMusicClock({time:Math.max(0,player.currentTime-start),playing:player.playing&&player.status==='readyToPlay',rate:edit?.speed||1});
+      setMusicClock({time:Math.max(0,player.currentTime-start),playing:player.playing&&player.status==='readyToPlay',rate:voicePlayback.rate});
       if (d > 0) setProgress((e?.currentTime ?? player.currentTime) / d);
     });
     const changes=player.addListener('playingChange',(e)=>setMusicClock(c=>({...c,playing:e.isPlaying&&player.status==='readyToPlay'})));
     const status=player.addListener('statusChange', e=>setMusicClock(c=>({...c,playing:e.status==='readyToPlay'&&player.playing})));
     return () => { sub.remove(); changes.remove(); status.remove(); };
-  }, [owns, player, edit?.trimStart, edit?.trimEnd, edit?.speed]);
+  }, [owns, player, edit?.trimStart, edit?.trimEnd, voicePlayback.rate]);
 
   // Auto-hide controls after 3 seconds
   const scheduleHide = useCallback(() => {
@@ -210,8 +218,8 @@ function CarouselVideo({
       activeOpacity={1}
       onPress={onTapOverride ? () => { let at = 0; try { at = Number((player as any).currentTime) || 0; } catch {} onTapOverride(at); } : toggleControls}
     >
-      {owns || holdView ? <VideoView style={{ width: '100%', height: '100%', transform:[{translateX:(edit?.translateNX||0)*width},{translateY:(edit?.translateNY||0)*height},{scale:edit?.scale||1},{rotate:`${edit?.rotation||0}deg`},{scaleX:edit?.flipX?-1:1}] }} player={player} contentFit={edit?.fit === 'contain' ? 'contain' : 'cover'} nativeControls={false} fullscreenOptions={{ enable: false }} /> : null}
-      {poster && !owns && !holdView ? <ExpoImage source={{ uri: poster }} style={{ position: 'absolute', left: 0, top: 0, width, height,transform:[{translateX:(edit?.translateNX||0)*width},{translateY:(edit?.translateNY||0)*height},{scale:edit?.scale||1},{rotate:`${edit?.rotation||0}deg`},{scaleX:edit?.flipX?-1:1}] }} contentFit={edit?.fit==='contain'?'contain':'cover'} /> : null}
+      {owns || holdView ? <VideoView style={{ width: '100%', height: '100%', transform:[{translateX:(edit?.translateNX||0)*width},{translateY:(edit?.translateNY||0)*height},{scale:edit?.scale||1},{rotate:`${edit?.rotation||0}deg`},{scaleX:edit?.flipX?-1:1}] }} player={player} contentFit={edit?.fit === 'contain' || (fullFrame && !edit?.aspect && !edit?.aspectRatio) ? 'contain' : 'cover'} nativeControls={false} fullscreenOptions={{ enable: false }} /> : null}
+      {poster && !owns && !holdView ? <ExpoImage source={{ uri: poster }} style={{ position: 'absolute', left: 0, top: 0, width, height,transform:[{translateX:(edit?.translateNX||0)*width},{translateY:(edit?.translateNY||0)*height},{scale:edit?.scale||1},{rotate:`${edit?.rotation||0}deg`},{scaleX:edit?.flipX?-1:1}] }} contentFit={edit?.fit === 'contain' || (fullFrame && !edit?.aspect && !edit?.aspectRatio) ? 'contain' : 'cover'} /> : null}
       {edit?.filterId ? <FilterLayer filterId={edit.filterId} amt={edit.filterAmt ?? 100} /> : null}
       {edit?.adjust ? <AdjustLayer adjust={edit.adjust} /> : null}
       <PostCaption captions={edit?.captions} time={musicClock.time + (edit?.trimStart ?? 0)} />
@@ -285,7 +293,7 @@ async function loadSensitiveMode() {
   } catch {}
 }
 
-export default function PostCarousel({ media, containerWidth, isActive = true, onMediaPress, postId, flush, holdView }: Props) {
+export default function PostCarousel({ media, containerWidth, isActive = true, onMediaPress, postId, flush, holdView, initialIndex = 0, maxHeight, fullFrame = false }: Props) {
   const [revealed, setRevealed] = useState(false);
   useEffect(() => setRevealed(false), [postId]);
   const [, bump] = useState(0);
@@ -293,11 +301,17 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
   const isSensitive = (media || []).some((m: any) => !!m?.is_sensitive || !!m?.edit?.sensitive);
   const veil = isSensitive && sensitiveMode === 'blur' && !revealed;
   const tagMap = useMediaTags((media || []).map((m: any) => m.id).filter(Boolean));
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(() => carouselIndex(initialIndex, media.length));
+  const listRef = useRef<FlatList<CarouselMedia>>(null);
+  const changePage = (index: number) => {
+    const next = carouselIndex(index, media.length);
+    setActiveIndex(next);
+    listRef.current?.scrollToIndex({ index: next, animated: true });
+  };
   // Every attachment keeps the exact frame shown in its editor.
   const currentMedia=media[Math.min(activeIndex,media.length-1)];
   const ratio = 1 / postAspectRatio(currentMedia?.edit,currentMedia?.width,currentMedia?.height);
-  const slideHeight = Math.round(containerWidth * ratio);
+  const slideHeight = Math.max(1, Math.min(Math.round(containerWidth * ratio), maxHeight ?? Infinity));
   const total = media.length;
   const soundtrack=readSoundtrack(media[0]?.edit?.soundtrack);
 
@@ -324,6 +338,7 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
             soundtrack={soundtrack}
             width={containerWidth}
             height={slideHeight}
+            fullFrame={fullFrame}
             isVisible={index === activeIndex}
             isScreenActive={isActive}
             onTapOverride={onMediaPress ? (at?: number) => onMediaPress(index, at) : undefined}
@@ -339,6 +354,7 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
             uri={item.url}
             width={containerWidth}
             height={slideHeight}
+            fullFrame={fullFrame}
             edit={item.edit}
           />
         </TouchableOpacity>
@@ -346,7 +362,7 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
         <TagLayer tags={(item as any).id ? tagMap[(item as any).id] : undefined} width={containerWidth} height={slideHeight} />
       </View>
     );
-  }, [containerWidth, slideHeight, activeIndex, isActive, onMediaPress, media, tagMap, soundtrack, veil, postId, holdView]);
+  }, [containerWidth, slideHeight, activeIndex, isActive, onMediaPress, media, tagMap, soundtrack, veil, postId, holdView, fullFrame]);
 
 
   if (total === 0) return null;
@@ -379,6 +395,7 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
             soundtrack={soundtrack}
                 width={containerWidth}
                 height={slideHeight}
+                fullFrame={fullFrame}
                 isVisible={true}
                 isScreenActive={isActive}
                 onExpand={onMediaPress ? (at?: number) => onMediaPress(0, at) : undefined}
@@ -392,6 +409,7 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
                   uri={item.url}
                   width={containerWidth}
                   height={slideHeight}
+                  fullFrame={fullFrame}
                   edit={item.edit}
                 />
               </TouchableOpacity>
@@ -410,11 +428,16 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
     <View style={[st.carouselWrap, flush && { marginTop: 0, width: containerWidth }]}>
       <View style={{ height: slideHeight, overflow: 'hidden' }}>
         <FlatList
+          ref={listRef}
+          key={containerWidth}
           data={media}
           keyExtractor={(item) => item.id || String(item.sort_order)}
           renderItem={renderItem}
           horizontal
           pagingEnabled
+          directionalLockEnabled
+          initialScrollIndex={carouselIndex(activeIndex, total)}
+          onMomentumScrollEnd={e => setActiveIndex(carouselIndex(Math.round(e.nativeEvent.contentOffset.x / containerWidth), total))}
           showsHorizontalScrollIndicator={false}
           bounces={false}
           decelerationRate="fast"
@@ -441,13 +464,17 @@ export default function PostCarousel({ media, containerWidth, isActive = true, o
       {/* Page dots below the image */}
       <View style={st.dotsRow}>
         {media.map((_, i) => (
-          <View
+          <TouchableOpacity
             key={i}
-            style={[
+            accessibilityRole="button"
+            accessibilityLabel={`Show attachment ${i + 1} of ${total}`}
+            accessibilityState={{ selected: i === activeIndex }}
+            onPress={() => changePage(i)}
+            style={{ width: 24, height: 40, alignItems: 'center', justifyContent: 'center' }}
+          ><View style={[
               st.dot,
-              i === activeIndex ? st.dotActive : st.dotInactive,
-            ]}
-          />
+              fullFrame ? { backgroundColor: i === activeIndex ? '#FFFFFF' : 'rgba(255,255,255,0.4)' } : i === activeIndex ? st.dotActive : st.dotInactive,
+            ]} /></TouchableOpacity>
         ))}
       </View>
     </View>
@@ -485,7 +512,7 @@ const st = themedSheet((t) => ({
     alignItems: 'center', justifyContent: 'center',
   },
   controlLabel: {
-    fontSize: 9, fontWeight: '700', color: t.ink.inverse,
+    fontSize: 9, fontWeight: '700', color: '#FFFFFF',
     marginTop: -2,
   },
   expandBtn: {
@@ -506,11 +533,11 @@ const st = themedSheet((t) => ({
     borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4,
   },
   counterTxt: {
-    fontSize: 12, fontWeight: '700', color: t.ink.inverse,
+    fontSize: 12, fontWeight: '700', color: '#FFFFFF',
   },
   dotsRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    paddingTop: 10, paddingBottom: 2, gap: 5,
+    paddingTop: 0, paddingBottom: 0, gap: 0,
   },
   dot: {
     width: 6, height: 6, borderRadius: 3,

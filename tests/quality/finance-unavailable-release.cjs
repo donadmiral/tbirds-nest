@@ -34,7 +34,9 @@ function adminModule(file,role='finance_admin'){
   if(name.endsWith('/availability'))return availability;return{};
  });return{mod,get checks(){return checks;},get service(){return service;}};
 }
-for(const file of ['admin-web/app/payments/page.tsx','admin-web/app/payments/creators/page.tsx'])test(`${file} preserves staff authorization and renders unavailable without financial queries`,async()=>{
+// The existing transfer report is read-only and is covered by the operations
+// payment-reporting suite. Creator finance commands remain unavailable.
+for(const file of ['admin-web/app/payments/creators/page.tsx'])test(`${file} preserves staff authorization and renders unavailable without financial queries`,async()=>{
  const h=adminModule(file);const tree=await h.mod.default({searchParams:Promise.resolve({})});assert.equal(h.checks,1);assert.equal(h.service,0);assert.equal(tree.type,'Shell');assert.match(words(tree),/unavailable in this release/);assert.ok(walk(tree).some(n=>n.type==='Link'&&n.props.href==='/dashboard'));
 });
 test('creator review action remains unavailable even if an old client submits its form',async()=>{

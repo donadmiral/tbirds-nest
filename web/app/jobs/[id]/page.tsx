@@ -1,4 +1,6 @@
 import { profilePath } from "@/lib/profileLookup";
+import { cache } from "react";
+import { isJobId } from "../../../../shared/hiring";
 import type { Metadata } from "next";
 import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
@@ -12,11 +14,13 @@ import { RelativeTime } from "@/components/RelativeTime";
 
 type Params = { params: Promise<{ id: string }> };
 
-async function loadJob(id: string) {
+const loadJob = cache(async (id: string) => {
+  if (!isJobId(id)) return null;
   const supabase = await createClient();
-  const { data } = await supabase.from("jobs").select("*").eq("id", id).maybeSingle();
+  const { data, error } = await supabase.from("jobs").select("*").eq("id", id).maybeSingle();
+  if (error) throw new Error("The job could not be loaded. Please try again.");
   return data as JobRow | null;
-}
+});
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { id } = await params;
@@ -64,10 +68,11 @@ export default async function JobPage({ params }: Params) {
 
   const [posterRes, savedRes, applicantsRes, relatedRes] = await Promise.all([
     supabase.from("profiles").select("id, full_name, username, avatar_url, is_verified, verified_tier").eq("id", j.posted_by).maybeSingle(),
-    viewerId ? supabase.from("job_saves").select("job_id").eq("user_id", viewerId).eq("job_id", id).maybeSingle() : Promise.resolve({ data: null }),
+    viewerId ? supabase.from("job_saves").select("job_id").eq("user_id", viewerId).eq("job_id", id).maybeSingle() : Promise.resolve({ data: null, error: null }),
     viewerId === j.posted_by ? supabase.from("job_applications").select("id", { count: "exact", head: true }).eq("job_id", id) : Promise.resolve({ count: null }),
-    j.category ? supabase.from("jobs").select("id, title, company, location").eq("category", j.category).neq("id", id).order("created_at", { ascending: false }).limit(3) : Promise.resolve({ data: [] }),
+    j.category ? supabase.from("jobs").select("id, title, company, location").eq("category", j.category).neq("id", id).or(`deadline.is.null,deadline.gt.${new Date().toISOString()}`).order("created_at", { ascending: false }).limit(3) : Promise.resolve({ data: [] }),
   ]);
+  if (savedRes.error) throw new Error("Your saved job state could not be checked. Please try again.");
   const poster = posterRes.data;
 
   const dLeft = daysLeft(j.deadline);

@@ -1,4 +1,6 @@
-import { themedSheet } from '../../theme/useTheme';
+import SettingsExit from '../../components/SettingsExit';
+import { settingsBack } from '../../navigation/settingsNavigation';
+import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import KeyboardSafe from '../../components/KeyboardSafe';
 /**
  * ContactSupportScreen - the member's line to operations. A normal
@@ -30,6 +32,7 @@ function ago(iso: string): string {
 
 export default function ContactSupportScreen() {
   const navigation = useNavigation<any>();
+  const { isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
   const isAppeal = !!(profile as any)?.deactivated_at;
@@ -72,13 +75,13 @@ export default function ContactSupportScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Feather name="chevron-left" size={26} color={NAVY} />
+        <TouchableOpacity onPress={() => settingsBack(navigation, 'Settings')} style={s.backBtn} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Feather name="chevron-left" size={26} color={getTheme().ink.primary} />
         </TouchableOpacity>
         <Text style={s.headerTitle}>{isAppeal ? 'Appeal' : 'Contact support'}</Text>
-        <View style={{ width: 40 }} />
+        <SettingsExit navigation={navigation} />
       </View>
       <KeyboardSafe>
       <ScrollView automaticallyAdjustKeyboardInsets={true} contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 110, 130) }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
@@ -101,12 +104,12 @@ export default function ContactSupportScreen() {
 
         <View style={s.section}>
           <Text style={s.label}>Subject</Text>
-          <TextInput value={subject} onChangeText={setSubject} placeholder={isAppeal ? 'Appeal my suspension' : 'In a few words'} placeholderTextColor="rgba(11,30,61,0.35)" style={s.input} maxLength={120} returnKeyType="next" />
+          <TextInput value={subject} onChangeText={setSubject} placeholder={isAppeal ? 'Appeal my suspension' : 'In a few words'} placeholderTextColor={getTheme().ink.muted} style={s.input} maxLength={120} returnKeyType="next" />
         </View>
 
         <View style={s.section}>
           <Text style={s.label}>Message</Text>
-          <TextInput value={body} onChangeText={setBody} multiline placeholder={isAppeal ? 'Your case for restoration' : 'What happened, and what you expected'} placeholderTextColor="rgba(11,30,61,0.35)" style={[s.input, s.box]} maxLength={2000} textAlignVertical="top" />
+          <TextInput value={body} onChangeText={setBody} multiline placeholder={isAppeal ? 'Your case for restoration' : 'What happened, and what you expected'} placeholderTextColor={getTheme().ink.muted} style={[s.input, s.box]} maxLength={2000} textAlignVertical="top" />
           <Text style={s.count}>{body.length} / 2000</Text>
         </View>
 
@@ -126,7 +129,7 @@ export default function ContactSupportScreen() {
                   <Text style={s.rowWhen}>{ago(t.updated_at || t.created_at)}</Text>
                 </View>
                 <View style={[s.pill, { backgroundColor: st.bg }]}><Text style={[s.pillTxt, { color: st.fg }]}>{st.label}</Text></View>
-                <Feather name="chevron-right" size={18} color="rgba(11,30,61,0.3)" />
+                <Feather name="chevron-right" size={18} color={getTheme().ink.muted} />
               </TouchableOpacity>
             ); })}
           </View>
@@ -141,23 +144,23 @@ const s = themedSheet((t) => ({
   safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 8, height: 48, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 16, fontWeight: '800', color: NAVY },
-  lede: { fontSize: 13.5, lineHeight: 19, color: 'rgba(11,30,61,0.6)', paddingHorizontal: 16, paddingTop: 14, paddingBottom: 6 },
+  headerTitle: { fontSize: 16, fontWeight: '800', color: t.ink.primary },
+  lede: { fontSize: 13.5, lineHeight: 19, color: t.ink.muted, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 6 },
   section: { paddingHorizontal: 16, marginTop: 14 },
   label: { fontSize: 12, fontWeight: '800', color: t.ink.muted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, borderWidth: 1, borderColor: t.surface.hairline, backgroundColor: t.surface.canvas },
-  chipOn: { backgroundColor: NAVY, borderColor: NAVY },
-  chipTxt: { fontSize: 13, fontWeight: '600', color: NAVY },
+  chipOn: { backgroundColor: t.brand.base, borderColor: NAVY },
+  chipTxt: { fontSize: 13, fontWeight: '600', color: t.ink.primary },
   chipTxtOn: { color: t.ink.inverse },
-  input: { borderWidth: 1, borderColor: t.surface.hairline, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 11, fontSize: 15, color: NAVY, backgroundColor: t.surface.canvas },
+  input: { borderWidth: 1, borderColor: t.surface.hairline, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 11, fontSize: 15, color: t.ink.primary, backgroundColor: t.surface.canvas },
   box: { minHeight: 150, lineHeight: 21, paddingTop: 11 },
   count: { fontSize: 11.5, color: 'rgba(11,30,61,0.4)', marginTop: 6, textAlign: 'right' },
-  submit: { backgroundColor: NAVY, borderRadius: 12, height: 48, alignItems: 'center', justifyContent: 'center' },
+  submit: { backgroundColor: t.brand.base, borderRadius: 12, height: 48, alignItems: 'center', justifyContent: 'center' },
   submitTxt: { color: t.ink.inverse, fontSize: 15, fontWeight: '800' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline },
   rowFirst: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.surface.hairline },
-  rowSubject: { fontSize: 14.5, fontWeight: '700', color: NAVY },
+  rowSubject: { fontSize: 14.5, fontWeight: '700', color: t.ink.primary },
   rowWhen: { fontSize: 12, color: t.ink.muted, marginTop: 2 },
   pill: { borderRadius: 999, paddingHorizontal: 9, paddingVertical: 4 },
   pillTxt: { fontSize: 11, fontWeight: '800' },

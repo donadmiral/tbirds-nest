@@ -51,17 +51,30 @@ export default function JobsPage() {
   const [category, setCategory] = useState<string>("all");
   const [sort, setSort] = useState<(typeof SORT_OPTIONS)[number]["id"]>("recent");
   const [search, setSearch] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const generation = useRef(0);
+  const account = useRef<string | null>(null);
 
   const load = useCallback(async () => {
+    const token = ++generation.current;
     setLoading(true);
-    const { data: sess } = await supabase.auth.getSession();
+    setError(null);
+    try {
+    const { data: sess, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) throw sessionError;
+    if (token !== generation.current) return;
     const uid = sess.session?.user.id ?? null;
+    account.current = uid;
     setViewerId(uid);
     const [jobsRes, savedRes, profRes] = await Promise.all([
-      supabase.from("jobs").select("*").order("created_at", { ascending: false }).limit(100),
-      uid ? supabase.from("job_saves").select("job_id").eq("user_id", uid) : Promise.resolve({ data: [] }),
-      uid ? supabase.from("profiles").select("location").eq("id", uid).maybeSingle() : Promise.resolve({ data: null }),
+      supabase.from("jobs").select("*").or(`deadline.is.null,deadline.gt.${new Date().toISOString()}`).order("created_at", { ascending: false }).limit(100),
+      uid ? supabase.from("job_saves").select("job_id").eq("user_id", uid) : Promise.resolve({ data: [], error: null }),
+      uid ? supabase.from("profiles").select("location").eq("id", uid).maybeSingle() : Promise.resolve({ data: null, error: null }),
     ]);
+    if (jobsRes.error) throw jobsRes.error;
+    if (savedRes.error) throw savedRes.error;
+    if (profRes.error) throw profRes.error;
+    if (token !== generation.current) return;
     const rows = (jobsRes.data ?? []) as Row[];
     const posterIds = Array.from(new Set(rows.map((j) => j.posted_by).filter(Boolean)));
     if (posterIds.length > 0) {
@@ -69,20 +82,35 @@ export default function JobsPage() {
       const map = new Map((profiles ?? []).map((p) => [p.id, p as PosterLite]));
       rows.forEach((j) => (j.profile = map.get(j.posted_by) ?? null));
     }
+    if (token !== generation.current) return;
     setJobs(rows);
     setSavedIds(new Set(((savedRes.data ?? []) as { job_id: string }[]).map((r) => r.job_id)));
     setMyCity(String((profRes.data as { location?: string } | null)?.location || "").trim().split(",")[0].trim());
-    setLoading(false);
+    } catch {
+      if (token === generation.current) setError("Jobs could not be loaded. Check your connection and try again.");
+    } finally {
+      if (token === generation.current) setLoading(false);
+    }
   }, [supabase]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    void load();
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      const next = session?.user.id ?? null;
+      if (next !== account.current) {
+        account.current = next;
+        generation.current += 1;
+        setJobs([]); setSavedIds(new Set()); setMyCity(""); setViewerId(next);
+        void load();
+      }
+    });
+    return () => { ++generation.current; listener.subscription.unsubscribe(); };
+  }, [load, supabase]);
 
   const shown = useMemo(() => {
     let out = jobs;
     if (scope === "global") out = out.filter((j) => j.remote_type === "remote");
-    if (scope === "primary" && myCity.length >= 3) out = out.filter((j) => (j.location || "").toLowerCase().includes(myCity.toLowerCase()));
+    if (scope === "primary") out = myCity.length >= 3 ? out.filter((j) => (j.location || "").toLowerCase().includes(myCity.toLowerCase())) : [];
     if (category !== "all") out = out.filter((j) => j.category === category);
     const term = search.trim().toLowerCase();
     if (term) out = out.filter((j) => (j.title + " " + j.company + " " + (j.description || "")).toLowerCase().includes(term));
@@ -95,7 +123,7 @@ export default function JobsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between px-1 pb-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-1 pb-3">
         <h1 className="font-display text-2xl text-porcelain">Jobs</h1>
         <div className="flex items-center gap-1">
           <Link href="/jobs/messages" title="Job messages" className="rounded-full p-2 text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><MessageCircle size={19} /></Link>
@@ -124,7 +152,7 @@ export default function JobsPage() {
             {t.label}
           </button>
         ))}
-        <select value={sort}
+        <select value={sort} aria-label="Sort jobs"
           onChange={(e) => setSort(e.target.value as typeof sort)}
           className="ml-auto rounded-full bg-surface px-3 py-1.5 text-[13px] text-ink/80 outline-none"
         >
@@ -146,7 +174,11 @@ export default function JobsPage() {
       </div>
 
       {loading ? (
-        <p className="py-16 text-center text-sm text-muted">Loading jobs</p>
+        <p role="status" className="py-16 text-center text-sm text-muted">Loading jobs</p>
+      ) : error ? (
+        <div role="alert" className="py-12 text-center"><p className="text-sm text-ink">{error}</p><button onClick={() => void load()} className="mt-3 min-h-11 rounded-full bg-pearl px-5 font-semibold text-on-pearl">Try again</button></div>
+      ) : scope === "primary" && myCity.length < 3 ? (
+        <div className="py-12 text-center"><p className="text-sm text-muted">Add your city to your profile to find jobs near you.</p><button onClick={() => setScope("all")} className="mt-3 min-h-11 text-accent underline">Browse all jobs</button></div>
       ) : shown.length === 0 ? (
         <p className="py-16 text-center text-sm text-muted">No jobs match. Try clearing the filters.</p>
       ) : (

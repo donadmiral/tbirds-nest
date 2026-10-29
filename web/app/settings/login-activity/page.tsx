@@ -25,7 +25,6 @@ export default function LoginActivityPage() {
   };
   return (
     <div className="mx-auto max-w-[640px] px-4 py-6">
-      <Link href="/settings" className="inline-flex items-center gap-1.5 text-[13px] text-ink/60 hover:text-ink"><ArrowLeft size={14} /> Settings</Link>
       <h1 className="mt-4 font-display text-[24px] font-bold text-ink">Login activity</h1>
       <p className="mt-1 text-[13.5px] text-ink/60">Phones and tablets signed in to your account. This browser is a separate session. If a device isn't yours, log the others out and change your password.</p>
       <ul className="mt-4 divide-y divide-ink/8">

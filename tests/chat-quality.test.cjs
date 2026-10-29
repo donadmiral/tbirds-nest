@@ -19,7 +19,7 @@ const defer = () => { let resolve; const promise = new Promise(done=>{resolve=do
 
 function historyHarness(response) {
   const state = { rows:[], loading:false, loadingOlder:false, error:null, hasOlder:false }, queries=[];
-  const context = { accountScopeRef:{current:'owner:me'}, ...history, conversationId:'a', currentUserId:'me', mountedRef:{current:true}, activeConversation:{current:'a'}, historyRequest:{current:0}, historyCursor:{current:null}, olderPending:{current:false},
+  const context = { accountScopeRef:{current:'owner:me'}, ...history, conversationId:'a', currentUserId:'me', mountedRef:{current:true}, activeConversation:{current:'a'}, historyRequest:{current:0}, historyCursor:{current:null}, olderPending:{current:false}, historyLoadedRef:{current:false},
     setMessages(fn){state.rows=typeof fn==='function'?fn(state.rows):fn;}, setLoading(value){state.loading=value;}, setHistoryError(value){state.error=value;}, setHasOlder(value){state.hasOlder=value;}, setLoadingOlder(value){state.loadingOlder=value;},
     signChatMedia:async rows=>rows, loadReactions:async()=>{}, markRead:async()=>{}, refreshStatus:async()=>{}, loadStarredIds:async()=>{}, loadSavedIds:async()=>{},
     supabase:{from(table){const query={table};queries.push(query); const chain={select(){return chain;},eq(key,value){query[key]=value;return chain;},order(){return chain;},limit(value){query.limit=value;return chain;},or(value){query.filter=value;return chain;},then(ok,bad){return Promise.resolve(typeof response==='function'?response(query):response).then(ok,bad);}};return chain;}}
@@ -29,10 +29,11 @@ function historyHarness(response) {
 test('native history opens latest bounded page and preserves realtime arrivals', async()=>{
   const wait=defer(), h=historyHarness(()=>wait.promise); const pending=h.fetch(); h.state.rows=[row(99)]; wait.resolve({data:[row(1),row(2)],error:null}); await pending;
   assert.equal(h.queries[0].limit,50); assert.deepEqual(Array.from(h.state.rows,r=>r.id),[row(99).id,row(2).id,row(1).id]); assert.equal(h.state.loading,false);
+  assert.equal(h.context.historyLoadedRef.current,true,'read receipts are allowed only after successful history');
 });
 test('native failed history can retry and stale response never changes destination chat',async()=>{
-  let fail=true;const h=historyHarness(()=>fail?{data:null,error:{message:'offline'}}:{data:[row(1)],error:null}); await h.fetch();assert.match(h.state.error,/could not be loaded/);fail=false;await h.fetch();assert.equal(h.state.error,null);assert.equal(h.state.rows.length,1);
-  const wait=defer(),stale=historyHarness(()=>wait.promise);const p=stale.fetch();stale.context.activeConversation.current='b';wait.resolve({data:[row(1)],error:null});await p;assert.equal(stale.state.rows.length,0);
+  let fail=true;const h=historyHarness(()=>fail?{data:null,error:{message:'offline'}}:{data:[row(1)],error:null}); await h.fetch();assert.match(h.state.error,/could not be loaded/);assert.equal(h.context.historyLoadedRef.current,false);fail=false;await h.fetch();assert.equal(h.state.error,null);assert.equal(h.state.rows.length,1);assert.equal(h.context.historyLoadedRef.current,true);
+  const wait=defer(),stale=historyHarness(()=>wait.promise);const p=stale.fetch();stale.context.activeConversation.current='b';wait.resolve({data:[row(1)],error:null});await p;assert.equal(stale.state.rows.length,0);assert.equal(stale.context.historyLoadedRef.current,false);
 });
 test('native older page uses cursor, coalesces duplicate taps, and keeps current edits',async()=>{
   const wait=defer(),h=historyHarness(()=>wait.promise);h.state.hasOlder=true;h.state.rows=[{...row(5),text:'New edit'}];h.context.historyCursor.current=row(5);

@@ -29,6 +29,10 @@ import {
 } from '../../services/storiesService';
 import { useAuthStore } from '../../stores/authStore';
 import { supabase } from '../../services/supabase';
+import { prepareStoryReply } from '../../../shared/storyMessageReference';
+import { deliverMessage, makeMessageId } from '../../../shared/messageDelivery';
+import { useNetStore } from '../../stores/netStore';
+import 'react-native-get-random-values';
 import StickerOverlay from '../../components/stories/StickerOverlay';
 import ZoomableMedia from '../../components/stories/ZoomableMedia';
 import PollCard from '../../components/stories/PollCard';
@@ -254,7 +258,8 @@ export default function StoryViewerScreen() {
   const [replyMode, setReplyMode] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [sendingReply, setSendingReply] = useState(false);
-  const [replyToast, setReplyToast] = useState(false);
+  const [replyToast, setReplyToast] = useState<string | null>(null);
+  const replyPending = useRef(false);
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [mentionsOpen, setMentionsOpen] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
@@ -540,7 +545,34 @@ export default function StoryViewerScreen() {
   useEffect(() => { if (pickerOpen) { setPickerOpen(false); resumeFrom('picker'); } }, [storyIndex, userIndex]);
 
 
-  const sendReply = useCallback(async () => { if (!currentStory || !myId) return; const storyOwnerId = currentStory.user_id; const trimmed = replyText.trim(); if (!trimmed || sendingReply) return; setSendingReply(true); try { const sorted = [myId, storyOwnerId].sort(); const messageText = `Replied to your story:\n${trimmed}`; const { data: existing, error: findErr } = await supabase.from('conversations').select('id').or(`and(user_1.eq.${myId},user_2.eq.${storyOwnerId}),and(user_1.eq.${storyOwnerId},user_2.eq.${myId})`).eq('type', 'direct').eq('is_group', false).maybeSingle(); if (findErr) { Alert.alert('Error', 'Could not find conversation.'); setSendingReply(false); return; } let convId: string; if (existing) { convId = existing.id; } else { const { data: created, error: createErr } = await supabase.from('conversations').insert({ user_1: sorted[0], user_2: sorted[1], last_message: '', last_message_time: new Date().toISOString() }).select('id').single(); if (createErr || !created) { Alert.alert('Error', 'Could not create conversation.'); setSendingReply(false); return; } convId = created.id; } const { error: msgErr } = await supabase.from('messages').insert({ conversation_id: convId, sender_id: myId, receiver_id: storyOwnerId, text: messageText }); if (msgErr) { Alert.alert('Error', 'Could not send reply.'); setSendingReply(false); return; } try { await supabase.from('conversations').update({ last_message: messageText, last_message_time: new Date().toISOString() }).eq('id', convId); } catch {} setReplyText(''); setReplyMode(false); Keyboard.dismiss(); Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); setReplyToast(true); if (replyToastTimer.current) clearTimeout(replyToastTimer.current); replyToastTimer.current = setTimeout(() => setReplyToast(false), 2000); resumeFrom('reply'); } catch (e) { console.log('[sendReply]', e); Alert.alert('Error', 'Something went wrong.'); } finally { setSendingReply(false); } }, [currentStory, myId, replyText, sendingReply, resumeFrom]);
+  const sendReply = useCallback(async () => {
+    if (!currentStory || !myId || !replyText.trim() || replyPending.current || (currentStory as any).allow_replies === false) return;
+    replyPending.current = true; setSendingReply(true);
+    const owner = useAuthStore.getState().session?.user.id;
+    const storyId = currentStory.id;
+    const current = () => viewerRef.current === myId && storiesRef.current[storyIndexRef.current]?.id === storyId;
+    const assertCurrent = () => { if (!owner || useAuthStore.getState().session?.user.id !== owner || viewerRef.current !== myId) throw new Error('Your account changed. Reopen Messages to send this reply.'); };
+    try {
+      const reply = await prepareStoryReply(supabase, { senderId: myId, storyId, text: replyText, assertCurrent });
+      const intent = { ...reply, id: makeMessageId() };
+      assertCurrent();
+      await useNetStore.getState().enqueue({ ...intent, owner_auth_id: owner! });
+      assertCurrent();
+      if (current()) setReplyText('');
+      const result = await deliverMessage(supabase, intent);
+      if (result.status === 'confirmed') useNetStore.getState().confirmOutboxMessage(intent.id, result.row);
+      else if (result.status !== 'pending') useNetStore.getState().setOutboxFailed(intent.id, true);
+      if (!current()) return;
+      if (result.status === 'rejected' || result.status === 'conflict') { Alert.alert('Reply not sent', 'Open Messages to review or retry this reply.'); return; }
+      setReplyMode(false); Keyboard.dismiss();
+      if (result.status === 'confirmed') void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setReplyToast(result.status === 'confirmed' ? 'Reply sent' : 'Reply saved for delivery');
+      if (replyToastTimer.current) clearTimeout(replyToastTimer.current);
+      replyToastTimer.current = setTimeout(() => { if (current()) setReplyToast(null); }, 2500);
+      resumeFrom('reply');
+    } catch (error) { if (current()) Alert.alert('Reply not sent', error instanceof Error ? error.message : 'Please try again.'); }
+    finally { replyPending.current = false; setSendingReply(false); }
+  }, [currentStory, myId, replyText, resumeFrom]);
 
   const handlePollVote = useCallback(async (optionId: string) => { if (!poll || votingOptionId) return; setVotingOptionId(optionId); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); try { const updated = await storiesService.voteStoryPoll(poll.poll_id, optionId); setPoll(updated); } catch (e) { console.log('[StoryPoll.vote]', e); Alert.alert('Error', 'Could not submit vote.'); } finally { setVotingOptionId(null); } }, [poll, votingOptionId]);
   const closeViewersList = () => { activityRequest.current += 1; setViewersOpen(false); setViewers([]); setViewerReactions(new Map()); setReactionsCount(0); resumeFrom('viewers'); };
@@ -829,7 +861,7 @@ export default function StoryViewerScreen() {
       {!isOwn && (currentStory as any).allow_replies !== false && (<ImmersiveReplyField replyMode={replyMode} replyText={replyText} onChangeText={setReplyText} sendingReply={sendingReply} heartActive={heartActive} chromeOpacity={chromeOpacity} onOpenReply={openReplyInput} onCloseReply={closeReplyInput} onSendReply={sendReply} onHeartTap={handleHeartTap} onLongPressHeart={openPicker} canSend={canSendReply} keyboardHeight={keyboardHeight} bottomInset={insets.bottom} inputRef={replyInputRef} />)}
 
       {reactionToast && (<View pointerEvents="none" style={s.toastWrap}><View style={s.toastBubble}><Text style={s.toastEmoji}>{reactionToast}</Text><Text style={s.toastText}>Sent</Text></View></View>)}
-      {replyToast && (<View pointerEvents="none" style={s.replyToastWrap}><View style={s.replyToastBubble}><Feather name="check" size={14} color="rgba(245,240,235,0.8)" /><Text style={s.replyToastText}>Delivered</Text></View></View>)}
+      {replyToast && (<View pointerEvents="none" style={s.replyToastWrap}><View style={s.replyToastBubble}><Feather name="check" size={14} color="rgba(245,240,235,0.8)" /><Text style={s.replyToastText}>{replyToast}</Text></View></View>)}
 
       {pickerOpen && (<TouchableOpacity style={s.pickerBackdrop} activeOpacity={1} onPress={closePicker}><ReAnimated.View style={[s.pickerContainer, { bottom: 100 + insets.bottom }, pickerAnimStyle]}>{REACTION_EMOJIS.map(emoji => (<TouchableOpacity key={emoji} style={[s.pickerEmoji, myReactions.has(emoji) && s.pickerEmojiActive]} activeOpacity={0.7} onPress={() => handlePickerEmoji(emoji)}><Text style={s.pickerEmojiText}>{emoji}</Text></TouchableOpacity>))}</ReAnimated.View></TouchableOpacity>)}
 

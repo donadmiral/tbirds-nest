@@ -51,6 +51,7 @@ export function ProfileMoreMenu({ profileId, name }: { profileId: string; name: 
     if (!confirm("Block " + who + "? They will not be able to see your posts or message you. You can undo this in Settings, under Blocked accounts.")) return;
     const { error } = await supabase.from("blocked_users").insert({ blocker_id: uid, blocked_id: profileId });
     if (error) { alert(error.message); return; }
+    window.dispatchEvent(new CustomEvent('pc-feed-author-hidden', { detail: { ownerId: uid, authorId: profileId } }));
     router.push("/home");
   };
 

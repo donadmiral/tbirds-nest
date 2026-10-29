@@ -14,7 +14,7 @@ function load(name,svc,auth={requirePermission:async()=>({id:userId,sessionId})}
   const source=fs.readFileSync(path.join(__dirname,'../lib/',name+'.ts'),'utf8');
   vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{
     module,exports:module.exports,Buffer,process:{env:{SUPABASE_SERVICE_ROLE_KEY:'synthetic-test-secret'}},
-    require(id){if(id==='server-only')return {};if(id==='node:crypto')return crypto;if(id==='./adminAuth')return auth;if(id==='./supabaseAdmin')return {serviceClient:()=>svc};throw new Error('Unexpected import '+id);},
+    require(id){if(id==='server-only')return {};if(id==='node:crypto')return crypto;if(id==='./adminAuth')return auth;if(id==='./supabaseAdmin')return {serviceClient:()=>svc};if(id==='./adminRpcAvailability')return load('adminRpcAvailability');throw new Error('Unexpected import '+id);},
   });return module.exports;
 }
 function form(fields={}){const f=new FormData();for(const [k,v] of Object.entries({command_key:key,...fields}))f.set(k,v);return f;}
@@ -29,6 +29,32 @@ test('expected command failures survive the production server action boundary as
  const {runAdminCommand}=load('adminCommand',{rpc:async()=>({data:null,error:{message:'LAST_SUPER_ADMIN'}})});
  const result=await runAdminCommand('deactivateStaff','staff_manage',form({uid:userId}));
  assert.equal(result.success,false);assert.match(result.error,/at least one active super/);
+});
+test('an explicitly missing command endpoint returns unavailable without encouraging a retry',async()=>{
+ for(const error of [
+  {code:'PGRST202',message:'Could not find the function public.triniti_platinum_admin_command(p_actor_id, p_key) in the schema cache'},
+  {code:'42883',message:'function public.triniti_platinum_admin_command(uuid, uuid) does not exist'},
+ ]){
+  let calls=0;
+  const {runAdminCommand}=load('adminCommand',{rpc:async()=>{calls++;return {data:null,error};}});
+  const result=await runAdminCommand('suspendUser','user_moderate',form({id:userId,reason:'spam'}));
+  assert.equal(result.success,false);assert.match(result.error,/unavailable on this deployment/);assert.match(result.error,/No change was made/);assert.doesNotMatch(result.error,/retry/i);assert.equal(calls,1);
+ }
+});
+test('network, permission and missing dependency errors are not mistaken for an absent command endpoint',async()=>{
+ for(const error of [
+  {code:'PGRST003',message:'Timed out waiting for a pool connection'},
+  {code:'42501',message:'permission denied for function triniti_platinum_admin_command'},
+  {code:'42883',message:'function private_dependency(uuid) does not exist'},
+  {code:'PGRST202',message:'Could not find the function public.other_command() in the schema cache'},
+ ]){
+  const {runAdminCommand}=load('adminCommand',{rpc:async()=>({data:null,error})});
+  const result=await runAdminCommand('suspendUser','user_moderate',form({id:userId,reason:'spam'}));
+  assert.equal(result.success,false);assert.doesNotMatch(result.error,/unavailable on this deployment|No change was made/);
+ }
+ const network=new Error('connection reset');
+ const {runAdminCommand}=load('adminCommand',{rpc:async()=>{throw network;}});
+ await assert.rejects(runAdminCommand('suspendUser','user_moderate',form({id:userId,reason:'spam'})),error=>error===network);
 });
 test('unconfirmed or wrong-key command responses never report success',async()=>{
  for(const data of [null,{success:false},{success:true,command_key:crypto.randomUUID()}]){

@@ -30,6 +30,8 @@ import NewPostsPill from '../../components/NewPostsPill';
 import TierName from '../../components/TierName';
 import AnnouncementBanner from '../../components/AnnouncementBanner';
 import TrendingStoriesRail from '../../components/TrendingStoriesRail';
+import MarketplaceShelf from '../../components/market/MarketplaceShelf';
+import { isMarketplacePost, MARKETPLACE_SHELF_AFTER, readMarketplaceRecommendations, type MarketplaceRecommendation } from '../../../shared/marketplaceRecommendations';
 import * as ExpoLinking from 'expo-linking';
 import * as FileSystem from 'expo-file-system/legacy';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -55,6 +57,7 @@ import * as Crypto from 'expo-crypto';
 import type { SoundtrackSelection } from '../../../shared/soundtrack';
 import { MUSIC_CATALOG_ENABLED } from '../../../shared/musicAvailability';
 import SoundtrackPicker from '../../components/SoundtrackPicker';
+import { normalizePostPlayback } from '../../../shared/postVoiceEffects';
 import { postLookRecipe } from '../../../shared/postMediaEditing';
 import { Image as ExpoImage } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
@@ -74,7 +77,7 @@ import ProductCarousel, { PostProduct } from '../../components/ProductCarousel';
 import ProductPickerSheet from '../../components/ProductPickerSheet';
 import ActorSwitcher from '../../components/ActorSwitcher';
 import { useActorStore, authorId as currentAuthorId } from '../../stores/actorStore';
-import ImageView from 'react-native-image-viewing';
+import PostMediaViewer from '../../components/PostMediaViewer';
 import FullscreenVideo from '../../components/FullscreenVideo';
 import VideoFeedModal from '../../components/VideoFeedModal';
 import CommentsSheet from '../../components/feed/CommentsSheet';
@@ -316,6 +319,7 @@ export default function FeedScreen({ navigation }: any) {
   const [composerOpen, setComposerOpen] = useState(false);
   const [composerText, setComposerText] = useState('');
   const [composerMedia, setComposerMedia] = useState<LocalMedia[]>([]);
+  const composerMediaRef = useRef(composerMedia); composerMediaRef.current = composerMedia;
   const [editMediaIdx, setEditMediaIdx] = useState<number | null>(null);
   const [selectedComposerMedia,setSelectedComposerMedia]=useState(0);
   const [composerReview,setComposerReview]=useState(false);
@@ -399,7 +403,7 @@ export default function FeedScreen({ navigation }: any) {
   const [sharingPost, setSharingPost] = useState<Record<string, boolean>>({});
   const [menuPost, setMenuPost] = useState<Post | null>(null);
   const [insightsPostId, setInsightsPostId] = useState<string | null>(null);
-  const [viewer, setViewer] = useState<{ images: { uri: string }[]; index: number } | null>(null);
+  const [viewer, setViewer] = useState<{ media: CarouselMedia[]; index: number; postId: string } | null>(null);
   const [fsVideo, setFsVideo] = useState<{ id?: string; url: string } | null>(null);
   // Comments open in a sheet over the feed: the post stays put and its video keeps playing above the sheet.
   const [commentsFor, setCommentsFor] = useState<Post | null>(null);
@@ -1138,6 +1142,28 @@ export default function FeedScreen({ navigation }: any) {
   }, []);
 
   const [promos, setPromos] = useState<Post[]>([]);
+  const [marketplace, setMarketplace] = useState<{ owner: string; items: MarketplaceRecommendation[] } | null>(null);
+  const [marketplaceRefresh, setMarketplaceRefresh] = useState(0);
+  const marketplaceRequest = useRef<AbortController | null>(null);
+  const refreshMarketplace = useCallback((sellerId?: string) => {
+    marketplaceRequest.current?.abort();
+    if (sellerId) setMarketplace(current => current ? { ...current, items: current.items.filter(item => item.seller_id !== sellerId) } : current);
+    setMarketplaceRefresh(value => value + 1);
+  }, []);
+  const marketplaceItems = useMemo(() => marketplace?.owner === userId ? marketplace.items : [], [marketplace, userId]);
+  useEffect(() => {
+    if (!userId || feedMode !== 'forYou') { setMarketplace(null); return; }
+    if (!screenFocused || !appActive) return;
+    let active = true;
+    const request = new AbortController();
+    marketplaceRequest.current = request;
+    const timer = setTimeout(() => request.abort(), 10000);
+    void readMarketplaceRecommendations(supabase, request.signal)
+      .then(items => { if (active && !request.signal.aborted && useAuthStore.getState().profile?.id === userId) setMarketplace({ owner: userId, items }); })
+      .catch(() => { /* Optional recommendations never hold up regular posts. */ })
+      .finally(() => clearTimeout(timer));
+    return () => { active = false; clearTimeout(timer); request.abort(); if (marketplaceRequest.current === request) marketplaceRequest.current = null; };
+  }, [userId, feedMode, marketplaceRefresh, screenFocused, appActive]);
   const promoSeenRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     let alive = true;
@@ -1208,11 +1234,12 @@ export default function FeedScreen({ navigation }: any) {
             if (useAuthStore.getState().profile?.id !== userId) return;
             if (userId) void feedSnapshots.clear(userId);
             setPosts(prev => prev.filter(p => p.user_id !== captured.user_id));
+            refreshMarketplace(captured.user_id);
           } },
         ]
       );
     }, 350);
-  }, [menuPost, userId, profilesMap]);
+  }, [menuPost, userId, profilesMap, refreshMarketplace]);
 
   const reportPost = useCallback(async (postId: string, reason: string) => {
     if (!userId) return;
@@ -1360,6 +1387,7 @@ export default function FeedScreen({ navigation }: any) {
       postMediaCount: Math.max(media.length, first ? 1 : 0),
       postMediaWidth: first?.width || null,
       postMediaHeight: first?.height || null,
+      postMediaPlayback: normalizePostPlayback(first?.edit),
       postUsername: author?.username || null,
       postVerified: !!(author as any)?.is_verified,
       postVerifiedTier: (author as any)?.verified_tier ?? null,
@@ -1491,8 +1519,10 @@ export default function FeedScreen({ navigation }: any) {
   };
 
   const funCamNav = useNavigation<any>();
+  const resumeCameraDraft = useRef(false);
   useFocusEffect(useCallback(() => {
     const cm = takePendingCapture('feed');
+    if (resumeCameraDraft.current) { resumeCameraDraft.current = false; if (canEditPostDraft()) setComposerOpen(true); }
     if (!cm) return;
     if (!canEditPostDraft()) return;
     (async () => {
@@ -1509,13 +1539,15 @@ export default function FeedScreen({ navigation }: any) {
         }
       }
       if (!canEditPostDraft()) return;
-      setComposerMedia(p => [...p, { uri: cm.uri, type: isVideo ? 'video' : 'image', ext, width: cm.width ?? undefined, height: cm.height ?? undefined, thumbnail, edit:{aspectRatio:4/5,filterId:cm.filterId??null,filterAmt:1} }].slice(0,10) as LocalMedia[]);
+      setSelectedComposerMedia(Math.min(composerMediaRef.current.length,9));setComposerReview(false);
+      setComposerMedia(p => [...p, { uri: cm.uri, type: isVideo ? 'video' : 'image', ext, width: cm.width ?? undefined, height: cm.height ?? undefined, thumbnail, edit:{aspectRatio:4/5,filterId:cm.filterId??null,filterAmt:100} }].slice(0,10) as LocalMedia[]);
       setComposerOpen(true);
     })();
   }, []));
 
   const openCamera = () => {
-    if (!canEditPostDraft()) return;
+    if (!canEditPostDraft() || composerMediaRef.current.length >= 10) return;
+    resumeCameraDraft.current = true;
     Keyboard.dismiss();setComposerOpen(false);setComposerReview(false);
     setTimeout(()=>{ if (canEditPostDraft()) funCamNav.navigate('StoryFunCamera', { returnTo: 'feed', feedParams: {} }); },300);
   };
@@ -1774,7 +1806,8 @@ export default function FeedScreen({ navigation }: any) {
 
   const displayPosts = useMemo(() => {
     if (feedOwner !== userId) return [];
-    let list = posts.filter(post => !isMuted(post) && !hiddenIdsRef.current.has(post.id));
+    let list = posts.filter(post => !isMuted(post) && !hiddenIdsRef.current.has(post.id)
+      && (feedMode === 'discover' || !isMarketplacePost(post)));
     const term = search.trim().toLowerCase();
     if (term) list = list.filter(p => (p.content || '').toLowerCase().includes(term));
     // No client-side re-sort. get_feed already returns rows in sort_key order,
@@ -1792,7 +1825,7 @@ export default function FeedScreen({ navigation }: any) {
     }
 if (!search && feedMode !== 'discover' && promos.length > 0) {
       const promoIds = new Set(promos.map(p => p.id)); list = list.filter(p => !promoIds.has(p.id));
-      const eligible = promos;
+      const eligible = promos.filter(post => !isMarketplacePost(post));
       if (eligible.length > 0) {
         const out: any[] = [];
         let pi = 0;
@@ -1804,8 +1837,11 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
         list = out;
       }
     }
+    if (!search && feedMode === 'forYou' && marketplaceItems.length && list.length >= MARKETPLACE_SHELF_AFTER) {
+      list = [...list.slice(0, MARKETPLACE_SHELF_AFTER), { id: '__marketplace', media: [], products: [] } as unknown as Post, ...list.slice(MARKETPLACE_SHELF_AFTER)];
+    }
     return list;
-  }, [posts, feedMode, discoverCat, search, followingIds, wtfSuggestions, promos, isMuted, feedOwner, userId]);
+  }, [posts, feedMode, discoverCat, search, followingIds, wtfSuggestions, promos, isMuted, feedOwner, userId, marketplaceItems]);
 
   useEffect(() => {
     if (!screenFocused || AppState.currentState !== 'active' || dataSaver) return;
@@ -1826,6 +1862,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
       id: p.id,
       authorId: p.user_id,
       url: (p.media.find((m: any) => m.media_type === 'video') as any).url,
+      edit: (p.media.find((m: any) => m.media_type === 'video') as any).edit ?? null,
       authorName: profilesMap[p.user_id]?.full_name || profilesMap[p.user_id]?.username || 'Member',
       authorAvatar: profilesMap[p.user_id]?.avatar_url || null,
       caption: p.content || '',
@@ -1872,6 +1909,10 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
     setCommentsFor(post);
   }, []);
   const renderPost = useCallback(({ item: post }: { item: Post }) => {
+    if (post.id === '__marketplace') return <MarketplaceShelf items={marketplaceItems}
+      onOpen={listingId => navigation.navigate('Market', { screen: 'ListingDetail', params: { listingId } })}
+      onExplore={() => navigation.navigate('Market')}
+      onGesture={active => { mediaTouchRef.current = active; }} />;
     // Discover is a grid of tiles, the web Discover's twin, not a feed.
     if (feedModeRef.current === 'discover' && !(post as any).__suggestions && !(post as any)._promo && !String(post.id).startsWith('__')) {
       return (
@@ -2088,16 +2129,15 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
           const openViewer = (idx?: number, at?: number) => {
             const items: any[] = (post.media && post.media.length > 0) ? post.media : (post.media_url ? [{ url: post.media_url, media_type: 'image' }] : []);
             const tappedItem = items[idx ?? 0];
-            if (tappedItem && tappedItem.media_type === 'video') { setFsVideo({ id: post.id, url: tappedItem.url, at: at || 0 } as any); return; }
-            const imgs = items.filter((m: any) => m.media_type === 'image').map((m: any) => ({ uri: m.url }));
-            if (imgs.length === 0) { openPost(); return; }
-            const tapped = items[idx ?? 0];
-            const vIdx = tapped ? imgs.findIndex(i => i.uri === tapped.url) : 0;
-            setViewer({ images: imgs, index: vIdx >= 0 ? vIdx : 0 });
+            if (items.length === 1 && tappedItem?.media_type === 'video') { setFsVideo({ id: post.id, url: tappedItem.url, at: at || 0 } as any); return; }
+            if (!items.length) { openPost(); return; }
+            const media = items.map((item, index) => ({ ...item, id: item.id || `${post.id}:${index}`, sort_order: item.sort_order ?? index, media_type: item.media_type === 'video' ? 'video' as const : 'image' as const }));
+            if (tappedItem?.media_type === 'video' && at) seekWhenClaimed(tappedItem.url, at);
+            setViewer({ media, index: idx ?? 0, postId: post.id });
           };
           // An article's picture is its cover, drawn inside the article block; the media strip would show it twice.
           if ((post as any).article_title) return null;
-          const media = renderMedia(post, screenFocused && appActive && !fsVideo && !commentsHold && post.id === activePostId, (idx?: number, at?: number) => handleDoubleTap(post.id, () => openViewer(idx, at)));
+          const media = renderMedia(post, screenFocused && appActive && !fsVideo && !viewer && !commentsHold && post.id === activePostId, (idx?: number, at?: number) => handleDoubleTap(post.id, () => openViewer(idx, at)));
           if (!media) return null;
           const isVidPost = post.media?.some((m: any) => m.media_type === 'video') || false;
           return (
@@ -2193,6 +2233,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
     );
   }, [
     t,
+    marketplaceItems,
     TILE_W,
     activePostId,
     screenFocused,
@@ -2351,7 +2392,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                 </>
               }
               contentContainerStyle={[s.list, !displayPosts.length && s.listEmpty, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
-              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadFeed(false); setMomentRefreshKey(k => k + 1); }} tintColor={NAVY} />}
+              refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadFeed(false); refreshMarketplace(); setMomentRefreshKey(k => k + 1); }} tintColor={NAVY} />}
               ListEmptyComponent={
                 feedMode === 'discover' ? (
                   <View style={s.emptyWrap}>
@@ -2520,7 +2561,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                 {editMediaIdx!=null&&composerMedia[editMediaIdx]?<PostMediaEditSheet visible uri={composerMedia[editMediaIdx].uri} mediaType={composerMedia[editMediaIdx].type} width={composerMedia[editMediaIdx].width} height={composerMedia[editMediaIdx].height} itemIndex={editMediaIdx} itemCount={composerMedia.length} initial={composerMedia[editMediaIdx].edit||null} onCancel={()=>setEditMediaIdx(null)} onDone={(ed,applyAll)=>{const idx=editMediaIdx;setComposerMedia(prev=>prev.map((m,i)=>i===idx?{...m,edit:ed}:applyAll?{...m,edit:{...m.edit,...postLookRecipe(ed)}}:m));setEditMediaIdx(null);if(composerMedia[idx].type==='video'&&!ed.coverLocalUri){const editedUri=composerMedia[idx].uri;void VideoThumbnails.getThumbnailAsync(editedUri,{time:Math.round((ed.coverAt??ed.trimStart??0)*1000),quality:.7}).then(result=>setComposerMedia(prev=>prev.map(m=>m.uri===editedUri&&m.edit===ed?{...m,thumbnail:result.uri}:m))).catch(()=>{});}}}/>:null}
                 <View style={s.cSettings}>{composerMedia.length?<TouchableOpacity accessibilityRole="button" style={s.cSettingRow} onPress={()=>{Keyboard.dismiss();setMusicOpen(true);}}><Feather name="music" size={18} color={NAVY}/><Text style={s.cSettingLabel}>Music</Text><Text style={s.cSettingValue}>{composerSoundtrack?`${composerSoundtrack.durationSec.toFixed(1)}s excerpt`:'Add a soundtrack'}</Text><Feather name="chevron-right" size={16} color={t.ink.secondary}/></TouchableOpacity>:null}<TouchableOpacity style={s.cSettingRow} onPress={pickCommentPolicy}><Feather name="message-circle" size={18} color={NAVY}/><Text style={s.cSettingLabel}>Comments</Text><Text style={s.cSettingValue}>{COMMENT_META[commentPolicy].label}</Text><Feather name="chevron-right" size={16} color="#8A93A0"/></TouchableOpacity><TouchableOpacity style={s.cSettingRow} onPress={askCollaborator}><Feather name="users" size={18} color={NAVY}/><Text style={s.cSettingLabel}>Collaborators</Text><Text numberOfLines={1} style={s.cSettingValue}>{collabPicks.length?`${collabPicks.length} selected`:'Invite people'}</Text><Feather name="chevron-right" size={16} color="#8A93A0"/></TouchableOpacity><TouchableOpacity style={s.cSettingRow} onPress={()=>setComposerSensitive(v=>!v)}><Feather name="shield" size={18} color={NAVY}/><Text style={s.cSettingLabel}>Sensitive content</Text><Feather name={composerSensitive?'check-circle':'circle'} size={20} color={composerSensitive?'#AE8B49':'#9AA1AD'}/></TouchableOpacity></View>
                 </ScrollView>
-                {!composerReview?<View style={s.cToolbar}><TouchableOpacity style={s.cToolTile} onPress={()=>pickMedia()}><Feather name="image" size={20} color={NAVY}/><Text style={s.cMediaActionText}>Media</Text></TouchableOpacity><TouchableOpacity style={s.cToolTile} onPress={openCamera}><Feather name="camera" size={20} color={NAVY}/><Text style={s.cMediaActionText}>Camera</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" accessibilityLabel="Add music to post" style={[s.cToolTile,!composerMedia.length&&{opacity:.4}]} disabled={!composerMedia.length} onPress={()=>{Keyboard.dismiss();setMusicOpen(true);}}><Feather name="music" size={20} color={NAVY}/><Text style={s.cMediaActionText}>Music</Text></TouchableOpacity><TouchableOpacity style={s.cToolTile} onPress={()=>setProductPickerOpen(true)}><Feather name="tag" size={19} color={NAVY}/><Text style={s.cMediaActionText}>Products</Text></TouchableOpacity><TouchableOpacity style={[s.cToolTile,composerMedia.length>0&&{opacity:.4}]} disabled={composerMedia.length>0} onPress={()=>setPollOpts(p=>p?null:['',''])}><Feather name="bar-chart-2" size={19} color={NAVY}/><Text style={s.cMediaActionText}>Poll</Text></TouchableOpacity></View>:null}
+                {!composerReview?<View style={s.cToolbar}><TouchableOpacity style={s.cToolTile} onPress={()=>pickMedia()}><Feather name="image" size={20} color={NAVY}/><Text style={s.cMediaActionText}>Media</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" accessibilityLabel="Open post camera and lenses" style={[s.cToolTile,composerMedia.length>=10&&{opacity:.4}]} disabled={composerMedia.length>=10} onPress={openCamera}><Feather name="camera" size={20} color={NAVY}/><Text style={s.cMediaActionText}>Camera</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" accessibilityLabel="Add music to post" style={[s.cToolTile,!composerMedia.length&&{opacity:.4}]} disabled={!composerMedia.length} onPress={()=>{Keyboard.dismiss();setMusicOpen(true);}}><Feather name="music" size={20} color={NAVY}/><Text style={s.cMediaActionText}>Music</Text></TouchableOpacity><TouchableOpacity style={s.cToolTile} onPress={()=>setProductPickerOpen(true)}><Feather name="tag" size={19} color={NAVY}/><Text style={s.cMediaActionText}>Products</Text></TouchableOpacity><TouchableOpacity style={[s.cToolTile,composerMedia.length>0&&{opacity:.4}]} disabled={composerMedia.length>0} onPress={()=>setPollOpts(p=>p?null:['',''])}><Feather name="bar-chart-2" size={19} color={NAVY}/><Text style={s.cMediaActionText}>Poll</Text></TouchableOpacity></View>:null}
               </View>
               <SoundtrackPicker visible={composerOpen&&musicOpen} value={composerSoundtrack} use="post" ownerId={userId??undefined} originalAudio={composerMedia[Math.min(selectedComposerMedia,composerMedia.length-1)]?.type==='video'} onChange={setComposerSoundtrack} onClose={()=>setMusicOpen(false)} renderPreview={(selection,active)=>{const media=composerMedia[Math.min(selectedComposerMedia,composerMedia.length-1)];return media?<PostDraftPreview media={media} soundtrack={selection} active={active} autoPlay/>:null;}}/>
               <ProductPickerSheet visible={productPickerOpen} sellerId={userId} selected={composerProducts} onClose={()=>setProductPickerOpen(false)} onSave={setComposerProducts}/>
@@ -2674,14 +2715,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
         </TouchableOpacity>
       </Modal>
 
-      <ImageView
-        images={viewer?.images ?? []}
-        imageIndex={viewer?.index ?? 0}
-        visible={!!viewer}
-        onRequestClose={() => setViewer(null)}
-        swipeToCloseEnabled
-        doubleTapToZoomEnabled
-      />
+      {viewer ? <PostMediaViewer media={viewer.media} initialIndex={viewer.index} postId={viewer.postId} onClose={() => setViewer(null)} /> : null}
 
       {discoverOpen && feedMode === 'discover' ? <DiscoverViewer
         posts={displayPosts as any} initialId={discoverOpen} profiles={profilesMap} liked={likedPosts} saved={bookmarkedPosts}

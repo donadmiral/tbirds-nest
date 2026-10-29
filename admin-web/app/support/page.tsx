@@ -99,7 +99,7 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
   ];
 
   const rows: DeskRow[] = all.map(t => {
-    const assignment = triage.get(t.id)!;
+    const assignment = triage.available ? triage.tickets.get(t.id) : undefined;
     const p = people[t.user_id] || { full_name: null, username: null, avatar_url: null, location: null, created_at: t.created_at };
     const tone = STATUS_TONE[t.status] || 'neutral';
     const last = t.updated_at || t.created_at;
@@ -126,9 +126,11 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
           { label: 'Member since', value: new Date(p.created_at).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) },
         ],
         fields: [
+          ...(assignment ? [
           { label: 'Owner', value: assignment.assigned_name || assignment.assigned_to || 'Unassigned' },
           { label: 'Priority / queue', value: assignment.priority + ' / ' + assignment.queue + (assignment.escalated ? ' / escalated' : '') },
           { label: 'Response due', value: assignment.response_due_at ? new Date(assignment.response_due_at).toLocaleString() : 'No pending response target' },
+          ] : [{ label: 'Assignment tools', value: 'Unavailable on this deployment' }]),
           { label: 'Opened', value: new Date(t.created_at).toLocaleString() },
           { label: 'Last activity', value: new Date(last).toLocaleString() },
           { label: 'Kind', value: title(t.kind || 'general') },
@@ -154,6 +156,7 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
   return (
     <Shell admin={admin} active="/support" title="Support inbox" sub="Open cases are shown first by default, oldest first. Counts cover the full inbox; charts and exports cover this page.">
       <StatStrip cards={cards} />
+      {!triage.available ? <p role="status" className="mt-4 rounded-lg border border-[var(--line)] bg-[var(--panel)] p-4 text-sm">Assignment tools are unavailable on this deployment. Ticket details and conversation history remain available.</p> : null}
       <form action="/support" className="mt-4 flex flex-wrap items-end gap-3">
         <label className="text-sm">Search subjects<input name="q" defaultValue={q} className="ml-2 rounded-lg border px-3 py-2" /></label>
         <label className="text-sm">Status<select name="status" defaultValue={status} className="ml-2 rounded-lg border px-3 py-2">

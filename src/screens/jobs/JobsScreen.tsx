@@ -15,8 +15,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useUnreadStore } from '../../stores/unreadStore';
 import { supabase } from '../../services/supabase';
 import { Ionicons } from '@expo/vector-icons';
-import { authorId as currentAuthorId } from '../../stores/actorStore';
-import { jobsService, Job, JobCategory, JobApplication, JobRecommendation, ApplicationStatus, JobScope, STATUS_META as APPLICATION_STATUS_META } from '../../services/jobsService';
+import { useActorStore } from '../../stores/actorStore';
+import { jobsService, Job, JobCategory, JobApplication, JobRecommendation, ApplicationStatus, JobScope, JOB_POSTING_ACCOUNT_MESSAGE, STATUS_META as APPLICATION_STATUS_META } from '../../services/jobsService';
 import { useAuthStore } from '../../stores/authStore';
 
 const CATEGORY_TABS = [
@@ -120,6 +120,8 @@ export default function JobsScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
   const userId = profile?.id ?? null;
+  const postingActorId = useActorStore(state => state.currentActor()?.actor_id ?? userId);
+  const delegatedJobActor = !!postingActorId && postingActorId !== userId;
 
   const [jobs, setJobs] = useState<Job[]>([]);
   const [posterLogos, setPosterLogos] = useState<Record<string, string>>({});
@@ -127,7 +129,7 @@ export default function JobsScreen({ navigation }: any) {
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [appliedMap, setAppliedMap] = useState<Record<string, ApplicationStatus>>({});
   const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const [activeTab, setActiveTab] = useState<string>('all');
@@ -172,12 +174,19 @@ export default function JobsScreen({ navigation }: any) {
   const [loadingRecs,    setLoadingRecs]    = useState(false);
 
   const [busyMap, setBusyMap] = useState<Record<string, boolean>>({});
+  const loadGeneration = useRef(0);
+  const pendingSaves = useRef(new Set<string>());
   const setBusy = (k: string, v: boolean) =>
     setBusyMap(p => { const n = {...p}; if(v) n[k]=true; else delete n[k]; return n; });
 
   const loadAll = useCallback(async (showLoader = true) => {
-    setLoadError(false);
-    if (!userId) return;
+    const token = ++loadGeneration.current;
+    setLoadError(null);
+    if (!userId) {
+      setJobs([]); setSavedIds(new Set()); setAppliedMap({}); setMyApplications([]);
+      setLoading(false); setRefreshing(false); setLoadError('Sign in to browse jobs and your applications.');
+      return;
+    }
     try {
       if (showLoader) setLoading(true);
       const [fetchedJobs, savedJobIds, appMap, apps] = await Promise.all([
@@ -186,20 +195,25 @@ export default function JobsScreen({ navigation }: any) {
         jobsService.getAppliedJobIds(userId),
         jobsService.getMyApplications(userId),
       ]);
+      if (token !== loadGeneration.current) return;
       setJobs(fetchedJobs);
-      (async () => { try { const pids = Array.from(new Set((fetchedJobs || []).map((j: any) => j.posted_by).filter(Boolean))); if (pids.length === 0) return; const { data: pl } = await supabase.from('profiles').select('id, avatar_url').in('id', pids); const mp: Record<string, string> = {}; (pl || []).forEach((p: any) => { if (p.avatar_url) mp[p.id] = p.avatar_url; }); setPosterLogos(mp); } catch {} })();
+      const logos: Record<string, string> = {};
+      fetchedJobs.forEach(j => { if (j.profile?.avatar_url) logos[j.posted_by] = j.profile.avatar_url; });
+      setPosterLogos(logos);
       setSavedIds(new Set(savedJobIds));
       setAppliedMap(appMap);
       setMyApplications(apps);
-    } catch (e) {
-      setLoadError(true);
+    } catch (e: any) {
+      if (token === loadGeneration.current) setLoadError(e?.message || 'Could not load jobs. Check your connection and try again.');
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (token === loadGeneration.current) { setLoading(false); setRefreshing(false); }
     }
   }, [userId, sortBy, scopeMode]);
 
-  useEffect(() => { loadAll(true); }, [loadAll]);
+  useFocusEffect(useCallback(() => {
+    void loadAll(true);
+    return () => { ++loadGeneration.current; };
+  }, [loadAll]));
 
   const displayJobs = useMemo(() => {
     let list = jobs;
@@ -221,7 +235,9 @@ export default function JobsScreen({ navigation }: any) {
   }, [jobs, savedIds]);
 
   const toggleSave = async (jobId: string) => {
-    if (!userId || busyMap[`save-${jobId}`]) return;
+    if (!userId || pendingSaves.current.has(jobId)) return;
+    const token = loadGeneration.current;
+    pendingSaves.current.add(jobId);
     const was = savedIds.has(jobId);
     setBusy(`save-${jobId}`, true);
     setSavedIds(p => { const n = new Set(p); if (was) n.delete(jobId); else n.add(jobId); return n; });
@@ -229,8 +245,11 @@ export default function JobsScreen({ navigation }: any) {
       if (was) await jobsService.unsaveJob(userId, jobId);
       else await jobsService.saveJob(userId, jobId);
     } catch (e) {
-      setSavedIds(p => { const n = new Set(p); if (was) n.add(jobId); else n.delete(jobId); return n; });
-    } finally { setBusy(`save-${jobId}`, false); }
+      if (token === loadGeneration.current) {
+        setSavedIds(p => { const n = new Set(p); if (was) n.add(jobId); else n.delete(jobId); return n; });
+        Alert.alert('Could not save job', 'Your saved jobs have not changed. Please try again.');
+      }
+    } finally { pendingSaves.current.delete(jobId); setBusy(`save-${jobId}`, false); }
   };
 
   const loadRecommendations = async (job: Job) => {
@@ -323,13 +342,14 @@ export default function JobsScreen({ navigation }: any) {
 
   const submitPost = async () => {
     if (!userId || posting) return;
+    if (delegatedJobActor) { Alert.alert('Choose your posting account', JOB_POSTING_ACCOUNT_MESSAGE); return; }
     if (!postForm.title.trim() || !postForm.company.trim() || !postForm.description.trim()) {
       Alert.alert('Missing fields', 'Title, company, and description are required.');
       return;
     }
     setPosting(true);
     try {
-      await jobsService.createJob(currentAuthorId(userId) ?? userId, {
+      await jobsService.createJob(userId, {
         title: postForm.title.trim(),
         company: postForm.company.trim(),
         location: postForm.location.trim() || undefined,
@@ -535,7 +555,7 @@ export default function JobsScreen({ navigation }: any) {
             </ScrollView>
           </View>
         </View>
-        {loadError ? <TouchableOpacity accessibilityRole="button" style={{ minHeight: 48, padding: 16 }} onPress={() => void loadAll(true)}><Text style={{ color: getTheme().ink.primary }}>Could not load jobs. Tap to retry.</Text></TouchableOpacity> : null}
+        {loadError ? <View style={{ padding: 16 }}><Text accessibilityRole="alert" style={{ color: getTheme().ink.primary }}>{loadError}</Text><TouchableOpacity accessibilityRole="button" style={{ minHeight: 44, justifyContent: 'center' }} onPress={() => void loadAll(true)}><Text style={{ color: getTheme().status.link, fontWeight: '700' }}>Try again</Text></TouchableOpacity>{scopeMode === 'primary' ? <TouchableOpacity accessibilityRole="button" style={{ minHeight: 44, justifyContent: 'center' }} onPress={() => setScopeMode('all')}><Text style={{ color: getTheme().status.link }}>Browse all jobs</Text></TouchableOpacity> : null}</View> : null}
         {loading ? (
           <ListRowSkeleton />
         ) : (
@@ -679,8 +699,7 @@ export default function JobsScreen({ navigation }: any) {
               <TouchableOpacity onPress={() => setShowPost(false)} style={s.modalClose}><Text style={s.modalCloseTxt}>✕</Text></TouchableOpacity>
             </View>
             <ScrollView contentContainerStyle={s.modalBody} keyboardShouldPersistTaps="handled">
-
-              
+              {delegatedJobActor ? <Text accessibilityRole="alert" style={{ color: getTheme().ink.primary, lineHeight: 21, marginBottom: 16 }}>{JOB_POSTING_ACCOUNT_MESSAGE}</Text> : null}
 
               <Text style={s.fieldLabel2}>Job Type</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, marginBottom: 14 }}>
@@ -779,8 +798,8 @@ export default function JobsScreen({ navigation }: any) {
               </View>
 
               <TouchableOpacity
-                style={[s.submitBtn, posting && { opacity: 0.5 }]}
-                onPress={submitPost} disabled={posting}
+                style={[s.submitBtn, (posting || delegatedJobActor) && { opacity: 0.5 }]}
+                onPress={submitPost} disabled={posting || delegatedJobActor}
               >
                 {posting ? <ActivityIndicator color="#FFFFFF" /> : <Text style={s.submitBtnTxt}>Publish Job</Text>}
               </TouchableOpacity>

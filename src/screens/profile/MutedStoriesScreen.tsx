@@ -1,3 +1,4 @@
+import { settingsBack } from '../../navigation/settingsNavigation';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import TierName from '../../components/TierName';
 import { themedSheet } from '../../theme/useTheme';
@@ -53,7 +54,7 @@ export default function MutedStoriesScreen({ navigation }: any) {
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
       <View style={s.bar}>
-        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+        <TouchableOpacity onPress={() => settingsBack(navigation, 'Settings')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
           <Feather name="chevron-left" size={26} color="#0B1E3D" />
         </TouchableOpacity>
         <Text style={s.title}>Muted stories</Text>
@@ -68,7 +69,8 @@ export default function MutedStoriesScreen({ navigation }: any) {
           <Text style={s.emptySub}>Press and hold a story to mute someone.</Text>
         </View>
       ) : (
-        <FlatList ListFooterComponent={<View style={{ height: 120 }} />} ListEmptyComponent={<EmptyState icon="eye-off" title="Nobody muted" line="Muted people stay in your feed but their stories stay hidden." />}
+        <FlatList ListFooterComponent={<View style={{ height: 120 }} />}
+ ListEmptyComponent={<EmptyState icon="eye-off" title="Nobody muted" line="Muted people stay in your feed but their stories stay hidden." />}
           data={rows}
           keyExtractor={r => r.muted_id}
           contentContainerStyle={{ paddingVertical: 8 }}

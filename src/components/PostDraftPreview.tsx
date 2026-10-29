@@ -9,6 +9,7 @@ import PostCaption from './PostCaption';
 import PostSoundtrack from './PostSoundtrack';
 import { useCallContext } from '../contexts/CallContext';
 import type { SoundtrackSelection } from '../../shared/soundtrack';
+import { applyPostPlayback, postPlaybackSettings } from '../../shared/postVoiceEffects';
 import { postAspectRatio, postTimeLabel, postTrimWindow } from '../../shared/postMediaEditing';
 
 type Props = {
@@ -25,7 +26,7 @@ export default function PostDraftPreview({ media, active=true, autoPlay=false, s
   const player=useVideoPlayer(media.type==='video'?media.uri:null,p=>{p.loop=true;p.muted=edit?.muted??false;p.timeUpdateEventInterval=.1;});
   useEffect(()=>{setClock(edit?.trimStart??0);setDuration(0);setPlaying(false);setError('');},[media.uri]);
   // Mixing volumes must not seek back to the beginning or recreate the video.
-  useEffect(()=>{if(media.type!=='video')return;try{player.muted=edit?.muted??false;player.volume=soundtrack?.originalVolume??1;player.playbackRate=edit?.speed??1;}catch{}},[player,media.type,edit?.muted,edit?.speed,soundtrack?.originalVolume]);
+  useEffect(()=>{if(media.type!=='video')return;try{player.muted=edit?.muted??false;player.volume=soundtrack?.originalVolume??1;applyPostPlayback(player,edit);}catch{}},[player,media.type,edit?.muted,edit?.speed,edit?.voiceEffect,soundtrack?.originalVolume]);
   useEffect(()=>{if(media.type==='video')try{player.currentTime=edit?.trimStart??0;setClock(edit?.trimStart??0);}catch{}},[player,media.type,edit?.trimStart]);
   useEffect(()=>{const subscription=AppState.addEventListener('change',state=>{setForeground(state==='active');if(state!=='active'){try{player.pause();}catch{}setPlaying(false);}});return()=>subscription.remove();},[player]);
   useEffect(()=>{if(media.type!=='video')return;try{if(!allowed){player.pause();setPlaying(false);}else if(autoPlay)player.play();}catch{setError('Video preview could not play. Tap play to retry.');}},[player,media.type,allowed,autoPlay]);
@@ -44,7 +45,7 @@ export default function PostDraftPreview({ media, active=true, autoPlay=false, s
     {media.type==='video'?<VideoView player={player} nativeControls={false} contentFit={edit?.fit??'cover'} style={[StyleSheet.absoluteFill,transform]} surfaceType="textureView"/>:<Image source={{uri:media.uri}} resizeMode={edit?.fit==='contain'?'contain':'cover'} style={[StyleSheet.absoluteFill,transform]}/>}
     {media.type==='video'&&!playing&&poster?<View pointerEvents="none" style={StyleSheet.absoluteFill}><Image source={{uri:poster}} resizeMode={edit?.fit==='contain'?'contain':'cover'} style={[StyleSheet.absoluteFill,transform]}/></View>:null}
     <FilterLayer filterId={edit?.filterId??null} amt={edit?.filterAmt??100}/><AdjustLayer adjust={edit?.adjust}/><PostCaption captions={edit?.captions} time={clock}/>
-    {soundtrack?<PostSoundtrack selection={soundtrack} active={allowed} controls={media.type!=='video'&&!autoPlay} clock={media.type==='video'?{time:Math.max(0,clock-(edit?.trimStart??0)),playing:playing&&ready&&allowed,rate:edit?.speed??1}:undefined}/>:null}
+    {soundtrack?<PostSoundtrack selection={soundtrack} active={allowed} controls={media.type!=='video'&&!autoPlay} clock={media.type==='video'?{time:Math.max(0,clock-(edit?.trimStart??0)),playing:playing&&ready&&allowed,rate:postPlaybackSettings(edit).rate}:undefined}/>:null}
     {media.type==='video'?<TouchableOpacity disabled={!allowed} accessibilityRole="button" accessibilityLabel={playing?'Pause video preview':'Play video preview'} onPress={toggle} style={{position:'absolute',bottom:12,left:12,minHeight:44,paddingHorizontal:13,borderRadius:24,backgroundColor:'rgba(6,14,25,.75)',flexDirection:'row',alignItems:'center',gap:9,zIndex:5}}><Feather name={playing?'pause':'play'} size={19} color="#FFF"/><Text style={{fontSize:12,color:'#FFF',fontVariant:['tabular-nums']}}>{postTimeLabel(clock)} / {postTimeLabel(duration)}</Text></TouchableOpacity>:null}
     {error?<View style={{position:'absolute',left:10,right:10,top:10,padding:10,borderRadius:10,backgroundColor:'rgba(0,0,0,.8)'}}><Text accessibilityRole="alert" style={{color:'#FFF',fontSize:12,lineHeight:18}}>{error}</Text></View>:null}
   </View>;

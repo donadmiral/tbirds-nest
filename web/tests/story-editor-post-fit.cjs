@@ -145,7 +145,7 @@ test('a hidden editor waits for visible measurements before fitting', () => {
 });
 test('multiline preview captions include their real footer height in fitting', () => {
   const hooks = { useRef: () => ({ current: null }), useState: v => [v, () => {}], useEffect() {} };
-  const { SharedPostStory } = moduleFrom('web/components/SharedPostStory.tsx', { require: p => p === 'react' ? hooks : p === 'react/jsx-runtime' ? { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) } : p.endsWith('storyPresentation') ? { sharedPostFrame } : new Proxy({}, { get: (_, key) => key }) });
+  const { SharedPostStory } = moduleFrom('web/components/SharedPostStory.tsx', { require: p => p === 'react' ? hooks : p === 'react/jsx-runtime' ? { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) } : p.endsWith('postVoiceEffects') ? moduleFrom('shared/postVoiceEffects.ts') : p.endsWith('storyPresentation') ? { sharedPostFrame } : new Proxy({}, { get: (_, key) => key }) });
   const s = sticker({ postText: 'A\nB\nC' });
   const preview = SharedPostStory({ sticker: s, paused: true, preview: true });
   assert.equal(preview.props.style.height, undefined, 'fixed height would let the footer overflow without ResizeObserver seeing it');

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
 import { checkUploadableBytes } from "@/lib/media";
+import { saveStudioDraft } from "../../shared/studioDraftRetry";
 
 export type StudioRole = "owner" | "admin" | "editor" | "recruiter" | "support";
 export type StudioMe = {
@@ -86,13 +87,12 @@ export async function listScheduled(status?: string) {
   if (error) throw error;
   return (data as ScheduledPost[]) ?? [];
 }
-export async function savePost(input: { id?: string | null; content?: string | null; body?: string | null; category?: string | null; community?: string | null; media?: ScheduledPost["media"]; products?: ScheduledPost["products"]; publishAt?: string | null }) {
-  const { data, error } = await sb().rpc("studio_save_post", {
-    p_id: input.id ?? null, p_content: input.content ?? null, p_body: input.body ?? null, p_category: input.category ?? null,
-    p_community: input.community ?? null, p_media: input.media ?? [], p_products: input.products ?? [], p_publish_at: input.publishAt ?? null,
-  });
-  if (error) throw error;
-  return data as string;
+export async function savePost(input: { ownerId: string; id?: string | null; content?: string | null; body?: string | null; category?: string | null; community?: string | null; media?: ScheduledPost["media"]; products?: ScheduledPost["products"]; publishAt?: string | null }) {
+  const client = sb();
+  const { data: auth, error } = await client.auth.getSession();
+  if (error || !auth.session?.user.id) throw new Error("Sign in to save this draft.");
+  if (auth.session.user.id !== input.ownerId) throw new Error("Your account changed. Reopen Planner before saving.");
+  return saveStudioDraft(client, input, window.sessionStorage, () => crypto.randomUUID());
 }
 export async function publishNow(id: string) {
   const { data, error } = await sb().rpc("studio_publish_now", { p_id: id });

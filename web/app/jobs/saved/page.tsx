@@ -11,21 +11,36 @@ export default function SavedJobsPage() {
   const [jobs, setJobs] = useState<JobRow[]>([]);
   const [viewerId, setViewerId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retry, setRetry] = useState(0);
 
   useEffect(() => {
+    let live = true;
     (async () => {
-      const { data: sess } = await supabase.auth.getSession();
+      setLoading(true); setError(null); setJobs([]);
+      try {
+      const { data: sess, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) throw sessionError;
+      if (!live) return;
       const uid = sess.session?.user.id ?? null;
       setViewerId(uid);
       if (!uid) { setLoading(false); return; }
-      const { data: savedRows } = await supabase.from("job_saves").select("job_id").eq("user_id", uid);
+      const { data: savedRows, error: savedError } = await supabase.from("job_saves").select("job_id").eq("user_id", uid);
+      if (savedError) throw savedError;
+      if (!live) return;
       const ids = (savedRows ?? []).map((r) => r.job_id);
       if (ids.length === 0) { setJobs([]); setLoading(false); return; }
-      const { data } = await supabase.from("jobs").select("*").in("id", ids).order("created_at", { ascending: false });
-      setJobs((data ?? []) as JobRow[]);
-      setLoading(false);
+      const { data, error: jobsError } = await supabase.from("jobs").select("*").in("id", ids).order("created_at", { ascending: false });
+      if (jobsError) throw jobsError;
+      if (live) setJobs((data ?? []) as JobRow[]);
+      } catch { if (live) setError("Your saved jobs could not be loaded. Please try again."); }
+      finally { if (live) setLoading(false); }
     })();
-  }, [supabase]);
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if ((session?.user.id ?? null) !== viewerId) { live = false; setViewerId(session?.user.id ?? null); setRetry(n => n + 1); }
+    });
+    return () => { live = false; listener.subscription.unsubscribe(); };
+  }, [supabase, retry, viewerId]);
 
   return (
     <div>
@@ -35,6 +50,10 @@ export default function SavedJobsPage() {
       </div>
       {loading ? (
         <p className="py-16 text-center text-sm text-muted">Loading</p>
+      ) : error ? (
+        <div role="alert" className="py-12 text-center"><p className="text-sm text-ink">{error}</p><button onClick={() => setRetry(n => n + 1)} className="mt-3 min-h-11 rounded-full bg-pearl px-5 font-semibold text-on-pearl">Try again</button></div>
+      ) : !viewerId ? (
+        <p className="py-16 text-center text-sm text-muted">Sign in to view your saved jobs.</p>
       ) : jobs.length === 0 ? (
         <p className="py-16 text-center text-sm text-muted">Jobs you save will appear here.</p>
       ) : (

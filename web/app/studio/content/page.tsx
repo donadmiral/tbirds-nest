@@ -50,25 +50,29 @@ export default function ContentPage() {
   const [tab, setTab] = useState<Tab>("all");
   const [q, setQ] = useState("");
   const mounted = useRef(true);
+  const requestVersion = useRef(0);
 
   const load = useCallback(async () => {
+    const version = ++requestVersion.current;
+    const current = () => mounted.current && version === requestVersion.current;
     setLoading(true);
     try {
       const [posts, h] = await Promise.all([listScheduled(), studioHome()]);
-      if (!mounted.current) return;
+      if (!current()) return;
+      if (!h) throw new Error("Content metrics unavailable");
       setRows(posts);
       setHome(h); setLoaded(true); setLoadError(null);
     } catch {
-      if (mounted.current) setLoadError("Content could not be refreshed. Please try again.");
+      if (current()) setLoadError("Content could not be refreshed. Please try again.");
     } finally {
-      if (mounted.current) setLoading(false);
+      if (current()) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     mounted.current = true;
     void load();
-    return () => { mounted.current = false; };
+    return () => { mounted.current = false; ++requestVersion.current; };
   }, [load]);
 
   const engagement = useMemo(() => {
@@ -122,25 +126,25 @@ export default function ContentPage() {
       <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <div className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
           <p className="text-[11.5px] text-muted">Items in the library</p>
-          <Metric value={rows.length} size={24} />
+          <Metric value={loaded ? rows.length : "—"} size={24} />
         </div>
         <div className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
           <p className="text-[11.5px] text-muted">Views across recent posts</p>
-          <Metric value={totals.views} size={24} />
+          <Metric value={home ? totals.views : "—"} size={24} />
         </div>
         <div className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
           <p className="text-[11.5px] text-muted">Likes across recent posts</p>
-          <Metric value={totals.likes} size={24} />
+          <Metric value={home ? totals.likes : "—"} size={24} />
         </div>
         <div className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
           <p className="text-[11.5px] text-muted">Comments across recent posts</p>
-          <Metric value={totals.comments} size={24} />
+          <Metric value={home ? totals.comments : "—"} size={24} />
         </div>
       </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <PillTabs
-          tabs={TABS.map((t) => ({ key: t.key, label: t.label, count: counts[t.key] ?? 0 }))}
+          tabs={TABS.map((t) => ({ key: t.key, label: t.label, count: loaded ? counts[t.key] ?? 0 : undefined }))}
           active={tab}
           onSelect={(k) => setTab(k as Tab)}
         />

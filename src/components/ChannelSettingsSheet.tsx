@@ -1,7 +1,7 @@
 import VerifiedBadge from './VerifiedBadge';
 import TierName from './TierName';
-import { themedSheet } from '../theme/useTheme';
-import React, { useCallback, useEffect, useState } from 'react';
+import { themedSheet, useTheme } from '../theme/useTheme';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, ActivityIndicator, Modal, Alert, Switch, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from './SafeArea';
 import { Feather } from '@expo/vector-icons';
@@ -9,6 +9,8 @@ import { Image as ExpoImage } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../services/supabase';
 import { uploadMedia } from '../services/mediaService';
+import { useAuthStore } from '../stores/authStore';
+import { StudioLoadError } from './StudioLoadError';
 
 const NAVY = '#0B1E3D';
 
@@ -24,6 +26,7 @@ type Props = {
 
 export default function ChannelSettingsSheet({ visible, onClose, channelId, myRole, meId, onChannelUpdated }: Props) {
   const insets = useSafeAreaInsets();
+  const { t } = useTheme();
   const isOwner = myRole === 'owner';
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
@@ -39,140 +42,154 @@ export default function ChannelSettingsSheet({ visible, onClose, channelId, myRo
   const [results, setResults] = useState<any[]>([]);
   const [inviting, setInviting] = useState<string | null>(null);
 
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const updatedRef = useRef(onChannelUpdated); updatedRef.current = onChannelUpdated;
+  const context = `${visible}:${channelId}:${meId}`;
+  const contextRef = useRef(context); contextRef.current = context;
+  const scope = useRef(0), loadRequest = useRef(0), mounted = useRef(false);
+  const locks = useRef(new Set<string>());
+  const current = (run: number) => mounted.current && run === scope.current && contextRef.current === context && visible && !!meId && useAuthStore.getState().session?.user.id === meId;
+
   const load = useCallback(async () => {
-    setLoading(true);
+    const run = scope.current;
+    if (!current(run)) return;
+    const request = ++loadRequest.current;
+    setLoading(true); setLoadError(null);
     try {
       const [st, mem] = await Promise.all([
-        supabase.rpc('get_channel_settings', { p_channel: channelId }),
+        supabase.rpc('get_channel_detail', { p_channel: channelId }),
         supabase.rpc('get_channel_members', { p_channel: channelId, p_limit: 100 }),
       ]);
+      if (st.error || mem.error) throw st.error || mem.error;
       const row = Array.isArray(st.data) ? st.data[0] : st.data;
-      if (row) {
-        setName(row.name || '');
-        setDesc(row.description || '');
-        setAudience(row.audience === 'followers' ? 'followers' : 'everyone');
-        setReplies(row.replies_enabled !== false);
-        setIconUrl(row.icon_url || null);
-        onChannelUpdated?.({ replies_enabled: row.replies_enabled !== false });
-      }
-      const rows: Member[] = mem.data || [];
-      setMembers(rows);
-      const mine = rows.find(r => r.user_id === meId);
-      if (mine) setMyLevel(mine.notification_level || 'all');
-    } finally { setLoading(false); }
-  }, [channelId, meId, onChannelUpdated]);
-
-  useEffect(() => { if (visible) load(); }, [visible, load]);
+      if (!row?.is_member) throw new Error('Channel membership is unavailable.');
+      if (!current(run) || request !== loadRequest.current) return;
+      setName(row.name || ''); setDesc(row.description || '');
+      setAudience(row.audience === 'followers' ? 'followers' : 'everyone');
+      setReplies(row.replies_enabled !== false); setIconUrl(row.icon_url || null);
+      setMyLevel(row.my_notification_level || 'all');
+      setMembers(mem.data || []);
+      updatedRef.current?.({ replies_enabled: row.replies_enabled !== false });
+    } catch { if (current(run) && request === loadRequest.current) setLoadError('Channel settings could not be loaded. Please try again.'); }
+    finally { if (current(run) && request === loadRequest.current) setLoading(false); }
+  }, [visible, channelId, meId]);
 
   useEffect(() => {
-    if (!q.trim() || q.trim().length < 2) { setResults([]); return; }
-    const t = setTimeout(async () => {
-      const term = q.trim();
-      const { data } = await supabase.from('profiles')
-        .select('id, full_name, username, avatar_url')
-        .or('full_name.ilike.%' + term + '%,username.ilike.%' + term + '%')
-        .limit(8);
-      const taken = new Set(members.map(m => m.user_id));
-      setResults((data || []).filter((r: any) => !taken.has(r.id)));
+    mounted.current = true; ++scope.current; locks.current.clear();
+    setMembers([]); setResults([]); setQ(''); setSearchError(null); setSaving(false); setIconBusy(false); setInviting(null);
+    if (visible && meId) void load();
+    return () => { mounted.current = false; ++scope.current; ++loadRequest.current; };
+  }, [visible, meId, channelId, load]);
+
+  useEffect(() => {
+    const run = scope.current; let active = true;
+    setResults([]); setSearchError(null);
+    if (!visible || !isOwner || q.trim().length < 2) return;
+    const timer = setTimeout(async () => {
+      try {
+        const { data, error } = await supabase.rpc('search_people_page', { p_q: q.trim(), p_limit: 8, p_offset: 0 });
+        if (error) throw error;
+        if (!active || !current(run)) return;
+        const taken = new Set(members.map(member => member.user_id));
+        setResults((data || []).filter((person: any) => !taken.has(person.id)));
+      } catch { if (active && current(run)) setSearchError('People could not be loaded. Edit your search to retry.'); }
     }, 250);
-    return () => clearTimeout(t);
-  }, [q, members]);
+    return () => { active = false; clearTimeout(timer); };
+  }, [q, members, visible, isOwner, meId, channelId]);
+
+  const runAction = async (key: string, work: () => PromiseLike<{ error: any; data?: any }>, apply: () => void, failure: string) => {
+    const run = scope.current;
+    if (!current(run) || locks.current.has(key)) return;
+    locks.current.add(key);
+    try { const { error } = await work(); if (error) throw error; if (current(run)) apply(); }
+    catch (error: any) { if (current(run)) Alert.alert(failure, error?.message || 'Refresh channel settings and try again.'); }
+    finally { if (current(run)) locks.current.delete(key); }
+  };
 
   const pickIcon = async () => {
-    if (!isOwner || !meId) return;
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) { Alert.alert('Permission needed', 'Allow photo access in your device settings.'); return; }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      preferredAssetRepresentationMode: 'compatible' as ImagePicker.UIImagePickerPreferredAssetRepresentationMode,
-      mediaTypes: ['images'] as ImagePicker.MediaType[],
-      allowsEditing: true, aspect: [1, 1], quality: 0.85,
-    });
-    if (result.canceled || !result.assets?.[0]) return;
-    setIconBusy(true);
+    const run = scope.current;
+    if (!isOwner || !meId || !current(run) || locks.current.has('icon')) return;
+    locks.current.add('icon'); setIconBusy(true);
     try {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!current(run)) return;
+      if (!perm.granted) { Alert.alert('Permission needed', 'Allow photo access in your device settings.'); return; }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        preferredAssetRepresentationMode: 'compatible' as ImagePicker.UIImagePickerPreferredAssetRepresentationMode,
+        mediaTypes: ['images'] as ImagePicker.MediaType[], allowsEditing: true, aspect: [1, 1], quality: 1,
+      });
+      if (!current(run) || result.canceled || !result.assets?.[0]) return;
       const asset = result.assets[0];
-      const ext = (asset.uri.split('.').pop() || 'jpg').toLowerCase().replace('jpeg', 'jpg');
-      const mime = ext === 'png' ? 'image/png' : 'image/jpeg';
+      const ext = ((asset.fileName || asset.uri).split('.').pop()?.split('?')[0] || 'jpg').toLowerCase().replace('jpeg', 'jpg');
+      const mime = asset.mimeType || (ext === 'png' ? 'image/png' : 'image/jpeg');
       const { url } = await uploadMedia('avatars', meId, { uri: asset.uri, kind: 'image', ext, mimeType: mime, width: asset.width, height: asset.height, base64: null } as any, { filename: 'channel_' + channelId + '_' + Date.now() + '.' + ext });
+      if (!current(run)) return;
       const { error } = await supabase.rpc('update_channel_settings', { p_channel: channelId, p_icon_url: url });
       if (error) throw error;
-      setIconUrl(url);
-      onChannelUpdated?.({ icon_url: url });
-    } catch (e: any) { Alert.alert('Upload failed', e?.message || 'Could not update the icon.'); }
-    finally { setIconBusy(false); }
+      if (!current(run)) return;
+      setIconUrl(url); updatedRef.current?.({ icon_url: url });
+    } catch (error: any) { if (current(run)) Alert.alert('Upload failed', error?.message || 'Could not update the icon.'); }
+    finally { if (current(run)) { locks.current.delete('icon'); setIconBusy(false); } }
   };
 
   const save = async () => {
-    if (!isOwner || saving) return;
+    const run = scope.current;
+    if (!isOwner || !current(run) || locks.current.has('save')) return;
     if (!name.trim()) { Alert.alert('Required', 'The channel needs a name.'); return; }
     setSaving(true);
-    try {
-      const { error } = await supabase.rpc('update_channel_settings', {
-        p_channel: channelId, p_name: name.trim(), p_description: desc.trim() || null,
-        p_audience: audience, p_replies_enabled: replies,
-      });
-      if (error) throw error;
-      onChannelUpdated?.({ name: name.trim(), replies_enabled: replies });
-      Alert.alert('Saved', 'Channel settings updated.');
-    } catch (e: any) { Alert.alert('Could not save', e?.message || 'Please try again.'); }
-    finally { setSaving(false); }
+    await runAction('save', () => supabase.rpc('update_channel_settings', { p_channel: channelId, p_name: name.trim(), p_description: desc.trim() || null, p_audience: audience, p_replies_enabled: replies }), () => {
+      updatedRef.current?.({ name: name.trim(), replies_enabled: replies }); Alert.alert('Saved', 'Channel settings updated.');
+    }, 'Could not save');
+    if (current(run)) setSaving(false);
   };
-
-  const setLevel = async (level: 'all' | 'highlights' | 'mute') => {
-    const prev = myLevel;
-    setMyLevel(level);
-    const { error } = await supabase.rpc('set_channel_notifications', { p_channel: channelId, p_level: level });
-    if (error) { setMyLevel(prev); Alert.alert('Could not update', error.message); }
+  const setLevel = (level: 'all' | 'highlights' | 'mute') => runAction('level', () => supabase.rpc('set_channel_notifications', { p_channel: channelId, p_level: level }), () => setMyLevel(level), 'Could not save notification settings');
+  const applyRole = (member: Member, role: string) => {
+    if (!isOwner) return;
+    return runAction('member:' + member.user_id, () => supabase.rpc('set_channel_role', { p_channel: channelId, p_user: member.user_id, p_role: role }), () => {
+      setMembers(previous => role === 'remove' ? previous.filter(item => item.user_id !== member.user_id) : previous.map(item => item.user_id === member.user_id ? { ...item, role } : item));
+    }, 'Could not update role');
   };
-
-  const applyRole = async (m: Member, role: string) => {
-    const { error } = await supabase.rpc('set_channel_role', { p_channel: channelId, p_user: m.user_id, p_role: role });
-    if (error) { Alert.alert('Could not update role', error.message); return; }
-    if (role === 'remove') setMembers(prev => prev.filter(x => x.user_id !== m.user_id));
-    else setMembers(prev => prev.map(x => x.user_id === m.user_id ? { ...x, role } : x));
-  };
-
-  const roleMenu = (m: Member) => {
-    if (!isOwner || m.role === 'owner' || m.user_id === meId) return;
-    Alert.alert(m.full_name || 'Member', 'Change what this member can do.', [
-      { text: 'Make collaborator', onPress: () => applyRole(m, 'collaborator') },
-      { text: 'Make moderator', onPress: () => applyRole(m, 'moderator') },
-      { text: 'Make member', onPress: () => applyRole(m, 'member') },
-      { text: 'Remove from channel', style: 'destructive', onPress: () => applyRole(m, 'remove') },
+  const roleMenu = (member: Member) => {
+    if (!isOwner || member.role === 'owner' || member.user_id === meId) return;
+    Alert.alert(member.full_name || 'Member', 'Change what this member can do.', [
+      { text: 'Make collaborator', onPress: () => applyRole(member, 'collaborator') },
+      { text: 'Make moderator', onPress: () => applyRole(member, 'moderator') },
+      { text: 'Make member', onPress: () => applyRole(member, 'member') },
+      { text: 'Remove from channel', style: 'destructive', onPress: () => applyRole(member, 'remove') },
       { text: 'Cancel', style: 'cancel' },
     ]);
   };
-
-  const invite = async (r: any) => {
-    setInviting(r.id);
-    try {
-      const { error } = await supabase.rpc('set_channel_role', { p_channel: channelId, p_user: r.id, p_role: 'collaborator' });
-      if (error) throw error;
-      setMembers(prev => [...prev, { user_id: r.id, full_name: r.full_name, username: r.username, avatar_url: r.avatar_url, role: 'collaborator', notification_level: 'all' }]);
+  const invite = async (person: any) => {
+    const run = scope.current;
+    if (!isOwner || !current(run) || locks.current.has('invite')) return;
+    setInviting(person.id);
+    await runAction('invite', () => supabase.rpc('set_channel_role', { p_channel: channelId, p_user: person.id, p_role: 'collaborator' }), () => {
+      setMembers(previous => [...previous.filter(item => item.user_id !== person.id), { user_id: person.id, full_name: person.full_name, username: person.username, avatar_url: person.avatar_url, role: 'collaborator', notification_level: 'all' }]);
       setQ(''); setResults([]);
-    } catch (e: any) { Alert.alert('Could not invite', e?.message || 'Please try again.'); }
-    finally { setInviting(null); }
+    }, 'Could not invite');
+    if (current(run)) setInviting(null);
   };
 
   const roleLabel = (r: string) => r === 'owner' ? 'Owner' : r === 'collaborator' ? 'Collaborator' : r === 'moderator' ? 'Moderator' : null;
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: t.surface.canvas }}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
           <View style={s.header}>
             <View style={{ width: 60 }} />
             <Text style={s.headerTitle}>Channel settings</Text>
-            <TouchableOpacity onPress={onClose} style={{ width: 60, alignItems: 'flex-end' }}><Feather name="x" size={22} color="#000" /></TouchableOpacity>
+            <TouchableOpacity onPress={onClose} style={{ width: 60, alignItems: 'flex-end' }}><Feather name="x" size={22} color={t.ink.primary} /></TouchableOpacity>
           </View>
-          {loading ? (
+          {loadError ? <StudioLoadError message={loadError} onRetry={load} busy={loading} /> : loading ? (
             <View style={s.center}><ActivityIndicator color={NAVY} /></View>
           ) : (
             <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: Math.max(insets.bottom, 12) + 24 }} keyboardShouldPersistTaps="handled">
               {isOwner ? (
                 <View>
                   <View style={{ alignItems: 'center', marginBottom: 14 }}>
-                    <TouchableOpacity onPress={pickIcon} activeOpacity={0.85} style={s.iconWrap}>
+                    <TouchableOpacity onPress={pickIcon} disabled={iconBusy} activeOpacity={0.85} style={s.iconWrap}>
                       {iconUrl ? (
                         <ExpoImage source={{ uri: iconUrl }} style={s.icon} contentFit="cover" />
                       ) : (
@@ -183,13 +200,13 @@ export default function ChannelSettingsSheet({ visible, onClose, channelId, myRo
                     <Text style={s.iconHint}>Tap to change the channel icon</Text>
                   </View>
                   <Text style={s.label}>Name</Text>
-                  <TextInput style={s.input} value={name} onChangeText={setName} maxLength={60} placeholder="Channel name" placeholderTextColor="#8E8E93" />
+                  <TextInput style={s.input} value={name} editable={!saving} onChangeText={setName} maxLength={60} placeholder="Channel name" placeholderTextColor="#8E8E93" />
                   <Text style={s.label}>Description</Text>
-                  <TextInput style={[s.input, { minHeight: 64 }]} value={desc} onChangeText={setDesc} maxLength={160} multiline placeholder="What is it about?" placeholderTextColor="#8E8E93" />
+                  <TextInput style={[s.input, { minHeight: 64 }]} value={desc} editable={!saving} onChangeText={setDesc} maxLength={160} multiline placeholder="What is it about?" placeholderTextColor="#8E8E93" />
                   <Text style={s.label}>Who can join</Text>
                   <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
                     {(['everyone', 'followers'] as const).map(k => (
-                      <TouchableOpacity key={k} style={[s.audChip, audience === k && s.audChipOn]} onPress={() => setAudience(k)} activeOpacity={0.85}>
+                      <TouchableOpacity key={k} style={[s.audChip, audience === k && s.audChipOn]} disabled={saving} onPress={() => setAudience(k)} activeOpacity={0.85}>
                         <Text style={[s.audChipTxt, audience === k && s.audChipTxtOn]}>{k === 'everyone' ? 'Everyone' : 'My followers'}</Text>
                       </TouchableOpacity>
                     ))}
@@ -199,7 +216,7 @@ export default function ChannelSettingsSheet({ visible, onClose, channelId, myRo
                       <Text style={s.switchTitle}>Member replies</Text>
                       <Text style={s.switchSub}>Members can reply in threads under each update.</Text>
                     </View>
-                    <Switch value={replies} onValueChange={setReplies} trackColor={{ true: NAVY }} />
+                    <Switch disabled={saving} value={replies} onValueChange={setReplies} trackColor={{ true: NAVY }} />
                   </View>
                   <TouchableOpacity style={[s.saveBtn, saving && { opacity: 0.5 }]} onPress={save} disabled={saving} activeOpacity={0.85}>
                     {saving ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={s.saveBtnTxt}>Save changes</Text>}
@@ -223,6 +240,7 @@ export default function ChannelSettingsSheet({ visible, onClose, channelId, myRo
                 <View>
                   <Text style={s.section}>Invite a collaborator</Text>
                   <TextInput style={s.input} value={q} onChangeText={setQ} placeholder="Search people" placeholderTextColor="#8E8E93" />
+                  {searchError ? <Text accessibilityRole="alert" style={s.hint}>{searchError}</Text> : null}
                   {results.map(r => (
                     <View key={r.id} style={s.memberRow}>
                       {r.avatar_url ? <ExpoImage source={{ uri: r.avatar_url }} style={s.memberAvatar} contentFit="cover" /> : <View style={[s.memberAvatar, s.iconFb]}><Text style={s.memberAvatarTxt}>{(r.full_name || '?')[0]}</Text></View>}
@@ -230,7 +248,7 @@ export default function ChannelSettingsSheet({ visible, onClose, channelId, myRo
                         <Text style={s.memberName} numberOfLines={1}><TierName userId={((r) as any)?.id ?? ((r) as any)?.user_id} baseStyle={s.memberName} text={r.full_name || 'Member' || ''} numberOfLines={1} /> <VerifiedBadge userId={((r) as any)?.id ?? ((r) as any)?.user_id} size={12} /></Text>
                         {r.username ? <Text style={s.memberSub}>@{r.username}</Text> : null}
                       </View>
-                      <TouchableOpacity style={s.inviteBtn} onPress={() => invite(r)} disabled={inviting === r.id} activeOpacity={0.85}>
+                      <TouchableOpacity style={s.inviteBtn} onPress={() => invite(r)} disabled={!!inviting} activeOpacity={0.85}>
                         {inviting === r.id ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={s.inviteBtnTxt}>Invite</Text>}
                       </TouchableOpacity>
                     </View>

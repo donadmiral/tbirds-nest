@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -14,7 +14,7 @@ const CATEGORIES = [
 const inputCls = "rounded-md bg-surface px-4 py-3 text-[14px] text-ink placeholder:text-muted outline-none focus:bg-surface-elevated";
 
 export default function PostJobPage() {
-  const supabase = createClient();
+  const [supabase] = useState(createClient);
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [company, setCompany] = useState("");
@@ -31,16 +31,26 @@ export default function PostJobPage() {
   const [visa, setVisa] = useState(false);
   const [urgent, setUrgent] = useState(false);
   const [pending, setPending] = useState(false);
+  const sending = useRef(false);
   const [error, setError] = useState<string | null>(null);
 
   async function submit() {
-    if (pending) return;
+    if (sending.current) return;
     if (!title.trim() || !company.trim() || !description.trim()) { setError("Title, company and description are required."); return; }
-    setPending(true);
+    sending.current = true; setPending(true);
     setError(null);
-    const { data: sess } = await supabase.auth.getSession();
+    try {
+    const { data: sess, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) throw sessionError;
     const uid = sess.session?.user.id;
-    if (!uid) { setError("Sign in to post a job."); setPending(false); return; }
+    if (!uid) throw new Error("Sign in to post a job.");
+    if (applyUrl.trim()) {
+      let external: URL;
+      try { external = new URL(applyUrl.trim()); } catch { throw new Error("Enter a complete application URL starting with https://."); }
+      if (!["https:", "http:"].includes(external.protocol)) throw new Error("Use an http or https application URL.");
+    }
+    const expires = deadline ? new Date(deadline + "T23:59:59.999") : null;
+    if (expires && (!Number.isFinite(expires.getTime()) || expires.getTime() <= Date.now())) throw new Error("Choose today or a future application deadline.");
     const { data, error: insErr } = await supabase
       .from("jobs")
       .insert({
@@ -60,17 +70,15 @@ export default function PostJobPage() {
         verified: false,
         applications_count: 0,
         apply_url: applyUrl.trim() || null,
-        deadline: deadline || null,
+        deadline: expires?.toISOString() ?? null,
         scope: "global",
       })
       .select()
       .single();
-    if (insErr || !data) {
-      setError(insErr?.message || "Could not post the job.");
-      setPending(false);
-      return;
-    }
-    router.push("/jobs/" + data.id);
+    if (insErr || !data) throw new Error(insErr?.message || "Could not post the job.");
+    router.replace("/jobs/" + data.id);
+    } catch (reason) { setError(reason && typeof reason === "object" && "message" in reason ? String(reason.message) : "Could not post the job. Please try again."); }
+    finally { sending.current = false; setPending(false); }
   }
 
   return (
@@ -79,7 +87,7 @@ export default function PostJobPage() {
         <Link href="/jobs" className="text-sm text-muted hover:text-ink">← Jobs</Link>
         <h1 className="font-display text-xl text-porcelain">Post a job</h1>
       </div>
-      <div className="flex flex-col gap-3 px-1">
+      <fieldset disabled={pending} className="flex min-w-0 flex-col gap-3 px-1">
         <input className={inputCls} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Job title" aria-label="Job title" />
         <input className={inputCls} value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Company" aria-label="Company" />
         <input className={inputCls} value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Location (city)" aria-label="Location (city)" />
@@ -116,11 +124,11 @@ export default function PostJobPage() {
             <input type="checkbox" checked={urgent} onChange={(e) => setUrgent(e.target.checked)} className="accent-[#C9BFB0]" /> Urgent hiring
           </label>
         </div>
-        {error ? <p className="text-[13px] text-danger">{error}</p> : null}
+        {error ? <p role="alert" className="text-[13px] text-danger">{error}</p> : null}
         <button onClick={submit} disabled={pending} className="mt-2 self-start rounded-md bg-pearl px-6 py-3 text-[15px] font-semibold text-on-pearl transition-opacity hover:opacity-90 disabled:opacity-40">
           {pending ? "Publishing" : "Publish job"}
         </button>
-      </div>
+      </fieldset>
     </div>
   );
 }

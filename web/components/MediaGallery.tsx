@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, X, Maximize2, Minimize2, Heart, MessageCircle, Repeat2 } from "lucide-react";
+import { carouselIndex, carouselSwipe, type TouchPoint } from '../../shared/carouselNavigation';
 import { postAspectRatio } from '../../shared/postMediaEditing';
 import { VideoPlayer, type PostMediaEditRecipe } from "@/components/VideoPlayer";
 import { STORY_FILTERS, filterCss } from "@/lib/stories";
@@ -196,7 +197,8 @@ export function MediaGallery({ media, postId, viewsCount, post, fullFrame = fals
   const mediaPaneRef = useRef<HTMLDivElement | null>(null);
   const closeRef = useRef<HTMLButtonElement | null>(null);
   const openerRef = useRef<HTMLElement | null>(null);
-  const touchX = useRef<number | null>(null);
+  const touchStart = useRef<TouchPoint | null>(null);
+  const ignoreClickUntil = useRef(0);
   const dragRef = useRef<{ x: number; y: number; px: number; py: number } | null>(null);
   const pinchRef = useRef<{ dist: number; zoom: number } | null>(null);
   const [availW, setAvailW] = useState(608);
@@ -283,7 +285,7 @@ export function MediaGallery({ media, postId, viewsCount, post, fullFrame = fals
     const gap = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.overflow = "hidden";
     if (gap > 0) document.body.style.paddingRight = gap + "px";
-    closeRef.current?.focus();
+    closeRef.current?.focus({ preventScroll: true });
     return () => {
       document.body.style.overflow = prevOverflow;
       document.body.style.paddingRight = prevPad;
@@ -322,7 +324,7 @@ export function MediaGallery({ media, postId, viewsCount, post, fullFrame = fals
   useEffect(() => {
     // Moving to the last/first item can remove the focused arrow. Keep focus
     // inside the dialog, without resetting controls that remain mounted.
-    if (viewerOpen && !modalRef.current?.contains(document.activeElement)) closeRef.current?.focus();
+    if (viewerOpen && !modalRef.current?.contains(document.activeElement)) closeRef.current?.focus({ preventScroll: true });
   }, [viewerOpen, lightbox]);
 
   function openViewer(next: number, opener = document.activeElement as HTMLElement | null) {
@@ -356,18 +358,27 @@ export function MediaGallery({ media, postId, viewsCount, post, fullFrame = fals
   const viewerImage = viewerItem?.media_type !== 'video'
     ? fitted(viewerKnown?.w, viewerKnown?.h, viewerSize.w, viewerSize.h, viewerItem ? editOf(viewerItem)?.rotation ?? 0 : 0, 1) : null;
 
-  function goTo(next: number) { resetZoom(); setLightbox(next); }
-  function onTouchStart(e: React.TouchEvent) { touchX.current = e.touches[0]?.clientX ?? null; }
+  function goTo(next: number) { const index = carouselIndex(next, media.length); resetZoom(); setIdx(index); setLightbox(index); }
+  function onTouchStart(e: React.TouchEvent) {
+    const interactive = (e.target as HTMLElement).closest('button, a, input, textarea, select, [role="slider"]');
+    const touch = e.touches.length === 1 && !interactive ? e.touches[0] : null;
+    touchStart.current = touch ? { x: touch.clientX, y: touch.clientY } : null;
+  }
+  function touchDirection(e: React.TouchEvent) {
+    const touch = e.changedTouches[0];
+    const direction = carouselSwipe(touchStart.current, touch ? { x: touch.clientX, y: touch.clientY } : null);
+    touchStart.current = null;
+    if (direction) ignoreClickUntil.current = Date.now() + 350;
+    return direction;
+  }
+  function cancelTouch() { touchStart.current = null; pinchRef.current = null; dragRef.current = null; }
   function onFeedTouchEnd(e: React.TouchEvent) {
-    const start = touchX.current;
-    touchX.current = null;
-    if (start === null || media.length < 2) return;
-    const dx = (e.changedTouches[0]?.clientX ?? start) - start;
-    if (dx < -40 && idx < media.length - 1) setIdx(idx + 1);
-    else if (dx > 40 && idx > 0) setIdx(idx - 1);
+    const direction = touchDirection(e);
+    if (direction && media.length > 1) setIdx(current => carouselIndex(current + direction, media.length));
   }
   function onModalTouchMove(e: React.TouchEvent) {
     if (e.touches.length === 2) {
+      touchStart.current = null;
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       const dist = Math.hypot(dx, dy);
@@ -382,14 +393,12 @@ export function MediaGallery({ media, postId, viewsCount, post, fullFrame = fals
     }
   }
   function onModalTouchEnd(e: React.TouchEvent) {
+    const pinching = !!pinchRef.current;
     if (e.touches.length < 2) pinchRef.current = null;
     if (e.touches.length === 0) dragRef.current = null;
-    const start = touchX.current;
-    touchX.current = null;
-    if (start === null || lightbox === null || zoom > 1) return;
-    const dx = (e.changedTouches[0]?.clientX ?? start) - start;
-    if (dx < -40 && lightbox < media.length - 1) goTo(lightbox + 1);
-    else if (dx > 40 && lightbox > 0) goTo(lightbox - 1);
+    if (pinching || lightbox === null || zoom > 1) { touchStart.current = null; return; }
+    const direction = touchDirection(e);
+    if (direction) goTo(lightbox + direction);
   }
   function setZoomClamped(next: number) {
     const z = Math.min(4, Math.max(1, next));
@@ -446,7 +455,8 @@ export function MediaGallery({ media, postId, viewsCount, post, fullFrame = fals
 
   return (
     <div ref={wrapRef} role="group" aria-label="Post media" tabIndex={-1} className="mt-3" onDoubleClick={onFeedDoubleClick}>
-      <div style={dims ? { width: dims.w + "px" } : undefined} className="relative mx-auto max-w-full overflow-hidden rounded-xl bg-black" onTouchStart={onTouchStart} onTouchEnd={onFeedTouchEnd}>
+      <div style={dims ? { width: dims.w + "px" } : undefined} className="media-frame relative mx-auto max-w-full overflow-hidden rounded-xl bg-black" onTouchStart={onTouchStart} onTouchEnd={onFeedTouchEnd} onTouchCancel={cancelTouch}
+        onClickCapture={e => { if (Date.now() < ignoreClickUntil.current) { e.preventDefault(); e.stopPropagation(); } }}>
         {lightbox !== null ? (
           <div style={dims ? { height: dims.h + "px" } : undefined} className="w-full" />
         ) : (
@@ -526,8 +536,7 @@ export function MediaGallery({ media, postId, viewsCount, post, fullFrame = fals
       {lightbox !== null ? (
         <div ref={modalRef} role="dialog" aria-modal="true" aria-label="Media viewer"
           className="theater fixed inset-0 z-50 flex flex-col bg-[#0b0b0d]"
-          onClick={(e) => { e.preventDefault(); e.stopPropagation(); setLightbox(null); }}
-          onTouchStart={onTouchStart} onTouchMove={onModalTouchMove} onTouchEnd={onModalTouchEnd}
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (Date.now() >= ignoreClickUntil.current) setLightbox(null); }}
           onMouseMove={onDragMove} onMouseUp={onDragEnd} onMouseLeave={onDragEnd}
         >
           {/* Top bar, as in the reference: wordmark, author, Fit to screen, close. */}
@@ -562,7 +571,7 @@ export function MediaGallery({ media, postId, viewsCount, post, fullFrame = fals
           </div>
 
           <div className={"flex min-h-0 flex-1" + (mobileComments ? " max-lg:flex-col" : "")}>
-          <div ref={mediaPaneRef} data-media-pane className={"relative flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-hidden" + (mobileComments ? " max-lg:h-[40vh] max-lg:flex-none" : "")}>
+          <div ref={mediaPaneRef} data-media-pane onTouchStart={onTouchStart} onTouchMove={onModalTouchMove} onTouchEnd={onModalTouchEnd} onTouchCancel={cancelTouch} style={{ touchAction: zoom > 1 ? 'none' : 'pan-y' }} className={"relative flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-hidden" + (mobileComments ? " max-lg:h-[40vh] max-lg:flex-none" : "")}>
             {lightbox > 0 ? (
               <button onClick={(e) => { e.stopPropagation(); goTo(lightbox - 1); }} aria-label="Previous media" className="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-ink/60 p-2 text-white transition-colors duration-[140ms] hover:bg-ink/80"><ChevronLeft size={20} /></button>
             ) : null}

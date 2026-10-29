@@ -1,3 +1,4 @@
+import { normalizePostPlayback } from '../../shared/postVoiceEffects';
 import type { createClient } from './supabase/client';
 import { CONTENT_UUID } from '../../shared/contentMedia';
 import { hydratePostMedia } from './contentMedia';
@@ -23,7 +24,7 @@ export async function loadPostStorySticker(
   }
   const [profile, gallery] = await Promise.all([
     client.from('profiles').select('id,full_name,username,avatar_url,is_verified,verified_tier,profile_visibility,deactivated_at').eq('id', post.user_id).maybeSingle(),
-    client.from('post_media').select('url,media_type,width,height,sort_order').eq('post_id', postId).order('sort_order', { ascending: true }),
+    client.from('post_media').select('url,media_type,width,height,sort_order,edit').eq('post_id', postId).order('sort_order', { ascending: true }),
   ]);
   assertCurrent();
   if (profile.error || gallery.error) throw new Error('The post could not load. Please try again.');
@@ -45,6 +46,7 @@ export async function loadPostStorySticker(
     postMediaType: first?.media_type || (mediaUrl && /\.(mp4|mov|webm|m4v)(?:[?#]|$)/i.test(mediaUrl) ? 'video' : 'image'),
     postMediaCount: Math.max(gallery.data?.length || 0, mediaUrl ? 1 : 0),
     postMediaWidth: first?.width || null, postMediaHeight: first?.height || null,
+    postMediaPlayback: normalizePostPlayback(first?.edit),
     postCreatedAt: post.created_at,
   };
   const [preview] = await hydratePostMedia([{ id: post.id, sticker }], client);

@@ -84,7 +84,7 @@ export default function ChangeUsernamePage() {
       setCurrent(handle);
       available.current = null;
       setState("idle");
-      router.push("/" + encodeURIComponent(handle));
+      router.replace("/" + encodeURIComponent(handle));
       router.refresh();
     } catch (error) {
       if (mounted.current) alert("Could not change: " + (error instanceof Error ? error.message : (error as { message?: string })?.message || "Please try again."));
@@ -99,7 +99,6 @@ export default function ChangeUsernamePage() {
 
   return (
     <div className="mx-auto max-w-[480px] px-1">
-      <Link href="/settings" aria-label="Back to Settings" className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><ArrowLeft size={19} /></Link>
       <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><AtSign size={19} className="text-accent" /> Username</h1>
       <p className="pb-5 text-[13px] text-muted">Your handle is how people find and mention you. You are currently <span className="font-semibold text-ink">@{current || "-"}</span>. Changing it releases the old one.</p>
       <input value={handle} onChange={e => check(e.target.value)} disabled={busy} aria-label="New username" autoCapitalize="none" autoCorrect="off" placeholder="New username" className="w-full rounded-lg border border-ink/15 px-3.5 py-2.5 text-[14px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />

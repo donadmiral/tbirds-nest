@@ -1,17 +1,23 @@
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ScrollView, ActivityIndicator, Modal, Alert, KeyboardAvoidingView, Platform, RefreshControl } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { useNavigation } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { randomUUID } from 'expo-crypto';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { useUploadPreview } from '../../hooks/useUploadPreview';
 import { uploadMedia } from '../../services/mediaService';
 import { CATEGORIES } from '../../constants/categories';
 import { useStudioLive } from '../../hooks/useStudioLive';
+import { useStudioResource } from '../../hooks/useStudioResource';
+import { StudioLoadError } from '../../components/StudioLoadError';
+import { parseStudioLocalDate } from '../../../shared/studioValidation';
+import { saveStudioDraft } from '../../../shared/studioDraftRetry';
 import { MoreSeg, ReviewsSeg, AudienceSeg, CommerceSeg } from './StudioMoreSegs';
 import { RecruiterSeg, AdsSeg } from './StudioHiringAdsSegs';
 
@@ -40,12 +46,8 @@ const STAT_MEANING: Record<string, string> = {
 };
 function hourLabel(h: number) { return (h % 12 === 0 ? 12 : h % 12) + (h < 12 ? 'am' : 'pm'); }
 function whenLabel(iso: string) { const d = new Date(iso); return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
-function parseLocal(s: string): Date | null {
-  const m = s.trim().match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})$/);
-  if (!m) return null;
-  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), Number(m[4]), Number(m[5]));
-  return isNaN(d.getTime()) ? null : d;
-}
+const parseLocal = parseStudioLocalDate;
+
 function fmtLocal(d: Date) {
   const p = (n: number) => String(n).padStart(2, '0');
   return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
@@ -56,32 +58,30 @@ export default function StudioScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const profile = useAuthStore(st => st.profile) as any;
-  const [me, setMe] = useState<Me | null>(null);
-  const [loading, setLoading] = useState(true);
+  const fetchMe = useCallback(async () => { const { data, error } = await supabase.rpc('studio_me'); if (error || !data) throw new Error('Studio unavailable'); return data as Me; }, []);
+  const { data: me, loading, error: meError, reload: loadMe } = useStudioResource(fetchMe, 'Business access could not be loaded. Please try again.');
   const [seg, setSeg] = useState<Seg>('home');
   const [code, setCode] = useState('');
   const [binding, setBinding] = useState(false);
-
-  const loadMe = useCallback(async () => {
-    const { data } = await supabase.rpc('studio_me');
-    setMe((data as Me) || null);
-  }, []);
-  useEffect(() => { (async () => { await loadMe(); setLoading(false); })(); }, [loadMe]);
+  const bindingLock = useRef(false);
 
   const bind = async () => {
-    if (!code.trim() || binding) return;
+    if (!code.trim() || bindingLock.current) return;
+    bindingLock.current = true;
     setBinding(true);
     try {
       const { error } = await supabase.rpc('studio_bind_member', { p_code: code.trim() });
       if (error) throw error;
       setCode(''); await loadMe();
     } catch (e: any) { Alert.alert('Code not recognised', e?.message || 'Check the code and try again.'); }
-    finally { setBinding(false); }
+    finally { bindingLock.current = false; setBinding(false); }
   };
 
   const canPublish = !!me?.role && PUBLISH_ROLES.includes(me.role);
 
   if (loading) return <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>;
+
+  if (meError) return <SafeAreaView style={s.safe}><StudioLoadError message={meError} onRetry={loadMe} busy={loading} /></SafeAreaView>;
 
   if (!me || !me.is_business) {
     return (
@@ -138,11 +138,11 @@ export default function StudioScreen() {
 }
 
 function HomeSeg({ me, navigation, setSeg }: { me: Me; navigation: any; setSeg: (k: Seg) => void }) {
-  const [h, setH] = useState<any>(null);
+  const fetchHome = useCallback(async () => { const { data, error } = await supabase.rpc('studio_home'); if (error || !data) throw new Error('Overview unavailable'); return data as any; }, []);
+  const { data: h, error: loadError, reload: load } = useStudioResource(fetchHome, 'Your business overview could not be refreshed.');
   const [refreshing, setRefreshing] = useState(false);
-  const load = useCallback(async () => { const { data } = await supabase.rpc('studio_home'); setH(data || null); }, []);
-  useEffect(() => { void load(); }, [load]);
   useStudioLive(load);
+  if (!h && loadError) return <StudioLoadError message={loadError} onRetry={load} />;
   if (!h) return <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>;
   const todos = [
     { n: h.todos.unanswered, label: 'unanswered messages', icon: 'message-circle', go: () => navigation.navigate('Messages') },
@@ -160,6 +160,7 @@ function HomeSeg({ me, navigation, setSeg }: { me: Me; navigation: any; setSeg: 
   ] as [string, number, number][];
   return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: TAB_CLEAR }} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} />}>
+      <StudioLoadError message={loadError} onRetry={load} busy={refreshing} />
       <Text style={s.h1}>{greeting()}, {me.business_name || me.display_name || 'team'}</Text>
       <Text style={s.sub}>Last 7 days against the 7 before.</Text>
       <Text style={s.section}>Needs attention</Text>
@@ -200,22 +201,27 @@ function HomeSeg({ me, navigation, setSeg }: { me: Me; navigation: any; setSeg: 
 }
 
 function InboxSeg({ me, navigation, setSeg }: { me: Me; navigation: any; setSeg: (k: Seg) => void }) {
-  const [items, setItems] = useState<any[]>([]);
   const [filter, setFilter] = useState<'all' | 'dm' | 'offer' | 'applicant' | 'review'>('all');
-  const [loading, setLoading] = useState(true);
   const [showDone, setShowDone] = useState(false);
-  const load = useCallback(async () => {
-    setLoading(true);
-    try { const { data } = await supabase.rpc('studio_inbox', { p_filter: filter, p_limit: 120 }); setItems((data as any[]) || []); }
-    finally { setLoading(false); }
+  const fetchInbox = useCallback(async () => {
+    const { data, error } = await supabase.rpc('studio_inbox', { p_filter: filter, p_limit: 120 });
+    if (error) throw error;
+    return (data || []) as any[];
   }, [filter]);
-  useEffect(() => { void load(); }, [load]);
+  const { data, error: loadError, loading, reload: load } = useStudioResource(fetchInbox, 'Your business inbox could not be refreshed.');
+  const items = data || [];
+  const pending = useRef(new Set<string>());
   useStudioLive(load);
 
   const setState = async (it: any, patch: any) => {
-    setItems(prev => prev.map(x => x.id === it.id ? { ...x, ...patch } : x));
-    const { error } = await supabase.rpc('studio_set_thread', { p_conversation: it.id, p_label: patch.label ?? null, p_assignee: null, p_done: patch.done ?? null, p_note: patch.note ?? null });
-    if (error) { Alert.alert('Could not update', error.message); void load(); }
+    if (pending.current.has(it.id)) return;
+    pending.current.add(it.id);
+    try {
+      const { error } = await supabase.rpc('studio_set_thread', { p_conversation: it.id, p_label: patch.label ?? null, p_assignee: null, p_done: patch.done ?? null, p_note: patch.note ?? null });
+      if (error) throw error;
+      await load();
+    } catch { Alert.alert('Could not update', 'The thread was not confirmed. Refresh and try again.'); }
+    finally { pending.current.delete(it.id); }
   };
   const open = (it: any) => {
     if (it.kind === 'dm') navigation.navigate('Chat', { conversationId: it.id, userId: it.other_id, userName: it.title, otherUser: { id: it.other_id, full_name: it.title, username: it.username, avatar_url: it.avatar_url } });
@@ -227,9 +233,14 @@ function InboxSeg({ me, navigation, setSeg }: { me: Me; navigation: any; setSeg:
     Alert.alert(action === 'accepted' ? 'Accept this offer?' : 'Decline this offer?', it.preview, [
       { text: 'Cancel', style: 'cancel' },
       { text: action === 'accepted' ? 'Accept' : 'Decline', style: action === 'declined' ? 'destructive' : 'default', onPress: async () => {
-        const { error } = await supabase.rpc('respond_offer', { p_offer_id: it.id, p_action: action, p_counter_amount: null });
-        if (error) { Alert.alert('Failed', error.message); return; }
-        setItems(prev => prev.filter(x => x.id !== it.id));
+        if (pending.current.has(it.id)) return;
+        pending.current.add(it.id);
+        try {
+          const { error } = await supabase.rpc('respond_offer', { p_offer_id: it.id, p_action: action, p_counter_amount: null });
+          if (error) throw error;
+          await load();
+        } catch { Alert.alert('Offer not confirmed', 'Refresh the inbox to check its status before trying again.'); }
+        finally { pending.current.delete(it.id); }
       } },
     ]);
   };
@@ -245,6 +256,7 @@ function InboxSeg({ me, navigation, setSeg }: { me: Me; navigation: any; setSeg:
   const icon = (k: string) => k === 'dm' ? 'message-circle' : k === 'offer' ? 'tag' : k === 'applicant' ? 'briefcase' : 'star';
   return (
     <View style={{ flex: 1 }}>
+      <StudioLoadError message={loadError} onRetry={load} busy={loading} />
       <Text style={[s.sub, { paddingHorizontal: 16, paddingTop: 10 }]}>Messages, offers, applicants and reviews in one queue. Label, assign, and mark done.</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 10, gap: 8 }} style={{ flexGrow: 0 }}>
         {(['all', 'dm', 'offer', 'applicant', 'review'] as const).map(f => (
@@ -255,7 +267,7 @@ function InboxSeg({ me, navigation, setSeg }: { me: Me; navigation: any; setSeg:
         <TouchableOpacity style={[s.filterChip, showDone && s.filterChipOn]} onPress={() => setShowDone(v => !v)}><Text style={[s.filterTxt, showDone && s.filterTxtOn]}>Done</Text></TouchableOpacity>
       </ScrollView>
       {loading ? <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>
-      : shown.length === 0 ? <View style={[s.center, { flex: 1 }]}><Feather name="inbox" size={34} color="#E5E5EA" /><Text style={s.emptyTitle}>Queue is clear</Text></View>
+      : loadError && !data ? null : shown.length === 0 ? <View style={[s.center, { flex: 1 }]}><Feather name="inbox" size={34} color="#E5E5EA" /><Text style={s.emptyTitle}>Queue is clear</Text></View>
       : <FlatList data={shown} keyExtractor={i => i.kind + i.id} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: TAB_CLEAR }}
           renderItem={({ item: it }) => (
             <TouchableOpacity style={[s.card, it.done && { opacity: 0.55 }]} onPress={() => open(it)} onLongPress={() => actions(it)} activeOpacity={0.85}>
@@ -281,8 +293,6 @@ function InboxSeg({ me, navigation, setSeg }: { me: Me; navigation: any; setSeg:
 }
 
 function PlannerSeg({ canPublish, meId }: { canPublish: boolean; meId: string | null }) {
-  const [rows, setRows] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'upcoming' | 'drafts' | 'published'>('upcoming');
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -290,50 +300,67 @@ function PlannerSeg({ canPublish, meId }: { canPublish: boolean; meId: string | 
   const [category, setCategory] = useState<string | null>(null);
   const [media, setMedia] = useState<{ url: string; media_type: string; width?: number; height?: number }[]>([]);
   const [products, setProducts] = useState<any[]>([]);
-  const previewSource = useMemo(() => ({ rows, media }), [rows, media]);
-  const mediaPreview = useUploadPreview(previewSource);
   const [when, setWhen] = useState('');
   const [busy, setBusy] = useState(false);
-  const [listings, setListings] = useState<any[]>([]);
   const [pickOpen, setPickOpen] = useState(false);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try { const { data } = await supabase.rpc('studio_list_posts', { p_status: null, p_limit: 100 }); setRows((data as any[]) || []); }
-    finally { setLoading(false); }
-  }, []);
-  useEffect(() => { void load(); }, [load]);
+  const working = useRef(false);
+  const editorVersion = useRef(0);
+  const mounted = useRef(true);
+  const currentOwner = useRef(meId); currentOwner.current = meId;
+  const editingId = useRef<string | null>(null);
+  const pendingRows = useRef(new Set<string>());
   useEffect(() => {
-    if (!meId) return;
-    supabase.rpc('get_seller_listings', { p_seller_id: meId, p_cursor: null, p_limit: 50, p_include_sold: false }).then(({ data }) => setListings((data as any[]) || []));
+    mounted.current = true;
+    return () => { mounted.current = false; ++editorVersion.current; };
+  }, []);
+
+  const fetchPosts = useCallback(async () => { const { data, error } = await supabase.rpc('studio_list_posts', { p_status: null, p_limit: 100 }); if (error) throw error; return (data || []) as any[]; }, []);
+  const { data: loadedRows, error: loadError, loading, reload: load } = useStudioResource(fetchPosts, 'Your planned content could not be refreshed.');
+  const rows = loadedRows || [];
+  const previewSource = useMemo(() => ({ rows: loadedRows || [], media }), [loadedRows, media]);
+  const mediaPreview = useUploadPreview(previewSource);
+  const fetchListings = useCallback(async () => {
+    if (!meId) return [];
+    const { data, error } = await supabase.rpc('get_seller_listings', { p_seller_id: meId, p_cursor: null, p_limit: 50, p_include_sold: false });
+    if (error) throw error;
+    return (data || []) as any[];
   }, [meId]);
+  const { data: listingsData, error: listingsError, loading: listingsLoading, reload: reloadListings } = useStudioResource(fetchListings, 'Product listings could not be loaded.');
+  const listings = listingsData || [];
 
   const shown = rows.filter(r => tab === 'upcoming' ? ['scheduled', 'publishing', 'failed'].includes(r.status) : tab === 'drafts' ? ['draft', 'cancelled'].includes(r.status) : r.status === 'published');
 
-  const reset = () => { setEditId(null); setContent(''); setCategory(null); setMedia([]); setProducts([]); setWhen(''); };
+  const reset = () => { ++editorVersion.current; editingId.current = null; setEditId(null); setContent(''); setCategory(null); setMedia([]); setProducts([]); setWhen(''); setPickOpen(false); };
+  const closeEditor = () => { if (!working.current) { ++editorVersion.current; setOpen(false); } };
   const openEdit = (r: any) => {
+    if (working.current) return;
+    ++editorVersion.current; editingId.current = r.id;
     setEditId(r.id); setContent(r.content || r.body || ''); setCategory(r.category || null); setMedia(r.media || []); setProducts(r.products || []);
     setWhen(r.publish_at ? fmtLocal(new Date(r.publish_at)) : ''); setOpen(true);
   };
 
   const addPhoto = async () => {
-    if (!meId || media.length >= 4) return;
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) { Alert.alert('Permission needed', 'Allow photo access in your device settings.'); return; }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      preferredAssetRepresentationMode: 'compatible' as ImagePicker.UIImagePickerPreferredAssetRepresentationMode,
-      mediaTypes: ['images', 'videos'] as ImagePicker.MediaType[], allowsEditing: false, quality: 0.85,
-    });
-    if (result.canceled || !result.assets?.[0]) return;
-    const a = result.assets[0];
-    const isVideo = a.type === 'video';
-    const ext = (a.uri.split('.').pop() || (isVideo ? 'mp4' : 'jpg')).toLowerCase().replace('jpeg', 'jpg');
+    if (!meId || media.length >= 4 || working.current) return;
+    working.current = true;
+    const editor = editorVersion.current;
+    const current = () => mounted.current && currentOwner.current === meId && editorVersion.current === editor;
     setBusy(true);
     try {
-      const { url } = await uploadMedia('post-media', meId, { uri: a.uri, kind: isVideo ? 'video' : 'image', ext, mimeType: isVideo ? 'video/mp4' : (ext === 'png' ? 'image/png' : 'image/jpeg'), width: a.width, height: a.height, base64: null } as any, {});
-      setMedia(m => [...m, { url, media_type: isVideo ? 'video' : 'image', width: a.width, height: a.height }]);
-    } catch (e: any) { Alert.alert('Upload failed', e?.message || 'Please try again.'); }
-    finally { setBusy(false); }
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!current()) return;
+      if (!perm.granted) { Alert.alert('Permission needed', 'Allow photo access in your device settings.'); return; }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        preferredAssetRepresentationMode: 'compatible' as ImagePicker.UIImagePickerPreferredAssetRepresentationMode,
+        mediaTypes: ['images', 'videos'] as ImagePicker.MediaType[], allowsEditing: false, quality: 1,
+      });
+      if (!current() || result.canceled || !result.assets?.[0]) return;
+      const a = result.assets[0];
+      const isVideo = a.type === 'video';
+      const ext = ((a.fileName || a.uri).split('.').pop()?.split('?')[0] || (isVideo ? 'mp4' : 'jpg')).toLowerCase().replace('jpeg', 'jpg');
+      const { url } = await uploadMedia('post-media', meId, { uri: a.uri, kind: isVideo ? 'video' : 'image', ext, mimeType: a.mimeType || (isVideo ? 'video/mp4' : (ext === 'png' ? 'image/png' : 'image/jpeg')), width: a.width, height: a.height, base64: null } as any, {});
+      if (current()) setMedia(m => [...m, { url, media_type: isVideo ? 'video' : 'image', width: a.width, height: a.height }].slice(0, 4));
+    } catch (e: any) { if (current()) Alert.alert('Upload failed', e?.message || 'Please try again.'); }
+    finally { working.current = false; if (mounted.current) setBusy(false); }
   };
 
   const toggleListing = (l: any) => {
@@ -342,33 +369,46 @@ function PlannerSeg({ canPublish, meId }: { canPublish: boolean; meId: string | 
   };
 
   const save = async (mode: 'draft' | 'schedule' | 'now') => {
-    if (busy) return;
+    if (working.current || !canPublish || !meId) return;
     if (!content.trim() && media.length === 0) { Alert.alert('Empty post', 'Write something or add media first.'); return; }
     let publishAt: string | null = null;
     if (mode === 'schedule') {
       const d = parseLocal(when);
       if (!d) { Alert.alert('Pick a time', 'Use the format YYYY-MM-DD HH:MM, for example 2026-09-01 09:30.'); return; }
+      if (d.getTime() <= Date.now()) { Alert.alert('Choose a future time', 'The scheduled time must be later than now.'); return; }
       publishAt = d.toISOString();
     }
-    setBusy(true);
+    working.current = true; setBusy(true);
+    const editor = editorVersion.current;
+    const current = () => mounted.current && currentOwner.current === meId && editorVersion.current === editor;
     try {
-      const { data: id, error } = await supabase.rpc('studio_save_post', { p_id: editId, p_content: content.trim() || null, p_body: null, p_category: category, p_community: null, p_media: media, p_products: products, p_publish_at: publishAt });
-      if (error) throw error;
+      const id = await saveStudioDraft(supabase, { ownerId: meId, id: editingId.current, content: content.trim() || null, category, media, products, publishAt }, AsyncStorage, randomUUID);
+      if (!current()) return;
+      editingId.current = id; setEditId(id);
       if (mode === 'now') {
         const { data: postId, error: e2 } = await supabase.rpc('studio_publish_now', { p_id: id });
         if (e2) throw e2;
-        if (!postId) Alert.alert('Publish failed', 'The post is kept as failed with the reason in the list.');
+        if (!postId) throw new Error('Your draft was saved, but publishing failed. You can correct it and retry here.');
       }
+      if (!current()) return;
       setOpen(false); reset(); await load();
-    } catch (e: any) { Alert.alert('Could not save', e?.message || 'Please try again.'); }
-    finally { setBusy(false); }
+    } catch (e: any) { if (current()) { Alert.alert('Post not confirmed', e?.message || 'Check Planner before retrying. Your editor is still open.'); await load(); } }
+    finally { working.current = false; if (mounted.current) setBusy(false); }
+  };
+
+  const updateRow = async (id: string, rpc: 'studio_cancel_post' | 'studio_delete_post') => {
+    if (pendingRows.current.has(id)) return;
+    pendingRows.current.add(id);
+    try { const { error } = await supabase.rpc(rpc, { p_id: id }); if (error) throw error; await load(); }
+    catch { Alert.alert('Post not updated', 'Refresh Planner to check its status and try again.'); }
+    finally { pendingRows.current.delete(id); }
   };
 
   const rowActions = (r: any) => {
     const buttons: any[] = [];
     if (r.status !== 'published' && r.status !== 'publishing') buttons.push({ text: 'Edit', onPress: () => openEdit(r) });
-    if (r.status === 'scheduled') buttons.push({ text: 'Unschedule', onPress: async () => { await supabase.rpc('studio_cancel_post', { p_id: r.id }); await load(); } });
-    buttons.push({ text: 'Delete', style: 'destructive', onPress: async () => { await supabase.rpc('studio_delete_post', { p_id: r.id }); await load(); } });
+    if (r.status === 'scheduled') buttons.push({ text: 'Unschedule', onPress: () => updateRow(r.id, 'studio_cancel_post') });
+    if (r.status !== 'publishing') buttons.push({ text: 'Delete', style: 'destructive', onPress: () => Alert.alert('Delete this planned post?', 'This removes the Planner entry.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: () => updateRow(r.id, 'studio_delete_post') }]) });
     buttons.push({ text: 'Cancel', style: 'cancel' });
     Alert.alert(r.content || r.body || 'Post', undefined, buttons);
   };
@@ -383,6 +423,7 @@ function PlannerSeg({ canPublish, meId }: { canPublish: boolean; meId: string | 
 
   return (
     <View style={{ flex: 1 }}>
+      <StudioLoadError message={loadError} onRetry={load} busy={loading} />
       <Text style={[s.sub, { paddingHorizontal: 16, paddingTop: 10 }]}>Drafts, schedule and publish. Scheduled posts go out on the minute, even with the app closed.</Text>
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, gap: 8 }}>
         {(['upcoming', 'drafts', 'published'] as const).map(t => (
@@ -392,7 +433,7 @@ function PlannerSeg({ canPublish, meId }: { canPublish: boolean; meId: string | 
         {canPublish ? <TouchableOpacity style={s.plusBtn} onPress={() => { reset(); setOpen(true); }}><Feather name="plus" size={18} color={getTheme().ink.inverse} /></TouchableOpacity> : null}
       </View>
       {loading ? <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>
-      : shown.length === 0 ? <View style={[s.center, { flex: 1, paddingHorizontal: 40 }]}><Feather name="calendar" size={34} color="#E5E5EA" /><Text style={s.emptyTitle}>{tab === 'upcoming' ? 'Nothing scheduled' : tab === 'drafts' ? 'No drafts' : 'Nothing published from here yet'}</Text><Text style={s.emptySub}>Scheduled posts go out on the minute, even with the app closed.</Text></View>
+      : loadError && !loadedRows ? null : shown.length === 0 ? <View style={[s.center, { flex: 1, paddingHorizontal: 40 }]}><Feather name="calendar" size={34} color="#E5E5EA" /><Text style={s.emptyTitle}>{tab === 'upcoming' ? 'Nothing scheduled' : tab === 'drafts' ? 'No drafts' : 'Nothing published from here yet'}</Text><Text style={s.emptySub}>Scheduled posts go out on the minute, even with the app closed.</Text></View>
       : <FlatList ListHeaderComponent={mediaPreview.error ? <TouchableOpacity onPress={mediaPreview.retry}><Text style={{ color: '#A21B2D', padding: 12 }}>{mediaPreview.error}</Text></TouchableOpacity> : null} data={shown} keyExtractor={r => r.id} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: TAB_CLEAR }}
           renderItem={({ item: r }) => (
             <TouchableOpacity style={[s.card, { flexDirection: 'row', gap: 10 }]} onPress={() => canPublish && rowActions(r)} activeOpacity={0.85}>
@@ -409,22 +450,22 @@ function PlannerSeg({ canPublish, meId }: { canPublish: boolean; meId: string | 
             </TouchableOpacity>
           )} />}
 
-      <Modal visible={open} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setOpen(false)}>
+      <Modal visible={open} animationType="slide" presentationStyle="pageSheet" onRequestClose={closeEditor}>
         <SafeAreaView style={{ flex: 1, backgroundColor: getTheme().surface.canvas }}>
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
             <View style={s.modalHeader}>
-              <TouchableOpacity onPress={() => setOpen(false)} style={{ width: 70 }}><Text style={{ fontSize: 16, color: getTheme().ink.secondary }}>Cancel</Text></TouchableOpacity>
+              <TouchableOpacity onPress={closeEditor} disabled={busy} style={{ width: 70, opacity: busy ? .4 : 1 }}><Text style={{ fontSize: 16, color: getTheme().ink.secondary }}>Cancel</Text></TouchableOpacity>
               <Text style={s.modalTitle}>{editId ? 'Edit post' : 'New post'}</Text>
               <TouchableOpacity onPress={() => save('draft')} disabled={busy} style={{ width: 70, alignItems: 'flex-end' }}><Text style={{ fontSize: 15, fontWeight: '700', color: getTheme().ink.primary }}>Save draft</Text></TouchableOpacity>
             </View>
             <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: 30 }} keyboardShouldPersistTaps="handled">
-              <TextInput style={s.textArea} placeholder="What do you want to say?" placeholderTextColor={getTheme().ink.secondary} value={content} onChangeText={setContent} multiline maxLength={2000} />
+              <TextInput style={s.textArea} placeholder="What do you want to say?" placeholderTextColor={getTheme().ink.secondary} value={content} onChangeText={setContent} editable={!busy} multiline maxLength={2000} />
               {media.length ? (
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                   {media.map((m, i) => (
                     <View key={i}>
                       {m.media_type === 'video' ? <View style={[s.thumbLg, { backgroundColor: '#0F1419', alignItems: 'center', justifyContent: 'center' }]}><Feather name="play" size={20} color={getTheme().ink.inverse} /></View> : <ExpoImage source={{ uri: mediaPreview.preview.media[i]?.url || undefined }} style={s.thumbLg} contentFit="cover" />}
-                      <TouchableOpacity onPress={() => setMedia(x => x.filter((_, j) => j !== i))} style={s.removeX}><Feather name="x" size={12} color={getTheme().ink.inverse} /></TouchableOpacity>
+                      <TouchableOpacity disabled={busy} onPress={() => setMedia(x => x.filter((_, j) => j !== i))} style={s.removeX}><Feather name="x" size={12} color={getTheme().ink.inverse} /></TouchableOpacity>
                     </View>
                   ))}
                 </View>
@@ -435,9 +476,10 @@ function PlannerSeg({ canPublish, meId }: { canPublish: boolean; meId: string | 
               </View>
               {pickOpen ? (
                 <View style={s.pickBox}>
-                  {listings.length === 0 ? <Text style={s.cardMuted}>No active listings. Create one in Market to attach product cards.</Text>
+                  <StudioLoadError message={listingsError} onRetry={reloadListings} busy={listingsLoading} />
+                  {listingsLoading && !listingsData ? <ActivityIndicator color={getTheme().ink.primary} /> : listingsError && !listingsData ? null : listings.length === 0 ? <Text style={s.cardMuted}>No active listings. Create one in Market to attach product cards.</Text>
                     : listings.map(l => { const on = products.some(p => p.listing_id === l.id); return (
-                      <TouchableOpacity key={l.id} style={[s.pickRow, on && { backgroundColor: getTheme().brand.base }]} onPress={() => toggleListing(l)}>
+                      <TouchableOpacity key={l.id} disabled={busy} style={[s.pickRow, on && { backgroundColor: getTheme().brand.base }]} onPress={() => toggleListing(l)}>
                         {l.images?.[0] ? <ExpoImage source={{ uri: l.images[0] }} style={s.pickThumb} contentFit="cover" /> : <View style={[s.pickThumb, { backgroundColor: getTheme().surface.raised }]} />}
                         <Text style={[s.cardTxt, { flex: 1 }, on && { color: getTheme().ink.inverse }]} numberOfLines={1}>{l.title}</Text>
                         <Text style={[s.cardMeta, on && { color: getTheme().ink.inverse }]}>{l.currency} {l.price}</Text>
@@ -478,9 +520,9 @@ function pctLabel(n: number, p: number) { const d = pct(n, p); return d === 0 ? 
 
 function InsightsSeg({ navigation }: { navigation: any }) {
   const [days, setDays] = useState(30);
-  const [ins, setIns] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => { (async () => { setLoading(true); const { data } = await supabase.rpc('studio_insights', { p_days: days }); setIns(data || null); setLoading(false); })(); }, [days]);
+  const fetchInsights = useCallback(async () => { const { data, error } = await supabase.rpc('studio_insights', { p_days: days }); if (error || !data) throw new Error('Insights unavailable'); return data as any; }, [days]);
+  const { data: ins, error: loadError, loading, reload: load } = useStudioResource(fetchInsights, 'Business insights could not be refreshed.');
+  if (!ins && loadError) return <StudioLoadError message={loadError} onRetry={load} busy={loading} />;
   if (loading || !ins) return <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>;
   const cur = ins.current || {}, prev = ins.previous || {};
   const tiles: [string, number, number][] = [
@@ -492,6 +534,7 @@ function InsightsSeg({ navigation }: { navigation: any }) {
   const fun = ins.funnel || { commerce: {}, recruiting: {} };
   return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: TAB_CLEAR }}>
+      <StudioLoadError message={loadError} onRetry={load} busy={loading} />
       <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
         {[7, 30, 90].map(d => <TouchableOpacity key={d} style={[s.filterChip, days === d && s.filterChipOn]} onPress={() => setDays(d)}><Text style={[s.filterTxt, days === d && s.filterTxtOn]}>{d} days</Text></TouchableOpacity>)}
       </View>
@@ -547,28 +590,36 @@ function InsightsSeg({ navigation }: { navigation: any }) {
 }
 
 function SettingsSeg({ me, reload }: { me: Me; reload: () => Promise<void> }) {
-  const [info, setInfo] = useState<any>(null);
+  const ownerId = useAuthStore(state => state.session?.user.id || '');
+  const currentOwner = useRef(ownerId); currentOwner.current = ownerId;
+  const mounted = useRef(true);
+  const acting = useRef(false);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  const current = () => mounted.current && currentOwner.current === ownerId && useAuthStore.getState().session?.user.id === ownerId;
   const [b, setB] = useState<any>({});
   const [bio, setBio] = useState('');
   const [busy, setBusy] = useState(false);
   const [newName, setNewName] = useState('');
   const [issued, setIssued] = useState<{ name: string; code: string } | null>(null);
-  const load = useCallback(async () => {
+  const fetchSettings = useCallback(async () => {
     const { data, error } = await supabase.rpc('studio_get_business');
-    if (error) { Alert.alert('Could not load', error.message); return; }
-    setInfo(data);
-    setB({ category: data?.business?.category || '', location: data?.business?.location || '', address: data?.business?.address || '', phone: data?.business?.phone || '', email: data?.business?.email || '', website: data?.business?.website || '' });
-    setBio(data?.profile?.bio || '');
+    if (error || !data?.business || !data?.profile || !data?.role) throw new Error('Business settings unavailable');
+    return data as any;
   }, []);
-  useEffect(() => { void load(); }, [load]);
+  const { data: info, error: loadError, loading, reload: load } = useStudioResource(fetchSettings, 'Business settings could not be refreshed.');
+  useEffect(() => {
+    if (!info) return;
+    setB({ category: info.business.category || '', location: info.business.location || '', address: info.business.address || '', phone: info.business.phone || '', email: info.business.email || '', website: info.business.website || '' });
+    setBio(info.profile.bio || '');
+  }, [info]);
   const isOwner = info?.role === 'owner';
   const isAdmin = isOwner || info?.role === 'admin';
   const act = async (fn: () => PromiseLike<{ error: any }>) => {
-    if (busy) return;
-    setBusy(true);
-    try { const { error } = await fn(); if (error) throw error; await load(); await reload(); }
-    catch (e: any) { Alert.alert('Failed', e?.message || 'Please try again.'); }
-    finally { setBusy(false); }
+    if (acting.current || !current()) return;
+    acting.current = true; setBusy(true);
+    try { const { error } = await fn(); if (error) throw error; if (!current()) return; await load(); if (current()) await reload(); }
+    catch (e: any) { if (current()) Alert.alert('Could not update', e?.message || 'Refresh settings to check the result and try again.'); }
+    finally { acting.current = false; if (current()) setBusy(false); }
   };
   const save = () => act(() => supabase.rpc('studio_set_business', { p_bio: bio, p_category: b.category || null, p_location: b.location || null, p_address: b.address || null, p_phone: b.phone || null, p_email: b.email || null, p_website: b.website || null, p_social: info?.business?.social_links || {}, p_hours: null }));
   const roleMenu = (m: any) => {
@@ -580,29 +631,33 @@ function SettingsSeg({ me, reload }: { me: Me; reload: () => Promise<void> }) {
     ]);
   };
   const addMember = async () => {
-    if (!newName.trim() || busy) return;
-    setBusy(true);
+    if (!newName.trim() || acting.current || !isOwner || !current()) return;
+    acting.current = true; setBusy(true);
     try {
       const { data, error } = await supabase.rpc('studio_create_member', { p_name: newName.trim(), p_role: 'admin' });
       if (error) throw error;
+      if (!current()) return;
+      if (typeof data !== 'string' || !data.trim()) throw new Error('The code was not confirmed. Refresh Team before trying again.');
       setIssued({ name: newName.trim(), code: String(data) }); setNewName(''); await load();
-    } catch (e: any) { Alert.alert('Could not create', e?.message || 'Please try again.'); } finally { setBusy(false); }
+    } catch (e: any) { if (current()) Alert.alert('Code not confirmed', e?.message || 'Refresh Team before trying again.'); } finally { acting.current = false; if (current()) setBusy(false); }
   };
+  if (!info && loadError) return <StudioLoadError message={loadError} onRetry={load} busy={loading} />;
   if (!info) return <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>;
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: TAB_CLEAR }} keyboardShouldPersistTaps="handled">
+        <StudioLoadError message={loadError} onRetry={load} busy={loading} />
         <Text style={s.section}>Business details</Text>
-        <TextInput style={[s.textArea, { minHeight: 70 }]} placeholder="What you do, in two lines" placeholderTextColor={getTheme().ink.secondary} value={bio} onChangeText={setBio} multiline maxLength={300} />
+        <TextInput style={[s.textArea, { minHeight: 70 }]} placeholder="What you do, in two lines" placeholderTextColor={getTheme().ink.secondary} value={bio} editable={isAdmin && !busy} onChangeText={setBio} multiline maxLength={300} />
         {[['category', 'Category'], ['location', 'City'], ['address', 'Street address'], ['phone', 'Phone'], ['email', 'Email'], ['website', 'Website']].map(([k, l]) => (
-          <TextInput key={k} style={[s.input, { marginTop: 8 }]} placeholder={l} placeholderTextColor={getTheme().ink.secondary} value={b[k]} onChangeText={v => setB((x: any) => ({ ...x, [k]: v }))} autoCapitalize={k === 'email' || k === 'website' ? 'none' : 'sentences'} />
+          <TextInput key={k} style={[s.input, { marginTop: 8 }]} placeholder={l} placeholderTextColor={getTheme().ink.secondary} value={b[k]} editable={isAdmin && !busy} onChangeText={v => setB((x: any) => ({ ...x, [k]: v }))} autoCapitalize={k === 'email' || k === 'website' ? 'none' : 'sentences'} />
         ))}
         <Text style={[s.cardMeta, { marginTop: 8 }]}>Opening hours are set on the web Studio and drive the away message.</Text>
         {isAdmin ? <TouchableOpacity style={[s.primaryBtn, busy && { opacity: 0.4 }]} onPress={save} disabled={busy}><Text style={s.primaryTxt}>Save details</Text></TouchableOpacity> : null}
 
         <Text style={s.section}>Team</Text>
         {(info.members || []).map((m: any) => (
-          <TouchableOpacity key={m.id} style={[s.card, { flexDirection: 'row', alignItems: 'center', gap: 10 }]} onPress={() => isOwner && roleMenu(m)} activeOpacity={isOwner ? 0.8 : 1}>
+          <TouchableOpacity key={m.id} style={[s.card, { flexDirection: 'row', alignItems: 'center', gap: 10 }]} disabled={busy} onPress={() => isOwner && roleMenu(m)} activeOpacity={isOwner ? 0.8 : 1}>
             <View style={{ flex: 1 }}>
               <Text style={[s.cardTxt, { fontWeight: '700' }]}>{m.display_name}{!m.active ? '  · inactive' : ''}</Text>
               <Text style={s.cardMeta}>{m.last_sign_in_at ? 'last sign in ' + new Date(m.last_sign_in_at).toLocaleDateString() : 'never signed in'}</Text>
@@ -612,7 +667,7 @@ function SettingsSeg({ me, reload }: { me: Me; reload: () => Promise<void> }) {
         ))}
         {isOwner ? (
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
-            <TextInput style={[s.input, { flex: 1 }]} placeholder="Person's name" placeholderTextColor={getTheme().ink.secondary} value={newName} onChangeText={setNewName} />
+            <TextInput style={[s.input, { flex: 1 }]} placeholder="Person's name" placeholderTextColor={getTheme().ink.secondary} value={newName} editable={!busy} onChangeText={setNewName} />
             <TouchableOpacity style={[s.primaryBtn, { marginTop: 0, paddingHorizontal: 14 }, (!newName.trim() || busy) && { opacity: 0.4 }]} onPress={addMember} disabled={!newName.trim() || busy}><Text style={s.primaryTxt}>Issue code</Text></TouchableOpacity>
           </View>
         ) : null}

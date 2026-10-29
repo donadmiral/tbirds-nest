@@ -1,3 +1,4 @@
+import { settingsBack, exitSettings } from '../../navigation/settingsNavigation';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import TierName from '../../components/TierName';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -499,7 +500,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
   };
 
   const goToEditProfile = () => {
-    navigation.navigate('Profile', { screen: 'ProfileMain', params: { edit: true } });
+    navigation.navigate('EditProfile');
   };
 
   const pf = localProfile ?? profile;
@@ -511,12 +512,12 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7}>
+        <TouchableOpacity onPress={() => settingsBack(navigation, 'ProfileMain')} style={s.backBtn} activeOpacity={0.7}>
           <Text style={s.backChev}>{'\u2039'}</Text>
           <Text style={s.backLbl}>Back</Text>
         </TouchableOpacity>
         <Text style={s.headerTitle}>Settings</Text>
-        <View style={{ width: 60 }} />
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Exit settings to your profile" onPress={() => exitSettings(navigation)} style={[s.backBtn, { justifyContent: 'flex-end' }]}><Feather name="x" size={22} color={getTheme().ink.primary} /></TouchableOpacity>
       </View>
 
       <ScrollView automaticallyAdjustKeyboardInsets={true} showsVerticalScrollIndicator={false} contentContainerStyle={[s.scroll, { paddingBottom: Math.max(insets.bottom + TAB_BAR_CLEARANCE + 24, TAB_BAR_CLEARANCE + 40) }]}>
@@ -554,7 +555,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
               </Text>
             </View>
           </View>
-          <Feather name="chevron-right" size={20} color="rgba(11,30,61,0.24)" />
+          <Feather name="chevron-right" size={20} color={getTheme().ink.muted} />
         </TouchableOpacity>
 
         <View style={{ paddingHorizontal: 16, paddingBottom: 10 }}>
@@ -587,11 +588,11 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
       </ScrollView>
 
       {/* Change Password Modal */}
-      <Modal visible={pwModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { setPwModal(false); setNewPw(''); setConfirmPw(''); }}>
+      <Modal visible={pwModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { setPwModal(false); setCurrentPw(''); setNewPw(''); setConfirmPw(''); setShowNewPw(false); setShowConfPw(false); }}>
         <SafeAreaView style={{ flex: 1, backgroundColor: getTheme().surface.canvas, paddingTop: insets.top }} edges={['left', 'right']}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
           <View style={s.modalHeader}>
-            <TouchableOpacity onPress={() => { setPwModal(false); setNewPw(''); setConfirmPw(''); }}><Text style={s.modalCancel}>Cancel</Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => { setPwModal(false); setCurrentPw(''); setNewPw(''); setConfirmPw(''); setShowNewPw(false); setShowConfPw(false); }}><Text style={s.modalCancel}>Cancel</Text></TouchableOpacity>
             <Text style={s.modalTitle}>Change Password</Text>
             <TouchableOpacity onPress={changePassword} disabled={savingPw}>
               {savingPw ? <ActivityIndicator color={getTheme().ink.primary} size={16} /> : <Text style={s.modalSave}>Update</Text>}
@@ -602,11 +603,14 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
               <Feather name="lock" size={18} color={getTheme().ink.primary} />
               <Text style={s.pwInfoTxt}>Your new password must be at least 8 characters. You will remain signed in after changing it.</Text>
             </View>
-            <Text style={s.modalFieldLabel}>New Password</Text>
+            <Text style={s.modalFieldLabel}>Current password</Text>
             <View style={s.pwInputRow}>
-              <TextInput value={currentPw} onChangeText={setCurrentPw} placeholder="Current password" placeholderTextColor={getTheme().ink.secondary} style={s.pwInput} secureTextEntry={!showNewPw} autoCapitalize="none" autoCorrect={false} />
-<TextInput value={newPw} onChangeText={setNewPw} placeholder="Enter new password" placeholderTextColor={getTheme().ink.secondary} style={s.pwInput} secureTextEntry={!showNewPw} autoCapitalize="none" autoCorrect={false} />
-              <TouchableOpacity onPress={() => setShowNewPw(p => !p)} style={s.pwEye}><Feather name={showNewPw ? 'eye-off' : 'eye'} size={18} color="rgba(11,30,61,0.42)" /></TouchableOpacity>
+              <TextInput value={currentPw} onChangeText={setCurrentPw} placeholder="Current password" placeholderTextColor={getTheme().ink.secondary} style={s.pwInput} secureTextEntry autoCapitalize="none" autoCorrect={false} textContentType="password" />
+            </View>
+            <Text style={[s.modalFieldLabel, { marginTop: 20 }]}>New password</Text>
+            <View style={s.pwInputRow}>
+              <TextInput value={newPw} onChangeText={setNewPw} placeholder="Enter new password" placeholderTextColor={getTheme().ink.secondary} style={s.pwInput} secureTextEntry={!showNewPw} autoCapitalize="none" autoCorrect={false} />
+              <TouchableOpacity onPress={() => setShowNewPw(p => !p)} style={s.pwEye}><Feather name={showNewPw ? 'eye-off' : 'eye'} size={18} color={getTheme().ink.muted} /></TouchableOpacity>
             </View>
             {newPw.length > 0 && (
               <View style={s.pwStrength}>
@@ -624,7 +628,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
             <Text style={[s.modalFieldLabel, { marginTop: 20 }]}>Confirm New Password</Text>
             <View style={s.pwInputRow}>
               <TextInput value={confirmPw} onChangeText={setConfirmPw} placeholder="Confirm new password" placeholderTextColor={getTheme().ink.secondary} style={s.pwInput} secureTextEntry={!showConfPw} autoCapitalize="none" autoCorrect={false} />
-              <TouchableOpacity onPress={() => setShowConfPw(p => !p)} style={s.pwEye}><Feather name={showConfPw ? 'eye-off' : 'eye'} size={18} color="rgba(11,30,61,0.42)" /></TouchableOpacity>
+              <TouchableOpacity onPress={() => setShowConfPw(p => !p)} style={s.pwEye}><Feather name={showConfPw ? 'eye-off' : 'eye'} size={18} color={getTheme().ink.muted} /></TouchableOpacity>
             </View>
             {confirmPw.length > 0 && newPw !== confirmPw && <Text style={s.pwMismatch}>Passwords do not match</Text>}
             <TouchableOpacity
@@ -689,7 +693,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
               </TouchableOpacity>
             ))}
             <View style={s.privNote}>
-              <Feather name="info" size={14} color="rgba(11,30,61,0.42)" />
+              <Feather name="info" size={14} color={getTheme().ink.muted} />
               <Text style={s.privNoteTxt}>
                 {isASU
                   ? 'Your privacy setting only affects profile visibility within the ASU network.'

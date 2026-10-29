@@ -36,7 +36,7 @@ export function releaseEngine() {
   useVideoEngine.getState().set({ owner: null });
 }
 
-export function useSharedVideo(o: { uri: string; visible: boolean; screenActive: boolean; postId?: string | null; rate?: number; muted?: boolean; loop?: boolean }) {
+export function useSharedVideo(o: { uri: string; visible: boolean; screenActive: boolean; postId?: string | null; rate?: number; preservesPitch?: boolean; muted?: boolean; loop?: boolean }) {
   const idRef = useRef('v' + Math.random().toString(36).slice(2));
   const id = idRef.current;
   const owner = useVideoEngine((s) => s.owner);
@@ -48,7 +48,7 @@ export function useSharedVideo(o: { uri: string; visible: boolean; screenActive:
     const st = useVideoEngine.getState();
     if (st.uri !== o.uri) { try { p.replaceAsync(o.uri).catch(() => {}); } catch {} }
     if (pendingSeek && pendingSeek.uri === o.uri) { try { p.currentTime = pendingSeek.at; } catch {} pendingSeek = null; }
-    p.loop = o.loop ?? true; p.muted = !!o.muted; p.playbackRate = o.rate || 1;
+    p.loop = o.loop ?? true; p.muted = !!o.muted; p.preservesPitch = o.preservesPitch ?? true; p.playbackRate = o.rate || 1;
     st.set({ owner: id, uri: o.uri, postId: o.postId ?? null });
     return () => {
       const s2 = useVideoEngine.getState();
@@ -57,5 +57,11 @@ export function useSharedVideo(o: { uri: string; visible: boolean; screenActive:
       s2.set({ owner: null });
     };
   }, [active, o.uri, id]);
+  useEffect(() => {
+    if (!owns) return;
+    const current = getVideoPlayer();
+    current.preservesPitch = o.preservesPitch ?? true;
+    current.playbackRate = o.rate || 1;
+  }, [owns, o.rate, o.preservesPitch]);
   return { player: getVideoPlayer(), owns };
 }

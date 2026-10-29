@@ -1,4 +1,6 @@
 import { applicationCvUrl } from '../../services/applicationCvService';
+import { loadApplicantPage, mergeApplicants, saveApplicationStatus, saveInterview, type ApplicantCursor } from '../../../shared/hiring';
+import { useAuthStore } from '../../stores/authStore';
 // src/screens/studio/StudioHiringAdsSegs.tsx
 // Phone Studio Recruiter and Ads desks. Same RPC contracts as the web pages:
 // studio_jobs / studio_applicants / studio_set_stage / studio_set_tags /
@@ -13,13 +15,15 @@ import { useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import { supabase } from '../../services/supabase';
+import { parseStudioLocalDate, validateCampaignInput } from '../../../shared/studioValidation';
+import { StudioLoadError } from '../../components/StudioLoadError';
 
 const NAVY = '#0B1E3D';
 const TAB_CLEAR = 110;
 const RECRUIT_ROLES = ['owner', 'admin', 'recruiter'];
 const SPEND_ROLES = ['owner', 'admin'];
 const AD_ROLES = ['owner', 'admin', 'editor'];
-const STAGES = ['applied', 'screening', 'interview', 'offer', 'hired', 'rejected'] as const;
+const STAGES = ['applied', 'viewed', 'shortlisted', 'screening', 'interview', 'offer', 'hired', 'accepted', 'rejected', 'withdrawn'] as const;
 const OBJECTIVES: [string, string][] = [['reach', 'Reach'], ['traffic', 'Website visits'], ['messages', 'Messages'], ['storefront', 'Storefront visits'], ['applications', 'Job applications']];
 const METHODS: [string, string][] = [['crisp', 'Crisp'], ['intobank', 'IntoBank']];
 
@@ -28,12 +32,7 @@ function whenLabel(iso: string | null | undefined) {
   const d = new Date(iso);
   return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
-function parseLocal(s: string): Date | null {
-  const m = s.trim().match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})$/);
-  if (!m) return null;
-  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), Number(m[4]), Number(m[5]));
-  return isNaN(d.getTime()) ? null : d;
-}
+const parseLocal = parseStudioLocalDate;
 function fmtLocal(iso: string | null | undefined) {
   if (!iso) return '';
   const d = new Date(iso);
@@ -41,10 +40,12 @@ function fmtLocal(iso: string | null | undefined) {
   return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
 }
 function stageColor(st: string) {
-  return st === 'hired' ? '#1C8C4E' : st === 'offer' ? '#B8860B' : st === 'interview' ? NAVY : st === 'rejected' ? '#D64545' : '#5B6B84';
+  const theme = getTheme();
+  return st === 'hired' || st === 'accepted' ? theme.status.success : st === 'offer' ? theme.status.warning : st === 'interview' ? theme.status.link : st === 'rejected' ? theme.status.danger : theme.ink.secondary;
 }
 function campaignColor(st: string) {
-  return st === 'live' ? '#1C8C4E' : st === 'approved' ? '#B8860B' : st === 'submitted' ? NAVY : st === 'rejected' ? '#D64545' : '#5B6B84';
+  const theme = getTheme();
+  return st === 'live' ? theme.status.success : st === 'approved' ? theme.status.warning : st === 'submitted' ? theme.status.link : st === 'rejected' ? theme.status.danger : theme.ink.secondary;
 }
 
 function Avatar({ uri, name, size = 38 }: { uri?: string | null; name?: string | null; size?: number }) {
@@ -86,6 +87,8 @@ type Job = { id: string; title: string; company: string | null; location: string
 type Applicant = { id: string; status: string; applied_at: string; updated_at: string; cover_note: string | null; cover_letter: string | null; cv_url: string | null; cv_name: string | null; phone: string | null; portfolio_url: string | null; interview_at: string | null; interview_location: string | null; applicant_id: string; name: string; username: string | null; avatar_url: string | null; bio: string | null; location: string | null; tags: string[]; notes: { id: string; body: string; created_at: string; author: string | null }[] };
 
 export function RecruiterSeg({ role, navigation, onBack }: { role: string | null; navigation: any; onBack: () => void }) {
+  useTheme();
+  const userId = useAuthStore(state => state.profile?.id);
   const can = !!role && RECRUIT_ROLES.includes(role);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
@@ -95,33 +98,86 @@ export function RecruiterSeg({ role, navigation, onBack }: { role: string | null
   const [appsLoading, setAppsLoading] = useState(false);
   const [stage, setStage] = useState<string | null>(null);
   const [sel, setSel] = useState<Applicant | null>(null);
+  const [stagePicker, setStagePicker] = useState(false);
+  const activeApplicantId = useRef<string | null>(null);
   const [note, setNote] = useState('');
   const [ivAt, setIvAt] = useState('');
   const [ivLoc, setIvLoc] = useState('');
   const [tagText, setTagText] = useState('');
   const [busy, setBusy] = useState(false);
+  const [jobsError, setJobsError] = useState<string | null>(null);
+  const [appsError, setAppsError] = useState<string | null>(null);
+  const [counts, setCounts] = useState<Record<string, number>>({});
+  const [cursor, setCursor] = useState<ApplicantCursor | null>(null);
+  const jobsRequest = useRef(0);
+  const appsRequest = useRef(0);
+  const mounted = useRef(true);
+  const activeJobId = useRef<string | null>(null);
+  const actionPending = useRef(false);
+  const appsPending = useRef(false);
+  const chooseApplicant = (value: Applicant | null) => {
+    activeApplicantId.current = value?.id ?? null;
+    setSel(value); setStagePicker(false);
+  };
+
+  const chooseJob = (value: Job | null) => {
+    ++appsRequest.current; appsPending.current = false;
+    activeJobId.current = value?.id ?? null;
+    setJob(value); setStage(null); chooseApplicant(null); setApps([]); setCounts({}); setCursor(null); setAppsError(null);
+  };
+  const chooseStage = (value: string | null) => {
+    ++appsRequest.current; appsPending.current = false;
+    setStage(value); chooseApplicant(null); setApps([]); setCursor(null); setAppsError(null);
+  };
 
   const loadJobs = useCallback(async () => {
-    setLoading(true);
-    try { const { data } = await supabase.rpc('studio_jobs'); setJobs(((data as any[]) || []) as Job[]); }
-    finally { setLoading(false); }
-  }, []);
-  useEffect(() => { if (can) void loadJobs(); else setLoading(false); }, [can, loadJobs]);
+    const request = ++jobsRequest.current;
+    setLoading(true); setJobsError(null);
+    try {
+      const { data, error } = await supabase.rpc('studio_jobs');
+      if (error || !Array.isArray(data)) throw error || new Error('Jobs could not be loaded.');
+      if (mounted.current && request === jobsRequest.current) setJobs(data as Job[]);
+    } catch (error: any) {
+      if (mounted.current && request === jobsRequest.current) setJobsError(error?.message || 'Jobs could not be loaded. Please retry.');
+    } finally { if (mounted.current && request === jobsRequest.current) setLoading(false); }
+  }, [userId]);
+  useEffect(() => {
+    mounted.current = true; chooseJob(null); setJobs([]);
+    if (can) void loadJobs(); else setLoading(false);
+    return () => { mounted.current = false; ++jobsRequest.current; ++appsRequest.current; };
+  }, [can, loadJobs]);
 
-  const loadApps = useCallback(async (j: Job) => {
-    setAppsLoading(true);
-    try { const { data } = await supabase.rpc('studio_applicants', { p_job: j.id }); setApps(((data as any[]) || []) as Applicant[]); }
-    finally { setAppsLoading(false); }
-  }, []);
-  useEffect(() => { if (job) void loadApps(job); }, [job, loadApps]);
+  const loadApps = useCallback(async (j: Job, before: ApplicantCursor | null = null) => {
+    if (activeJobId.current !== j.id || (before && appsPending.current)) return;
+    const request = ++appsRequest.current;
+    const current = () => mounted.current && request === appsRequest.current && activeJobId.current === j.id;
+    appsPending.current = true; setAppsLoading(true); setAppsError(null);
+    try {
+      const page = await loadApplicantPage<Applicant & { applicant?: { full_name?: string; username?: string; avatar_url?: string; bio?: string; location?: string }; applicant_phone?: string }>(supabase, j.id, stage ?? 'all', before);
+      if (!current()) return;
+      const rows = page.applications.map(row => ({ ...row, name: row.applicant?.full_name || row.name || 'Applicant', username: row.applicant?.username ?? row.username ?? null, avatar_url: row.applicant?.avatar_url ?? row.avatar_url ?? null, bio: row.applicant?.bio ?? row.bio ?? null, location: row.applicant?.location ?? row.location ?? null, phone: row.applicant_phone ?? row.phone ?? null, tags: row.tags ?? [], notes: row.notes ?? [] }));
+      setApps(old => before ? mergeApplicants(old, rows) : rows);
+      setCounts(page.counts); setCursor(page.has_more ? page.cursor : null);
+      setSel(old => old ? rows.find(row => row.id === old.id) ?? (before ? old : null) : null);
+    } catch (error: any) { if (current()) setAppsError(error?.message || 'Applicants could not be loaded. Please retry.'); }
+    finally { if (current()) { appsPending.current = false; setAppsLoading(false); } }
+  }, [stage, userId]);
+  useEffect(() => { if (job && can) void loadApps(job); }, [job, can, loadApps]);
   useEffect(() => { if (sel) { setIvAt(fmtLocal(sel.interview_at)); setIvLoc(sel.interview_location || ''); setTagText(sel.tags.join(', ')); setNote(''); } }, [sel?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const act = async (fn: () => PromiseLike<any>, then?: () => void) => {
-    if (busy) return;
-    setBusy(true);
-    try { const r = await fn(); if (r?.error) throw r.error; if (job) await loadApps(job); await loadJobs(); then?.(); }
-    catch (e: any) { Alert.alert('Could not update', e?.message || 'Please try again.'); }
-    finally { setBusy(false); }
+    if (actionPending.current || !can) return;
+    const context = appsRequest.current;
+    const applicantId = activeApplicantId.current;
+    actionPending.current = true; setBusy(true);
+    try {
+      const r = await fn(); if (r?.error) throw r.error;
+      if (!mounted.current || context !== appsRequest.current) return;
+      if (applicantId === activeApplicantId.current) then?.();
+      if (job) await loadApps(job);
+      if (mounted.current) await loadJobs();
+    } catch (e: any) { if (mounted.current && context === appsRequest.current) Alert.alert('Could not update', e?.message || 'Refresh the applicants and try again.'); }
+    finally { actionPending.current = false; if (mounted.current) setBusy(false); }
   };
   const refreshSel = (list: Applicant[]) => { if (sel) { const n = list.find(a => a.id === sel.id); if (n) setSel(n); } };
   useEffect(() => { refreshSel(apps); }, [apps]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -134,31 +190,39 @@ export function RecruiterSeg({ role, navigation, onBack }: { role: string | null
     ]);
   };
   const moveStage = (a: Applicant) => {
-    Alert.alert('Move ' + a.name, 'Current stage: ' + a.status, [
-      ...STAGES.filter(st => st !== a.status).map(st => ({ text: st.charAt(0).toUpperCase() + st.slice(1), style: st === 'rejected' ? 'destructive' as const : 'default' as const, onPress: () => act(() => supabase.rpc('studio_set_stage', { p_application: a.id, p_status: st })) })),
-      { text: 'Cancel', style: 'cancel' },
-    ]);
+    if (a.status === 'withdrawn') return;
+    setStagePicker(value => !value);
+  };
+  const pickStage = (a: Applicant, status: string) => {
+    setStagePicker(false);
+    if (status === 'interview') { Alert.alert('Schedule interview', 'Choose a future date and time in the Interview section below.'); return; }
+    const update = () => void act(() => saveApplicationStatus(supabase, a, status));
+    if (['rejected', 'hired', 'accepted'].includes(status)) {
+      Alert.alert('Update application?', `${a.name} will be notified that their application is ${status}.`, [{ text: 'Cancel', style: 'cancel' }, { text: 'Confirm', onPress: update }]);
+    } else update();
   };
 
   if (!can) return <View style={{ flex: 1 }}><BackRow title="Recruiter" label="More" onBack={onBack} /><View style={[s.card, { margin: 16 }]}><Text style={s.cardMuted}>Recruiter is open to owners, admins and recruiters.</Text></View></View>;
 
   if (job) {
-    const shown = apps.filter(a => !stage || a.status === stage);
+    const shown = apps;
     return (
       <View style={{ flex: 1 }}>
-        <BackRow title={job.title} label="Jobs" onBack={() => { setJob(null); setApps([]); setStage(null); }} />
+        <BackRow title={job.title} label="Jobs" onBack={() => chooseJob(null)} />
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 10, gap: 8 }} style={{ flexGrow: 0 }}>
-          <TouchableOpacity style={[s.filterChip, !stage && s.filterChipOn]} onPress={() => setStage(null)}><Text style={[s.filterTxt, !stage && s.filterTxtOn]}>All · {apps.length}</Text></TouchableOpacity>
-          {STAGES.map(st => { const n = apps.filter(a => a.status === st).length; return (
-            <TouchableOpacity key={st} style={[s.filterChip, stage === st && s.filterChipOn]} onPress={() => setStage(stage === st ? null : st)}><Text style={[s.filterTxt, stage === st && s.filterTxtOn]}>{st.charAt(0).toUpperCase() + st.slice(1)}{n ? ' · ' + n : ''}</Text></TouchableOpacity>
+          <TouchableOpacity style={[s.filterChip, !stage && s.filterChipOn]} onPress={() => chooseStage(null)}><Text style={[s.filterTxt, !stage && s.filterTxtOn]}>All{counts.all != null ? ' · ' + counts.all : ''}</Text></TouchableOpacity>
+          {STAGES.map(st => { const n = counts[st] ?? 0; return (
+            <TouchableOpacity key={st} style={[s.filterChip, stage === st && s.filterChipOn]} onPress={() => chooseStage(stage === st ? null : st)}><Text style={[s.filterTxt, stage === st && s.filterTxtOn]}>{st.charAt(0).toUpperCase() + st.slice(1)}{n ? ' · ' + n : ''}</Text></TouchableOpacity>
           ); })}
         </ScrollView>
         {appsLoading && apps.length === 0 ? <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>
         : <FlatList data={shown} keyExtractor={a => a.id} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: TAB_CLEAR }}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await loadApps(job); setRefreshing(false); }} />}
-            ListEmptyComponent={<View style={s.card}><Text style={s.cardMuted}>{stage ? 'Nobody at this stage.' : 'No applications yet.'}</Text></View>}
+            ListHeaderComponent={appsError ? <View style={s.card}><Text accessibilityRole="alert" style={s.cardTxt}>{appsError}</Text><TouchableOpacity style={{ minHeight: 44, justifyContent: 'center' }} onPress={() => void loadApps(job)}><Text style={s.cardTxt}>Try again</Text></TouchableOpacity></View> : null}
+            ListEmptyComponent={!appsError ? <View style={s.card}><Text style={s.cardMuted}>{stage ? 'Nobody at this stage.' : 'No applications yet.'}</Text></View> : null}
+            ListFooterComponent={cursor ? <TouchableOpacity disabled={appsLoading} style={[s.secondaryBtn, { minHeight: 44 }]} onPress={() => void loadApps(job, cursor)}><Text style={s.secondaryTxt}>{appsLoading ? 'Loading…' : 'Load more applicants'}</Text></TouchableOpacity> : null}
             renderItem={({ item: a }) => (
-              <TouchableOpacity style={[s.card, { flexDirection: 'row', alignItems: 'center', gap: 10 }]} onPress={() => setSel(a)} activeOpacity={0.85}>
+              <TouchableOpacity style={[s.card, { flexDirection: 'row', alignItems: 'center', gap: 10 }]} onPress={() => chooseApplicant(a)} activeOpacity={0.85}>
                 <Avatar uri={a.avatar_url} name={a.name} />
                 <View style={{ flex: 1 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -172,7 +236,7 @@ export function RecruiterSeg({ role, navigation, onBack }: { role: string | null
               </TouchableOpacity>
             )}
           />}
-        <Sheet visible={!!sel} title={sel?.name || 'Applicant'} onClose={() => setSel(null)}>
+        <Sheet visible={!!sel} title={sel?.name || 'Applicant'} onClose={() => chooseApplicant(null)}>
           {sel ? (
             <View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -184,25 +248,27 @@ export function RecruiterSeg({ role, navigation, onBack }: { role: string | null
                 </View>
               </View>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 14 }}>
-                <TouchableOpacity style={s.toolChip} onPress={() => moveStage(sel)} disabled={busy}><Feather name="arrow-right-circle" size={14} color={getTheme().ink.primary} /><Text style={s.toolTxt}>Move stage</Text></TouchableOpacity>
+                {sel.status !== 'withdrawn' ? <TouchableOpacity style={s.toolChip} onPress={() => moveStage(sel)} disabled={busy}><Feather name="arrow-right-circle" size={14} color={getTheme().ink.primary} /><Text style={s.toolTxt}>Move stage</Text></TouchableOpacity> : null}
                 <TouchableOpacity style={s.toolChip} onPress={() => navigation.navigate('UserProfile', { userId: sel.applicant_id })}><Feather name="user" size={14} color={getTheme().ink.primary} /><Text style={s.toolTxt}>Profile</Text></TouchableOpacity>
                 {sel.cv_url ? <TouchableOpacity style={s.toolChip} onPress={() => applicationCvUrl(sel.cv_url!, sel.cv_name).then(url => Linking.openURL(url)).catch((e) => Alert.alert('Could not open CV', e?.message || 'Please try again.'))}><Feather name="file-text" size={14} color={getTheme().ink.primary} /><Text style={s.toolTxt}>{sel.cv_name || 'CV'}</Text></TouchableOpacity> : null}
                 {sel.portfolio_url ? <TouchableOpacity style={s.toolChip} onPress={() => Linking.openURL(sel.portfolio_url!)}><Feather name="link" size={14} color={getTheme().ink.primary} /><Text style={s.toolTxt}>Portfolio</Text></TouchableOpacity> : null}
                 {sel.phone ? <TouchableOpacity style={s.toolChip} onPress={() => Linking.openURL('tel:' + sel.phone)}><Feather name="phone" size={14} color={getTheme().ink.primary} /><Text style={s.toolTxt}>{sel.phone}</Text></TouchableOpacity> : null}
               </View>
+              {stagePicker ? <View style={[s.card, { marginTop: 10 }]}><Text style={s.fieldLabel}>Move to stage</Text>{STAGES.filter(value => value !== sel.status && value !== 'withdrawn').map(value => <TouchableOpacity key={value} disabled={busy} style={{ minHeight: 44, justifyContent: 'center' }} onPress={() => pickStage(sel, value)}><Text style={s.cardTxt}>{value.charAt(0).toUpperCase() + value.slice(1)}</Text></TouchableOpacity>)}</View> : null}
               {sel.cover_note || sel.cover_letter ? <View style={[s.card, { marginTop: 14 }]}><Text style={s.fieldLabel}>Cover note</Text><Text style={s.cardTxt}>{sel.cover_note || sel.cover_letter}</Text></View> : null}
               {sel.bio ? <View style={s.card}><Text style={s.fieldLabel}>Bio</Text><Text style={s.cardTxt}>{sel.bio}</Text></View> : null}
 
               <Text style={s.section}>Interview</Text>
               <TextInput value={ivAt} onChangeText={setIvAt} placeholder="YYYY-MM-DD HH:mm" placeholderTextColor={getTheme().ink.secondary} style={s.input} autoCapitalize="none" autoCorrect={false} />
               <TextInput value={ivLoc} onChangeText={setIvLoc} placeholder="Location or link" placeholderTextColor={getTheme().ink.secondary} style={[s.input, { marginTop: 8 }]} autoCapitalize="none" autoCorrect={false} />
-              <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
-                <TouchableOpacity style={[s.primaryBtn, { flex: 1, marginTop: 0 }, (busy || !ivAt.trim()) && { opacity: 0.4 }]} disabled={busy || !ivAt.trim()} onPress={() => { const d = parseLocal(ivAt); if (!d) { Alert.alert('Check the date', 'Use YYYY-MM-DD HH:mm'); return; } void act(() => supabase.rpc('studio_schedule_interview', { p_application: sel.id, p_at: d.toISOString(), p_location: ivLoc.trim() || null })); }}><Text style={s.primaryTxt}>Schedule</Text></TouchableOpacity>
-                {sel.interview_at ? <TouchableOpacity style={[s.secondaryBtn, { justifyContent: 'center' }]} disabled={busy} onPress={() => act(() => supabase.rpc('studio_schedule_interview', { p_application: sel.id, p_at: null, p_location: null }))}><Text style={[s.secondaryTxt, { color: '#D64545' }]}>Clear</Text></TouchableOpacity> : null}
-              </View>
+              {sel.status !== 'withdrawn' ? <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+                <TouchableOpacity style={[s.primaryBtn, { flex: 1, marginTop: 0 }, (busy || !ivAt.trim()) && { opacity: 0.4 }]} disabled={busy || !ivAt.trim()} onPress={() => { const d = parseLocal(ivAt); if (!d || d.getTime() <= Date.now()) { Alert.alert('Check the date', 'Choose a future time using YYYY-MM-DD HH:mm.'); return; } void act(() => saveInterview(supabase, sel, d.toISOString(), ivLoc.trim() || null)); }}><Text style={s.primaryTxt}>Schedule</Text></TouchableOpacity>
+                {sel.interview_at ? <TouchableOpacity style={[s.secondaryBtn, { justifyContent: 'center' }]} disabled={busy} onPress={() => act(() => saveInterview(supabase, sel, null, null))}><Text style={[s.secondaryTxt, { color: '#D64545' }]}>Clear</Text></TouchableOpacity> : null}
+              </View> : <Text style={s.cardMuted}>This application was withdrawn.</Text>}
 
               <Text style={s.section}>Tags</Text>
-              <TextInput value={tagText} onChangeText={setTagText} placeholder="senior, remote, shortlist" placeholderTextColor={getTheme().ink.secondary} style={s.input} autoCapitalize="none" onBlur={() => act(() => supabase.rpc('studio_set_tags', { p_application: sel.id, p_tags: tagText.split(',').map(t => t.trim()).filter(Boolean) }))} />
+              <TextInput value={tagText} onChangeText={setTagText} editable={!busy} placeholder="senior, remote, shortlist" placeholderTextColor={getTheme().ink.secondary} style={s.input} autoCapitalize="none" />
+              <TouchableOpacity style={[s.secondaryBtn, { minHeight: 44, marginTop: 8 }]} disabled={busy} onPress={() => act(() => supabase.rpc('studio_set_tags', { p_application: sel.id, p_tags: tagText.split(',').map(t => t.trim()).filter(Boolean) }))}><Text style={s.secondaryTxt}>Save tags</Text></TouchableOpacity>
 
               <Text style={s.section}>Team notes</Text>
               {sel.notes.length === 0 ? <Text style={s.cardMuted}>No notes yet.</Text> : sel.notes.map(n => (
@@ -223,9 +289,10 @@ export function RecruiterSeg({ role, navigation, onBack }: { role: string | null
       {loading ? <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>
       : <FlatList data={jobs} keyExtractor={j => j.id} contentContainerStyle={{ padding: 16, paddingBottom: TAB_CLEAR }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await loadJobs(); setRefreshing(false); }} />}
-          ListEmptyComponent={<View style={s.card}><Text style={s.cardMuted}>No jobs posted by this business yet. Post one from the Jobs tab and applicants land here.</Text></View>}
+          ListHeaderComponent={jobsError ? <View style={s.card}><Text accessibilityRole="alert" style={s.cardTxt}>{jobsError}</Text><TouchableOpacity style={{ minHeight: 44, justifyContent: 'center' }} onPress={() => void loadJobs()}><Text style={s.cardTxt}>Try again</Text></TouchableOpacity></View> : null}
+          ListEmptyComponent={!jobsError ? <View style={s.card}><Text style={s.cardMuted}>No jobs posted by this business yet. Post one from the Jobs tab and applicants land here.</Text></View> : null}
           renderItem={({ item: j }) => (
-            <TouchableOpacity style={[s.card, j.closed && { opacity: 0.6 }]} onPress={() => setJob(j)} onLongPress={() => jobActions(j)} activeOpacity={0.85}>
+            <TouchableOpacity style={[s.card, j.closed && { opacity: 0.6 }]} onPress={() => chooseJob(j)} onLongPress={() => jobActions(j)} activeOpacity={0.85}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <Text style={[s.cardTxt, { fontWeight: '700', flex: 1 }]} numberOfLines={1}>{j.title}</Text>
                 {j.urgent && !j.closed ? <Text style={[s.statusPill, { color: '#D64545' }]}>URGENT</Text> : null}
@@ -260,6 +327,11 @@ export function AdsSeg({ role, navigation, onBack }: { role: string | null; navi
   const [open, setOpen] = useState(false);
   const [f, setF] = useState<Form>(emptyForm());
   const [busy, setBusy] = useState(false);
+  const acting = useRef(false);
+  const mounted = useRef(true);
+  const postsRequest = useRef(0);
+  const [postsLoading, setPostsLoading] = useState(false);
+  const [postsError, setPostsError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [picking, setPicking] = useState<Campaign | null>(null);
   const [posts, setPosts] = useState<{ id: string; content: string; thumb: string | null; products: number; likes: number }[]>([]);
@@ -279,23 +351,25 @@ export function AdsSeg({ role, navigation, onBack }: { role: string | null; navi
     }
   }, []);
   useEffect(() => {
+    mounted.current = true;
     if (canSee) void load(); else { setLoading(false); setRows([]); }
-    return () => { loadRequest.current += 1; };
+    return () => { mounted.current = false; loadRequest.current += 1; postsRequest.current += 1; };
   }, [canSee, load]);
 
   const act = async (fn: () => PromiseLike<any>, then?: () => void) => {
-    if (busy) return;
-    setBusy(true);
-    try { const r = await fn(); if (r?.error) throw r.error; await load(); then?.(); }
-    catch (e: any) { Alert.alert('Could not update', e?.message || 'Please try again.'); }
-    finally { setBusy(false); }
+    if (acting.current) return;
+    acting.current = true; setBusy(true);
+    try { const r = await fn(); if (r?.error) throw r.error; if (mounted.current) { then?.(); await load(true); } }
+    catch (e: any) { if (mounted.current) Alert.alert('Could not update', e?.message || 'Please try again.'); }
+    finally { acting.current = false; if (mounted.current) setBusy(false); }
   };
   const openEdit = (c: Campaign) => { setF({ id: c.id, name: c.name, objective: c.objective, budget: String(c.budget || ''), currency: c.currency, payment_method: c.payment_method || '', starts_at: fmtLocal(c.starts_at), ends_at: fmtLocal(c.ends_at) }); setOpen(true); };
   const save = () => {
-    const st = f.starts_at.trim() ? parseLocal(f.starts_at) : null;
-    const en = f.ends_at.trim() ? parseLocal(f.ends_at) : null;
-    if ((f.starts_at.trim() && !st) || (f.ends_at.trim() && !en)) { Alert.alert('Check the dates', 'Use YYYY-MM-DD HH:mm'); return; }
-    void act(() => supabase.rpc('studio_save_campaign', { p_id: f.id, p_name: f.name.trim(), p_objective: f.objective, p_budget: Number(f.budget || 0), p_currency: f.currency, p_payment_method: f.payment_method || null, p_starts_at: st ? st.toISOString() : null, p_ends_at: en ? en.toISOString() : null }), () => { setOpen(false); setF(emptyForm()); });
+    if (!canSpend) return;
+    try {
+      const value = validateCampaignInput(f);
+      void act(() => supabase.rpc('studio_save_campaign', { p_id: f.id, p_name: value.name, p_objective: f.objective, p_budget: value.budget, p_currency: f.currency, p_payment_method: f.payment_method || null, p_starts_at: value.startsAt, p_ends_at: value.endsAt }), () => { setOpen(false); setF(emptyForm()); });
+    } catch (error: any) { Alert.alert('Check campaign details', error?.message || 'Check the budget and dates.'); }
   };
   const campaignActions = (c: Campaign) => {
     const b: any[] = [];
@@ -310,9 +384,14 @@ export function AdsSeg({ role, navigation, onBack }: { role: string | null; navi
     Alert.alert(c.name, c.status + (c.review_note ? ' · ' + c.review_note : ''), b);
   };
   const startPick = async (c: Campaign) => {
-    setPicking(c);
-    const { data } = await supabase.rpc('studio_my_posts_for_ads', { p_limit: 60 });
-    setPosts(((data as any[]) || []) as any);
+    const request = ++postsRequest.current;
+    setPicking(c); setPosts([]); setPostsLoading(true); setPostsError(null);
+    try {
+      const { data, error } = await supabase.rpc('studio_my_posts_for_ads', { p_limit: 60 });
+      if (error) throw error;
+      if (mounted.current && request === postsRequest.current) setPosts(((data as any[]) || []) as any);
+    } catch { if (mounted.current && request === postsRequest.current) setPostsError('Your posts could not be loaded.'); }
+    finally { if (mounted.current && request === postsRequest.current) setPostsLoading(false); }
   };
   const addAd = (c: Campaign, postId: string) => act(() => supabase.rpc('studio_add_ad', { p_campaign: c.id, p_post_id: postId, p_label: 'Sponsored', p_total_cap: null }), () => setPicking(null));
   const removeAd = (a: Ad) => Alert.alert('Remove this ad?', a.content || 'Post', [{ text: 'Cancel', style: 'cancel' }, { text: 'Remove', style: 'destructive', onPress: () => act(() => supabase.rpc('studio_remove_ad', { p_promo: a.id })) }]);
@@ -363,7 +442,7 @@ export function AdsSeg({ role, navigation, onBack }: { role: string | null; navi
           )}
         />}
 
-      <Sheet visible={open} title={f.id ? 'Edit campaign' : 'New campaign'} onClose={() => setOpen(false)} onSave={save} busy={busy} canSave={!!f.name.trim()}>
+      <Sheet visible={open} title={f.id ? 'Edit campaign' : 'New campaign'} onClose={() => { if (!acting.current) setOpen(false); }} onSave={save} busy={busy} canSave={!!f.name.trim()}>
         <Text style={s.fieldLabel}>Name</Text>
         <TextInput value={f.name} onChangeText={v => setF({ ...f, name: v })} placeholder="Spring launch" placeholderTextColor={getTheme().ink.secondary} style={s.input} />
         <Text style={[s.fieldLabel, { marginTop: 14 }]}>Objective</Text>
@@ -385,8 +464,9 @@ export function AdsSeg({ role, navigation, onBack }: { role: string | null; navi
         <Text style={[s.cardMuted, { marginTop: 12 }]}>Add ads after saving. Submit for review once the campaign has a budget, a payment method and at least one ad.</Text>
       </Sheet>
 
-      <Sheet visible={!!picking} title={'Add an ad to ' + (picking?.name || '')} onClose={() => setPicking(null)}>
-        {posts.length === 0 ? <Text style={s.cardMuted}>No posts to promote yet. Post from the feed first.</Text> : posts.map(p => {
+      <Sheet visible={!!picking} title={'Add an ad to ' + (picking?.name || '')} onClose={() => { if (!acting.current) { ++postsRequest.current; setPicking(null); } }}>
+        <StudioLoadError message={postsError} onRetry={() => { if (picking) void startPick(picking); }} busy={postsLoading} />
+        {postsLoading ? <ActivityIndicator color={getTheme().ink.primary} /> : postsError ? null : posts.length === 0 ? <Text style={s.cardMuted}>No posts to promote yet. Post from the feed first.</Text> : posts.map(p => {
           const already = !!picking?.ads.some(a => a.post_id === p.id);
           return (
             <TouchableOpacity key={p.id} style={[s.card, { flexDirection: 'row', alignItems: 'center', gap: 10 }, already && { opacity: 0.45 }]} disabled={already || busy} onPress={() => picking && addAd(picking, p.id)}>

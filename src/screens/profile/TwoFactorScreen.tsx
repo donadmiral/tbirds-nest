@@ -1,3 +1,5 @@
+import SettingsExit from '../../components/SettingsExit';
+import { settingsBack } from '../../navigation/settingsNavigation';
 /**
  * Two-factor authentication with an authenticator app (TOTP), Instagram's
  * model: turn on, scan, confirm once with a code; every later sign-in asks
@@ -95,9 +97,9 @@ export default function TwoFactorScreen() {
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       <View style={s.header}>
-        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Back" onPress={() => navigation.goBack()} style={s.backBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="chevron-left" size={26} color={t.ink.primary} /></TouchableOpacity>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Back" onPress={() => settingsBack(navigation, 'Settings')} style={s.backBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="chevron-left" size={26} color={t.ink.primary} /></TouchableOpacity>
         <Text style={s.title}>Two-factor authentication</Text>
-        <View style={{ width: 40 }} />
+        <SettingsExit navigation={navigation} />
       </View>
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 40 }} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
         {loading ? <ActivityIndicator color={t.ink.primary} style={{ marginTop: 30 }} /> : loadError ? (

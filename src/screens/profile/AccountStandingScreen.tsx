@@ -1,3 +1,5 @@
+import SettingsExit from '../../components/SettingsExit';
+import { settingsBack } from '../../navigation/settingsNavigation';
 /**
  * AccountStandingScreen - the member's honest view of their record.
  * Shows every strike issued against the account and any active
@@ -52,11 +54,11 @@ export default function AccountStandingScreen() {
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7}>
+        <TouchableOpacity onPress={() => settingsBack(navigation, 'Settings')} style={s.backBtn} activeOpacity={0.7}>
           <Text style={s.backChev}>{'\u2039'}</Text><Text style={s.backLbl}>Back</Text>
         </TouchableOpacity>
         <Text style={s.headerTitle}>Account standing</Text>
-        <View style={{ width: 60 }} />
+        <SettingsExit navigation={navigation} />
       </View>
       <ScrollView automaticallyAdjustKeyboardInsets={true} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: Math.max(insets.bottom + 110, 130) }} showsVerticalScrollIndicator={false}>
         {loadError ? (

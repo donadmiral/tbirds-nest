@@ -31,7 +31,6 @@ export default function AccountStandingPage() {
 
   return (
     <div className="mx-auto max-w-[560px] px-1">
-      <Link href="/settings" aria-label="Back to Settings" className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><ArrowLeft size={19} /></Link>
       <h1 className="pb-1 font-display text-xl text-porcelain">Account standing</h1>
       <p className="pb-5 text-[13px] text-muted">Every strike issued against your account, or a clean bill when there is nothing.</p>
       {rows === null ? <p className="py-10 text-center text-sm text-muted">Loading</p> : (

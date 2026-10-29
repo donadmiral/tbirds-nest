@@ -91,6 +91,28 @@ function ChannelInner() {
   const [replyDraft, setReplyDraft] = useState("");
   const [replySending, setReplySending] = useState(false);
   const endRef = useRef<HTMLDivElement | null>(null);
+  const readPending = useRef(false), lastRead = useRef('');
+  const readState = useRef({ message: '', ready: false });
+  readState.current = { message: messages[0]?.id || '', ready: !!me && isMember && !loading && !settingsOpen && !pollOpen && !openThread };
+
+  const markRead = useCallback(async (): Promise<void> => {
+    const version = epoch.current, message = readState.current.message;
+    const marker = `${version}:${message}`;
+    const rect = endRef.current?.getBoundingClientRect();
+    if (!message || !readState.current.ready || readPending.current || lastRead.current === marker || document.visibilityState !== 'visible' || !document.hasFocus() || !rect || rect.top < 0 || rect.bottom > window.innerHeight + 64) return;
+    readPending.current = true;
+    try {
+      const { error } = await withTimeout(supabase.rpc('mark_channel_read', { p_channel: channelId, p_message: message }));
+      if (error) throw error;
+      if (version === epoch.current) lastRead.current = marker;
+    } catch { if (version === epoch.current) setError('Updates loaded, but the read marker could not be saved.'); }
+    finally {
+      if (version === epoch.current) {
+        readPending.current = false;
+        if (readState.current.message !== message) void markRead();
+      }
+    }
+  }, [channelId, supabase]);
 
   const canPost = myRole === "owner" || myRole === "collaborator";
 
@@ -136,10 +158,6 @@ function ChannelInner() {
       }));
       if (version !== epoch.current) return;
       setMediaUrls((previous) => ({ ...previous, ...Object.fromEntries(signed) }));
-      if (!more && rows.length && metadata.is_member) {
-        const read = await supabase.rpc("mark_channel_read", { p_channel: channelId, p_message: rows[0].id });
-        if (read.error && version === epoch.current) setError("Updates loaded, but the read marker could not be saved.");
-      }
     } catch (cause) {
       if (version === epoch.current) setError(cause instanceof Error ? cause.message : "Could not load this channel. Please try again.");
     } finally {
@@ -175,6 +193,7 @@ function ChannelInner() {
     const bind = (next: string | null) => {
       if (!alive || uid === next) return;
       uid = next; epoch.current++; activeLoads.current=false;pendingRefresh.current=false;locks.current.clear();setSending(false);setAttaching(false);setPollBusy(false);setReplySending(false);setReplyLoading(null);setReplyMore({});cursor.current = null; scrollOnce.current = true;
+      readPending.current = false; lastRead.current = '';
       setMe(next); setOpenThread(null); setDraft(""); setReplyDraft(""); setSettingsOpen(false); setPollOpen(false); setName("Channel"); setMyRole(""); setIsMember(false); setMessages([]); setReplies({}); setMediaUrls({}); setLoading(true); setHasMore(true);
       if (realtime) void supabase.removeChannel(realtime);
       realtime = supabase.channel("channel-history-" + channelId + "-" + Math.random().toString(36).slice(2))
@@ -196,6 +215,14 @@ function ChannelInner() {
   useEffect(() => {
     if (!loading && scrollOnce.current) { scrollOnce.current = false; endRef.current?.scrollIntoView({ block: "end" }); }
   }, [loading]);
+  useEffect(() => { void markRead(); }, [messages, loading, isMember, settingsOpen, pollOpen, openThread, markRead]);
+  useEffect(() => {
+    const acknowledge = () => { void markRead(); };
+    window.addEventListener('scroll', acknowledge, { passive: true });
+    window.addEventListener('focus', acknowledge);
+    document.addEventListener('visibilitychange', acknowledge);
+    return () => { window.removeEventListener('scroll', acknowledge); window.removeEventListener('focus', acknowledge); document.removeEventListener('visibilitychange', acknowledge); };
+  }, [markRead]);
 
   const join = async () => {
     const version=epoch.current;
@@ -566,7 +593,7 @@ function ChannelInner() {
       ) : null}
 
       {settingsOpen && isMember ? (
-        <ChannelSettings channelId={channelId} myRole={myRole} meId={me} onClose={() => setSettingsOpen(false)}
+        <ChannelSettings channelId={channelId} myRole={myRole} meId={me} isCurrent={(() => { const version = epoch.current; return () => version === epoch.current; })()} onClose={() => setSettingsOpen(false)}
           onUpdated={p => {
             if (p.name) setName(p.name);
             if (p.icon_url) setIconUrl(p.icon_url);
@@ -577,8 +604,8 @@ function ChannelInner() {
   );
 }
 
-function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated }: {
-  channelId: string; myRole: string; meId: string | null; onClose: () => void;
+function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated, isCurrent }: {
+  channelId: string; myRole: string; meId: string | null; onClose: () => void; isCurrent: () => boolean;
   onUpdated: (p: { name?: string; icon_url?: string; replies_enabled?: boolean }) => void;
 }) {
   const [supabase] = useState(createClient);
@@ -599,32 +626,42 @@ function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated }: {
   const [myLevel, setMyLevel] = useState("all");
   const [q, setQ] = useState("");
   const [results, setResults] = useState<any[]>([]);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [inviting, setInviting] = useState<string | null>(null);
   const iconRef = useRef<HTMLInputElement | null>(null);
+  const live = useRef(true);
+  const identity = channelId + ':' + meId;
+  const currentIdentity = useRef(identity); currentIdentity.current = identity;
+  const current = () => live.current && currentIdentity.current === identity && isCurrent();
+  useEffect(() => { live.current = true; return () => { live.current = false; }; }, [identity]);
 
   useEffect(() => {
     let alive = true;
     setLoading(true); setSettingsError(false);
     supabase.rpc("get_channel_detail", { p_channel: channelId }).then(({ data, error }) => {
-      if (!alive) return;
+      if (!alive || !current()) return;
       const row = Array.isArray(data) ? data[0] : data;
       if (error || !row?.is_member) { setSettingsError(true); setLoading(false); return; }
       setName(row.name || ""); setDesc(row.description || "");
       setAudience(row.audience === "followers" ? "followers" : "everyone");
       setReplies(row.replies_enabled !== false); setIconUrl(row.icon_url || null); setMyLevel(row.my_notification_level || "all");
       setLoading(false);
-    }, () => { if (alive) { setSettingsError(true); setLoading(false); } });
+    }, () => { if (alive && current()) { setSettingsError(true); setLoading(false); } });
     return () => { alive = false; };
-  }, [channelId, supabase, retry]);
+  }, [channelId, meId, supabase, retry]);
 
   useEffect(() => {
+    setSearchError(null); setResults([]);
     if (q.trim().length < 2) { setResults([]); return; }
     let alive = true;
     const timer = setTimeout(async () => {
-      const { data, error } = await supabase.rpc("search_people_page", { p_q: q.trim(), p_limit: 8, p_offset: 0 });
-      if (!alive) return;
-      const taken = new Set(members.map((member) => member.user_id));
-      setResults(error ? [] : (data ?? []).filter((row: { id: string }) => !taken.has(row.id)));
+      try {
+        const { data, error } = await supabase.rpc("search_people_page", { p_q: q.trim(), p_limit: 8, p_offset: 0 });
+        if (!alive || !current()) return;
+        if (error) throw error;
+        const taken = new Set(members.map((member) => member.user_id));
+        setResults((data ?? []).filter((row: { id: string }) => !taken.has(row.id)));
+      } catch { if (alive && current()) { setResults([]); setSearchError("People could not be loaded. Edit your search to retry."); } }
     }, 250);
     return () => { alive = false; clearTimeout(timer); };
   }, [q, members, supabase]);
@@ -632,7 +669,7 @@ function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated }: {
   const onPickIcon = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = "";
-    if (!file || !meId || actionLocks.current.has("icon")) return;
+    if (!file || !meId || !isOwner || !current() || actionLocks.current.has("icon")) return;
     if (!file.type.startsWith("image/") || file.type === "image/svg+xml" || file.size > 10 * 1024 * 1024) { alert("Choose a photo smaller than 10 MB."); return; }
     actionLocks.current.add("icon");
     setIconBusy(true);
@@ -641,17 +678,19 @@ function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated }: {
       const path = meId + "/channel_" + channelId + "_" + Date.now() + "." + ext;
       const up = await supabase.storage.from("avatars").upload(path, file, { contentType: file.type || "image/jpeg" });
       if (up.error) throw up.error;
+      if (!current()) return;
       const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
       const { error } = await supabase.rpc("update_channel_settings", { p_channel: channelId, p_icon_url: pub.publicUrl });
       if (error) throw error;
+      if (!current()) return;
       setIconUrl(pub.publicUrl);
       onUpdated({ icon_url: pub.publicUrl });
-    } catch (err: any) { alert(err?.message || "Could not update the icon."); }
-    finally { actionLocks.current.delete("icon"); setIconBusy(false); }
+    } catch (err: any) { if (current()) alert(err?.message || "Could not update the icon."); }
+    finally { if (current()) { actionLocks.current.delete("icon"); setIconBusy(false); } }
   };
 
   const save = async () => {
-    if (!isOwner || actionLocks.current.has("save") || !name.trim()) return;
+    if (!isOwner || !current() || actionLocks.current.has("save") || !name.trim()) return;
     actionLocks.current.add("save");
     setSaving(true);
     try {
@@ -660,48 +699,57 @@ function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated }: {
         p_audience: audience, p_replies_enabled: replies,
       });
       if (error) throw error;
+      if (!current()) return;
       onUpdated({ name: name.trim(), replies_enabled: replies });
       onClose();
-    } catch (err: any) { alert(err?.message || "Could not save."); }
-    finally { actionLocks.current.delete("save"); setSaving(false); }
+    } catch (err: any) { if (current()) alert(err?.message || "Could not save."); }
+    finally { if (current()) { actionLocks.current.delete("save"); setSaving(false); } }
   };
 
   const setLevel = async (level: "all" | "highlights" | "mute") => {
-    if (actionLocks.current.has("level")) return;
+    if (!current() || actionLocks.current.has("level")) return;
     actionLocks.current.add("level");
-    const prev = myLevel; setMyLevel(level);
+
     try {
       const { error } = await supabase.rpc("set_channel_notifications", { p_channel: channelId, p_level: level });
       if (error) throw error;
-    } catch { setMyLevel(prev); alert("Could not save notification settings. Please try again."); }
-    finally { actionLocks.current.delete("level"); }
+      if (current()) setMyLevel(level);
+    } catch { if (current()) alert("Could not save notification settings. Please try again."); }
+    finally { if (current()) actionLocks.current.delete("level"); }
   };
 
-  const applyRole = async (m: Member, role: string) => {
-    const { error } = await supabase.rpc("set_channel_role", { p_channel: channelId, p_user: m.user_id, p_role: role });
-    if (error) { alert(error.message); return; }
-    if (role === "remove") setMembers(prev => prev.filter(x => x.user_id !== m.user_id));
-    else setMembers(prev => prev.map(x => x.user_id === m.user_id ? { ...x, role } : x));
+  const applyRole = async (member: Member, role: string) => {
+    const key = 'member:' + member.user_id;
+    if (!isOwner || !current() || actionLocks.current.has(key)) return;
+    actionLocks.current.add(key);
+    try {
+      const { error } = await supabase.rpc("set_channel_role", { p_channel: channelId, p_user: member.user_id, p_role: role });
+      if (error) throw error;
+      if (!current()) return;
+      setMembers(previous => role === "remove" ? previous.filter(item => item.user_id !== member.user_id) : previous.map(item => item.user_id === member.user_id ? { ...item, role } : item));
+    } catch { if (current()) alert("Could not update this member. Refresh settings and try again."); }
+    finally { if (current()) actionLocks.current.delete(key); }
   };
 
   const invite = async (r: any) => {
-    if (actionLocks.current.has(r.id)) return;
-    actionLocks.current.add(r.id);
+    if (!isOwner || !current() || actionLocks.current.has("invite")) return;
+    actionLocks.current.add("invite");
     setInviting(r.id);
     try {
       const { error } = await supabase.rpc("set_channel_role", { p_channel: channelId, p_user: r.id, p_role: "collaborator" });
       if (error) throw error;
-      setMembers(prev => [...prev, { user_id: r.id, full_name: r.full_name, username: r.username, avatar_url: r.avatar_url, role: "collaborator", notification_level: "all" }]);
+      if (!current()) return;
+      setMembers(prev => [...prev.filter(member => member.user_id !== r.id), { user_id: r.id, full_name: r.full_name, username: r.username, avatar_url: r.avatar_url, role: "collaborator", notification_level: "all" }]);
       setQ(""); setResults([]);
-    } catch (err: any) { alert(err?.message || "Could not invite."); }
-    finally { actionLocks.current.delete(r.id); setInviting(null); }
+    } catch (err: any) { if (current()) alert(err?.message || "Could not invite."); }
+    finally { if (current()) { actionLocks.current.delete("invite"); setInviting(null); } }
   };
 
   const roleLabel = (r: string) => r === "owner" ? "Owner" : r === "collaborator" ? "Collaborator" : r === "moderator" ? "Moderator" : null;
 
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/45 sm:items-center" onClick={onClose}>
-      <div className="max-h-[88vh] w-full max-w-[520px] overflow-y-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
+      <div className="max-h-[88vh] w-full max-w-[520px] overflow-y-auto rounded-t-2xl bg-surface p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
         <div className="mb-3 flex items-center justify-between">
           <p className="text-[15px] font-semibold text-ink">Channel settings</p>
           <button onClick={onClose} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={16} /></button>
@@ -773,7 +821,8 @@ function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated }: {
                 <p className="mb-2 text-[13px] font-semibold text-ink">Invite a collaborator</p>
                 <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search people"
                   className="mb-2 w-full rounded-lg border border-ink/15 px-3 py-2 text-[13px] text-ink outline-none focus:border-ink/40" />
-                {results.map(r => (
+                {searchError ? <p role="alert" className="text-sm text-danger">{searchError}</p> : null}
+            {results.map(r => (
                   <div key={r.id} className="flex items-center gap-2 rounded-lg px-1 py-1.5">
                     {r.avatar_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -783,7 +832,7 @@ function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated }: {
                       <span className="block truncate text-[13.5px] font-semibold text-ink">{r.full_name || "Member"} <VerifiedBadge userId={r.id} size={12} /></span>
                       {r.username ? <span className="block text-[12px] text-muted">@{r.username}</span> : null}
                     </span>
-                    <button onClick={() => invite(r)} disabled={inviting === r.id} className="rounded-full bg-ink px-3.5 py-1.5 text-[12px] font-semibold text-white disabled:opacity-40">Invite</button>
+                    <button onClick={() => invite(r)} disabled={!!inviting} className="rounded-full bg-ink px-3.5 py-1.5 text-[12px] font-semibold text-white disabled:opacity-40">Invite</button>
                   </div>
                 ))}
               </div>

@@ -1,15 +1,13 @@
 import 'server-only';
-import { serviceClient } from './supabaseAdmin';
 import type { Admin } from './adminAuth';
+import { STAFF_ROLES } from './permissions';
 
-/** Database policy can defer setup for one QA owner. A flag in a browser cannot. */
+/** Owner-requested temporary policy. adminFromToken still verifies the token,
+ * live native session and active staff role before this function is reached.
+ * Keep this in server code, never in a browser flag or a request parameter. */
+export const STAFF_AUTHENTICATOR_REQUIRED = false;
+
 export async function canAccessOperations(admin: Admin): Promise<boolean> {
-  if (admin.aal === 'aal2') return true;
-  if (admin.aal !== 'aal1' || process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://uaulhuelcfkjwojtymmw.supabase.co') return false;
-  try {
-    const { data, error } = await serviceClient().rpc('triniti_admin_single_owner_access', {
-      p_actor_id: admin.id, p_session_id: admin.sessionId,
-    });
-    return !error && data === true;
-  } catch { return false; }
+  if (!STAFF_ROLES.has(admin.role) || !admin.id || !admin.sessionId) return false;
+  return admin.aal === 'aal2' || (!STAFF_AUTHENTICATOR_REQUIRED && admin.aal === 'aal1');
 }

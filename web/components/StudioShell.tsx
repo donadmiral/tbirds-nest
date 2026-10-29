@@ -12,7 +12,7 @@ import { STUDIO_RAIL_SLOT } from "@/components/StudioRailPortal";
 import { StudioLoadError } from "@/app/studio/LoadError";
 import { createClient } from "@/lib/supabase/client";
 
-const StudioCtx = createContext<{ me: StudioMe | null; refresh: () => Promise<void> }>({ me: null, refresh: async () => {} });
+const StudioCtx = createContext<{ me: StudioMe | null; accountId: string; refresh: () => Promise<void> }>({ me: null, accountId: '', refresh: async () => {} });
 export const useStudio = () => useContext(StudioCtx);
 
 const ICONS: Record<string, any> = {
@@ -112,7 +112,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <StudioCtx.Provider key={[accountId,me.member_id,me.role].join(":")} value={{ me, refresh }}>
+    <StudioCtx.Provider key={[accountId,me.member_id,me.role].join(":")} value={{ me, accountId, refresh }}>
       <div className="mx-auto max-w-[1360px] px-6 py-6">
         {/* The desk nav runs across the top rather than down the side. Studio
             already sits inside the app's left rail, and a second vertical nav

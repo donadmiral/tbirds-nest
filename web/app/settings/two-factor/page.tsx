@@ -53,7 +53,6 @@ export default function TwoFactorPage() {
 
   return (
     <div className="mx-auto max-w-[640px] px-4 py-6">
-      <Link href="/settings" className="inline-flex items-center gap-1.5 text-[13px] text-ink/60 hover:text-ink"><ArrowLeft size={14} /> Settings</Link>
       <h1 className="mt-4 flex items-center gap-2 font-display text-[24px] font-bold text-ink"><ShieldCheck size={22} className="text-accent" /> Two-factor authentication</h1>
       {enrolling ? (
         <div className="mt-5">

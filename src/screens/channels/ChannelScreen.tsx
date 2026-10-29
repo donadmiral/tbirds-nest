@@ -1,8 +1,8 @@
-import { themedSheet } from '../../theme/useTheme';
+import { themedSheet, useTheme } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ActivityIndicator, Modal, Alert, KeyboardAvoidingView, Platform, AppState } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useIsFocused, useNavigation, useRoute } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import { Video, ResizeMode } from 'expo-av';
@@ -41,6 +41,8 @@ function pollTimeLeft(endsAt?: string) {
 }
 
 export default function ChannelScreen() {
+  useTheme();
+  const focused = useIsFocused();
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const { channelId, name, memberCount: mc0, myRole: role0, isMember: mem0 } = (route.params || {}) as any;
@@ -77,7 +79,28 @@ export default function ChannelScreen() {
   const [mediaUrls,setMediaUrls] = useState<Record<string,string>>({});
   const [more,setMore] = useState(false), [paging,setPaging] = useState(false), [loadError,setLoadError] = useState('');
   const [replyMore,setReplyMore] = useState(false), [replyError,setReplyError] = useState('');
+  const atLatest = useRef(true), readPending = useRef(false), lastRead = useRef('');
+  const loadedIdentity = useRef('');
+  const readState = useRef({ focused, isMember, obscured: false });
+  readState.current = { focused, isMember, obscured: settingsOpen || pollOpen || !!thread };
   const valid = (run:number) => run===scope.current && useAuthStore.getState().session?.user.id===uid && live.current===uid+':'+channelId;
+  const markRead = useCallback(async (): Promise<void> => {
+    const run = scope.current, latest = messagesRef.current[0];
+    if (!latest || loadedIdentity.current !== uid + ':' + channelId || !valid(run) || readPending.current || lastRead.current === latest.id || !readState.current.focused || !readState.current.isMember || readState.current.obscured || !atLatest.current || AppState.currentState !== 'active') return;
+    readPending.current = true;
+    try {
+      const { error } = await deadline(supabase.rpc('mark_channel_read', { p_channel: channelId, p_message: latest.id }));
+      if (error) throw error;
+      if (valid(run)) lastRead.current = latest.id;
+    } catch { if (valid(run)) setLoadError('Updates loaded, but the read marker could not be saved.'); }
+    finally {
+      if (valid(run)) {
+        readPending.current = false;
+        if (messagesRef.current[0]?.id !== latest.id) void markRead();
+      }
+    }
+  }, [channelId, uid]);
+  useEffect(() => { if (!loading) void markRead(); }, [messages, loading, focused, isMember, settingsOpen, pollOpen, thread, markRead]);
   const signMedia = useCallback(async (rows:any[], run:number) => {
     const signed = await Promise.all(rows.filter(row=>row.media_url).map(async row=>{
       const object=channelMediaObject(row.media_url,SUPABASE_URL);
@@ -103,14 +126,15 @@ export default function ChannelScreen() {
       if(run!==scope.current||live.current!==identity)return;
       if(detail){const channel=detail.data?.[0];if(!channel){setMessages([]);setMediaUrls({});setThread(null);setReplies([]);throw new Error('This channel is not available.');}setMemberCount(channel.member_count);setIsMember(channel.is_member);setMyRole(channel.my_role);setChannelName(channel.name);setRepliesEnabled(channel.replies_enabled);}
       const rows=page.data||[];
+      loadedIdentity.current = identity;
       setMessages(old=>next?[...old,...rows.filter((row:any)=>!old.some(item=>item.id===row.id))]:rows);setMore(rows.length===40);setLoadError('');
       void signMedia(rows,run);
-      if(!next&&rows[0])void supabase.rpc('mark_channel_read',{p_channel:channelId,p_message:rows[0].id});
     } catch(e:any) {if(run===scope.current)setLoadError(e?.message||'Channel could not be loaded. Please retry.');}
     finally {if(run===scope.current){pageLock.current=false;setLoading(false);setPaging(false);}}
   },[channelId,uid,signMedia]);
 
   useEffect(()=>{
+    atLatest.current = true; readPending.current = false; lastRead.current = ''; loadedIdentity.current = '';
     live.current=uid+':'+channelId;scope.current++;pageLock.current=false;actionLock.current=false;replyLock.current=false;setMessages([]);messagesRef.current=[];setMediaUrls({});setThread(null);threadRef.current=null;setReplies([]);setDraft('');setReplyDraft('');setPollQ('');setPollOpts(['','']);setPollOpen(false);setSending(false);setAttaching(false);setPollBusy(false);setReplySending(false);setIsMember(false);setMyRole(null);setMore(false);setLoadError('');setLoading(!!uid);
     void load();
     const subscription=supabase.channel('channel-screen:'+uid+':'+channelId).on('postgres_changes',{event:'*',schema:'public',table:'channel_messages',filter:'channel_id=eq.'+channelId},()=>{void load();}).subscribe();
@@ -135,6 +159,7 @@ export default function ChannelScreen() {
     try {
       const { data, error } = await deadline(supabase.rpc('post_channel_message', { p_channel: channelId, p_content: body, p_is_prompt: promptMode }));
       if (error) throw error;
+      if (!data || typeof data !== 'string') throw new Error('Posting was not confirmed. Refresh this channel before retrying.');
       if(!valid(run))return;
       const mine = {
         id: data, content: body, media_url: null, media_type: null, created_at: new Date().toISOString(),
@@ -153,18 +178,19 @@ export default function ChannelScreen() {
     actionLock.current=true;
     try {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) { if(valid(run))actionLock.current=false;Alert.alert('Permission needed', 'Allow photo access in your device settings.'); return; }
+    if (!valid(run)) return;
+    if (!perm.granted) { actionLock.current=false;Alert.alert('Permission needed', 'Allow photo access in your device settings.'); return; }
     const result = await ImagePicker.launchImageLibraryAsync({
       preferredAssetRepresentationMode: 'compatible' as ImagePicker.UIImagePickerPreferredAssetRepresentationMode,
       mediaTypes: ['images', 'videos'] as ImagePicker.MediaType[],
-      allowsEditing: false, quality: 0.85, videoMaxDuration: 120,
+      allowsEditing: false, quality: 1, videoMaxDuration: 120,
     });
     if (!valid(run))return;if (result.canceled || !result.assets?.[0]) {actionLock.current=false;return;}
     setAttaching(true);
       const asset = result.assets[0];
       const isVideo = asset.type === 'video';
-      const ext = (asset.uri.split('.').pop() || (isVideo ? 'mp4' : 'jpg')).toLowerCase().replace('jpeg', 'jpg');
-      const mime = isVideo ? 'video/mp4' : ext === 'png' ? 'image/png' : 'image/jpeg';
+      const ext = ((asset.fileName || asset.uri).split('.').pop()?.split('?')[0] || (isVideo ? 'mp4' : 'jpg')).toLowerCase().replace('jpeg', 'jpg');
+      const mime = asset.mimeType || (isVideo ? 'video/mp4' : ext === 'png' ? 'image/png' : 'image/jpeg');
       const { url } = await uploadMedia('channel-media', channelId + '/' + uid, { uri: asset.uri, kind: isVideo ? 'video' : 'image', ext, mimeType: mime, width: asset.width, height: asset.height, base64: null } as any, {});
       if(!valid(run))return;
       const body = draft.trim();
@@ -172,6 +198,7 @@ export default function ChannelScreen() {
         p_channel: channelId, p_content: body || null, p_media_url: url, p_media_type: isVideo ? 'video' : 'image', p_is_prompt: promptMode,
       }));
       if (error) throw error;
+      if (!data || typeof data !== 'string') throw new Error('Posting was not confirmed. Refresh this channel before retrying.');
       if(!valid(run))return;
       const mine = {
         id: data, content: body || null, media_url: url, media_type: isVideo ? 'video' : 'image', created_at: new Date().toISOString(),
@@ -342,7 +369,7 @@ export default function ChannelScreen() {
             {canPost ? <Text style={s.emptySub}>Post the first update below.</Text> : <Text style={s.emptySub}>Updates from the channel will appear here.</Text>}
           </View>
         ) : (
-          <FlatList onEndReached={()=>{if(more)void load(true);}} onEndReachedThreshold={0.3} ListFooterComponent={paging?<ActivityIndicator/>:null} data={messages} keyExtractor={m => m.id} renderItem={renderMessage} inverted
+          <FlatList onScroll={event => { const latest = event.nativeEvent.contentOffset.y < 64; const becameLatest = latest && !atLatest.current; atLatest.current = latest; if (becameLatest) void markRead(); }} scrollEventThrottle={32} onEndReached={()=>{if(more)void load(true);}} onEndReachedThreshold={0.3} ListFooterComponent={paging?<ActivityIndicator/>:null} data={messages} keyExtractor={m => m.id} renderItem={renderMessage} inverted
             contentContainerStyle={{ paddingHorizontal: 14, paddingTop: 12, paddingBottom: 12 }} keyboardShouldPersistTaps="handled" />
         )}
         {canPost ? (
@@ -360,7 +387,7 @@ export default function ChannelScreen() {
               <TouchableOpacity style={s.toolBtn} onPress={attach} disabled={attaching} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
                 {attaching ? <ActivityIndicator size="small" color={NAVY} /> : <Feather name="image" size={20} color="#8E8E93" />}
               </TouchableOpacity>
-              <TextInput style={s.composerInput} placeholder={promptMode ? 'Ask your members something' : 'Post an update'} placeholderTextColor="#8E8E93" value={draft} onChangeText={setDraft} multiline maxLength={2000} />
+              <TextInput style={s.composerInput} placeholder={promptMode ? 'Ask your members something' : 'Post an update'} placeholderTextColor="#8E8E93" value={draft} editable={!sending && !attaching} onChangeText={setDraft} multiline maxLength={2000} />
               <TouchableOpacity style={[s.sendBtn, (!draft.trim() || sending) && { opacity: 0.4 }]} onPress={send} disabled={!draft.trim() || sending}>
                 {sending ? <ActivityIndicator size="small" color="#FFF" /> : <Feather name="arrow-up" size={18} color="#FFF" />}
               </TouchableOpacity>
