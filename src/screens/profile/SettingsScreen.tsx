@@ -558,11 +558,12 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
         </TouchableOpacity>
 
         <View style={{ paddingHorizontal: 16, paddingBottom: 10 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: getTheme().brand.tintBg, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 9 }}>
-            <Feather name="search" size={15} color="rgba(11,30,61,0.42)" />
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 48, backgroundColor: getTheme().brand.tintBg, borderRadius: 12, paddingHorizontal: 12 }}>
+            <Feather name="search" size={18} color={getTheme().ink.secondary} />
             <TextInput value={settingsQuery} onChangeText={setSettingsQuery} placeholder="Search settings"
-              placeholderTextColor={getTheme().ink.secondary} style={{ flex: 1, fontSize: 15, color: getTheme().ink.primary, padding: 0 }} />
-            {settingsQuery ? <TouchableOpacity onPress={() => setSettingsQuery('')}><Feather name="x" size={15} color="rgba(11,30,61,0.42)" /></TouchableOpacity> : null}
+              accessibilityLabel="Search settings" returnKeyType="search" autoCorrect={false}
+              placeholderTextColor={getTheme().ink.secondary} style={{ flex: 1, minWidth: 0, minHeight: 48, fontSize: 16, color: getTheme().ink.primary, paddingHorizontal: 0, paddingVertical: 10, includeFontPadding: false, textAlignVertical: 'center' }} />
+            {settingsQuery ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Clear settings search" style={{ minWidth: 44, minHeight: 44, alignItems: 'center', justifyContent: 'center' }} onPress={() => setSettingsQuery('')}><Feather name="x" size={18} color={getTheme().ink.secondary} /></TouchableOpacity> : null}
           </View>
         </View>
         {buildSections().map(sec => {

@@ -1,4 +1,4 @@
-import { themedSheet } from '../../theme/useTheme';
+import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import { TapTopFlatList } from '../../components/TapTopList';
 import EmptyState from '../../components/EmptyState';
 import TierName from '../../components/TierName';
@@ -70,6 +70,7 @@ function avatarColor(id: string) {
 }
 
 export default function ConversationsScreen({ navigation }: any) {
+  useTheme();
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
   const userId = profile?.id ?? null;
@@ -679,7 +680,7 @@ const swipeActions = (item: Conversation) => (
         <TextInput
           value={search} onChangeText={setSearch}
           placeholder="Search messages"
-          placeholderTextColor="#8E8E93" style={s.searchInput}
+          placeholderTextColor={getTheme().ink.secondary} style={s.searchInput}
           autoCapitalize="none" returnKeyType="search"
         />
         {search.length > 0 && <TouchableOpacity onPress={() => setSearch('')}><Feather name="x" size={15} color="#8E8E93" /></TouchableOpacity>}
@@ -759,8 +760,8 @@ const s = themedSheet((t) => ({
   newBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: t.brand.base, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 8 },
   newBtnTxt: { color: t.ink.inverse, fontSize: 13, fontWeight: '700' },
   iconBtn: { width: 36, height: 36, borderRadius: 10, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' },
-  searchWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 14, marginBottom: 10, backgroundColor: '#F0F0F2', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 9 },
-  searchInput: { flex: 1, fontSize: 15, color: '#000', padding: 0 },
+  searchWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 14, marginBottom: 10, backgroundColor: t.surface.sunken, borderRadius: 20, paddingHorizontal: 14, minHeight: 48 },
+  searchInput: { flex: 1, minWidth: 0, minHeight: 48, fontSize: 16, color: t.ink.primary, paddingHorizontal: 0, paddingVertical: 10, includeFontPadding: false, textAlignVertical: 'center' },
   tabs: { flexDirection: 'row', gap: 8, paddingHorizontal: 14, marginBottom: 8 },
   tab: { paddingHorizontal: 15, paddingVertical: 8, borderRadius: 20, backgroundColor: t.brand.tintBg },
   tabActive: { backgroundColor: t.brand.base },

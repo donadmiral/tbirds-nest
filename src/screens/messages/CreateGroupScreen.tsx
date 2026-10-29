@@ -1,4 +1,4 @@
-import { themedSheet } from '../../theme/useTheme';
+import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput, Image,
@@ -29,6 +29,7 @@ function initials(n?: string | null) {
 }
 
 export default function CreateGroupScreen({ navigation }: any) {
+  useTheme();
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
   const myId = profile?.id ?? null;
@@ -277,7 +278,7 @@ export default function CreateGroupScreen({ navigation }: any) {
             value={query}
             onChangeText={setQuery}
             placeholder="Search people"
-            placeholderTextColor="#8E8E93"
+            placeholderTextColor={getTheme().ink.secondary}
             style={s.searchInput}
             autoCapitalize="none"
             returnKeyType="search"
@@ -387,12 +388,12 @@ const s = themedSheet((t) => ({
     gap: 8,
     marginHorizontal: 14,
     marginVertical: 10,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: t.surface.sunken,
     borderRadius: 12,
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    minHeight: 48,
   },
-  searchInput: { flex: 1, fontSize: 15, color: '#000', padding: 0 },
+  searchInput: { flex: 1, minWidth: 0, minHeight: 48, fontSize: 16, color: t.ink.primary, paddingHorizontal: 0, paddingVertical: 10, includeFontPadding: false, textAlignVertical: 'center' },
 
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40, gap: 10 },

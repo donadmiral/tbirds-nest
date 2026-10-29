@@ -158,13 +158,14 @@ export type MediaTagDraft = { user_id: string; nx: number; ny: number; full_name
 
 export default function PostMediaEditSheet({ visible, uri, mediaType, width, height, durationSec, initial, itemIndex = 0, itemCount = 1, onDone, onCancel }: {
   visible: boolean; uri: string | null; mediaType: 'image' | 'video'; width?: number; height?: number; durationSec?: number;
-  initial?: PostMediaEdit | null; itemIndex?: number; itemCount?: number; onDone: (edit: PostMediaEdit) => void; onCancel: () => void;
+  initial?: PostMediaEdit | null; itemIndex?: number; itemCount?: number; onDone: (edit: PostMediaEdit, applyLookToAll?: boolean) => void; onCancel: () => void;
 }) {
   const insets = useSafeAreaInsets();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const [edit, setEdit] = useState<PostMediaEdit>(initial || {});
   const [mode, setMode] = useState<'crop' | 'filter' | 'adjust' | 'trim' | 'captions' | 'cover'>(mediaType === 'video' ? 'trim' : 'crop');
   const [comparing, setComparing] = useState(false);
+  const [applyLookToAll, setApplyLookToAll] = useState(false);
   const [sliderDragging, setSliderDragging] = useState(false);
   const [adjustKey, setAdjustKey] = useState<keyof StoryAdjust>('bri');
   const [clock, setClock] = useState(0);
@@ -203,7 +204,7 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
   const [dur, setDur] = useState(durationSec || 0);
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const opacityAnim = useRef(new Animated.Value(1)).current;
-  React.useEffect(() => { if (visible) { setEdit(initial?.aspectRatio||initial?.aspect?{...initial}:{ aspectRatio: 4 / 5, ...initial }); setDur(durationSec || 0); setMode(mediaType === 'video' ? 'trim' : 'crop'); setTagMode(false); setSelectedCaption(0); setComparing(false);captionTimingDraftsRef.current={};setCaptionTimingDrafts({}); } }, [visible, uri]);
+  React.useEffect(() => { if (visible) { setEdit(initial?.aspectRatio||initial?.aspect?{...initial}:{ aspectRatio: 4 / 5, ...initial }); setDur(durationSec || 0); setMode(mediaType === 'video' ? 'trim' : 'crop'); setTagMode(false); setSelectedCaption(0); setComparing(false); setApplyLookToAll(false);captionTimingDraftsRef.current={};setCaptionTimingDrafts({}); } }, [visible, uri]);
   useEffect(() => {
     if (!player || !visible) return;
     try { player.timeUpdateEventInterval = .1; } catch {}
@@ -268,7 +269,7 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
         <View style={st.top}>
           <TouchableOpacity accessibilityRole="button" accessibilityLabel="Cancel media editing" onPress={onCancel} style={st.topBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="x" size={22} color="#FFF" /></TouchableOpacity>
           <Text style={st.title}>{title}{itemCount > 1 ? ` · ${itemIndex + 1} of ${itemCount}` : ''}</Text>
-          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Apply media edits" onPress={() => { try { player?.pause(); } catch {} onDone({...edit, captions: normalizePostCaptions((edit.captions??[]).map(c=>applyPostCaptionTiming(c,captionTimingDraftsRef.current[c.id],range.start,range.end)), dur || 600)}); }} style={st.done} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={st.doneTxt}>{mode === 'crop' ? 'Apply' : 'Done'}</Text></TouchableOpacity>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Apply media edits" onPress={() => { try { player?.pause(); } catch {} onDone({...edit, captions: normalizePostCaptions((edit.captions??[]).map(c=>applyPostCaptionTiming(c,captionTimingDraftsRef.current[c.id],range.start,range.end)), dur || 600)}, applyLookToAll); }} style={st.done} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={st.doneTxt}>{mode === 'crop' ? 'Apply' : 'Done'}</Text></TouchableOpacity>
         </View>
         <ScrollView style={{ flex: 1 }} scrollEnabled={!sliderDragging} contentContainerStyle={{ flexGrow: 1, alignItems: 'center', paddingTop: 12, paddingBottom: 20 }} keyboardShouldPersistTaps="handled" bounces={false}>
           <View style={{ width: canvasW, height: canvasH, backgroundColor: '#000', borderRadius: 12, overflow: 'hidden' }}>
@@ -355,6 +356,7 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
               {captions.map((caption,i)=><TouchableOpacity key={caption.id} style={[st.captionRow,i===selectedCaption&&st.selected]} onPress={()=>{setSelectedCaption(i);try{player.pause();player.currentTime=caption.start;}catch{}}}><Text style={st.mutedLabel}>{postTimeLabel(caption.start)}</Text><Text numberOfLines={1} style={[st.smallLabel,{flex:1}]}>{caption.text||'New caption'}</Text><TouchableOpacity accessibilityLabel={`Remove caption ${i+1}`} style={st.removeCaption} onPress={()=>{setEdit(e=>({...e,captions:(e.captions??[]).filter((_,x)=>x!==i)}));setSelectedCaption(0);}}><Feather name="x" size={17} color="#FFF"/></TouchableOpacity></TouchableOpacity>)}
               {captions.length<8?<TouchableOpacity style={st.rowButton} onPress={addCaption}><Feather name="plus" size={19} color="#E9DCC7"/><Text style={st.rowButtonText}>Add another caption</Text></TouchableOpacity>:null}
             </>:null}
+            {itemCount > 1 && (mode === 'filter' || mode === 'adjust') ? <TouchableOpacity accessibilityRole="checkbox" accessibilityLabel="Apply this look to all media" accessibilityState={{checked:applyLookToAll}} style={st.rowButton} onPress={()=>setApplyLookToAll(value=>!value)}><Feather name={applyLookToAll?'check-square':'square'} size={22} color="#F2D5C2"/><Text style={st.rowButtonText}>Apply this look to all media</Text><Text style={st.mutedLabel}>{itemCount} items</Text></TouchableOpacity> : null}
             {mode === 'crop' || mode === 'filter' ? <TouchableOpacity style={st.reset} onPress={()=>setEdit(e=>({...e, ...(mode==='crop'?{scale:1,translateNX:0,translateNY:0,rotation:0,flipX:false,fit:'cover' as const,aspectRatio:4/5,aspect:undefined}:{filterId:null,filterAmt:100})}))}><Feather name="rotate-ccw" size={17} color="#FFF"/><Text style={st.smallLabel}>Reset {mode==='crop'?'crop':'filter'}</Text></TouchableOpacity>:null}
           </View>
         </ScrollView>

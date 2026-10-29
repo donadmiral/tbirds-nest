@@ -8,13 +8,14 @@ const root = path.resolve(__dirname, '..');
 const compile = file => ts.transpileModule(fs.readFileSync(path.join(root, file), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText;
 const source = compile('components/StoryComposer.tsx');
 const publication = compile('lib/publication.ts');
+const queueSource = compile('lib/storyClipQueue.ts');
 const defer = () => { let resolve; const promise = new Promise(done => resolve = done); return { promise, resolve }; };
 const draft = (owner, name = 'draft-' + owner) => ({ id: name, user_id: owner, media_url: 'https://media.test/' + name, media_type: 'image', audience: 'only_with', shared_with: ['friend-' + owner], caption: 'Private ' + owner, duration_sec: null });
 const text = node => typeof node === 'string' ? node : Array.isArray(node) ? node.map(text).join('') : text(node?.props?.children ?? '');
 const nodes = node => !node || typeof node !== 'object' ? [] : Array.isArray(node) ? node.flatMap(nodes) : [node, ...nodes(node.props?.children)];
 
 function scenario(options = {}) {
-  let owner = 'a', listener, cursor = 0, tree, dirty = true, effects = [], mounted = true, updatesAfterUnmount = 0, nextTimer = 0;
+  let owner = 'a', listener, cursor = 0, tree, dirty = true, effects = [], mounted = true, updatesAfterUnmount = 0, nextTimer = 0, nextUuid = 0;
   const slots = [], timers = new Map(), writes = [], reads = [], uploads = [], videos = [], revoked = [], navigation = [];
   const router = { push: href => navigation.push(href) };
   const params = { get: () => null };
@@ -26,7 +27,7 @@ function scenario(options = {}) {
     useEffect(fn,deps) { const i=cursor++; if (!slots[i] || !same(slots[i].deps,deps)) { const previous=slots[i]; slots[i]={deps}; effects.push(()=>{ previous?.cleanup?.(); slots[i].cleanup=fn(); }); } },
   };
   const execute = async call => {
-    if (call.op !== 'select') { writes.push(call); return options.write ? options.write(call) : { data: { id: 'saved' }, error: null }; }
+    if (call.op !== 'select') { writes.push(call); return options.write ? options.write(call) : { data: { id: call.payload?.id || 'saved', user_id: call.payload?.user_id }, error: null }; }
     reads.push(call);
     if (call.table === 'story_drafts') return options.loadDrafts ? options.loadDrafts(call.filters.user_id) : { data: [], error: null };
     if (call.table === 'profiles') return options.loadPeople ? options.loadPeople(call) : { data: [{ id:'friend-' + owner, full_name: 'Friend ' + owner }], error: null };
@@ -41,7 +42,7 @@ function scenario(options = {}) {
     },
     from(table) { const call={table,op:'select',filters:{}}; const query={
       select(){return query;}, eq(key,value){call.filters[key]=value;return query;}, in(key,value){call.filters[key]=value;return query;}, neq(){return query;}, order(){return query;},limit(){return query;},single(){return query;},maybeSingle(){return query;},
-      insert(payload){call.op='insert';call.payload=payload;return query;},update(payload){call.op='update';call.payload=payload;return query;},delete(){call.op='delete';return query;},
+      upsert(payload){call.op='upsert';call.payload=payload;return query;},insert(payload){call.op='insert';call.payload=payload;return query;},update(payload){call.op='update';call.payload=payload;return query;},delete(){call.op='delete';return query;},
       then(ok,bad){return Promise.resolve().then(()=>execute(call)).then(ok,bad);},
     }; return query; },
     storage: { from() { return {
@@ -51,7 +52,7 @@ function scenario(options = {}) {
   };
   const runtime={jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})};
   const storage = new Map();
-  const common={sessionStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},console,Promise,Set,Map,Error,crypto:{randomUUID:()=> 'upload'},
+  const common={sessionStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},console,Promise,Set,Map,Error,crypto:{randomUUID:()=> 'upload-'+(++nextUuid)},
     setTimeout:(callback,ms)=>{const id=++nextTimer;timers.set(id,{callback,ms});return id;},clearTimeout:id=>timers.delete(id),
     URL:{createObjectURL:()=> 'blob:preview',revokeObjectURL:value=>revoked.push(value)},
     document:{createElement:()=>{ const video={removeAttribute(){},load(){this.cleaned=true;},duration:10};videos.push(video);return video;}},
@@ -62,6 +63,8 @@ function scenario(options = {}) {
     if(name==='next/link')return{__esModule:true,default:'Link'};
     if(name==='@/lib/supabase/client')return{createClient:()=>client};
     if(name==='@/lib/publication')return load(publication);
+    if(name==='@/lib/storyClipQueue')return load(queueSource);
+    if(name==='@/lib/storyDrawing')return load(compile('lib/storyDrawing.ts'));
     if(name==='@/lib/stories')return{STORY_FILTERS:[],STORY_FILTER_FAMILIES:[],filterCss:()=>''};
     if(name==='@/lib/contentMedia')return{hydrateStoryDraftMedia:async rows=>options.hydrateDrafts ? options.hydrateDrafts(rows) : rows};
     if(name==='@/lib/media')return{checkUploadableBytes:async()=>null};
@@ -77,7 +80,9 @@ function scenario(options = {}) {
     changeOwner(next){owner=next;listener?.('SIGNED_IN',next?{user:{id:next}}:null);render();},
     pick(type='image/jpeg'){nodes(render()).find(n=>n.type==='input'&&n.props.type==='file').props.onChange({target:{files:[{type,name:type.startsWith('video')?'video.mp4':'photo.jpg'}],value:''}});render();},
     openDraft(name='draft-a'){const button=nodes(render()).find(n=>n.type==='button'&&nodes(n).some(child=>child.type==='img'&&child.props.src==='https://media.test/'+name));assert.ok(button);const result=button.props.onClick();render();return result;},
-    sound(){let sound=nodes(render()).find(n=>n.type==='StoryAudioEditor');if(!sound){nodes(render()).find(n=>n.type==='StoryEditor')?.props.onOpenEdit();sound=nodes(render()).find(n=>n.type==='StoryAudioEditor');}return sound;},
+    sound(){let sound=nodes(render()).find(n=>n.type==='StoryAudioEditor');if(!sound){nodes(render()).find(n=>n.type==='StoryEditor')?.props.onOpenMusic();sound=nodes(render()).find(n=>n.type==='StoryAudioEditor');}return sound;},
+    editor(){return nodes(render()).find(n=>n.type==='StoryEditor');},
+    pickMany(files){nodes(render()).find(n=>n.type==='input'&&n.props.type==='file').props.onChange({target:{files,value:''}});render();},
     input(){return nodes(render()).find(n=>n.type==='textarea'&&n.props.placeholder==='A moment worth sharing…');},
     button(label){if(label==='Share to story')label='Share story';let found=nodes(render()).find(n=>n.type==='button'&&text(n)===label);if(!found&&['Share story','Update draft','Save as draft','Retry safely'].includes(label)){nodes(render()).find(n=>n.type==='StoryEditor')?.props.onNext();found=nodes(render()).find(n=>n.type==='button'&&text(n)===label);}return found;},
     fireTimeout(ms){for(const[id,timer]of [...timers])if(timer.ms===ms){timers.delete(id);timer.callback();}render();},
@@ -113,7 +118,7 @@ test('unmount cancels pending work and prevents late state updates',async()=>{
 });
 test('account change cleans a pending video metadata object immediately',async()=>{
   const h=scenario();await h.flush();h.pick('video/mp4');await h.flush();assert.equal(h.videos.length,1);
-  h.changeOwner('b');await h.flush();assert.equal(h.videos[0].cleaned,true);assert.deepEqual(h.revoked,['blob:preview','blob:preview']);assert.ok(!nodes(h.tree).some(n=>n.type==='video'));h.unmount();
+  h.changeOwner('b');await h.flush();assert.equal(h.videos[0].cleaned,true);assert.deepEqual(h.revoked,['blob:preview']);assert.ok(!nodes(h.tree).some(n=>n.type==='video'));h.unmount();
 });
 test('failed or stalled initial session leaves publishing disabled and shows recovery',async()=>{
   const h=scenario({session:()=>new Promise(()=>{})});h.fireTimeout(15000);await h.flush();
@@ -168,7 +173,7 @@ test('saved story draft keeps its filter and stickers in the owner-scoped write'
   await h.button('Update draft').props.onClick(); await h.flush();
   const saved=h.writes.find(w=>w.table==='story_drafts'); assert.equal(saved.payload.filter_id,'warm');
   assert.deepEqual(saved.payload.stickers_json,row.stickers_json); assert.deepEqual(saved.payload.media_transform,row.media_transform);
-  assert.equal(saved.filters.user_id,'a'); h.unmount();
+  assert.equal(saved.op,'upsert'); assert.equal(saved.payload.user_id,'a'); h.unmount();
 });
 
 test('private draft preview capabilities never replace canonical publish or saved references', async()=>{
@@ -177,7 +182,7 @@ test('private draft preview capabilities never replace canonical publish or save
   const button=nodes(h.tree).find(n=>n.type==='button'&&nodes(n).some(x=>x.props?.src==='https://media.test/signed?token=secret'));
   assert.ok(button);await button.props.onClick();await h.flush();
   await h.button('Update draft').props.onClick();await h.flush();
-  const write=h.writes.find(w=>w.table==='story_drafts'&&w.op==='update');
+  const write=h.writes.find(w=>w.table==='story_drafts'&&w.op==='upsert');
   assert.equal(write.payload.media_url,'https://media.test/draft-a');
   assert.ok(!JSON.stringify(write.payload).includes('token='));h.unmount();
 });
@@ -198,4 +203,35 @@ test('pending audio upload locks publication and saved drafts retain canonical a
  h.sound().props.onBusyChange(false);h.render();const audio={kind:'voiceover',url:'https://media.test/original.m4a',title:'Original',durationSec:10,rightsAttested:true,addToSounds:true};
  h.sound().props.onChange(audio);h.render();await h.button('Save as draft').props.onClick();await h.flush();
  assert.deepEqual(h.writes.find(w=>w.table==='story_drafts').payload.audio_draft,audio);h.unmount();
+});
+
+test('ordered photo/video clips preserve independent edits and one reply setting through atomic publication',async()=>{
+ const h=scenario();await h.flush();h.pickMany([{type:'image/jpeg',name:'first.jpg'},{type:'video/mp4',name:'middle.mp4'},{type:'image/jpeg',name:'last.jpg'}]);await h.flush();
+ assert.equal(h.videos.length,1);h.videos[0].onloadedmetadata();await h.flush();
+ const clips=h.editor().props.clips;assert.equal(clips.length,3);
+ h.editor().props.onChange([{id:'first-text',kind:'text',text:'First clip',nx:.5,ny:.5}]);h.render();h.editor().props.onSelectClip(clips[1].id);h.render();h.editor().props.onChange([{id:'second-text',kind:'text',text:'Video clip',nx:.5,ny:.5}]);h.render();
+ h.button('Share to story');nodes(h.tree).find(n=>n.props?.['aria-label']==='Allow story replies').props.onChange({target:{checked:false}});h.render();
+ await h.button('Share to story').props.onClick();await h.flush();
+ const payloads=h.writes.filter(w=>w.table==='publish_story_v2').map(w=>w.payload.p_story);
+ assert.deepEqual(payloads.map(p=>p.media_type),['image','video','image']);assert.equal(payloads[0].stickers_json[0].text,'First clip');assert.equal(payloads[1].stickers_json[0].text,'Video clip');assert.equal(payloads[2].stickers_json.length,0);assert.ok(payloads.every(p=>p.allow_replies===false));h.unmount();
+});
+test('a failed second clip retries its original request without republishing the first clip',async()=>{
+ let count=0;const h=scenario({write:async()=>++count===2?{error:{message:'lost response'}}:{data:'story-'+count,error:null}});await h.flush();h.pickMany([{type:'image/jpeg',name:'one.jpg'},{type:'image/jpeg',name:'two.jpg'}]);await h.flush();
+ await h.button('Share to story').props.onClick();await h.flush();assert.equal(h.writes.length,2);
+ await h.button('Retry safely').props.onClick();await h.flush();assert.equal(h.writes.length,3);assert.equal(h.writes[1].payload.p_request_id,h.writes[2].payload.p_request_id);assert.notEqual(h.writes[0].payload.p_request_id,h.writes[2].payload.p_request_id);
+ const keep=nodes(h.tree).filter(n=>n.type==='SaveToMemory');assert.equal(keep.length,2);assert.equal(keep[0].props.storyId,'story-1');h.unmount();
+});
+test('partial draft saving retains clips and retry upserts the same draft IDs',async()=>{
+ let count=0;const h=scenario({write:async call=>++count===2?{error:{message:'draft connection lost'}}:{data:{id:call.payload.id,user_id:call.payload.user_id},error:null}});await h.flush();h.pickMany([{type:'image/jpeg',name:'one.jpg'},{type:'image/jpeg',name:'two.jpg'}]);await h.flush();
+ await h.button('Save as draft').props.onClick();await h.flush();assert.equal(h.editor().props.clips.length,2);assert.match(h.text,/clips remain open/);
+ await h.button('Update draft').props.onClick();await h.flush();assert.equal(h.writes.length,4);assert.equal(h.writes[0].payload.id,h.writes[2].payload.id);assert.equal(h.writes[1].payload.id,h.writes[3].payload.id);h.unmount();
+});
+
+test('drawing applies only to its original clip and preserves other sticker metadata',async()=>{
+ const h=scenario();await h.flush();h.pickMany([{type:'image/jpeg',name:'one.jpg'},{type:'image/jpeg',name:'two.jpg'}]);await h.flush();let editor=h.editor();assert.equal(editor.props.clips.length,2);const firstId=editor.props.clips.find(c=>c.selected).id;
+ const textSticker={id:'text',kind:'text',text:'Keep this',color:'#FFFFFF',nx:.5,ny:.5,scale:1,rotation:0};editor.props.onChange([textSticker]);h.render();h.editor().props.onOpenDraw();h.render();const draw=nodes(h.tree).find(n=>n.type==='StoryDrawStudio');assert.ok(draw);const stroke={tool:'pen',color:'#FF3B30',width:8,points:[{x:.25,y:.4},{x:.75,y:.6}]};draw.props.onApply([stroke]);h.render();assert.equal(h.editor().props.value.find(s=>s.kind==='drawing').strokes[0].points[0].x,.25);assert.equal(h.editor().props.value.find(s=>s.id==='text').text,'Keep this');
+ h.editor().props.onOpenDraw();h.render();const stale=nodes(h.tree).find(n=>n.type==='StoryDrawStudio');const other=h.editor().props.clips.find(c=>c.id!==firstId);h.editor().props.onSelectClip(other.id);h.render();assert.equal(nodes(h.tree).some(n=>n.type==='StoryDrawStudio'),false);stale.props.onApply([stroke]);h.render();assert.equal(h.editor().props.value.some(s=>s.kind==='drawing'),false);h.editor().props.onSelectClip(firstId);h.render();assert.equal(h.editor().props.value.find(s=>s.kind==='drawing').strokes.length,1);h.unmount();
+});
+test('drawing cancel and stale account callbacks cannot change the active story',async()=>{
+ const h=scenario();await h.flush();h.pick();await h.flush();h.editor().props.onOpenDraw();h.render();let draw=nodes(h.tree).find(n=>n.type==='StoryDrawStudio');draw.props.onCancel();h.render();assert.equal(h.editor().props.value.length,0);h.editor().props.onOpenDraw();h.render();draw=nodes(h.tree).find(n=>n.type==='StoryDrawStudio');h.changeOwner('b');await h.flush();h.pick();await h.flush();draw.props.onApply([{tool:'pen',color:'#FFFFFF',width:8,points:[{x:.2,y:.3}]}]);h.render();assert.equal(h.editor().props.value.length,0);assert.equal(nodes(h.tree).some(n=>n.type==='StoryDrawStudio'),false);h.unmount();
 });

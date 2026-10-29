@@ -25,6 +25,8 @@ import {
   type PrivateCloseReason,
 } from "../../../shared/privateMedia";
 import { PrivateCameraGuard } from "./PrivateCameraGuard";
+import { createLegacyLimitedViewSession } from '../../../shared/legacyLimitedMedia';
+const PRIVATE_MEDIA_SESSIONS_ENABLED = process.env.EXPO_PUBLIC_PRIVATE_MEDIA_SESSIONS_ENABLED === 'true';
 type Props = {
   messageId: string;
   userId: string;
@@ -119,7 +121,7 @@ function PrivateMediaSession({
   const content = useRef<View>(null);
   const live = useRef(true),
     terminal = useRef(false),
-    session = useRef<ReturnType<typeof createPrivateViewSession> | null>(null),
+    session = useRef<ReturnType<typeof createPrivateViewSession> | ReturnType<typeof createLegacyLimitedViewSession> | null>(null),
     release = useRef<(() => void) | null>(null),
     busy = useRef(false);
   const callbacks = useRef({ onClose, onConsumed });
@@ -195,10 +197,10 @@ function PrivateMediaSession({
         !terminal.current &&
         useAuthStore.getState().session?.user.id === userId &&
         AppState.currentState === "active";
-      const transport = createPrivateViewSession({
+      const transport = (PRIVATE_MEDIA_SESSIONS_ENABLED ? createPrivateViewSession : createLegacyLimitedViewSession)({
         endpoint:
           process.env.EXPO_PUBLIC_SUPABASE_URL +
-          "/functions/v1/private-media-session",
+          (PRIVATE_MEDIA_SESSIONS_ENABLED ? "/functions/v1/private-media-session" : "/functions/v1/chat-media-sign"),
         token: data.session.access_token,
         apiKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || "",
         messageId,
@@ -271,7 +273,7 @@ function PrivateMediaSession({
               color: phase === "viewing" ? "#fff" : t.ink.primary,
             }}
           >
-            Private view
+            {PRIVATE_MEDIA_SESSIONS_ENABLED ? 'Private view' : 'Limited view'}
           </Text>
           <Pressable
             accessibilityRole="button"

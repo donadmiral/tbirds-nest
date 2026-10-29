@@ -3,7 +3,9 @@ import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, ActivityInd
 import { useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../services/supabase';
-import { hydrateMemoryAlbumMedia } from '../services/contentMedia';
+import { hydrateMemoryAlbumMedia, withoutPrivateMedia } from '../services/contentMedia';
+import { useAuthStore } from '../stores/authStore';
+import { profileRead } from '../utils/profileRead';
 import { useTheme } from '../theme/useTheme';
 import { SafeAreaView } from './SafeArea';
 import MemoryBookCover from './memory/MemoryBookCover';
@@ -15,24 +17,46 @@ export default function MemoryAlbumCard({ownerId,navigation}:{ownerId?:string|nu
  const {t,isDark}=useTheme(),{width}=useWindowDimensions();
  const [data,setData]=useState<any>(null),[error,setError]=useState(''),[creating,setCreating]=useState(false),[collection,setCollection]=useState(false),[query,setQuery]=useState(''),[filter,setFilter]=useState('All');
  const pendingCreate=useRef(false),pendingDestination=useRef<{ownerId:string;albumId:string}|null>(null);
- const epoch=useRef(0),viewer=useRef<string|null|undefined>(undefined),loadedOwner=useRef<string|null>(null);
+ const viewerId=useAuthStore(state=>state.session?.user.id??null);
+ const scope=useRef({ownerId,viewerId});
+ if(scope.current.ownerId!==ownerId||scope.current.viewerId!==viewerId)scope.current={ownerId,viewerId};
+ const epoch=useRef(0),loadedOwner=useRef<string|null>(null),loadedScope=useRef<typeof scope.current|null>(null);
+ const pendingRead=useRef<{scope:typeof scope.current;promise:Promise<void>}|null>(null);
  const [loading,setLoading]=useState(true);
- const refresh=useCallback(async()=>{
+ const refresh=useCallback(()=>{
+  const owner=scope.current;
+  // Focus, foreground and a just-created book can all ask for the same read.
+  // Share it instead of invalidating a successful response with another load.
+  if(pendingRead.current?.scope===owner)return pendingRead.current.promise;
   const id=++epoch.current;
-  // Keep the same owner's shelf mounted during refresh so profile taps and
-  // scroll positions do not move under the finger.
-  if(loadedOwner.current!==ownerId){loadedOwner.current=ownerId??null;setData(null);}
+  const current=()=>scope.current===owner&&id===epoch.current;
+  if(loadedScope.current!==owner){loadedOwner.current=ownerId??null;loadedScope.current=owner;setData(null);}
   setLoading(true);setError('');
-  if(!ownerId){setLoading(false);return;}
-  try{const {data:result,error:e}=await supabase.rpc('get_memory_albums',{p_owner:ownerId});if(e||!result||!Array.isArray(result.books))throw e||Error();const books=await hydrateMemoryAlbumMedia(result.books);if(id===epoch.current)setData({...result,books});}
-  catch{if(id===epoch.current)setError('Memory books could not load. Tap to retry.');}
-  finally{if(id===epoch.current)setLoading(false);}
- },[ownerId]);
- useFocusEffect(useCallback(()=>{void refresh();const timer=setInterval(()=>{if(AppState.currentState==='active')void refresh();},240000);const sub=AppState.addEventListener('change',state=>{if(state==='active')void refresh();});return()=>{epoch.current++;clearInterval(timer);sub.remove();};},[refresh]));
- useEffect(()=>{pendingCreate.current=false;pendingDestination.current=null;setCreating(false);setCollection(false);},[ownerId]);
- useEffect(()=>{const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,session)=>{const next=session?.user.id??null;if(viewer.current===next)return;viewer.current=next;pendingCreate.current=false;pendingDestination.current=null;epoch.current++;setData(null);setCreating(false);setCollection(false);void refresh();});return()=>subscription.unsubscribe();},[refresh]);
+  if(!ownerId||!viewerId){setLoading(false);return Promise.resolve();}
+  const pending={scope:owner,promise:Promise.resolve()};
+  pendingRead.current=pending;
+  pending.promise=(async()=>{
+   try{
+    const {data:result,error:e}=await profileRead(supabase.rpc('get_memory_albums',{p_owner:ownerId}));
+    if(!current())return;
+    if(e||!result||!Array.isArray(result.books))throw e||Error('Memory books could not load. Tap to retry.');
+    // Titles, counts and create/open controls are already server-authorized.
+    // Never hold the entire shelf hostage to its separate cover signing step.
+    setData({...result,books:withoutPrivateMedia(result.books)});
+    setLoading(false);
+    try{
+     const books=await profileRead(hydrateMemoryAlbumMedia(result.books),25000);
+     if(current())setData({...result,books});
+    }catch{if(current())setError('Book covers could not load. Your books can still open. Tap to retry.');}
+   }catch{if(current())setError('Memory books could not load. Tap to retry.');}
+   finally{if(current())setLoading(false);if(pendingRead.current===pending)pendingRead.current=null;}
+  })();
+  return pending.promise;
+ },[ownerId,viewerId]);
+ useFocusEffect(useCallback(()=>{void refresh();const timer=setInterval(()=>{if(AppState.currentState==='active')void refresh();},240000);const sub=AppState.addEventListener('change',state=>{if(state==='active')void refresh();});return()=>{epoch.current++;pendingRead.current=null;clearInterval(timer);sub.remove();};},[refresh]));
+ useEffect(()=>{pendingCreate.current=false;pendingDestination.current=null;setCreating(false);setCollection(false);},[ownerId,viewerId]);
  if(!ownerId)return null;
- const shelf=loadedOwner.current===ownerId?data:null;
+ const shelf=loadedScope.current===scope.current&&loadedOwner.current===ownerId?data:null;
  const books=(shelf?.books??[]).filter((b:any)=>shelf.is_owner||b.count>0);
  if(shelf&&!error&&!shelf.is_owner&&!books.length)return null;
  const coverW=Math.min(280,(width-48)/2),coverH=coverW*1.31,serif=Platform.OS==='ios'?'Georgia':'serif';

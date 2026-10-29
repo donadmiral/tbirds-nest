@@ -27,6 +27,7 @@ function load(file, { width = 320, height = 568, thumbnail = async () => ({ uri:
   vm.runInNewContext(compile(source), { module, exports: module.exports,
     require(name) {
       if(name.endsWith('/postMediaEditing')){const shared={exports:{}};vm.runInNewContext(compile(fs.readFileSync(path.join(root,'shared/postMediaEditing.ts'),'utf8')),shared);return shared.exports;}
+      if (name.endsWith('/storyPresentation')) { const shared={exports:{}}; vm.runInNewContext(compile(fs.readFileSync(path.join(root,'shared/storyPresentation.ts'),'utf8')),shared); return shared.exports; }
       if (name === 'react') return hooks;
       if (name === 'react/jsx-runtime') return runtime;
       if (name === 'react-native') return native;
@@ -103,28 +104,37 @@ test('short iPhones keep post editor actions pinned and all media tools horizont
   assert.equal(flat(doneText.props.style).color, '#0B1E3D');
   view.unmount();
 });
-test('native shared-post stories show creator, full image, caption, carousel and working post link', () => {
+test('native shared-post stories show caption, uncropped media, handle and a working glass post link', () => {
   const view = load('src/components/stories/PostStoryCard.tsx'), opened = [];
-  const tree = view.render({ sticker: { postId: 'post', postText: 'Caption above', postMediaUrl: 'photo.jpg', postMediaType: 'image', postMediaCount: 4, postAuthorName: 'Creator', postUsername: 'creator' }, interactive: true, onOpenPost: () => opened.push('post') });
-  const nodes = walk(tree), caption = nodes.findIndex(n => n.props.children === 'Caption above'), image = nodes.findIndex(n => n.type === 'Image' && n.props.resizeMode === 'contain'), author = nodes.findIndex(n => n.props.children === 'Creator');
-  assert.ok(author < image && image < caption);
-  assert.ok(nodes.some(n => n.type === 'Image' && n.props.blurRadius > 0));
+  const tree = view.render({ sticker: { postId: 'post', postText: 'Caption above', postMediaUrl: 'photo.jpg', postMediaType: 'image', postMediaWidth: 1000, postMediaHeight: 1600, postMediaCount: 4, postAuthorName: 'Creator', postUsername: 'creator' }, interactive: true, onOpenPost: () => opened.push('post') });
+  const nodes = walk(tree), caption = nodes.findIndex(n => n.props.children === 'Caption above'), image = nodes.findIndex(n => n.type === 'Image' && n.props.resizeMode === 'contain'), author = nodes.findIndex(n => n.props.children === '@creator');
+  assert.ok(caption < image && image < author);
+  assert.equal(flat(nodes[0].props.style).backgroundColor, 'transparent');
+  const mediaWrap = nodes.find(n => n.type === 'View' && walk(n).includes(nodes[image]) && flat(n.props.style).overflow === 'hidden');
+  const width = flat(nodes[0].props.style).width;
+  assert.ok(width <= 320 * .9); assert.equal(width / flat(mediaWrap.props.style).height, 1000 / 1600);
   assert.ok(nodes.some(n => n.props.children?.[0] === '1/' && n.props.children?.[1] === 4));
-  const footer = nodes.find(n => n.type === 'TouchableOpacity' && walk(n).some(c => c.props.children === 'View post'));
+  const footer = nodes.find(n => n.type === 'TouchableOpacity' && n.props.accessibilityLabel === 'View post');
+  assert.equal(flat(footer.props.style).backgroundColor, 'rgba(255,255,255,.18)');
   footer.props.onPress(); assert.deepEqual(opened, ['post']);
+  const viewer = fs.readFileSync(path.join(root,'src/screens/stories/StoryViewerScreen.tsx'),'utf8');
+  assert.match(viewer, /sharedPhoto[\s\S]*blurRadius=\{32\}/);
+  view.unmount();
 });
-test('web shared-post stories use the same creator-first uncropped card and preserve post navigation', () => {
-  const view = load('web/components/StoryViewer.tsx', { transform(source) {
-    const ast = ts.createSourceFile('viewer.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
-    const fn = ast.statements.find(n => ts.isFunctionDeclaration(n) && n.name?.text === 'StickerLayer');
-    return "const ChevronRight = 'ChevronRight';\n" + fn.getText(ast).replace('function StickerLayer', 'export default function StickerLayer');
-  } });
-  const tree = view.render({ stickers: [{ id: 'share', nx: .5, ny: .5, kind: 'post', postId: 'post-id', postText: 'Caption above', postMediaType: 'image', postMediaUrl: 'photo.jpg', postMediaCount: 3, postAuthorName: 'Creator' }], storyId: 'story', isOwn: false, paused: false });
-  const nodes = walk(tree), caption = nodes.findIndex(n => n.props.children === 'Caption above'), image = nodes.findIndex(n => n.type === 'img' && n.props.alt === 'Shared post'), creator = nodes.findIndex(n => n.props.children === 'Creator');
-  assert.ok(creator < image && image < caption);
-  assert.match(nodes[image].props.className, /object-contain/);
-  assert.ok(nodes.some(n => n.type === 'img' && n.props.className.includes('blur-xl')));
-  assert.equal(nodes.find(n => n.type === 'a').props.href, '/post/post-id');
+test('web shared-post stories use the same complete photo layout and retain post and author navigation', () => {
+  const view = load('web/components/SharedPostStory.tsx');
+  const tree = view.render({ sticker: { id: 'share', nx: .5, ny: .5, kind: 'post', postId: 'post-id', postText: 'Caption above', postMediaType: 'image', postMediaUrl: 'photo.jpg', postMediaWidth: 1000, postMediaHeight: 1600, postMediaCount: 3, postAuthorName: 'Creator', postUsername: 'creator' }, paused: false }, 'SharedPostStory');
+  const nodes = walk(tree), caption = nodes.findIndex(n => n.props.children === 'Caption above'), image = nodes.findIndex(n => n.type === 'img' && n.props.alt === 'Shared post'), creator = nodes.findIndex(n => n.props.children === '@creator');
+  assert.ok(caption < image && image < creator); assert.match(nodes[image].props.className, /object-contain/);
+  assert.ok(nodes[0].props.style.width <= 390 * .9);
+  const mediaWrap = nodes.find(n => n.type === 'div' && n.props.className?.includes('overflow-hidden'));
+  assert.equal(nodes[0].props.style.width / mediaWrap.props.style.height, 1000 / 1600);
+  const footer = nodes.find(n => n.type === 'a' && n.props.children?.[0] === 'View post');
+  assert.equal(footer.props.href,'/post/post-id'); assert.match(footer.props.className,/backdrop-blur/);
+  assert.equal(nodes.find(n => n.type === 'a' && n.props.children === '@creator').props.href, '/creator');
+  const viewer = fs.readFileSync(path.join(root,'web/components/StoryViewer.tsx'),'utf8');
+  assert.match(viewer, /sharedPhoto[\s\S]*blur-2xl/);
+  view.unmount();
 });
 
 test('completed video cover decoding follows the edited attachment through reorder and ignores a newer edit',async()=>{

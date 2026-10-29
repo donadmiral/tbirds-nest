@@ -1,0 +1,53 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { ArrowUpRight, Layers, Volume2, VolumeX } from "lucide-react";
+import { sharedPostFrame } from "../../shared/storyPresentation";
+import type { StoryTextSticker } from "@/lib/stories";
+
+/** Media URLs have already passed the story/post authorization hydrator. */
+export function SharedPostStory({ sticker, paused, preview = false }: { sticker: StoryTextSticker; paused: boolean; preview?: boolean }) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const video = useRef<HTMLVideoElement | null>(null);
+  const [stage, setStage] = useState({ width: 390, height: 693 });
+  const [size, setSize] = useState({ width: sticker.postMediaWidth, height: sticker.postMediaHeight });
+  const [muted, setMuted] = useState(true);
+  const isVideo = sticker.postMediaType === "video";
+  useEffect(() => {
+    const parent = preview ? ref.current?.closest('[data-story-stage]') : ref.current?.parentElement;
+    if (!parent) return;
+    const measure = () => { const r = parent.getBoundingClientRect(); if (r.width && r.height) setStage({ width: r.width, height: r.height }); };
+    measure();
+    const observer = new ResizeObserver(measure); observer.observe(parent);
+    return () => observer.disconnect();
+  }, [preview]);
+  useEffect(() => {
+    const el = video.current; if (!el) return;
+    const sync = () => { if (paused || document.hidden || document.documentElement.dataset.platinumCallActive === "true") el.pause(); else void el.play().catch(() => {}); };
+    sync(); document.addEventListener("visibilitychange", sync);
+    return () => document.removeEventListener("visibilitychange", sync);
+  }, [paused, sticker.postMediaUrl]);
+  const frame = sharedPostFrame({ stageWidth: stage.width, stageHeight: stage.height, mediaWidth: size.width, mediaHeight: size.height, caption: sticker.postText, title: sticker.postArticleTitle, hasMedia: !!sticker.postMediaUrl });
+  const top = Math.max(92 + frame.height / 2, Math.min(sticker.ny * stage.height, stage.height - 78 - frame.height / 2));
+  const href = preview ? undefined : "/post/" + sticker.postId;
+  const Link = preview ? "span" : "a";
+  return <div ref={ref} className={preview ? "pointer-events-none relative text-white" : "pointer-events-auto absolute text-white"} style={{ width: frame.width, ...(preview ? { height: frame.height } : { left: Math.max(frame.width / 2 + 8, Math.min(sticker.nx * stage.width, stage.width - frame.width / 2 - 8)), top, transform: `translate(-50%,-50%) rotate(${sticker.rotation || 0}rad) scale(${sticker.scale || 1})`, opacity: sticker.opacity ?? 1 }) }}>
+    {sticker.postText || sticker.postArticleTitle ? <Link href={href} className="flex flex-col justify-end pb-3.5 text-center text-[16px] leading-[22px] text-white [text-shadow:0_2px_8px_#0008]" style={{ minHeight: frame.captionHeight }}>
+      {sticker.postArticleTitle ? <span className="line-clamp-2 font-bold">{sticker.postArticleTitle}</span> : null}
+      {sticker.postText ? <span className="line-clamp-3 font-medium">{sticker.postText}</span> : null}
+    </Link> : null}
+    {sticker.postMediaUrl ? <div className="relative overflow-hidden rounded-2xl bg-black/10" style={{ height: frame.mediaHeight }}>
+      <Link href={href} aria-label="Open shared post" className="block h-full w-full">
+        {isVideo ? <video ref={video} src={sticker.postMediaUrl} playsInline muted={muted} loop preload="metadata" onLoadedMetadata={e => setSize({ width: e.currentTarget.videoWidth, height: e.currentTarget.videoHeight })} className="h-full w-full object-contain" /> :
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={sticker.postMediaUrl} alt="Shared post" onLoad={e => setSize({ width: e.currentTarget.naturalWidth, height: e.currentTarget.naturalHeight })} className="h-full w-full object-contain" />}
+      </Link>
+      {(sticker.postMediaCount || 0) > 1 ? <span className="absolute right-2 top-2 flex items-center gap-1 rounded-lg bg-black/30 p-1.5 text-[10px]"><Layers size={18} />1/{sticker.postMediaCount}</span> : null}
+      {isVideo && !preview ? <button type="button" aria-label={muted ? "Unmute shared video" : "Mute shared video"} className="absolute bottom-2 right-2 flex h-11 w-11 items-center justify-center rounded-full bg-black/50" onClick={() => setMuted(v => !v)}>{muted ? <VolumeX size={17} /> : <Volume2 size={17} />}</button> : null}
+    </div> : null}
+    <div className="flex h-[54px] items-center gap-3">
+      <Link href={!preview && sticker.postUsername ? "/" + sticker.postUsername.replace(/^@/, "") : href} className="flex min-h-11 min-w-0 flex-1 items-center truncate text-[14px] font-semibold">{sticker.postUsername ? "@" + sticker.postUsername.replace(/^@/, "") : sticker.postAuthorName || "Post"}</Link>
+      <Link href={href} className="flex min-h-11 items-center gap-1.5 rounded-full border border-white/20 bg-white/20 px-4 text-[14px] font-semibold backdrop-blur-xl">View post<ArrowUpRight size={16} /></Link>
+    </div>
+  </div>;
+}

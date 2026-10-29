@@ -19,7 +19,8 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import ProfileHeader from '../../components/ProfileHeader';
 import { BusinessProducts, BusinessReviews, SellerListings } from '../../components/BusinessTabs';
 import { supabase } from '../../services/supabase';
-import { hydratePostMedia } from '../../services/contentMedia';
+import { hydratePostMedia, withoutPrivateMedia } from '../../services/contentMedia';
+import { profileRead } from '../../utils/profileRead';
 import { normalizeProfilePost } from '../../utils/profilePost';
 import MemoryAlbumCard from '../../components/MemoryAlbumCard';
 import { useAuthStore } from '../../stores/authStore';
@@ -83,6 +84,7 @@ export default function UserProfileScreen() {
   const mounted = useRef(true);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   const [contentError, setContentError] = useState<string | null>(null);
+  const [contentLoading, setContentLoading] = useState(false);
 
   const [profile, setProfile] = useState<UserProfile | null>(route.params?.user ?? null);
   const [stats, setStats] = useState<Stats>({ posts: 0, followers: 0 });
@@ -142,11 +144,12 @@ export default function UserProfileScreen() {
     const owner = scope.current, request = ++loadRequest.current;
     const current = () => mounted.current && scope.current === owner && request === loadRequest.current;
     if (!targetId) { setLoading(false); return; }
-    setContentError(null);
+    setContentError(null); setContentLoading(true);
+    let headerLoaded = false;
     try {
       // The tap that brought us here may have started this call already; use its result when it has landed.
     const pre = takePrefetched<any>('profile:' + targetId);
-    const { data: pj, error: pErr } = pre ? { data: pre, error: null as any } : await supabase.rpc('get_profile', { p_profile_id: targetId });
+    const { data: pj, error: pErr } = pre ? { data: pre, error: null as any } : await profileRead(supabase.rpc('get_profile', { p_profile_id: targetId }));
       if (!current()) return;
       if (pErr) throw pErr;
       if (!pj || (pj as any).id !== targetId) throw new Error('Profile is unavailable. Please retry.');
@@ -167,48 +170,31 @@ export default function UserProfileScreen() {
       setStats({ posts: c.posts ?? 0, followers: c.followers ?? 0, following: c.following ?? 0 });
       setFollowing(!!pd.viewer_follows);
       setFollowRequested(!!pd.viewer_requested);
+      headerLoaded = true;
+      setLoading(false);
 
       const mayRead = myId === targetId || pd.can_view_content === true;
       if (!mayRead) { setPosts([]); return; }
-      let postsData: any[] = [];
-      try {
-        const { data, error } = await supabase
-          .from('posts')
-          .select('*, post_media(id, url, media_type, width, height, sort_order, edit)')
-          .eq('user_id', targetId)
-          .order('created_at', { ascending: false })
-          .limit(20);
-        if (error) throw error; postsData = data || [];
-      } catch {
-        const { data, error } = await supabase
-          .from('posts')
-          .select('*')
-          .eq('user_id', targetId)
-          .order('created_at', { ascending: false })
-          .limit(20);
-        if (error) throw error; postsData = data || [];
+      let result = await profileRead(supabase.from('posts')
+        .select('*, post_media(id, url, media_type, width, height, sort_order, edit)')
+        .eq('user_id', targetId).order('created_at', { ascending: false }).limit(20));
+      if (result.error && ['PGRST200', 'PGRST204', '42703', '42P01'].includes(result.error.code)) {
+        result = await profileRead(supabase.from('posts').select('*')
+          .eq('user_id', targetId).order('created_at', { ascending: false }).limit(20));
       }
-      const authorized = await hydratePostMedia(postsData.filter(row => !row.archived_at));
+      if (result.error) throw result.error;
+      if (!current()) return;
+      const rows = (result.data || []).filter((row: any) => !row.archived_at);
+      setPosts(previous => previous.length && rows.length ? previous : withoutPrivateMedia(rows).map(normalizeProfilePost));
+      setContentLoading(false);
+      const authorized = await profileRead(hydratePostMedia(rows), 25000);
       if (!current()) return;
       setPosts(authorized.map(normalizeProfilePost));
+      // get_profile already returns viewer_follows/viewer_requested. Repeating
+      // those queries after media added another dependency to the loading gate.
 
-      if (myId && myId !== targetId) {
-        const { data: orb } = await supabase.from('follows').select('id')
-          .eq('follower_id', myId).eq('following_id', targetId).maybeSingle();
-        if (!current()) return;
-        setFollowing(!!orb);
-
-        if (!orb) {
-          const { data: fr } = await supabase.from('follow_requests').select('id, status')
-            .eq('requester_id', myId).eq('target_id', targetId).eq('status', 'pending').maybeSingle();
-          if (!current()) return;
-          setFollowRequested(!!fr);
-        } else {
-          setFollowRequested(false);
-        }
-      }
-    } catch (e: any) { if (current()) { setLoadError(e?.message || 'Could not load this profile. Please retry.'); setContentError(e?.message || 'Could not load posts. Please retry.'); } }
-    finally { if (current()) { setLoading(false); setRefreshing(false); } }
+    } catch (e: any) { if (current()) { if (!headerLoaded) setLoadError(e?.message || 'Could not load this profile. Please retry.'); setContentError(e?.message || 'Could not load posts. Please retry.'); } }
+    finally { if (current()) { setLoading(false); setContentLoading(false); setRefreshing(false); } }
   }, [targetId, myId]);
 
   useEffect(() => {
@@ -424,7 +410,7 @@ export default function UserProfileScreen() {
                 <Text style={s.sectionTitle}>Posts</Text>
                 {posts.length > 0 && <Text style={s.sectionMeta}>{posts.length}</Text>}
               </View>
-              {posts.length === 0 && contentError ? null : posts.length === 0 ? (
+              {posts.length === 0 && contentLoading ? <ActivityIndicator accessibilityLabel="Loading posts" color={t.brand.base} style={{padding:24}} /> : posts.length === 0 && contentError ? null : posts.length === 0 ? (
                 <View style={s.emptyPosts}>
                   <Feather name="edit-3" size={28} color={t.ink.faint} />
                   <Text style={s.emptyPostsTxt}>No posts yet</Text>

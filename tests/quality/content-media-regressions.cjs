@@ -36,7 +36,8 @@ test('text-only content does not add authentication or signing round trips', asy
   assert.equal(await media.hydrateContentMedia({}, base, rows, 'post'), rows);
 });
 test('account changes discard capabilities rather than applying them to another viewer', async () => {
-  const client = { auth: { getUser: async () => ({ data: { user: { id: 'A' } }, error: null }), getSession: async () => ({ data: { session: { user: { id: 'B' } } }, error: null }) }, functions: { invoke: async () => ({ data: { urls: [{ key: `post-media/${id}/photo.jpg`, url: signed }], expiresAt: Date.now() + 300000 }, error: null }) } };
+  let reads = 0;
+  const client = { auth: { getUser: async () => ({ data: { user: { id: 'A' } }, error: null }), getSession: async () => ({ data: { session: { access_token: 'test-token', user: { id: reads++ === 0 ? 'A' : 'B' } } }, error: null }) }, functions: { invoke: async () => ({ data: { urls: [{ key: `post-media/${id}/photo.jpg`, url: signed }], expiresAt: Date.now() + 300000 }, error: null }) } };
   await assert.rejects(() => media.hydrateContentMedia(client, base, [{ id, media_url: raw }], 'post'), /account changed/);
 });
 test('signer rejects unauthenticated calls and never signs client-supplied paths', async () => {
@@ -66,7 +67,7 @@ test('article covers request the linked post and draft references remain a disti
   assert.deepEqual(plain(media.contentReferences([{id}], 'story_draft')), [{kind:'story_draft',id}]);
 });
 test('unsigned and foreign responses cannot become media capabilities', async()=>{
-  const client={auth:{getUser:async()=>({data:{user:{id}},error:null}),getSession:async()=>({data:{session:{user:{id}}},error:null})},functions:{invoke:async()=>({data:{urls:[{key:`post-media/${id}/photo.jpg`,url:raw}],expiresAt:Date.now()+300000},error:null})}};
+  const client={auth:{getUser:async()=>({data:{user:{id}},error:null}),getSession:async()=>({data:{session:{access_token:"test-token",user:{id}}},error:null})},functions:{invoke:async()=>({data:{urls:[{key:`post-media/${id}/photo.jpg`,url:raw}],expiresAt:Date.now()+300000},error:null})}};
   const [row]=await media.hydrateContentMedia(client,base,[{id,media_url:raw}], 'post');
   assert.equal(row.media_url,null);
   assert.equal(media.isContentCapability(raw,base),false);
@@ -81,7 +82,7 @@ test('malformed JSON values fail as client errors before manifest or signing',as
   }
 });
 test('expired capabilities never reach a rendered row',async()=>{
-  const client={auth:{getUser:async()=>({data:{user:{id}},error:null}),getSession:async()=>({data:{session:{user:{id}}},error:null})},functions:{invoke:async()=>({data:{urls:[{key:`post-media/${id}/photo.jpg`,url:signed}],expiresAt:Date.now()-1},error:null})}};
+  const client={auth:{getUser:async()=>({data:{user:{id}},error:null}),getSession:async()=>({data:{session:{access_token:"test-token",user:{id}}},error:null})},functions:{invoke:async()=>({data:{urls:[{key:`post-media/${id}/photo.jpg`,url:signed}],expiresAt:Date.now()-1},error:null})}};
   await assert.rejects(()=>media.hydrateContentMedia(client,base,[{id,media_url:raw}], 'post'),/expired/);
 });
 
@@ -102,7 +103,7 @@ test('canonical reshares remove signed tokens from nested objects and Markdown b
 });
 test('owner upload hydration uses the separate server ownership manifest and never persists previews', async () => {
   const calls=[];
-  const client={auth:{getUser:async()=>({data:{user:{id}},error:null}),getSession:async()=>({data:{session:{user:{id}}},error:null})},functions:{invoke:async(name,{body})=>{calls.push(body);return{data:{urls:[{key:`post-media/${id}/photo.jpg`,url:signed}],expiresAt:Date.now()+300000},error:null};}}};
+  const client={auth:{getUser:async()=>({data:{user:{id}},error:null}),getSession:async()=>({data:{session:{access_token:"test-token",user:{id}}},error:null})},functions:{invoke:async(name,{body})=>{calls.push(body);return{data:{urls:[{key:`post-media/${id}/photo.jpg`,url:signed}],expiresAt:Date.now()+300000},error:null};}}};
   const original={body:`![Photo](${raw})`};
   const [result]=await media.hydrateOwnerUploadMedia(client,base,[original]);
   assert.deepEqual(plain(calls),[{uploads:[raw]}]);

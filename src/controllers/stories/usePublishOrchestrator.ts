@@ -35,6 +35,7 @@ interface Draft {
   sharedWith?: string[] | null;
   hiddenMentions?: { id: string; username: string }[] | null;
   allowMentionReshare?: boolean;
+  allowReplies?: boolean;
   reach?: 'followers' | 'wider';
   uploadState: 'idle' | 'uploading' | 'done' | 'error';
   errorMsg?: string | null;
@@ -183,6 +184,7 @@ export function usePublishOrchestrator(input: PublishOrchestratorInput): Publish
           dualLayout: d.dualLayout || null,
           audio: (d as any).audio || null,
           filterId: (d as any).filterId || null,
+          allowReplies: d.allowReplies !== false,
         });
 
         if (d.localUri && (story as any)?.media_url && !uploadedByUri[d.localUri]) {

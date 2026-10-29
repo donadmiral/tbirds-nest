@@ -337,9 +337,9 @@ const s = themedSheet((t) => ({
   },
   searchWrap: {
     flexDirection: 'row', alignItems: 'center', marginHorizontal: 16,
-    backgroundColor: t.surface.sunken, borderRadius: 12, paddingHorizontal: 12, height: 40,
+    backgroundColor: t.surface.sunken, borderRadius: 12, paddingHorizontal: 12, minHeight: 48,
   },
-  searchInput: { flex: 1, height: 40, fontSize: 15, color: t.ink.primary, paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' },
+  searchInput: { flex: 1, minWidth: 0, minHeight: 48, fontSize: 16, color: t.ink.primary, paddingVertical: 10, includeFontPadding: false, textAlignVertical: 'center' },
   chipRow: { paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
   chip: {
     paddingHorizontal: 14, minHeight: 48, borderRadius: 24, backgroundColor: t.surface.sunken,

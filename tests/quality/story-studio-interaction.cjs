@@ -16,13 +16,14 @@ function load(file, { ios = true, height = 812 } = {}) {
     useState(value) { const i = cursor++; if (!(i in state)) state[i] = value; return [state[i], next => { state[i] = typeof next === 'function' ? next(state[i]) : next; }]; },
     useRef(value) { const i = cursor++; return state[i] ??= { current: value }; },
     useMemo(fn) { return fn(); },
+    useCallback(fn) { return fn; },
     useEffect(fn) { if (mounting) effects.push(fn); },
   };
   const native = Object.fromEntries(['View', 'Text', 'TouchableOpacity', 'ScrollView', 'Modal', 'TextInput', 'Pressable'].map(name => [name, name]));
-  Object.assign(native, { StyleSheet: { create: x => x, hairlineWidth: 1, absoluteFill: { position: 'absolute' } }, Platform: { OS: ios ? 'ios' : 'android' }, useWindowDimensions: () => ({ height, width: 320 }), Keyboard: { dismiss() {}, addListener(name, fn) { keyboard[name] = fn; return { remove() { delete keyboard[name]; } }; } } });
+  Object.assign(native, { AppState: { addEventListener() { return { remove() {} }; } }, StyleSheet: { create: x => x, hairlineWidth: 1, absoluteFill: { position: 'absolute' } }, Platform: { OS: ios ? 'ios' : 'android' }, useWindowDimensions: () => ({ height, width: 320 }), Keyboard: { dismiss() {}, addListener(name, fn) { keyboard[name] = fn; return { remove() { delete keyboard[name]; } }; } } });
   const module = { exports: {} };
   vm.runInNewContext(compile(fs.readFileSync(path.join(root, file), 'utf8')), { module, exports: module.exports,
-    require(name) { if (name === 'react') return hooks; if (name === 'react/jsx-runtime') return runtime; if (name === 'react-native') return native; if (name === '@expo/vector-icons') return { Feather: 'Feather' }; if (name === './StickerIcons') return { default: 'StickerIcon' }; if (name === './StickerGalleryPreview') return { default: 'StickerGalleryPreview' }; throw Error(name); },
+    require(name) { if (name === 'react') return hooks; if (name === 'react/jsx-runtime') return runtime; if (name === 'react-native') return native; if (name === '@expo/vector-icons') return { Feather: 'Feather' }; if (name === './StickerIcons') return { default: 'StickerIcon' }; if (name === './StickerGalleryPreview') return { default: 'StickerGalleryPreview' }; if (name.endsWith('/SafeArea')) return { useSafeAreaInsets: () => ({ top: 20, bottom: 0 }) }; if (name.endsWith('/CallContext')) return { useCallContext: () => ({ callState: 'idle' }) }; if (name === 'expo-av') return { Audio: { setAudioModeAsync: async () => {} } }; if (name.endsWith('/storiesService')) return { storiesService: { listStorySounds: async () => [] } }; if (name.endsWith('/AppleMusicSheet')) return { AppleMusicPicker: 'AppleMusicPicker' }; throw Error(name); },
     setTimeout(fn) { const id = ++timerId; timers.set(id, () => { timers.delete(id); fn(); }); return id; }, clearTimeout(id) { timers.delete(id); },
   });
   return { ...module.exports, keyboard, timers, render(props) { cursor = 0; const tree = module.exports.default(props); mounting = false; while (effects.length) { const cleanup = effects.shift()(); if (cleanup) cleanups.push(cleanup); } return tree; }, unmount() { cleanups.forEach(fn => fn()); } };
@@ -102,4 +103,18 @@ test('small-screen sticker content can scroll below the fixed close header', () 
   const tile = walk(scroll).find(n => n.props.accessibilityLabel === 'Poll');
   assert.ok(flat(tile.props.style).width * 2 + 14 <= 320 - 32);
   assert.ok(flat(tile.props.style).width >= 130, 'expressive previews use two readable columns');
+});
+
+test('short iPhone music search stays above the keyboard with a pinned close action and one native modal', () => {
+  const music = load('src/components/stories/MusicSheet.tsx', { height: 568 }), props = { visible: true, current: null, userId: 'owner', onClose() {}, onSelect() {}, onRemove() {}, onShareTrack() {} };
+  music.render(props); music.keyboard.keyboardWillShow({ endCoordinates: { height: 336 } });
+  let tree = music.render(props), nodes = walk(tree), sheet = nodes.find(n => n.props.accessibilityViewIsModal), scroll = nodes.find(n => n.type === 'ScrollView');
+  assert.equal(flat(sheet.props.style).marginBottom, 336); assert.ok(flat(sheet.props.style).maxHeight <= 568 - 336 - 20);
+  assert.equal(scroll.props.keyboardShouldPersistTaps,'handled');
+  const close = nodes.find(n => n.props.accessibilityLabel === 'Close sound picker' && n.props.accessibilityRole === 'button');
+  assert.ok(close && !walk(scroll).includes(close)); assert.equal(flat(close.props.style).height,44);
+  nodes.find(n => n.type === 'TouchableOpacity' && walk(n).some(c => c.props.children === 'Share a song link')).props.onPress();
+  tree = music.render(props); nodes = walk(tree);
+  assert.equal(nodes.filter(n => n.type === 'Modal').length,1); assert.ok(nodes.some(n => n.type === 'AppleMusicPicker')); assert.ok(nodes.some(n => n.props.accessibilityLabel === 'Back to music'));
+  music.unmount();
 });

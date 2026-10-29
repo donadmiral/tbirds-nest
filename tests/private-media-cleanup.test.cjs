@@ -108,7 +108,7 @@ test("storage failure releases a retryable result instead of claiming deletion",
 });
 test("background remux never rewrites private chat objects", () => {
   const source = fs.readFileSync(
-    path.join(__dirname, "../supabase/functions/faststart-video/index.ts"),
+    path.join(__dirname, "../supabase/functions/faststart-video/handler.ts"),
     "utf8",
   );
   const buckets = source.match(/const VIDEO_BUCKETS = new Set\(([^;]+)\);/)[1];

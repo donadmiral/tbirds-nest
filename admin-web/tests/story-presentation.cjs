@@ -18,6 +18,13 @@ const story = overrides => ({ id: storyId, media_type: 'text', media_url: null, 
 const postSticker = overrides => ({ kind: 'post', postId, postMediaUrl: postPhoto, postMediaType: 'image', postText: 'The actual shared post', postAuthorAvatar: url('avatars/author/avatar.jpg'), ...overrides });
 const plain = value => JSON.parse(JSON.stringify(value));
 
+test('story review retains the published crop, color treatment and trim without copying private draft fields', async () => {
+  const input = story({media_type:'video',media_url:ownPhoto,filter_id:'platinum_golden_hour',media_transform:{fit:'cover',scale:1.3,translateNX:.1,trimStart:2,trimEnd:8,filterAmt:65,adjust:{warm:24,con:Infinity,evil:'url'},coverUrl:'private-draft',soundtrack:{url:'private-audio'}}});
+  const [result] = await resolveStoryPresentations([input],async () => ({[ownPhoto]:'signed:story-photo'}));
+  assert.deepEqual(plain(result.gallery[0].edit),{aspectRatio:9/16,fit:'cover',scale:1.3,translateNX:.1,trimStart:2,trimEnd:8,filterAmt:65,filterId:'platinum_golden_hour',adjust:{warm:24}});
+  assert.equal(JSON.stringify(result.gallery).includes('private'),false);
+});
+
 test('text stories stay text and never promote avatars, links, thumbnails or audio into media', async () => {
   const input = story({
     avatar_url: url('avatars/owner/avatar.jpg'), thumbnail_url: ownPhoto,

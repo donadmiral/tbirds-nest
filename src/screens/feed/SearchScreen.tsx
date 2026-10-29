@@ -1,5 +1,5 @@
 import { ListRowSkeleton } from '../../components/skeletons';
-import { themedSheet } from '../../theme/useTheme';
+import { themedSheet, useTheme } from '../../theme/useTheme';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import VideoThumb from '../../components/VideoThumb';
@@ -45,6 +45,7 @@ function formatTime(d?: string | null) {
 
 export default function SearchScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const { t, isDark } = useTheme();
   const { profile } = useAuthStore();
   const myId = profile?.id ?? null;
 
@@ -232,7 +233,7 @@ export default function SearchScreen({ navigation }: any) {
     >
       {Array.isArray(item.images) && item.images.length > 0
         ? <Image source={{ uri: item.images[0] }} style={{ width: 52, height: 52, borderRadius: 10, backgroundColor: '#EFEFF4' }} />
-        : <View style={{ width: 52, height: 52, borderRadius: 10, backgroundColor: '#EFEFF4', alignItems: 'center', justifyContent: 'center' }}><Feather name="shopping-bag" size={20} color="#8E8E93" /></View>}
+        : <View style={{ width: 52, height: 52, borderRadius: 10, backgroundColor: '#EFEFF4', alignItems: 'center', justifyContent: 'center' }}><Feather name="shopping-bag" size={20} color={t.ink.secondary} /></View>}
       <View style={{ flex: 1, marginLeft: 10 }}>
         <Text style={s.jobTitle} numberOfLines={1}>{item.title}</Text>
         <Text style={s.jobCompany} numberOfLines={1}>{item.currency === 'ZWG' ? 'ZWG' : '$'}{item.price}</Text>
@@ -259,7 +260,7 @@ export default function SearchScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
       <View style={s.header}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -269,26 +270,27 @@ export default function SearchScreen({ navigation }: any) {
             accessibilityRole="button"
             accessibilityLabel="Go back"
           >
-            <Feather name="chevron-left" size={26} color="#000" />
+            <Feather name="chevron-left" size={26} color={t.ink.primary} />
           </TouchableOpacity>
           <Text style={s.title}>Search</Text>
         </View>
         <View style={s.searchBox}>
-          <Feather name="search" size={16} color="#8E8E93" />
+          <Feather name="search" size={16} color={t.ink.secondary} />
           <TextInput
             value={query}
             onChangeText={setQuery}
-            placeholder="Search people, posts, and jobs..."
-            placeholderTextColor="#8E8E93"
+            placeholder="People, posts, jobs, market"
+            accessibilityLabel="Search Platinum"
+            autoCorrect={false}
+            placeholderTextColor={t.ink.secondary}
             style={s.searchInput}
             autoFocus
             returnKeyType="search"
             onSubmitEditing={submitSearch}
-            clearButtonMode="while-editing"
           />
           {query.length > 0 ? (
-            <TouchableOpacity onPress={() => setQuery('')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <Feather name="x-circle" size={16} color="#8E8E93" />
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Clear search" onPress={() => setQuery('')} style={{ minHeight: 44, minWidth: 44, alignItems: 'center', justifyContent: 'center' }}>
+              <Feather name="x-circle" size={16} color={t.ink.secondary} />
             </TouchableOpacity>
           ) : null}
         </View>
@@ -354,7 +356,7 @@ export default function SearchScreen({ navigation }: any) {
           }
           renderItem={({ item }) => (
             <TouchableOpacity style={s.recentRow} onPress={() => setQuery(item)} activeOpacity={0.7}>
-              <Feather name="clock" size={15} color="#8E8E93" />
+              <Feather name="clock" size={15} color={t.ink.secondary} />
               <Text style={s.recentTxt} numberOfLines={1}>{item}</Text>
               <TouchableOpacity
                 onPress={() => {
@@ -404,46 +406,46 @@ export default function SearchScreen({ navigation }: any) {
 const s = themedSheet((t) => ({
   safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 10, gap: 10 },
-  title: { fontSize: 28, fontWeight: '800', color: '#000', letterSpacing: -0.5 },
+  title: { fontSize: 28, fontWeight: '800', color: t.ink.primary, letterSpacing: -0.5 },
   searchBox: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: '#F2F2F7', borderRadius: 12,
-    paddingHorizontal: 12, height: 40,
+    backgroundColor: t.surface.sunken, borderRadius: 12,
+    paddingHorizontal: 12, minHeight: 48,
   },
-  searchInput: { flex: 1, fontSize: 15, color: '#000', padding: 0 },
+  searchInput: { flex: 1, minWidth: 0, minHeight: 48, fontSize: 16, color: t.ink.primary, paddingVertical: 10, paddingHorizontal: 0, includeFontPadding: false, textAlignVertical: 'center' },
 
   tabRow: {
-    flexDirection: 'row', gap: 6, paddingHorizontal: 14, paddingBottom: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0',
+    flexDirection: 'row', flexWrap: 'wrap', gap: 6, paddingHorizontal: 14, paddingBottom: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline,
   },
-  tab: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 18, backgroundColor: '#F2F2F7' },
-  tabActive: { backgroundColor: '#000' },
-  tabTxt: { fontSize: 12, fontWeight: '600', color: '#3C3C43' },
+  tab: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 18, backgroundColor: t.surface.sunken },
+  tabActive: { backgroundColor: t.ink.primary },
+  tabTxt: { fontSize: 12, fontWeight: '600', color: t.ink.secondary },
   tabTxtActive: { color: t.ink.inverse },
 
   recentHeader: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 16, paddingTop: 14, paddingBottom: 6,
   },
-  recentTitle: { fontSize: 13, fontWeight: '700', color: '#8E8E93', textTransform: 'uppercase', letterSpacing: 0.5 },
-  recentClear: { fontSize: 13, color: '#007AFF', fontWeight: '600' },
+  recentTitle: { fontSize: 13, fontWeight: '700', color: t.ink.secondary, textTransform: 'uppercase', letterSpacing: 0.5 },
+  recentClear: { fontSize: 13, color: t.status.link, fontWeight: '600' },
   recentRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     paddingHorizontal: 16, paddingVertical: 11,
   },
-  recentTxt: { flex: 1, fontSize: 15, color: '#000' },
+  recentTxt: { flex: 1, fontSize: 15, color: t.ink.primary },
 
   emptyIntro: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80, paddingHorizontal: 32, gap: 10 },
-  emptyIntroTitle: { fontSize: 17, fontWeight: '700', color: '#000' },
-  emptyIntroSub: { fontSize: 14, color: '#8E8E93', textAlign: 'center' },
+  emptyIntroTitle: { fontSize: 17, fontWeight: '700', color: t.ink.primary },
+  emptyIntroSub: { fontSize: 14, color: t.ink.secondary, textAlign: 'center' },
 
   emptyResults: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 60, paddingHorizontal: 32, gap: 8 },
   emptyResultsEmoji: { fontSize: 40 },
-  emptyResultsTitle: { fontSize: 17, fontWeight: '700', color: '#000' },
-  emptyResultsSub: { fontSize: 14, color: '#8E8E93', textAlign: 'center' },
+  emptyResultsTitle: { fontSize: 17, fontWeight: '700', color: t.ink.primary },
+  emptyResultsSub: { fontSize: 14, color: t.ink.secondary, textAlign: 'center' },
 
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10 },
-  loaderTxt: { fontSize: 13, color: '#8E8E93' },
+  loaderTxt: { fontSize: 13, color: t.ink.secondary },
 
   personRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
@@ -454,40 +456,40 @@ const s = themedSheet((t) => ({
   avatarFb: { backgroundColor: '#DBEAFE', alignItems: 'center', justifyContent: 'center' },
   avatarTxt: { fontSize: 16, fontWeight: '700', color: '#1D4ED8' },
   avatarTxtSm: { fontSize: 12, fontWeight: '700', color: '#1D4ED8' },
-  personName: { fontSize: 15, fontWeight: '700', color: '#000' },
-  personHandle: { fontSize: 13, color: '#2563EB', marginTop: 1 },
-  personMeta: { fontSize: 12, color: '#8E8E93', marginTop: 1 },
+  personName: { fontSize: 15, fontWeight: '700', color: t.ink.primary },
+  personHandle: { fontSize: 13, color: t.status.link, marginTop: 1 },
+  personMeta: { fontSize: 12, color: t.ink.secondary, marginTop: 1 },
 
   postRow: {
     backgroundColor: t.surface.canvas, borderRadius: 14, padding: 12, marginBottom: 10,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: '#F0F0F0',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline,
   },
   postHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 },
   postAvatar: { width: 36, height: 36, borderRadius: 18 },
-  postAuthor: { fontSize: 14, fontWeight: '700', color: '#000' },
-  postTime: { fontSize: 11, color: '#8E8E93' },
-  postBody: { fontSize: 14, color: '#111', lineHeight: 19 },
+  postAuthor: { fontSize: 14, fontWeight: '700', color: t.ink.primary },
+  postTime: { fontSize: 11, color: t.ink.secondary },
+  postBody: { fontSize: 14, color: t.ink.primary, lineHeight: 19 },
   postMedia: { width: '100%', height: 160, borderRadius: 10, marginTop: 8 },
   postStats: { flexDirection: 'row', gap: 14, marginTop: 8 },
-  postStat: { fontSize: 12, color: '#8E8E93', fontWeight: '600' },
+  postStat: { fontSize: 12, color: t.ink.secondary, fontWeight: '600' },
 
   jobRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     backgroundColor: t.surface.canvas, borderRadius: 14, padding: 12, marginBottom: 8,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: '#F0F0F0',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline,
   },
   jobBadge: { width: 42, height: 42, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   jobBadgeTxt: { fontSize: 22 },
-  jobTitle: { fontSize: 15, fontWeight: '700', color: '#000' },
-  jobCompany: { fontSize: 13, color: '#475569', marginTop: 1 },
-  jobMeta: { fontSize: 11, color: '#8E8E93', marginTop: 2 },
+  jobTitle: { fontSize: 15, fontWeight: '700', color: t.ink.primary },
+  jobCompany: { fontSize: 13, color: t.ink.secondary, marginTop: 1 },
+  jobMeta: { fontSize: 11, color: t.ink.secondary, marginTop: 2 },
 
   eventRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     backgroundColor: t.surface.canvas, borderRadius: 14, padding: 12, marginBottom: 8,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: '#F0F0F0',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline,
   },
   eventImg: { width: 56, height: 56, borderRadius: 10 },
-  eventTitle: { fontSize: 15, fontWeight: '700', color: '#000' },
-  eventMeta: { fontSize: 12, color: '#8E8E93', marginTop: 2 },
+  eventTitle: { fontSize: 15, fontWeight: '700', color: t.ink.primary },
+  eventMeta: { fontSize: 12, color: t.ink.secondary, marginTop: 2 },
 }));

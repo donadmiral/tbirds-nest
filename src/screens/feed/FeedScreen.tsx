@@ -19,7 +19,7 @@ import PollCard from '../../components/PollCard';
 import CollaboratorsSheet from '../../components/CollaboratorsSheet';
 import PeoplePickerSheet from '../../components/PeoplePickerSheet';
 import { showMessage } from 'react-native-flash-message';
-import { themedSheet, getTheme } from '../../theme/useTheme';
+import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import { useNavigation } from '@react-navigation/native';
 import { takePendingCapture } from '../../utils/captureBridge';
 import VideoThumb from '../../components/VideoThumb';
@@ -38,7 +38,7 @@ import { storiesService } from '../../services/storiesService';
 import {
   View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Linking,
   StatusBar, RefreshControl, Share, Alert, TextInput, Image,
-  KeyboardAvoidingView, Platform, Keyboard, ScrollView, Dimensions, Modal,
+  KeyboardAvoidingView, Platform, Keyboard, ScrollView, useWindowDimensions, Modal,
   Animated,
   AppState,
   PanResponder,
@@ -53,6 +53,8 @@ import * as VideoThumbnails from 'expo-video-thumbnails';
 import * as Crypto from 'expo-crypto';
 
 import type { SoundtrackSelection } from '../../../shared/soundtrack';
+import SoundtrackPicker from '../../components/SoundtrackPicker';
+import { postLookRecipe } from '../../../shared/postMediaEditing';
 import { Image as ExpoImage } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { ensureUploadSafe } from '../../utils/uploadSafe';
@@ -87,10 +89,6 @@ import { mergeFeedRefresh, feedPrefetchUrls } from '../../../shared/feedSnapshot
 import { useSettingsStore } from '../../stores/settingsStore';
 import PostInsightsSheet from '../../components/PostInsightsSheet';
 import VerifiedBadge from '../../components/VerifiedBadge';
-
-const SCREEN_W = Dimensions.get('window').width;
-const TILE_W = Math.floor((SCREEN_W - 12 * 2 - 10) / 2);
-const NAVY = getTheme().brand.base;
 
 type MediaItem = { id: string; url: string; media_type: 'image' | 'video'; sort_order: number; width?: number | null; height?: number | null };
 type Post = {
@@ -206,6 +204,10 @@ function renderRichText(text: string, onHashtag: (t: string) => void, onMention:
 
 export default function FeedScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const { t } = useTheme();
+  const { width: SCREEN_W } = useWindowDimensions();
+  const TILE_W = Math.floor((SCREEN_W - 12 * 2 - 10) / 2);
+  const NAVY = t.ink.primary;
   const { profile } = useAuthStore();
   const userId = profile?.id ?? null;
   const isVerifiedSchoolUser = !!(profile as any)?.is_verified_school_user;
@@ -318,11 +320,17 @@ export default function FeedScreen({ navigation }: any) {
   const [composerReview,setComposerReview]=useState(false);
   const [postProgress,setPostProgress]=useState({completed:0,total:0,label:''});
   const [posting, setPosting] = useState(false);
+  const [postConfirmed, setPostConfirmed] = useState(false);
   const [composerSoundtrack, setComposerSoundtrack] = useState<SoundtrackSelection | null>(null);
   const [musicOpen, setMusicOpen] = useState(false);
   const [publicationLocked, setPublicationLocked] = useState(false);
   const publicationBusy = useRef(false);
   const publicationAttempt = useRef<{ owner: string; postId: string; started: boolean; run: () => Promise<void> } | null>(null);
+  const canEditPostDraft = () => {
+    if (!publicationBusy.current && !publicationAttempt.current) return true;
+    Keyboard.dismiss(); setComposerOpen(true);
+    return false;
+  };
   const [exclusivePost, setExclusivePost] = useState(false);
   const [innovationPost, setInnovationPost] = useState(false);
   const [postCategory, setPostCategory] = useState<string | null>(null);
@@ -1425,8 +1433,10 @@ export default function FeedScreen({ navigation }: any) {
   }, [profilesMap]);
 
   const pickMedia = async (only?: 'images' | 'videos') => {
+    if (!canEditPostDraft()) return;
     const onlyKind = only === 'images' || only === 'videos' ? only : null;
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!canEditPostDraft()) return;
     if (!perm.granted) { Alert.alert('Permission required'); return; }
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -1465,7 +1475,7 @@ export default function FeedScreen({ navigation }: any) {
         }
       }
 
-      if (picked.length > 0) {
+      if (picked.length > 0 && canEditPostDraft()) {
         setComposerMedia(p => [...p, ...picked].slice(0, 10));
         setSelectedComposerMedia(Math.min(composerMedia.length,9));setComposerReview(false);
       }
@@ -1483,6 +1493,7 @@ export default function FeedScreen({ navigation }: any) {
   useFocusEffect(useCallback(() => {
     const cm = takePendingCapture('feed');
     if (!cm) return;
+    if (!canEditPostDraft()) return;
     (async () => {
       const isVideo = cm.type === 'video';
       const rawExt = safeExtFromUri(cm.uri, isVideo ? 'mp4' : 'jpg');
@@ -1496,18 +1507,22 @@ export default function FeedScreen({ navigation }: any) {
           console.log('[FUNCAM_THUMB_ERR]', e);
         }
       }
-      setComposerMedia(p => [...p, { uri: cm.uri, type: isVideo ? 'video' : 'image', ext, width: cm.width ?? undefined, height: cm.height ?? undefined, thumbnail, edit:{aspectRatio:4/5} }].slice(0,10) as LocalMedia[]);
+      if (!canEditPostDraft()) return;
+      setComposerMedia(p => [...p, { uri: cm.uri, type: isVideo ? 'video' : 'image', ext, width: cm.width ?? undefined, height: cm.height ?? undefined, thumbnail, edit:{aspectRatio:4/5,filterId:cm.filterId??null,filterAmt:1} }].slice(0,10) as LocalMedia[]);
       setComposerOpen(true);
     })();
   }, []));
 
   const openCamera = () => {
+    if (!canEditPostDraft()) return;
     Keyboard.dismiss();setComposerOpen(false);setComposerReview(false);
-    setTimeout(()=>funCamNav.navigate('StoryFunCamera', { returnTo: 'feed', feedParams: {} }),300);
+    setTimeout(()=>{ if (canEditPostDraft()) funCamNav.navigate('StoryFunCamera', { returnTo: 'feed', feedParams: {} }); },300);
   };
 
   const reactToVideo = async (post: Post) => {
+    if (!canEditPostDraft()) return;
     const perm = await ImagePicker.requestCameraPermissionsAsync();
+    if (!canEditPostDraft()) return;
     if (!perm.granted) { Alert.alert('Permission required'); return; }
     try {
       const result = await ImagePicker.launchCameraAsync({
@@ -1529,6 +1544,7 @@ export default function FeedScreen({ navigation }: any) {
         console.log('[REACT_THUMB_ERR]', e);
       }
 
+      if (!canEditPostDraft()) return;
       setQuotingPost(post);
       setComposerMedia([{ uri: a.uri, type: 'video', ext, width: a.width ?? undefined, height: a.height ?? undefined, thumbnail }]);
       setComposerOpen(true);
@@ -1554,6 +1570,8 @@ export default function FeedScreen({ navigation }: any) {
   const createPost = async () => {
     if (publicationBusy.current || (!publicationAttempt.current && !composerText.trim() && !composerMedia.length) || !userId) return;
     publicationBusy.current = true;
+    setPostConfirmed(false);
+    if (!publicationAttempt.current) setPostProgress({completed:0,total:composerMedia.length,label:'Preparing your post'});
     setPosting(true); setPublicationLocked(true); setMusicOpen(false);
     try {
       if (!publicationAttempt.current) {
@@ -1646,6 +1664,7 @@ export default function FeedScreen({ navigation }: any) {
       }
       await publicationAttempt.current.run();
       publicationAttempt.current = null; setPublicationLocked(false);
+      setPostConfirmed(true);
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setTimeout(() => feedListRef.current?.scrollToOffset({ offset: 0, animated: true }), 150);
       setComposerOpen(false); setComposerText(''); setComposerMedia([]); setComposerSoundtrack(null);setComposerReview(false);setSelectedComposerMedia(0);
@@ -1832,7 +1851,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
       />
 
     );
-  }, []);
+  }, [SCREEN_W]);
 
   const openHashtag = useCallback((tag: string) => {
     navigation.navigate('TrendFeed', { tag });
@@ -1960,7 +1979,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                 ]}
                 accessibilityLabel={isFollowing ? 'Following' : 'Follow'}
               >
-                <Text style={{ fontSize: 12.5, fontWeight: '600', color: (isFollowing || isRequested) ? '#3C3C43' : '#FFFFFF' }}>
+                <Text style={{ fontSize: 12.5, fontWeight: '600', color: (isFollowing || isRequested) ? t.ink.secondary : t.ink.inverse }}>
                   {isFollowing ? 'Following' : isRequested ? 'Requested' : 'Follow'}
                 </Text>
               </TouchableOpacity>
@@ -2121,7 +2140,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
             <Text style={s.pillTxt}>{post.comments_count > 0 ? fmtCount(post.comments_count) : ''}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={s.pill} onPress={() => { if (isReposted) { toggleRepost(post.id); } else { Alert.alert('Repost this?', '', [{ text: 'Repost', onPress: () => toggleRepost(post.id) }, { text: 'Quote', onPress: () => { setQuotingPost(post); setComposerOpen(true); } }, { text: 'Cancel', style: 'cancel' }]); } }} activeOpacity={0.75} disabled={isBusy(`rp-${post.id}`)}>
+          <TouchableOpacity style={s.pill} onPress={() => { if (isReposted) { toggleRepost(post.id); } else { Alert.alert('Repost this?', '', [{ text: 'Repost', onPress: () => toggleRepost(post.id) }, { text: 'Quote', onPress: () => { if (!canEditPostDraft()) return; setQuotingPost(post); setComposerOpen(true); } }, { text: 'Cancel', style: 'cancel' }]); } }} activeOpacity={0.75} disabled={isBusy(`rp-${post.id}`)}>
             <Feather name="repeat" size={20} color={isReposted ? getTheme().status.success : getTheme().ink.muted} />
             <TouchableOpacity onPress={() => openLikers(post, 'reposts')} hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }} activeOpacity={0.7}><Text style={[s.pillTxt, isReposted && s.pillTxtReposted]}>{(post.reposts_count + (post.quotes_count ?? 0)) > 0 ? fmtCount(post.reposts_count + (post.quotes_count ?? 0)) : ''}</Text></TouchableOpacity>
           </TouchableOpacity>
@@ -2171,6 +2190,8 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
       </View>
     );
   }, [
+    t,
+    TILE_W,
     activePostId,
     screenFocused,
     appActive,
@@ -2356,13 +2377,13 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
           {composerOpen && (
             <Modal visible animationType="slide" presentationStyle="fullScreen" onRequestClose={()=>{if(!posting){setComposerOpen(false);Keyboard.dismiss();}}}>
             <KeyboardAvoidingView style={[s.composerContainer,{paddingTop:insets.top,paddingBottom:Math.max(insets.bottom,12)}]} behavior={Platform.OS==='ios'?'padding':'height'}>
-              <View style={s.cHeader}><TouchableOpacity disabled={posting} style={s.cHeaderCancel} onPress={()=>{if(composerReview&&!publicationLocked)setComposerReview(false);else{setComposerOpen(false);Keyboard.dismiss();}}}><Text style={s.cHeaderCancelText}>{composerReview&&!publicationLocked?'Edit':'Cancel'}</Text></TouchableOpacity><Text style={s.cHeaderTitle}>{posting?'Sharing your moment':composerReview?'Review post':'New post'}</Text><TouchableOpacity accessibilityRole="button" disabled={posting||(!composerText.trim()&&!composerMedia.length)} onPress={()=>{Keyboard.dismiss();if(composerReview||publicationLocked)void createPost();else setComposerReview(true);}} style={[s.postBtn,(posting||(!composerText.trim()&&!composerMedia.length))&&s.postBtnOff]}>{posting?<ActivityIndicator color="#FFF"/>:<Text style={s.postBtnTxt}>{publicationLocked?'Retry':composerReview?'Post':'Review'}</Text>}</TouchableOpacity></View>
+              <View style={s.cHeader}><TouchableOpacity disabled={posting} style={s.cHeaderCancel} onPress={()=>{if(composerReview&&!publicationLocked)setComposerReview(false);else{setComposerOpen(false);Keyboard.dismiss();}}}><Text style={s.cHeaderCancelText}>{composerReview&&!publicationLocked?'Edit':'Cancel'}</Text></TouchableOpacity><Text style={s.cHeaderTitle}>{posting?'Sharing your moment':composerReview?'Review post':'New post'}</Text><TouchableOpacity accessibilityRole="button" disabled={posting||(!composerText.trim()&&!composerMedia.length)} onPress={()=>{Keyboard.dismiss();if(composerReview||publicationLocked)void createPost();else setComposerReview(true);}} style={[s.postBtn,(posting||(!composerText.trim()&&!composerMedia.length))&&s.postBtnOff]}>{posting?<ActivityIndicator color={t.ink.inverse}/>:<Text style={s.postBtnTxt}>{publicationLocked?'Retry':composerReview?'Post':'Review'}</Text>}</TouchableOpacity></View>
               {composerReview&&!posting?<View style={s.cReviewHint}><Text style={s.cReviewHintText}>Ready to share with {AUD_META[postAudience].label.toLowerCase()}? Check your media and caption, then tap Post.</Text></View>:null}
-              {posting?<View accessibilityLiveRegion="polite" style={s.cProgress}><View style={{flexDirection:'row',justifyContent:'space-between',gap:12}}><Text style={s.cProgressTitle}>{postProgress.label||'Preparing your post'}</Text><Text style={s.cProgressTitle}>{postProgress.completed}/{postProgress.total}</Text></View><View style={s.cProgressTrack}><View style={[s.cProgressFill,{width:`${postProgress.total?postProgress.completed/postProgress.total*100:0}%`}]}/></View><Text style={s.cProgressText}>Keep this screen open while your media uploads. We will confirm when your post is ready.</Text></View>:null}
+              {posting?<View accessibilityLiveRegion="polite" style={s.cProgress}><View style={{flexDirection:'row',justifyContent:'space-between',gap:12}}><Text style={s.cProgressTitle}>{postProgress.label||'Preparing your post'}</Text>{postProgress.total>0?<Text style={s.cProgressTitle}>{postProgress.completed}/{postProgress.total}</Text>:null}</View><View style={s.cProgressTrack}><View style={[s.cProgressFill,{width:`${postProgress.total?postProgress.completed/postProgress.total*100:0}%`}]}/></View><ScrollView style={{maxHeight:150}} contentContainerStyle={{gap:8}}>{composerMedia.map((media,index)=><View key={media.uri} style={s.cUploadRow}><Image source={{uri:media.type==='video'?(media.edit?.coverLocalUri||media.thumbnail||media.uri):media.uri}} style={s.cUploadThumb}/><Text style={[s.cProgressTitle,{flex:1}]}>{media.type==='video'?'Video':'Photo'} {index+1}</Text>{index<postProgress.completed?<Feather name="check-circle" color="#496B51" size={18}/>:index===postProgress.completed?<ActivityIndicator size="small" color="#775D32"/>:<Feather name="clock" color="#716856" size={17}/>}<Text style={s.cProgressText}>{index<postProgress.completed?'Uploaded':index===postProgress.completed?'Uploading':'Waiting'}</Text></View>)}</ScrollView><Text style={[s.cProgressText,{marginTop:10}]}>Keep Platinum open on this feed until your post is confirmed.</Text><TouchableOpacity accessibilityRole="button" onPress={()=>{Keyboard.dismiss();setComposerOpen(false);}} style={s.cContinue}><Text style={s.cProgressTitle}>Continue browsing this feed</Text><Feather name="arrow-right" size={17} color="#0B1E3D"/></TouchableOpacity></View>:null}
               {threadingPost && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: getTheme().surface.canvas, borderColor: getTheme().surface.hairline, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 6, gap: 6 }}>
                   <Text style={{ fontSize: 12, fontWeight: '600', color: getTheme().ink.secondary }}>Adding to your thread</Text>
-                  <TouchableOpacity onPress={() => setThreadingPost(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                  <TouchableOpacity onPress={() => { if (canEditPostDraft()) setThreadingPost(null); }} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                     <Feather name="x" size={13} color={getTheme().ink.muted} />
                   </TouchableOpacity>
                 </View>
@@ -2370,7 +2391,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
               {quotingPost && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: getTheme().surface.canvas, borderColor: getTheme().surface.hairline, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 6, gap: 6 }}>
                   <Text style={{ fontSize: 12, fontWeight: '600', color: getTheme().ink.secondary }}>Quoting {profilesMap[quotingPost.user_id]?.full_name || profilesMap[quotingPost.user_id]?.username || 'post'}</Text>
-                  <TouchableOpacity onPress={() => setQuotingPost(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                  <TouchableOpacity onPress={() => { if (canEditPostDraft()) setQuotingPost(null); }} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                     <Feather name="x" size={13} color={getTheme().ink.muted} />
                   </TouchableOpacity>
                 </View>
@@ -2394,15 +2415,15 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                 </View>
                 {!composerReview ?                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.kindRow} keyboardShouldPersistTaps="always">
                   <TouchableOpacity style={[s.kindChip, !innovationPost && s.kindChipOn]} onPress={() => setInnovationPost(false)} accessibilityLabel="Regular post">
-                    <Feather name="edit-3" size={15} color={!innovationPost ? '#FFFFFF' : 'rgba(11,30,61,0.55)'} />
+                    <Feather name="edit-3" size={15} color={!innovationPost ? t.ink.inverse : t.ink.secondary} />
                     <Text numberOfLines={1} style={[s.kindTxt, !innovationPost && s.kindTxtOn]}>Post</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={s.kindChip} onPress={() => { setComposerOpen(false); navigation.navigate('ArticleCompose'); }} accessibilityLabel="Write an article">
-                    <Feather name="file-text" size={15} color="rgba(11,30,61,0.55)" />
+                    <Feather name="file-text" size={15} color={t.ink.secondary} />
                     <Text numberOfLines={1} style={s.kindTxt}>Article</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={s.kindChip} onPress={() => { setComposerOpen(false); navigation.navigate('Market', { screen: 'CreateListing' }); }} accessibilityLabel="Create a listing">
-                    <Feather name="tag" size={15} color="rgba(11,30,61,0.55)" />
+                    <Feather name="tag" size={15} color={t.ink.secondary} />
                     <Text numberOfLines={1} style={s.kindTxt}>Listing</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={[s.kindChip, s.kindChipGold, innovationPost && s.kindChipGoldOn]} onPress={() => setInnovationPost(true)} accessibilityLabel="Post to Innovation">
@@ -2475,8 +2496,8 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 8 }} contentContainerStyle={{ gap: 6 }} keyboardShouldPersistTaps="handled">
                   {CATEGORIES.filter(c => c.key !== 'innovation').map(c => (
                     <TouchableOpacity key={c.key} onPress={() => setPostCategory(postCategory === c.key ? null : c.key)}
-                      style={{ paddingHorizontal: 11, paddingVertical: 5, borderRadius: 99, borderWidth: 1, borderColor: postCategory === c.key ? '#0B1E3D' : 'rgba(11,30,61,0.18)', backgroundColor: postCategory === c.key ? 'rgba(11,30,61,0.06)' : 'transparent' }}>
-                      <Text style={{ fontSize: 12, fontWeight: '600', color: postCategory === c.key ? '#0B1E3D' : 'rgba(11,30,61,0.6)' }}>{c.label}</Text>
+                      style={{ paddingHorizontal: 11, paddingVertical: 5, borderRadius: 99, borderWidth: 1, borderColor: postCategory === c.key ? t.ink.primary : t.surface.hairline, backgroundColor: postCategory === c.key ? t.brand.tintBg : 'transparent' }}>
+                      <Text style={{ fontSize: 12, fontWeight: '600', color: postCategory === c.key ? t.ink.primary : t.ink.secondary }}>{c.label}</Text>
                     </TouchableOpacity>
                   ))}
                 </ScrollView>
@@ -2492,23 +2513,25 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                     </TouchableOpacity>
                   </View>
                 )}
-                {composerMedia.length>0?(()=>{const idx=Math.min(selectedComposerMedia,composerMedia.length-1),media=composerMedia[idx];return <><View style={{position:'relative'}}><PostDraftPreview key={media.uri} media={media} active={composerOpen&&editMediaIdx===null}/><View pointerEvents="none" style={s.cSelectedCount}><Text style={{color:'#FFF',fontSize:11,fontWeight:'700'}}>{idx+1} / {composerMedia.length}</Text></View></View>{!composerReview?<View style={s.cMediaActions}><TouchableOpacity style={s.cMediaAction} onPress={()=>{Keyboard.dismiss();setEditMediaIdx(idx);}}><Feather name="sliders" size={16} color={NAVY}/><Text style={s.cMediaActionText}>Edit {media.type==='video'?'video':'photo'}</Text></TouchableOpacity>{[-1,1].map(direction=><TouchableOpacity key={direction} accessibilityLabel={direction<0?'Move media earlier':'Move media later'} disabled={idx+direction<0||idx+direction>=composerMedia.length} style={[s.cMediaAction,(idx+direction<0||idx+direction>=composerMedia.length)&&{opacity:.35}]} onPress={()=>{const to=idx+direction;setComposerMedia(prev=>{const next=[...prev];[next[idx],next[to]]=[next[to],next[idx]];return next;});setSelectedComposerMedia(to);}}><Feather name={direction<0?'chevron-left':'chevron-right'} size={18} color={NAVY}/></TouchableOpacity>)}<TouchableOpacity accessibilityLabel="Remove selected media" style={s.cMediaAction} onPress={()=>{setComposerMedia(prev=>prev.filter((_,i)=>i!==idx));setSelectedComposerMedia(Math.max(0,idx-1));}}><Feather name="trash-2" size={17} color={NAVY}/></TouchableOpacity></View>:null}
+                {composerMedia.length>0?(()=>{const idx=Math.min(selectedComposerMedia,composerMedia.length-1),media=composerMedia[idx];return <><View style={{position:'relative'}}><PostDraftPreview key={media.uri} media={media} active={composerOpen&&!musicOpen&&editMediaIdx===null} soundtrack={composerSoundtrack}/><View pointerEvents="none" style={s.cSelectedCount}><Text style={{color:'#FFF',fontSize:11,fontWeight:'700'}}>{idx+1} / {composerMedia.length}</Text></View></View>{!composerReview?<View style={s.cMediaActions}><TouchableOpacity style={s.cMediaAction} onPress={()=>{Keyboard.dismiss();setEditMediaIdx(idx);}}><Feather name="sliders" size={16} color={NAVY}/><Text style={s.cMediaActionText}>Edit {media.type==='video'?'video':'photo'}</Text></TouchableOpacity>{[-1,1].map(direction=><TouchableOpacity key={direction} accessibilityLabel={direction<0?'Move media earlier':'Move media later'} disabled={idx+direction<0||idx+direction>=composerMedia.length} style={[s.cMediaAction,(idx+direction<0||idx+direction>=composerMedia.length)&&{opacity:.35}]} onPress={()=>{const to=idx+direction;setComposerMedia(prev=>{const next=[...prev];[next[idx],next[to]]=[next[to],next[idx]];return next;});setSelectedComposerMedia(to);}}><Feather name={direction<0?'chevron-left':'chevron-right'} size={18} color={NAVY}/></TouchableOpacity>)}<TouchableOpacity accessibilityLabel="Remove selected media" style={s.cMediaAction} onPress={()=>{setComposerMedia(prev=>prev.filter((_,i)=>i!==idx));setSelectedComposerMedia(Math.max(0,idx-1));}}><Feather name="trash-2" size={17} color={NAVY}/></TouchableOpacity></View>:null}
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={[s.cMediaScroll,{marginTop:composerReview?12:0}]} contentContainerStyle={{gap:10,padding:2}} keyboardShouldPersistTaps="handled">{composerMedia.map((m,i)=><TouchableOpacity key={m.uri} accessibilityRole="button" accessibilityLabel={`Select media ${i+1}`} accessibilityState={{selected:i===idx}} style={[s.cThumb,i===idx&&s.cThumbSelected]} onPress={()=>setSelectedComposerMedia(i)}><Image source={{uri:m.type==='video'?(m.edit?.coverLocalUri||m.thumbnail||m.uri):m.uri}} style={s.cThumbImg} resizeMode="cover"/><View style={s.cThumbNumber}><Text style={{color:'#FFF',fontSize:10,fontWeight:'700'}}>{i+1}</Text></View>{m.type==='video'?<View style={{position:'absolute',left:6,bottom:6}}><Feather name="play" color="#FFF" size={14}/></View>:null}</TouchableOpacity>)}{!composerReview&&composerMedia.length<10?<TouchableOpacity accessibilityLabel="Add more media" style={s.cAddMore} onPress={()=>pickMedia()}><Feather name="plus" size={25} color={NAVY}/></TouchableOpacity>:null}</ScrollView></>})():null}
-                {editMediaIdx!=null&&composerMedia[editMediaIdx]?<PostMediaEditSheet visible uri={composerMedia[editMediaIdx].uri} mediaType={composerMedia[editMediaIdx].type} width={composerMedia[editMediaIdx].width} height={composerMedia[editMediaIdx].height} itemIndex={editMediaIdx} itemCount={composerMedia.length} initial={composerMedia[editMediaIdx].edit||null} onCancel={()=>setEditMediaIdx(null)} onDone={ed=>{const idx=editMediaIdx;setComposerMedia(prev=>prev.map((m,i)=>i===idx?{...m,edit:ed}:m));setEditMediaIdx(null);if(composerMedia[idx].type==='video'&&!ed.coverLocalUri){const editedUri=composerMedia[idx].uri;void VideoThumbnails.getThumbnailAsync(editedUri,{time:Math.round((ed.coverAt??ed.trimStart??0)*1000),quality:.7}).then(result=>setComposerMedia(prev=>prev.map(m=>m.uri===editedUri&&m.edit===ed?{...m,thumbnail:result.uri}:m))).catch(()=>{});}}}/>:null}
-                <View style={s.cSettings}><TouchableOpacity style={s.cSettingRow} onPress={pickCommentPolicy}><Feather name="message-circle" size={18} color={NAVY}/><Text style={s.cSettingLabel}>Comments</Text><Text style={s.cSettingValue}>{COMMENT_META[commentPolicy].label}</Text><Feather name="chevron-right" size={16} color="#8A93A0"/></TouchableOpacity><TouchableOpacity style={s.cSettingRow} onPress={askCollaborator}><Feather name="users" size={18} color={NAVY}/><Text style={s.cSettingLabel}>Collaborators</Text><Text numberOfLines={1} style={s.cSettingValue}>{collabPicks.length?`${collabPicks.length} selected`:'Invite people'}</Text><Feather name="chevron-right" size={16} color="#8A93A0"/></TouchableOpacity><TouchableOpacity style={s.cSettingRow} onPress={()=>setComposerSensitive(v=>!v)}><Feather name="shield" size={18} color={NAVY}/><Text style={s.cSettingLabel}>Sensitive content</Text><Feather name={composerSensitive?'check-circle':'circle'} size={20} color={composerSensitive?'#AE8B49':'#9AA1AD'}/></TouchableOpacity></View>
+                {editMediaIdx!=null&&composerMedia[editMediaIdx]?<PostMediaEditSheet visible uri={composerMedia[editMediaIdx].uri} mediaType={composerMedia[editMediaIdx].type} width={composerMedia[editMediaIdx].width} height={composerMedia[editMediaIdx].height} itemIndex={editMediaIdx} itemCount={composerMedia.length} initial={composerMedia[editMediaIdx].edit||null} onCancel={()=>setEditMediaIdx(null)} onDone={(ed,applyAll)=>{const idx=editMediaIdx;setComposerMedia(prev=>prev.map((m,i)=>i===idx?{...m,edit:ed}:applyAll?{...m,edit:{...m.edit,...postLookRecipe(ed)}}:m));setEditMediaIdx(null);if(composerMedia[idx].type==='video'&&!ed.coverLocalUri){const editedUri=composerMedia[idx].uri;void VideoThumbnails.getThumbnailAsync(editedUri,{time:Math.round((ed.coverAt??ed.trimStart??0)*1000),quality:.7}).then(result=>setComposerMedia(prev=>prev.map(m=>m.uri===editedUri&&m.edit===ed?{...m,thumbnail:result.uri}:m))).catch(()=>{});}}}/>:null}
+                <View style={s.cSettings}>{composerMedia.length?<TouchableOpacity accessibilityRole="button" style={s.cSettingRow} onPress={()=>{Keyboard.dismiss();setMusicOpen(true);}}><Feather name="music" size={18} color={NAVY}/><Text style={s.cSettingLabel}>Music</Text><Text style={s.cSettingValue}>{composerSoundtrack?`${composerSoundtrack.durationSec.toFixed(1)}s excerpt`:'Add a soundtrack'}</Text><Feather name="chevron-right" size={16} color={t.ink.secondary}/></TouchableOpacity>:null}<TouchableOpacity style={s.cSettingRow} onPress={pickCommentPolicy}><Feather name="message-circle" size={18} color={NAVY}/><Text style={s.cSettingLabel}>Comments</Text><Text style={s.cSettingValue}>{COMMENT_META[commentPolicy].label}</Text><Feather name="chevron-right" size={16} color="#8A93A0"/></TouchableOpacity><TouchableOpacity style={s.cSettingRow} onPress={askCollaborator}><Feather name="users" size={18} color={NAVY}/><Text style={s.cSettingLabel}>Collaborators</Text><Text numberOfLines={1} style={s.cSettingValue}>{collabPicks.length?`${collabPicks.length} selected`:'Invite people'}</Text><Feather name="chevron-right" size={16} color="#8A93A0"/></TouchableOpacity><TouchableOpacity style={s.cSettingRow} onPress={()=>setComposerSensitive(v=>!v)}><Feather name="shield" size={18} color={NAVY}/><Text style={s.cSettingLabel}>Sensitive content</Text><Feather name={composerSensitive?'check-circle':'circle'} size={20} color={composerSensitive?'#AE8B49':'#9AA1AD'}/></TouchableOpacity></View>
                 </ScrollView>
-                {!composerReview?<View style={s.cToolbar}><TouchableOpacity style={s.cToolTile} onPress={()=>pickMedia()}><Feather name="image" size={20} color={NAVY}/><Text style={s.cMediaActionText}>Media</Text></TouchableOpacity><TouchableOpacity style={s.cToolTile} onPress={openCamera}><Feather name="camera" size={20} color={NAVY}/><Text style={s.cMediaActionText}>Camera</Text></TouchableOpacity><TouchableOpacity style={s.cToolTile} onPress={()=>setProductPickerOpen(true)}><Feather name="tag" size={19} color={NAVY}/><Text style={s.cMediaActionText}>Products</Text></TouchableOpacity><TouchableOpacity style={[s.cToolTile,composerMedia.length>0&&{opacity:.4}]} disabled={composerMedia.length>0} onPress={()=>setPollOpts(p=>p?null:['',''])}><Feather name="bar-chart-2" size={19} color={NAVY}/><Text style={s.cMediaActionText}>Poll</Text></TouchableOpacity></View>:null}
+                {!composerReview?<View style={s.cToolbar}><TouchableOpacity style={s.cToolTile} onPress={()=>pickMedia()}><Feather name="image" size={20} color={NAVY}/><Text style={s.cMediaActionText}>Media</Text></TouchableOpacity><TouchableOpacity style={s.cToolTile} onPress={openCamera}><Feather name="camera" size={20} color={NAVY}/><Text style={s.cMediaActionText}>Camera</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" accessibilityLabel="Add music to post" style={[s.cToolTile,!composerMedia.length&&{opacity:.4}]} disabled={!composerMedia.length} onPress={()=>{Keyboard.dismiss();setMusicOpen(true);}}><Feather name="music" size={20} color={NAVY}/><Text style={s.cMediaActionText}>Music</Text></TouchableOpacity><TouchableOpacity style={s.cToolTile} onPress={()=>setProductPickerOpen(true)}><Feather name="tag" size={19} color={NAVY}/><Text style={s.cMediaActionText}>Products</Text></TouchableOpacity><TouchableOpacity style={[s.cToolTile,composerMedia.length>0&&{opacity:.4}]} disabled={composerMedia.length>0} onPress={()=>setPollOpts(p=>p?null:['',''])}><Feather name="bar-chart-2" size={19} color={NAVY}/><Text style={s.cMediaActionText}>Poll</Text></TouchableOpacity></View>:null}
               </View>
+              <SoundtrackPicker visible={composerOpen&&musicOpen} value={composerSoundtrack} use="post" ownerId={userId??undefined} originalAudio={composerMedia[Math.min(selectedComposerMedia,composerMedia.length-1)]?.type==='video'} onChange={setComposerSoundtrack} onClose={()=>setMusicOpen(false)} renderPreview={(selection,active)=>{const media=composerMedia[Math.min(selectedComposerMedia,composerMedia.length-1)];return media?<PostDraftPreview media={media} soundtrack={selection} active={active} autoPlay/>:null;}}/>
               <ProductPickerSheet visible={productPickerOpen} sellerId={userId} selected={composerProducts} onClose={()=>setProductPickerOpen(false)} onSave={setComposerProducts}/>
               <PeoplePickerSheet visible={!!collabPicker} title="Invite a collaborator" excludeId={userId} onClose={()=>setCollabPicker(null)} onPick={p=>{setCollabPicks(prev=>(prev.some(x=>x.id===p.id)||prev.length>=5)?prev:[...prev,{id:p.id,username:p.username,full_name:p.full_name}]);}}/>
             </KeyboardAvoidingView>
             </Modal>
           )}
 
-          {!composerOpen && (
+          {!composerOpen && (posting||publicationLocked||postConfirmed) ? <TouchableOpacity accessibilityRole="button" accessibilityLabel={postConfirmed?'Post shared. Dismiss confirmation.':'View post upload progress'} onPress={()=>postConfirmed?setPostConfirmed(false):setComposerOpen(true)} style={[s.cUploadBanner,{bottom:insets.bottom+TAB_BAR_CLEARANCE}]}>{posting?<ActivityIndicator color={t.ink.primary}/>:<Feather name={postConfirmed?'check-circle':'alert-circle'} color={t.ink.primary} size={22}/>}<View style={{flex:1}}><Text style={{color:t.ink.primary,fontWeight:'700'}}>{postConfirmed?'Your post has been shared':posting?(postProgress.label||'Preparing your post'):'Your post needs attention'}</Text><Text style={{color:t.ink.secondary,fontSize:12,marginTop:3}}>{postConfirmed?'Tap to dismiss':posting?'Keep Platinum open · Tap for progress':'Tap to review and finish the same post'}</Text></View><Feather name={postConfirmed?'x':'chevron-up'} color={t.ink.primary} size={19}/></TouchableOpacity> : null}
+          {!composerOpen && !posting && !publicationLocked && !postConfirmed && (
             <TouchableOpacity activeOpacity={0.85} onPress={() => setComposerOpen(true)} style={[s.fabRing, { bottom: insets.bottom + TAB_BAR_CLEARANCE }]}>
               <View style={s.fabDisc}>
-                <Feather name="edit-3" size={22} color="#FFFFFF" />
+                <Feather name="edit-3" size={22} color={t.ink.inverse} />
               </View>
             </TouchableOpacity>
           )}
@@ -2535,8 +2558,8 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                     </View>
                   </TouchableOpacity>
                   {userId && p.id !== userId && (
-                    <TouchableOpacity onPress={() => toggleFollow(p.id)} activeOpacity={0.8} style={{ paddingHorizontal: 16, paddingVertical: 7, borderRadius: 16, backgroundColor: followingIds.has(p.id) ? '#F5F5F5' : NAVY }}>
-                      <Text style={{ fontSize: 13, fontWeight: '600', color: followingIds.has(p.id) ? '#3C3C43' : '#FFFFFF' }}>{followingIds.has(p.id) ? 'Following' : 'Follow'}</Text>
+                    <TouchableOpacity onPress={() => toggleFollow(p.id)} activeOpacity={0.8} style={{ paddingHorizontal: 16, paddingVertical: 7, borderRadius: 16, backgroundColor: followingIds.has(p.id) ? t.surface.sunken : NAVY }}>
+                      <Text style={{ fontSize: 13, fontWeight: '600', color: followingIds.has(p.id) ? t.ink.secondary : t.ink.inverse }}>{followingIds.has(p.id) ? 'Following' : 'Follow'}</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -2584,7 +2607,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
               <Feather name="plus-square" size={18} color={getTheme().ink.primary} />
               <View style={{ flex: 1 }}><Text style={s.menuOptionTxt}>Add to your story</Text><Text style={s.menuOptionSub}>Share this post as a card on your story</Text></View>
             </TouchableOpacity>
-            <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => { const p = sharePostTarget; setSharePostTarget(null); if (p) { setQuotingPost(p); setComposerOpen(true); } }}>
+            <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => { const p = sharePostTarget; setSharePostTarget(null); if (p && canEditPostDraft()) { setQuotingPost(p); setComposerOpen(true); } }}>
               <Feather name="corner-down-right" size={18} color={getTheme().ink.primary} />
               <View style={{ flex: 1 }}><Text style={s.menuOptionTxt}>Add to thread</Text><Text style={s.menuOptionSub}>Quote this post with your own words</Text></View>
             </TouchableOpacity>
@@ -2853,6 +2876,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
               <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => {
                 const captured = menuPost;
                 setMenuPost(null);
+                if (!canEditPostDraft()) return;
                 setQuotingPost(null);
                 setThreadingPost(captured);
                 setComposerOpen(true);
@@ -2962,7 +2986,7 @@ const s = themedSheet((t) => ({
   articleBody: { padding: 16 },
   articleKicker: { fontSize: 10.5, fontWeight: '800', letterSpacing: 1.2, color: t.ink.muted },
   articleTitle: { fontSize: 20, fontWeight: '800', color: t.ink.primary, letterSpacing: -0.5, lineHeight: 25, marginTop: 6 },
-  articleExcerpt: { fontSize: 14.5, color: '#4B5563', lineHeight: 21, marginTop: 7 },
+  articleExcerpt: { fontSize: 14.5, color: t.ink.secondary, lineHeight: 21, marginTop: 7 },
   articleMeta: { fontSize: 12.5, fontWeight: '600', color: t.ink.muted, marginTop: 11 },
   safe: { flex: 1, backgroundColor: t.surface.canvas },
   flex: { flex: 1 },
@@ -2971,7 +2995,7 @@ const s = themedSheet((t) => ({
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, marginBottom: 12 },
   logo: { fontSize: 24, fontFamily: 'SpaceGrotesk_700Bold', color: t.ink.primary, letterSpacing: -0.5 },
   iconBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: t.surface.raised, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline, alignItems: 'center', justifyContent: 'center' },
-  searchInput: { backgroundColor: t.surface.raised, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14, color: '#111', marginBottom: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: '#EBEBEB' },
+  searchInput: { backgroundColor: t.surface.raised, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, minHeight: 48, fontSize: 16, color: t.ink.primary, marginBottom: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: '#EBEBEB' },
   tabRow: { flexDirection: 'row', marginBottom: 10, backgroundColor: t.surface.raised, borderRadius: 12, padding: 3 },
   tab: { flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center' },
   tabActive: { backgroundColor: t.surface.canvas, shadowColor: t.ink.primary, shadowOpacity: 0.06, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 2 },
@@ -3027,14 +3051,18 @@ const s = themedSheet((t) => ({
   cReviewHint: { padding:13,borderRadius:13,backgroundColor:'#F3EDE2',marginBottom:12 },
   cReviewHintText: { fontSize:12,color:'#716856',lineHeight:18 },
   cProgress: { padding:16,borderRadius:16,backgroundColor:'#F3EDE2',marginBottom:12 },
-  cProgressTitle: { fontSize:13,fontWeight:'700',color:NAVY },
+  cProgressTitle: { fontSize:13,fontWeight:'700',color:'#0B1E3D' },
   cProgressText: { fontSize:12,color:'#716856',lineHeight:18 },
   cProgressTrack: { height:5,backgroundColor:'#DED5C6',borderRadius:8,overflow:'hidden',marginVertical:12 },
   cProgressFill: { height:'100%',backgroundColor:'#AE8B49' },
+  cUploadRow: { flexDirection:'row',alignItems:'center',gap:10 },
+  cUploadThumb: { width:38,height:42,borderRadius:8,backgroundColor:'#DED5C6' },
+  cContinue: { flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8,minHeight:44,marginTop:8,borderRadius:12,borderWidth:1,borderColor:'#D8C9AD' },
+  cUploadBanner: { position:'absolute',left:16,right:16,minHeight:64,padding:14,borderRadius:18,backgroundColor:t.surface.raised,borderWidth:1,borderColor:t.surface.hairline,flexDirection:'row',alignItems:'center',gap:12,elevation:4,shadowColor:'#000',shadowOffset:{width:0,height:4},shadowOpacity:.12,shadowRadius:12 },
   cSelectedCount: { position:'absolute',top:12,right:12,paddingHorizontal:10,paddingVertical:5,borderRadius:20,backgroundColor:'rgba(16,33,61,.7)' },
   cMediaActions: { flexDirection:'row',alignItems:'center',gap:8,marginVertical:12 },
   cMediaAction: { minHeight:44,paddingHorizontal:13,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:7,borderWidth:1,borderColor:'#E2DBD0',borderRadius:12,backgroundColor:t.surface.raised },
-  cMediaActionText: { fontSize:11.5,color:NAVY,fontWeight:'600' },
+  cMediaActionText: { fontSize:11.5,color:t.ink.primary,fontWeight:'600' },
   cThumbSelected: { borderColor:'#AE8B49' },
   cThumbNumber: { position:'absolute',right:3,top:3,width:21,height:21,borderRadius:11,backgroundColor:'rgba(16,33,61,.8)',alignItems:'center',justifyContent:'center' },
   cToolTile: { flex:1,minHeight:56,borderWidth:1,borderColor:'#E4DDD2',borderRadius:13,backgroundColor:t.surface.raised,alignItems:'center',justifyContent:'center',gap:6 },
@@ -3066,31 +3094,31 @@ const s = themedSheet((t) => ({
   cToolbarLeft: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1, minWidth: 0, overflow: 'hidden' },
   kindRow: { flexDirection: 'row', gap: 8, marginBottom: 12, alignItems: 'center' },
   kindChip: { flexDirection: 'row', alignItems: 'center', gap: 6, height: 34, paddingHorizontal: 12, borderRadius: 12, backgroundColor: t.surface.raised, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline, flexShrink: 0 },
-  kindChipOn: { backgroundColor: NAVY, borderColor: NAVY },
+  kindChipOn: { backgroundColor: t.ink.primary, borderColor: t.ink.primary },
   kindChipGold: { backgroundColor: 'rgba(201,191,176,0.30)', borderColor: t.brand.warm },
   kindChipGoldOn: { backgroundColor: 'rgba(201,191,176,0.55)' },
-  kindTxt: { fontSize: 12.5, fontWeight: '600', color: 'rgba(11,30,61,0.7)' },
+  kindTxt: { fontSize: 12.5, fontWeight: '600', color: t.ink.secondary },
   kindTxtOn: { color: t.ink.inverse },
-  audChip: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight:30,paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, borderWidth: 1, borderColor: '#E4DED3', backgroundColor: '#F5F1E9' },
-  audChipTxt: { fontSize: 12, fontWeight: '700', color: NAVY },
+  audChip: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight:30,paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999, borderWidth: 1, borderColor: t.surface.hairline, backgroundColor: t.brand.tintBg },
+  audChipTxt: { fontSize: 12, fontWeight: '700', color: t.ink.primary },
   cToolbarRight: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 0 },
   toolBtn: { width: 40, height: 40, borderRadius: 12, backgroundColor: t.surface.raised, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline, alignItems: 'center', justifyContent: 'center' },
-  toolCap: { fontSize: 9.5, fontWeight: '600', color: 'rgba(11,30,61,0.5)', marginTop: 3 },
+  toolCap: { fontSize: 9.5, fontWeight: '600', color: t.ink.secondary, marginTop: 3 },
   toolBtnActive: { backgroundColor: t.status.linkBg, borderColor: '#BFDBFE' },
   mediaCount: { fontSize: 12, color: t.ink.muted, fontWeight: '600' },
   cancelBtn: { backgroundColor: t.surface.raised, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 9 },
   cancelTxt: { color: t.ink.secondary, fontSize: 14, fontWeight: '500' },
-  postBtn: { backgroundColor: NAVY, borderRadius: 14, paddingHorizontal: 20, minHeight:44, minWidth: 80, alignItems: 'center',justifyContent:'center' },
+  postBtn: { backgroundColor: t.ink.primary, borderRadius: 14, paddingHorizontal: 20, minHeight:44, minWidth: 80, alignItems: 'center',justifyContent:'center' },
   postBtnOff: { opacity: 0.3 },
   postBtnTxt: { color: t.ink.inverse, fontSize: 14, fontWeight: '700' },
   fabRing: { position: 'absolute', right: 18, width: 62, height: 62, borderRadius: 31, borderWidth: 1.5, borderColor: 'rgba(201,191,176,0.9)', alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent' },
-  fabDisc: { width: 52, height: 52, borderRadius: 26, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', shadowColor: t.ink.primary, shadowOpacity: 0.28, shadowRadius: 14, shadowOffset: { width: 0, height: 5 }, elevation: 9 },
+  fabDisc: { width: 52, height: 52, borderRadius: 26, backgroundColor: t.ink.primary, alignItems: 'center', justifyContent: 'center', shadowColor: t.ink.primary, shadowOpacity: 0.28, shadowRadius: 14, shadowOffset: { width: 0, height: 5 }, elevation: 9 },
   
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, paddingTop: 60 },
   emptyTitle: { fontSize: 20, fontWeight: '700', color: t.ink.primary, textAlign: 'center' },
   emptySub: { marginTop: 8, fontSize: 14, lineHeight: 20, color: t.ink.muted, textAlign: 'center' },
-  emptyBtn: { marginTop: 20, backgroundColor: NAVY, borderRadius: 14, paddingHorizontal: 24, paddingVertical: 12 },
+  emptyBtn: { marginTop: 20, backgroundColor: t.ink.primary, borderRadius: 14, paddingHorizontal: 24, paddingVertical: 12 },
   emptyBtnTxt: { color: t.ink.inverse, fontSize: 15, fontWeight: '600' },
   menuOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
   menuSheet: { backgroundColor: t.surface.canvas, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 10, paddingBottom: 32, paddingHorizontal: 16 },

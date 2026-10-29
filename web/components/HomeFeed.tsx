@@ -59,6 +59,7 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
   const load = useCallback((more = false, background = false) => controller.load(more, background), [controller]);
   const setMode = (value: FeedMode) => controller.setMode(value);
   const [quote, setQuote] = useState<{ id: string; author: string; text: string } | null>(null);
+  const [composerGeneration, setComposerGeneration] = useState(0);
   const router = useRouter();
   // The ads wizard's format tiles land here: open the composer set to the
   // chosen kind, and after posting go back to the wizard with the post picked.
@@ -92,6 +93,7 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
       const next = session?.user.id ?? null;
       if (next !== uidRef.current) {
         uidRef.current = next; seenPendingRef.current.clear(); seenSentRef.current.clear();
+        setComposerGeneration(value => value + 1); setQuote(null); setComposeKind(undefined); thenPromote.current = false;
         controller.setOwner(next);
         queueMicrotask(() => { if (next) router.refresh(); else router.replace('/login'); });
       }
@@ -203,7 +205,7 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
     <div>
       <AnnouncementBanner />
       <StoryRings />
-      <Composer initialKind={composeKind} onPosted={(id) => { load(false); if (id && thenPromote.current) router.push("/ads/new?post=" + id); }} quote={quote} onQuoteDone={() => setQuote(null)} />
+      {state.owner ? <Composer key={state.owner + ':' + composerGeneration} ownerId={state.owner} initialKind={composeKind} onPosted={(id) => { load(false); if (id && thenPromote.current) router.push("/ads/new?post=" + id); }} quote={quote} onQuoteDone={() => setQuote(null)} /> : null}
 
       {/* Mode tabs: the active indicator is a pearl set in a ring, echoing the
           mark itself, instead of a plain underline. */}

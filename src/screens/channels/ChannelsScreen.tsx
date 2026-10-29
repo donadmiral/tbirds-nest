@@ -1,4 +1,4 @@
-import { themedSheet } from '../../theme/useTheme';
+import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ActivityIndicator, Modal, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
@@ -19,6 +19,7 @@ function initials(name?: string | null) {
 }
 
 export default function ChannelsScreen() {
+  useTheme();
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const [tab, setTab] = useState<'channels' | 'communities'>('channels');
@@ -215,7 +216,7 @@ export default function ChannelsScreen() {
       </View>
       <View style={s.searchWrap}>
         <Feather name="search" size={15} color="#8E8E93" />
-        <TextInput style={s.searchInput} placeholder={tab === 'channels' ? 'Search channels' : 'Search communities'} placeholderTextColor="#8E8E93" value={query} onChangeText={setQuery} autoCapitalize="none" autoCorrect={false} />
+        <TextInput style={s.searchInput} placeholder={tab === 'channels' ? 'Search channels' : 'Search communities'} placeholderTextColor={getTheme().ink.secondary} value={query} onChangeText={setQuery} autoCapitalize="none" autoCorrect={false} />
         {query.length > 0 ? <TouchableOpacity onPress={() => setQuery('')}><Feather name="x-circle" size={16} color="#C7C7CC" /></TouchableOpacity> : null}
       </View>
       {loading ? (
@@ -349,8 +350,8 @@ const s = themedSheet((t) => ({
   tabChipOn: { backgroundColor: NAVY },
   tabTxt: { fontSize: 13.5, fontWeight: '700', color: '#5B6B84' },
   tabTxtOn: { color: t.ink.inverse },
-  searchWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#F2F2F7', borderRadius: 12, marginHorizontal: 16, marginTop: 0, marginBottom: 8, paddingHorizontal: 12, paddingVertical: 9 },
-  searchInput: { flex: 1, fontSize: 15, color: '#0F1419', padding: 0 },
+  searchWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: t.surface.sunken, borderRadius: 12, marginHorizontal: 16, marginTop: 0, marginBottom: 8, paddingHorizontal: 12, minHeight: 48 },
+  searchInput: { flex: 1, minWidth: 0, minHeight: 48, fontSize: 16, color: t.ink.primary, paddingHorizontal: 0, paddingVertical: 10, includeFontPadding: false, textAlignVertical: 'center' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, paddingBottom: 60, paddingHorizontal: 40 },
   emptyTitle: { fontSize: 15.5, fontWeight: '700', color: '#0F1419' },
   emptySub: { fontSize: 13, color: '#8E8E93', textAlign: 'center' },

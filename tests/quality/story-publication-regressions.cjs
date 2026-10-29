@@ -255,3 +255,9 @@ test('mention lookup failure creates no partial story and remains retryable', as
   const h=harness({drafts:[draft('a',{caption:'Hello @musa'})],responses:{profiles:[{data:null,error:{message:'offline'}}]}});
   await h.render().publishAll();assert.equal(tableCalls(h,'stories').length,0);assert.equal(h.drafts[0].uploadState,'error');
 });
+
+test('native reply controls are stored in the original story insert for each clip and default to allowed', async () => {
+  const h = harness({ drafts: [draft('off', { allowReplies: false }), draft('default')] });
+  await h.render().publishAll();
+  const inserts = tableCalls(h, 'stories'); assert.equal(inserts.length,2); assert.equal(inserts[0].row.allow_replies,false); assert.equal(inserts[1].row.allow_replies,true);
+});

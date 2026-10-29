@@ -13,6 +13,7 @@ import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { AdjustOverlay, BgLayer, DrawSvg, EngineSticker, animStyle, extraFontCss, STICKER_ANIM_CSS } from "@/components/StoryEngine";
 
+import { SharedPostStory } from "./SharedPostStory";
 import { stickerCss } from "./storyTextAppearance";
 
 import { currentTextMentions } from "../../shared/storyMentions";
@@ -110,50 +111,7 @@ function StickerLayer({ stickers, clock, storyId, isOwn, paused }: { stickers: S
             </a>
           );
         }
-        if (kind === "post" && st.postId) {
-          // Author, uncropped media, caption and a clear post action match the viewing board.
-          // The phone stores the carousel count alongside the shared media.
-          const ps: any = st;
-          const dt = ps.postCreatedAt ? new Date(ps.postCreatedAt) : null;
-          const dateStr = dt && !isNaN(dt.getTime()) ? dt.toLocaleDateString(undefined, { month: "short", day: "numeric" }) : null;
-          const badgeColor = ps.postVerified ? (TIER_COLORS[ps.postVerifiedTier] || TIER_COLORS.official) : null;
-          const isVideo = ps.postMediaType === "video";
-          return (
-            <a key={st.id} href={"/post/" + st.postId} style={{ ...pos, width: "86%", maxWidth: "86%" }} className="pointer-events-auto block overflow-hidden rounded-[20px] bg-white text-left shadow-2xl" aria-label={"View post by " + (ps.postAuthorName || ps.postUsername || "this creator")}>
-              <span className="flex items-center gap-2.5 px-4 py-3.5">
-                {ps.postAuthorAvatar ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={ps.postAuthorAvatar} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover" />
-                ) : (
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-navy text-[13px] font-semibold text-white">{(ps.postAuthorName || "?").charAt(0).toUpperCase()}</span>
-                )}
-                <span className="min-w-0">
-                  <span className="flex items-center gap-1 text-[15px] font-bold leading-tight text-[#0B1E3D]">
-                    <span className="truncate">{ps.postAuthorName || "Post"}</span>
-                    {badgeColor ? <BadgeCheck size={14} style={{ color: badgeColor, flexShrink: 0 }} /> : null}
-                  </span>
-                  <span className="block truncate text-[12.5px] text-[#687387]">{ps.postUsername ? "@" + ps.postUsername : ""}{ps.postUsername && dateStr ? " \u00B7 " : ""}{dateStr || ""}</span>
-                </span>
-              </span>
-              {ps.postMediaUrl ? (
-                <span className="relative block w-full overflow-hidden bg-[#0B1E3D]" style={{ height: "clamp(140px, 38dvh, 330px)" }}>
-                  {!isVideo ? <img aria-hidden alt="" src={ps.postMediaUrl} className="pointer-events-none absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-xl" /> : null}
-                  {isVideo ? (
-                    <SharedStoryVideo src={ps.postMediaUrl} paused={paused} />
-                  ) : (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={ps.postMediaUrl} alt="Shared post" className="relative h-full w-full object-contain" />
-                  )}
-                  {Number(ps.postMediaCount) > 1 ? <span className="absolute right-2.5 top-2.5 rounded-full bg-black/65 px-2.5 py-1 text-[11px] font-bold text-white">1/{Math.floor(Number(ps.postMediaCount))}</span> : null}
-                  {isVideo ? <span className="absolute bottom-3 right-3 rounded-full bg-black/60 p-2 text-white"><VolumeX size={14} /></span> : null}
-                </span>
-              ) : null}
-              {ps.postArticleTitle ? <span className="block px-4 pt-3 text-[16px] font-bold leading-snug text-[#0B1E3D]">{ps.postArticleTitle}</span> : null}
-              {ps.postText ? <span className="line-clamp-3 px-4 py-3 text-[14px] leading-snug text-[#0B1E3D]">{ps.postText}</span> : null}
-              <span className="mx-4 mb-4 mt-1 flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-[#0B1E3D] px-4 py-3 text-center text-[15px] font-semibold text-white">View post <ChevronRight size={18} /></span>
-            </a>
-          );
-        }
+        if (kind === "post" && st.postId) return <SharedPostStory key={st.id} sticker={st} paused={paused} />;
         if (kind === "question") return <div key={st.id} style={{ ...pos, maxWidth: "none" }}><QuestionCard st={st} storyId={storyId} isOwn={isOwn} /></div>;
         if (kind === "quiz") return <div key={st.id} style={{ ...pos, maxWidth: "none" }}><QuizCard st={st} storyId={storyId} isOwn={isOwn} /></div>;
         if (kind === "slider") return <div key={st.id} style={{ ...pos, maxWidth: "none" }}><SliderCard st={st} storyId={storyId} isOwn={isOwn} /></div>;
@@ -730,6 +688,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
             {!mediaReady && story.media_url ? (
               <span className="absolute inset-0 z-[1] animate-pulse bg-white/[0.06]" aria-hidden />
             ) : null}
+            {story.media_type === "text" ? (() => { const sharedPhoto = story.stickers_json?.find(s => s.kind === "post" && s.postMediaType !== "video" && s.postMediaUrl)?.postMediaUrl; return sharedPhoto ? <div className="pointer-events-none absolute inset-0"><img src={sharedPhoto} alt="" className="h-full w-full scale-110 object-cover blur-2xl" /><div className="absolute inset-0 bg-black/50" /></div> : null; })() : null}
             {story.media_transform?.bg && story.media_transform?.fit === "contain" ? (
               <div className="pointer-events-none absolute inset-0 z-0"><BgLayer bg={story.media_transform.bg} mediaUrl={story.media_type === "image" ? story.media_url : null} /></div>
             ) : null}

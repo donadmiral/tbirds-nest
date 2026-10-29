@@ -2,12 +2,15 @@
 import {useEffect,useRef,useState} from 'react';
 import {getSoundtrack} from '@/lib/soundtrack';
 import {readSoundtrack,soundtrackTime,type SoundtrackSelection,type SoundtrackUse,type SoundtrackClock} from '../../shared/soundtrack';
-export function PostSoundtrack({selection,use='post',active=true,clock,className='',autoPlay=false}:{selection:SoundtrackSelection|null|undefined;use?:SoundtrackUse;active?:boolean;clock?:SoundtrackClock;className?:string;autoPlay?:boolean}) {
+export function PostSoundtrack({selection,use='post',active=true,clock,className='',autoPlay=false,controls=true}:{selection:SoundtrackSelection|null|undefined;use?:SoundtrackUse;active?:boolean;clock?:SoundtrackClock;className?:string;autoPlay?:boolean;controls?:boolean}) {
  const [playing,setPlaying]=useState(autoPlay),[error,setError]=useState<string|null>(null),[attempt,setAttempt]=useState(0);
  const selectedValue=readSoundtrack(selection);
  const ref=useRef<HTMLAudioElement|null>(null),inputs=useRef({active,clock,playing,selection:selectedValue});inputs.current={active,clock,playing,selection:selectedValue};
  const key=selectedValue?.soundId??'';
  const [requestedKey,setRequestedKey]=useState(active&&autoPlay?key:null);
+ // A preview with shared controls follows the parent's play/pause state.
+ // A call may stop local playback; the next deliberate video play must resume it.
+ useEffect(()=>{if(autoPlay&&!controls)setPlaying(active&&(!clock||clock.playing));},[autoPlay,controls,active,clock?.playing,key]);
  useEffect(()=>{if(active&&playing)setRequestedKey(key);},[active,playing,key]);
  useEffect(()=>{
   const selected=requestedKey===key?inputs.current.selection:null;let disposed=false,audio:HTMLAudioElement|null=null,rights:ReturnType<typeof setInterval>|undefined,timer:ReturnType<typeof setInterval>|undefined,blocked=false,limits:{duration_sec:number;max_excerpt_sec:number}|null=null;
@@ -29,6 +32,7 @@ export function PostSoundtrack({selection,use='post',active=true,clock,className
  },[key,use,attempt,requestedKey]);
  useEffect(()=>{if(!active||!playing||clock?.playing===false)ref.current?.pause();},[active,playing,clock?.playing]);
  if(!readSoundtrack(selection))return null;
+ if(!controls)return error?<div className={className}><button type="button" onClick={()=>{setAttempt(n=>n+1);setError(null);setPlaying(true);}} className="rounded-lg bg-black/80 px-3 py-2 text-sm text-white">{error} Retry</button></div>:null;
  return <div className={className}><button type="button" className="rounded-full bg-black/70 px-3 py-1.5 text-xs text-white" onClick={e=>{e.stopPropagation();if(document.documentElement.dataset.platinumCallActive==='true')return;if(error){setAttempt(n=>n+1);setError(null);}else if(!playing&&active&&(!clock||clock.playing)){void ref.current?.play().catch(()=>{});}setPlaying(v=>!v);}}>{playing?'Pause music':'Play music'}</button>{error?<span role="status" className="ml-2 rounded bg-black/80 px-2 text-xs text-white">{error}</span>:null}</div>;
 }
 export default PostSoundtrack;

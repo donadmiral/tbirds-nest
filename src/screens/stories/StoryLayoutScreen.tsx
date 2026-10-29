@@ -12,10 +12,10 @@
  * moves on. No native rendering layer, no new dependency (react-native-view-shot
  * is already installed).
  */
-import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, Dimensions, ActivityIndicator, Alert, ScrollView, PanResponder } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { View, Text, TouchableOpacity, Image, StyleSheet, ActivityIndicator, Alert, ScrollView, PanResponder, useWindowDimensions, Linking, AppState } from 'react-native';
 import { useSafeAreaInsets } from '../../components/SafeArea';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation, useRoute } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import ViewShot, { captureRef } from 'react-native-view-shot';
 import { Feather } from '@expo/vector-icons';
@@ -40,33 +40,54 @@ const TEMPLATES: Template[] = [
 
 const SEAM = 3;            // white line between slots, in frame points
 const MAX_SCALE = 3;
-const WIN = Dimensions.get('window');
 
 export default function StoryLayoutScreen() {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+  const focused = useIsFocused();
+  const focusRef = useRef(focused); focusRef.current = focused;
+  const WIN = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const shotRef = useRef<View | null>(null);
   const [tpl, setTpl] = useState<Template>(TEMPLATES[6]);
   const [fills, setFills] = useState<Fill[]>(Array(TEMPLATES[6].slots.length).fill(null));
   const [active, setActive] = useState(0);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState(false), [picking, setPicking] = useState(false);
+  const [loaded, setLoaded] = useState<Record<number, string>>({}), [failed, setFailed] = useState<Record<number, string>>({});
+  const mounted = useRef(true), generation = useRef(0), pickerLock = useRef(false), exportLock = useRef(false);
+  const fillsRef = useRef(fills); fillsRef.current = fills;
+  const current = (run: number) => mounted.current && focusRef.current && run === generation.current;
+  const invalidate = useCallback(() => { generation.current++; pickerLock.current = false; exportLock.current = false; if (mounted.current) { setPicking(false); setBusy(false); } }, []);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; generation.current++; }; }, []);
+  useEffect(() => { if (!focused) invalidate(); }, [focused, invalidate]);
+  useEffect(() => { const sub = AppState.addEventListener('change', state => { if (state === 'background') invalidate(); }); return () => sub.remove(); }, [invalidate]);
+  const imageReady = (index: number, uri: string, success: boolean) => {
+    if (!mounted.current || fillsRef.current[index]?.uri !== uri) return;
+    if (success) { setLoaded(values => ({ ...values, [index]: uri })); setFailed(values => { const next = { ...values }; delete next[index]; return next; }); }
+    else { setFailed(values => ({ ...values, [index]: uri })); setLoaded(values => { const next = { ...values }; delete next[index]; return next; }); }
+  };
 
   // Frame: full width, 9:16, sized to what is left between the top bar and the
   // control deck so every control stays on screen on every phone.
   const topBarH = insets.top + 52;
   const deckH = 132 + Math.max(insets.bottom, 12);
-  const availH = WIN.height - topBarH - deckH;
+  const availH = Math.max(1, WIN.height - topBarH - deckH);
   const frameW = Math.min(WIN.width, Math.floor(availH * 9 / 16));
   const frameH = Math.floor(frameW * 16 / 9);
 
   const firstEmpty = useMemo(() => fills.findIndex(f => !f), [fills]);
   const complete = firstEmpty === -1;
+  const allReady = complete && fills.every((fill, i) => fill && loaded[i] === fill.uri);
+  const imageFailed = fills.some((fill, i) => fill && failed[i] === fill.uri);
 
   const chooseTemplate = (t: Template) => {
+    if (pickerLock.current || exportLock.current) return;
     // Photos keep their order across templates; extra photos are dropped only
     // if the person confirms.
     const drop = fills.filter((f, i) => f && i >= t.slots.length).length;
     const apply = () => {
+      if (!mounted.current || !focusRef.current || pickerLock.current || exportLock.current) return;
+      generation.current++; setLoaded({}); setFailed({});
       setTpl(t);
       setFills(cur => Array.from({ length: t.slots.length }, (_, i) => (cur[i] ? { ...cur[i]!, scale: 1, tx: 0, ty: 0 } : null)));
       setActive(0);
@@ -76,6 +97,7 @@ export default function StoryLayoutScreen() {
   };
 
   const setSlot = useCallback((i: number, uri: string | null) => {
+    if (!mounted.current || !focusRef.current || exportLock.current) return;
     setFills(cur => {
       const out = cur.map((f, j) => (j === i ? (uri ? { uri, scale: 1, tx: 0, ty: 0 } : null) : f));
       if (uri) {
@@ -89,28 +111,33 @@ export default function StoryLayoutScreen() {
   }, []);
 
   const fromCamera = useCallback(async (i: number) => {
+    if (pickerLock.current || exportLock.current || !focusRef.current) return;
+    pickerLock.current = true; setPicking(true); const run = generation.current;
     try {
-      const perm = await ImagePicker.requestCameraPermissionsAsync();
-      if (!perm.granted) { Alert.alert('Camera off', 'Allow camera access to shoot into this slot.'); return; }
-      const res = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'] as any, quality: 0.92 });
-      const a = res?.assets?.[0]; if (a?.uri) setSlot(i, a.uri);
-    } catch {}
+      const permission = await ImagePicker.requestCameraPermissionsAsync(); if (!current(run)) return;
+      if (!permission.granted) { Alert.alert('Camera access needed', 'Allow camera access to take a photo for this layout.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Open settings', onPress: () => { void Linking.openSettings(); } }]); return; }
+      const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 1 });
+      if (current(run) && !result.canceled && result.assets?.[0]?.uri) setSlot(i, result.assets[0].uri);
+    } catch { if (current(run)) Alert.alert('Photo could not open', 'Try again, or choose a photo from your library.'); }
+    finally { if (current(run)) { pickerLock.current = false; setPicking(false); } }
   }, [setSlot]);
 
   const fromLibrary = useCallback(async (i: number, bulk: boolean) => {
+    if (pickerLock.current || exportLock.current || !focusRef.current) return;
+    pickerLock.current = true; setPicking(true); const run = generation.current;
     try {
-      const emptyIdx = fills.map((f, j) => (!f ? j : -1)).filter(j => j >= 0);
-      const limit = bulk ? Math.max(1, emptyIdx.length) : 1;
-      const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'] as any, quality: 0.92, allowsMultipleSelection: limit > 1, selectionLimit: limit, orderedSelection: true } as any);
-      const assets = (res?.assets || []).filter(a => !!a?.uri);
-      if (assets.length === 0) return;
+      const empty = fillsRef.current.filter(fill => !fill).length, limit = bulk ? Math.max(1, empty) : 1;
+      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 1, allowsMultipleSelection: limit > 1, selectionLimit: limit, orderedSelection: true });
+      if (!current(run) || result.canceled) return;
+      const assets = (result.assets || []).filter(asset => !!asset?.uri); if (!assets.length) return;
       if (!bulk || assets.length === 1) { setSlot(i, assets[0].uri); return; }
-      // Bulk: first photo fills the first empty slot, the second the next, and so on.
-      setFills(cur => { const out = cur.slice(); let k = 0; for (let j = 0; j < out.length && k < assets.length; j++) { if (!out[j]) { out[j] = { uri: assets[k].uri, scale: 1, tx: 0, ty: 0 }; k++; } } return out; });
-    } catch {}
-  }, [fills, setSlot]);
+      setFills(previous => { const next = previous.slice(); let k = 0; for (let j = 0; j < next.length && k < assets.length; j++) if (!next[j]) next[j] = { uri: assets[k++].uri, scale: 1, tx: 0, ty: 0 }; return next; });
+    } catch { if (current(run)) Alert.alert('Photos could not open', 'Please try choosing the photos again.'); }
+    finally { if (current(run)) { pickerLock.current = false; setPicking(false); } }
+  }, [setSlot]);
 
   const slotMenu = useCallback((i: number) => {
+    if (pickerLock.current || exportLock.current) return;
     const has = !!fills[i];
     setActive(i);
     Alert.alert(has ? 'Photo ' + (i + 1) : 'Slot ' + (i + 1), undefined, [
@@ -122,51 +149,59 @@ export default function StoryLayoutScreen() {
   }, [fills, fromCamera, fromLibrary, setSlot]);
 
   const done = async () => {
-    if (!complete) { Alert.alert('Fill every slot', 'Tap an empty slot, or use Camera and Gallery below, until the layout is full.'); return; }
-    setBusy(true);
+    if (exportLock.current || pickerLock.current || !allReady || !focusRef.current) return;
+    exportLock.current = true; setBusy(true); const run = generation.current;
     try {
-      const uri = await captureRef(shotRef, { format: 'jpg', quality: 0.95, width: 1080, height: 1920 });
-      navigation.replace('StoryComposer', { mode: 'image', assets: [{ localUri: uri, mediaType: 'image' as const, width: 1080, height: 1920 }] });
-    } catch (e: any) {
-      Alert.alert('Could not build the layout', e?.message || 'Try again.');
-    } finally { setBusy(false); }
+      // Hide editing rings and allow the decoded images to paint before snapshotting.
+      await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      if (!current(run)) return;
+      let timeout: ReturnType<typeof setTimeout> | undefined;
+      let uri: string;
+      try { uri = await Promise.race([captureRef(shotRef, { format: 'jpg', quality: 1, width: 1080, height: 1920, result: 'tmpfile' }), new Promise<never>((_, reject) => { timeout = setTimeout(() => reject(new Error('The layout took too long to render. Please retry.')), 15000); })]); }
+      finally { if (timeout !== undefined) clearTimeout(timeout); }
+      if (!current(run)) return;
+      if (!uri) throw new Error('The layout renderer returned no image.');
+      navigation.replace('StoryComposer', { ...route.params, mode: 'image', assets: [{ uri, localUri: uri, type: 'image', mediaType: 'image', width: 1080, height: 1920 }] });
+    } catch (e: any) { if (current(run)) Alert.alert('Could not build the layout', e?.message || 'Try again.'); }
+    finally { if (current(run)) { exportLock.current = false; setBusy(false); } }
   };
 
   return (
     <View style={s.root}>
       {/* Top bar */}
       <View style={[s.top, { paddingTop: insets.top + 8, height: topBarH }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} style={s.roundBtn} accessibilityLabel="Close"><Feather name="x" size={20} color="#FFFFFF" /></TouchableOpacity>
+        <TouchableOpacity onPress={() => { invalidate(); navigation.goBack(); }} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} style={s.roundBtn} accessibilityLabel="Close"><Feather name="x" size={20} color="#FFFFFF" /></TouchableOpacity>
         <Text style={s.title}>Layout</Text>
-        <TouchableOpacity onPress={done} disabled={busy || !complete} style={[s.next, (!complete || busy) && { opacity: 0.45 }]} accessibilityLabel="Continue">
+        <TouchableOpacity onPress={done} disabled={busy || picking || !allReady} style={[s.next, (!allReady || busy || picking) && { opacity: 0.45 }]} accessibilityLabel="Continue">
           {busy ? <ActivityIndicator color="#0B1E3D" size={14} /> : <><Text style={s.nextTxt}>Next</Text><Feather name="arrow-right" size={14} color="#0B1E3D" /></>}
         </TouchableOpacity>
       </View>
 
       {/* Frame */}
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <ViewShot ref={shotRef as any} style={[s.frame, { width: frameW, height: frameH }]} options={{ format: 'jpg', quality: 0.95 }}>
+        <ViewShot ref={shotRef as any} style={[s.frame, { width: frameW, height: frameH }]} options={{ format: 'jpg', quality: 1 }}>
           {tpl.slots.map((c, i) => {
             const left = Math.round(c.x * frameW) + (c.x > 0.001 ? SEAM / 2 : 0);
             const top = Math.round(c.y * frameH) + (c.y > 0.001 ? SEAM / 2 : 0);
             const width = Math.round(c.w * frameW) - (c.x > 0.001 ? SEAM / 2 : 0) - (c.x + c.w < 0.999 ? SEAM / 2 : 0);
             const height = Math.round(c.h * frameH) - (c.y > 0.001 ? SEAM / 2 : 0) - (c.y + c.h < 0.999 ? SEAM / 2 : 0);
             return (
-              <SlotView key={tpl.key + '_' + i} index={i} left={left} top={top} width={width} height={height} fill={fills[i]} isActive={i === active}
+              <SlotView key={tpl.key + '_' + i} index={i} left={left} top={top} width={width} height={height} fill={fills[i]} isActive={!busy && i === active} locked={busy || picking} onReady={(uri, success) => imageReady(i, uri, success)}
                 onTap={() => slotMenu(i)}
-                onTransform={(scale, tx, ty) => setFills(cur => cur.map((f, j) => (j === i && f ? { ...f, scale, tx, ty } : f)))} />
+                onTransform={(scale, tx, ty) => { if (!exportLock.current) setFills(cur => cur.map((f, j) => (j === i && f ? { ...f, scale, tx, ty } : f))); }} />
             );
           })}
         </ViewShot>
       </View>
 
+      {complete && !allReady ? <Text accessibilityRole={imageFailed ? 'alert' : 'text'} style={{color:'#FFF',fontSize:12,textAlign:'center',paddingHorizontal:18,paddingVertical:8}}>{imageFailed ? 'A photo could not load. Tap its slot to replace it.' : 'Loading your photos…'}</Text> : null}
       {/* Control deck */}
       <View style={[s.deck, { paddingBottom: Math.max(insets.bottom, 12) }]}>
         <View style={s.actions}>
-          <TouchableOpacity onPress={() => fromCamera(firstEmpty === -1 ? active : firstEmpty)} style={s.actionBtn} activeOpacity={0.85} accessibilityLabel="Take a photo into the next slot">
+          <TouchableOpacity disabled={busy || picking} onPress={() => fromCamera(firstEmpty === -1 ? active : firstEmpty)} style={s.actionBtn} activeOpacity={0.85} accessibilityLabel="Take a photo into the next slot">
             <Feather name="camera" size={17} color="#FFFFFF" /><Text style={s.actionTxt}>Camera</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => fromLibrary(firstEmpty === -1 ? active : firstEmpty, true)} style={s.actionBtn} activeOpacity={0.85} accessibilityLabel="Choose photos from the library">
+          <TouchableOpacity disabled={busy || picking} onPress={() => fromLibrary(firstEmpty === -1 ? active : firstEmpty, true)} style={s.actionBtn} activeOpacity={0.85} accessibilityLabel="Choose photos from the library">
             <Feather name="image" size={17} color="#FFFFFF" /><Text style={s.actionTxt}>Gallery</Text>
           </TouchableOpacity>
           <Text style={s.count}>{fills.filter(Boolean).length}/{tpl.slots.length}</Text>
@@ -175,7 +210,7 @@ export default function StoryLayoutScreen() {
           {TEMPLATES.map(t => {
             const on = t.key === tpl.key;
             return (
-              <TouchableOpacity key={t.key} onPress={() => chooseTemplate(t)} style={[s.tplBtn, on && s.tplBtnOn]} activeOpacity={0.8} accessibilityLabel={t.label}>
+              <TouchableOpacity key={t.key} disabled={busy || picking} onPress={() => chooseTemplate(t)} style={[s.tplBtn, on && s.tplBtnOn]} activeOpacity={0.8} accessibilityLabel={t.label}>
                 <View style={s.mini}>
                   {t.slots.map((c, i) => <View key={i} style={{ position: 'absolute', left: c.x * 30 + 1, top: c.y * 52 + 1, width: c.w * 30 - 2, height: c.h * 52 - 2, borderRadius: 1.5, backgroundColor: on ? '#0B1E3D' : 'rgba(255,255,255,0.75)' }} />)}
                 </View>
@@ -191,11 +226,13 @@ export default function StoryLayoutScreen() {
 
 /* One slot: cover-fitted image, pan and pinch inside the slot, bounded so no
  * empty area ever shows. Tap (no movement) opens the slot menu. */
-function SlotView({ index, left, top, width, height, fill, isActive, onTap, onTransform }: {
-  index: number; left: number; top: number; width: number; height: number; fill: Fill; isActive: boolean;
+function SlotView({ index, left, top, width, height, fill, isActive, locked, onReady, onTap, onTransform }: {
+  index: number; left: number; top: number; width: number; height: number; fill: Fill; isActive: boolean; locked: boolean; onReady: (uri: string, success: boolean) => void;
   onTap: () => void; onTransform: (scale: number, tx: number, ty: number) => void;
 }) {
-  const [nat, setNat] = useState<{ w: number; h: number } | null>(null);
+  const [nat, setNat] = useState<{ uri: string; w: number; h: number } | null>(null);
+  const [failed, setFailed] = useState(false);
+  useEffect(() => { setFailed(false); }, [fill?.uri]);
   const cur = useRef({ scale: fill?.scale || 1, tx: fill?.tx || 0, ty: fill?.ty || 0 });
   const start = useRef({ scale: 1, tx: 0, ty: 0, dist: 0 });
   const moved = useRef(false);
@@ -209,10 +246,10 @@ function SlotView({ index, left, top, width, height, fill, isActive, onTap, onTr
 
   // Cover size at scale 1: the image fills the slot on both axes.
   const base = useMemo(() => {
-    if (!nat || !nat.w || !nat.h) return { w: width, h: height };
+    if (!nat || nat.uri !== fill?.uri || !nat.w || !nat.h) return { w: width, h: height };
     const k = Math.max(width / nat.w, height / nat.h);
     return { w: nat.w * k, h: nat.h * k };
-  }, [nat, width, height]);
+  }, [nat, fill?.uri, width, height]);
 
   const clamp = (scale: number, tx: number, ty: number) => {
     const sc = Math.max(1, Math.min(MAX_SCALE, scale));
@@ -221,12 +258,18 @@ function SlotView({ index, left, top, width, height, fill, isActive, onTap, onTr
     return { scale: sc, tx: Math.max(-maxX, Math.min(maxX, tx)), ty: Math.max(-maxY, Math.min(maxY, ty)) };
   };
 
+  const clampRef = useRef(clamp); clampRef.current = clamp;
+  const lockedRef = useRef(locked); lockedRef.current = locked;
   const fillRef = useRef(fill); fillRef.current = fill;
   const onTapRef = useRef(onTap); onTapRef.current = onTap;
   const onTransformRef = useRef(onTransform); onTransformRef.current = onTransform;
+  useEffect(() => {
+    const value = cur.current, next = clampRef.current(value.scale, value.tx, value.ty);
+    if (next.scale !== value.scale || next.tx !== value.tx || next.ty !== value.ty) { cur.current = next; force(n => n + 1); onTransformRef.current(next.scale, next.tx, next.ty); }
+  }, [base.w, base.h, width, height]);
   const pan = useRef(PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: (_e, g) => Math.abs(g.dx) > 3 || Math.abs(g.dy) > 3,
+    onStartShouldSetPanResponder: () => !lockedRef.current,
+    onMoveShouldSetPanResponder: (_e, g) => !lockedRef.current && (Math.abs(g.dx) > 3 || Math.abs(g.dy) > 3),
     onPanResponderTerminationRequest: () => false,
     onPanResponderGrant: (e) => {
       moved.current = false;
@@ -236,24 +279,25 @@ function SlotView({ index, left, top, width, height, fill, isActive, onTap, onTr
     },
     onPanResponderMove: (e, g) => {
       const t = e.nativeEvent.touches;
-      if (!fillRef.current) return;
+      if (!fillRef.current || lockedRef.current) return;
       if (t && t.length >= 2) {
         const d = Math.hypot(t[0].pageX - t[1].pageX, t[0].pageY - t[1].pageY);
         if (!start.current.dist) { start.current.dist = d; start.current.scale = cur.current.scale; }
-        const next = clamp(start.current.scale * (d / start.current.dist), start.current.tx + g.dx, start.current.ty + g.dy);
+        const next = clampRef.current(start.current.scale * (d / start.current.dist), start.current.tx + g.dx, start.current.ty + g.dy);
         cur.current = next; moved.current = true; force(x => x + 1);
         return;
       }
       if (Math.abs(g.dx) > 3 || Math.abs(g.dy) > 3) {
-        const next = clamp(start.current.scale, start.current.tx + g.dx, start.current.ty + g.dy);
+        const next = clampRef.current(start.current.scale, start.current.tx + g.dx, start.current.ty + g.dy);
         cur.current = next; moved.current = true; force(x => x + 1);
       }
     },
     onPanResponderRelease: () => {
+      if (lockedRef.current) return;
       if (!moved.current) { onTapRef.current(); return; }
       onTransformRef.current(cur.current.scale, cur.current.tx, cur.current.ty);
     },
-    onPanResponderTerminate: () => { if (moved.current) onTransformRef.current(cur.current.scale, cur.current.tx, cur.current.ty); },
+    onPanResponderTerminate: () => { if (!lockedRef.current && moved.current) onTransformRef.current(cur.current.scale, cur.current.tx, cur.current.ty); },
   })).current;
 
   return (
@@ -261,7 +305,8 @@ function SlotView({ index, left, top, width, height, fill, isActive, onTap, onTr
       {fill ? (
         <Image
           source={{ uri: fill.uri }}
-          onLoad={(e: any) => { const src = e?.nativeEvent?.source; if (src?.width && src?.height) setNat({ w: src.width, h: src.height }); }}
+          onLoad={(e: any) => { const src = e?.nativeEvent?.source; if (src?.width && src?.height) setNat({ uri: fill.uri, w: src.width, h: src.height }); setFailed(false); onReady(fill.uri, true); }}
+          onError={() => { setFailed(true); onReady(fill.uri, false); }}
           style={{ position: 'absolute', width: base.w, height: base.h, left: (width - base.w) / 2, top: (height - base.h) / 2, transform: [{ translateX: cur.current.tx }, { translateY: cur.current.ty }, { scale: cur.current.scale }] }}
           resizeMode="cover" />
       ) : (
@@ -270,6 +315,7 @@ function SlotView({ index, left, top, width, height, fill, isActive, onTap, onTr
           <Text style={s.emptyTxt}>{index + 1}</Text>
         </View>
       )}
+      {fill && failed ? <View pointerEvents="none" style={s.empty}><Feather name="alert-circle" size={26} color="#FFF"/><Text style={{color:'#FFF',fontSize:12,textAlign:'center',padding:8}}>Photo could not load. Tap to replace.</Text></View> : null}
       {fill && isActive ? <View pointerEvents="none" style={s.activeRing} /> : null}
     </View>
   );

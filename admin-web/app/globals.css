@@ -396,3 +396,14 @@ input::placeholder, textarea::placeholder { color: var(--txt-muted); opacity: 1;
 @media (pointer: coarse) {
   .pc-side-rail nav a, .pc-side-rail .pc-icon-btn, .pc-topbar .pc-icon-btn, .pc-command-trigger { min-width: 44px; min-height: 44px; }
 }
+@media (max-width: 767px) {
+  input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]), textarea, select {
+    min-height: 44px;
+    min-width: 0;
+    max-width: 100%;
+    font-size: 16px;
+    line-height: 1.4;
+  }
+  .pc-desk-toolbar input, .pc-desk-toolbar select { font-size: 16px !important; min-height: 44px; }
+  .pc-desk-toolbar .pc-search { min-height: 48px; }
+}

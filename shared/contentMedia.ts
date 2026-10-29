@@ -107,10 +107,11 @@ async function bounded<T>(work: Promise<T>): Promise<T> {
 
 export type ContentMediaClient = {
   auth: {
-    getUser(): Promise<{ data: { user: { id: string } | null }; error: unknown }>;
-    getSession(): Promise<{ data: { session: { user: { id: string } } | null }; error: unknown }>;
+    getUser(jwt?: string): Promise<{ data: { user: { id: string } | null }; error: unknown }>;
+    getSession(): Promise<{ data: { session: { user: { id: string }; access_token: string } | null }; error: unknown }>;
+    onAuthStateChange?(callback: (event: string, session: { user: { id: string } } | null) => void): { data: { subscription: { unsubscribe(): void } } };
   };
-  functions: { invoke(name: string, options: { body: Record<string, unknown> }): Promise<{ data: unknown; error: unknown }> };
+  functions: { invoke(name: string, options: { body: Record<string, unknown>; headers?: Record<string, string> }): Promise<{ data: unknown; error: unknown }> };
 };
 
 export async function hydrateContentMedia<T>(client: ContentMediaClient, base: string, rows: T[], kind: ContentKind): Promise<T[]> {
@@ -131,26 +132,50 @@ export async function hydrateOwnerUploadMedia<T>(client: ContentMediaClient, bas
 }
 
 async function hydrateMediaBatches<T>(client: ContentMediaClient, base: string, rows: T[], batches: Record<string, unknown>[]): Promise<T[]> {
-  const { data: auth, error: authError } = await bounded(client.auth.getUser());
-  if (authError || !auth.user) throw new Error('Sign in again to view this media.');
-  const viewerId = auth.user.id;
-  const capabilities = new Map<string, string>();
-  let expiry = Infinity;
-  for (const body of batches) {
-    const { data, error } = await bounded(client.functions.invoke('content-media-sign', { body }));
-    if (error || !data || typeof data !== 'object') throw new Error('Media could not be loaded. Please try again.');
-    const result = data as { urls?: Array<{ key: string; url: string }>; expiresAt?: number };
-    if (!Array.isArray(result.urls) || typeof result.expiresAt !== 'number' || result.expiresAt <= Date.now()) throw new Error('Media access expired. Please try again.');
-    expiry = Math.min(expiry, result.expiresAt);
-    for (const item of result.urls) {
-      const object = typeof item.url === 'string' ? contentObject(item.url, base) : null;
-      if (object && object.key === item.key && isContentCapability(item.url, base)) capabilities.set(item.key, item.url);
-    }
-  }
-  const { data: session, error: sessionError } = await bounded(client.auth.getSession());
-  if (sessionError || session.session?.user.id !== viewerId) throw new Error('Your account changed. Reload this content.');
-  return rows.map(row => {
-    const safe = replaceContentMedia(row, base, capabilities);
-    return safe && typeof safe === 'object' ? { ...safe, _mediaExpiresAt: Number.isFinite(expiry) ? expiry : null } : safe;
+  const { data: initial, error: initialError } = await bounded(client.auth.getSession());
+  const viewerId = initial.session?.user.id, token = initial.session?.access_token;
+  if (initialError || !viewerId || !token) throw new Error('Sign in again to view this media.');
+  let accountChanged = false;
+  // Observe switches synchronously, including A -> B -> A while a request is
+  // pending. Never call another Auth method from this callback: it owns a lock.
+  const watcher = client.auth.onAuthStateChange?.((event, session) => {
+    if (event === 'SIGNED_OUT' || session?.user.id !== viewerId) accountChanged = true;
   });
+  const assertCurrent = () => { if (accountChanged) throw new Error('Your account changed. Reload this content.'); };
+  try {
+    // getUser() without a JWT holds the SDK's shared session lock while doing
+    // a network request. That blocked unrelated profile/posts/books queries
+    // before their fetch deadline even started. Verify the captured JWT with
+    // the server explicitly; this overload does not acquire that lock.
+    const { data: auth, error: authError } = await bounded(client.auth.getUser(token));
+    assertCurrent();
+    if (authError || !auth.user) throw new Error('Sign in again to view this media.');
+    if (auth.user.id !== viewerId) throw new Error('Your account changed. Reload this content.');
+    const capabilities = new Map<string, string>();
+    let expiry = Infinity;
+    for (const body of batches) {
+      assertCurrent();
+      // Sign for the same verified identity even if the shared client changes
+      // accounts while the request is in flight. The server still authorizes
+      // every reference; no canonical URL becomes a capability on the client.
+      const { data, error } = await bounded(client.functions.invoke('content-media-sign', { body, headers: { Authorization: `Bearer ${token}` } }));
+      assertCurrent();
+      if (error || !data || typeof data !== 'object') throw new Error('Media could not be loaded. Please try again.');
+      const result = data as { urls?: Array<{ key: string; url: string }>; expiresAt?: number };
+      if (!Array.isArray(result.urls) || typeof result.expiresAt !== 'number' || result.expiresAt <= Date.now()) throw new Error('Media access expired. Please try again.');
+      expiry = Math.min(expiry, result.expiresAt);
+      for (const item of result.urls) {
+        const object = typeof item.url === 'string' ? contentObject(item.url, base) : null;
+        if (object && object.key === item.key && isContentCapability(item.url, base)) capabilities.set(item.key, item.url);
+      }
+    }
+    const { data: session, error: sessionError } = await bounded(client.auth.getSession());
+    assertCurrent();
+    if (sessionError || session.session?.user.id !== viewerId) throw new Error('Your account changed. Reload this content.');
+    if (expiry <= Date.now()) throw new Error('Media access expired. Please try again.');
+    return rows.map(row => {
+      const safe = replaceContentMedia(row, base, capabilities);
+      return safe && typeof safe === 'object' ? { ...safe, _mediaExpiresAt: Number.isFinite(expiry) ? expiry : null } : safe;
+    });
+  } finally { watcher?.data.subscription.unsubscribe(); }
 }

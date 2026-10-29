@@ -13,7 +13,7 @@
  * - Snap: magnetic spring to center (not hard threshold)
  */
 
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Text, View, StyleSheet } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -34,6 +34,7 @@ import { StoryTextSticker, StoryStickerStyle } from '../../services/storiesServi
 import { stickerTextStyle } from '../../utils/stickerStyles';
 import StickerPill from './StickerPill';
 import PostStoryCard from './PostStoryCard';
+import { sharedPostFrame } from '../../../shared/storyPresentation';
 import StoryReshareCard, { STORY_CARD_W, STORY_CARD_H } from './StoryReshareCard';
 import CountdownStickerCard from './CountdownStickerCard';
 import AddYoursStickerCard from './AddYoursStickerCard';
@@ -271,7 +272,7 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
     if (isEmoji || isPill) {
       return { textStyle: { fontSize: isEmoji ? 44 : 13 }, wrapperStyle: {} as const };
     }
-    return stickerTextStyle(sticker.style, sticker.color, sticker.bgEnabled, sticker.fontSizeOverride);
+    return composedTextStyle(sticker.style, sticker.color, sticker.bgEnabled, sticker.fontSizeOverride);
   }, [isEmoji, isPill, sticker.style, sticker.color, sticker.bgEnabled, sticker.fontSizeOverride]);
 
   const stickerOpacityValue = (!isEmoji && !isPill && sticker.opacity !== undefined && sticker.opacity < 1)
@@ -737,9 +738,11 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
   // too, so their hit box follows the card, not the text-sticker default.
   const cellFw = sticker.kind === 'photo' && (sticker as any).photoShape === 'cell' ? Number((sticker as any).photoFw) || 0 : 0;
   const cellFh = sticker.kind === 'photo' && (sticker as any).photoShape === 'cell' ? Number((sticker as any).photoFh) || 0 : 0;
-  const cardHitH = cellFh ? Math.round(cellFh * containerH) : sticker.kind === 'story' ? STORY_CARD_H : sticker.kind === 'photo' ? 200 : sticker.kind === 'question' ? 150 : sticker.kind === 'slider' ? 140 : sticker.kind === 'quiz' ? 64 + 46 * Math.max(2, (sticker.quizOptions || []).length) : 0;
+  const [postMeasured, setPostMeasured] = useState<{ width: number; height: number } | null>(null);
+  const postFrame = sticker.kind === 'post' ? sharedPostFrame({ stageWidth: containerW, stageHeight: containerH, mediaWidth: sticker.postMediaWidth, mediaHeight: sticker.postMediaHeight, caption: sticker.postText, title: sticker.postArticleTitle, hasMedia: !!sticker.postMediaUrl }) : null;
+  const cardHitH = postFrame ? postMeasured?.height || postFrame.height : cellFh ? Math.round(cellFh * containerH) : sticker.kind === 'story' ? STORY_CARD_H : sticker.kind === 'photo' ? 200 : sticker.kind === 'question' ? 150 : sticker.kind === 'slider' ? 140 : sticker.kind === 'quiz' ? 64 + 46 * Math.max(2, (sticker.quizOptions || []).length) : 0;
   const baseHitH = cardHitH || (textMayWrap ? STICKER_HIT_H_WRAP : STICKER_HIT_H);
-  const hitW = Math.max(cellFw ? Math.round(cellFw * containerW) : cardHitH ? (sticker.kind === 'story' ? STORY_CARD_W : sticker.kind === 'photo' ? 200 : 270) : (textMaxWidth || STICKER_HIT_W), STICKER_HIT_W * sticker.scale);
+  const hitW = postFrame ? postMeasured?.width || postFrame.width : Math.max(cellFw ? Math.round(cellFw * containerW) : cardHitH ? (sticker.kind === 'story' ? STORY_CARD_W : sticker.kind === 'photo' ? 200 : 270) : (textMaxWidth || STICKER_HIT_W), STICKER_HIT_W * sticker.scale);
   const hitH = Math.max(baseHitH, baseHitH * sticker.scale);
 
 
@@ -798,7 +801,7 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
               <SupportStickerCard title={sticker.supportTitle || sticker.text} url={sticker.supportUrl} interactive={false} />
             ) : sticker.kind === 'story' ? (              <StoryReshareCard sticker={sticker} />
             ) : sticker.kind === 'post' ? (
-              <PostStoryCard sticker={sticker} />
+              <View onLayout={event => { const { width, height } = event.nativeEvent.layout; if (width > 0 && height > 0) setPostMeasured(current => current && Math.abs(current.width - width) < 1 && Math.abs(current.height - height) < 1 ? current : { width, height }); }}><PostStoryCard sticker={sticker} stageWidth={containerW} stageHeight={containerH} /></View>
             ) : sticker.kind === 'question' ? (
               <QuestionStickerCard prompt={sticker.questionPrompt || sticker.text} interactive={false} isOwn={true} responseCount={0} />
             ) : sticker.kind === 'slider' ? (

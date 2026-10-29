@@ -4,6 +4,7 @@ import { Feather } from '@expo/vector-icons';
 
 type Props = {
   topInset: number;
+  compact?: boolean;
   alignment: 'left' | 'center' | 'right';
   background: boolean;
   onClose: () => void;
@@ -23,19 +24,19 @@ export default function StoryTextEditorToolbar(props: Props) {
       <TouchableOpacity accessibilityRole="button" accessibilityLabel="Cancel text editing" onPress={props.onClose} style={[s.button, { width: 65, backgroundColor: 'transparent' }]}>
         <Text style={{ color: '#FFFFFF', fontSize: 15 }}>Cancel</Text>
       </TouchableOpacity>
-      <Text style={s.title}>Edit text</Text>
+      <Text style={s.title}>{props.compact ? '' : 'Edit text'}</Text>
       <TouchableOpacity accessibilityRole="button" accessibilityLabel="Save text sticker" onPress={props.onSave} style={s.done}>
         <Text style={s.doneText}>Done</Text>
       </TouchableOpacity>
     </View>
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="always" contentContainerStyle={s.tools}>
+    {!props.compact ? <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="always" contentContainerStyle={s.tools}>
       <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Text alignment: ${props.alignment}`} onPress={props.onAlign} style={s.button}><Feather name={`align-${props.alignment}`} size={20} color="#FFFFFF" /></TouchableOpacity>
       <TouchableOpacity accessibilityRole="button" accessibilityLabel="Text background" accessibilityState={{ selected: props.background }} onPress={props.onBackground} style={[s.button, props.background && s.selected]}><Feather name="square" size={20} color={props.background ? '#0B1E3D' : '#FFFFFF'} /></TouchableOpacity>
       <TouchableOpacity accessibilityRole="button" accessibilityLabel="Decrease text size" onPress={props.onDecreaseSize} style={s.button}><Text style={s.size}>A−</Text></TouchableOpacity>
       <TouchableOpacity accessibilityRole="button" accessibilityLabel="Increase text size" onPress={props.onIncreaseSize} style={s.button}><Text style={s.size}>A+</Text></TouchableOpacity>
       {props.onDuplicate && <TouchableOpacity accessibilityRole="button" accessibilityLabel="Duplicate text sticker" onPress={props.onDuplicate} style={s.button}><Feather name="copy" size={20} color="#FFFFFF" /></TouchableOpacity>}
       {props.onDelete && <TouchableOpacity accessibilityRole="button" accessibilityLabel="Delete text sticker" onPress={props.onDelete} style={s.button}><Feather name="trash-2" size={20} color="#FF8A84" /></TouchableOpacity>}
-    </ScrollView>
+    </ScrollView> : null}
   </View>;
 }
 const s = StyleSheet.create({

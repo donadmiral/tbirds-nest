@@ -187,3 +187,13 @@ select option, select optgroup { background-color: #FFFFFF; color: #0B1E3D; }
   background-color: var(--color-ink);
   color: var(--color-white);
 }
+
+/* Keep text fields readable without Safari zooming and shifting the layout. */
+@media (max-width: 640px) {
+  input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]), textarea, select {
+    font-size: max(16px, 1em);
+    min-height: 44px;
+    min-width: 0;
+    max-width: 100%;
+  }
+}

@@ -104,7 +104,7 @@ export type StoryMediaTransform = {
   trimStart?: number;
   trimEnd?: number;
   filterAmt?: number;
-  adjust?: { bri?: number; warm?: number; tint?: number; sat?: number; fade?: number; vig?: number } | null;
+  adjust?: { bri?: number; con?: number; warm?: number; tint?: number; sat?: number; fade?: number; vig?: number; hi?: number; sh?: number; grain?: number } | null;
   mix?: { orig?: number; music?: number } | null;
   speed?: number;
   bg?: { kind: "blur" | "color" | "gradient" | "none"; a?: string; b?: string } | null;

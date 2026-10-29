@@ -40,7 +40,7 @@ test.before(async () => {
     create table close_friends(owner_id uuid,friend_id uuid);
     create table story_hidden_from(story_id uuid,user_id uuid);
     create table story_shared_with(story_id uuid,user_id uuid);
-    create table stories(id uuid primary key default gen_random_uuid(),user_id uuid,created_at timestamptz default now(),expires_at timestamptz default now()+interval '24 hours',audience text default 'everyone',allow_sharing boolean default true,caption text,media_url text,media_type text default 'image',thumbnail_url text,stickers_json jsonb,filter_id text,media_transform jsonb,text_background jsonb,duration_sec int,audio_url text,audio_title text,audio_source text,audio_duration_sec int);
+    create table stories(id uuid primary key default gen_random_uuid(),user_id uuid,created_at timestamptz default now(),expires_at timestamptz default now()+interval '24 hours',audience text default 'everyone',allow_sharing boolean default true,allow_replies boolean default true,caption text,media_url text,media_type text default 'image',thumbnail_url text,stickers_json jsonb,filter_id text,media_transform jsonb,text_background jsonb,duration_sec int,audio_url text,audio_title text,audio_source text,audio_duration_sec int);
     create schema story_ops;
     create table story_ops.publications(request_id uuid primary key,user_id uuid,payload_hash text,story_id uuid,created_at timestamptz);
     create table story_drafts(id uuid,user_id uuid);
@@ -58,6 +58,7 @@ test.before(async () => {
     grant select,insert,update,delete on all tables in schema public to authenticated;
   `);
   await db.exec(fs.readFileSync(path.join(__dirname, '../migrations/20261028152200_story_mention_reshare_quality.sql'), 'utf8'));
+  await db.exec(fs.readFileSync(path.join(__dirname, '../migrations/20261029044445_story_reply_controls.sql'), 'utf8'));
 });
 test.beforeEach(async () => {
   await db.exec('truncate profiles,blocked_users,follows,close_friends,story_hidden_from,story_shared_with,stories,story_mentions,notifications,posts,post_media,post_media_tags,story_ops.publications,story_drafts');
@@ -236,4 +237,25 @@ test('atomic story publication saves validated text and hidden mentions with one
   assert.equal((await db.query('select count(*)::int n from notifications')).rows[0].n, 2);
   payload.stickers_json[0].text = 'Edited after first publication';
   await assert.rejects(publish, /PUBLICATION_CONFLICT/);
+});
+
+
+test('story replies publish atomically, retain the legacy default, and participate in safe retry identity', async () => {
+  const request = id(), payload = { media_type: 'text', text_background: { colors: ['#111518','#41474f'] }, stickers_json: [], allow_replies: false };
+  const publish = (key, value, user = OWNER, expected = OWNER) => as(user, () => db.query('select publish_story_v2($1,$2,$3) id', [expected,key,JSON.stringify(value)])).then(result => result.rows[0].id);
+  const first = await publish(request,payload); assert.equal(await publish(request,payload),first);
+  const record = await db.query('select allow_replies from stories where id=$1',[first]); assert.equal(record.rows[0].allow_replies,false);
+  assert.equal((await db.query('select count(*)::int count from stories')).rows[0].count,1);
+  await assert.rejects(publish(request,{ ...payload, allow_replies: true }), /PUBLICATION_CONFLICT/);
+  const { allow_replies, ...legacy } = payload;
+  const legacyId = await publish(id(),legacy); assert.equal((await db.query('select allow_replies from stories where id=$1',[legacyId])).rows[0].allow_replies,true);
+  for (const invalid of ['false',null,0,{}]) await assert.rejects(publish(id(),{ ...payload,allow_replies:invalid }), /INVALID_REPLY_SETTING/);
+  await assert.rejects(publish(id(),payload,VIEWER), /ACCOUNT_CHANGED/);
+  assert.equal((await db.query('select count(*)::int count from stories')).rows[0].count,2);
+});
+test('draft reply choices persist and omitted values keep the previous default', async () => {
+  await db.query('insert into story_drafts(id,user_id,allow_replies) values($1,$2,false)',[id(),OWNER]);
+  await db.query('insert into story_drafts(id,user_id) values($1,$2)',[id(),OWNER]);
+  const result = await db.query('select allow_replies from story_drafts order by allow_replies');
+  assert.deepEqual(result.rows.map(row => row.allow_replies),[false,true]);
 });

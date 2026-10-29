@@ -3,15 +3,16 @@ const root=path.join(__dirname,'../..');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const compile=s=>ts.transpileModule(s,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
 const deferred=()=>{let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return{promise,resolve,reject};};
-function shelf(owner='owner',previous='owner'){
+function shelf(owner='owner',previous='owner',hydrate=async rows=>rows){
  const src=read('src/components/MemoryAlbumCard.tsx'),start=src.indexOf(' const refresh=useCallback'),end=src.indexOf(' useFocusEffect',start),request=deferred(),writes=[],errors=[],loading=[];
- const scope={ownerId:owner,loadedOwner:{current:previous},epoch:{current:0},useCallback:f=>f,setData:x=>writes.push(x),setError:x=>errors.push(x),setLoading:x=>loading.push(x),supabase:{rpc:()=>request.promise},hydrateMemoryAlbumMedia:async rows=>rows};
+ const ownerScope={ownerId:owner,viewerId:'viewer'};
+ const scope={ownerId:owner,viewerId:'viewer',scope:{current:ownerScope},loadedOwner:{current:previous},loadedScope:{current:owner===previous?ownerScope:null},pendingRead:{current:null},epoch:{current:0},useCallback:f=>f,setData:x=>writes.push(x),setError:x=>errors.push(x),setLoading:x=>loading.push(x),profileRead:x=>Promise.resolve(x),supabase:{rpc:()=>request.promise},hydrateMemoryAlbumMedia:hydrate,withoutPrivateMedia:rows=>rows.map(row=>({...row,cover_page:row.cover_page?{...row.cover_page,media_url:null}:undefined}))};
  vm.runInNewContext(compile(src.slice(start,end)+'\nthis.refresh=refresh;'),scope);
  return{scope,request,writes,errors,loading};
 }
 test('refresh retains the existing owner shelf instead of collapsing profile height',async()=>{
  const h=shelf(),work=h.scope.refresh();assert.deepEqual(h.writes,[]);assert.deepEqual(h.loading,[true]);
- h.request.resolve({data:{is_owner:true,books:[{id:'book'}]},error:null});await work;assert.equal(h.writes[0].books[0].id,'book');assert.deepEqual(h.loading,[true,false]);
+ h.request.resolve({data:{is_owner:true,books:[{id:'book'}]},error:null});await work;assert.equal(h.writes[0].books[0].id,'book');assert.deepEqual(h.loading,[true,false,false]);
 });
 test('failed refresh keeps existing books and exposes retry; missing payload is not a successful empty shelf',async()=>{
  const h=shelf(),work=h.scope.refresh();h.request.resolve({data:null,error:null});await work;assert.deepEqual(h.writes,[]);assert.match(h.errors.at(-1),/retry/i);assert.equal(h.loading.at(-1),false);
@@ -34,21 +35,15 @@ test('book images use full originals, fall back to posters, and offer a working 
 test('a renewed signed image source can display after the old source failed',()=>{
  const h=imageHarness({uri:'photo?old'});h.render().props.onError();assert.equal(h.render().type,'View');assert.equal(h.render({uri:'photo?new'}).props.source.uri,'photo?new');
 });
-function flipHarness(){
- const src=read('src/screens/profile/MemoryAlbumScreen.tsx'),start=src.indexOf('  const flipTo = useCallback'),end=src.indexOf('  const swipe =',start),callbacks=[],indices=[];
- const scope={idxRef:{current:0},pages:[{},{}],flipping:{current:false},bookGeneration:{current:1},flipAnim:{setValue(){}},reduceMotion:false,Easing:{in:x=>x,out:x=>x,quad:x=>x},useCallback:f=>f,setIdx:x=>indices.push(x),Animated:{timing:()=>({start:f=>callbacks.push(f)})}};
- vm.runInNewContext(compile(src.slice(start,end)+'\nthis.flipTo=flipTo;'),scope);return{scope,callbacks,indices};
-}
-test('an interrupted or stale page flip cannot change the newly opened book or unlock its animation',()=>{
- const h=flipHarness();h.scope.flipTo(1);h.scope.bookGeneration.current++;h.callbacks.shift()({finished:true});assert.deepEqual(h.indices,[]);assert.equal(h.scope.flipping.current,true);
- const fresh=flipHarness();fresh.scope.flipTo(1);fresh.callbacks.shift()({finished:false});assert.deepEqual(fresh.indices,[]);assert.equal(fresh.scope.flipping.current,false);
-});
-test('a completed flip updates the synchronous page reference and releases its own lock',()=>{
- const h=flipHarness();h.scope.flipTo(1);h.callbacks.shift()({finished:true});assert.deepEqual(h.indices,[1]);assert.equal(h.scope.idxRef.current,1);h.callbacks.shift()({finished:true});assert.equal(h.scope.flipping.current,false);
+test('screen navigation delegates to the reader that owns and locks the turn',()=>{
+ const src=read('src/screens/profile/MemoryAlbumScreen.tsx'),start=src.indexOf('  const flipTo = useCallback'),end=src.indexOf('  const openPicker',start),directions=[];
+ const scope={pageTurn:{current:{turn:value=>directions.push(value)}},useCallback:f=>f};
+ vm.runInNewContext(compile(src.slice(start,end)+'\nthis.flipTo=flipTo;'),scope);scope.flipTo(1);scope.flipTo(-1);assert.deepEqual(directions,[1,-1]);
+ scope.pageTurn.current=null;assert.doesNotThrow(()=>scope.flipTo(1));
 });
 test('page-turn touch regions leave bottom video and caption controls unobstructed',()=>{
- const src=read('src/screens/profile/MemoryAlbumScreen.tsx'),start=src.indexOf('const st = themedSheet'),end=src.indexOf('\nfunction PageVideo',start),scope={themedSheet:f=>f({surface:{canvas:'#fff'},ink:{primary:'#000'},brand:{}}),StyleSheet:{hairlineWidth:1},Platform:{OS:'ios'},SW:390,SH:844,PAGE_CREAM:'#fff',TAPE:'#fff'};
- vm.runInNewContext(compile(src.slice(start,end)+'\nthis.styles=st;'),scope);
+ const src=read('src/components/memory/MemoryPageTurn.tsx'),start=src.indexOf('const styles=StyleSheet.create'),scope={StyleSheet:{absoluteFillObject:{},create:x=>x},PAPER:'#fff',serif:'Georgia'};
+ vm.runInNewContext(compile(src.slice(start)+'\nthis.styles=styles;'),scope);
  for(const key of ['edgeL','edgeR']){const style=scope.styles[key];assert.equal(typeof style.bottom,'string');const regionEnd=600*(1-parseFloat(style.bottom)/100);const bottomButtonTop=600-8-34;assert.ok(regionEnd<bottomButtonTop,'edge must not cover video controls');assert.ok(parseFloat(style.top)>0,'edge must not cover top controls');}
 });
 
@@ -78,7 +73,26 @@ test('leaving a book during add does not add subsequent selected stories or upda
  assert.equal(calls.length,1);assert.deepEqual(closed,[]);assert.deepEqual(reloads,[]);assert.equal(scope.saveLock.current,false);
 });
 test('closing a book cancels its pending page animation before it can change the page',()=>{
- const src=read('src/screens/profile/MemoryAlbumScreen.tsx'),start=src.indexOf('  const closeBook = useCallback'),end=src.indexOf('  const flipTo',start),stops=[],values=[],opened=[];
- const scope={bookGeneration:{current:3},flipAnim:{stopAnimation:()=>stops.push(true),setValue:v=>values.push(v)},flipping:{current:true},setOpened:v=>opened.push(v),setGrid(){},coverAnim:{},reduceMotion:false,Animated:{timing:()=>({start(){}})},Easing:{out:x=>x,cubic:x=>x},useCallback:f=>f};
- vm.runInNewContext(compile(src.slice(start,end)+'\nthis.closeBook=closeBook;'),scope);scope.closeBook();assert.equal(scope.bookGeneration.current,4);assert.deepEqual(stops,[true]);assert.deepEqual(values,[0]);assert.deepEqual(opened,[false]);assert.equal(scope.flipping.current,false);
+ const src=read('src/screens/profile/MemoryAlbumScreen.tsx'),start=src.indexOf('  const closeBook = useCallback'),end=src.indexOf('  const flipTo',start),stops=[],opened=[];
+ const scope={bookGeneration:{current:3},pageTurn:{current:{cancel:()=>stops.push(true)}},setOpened:v=>opened.push(v),setGrid(){},coverAnim:{},reduceMotion:false,Animated:{timing:()=>({start(){}})},Easing:{out:x=>x,cubic:x=>x},useCallback:f=>f};
+ vm.runInNewContext(compile(src.slice(start,end)+'\nthis.closeBook=closeBook;'),scope);scope.closeBook();assert.equal(scope.bookGeneration.current,4);assert.deepEqual(stops,[true]);assert.deepEqual(opened,[false]);
+});
+
+
+test('concurrent focus and foreground shelf refreshes share the same read',async()=>{
+ const h=shelf(),first=h.scope.refresh(),second=h.scope.refresh();assert.equal(first,second);assert.equal(h.scope.epoch.current,1);
+ h.request.resolve({data:{is_owner:true,books:[{id:'one',title:'Memories'}]},error:null});await Promise.all([first,second]);assert.equal(h.writes.at(-1).books[0].id,'one');
+});
+
+test('book controls and titles become usable before a stalled cover verification completes',async()=>{
+ const gate=deferred(),h=shelf('owner','owner',()=>gate.promise),pending=h.scope.refresh();
+ h.request.resolve({data:{is_owner:true,books:[{id:'book',title:'Family',cover_page:{media_url:'private-canonical'}}]},error:null});await new Promise(r=>setImmediate(r));
+ assert.equal(h.loading.at(-1),false);assert.equal(h.writes.at(-1).is_owner,true);assert.equal(h.writes.at(-1).books[0].title,'Family');assert.equal(h.writes.at(-1).books[0].cover_page.media_url,null);
+ gate.resolve([{id:'book',title:'Family',cover_page:{media_url:'signed-cover'}}]);await pending;assert.equal(h.writes.at(-1).books[0].cover_page.media_url,'signed-cover');
+});
+
+test('failed cover verification leaves real books and creation controls available with retry',async()=>{
+ const h=shelf('owner','owner',async()=>{throw Error('Signing unavailable');}),work=h.scope.refresh();
+ h.request.resolve({data:{is_owner:true,books:[{id:'book',title:'Family'}]},error:null});await work;
+ assert.equal(h.writes.at(-1).is_owner,true);assert.equal(h.writes.at(-1).books[0].title,'Family');assert.match(h.errors.at(-1),/covers could not load/);assert.equal(h.loading.at(-1),false);
 });

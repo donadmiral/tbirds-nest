@@ -43,10 +43,29 @@ Deno.serve(async req => {
     const ids = [...new Set(body.messageIds as string[])];
     const { data: manifest, error: manifestError } = await anon.rpc('chat_media_manifest', { p_message_ids: ids });
     if (manifestError) return json(503, { error: 'media access unavailable' });
-    let remaining: number | undefined;
+    let remaining: number | undefined, expiresAt: string | undefined, mediaType: 'image' | 'video' | undefined;
+    let ttl = TTL;
     const items: { id: string; url: string; thumbnail: boolean }[] = [];
     if (body.consume === true) {
-      return json(409, { error: 'Update Platinum Circles to open private attachments', code: 'PRIVATE_VIEW_UPDATE_REQUIRED' });
+      if (ids.length !== 1 || typeof body.requestId !== 'string' || !UUID.test(body.requestId)) return json(400, { error: 'A single attachment and requestId are required.' });
+      const message = (manifest || []).find((row: any) => row.id === ids[0] && row.view_limit);
+      const expected = message && objectLocation(message.media_url, base);
+      if (!expected) return json(410, { error: 'This attachment is no longer available.' });
+      // This explicit compatibility RPC exists only while the production app
+      // uses the old view-count contract. It fails closed after session cutover.
+      const { data: grant, error: grantError } = await anon.rpc('open_legacy_chat_media', { p_message_id: ids[0], p_request_id: body.requestId });
+      if (grantError) return json(409, { error: 'This attachment needs the protected viewer.', code: 'PRIVATE_VIEW_UPDATE_REQUIRED' });
+      if (!grant?.url) return json(410, { error: 'This attachment is no longer available.' });
+      const granted = objectLocation(grant.url, base);
+      const expires = Date.parse(grant.expiresAt);
+      if (grant.requestId !== body.requestId || !granted || granted.bucket !== expected.bucket || granted.path !== expected.path
+        || !['image', 'video'].includes(grant.mediaType) || !Number.isInteger(grant.remaining) || grant.remaining < 0 || grant.remaining > 1
+        || !Number.isFinite(expires) || expires <= Date.now()) return json(410, { error: 'This viewing grant has ended.' });
+      // Retrying a lost response never extends the original database grant.
+      ttl = Math.min(TTL, Math.floor((expires - Date.now()) / 1000));
+      if (ttl < 1) return json(410, { error: 'This viewing grant has ended.' });
+      remaining = grant.remaining; expiresAt = new Date(Date.now() + ttl * 1000).toISOString(); mediaType = grant.mediaType;
+      items.push({ id: ids[0], url: grant.url, thumbnail: false });
     } else {
       for (const message of manifest || []) {
         if (message.view_limit) continue;
@@ -59,7 +78,7 @@ Deno.serve(async req => {
     for (const bucket of ['chat-media', 'chat-files']) {
       const batch = items.map(item => ({ ...item, location: objectLocation(item.url, base) })).filter(item => item.location?.bucket === bucket);
       if (!batch.length) continue;
-      const { data: signed, error } = await svc.storage.from(bucket).createSignedUrls(batch.map(item => item.location!.path), TTL);
+      const { data: signed, error } = await svc.storage.from(bucket).createSignedUrls(batch.map(item => item.location!.path), ttl);
       if (error || !signed) return json(503, { error: 'media access unavailable' });
       signed.forEach((result: any, index: number) => {
         if (!result?.signedUrl || !batch[index]) return;
@@ -67,6 +86,6 @@ Deno.serve(async req => {
         target[batch[index].id] = result.signedUrl.startsWith('https://') ? result.signedUrl : `${base}/storage/v1${result.signedUrl}`;
       });
     }
-    return json(200, { urls, thumbnails, expiresIn: TTL, ...(remaining !== undefined ? { remaining } : {}) });
+    return json(200, { urls, thumbnails, expiresIn: ttl, ...(remaining !== undefined ? { remaining, expiresAt, mediaType, requestId: body.requestId } : {}) });
   } catch { return json(503, { error: 'media access unavailable' }); }
 });

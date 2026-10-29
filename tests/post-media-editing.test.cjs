@@ -8,6 +8,15 @@ const scope={exports:{}};
 vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname,'../shared/postMediaEditing.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,scope);
 const {postAspectRatio,postTrimWindow,normalizePostCaptions,postCaptionAt,applyPostCaptionTiming,normalizePostRotation,postRotationParts}=scope.exports;
 
+test('applying one look across media preserves each crop, caption timing, cover and people tags',()=>{
+  const first={filterId:'platinum_glow',filterAmt:65,adjust:{warm:24},aspectRatio:.8,rotation:90,trimStart:4,coverLocalUri:'first-cover',tags:['first-person']};
+  const second={aspectRatio:16/9,rotation:0,trimStart:12,coverLocalUri:'second-cover',tags:['second-person'],captions:[{text:'Keep me',start:12,end:14}]};
+  const look=scope.exports.postLookRecipe(first),updated={...second,...look};
+  assert.equal(updated.filterId,'platinum_glow');assert.equal(updated.filterAmt,65);assert.equal(updated.aspectRatio,16/9);assert.equal(updated.trimStart,12);assert.equal(updated.coverLocalUri,'second-cover');assert.deepEqual(updated.tags,['second-person']);assert.equal(updated.captions[0].start,12);
+  look.adjust.warm=100;assert.equal(first.adjust.warm,24);
+  const reset=scope.exports.postLookRecipe({});assert.equal(reset.filterId,null);assert.equal(reset.filterAmt,100);assert.equal(reset.adjust,null);
+});
+
 test('new post frames default to 4:5 and preserve existing square, landscape and original recipes',()=>{
   assert.equal(postAspectRatio(null,1920,1080),.8);
   assert.equal(postAspectRatio({aspect:'square'},1920,1080),1);

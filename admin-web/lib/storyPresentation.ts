@@ -8,6 +8,7 @@ type MediaReference = {
   entityId: string;
   width?: number;
   height?: number;
+  edit?: ReviewMedia['edit'];
 };
 type StorySource = { id: string; kind: StoryKind; caption: string; references: MediaReference[] };
 export type StoryPresentation = {
@@ -28,6 +29,26 @@ const IMAGE = /\.(jpe?g|png|gif|webp|heic|heif|avif|bmp)(?:[?#]|$)/i;
 const object = (value: unknown): Record<string, unknown> | null => value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : null;
 const text = (value: unknown): string => typeof value === 'string' ? value.trim() : '';
 const dimension = (value: unknown): number | undefined => typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : undefined;
+function storyEdit(story: Record<string, unknown>): ReviewMedia['edit'] | undefined {
+  const transform = object(story.media_transform), filterId = text(story.filter_id);
+  if (!transform && !filterId) return undefined;
+  const edit: NonNullable<ReviewMedia['edit']> = { aspectRatio: 9 / 16, fit: transform?.fit === 'cover' ? 'cover' : 'contain' };
+  if (filterId) edit.filterId = filterId.slice(0, 80);
+  for (const key of ['scale', 'translateNX', 'translateNY', 'filterAmt', 'trimStart', 'trimEnd'] as const) {
+    const value = transform?.[key];
+    if (typeof value === 'number' && Number.isFinite(value)) edit[key] = value;
+  }
+  const adjustments = object(transform?.adjust);
+  if (adjustments) {
+    const safe: NonNullable<NonNullable<ReviewMedia['edit']>['adjust']> = {};
+    for (const key of ['bri', 'con', 'warm', 'tint', 'sat', 'hi', 'sh', 'fade', 'grain', 'vig'] as const) {
+      const value = adjustments[key];
+      if (typeof value === 'number' && Number.isFinite(value)) safe[key] = Math.max(-100, Math.min(100, value));
+    }
+    edit.adjust = safe;
+  }
+  return edit;
+}
 function sourceUrl(value: unknown): string | null {
   const url = text(value);
   // Storage location and ownership are checked by the existing resolver. Never
@@ -58,6 +79,7 @@ export function storyPresentationSource(story: Record<string, unknown>): StorySo
   // primary story media. Thumbnail, author avatar, links and audio are metadata.
   if (primary && (primaryType || (!text(story.media_type) && (VIDEO.test(primary) || IMAGE.test(primary))))) {
     add(primary, 'story', id, primaryType, story.width, story.height);
+    if (references.length) references[0].edit = storyEdit(story);
   }
   add(story.dual_front_url, 'story', id, 'image');
 
@@ -106,7 +128,7 @@ export async function resolveStoryPresentations(stories: Record<string, unknown>
     hasVideo: source.references.some(ref => ref.video),
     gallery: source.references.flatMap(ref => {
       const url = (ref.entityKind === 'post' ? postUrls : storyUrls)[ref.url];
-      return url ? [{ url, video: ref.video, width: ref.width, height: ref.height }] : [];
+      return url ? [{ url, video: ref.video, width: ref.width, height: ref.height, ...(ref.edit ? { edit: ref.edit } : {}) }] : [];
     }),
   }));
 }

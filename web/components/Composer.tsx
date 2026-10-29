@@ -6,7 +6,7 @@ import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { BarChart3 } from "lucide-react";
 import { CATEGORIES } from "@/lib/categories";
-import { ImagePlus, X, Globe, Users, AtSign, BadgeCheck, Lightbulb, Tag, Image as ImageIcon, FileText, Feather, Video, ChevronLeft, ChevronRight, SlidersHorizontal, Plus } from "lucide-react";
+import { ImagePlus, X, Globe, Users, AtSign, BadgeCheck, Lightbulb, Tag, Image as ImageIcon, FileText, Feather, Video, ChevronLeft, ChevronRight, SlidersHorizontal, Plus, Music, ArrowRight } from "lucide-react";
 import { ProductPicker, type ProductCard } from "@/components/ProductPicker";
 import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge, getTierColor } from "@/components/VerifiedBadge";
@@ -17,6 +17,8 @@ import type { PostMediaEditRecipe } from "@/components/VideoPlayer";
 import { PublicationAttempt, publicationError } from "@/lib/publication";
 
 
+import SoundtrackPicker from "./SoundtrackPicker";
+import { postLookRecipe } from "../../shared/postMediaEditing";
 import type {SoundtrackSelection} from "../../shared/soundtrack";
 
 type Media = { file: File; preview: string; width: number; height: number; isVideo: boolean; alt: string; tags?: MediaTagDraft[]; edit?: PostMediaEditRecipe | null; coverFile?:File|null; coverPreview?:string|null };
@@ -53,11 +55,16 @@ const AUDIENCES = [
   { key: "verified", label: "Verified only", icon: BadgeCheck },
 ] as const;
 
-export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPosted: (postId?: string) => void; quote?: QuoteTarget | null; onQuoteDone?: () => void; initialKind?: PostKind }) {
+export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }: { ownerId: string; onPosted: (postId?: string) => void; quote?: QuoteTarget | null; onQuoteDone?: () => void; initialKind?: PostKind }) {
   const [supabase] = useState(() => createClient());
+  const mounted = useRef(true), authenticatedOwner = useRef<string | undefined>(ownerId), renderedOwner = useRef(ownerId), ownerGeneration = useRef(0);
+  renderedOwner.current = ownerId;
+  const draftKey = DRAFT_KEY + ':' + ownerId;
+  const [draftLoaded, setDraftLoaded] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const taRef = useRef<HTMLTextAreaElement | null>(null);
   const [pending, setPending] = useState(false);
+  const [postConfirmed,setPostConfirmed]=useState(false);
   const publishing = useRef(false);
   const preparingFiles = useRef(false);
   const [preparing, setPreparing] = useState(false);
@@ -72,6 +79,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
   const [uploadProgress,setUploadProgress]=useState({completed:0,total:0,phase:""});
   const [text, setText] = useState("");
   const [items, setItems] = useState<Media[]>([]);
+  const itemsRef = useRef(items); itemsRef.current = items;
   const [audience, setAudience] = useState<(typeof AUDIENCES)[number]["key"]>("everyone");
   const [commentPolicy, setCommentPolicy] = useState<"everyone" | "following" | "followers" | "mentioned" | "off">("everyone");
   const [sensitiveMark, setSensitiveMark] = useState(false);
@@ -137,12 +145,21 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
   }, []);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      const uid = data.session?.user.id;
-      if (!uid) return;
-      supabase.from("profiles").select("avatar_url,full_name,username").eq("id", uid).maybeSingle().then(({ data:p })=>{setMyAvatar(p?.avatar_url??null);setMyName(p?.full_name||p?.username||"You");});
+    mounted.current = true;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const next = session?.user.id;
+      if (next !== authenticatedOwner.current) { ownerGeneration.current++; authenticatedOwner.current = next; setOpen(false); }
     });
+    return () => {
+      mounted.current = false; ownerGeneration.current++; subscription.unsubscribe();
+      itemsRef.current.forEach(item => { URL.revokeObjectURL(item.preview); if (item.coverPreview) URL.revokeObjectURL(item.coverPreview); });
+    };
   }, [supabase]);
+  useEffect(() => {
+    let active = true;
+    supabase.from("profiles").select("avatar_url,full_name,username").eq("id", ownerId).maybeSingle().then(({ data:p })=>{if(active&&mounted.current&&authenticatedOwner.current===ownerId){setMyAvatar(p?.avatar_url??null);setMyName(p?.full_name||p?.username||"You");}});
+    return () => { active = false; };
+  }, [supabase, ownerId]);
 
   useEffect(() => {
     const url = (text.match(/https?:\/\/\S+/) || [])[0] ?? null;
@@ -167,19 +184,21 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(DRAFT_KEY);
+      const raw = localStorage.getItem(draftKey);
       if (raw) {
         const d = JSON.parse(raw) as { text?: string };
         if (d.text) { setText(d.text); setOpen(true); }
       }
     } catch { /* fresh start */ }
-  }, []);
+    setDraftLoaded(true);
+  }, [draftKey]);
   useEffect(() => {
+    if (!draftLoaded || authenticatedOwner.current !== ownerId) return;
     try {
-      if (text.trim()) localStorage.setItem(DRAFT_KEY, JSON.stringify({ text }));
-      else localStorage.removeItem(DRAFT_KEY);
+      if (text.trim()) localStorage.setItem(draftKey, JSON.stringify({ text }));
+      else localStorage.removeItem(draftKey);
     } catch { /* quota */ }
-  }, [text]);
+  }, [text, draftLoaded, draftKey, ownerId]);
 
   useEffect(() => {
     if (!open) return;
@@ -211,6 +230,8 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
     if (!list) return;
     preparingFiles.current = true;
     setPreparing(true);
+    const generation = ownerGeneration.current;
+    const current = () => mounted.current && authenticatedOwner.current === ownerId && renderedOwner.current === ownerId && ownerGeneration.current === generation;
     const next = [...items];
     try {
     for (const f of Array.from(list).slice(0, MAX_MEDIA - next.length)) {
@@ -225,12 +246,14 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
           bmp.close();
         } catch { /* dims optional */ }
       }
+      if (!current()) return;
       next.push({ file: f, preview: URL.createObjectURL(f), width, height, isVideo, alt: "", edit:{aspectRatio:4/5} });
     }
+    if (!current()) return;
     setItems(next);
     setSelectedMedia(Math.max(0,items.length));setReview(false);
     setOpen(true);
-    } finally { preparingFiles.current = false; setPreparing(false); }
+    } finally { preparingFiles.current = false; if (current()) setPreparing(false); else next.slice(items.length).forEach(item=>URL.revokeObjectURL(item.preview)); }
   }
 
   function onPaste(e: React.ClipboardEvent) {
@@ -246,16 +269,21 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
 
   async function post() {
     const content = text.trim();
+    const generation = ownerGeneration.current;
+    const current = () => mounted.current && !!ownerId && renderedOwner.current === ownerId && authenticatedOwner.current === ownerId && ownerGeneration.current === generation;
+    if (!current()) return;
     if (publishing.current || preparingFiles.current || publication.current?.progress.uncertain || (!content && items.length === 0)) return;
     if (pollOn && pollOpts.map((x) => x.trim()).filter(Boolean).length < 2) {
       setError("Add at least two poll options before posting.");
       return;
     }
     publishing.current = true;
+    setPostConfirmed(false);
+    if (!publication.current) setUploadProgress({completed:0,total:items.length,phase:'Preparing your post'});
     setPending(true);
     setError(null);
     if (!publication.current) {
-      let author: string | null = null;
+      const author = ownerId;
       const stablePostId = crypto.randomUUID();
       const mediaIds = items.map(() => crypto.randomUUID());
       const tagIds = items.map(item => (item.tags || []).map(() => crypto.randomUUID()));
@@ -267,16 +295,13 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
       };
       const progress = new PublicationAttempt(async () => {
         const { data, error: sessionError } = await supabase.auth.getSession();
-        if (sessionError || !author || data.session?.user.id !== author) throw new Error("Return to the account that started this post to finish it.");
+        if (!current() || sessionError || data.session?.user.id !== author) throw new Error("Return to the account that started this post to finish it.");
       });
       const media: { url: string; media_type: string; sort_order: number; width?: number; height?: number }[] = [];
       // Retain this exact draft and each confirmed step for a retry.
       const run = async (): Promise<string> => {
-        const { data: sess } = await supabase.auth.getSession();
-        const uid = sess.session?.user.id;
-        if (!uid) throw new Error("Sign in to post.");
-        if (author && author !== uid) throw new Error("Return to the account that started this post to finish it.");
-        author = uid;
+        await progress.check();
+        const uid = author;
 
         for (let i = media.length; i < items.length; i++) {
           const p = items[i];
@@ -377,11 +402,13 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
     }
     try {
       const postId = await publication.current.run();
+      if (!current()) return;
       publication.current = null;
+      setPostConfirmed(true);
       setPublicationLocked(false);
       setPublicationStatus({ postId: null, uncertain: false });
       items.forEach((p) => { URL.revokeObjectURL(p.preview); if(p.coverPreview)URL.revokeObjectURL(p.coverPreview); });
-      try { localStorage.removeItem(DRAFT_KEY); } catch { /* fine */ }
+      try { localStorage.removeItem(draftKey); } catch { /* fine */ }
       setText("");
       setItems([]);setSoundtrack(null);setMusicOpen(false);setSelectedMedia(0);setReview(false);
       setAudience("everyone");
@@ -402,6 +429,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
       try { onQuoteDone?.(); } catch { /* The post is already confirmed. */ }
       try { onPosted(postId); } catch { /* Parent refresh failure must not report a failed publication. */ }
     } catch (failure) {
+      if (!current()) return;
       const progress = publication.current?.progress;
       setPublicationStatus({ postId: progress?.postId ?? null, uncertain: progress?.uncertain ?? false });
       const prefix = progress?.uncertain
@@ -412,7 +440,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
       setError(prefix + publicationError(failure));
     } finally {
       publishing.current = false;
-      setPending(false);
+      if (current()) setPending(false);
     }
   }
 
@@ -435,16 +463,19 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
   const chip = (on: boolean) => "rounded-full px-2.5 py-1 text-[12px] transition-colors duration-[140ms] " + (on ? "bg-surface-elevated font-semibold text-ink" : "bg-surface text-muted hover:text-ink");
 
   if (!open) {
+    if(pending||publicationLocked)return <section className={compose.progress} aria-live="polite"><div className={compose.progressHeading}><span>{pending?(uploadProgress.phase||'Preparing your post'):'Your post needs attention'}</span>{uploadProgress.total>0?<span>{uploadProgress.completed}/{uploadProgress.total}</span>:null}</div><div className={compose.progressBar}><span style={{width:`${uploadProgress.total?uploadProgress.completed/uploadProgress.total*100:0}%`}}/></div><p>{pending?'Keep this feed open until your post is confirmed.':'Open your draft to review and finish the same post.'}</p><button type="button" className={compose.continue} onClick={()=>setOpen(true)}>{pending?'View upload progress':'Review post'}</button></section>;
     // The collapsed state is a card, not a text field: the prompt line opens
     // the composer, and the row under it opens it already set to a kind of
     // post, so choosing "Poll" is one click rather than two.
     const start = (k?: PostKind) => () => {
+      setPostConfirmed(false);
       setOpen(true);
       if (k) setKind(k);
     };
     const action = "flex items-center gap-2 rounded-full px-3 py-1.5 text-[13px] text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink";
     return (
       <div className="mb-4 rounded-2xl border border-ink/10 bg-white px-5 pb-3 pt-4">
+        {postConfirmed?<div className={compose.posted} role="status"><span>Your post has been shared.</span><button type="button" aria-label="Dismiss post confirmation" onClick={()=>setPostConfirmed(false)}><X size={18}/></button></div>:null}
         <button onClick={start()} className="flex w-full items-center gap-3 text-left">
           {myAvatar ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -470,7 +501,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
         role="dialog" aria-modal="true" aria-label={review?"Review post":"New post"} className={compose.dialog}
       >
       <header className={compose.header}><button disabled={pending} className={compose.cancel} onClick={()=>{if(review&&!publicationLocked)setReview(false);else{setOpen(false);onQuoteDone?.();}}}>{review&&!publicationLocked?"Edit":"Cancel"}</button><h2>{pending?"Sharing your moment":review?"Review post":"New post"}</h2><button className={compose.primary} onClick={publishAction} disabled={!readyToPublish}>{pending?"Posting…":publicationLocked?"Retry":review?"Post":"Review"}</button></header>
-      {pending?<section aria-live="polite" className={compose.progress}><div className={compose.progressHeading}><span>{uploadProgress.phase||"Preparing your post"}</span><span>{uploadProgress.completed}/{uploadProgress.total}</span></div><div className={compose.progressBar}><span style={{width:`${uploadProgress.total?uploadProgress.completed/uploadProgress.total*100:0}%`}}/></div><p>Keep this page open while your media uploads. We will confirm when your post is ready.</p></section>:null}
+      {pending?<section aria-live="polite" className={compose.progress}><div className={compose.progressHeading}><span>{uploadProgress.phase||"Preparing your post"}</span>{uploadProgress.total>0?<span>{uploadProgress.completed}/{uploadProgress.total}</span>:null}</div><div className={compose.progressBar}><span style={{width:`${uploadProgress.total?uploadProgress.completed/uploadProgress.total*100:0}%`}}/></div><div className={compose.uploadFiles}>{items.map((item,index)=><div className={compose.uploadFile} key={item.preview}>{item.isVideo&&!item.coverPreview?<span className={compose.uploadThumb}>▶</span>:<img className={compose.uploadThumb} src={item.coverPreview||item.preview} alt=""/>}<span>{item.file.name||`${item.isVideo?'Video':'Photo'} ${index+1}`}</span><strong>{index<uploadProgress.completed?'Uploaded':index===uploadProgress.completed?'Uploading':'Waiting'}</strong></div>)}</div><p>Keep this feed open until your post is confirmed.</p><button type="button" className={compose.continue} onClick={()=>setOpen(false)}>Continue browsing this feed <ArrowRight size={17}/></button></section>:null}
       {review&&!pending?<p className={compose.reviewHint}>Ready to share with {AUDIENCES.find(a=>a.key===audience)?.label.toLowerCase()}? Check your photos, caption and settings, then select Post.</p>:null}
       <fieldset disabled={publicationLocked} className="contents">
       {/* What am I making? The kinds used to be icon-only toggles in the footer,
@@ -550,8 +581,9 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
           ))}
         </div>
       ) : null}
-      {selected?<section className={compose.media}><PostDraftPreview key={selected.preview+JSON.stringify(selected.edit)} item={selected}/><span className={compose.mediaCount}>{Math.min(selectedMedia+1,items.length)} / {items.length}</span>{!review?<><div className={compose.mediaActions}><button onClick={()=>setEditIdx(Math.min(selectedMedia,items.length-1))}><SlidersHorizontal size={16}/>Edit {selected.isVideo?'video':'photo'}</button>{!selected.isVideo?<button onClick={()=>setTagIdx(Math.min(selectedMedia,items.length-1))}><Users size={16}/>Tag people</button>:null}<button aria-label="Move media earlier" disabled={selectedMedia===0} onClick={()=>moveMedia(-1)}><ChevronLeft size={17}/></button><button aria-label="Move media later" disabled={selectedMedia>=items.length-1} onClick={()=>moveMedia(1)}><ChevronRight size={17}/></button><button aria-label="Remove selected media" onClick={removeMedia}><X size={17}/></button></div></>:null}<div className={compose.thumbs} style={{marginTop:review?12:0}}>{items.map((item,i)=><button key={item.preview} className={compose.thumb} aria-label={`Select media ${i+1}`} aria-pressed={selectedMedia===i} onClick={()=>setSelectedMedia(i)}>{item.isVideo?(item.coverPreview?<img src={item.coverPreview} alt=""/>:<video src={item.preview+'#t=0.1'} muted preload="metadata"/>):<img src={item.preview} alt=""/>}<span className={compose.number}>{i+1}</span></button>)}{!review&&items.length<MAX_MEDIA?<button className={compose.add} aria-label="Add more media" onClick={()=>fileRef.current?.click()}><Plus size={23}/></button>:null}</div></section>:null}
-      {editIdx!==null&&items[editIdx]?<PostMediaEditor key={items[editIdx].preview} item={items[editIdx]} index={editIdx} total={items.length} onClose={()=>setEditIdx(null)} onSave={(edit,coverFile,coverPreview)=>{setItems(prev=>prev.map((item,i)=>i===editIdx?{...item,edit,coverFile,coverPreview}:item));setEditIdx(null);}}/>:null}
+      {selected?<section className={compose.media}><PostDraftPreview key={selected.preview+JSON.stringify(selected.edit)} item={selected} soundtrack={soundtrack} active={!musicOpen&&editIdx===null}/><span className={compose.mediaCount}>{Math.min(selectedMedia+1,items.length)} / {items.length}</span>{!review?<><div className={compose.mediaActions}><button onClick={()=>setEditIdx(Math.min(selectedMedia,items.length-1))}><SlidersHorizontal size={16}/>Edit {selected.isVideo?'video':'photo'}</button>{!selected.isVideo?<button onClick={()=>setTagIdx(Math.min(selectedMedia,items.length-1))}><Users size={16}/>Tag people</button>:null}<button aria-label="Move media earlier" disabled={selectedMedia===0} onClick={()=>moveMedia(-1)}><ChevronLeft size={17}/></button><button aria-label="Move media later" disabled={selectedMedia>=items.length-1} onClick={()=>moveMedia(1)}><ChevronRight size={17}/></button><button aria-label="Remove selected media" onClick={removeMedia}><X size={17}/></button></div></>:null}<div className={compose.thumbs} style={{marginTop:review?12:0}}>{items.map((item,i)=><button key={item.preview} className={compose.thumb} aria-label={`Select media ${i+1}`} aria-pressed={selectedMedia===i} onClick={()=>setSelectedMedia(i)}>{item.isVideo?(item.coverPreview?<img src={item.coverPreview} alt=""/>:<video src={item.preview+'#t=0.1'} muted preload="metadata"/>):<img src={item.preview} alt=""/>}<span className={compose.number}>{i+1}</span></button>)}{!review&&items.length<MAX_MEDIA?<button className={compose.add} aria-label="Add more media" onClick={()=>fileRef.current?.click()}><Plus size={23}/></button>:null}</div></section>:null}
+      {items.length?<button type="button" className={compose.soundtrack} onClick={()=>setMusicOpen(true)}><Music size={18}/><span>Music</span><span>{soundtrack?`${soundtrack.durationSec.toFixed(1)}s excerpt`:'Add a soundtrack'}</span><ChevronRight size={17}/></button>:null}
+      {editIdx!==null&&items[editIdx]?<PostMediaEditor key={items[editIdx].preview} item={items[editIdx]} index={editIdx} total={items.length} onClose={()=>setEditIdx(null)} onSave={(edit,coverFile,coverPreview,applyAll)=>{setItems(prev=>prev.map((item,i)=>i===editIdx?{...item,edit,coverFile,coverPreview}:applyAll?{...item,edit:{...item.edit,...postLookRecipe(edit)}}:item));setEditIdx(null);}}/>:null}
       {tagIdx !== null && items[tagIdx] ? (
         <div role="dialog" aria-modal="true" className="fixed inset-0 z-[70] flex items-center justify-center bg-black/85 p-4" onClick={() => { setTagIdx(null); setTagAt(null); }}>
           <div className="relative max-h-[92vh] max-w-[92vw]" onClick={(e) => e.stopPropagation()}>
@@ -656,8 +688,9 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
       {error && publicationLocked && !publicationStatus.postId ? <button type="button" onClick={() => { publication.current=null; setPublicationLocked(false); setError(null); }} className="ml-14 mt-2 text-sm underline">Edit draft</button> : null}
       {error ? <p role="alert" className="ml-14 mt-3 text-[13px] text-danger">{error}{publicationStatus.postId ? <> <Link target="_blank" rel="noopener noreferrer" href={"/post/" + publicationStatus.postId} className="underline">View post</Link></> : null}</p> : null}
       </div>
-      {!review?<div className={compose.tools}><button className={compose.tool} onClick={()=>fileRef.current?.click()} disabled={items.length>=MAX_MEDIA}><ImagePlus size={19}/>Media</button><button className={compose.tool} onClick={()=>setPickerOpen(v=>!v)}><Tag size={18}/>Products{products.length?` · ${products.length}`:''}</button><button className={compose.tool} disabled={items.length>0} onClick={()=>setPollOn(v=>!v)}><BarChart3 size={18}/>{pollOn?'Remove poll':'Poll'}</button><input ref={fileRef} type="file" accept="image/*,video/*" multiple hidden onChange={e=>{void addFiles(e.target.files);e.target.value='';}}/></div>:null}
+      {!review?<div className={compose.tools}><button className={compose.tool} onClick={()=>fileRef.current?.click()} disabled={items.length>=MAX_MEDIA}><ImagePlus size={19}/>Media</button><button className={compose.tool} disabled={!items.length} onClick={()=>setMusicOpen(true)}><Music size={19}/>Music</button><button className={compose.tool} onClick={()=>setPickerOpen(v=>!v)}><Tag size={18}/>Products{products.length?` · ${products.length}`:''}</button><button className={compose.tool} disabled={items.length>0} onClick={()=>setPollOn(v=>!v)}><BarChart3 size={18}/>{pollOn?'Remove poll':'Poll'}</button><input ref={fileRef} type="file" accept="image/*,video/*" multiple hidden onChange={e=>{void addFiles(e.target.files);e.target.value='';}}/></div>:null}
       </fieldset>
+      {musicOpen?<SoundtrackPicker value={soundtrack} use="post" ownerId={ownerId} originalAudio={selected?.isVideo} onChange={setSoundtrack} onClose={()=>setMusicOpen(false)} renderPreview={(selection,active)=>selected?<PostDraftPreview item={selected} soundtrack={selection} active={active} autoPlay/>:null}/>:null}
       <div className={compose.settings}>
         <select disabled={publicationLocked||review} value={postCategory} onChange={(e) => setPostCategory(e.target.value)} title="Category" className="max-w-[120px] rounded-full bg-surface px-3 py-1.5 text-[12.5px] text-ink/80 outline-none">
           <option value="" className="bg-navy">Category</option>

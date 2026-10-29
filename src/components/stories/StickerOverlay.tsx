@@ -1,10 +1,11 @@
+import { sharedPostFrame } from '../../../shared/storyPresentation';
 import { currentTextMentions } from '../../../shared/storyMentions';
 import ResultsStickerCard from './ResultsStickerCard';
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { View, Text, StyleSheet, Linking, Dimensions } from 'react-native';
 import { stickerTextStyle } from '../../utils/stickerStyles';
 import StickerPill from './StickerPill';
-import PostStoryCard, { POST_CARD_W, POST_CARD_EST_H } from './PostStoryCard';
+import PostStoryCard, { POST_CARD_W } from './PostStoryCard';
 import StoryReshareCard, { STORY_CARD_W } from './StoryReshareCard';
 import CountdownStickerCard from './CountdownStickerCard';
 import AddYoursStickerCard from './AddYoursStickerCard';
@@ -13,7 +14,7 @@ import QuestionStickerCard from './QuestionStickerCard';
 import SliderStickerCard from './SliderStickerCard';
 import QuizStickerCard from './QuizStickerCard';
 import type { StoryTextSticker } from '../../services/storiesService';
-import { StickerAnim, TimeStickerView, DateStickerView, WeatherStickerView, PhotoStickerView, GifStickerView, EntityStickerCard } from './storyExtras';
+import { composedTextStyle, StickerAnim, TimeStickerView, DateStickerView, WeatherStickerView, PhotoStickerView, GifStickerView, EntityStickerCard } from './storyExtras';
 
 // Phase 2.3: Match composer's text wrapping width (85% of screen)
 const SCREEN_W = Dimensions.get('window').width;
@@ -142,6 +143,8 @@ export function renderStickerContent(
     return (
       <PostStoryCard
         sticker={sticker}
+        stageWidth={containerW}
+        stageHeight={containerH}
         interactive={interactive}
         onOpenPost={interactive && onPostTap && sticker.postId ? () => onPostTap(sticker.postId!) : undefined}
         onOpenProfile={interactive && onPostProfileTap && sticker.postAuthorId ? () => onPostProfileTap(sticker.postAuthorId!) : undefined}
@@ -255,7 +258,7 @@ export function renderStickerContent(
   }
 
   // Phase 2.3: Text sticker with maxWidth for natural wrapping (no truncation)
-  const { textStyle, wrapperStyle } = stickerTextStyle(
+  const { textStyle, wrapperStyle } = composedTextStyle(
     sticker.style,
     sticker.color,
     sticker.bgEnabled,
@@ -299,6 +302,7 @@ function StickerOverlay({
   onStoryTap,
   engagementProps,
 }: StickerOverlayProps) {
+  const [postHeights, setPostHeights] = useState<Record<string, number>>({});
   if (!stickers || stickers.length === 0 || containerW === 0 || containerH === 0) return null;
 
   return (
@@ -320,7 +324,9 @@ function StickerOverlay({
           : st.textAlign === 'right' ? 'flex-end' as const
           : 'center' as const;
 
-        const stickerWidth = getWidthForKind(st.kind);
+        const postFrame = st.kind === 'post' ? sharedPostFrame({ stageWidth: containerW, stageHeight: containerH, mediaWidth: st.postMediaWidth, mediaHeight: st.postMediaHeight, caption: st.postText, title: st.postArticleTitle, hasMedia: !!st.postMediaUrl }) : null;
+        const postHeight = postHeights[st.id] || postFrame?.height || 0;
+        const stickerWidth = postFrame?.width || getWidthForKind(st.kind);
         const halfW = stickerWidth / 2;
         // An estimated rectangle from the sticker's own position, registered before layout, so a tap during the entrance animation still reaches the card.
         if (interactive && (isPill || isEngagement || hasMentions) && onStickerLayout) { const ex = st.nx * containerW; const ey = st.ny * containerH; const eh = isPill ? 44 : 150; const key = st.id; const hasMeasured = (onStickerLayout as any).__measured?.has?.(key); if (!hasMeasured) onStickerLayout(key, { left: ex - halfW, top: ey - eh / 2, right: ex + halfW, bottom: ey + eh / 2 }); }
@@ -329,14 +335,14 @@ function StickerOverlay({
           <View
             key={st.id}
             pointerEvents={interactive ? ((isPill || isEngagement || hasMentions) ? 'auto' : 'none') : 'none'}
-            onLayout={interactive && (isPill || isEngagement) && onStickerLayout ? (e: any) => { const t: any = e.currentTarget || e.target; const registerLive = () => t?.measureInWindow?.((x: number, y: number, w: number, h: number) => { if (w && h) onStickerLayout(st.id, { left: x, top: y, right: x + w, bottom: y + h }); }); registerLive(); setTimeout(registerLive, 350); setTimeout(registerLive, 900); } : undefined}
+            onLayout={st.kind === 'post' || interactive && (isPill || isEngagement) && onStickerLayout ? (e: any) => { if (st.kind === 'post') { const height = e.nativeEvent.layout.height; if (height > 0) setPostHeights(current => Math.abs((current[st.id] || 0) - height) < 1 ? current : { ...current, [st.id]: height }); } const t: any = e.currentTarget || e.target; const registerLive = () => t?.measureInWindow?.((x: number, y: number, w: number, h: number) => { if (w && h) onStickerLayout?.(st.id, { left: x, top: y, right: x + w, bottom: y + h }); }); registerLive(); setTimeout(registerLive, 350); setTimeout(registerLive, 900); } : undefined}
             style={{
               position: 'absolute',
-              left: st.nx * containerW,
-              top: st.kind === 'post' ? Math.min(Math.max(st.ny * containerH, POST_CARD_EST_H / 2 + 30), containerH - POST_CARD_EST_H / 2 - 84) : st.ny * containerH,
+              left: st.kind === 'post' ? Math.max(halfW + 8, Math.min(st.nx * containerW, containerW - halfW - 8)) : st.nx * containerW,
+              top: st.kind === 'post' ? Math.max(95 + postHeight / 2, Math.min(st.ny * containerH, containerH - postHeight / 2 - 80)) : st.ny * containerH,
               transform: [
                 { translateX: -halfW },
-                { translateY: st.kind === 'post' ? -(POST_CARD_EST_H / 2) : -25 },
+                { translateY: st.kind === 'post' ? -(postHeight / 2) : -25 },
                 { scale: st.scale },
                 { rotate: `${st.rotation}rad` },
               ],
@@ -347,7 +353,7 @@ function StickerOverlay({
               elevation: interactive && (isPill || isEngagement) ? 30 : 20,
             }}
           >
-            <StickerAnim anim={(st as any).anim} playKey={st.id}>{renderStickerContent(st, onMentionTap, interactive, engagementProps, onHashtagTap, onPostTap, onPostProfileTap, onPostHoldStart, onPostHoldEnd, storyPaused, onEntityTap, onStoryTap)}</StickerAnim>
+            <StickerAnim anim={(st as any).anim} playKey={st.id}>{renderStickerContent(st, onMentionTap, interactive, engagementProps, onHashtagTap, onPostTap, onPostProfileTap, onPostHoldStart, onPostHoldEnd, storyPaused, onEntityTap, onStoryTap, containerW, containerH)}</StickerAnim>
           </View>
         );
       })}

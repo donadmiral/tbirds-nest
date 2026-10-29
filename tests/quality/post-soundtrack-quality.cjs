@@ -42,7 +42,7 @@ function publicationFixture({failTable,loseTable,failUpload=0,switchOnTable}={})
    feedListRef:{current:null},Keyboard:{dismiss(){}},loadFeed(){},Alert:{alert:(...args)=>alerts.push(args)},
    setTimeout:()=>1,clearTimeout(){},
  };
- for(const name of ['setPostProgress','setComposerReview','setSelectedComposerMedia','setPosting','setPublicationLocked','setMusicOpen','setComposerOpen','setComposerText','setComposerMedia','setComposerSoundtrack','setExclusivePost','setComposerProducts','setInnovationPost','setPostAudience','setCommentPolicy','setComposerSensitive','setCollabPicks','setPollOpts','setPollDays','setQuotingPost','setThreadingPost'])context[name]=()=>{};
+ for(const name of ['setPostConfirmed','setPostProgress','setComposerReview','setSelectedComposerMedia','setPosting','setPublicationLocked','setMusicOpen','setComposerOpen','setComposerText','setComposerMedia','setComposerSoundtrack','setExclusivePost','setComposerProducts','setInnovationPost','setPostAudience','setCommentPolicy','setComposerSensitive','setCollabPicks','setPollOpts','setPollDays','setQuotingPost','setThreadingPost'])context[name]=()=>{};
  vm.runInNewContext(compile(text.slice(start,end)+'\nthis.publish=createPost;'),context);
  return{context,rows,calls,alerts,uploads,restoreOwner(){owner='owner';},switchAuthor(){author='business';}};
 }

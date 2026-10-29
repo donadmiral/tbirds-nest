@@ -1,0 +1,19 @@
+.cover { position: relative; display: block; flex-shrink: 0; border-radius: 2px; isolation: isolate; }
+.surface { position: absolute; inset: 0 0 0 6.2%; overflow: hidden; border: 1px solid #493d2928; }
+.paper { position: absolute; inset: 0; pointer-events: none; opacity: .5; background-image: repeating-linear-gradient(0deg,#4933190b 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,#fffbec30 0 1px,transparent 1px 2px),radial-gradient(#56381e28 .5px,transparent .8px); background-size:auto,auto,4px 5px; }
+.cloth { position: absolute; inset: 0 auto 0 0; width: 6.2%; border-radius: 2px 0 0 2px; background-image: linear-gradient(90deg,#09060650,transparent 30%,#fff3 44%,transparent 61%,#0004 92%),repeating-linear-gradient(0deg,#fff2 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,#fff1 0 1px,transparent 1px 2px); box-shadow:inset -1px 0 1px #0005; }
+.photo { position:absolute; overflow:hidden; background:#c5bcaa28; }
+.photo img,.photo video { display:block; width:100%; height:100%; object-fit:cover; }
+.type { position:absolute; font-family:Didot,'Bodoni 72','Times New Roman',serif; font-weight:400; letter-spacing:-.04em; }
+.clamp { display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden; }
+.small { position:absolute; font-family:Georgia,serif; }
+.foil { position:absolute; pointer-events:none; inset:0; box-shadow:inset 5px 0 7px #120c131c,inset -1px 0 1px #fff4,inset 0 1px 1px #fffbeb8a; }
+.ticket { position:absolute; background:#bdd5df; color:#225071; transform:rotate(-6deg); box-shadow:1px 2px 2px #1d344622; border:1px solid #6e929a44; font-family:monospace; }
+.postmark { position:absolute; color:#c4543e; }
+.film { position:absolute; inset:0 0 0 auto; background:#171714; display:flex; flex-direction:column; }
+.film::before,.film::after { content:''; position:absolute; top:3px; bottom:3px; width:3px; background:repeating-linear-gradient(0deg,#d4c7a366 0 4px,transparent 4px 9px); }
+.film::before { left:2px; } .film::after { right:2px; }
+.filmFrame { position:relative; flex:1; overflow:hidden; }
+.empty { display:flex; height:100%; align-items:center; justify-content:center; flex-direction:column; gap:5px; opacity:.48; font-family:Georgia,serif; }
+.responsive { position:relative; display:block; width:100%; aspect-ratio:200/262; }
+.responsiveInner { position:absolute; inset:0; }

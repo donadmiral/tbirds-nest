@@ -1,16 +1,9 @@
-// src/screens/stories/StoryBoomerangScreen.tsx
-// BOOM capture. One tap captures a short clip automatically, the way Instagram's
-// Boomerang does, then hands it to StoryComposer as a normal video with an
-// accurate duration. Recording starts the way StoryCameraScreen starts it: the
-// CameraView remounts in video mode and recordAsync fires from onCameraReady,
-// with a not-ready retry behind it, so a cold camera never swallows the tap.
-// Bounce playback (forward, back, forward) is the next slice.
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import * as FileSystem from 'expo-file-system/legacy';
 import { makeBoomerang } from '../../../modules/boomerang';
 import BoomerangWeb, { BoomerangEffect } from './BoomerangWeb';
 import { useCameraLife } from '../../hooks/useCameraLife';
-import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Linking, ActivityIndicator } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -20,242 +13,111 @@ const BOOM_SEC = 1;
 const CAPTURE_SIZE = 78;
 const RING_R = 36;
 const RING_C = 2 * Math.PI * (RING_R + 5);
-
 let CameraView: any = null;
-let useCameraPermissions: any = null;
-let useMicrophonePermissions: any = null;
-let cameraAvailable = false;
-try {
-  const mod = require('expo-camera');
-  CameraView = mod.CameraView;
-  useCameraPermissions = mod.useCameraPermissions;
-  useMicrophonePermissions = mod.useMicrophonePermissions;
-  cameraAvailable = !!CameraView;
-} catch {
-  cameraAvailable = false;
+let useCameraPermissions: any = () => [null, async () => ({ granted: false })];
+try { const camera = require('expo-camera'); CameraView = camera.CameraView; useCameraPermissions = camera.useCameraPermissions; } catch {}
+
+async function bounded<T>(work: Promise<T>, ms: number, message: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try { return await Promise.race([work, new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error(message)), ms); })]); }
+  finally { if (timer !== undefined) clearTimeout(timer); }
 }
 
-let ExpoAVAudio: any = null;
-try { ExpoAVAudio = require('expo-av').Audio; } catch {}
-function resetAudioMode() {
-  try { if (ExpoAVAudio) ExpoAVAudio.setAudioModeAsync({ allowsRecordingIOS: false }); } catch {}
-}
-
-// A hook is always called, whichever module the binary has: the fallback
-// hook returns the same shape and keeps hook order constant.
-const useMicFallback = (): any[] => [null, null];
-const useMic: () => any[] = useMicrophonePermissions || useMicFallback;
-
-export default function StoryBoomerangScreen({ navigation }: any) {
+export default function StoryBoomerangScreen({ navigation, route }: any) {
   const insets = useSafeAreaInsets();
-
-  if (!cameraAvailable) {
-    return (
-      <View style={s.fallback}>
-        <StatusBar barStyle="light-content" />
-        <SafeAreaView style={s.fallbackInner} edges={['top', 'bottom']}>
-          <Feather name="camera-off" size={48} color="rgba(255,255,255,0.4)" />
-          <Text style={s.fallbackTitle}>Camera not available</Text>
-          <Text style={s.fallbackSub}>This feature requires a new app build.</Text>
-        </SafeAreaView>
-      </View>
-    );
-  }
-
-  return <BoomerangInner navigation={navigation} insets={insets} />;
+  if (!CameraView) return <View style={s.fallback}><SafeAreaView style={s.fallbackInner}><Text style={s.fallbackTitle}>Camera not available</Text><Text style={s.fallbackSub}>This feature requires a new app build.</Text><TouchableOpacity style={s.permBtn} onPress={() => navigation.goBack()}><Text style={s.permBtnTxt}>Go back</Text></TouchableOpacity></SafeAreaView></View>;
+  return <BoomerangInner navigation={navigation} extraParams={route?.params} insets={insets} />;
 }
 
-function BoomerangInner({ navigation, insets }: { navigation: any; insets: any }) {
+function BoomerangInner({ navigation, extraParams, insets }: { navigation: any; extraParams?: any; insets: any }) {
   const [permission, requestPermission] = useCameraPermissions();
-  const micPair = useMic();
-  const micPerm = micPair[0];
-  const requestMicPerm = micPair[1];
-  useEffect(() => {
-    if (micPerm && !micPerm.granted && micPerm.canAskAgain && requestMicPerm) requestMicPerm();
-  }, [micPerm, requestMicPerm]);
-
-  const cameraRef = useRef<any>(null);
   const cam = useCameraLife();
+  const activeRef = useRef(cam.active); activeRef.current = cam.active;
+  const cameraRef = useRef<any>(null), mounted = useRef(true), generation = useRef(0);
+  const lock = useRef(false), pending = useRef(false), recordingRef = useRef(false), readyRef = useRef(false);
   const [facing, setFacing] = useState<'back' | 'front'>('back');
   const [camMode, setCamMode] = useState<'picture' | 'video'>('picture');
-  const [recording, setRecording] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [bounce, setBounce] = useState<{ input: string; durationSec: number } | null>(null);
+  const [phase, setPhase] = useState<'idle' | 'preparing' | 'recording' | 'processing'>('idle');
+  const [ready, setReady] = useState(false), [progress, setProgress] = useState(0), [cameraEpoch, setCameraEpoch] = useState(0);
+  const [error, setError] = useState('');
   const [boomEffect, setBoomEffect] = useState<BoomerangEffect>('classic');
-  const finishWith = useCallback((uri: string, dur: number) => {
-    navigation.navigate('StoryComposer', {
-      assets: [{ uri, localUri: uri, type: 'video', mediaType: 'video', durationSec: dur }],
-      mode: 'video',
-    });
-  }, [navigation]);
-  const pendingRef = useRef(false);
-  const recordingRef = useRef(false);
-  const recordStartRef = useRef(0);
-  const progressTimerRef = useRef<any>(null);
-  const stopTimerRef = useRef<any>(null);
-  const mountedRef = useRef(true);
-
-  const clearTimers = () => {
-    if (progressTimerRef.current) { clearInterval(progressTimerRef.current); progressTimerRef.current = null; }
-    if (stopTimerRef.current) { clearTimeout(stopTimerRef.current); stopTimerRef.current = null; }
-  };
-
-  useEffect(() => () => {
-    mountedRef.current = false;
-    clearTimers();
-    if (recordingRef.current) { try { cameraRef.current?.stopRecording(); } catch {} }
+  const effectRef = useRef(boomEffect); effectRef.current = boomEffect;
+  const [bounce, setBounce] = useState<{ input: string; effect: BoomerangEffect; generation: number; attempt: number } | null>(null);
+  const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
+  const progressTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const current = (run: number) => mounted.current && activeRef.current && generation.current === run;
+  const clearTimers = () => { timers.current.forEach(clearTimeout); timers.current.clear(); if (progressTimer.current) clearInterval(progressTimer.current); progressTimer.current = null; };
+  const later = (fn: () => void, ms: number) => { const timer = setTimeout(() => { timers.current.delete(timer); fn(); }, ms); timers.current.add(timer); };
+  const cancel = useCallback((update = true) => {
+    generation.current++; lock.current = false; pending.current = false; recordingRef.current = false; clearTimers();
+    try { cameraRef.current?.stopRecording(); } catch {}
+    if (update && mounted.current) { setPhase('idle'); setProgress(0); setBounce(null); setCamMode('picture'); }
   }, []);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; cancel(false); }; }, [cancel]);
+  useEffect(() => { if (!cam.active) cancel(); }, [cam.active, cancel]);
+  useEffect(() => { readyRef.current = false; setReady(false); }, [facing, camMode, cam.active, cam.epoch, cameraEpoch]);
+  const finish = (uri: string, durationSec: number, run: number) => {
+    if (!current(run) || !uri) return;
+    cancel();
+    navigation.navigate('StoryComposer', { ...extraParams, mode: 'video', assets: [{ uri, localUri: uri, type: 'video', mediaType: 'video', durationSec }] });
+  };
+  const fail = (message: string, run: number) => { if (!current(run)) return; cancel(); setError(message); };
 
-  const doRecord = useCallback(async (attempt: number) => {
-    if (!cameraRef.current || recordingRef.current || !pendingRef.current) return;
-    recordingRef.current = true;
-    setRecording(true);
-    setProgress(0);
-    recordStartRef.current = Date.now();
-    clearTimers();
-    progressTimerRef.current = setInterval(() => {
-      if (mountedRef.current) setProgress(Math.min(1, (Date.now() - recordStartRef.current) / (BOOM_SEC * 1000)));
-    }, 50);
-    // Backstop in case maxDuration does not stop the recorder on its own.
-    stopTimerRef.current = setTimeout(() => { try { cameraRef.current?.stopRecording(); } catch {} }, BOOM_SEC * 1000 + 300);
+  const doRecord = async (attempt: number, run: number) => {
+    if (!current(run) || !pending.current || recordingRef.current || !cameraRef.current) return;
+    recordingRef.current = true; setPhase('recording'); setProgress(0); clearTimers();
+    const started = Date.now();
+    progressTimer.current = setInterval(() => { if (current(run)) setProgress(Math.min(1, (Date.now() - started) / 1000)); }, 50);
+    later(() => { if (current(run)) try { cameraRef.current?.stopRecording(); } catch {} }, 1300);
     try {
-      const video = await cameraRef.current.recordAsync({ maxDuration: BOOM_SEC, codec: 'avc1' });
-      const durationSec = Math.max(1, Math.min(BOOM_SEC, Math.round((Date.now() - recordStartRef.current) / 1000)));
-      clearTimers();
-      recordingRef.current = false;
-      pendingRef.current = false;
-      resetAudioMode();
-      if (!mountedRef.current) return;
-      setRecording(false);
-      setProgress(0);
-      setCamMode('picture');
-      if (!video?.uri) return;
-      // A real boomerang: forward then backward, encoded into one clip. On a
-      // client without the module the straight clip goes through instead.
-      let uri = video.uri;
-      let dur = durationSec;
+      const video: any = await bounded(cameraRef.current.recordAsync({ maxDuration: BOOM_SEC, codec: 'avc1' }), 6000, 'The camera did not finish the clip. Try again.');
+      if (!current(run)) return;
+      clearTimers(); recordingRef.current = false; pending.current = false;
+      if (!video?.uri) throw new Error('The camera returned no clip. Try again.');
+      setPhase('processing'); setProgress(0);
+      const effect = effectRef.current;
+      // The native encoder implements Classic only. The other real effects
+      // must go through the frame engine instead of silently becoming Classic.
+      if (effect !== 'classic') { setBounce({ input: video.uri, effect, generation: run, attempt: 0 }); return; }
       try {
-        const out = (FileSystem.cacheDirectory || '') + 'boom-' + Date.now() + '.mp4';
-        await makeBoomerang(video.uri, out, 1);
-        uri = out;
-        dur = Math.max(1, durationSec * 2);
-      } catch (e: any) { console.log('[Boomerang] native encoder absent, bouncing in the web engine:', e?.message); setBounce({ input: video.uri, durationSec }); return; }
-      navigation.navigate('StoryComposer', {
-        assets: [{ uri, localUri: uri, type: 'video', mediaType: 'video', durationSec: dur }],
-        mode: 'video',
-      });
+        if (!FileSystem.cacheDirectory) throw new Error('Temporary storage unavailable');
+        const out = FileSystem.cacheDirectory + 'boom-' + Date.now() + '-' + run + '.mp4';
+        const uri = await bounded(makeBoomerang(video.uri, out, 1), 25000, 'Boomerang encoding took too long.');
+        if (current(run)) finish(uri || out, BOOM_SEC * 2, run);
+      } catch { if (current(run)) setBounce({ input: video.uri, effect, generation: run, attempt: 0 }); }
     } catch (e: any) {
-      const msg = String(e?.message || '').toLowerCase();
-      clearTimers();
-      recordingRef.current = false;
-      if (mountedRef.current) { setRecording(false); setProgress(0); }
-      if (msg.includes('not ready') && pendingRef.current && attempt < 20) {
-        setTimeout(() => doRecord(attempt + 1), 150);
-        return;
-      }
-      pendingRef.current = false;
-      resetAudioMode();
-      if (mountedRef.current) setCamMode('picture');
-      Alert.alert('Could not capture', msg.includes('not ready') ? 'The camera did not become ready. Try again.' : (e?.message || 'Please try again.'));
+      if (!current(run)) return;
+      clearTimers(); recordingRef.current = false;
+      if (/not ready/i.test(String(e?.message)) && pending.current && attempt < 20) { setPhase('preparing'); later(() => void doRecord(attempt + 1, run), 150); return; }
+      fail(e?.message || 'Could not capture a Boomerang. Try again.', run);
     }
-  }, [navigation]);
-
-  const onShutter = useCallback(() => {
-    if (recordingRef.current || pendingRef.current) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    pendingRef.current = true;
-    if (camMode === 'video') doRecord(0);
-    else setCamMode('video');
-  }, [camMode, doRecord]);
-
-  if (!permission) return <View style={s.fallback} />;
-  if (!permission.granted) {
-    return (
-      <View style={s.fallback}>
-        <StatusBar barStyle="light-content" />
-        <SafeAreaView style={s.fallbackInner} edges={['top', 'bottom']}>
-          <Feather name="camera-off" size={48} color="rgba(255,255,255,0.4)" />
-          <Text style={s.fallbackTitle}>Camera access needed</Text>
-          <TouchableOpacity style={s.permBtn} onPress={requestPermission} activeOpacity={0.8}>
-            <Text style={s.permBtnTxt}>Allow camera</Text>
-          </TouchableOpacity>
-        </SafeAreaView>
-      </View>
-    );
-  }
-
+  };
+  const shutter = () => {
+    if (!cam.active || !readyRef.current || lock.current) return;
+    lock.current = true; pending.current = true; setError(''); setPhase('preparing');
+    const run = ++generation.current;
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
+    later(() => { if (current(run) && pending.current && !recordingRef.current) fail('The camera did not become ready. Try again.', run); }, 10000);
+    if (camMode === 'video') void doRecord(0, run); else setCamMode('video');
+  };
+  const close = () => { cancel(); navigation.goBack(); };
+  const requestAccess = async () => { try { if (permission?.canAskAgain) await requestPermission(); else await Linking.openSettings(); } catch { if (mounted.current) setError('Camera access could not be requested. Try again from settings.'); } };
+  if (!permission?.granted) return <View style={s.fallback}><StatusBar barStyle="light-content"/><SafeAreaView style={s.fallbackInner} edges={['top','bottom']}><Feather name="camera-off" size={48} color="#AEB8C6"/><Text style={s.fallbackTitle}>{permission ? 'Camera access needed' : 'Checking camera access…'}</Text>{permission ? <TouchableOpacity style={s.permBtn} onPress={() => void requestAccess()}><Text style={s.permBtnTxt}>{permission.canAskAgain ? 'Allow camera' : 'Open settings'}</Text></TouchableOpacity> : <ActivityIndicator color="#FFF"/>}{error ? <Text style={s.fallbackSub}>{error}</Text> : null}<TouchableOpacity style={s.topBtn} onPress={close} accessibilityLabel="Close Boomerang"><Feather name="x" size={24} color="#FFF"/></TouchableOpacity></SafeAreaView></View>;
+  const recording = phase === 'recording', busy = phase !== 'idle';
   const ringSize = CAPTURE_SIZE + 12;
-  return (
-    <View style={s.root}>
-      <StatusBar barStyle="light-content" />
-      {bounce ? (
-        <>
-          <BoomerangWeb inputUri={bounce.input} effect={boomEffect}
-            onDone={(uri, dur) => { setBounce(null); finishWith(uri, dur); }}
-            onError={(m) => { console.log('[Boomerang] web bounce failed, straight clip:', m); const b = bounce; setBounce(null); if (b) finishWith(b.input, b.durationSec); }} />
-          <View style={{ position: 'absolute', left: 0, right: 0, top: '46%', alignItems: 'center', zIndex: 50 }} pointerEvents="none">
-            <View style={{ backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 999, paddingHorizontal: 18, paddingVertical: 10 }}>
-              <Text style={{ color: '#FFF', fontSize: 14, fontWeight: '700' }}>Bouncing</Text>
-            </View>
-          </View>
-        </>
-      ) : null}
-      <CameraView
-        key={camMode + ':' + cam.epoch}
-        active={cam.active}
-        ref={cameraRef}
-        style={StyleSheet.absoluteFill}
-        facing={facing}
-        mode={camMode}
-        videoQuality="720p"
-        onCameraReady={() => { if (pendingRef.current && camMode === 'video') doRecord(0); }}
-      />
-      <View style={[s.topBar, { paddingTop: Math.max(insets.top, 12) + 8 }]}>
-        <TouchableOpacity style={s.topBtn} onPress={() => navigation.goBack()} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Feather name="x" size={24} color="#FFF" />
-        </TouchableOpacity>
-        <Text style={s.title}>BOOM</Text>
-        <TouchableOpacity style={s.topBtn} onPress={() => setFacing(f => (f === 'back' ? 'front' : 'back'))} activeOpacity={0.7} disabled={recording} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Feather name="refresh-cw" size={20} color="#FFF" />
-        </TouchableOpacity>
-      </View>
-      <View style={[s.bottomControls, { paddingBottom: Math.max(insets.bottom + 18, 32) }]}>
-        {!recording && !bounce ? (
-          <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8, marginBottom: 10 }}>
-            {([['classic', 'Classic'], ['slomo', 'Slo-Mo'], ['echo', 'Echo'], ['duo', 'Duo']] as [BoomerangEffect, string][]).map(([k, label]) => (
-              <TouchableOpacity key={k} onPress={() => setBoomEffect(k)} activeOpacity={0.8}
-                style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: boomEffect === k ? '#FFFFFF' : 'rgba(255,255,255,0.18)' }}>
-                <Text style={{ fontSize: 12.5, fontWeight: '700', color: boomEffect === k ? '#0B1E3D' : '#FFFFFF' }}>{label}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        ) : null}
-        <Text style={s.hintTxt}>{recording ? 'Capturing' : 'Tap to capture a Boomerang'}</Text>
-        <TouchableOpacity activeOpacity={0.9} onPress={onShutter} disabled={recording} style={[s.captureWrap, { transform: [{ scale: recording ? 1.08 : 1 }] }]}>
-          <Svg width={ringSize} height={ringSize} style={StyleSheet.absoluteFill as any}>
-            <Circle cx={ringSize / 2} cy={ringSize / 2} r={RING_R + 5} stroke={recording ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.9)'} strokeWidth={4} fill="none" />
-            {recording && (
-              <Circle
-                cx={ringSize / 2}
-                cy={ringSize / 2}
-                r={RING_R + 5}
-                stroke="#FF3B30"
-                strokeWidth={4}
-                fill="none"
-                strokeLinecap="round"
-                strokeDasharray={RING_C}
-                strokeDashoffset={RING_C * (1 - progress)}
-                transform={'rotate(-90 ' + (ringSize / 2) + ' ' + (ringSize / 2) + ')'}
-              />
-            )}
-          </Svg>
-          <View style={[s.captureInner, recording && s.captureInnerRecording]} />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+  return <View style={s.root}><StatusBar barStyle="light-content"/>
+    {cam.active && phase !== 'processing' ? <CameraView key={facing + ':' + camMode + ':' + cam.epoch + ':' + cameraEpoch} active ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} mode={camMode} mute videoQuality="1080p" videoBitrate={8000000}
+      onCameraReady={() => { readyRef.current = true; setReady(true); if (pending.current && camMode === 'video') void doRecord(0, generation.current); }}
+      onMountError={() => { const run = generation.current; fail('This camera could not start. Try again or return to the story camera.', run); readyRef.current = false; setReady(false); }}/>: null}
+    {bounce ? <BoomerangWeb key={bounce.input + ':' + bounce.attempt} inputUri={bounce.input} effect={bounce.effect}
+      onDone={(uri, duration) => finish(uri, duration, bounce.generation)}
+      onError={message => { if (current(bounce.generation)) setError(message || 'This Boomerang could not be created.'); }}/>: null}
+    <View style={[s.topBar,{paddingTop:Math.max(insets.top,12)+8}]}><TouchableOpacity style={s.topBtn} onPress={close} accessibilityLabel="Close Boomerang"><Feather name="x" size={24} color="#FFF"/></TouchableOpacity><Text style={s.title}>BOOM</Text><TouchableOpacity disabled={busy} style={s.topBtn} accessibilityLabel="Switch camera" onPress={() => { if (!lock.current) setFacing(f => f === 'back' ? 'front' : 'back'); }}><Feather name="refresh-cw" size={20} color="#FFF"/></TouchableOpacity></View>
+    {phase === 'processing' ? <View style={[StyleSheet.absoluteFill,{alignItems:'center',justifyContent:'center',padding:28}]}><ActivityIndicator color="#FFF"/><Text style={[s.fallbackTitle,{marginTop:16}]}>Creating your Boomerang…</Text></View>:null}
+    {error ? <View style={[StyleSheet.absoluteFill,{backgroundColor:'#0C1118',alignItems:'center',justifyContent:'center',padding:28}]}><Text accessibilityRole="alert" style={[s.fallbackTitle,{textAlign:'center',lineHeight:24}]}>{error}</Text><TouchableOpacity style={s.permBtn} onPress={() => { setError(''); if (bounce) setBounce({...bounce,attempt:bounce.attempt+1}); else { cancel(); setCameraEpoch(n => n+1); } }}><Text style={s.permBtnTxt}>Try again</Text></TouchableOpacity>{bounce?<TouchableOpacity style={s.permBtn} onPress={() => { setError(''); cancel(); }}><Text style={s.permBtnTxt}>Retake</Text></TouchableOpacity>:null}<TouchableOpacity style={s.permBtn} onPress={close}><Text style={s.permBtnTxt}>Go back</Text></TouchableOpacity></View>:null}
+    {!error && phase !== 'processing' ? <View style={[s.bottomControls,{paddingBottom:Math.max(insets.bottom+18,32)}]}>{!busy?<View style={{flexDirection:'row',gap:8,marginBottom:10}}>{([['classic','Classic'],['slomo','Slo-Mo'],['echo','Echo'],['duo','Duo']] as [BoomerangEffect,string][]).map(([effect,label])=><TouchableOpacity key={effect} accessibilityRole="button" accessibilityState={{selected:boomEffect===effect}} onPress={() => { if (!lock.current) setBoomEffect(effect); }} style={{minHeight:44,paddingHorizontal:12,justifyContent:'center',borderRadius:24,backgroundColor:boomEffect===effect?'#FFF':'#303641'}}><Text style={{color:boomEffect===effect?'#0B1E3D':'#FFF',fontSize:13,fontWeight:'600'}}>{label}</Text></TouchableOpacity>)}</View>:null}<Text style={s.hintTxt}>{recording?'Capturing…':busy?'Preparing camera…':ready?'Tap to capture a Boomerang':'Starting camera…'}</Text><TouchableOpacity onPress={shutter} disabled={busy||!ready} accessibilityRole="button" accessibilityLabel="Capture Boomerang" style={[s.captureWrap,{opacity:busy || !ready ? .6 : 1}]}><Svg width={ringSize} height={ringSize} style={StyleSheet.absoluteFill as any}><Circle cx={ringSize/2} cy={ringSize/2} r={RING_R+5} stroke="#FFF" strokeWidth={4} fill="none"/>{recording?<Circle cx={ringSize/2} cy={ringSize/2} r={RING_R+5} stroke="#FF3B30" strokeWidth={4} fill="none" strokeLinecap="round" strokeDasharray={RING_C} strokeDashoffset={RING_C*(1-progress)} transform={'rotate(-90 '+ringSize/2+' '+ringSize/2+')'}/>:null}</Svg><View style={[s.captureInner,recording&&s.captureInnerRecording]}/></TouchableOpacity></View>:null}
+  </View>;
 }
-
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#000' },
   fallback: { flex: 1, backgroundColor: '#000' },

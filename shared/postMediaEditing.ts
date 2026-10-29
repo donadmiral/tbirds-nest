@@ -14,6 +14,11 @@ export type PostFrameRecipe = {
   captions?: PostCaptionCue[];
 };
 
+/** A batch look never copies a different item's crop, timing, cover or tags. */
+export function postLookRecipe(source: { filterId?: string | null; filterAmt?: number; adjust?: Record<string, number | undefined> | null }) {
+  return { filterId: source.filterId ?? null, filterAmt: source.filterAmt ?? 100, adjust: source.adjust ? { ...source.adjust } : null };
+}
+
 export function normalizePostRotation(value = 0): number {
   if (!Number.isFinite(value)) return 0;
   return ((value + 180) % 360 + 360) % 360 - 180;

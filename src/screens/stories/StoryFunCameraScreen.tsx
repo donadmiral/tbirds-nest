@@ -17,14 +17,17 @@ import {
   ActivityIndicator,
   ScrollView,
   Image,
+  TextInput,
+  Keyboard,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { ensureUploadSafe } from '../../utils/uploadSafe';
-import { FilterLayer, FilterPickerSheet } from '../../components/stories/StoryFilters';
+import { FilterLayer, FilterPickerSheet, STORY_FILTERS } from '../../components/stories/StoryFilters';
 import { CameraKitLensView, CKLens, CameraKitLensViewHandle, webViewAvailable } from './CameraKitLensView';
 import { setPendingCapture } from '../../utils/captureBridge';
+import { STORY_CAPTURE_VIDEO_QUALITY, STORY_CAPTURE_VIDEO_BITRATE } from '../../../shared/storyCapture';
 
 const MAX_VIDEO_SEC = 60;
 const CAPTURE_SIZE = 72;
@@ -87,11 +90,15 @@ function FunCameraInner({ navigation, insets, route }: { navigation: any; insets
   const micPair = useMic();
   const micPerm = micPair[0];
   const requestMicPerm = micPair[1];
-  useEffect(() => {
-    if (micPerm && !micPerm.granted && micPerm.canAskAgain && requestMicPerm) requestMicPerm();
-  }, [micPerm, requestMicPerm]);
-
   const [tab, setTab] = useState<'filters' | 'lenses'>('filters');
+  const [captureMode, setCaptureMode] = useState<'photo' | 'video'>('photo');
+  const [facing, setFacing] = useState<'front' | 'back'>('front');
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  useEffect(() => {
+    const show = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', event => setKeyboardHeight(event.endCoordinates.height));
+    const hide = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () => setKeyboardHeight(0));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
   const [recording, setRecording] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [camMode, setCamMode] = useState<'picture' | 'video'>('picture');
@@ -117,8 +124,12 @@ function FunCameraInner({ navigation, insets, route }: { navigation: any; insets
   // Lenses tab (new, real) ------------------------------------------------
   const ckRef = useRef<CameraKitLensViewHandle>(null);
   const [ckReady, setCkReady] = useState(false);
+  const ckReadyRef = useRef(false);
   const [ckLenses, setCkLenses] = useState<CKLens[]>([]);
   const [ckSelectedLens, setCkSelectedLens] = useState<string | null>(null);
+  const [lensQuery, setLensQuery] = useState('');
+  const [ckError, setCkError] = useState('');
+  const [ckAttempt, setCkAttempt] = useState(0);
   const apiToken = (process.env.EXPO_PUBLIC_CAMERAKIT_API_TOKEN as string) || '';
   const lensGroupId = (process.env.EXPO_PUBLIC_CAMERAKIT_LENS_GROUP_ID as string) || '';
 
@@ -128,9 +139,39 @@ function FunCameraInner({ navigation, insets, route }: { navigation: any; insets
   const pendingRecordRef = useRef(false);
   const holdTimerRef = useRef<any>(null);
   const pressStartRef = useRef(0);
+  const pressActiveRef = useRef(false);
   const recordStartRef = useRef(0);
+  const activeRef = useRef(cam.active);
+  activeRef.current = cam.active;
+  const videoStopRef = useRef<() => void>(() => {});
+  const recordTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (tab !== 'lenses' || !cam.active) return;
+    ckReadyRef.current = false; setCkReady(false); setCkError(''); setCkSelectedLens(null);
+    const timer = setTimeout(() => { if (!ckReadyRef.current) setCkError('Lenses are taking longer to load. Retry or use a Platinum effect.'); }, 25_000);
+    return () => clearTimeout(timer);
+  }, [tab, cam.active, cam.epoch, ckAttempt]);
+  useEffect(() => {
+    if (ckReady) setCkError('');
+  }, [ckReady]);
+  useEffect(() => {
+    activeRef.current = cam.active;
+    if (!cam.active) {
+      pendingRecordRef.current = false;
+      clearTimeout(holdTimerRef.current);
+      if (recordingRef.current) videoStopRef.current();
+    }
+    return () => {
+      activeRef.current = false;
+      clearTimeout(holdTimerRef.current);
+      if (recordTimerRef.current) clearTimeout(recordTimerRef.current);
+      pendingRecordRef.current = false;
+    };
+  }, [cam.active]);
 
   const goToComposer = useCallback((uri: string, type: 'image' | 'video', width?: number, height?: number) => {
+    if (!activeRef.current) return;
     const fid = tab === 'filters' ? filterId : null;
     if (returnTo === 'chat') {
       const chatParams = route?.params?.chatParams || {};
@@ -224,12 +265,17 @@ function FunCameraInner({ navigation, insets, route }: { navigation: any; insets
   const requestRecordFilters = useCallback(async () => {
     if (recordingRef.current || processing) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    if (micPerm && !micPerm.granted && requestMicPerm) requestMicPerm();
+    if (!micPerm?.granted && requestMicPerm) {
+      const permission = await requestMicPerm();
+      if (!permission?.granted) { Alert.alert('Microphone access needed', 'Allow microphone access to record a video with sound.'); return; }
+    }
+    if (!activeRef.current || (captureMode === 'photo' && !pressActiveRef.current)) return;
     try { if (ExpoAVAudio) await ExpoAVAudio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true }); } catch {}
+    if (!activeRef.current || (captureMode === 'photo' && !pressActiveRef.current)) return;
     pendingRecordRef.current = true;
     setCamMode('video');
     setTimeout(() => { if (pendingRecordRef.current) doRecordFilters(0); }, 300);
-  }, [processing, micPerm, requestMicPerm, doRecordFilters]);
+  }, [processing, micPerm, requestMicPerm, doRecordFilters, captureMode]);
 
   const stopRecordFilters = useCallback(() => {
     pendingRecordRef.current = false;
@@ -268,17 +314,24 @@ function FunCameraInner({ navigation, insets, route }: { navigation: any; insets
     }
   }, [ckReady, processing, goToComposer]);
 
-  const startRecordLenses = useCallback(() => {
-    if (!ckReady || recordingRef.current) return;
+  const startRecordLenses = useCallback(async () => {
+    if (!ckReady || recordingRef.current || processing) return;
+    if (!micPerm?.granted && requestMicPerm) {
+      const permission = await requestMicPerm();
+      if (!permission?.granted) { Alert.alert('Microphone access needed', 'Allow microphone access to record a video with sound.'); return; }
+    }
+    if (!activeRef.current || (captureMode === 'photo' && !pressActiveRef.current)) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     recordingRef.current = true;
     setRecording(true);
     ckRef.current?.startVideo();
-  }, [ckReady]);
+    recordTimerRef.current = setTimeout(() => videoStopRef.current(), MAX_VIDEO_SEC * 1000);
+  }, [ckReady, processing, micPerm, requestMicPerm, captureMode]);
 
   const stopRecordLenses = useCallback(async () => {
     if (!recordingRef.current) return;
     recordingRef.current = false;
+    if (recordTimerRef.current) clearTimeout(recordTimerRef.current);
     setRecording(false);
     setProcessing(true);
     try {
@@ -291,21 +344,34 @@ function FunCameraInner({ navigation, insets, route }: { navigation: any; insets
       } else {
         Alert.alert('Recording failed', 'No video was captured. Try again.');
       }
+    } catch {
+      if (activeRef.current) Alert.alert('Recording unavailable', 'The lens could not finish that video. Try again or choose a Platinum effect.');
     } finally {
       setProcessing(false);
     }
   }, [goToComposer]);
+  videoStopRef.current = tab === 'filters' ? stopRecordFilters : () => { void stopRecordLenses(); };
 
   // ── Unified capture button: tap = photo, hold = video, routed by tab ──
   const onPressIn = useCallback(() => {
+    if (processing || (tab === 'lenses' && !ckReady) || captureMode === 'video') return;
+    pressActiveRef.current = true;
     pressStartRef.current = Date.now();
     holdTimerRef.current = setTimeout(() => {
       if (tab === 'filters') requestRecordFilters();
       else startRecordLenses();
     }, 250);
-  }, [tab, requestRecordFilters, startRecordLenses]);
+  }, [tab, requestRecordFilters, startRecordLenses, processing, ckReady, captureMode]);
 
   const onPressOut = useCallback(() => {
+    pressActiveRef.current = false;
+    if (processing || (tab === 'lenses' && !ckReady)) return;
+    if (captureMode === 'video') {
+      if (recordingRef.current || pendingRecordRef.current) videoStopRef.current();
+      else if (tab === 'filters') void requestRecordFilters();
+      else void startRecordLenses();
+      return;
+    }
     if (holdTimerRef.current) { clearTimeout(holdTimerRef.current); holdTimerRef.current = null; }
     const held = Date.now() - pressStartRef.current;
     if (held < 250 && !recordingRef.current) {
@@ -313,9 +379,10 @@ function FunCameraInner({ navigation, insets, route }: { navigation: any; insets
       return;
     }
     if (tab === 'filters') stopRecordFilters(); else stopRecordLenses();
-  }, [tab, takePhotoFilters, takePhotoLenses, stopRecordFilters, stopRecordLenses]);
+  }, [tab, takePhotoFilters, takePhotoLenses, stopRecordFilters, stopRecordLenses, processing, ckReady, captureMode, requestRecordFilters, startRecordLenses]);
 
   const pickLens = useCallback((lens: CKLens | null) => {
+    Keyboard.dismiss();
     Haptics.selectionAsync();
     setCkSelectedLens(lens?.id || null);
     ckRef.current?.applyLens(lens?.id || null, lensGroupId);
@@ -347,7 +414,7 @@ function FunCameraInner({ navigation, insets, route }: { navigation: any; insets
         <>
           <PinchGestureHandler onGestureEvent={onPinch} onHandlerStateChange={onPinchState}>
             <View style={{ flex: 1 }}>
-              <CameraView key={camMode + ':' + cam.epoch} active={cam.active} ref={cameraRef} style={s.camera} facing="front" zoom={zoom} mode={camMode} videoQuality="720p"
+              <CameraView key={camMode + ':' + cam.epoch} active={cam.active} ref={cameraRef} style={s.camera} facing={facing} zoom={zoom} mode={camMode} videoQuality={STORY_CAPTURE_VIDEO_QUALITY} videoBitrate={STORY_CAPTURE_VIDEO_BITRATE}
                 onCameraReady={() => { if (pendingRecordRef.current && camMode === 'video') doRecordFilters(0); }} />
             </View>
           </PinchGestureHandler>
@@ -362,18 +429,19 @@ function FunCameraInner({ navigation, insets, route }: { navigation: any; insets
           </View>
         ) : !apiToken || !lensGroupId ? (
           <View style={[s.fallback, { flex: 1 }]}>
-            <Text style={[s.fallbackSub, { paddingHorizontal: 40 }]}>{!apiToken ? 'No Camera Kit token set. Add EXPO_PUBLIC_CAMERAKIT_API_TOKEN to .env.' : 'No Lens Group set. Add EXPO_PUBLIC_CAMERAKIT_LENS_GROUP_ID to .env, copy it from My Lenses -> Camera Kit -> your app.'}</Text>
+            <Text style={[s.fallbackSub, { paddingHorizontal: 40 }]}>Snapchat lenses are not available in this build. Choose a Platinum effect to keep creating.</Text>
           </View>
-        ) : (
+        ) : cam.active ? (
           <CameraKitLensView
+            key={`lenses:${cam.epoch}:${ckAttempt}`}
             ref={ckRef}
             apiToken={apiToken}
             lensGroupId={lensGroupId}
-            onReady={() => setCkReady(true)}
+            onReady={() => { ckReadyRef.current = true; setCkReady(true); }}
             onLenses={(l) => setCkLenses(l)}
-            onError={(m) => console.log('[FunCamera] CameraKit error:', m)}
+            onError={() => { ckReadyRef.current = false; setCkError('This lens could not load. Retry or choose another effect.'); setCkReady(false); recordingRef.current = false; setRecording(false); setProcessing(false); }}
           />
-        )
+        ) : <View style={s.camera}/>
       )}
 
       <View style={[s.topControls, { paddingTop: Math.max(insets.top, 12) + 8 }]}>
@@ -382,41 +450,44 @@ function FunCameraInner({ navigation, insets, route }: { navigation: any; insets
             <Feather name="x" size={24} color="#FFF" />
           </TouchableOpacity>
           <View style={{ flex: 1 }} />
-          <TouchableOpacity style={s.topBtn} onPress={() => ckRef.current?.flip()} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} disabled={recording}>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Flip camera" style={s.topBtn} onPress={() => { if (tab === 'lenses') ckRef.current?.flip(); else { setFacing(v => v === 'front' ? 'back' : 'front'); setPreviewSnapshot(null); } }} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} disabled={recording || processing}>
             <Feather name="refresh-cw" size={20} color="#FFF" />
           </TouchableOpacity>
         </View>
         <View style={s.tabSwitch}>
-          <TouchableOpacity style={[s.tabBtn, tab === 'filters' && s.tabBtnOn]} onPress={() => setTab('filters')} disabled={recording}>
-            <Text style={[s.tabTxt, tab === 'filters' && s.tabTxtOn]}>Filters</Text>
+          <TouchableOpacity accessibilityRole="tab" accessibilityState={{selected:tab==='filters'}} style={[s.tabBtn, tab === 'filters' && s.tabBtnOn]} onPress={() => setTab('filters')} disabled={recording || processing}>
+            <Text style={[s.tabTxt, tab === 'filters' && s.tabTxtOn]}>Platinum effects</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[s.tabBtn, tab === 'lenses' && s.tabBtnOn]} onPress={() => setTab('lenses')} disabled={recording}>
-            <Text style={[s.tabTxt, tab === 'lenses' && s.tabTxtOn]}>Lenses</Text>
+          <TouchableOpacity accessibilityRole="tab" accessibilityState={{selected:tab==='lenses'}} style={[s.tabBtn, tab === 'lenses' && s.tabBtnOn]} onPress={() => setTab('lenses')} disabled={recording || processing}>
+            <Text style={[s.tabTxt, tab === 'lenses' && s.tabTxtOn]}>Snapchat lenses</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       {tab === 'filters' ? (
-        <View style={[s.filterBarWrap, { bottom: Math.max(insets.bottom + 150, 176) }]} pointerEvents={recording ? 'none' : 'auto'}>
+        <View style={[s.filterBarWrap, { bottom: Math.max(insets.bottom + 200, 220) }]} pointerEvents={recording || processing ? 'none' : 'auto'}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.lensStrip} style={{width:'100%',marginBottom:12}}>
+            {[{id:null,label:'Original'}, ...STORY_FILTERS.filter(effect => effect.family === 'platinum')].map(effect => <TouchableOpacity key={effect.id || 'original'} accessibilityRole="button" accessibilityLabel={effect.label} accessibilityState={{selected:filterId===effect.id}} onPress={() => setFilterId(effect.id)} style={s.lensItem}><View style={[s.lensCircle, {backgroundColor:'#8B948E'}, filterId===effect.id&&s.lensCircleOn]}><FilterLayer filterId={effect.id}/><Feather name={effect.id?'sun':'slash'} size={21} color="#FFF"/></View><Text numberOfLines={2} style={[s.lensLabel,filterId===effect.id&&s.lensLabelOn]}>{effect.label}</Text></TouchableOpacity>)}
+          </ScrollView>
           <TouchableOpacity onPress={openFilters} activeOpacity={0.85} style={s.filterBtn} disabled={snapshotting}>
             {snapshotting ? <ActivityIndicator color="#FFF" size="small" /> : <Feather name="sliders" size={18} color="#FFF" />}
-            <Text style={s.filterBtnTxt}>{filterId ? filterId.charAt(0).toUpperCase() + filterId.slice(1) : 'Filters'}</Text>
+            <Text style={s.filterBtnTxt}>All effects</Text>
           </TouchableOpacity>
         </View>
       ) : (
-        <View style={[s.lensStripWrap, { bottom: Math.max(insets.bottom + 150, 176) }]} pointerEvents={recording ? 'none' : 'auto'}>
-          {!ckReady ? (
-            <ActivityIndicator color="#FFF" />
+        <View accessibilityLabel="Available lens controls" style={[s.lensStripWrap, { bottom: keyboardHeight ? (Platform.OS === 'ios' ? keyboardHeight + 12 : 12) : Math.max(insets.bottom + 200, 220) }]} pointerEvents={recording || processing ? 'none' : 'auto'}>
+          {ckError || !apiToken || !lensGroupId || !webViewAvailable ? <View style={s.lensError}><Text accessibilityRole="alert" style={s.lensErrorText}>{ckError || 'Snapchat lenses are not available in this build.'}</Text><View style={{flexDirection:'row',gap:12}}>{apiToken&&lensGroupId&&webViewAvailable?<TouchableOpacity accessibilityRole="button" style={s.filterBtn} onPress={()=>setCkAttempt(n=>n+1)}><Text style={s.filterBtnTxt}>Retry lenses</Text></TouchableOpacity>:null}<TouchableOpacity accessibilityRole="button" style={s.filterBtn} onPress={()=>setTab('filters')}><Text style={s.filterBtnTxt}>Use effects</Text></TouchableOpacity></View></View> : !ckReady ? (
+            <View style={s.lensError}><ActivityIndicator color="#FFF" /><Text style={s.lensErrorText}>Loading Snapchat lenses…</Text></View>
           ) : (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.lensStrip}>
+            <><View style={s.lensSearch}><Feather name="search" size={18} color="#EAE4DB"/><TextInput accessibilityLabel="Search available Snapchat lenses" placeholder="Search your lenses" placeholderTextColor="#CCC7C0" value={lensQuery} onChangeText={setLensQuery} autoCorrect={false} returnKeyType="done" onSubmitEditing={()=>Keyboard.dismiss()} style={s.lensSearchInput}/>{lensQuery?<TouchableOpacity accessibilityLabel="Clear lens search" onPress={()=>setLensQuery('')} style={s.topBtn}><Feather name="x" size={17} color="#FFF"/></TouchableOpacity>:null}</View><ScrollView horizontal keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" showsHorizontalScrollIndicator={false} contentContainerStyle={s.lensStrip}>
               <TouchableOpacity onPress={() => pickLens(null)} activeOpacity={0.85} style={s.lensItem}>
                 <View style={[s.lensCircle, !ckSelectedLens && s.lensCircleOn]}><Feather name="slash" size={18} color="#FFF" /></View>
                 <Text style={[s.lensLabel, !ckSelectedLens && s.lensLabelOn]}>None</Text>
               </TouchableOpacity>
-              {ckLenses.map((lens) => {
+              {ckLenses.filter(lens=>lens.name.toLowerCase().includes(lensQuery.trim().toLowerCase())).map((lens) => {
                 const on = ckSelectedLens === lens.id;
                 return (
-                  <TouchableOpacity key={lens.id} onPress={() => pickLens(lens)} activeOpacity={0.85} style={s.lensItem}>
+                  <TouchableOpacity key={lens.id} accessibilityRole="button" accessibilityLabel={lens.name} accessibilityState={{selected:on}} onPress={() => pickLens(lens)} activeOpacity={0.85} style={s.lensItem}>
                     <View style={[s.lensCircle, on && s.lensCircleOn]}>
                       {lens.iconUrl ? <Image source={{ uri: lens.iconUrl }} style={s.lensThumbImg} /> : <Feather name="zap" size={18} color="#FFF" />}
                     </View>
@@ -424,15 +495,17 @@ function FunCameraInner({ navigation, insets, route }: { navigation: any; insets
                   </TouchableOpacity>
                 );
               })}
-            </ScrollView>
+            </ScrollView>{!ckLenses.some(lens=>lens.name.toLowerCase().includes(lensQuery.trim().toLowerCase()))?<Text style={s.lensErrorText}>{lensQuery?'No available lens matches this search.':'No lenses are enabled for this camera yet.'}</Text>:null}</>
           )}
         </View>
       )}
 
       <View style={[s.bottomControls, { paddingBottom: Math.max(insets.bottom + 18, 32) }]}>
+        <View style={[s.tabSwitch,{marginTop:0,marginBottom:12}]}>{(['photo','video'] as const).map(mode=><TouchableOpacity key={mode} accessibilityRole="tab" accessibilityLabel={mode==='photo'?'Photo capture':'Video capture'} accessibilityState={{selected:captureMode===mode}} disabled={recording||processing} style={[s.tabBtn,captureMode===mode&&s.tabBtnOn]} onPress={()=>setCaptureMode(mode)}><Text style={[s.tabTxt,captureMode===mode&&s.tabTxtOn]}>{mode==='photo'?'Photo':'Video'}</Text></TouchableOpacity>)}</View>
         <View style={s.captureRow}>
           <View style={{ width: 44 }} />
           <TouchableOpacity onPressIn={onPressIn} onPressOut={onPressOut} activeOpacity={1}
+            accessibilityRole="button" accessibilityLabel={recording?'Stop recording':captureMode==='video'?'Record video':'Take photo'} disabled={processing || (tab==='lenses' && (!ckReady || !!ckError))}
             style={[s.captureWrap, { transform: [{ scale: recording ? 1.08 : 1 }] }]}>
             <View style={[s.captureRing, recording && s.captureRingRecording]} />
             <View style={[s.captureInner, recording && s.captureInnerRecording]}>
@@ -441,7 +514,7 @@ function FunCameraInner({ navigation, insets, route }: { navigation: any; insets
           </TouchableOpacity>
           <View style={{ width: 44 }} />
         </View>
-        <Text style={s.hintTxt}>{recording ? 'Release to stop' : 'Tap for photo, hold for video'}</Text>
+        <Text style={s.hintTxt}>{processing?'Preparing your capture…':recording ? (captureMode==='video'?'Tap to stop recording':'Release to stop') : captureMode==='video'?'Tap to record · up to 60 seconds':'Tap for photo · hold for video'}</Text>
       </View>
 
       {tab === 'filters' && (
@@ -486,10 +559,14 @@ const s = StyleSheet.create({
   lensStrip: { paddingHorizontal: 16, gap: 14, alignItems: 'flex-end' },
   lensItem: { alignItems: 'center', width: 58 },
   lensCircle: { width: 52, height: 52, borderRadius: 26, backgroundColor: 'rgba(255,255,255,0.18)', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: 'transparent', overflow: 'hidden' },
-  lensCircleOn: { borderColor: '#FFD60A', backgroundColor: 'rgba(0,0,0,0.3)' },
+  lensCircleOn: { borderColor: '#F4CDB9', backgroundColor: 'rgba(0,0,0,0.3)' },
   lensThumbImg: { width: '100%', height: '100%' },
   lensLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 10.5, fontWeight: '600', marginTop: 4 },
-  lensLabelOn: { color: '#FFD60A', fontWeight: '800' },
+  lensLabelOn: { color: '#F4CDB9', fontWeight: '800' },
+  lensSearch: { flexDirection:'row',alignItems:'center',gap:8,marginHorizontal:20,marginBottom:14,paddingHorizontal:12,borderRadius:16,backgroundColor:'rgba(18,22,29,.88)' },
+  lensSearchInput: { flex:1,minWidth:0,minHeight:48,paddingVertical:10,fontSize:16,color:'#FFF',includeFontPadding:false,textAlignVertical:'center' },
+  lensError: { alignItems:'center',padding:18,marginHorizontal:20,gap:14,borderRadius:18,backgroundColor:'rgba(18,22,29,.9)' },
+  lensErrorText: { color:'#EEE8DF',fontSize:13,lineHeight:19,textAlign:'center',paddingHorizontal:12 },
 
   bottomControls: { position: 'absolute', bottom: 0, left: 0, right: 0, alignItems: 'center', paddingTop: 16 },
   captureRow: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 40 },

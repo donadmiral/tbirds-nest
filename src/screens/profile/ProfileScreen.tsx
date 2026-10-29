@@ -21,7 +21,8 @@ import { Feather } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 
 import { supabase } from '../../services/supabase';
-import { hydratePostMedia } from '../../services/contentMedia';
+import { hydratePostMedia, withoutPrivateMedia } from '../../services/contentMedia';
+import { profileRead } from '../../utils/profileRead';
 import { normalizeProfilePost } from '../../utils/profilePost';
 import MemoryAlbumCard from '../../components/MemoryAlbumCard';
 import { useAuthStore } from '../../stores/authStore';
@@ -137,7 +138,7 @@ export default function ProfileScreen() {
     const current = () => mounted.current && scope.current === owner && request === profileRequest.current;
     if (!userId) { setLoading(false); return; }
     try {
-      const { data: pj, error: pErr } = await supabase.rpc('get_profile', { p_profile_id: userId });
+      const { data: pj, error: pErr } = await profileRead(supabase.rpc('get_profile', { p_profile_id: userId }));
       if (!current()) return;
       if (pErr) throw pErr;
       if (!pj || (pj as any).id !== userId) throw new Error('Profile is unavailable. Please retry.');
@@ -153,7 +154,6 @@ export default function ProfileScreen() {
         is_verified: !!pd.is_verified, verified_tier: pd.verified_tier ?? null, created_at: pd.created_at, business: pd.business || null,
       } as any);
       if (setAuthProfile) setAuthProfile({ ...(authProfileRef.current as any), ...pd });
-      setContentRevision(value => value + 1);
       const c = pd.counts || {};
       setTabCounts({ posts: c.posts ?? 0, reposts: c.reposts ?? 0, saved: c.saved ?? 0, tagged: c.media ?? 0 });
       // Reach comes from the 28-day function a moment later; keep the number already shown until it lands, so it never flips.
@@ -175,102 +175,105 @@ export default function ProfileScreen() {
   const loadTabContent = useCallback(async (tab: ProfileTab) => {
     const owner = scope.current, request = ++tabRequest.current;
     const current = () => mounted.current && scope.current === owner && request === tabRequest.current;
-    if (!userId) return;
+    if (!userId) { setTabLoading(false); return; }
     setTabLoading(!tabLoadedRef.current[tab]);
     setTabError(null);
     let succeeded = false;
-    try {
+    const queryPosts = async (configure: (query: any) => any): Promise<any[]> => {
+      const execute = (selection: string) => profileRead<{ data: any[] | null; error: any }>(configure(supabase.from('posts').select(selection)));
+      let result = await execute('*, post_media(id, url, media_type, width, height, sort_order, edit)');
+      // A network/auth error is not a missing relationship. Retrying that as a
+      // second, less complete query only extends the loading state.
+      if (result.error && ['PGRST200', 'PGRST204', '42703', '42P01'].includes(result.error.code)) result = await execute('*');
+      if (result.error) throw result.error;
+      return (result.data || []).filter(row => !row.archived_at);
+    };
+    const publish = (rows: any[]) => {
+      if (!current()) return;
+      const normalized = rows.map(normalizePost);
       if (tab === 'posts') {
-        let postsData: any[] = [];
-        try {
-          const { data, error } = await supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order, edit)').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
-          if (error) throw error; postsData = data || [];
-        } catch {
-          const { data, error } = await supabase.from('posts').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
-          if (error) throw error; postsData = data || [];
-        }
-        // Posts this person collaborated on show here too, as on Instagram.
-        try {
-          const { data: cl } = await supabase.from('post_collaborators').select('post_id').eq('user_id', userId).eq('status', 'accepted');
-          const collabIds = (cl || []).map((x: any) => x.post_id).filter((id: string) => !postsData.some((p: any) => p.id === id));
-          if (collabIds.length) { const { data: cp } = await supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order, edit)').in('id', collabIds); const cps = ((cp as any[]) || []); const authorIds = Array.from(new Set(cps.map((x: any) => x.user_id))); const { data: aps } = authorIds.length ? await supabase.from('profiles').select('id, full_name, avatar_url').in('id', authorIds) : { data: [] as any[] }; const am: Record<string, any> = {}; ((aps as any[]) || []).forEach((a: any) => { am[a.id] = { full_name: a.full_name || '', avatar_url: a.avatar_url || null }; }); postsData = [...postsData, ...cps.map((x: any) => ({ ...x, _collabAuthor: am[x.user_id] || null }))].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()); }
-        } catch {}
-        // Archived posts never show; the pinned post leads.
-        postsData = postsData.filter((x: any) => !x.archived_at);
-        postsData = await hydratePostMedia(postsData);
-        if (!current()) return;
         const pinnedId = (authProfileRef.current as any)?.pinned_post_id ?? null;
-        const pinnedFirst = pinnedId ? [...postsData.filter((x: any) => x.id === pinnedId), ...postsData.filter((x: any) => x.id !== pinnedId)] : postsData;
-        setTabPosts(pinnedFirst.map((x: any) => ({ ...normalizePost(x), is_pinned: x.id === pinnedId, _originalAuthor: x._collabAuthor || undefined, _repostLabel: x._collabAuthor ? 'Collab' : undefined })));
-        setPostsHasMore(postsData.length >= 50);
-        setTabCounts(prev => ({ ...prev, posts: postsData.length }));
-      }
-      if (tab === 'reposts') {
-        const { data: repostRows, error: repostError } = await supabase.from('post_reposts').select('post_id, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
-        if (repostError) throw repostError;
-        const postIds = (repostRows || []).map((r: any) => r.post_id);
-        if (postIds.length > 0) {
-          let postsData: any[] = [];
-          try { const { data, error } = await supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order, edit)').in('id', postIds); if (error) throw error; postsData = data || []; }
-          catch { const { data, error } = await supabase.from('posts').select('*').in('id', postIds); if (error) throw error; postsData = data || []; }
-          const authorIds = Array.from(new Set(postsData.map((p: any) => p.user_id)));
-          let authorMap: Record<string, any> = {};
-          if (authorIds.length > 0) { const { data: authors } = await supabase.from('profiles').select('id, full_name, avatar_url').in('id', authorIds); (authors || []).forEach((a: any) => { authorMap[a.id] = a; }); }
-          const repostTimeMap: Record<string, string> = {};
-          (repostRows || []).forEach((r: any) => { repostTimeMap[r.post_id] = r.created_at; });
-          postsData = await hydratePostMedia(postsData.filter((row: any) => !row.archived_at));
-          if (!current()) return;
-          const sorted = postsData.map((p: any) => ({ ...normalizePost(p), _repostLabel: 'You reposted', _repostedAt: repostTimeMap[p.id] || null, _originalAuthor: authorMap[p.user_id] || null })).sort((a, b) => { const ta = a._repostedAt ? new Date(a._repostedAt).getTime() : 0; const tb = b._repostedAt ? new Date(b._repostedAt).getTime() : 0; return tb - ta; });
-          setTabReposts(sorted);
-        } else { if (!current()) return; setTabReposts([]); }
-        setTabCounts(prev => ({ ...prev, reposts: postIds.length }));
-      }
-      if (tab === 'saved') {
-        const { data: bookmarkRows, error: bookmarkError } = await supabase.from('post_bookmarks').select('post_id, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(50);
-        if (bookmarkError) throw bookmarkError;
-        const postIds = (bookmarkRows || []).map((r: any) => r.post_id);
-        if (postIds.length > 0) {
-          let postsData: any[] = [];
-          try { const { data, error } = await supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order, edit)').in('id', postIds); if (error) throw error; postsData = data || []; }
-          catch { const { data, error } = await supabase.from('posts').select('*').in('id', postIds); if (error) throw error; postsData = data || []; }
-          const authorIds = Array.from(new Set(postsData.map((p: any) => p.user_id)));
-          let authorMap: Record<string, any> = {};
-          if (authorIds.length > 0) { const { data: authors } = await supabase.from('profiles').select('id, full_name, avatar_url').in('id', authorIds); (authors || []).forEach((a: any) => { authorMap[a.id] = a; }); }
-          const bookmarkTimeMap: Record<string, string> = {};
-          (bookmarkRows || []).forEach((r: any) => { bookmarkTimeMap[r.post_id] = r.created_at; });
-          postsData = await hydratePostMedia(postsData.filter((row: any) => !row.archived_at));
-          if (!current()) return;
-          const sorted = postsData.map((p: any) => ({ ...normalizePost(p), _savedAt: bookmarkTimeMap[p.id] || null, _originalAuthor: authorMap[p.user_id] || null })).sort((a, b) => { const ta = a._savedAt ? new Date(a._savedAt).getTime() : 0; const tb = b._savedAt ? new Date(b._savedAt).getTime() : 0; return tb - ta; });
-          setTabSaved(sorted);
-        } else { if (!current()) return; setTabSaved([]); }
-        setTabCounts(prev => ({ ...prev, saved: postIds.length }));
-      }
-      if (tab === 'tagged') {
-        // media tab: your own posts that carry an image or video
-        let postsData: any[] = [];
-        try {
-          const { data, error } = await supabase
-            .from('posts')
-            .select('*, post_media(id, url, media_type, width, height, sort_order, edit)')
-            .eq('user_id', userId)
-            .order('created_at', { ascending: false })
-            .limit(80);
-          if (error) throw error; postsData = data || [];
-        } catch {
-          const { data, error } = await supabase.from('posts').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(80);
-          if (error) throw error; postsData = data || [];
-        }
-        const withMedia = postsData.filter((p: any) =>
-          (Array.isArray(p.post_media) && p.post_media.length > 0) || !!p.media_url
-        );
-        const authorized = await hydratePostMedia(withMedia.filter((row: any) => !row.archived_at));
+        const sorted = pinnedId ? [...normalized.filter(row => row.id === pinnedId), ...normalized.filter(row => row.id !== pinnedId)] : normalized;
+        setTabPosts(sorted.map(row => ({ ...row, is_pinned: row.id === pinnedId })));
+      } else if (tab === 'reposts') setTabReposts(normalized);
+      else if (tab === 'saved') setTabSaved(normalized);
+      else setTabTagged(normalized);
+    };
+    try {
+      let rows: any[] = [];
+      if (tab === 'posts' || tab === 'tagged') {
+        rows = await queryPosts(query => query.eq('user_id', userId).order('created_at', { ascending: false }).limit(tab === 'posts' ? 50 : 80));
         if (!current()) return;
-        setTabTagged(authorized.map((p: any) => normalizePost(p)));
-        setTabCounts(prev => ({ ...prev, tagged: withMedia.length }));
+        if (tab === 'posts') setPostsHasMore(rows.length >= 50);
+        else rows = rows.filter(row => (Array.isArray(row.post_media) && row.post_media.length > 0) || !!row.media_url);
+      } else {
+        const table = tab === 'reposts' ? 'post_reposts' : 'post_bookmarks';
+        const { data: links, error } = await profileRead(supabase.from(table).select('post_id, created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(50));
+        if (error) throw error;
+        if (!current()) return;
+        const ids = (links || []).map((row: any) => row.post_id);
+        if (ids.length) {
+          const found = await queryPosts(query => query.in('id', ids));
+          const byId = new Map(found.map(row => [row.id, row]));
+          rows = (links || []).flatMap((link: any) => {
+            const row = byId.get(link.post_id);
+            return row ? [{ ...row, ...(tab === 'reposts' ? { _repostLabel: 'You reposted', _repostedAt: link.created_at } : { _savedAt: link.created_at }) }] : [];
+          });
+        }
       }
+      if (!current()) return;
+      setTabCounts(previous => ({ ...previous, [tab]: rows.length }));
+      // The database has authorized these rows. Show their metadata immediately,
+      // with private references removed, while the separate media request runs.
+      // A signing outage must not hide every post behind a global spinner.
+      if (!tabLoadedRef.current[tab] || rows.length === 0) publish(withoutPrivateMedia(rows));
+      setTabLoading(false);
+      tabLoadedRef.current[tab] = true;
       succeeded = true;
-    } catch (e: any) { if (current()) setTabError(e?.message || 'Could not load these posts. Please retry.'); }
-    finally { if (current()) { setTabLoading(false); if (succeeded) tabLoadedRef.current[tab] = true; } }
+      const authorized = await profileRead(hydratePostMedia(rows), 25000);
+      if (!current()) return;
+      publish(authorized);
+
+      // Collaborator and author decoration are independent reads. Own posts are
+      // already usable; these queries cannot hold the first-page loading state.
+      void (async () => {
+        try {
+          if (tab === 'posts') {
+            const { data: links, error } = await profileRead(supabase.from('post_collaborators').select('post_id').eq('user_id', userId).eq('status', 'accepted'));
+            if (error) throw error;
+            if (!current()) return;
+            const ownIds = new Set(rows.map(row => row.id));
+            const ids = (links || []).map((link: any) => link.post_id).filter((id: string) => !ownIds.has(id));
+            if (!ids.length) return;
+            const collaborations = await queryPosts(query => query.in('id', ids));
+            if (!current()) return;
+            const safe = await profileRead(hydratePostMedia(collaborations), 25000);
+            if (!current()) return;
+            const combined = [...authorized, ...safe.map(row => ({ ...row, _repostLabel: 'Collab' }))]
+              .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+            publish(combined);
+            rows = combined;
+          }
+          if (!current()) return;
+          const ids = Array.from(new Set(rows.map(row => row.user_id))).filter(id => id && id !== userId);
+          if (!ids.length) return;
+          const { data: people, error } = await profileRead(supabase.from('profiles').select('id, full_name, avatar_url').in('id', ids));
+          if (error) throw error;
+          if (!current()) return;
+          const authors = new Map((people || []).map((person: any) => [person.id, person]));
+          const decorate = (previous: Post[]) => previous.map(post => authors.has(post.user_id) ? { ...post, _originalAuthor: authors.get(post.user_id) } : post);
+          if (tab === 'posts') setTabPosts(decorate);
+          else if (tab === 'reposts') setTabReposts(decorate);
+          else if (tab === 'saved') setTabSaved(decorate);
+        } catch (error: any) {
+          if (current()) setTabError(tab === 'posts' ? 'Some collaborations could not load. Your own posts are shown. Retry posts to try again.' : 'Some author details could not load. Retry posts to try again.');
+        }
+      })();
+    } catch (error: any) {
+      if (current()) setTabError(error?.message || 'Could not load these posts. Please retry.');
+    } finally {
+      if (current()) { setTabLoading(false); if (succeeded) tabLoadedRef.current[tab] = true; }
+    }
   }, [userId]);
 
   useEffect(() => {
@@ -282,7 +285,7 @@ export default function ProfileScreen() {
   useFocusEffect(useCallback(() => {
     setLoadingMorePosts(false);
     void load(); void loadHighlights();
-    return () => { profileRequest.current++; tabRequest.current++; moreRequest.current++; highlightsRequest.current++; };
+    return () => { profileRequest.current++; highlightsRequest.current++; };
   }, [load, loadHighlights]));
   const [hasStory, setHasStory] = useState(false);
   useFocusEffect(useCallback(() => {
@@ -294,9 +297,10 @@ export default function ProfileScreen() {
     return () => { alive = false; };
   }, [userId]));
 
-  useEffect(() => {
-    if (profile?.id === userId) void loadTabContent(activeTab);
-  }, [activeTab, profile?.id, userId, contentRevision, loadTabContent]);
+  useFocusEffect(useCallback(() => {
+    if (userId) void loadTabContent(activeTab);
+    return () => { tabRequest.current++; moreRequest.current++; };
+  }, [activeTab, userId, contentRevision, loadTabContent]));
 
   useEffect(() => {
     if (route.params?.edit && profile) { openEdit(); navigation.setParams({ edit: undefined } as any); }
@@ -396,7 +400,7 @@ export default function ProfileScreen() {
           <View style={{ flex: 1 }}><View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}><TierName userId={post.user_id} baseStyle={[st.postAuthorName, { flexShrink: 1 }]} text={displayName} /><VerifiedBadge userId={post.user_id} size={13} /></View><Text style={st.postTime}>{relTime(post.created_at)}</Text></View>
           <TouchableOpacity onPress={() => {
             const buttons: any[] = [];
-            if (isOwnPost) { buttons.push({ text: 'Delete post', style: 'destructive' as const, onPress: () => { Alert.alert('Delete post?', 'This will permanently remove your post.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: async () => { await supabase.from('posts').delete().eq('id', post.id); load(); } }]); } }); }
+            if (isOwnPost) { buttons.push({ text: 'Delete post', style: 'destructive' as const, onPress: () => { Alert.alert('Delete post?', 'This will permanently remove your post.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete', style: 'destructive', onPress: async () => { const { error } = await supabase.from('posts').delete().eq('id', post.id); if (error) { Alert.alert('Could not delete', error.message); return; } void load(); setContentRevision(value => value + 1); } }]); } }); }
             buttons.push({ text: 'Share post', onPress: async () => { await Share.share({ message: post.content || 'Check out this post on PlatinumCircles' }); } });
             buttons.push({ text: 'Cancel', style: 'cancel' as const });
             Alert.alert(undefined as any, undefined, buttons);
@@ -444,19 +448,16 @@ const loadMorePosts = useCallback(async () => {
     setTabError(null);
     try {
       const before = (tabPosts[tabPosts.length - 1] as any)?.created_at;
-      let rows: any[] = [];
-      try {
-        const { data, error } = await supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order, edit)')
-          .eq('user_id', userId).lt('created_at', before)
-          .order('created_at', { ascending: false }).limit(50);
-        if (error) throw error; rows = data || [];
-      } catch {
-        const { data, error } = await supabase.from('posts').select('*')
-          .eq('user_id', userId).lt('created_at', before)
-          .order('created_at', { ascending: false }).limit(50);
-        if (error) throw error; rows = data || [];
+      let result = await profileRead(supabase.from('posts').select('*, post_media(id, url, media_type, width, height, sort_order, edit)')
+        .eq('user_id', userId).lt('created_at', before).order('created_at', { ascending: false }).limit(50));
+      if (result.error && ['PGRST200', 'PGRST204', '42703', '42P01'].includes(result.error.code)) {
+        result = await profileRead(supabase.from('posts').select('*')
+          .eq('user_id', userId).lt('created_at', before).order('created_at', { ascending: false }).limit(50));
       }
-      const authorized = await hydratePostMedia(rows.filter((row: any) => !row.archived_at));
+      if (result.error) throw result.error;
+      const rows = result.data || [];
+      if (!current()) return;
+      const authorized = await profileRead(hydratePostMedia(rows.filter((row: any) => !row.archived_at)), 25000);
       if (!current()) return;
       setTabPosts(prev => { const ids = new Set(prev.map(post => post.id)); return [...prev, ...authorized.filter(row => !ids.has(row.id)).map(normalizePost)]; });
       setPostsHasMore(rows.length >= 50);
@@ -485,7 +486,7 @@ const loadMorePosts = useCallback(async () => {
   return (
     <SafeAreaView style={st.safe} edges={['top','left','right']}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'}/>
-      <ScrollView contentInsetAdjustmentBehavior="never" automaticallyAdjustContentInsets={false} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={()=>{setRefreshing(true);load();loadHighlights();}} tintColor={t.brand.base}/>} onScroll={handleTabBarScroll} scrollEventThrottle={16} contentContainerStyle={{paddingBottom:insets.bottom+TAB_BAR_CLEARANCE}}>
+      <ScrollView contentInsetAdjustmentBehavior="never" automaticallyAdjustContentInsets={false} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={()=>{setRefreshing(true);void load();void loadHighlights();setContentRevision(value=>value+1);}} tintColor={t.brand.base}/>} onScroll={handleTabBarScroll} scrollEventThrottle={16} contentContainerStyle={{paddingBottom:insets.bottom+TAB_BAR_CLEARANCE}}>
         <ProfileHeader
           profile={profile}
           stats={stats}

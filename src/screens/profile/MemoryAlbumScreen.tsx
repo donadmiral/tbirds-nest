@@ -1,6 +1,7 @@
 import { themedSheet, useTheme } from '../../theme/useTheme';
 import VideoThumb from '../../components/VideoThumb';
 import MemoryPageImage from '../../components/memory/MemoryPageImage';
+import MemoryPageTurn,{MemoryTurnPreview,type MemoryPageTurnHandle} from '../../components/memory/MemoryPageTurn';
 /**
  * MemoryAlbumScreen — the memory book.
  * Closed: an editorial photo cover in the chosen book design. Tap to open.
@@ -11,7 +12,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   View, Text, TouchableOpacity, StyleSheet, Modal, TextInput, FlatList,
   ActivityIndicator, Alert, Dimensions, StatusBar, ScrollView, Animated,
-  Easing, PanResponder, KeyboardAvoidingView, Platform, AppState, useWindowDimensions, AccessibilityInfo,
+  Easing, KeyboardAvoidingView, Platform, AppState, useWindowDimensions, AccessibilityInfo,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
@@ -28,8 +29,6 @@ import { MemoryStoryTile } from '../../components/memory/MemoryBookDesigner';
 import MemoryAudienceEditor from '../../components/memory/MemoryAudienceEditor';
 import { memoryArtwork, memoryCoverMedia, memoryCoverPage, MEMORY_FEATURED_DESIGNS as MEMORY_DESIGNS } from '../../../shared/memoryBookDesign';
 import { useSoundtrackPlayer } from '../../hooks/useSoundtrackPlayer';
-const SW = Dimensions.get('window').width;
-const SH = Dimensions.get('window').height;
 const PAGE_CREAM = '#FBF6EC';
 
 const AUDIENCES = [
@@ -108,8 +107,8 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
   const [likedPages, setLikedPages] = useState<Set<string>>(new Set());
 
   const coverAnim = useRef(new Animated.Value(0)).current;
-  const flipAnim = useRef(new Animated.Value(0)).current;
-  const flipping = useRef(false);
+  const pageTurn=useRef<MemoryPageTurnHandle>(null);
+  const [turning,setTurning]=useState(false);
   const bookGeneration = useRef(0);
   const idxRef = useRef(0);
   useEffect(() => { idxRef.current = idx; }, [idx]);
@@ -142,13 +141,13 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
   useEffect(() => {
     // A route/account change invalidates pending flips and picker responses.
     bookGeneration.current++; loadGeneration.current++;
-    coverAnim.stopAnimation(); flipAnim.stopAnimation(); flipping.current=false;
-    coverAnim.setValue(0); flipAnim.setValue(0); idxRef.current=0;
+    coverAnim.stopAnimation(); pageTurn.current?.cancel();
+    coverAnim.setValue(0); idxRef.current=0;
     setOpened(false); setGrid(false); setIdx(0); setAlbum(null); setBookId(albumIdParam);
     setPlayingUrl(null); setPicker(false); setSettings(false); setPageActions(null); pendingPageAction.current=null; setCaptionFor(null);
     setMyStories([]); setChosen(new Set()); setAdding(false); setStoriesLoading(false); setMutationError(''); setLoadError(null); setLoading(true);
-    return () => { bookGeneration.current++; coverAnim.stopAnimation(); flipAnim.stopAnimation(); flipping.current=false; };
-  }, [ownerId, albumIdParam, viewerId, coverAnim, flipAnim]);
+    return () => { bookGeneration.current++; coverAnim.stopAnimation(); pageTurn.current?.cancel(); };
+  }, [ownerId, albumIdParam, viewerId, coverAnim]);
 
   useEffect(() => {
     void load();
@@ -160,7 +159,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
 
   useEffect(() => { setDesign(album?.cover_design || 'keepsake'); }, [album]);
   useEffect(() => { let alive=true; setNextBook(null); if (!viewerId || !bookId) return; void supabase.rpc('get_memory_albums',{p_owner:ownerId}).then(({data,error})=>{if(!alive||error)return;const list=(data?.books??[]).filter((b:any)=>data?.is_owner||b.count>0);const index=list.findIndex((b:any)=>b.id===bookId);if(index>=0&&index+1<list.length)setNextBook(list[index+1].id);});return()=>{alive=false;};},[ownerId,bookId,viewerId]);
-  const music = useSoundtrackPlayer({ selection: album?.soundtrack ?? null, use: 'memory_album', active: focused && opened && !grid && !pageActions && !settings && !picker && !playingUrl });
+  const music = useSoundtrackPlayer({ selection: album?.soundtrack ?? null, use: 'memory_album', active: focused && opened && !turning && !grid && !pageActions && !settings && !picker && !playingUrl });
 
   const artwork = memoryArtwork(album?.cover_design, album?.cover_color);
   const pages: any[] = useMemo(
@@ -177,34 +176,12 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
 
   const closeBook = useCallback(() => {
     bookGeneration.current++;
-    flipAnim.stopAnimation(); flipAnim.setValue(0); flipping.current=false;
+    pageTurn.current?.cancel();
     setOpened(false); setGrid(false);
     Animated.timing(coverAnim, { toValue: 0, duration: reduceMotion ? 0 : 220, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
-  }, [coverAnim, flipAnim, reduceMotion]);
+  }, [coverAnim, reduceMotion]);
 
-  const flipTo = useCallback((dir: 1 | -1) => {
-    const cur = idxRef.current;
-    const next = cur + dir;
-    if (flipping.current || next < 0 || next >= Math.max(pages.length, 1)) return;
-    flipping.current = true;
-    const generation=bookGeneration.current;
-    Animated.timing(flipAnim, { toValue: dir, duration: reduceMotion ? 0 : 190, easing: Easing.in(Easing.quad), useNativeDriver: true }).start(({finished}) => {
-      if(generation!==bookGeneration.current)return;
-      if(!finished){flipping.current=false;return;}
-      idxRef.current=next; setIdx(next);
-      flipAnim.setValue(-dir as any);
-      Animated.timing(flipAnim, { toValue: 0, duration: reduceMotion ? 0 : 210, easing: Easing.out(Easing.quad), useNativeDriver: true }).start(() => { if(generation===bookGeneration.current)flipping.current = false; });
-    });
-  }, [pages.length, flipAnim, reduceMotion]);
-
-  const swipe = useMemo(() => PanResponder.create({
-    onStartShouldSetPanResponder: () => false,
-    onMoveShouldSetPanResponder: (_e, g) => Math.abs(g.dx) > 18 && Math.abs(g.dx) > Math.abs(g.dy) * 1.4,
-    onPanResponderRelease: (_e, g) => {
-      if (g.dx <= -30) flipTo(1);
-      else if (g.dx >= 30) flipTo(-1);
-    },
-  }), [flipTo]);
+  const flipTo = useCallback((dir:1|-1)=>{pageTurn.current?.turn(dir);},[]);
 
   const openPicker = useCallback(async () => {
     setChosen(new Set()); setPicker(true); setStoriesLoading(true); setStoriesError(''); setMyStories([]); setFailedStoryPreviews(new Set());
@@ -318,8 +295,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
   const bookH = bookW * 1.31;
   const pageHeight = Math.max(160, Math.min(screenHeight*.64, screenHeight-Math.max(insets.top,12)-insets.bottom-160-(nextBook?44:0)));
   const page = pages[Math.min(idx, Math.max(pages.length - 1, 0))];
-  const rotY = flipAnim.interpolate({ inputRange: [-1, 0, 1], outputRange: ['70deg', '0deg', '-70deg'] });
-  const flipOpacity = flipAnim.interpolate({ inputRange: [-1, -0.5, 0, 0.5, 1], outputRange: [0, 0.65, 1, 0.65, 0] });
+  const pageWidth=Math.min(screenWidth-40,440,pageHeight*.78);
   const coverScale = coverAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.07] });
   const coverFade = coverAnim.interpolate({ inputRange: [0, 0.55, 1], outputRange: [1, 0, 0] });
 
@@ -356,9 +332,8 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
           ) : null}
         </View>
       ) : grid ? <ScrollView contentContainerStyle={{padding:18,paddingBottom:40}}><Text style={{fontSize:13,color:t.ink.secondary,textAlign:'center',marginBottom:20}}>{pages.length} pages · Select a page to read or edit</Text><View style={{flexDirection:'row',flexWrap:'wrap',gap:14}}>{pages.map((pg:any,i:number)=><TouchableOpacity key={pg.id} accessibilityLabel={'Open memory '+(i+1)} onPress={()=>{idxRef.current=i;setIdx(i);setGrid(false);}} style={{width:(screenWidth-50)/2,backgroundColor:PAGE_CREAM,borderLeftWidth:6,borderColor:artwork.spine,padding:10,shadowColor:'#000',shadowOpacity:.1,shadowRadius:5,shadowOffset:{width:0,height:3}}}><Text style={{fontFamily:Platform.OS==='ios'?'Georgia':'serif',color:'#142642',textAlign:'center',fontSize:10,marginBottom:10}}>{String(i+1).padStart(2,'0')}</Text><View style={{height:(screenWidth-50)/2*1.15,overflow:'hidden'}}><MemoryStoryTile story={pg}/></View><Text numberOfLines={2} style={{fontFamily:Platform.OS==='ios'?'Georgia':'serif',fontSize:13,color:'#142642',marginTop:10}}>{pg.caption||fmtDate(pg.taken_at)}</Text></TouchableOpacity>)}</View>{album.is_owner&&<TouchableOpacity onPress={openPicker} style={{padding:16,alignItems:'center',marginTop:20,borderWidth:1,borderStyle:'dashed',borderRadius:14,borderColor:t.surface.hairline}}><Text style={{color:t.ink.primary}}>+ Add memories</Text></TouchableOpacity>}</ScrollView> : (
-        <View style={{ flex: 1, alignItems: 'center' }} {...swipe.panHandlers}>
-          <View style={[st.openBook, { borderLeftColor: artwork.spine, width: Math.min(screenWidth-28,600), height: pageHeight }]}>
-            <View style={st.pagePaper}>
+        <View style={{ flex: 1, alignItems: 'center',overflow:'hidden' }}>
+          <MemoryPageTurn ref={pageTurn} key={bookId} pageIds={pages.map(p=>p.id)} index={idx} width={pageWidth} height={pageHeight} active={focused&&!pageActions&&!settings&&!picker&&!playingUrl} reduceMotion={reduceMotion} spine={artwork.spine} title={album.title} onCommit={i=>{idxRef.current=i;setIdx(i);}} onTurningChange={setTurning} renderPreview={i=><MemoryTurnPreview page={pages[i]??{}} index={i}/>}>
               <Text style={{textAlign:'center',fontFamily:Platform.OS==='ios'?'Georgia':'serif',fontSize:10,color:'#9A725B',marginBottom:12}}>{String(idx+1).padStart(2,'0')} ─</Text>
               {pages.length === 0 ? (
                 <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 26 }}>
@@ -370,7 +345,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
                   ) : null}
                 </View>
               ) : (
-                <Animated.View style={{ flex: 1, opacity: flipOpacity, transform: [{ perspective: 1200 }, { rotateY: rotY }] }}>
+                <View style={{flex:1,minHeight:0}}>
                   <View style={[st.polaroid, page?.style==='full'&&{padding:0,borderWidth:0}]}>
                     <View style={st.polImgWrap}>
                       {(() => { const stks = Array.isArray(page?.stickers) ? page.stickers : []; const pk = stks.find((k: any) => k && k.kind === 'post'); if (pk) return (
@@ -384,7 +359,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
                           )) : null}
                           <TouchableOpacity disabled={!pk.postId} onPress={()=>navigation.push('PostTop',{postId:pk.postId})}><Text style={{ color: '#D8E2F0', fontSize: 12, marginTop: 8 }}>View full post →</Text></TouchableOpacity>
                         </View>
-                      ); if (page?.media_type === 'video') return (<View style={{ flex: 1 }}><PageVideo key={[page.id,page.media_url,mediaAttempt].join(':')} url={page.media_url} active={focused&&!pageActions&&!settings&&!picker&&!playingUrl} onRetry={retryMedia} /><TouchableOpacity accessibilityRole="button" accessibilityLabel="Open memory video full screen" hitSlop={6} disabled={!page.media_url} onPress={() => setPlayingUrl(page.media_url)} style={{ position: 'absolute', right: 8, bottom: 8, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }}><Feather name="maximize-2" size={15} color="#FFFFFF" /></TouchableOpacity></View>); if (page?.media_type === 'image' || page?.media_url || page?.thumbnail_url) return (
+                      ); if (page?.media_type === 'video') return (<View style={{ flex: 1 }}><PageVideo key={[page.id,page.media_url,mediaAttempt].join(':')} url={page.media_url} active={focused&&!turning&&!pageActions&&!settings&&!picker&&!playingUrl} onRetry={retryMedia} /><TouchableOpacity accessibilityRole="button" accessibilityLabel="Open memory video full screen" hitSlop={6} disabled={!page.media_url} onPress={() => setPlayingUrl(page.media_url)} style={{ position: 'absolute', right: 8, bottom: 8, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }}><Feather name="maximize-2" size={15} color="#FFFFFF" /></TouchableOpacity></View>); if (page?.media_type === 'image' || page?.media_url || page?.thumbnail_url) return (
                         <MemoryPageImage key={[page.id,page.media_url,page.thumbnail_url,mediaAttempt].join(':')} uri={page.media_url} thumbnail={page.thumbnail_url} onRetry={retryMedia} />
                       ); return (
                         <View style={{ flex: 1, backgroundColor: '#0B1E3D', borderRadius: 6, alignItems: 'center', justifyContent: 'center', padding: 14 }}>
@@ -398,21 +373,18 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
                       <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} activeOpacity={0.8} onPress={async () => {if(!page?.story_id||reactionLock.current)return;reactionLock.current=true;const sid=page.story_id,viewer=viewerRef.current;try{const {data,error}=await supabase.rpc('toggle_story_reaction',{p_story_id:sid,p_emoji:'❤️'});if(error)throw error;if(viewerRef.current===viewer)setLikedPages(prev=>{const next=new Set(prev);if(data?.reacted)next.add(sid);else next.delete(sid);return next;});}catch{setMutationError('Your reaction could not save. Try again.');}finally{reactionLock.current=false;}}} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: likedPages.has(page?.story_id) ? 'rgba(224,36,94,0.14)' : 'rgba(11,30,61,0.06)' }}><Feather name="heart" size={15} color={likedPages.has(page?.story_id) ? '#E0245E' : 'rgba(11,30,61,0.7)'} /><Text style={{ fontSize: 12, fontWeight: '700', color: likedPages.has(page?.story_id) ? '#E0245E' : 'rgba(11,30,61,0.7)' }}>{likedPages.has(page?.story_id) ? 'Liked' : 'Like'}</Text></TouchableOpacity>
                     </View>
                   </View>
-                </Animated.View>
+                </View>
               )}
-              <TouchableOpacity accessibilityLabel="Previous memory" disabled={idx===0} style={st.edgeL} onPress={() => flipTo(-1)} />
-              <TouchableOpacity accessibilityLabel="Next memory" disabled={idx>=pages.length-1} style={st.edgeR} onPress={() => flipTo(1)} />
-            </View>
-          </View>
+          </MemoryPageTurn>
 
           {!!nextBook && idx>=pages.length-1 && <TouchableOpacity onPress={()=>navigation.replace('MemoryAlbum',{ownerId,albumId:nextBook})}><Text style={{color:t.ink.primary,padding:12,fontWeight:'700'}}>Next book →</Text></TouchableOpacity>}
           {pages.length > 0 ? (
             <View style={st.pagerRow}>
-              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Previous memory" onPress={() => flipTo(-1)} disabled={idx === 0} style={[st.pagerBtn, idx === 0 && { opacity: 0.35 }]}>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Previous memory" onPress={() => flipTo(-1)} disabled={turning||idx === 0} style={[st.pagerBtn, idx === 0 && { opacity: 0.35 }]}>
                 <Feather name="chevron-left" size={17} color={t.ink.primary} />
               </TouchableOpacity>
-              <View style={st.pagerPill}><Text style={st.pagerTxt}>{idx + 1} / {pages.length}</Text></View>
-              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Next memory" onPress={() => flipTo(1)} disabled={idx >= pages.length - 1} style={[st.pagerBtn, idx >= pages.length - 1 && { opacity: 0.35 }]}>
+              <View style={st.pagerPill}><Text accessibilityLiveRegion="polite" accessibilityLabel={`Page ${idx+1} of ${pages.length}`} style={st.pagerTxt}>{idx + 1} / {pages.length}</Text></View>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Next memory" onPress={() => flipTo(1)} disabled={turning||idx >= pages.length - 1} style={[st.pagerBtn, idx >= pages.length - 1 && { opacity: 0.35 }]}>
                 <Feather name="chevron-right" size={17} color={t.ink.primary} />
               </TouchableOpacity>
             </View>
@@ -576,14 +548,10 @@ const st = themedSheet((t) => ({
   safe: { flex: 1, backgroundColor: t.surface.canvas },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10 },
   topTitle: { fontFamily:Platform.OS==='ios'?'Georgia':'serif', fontSize: 21, fontWeight: '500', color: t.ink.primary },
-  openBook: { marginTop: 8, width: SW - 28, height: SH * 0.66, borderRadius: 2, borderWidth: 1, borderLeftWidth:10, borderColor:'#D8D0BC', backgroundColor: PAGE_CREAM, overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 7 },
-  pagePaper: { flex: 1, backgroundColor: PAGE_CREAM, paddingHorizontal: 18, paddingVertical: 16 },
   polaroid: { flex: 1, backgroundColor: PAGE_CREAM, borderRadius: 0, padding: 4, paddingBottom: 10, borderWidth: StyleSheet.hairlineWidth, borderColor:'#E3DAC8' },
   polImgWrap: { flex: 1, borderRadius: 4, overflow: 'hidden', backgroundColor: t.brand.base },
   handCaption: { fontFamily:Platform.OS==='ios'?'Georgia':'serif', fontSize: 17, fontStyle: 'italic', fontWeight: '600', color: '#5a5140', marginTop: 12, minHeight: 20 },
   handDate: { fontSize: 11.5, fontStyle: 'italic', color: '#8b7f68' },
-  edgeL: { position: 'absolute', left: 0, top: '20%', bottom: '30%', width: 32 },
-  edgeR: { position: 'absolute', right: 0, top: '20%', bottom: '30%', width: 32 },
   pagerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 14 },
   pagerBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: t.surface.canvas, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 3 },
   pagerPill: { backgroundColor: t.surface.canvas, borderRadius: 16, paddingHorizontal: 16, paddingVertical: 8, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 3 },

@@ -1,5 +1,7 @@
-import { hydrateContentMedia, hydrateOwnerUploadMedia } from '../../shared/contentMedia';
+import { hydrateContentMedia, hydrateOwnerUploadMedia, replaceContentMedia } from '../../shared/contentMedia';
 import { supabase, SUPABASE_URL } from './supabase';
+/** Authorized row metadata may render before its private media capabilities arrive. */
+export const withoutPrivateMedia = <T,>(rows: T[]) => replaceContentMedia(rows, SUPABASE_URL, new Map());
 export const hydratePostMedia = <T,>(rows: T[]) => hydrateContentMedia(supabase, SUPABASE_URL, rows, 'post');
 export const hydrateStoryMedia = <T,>(rows: T[]) => hydrateContentMedia(supabase, SUPABASE_URL, rows, 'story');
 export const hydrateSoundMedia = <T,>(rows: T[]) => hydrateContentMedia(supabase, SUPABASE_URL, rows, 'sound');

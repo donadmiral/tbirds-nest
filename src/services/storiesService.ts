@@ -67,6 +67,7 @@ export type StoryTextSticker = {
   postAuthorName?: string;
   postAuthorAvatar?: string | null;
   postText?: string;
+  postArticleTitle?: string | null;
   postMediaUrl?: string | null;
   postMediaType?: string | null;
   postMediaCount?: number;
@@ -319,6 +320,7 @@ export async function uploadAndCreateStory(params: {
   localUri: string | null;
   mediaType: StoryMediaType;
   caption?: string | null;
+  allowReplies?: boolean;
   scope: StoryScope;
   audience?: 'everyone' | 'followers' | 'close_friends' | 'only_with' | 'except' | null;
   sharedWith?: string[] | null;
@@ -509,6 +511,7 @@ export async function uploadAndCreateStory(params: {
     caption: caption?.trim() || null,
     scope,
     audience: audience || 'everyone',
+    allow_replies: params.allowReplies !== false,
     reach: reach || 'followers',
     affiliation_id: affiliationId || null,
   };

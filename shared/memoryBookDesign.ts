@@ -24,7 +24,7 @@ export function memoryDesign(value?: string | null) { return MEMORY_DESIGNS.find
 export function memoryColors(value?: string | null) { return MEMORY_COVER_COLORS[value ?? 'blush'] ?? MEMORY_COVER_COLORS.blush; }
 
 /** The six approved cover families. Older saved themes remain readable. */
-export const MEMORY_FEATURED_DESIGNS = MEMORY_DESIGNS.slice(0, 6);
+export const MEMORY_FEATURED_DESIGNS = ['postcard','editorial','keepsake','field_notes','night_film','daybook'].map(id=>MEMORY_DESIGNS.find(d=>d.id===id)!);
 export function memoryArtwork(design?: string | null, color?: string | null) {
   const d = memoryDesign(design).id, c = memoryColors(color);
   const paper = color && !['blush','cream','pearl'].includes(color) ? c.cover : '#F5F0E4';
@@ -32,18 +32,18 @@ export function memoryArtwork(design?: string | null, color?: string | null) {
   if (d === 'night_film') return { paper: '#1D1D1C', spine: '#111111', ink: '#F5EBD6', accent: '#C3A779' };
   if (d === 'field_notes') return { paper: '#183F34', spine: '#B65F32', ink: '#F7EFDA', accent: '#E0BC83' };
   if (d === 'daybook') return { paper: '#F5E5A5', spine: '#D9BE67', ink: '#105181', accent: '#D95032' };
-  if (d === 'postcard') return { paper, spine: '#8B2436', ink: '#8B2436', accent: '#225071' };
-  return { paper: paper === '#F5F0E4' ? '#E9DFCE' : paper, spine: color && color !== 'cream' ? c.spine : '#C3888C', ink: '#19263A', accent: '#887355' };
+  if (d === 'postcard') return { paper, spine: '#8B2436', ink: color==='ink'?'#F8F0E3':'#932535', accent: color==='ink'?'#BDD5DF':'#225071' };
+  return { paper: paper === '#F5F0E4' ? '#E9DFCE' : paper, spine: color && color !== 'cream' ? c.spine : '#C3888C', ink: color==='ink'?'#F8F0E3':'#19263A', accent: color==='ink'?'#D8CAB0':'#887355' };
 }
-export type MemoryCoverPage = { story_id?: string; media_type?: string; media_url?: string | null; thumbnail_url?: string | null; taken_at?: string | null; caption?: string | null; story_caption?: string | null; stickers?: unknown };
+export type MemoryCoverPage = { story_id?: string; media_type?: string; media_url?: string | null; thumbnail_url?: string | null; taken_at?: string | null; created_at?: string | null; caption?: string | null; story_caption?: string | null; stickers?: unknown };
 /** Inputs must already be hydrated by the authorized memory-media service. */
 export function memoryCoverMedia(page?: MemoryCoverPage | null) {
-  if (!page) return { photoUrl: undefined, fallbackPhotoUrl: undefined, videoUrl: undefined };
+  if (!page) return { photoUrl: undefined, fallbackPhotoUrl: undefined, videoUrl: undefined, takenAt: undefined };
   const sticker = Array.isArray(page.stickers) ? page.stickers.find(s => s?.kind === 'post') : null;
   const photoUrl = page.thumbnail_url || (page.media_type === 'image' ? page.media_url : null) || (sticker?.postMediaType !== 'video' ? sticker?.postMediaUrl : null) || undefined;
   const fallbackPhotoUrl = page.media_type === 'image' && page.media_url && page.media_url !== photoUrl ? page.media_url : undefined;
   const videoUrl = page.media_type === 'video' ? page.media_url || undefined : undefined;
-  return { photoUrl, fallbackPhotoUrl, videoUrl };
+  return { photoUrl, fallbackPhotoUrl, videoUrl, takenAt:page.taken_at??page.created_at??undefined };
 }
 export function memoryCoverPage(pages: MemoryCoverPage[], selected?: string | null) {
   return pages.find(p => p.story_id === selected) ?? pages.find(p => { const m = memoryCoverMedia(p); return m.photoUrl || m.videoUrl; }) ?? pages[0] ?? null;
@@ -55,10 +55,18 @@ export function memoryAudienceLabel(value?: string) {
 /** Keep short editorial titles large while fitting longer titles on the cover. */
 export function memoryCoverTitleSize(title:string,design?:string|null) {
   const n=title.trim().length,d=memoryDesign(design).id;
-  if(d==='editorial')return n>24?29:n>17?35:42;
-  if(d==='night_film')return n>23?24:n>14?30:38;
-  if(d==='daybook')return n>23?23:n>14?28:35;
+  if(d==='editorial')return n>24?30:n>17?39:n>11?47:57;
+  if(d==='night_film')return n>23?26:n>14?34:48;
+  if(d==='daybook')return n>23?24:n>14?32:n>10?40:53;
   if(d==='field_notes')return n>22?19:n>14?22:26;
-  if(d==='postcard')return n>26?20:n>20?22:26;
+  if(d==='postcard')return n>26?19:n>20?21:n>12?24:29;
   return n>22?20:23;
+}
+
+/** Dates on stamps come from the selected memory, never invented sample text. */
+export function memoryCoverDate(value?:string|null) {
+  if(!value)return null;
+  const date=new Date(value);if(!Number.isFinite(date.getTime()))return null;
+  const month=date.toLocaleString('en-US',{month:'short',timeZone:'UTC'}).toUpperCase();
+  return {month,year:String(date.getUTCFullYear()),signature:date.toLocaleString('en-US',{month:'long',timeZone:'UTC'}),ticket:[String(date.getUTCDate()).padStart(2,'0'),String(date.getUTCMonth()+1).padStart(2,'0'),date.getUTCFullYear()].join('·')};
 }

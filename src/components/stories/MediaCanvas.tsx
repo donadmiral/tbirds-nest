@@ -42,7 +42,7 @@ function StoryVideoLayer({ uri, fit, muted, volume = 1, speed = 1, trimStart = n
   useEffect(() => { try { const p: any = player; if (tE != null && typeof p?.currentTime === 'number' && p.currentTime > tE) p.currentTime = tS; } catch {} }, [tE, tS, player]);
   useEffect(() => {
     const p: any = player; let sub: any = null;
-    try { sub = p?.addListener?.('timeUpdate', (ev: any) => { const w = winRef.current; const t = typeof ev?.currentTime === 'number' ? ev.currentTime : p.currentTime; if (w.e != null && typeof t === 'number' && t >= w.e - 0.05) { try { p.currentTime = w.s; } catch {} } }); } catch {}
+    try { sub = p?.addListener?.('timeUpdate', (ev: any) => { const w = winRef.current; const t = typeof ev?.currentTime === 'number' ? ev.currentTime : p.currentTime; if (p.playing && w.e != null && typeof t === 'number' && t >= w.e - 0.05) { try { p.currentTime = w.s; } catch {} } }); } catch {}
     return () => { try { sub?.remove?.(); } catch {} };
   }, [player]);
   return <ExpoVideoView pointerEvents="none" style={StyleSheet.absoluteFill} player={player} contentFit={fit} nativeControls={false} />;

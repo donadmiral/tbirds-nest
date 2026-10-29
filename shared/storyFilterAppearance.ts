@@ -1,11 +1,17 @@
 // Same overlay definitions as the phone's StoryFilters.tsx - keep in sync.
-export type StoryFilterFamily = "classic" | "modern" | "film";
+export type StoryFilterFamily = "platinum" | "classic" | "modern" | "film";
 export type StoryFilterDef = { id: string; label: string; family: StoryFilterFamily; layers: { color: string; opacity: number }[]; css?: string };
 // One catalogue for web and phone. `layers` render identically on both as
 // translucent colour planes. `css` is the extra grade web applies beneath,
 // contrast, saturation and black-and-white, which the phone approximates
 // with its layers alone. Ids are stored on stories.filter_id; never rename one.
 export const STORY_FILTERS: StoryFilterDef[] = [
+  { id: "platinum_glow", label: "Pearl glow", family: "platinum", layers: [{ color: "#FFF1DB", opacity: 0.10 }, { color: "#FFC0AA", opacity: 0.035 }] },
+  { id: "platinum_golden_hour", label: "Golden hour", family: "platinum", layers: [{ color: "#FFB866", opacity: 0.13 }, { color: "#6B2C14", opacity: 0.035 }] },
+  { id: "platinum_violet", label: "Violet light", family: "platinum", layers: [{ color: "#9F7AFF", opacity: 0.12 }, { color: "#F9A5D4", opacity: 0.04 }] },
+  { id: "platinum_daydream", label: "Daydream", family: "platinum", layers: [{ color: "#F8EDF9", opacity: 0.12 }, { color: "#AFCFDE", opacity: 0.045 }] },
+  { id: "platinum_blue_hour", label: "Blue hour", family: "platinum", layers: [{ color: "#7DAAFF", opacity: 0.10 }, { color: "#142443", opacity: 0.06 }] },
+  { id: "platinum_rose_film", label: "Rose film", family: "platinum", layers: [{ color: "#F4AEAC", opacity: 0.11 }, { color: "#F1E1CB", opacity: 0.07 }] },
   { id: "warm", label: "Warm", family: "classic", layers: [{ color: "#FF9A3C", opacity: 0.14 }, { color: "#3B2000", opacity: 0.08 }], css: "saturate(1.05)" },
   { id: "golden", label: "Golden", family: "classic", layers: [{ color: "#FFC94D", opacity: 0.18 }], css: "contrast(1.04)" },
   { id: "cool", label: "Cool", family: "classic", layers: [{ color: "#3C7DFF", opacity: 0.12 }, { color: "#001A3B", opacity: 0.08 }], css: "saturate(0.95)" },
@@ -53,6 +59,7 @@ export const STORY_FILTERS: StoryFilterDef[] = [
   { id: "nashville", label: "Nashville", family: "film", layers: [{ color: "#FFD1B8", opacity: 0.18 }, { color: "#3C5A99", opacity: 0.10 }], css: "sepia(0.2) contrast(1.15) brightness(1.05)" },
 ];
 export const STORY_FILTER_FAMILIES: { key: StoryFilterFamily; label: string }[] = [
+  { key: "platinum", label: "Platinum originals" },
   { key: "classic", label: "Classic" }, { key: "modern", label: "Modern" }, { key: "film", label: "Film" },
 ];
 export function filterCss(filterId: string | null | undefined, intensity = 1): string | undefined {
