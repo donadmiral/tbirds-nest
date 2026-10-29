@@ -28,9 +28,9 @@ try {
   useExpoVideoPlayer = vm.useVideoPlayer;
 } catch {}
 
-function StoryVideoLayer({ uri, fit, muted, volume = 1, speed = 1, trimStart = null, trimEnd = null, paused = false, onPlayer }: { uri: string; fit: 'cover' | 'contain'; muted: boolean; volume?: number; speed?: number; trimStart?: number | null; trimEnd?: number | null; paused?: boolean; onPlayer?: (p: any) => void }) {
-  const player = useExpoVideoPlayer(uri, (p: any) => { p.loop = true; p.muted = muted; p.volume = volume; try { p.timeUpdateEventInterval = 0.1; } catch {} try { p.playbackRate = speed; } catch {} if (!paused) p.play(); });
-  useEffect(() => { try { (player as any).muted = muted; (player as any).volume = volume; (player as any).playbackRate = speed; } catch {} }, [muted, volume, speed, player]);
+function StoryVideoLayer({ uri, fit, muted, volume = 1, speed = 1, preservesPitch = true, trimStart = null, trimEnd = null, paused = false, onPlayer }: { uri: string; fit: 'cover' | 'contain'; muted: boolean; volume?: number; speed?: number; preservesPitch?: boolean; trimStart?: number | null; trimEnd?: number | null; paused?: boolean; onPlayer?: (p: any) => void }) {
+  const player = useExpoVideoPlayer(uri, (p: any) => { p.loop = true; p.muted = muted; p.volume = volume; try { p.timeUpdateEventInterval = 0.1; } catch {} try { p.preservesPitch = preservesPitch; p.playbackRate = speed; } catch {} if (!paused) p.play(); });
+  useEffect(() => { try { (player as any).muted = muted; (player as any).volume = volume; (player as any).preservesPitch = preservesPitch; (player as any).playbackRate = speed; } catch {} }, [muted, volume, speed, preservesPitch, player]);
   useEffect(() => { try { if (paused) player.pause(); else player.play(); } catch {} }, [paused, player]);
   useEffect(() => { onPlayer?.(player); return () => { onPlayer?.(null); }; }, [player, onPlayer]);
   // Trim preview: play only the selected window and loop inside it, so the
@@ -131,6 +131,7 @@ type MediaCanvasProps = {
   videoPaused?: boolean;
   videoVolume?: number;
   videoSpeed?: number;
+  videoPreservesPitch?: boolean;
   trimStart?: number | null;
   trimEnd?: number | null;
   onVideoPlayer?: (p: any) => void;
@@ -161,6 +162,7 @@ export default function MediaCanvas({
   videoPaused = false,
   videoVolume = 1,
   videoSpeed = 1,
+  videoPreservesPitch = true,
   trimStart = null,
   trimEnd = null,
   onVideoPlayer,
@@ -400,7 +402,7 @@ export default function MediaCanvas({
       ]}
     >
       {mediaType === 'video' && ExpoVideoView && useExpoVideoPlayer ? (
-        <StoryVideoLayer key={localUri} uri={localUri} fit={resizeMode as any} muted={videoMuted} paused={videoPaused} volume={videoVolume} speed={videoSpeed} trimStart={trimStart} trimEnd={trimEnd} onPlayer={onVideoPlayer} />
+        <StoryVideoLayer key={localUri} uri={localUri} fit={resizeMode as any} muted={videoMuted} paused={videoPaused} volume={videoVolume} speed={videoSpeed} preservesPitch={videoPreservesPitch} trimStart={trimStart} trimEnd={trimEnd} onPlayer={onVideoPlayer} />
       ) : (
         <Image
           source={{ uri: localUri }}

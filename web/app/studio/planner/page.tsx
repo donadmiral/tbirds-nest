@@ -13,15 +13,16 @@ import { createClient } from "@/lib/supabase/client";
 import { can, cancelScheduled, deleteScheduled, listScheduled, myListings, publishNow, savePost, uploadStudioMedia, type ScheduledPost } from "@/lib/studio";
 import { useUploadPreview } from "@/lib/useUploadPreview";
 import { useStudio } from "@/components/StudioShell";
+import { parseStudioLocalDate } from "../../../../shared/studioValidation";
 
 type Draft = { id: string | null; content: string; body: string; category: string | null; community: string | null; media: ScheduledPost["media"]; products: ScheduledPost["products"]; publishAt: string };
 
 const empty = (): Draft => ({ id: null, content: "", body: "", category: null, community: null, media: [], products: [], publishAt: "" });
-const toLocalInput = (iso: string | null) => iso ? new Date(new Date(iso).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : "";
+const toLocalInput = (iso: string | null) => { if (!iso) return ""; const date = new Date(iso); return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16); };
 const dayKey = (d: Date) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 
 export default function PlannerPage() {
-  const { me } = useStudio();
+  const { me, accountId } = useStudio();
   const supabase = useRef(createClient()).current;
   const editor = can(me?.role ?? null, "publish");
   const [rows, setRows] = useState<ScheduledPost[]>([]);
@@ -34,6 +35,12 @@ export default function PlannerPage() {
   const previewSource = useMemo(() => ({ rows, draft: d }), [rows, d]);
   const mediaPreview = useUploadPreview(previewSource);
   const [busy, setBusy] = useState(false);
+  const working = useRef(false);
+  const mounted = useRef(true);
+  const editorVersion = useRef(0);
+  const editingId = useRef<string | null>(null);
+  const loadVersion = useRef(0);
+  const pendingRows = useRef(new Set<string>());
   const [listings, setListings] = useState<{ id: string; title: string; price: number; currency: string; images: string[] }[]>([]);
   const [listingsLoaded, setListingsLoaded] = useState(false);
   const [listingsLoading, setListingsLoading] = useState(true);
@@ -49,12 +56,14 @@ export default function PlannerPage() {
   const [weekStart, setWeekStart] = useState(() => { const t = new Date(); t.setHours(0, 0, 0, 0); t.setDate(t.getDate() - t.getDay()); return t; });
 
   const load = useCallback(async () => {
+    const request = ++loadVersion.current;
     setLoading(true);
-    try { setRows(await listScheduled()); setLoaded(true); setLoadError(null); }
-    catch { setLoadError("The planner could not be refreshed. Please try again."); }
-    finally { setLoading(false); }
+    const current = () => mounted.current && request === loadVersion.current;
+    try { const next = await listScheduled(); if (current()) { setRows(next); setLoaded(true); setLoadError(null); } }
+    catch { if (current()) setLoadError("The planner could not be refreshed. Please try again."); }
+    finally { if (current()) setLoading(false); }
   }, []);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { mounted.current = true; void load(); return () => { mounted.current = false; ++loadVersion.current; ++editorVersion.current; }; }, [load]);
   const loadListings = useCallback(async () => {
     const request = ++listingsRequest.current;
     try {
@@ -119,24 +128,31 @@ export default function PlannerPage() {
   }, [rows]);
 
   const openNew = (when?: Date) => {
+    if (working.current) return;
+    ++editorVersion.current; editingId.current = null;
     const x = empty();
     if (when) { const t = new Date(when); t.setHours(10, 0, 0, 0); x.publishAt = toLocalInput(t.toISOString()); }
     setD(x); setOpen(true);
   };
   const openEdit = (r: ScheduledPost) => {
+    if (working.current) return;
+    ++editorVersion.current; editingId.current = r.id;
     setD({ id: r.id, content: r.content || "", body: r.body || "", category: r.category, community: r.community_id, media: r.media || [], products: r.products || [], publishAt: toLocalInput(r.publish_at) });
     setOpen(true);
   };
 
   const attach = async (files: FileList | null) => {
-    if (!files || !files.length) return;
+    if (!files?.length || working.current) return;
+    working.current = true;
+    const run = editorVersion.current;
+    const current = () => mounted.current && run === editorVersion.current;
     setBusy(true);
     try {
       const added: ScheduledPost["media"] = [];
-      for (const f of Array.from(files).slice(0, 4 - d.media.length)) added.push(await uploadStudioMedia(f));
-      setD(x => ({ ...x, media: [...x.media, ...added] }));
-    } catch (e: any) { alert(e?.message || "Upload failed."); }
-    finally { setBusy(false); }
+      for (const f of Array.from(files).slice(0, 4 - d.media.length)) { if (!current()) return; added.push(await uploadStudioMedia(f)); }
+      if (current()) setD(x => ({ ...x, media: [...x.media, ...added].slice(0, 4) }));
+    } catch (e: any) { if (current()) alert(e?.message || "Upload failed."); }
+    finally { working.current = false; if (mounted.current) setBusy(false); }
   };
 
   const toggleListing = (l: typeof listings[number]) => {
@@ -147,29 +163,41 @@ export default function PlannerPage() {
   };
 
   const save = async (mode: "draft" | "schedule" | "now") => {
-    if (busy) return;
+    if (working.current || !editor) return;
     if (!d.content.trim() && !d.body.trim() && d.media.length === 0) { alert("Write something or add media first."); return; }
-    if (mode === "schedule" && !d.publishAt) { alert("Pick a date and time."); return; }
+    const publishDate = mode === "schedule" ? parseStudioLocalDate(d.publishAt) : null;
+    if (mode === "schedule" && (!publishDate || publishDate.getTime() <= Date.now())) { alert("Choose a valid future date and time."); return; }
+    working.current = true;
+    const run = editorVersion.current;
+    const current = () => mounted.current && run === editorVersion.current;
     setBusy(true);
     try {
-      const id = await savePost({ id: d.id, content: d.content.trim() || null, body: d.body.trim() || null, category: d.category, community: d.community, media: d.media, products: d.products,
-        publishAt: mode === "schedule" ? new Date(d.publishAt).toISOString() : null });
+      const id = await savePost({ ownerId: accountId, id: editingId.current, content: d.content.trim() || null, body: d.body.trim() || null, category: d.category, community: d.community, media: d.media, products: d.products, publishAt: publishDate?.toISOString() || null });
+      if (!current()) return;
+      editingId.current = id; setD(x => ({ ...x, id }));
       if (mode === "now") {
         const postId = await publishNow(id);
-        if (!postId) alert("Publishing failed. The post is kept as failed with the reason.");
+        if (!postId) throw new Error("Your draft was saved, but publishing failed. You can correct it and retry here.");
       }
-      setOpen(false); setD(empty());
+      if (!current()) return;
+      setOpen(false); setD(empty()); editingId.current = null;
       await load();
-    } catch (e: any) { alert(e?.message || "Could not save."); }
-    finally { setBusy(false); }
+    } catch (e: any) { if (current()) { alert(e?.message || "The save was not confirmed. Retry to check the same request."); await load(); } }
+    finally { working.current = false; if (mounted.current) setBusy(false); }
   };
 
   const remove = async (r: ScheduledPost) => {
+    if (pendingRows.current.has(r.id)) return;
     if (!confirm("Delete this " + (r.status === "published" ? "record" : r.status) + "?")) return;
+    pendingRows.current.add(r.id);
     try { await deleteScheduled(r.id); await load(); } catch (e: any) { alert(e?.message || "Could not delete."); }
+    finally { pendingRows.current.delete(r.id); }
   };
   const cancel = async (r: ScheduledPost) => {
+    if (pendingRows.current.has(r.id)) return;
+    pendingRows.current.add(r.id);
     try { await cancelScheduled(r.id); await load(); } catch (e: any) { alert(e?.message || "Could not cancel."); }
+    finally { pendingRows.current.delete(r.id); }
   };
 
   const statusChip = (s: ScheduledPost["status"]) =>
@@ -336,12 +364,12 @@ export default function PlannerPage() {
 
       {open ? (
         <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/55 sm:items-center" onClick={() => !busy && setOpen(false)}>
-          <div className="flex max-h-[90vh] w-full max-w-[600px] flex-col rounded-t-2xl bg-white sm:rounded-2xl" onClick={e => e.stopPropagation()}>
+          <div role="dialog" aria-modal="true" aria-label="Post planner" className="flex max-h-[90dvh] w-full max-w-[600px] flex-col rounded-t-2xl bg-surface sm:rounded-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-ink/10 px-4 py-3">
               <p className="text-[15px] font-semibold text-ink">{d.id ? "Edit post" : "New post"}</p>
-              <button onClick={() => setOpen(false)} className="rounded-full p-1.5 text-muted transition-colors duration-[140ms] hover:bg-black/5" aria-label="Close"><X size={16} /></button>
+              <button disabled={busy} onClick={() => { ++editorVersion.current; setOpen(false); }} className="rounded-full p-2.5 text-muted transition-colors duration-[140ms] hover:bg-ink/5 disabled:opacity-40" aria-label="Close"><X size={16} /></button>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
+            <fieldset disabled={busy} className="min-h-0 min-w-0 flex-1 overflow-y-auto px-4 py-3">
               <textarea value={d.content} onChange={e => setD(x => ({ ...x, content: e.target.value }))} maxLength={2000} placeholder="What do you want to say?"
                 className="h-28 w-full resize-none rounded-lg border border-ink/15 px-3 py-2 text-[14.5px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
               <textarea value={d.body} onChange={e => setD(x => ({ ...x, body: e.target.value }))} maxLength={20000} placeholder="Longer text (optional)"
@@ -372,7 +400,7 @@ export default function PlannerPage() {
               </div>
               <StudioLoadError message={communitiesError} retry={() => { setCommunitiesLoading(true); void loadCommunities(); }} busy={communitiesLoading} />
               {pickOpen ? (
-                <div className="mt-2 max-h-40 overflow-y-auto rounded-2xl border border-ink/10 bg-white p-2">
+                <div className="mt-2 max-h-40 overflow-y-auto rounded-2xl border border-ink/10 bg-surface p-2">
                   <StudioLoadError message={listingsError} retry={() => { setListingsLoading(true); void loadListings(); }} busy={listingsLoading} />
                   {listingsLoading && !listingsLoaded ? <p className="text-[12.5px] text-muted">Loading products</p>
                   : !listingsLoaded ? null
@@ -402,7 +430,7 @@ export default function PlannerPage() {
               <p className="mb-1.5 mt-3 text-[11.5px] font-semibold uppercase tracking-wide text-muted">Schedule</p>
               <input type="datetime-local" value={d.publishAt} onChange={e => setD(x => ({ ...x, publishAt: e.target.value }))}
                 className="rounded-lg border border-ink/15 px-3 py-2 text-[13.5px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
-            </div>
+            </fieldset>
             <div className="flex items-center justify-end gap-2 border-t border-ink/10 px-4 py-3">
               <button onClick={() => save("draft")} disabled={busy} className="rounded-md bg-ink/5 px-3.5 py-2 text-[13px] font-semibold text-ink/70 transition-opacity duration-[140ms] hover:opacity-80 disabled:opacity-40">Save draft</button>
               <button onClick={() => save("schedule")} disabled={busy || !d.publishAt} className="inline-flex items-center gap-1.5 rounded-md bg-ink/5 px-3.5 py-2 text-[13px] font-semibold text-ink transition-opacity duration-[140ms] hover:opacity-80 disabled:opacity-40"><CalendarClock size={14} /> Schedule</button>

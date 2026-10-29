@@ -23,7 +23,7 @@ export const dark = {
   ink: {
     primary:   WARM_WHITE,
     secondary: 'rgba(245,243,239,0.74)',
-    muted:     'rgba(245,243,239,0.54)',
+    muted:     'rgba(245,243,239,0.64)',
     faint:     'rgba(245,243,239,0.30)',
     inverse:   NAVY,
   },

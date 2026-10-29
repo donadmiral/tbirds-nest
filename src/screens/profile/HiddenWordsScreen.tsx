@@ -1,3 +1,5 @@
+import SettingsExit from '../../components/SettingsExit';
+import { settingsBack } from '../../navigation/settingsNavigation';
 /**
  * Hidden words: comments on your posts that contain any of these are hidden
  * the moment they're written, on the server. Instagram's feature, same name.
@@ -14,7 +16,7 @@ import { themedSheet, useTheme } from '../../theme/useTheme';
 export default function HiddenWordsScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
-  const { t } = useTheme();
+  const { t, isDark } = useTheme();
   const { profile } = useAuthStore();
   const [words, setWords] = useState<string[]>([]);
   const [draft, setDraft] = useState('');
@@ -37,11 +39,11 @@ export default function HiddenWordsScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="chevron-left" size={26} color={t.ink.primary} /></TouchableOpacity>
+        <TouchableOpacity onPress={() => settingsBack(navigation, 'Settings')} style={s.backBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="chevron-left" size={26} color={t.ink.primary} /></TouchableOpacity>
         <Text style={s.title}>Hidden words</Text>
-        <View style={{ width: 40 }} />
+        <SettingsExit navigation={navigation} />
       </View>
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 40 }} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
         <Text style={s.lede}>Comments on your posts that contain any of these words or phrases are hidden as soon as they're written. Only the person who wrote one can see it.</Text>

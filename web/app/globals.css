@@ -92,7 +92,7 @@ body {
   --color-pearl-muted: #b9ae9e;
   --color-accent: #c9bfb0;
   --color-secondary: rgba(245, 243, 239, 0.74);
-  --color-muted: rgba(245, 243, 239, 0.54);
+  --color-muted: rgba(245, 243, 239, 0.64);
   --color-danger: #ff938a;
   --color-success: #62dfa0;
   --color-info: #8abcff;
@@ -116,7 +116,7 @@ body {
 
 /* Video controls and the theater are dark even when the page is light. Keep
    foreground and backdrop tokens together so a page theme cannot invert one. */
-.theater, .video-player {
+.theater, .video-player, .media-frame {
   --color-ink: #16181c;
   --color-navy: #16181c;
   --color-white: #ffffff;

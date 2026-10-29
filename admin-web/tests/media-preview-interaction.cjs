@@ -7,6 +7,7 @@ const ts=require('typescript');
 const root=path.resolve(__dirname,'../..');
 const compile=source=>ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText;
 const shared={exports:{}};vm.runInNewContext(compile(fs.readFileSync(path.join(root,'shared/postMediaEditing.ts'),'utf8')),shared);
+const voice={exports:{}};vm.runInNewContext(compile(fs.readFileSync(path.join(root,'shared/postVoiceEffects.ts'),'utf8')),voice);
 const walk=node=>!node||typeof node!=='object'?[]:Array.isArray(node)?node.flatMap(walk):[node,...walk(node.props?.children)];
 function harness(file,props){
   let cursor=0;const states=[],deps=[],effects=[],cleanups=[],listeners=new Map();
@@ -14,7 +15,7 @@ function harness(file,props){
   const jsx=(type,props,key)=>({type,props,key});
   const document={hidden:false,addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name)};
   const window={addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name)};
-  const exports={};vm.runInNewContext(compile(fs.readFileSync(path.join(root,'admin-web/components',file),'utf8')),{exports,document,window,require:name=>({'react':react,'react/jsx-runtime':{jsx,jsxs:jsx},'next/navigation':{useRouter:()=>({refresh(){}})},'../../shared/postMediaEditing':shared.exports,'../../shared/storyFilterAppearance':{STORY_FILTERS:[],filterCss:()=>undefined},'../../shared/StoryAdjustOverlay':{AdjustOverlay:'AdjustOverlay'},'./MediaPreview':{default:'MediaPreview'}}[name]??{})});
+  const exports={};vm.runInNewContext(compile(fs.readFileSync(path.join(root,'admin-web/components',file),'utf8')),{exports,document,window,require:name=>({'react':react,'react/jsx-runtime':{jsx,jsxs:jsx},'next/navigation':{useRouter:()=>({refresh(){}})},'../../shared/postMediaEditing':shared.exports,'../../shared/postVoiceEffects':voice.exports,'../../shared/storyFilterAppearance':{STORY_FILTERS:[],filterCss:()=>undefined},'../../shared/StoryAdjustOverlay':{AdjustOverlay:'AdjustOverlay'},'./MediaPreview':{default:'MediaPreview'}}[name]??{})});
   const player={duration:12,currentTime:0,playbackRate:1,pauses:0,pause(){this.pauses++;},play:async()=>{}};
   let current=props;
   const render=()=>{cursor=0;let tree=exports.default(current);if(typeof tree?.type==='function')tree=tree.type(tree.props);const node=walk(tree).find(n=>n.type==='video');if(node?.props.ref)node.props.ref.current=player;while(effects.length)effects.shift()();return tree;};
@@ -48,4 +49,10 @@ test('legacy moderation details preserve the whole unknown-size image or video w
     const cropped=harness('MediaPreview.tsx',{url:'signed:authored',video,edit:{fit:'cover',aspectRatio:.8}});
     assert.equal(cropped.find(n=>n.type===(video?'video':'img')).props.style.objectFit,'cover');cropped.unmount();
   }
+});
+
+test('admin media review reproduces the authored voice preset without altering trim',()=>{
+  const h=harness('MediaPreview.tsx',{url:'signed:video',video:true,edit:{voiceEffect:'deep',trimStart:2,trimEnd:9}});
+  h.find(n=>n.type==='video').props.onLoadedMetadata({currentTarget:h.player});
+  assert.equal(h.player.playbackRate,.75);assert.equal(h.player.preservesPitch,false);assert.equal(h.player.currentTime,2);h.unmount();
 });

@@ -4,41 +4,62 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const ts = require('typescript');
-const QA = 'https://uaulhuelcfkjwojtymmw.supabase.co';
-const admin = { id: 'owner', sessionId: 'native-session', role: 'super_admin', email: 'owner@example.test', aal: 'aal1' };
-function load(url = QA, response = { data: true, error: null }) {
-  const calls = [], module = { exports: {} };
-  const rpc = async (...args) => { calls.push(args); if (response instanceof Error) throw response; return response; };
-  vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../lib/adminAssurance.ts'), 'utf8'), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
-  }).outputText, { module, exports: module.exports, process: { env: { NEXT_PUBLIC_SUPABASE_URL: url } },
-    require: name => name === 'server-only' ? {} : name === './supabaseAdmin' ? { serviceClient: () => ({ rpc }) } : (() => { throw new Error(name); })() });
-  return { check: module.exports.canAccessOperations, calls };
+function compile(name, require) {
+  const module = { exports: {} };
+  vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../lib', name + '.ts'), 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText, { module, exports: module.exports, require, Buffer, Date, Set, Object });
+  return module.exports;
 }
-test('AAL2 keeps the normal policy without a database exception lookup', async () => {
-  const { check, calls } = load(undefined, new Error('offline'));
-  assert.equal(await check({ ...admin, aal: 'aal2' }), true);
-  assert.equal(calls.length, 0);
+const permissions = compile('permissions', () => { throw Error('Unexpected import'); });
+const assurance = compile('adminAssurance', name => name === 'server-only' ? {} : name === './permissions' ? permissions : (() => { throw Error(name); })());
+const admin = { id: '11111111-1111-4111-8111-111111111111', sessionId: '22222222-2222-4222-8222-222222222222', role: 'super_admin', email: 'owner@example.test', aal: 'aal1' };
+
+test('temporary policy accepts valid staff sign-in without forced enrollment', async () => {
+  assert.equal(await assurance.canAccessOperations(admin), true);
+  assert.equal(await assurance.canAccessOperations({ ...admin, aal: 'aal2' }), true);
 });
-test('AAL1 exception is limited to the exact isolated QA project', async () => {
-  for (const url of ['', 'https://production.supabase.co', QA + '/', QA + '.evil.test']) {
-    const { check, calls } = load(url);
-    assert.equal(await check(admin), false);
-    assert.equal(calls.length, 0);
+test('optional authenticator denies missing sessions, unknown assurance and nonstaff roles', async () => {
+  for (const patch of [{ id: '' }, { sessionId: '' }, { role: 'customer' }, { role: 'toString' }, { aal: undefined }, { aal: '' }, { aal: 'aal3' }]) {
+    assert.equal(await assurance.canAccessOperations({ ...admin, ...patch }), false);
   }
 });
-test('QA checks the validated owner and native session against the service-only database policy', async () => {
-  const { check, calls } = load();
-  assert.equal(await check(admin), true);
-  assert.equal(JSON.stringify(calls), JSON.stringify([['triniti_admin_single_owner_access', { p_actor_id: admin.id, p_session_id: admin.sessionId }]]));
+function harness({ live = true, active = true, role = 'super_admin', verified = true, expires = 3600, tokenUser = admin.id } = {}) {
+  const calls = [];
+  const token = ['e30', Buffer.from(JSON.stringify({ sub: tokenUser, session_id: admin.sessionId, aal: 'aal1', exp: Math.floor(Date.now()/1000)+expires })).toString('base64url'), 'test-signature'].join('.');
+  const svc = {
+    auth: { getUser: async supplied => { calls.push(['verify', supplied]); return { data: { user: verified ? { id: admin.id, email: admin.email } : null }, error: null }; } },
+    rpc: async (name, args) => { calls.push([name, args]); return { data: live, error: null }; },
+    from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: { role, active }, error: null }) }) }) }),
+  };
+  const auth = compile('adminAuth', name => {
+    if (name === 'server-only') return {};
+    if (name === 'next/headers') return { cookies: async () => ({ get: () => ({ value: token }) }) };
+    if (name === 'next/navigation') return { redirect: url => { throw Error('redirect:' + url); }, notFound: () => { throw Error('not-found'); } };
+    if (name === './supabaseAdmin') return { serviceClient: () => svc };
+    if (name === './adminAssurance') return assurance;
+    if (name === './permissions') return permissions;
+    throw Error(name);
+  });
+  return { auth, calls, token };
+}
+test('dashboard admission verifies token and native session', async () => {
+  const h = harness();
+  assert.equal((await h.auth.requireDesk('/dashboard')).id, admin.id);
+  assert.equal(h.calls[0][0], 'verify');
+  assert.equal(h.calls[1][0], 'triniti_admin_session_check');
+  assert.equal(h.calls[1][1].p_session_id, admin.sessionId);
 });
-test('missing policy, false responses and service failures fail closed', async () => {
-  for (const response of [{ data: false }, { data: null }, { data: 'true' }, { data: true, error: { message: 'denied' } }, new Error('offline')]) {
-    assert.equal(await load(QA, response).check(admin), false);
+test('revoked, inactive, unverified, expired and mismatched identities stay denied', async () => {
+  for (const options of [{ live: false }, { active: false }, { verified: false }, { expires: -1 }, { tokenUser: 'someone-else' }, { role: 'customer' }]) {
+    const h = harness(options);
+    assert.equal(await h.auth.adminFromToken(h.token), null);
+    await assert.rejects(() => h.auth.requireDesk('/dashboard'), /redirect:/);
   }
 });
-test('an absent or unrecognized assurance level cannot use the exception', async () => {
-  const { check, calls } = load();
-  for (const aal of [undefined, '', 'aal3']) assert.equal(await check({ ...admin, aal }), false);
-  assert.equal(calls.length, 0);
+test('desk and action roles remain enforced with AAL1 admission', async () => {
+  const h = harness({ role: 'support_agent' });
+  assert.equal((await h.auth.requireDesk('/support')).role, 'support_agent');
+  await assert.rejects(() => h.auth.requireDesk('/staff'), /not-found/);
+  await assert.rejects(() => h.auth.requirePermission('staff_manage'), /staff role/);
 });

@@ -61,8 +61,10 @@ export function PostMenu({ postId, authorId, text, onHidden, reason }: {
   async function showLessAuthor() {
     if (!uid) return;
     setOpen(false);
+    const { error } = await supabase.from("muted_authors").upsert({ user_id: uid, author_id: authorId });
+    if (error) { alert('Could not mute this account. Please try again.'); return; }
     onHidden();
-    await supabase.from("muted_authors").upsert({ user_id: uid, author_id: authorId });
+    window.dispatchEvent(new CustomEvent('pc-feed-author-hidden', { detail: { ownerId: uid, authorId } }));
   }
   async function notInterested() {
     if (!uid) return;
@@ -83,8 +85,10 @@ export function PostMenu({ postId, authorId, text, onHidden, reason }: {
     if (!uid) return;
     if (!window.confirm("Block this person? You will not see each other on Platinum Circles.")) return;
     setOpen(false);
+    const { error } = await supabase.from("blocked_users").upsert({ blocker_id: uid, blocked_id: authorId });
+    if (error) { alert('Could not block this account. Please try again.'); return; }
     onHidden();
-    await supabase.from("blocked_users").upsert({ blocker_id: uid, blocked_id: authorId });
+    window.dispatchEvent(new CustomEvent('pc-feed-author-hidden', { detail: { ownerId: uid, authorId } }));
   }
 
   async function togglePin() {

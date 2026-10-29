@@ -2,11 +2,11 @@
 
 Use the staff account created in the same Supabase project as this deployment. The sign-in panel identifies the backend as QA, production, or unverified. A Supabase dashboard login and an IntoBank account are separate identities and do not grant Platinum staff permission.
 
-## Single-owner QA access
+## Staff authentication
 
-MFA remains required by default. The isolated QA project can explicitly configure one existing active `super_admin` in the private `admin_ops.single_owner_qa_policy` table. No policy is enabled by the migration. Neither clients nor the service role can read or edit that table; only the server can ask the session-bound eligibility RPC. The admin server accepts this exception only for the exact QA Supabase URL. Password authentication, native session validation, staff roles, command audit and idempotency remain enforced.
+The owner requested optional authenticator setup on 29 October 2026. The deployed server policy accepts an authenticated AAL1 or AAL2 session after verifying its token, live native session, active staff record and allowed role. It is a source-controlled server policy, not a browser flag. Password authentication, session revocation, staff roles, command audit and idempotency remain enforced.
 
-Adding or reactivating another active staff member, or deactivating/demoting the owner, automatically retires the exception with an audit record. Removing that staff member again does not re-enable it. Staff changes and command admission share a database lock so a roster change cannot race admission. The owner can still choose **Account security** at `/security?setup=1` to enroll an authenticator. Existing MFA-protected password recovery continues to require that authenticator. Production uses the normal MFA policy.
+Staff can choose **Account security** at `/security?setup=1` to enroll an authenticator. Existing factors are retained. Password recovery for an account that already enrolled an authenticator still requires that factor. No staff membership, permission or password changes are made by this policy update. The database command admission policy must match the released server policy.
 
 ## Password recovery
 

@@ -58,7 +58,7 @@ test('applications cannot attach another applicant CV or missing object',async()
 });
 
 // Exercise the real web application form, including asynchronous upload failures.
-function formHarness({upload=async()=>({error:null}),insert=async()=>({data:{id:'application',status:'applied'},error:null})}={}) {
+function formHarness({upload=async()=>({error:null}),insert=async()=>({data:{id:'application',status:'applied'},error:null}),jobResult=async()=>({data:{id:job,deadline:null},error:null})}={}) {
  const slots=[],effects=[];let cursor=0,tree,uid=applicant,authCallback;
  const calls={uploads:[],inserts:[]};
  const hooks={
@@ -69,7 +69,7 @@ function formHarness({upload=async()=>({error:null}),insert=async()=>({data:{id:
  const client={
   auth:{getSession:async()=>({data:{session:uid?{user:{id:uid}}:null},error:null}),onAuthStateChange(fn){authCallback=fn;return{data:{subscription:{unsubscribe(){authCallback=null;}}}};}},
   storage:{from(bucket){return{upload(filePath,file,options){calls.uploads.push({bucket,filePath,file,options});return upload();}};}},
-  from(){let payload;const q={select:()=>q,eq:()=>q,maybeSingle:async()=>({data:null,error:null}),insert(value){payload=value;calls.inserts.push(value);return q;},single:()=>insert(payload)};return q;},
+  from(table){let payload;const q={select:()=>q,eq:()=>q,maybeSingle:async()=>table==='jobs'?jobResult():({data:null,error:null}),insert(value){payload=value;calls.inserts.push(value);return q;},single:()=>insert(payload)};return q;},
  };
  const jsx=(type,props)=>({type,props});const module={exports:{}};
  const source=ts.transpileModule(fs.readFileSync(path.join(root,'web/components/ApplyPanel.tsx'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,jsx:ts.JsxEmit.ReactJSX}}).outputText;
@@ -99,4 +99,12 @@ test('failed application write reuses its private uploaded file on retry',async(
 });
 test('sign-out during a CV upload prevents the pending application write',async()=>{
  let finish;const h=formHarness({upload:()=>new Promise(resolve=>{finish=()=>resolve({error:null});})});h.render();await h.flush();h.button('Apply').props.onClick();h.file();const task=h.button('Send application').props.onClick();await h.flush();h.auth(null);finish();await task;await h.flush();assert.equal(h.calls.inserts.length,0);assert.doesNotMatch(h.text,/Application sent/);
+});
+test('a removed job is checked before uploading a CV or sending an application',async()=>{
+ const h=formHarness({jobResult:async()=>({data:null,error:null})});h.render();await h.flush();h.button('Apply').props.onClick();h.file();await h.button('Send application').props.onClick();h.render();
+ assert.equal(h.calls.uploads.length,0);assert.equal(h.calls.inserts.length,0);assert.match(h.text,/closed for new applications/);
+});
+test('a failed availability check remains retryable and never sends an application',async()=>{
+ const h=formHarness({jobResult:async()=>({data:null,error:{message:'Could not check job'}})});h.render();await h.flush();h.button('Apply').props.onClick();h.file();await h.button('Send application').props.onClick();h.render();
+ assert.equal(h.calls.uploads.length,0);assert.equal(h.calls.inserts.length,0);assert.match(h.text,/Could not check job/);
 });

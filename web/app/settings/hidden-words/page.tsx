@@ -32,7 +32,6 @@ export default function HiddenWordsPage() {
 
   return (
     <div className="mx-auto max-w-[640px] px-4 py-6">
-      <Link href="/settings" className="inline-flex items-center gap-1.5 text-[13px] text-ink/60 hover:text-ink"><ArrowLeft size={14} /> Settings</Link>
       <h1 className="mt-4 font-display text-[24px] font-bold text-ink">Hidden words</h1>
       <p className="mt-1 text-[13.5px] text-ink/60">Comments on your posts that contain any of these are hidden as soon as they're written. Only the person who wrote one can see it.</p>
       <div className="mt-5 flex gap-2">

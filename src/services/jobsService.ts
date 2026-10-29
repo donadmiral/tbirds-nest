@@ -143,6 +143,8 @@ export type CreateJobInput = {
   deadline?: string;
 };
 
+export const JOB_POSTING_ACCOUNT_MESSAGE = 'Job publishing for a managed organization is not available yet. Switch the posting identity back to your signed-in account to publish a job and manage its applicants.';
+
 type GetJobsOpts = {
   sortBy?: 'recent' | 'popular' | 'salary' | 'urgent';
   scope?: JobScope;
@@ -164,32 +166,27 @@ async function attachPosterProfiles(rows: any[]): Promise<Job[]> {
 }
 
 export const jobsService = {
-  /**
-   * Fetch jobs, optionally scoped to a user's institution set.
-   * - scope 'primary': jobs from user's primary institution only
-   * - scope 'all': user's institutions + global
-   * - scope 'global': global only
-   * When scope + userId supplied, uses get_scoped_jobs RPC.
-   * Otherwise falls back to the plain jobs query (RLS still applies).
-   */
+  /** Open roles in the requested location. RLS controls visibility. */
   async getJobs(opts: GetJobsOpts = {}): Promise<Job[]> {
     const { sortBy = 'recent', scope, userId, limit = 100 } = opts;
 
-    let query = supabase.from('jobs').select('*').limit(limit);
+    let query = supabase.from('jobs').select('*')
+      .or(`deadline.is.null,deadline.gt.${new Date().toISOString()}`).limit(limit);
     if (scope === 'global') {
       // Remote tab: remote roles only
       query = query.eq('remote_type', 'remote');
     } else if (scope === 'primary' && userId) {
       // Near me: match the job's location against the user's profile city
-      const { data: prof } = await supabase.from('profiles').select('location').eq('id', userId).maybeSingle();
+      const { data: prof, error: profileError } = await supabase.from('profiles').select('location').eq('id', userId).maybeSingle();
+      if (profileError) throw profileError;
       const city = String(prof?.location || '').trim().split(',')[0].trim();
-      if (city.length >= 3) query = query.ilike('location', '%' + city + '%');
+      if (city.length < 3) throw new Error('Add your city to your profile to find jobs near you.');
+      query = query.ilike('location', '%' + city.replace(/[%_]/g, '\\$&') + '%');
     }
+    if (sortBy === 'popular') query = query.order('applications_count', { ascending: false });
+    if (sortBy === 'urgent') query = query.order('urgent', { ascending: false });
     const { data, error } = await query.order('created_at', { ascending: false });
-    if (error) {
-      console.log('[jobsService.getJobs]', error.message);
-      return [];
-    }
+    if (error) throw error;
     let rows: any[] = data || [];
     // Client-side sort (RPC returns ordered by created_at desc).
     switch (sortBy) {
@@ -230,13 +227,22 @@ export const jobsService = {
 
   async createJob(userId: string, input: CreateJobInput): Promise<Job> {
     if (!userId) throw new Error('userId is required');
+    // Hiring RPCs require jobs.posted_by = auth.uid(). The jobs table also
+    // permits delegated actors, but those jobs cannot enter this hiring desk.
+    if ((currentAuthorId(userId) ?? userId) !== userId) throw new Error(JOB_POSTING_ACCOUNT_MESSAGE);
     if (!(await flagsService.isEnabled('jobs'))) {
       throw new Error('Job posting is temporarily switched off by Platinum Circles operations.');
     }
+    const { data: identity, error: identityError } = await supabase.auth.getUser();
+    if (identityError) throw identityError;
+    if (identity.user?.id !== userId) throw new Error('The signed-in account changed. Reopen the job form before publishing.');
+    // Recheck after awaiting flags/auth so changing the posting identity while
+    // this request is pending cannot publish under a different owner.
+    if ((currentAuthorId(userId) ?? userId) !== userId) throw new Error(JOB_POSTING_ACCOUNT_MESSAGE);
     const { data, error } = await supabase
       .from('jobs')
       .insert({
-        posted_by: currentAuthorId(userId) ?? userId,
+        posted_by: identity.user.id,
         title: input.title,
         company: input.company,
         location: input.location || null,
@@ -298,7 +304,7 @@ export const jobsService = {
     if (ids.length === 0) return [];
     const { data, error } = await supabase.from('jobs').select('*').in('id', ids)
       .order('created_at', { ascending: false });
-    if (error) { console.log('[jobsService.getSavedJobs]', error.message); return []; }
+    if (error) throw error;
     return attachPosterProfiles(data || []);
   },
 
@@ -307,10 +313,7 @@ export const jobsService = {
       .from('job_saves')
       .select('job_id')
       .eq('user_id', userId);
-    if (error) {
-      console.log('[jobsService.getSavedJobIds]', error.message);
-      return [];
-    }
+    if (error) throw error;
     return (data || []).map((r: any) => r.job_id);
   },
 
@@ -346,8 +349,7 @@ export const jobsService = {
           .from('job_applications')
           .update({
             cover_note: coverNote?.trim() || null,
-            cv_url: cvUrl || null,
-            cv_name: cvName || null,
+            ...(cvUrl ? { cv_url: cvUrl, cv_name: cvName || null } : {}),
             applicant_phone: phone?.trim() || null,
             portfolio_url: portfolioUrl?.trim() || null,
             updated_at: new Date().toISOString(),
@@ -369,10 +371,7 @@ export const jobsService = {
       .from('job_applications')
       .select('job_id, status')
       .eq('applicant_id', userId);
-    if (error) {
-      console.log('[jobsService.getAppliedJobIds]', error.message);
-      return {};
-    }
+    if (error) throw error;
     const out: Record<string, ApplicationStatus> = {};
     (data || []).forEach((r: any) => {
       out[r.job_id] = r.status as ApplicationStatus;

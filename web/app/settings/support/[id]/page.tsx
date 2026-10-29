@@ -58,7 +58,6 @@ export default function TicketPage() {
 
   return (
     <div className="mx-auto max-w-[600px] px-1">
-      <Link href="/settings/support" aria-label="Back to Support" className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><ArrowLeft size={19} /></Link>
       <div className="mb-4 flex items-center gap-2">
         <h1 className="min-w-0 flex-1 truncate font-display text-xl text-porcelain">{ticket.subject}</h1>
         <span className={"shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold " + meta.cls}>{meta.label}</span>

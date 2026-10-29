@@ -721,7 +721,7 @@ export default function MediaRenderer({
  * springs it back. Video keeps playing throughout. The gesture is transient
  * and never stored, and it is not the crop editor.
  */
-function PinchInspect({ children }: { children: React.ReactNode }) {
+export function PinchInspect({ children }: { children: React.ReactNode }) {
   const scale = useSharedValue(1);
   const tx = useSharedValue(0);
   const ty = useSharedValue(0);

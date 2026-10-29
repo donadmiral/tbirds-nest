@@ -1,3 +1,5 @@
+import SettingsExit from '../../components/SettingsExit';
+import { settingsBack } from '../../navigation/settingsNavigation';
 /**
  * Login activity: every device signed in to the account, with its last
  * active time, and one action that logs every other device out.
@@ -24,7 +26,7 @@ function ago(iso: string | null): string {
 export default function LoginActivityScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
-  const { t } = useTheme();
+  const { t, isDark } = useTheme();
   const { profile } = useAuthStore();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,11 +56,11 @@ export default function LoginActivityScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="chevron-left" size={26} color={t.ink.primary} /></TouchableOpacity>
+        <TouchableOpacity onPress={() => settingsBack(navigation, 'Settings')} style={s.backBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="chevron-left" size={26} color={t.ink.primary} /></TouchableOpacity>
         <Text style={s.title}>Login activity</Text>
-        <View style={{ width: 40 }} />
+        <SettingsExit navigation={navigation} />
       </View>
       <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}>
         <Text style={s.lede}>Devices signed in to your account. If one isn't yours, log the others out and change your password.</Text>

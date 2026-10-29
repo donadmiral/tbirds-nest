@@ -2,6 +2,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const source=fs.readFileSync(path.resolve(__dirname,'../../src/screens/feed/FeedScreen.tsx'),'utf8'),ast=ts.createSourceFile('FeedScreen.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
 const expressions=new Map(),handlers={};
 function visit(node){
+ if(ts.isCallExpression(node)&&node.expression.getText(ast)==='useFocusEffect'&&node.arguments[0]?.getText(ast).includes("takePendingCapture('feed')")){handlers.cameraReturn=node.arguments[0].arguments[0].getText(ast);}
  if(ts.isVariableDeclaration(node)&&ts.isIdentifier(node.name)&&node.initializer)expressions.set(node.name.text,node.initializer.getText(ast));
  if(ts.isObjectLiteralExpression(node)&&node.properties.some(p=>ts.isPropertyAssignment(p)&&p.name.getText(ast)==='text'&&p.initializer.getText(ast)==="'Quote'")){const action=node.properties.find(p=>ts.isPropertyAssignment(p)&&p.name.getText(ast)==='onPress');if(action)handlers.quote=action.initializer.getText(ast);}
  if(ts.isJsxAttribute(node)&&node.name.getText(ast)==='onPress'&&node.initializer?.expression){const code=node.initializer.expression.getText(ast);if(code.includes('setQuotingPost(p)'))handlers.shareQuote=code;if(code.includes('setThreadingPost(captured)'))handlers.thread=code;}
@@ -15,3 +16,16 @@ test('native external quote and thread intents still open normally when no uploa
 test('React to video cannot open camera permission while an upload owns the composer',async()=>{const h=fixture();let requests=0;h.context.ImagePicker.requestCameraPermissionsAsync=async()=>{requests++;return{granted:true};};h.publicationBusy.current=true;await h.context.reactToVideo({id:'react'});assert.equal(requests,0);assert.deepEqual(h.writes,[['open',true]]);});
 test('a late reaction video cannot replace media belonging to an upload started while camera was open',async()=>{const h=fixture();let finish;h.context.ImagePicker.launchCameraAsync=()=>new Promise(resolve=>finish=resolve);const pending=h.context.reactToVideo({id:'react'});await ticks();h.publicationAttempt.current={postId:'same-post'};finish({canceled:false,assets:[{uri:'new.mp4'}]});await pending;assert.equal(h.writes.some(([key])=>key==='quote'||key==='media'),false);assert.deepEqual(h.writes,[['open',true]]);});
 test('late gallery results cannot alter the upload snapshot or the visible progress attachments',async()=>{const h=fixture();let finish;h.context.ImagePicker.launchImageLibraryAsync=()=>new Promise(resolve=>finish=resolve);const pending=h.context.pickMedia();await ticks();h.publicationBusy.current=true;finish({canceled:false,assets:[{uri:'late.jpg'}]});await pending;assert.equal(h.writes.some(([key])=>key==='media'),false);assert.deepEqual(h.writes,[['open',true]]);});
+
+test('cancelling the feed effects camera returns to the intact post draft',()=>{
+ const h=fixture();h.context.resumeCameraDraft={current:true};h.context.takePendingCapture=()=>null;
+ h.handler('cameraReturn')();
+ assert.equal(h.context.resumeCameraDraft.current,false);assert.deepEqual(h.writes,[['open',true]]);
+});
+test('returning a captured effect appends full-strength media and selects the new attachment',async()=>{
+ const h=fixture(),selected=[];h.context.resumeCameraDraft={current:true};h.context.composerMediaRef={current:[{uri:'existing.jpg'}]};
+ h.context.takePendingCapture=()=>({uri:'capture.jpg',type:'image',filterId:'platinum_glow',width:1080,height:1920});h.context.setSelectedComposerMedia=value=>selected.push(value);
+ h.handler('cameraReturn')();await ticks();
+ const append=h.writes.find(([key])=>key==='media')[1],media=append(h.context.composerMediaRef.current);
+ assert.equal(media.length,2);assert.equal(media[0].uri,'existing.jpg');assert.equal(media[1].edit.filterAmt,100);assert.equal(media[1].edit.filterId,'platinum_glow');assert.equal(selected.at(-1),1);
+});

@@ -76,7 +76,7 @@ function harness(file, name = 'default', props = {}) {
   const imports = {
     react,
     'react/jsx-runtime': { jsx, jsxs: jsx, Fragment: 'Fragment' },
-    'next/navigation': { usePathname: () => '/home', useRouter: () => ({ push: href => calls.routes.push(href), refresh: () => calls.refreshes++ }) },
+    'next/navigation': { usePathname: () => '/home', useRouter: () => ({ push: href => calls.routes.push(href), replace: href => calls.routes.push(href), refresh: () => calls.refreshes++ }) },
     'next/link': { default: 'Link' },
     '@/lib/supabase/client': { createClient: () => client },
     '@/lib/useUnreadNotifications': { useUnreadNotifications: () => 0 },

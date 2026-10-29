@@ -18,6 +18,7 @@ function setup(options={}){
  }};
  const module={exports:{}};
  vm.runInNewContext(source,{module,exports:module.exports,Promise,Error,require:name=>{
+  if(name==='../../shared/postVoiceEffects'){const voice={exports:{}};vm.runInNewContext(compile('../shared/postVoiceEffects.ts'),voice);return voice.exports;}
   if(name==='../../shared/contentMedia')return{CONTENT_UUID:/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i};
   if(name==='./contentMedia')return{hydratePostMedia:async rows=>{hydrated.push(rows);return options.hydrate?options.hydrate(rows):rows.map(row=>({...row,sticker:{...row.sticker,postMediaUrl:'authorized-preview'}}));}};
   throw Error(name);

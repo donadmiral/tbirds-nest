@@ -16,7 +16,8 @@ function load(file, overrides = {}) {
   return module.exports;
 }
 const shared = load('../shared/feedSnapshot.ts');
-const { createHomeFeedController, filterMutedFeedRows } = load('lib/homeFeedController.ts', { '../../shared/feedSnapshot': shared });
+const marketplace = load('../shared/marketplaceRecommendations.ts');
+const { createHomeFeedController, filterMutedFeedRows } = load('lib/homeFeedController.ts', { '../../shared/feedSnapshot': shared, '../../shared/marketplaceRecommendations': marketplace });
 const row = (id, likes = 0) => ({ post_id: id, author_id: 'author', content: 'Visible content ' + id, created_at: '2026-10-22T12:00:00Z', media: [], products: [], likes_count: likes, sort_key: 100 });
 const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
 const tick = () => new Promise(resolve => setImmediate(resolve));
@@ -79,6 +80,8 @@ test('the actual HomeFeed server rendering includes post content before JavaScri
     '@/components/PostCard':{PostCard:({post})=>React.createElement('article',null,post.content)},
     '@/components/StoryRings':{StoryRings:empty}, '@/components/Composer':{Composer:empty},
     '@/components/AnnouncementBanner':{AnnouncementBanner:empty}, '@/components/SponsoredCard':{SponsoredCard:empty}, '@/lib/ads':{getActivePromos:async()=>[]},
+    '../../shared/marketplaceRecommendations':marketplace,
+    './MarketplaceShelf':load('components/MarketplaceShelf.tsx', { '../../shared/marketplaceRecommendations':marketplace }),
   };
   const {default:HomeFeed}=load('components/HomeFeed.tsx',overrides);
   const html=renderToStaticMarkup(React.createElement(HomeFeed,{seed:h.seed}));

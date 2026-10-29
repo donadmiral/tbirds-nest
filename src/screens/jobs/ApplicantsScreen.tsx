@@ -1,4 +1,5 @@
 import { applicationCvUrl } from '../../services/applicationCvService';
+import { jobsBack } from '../../navigation/jobsNavigation';
 import { ListRowSkeleton } from '../../components/skeletons';
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
@@ -203,7 +204,7 @@ export default function ApplicantsScreen() {
     <SafeAreaView style={st.safe} edges={['top', 'left', 'right']}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={getTheme().surface.canvas} />
       <View style={st.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Back to jobs" onPress={() => jobsBack(navigation, useAuthStore.getState().profile?.account_type === 'business')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
           <Feather name="chevron-left" size={26} color={getTheme().ink.primary} />
         </TouchableOpacity>
         <View style={{ flex: 1, marginHorizontal: 10 }}>

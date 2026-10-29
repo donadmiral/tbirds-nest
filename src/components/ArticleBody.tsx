@@ -14,13 +14,10 @@
  * check against, so every link opens through the system browser. Everything
  * else matches.
  */
-import { themedSheet } from '../theme/useTheme';
+import { themedSheet, useTheme } from '../theme/useTheme';
 import React from 'react';
 import { View, Text, StyleSheet, Linking } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
-
-const NAVY = '#0B1E3D';
-const PEARL = '#C9BFB0';
 
 const H1 = /^# (.+)$/;
 const H2 = /^## (.+)$/;
@@ -89,6 +86,9 @@ export default function ArticleBody({
   onMention?: (u: string) => void;
   onHashtag?: (t: string) => void;
 }) {
+  // Subscribe here as well as resolving themedSheet values. Feed cards may
+  // stay mounted while Settings changes the appearance preference.
+  useTheme();
   const blocks = text.replace(/\r\n/g, '\n').split(/\n{2,}/);
   return (
     <View>
@@ -159,23 +159,23 @@ export default function ArticleBody({
 }
 
 const ab = themedSheet((t) => ({
-  h1: { marginTop: 22, fontSize: 21, fontWeight: '800', color: NAVY, lineHeight: 27 },
-  h2: { marginTop: 18, fontSize: 17, fontWeight: '700', color: NAVY, lineHeight: 23 },
-  p: { marginTop: 14, fontSize: 16, lineHeight: 25, color: 'rgba(11,30,61,0.88)' },
-  bold: { fontWeight: '700', color: NAVY },
+  h1: { marginTop: 22, fontSize: 21, fontWeight: '800', color: t.ink.primary, lineHeight: 27 },
+  h2: { marginTop: 18, fontSize: 17, fontWeight: '700', color: t.ink.primary, lineHeight: 23 },
+  p: { marginTop: 14, fontSize: 16, lineHeight: 25, color: t.ink.primary },
+  bold: { fontWeight: '700', color: t.ink.primary },
   italic: { fontStyle: 'italic' },
-  link: { color: '#2563EB', textDecorationLine: 'underline' },
-  quoteWrap: { marginTop: 14, borderLeftWidth: 3, borderLeftColor: PEARL, paddingLeft: 14 },
-  quote: { fontSize: 16, lineHeight: 24, fontStyle: 'italic', color: 'rgba(11,30,61,0.7)' },
+  link: { color: t.status.link, textDecorationLine: 'underline' },
+  quoteWrap: { marginTop: 14, borderLeftWidth: 3, borderLeftColor: t.brand.warm, paddingLeft: 14 },
+  quote: { fontSize: 16, lineHeight: 24, fontStyle: 'italic', color: t.ink.secondary },
   figure: { marginTop: 18, marginBottom: 4 },
-  figureImg: { width: '100%', height: 220, borderRadius: 14, backgroundColor: '#F2F3F5' },
-  caption: { marginTop: 6, textAlign: 'center', fontSize: 12.5, color: 'rgba(11,30,61,0.5)' },
-  rule: { marginTop: 22, height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(11,30,61,0.15)' },
+  figureImg: { width: '100%', height: 220, borderRadius: 14, backgroundColor: t.surface.sunken },
+  caption: { marginTop: 6, textAlign: 'center', fontSize: 12.5, color: t.ink.muted },
+  rule: { marginTop: 22, height: StyleSheet.hairlineWidth, backgroundColor: t.surface.hairline },
   list: { marginTop: 14 },
   listRow: { flexDirection: 'row', marginTop: 6 },
-  listBullet: { width: 18, fontSize: 16, color: NAVY, lineHeight: 25 },
-  listNum: { width: 22, fontSize: 16, fontWeight: '700', color: NAVY, lineHeight: 25 },
-  listText: { flex: 1, fontSize: 16, lineHeight: 25, color: 'rgba(11,30,61,0.88)' },
-  mention: { color: NAVY, fontWeight: '700' },
-  hashtag: { color: '#2563EB', fontWeight: '700' },
+  listBullet: { width: 18, fontSize: 16, color: t.ink.primary, lineHeight: 25 },
+  listNum: { width: 22, fontSize: 16, fontWeight: '700', color: t.ink.primary, lineHeight: 25 },
+  listText: { flex: 1, fontSize: 16, lineHeight: 25, color: t.ink.primary },
+  mention: { color: t.status.link, fontWeight: '700' },
+  hashtag: { color: t.status.link, fontWeight: '700' },
 }));

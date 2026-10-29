@@ -1,3 +1,5 @@
+import SettingsExit from '../../components/SettingsExit';
+import { settingsBack } from '../../navigation/settingsNavigation';
 /**
  * Archive: posts you hid from everyone without deleting. Restore puts one
  * back exactly as it was, with its likes and comments.
@@ -16,7 +18,7 @@ type Row = { id: string; content: string | null; body: string | null; article_ti
 export default function ArchiveScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
-  const { t } = useTheme();
+  const { t, isDark } = useTheme();
   const { profile } = useAuthStore();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,11 +40,11 @@ export default function ArchiveScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="chevron-left" size={26} color={t.ink.primary} /></TouchableOpacity>
+        <TouchableOpacity onPress={() => settingsBack(navigation, 'Settings')} style={s.backBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="chevron-left" size={26} color={t.ink.primary} /></TouchableOpacity>
         <Text style={s.title}>Archive</Text>
-        <View style={{ width: 40 }} />
+        <SettingsExit navigation={navigation} />
       </View>
       {loading ? <ActivityIndicator color={t.ink.primary} style={{ marginTop: 30 }} /> : (
         <FlatList data={rows} keyExtractor={(r) => r.id} contentContainerStyle={{ paddingBottom: insets.bottom + 30 }}

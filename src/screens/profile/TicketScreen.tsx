@@ -1,8 +1,9 @@
+import { settingsBack } from '../../navigation/settingsNavigation';
 /**
  * TicketScreen - one ticket, the whole conversation. The member reads
  * the operations replies and writes back; writing reopens the ticket.
  */
-import { themedSheet } from '../../theme/useTheme';
+import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, TextInput, Alert, ActivityIndicator, Platform, KeyboardAvoidingView } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
@@ -11,7 +12,6 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 
-const NAVY = '#0B1E3D';
 const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
   open: { label: 'Open', color: '#B03A3A', bg: 'rgba(176,58,58,0.08)' },
   pending: { label: 'Replied - your turn', color: '#0B1E3D', bg: 'rgba(176,141,63,0.1)' },
@@ -20,6 +20,7 @@ const STATUS_META: Record<string, { label: string; color: string; bg: string }> 
 
 export default function TicketScreen() {
   const navigation = useNavigation<any>();
+  const { isDark } = useTheme();
   const route = useRoute<any>();
   const insets = useSafeAreaInsets();
   // eslint-disable-next-line react-hooks/rules-of-hooks -- the screen can open outside the tabs, where this hook throws; the try is the guard and the call order is constant.
@@ -62,10 +63,10 @@ export default function TicketScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <View style={s.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7}>
+          <TouchableOpacity onPress={() => settingsBack(navigation, 'ContactSupport')} style={s.backBtn} activeOpacity={0.7}>
             <Text style={s.backChev}>{'\u2039'}</Text><Text style={s.backLbl}>Back</Text>
           </TouchableOpacity>
           <Text style={s.headerTitle} numberOfLines={1}>{ticket?.subject || 'Ticket'}</Text>
@@ -75,7 +76,7 @@ export default function TicketScreen() {
         </View>
         <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 16 }} showsVerticalScrollIndicator={false}>
           {msgs === null ? (
-            <View style={{ paddingTop: 50, alignItems: 'center' }}><ActivityIndicator color={NAVY} /></View>
+            <View style={{ paddingTop: 50, alignItems: 'center' }}><ActivityIndicator color={getTheme().ink.primary} /></View>
           ) : msgs.map(m => (
             <View key={m.id} style={[s.bubble, m.sender === 'member' ? s.mine : s.theirs]}>
               <Text style={[s.bubbleTxt, m.sender === 'member' && { color: '#FFFFFF' }]}>{m.body}</Text>
@@ -100,18 +101,18 @@ const s = themedSheet((t) => ({
   safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10 },
   backBtn: { flexDirection: 'row', alignItems: 'center', width: 60 },
-  backChev: { fontSize: 26, color: NAVY, marginRight: 2, marginTop: -3 },
-  backLbl: { fontSize: 15, color: NAVY, fontWeight: '600' },
-  headerTitle: { flex: 1, fontSize: 15, fontWeight: '800', color: NAVY, textAlign: 'center', marginHorizontal: 6 },
+  backChev: { fontSize: 26, color: t.ink.primary, marginRight: 2, marginTop: -3 },
+  backLbl: { fontSize: 15, color: t.ink.primary, fontWeight: '600' },
+  headerTitle: { flex: 1, fontSize: 15, fontWeight: '800', color: t.ink.primary, textAlign: 'center', marginHorizontal: 6 },
   pill: { borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 },
   pillTxt: { fontSize: 9.5, fontWeight: '800' },
   bubble: { maxWidth: '82%', borderRadius: 14, padding: 11, marginBottom: 8 },
-  mine: { alignSelf: 'flex-end', backgroundColor: NAVY },
+  mine: { alignSelf: 'flex-end', backgroundColor: t.brand.base },
   theirs: { alignSelf: 'flex-start', backgroundColor: '#F4F5F7' },
-  bubbleTxt: { fontSize: 13.5, lineHeight: 19, color: NAVY },
+  bubbleTxt: { fontSize: 13.5, lineHeight: 19, color: t.ink.primary },
   bubbleWhen: { fontSize: 10, color: 'rgba(11,30,61,0.4)', marginTop: 5 },
   composer: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, paddingHorizontal: 12, paddingTop: 8, borderTopWidth: 1, borderTopColor: t.surface.hairline },
-  input: { flex: 1, borderWidth: 1.2, borderColor: t.surface.hairline, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 9, fontSize: 14, color: NAVY, maxHeight: 110 },
-  send: { backgroundColor: NAVY, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 11 },
+  input: { flex: 1, borderWidth: 1.2, borderColor: t.surface.hairline, borderRadius: 14, paddingHorizontal: 12, paddingVertical: 9, fontSize: 14, color: t.ink.primary, maxHeight: 110 },
+  send: { backgroundColor: t.brand.base, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 11 },
   sendTxt: { color: t.ink.inverse, fontSize: 13.5, fontWeight: '800' },
 }));

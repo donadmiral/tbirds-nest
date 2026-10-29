@@ -1,3 +1,4 @@
+import { settingsBack } from '../../navigation/settingsNavigation';
 /**
  * RestrictedAccountsScreen
  *
@@ -18,7 +19,7 @@ import { supabase } from '../../services/supabase';
 import { typeSize, fontWeight, radius, space } from '../../constants/tokens';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import TierName from '../../components/TierName';
-import { themedSheet, getTheme } from '../../theme/useTheme';
+import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 
 type Restricted = {
   user_id: string;
@@ -35,6 +36,7 @@ function initials(name?: string | null) {
 }
 
 export default function RestrictedAccountsScreen({ navigation }: any) {
+  const { isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const [rows, setRows] = useState<Restricted[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,10 +80,10 @@ export default function RestrictedAccountsScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <View style={s.header}>
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={() => settingsBack(navigation, 'Settings')}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           accessibilityRole="button" accessibilityLabel="Go back"
         >

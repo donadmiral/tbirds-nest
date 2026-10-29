@@ -49,7 +49,7 @@ test.before(async () => {
     create table story_mentions(id uuid primary key default gen_random_uuid(),story_id uuid,mentioned_user_id uuid,mentioned_by_user_id uuid,visible boolean default true,allow_reshare boolean default true,reshared_at timestamptz,created_at timestamptz default now(),unique(story_id,mentioned_user_id));
     create table notifications(id uuid primary key default gen_random_uuid(),recipient_id uuid,actor_id uuid,type text,message text,body_preview text,data jsonb,account_type text,read_at timestamptz);
     create table posts(id uuid primary key,user_id uuid,content text,body text,article_title text,audience text,media_url text,image_url text,archived_at timestamptz,is_exclusive boolean default false,community_id uuid,created_at timestamptz default now(),likes_count int default 0,comments_count int default 0,reposts_count int default 0);
-    create table post_media(id uuid primary key,post_id uuid,url text,media_type text,width int,height int,sort_order int);
+    create table post_media(id uuid primary key,post_id uuid,url text,media_type text,width int,height int,sort_order int,edit jsonb);
     create table post_media_tags(id uuid primary key default gen_random_uuid(),post_id uuid,media_id uuid,user_id uuid,nx double precision,ny double precision,unique(media_id,user_id));
     create function can_view_post(uuid) returns boolean language sql stable security definer set search_path='' as $$select exists(select 1 from public.posts where id=$1 and (user_id=auth.uid() or audience='everyone'))$$;
     alter table post_media_tags enable row level security;
@@ -66,6 +66,7 @@ test.before(async () => {
     // QA already has the old publisher. This narrow patch must work there too.
     await db.exec(fs.readFileSync(path.join(__dirname, '../migrations/20261029060247_story_public_post_reference_cards.sql'), 'utf8'));
   }
+  await db.exec(fs.readFileSync(path.join(__dirname, '../migrations/20261029074530_story_post_voice_playback.sql'), 'utf8'));
 });
 test.beforeEach(async () => {
   await db.exec('truncate profiles,blocked_users,follows,close_friends,story_hidden_from,story_shared_with,stories,story_mentions,notifications,posts,post_media,post_media_tags,story_ops.publications,story_drafts');
@@ -234,9 +235,10 @@ test('post card updates recheck the source and atomic publication cannot persist
   assert.equal((await db.query('select count(*)::int n from stories')).rows[0].n, 1);
   assert.equal((await db.query('select count(*)::int n from story_ops.publications')).rows[0].n, 0);
 });
-test('the QA function-only upgrade is identical to the production post guard and does not change publisher or grants', async () => {
+test('the voice metadata upgrade converges from the QA guard without changing publisher or grants', async () => {
   const before = (await db.query("select pg_get_functiondef('public.guard_story_reference_cards()'::regprocedure) guard,pg_get_functiondef('public.publish_story_v2(uuid,uuid,jsonb)'::regprocedure) publisher")).rows[0];
   await db.exec(fs.readFileSync(path.join(__dirname, '../migrations/20261029060247_story_public_post_reference_cards.sql'), 'utf8'));
+  await db.exec(fs.readFileSync(path.join(__dirname, '../migrations/20261029074530_story_post_voice_playback.sql'), 'utf8'));
   const after = (await db.query("select pg_get_functiondef('public.guard_story_reference_cards()'::regprocedure) guard,pg_get_functiondef('public.publish_story_v2(uuid,uuid,jsonb)'::regprocedure) publisher")).rows[0];
   assert.deepEqual(after, before);
   assert.equal((await db.query("select has_function_privilege('authenticated','public.guard_story_reference_cards()','execute') or has_function_privilege('anon','public.guard_story_reference_cards()','execute') allowed")).rows[0].allowed, false);
@@ -372,4 +374,18 @@ test('visual-only publisher works without audio infrastructure, rejects added so
   assert.equal((await db.query('select count(*)::int n from story_ops.publications')).rows[0].n,1);
   assert.equal((await db.query("select to_regprocedure('public.resolve_story_soundtrack(jsonb)') is null and to_regprocedure('public.publish_story_sound(uuid,boolean)') is null as absent")).rows[0].absent,true);
   assert.equal((await db.query("select count(*)::int n from information_schema.columns where table_schema='public' and table_name='story_drafts' and column_name='audio_draft'")).rows[0].n,0);
+});
+
+test('public post cards replace forged voice and trim fields with the canonical creator recipe',async()=>{
+ const p=await post();
+ await db.query("update post_media set url='https://media.test/voice.mp4',media_type='video',edit=$2::jsonb where id=$1",[p.mid,JSON.stringify({speed:1.5,voiceEffect:'deep',muted:false,trimStart:2.25,trimEnd:8.5,soundtrack:{soundId:'unavailable'}})]);
+ const result=await sharePost(p.pid,VIEWER,VIEWER,{postMediaPlayback:{speed:99,voiceEffect:'forged',muted:true,trimStart:0,trimEnd:99,soundtrack:{url:'forged'}}});
+ const recipe=result.rows[0].stickers_json[0].postMediaPlayback;
+ assert.deepEqual(recipe,{speed:1.5,voiceEffect:'deep',muted:false,trimStart:2.25,trimEnd:8.5});
+});
+test('malformed canonical voice fields normalize without attaching media or music supplied by the caller',async()=>{
+ const p=await post();
+ await db.query('update post_media set edit=$2::jsonb where id=$1',[p.mid,JSON.stringify({speed:99,voiceEffect:'not-a-preset',muted:'true',trimStart:-20,trimEnd:'invalid'})]);
+ const result=await sharePost(p.pid,VIEWER,VIEWER,{postMediaPlayback:{voiceEffect:'chipmunk',soundtrack:{url:'forged'}}});
+ assert.deepEqual(result.rows[0].stickers_json[0].postMediaPlayback,{speed:3,voiceEffect:'original',muted:false,trimStart:0,trimEnd:null});
 });

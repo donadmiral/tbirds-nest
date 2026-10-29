@@ -18,6 +18,10 @@ import { SharedPostCard } from "@/components/SharedPostCard";
 import { RelativeTime } from "@/components/RelativeTime";
 import { MESSAGE_PAGE_SIZE, olderMessageFilter, mergeMessagePage, type MessageCursor } from "../../shared/messageHistory";
 import { editMessage, reactToMessage, pinMessage, forwardMessage, canForwardMessage } from "@/lib/messageActions";
+import { acknowledgeConversationRead, canMarkConversationRead } from "../../shared/messageReceipts";
+import { GifPicker } from "@/components/GifPicker";
+import { parseStoryMessageReference } from "../../shared/storyMessageReference";
+import { RichText } from "@/components/RichText";
 
 const PRIVATE_MEDIA_SESSIONS_ENABLED = process.env.NEXT_PUBLIC_PRIVATE_MEDIA_SESSIONS_ENABLED === 'true';
 
@@ -49,6 +53,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const [hasOlder, setHasOlder] = useState(false);
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [sending, setSending] = useState(false);
+  const [gifMode, setGifMode] = useState<'gifs' | 'stickers' | null>(null);
   const [replyTo, setReplyTo] = useState<Msg | null>(null);
   const [editing, setEditing] = useState<Msg | null>(null);
   const [forwarding, setForwarding] = useState<Msg | null>(null);
@@ -68,6 +73,11 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const olderPending = useRef(false);
   const msgsRef = useRef<Msg[]>([]);
   msgsRef.current = msgs;
+  const historyReady = useRef(false);
+  const readPending = useRef(new Set<string>());
+  const readRequested = useRef(new Set<string>());
+  const lastRead = useRef('');
+  const markReadRef = useRef<() => Promise<void>>(async () => {});
   const uidRef = useRef(uid);
   uidRef.current = uid;
   const drafts = useRef(new Map<string, string>());
@@ -114,7 +124,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   }, [compact, active?.id]);
   useEffect(() => {
     const el = listRef.current; if (!el) return;
-    const onScroll = () => { debugCounts.current.scroll++; pinnedRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80; };
+    const onScroll = () => { debugCounts.current.scroll++; pinnedRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80; if (pinnedRef.current) void markReadRef.current(); };
     el.addEventListener('scroll', onScroll, { passive: true });
     let settle: ReturnType<typeof setTimeout> | null = null;
     const settleThenScroll = () => { if (settle) clearTimeout(settle); settle = setTimeout(() => { settle = null; if (pinnedRef.current) requestAnimationFrame(scrollToEnd); }, 80); };
@@ -132,6 +142,40 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const streamRef = useRef<MediaStream | null>(null);
   const recTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   activeRef.current = active;
+
+  const markVisibleRead = useCallback(async () => {
+    const c = activeRef.current, userId = uidRef.current, account = accountGeneration.current;
+    if (!c || !userId) return;
+    const key = `${account}:${userId}:${c.id}`;
+    const current = () => componentLive.current && account === accountGeneration.current && uidRef.current === userId && activeRef.current?.id === c.id;
+    const visible = () => current() && canMarkConversationRead({
+      foreground: document.visibilityState !== 'hidden',
+      focused: typeof document.hasFocus !== 'function' || document.hasFocus(),
+      atLatest: pinnedRef.current, loaded: historyReady.current,
+    });
+    if (!visible()) return;
+    readRequested.current.add(key);
+    if (readPending.current.has(key)) return;
+    readPending.current.add(key);
+    try {
+      while (readRequested.current.delete(key) && visible()) {
+        const newest = [...msgsRef.current].reverse().find(row => !row._delivery)?.id || '';
+        const receipt = `${key}:${newest}`;
+        if (lastRead.current === receipt) break;
+        await acknowledgeConversationRead(supabase, { conversationId: c.id, userId, isGroup: c.is_group });
+        if (current()) { lastRead.current = receipt; setConvs(list => list.map(item => item.id === c.id ? { ...item, unread: 0 } : item)); }
+      }
+    } catch { /* A failed receipt remains unread until the next visible retry. */ }
+    finally { readPending.current.delete(key); }
+  }, [supabase]);
+  markReadRef.current = markVisibleRead;
+
+  useEffect(() => {
+    const retryRead = () => { void markVisibleRead(); };
+    document.addEventListener('visibilitychange', retryRead);
+    window.addEventListener('focus', retryRead); window.addEventListener('online', retryRead);
+    return () => { document.removeEventListener('visibilitychange', retryRead); window.removeEventListener('focus', retryRead); window.removeEventListener('online', retryRead); };
+  }, [markVisibleRead]);
 
   const hydrateOffers = useCallback(async (rows: Msg[]) => {
     const generation = accountGeneration.current;
@@ -175,6 +219,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     const generation = ++historyGeneration.current;
     activeRef.current = c;
     setActive(c);
+    historyReady.current = false; lastRead.current = ''; setGifMode(null);
     setLoadingMsgs(true); setHistoryError(null); setActionError(null); setNotice(null);
     setMsgs(uidRef.current ? readOutbox(uidRef.current, c.id).map(row => ({ ...row, media_url: isChatMediaUrl(row.media_url) ? null : row.media_url })) : []); setDraft(drafts.current.get(c.id) || ''); setAttachmentDraft(null); setReplyTo(null); setEditing(null); setForwarding(null); setPinnedMessage(null);
     historyCursor.current = null; olderPending.current = false; setHasOlder(false); setLoadingOlder(false);
@@ -191,18 +236,17 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       setHasOlder(raw.length === MESSAGE_PAGE_SIZE);
       for (const row of raw) if (row.sender_id === uidRef.current) forgetOutboxMessage(row.sender_id, row.id);
       setMsgs(prev => mergeMessagePage(prev, rows.map(row => ({ ...row, _delivery: undefined })), true));
+      historyReady.current = true;
       void hydrateOffers(rows); void loadReactions(rows, c.id); void loadPin(c.id);
-      const { error: readError } = await supabase.rpc('mark_conversation_read_v2', { p_conversation_id: c.id });
-      if (!readError) setConvs(list => list.map(item => item.id === c.id ? { ...item, unread: 0 } : item));
       if (c.context === 'market' && c.context_ref_id) {
         const { data: listing } = await supabase.from('marketplace_listings').select('id, title, price, currency, images, status').eq('id', c.context_ref_id).maybeSingle();
         if (current() && listing) setRefListing(listing as MiniListing);
       }
-      if (current()) { pinnedRef.current = true; requestAnimationFrame(() => { if (current()) scrollToEnd(); }); }
+      if (current()) { pinnedRef.current = true; requestAnimationFrame(() => { if (current()) { scrollToEnd(); void markVisibleRead(); } }); }
     } catch {
       if (current()) setHistoryError('Messages could not be loaded. Please try again.');
     } finally { if (current()) setLoadingMsgs(false); }
-  }, [supabase, hydrateOffers, loadReactions, loadPin]);
+  }, [supabase, hydrateOffers, loadReactions, loadPin, markVisibleRead]);
 
   const loadOlder = useCallback(async () => {
     const c = activeRef.current;
@@ -229,10 +273,11 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     finally { if (current()) { olderPending.current = false; setLoadingOlder(false); } }
   }, [supabase, hasOlder, hydrateOffers, loadReactions]);
 
-  const loadInbox = useCallback(async () => {
+  const loadInbox = useCallback(async (quiet = false) => {
     const generation = ++inboxGeneration.current;
     const current = () => componentLive.current && inboxGeneration.current === generation;
-    setLoadingConvs(true); setConversationError(null);
+    if (!quiet) setLoadingConvs(true);
+    setConversationError(null);
     try {
       const { data, error } = await supabase.auth.getSession();
       if (error) throw error;
@@ -263,7 +308,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
         uploadPending.current = false;
         drafts.current.clear();
         uidRef.current = nextId; setUid(nextId); activeRef.current = null; ++historyGeneration.current;
-        setActive(null); setMsgs([]); setConvs([]); setDraft('');
+        setActive(null); setMsgs([]); setConvs([]); setDraft(''); setGifMode(null); historyReady.current = false; lastRead.current = '';
         setAttachmentDraft(null); setSendingFile(false); setReplyTo(null); setEditing(null); setForwarding(null); setPinnedMessage(null); setOffers({});
         setActionError(null); setNotice(null);
         ++inboxGeneration.current;
@@ -272,6 +317,25 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     });
     return () => { componentLive.current = false; clearTimeout(authReload); subscription.unsubscribe(); ++inboxGeneration.current; ++historyGeneration.current; activeRef.current = null; };
   }, [supabase, loadInbox]);
+
+  useEffect(() => {
+    if (!uid) return;
+    let live = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const refresh = () => {
+      if (!live || document.visibilityState === 'hidden') return;
+      clearTimeout(timer);
+      timer = setTimeout(() => { if (live && uidRef.current === uid) void loadInbox(true); }, 200);
+    };
+    const channel = supabase.channel(`web_inbox_${uid}_${context}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversations' }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, refresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'conversation_members', filter: `user_id=eq.${uid}` }, refresh)
+      .subscribe();
+    window.addEventListener('focus', refresh); window.addEventListener('online', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => { live = false; clearTimeout(timer); void supabase.removeChannel(channel); window.removeEventListener('focus', refresh); window.removeEventListener('online', refresh); document.removeEventListener('visibilitychange', refresh); };
+  }, [supabase, uid, context, loadInbox]);
 
   useEffect(() => {
     if (!active || !uid) return;
@@ -287,10 +351,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
         if (incoming.sender_id === uid) forgetOutboxMessage(uid, incoming.id);
         setMsgs(list => mergeMessagePage(list, [{ ...incoming, _delivery: undefined }], true));
         hydrateOffers([incoming]);
-        if (incoming.sender_id !== uid) {
-          supabase.rpc("mark_conversation_read_v2", { p_conversation_id: incoming.conversation_id }).then(() => {}, () => {});
-        }
-        setTimeout(() => { if (pinnedRef.current) scrollToEnd(); }, 40);
+        setTimeout(() => { if (current() && pinnedRef.current) { scrollToEnd(); void markVisibleRead(); } }, 40);
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "messages", filter: "conversation_id=eq." + active.id }, async (p) => {
         let upd = p.new as Msg;
@@ -329,7 +390,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       clearInterval(typePoll);
       supabase.removeChannel(reactionChannel);
     };
-  }, [supabase, active, uid, hydrateOffers, loadReactions, loadPin]);
+  }, [supabase, active, uid, hydrateOffers, loadReactions, loadPin, markVisibleRead]);
 
   const setTyping = useCallback(async (isTyping: boolean) => {
     if (!active || !uid) return;
@@ -622,6 +683,12 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
 
   const composer = (
     <div>
+      {gifMode && <GifPicker key={(uid || '') + ':' + (active?.id || '') + ':' + gifMode} mode={gifMode} busy={sending} onClose={() => setGifMode(null)} onPick={async gif => {
+        if (sendPending.current || uidRef.current !== uid || activeRef.current?.id !== active?.id) return;
+        sendPending.current = true; setSending(true);
+        try { if (await insertMessage(null, gif.url, gifMode === 'stickers' ? 'sticker' : 'gif')) { setGifMode(null); setReplyTo(null); } }
+        finally { sendPending.current = false; if (componentLive.current) setSending(false); }
+      }} />}
       {shareDetails && <ShareDetails key={(uid||'')+':'+(active?.id||'')} kind={shareDetails} onClose={()=>setShareDetails(null)} onSend={async card=>{
         if(uidRef.current!==uid || activeRef.current?.id!==active?.id)return false;
         return insertMessage(attachmentCardText(card),JSON.stringify(card),'link');
@@ -638,7 +705,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       </button>
       <button type="button" title="Take a photo or video" onClick={()=>cameraRef.current?.click()} disabled={sendingFile||sending||!!editing} className="p-2 text-muted" aria-label="Camera">Camera</button>
       <input ref={cameraRef} type="file" accept="image/*,video/*" capture="environment" hidden onChange={e=>attach(e.target.files)}/>
-      <details className="relative"><summary className="cursor-pointer p-2 text-muted" aria-label="Share contact or location">More</summary><div className="absolute bottom-full left-0 z-20 rounded-lg bg-surface-elevated p-2 shadow-lg"><button type="button" onClick={()=>setShareDetails('contact')} className="block p-2">Contact</button><button type="button" onClick={()=>setShareDetails('location')} className="block p-2">Location</button></div></details>
+      <details className="relative"><summary className="cursor-pointer p-2 text-muted" aria-label="More attachments">More</summary><div className="absolute bottom-full left-0 z-20 min-w-36 rounded-lg bg-surface-elevated p-2 text-ink shadow-lg"><button type="button" disabled={sending || sendingFile || !!editing || recording} onClick={() => setGifMode('gifs')} className="block w-full rounded p-2 text-left disabled:opacity-40">GIFs</button><button type="button" disabled={sending || sendingFile || !!editing || recording} onClick={() => setGifMode('stickers')} className="block w-full rounded p-2 text-left disabled:opacity-40">Stickers</button><button type="button" onClick={()=>setShareDetails('contact')} className="block p-2">Contact</button><button type="button" onClick={()=>setShareDetails('location')} className="block p-2">Location</button></div></details>
       <input ref={fileRef} type="file" hidden onChange={(e) => attach(e.target.files)} />
       {recording ? (
         <span className="flex items-center gap-2">
@@ -655,7 +722,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
         onBlur={() => setTyping(false)}
         placeholder={sendingFile ? "Sending attachment" : "Message"}
         rows={1}
-        className="max-h-32 flex-1 resize-none rounded-md bg-surface px-4 py-2.5 text-[16px] sm:text-[14px] text-ink placeholder:text-muted outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
+        className="max-h-32 min-w-0 flex-1 resize-none rounded-md bg-surface px-4 py-2.5 text-[16px] sm:text-[14px] text-ink placeholder:text-muted outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
       />
       <button onClick={send} disabled={!draft.trim() || sending} className="rounded-md bg-pearl p-2.5 text-on-pearl transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-30" title="Send">
         <Send size={18} />
@@ -670,7 +737,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
 
   if (compact) {
     return (
-      <div ref={surfaceRef} className={active ? "fixed left-0 top-0 z-[70] flex h-[100dvh] w-full touch-none flex-col overflow-hidden bg-white px-3 pt-[max(env(safe-area-inset-top),8px)]" : "flex h-[calc(100dvh-96px)] min-h-[70vh] flex-col px-1"}>
+      <div ref={surfaceRef} className={active ? "fixed left-0 top-0 z-[70] flex h-[100dvh] w-full touch-none flex-col overflow-hidden bg-surface-elevated text-ink px-3 pt-[max(env(safe-area-inset-top),8px)]" : "flex h-[calc(100dvh-96px)] min-h-[70vh] flex-col px-1"}>
         {!active ? (
           <>
             <h1 className="mb-3 font-display text-xl text-porcelain">{heading}</h1>
@@ -852,6 +919,7 @@ const BubbleView = memo(function BubbleView({ m, uid, offer, actions, replySourc
           {m.view_limit ? PRIVATE_MEDIA_SESSIONS_ENABLED ? <button type="button" disabled={mine || actions.viewedPrivateIds.has(m.id)} onClick={() => actions.openPrivate(m)} className="rounded-lg border border-current/30 p-3 text-sm disabled:opacity-60">{actions.viewedPrivateIds.has(m.id) ? "Viewed" : mine ? "Private attachment" : "Open private attachment"}</button> : <p className="text-sm">Limited-view attachment · Open in phone app</p> : null}
           {(() => { const card=m.view_limit?null:parseChatAttachmentCard(m.media_url); return card?<div className="my-2 rounded-lg border border-current/30 p-3"><strong>{attachmentCardText(card)}</strong>{attachmentCardLinks(card).map(link=><a key={link.url} href={link.url} target={card.kind==='location'?'_blank':undefined} rel="noopener noreferrer" className="block py-2 underline">{link.label}</a>)}</div>:null; })()}
           {m.shared_post_id ? <SharedPostCard postId={m.shared_post_id} /> : null}
+          {!m.view_limit && parseStoryMessageReference(m.media_url) ? <Link href={'/story/' + parseStoryMessageReference(m.media_url)} className="mb-2 block rounded-lg border border-current/30 p-3 text-sm underline">View story</Link> : null}
           {m.media_type === "offer" && m.media_url ? <OfferCardView m={m} {...offer} /> : null}
           {!m.view_limit && (m.media_type === "image" || m.media_type === "gif" || m.media_type === "sticker") && m.media_url ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -868,7 +936,7 @@ const BubbleView = memo(function BubbleView({ m, uid, offer, actions, replySourc
               <FileText size={14} /> {m.text?.replace("📄 ", "") || "Document"}
             </a>
           ) : null}
-          {m.text && m.media_type !== "document" ? <p className="whitespace-pre-wrap text-[14px] leading-relaxed">{m.text}</p> : null}
+          {m.text && m.media_type !== "document" ? <p className={'whitespace-pre-wrap break-words text-[14px] leading-relaxed ' + (mine ? '[&_a]:text-white [&_a]:underline' : '')}><RichText text={m.text} /></p> : null}
           <p className={"mt-0.5 text-[10px] " + (mine ? "text-white/80" : "text-secondary")}><RelativeTime dateTime={m.created_at} />{m.edited_at ? ' · edited' : ''}{mine ? pending ? m._delivery === 'rejected' ? ' · Not sent' : m._delivery === 'conflict' ? ' · Delivery conflict' : ' · Waiting for confirmation'  : m.read_at ? ' · Read' : m.delivered_at ? ' · Delivered' : ' · Sent' : ''}</p>
           {pending && m._delivery !== 'conflict' ? <button type="button" onClick={() => actions.retry(m)} className="mt-1 text-xs underline">Retry delivery</button> : null}
           {!pending && !m.view_limit && m.media_type && ['image', 'gif', 'sticker', 'video', 'audio', 'voice', 'document'].includes(m.media_type) && !m.media_url ? <button type="button" onClick={() => actions.refreshMedia(m)} className="text-xs underline">Attachment unavailable · Retry</button> : null}

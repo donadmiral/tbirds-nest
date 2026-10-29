@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, Pressable, StyleSheet, Dimensions, useWindowDimensions } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { VideoView, useVideoPlayer } from 'expo-video';
+import { normalizePostPlayback, applyPostPlayback } from '../../../shared/postVoiceEffects';
+import { postTrimWindow } from '../../../shared/postMediaEditing';
 import { sharedPostFrame } from '../../../shared/storyPresentation';
 import VerifiedBadge from '../VerifiedBadge';
 
@@ -19,6 +21,7 @@ export default function PostStoryCard({ sticker, onPress, interactive, onOpenPos
   const isVideo = sticker.postMediaType === 'video' && !!sticker.postMediaUrl;
   const [size, setSize] = useState({ width: Number(sticker.postMediaWidth) || 0, height: Number(sticker.postMediaHeight) || 0 });
   const [muted, setMuted] = useState(true);
+  const playback = normalizePostPlayback(sticker.postMediaPlayback);
   useEffect(() => {
     let current = true;
     setSize({ width: Number(sticker.postMediaWidth) || 0, height: Number(sticker.postMediaHeight) || 0 });
@@ -28,8 +31,10 @@ export default function PostStoryCard({ sticker, onPress, interactive, onOpenPos
     return () => { current = false; };
   }, [sticker.postMediaUrl, sticker.postMediaWidth, sticker.postMediaHeight, isVideo]);
   const frame = sharedPostFrame({ stageWidth: stageWidth || window.width, stageHeight: stageHeight || window.height, mediaWidth: size.width, mediaHeight: size.height, caption: sticker.postText, title: sticker.postArticleTitle, hasMedia: !!sticker.postMediaUrl });
-  const player = useVideoPlayer(isVideo ? sticker.postMediaUrl : null, p => { if (p) { p.loop = true; p.muted = true; if (!paused) try { p.play(); } catch {} } });
+  const player = useVideoPlayer(isVideo ? sticker.postMediaUrl : null, p => { if (p) { p.loop = true; p.muted = true; applyPostPlayback(p,playback); try { p.currentTime=playback.trimStart??0; } catch {} if (!paused) try { p.play(); } catch {} } });
   useEffect(() => { if (isVideo) try { if (paused) player.pause(); else player.play(); } catch {} }, [paused, isVideo, player]);
+  useEffect(()=>{if(!isVideo)return;try{applyPostPlayback(player,playback);player.muted=muted||!!playback.muted;player.timeUpdateEventInterval=.1;}catch{}},[player,isVideo,muted,playback.speed,playback.voiceEffect,playback.muted]);
+  useEffect(()=>{if(!isVideo)return;const subscription=player.addListener('timeUpdate',()=>{const window=postTrimWindow(player.duration,playback.trimStart,playback.trimEnd);if(window.duration&&(player.currentTime<window.start||player.currentTime>=window.end))player.currentTime=window.start;});return()=>subscription.remove();},[player,isVideo,playback.trimStart,playback.trimEnd]);
   const openPost = onOpenPost || onPress;
   const go = (fn?: () => void) => fn ? () => { try { player?.pause(); } catch {} fn(); } : undefined;
   const hold = { onLongPress: onHoldStart, onPressOut: onHoldEnd, delayLongPress: 160 };
@@ -43,7 +48,7 @@ export default function PostStoryCard({ sticker, onPress, interactive, onOpenPos
       {isVideo ? <VideoView pointerEvents="none" player={player} style={st.media} contentFit="contain" nativeControls={false} /> : <Image source={{ uri: sticker.postMediaUrl }} style={st.media} resizeMode="contain" />}
       {interactive ? <Pressable {...hold} accessibilityRole="button" accessibilityLabel="Open shared post" style={StyleSheet.absoluteFill} onPress={go(openPost)} /> : null}
       {mediaCount > 1 ? <View pointerEvents="none" style={st.carousel}><Feather name="layers" size={17} color="#FFFFFF" /><Text style={st.carouselText}>1/{mediaCount}</Text></View> : null}
-      {isVideo ? <Pressable {...hold} accessibilityRole="button" disabled={!interactive} accessibilityLabel={muted ? 'Unmute shared video' : 'Mute shared video'} style={st.soundChip} onPress={() => setMuted(value => { const next = !value; try { player.muted = next; } catch {} return next; })}><Feather name={muted ? 'volume-x' : 'volume-2'} size={17} color="#FFF" /></Pressable> : null}
+      {isVideo && !playback.muted ? <Pressable {...hold} accessibilityRole="button" disabled={!interactive} accessibilityLabel={muted ? 'Unmute shared video' : 'Mute shared video'} style={st.soundChip} onPress={() => setMuted(value => { const next = !value; try { player.muted = next; } catch {} return next; })}><Feather name={muted ? 'volume-x' : 'volume-2'} size={17} color="#FFF" /></Pressable> : null}
     </View> : null}
     <View style={st.footer}>
       <TouchableOpacity {...hold} accessibilityRole="button" accessibilityLabel={`Open ${sticker.postAuthorName || sticker.postUsername || 'post author'} profile`} disabled={!interactive || !onOpenProfile} onPress={go(onOpenProfile)} style={st.author}>

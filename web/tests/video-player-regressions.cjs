@@ -50,6 +50,8 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
     if (name === '@/lib/videoPlayback') return helper;
     if (name.includes('shared/soundtrack')) return soundtrackHelpers;
     if (name.includes('shared/discover')) return discoverHelpers;
+    if (name.includes('shared/carouselNavigation')) return sharedModule('carouselNavigation.ts');
+    if (name.includes('shared/postVoiceEffects')) return sharedModule('postVoiceEffects.ts');
     if (name.includes('shared/postMediaEditing')) return postEditingHelpers;
     if (name === '@/lib/mediaPrefs') return { dataSaverEnabled: () => saver, autoplayEnabled: () => autoplay };
     if (name === '@/lib/usePostInteractions') return { usePostInteractions: (_id, seed) => ({ ...seed, pending: false, error: null, uncertain: false }) };
@@ -501,4 +503,14 @@ test('theater refits actual image metadata and follows comments and viewport res
   screen.click('Hide comments'); screen.render(); s.resize(); screen.render();
   assertRotatedFits(theaterImage(screen).props.style, 270, 700, 500);
   screen.unmount();
+});
+
+test('published voice effects reproduce their pitch and pace in the actual web player',()=>{
+ const scene=scenario(),screen=scene.mount({edit:{voiceEffect:'chipmunk',trimStart:2,trimEnd:8}});
+ screen.videoEvent('onLoadedMetadata');assert.equal(screen.element.playbackRate,1.5);assert.equal(screen.element.preservesPitch,false);assert.equal(screen.element.currentTime,2);screen.unmount();
+});
+test('viewer speed multiplies the saved creator pace instead of replacing it',()=>{
+ const screen=scenario({prefs:{speed:2}}).mount({edit:{speed:1.5,voiceEffect:'deep'}});
+ screen.videoEvent('onLoadedMetadata');assert.equal(screen.element.playbackRate,2.25);assert.equal(screen.element.preservesPitch,false);
+ screen.key('<');assert.equal(screen.element.playbackRate,1.5*.75*1.75);assert.equal(screen.element.preservesPitch,false);screen.unmount();
 });

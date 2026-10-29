@@ -10,6 +10,7 @@ import {PostSoundtrack} from './PostSoundtrack';
 import type {SoundtrackSelection} from '../../shared/soundtrack';
 import { PostCaption } from './PostCaption';
 import type { PostFrameRecipe } from '../../shared/postMediaEditing';
+import { applyPostPlayback, postPlaybackSettings } from '../../shared/postVoiceEffects';
 import { discoverFrame } from '../../shared/discover';
 
 let activeStop: (() => void) | null = null;
@@ -58,8 +59,8 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
   const wantsPlayback = useRef(false);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(() => readPrefs().muted);
-  const [speed, setSpeed] = useState(() => edit?.speed || readPrefs().speed);
-  useEffect(()=>{if(typeof edit?.speed==='number'&&edit.speed>0){setSpeed(edit.speed);if(ref.current)ref.current.playbackRate=edit.speed;}},[edit?.speed]);
+  const [speed, setSpeed] = useState(() => readPrefs().speed);
+  useEffect(()=>{if(ref.current)applyPostPlayback(ref.current,edit,speed);},[speed,edit?.speed,edit?.voiceEffect]);
   const [duration, setDuration] = useState(0);
   const [time, setTime] = useState(0);
   const [fs, setFs] = useState(false);
@@ -197,7 +198,7 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
   function pickSpeed(next: number) {
     if (!PLAYBACK_SPEEDS.includes(next)) return;
     setSpeed(next);
-    if (ref.current) ref.current.playbackRate = next;
+    if (ref.current) applyPostPlayback(ref.current,edit,next);
     writePrefs({ speed: next });
   }
   function onKey(e: React.KeyboardEvent) {
@@ -262,7 +263,7 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
         onLoadedMetadata={() => {
           const v = ref.current;
           if (!v) return;
-          setDuration(v.duration); setSourceSize({width:v.videoWidth,height:v.videoHeight}); setFailed(false); v.playbackRate = speed; v.volume=edit?.muted ? 0 : soundtrack?.originalVolume??1;
+          setDuration(v.duration); setSourceSize({width:v.videoWidth,height:v.videoHeight}); setFailed(false); applyPostPlayback(v,edit,speed); v.volume=edit?.muted ? 0 : soundtrack?.originalVolume??1;
           const bounds = playbackWindow(v.duration, trimStart, trimEnd);
           if (bounds.duration) { v.currentTime = clampVideoTime(positions.get(src) ?? bounds.start, bounds); setTime(v.currentTime); }
           setPipAvailable(!!document.pictureInPictureEnabled && typeof v.requestPictureInPicture === "function" && v.videoWidth > 0);
@@ -282,7 +283,7 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
       {mediaOverlay}
       <PostCaption captions={edit?.captions} time={time} />
       </div>
-      {soundtrack?<PostSoundtrack selection={soundtrack} active={allowPlayback&&playing&&!muted} clock={{time:Math.max(0,time-range.start),playing,rate:speed}} autoPlay className="absolute right-3 top-3 z-10"/>:null}
+      {soundtrack?<PostSoundtrack selection={soundtrack} active={allowPlayback&&playing&&!muted} clock={{time:Math.max(0,time-range.start),playing,rate:postPlaybackSettings(edit,speed).rate}} autoPlay className="absolute right-3 top-3 z-10"/>:null}
       {!playing && !failed && allowPlayback ? <button type="button" onClick={() => playNow(true)} aria-label="Play video" className={"absolute left-1/2 top-1/2 z-[5] flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-ink/70 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-pearl"}><Play size={24} /></button> : null}
       {failed ? <div role="status" className="absolute inset-x-3 top-3 z-10 rounded-xl bg-black/85 p-4 text-center text-sm text-white">
         <p>This video could not load. Check your connection or try again.</p>

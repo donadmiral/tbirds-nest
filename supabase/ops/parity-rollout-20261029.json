@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 2,
+  "reviewDate": "2026-10-29",
+  "projectRef": "prlkikhckbifseosbukl",
+  "qaProjectRef": "uaulhuelcfkjwojtymmw",
+  "sourceBaseCommit": "8193c495281d015d8ff6d60bcb4f2c3c00305fd1",
+  "baselineManifest": "supabase/ops/production-rollout-20261029.json",
+  "scope": [
+    "Business Studio publishing and receipts",
+    "Recruiter application workflows",
+    "Customer purchase reviews and seller recommendations",
+    "Read-only payment reports",
+    "Canonical post voice playback in stories",
+    "Idempotent new Studio draft saves"
+  ],
+  "excluded": [
+    "Music licensing and catalogue changes",
+    "Creator commerce activation",
+    "IntoBank production permissions and live payouts",
+    "User credentials and authenticator factor removal",
+    "Storage bucket visibility changes",
+    "Broad administrative command/provisioning system rejected by automatic approval review",
+    "New production admin_ops tables/helpers and dependent staff moderation/triage functions"
+  ],
+  "cloudMutated": true,
+  "bucketVisibilityMustRemainUnchanged": true,
+  "supersedes": "supabase/ops/superseded/parity-rollout-20261029-11-units.json",
+  "productionCloudMutated": true,
+  "staffAuthenticatorPolicy": "Frontend allows verified active staff AAL1 sessions using the already deployed native session check. No new production administrative SQL functions are added.",
+  "units": [
+    {
+      "order": 1,
+      "name": "20261022211448_business_publishing_and_receipts",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022211448_business_publishing_and_receipts.sql",
+          "sha256": "37b524c77eeea048d3c4d3a21d143f4c6695ff6aab516300c22e3092617789e9"
+        }
+      ],
+      "qaStatus": "applied",
+      "productionStatus": "applied"
+    },
+    {
+      "order": 2,
+      "name": "20261022211637_hiring_workflow_quality",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022211637_hiring_workflow_quality.sql",
+          "sha256": "5e85104b568d7370cd0e882a342c5e2694190a9b2b633da5fa491a96f90070db"
+        }
+      ],
+      "qaStatus": "applied",
+      "productionStatus": "applied"
+    },
+    {
+      "order": 3,
+      "name": "20261029080548_marketplace_purchase_reviews",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261029080548_marketplace_purchase_reviews.sql",
+          "sha256": "c69b26883e107b14d0b4917cc24722cac1874dcd8ea1a71f54e4969323c16380"
+        }
+      ],
+      "qaStatus": "equivalent_user_contracts_already_applied",
+      "productionStatus": "applied"
+    },
+    {
+      "order": 4,
+      "name": "20261022211701_admin_payment_reporting_and_support",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022211701_admin_payment_reporting_and_support.sql",
+          "sha256": "fba8914c4a186cbbcf4f977dd2399434ce26919d23a8310936521137a40815a9"
+        }
+      ],
+      "qaStatus": "applied",
+      "productionStatus": "applied"
+    },
+    {
+      "order": 5,
+      "name": "20261029074217_home_marketplace_recommendations",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261029074217_home_marketplace_recommendations.sql",
+          "sha256": "52938699305d8a07697904fc710b0a5fb519cd7aab5acd5c8401e5637528c2de"
+        }
+      ],
+      "qaStatus": "applied",
+      "productionStatus": "applied"
+    },
+    {
+      "order": 6,
+      "name": "20261029074530_story_post_voice_playback",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261029074530_story_post_voice_playback.sql",
+          "sha256": "c52f3bc92bf7bbce49447170a728301e96ab272fbcc981c75987c52f8f570b2d"
+        }
+      ],
+      "qaStatus": "applied",
+      "productionStatus": "applied"
+    },
+    {
+      "order": 7,
+      "name": "20261029075401_studio_draft_retry_identity",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261029075401_studio_draft_retry_identity.sql",
+          "sha256": "a4f16d073ccc90f6774f75b35aa283af1e590f13005474d57c77ec080c4d4927"
+        }
+      ],
+      "qaStatus": "applied",
+      "productionStatus": "applied"
+    }
+  ],
+  "productionVerification": {
+    "bucketFingerprintBefore": "f05d09854c30510456e01b8d6c8bfb05",
+    "bucketFingerprintAfter": "f05d09854c30510456e01b8d6c8bfb05",
+    "existingAdminFingerprintBefore": "eb6a13e97a106e6207524a242b28d60e",
+    "existingAdminFingerprintAfter": "eb6a13e97a106e6207524a242b28d60e",
+    "musicFingerprintsUnchanged": true,
+    "broadAdminNamespaceAbsent": true,
+    "broadAdminCommandAbsent": true,
+    "requiredContractsPresent": true,
+    "anonymousRecommendationsDenied": true,
+    "privateDraftReceiptsDenied": true
+  }
+}

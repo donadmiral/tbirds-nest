@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { checkUploadableBytes } from "@/lib/media";
 import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, Camera } from "lucide-react";
 import { CATEGORIES } from "@/lib/categories";
 import { ImagePlus, X, Globe, Users, AtSign, BadgeCheck, Lightbulb, Tag, Image as ImageIcon, FileText, Feather, Video, ChevronLeft, ChevronRight, SlidersHorizontal, Plus, Music, ArrowRight } from "lucide-react";
 import { ProductPicker, type ProductCard } from "@/components/ProductPicker";
@@ -21,6 +21,7 @@ import SoundtrackPicker from "./SoundtrackPicker";
 import { postLookRecipe } from "../../shared/postMediaEditing";
 import type {SoundtrackSelection} from "../../shared/soundtrack";
 import { MUSIC_CATALOG_ENABLED } from "../../shared/musicAvailability";
+import { StoryCapture } from './StoryCapture';
 
 type Media = { file: File; preview: string; width: number; height: number; isVideo: boolean; alt: string; tags?: MediaTagDraft[]; edit?: PostMediaEditRecipe | null; coverFile?:File|null; coverPreview?:string|null };
 type MediaTagDraft = { user_id: string; nx: number; ny: number; full_name: string | null; username: string | null; avatar_url: string | null };
@@ -96,6 +97,7 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
   const [tagIdx, setTagIdx] = useState<number | null>(null);
   const [soundtrack,setSoundtrack]=useState<SoundtrackSelection|null>(null);
   const [musicOpen,setMusicOpen]=useState(false);
+  const [cameraOpen,setCameraOpen]=useState(false);
   const [editIdx, setEditIdx] = useState<number | null>(null);
   const [tagAt, setTagAt] = useState<{ nx: number; ny: number } | null>(null);
   const [tagQ, setTagQ] = useState("");
@@ -149,7 +151,7 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
     mounted.current = true;
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const next = session?.user.id;
-      if (next !== authenticatedOwner.current) { ownerGeneration.current++; authenticatedOwner.current = next; setOpen(false); }
+      if (next !== authenticatedOwner.current) { ownerGeneration.current++; authenticatedOwner.current = next; setOpen(false); setCameraOpen(false); }
     });
     return () => {
       mounted.current = false; ownerGeneration.current++; subscription.unsubscribe();
@@ -203,10 +205,10 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
 
   useEffect(() => {
     if (!open) return;
-    function onKey(e: KeyboardEvent) { if (e.key === "Escape" && editIdx===null && tagIdx===null && !publishing.current) { setOpen(false); if (!publication.current) setError(null); onQuoteDone?.(); } }
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape" && !cameraOpen && editIdx===null && tagIdx===null && !publishing.current) { setOpen(false); if (!publication.current) setError(null); onQuoteDone?.(); } }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, onQuoteDone, editIdx, tagIdx]);
+  }, [open, onQuoteDone, editIdx, tagIdx, cameraOpen]);
 
   function onTextChange(v: string) {
     const next = v.slice(0, MAX_CHARS);
@@ -475,7 +477,7 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
       setOpen(true);
       if (k) setKind(k);
     };
-    const action = "flex items-center gap-2 rounded-full px-3 py-1.5 text-[13px] text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink";
+    const action = "flex min-h-11 min-w-0 flex-col items-center justify-center gap-1 rounded-xl px-1 py-1.5 text-[12px] text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink sm:flex-row sm:gap-2 sm:text-[13px]";
     return (
       <div className="mb-4 rounded-2xl border border-ink/10 bg-white px-5 pb-3 pt-4">
         {postConfirmed?<div className={compose.posted} role="status"><span>Your post has been shared.</span><button type="button" aria-label="Dismiss post confirmation" onClick={()=>setPostConfirmed(false)}><X size={18}/></button></div>:null}
@@ -486,11 +488,12 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
           ) : <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-navy text-white"><span className="h-2 w-2 rounded-full bg-pearl" /></span>}
           <span className="text-[16px] text-muted">What&apos;s on your mind?</span>
         </button>
-        <div className="mt-3 flex items-center gap-1 border-t border-ink/8 pt-2.5">
+        <div className="mt-3 grid grid-cols-5 items-center gap-1 border-t border-ink/8 pt-2.5">
           <button onClick={start("media")} className={action}><ImageIcon size={16} className="text-pearl-muted" /> Photo</button>
+          <button onClick={()=>{setPostConfirmed(false);setOpen(true);setPollOn(false);setCameraOpen(true);}} className={action} aria-label="Open post camera and lenses"><Camera size={16} className="text-pearl-muted"/>Camera</button>
           <button onClick={start("article")} className={action}><FileText size={16} className="text-pearl-muted" /> Article</button>
           <button onClick={start("poll")} className={action}><BarChart3 size={16} className="text-pearl-muted" /> Poll</button>
-          <button onClick={start()} className="ml-auto rounded-full bg-pearl px-5 py-1.5 text-[13px] font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90">Post</button>
+          <button onClick={start()} className="min-h-11 min-w-0 rounded-full bg-pearl px-2 py-1.5 text-[13px] font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90">Post</button>
         </div>
       </div>
     );
@@ -584,7 +587,7 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
           ))}
         </div>
       ) : null}
-      {selected?<section className={compose.media}><PostDraftPreview key={selected.preview+JSON.stringify(selected.edit)} item={selected} soundtrack={soundtrack} active={!musicOpen&&editIdx===null}/><span className={compose.mediaCount}>{Math.min(selectedMedia+1,items.length)} / {items.length}</span>{!review?<><div className={compose.mediaActions}><button onClick={()=>setEditIdx(Math.min(selectedMedia,items.length-1))}><SlidersHorizontal size={16}/>Edit {selected.isVideo?'video':'photo'}</button>{!selected.isVideo?<button onClick={()=>setTagIdx(Math.min(selectedMedia,items.length-1))}><Users size={16}/>Tag people</button>:null}<button aria-label="Move media earlier" disabled={selectedMedia===0} onClick={()=>moveMedia(-1)}><ChevronLeft size={17}/></button><button aria-label="Move media later" disabled={selectedMedia>=items.length-1} onClick={()=>moveMedia(1)}><ChevronRight size={17}/></button><button aria-label="Remove selected media" onClick={removeMedia}><X size={17}/></button></div></>:null}<div className={compose.thumbs} style={{marginTop:review?12:0}}>{items.map((item,i)=><button key={item.preview} className={compose.thumb} aria-label={`Select media ${i+1}`} aria-pressed={selectedMedia===i} onClick={()=>setSelectedMedia(i)}>{item.isVideo?(item.coverPreview?<img src={item.coverPreview} alt=""/>:<video src={item.preview+'#t=0.1'} muted preload="metadata"/>):<img src={item.preview} alt=""/>}<span className={compose.number}>{i+1}</span></button>)}{!review&&items.length<MAX_MEDIA?<button className={compose.add} aria-label="Add more media" onClick={()=>fileRef.current?.click()}><Plus size={23}/></button>:null}</div></section>:null}
+      {selected?<section className={compose.media}><PostDraftPreview key={selected.preview+JSON.stringify(selected.edit)} item={selected} soundtrack={soundtrack} active={!cameraOpen&&!musicOpen&&editIdx===null}/><span className={compose.mediaCount}>{Math.min(selectedMedia+1,items.length)} / {items.length}</span>{!review?<><div className={compose.mediaActions}><button onClick={()=>setEditIdx(Math.min(selectedMedia,items.length-1))}><SlidersHorizontal size={16}/>Edit {selected.isVideo?'video':'photo'}</button>{!selected.isVideo?<button onClick={()=>setTagIdx(Math.min(selectedMedia,items.length-1))}><Users size={16}/>Tag people</button>:null}<button aria-label="Move media earlier" disabled={selectedMedia===0} onClick={()=>moveMedia(-1)}><ChevronLeft size={17}/></button><button aria-label="Move media later" disabled={selectedMedia>=items.length-1} onClick={()=>moveMedia(1)}><ChevronRight size={17}/></button><button aria-label="Remove selected media" onClick={removeMedia}><X size={17}/></button></div></>:null}<div className={compose.thumbs} style={{marginTop:review?12:0}}>{items.map((item,i)=><button key={item.preview} className={compose.thumb} aria-label={`Select media ${i+1}`} aria-pressed={selectedMedia===i} onClick={()=>setSelectedMedia(i)}>{item.isVideo?(item.coverPreview?<img src={item.coverPreview} alt=""/>:<video src={item.preview+'#t=0.1'} muted preload="metadata"/>):<img src={item.preview} alt=""/>}<span className={compose.number}>{i+1}</span></button>)}{!review&&items.length<MAX_MEDIA?<button className={compose.add} aria-label="Add more media" onClick={()=>fileRef.current?.click()}><Plus size={23}/></button>:null}</div></section>:null}
       {items.length?<button type="button" className={compose.soundtrack} onClick={()=>setMusicOpen(true)}><Music size={18}/><span>Music</span><span>{soundtrack?`${soundtrack.durationSec.toFixed(1)}s excerpt`:'Add a soundtrack'}</span><ChevronRight size={17}/></button>:null}
       {editIdx!==null&&items[editIdx]?<PostMediaEditor key={items[editIdx].preview} item={items[editIdx]} index={editIdx} total={items.length} onClose={()=>setEditIdx(null)} onSave={(edit,coverFile,coverPreview,applyAll)=>{setItems(prev=>prev.map((item,i)=>i===editIdx?{...item,edit,coverFile,coverPreview}:applyAll?{...item,edit:{...item.edit,...postLookRecipe(edit)}}:item));setEditIdx(null);}}/>:null}
       {tagIdx !== null && items[tagIdx] ? (
@@ -691,8 +694,9 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
       {error && publicationLocked && !publicationStatus.postId ? <button type="button" onClick={() => { publication.current=null; setPublicationLocked(false); setError(null); }} className="ml-14 mt-2 text-sm underline">Edit draft</button> : null}
       {error ? <p role="alert" className="ml-14 mt-3 text-[13px] text-danger">{error}{publicationStatus.postId ? <> <Link target="_blank" rel="noopener noreferrer" href={"/post/" + publicationStatus.postId} className="underline">View post</Link></> : null}</p> : null}
       </div>
-      {!review?<div className={compose.tools}><button className={compose.tool} onClick={()=>fileRef.current?.click()} disabled={items.length>=MAX_MEDIA}><ImagePlus size={19}/>Media</button><button className={compose.tool} disabled={!items.length} onClick={()=>setMusicOpen(true)}><Music size={19}/>Music</button><button className={compose.tool} onClick={()=>setPickerOpen(v=>!v)}><Tag size={18}/>Products{products.length?` · ${products.length}`:''}</button><button className={compose.tool} disabled={items.length>0} onClick={()=>setPollOn(v=>!v)}><BarChart3 size={18}/>{pollOn?'Remove poll':'Poll'}</button><input ref={fileRef} type="file" accept="image/*,video/*" multiple hidden onChange={e=>{void addFiles(e.target.files);e.target.value='';}}/></div>:null}
+      {!review?<div className={compose.tools}><button className={compose.tool} onClick={()=>fileRef.current?.click()} disabled={items.length>=MAX_MEDIA}><ImagePlus size={19}/>Media</button><button type="button" className={compose.tool} aria-label="Open post camera and lenses" disabled={items.length>=MAX_MEDIA||preparing} onClick={()=>{setPollOn(false);setCameraOpen(true);}}><Camera size={19}/>Camera</button><button className={compose.tool} disabled={!items.length} onClick={()=>setMusicOpen(true)}><Music size={19}/>Music</button><button className={compose.tool} onClick={()=>setPickerOpen(v=>!v)}><Tag size={18}/>Products{products.length?` · ${products.length}`:''}</button><button className={compose.tool} disabled={items.length>0} onClick={()=>setPollOn(v=>!v)}><BarChart3 size={18}/>{pollOn?'Remove poll':'Poll'}</button><input ref={fileRef} type="file" accept="image/*,video/*" multiple hidden onChange={e=>{void addFiles(e.target.files);e.target.value='';}}/></div>:null}
       </fieldset>
+      {cameraOpen?<StoryCapture purpose="post" onCapture={async file=>{await addFiles([file]);}} onClose={()=>setCameraOpen(false)} onGallery={()=>{setCameraOpen(false);fileRef.current?.click();}}/>:null}
       {musicOpen?<SoundtrackPicker value={soundtrack} use="post" ownerId={ownerId} originalAudio={selected?.isVideo} onChange={setSoundtrack} onClose={()=>setMusicOpen(false)} renderPreview={(selection,active)=>selected?<PostDraftPreview item={selected} soundtrack={selection} active={active} autoPlay/>:null}/>:null}
       <div className={compose.settings}>
         <select disabled={publicationLocked||review} value={postCategory} onChange={(e) => setPostCategory(e.target.value)} title="Category" className="max-w-[120px] rounded-full bg-surface px-3 py-1.5 text-[12.5px] text-ink/80 outline-none">

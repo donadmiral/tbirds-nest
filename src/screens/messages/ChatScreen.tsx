@@ -14,8 +14,7 @@ import { loadConfirmedPaymentReceipt } from '../../services/paymentReceipt';
  * FIXES applied (no other logic changed):
  *  1. markRead calls mark_conversation_read RPC — atomic bulk update, bypasses
  *     any messageStatusService issues.  read_at is set server-side in one call.
- *  2. Realtime INSERT handler marks messages read immediately when they arrive
- *     and the screen is mounted (same as before but now uses the RPC).
+ *  2. Read receipts require the active foreground chat at its newest messages.
  *  3. Reaction realtime sub uses a ref so it never captures a stale messages array.
  *  4. Own messages (sender_id === me) never carry a receiver_id that matches me,
  *     so they can never be counted as unread — this is enforced at the DB level by
@@ -28,14 +27,14 @@ import {
   View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet,
   KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar, LayoutAnimation, UIManager,
   Animated, Easing, Pressable, Modal, ScrollView, Alert, Linking,
-  Image, Dimensions, Share,
+  Image, Dimensions, Share, AppState,
 } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import * as Clipboard from 'expo-clipboard';
 import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system/legacy';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, useIsFocused } from '@react-navigation/native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as VideoThumbnails from 'expo-video-thumbnails';
@@ -61,6 +60,8 @@ import 'react-native-get-random-values';
 import { deliverMessage, makeMessageId, type MessageIntent } from '../../../shared/messageDelivery';
 import { canForwardMessage } from '../../../shared/messageContent';
 import { MESSAGE_PAGE_SIZE, olderMessageFilter, mergeMessagePage, type MessageCursor } from '../../../shared/messageHistory';
+import { acknowledgeConversationRead, canMarkConversationRead } from '../../../shared/messageReceipts';
+import { parseStoryMessageReference } from '../../../shared/storyMessageReference';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) { UIManager.setLayoutAnimationEnabledExperimental(true); }
 
@@ -149,11 +150,29 @@ type InfoTab = 'media' | 'files' | 'starred';
 // intended replacement, which needs an account and a key before it can be built.
 
 function MentionText({ text, style, meStyle }: { text: string; style: any; meStyle?: boolean }) {
+  const { t } = useTheme();
+  const navigation = useNavigation<any>();
+  const pending = useRef(false);
+  const alive = useRef(true);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
+  const openMention = async (username: string) => {
+    if (pending.current) return;
+    const owner = useAuthStore.getState().session?.user.id;
+    pending.current = true;
+    try {
+      const exactHandle = username.replace(/\.$/, '').replace(/[\\%_]/g, '\\$&');
+      const { data, error } = await supabase.from('profiles').select('id').ilike('username', exactHandle).maybeSingle();
+      if (!alive.current || useAuthStore.getState().session?.user.id !== owner) return;
+      if (error || !data) { Alert.alert('Profile unavailable', 'This profile could not be opened.'); return; }
+      navigation.navigate('UserProfile', { userId: data.id });
+    } catch { if (alive.current && useAuthStore.getState().session?.user.id === owner) Alert.alert('Profile unavailable', 'This profile could not be opened.'); }
+    finally { pending.current = false; }
+  };
   const parts = String(text).split(/(@[A-Za-z0-9_\.]{2,30})/g);
   return (
     <Text style={style}>
       {parts.map((p, i) => p.startsWith('@')
-        ? <Text key={i} style={{ fontWeight: '800', color: meStyle ? '#E8DCC8' : '#2563EB' }}>{p}</Text>
+        ? <Text key={i} accessibilityRole="link" onPress={() => void openMention(p.slice(1))} style={{ fontWeight: '800', color: meStyle ? '#FFFFFF' : t.status.link, textDecorationLine: 'underline' }}>{p}</Text>
         : <Text key={i}>{p}</Text>)}
     </Text>
   );
@@ -214,26 +233,28 @@ function GifPicker({ onSelect, onBack, gifMode = 'gifs' }: { onSelect: (url: str
   const [gifs, setGifs] = useState<any[]>([]);
   const [busy, setBusy] = useState(false);
   const gifDebounce = useRef<any>(null);
+  const gifRequest = useRef(0);
 
   const fetchGifs = useCallback(async (query: string) => {
     if (!GIPHY_KEY) return;
+    const request = ++gifRequest.current;
     setBusy(true);
     try {
       const url = query.trim()
         ? `https://api.giphy.com/v1/${gifMode}/search?api_key=${GIPHY_KEY}&q=${encodeURIComponent(query.trim())}&limit=24&rating=pg-13`
         : `https://api.giphy.com/v1/${gifMode}/trending?api_key=${GIPHY_KEY}&limit=24&rating=pg-13`;
       const res = await fetch(url);
+      if (!res.ok) throw new Error('GIF search unavailable');
       const json = await res.json();
-      setGifs(Array.isArray(json?.data) ? json.data : []);
-    } catch { setGifs([]); }
-    finally { setBusy(false); }
+      if (request === gifRequest.current) setGifs(Array.isArray(json?.data) ? json.data : []);
+    } catch { if (request === gifRequest.current) setGifs([]); }
+    finally { if (request === gifRequest.current) setBusy(false); }
   }, [GIPHY_KEY, gifMode]);
 
-  useEffect(() => { fetchGifs(''); }, [fetchGifs]);
   useEffect(() => {
     if (gifDebounce.current) clearTimeout(gifDebounce.current);
     gifDebounce.current = setTimeout(() => fetchGifs(q), 450);
-    return () => { if (gifDebounce.current) clearTimeout(gifDebounce.current); };
+    return () => { ++gifRequest.current; if (gifDebounce.current) clearTimeout(gifDebounce.current); };
   }, [q, fetchGifs]);
 
   if (!GIPHY_KEY) {
@@ -387,6 +408,14 @@ function VideoPlayer({ uri, width, height, fullscreen }: { uri: string; width: n
 export default function ChatScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
+  const focused = useIsFocused();
+  const focusedRef = useRef(focused);
+  focusedRef.current = focused;
+  const atLatestRef = useRef(true);
+  const historyLoadedRef = useRef(false);
+  const readPending = useRef(new Set<string>());
+  const readRequested = useRef(new Set<string>());
+  const lastRead = useRef('');
   const insets = useSafeAreaInsets();
   const { profile, session } = useAuthStore();
   const outbox = useNetStore(state => state.outbox);
@@ -729,30 +758,38 @@ export default function ChatScreen() {
     } catch {}
   }, [conversationId, currentUserId]);
 
+  const readObscured = useRef(false);
+  readObscured.current = showInfoModal || showGifs || !!privateMedia || !!searchQuery.trim();
   const markRead = useCallback(async () => {
     if (!conversationId || !currentUserId) return;
+    const scope = accountScopeRef.current;
+    const key = `${scope}:${currentUserId}:${conversationId}`;
+    const current = () => mountedRef.current && scope === accountScopeRef.current && activeConversation.current === conversationId;
+    const visible = () => current() && !readObscured.current && canMarkConversationRead({
+      focused: focusedRef.current, foreground: AppState.currentState === 'active',
+      atLatest: atLatestRef.current, loaded: historyLoadedRef.current,
+    });
+    if (!visible()) return;
+    readRequested.current.add(key);
+    if (readPending.current.has(key)) return;
+    readPending.current.add(key);
     try {
-      if (currentUserId) messageStatusService.markConversationDelivered(conversationId, currentUserId).catch(() => {});
-      supabase.rpc('mark_conversation_read_v2', { p_conversation_id: conversationId }).then(() => {}, () => {});
-      await supabase.rpc('mark_conversation_read', {
-        p_conv_id: conversationId,
-        p_user_id: currentUserId,
-      });
+      while (readRequested.current.delete(key) && visible()) {
+        const newest = messagesRef.current.find(row => !row._optimistic)?.id || '';
+        const receipt = `${key}:${newest}`;
+        if (lastRead.current === receipt) break;
+        await acknowledgeConversationRead(supabase, { conversationId, userId: currentUserId, isGroup });
+        if (current()) { lastRead.current = receipt; await refreshStatus(); }
+      }
+    } catch { /* Keep the unread state. Focus/scroll/reconnect can retry. */ }
+    finally { readPending.current.delete(key); }
+  }, [conversationId, currentUserId, isGroup, refreshStatus]);
 
-      const now = new Date().toISOString();
-      setMessages(prev =>
-        prev.map(m =>
-          m.receiver_id === currentUserId && !m.read_at
-            ? { ...m, read_at: now, delivered_at: m.delivered_at || now, viewed_at: m.viewed_at || now }
-            : m
-        )
-      );
-
-      await refreshStatus();
-    } catch (e) {
-      console.log('[MARK_READ_ERR]', e);
-    }
-  }, [conversationId, currentUserId, refreshStatus]);
+  useEffect(() => {
+    if (focused) void markRead();
+    const subscription = AppState.addEventListener('change', state => { if (state === 'active') void markRead(); });
+    return () => subscription.remove();
+  }, [focused, markRead, showInfoModal, showGifs, privateMedia, searchQuery]);
 
   const loadReactions = useCallback(async (msgIds: string[]) => {
     if (!msgIds.length) return;
@@ -877,6 +914,7 @@ export default function ChatScreen() {
     const request = ++historyRequest.current;
     if (!convId) { setMessages([]); setLoading(false); return; }
     const current = () => mountedRef.current && scope === accountScopeRef.current && activeConversation.current === convId && historyRequest.current === request;
+    historyLoadedRef.current = false;
     setHistoryError(null);
     setLoading(true);
     try {
@@ -890,12 +928,15 @@ export default function ChatScreen() {
       historyCursor.current = rows[rows.length - 1] || null;
       setHasOlder(rows.length === MESSAGE_PAGE_SIZE);
       setMessages(prev => mergeMessagePage(msgs, prev.filter(m => m.conversation_id === convId && (!m._optimistic || !confirmedIds.has(m.id)))));
+      historyLoadedRef.current = true;
       await loadReactions(msgs.map(m => m.id));
-      await Promise.all([markRead(), refreshStatus(), loadStarredIds(), loadSavedIds()]);
+      await Promise.all([refreshStatus(), loadStarredIds(), loadSavedIds()]);
     } catch {
       if (current()) setHistoryError('Messages could not be loaded. Please try again.');
     } finally { if (current()) setLoading(false); }
-  }, [conversationId, markRead, refreshStatus, loadReactions, loadStarredIds, loadSavedIds]);
+  }, [conversationId, refreshStatus, loadReactions, loadStarredIds, loadSavedIds]);
+
+  useEffect(() => { if (!loading) void markRead(); }, [loading, messages, markRead]);
 
   const loadOlderMessages = useCallback(async () => {
     const scope = accountScopeRef.current;
@@ -965,6 +1006,7 @@ export default function ChatScreen() {
 
   useEffect(() => {
     mountedRef.current = true;
+    historyLoadedRef.current = false; atLatestRef.current = true; lastRead.current = '';
     setMessages([]); historyCursor.current = null; setHasOlder(false); setLoadingOlder(false); olderPending.current = false;
     fetchMessages();
     fetchTyping();
@@ -976,7 +1018,7 @@ export default function ChatScreen() {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` },
         async (p) => {
-          mergeMsg(p.new as MessageItem);
+          await mergeMsg(p.new as MessageItem);
           if ((p.new as any).receiver_id === currentUserId || (isGroup && (p.new as any).sender_id !== currentUserId)) {
             await markRead();
           }
@@ -1761,6 +1803,7 @@ const pickAndSendDocument = useCallback(async () => {
             </Text>
           )}
           {(() => { const card = msg.view_limit ? null : parseChatAttachmentCard(msg.media_url); return card ? <View style={{padding:12,borderWidth:1,borderColor:t.surface.hairline,borderRadius:12,backgroundColor:t.surface.raised}}><Text style={{color:t.ink.primary,fontWeight:'700'}}>{attachmentCardText(card)}</Text>{attachmentCardLinks(card).map(link=><TouchableOpacity key={link.url} accessibilityRole="link" onPress={()=>{void Linking.openURL(link.url).catch(()=>Alert.alert('Could not open','No compatible app is available.'));}} style={{paddingVertical:10}}><Text style={{color:t.status.link}}>{link.label}</Text></TouchableOpacity>)}</View> : null; })()}
+          {!(msg as any).view_limit && parseStoryMessageReference(msg.media_url) ? <TouchableOpacity accessibilityRole="link" onPress={() => navigation.navigate('StoryViewer', { storyId: parseStoryMessageReference(msg.media_url) })} style={{ padding: 12, borderRadius: 12, backgroundColor: t.surface.raised }}><Text style={{ color: t.status.link, fontWeight: '700' }}>View story</Text></TouchableOpacity> : null}
           {msg.shared_post_id && (
             <View style={{ marginBottom: 4 }}>
               <SharedPostCard post={sharedPost ? { id: msg.shared_post_id, content: sharedPost.content, author: sharedPost.author, media: sharedPost.media } : null} width={232} onPress={() => navigation.navigate('Post', { postId: msg.shared_post_id })} onAuthorPress={sharedPost?.author?.id ? () => navigation.navigate('UserProfile' as never, { userId: sharedPost.author.id } as never) : undefined} />
@@ -2203,6 +2246,13 @@ const pickAndSendDocument = useCallback(async () => {
           <ChatSkeleton />
         ) : (
           <FlatList ref={flatListRef} data={listData} inverted
+            onScroll={event => {
+              const atLatest = event.nativeEvent.contentOffset.y < 64;
+              const returned = atLatest && !atLatestRef.current;
+              atLatestRef.current = atLatest;
+              if (returned) void markRead();
+            }}
+            scrollEventThrottle={100}
             ListHeaderComponent={isGroup && seenByNames.length > 0 ? (
               <TouchableOpacity onPress={() => { const m = messagesRef.current?.[0]; if (m) openSeenInfo(m); }} activeOpacity={0.7}
                 style={{ alignSelf: 'flex-end', flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 16, paddingTop: 2, paddingBottom: 6 }}>

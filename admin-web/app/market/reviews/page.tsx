@@ -4,6 +4,7 @@ import { serviceClient } from "@/lib/supabaseAdmin";
 import Shell from "@/components/Shell";
 import CommandForm from "@/components/CommandForm";
 import { moderateReview } from "./actions";
+import { isMissingAdminRpc } from "@/lib/adminRpcAvailability";
 export const dynamic = "force-dynamic";
 type Report = {
   id: string;
@@ -45,6 +46,12 @@ export default async function ReviewReportsPage({
       p_before_id: validCursor ? params.id : null,
     },
   );
+  if (isMissingAdminRpc(error, 'admin_seller_review_reports')) {
+    return <Shell admin={admin} active="/reports" title="Seller review reports" sub="Seller review reporting is unavailable on this deployment.">
+      <Link href="/reports" className="mb-5 inline-block underline">Reports desk</Link>
+      <p role="status" className="rounded-xl border border-[var(--line)] bg-[var(--panel)] p-6">Seller review reports and review decisions are unavailable on this deployment. Existing post, listing and account reports remain available from the Reports desk according to your staff permissions.</p>
+    </Shell>;
+  }
   if (error || !data)
     throw new Error("Review reports could not be loaded. Please retry.");
   const page = data as {

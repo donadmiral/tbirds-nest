@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { can } from "@/lib/studio";
 import { useStudio } from "@/components/StudioShell";
 import { StudioLoadError } from "../LoadError";
+import { parseImpressionCap, validateCampaignInput } from "../../../../shared/studioValidation";
 
 type Ad = { id: string; post_id: string; label: string; status: string; total_cap: number | null; impressions: number; clicks: number; starts_at: string | null; ends_at: string | null; content: string; thumb: string | null; products: number };
 type Campaign = { id: string; name: string; objective: string; budget: number; currency: string; payment_method: string | null; payment_ref: string | null; paid_amount: number; starts_at: string | null; ends_at: string | null; status: string; review_note: string | null; created_at: string; impressions: number; clicks: number; ads: Ad[] };
@@ -14,7 +15,7 @@ type MyPost = { id: string; content: string; created_at: string; thumb: string |
 type Form = { id: string | null; name: string; objective: string; budget: string; currency: string; payment_method: string; starts_at: string; ends_at: string };
 
 const OBJECTIVES = [["reach", "Reach"], ["traffic", "Website visits"], ["messages", "Messages"], ["storefront", "Storefront visits"], ["applications", "Job applications"]] as const;
-const toLocalInput = (iso: string | null) => iso ? new Date(new Date(iso).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : "";
+const toLocalInput = (iso: string | null) => { if (!iso) return ""; const date = new Date(iso); return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16); };
 const emptyForm = (): Form => ({ id: null, name: "", objective: "reach", budget: "", currency: "USD", payment_method: "", starts_at: "", ends_at: "" });
 
 export default function AdsManagerPage() {
@@ -64,10 +65,16 @@ export default function AdsManagerPage() {
 
   const openNew = () => { setF(emptyForm()); setOpen(true); };
   const openEdit = (c: Campaign) => { setF({ id: c.id, name: c.name, objective: c.objective, budget: String(c.budget || ""), currency: c.currency, payment_method: c.payment_method || "", starts_at: toLocalInput(c.starts_at), ends_at: toLocalInput(c.ends_at) }); setOpen(true); };
-  const save = () => act(() => supabase.rpc("studio_save_campaign", {
-    p_id: f.id, p_name: f.name.trim(), p_objective: f.objective, p_budget: Number(f.budget || 0), p_currency: f.currency, p_payment_method: f.payment_method || null,
-    p_starts_at: f.starts_at ? new Date(f.starts_at).toISOString() : null, p_ends_at: f.ends_at ? new Date(f.ends_at).toISOString() : null,
-  }), () => setOpen(false));
+  const save = () => {
+    if (!spender) return;
+    try {
+      const value = validateCampaignInput(f);
+      void act(() => supabase.rpc("studio_save_campaign", {
+        p_id: f.id, p_name: value.name, p_objective: f.objective, p_budget: value.budget, p_currency: f.currency, p_payment_method: f.payment_method || null,
+        p_starts_at: value.startsAt, p_ends_at: value.endsAt,
+      }), () => setOpen(false));
+    } catch (error: any) { alert(error?.message || "Check the campaign budget and dates."); }
+  };
   const openAdd = async (c: Campaign) => {
     const version = ++postsVersion.current;
     setAddFor(c); setLabel("Sponsored"); setCap(""); setPosts([]); setPostsLoading(true); setPostsError(null);
@@ -79,7 +86,13 @@ export default function AdsManagerPage() {
       if (version === postsVersion.current) setPostsError("Your posts could not be loaded. Please try again.");
     } finally { if (version === postsVersion.current) setPostsLoading(false); }
   };
-  const addAd = (postId: string) => { if (!addFor) return; void act(() => supabase.rpc("studio_add_ad", { p_campaign: addFor.id, p_post_id: postId, p_label: label || "Sponsored", p_total_cap: cap ? Number(cap) : null }), () => setAddFor(null)); };
+  const addAd = (postId: string) => {
+    if (!addFor || !editor) return;
+    try {
+      const totalCap = parseImpressionCap(cap);
+      void act(() => supabase.rpc("studio_add_ad", { p_campaign: addFor.id, p_post_id: postId, p_label: label.trim() || "Sponsored", p_total_cap: totalCap }), () => setAddFor(null));
+    } catch (error: any) { alert(error?.message || "Check the impression limit."); }
+  };
 
   const statusChip = (s: string) => s === "live" ? "bg-success/15 text-success" : s === "approved" ? "bg-pearl/15 text-accent" : s === "submitted" ? "bg-navy/20 text-ink" : s === "rejected" ? "bg-danger/15 text-danger" : s === "paused" ? "bg-surface text-ink/70" : "bg-surface text-muted";
   const ctr = (i: number, c: number) => i > 0 ? ((c / i) * 100).toFixed(1) + "%" : "0%";

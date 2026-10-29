@@ -26,6 +26,7 @@ function load(file, { width = 320, height = 568, thumbnail = async () => ({ uri:
   let source = fs.readFileSync(path.join(root, file), 'utf8'); if (transform) source = transform(source);
   vm.runInNewContext(compile(source), { module, exports: module.exports,
     require(name) {
+      if(name.endsWith('/postVoiceEffects')){const shared={exports:{}};vm.runInNewContext(compile(fs.readFileSync(path.join(root,'shared/postVoiceEffects.ts'),'utf8')),shared);return shared.exports;}
       if(name.endsWith('/postMediaEditing')){const shared={exports:{}};vm.runInNewContext(compile(fs.readFileSync(path.join(root,'shared/postMediaEditing.ts'),'utf8')),shared);return shared.exports;}
       if (name.endsWith('/storyPresentation')) { const shared={exports:{}}; vm.runInNewContext(compile(fs.readFileSync(path.join(root,'shared/storyPresentation.ts'),'utf8')),shared); return shared.exports; }
       if (name === 'react') return hooks;
@@ -88,7 +89,8 @@ test('short iPhones keep post editor actions pinned and all media tools horizont
   const nodes = walk(tree), tools = nodes.find(n => n.type === 'ScrollView' && n.props.horizontal), content = nodes.find(n => n.type === 'ScrollView' && !n.props.horizontal);
   assert.ok(content && tools);
   const toolButtons = walk(tools).filter(n => n.type === 'TouchableOpacity');
-  assert.equal(toolButtons.length, 6);
+  assert.equal(toolButtons.length, 7);
+  assert.ok(toolButtons.some(node=>node.props.accessibilityLabel==='Voice'));
   assert.ok(!walk(content).some(n => n.props.accessibilityLabel === 'Apply media edits'));
   const canvas = walk(content).find(n => n.props?.localUri === 'clip.mp4');
   const frame = walk(content).find(n => n.type === 'View' && n.props?.children?.[0] === canvas);
@@ -186,3 +188,16 @@ for(const [width,height,preset] of [[800,1000,'4:5'],[1000,1000,'1:1'],[1600,900
   walk(reopened.render(next)).find(n=>n.props.accessibilityLabel==='Original crop').props.onPress();const reset=walk(reopened.render(next)).find(n=>n.type==='TouchableOpacity'&&walk(n).some(child=>child.type==='Text'&&Array.isArray(child.props.children)&&child.props.children[0]==='Reset '&&child.props.children[1]==='crop'));assert.ok(reset);reset.props.onPress();assert.deepEqual(selected(reopened.render(next)),['4:5 crop']);reopened.unmount();
  });
 }
+
+test('native voice editor changes the same video player and retains the recipe on Apply',()=>{
+ const saved=[],view=load(editorFile),props={visible:true,uri:'fixture.mp4',mediaType:'video',durationSec:12,initial:{trimStart:2,trimEnd:9,muted:true},onDone:value=>saved.push(value),onCancel(){}};
+ let tree=view.render(props);const canvas=walk(tree).find(node=>node.props?.onVideoPlayer);
+ const player={duration:12,currentTime:2,playbackRate:1,preservesPitch:true,pause(){},play(){},addListener(){return{remove(){}};}};
+ canvas.props.onVideoPlayer(player);tree=view.render(props);
+ walk(tree).find(node=>node.props?.accessibilityLabel==='Voice').props.onPress();tree=view.render(props);
+ walk(tree).find(node=>String(node.props?.accessibilityLabel).startsWith('Chipmunk voice')).props.onPress();tree=view.render(props);
+ assert.equal(player.playbackRate,1.5);assert.equal(player.preservesPitch,false);
+ const preview=walk(tree).find(node=>node.props?.onVideoPlayer);assert.equal(preview.props.videoSpeed,1.5);assert.equal(preview.props.videoPreservesPitch,false);
+ walk(tree).find(node=>node.props?.accessibilityLabel==='Apply media edits').props.onPress();
+ assert.equal(saved[0].voiceEffect,'chipmunk');assert.equal(saved[0].trimStart,2);assert.equal(saved[0].trimEnd,9);assert.equal(saved[0].muted,false);view.unmount();
+});

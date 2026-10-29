@@ -5,7 +5,7 @@ import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 /**
  * JobDetailScreen — Handshake-structure job page.
- * Receives the full job object via route params (no refetch for render);
+ * Uses the route snapshot for fast render, then verifies the current job on focus;
  * checks application status and saved state on focus. Apply, message the
  * poster, and open external application all live here with a pinned bar.
  */
@@ -15,7 +15,7 @@ import {
   Alert, Linking, Modal, ActivityIndicator, Image, StatusBar, KeyboardAvoidingView, Platform, Share,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
@@ -23,6 +23,7 @@ import { isJobId } from '../../../shared/hiring';
 import { jobsService, isJobDeadlinePassed } from '../../services/jobsService';
 import { uploadApplicationCv } from '../../services/applicationCvService';
 import { applicationCvFile } from '../../../shared/applicationCv';
+import { jobsBack } from '../../navigation/jobsNavigation';
 import * as DocumentPicker from 'expo-document-picker';
 
 const NAVY = '#0B1E3D';
@@ -34,6 +35,7 @@ function SimilarRoles({ job, onOpen }: { job: any; onOpen: (j: any) => void }) {
     let alive = true;
     (async () => {
       let q = supabase.from('jobs').select('*').neq('id', job.id)
+        .or(`deadline.is.null,deadline.gt.${new Date().toISOString()}`)
         .order('created_at', { ascending: false }).limit(5);
       if (job.category) q = q.eq('category', job.category);
       const { data } = await q;
@@ -55,7 +57,7 @@ function SimilarRoles({ job, onOpen }: { job: any; onOpen: (j: any) => void }) {
             <Text numberOfLines={1} style={{ fontSize: 14, fontWeight: '700', color: getTheme().ink.primary }}>{r.title}</Text>
             <Text numberOfLines={1} style={{ fontSize: 12, color: getTheme().ink.secondary, marginTop: 2 }}>{r.company}{r.location ? ' - ' + r.location : ''}</Text>
           </View>
-          <Feather name="chevron-right" size={16} color="rgba(11,30,61,0.35)" />
+          <Feather name="chevron-right" size={16} color={getTheme().ink.muted} />
         </TouchableOpacity>
       ))}
     </View>
@@ -78,25 +80,27 @@ export default function JobDetailScreen() {
   const routeJob = route.params?.job;
   const requestedJobId = route.params?.jobId ?? routeJob?.id;
   const [fetchedJob, setFetchedJob] = useState<any>(null);
-  const [jobLoading, setJobLoading] = useState(!routeJob);
+  const [jobLoading, setJobLoading] = useState(true);
   const [jobError, setJobError] = useState<string | null>(null);
   const [jobRetry, setJobRetry] = useState(0);
-  const job = isJobId(requestedJobId) ? (routeJob?.id === requestedJobId ? routeJob : fetchedJob?.id === requestedJobId ? fetchedJob : null) : null;
-  useEffect(() => {
+  const job = isJobId(requestedJobId) && !jobError ? (fetchedJob?.id === requestedJobId ? fetchedJob : routeJob?.id === requestedJobId ? routeJob : null) : null;
+  const backToJobs = () => jobsBack(navigation, useAuthStore.getState().profile?.account_type === 'business');
+  const requestGeneration = useRef(0);
+  useFocusEffect(useCallback(() => {
     let live = true;
+    ++requestGeneration.current;
     setFetchedJob(null); setJobError(null);
     if (!isJobId(requestedJobId)) { setJobLoading(false); setJobError('This job link is invalid.'); return; }
-    if (routeJob?.id === requestedJobId) { setJobLoading(false); return; }
     setJobLoading(true);
     void supabase.from('jobs').select('*').eq('id', requestedJobId).maybeSingle().then(({ data, error }) => {
       if (!live) return;
       if (error) setJobError('The job could not be loaded. Check your connection and try again.');
       else if (!data) setJobError('This job is no longer available.');
-      else setFetchedJob(data);
+      else setFetchedJob({ ...data, profile: routeJob?.posted_by === data.posted_by ? routeJob.profile : null });
       setJobLoading(false);
     }, () => { if (live) { setJobLoading(false); setJobError('The job could not be loaded. Please try again.'); } });
-    return () => { live = false; };
-  }, [requestedJobId, routeJob?.id, userId, jobRetry]);
+    return () => { live = false; ++requestGeneration.current; };
+  }, [requestedJobId, routeJob?.id, userId, jobRetry]));
   const [saved, setSaved] = useState(false);
   const saving = useRef(false);
   const applyingRef = useRef(false);
@@ -108,33 +112,44 @@ export default function JobDetailScreen() {
   const [cvAsset, setCvAsset] = useState<{ name: string; uri: string; ext: string } | null>(null);
   const [phone, setPhone] = useState('');
   const [portfolio, setPortfolio] = useState('');
+  const [statusLoading, setStatusLoading] = useState(true);
+  const [statusError, setStatusError] = useState<string | null>(null);
 
-  useEffect(() => {
+  useFocusEffect(useCallback(() => {
     let live = true;
-    setSaved(false); setAppStatus(null);
-    if (!job || !userId) return;
+    setSaved(false); setAppStatus(null); setStatusError(null); setStatusLoading(true);
+    if (!job || !userId) { setStatusLoading(false); return; }
     (async () => {
       try {
-        const { data: sv } = await supabase.from('job_saves').select('job_id').eq('user_id', userId).eq('job_id', job.id).maybeSingle();
-        if (live) setSaved(!!sv);
-        const { data: ap } = await supabase.from('job_applications').select('status').eq('applicant_id', userId).eq('job_id', job.id).maybeSingle();
-        if (live) setAppStatus(ap?.status ?? null);
-      } catch {}
+        const [sv, ap] = await Promise.all([
+          supabase.from('job_saves').select('job_id').eq('user_id', userId).eq('job_id', job.id).maybeSingle(),
+          supabase.from('job_applications').select('status').eq('applicant_id', userId).eq('job_id', job.id).maybeSingle(),
+        ]);
+        if (sv.error) throw sv.error;
+        if (ap.error) throw ap.error;
+        if (live) { setSaved(!!sv.data); setAppStatus(ap.data?.status ?? null); }
+      } catch { if (live) setStatusError('Could not check your application and saved state. Tap to retry.'); }
+      finally { if (live) setStatusLoading(false); }
     })();
     return () => { live = false; };
-  }, [job?.id, userId]);
+  }, [job?.id, userId, jobRetry]));
+
+  useEffect(() => {
+    setApplyOpen(false); setCoverNote(''); setCvAsset(null); setPhone(''); setPortfolio('');
+  }, [requestedJobId, userId]);
 
   const toggleSave = useCallback(async () => {
-    if (!userId || !job || saving.current) return;
+    if (!userId || !job || statusLoading || statusError || saving.current) return;
+    const token = requestGeneration.current;
     saving.current = true;
     const next = !saved;
     setSaved(next);
     try {
       if (next) await jobsService.saveJob(userId, job.id);
       else await jobsService.unsaveJob(userId, job.id);
-    } catch { setSaved(!next); Alert.alert('Could not save job', 'Please try again.'); }
+    } catch { if (token === requestGeneration.current) { setSaved(!next); Alert.alert('Could not save job', 'Please try again.'); } }
     finally { saving.current = false; }
-  }, [saved, userId, job]);
+  }, [saved, userId, job, statusLoading, statusError]);
 
   const messagePoster = useCallback(async () => {
     if (!userId || !job?.posted_by) return;
@@ -169,11 +184,21 @@ export default function JobDetailScreen() {
   }, []);
 
   const submitApply = useCallback(async () => {
-    if (!userId || !job || applyingRef.current) return;
+    if (!userId || !job || jobLoading || statusLoading || statusError || applyingRef.current) return;
     if (!appStatus && isJobDeadlinePassed(job.deadline)) { Alert.alert('Applications closed', 'The application deadline has passed.'); return; }
     applyingRef.current = true;
+    const token = requestGeneration.current;
     setApplying(true);
     try {
+      if (portfolio.trim()) {
+        let url: URL;
+        try { url = new URL(portfolio.trim()); } catch { throw new Error('Enter a complete portfolio URL starting with https://.'); }
+        if (!['https:', 'http:'].includes(url.protocol)) throw new Error('Use an http or https portfolio URL.');
+      }
+      const { data: currentJob, error: currentError } = await supabase.from('jobs').select('id, deadline').eq('id', job.id).maybeSingle();
+      if (currentError) throw currentError;
+      if (!currentJob || isJobDeadlinePassed(currentJob.deadline)) throw new Error('This job is closed for new applications.');
+      if (token !== requestGeneration.current) return;
       let cvUrl: string | null = null;
       let cvName: string | null = null;
       if (cvAsset) {
@@ -182,19 +207,20 @@ export default function JobDetailScreen() {
       }
       if (useAuthStore.getState().session?.user?.id !== userId) throw new Error('The signed-in account changed. Open the application again.');
       const res = await jobsService.applyToJob(userId, job.id, coverNote, cvUrl, cvName, phone, portfolio);
+      if (token !== requestGeneration.current) return;
       if (res.updated) Alert.alert('Application updated', 'Your application details were updated.');
       setAppStatus(res.app.status);
       setApplyOpen(false);
       setCoverNote(''); setCvAsset(null); setPhone(''); setPortfolio('');
     } catch (e: any) {
-      Alert.alert('Could not apply', e?.message || 'Unknown error');
+      if (token === requestGeneration.current) Alert.alert('Could not apply', e?.message || 'Unknown error');
     } finally { applyingRef.current = false; setApplying(false); }
-  }, [userId, job, appStatus, coverNote, cvAsset, phone, portfolio]);
+  }, [userId, job, appStatus, coverNote, cvAsset, phone, portfolio, jobLoading, statusLoading, statusError]);
 
   if (!job) {
     return (
       <SafeAreaView style={st.safe} edges={['top', 'left', 'right']}>
-        {!afterSlide || jobLoading ? <JobSkeleton /> : <View style={st.loader}><Text style={st.missing}>{jobError || 'This job is no longer available.'}</Text>{isJobId(requestedJobId) ? <TouchableOpacity onPress={() => setJobRetry(value => value + 1)}><Text style={st.missing}>Try again</Text></TouchableOpacity> : null}<TouchableOpacity onPress={() => navigation.goBack()}><Text style={st.missing}>Back to jobs</Text></TouchableOpacity></View>}
+        {!afterSlide || jobLoading ? <JobSkeleton /> : <View style={st.loader}><Text style={st.missing}>{jobError || 'This job is no longer available.'}</Text>{isJobId(requestedJobId) ? <TouchableOpacity style={{ minHeight: 44, justifyContent: 'center' }} onPress={() => setJobRetry(value => value + 1)}><Text style={st.missing}>Try again</Text></TouchableOpacity> : null}<TouchableOpacity style={{ minHeight: 44, justifyContent: 'center' }} onPress={backToJobs}><Text style={st.missing}>Back to jobs</Text></TouchableOpacity></View>}
       </SafeAreaView>
     );
   }
@@ -213,7 +239,7 @@ export default function JobDetailScreen() {
     <SafeAreaView style={st.safe} edges={['top', 'left', 'right']}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={getTheme().surface.canvas} />
       <View style={st.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+        <TouchableOpacity onPress={backToJobs} accessibilityRole="button" accessibilityLabel="Back to jobs" hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
           <Feather name="chevron-left" size={26} color={getTheme().ink.primary} />
         </TouchableOpacity>
         <Text style={st.headerTitle} numberOfLines={1}>{job.company}</Text>
@@ -222,8 +248,8 @@ export default function JobDetailScreen() {
             onPress={() => Share.share({ message: `${job.title} at ${job.company}${job.location ? ' — ' + job.location : ''}\n\nSee it on Platinum Circles Jobs: platinum-circles://job/${job.id}` }).catch(() => {})}>
             <Feather name="share-2" size={21} color={getTheme().ink.primary} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={toggleSave} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-            <Ionicons name={saved ? 'bookmark' : 'bookmark-outline'} size={22} color={saved ? '#2563EB' : NAVY} />
+          <TouchableOpacity onPress={toggleSave} disabled={statusLoading || !!statusError} accessibilityLabel={saved ? 'Unsave job' : 'Save job'} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Ionicons name={saved ? 'bookmark' : 'bookmark-outline'} size={22} color={saved ? getTheme().status.link : getTheme().ink.primary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -309,11 +335,15 @@ export default function JobDetailScreen() {
       </ScrollView>
 
       <View style={[st.applyBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
-        {isOwn ? (
-          <View style={st.ownRow}>
+        {jobLoading || statusLoading ? (
+          <View style={st.ownRow}><ActivityIndicator color={getTheme().ink.primary} /><Text style={st.ownTxt}>Checking application details…</Text></View>
+        ) : statusError ? (
+          <TouchableOpacity style={st.ownRow} onPress={() => setJobRetry(value => value + 1)}><Text style={st.ownTxt}>{statusError}</Text></TouchableOpacity>
+        ) : isOwn ? (
+          <TouchableOpacity style={st.ownRow} onPress={() => navigation.navigate('Applicants', { job })}>
             <Feather name="briefcase" size={15} color={getTheme().ink.primary} />
-            <Text style={st.ownTxt}>Your posting · manage it from the Jobs tab</Text>
-          </View>
+            <Text style={st.ownTxt}>Manage applicants</Text>
+          </TouchableOpacity>
         ) : appStatus ? (
           <View style={st.statusRow}>
             <Ionicons name="checkmark-circle" size={18} color="#059669" />
@@ -328,19 +358,20 @@ export default function JobDetailScreen() {
             <Feather name="external-link" size={15} color={getTheme().ink.inverse} />
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity style={st.applyBtn} activeOpacity={0.9} onPress={() => setApplyOpen(true)}>
+          <TouchableOpacity style={st.applyBtn} activeOpacity={0.9} onPress={() => userId ? setApplyOpen(true) : Alert.alert('Sign in to apply', 'Sign in to send an application.')}>
             <Text style={st.applyBtnTxt}>Apply now</Text>
           </TouchableOpacity>
         )}
       </View>
 
-      <Modal visible={applyOpen} animationType="slide" transparent onRequestClose={() => setApplyOpen(false)}>
+      <Modal visible={applyOpen} animationType="slide" transparent onRequestClose={() => { if (!applying) setApplyOpen(false); }}>
         <KeyboardAvoidingView style={st.modalScrim} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-          <View style={[st.modalCard, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+          <ScrollView style={{ maxHeight: '90%' }} contentContainerStyle={[st.modalCard, { paddingBottom: Math.max(insets.bottom, 16) }]} keyboardShouldPersistTaps="handled">
             <Text style={st.modalTitle}>Apply to {job.company}</Text>
             <Text style={st.modalSub}>{job.title}</Text>
             <TextInput
               style={st.noteInput}
+              editable={!applying}
               value={coverNote}
               onChangeText={setCoverNote}
               placeholder="Add a short note (optional): why you fit this role"
@@ -348,19 +379,20 @@ export default function JobDetailScreen() {
               multiline
               maxLength={600}
             />
-            <TouchableOpacity style={st.attachRow} onPress={pickCv} activeOpacity={0.8}>
-              <Feather name={cvAsset ? 'file-text' : 'paperclip'} size={16} color={cvAsset ? '#059669' : NAVY} />
+            <TouchableOpacity style={st.attachRow} onPress={pickCv} disabled={applying} activeOpacity={0.8}>
+              <Feather name={cvAsset ? 'file-text' : 'paperclip'} size={16} color={cvAsset ? '#059669' : getTheme().ink.primary} />
               <Text style={[st.attachTxt, cvAsset && { color: '#059669' }]} numberOfLines={1}>
                 {cvAsset ? cvAsset.name : 'Attach CV or cover letter (PDF, Word, text, up to 8 MB)'}
               </Text>
               {cvAsset ? (
-                <TouchableOpacity onPress={() => setCvAsset(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <TouchableOpacity disabled={applying} onPress={() => setCvAsset(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                   <Feather name="x" size={15} color={getTheme().ink.secondary} />
                 </TouchableOpacity>
               ) : null}
             </TouchableOpacity>
             <TextInput
               style={st.contactInput}
+              editable={!applying}
               value={phone}
               onChangeText={setPhone}
               placeholder="Phone number (optional)"
@@ -371,6 +403,7 @@ export default function JobDetailScreen() {
             <TextInput
               style={st.contactInput}
               value={portfolio}
+              editable={!applying}
               onChangeText={setPortfolio}
               placeholder="Portfolio or LinkedIn link (optional)"
               placeholderTextColor={getTheme().ink.secondary}
@@ -378,26 +411,15 @@ export default function JobDetailScreen() {
               keyboardType="url"
               maxLength={200}
             />
-            <TouchableOpacity style={st.attachRow} onPress={pickCv} activeOpacity={0.8}>
-              <Feather name={cvAsset ? 'file-text' : 'paperclip'} size={16} color={cvAsset ? '#059669' : NAVY} />
-              <Text style={[st.attachTxt, cvAsset && { color: '#059669' }]} numberOfLines={1}>
-                {cvAsset ? cvAsset.name : 'Attach CV or cover letter (PDF, Word, text, up to 8 MB)'}
-              </Text>
-              {cvAsset ? (
-                <TouchableOpacity onPress={() => setCvAsset(null)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                  <Feather name="x" size={15} color={getTheme().ink.secondary} />
-                </TouchableOpacity>
-              ) : null}
-            </TouchableOpacity>
             <View style={st.modalRow}>
-              <TouchableOpacity style={st.cancelBtn} onPress={() => setApplyOpen(false)}>
+              <TouchableOpacity style={st.cancelBtn} disabled={applying} onPress={() => setApplyOpen(false)}>
                 <Text style={st.cancelTxt}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[st.applyBtn, { flex: 1 }]} onPress={submitApply} disabled={applying} activeOpacity={0.9}>
                 {applying ? <ActivityIndicator color={getTheme().ink.inverse} size={16} /> : <Text style={st.applyBtnTxt}>Submit application</Text>}
               </TouchableOpacity>
             </View>
-          </View>
+          </ScrollView>
         </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>

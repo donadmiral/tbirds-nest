@@ -78,37 +78,40 @@ test('failed story recipient search is handled with a recoverable message', asyn
   execute(effect(composer, '    if (!q.trim() || !uid) return;', '  }, [q, uid]);'), { uid: 'viewer', ownerVersion: { current: 0 }, isCurrent: () => true, runBounded: value => value, useEffect: fn => fn(), q: 'query', setResults() {}, setError: text => message = text, setTimeout: fn => { timer = fn; return 1; }, searchPeople: async () => { throw new Error('offline'); } });
   timer(); await flush(); assert.match(message, /Try searching again/);
 });
-function replyHarness({ messageError, changedSession = false } = {}) {
-  let sendReply, messages = 0, text = 'My reply', error, resumed = 0, checks = 0;
+function replyHarness({ saveError = false, delivery = 'confirmed', changedSession = false } = {}) {
+  let sendReply, messages = 0, queued = 0, text = 'My reply', error, resumed = 0, toast;
+  const replyOwner = {current:'viewer'};
   const globals = {
-    inputFocusedRef: { current: false }, overlayPausedRef: { current: false },
+    inputFocusedRef: { current: false }, overlayPausedRef: { current: false }, replyOwner,
     useCallback: fn => { sendReply = fn; return fn; }, story: { id: 'story-1', user_id: 'owner' }, uid: 'viewer', canReply: true,
     replyText: text, sendingReply: false, sendingReplyRef: { current: false }, currentStoryRef: { current: 'story-1' },
-    setSendingReply() {}, setActionError: value => error = value, setReplyText: value => text = value, setReplyToast() {}, setTimeout: () => 1,
-    resumeNow: () => resumed++, createClient: () => ({
-      auth: { getSession: async () => ({ data: { session: { user: { id: changedSession && ++checks > 1 ? 'other-viewer' : 'viewer' } } } }) },
-      from(table) {
-        const builder = { select() { return builder; }, or() { return builder; }, eq() { return builder; }, maybeSingle() { return builder; }, single() { return builder; }, update() { return builder; }, insert() { if (table === 'messages') messages++; return builder; },
-          then(ok, bad) { return Promise.resolve({ data: table === 'conversations' ? { id: 'conversation-1' } : null, error: table === 'messages' ? messageError : null }).then(ok, bad); } };
-        return builder;
-      },
-    }),
+    setSendingReply() {}, setActionError: value => error = value, setReplyText: value => text = value, setReplyToast: value => toast = value, setTimeout: () => 1,
+    resumeNow: () => resumed++, createClient: () => ({ auth: { getSession: async () => ({ data: { session: { user: { id: 'viewer' } } } }) } }),
+    prepareStoryReply:async (_client,options)=>{ if(changedSession)replyOwner.current='other-viewer';options.assertCurrent();return{conversation_id:'conversation-1',sender_id:'viewer',text:'Replied to your story:\nMy reply'}; },
+    enqueueMessage:intent=>{if(saveError)throw Error('Your reply could not be saved.');queued++;return{...intent,id:'stable-message-id'};},
+    sendOutboxMessage:async()=>{messages++;return{status:delivery};},
   };
   const start = viewer.indexOf('  const sendReply = useCallback('), end = viewer.indexOf('\n  useEffect(() => {', start);
   execute(viewer.slice(start, end), globals);
-  return { send: () => sendReply(), messages: () => messages, text: () => text, error: () => error, resumed: () => resumed };
+  return { send: () => sendReply(), messages: () => messages, queued:()=>queued, text: () => text, error: () => error, resumed: () => resumed, toast:()=>toast };
 }
 test('story replies reject duplicate same-tick sends', async () => {
   const h = replyHarness(); await Promise.all([h.send(), h.send()]);
-  assert.equal(h.messages(), 1); assert.equal(h.text(), ''); assert.equal(h.resumed(), 1);
+  assert.equal(h.messages(), 1); assert.equal(h.queued(),1); assert.equal(h.text(), ''); assert.equal(h.resumed(), 1);
 });
-test('failed story reply stays visible and does not claim it was sent', async () => {
-  const h = replyHarness({ messageError: { message: 'Offline' } }); await h.send();
-  assert.equal(h.text(), 'My reply'); assert.match(h.error(), /could not be confirmed/); assert.equal(h.resumed(), 0);
+test('failed durable save keeps the story reply visible and does not claim it was sent', async () => {
+  const h = replyHarness({ saveError: true }); await h.send();
+  assert.equal(h.text(), 'My reply'); assert.match(h.error(), /could not be saved/); assert.equal(h.resumed(), 0); assert.equal(h.messages(),0);
+});
+test('uncertain story reply stays in the outbox instead of inviting another send',async()=>{
+  const h=replyHarness({delivery:'pending'});await h.send();assert.equal(h.queued(),1);assert.equal(h.text(),'');assert.equal(h.toast(),'Reply saved for delivery');
+});
+test('rejected story reply points to the saved message without a false sent toast',async()=>{
+  const h=replyHarness({delivery:'rejected'});await h.send();assert.equal(h.queued(),1);assert.match(h.error(),/not sent/);assert.equal(h.toast(),undefined);assert.equal(h.resumed(),0);
 });
 test('account switching before the reply insert prevents sending from the wrong account', async () => {
   const h = replyHarness({ changedSession: true }); await h.send();
-  assert.equal(h.messages(), 0); assert.equal(h.text(), 'My reply');
+  assert.equal(h.messages(), 0); assert.equal(h.queued(),0); assert.equal(h.text(), 'My reply');
 });
 
 function reactionHarness({ session = 'viewer', fail = false } = {}) {
@@ -165,7 +168,7 @@ test('advancing a story clears its private reply and viewer sheet', () => {
     holdRef: { current: null }, resumeDelayRef: { current: null }, setLoadedStoryId() {}, setFailedStoryId() {}, setActionError() {},
     setReplyText: value => reply = value, setReplyToast: value => toast = value, setViewersOpen: value => sheet = value, setMoreOpen() {}, setMemoryOpen() {}, setHeartBurst() {},
   });
-  assert.equal(reply, ''); assert.equal(sheet, false); assert.equal(toast, false);
+  assert.equal(reply, ''); assert.equal(sheet, false); assert.equal(toast, null);
 });
 
 function draftHarness(rows) {

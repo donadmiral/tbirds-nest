@@ -1,5 +1,6 @@
 import type { FeedRow } from './feed';
 import { createFeedSnapshotStore } from '../../shared/feedSnapshot';
+import { isMarketplacePost } from '../../shared/marketplaceRecommendations';
 
 export type FeedMode = 'for_you' | 'latest' | 'trending';
 export type FeedSeed = { owner: string; rows: FeedRow[]; mutedWords: string[]; error: string | null };
@@ -16,6 +17,7 @@ const PAGE_SIZE = 20;
 const cacheMode = (mode: FeedMode) => mode === 'for_you' ? 'forYou' : mode;
 const uniqueRows = (rows: FeedRow[]) => [...new Map(rows.map(row => [row.post_id, row])).values()];
 export const filterMutedFeedRows = (rows: FeedRow[], words: string[]) => rows.filter(row => {
+  if (isMarketplacePost(row)) return false;
   const text = `${row.content ?? row.body ?? ''} ${row.article_title ?? ''}`.toLowerCase();
   return !words.some(word => word && text.includes(word.toLowerCase()));
 });

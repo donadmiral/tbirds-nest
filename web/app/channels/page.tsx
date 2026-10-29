@@ -16,7 +16,7 @@ export default function ChannelsPage() {
   const [q, setQ] = useState("");
   const [query, setQuery] = useState("");
   const page = useSocialPages<Ch>("get_channels_page", { p_query: query.trim() || null });
-  const { items: rows, setItems: setRows, loading } = page;
+  const { items: rows, loading } = page;
   const [actionError, setActionError] = useState<string | null>(null);
   const locks = useRef(new Set<string>());
   const [creating, setCreating] = useState(false);
@@ -25,12 +25,20 @@ export default function ChannelsPage() {
   const [cAud, setCAud] = useState<"everyone" | "followers">("everyone");
   const [busy, setBusy] = useState(false);
   const [me, setMe] = useState<string | null>(null);
+  const account = useRef<string | null>(null);
+  const mounted = useRef(true), scope = useRef(0);
 
   useEffect(() => {
     let alive = true; let known = false;
-    const { data: auth } = supabase.auth.onAuthStateChange((_event, session) => { known = true; if (alive) setMe(session?.user.id ?? null); });
-    supabase.auth.getSession().then(({ data }) => { if (alive && !known) setMe(data.session?.user.id ?? null); });
-    return () => { alive = false; auth.subscription.unsubscribe(); };
+    mounted.current = true;
+    const bind = (id: string | null) => {
+      if (!alive) return;
+      if (account.current !== id) { ++scope.current; account.current = id; setCreating(false); setCName(""); setCDesc(""); setBusy(false); setActionError(null); }
+      setMe(id);
+    };
+    const { data: auth } = supabase.auth.onAuthStateChange((_event, session) => { known = true; bind(session?.user.id ?? null); });
+    supabase.auth.getSession().then(({ data, error }) => { if (!known && !error) bind(data.session?.user.id ?? null); }, () => { if (alive && !known) setActionError("Your session could not be loaded. Reload to retry."); });
+    return () => { alive = false; mounted.current = false; ++scope.current; auth.subscription.unsubscribe(); };
   }, [supabase]);
 
   useEffect(() => {
@@ -39,31 +47,35 @@ export default function ChannelsPage() {
   }, [q]);
 
   const join = async (ch: Ch) => {
-    if (locks.current.has(ch.id)) return;
-    locks.current.add(ch.id); setActionError(null);
+    const key = me + ":join:" + ch.id;
+    if (!me || account.current !== me || locks.current.has(key)) return;
+    locks.current.add(key); setActionError(null);
     const version = page.version();
     try {
       const { error } = await supabase.rpc("join_channel", { p_channel: ch.id });
       if (error) throw error;
       if (version !== page.version()) return;
-      setRows(prev => prev.map(r => r.id === ch.id ? { ...r, is_member: true, member_count: r.member_count + 1, my_role: r.my_role || "member" } : r));
-    } catch { setActionError("Could not join this channel. Please try again."); }
-    finally { locks.current.delete(ch.id); }
+      await page.reload();
+    } catch { if (mounted.current && account.current === me && version === page.version()) setActionError("Could not join this channel. Please try again."); }
+    finally { locks.current.delete(key); }
   };
 
   const create = async () => {
     const nm = cName.trim();
-    if (!nm || locks.current.has("create")) return;
-    locks.current.add("create"); setActionError(null);
+    const key = me + ":create", version = scope.current;
+    const current = () => mounted.current && version === scope.current && account.current === me;
+    if (!nm || !me || !current() || locks.current.has(key)) return;
+    locks.current.add(key); setActionError(null);
     setBusy(true);
     try {
       const { data, error } = await supabase.rpc("create_channel", { p_name: nm, p_description: cDesc.trim() || null, p_audience: cAud });
       if (error) throw error;
-      setCreating(false); setCName(""); setCDesc("");
+      if (!current()) return;
       const id = typeof data === "string" ? data : (data as any)?.id;
-      if (id) router.push("/channels/" + id);
-      else void page.reload();
-    } catch { setActionError("Could not create this channel. Please try again."); } finally { locks.current.delete("create"); setBusy(false); }
+      if (!id) throw new Error("Creation was not confirmed.");
+      setCreating(false); setCName(""); setCDesc(""); setCAud("everyone");
+      router.push("/channels/" + id);
+    } catch { if (current()) setActionError("Channel creation was not confirmed. Refresh the directory before retrying."); } finally { locks.current.delete(key); if (current()) setBusy(false); }
   };
 
   const chLink = (ch: Ch) => "/channels/" + ch.id;
@@ -121,19 +133,19 @@ export default function ChannelsPage() {
       )}
       <SocialPageFooter {...page} />
       {creating ? (
-        <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/45 sm:items-center" onClick={() => setCreating(false)}>
-          <div className="w-full max-w-[440px] rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/45 sm:items-center" onClick={() => { if (!busy) setCreating(false); }}>
+          <div role="dialog" aria-modal="true" aria-label="New channel" className="w-full max-w-[440px] rounded-t-2xl bg-surface p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
             <div className="mb-3 flex items-center justify-between">
               <p className="text-[15px] font-semibold text-ink">New channel</p>
-              <button onClick={() => setCreating(false)} className="rounded-full p-1.5 text-muted transition-colors duration-[140ms] hover:bg-black/5" aria-label="Close"><X size={16} /></button>
+              <button disabled={busy} onClick={() => setCreating(false)} className="rounded-full p-1.5 text-muted transition-colors duration-[140ms] hover:bg-ink/5 disabled:opacity-40" aria-label="Close"><X size={16} /></button>
             </div>
-            <input value={cName} onChange={e => setCName(e.target.value)} maxLength={60} placeholder="Channel name"
+            <input disabled={busy} value={cName} onChange={e => setCName(e.target.value)} maxLength={60} placeholder="Channel name"
               className="mb-2 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
-            <input value={cDesc} onChange={e => setCDesc(e.target.value)} maxLength={160} placeholder="What is it about? (optional)"
+            <input disabled={busy} value={cDesc} onChange={e => setCDesc(e.target.value)} maxLength={160} placeholder="What is it about? (optional)"
               className="mb-3 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
             <div className="mb-4 flex gap-2">
               {(["everyone", "followers"] as const).map(k => (
-                <button key={k} onClick={() => setCAud(k)}
+                <button key={k} disabled={busy} onClick={() => setCAud(k)}
                   className={"flex-1 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-colors duration-[140ms] " + (cAud === k ? "border-ink bg-black/[0.03] text-ink" : "border-ink/10 text-ink/60")}>
                   {k === "everyone" ? "Everyone can join" : "My followers"}
                 </button>

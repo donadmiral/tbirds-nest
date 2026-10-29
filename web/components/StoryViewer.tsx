@@ -18,6 +18,8 @@ import { SharedPostStory } from "./SharedPostStory";
 import { stickerCss } from "./storyTextAppearance";
 
 import { currentTextMentions } from "../../shared/storyMentions";
+import { prepareStoryReply } from "../../shared/storyMessageReference";
+import { enqueueMessage, sendOutboxMessage } from "@/lib/messageOutbox";
 
 const callActive = () => typeof document !== "undefined" && document.documentElement?.dataset?.platinumCallActive === "true";
 
@@ -202,7 +204,8 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   const [replyText, setReplyText] = useState("");
   const [sendingReply, setSendingReply] = useState(false);
   const sendingReplyRef = useRef(false);
-  const [replyToast, setReplyToast] = useState(false);
+  const [replyToast, setReplyToast] = useState<string | null>(null);
+  const replyOwner = useRef(uid); replyOwner.current = uid;
   const user = users[userIdx];
   const story = stories[itemIdx];
   const currentStoryRef = useRef(story?.id);
@@ -220,7 +223,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
     setFailedStoryId(null);
     setActionError(null);
     setReplyText("");
-    setReplyToast(false);
+    setReplyToast(null);
     setViewersOpen(false);
     setMoreOpen(false); setMemoryOpen(false);
     setHeartBurst(0);
@@ -391,52 +394,37 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   }, [story, canReact, uid, myReactions]);
 
   const sendReply = useCallback(async () => {
-    if (!story || !uid || !canReply) return;
-    const trimmed = replyText.trim();
-    if (!trimmed || sendingReplyRef.current) return;
-    sendingReplyRef.current = true;
-    setSendingReply(true);
-    setActionError(null);
+    if (!story || !uid || !canReply || !replyText.trim() || sendingReplyRef.current) return;
+    sendingReplyRef.current = true; setSendingReply(true); setActionError(null);
+    const storyId = story.id;
+    const current = () => replyOwner.current === uid && currentStoryRef.current === storyId;
     try {
       const supabase = createClient();
-      const checkSession = async () => { const { data, error } = await supabase.auth.getSession(); if (error || data.session?.user.id !== uid) throw new Error("Sign in again to send this reply."); };
-      await checkSession();
-      const ownerId = story.user_id;
-      const sorted = [uid, ownerId].sort();
-      const messageText = "Replied to your story:\n" + trimmed;
-      const { data: existing, error: lookupError } = await supabase.from("conversations").select("id")
-        .or("and(user_1.eq." + uid + ",user_2.eq." + ownerId + "),and(user_1.eq." + ownerId + ",user_2.eq." + uid + ")")
-        .eq("type", "direct").eq("is_group", false).maybeSingle();
-      if (lookupError) throw lookupError;
-      let convId = existing?.id as string | undefined;
-      if (!convId) {
-        const { data: created, error: createError } = await supabase.from("conversations")
-          .insert({ user_1: sorted[0], user_2: sorted[1], last_message: "", last_message_time: new Date().toISOString() })
-          .select("id").single();
-        if (createError) throw createError;
-        convId = created?.id;
+      const assertCurrent = () => { if (replyOwner.current !== uid) throw new Error("Your account changed. Reopen Messages to send this reply."); };
+      const { data, error } = await supabase.auth.getSession();
+      if (error || data.session?.user.id !== uid) throw new Error("Sign in again to send this reply.");
+      const intent = await prepareStoryReply(supabase, { senderId: uid, storyId, text: replyText, assertCurrent });
+      assertCurrent();
+      const queued = enqueueMessage(intent);
+      // The durable outbox now owns this one reply, including any uncertain response.
+      if (current()) setReplyText("");
+      const result = await sendOutboxMessage(supabase, queued);
+      if (!current()) return;
+      if (result.status === 'rejected' || result.status === 'conflict') {
+        setActionError("Your reply was not sent. Open Messages to review or retry it.");
+        return;
       }
-      if (!convId) throw new Error("The conversation could not be opened.");
-      await checkSession();
-      const { error: msgErr } = await supabase.from("messages")
-        .insert({ conversation_id: convId, sender_id: uid, receiver_id: ownerId, text: messageText });
-      if (msgErr) throw msgErr;
-      // The message is committed. A preview refresh must not invite resending it.
-      void Promise.resolve(supabase.from("conversations").update({ last_message: messageText, last_message_time: new Date().toISOString() }).eq("id", convId)).catch(() => {});
-      if (currentStoryRef.current === story.id) {
-        setReplyText("");
-        overlayPausedRef.current = false;
-        setReplyToast(true);
-        setTimeout(() => setReplyToast(false), 2000);
-        resumeNow();
-      }
-    } catch {
-      if (currentStoryRef.current === story.id) setActionError("Your reply could not be confirmed. It is kept here. Check Messages before sending again.");
+      overlayPausedRef.current = false;
+      setReplyToast(result.status === 'confirmed' ? 'Reply sent' : 'Reply saved for delivery');
+      setTimeout(() => { if (current()) setReplyToast(null); }, 2500);
+      resumeNow();
+    } catch (error) {
+      if (current()) setActionError(error instanceof Error ? error.message : "Your reply could not be saved. Please try again.");
     } finally {
       sendingReplyRef.current = false;
       setSendingReply(false);
     }
-  }, [story, uid, canReply, replyText, sendingReply, resumeNow]);
+  }, [story, uid, canReply, replyText, resumeNow]);
 
   useEffect(() => {
     const client = createClient();
@@ -817,7 +805,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
           </div>
         ) : null}
         {replyToast ? (
-          <span className="absolute inset-x-0 bottom-20 z-30 mx-auto w-fit rounded-full bg-white px-4 py-1.5 text-[12px] font-semibold text-ink">Reply sent</span>
+          <span className="absolute inset-x-0 bottom-20 z-30 mx-auto w-fit rounded-full bg-white px-4 py-1.5 text-[12px] font-semibold text-[#0B1E3D]">{replyToast}</span>
         ) : null}
 
         {uid && story && uid === story.user_id ? <div className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-[#111518] via-[#111518]/75 to-transparent px-6 pb-3 pt-5">

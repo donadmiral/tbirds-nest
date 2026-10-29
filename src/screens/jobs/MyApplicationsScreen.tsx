@@ -1,3 +1,4 @@
+import { jobsBack } from '../../navigation/jobsNavigation';
 import { ListRowSkeleton } from '../../components/skeletons';
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import React, { useCallback, useRef, useState } from 'react';
@@ -88,7 +89,7 @@ export default function MyApplicationsScreen() {
     <SafeAreaView style={st.safe} edges={['top', 'left', 'right']}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={getTheme().surface.canvas} />
       <View style={st.header}>
-        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Back" onPress={() => navigation.goBack()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Back to jobs" onPress={() => jobsBack(navigation, useAuthStore.getState().profile?.account_type === 'business')} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
           <Feather name="chevron-left" size={26} color={getTheme().ink.primary} />
         </TouchableOpacity>
         <Text style={st.headerTitle}>My applications</Text>

@@ -5,12 +5,14 @@
 // studio_set_contact_label, studio_orders / studio_catalog / studio_set_listing).
 // Every screen is keyboard-safe, safe-area-aware and clears the tab bar.
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ScrollView, ActivityIndicator, Modal, Alert, KeyboardAvoidingView, Platform, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import { supabase } from '../../services/supabase';
+import { useStudioResource } from '../../hooks/useStudioResource';
+import { StudioLoadError } from '../../components/StudioLoadError';
 
 const NAVY = '#0B1E3D';
 const TAB_CLEAR = 110;
@@ -80,32 +82,34 @@ export function MoreSeg({ go, onMonetization }: { go: (k: MoreKey) => void; onMo
 type Review = { id: string; rating: number; body: string | null; created_at: string; helpful_count: number; user_id: string; name: string; username: string | null; avatar_url: string | null; reply: string | null; replied_at: string | null };
 export function ReviewsSeg({ role, onBack }: { role: string | null; onBack: () => void }) {
   const insets = useSafeAreaInsets();
-  const [data, setData] = useState<{ average: number; count: number; distribution: Record<string, number>; reviews: Review[] } | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [editing, setEditing] = useState<Review | null>(null);
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
+  const sending = useRef(false);
   const canReply = !!role && REPLY_ROLES.includes(role);
-  const load = useCallback(async () => { const { data: d } = await supabase.rpc('studio_reviews'); setData((d as any) || null); }, []);
-  useEffect(() => { void load(); }, [load]);
+  const fetchReviews = useCallback(async () => { const { data, error } = await supabase.rpc('studio_reviews'); if (error || !data) throw new Error('Reviews unavailable'); return data as { average: number; count: number; distribution: Record<string, number>; reviews: Review[] }; }, []);
+  const { data, error: loadError, loading, reload: load } = useStudioResource(fetchReviews, 'Reviews could not be refreshed.');
 
   const send = async (remove: boolean) => {
-    if (!editing || busy) return;
+    if (!editing || sending.current || !canReply || (!remove && !draft.trim())) return;
+    sending.current = true;
     setBusy(true);
     try {
       const { error } = await supabase.rpc('studio_reply_review', { p_review: editing.id, p_body: remove ? '' : draft.trim() });
       if (error) throw error;
       setEditing(null); setDraft(''); await load();
     } catch (e: any) { Alert.alert('Could not save reply', e?.message || 'Please try again.'); }
-    finally { setBusy(false); }
+    finally { sending.current = false; setBusy(false); }
   };
 
-  if (!data) return <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>;
+  if (!data) return <View style={{ flex: 1 }}><BackRow title="Reviews" onBack={onBack} />{loadError ? <StudioLoadError message={loadError} onRetry={load} busy={loading} /> : <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>}</View>;
   const dist = [5, 4, 3, 2, 1].map(r => ({ r, n: Number((data.distribution || {})[String(r)] || 0) }));
   const max = Math.max(1, ...dist.map(d => d.n));
   return (
     <View style={{ flex: 1 }}>
       <BackRow title="Reviews" sub="Reply in public. A calm answer to a bad review is read by more people than the review itself." onBack={onBack} />
+      <StudioLoadError message={loadError} onRetry={load} busy={loading} />
       <FlatList
         data={data.reviews}
         keyExtractor={r => r.id}
@@ -157,16 +161,16 @@ export function ReviewsSeg({ role, onBack }: { role: string | null; onBack: () =
           </View>
         )}
       />
-      <Modal visible={!!editing} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setEditing(null)}>
+      <Modal visible={!!editing} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { if (!sending.current) setEditing(null); }}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: getTheme().surface.canvas }}>
           <View style={[s.modalHeader, { paddingTop: Platform.OS === 'ios' ? 14 : insets.top + 8 }]}>
-            <TouchableOpacity onPress={() => setEditing(null)} style={{ width: 70 }}><Text style={{ fontSize: 16, color: getTheme().ink.secondary }}>Cancel</Text></TouchableOpacity>
+            <TouchableOpacity disabled={busy} onPress={() => setEditing(null)} style={{ width: 70 }}><Text style={{ fontSize: 16, color: getTheme().ink.secondary }}>Cancel</Text></TouchableOpacity>
             <Text style={s.modalTitle}>Reply to {editing?.name || 'review'}</Text>
             <TouchableOpacity onPress={() => send(false)} disabled={busy || !draft.trim()} style={{ width: 70, alignItems: 'flex-end' }}><Text style={{ fontSize: 15, fontWeight: '700', color: getTheme().ink.primary, opacity: busy || !draft.trim() ? 0.4 : 1 }}>Send</Text></TouchableOpacity>
           </View>
           <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 24 }} keyboardShouldPersistTaps="handled">
             {editing ? <View style={s.card}><Stars n={editing.rating} />{editing.body ? <Text style={[s.cardMuted, { marginTop: 6 }]}>{editing.body}</Text> : null}</View> : null}
-            <TextInput value={draft} onChangeText={setDraft} placeholder="Write a public reply" placeholderTextColor={getTheme().ink.secondary} multiline autoFocus style={s.textArea} />
+            <TextInput value={draft} onChangeText={setDraft} editable={!busy} maxLength={5000} placeholder="Write a public reply" placeholderTextColor={getTheme().ink.secondary} multiline autoFocus style={s.textArea} />
             {editing?.reply ? <TouchableOpacity style={[s.secondaryBtn, { marginTop: 12, justifyContent: 'center' }]} onPress={() => send(true)} disabled={busy}><Text style={[s.secondaryTxt, { color: '#D64545' }]}>Remove reply</Text></TouchableOpacity> : null}
           </ScrollView>
         </KeyboardAvoidingView>
@@ -178,31 +182,38 @@ export function ReviewsSeg({ role, onBack }: { role: string | null; onBack: () =
 // ── Audience ───────────────────────────────────────────────────────────────
 type Person = { id: string; name: string; username: string | null; avatar_url: string | null; location: string | null; followed_at: string; label: string | null; note: string | null; paid: number; messages: number };
 export function AudienceSeg({ role, navigation, onBack }: { role: string | null; navigation: any; onBack: () => void }) {
-  const [summary, setSummary] = useState<any>(null);
-  const [people, setPeople] = useState<Person[]>([]);
   const [q, setQ] = useState('');
+  const [search, setSearch] = useState('');
   const [label, setLabel] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
   const canLabel = !!role && REPLY_ROLES.includes(role);
+  const pending = useRef(new Set<string>());
+  useEffect(() => { const timer = setTimeout(() => setSearch(q.trim()), 250); return () => clearTimeout(timer); }, [q]);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
+  const fetchAudience = useCallback(async () => {
       const [sm, pp] = await Promise.all([
         supabase.rpc('studio_audience_summary'),
-        supabase.rpc('studio_audience', { p_q: q.trim() || null, p_label: label, p_limit: 200 }),
+        supabase.rpc('studio_audience', { p_q: search || null, p_label: label, p_limit: 200 }),
       ]);
-      setSummary(sm.data || null);
-      setPeople(((pp.data as any[]) || []) as Person[]);
-    } finally { setLoading(false); }
-  }, [q, label]);
-  useEffect(() => { const t = setTimeout(() => { void load(); }, 250); return () => clearTimeout(t); }, [load]);
+      if (sm.error || pp.error || !sm.data) throw new Error('Audience unavailable');
+      return { summary: sm.data as any, people: (pp.data || []) as Person[] };
+  }, [search, label]);
+  const { data, error: loadError, loading, reload: load } = useStudioResource(fetchAudience, 'Your audience could not be refreshed.');
+  const summary = data?.summary;
+  const people = q.trim() === search ? data?.people || [] : [];
+  const searching = loading || q.trim() !== search;
+  const updateLabel = async (id: string, next: string | null) => {
+    if (pending.current.has(id)) return;
+    pending.current.add(id);
+    try { const { error } = await supabase.rpc('studio_set_contact_label', { p_contact: id, p_label: next, p_note: null }); if (error) throw error; await load(); }
+    catch { Alert.alert('Label not updated', 'Refresh the audience and try again.'); }
+    finally { pending.current.delete(id); }
+  };
 
   const setPersonLabel = (p: Person) => {
     if (!canLabel) return;
     Alert.alert(p.name, 'Set a label', [
-      ...LABELS.map(l => ({ text: l + (p.label === l ? ' (current)' : ''), onPress: async () => { await supabase.rpc('studio_set_contact_label', { p_contact: p.id, p_label: l, p_note: null }); await load(); } })),
-      ...(p.label ? [{ text: 'Remove label', style: 'destructive' as const, onPress: async () => { await supabase.rpc('studio_set_contact_label', { p_contact: p.id, p_label: null, p_note: null }); await load(); } }] : []),
+      ...LABELS.map(l => ({ text: l + (p.label === l ? ' (current)' : ''), onPress: () => updateLabel(p.id, l) })),
+      ...(p.label ? [{ text: 'Remove label', style: 'destructive' as const, onPress: () => updateLabel(p.id, null) }] : []),
       { text: 'Cancel', style: 'cancel' as const },
     ]);
   };
@@ -211,6 +222,7 @@ export function AudienceSeg({ role, navigation, onBack }: { role: string | null;
   return (
     <View style={{ flex: 1 }}>
       <BackRow title="Audience" sub="Who follows you, who pays you, and the leads you are working." onBack={onBack} />
+      <StudioLoadError message={loadError} onRetry={load} busy={searching} />
       <FlatList
         data={people}
         keyExtractor={p => p.id}
@@ -241,7 +253,7 @@ export function AudienceSeg({ role, navigation, onBack }: { role: string | null;
             </ScrollView>
           </View>
         }
-        ListEmptyComponent={loading ? <View style={[s.center, { paddingTop: 30 }]}><ActivityIndicator color={getTheme().ink.primary} /></View> : <View style={s.card}><Text style={s.cardMuted}>{q || label ? 'Nobody matches.' : 'No followers yet.'}</Text></View>}
+        ListEmptyComponent={searching ? <View style={[s.center, { paddingTop: 30 }]}><ActivityIndicator color={getTheme().ink.primary} /></View> : loadError && !data ? null : <View style={s.card}><Text style={s.cardMuted}>{q || label ? 'Nobody matches.' : 'No followers yet.'}</Text></View>}
         renderItem={({ item: p }) => (
           <TouchableOpacity style={[s.card, { flexDirection: 'row', alignItems: 'center', gap: 10 }]} onPress={() => navigation.navigate('UserProfile', { userId: p.id })} onLongPress={() => setPersonLabel(p)} activeOpacity={0.85}>
             <Avatar uri={p.avatar_url} name={p.name} />
@@ -266,25 +278,25 @@ type Order = { id: string; amount: number; currency: string; status: string; not
 type Listing = { id: string; title: string; price: number; currency: string; images: string[] | null; status: string; hidden: boolean; created_at: string; delivery_available: boolean | null; delivery_fee: number | null; pending_offers: number; sold_count: number; in_posts: number };
 export function CommerceSeg({ role, navigation, onBack }: { role: string | null; navigation: any; onBack: () => void }) {
   const [tab, setTab] = useState<'orders' | 'catalog'>('orders');
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [catalog, setCatalog] = useState<Listing[]>([]);
-  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const canEdit = !!role && LISTING_ROLES.includes(role);
+  const pending = useRef(new Set<string>());
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
+  const fetchCommerce = useCallback(async () => {
       const [o, c] = await Promise.all([supabase.rpc('studio_orders', { p_limit: 200 }), supabase.rpc('studio_catalog')]);
-      setOrders(((o.data as any[]) || []) as Order[]);
-      setCatalog(((c.data as any[]) || []) as Listing[]);
-    } finally { setLoading(false); }
+      if (o.error || c.error) throw new Error('Commerce unavailable');
+      return { orders: (o.data || []) as Order[], catalog: (c.data || []) as Listing[] };
   }, []);
-  useEffect(() => { void load(); }, [load]);
+  const { data, error: loadError, loading, reload: load } = useStudioResource(fetchCommerce, 'Orders and catalog could not be refreshed.');
+  const orders = data?.orders || [];
+  const catalog = data?.catalog || [];
 
   const setListing = async (l: Listing, patch: { p_status?: string }) => {
+    if (pending.current.has(l.id) || !canEdit) return;
+    pending.current.add(l.id);
     try { const { error } = await supabase.rpc('studio_set_listing', { p_id: l.id, ...patch }); if (error) throw error; await load(); }
     catch (e: any) { Alert.alert('Could not update listing', e?.message || 'Please try again.'); }
+    finally { pending.current.delete(l.id); }
   };
   const listingActions = (l: Listing) => {
     const buttons: any[] = [{ text: 'Open listing', onPress: () => navigation.navigate('Market', { screen: 'ListingDetail', params: { listingId: l.id } }) }];
@@ -311,13 +323,14 @@ export function CommerceSeg({ role, navigation, onBack }: { role: string | null;
   return (
     <View style={{ flex: 1 }}>
       <BackRow title="Commerce" sub="Your catalog, the money that came in, and how your storefront presents itself." onBack={onBack} />
+      <StudioLoadError message={loadError} onRetry={load} busy={loading} />
       <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 }}>
         {(['orders', 'catalog'] as const).map(t => (
-          <TouchableOpacity key={t} style={[s.filterChip, tab === t && s.filterChipOn]} onPress={() => setTab(t)}><Text style={[s.filterTxt, tab === t && s.filterTxtOn]}>{t === 'orders' ? 'Orders · ' + orders.length : 'Catalog · ' + catalog.length}</Text></TouchableOpacity>
+          <TouchableOpacity key={t} style={[s.filterChip, tab === t && s.filterChipOn]} onPress={() => setTab(t)}><Text style={[s.filterTxt, tab === t && s.filterTxtOn]}>{t === 'orders' ? 'Orders' + (data ? ' · ' + orders.length : '') : 'Catalog' + (data ? ' · ' + catalog.length : '')}</Text></TouchableOpacity>
         ))}
       </View>
       {loading && orders.length === 0 && catalog.length === 0 ? <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>
-      : tab === 'orders' ? (
+      : loadError && !data ? null : tab === 'orders' ? (
         <FlatList
           data={orders}
           keyExtractor={o => o.id}

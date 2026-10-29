@@ -27,7 +27,6 @@ export default function ActivityPage() {
   useEffect(() => { load(); }, [load]);
   return (
     <div className="mx-auto max-w-[640px] px-4 py-6">
-      <Link href="/settings" className="inline-flex items-center gap-1.5 text-[13px] text-ink/60 hover:text-ink"><ArrowLeft size={14} /> Settings</Link>
       <h1 className="mt-4 font-display text-[24px] font-bold text-ink">Your activity</h1>
       <div className="mt-4 flex gap-2">{TABS.map((x) => <button key={x.key} type="button" onClick={() => setKind(x.key)} className={"rounded-full border px-3.5 py-1.5 text-[13px] font-semibold " + (kind === x.key ? "border-ink bg-ink text-white" : "border-ink/15 text-ink/70 hover:border-ink/40")}>{x.label}</button>)}</div>
       <ul className="mt-4 divide-y divide-ink/8">

@@ -19,6 +19,11 @@ import { Gesture, GestureDetector, Directions } from 'react-native-gesture-handl
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming, withSequence, runOnJS } from 'react-native-reanimated';
 import VerifiedBadge from './VerifiedBadge';
 import TierName from './TierName';
+import { applyPostPlayback } from '../../shared/postVoiceEffects';
+import { postTrimWindow } from '../../shared/postMediaEditing';
+import PostCaption from './PostCaption';
+import { FilterLayer } from './stories/StoryFilters';
+import { AdjustLayer } from './stories/storyPanels';
 import CommentsSheet from './feed/CommentsSheet';
 
 const { height: H, width: W } = Dimensions.get('window');
@@ -42,8 +47,9 @@ export type VideoFeedActions = {
 
 function VideoCell({ item, active, liked, saved, reposted, following, isOwn, startAt, actions, insetTop, insetBottom, speed, onSpeed, onComments, reportTime, shrunk }: any) {
   const player = useVideoPlayer(item.url, (p: any) => {
-    p.loop = true; p.muted = false; p.timeUpdateEventInterval = 0.1;
-    if (startAt && startAt > 0.2) { try { p.currentTime = startAt; } catch {} }
+    p.loop = true; p.muted = !!item.edit?.muted; p.timeUpdateEventInterval = 0.1;
+    applyPostPlayback(p,item.edit,speed);
+    try { p.currentTime = Math.max(item.edit?.trimStart ?? 0,startAt ?? 0); } catch {}
   });
   const [paused, setPaused] = useState(false);
   const [cur, setCur] = useState(0);
@@ -57,13 +63,13 @@ function VideoCell({ item, active, liked, saved, reposted, following, isOwn, sta
 
   useEffect(() => { if (!active || viewedRef.current) return; const t = setTimeout(() => { viewedRef.current = true; actions.onViewed?.(item.id); }, 3000); return () => clearTimeout(t); }, [active]);
   // Only the active cell may be heard or run: neighbours are muted and paused, and every cell pauses on unmount.
-  useEffect(() => { try { player.muted = !active; } catch {} if (active && !paused) player.play(); else player.pause(); }, [active, paused, player]);
+  useEffect(() => { try { player.muted = !active || !!item.edit?.muted; } catch {} if (active && !paused) player.play(); else player.pause(); }, [active, paused, player, item.edit?.muted]);
   useEffect(() => () => { try { player.pause(); } catch {} }, [player]);
-  useEffect(() => { try { (player as any).playbackRate = speed; } catch {} }, [speed, player]);
+  useEffect(() => { try { applyPostPlayback(player,item.edit,speed); } catch {} }, [speed,player,item.edit?.speed,item.edit?.voiceEffect]);
   useEffect(() => {
-    const t = player.addListener('timeUpdate', (e: any) => { const d = player.duration; const c = e?.currentTime ?? player.currentTime; if (!scrubbing) setCur(c); if (d > 0) setDur(d); reportTime?.(item.id, c); });
+    const t = player.addListener('timeUpdate', (e: any) => { const d = player.duration; let c = e?.currentTime ?? player.currentTime; const window = postTrimWindow(d,item.edit?.trimStart,item.edit?.trimEnd); if(window.duration&&(c<window.start||c>=window.end)){c=window.start;player.currentTime=c;} if (!scrubbing) setCur(c); if (d > 0) setDur(d); reportTime?.(item.id, c); });
     return () => t.remove();
-  }, [player, scrubbing]);
+  }, [player,scrubbing,item.edit?.trimStart,item.edit?.trimEnd]);
 
   // Heart at the finger for double-tap like.
   const heartX = useSharedValue(0); const heartY = useSharedValue(0); const heartS = useSharedValue(0); const heartO = useSharedValue(0);
@@ -101,16 +107,19 @@ function VideoCell({ item, active, liked, saved, reposted, following, isOwn, sta
   const gesture = Gesture.Simultaneous(pinch, pan2, Gesture.Exclusive(flingL, flingR, dbl, single));
   const zoomStyle = useAnimatedStyle(() => ({ transform: [{ translateX: tx.value }, { translateY: ty.value }, { scale: scale.value }] }));
 
-  const seekTo = (sec: number) => { try { player.currentTime = Math.max(0, Math.min(dur || sec, sec)); } catch {} };
+  const playbackWindow = postTrimWindow(dur,item.edit?.trimStart,item.edit?.trimEnd);
+  const playbackWindowRef = useRef(playbackWindow);playbackWindowRef.current=playbackWindow;
+  const seekTo = (sec: number) => { try { const window=playbackWindowRef.current;player.currentTime=Math.max(window.start,Math.min(window.coverEnd,sec)); } catch {} };
+  const scrubTime = (x:number) => { const window=playbackWindowRef.current;return window.start+(Math.max(0,Math.min(trackW.current,x))/trackW.current)*window.duration; };
   const scrub = useRef(PanResponder.create({
     onStartShouldSetPanResponder: () => true, onMoveShouldSetPanResponder: () => true, onPanResponderTerminationRequest: () => false,
-    onPanResponderGrant: (e) => { setScrubbing(true); setScrubT((Math.max(0, Math.min(trackW.current, e.nativeEvent.locationX)) / trackW.current) * (player.duration || 0)); },
-    onPanResponderMove: (e) => { setScrubT((Math.max(0, Math.min(trackW.current, e.nativeEvent.locationX)) / trackW.current) * (player.duration || 0)); },
-    onPanResponderRelease: (e) => { const t = (Math.max(0, Math.min(trackW.current, e.nativeEvent.locationX)) / trackW.current) * (player.duration || 0); seekTo(t); setCur(t); setScrubbing(false); },
+    onPanResponderGrant: (e) => { setScrubbing(true); setScrubT(scrubTime(e.nativeEvent.locationX)); },
+    onPanResponderMove: (e) => { setScrubT(scrubTime(e.nativeEvent.locationX)); },
+    onPanResponderRelease: (e) => { const t = scrubTime(e.nativeEvent.locationX); seekTo(t); setCur(t); setScrubbing(false); },
     onPanResponderTerminate: () => setScrubbing(false),
   })).current;
 
-  const shown = scrubbing ? scrubT : cur; const pct = dur > 0 ? Math.min(1, Math.max(0, shown / dur)) : 0;
+  const shown = scrubbing ? scrubT : cur; const pct = playbackWindow.duration > 0 ? Math.min(1, Math.max(0, (shown-playbackWindow.start) / playbackWindow.duration)) : 0;
   const railBottom = Math.max(insetBottom, 12) + 92;
 
   return (
@@ -118,6 +127,7 @@ function VideoCell({ item, active, liked, saved, reposted, following, isOwn, sta
       <GestureDetector gesture={gesture}>
         <Animated.View style={[StyleSheet.absoluteFill, zoomStyle]}>
           <VideoView pointerEvents="none" style={StyleSheet.absoluteFill} player={player} contentFit="contain" nativeControls={false} />
+          <FilterLayer filterId={item.edit?.filterId} amt={item.edit?.filterAmt??100}/><AdjustLayer adjust={item.edit?.adjust}/><PostCaption captions={item.edit?.captions} time={cur}/>
         </Animated.View>
       </GestureDetector>
       <Animated.View pointerEvents="none" style={heartStyle}><Ionicons name="heart" size={88} color="#FFFFFF" /></Animated.View>
@@ -177,7 +187,7 @@ function VideoCell({ item, active, liked, saved, reposted, following, isOwn, sta
           <View style={[s.track, scrubbing && { height: 5 }]}><View style={[s.fill, { width: `${pct * 100}%` }]} /></View>
           <View style={[s.knob, scrubbing && s.knobBig, { left: Math.max(0, pct * trackW.current - (scrubbing ? 9 : 5)) }]} />
         </View>
-        <View style={s.timeRow}><Text style={s.time}>{fmt(shown)}</Text><Text style={s.timeDim}> / {fmt(dur)}</Text><View style={{ flex: 1 }} /><TouchableOpacity onPress={() => onSpeed(SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length])} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={s.speed}>{speed}x</Text></TouchableOpacity></View>
+        <View style={s.timeRow}><Text style={s.time}>{fmt(Math.max(0,shown-playbackWindow.start))}</Text><Text style={s.timeDim}> / {fmt(playbackWindow.duration)}</Text><View style={{ flex: 1 }} /><TouchableOpacity onPress={() => onSpeed(SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.length])} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Text style={s.speed}>{speed}x</Text></TouchableOpacity></View>
       </View> : (
         <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, bottom: Math.max(insetBottom, 8), height: 2, backgroundColor: 'rgba(255,255,255,0.18)' }}><View style={{ width: `${pct * 100}%`, height: '100%', backgroundColor: '#C9BFB0' }} /></View>
       )}
@@ -192,7 +202,7 @@ function VideoCell({ item, active, liked, saved, reposted, following, isOwn, sta
               {SPEEDS.map(sp => <TouchableOpacity key={sp} onPress={() => onSpeed(sp)} style={[s.chip, speed === sp && s.chipOn]}><Text style={[s.chipTxt, speed === sp && s.chipTxtOn]}>{sp}x</Text></TouchableOpacity>)}
             </View>
             <View style={s.menuRow}><Feather name="sliders" size={18} color="#0B1E3D" /><Text style={s.menuTxt}>Quality</Text><Text style={s.menuSub}>Auto</Text></View>
-            <View style={s.menuRow}><Feather name="type" size={18} color="#0B1E3D" /><Text style={s.menuTxt}>Captions</Text><Text style={s.menuSub}>None available</Text></View>
+            <View style={s.menuRow}><Feather name="type" size={18} color="#0B1E3D" /><Text style={s.menuTxt}>Captions</Text><Text style={s.menuSub}>{item.edit?.captions?.length?'Creator captions':'None available'}</Text></View>
             <Text style={s.menuSection}>This post</Text>
             <TouchableOpacity style={s.menuRow} onPress={() => { setMenu(false); actions.onNotInterested?.(item.id); }}><Feather name="eye-off" size={18} color="#0B1E3D" /><Text style={s.menuTxt}>Not interested</Text></TouchableOpacity>
             <TouchableOpacity style={s.menuRow} onPress={() => { setMenu(false); if (actions.onCopyLink) actions.onCopyLink(item.id); else actions.onShare?.(item.id); }}><Feather name="link" size={18} color="#0B1E3D" /><Text style={s.menuTxt}>Copy link</Text></TouchableOpacity>

@@ -21,6 +21,7 @@ import TrimStrip from './stories/TrimStrip';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import * as ImagePicker from 'expo-image-picker';
 import PostCaption from './PostCaption';
+import { applyPostPlayback, postPlaybackSettings, POST_VOICE_EFFECTS, type PostVoiceEffect } from '../../shared/postVoiceEffects';
 import { postAspectRatio, postTimeLabel, postTrimWindow, normalizePostCaptions, normalizePostRotation, postRotationParts, applyPostCaptionTiming, type PostCaptionCue } from '../../shared/postMediaEditing';
 
 /** Cover strip: a filmstrip of the trimmed window with a draggable frame
@@ -138,6 +139,7 @@ export function CoverStrip({ uri, durationSec, start, end, at, width, onChange }
 }
 
 export type PostMediaEdit = {
+  voiceEffect?: PostVoiceEffect | null;
   aspectRatio?: number; aspect?: 'original' | 'square' | 'portrait' | 'landscape';
   captions?: PostCaptionCue[];
   /** A local draft only. Publishing uploads it and removes this field. */
@@ -163,7 +165,7 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
   const insets = useSafeAreaInsets();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const [edit, setEdit] = useState<PostMediaEdit>(initial || {});
-  const [mode, setMode] = useState<'crop' | 'filter' | 'adjust' | 'trim' | 'captions' | 'cover'>(mediaType === 'video' ? 'trim' : 'crop');
+  const [mode, setMode] = useState<'crop' | 'filter' | 'adjust' | 'trim' | 'captions' | 'cover' | 'voice'>(mediaType === 'video' ? 'trim' : 'crop');
   const [comparing, setComparing] = useState(false);
   const [applyLookToAll, setApplyLookToAll] = useState(false);
   const [sliderDragging, setSliderDragging] = useState(false);
@@ -176,7 +178,7 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
   const captionTimingDraftsRef=useRef<Record<string,{start?:string;end?:string}>>({});
   const [player, setPlayer] = useState<any>(null);
   const [speedOpen, setSpeedOpen] = useState(false);
-  useEffect(() => { if (player) { try { player.playbackRate = edit.speed || 1; } catch {} } }, [player, edit.speed]);
+  useEffect(() => { if (player) { try { applyPostPlayback(player,edit); } catch {} } }, [player, edit.speed, edit.voiceEffect]);
   // Tag people: arm the tool, tap the picture where the person is, pick them.
   const [tagMode, setTagMode] = useState(false);
   const [tagAt, setTagAt] = useState<{ nx: number; ny: number } | null>(null);
@@ -260,7 +262,7 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
   const draftCaptionTime=(id:string,key:'start'|'end',text:string)=>{const next={...captionTimingDraftsRef.current,[id]:{...captionTimingDraftsRef.current[id],[key]:text}};captionTimingDraftsRef.current=next;setCaptionTimingDrafts(next);};
   const commitCaptionTime=(caption:PostCaptionCue)=>{const next=applyPostCaptionTiming(caption,captionTimingDraftsRef.current[caption.id],range.start,range.end);setEdit(previous=>({...previous,captions:(previous.captions??[]).map(c=>c.id===caption.id?next:c)}));const drafts={...captionTimingDraftsRef.current};delete drafts[caption.id];captionTimingDraftsRef.current=drafts;setCaptionTimingDrafts(drafts);};
   const modes: {id: typeof mode; label:string; icon:any}[] = isVideo
-    ? [{id:'trim',label:'Trim',icon:'scissors'},{id:'crop',label:'Crop',icon:'crop'},{id:'captions',label:'Captions',icon:'type'},{id:'cover',label:'Cover',icon:'image'},{id:'filter',label:'Filters',icon:'aperture'},{id:'adjust',label:'Adjust',icon:'sliders'}]
+    ? [{id:'trim',label:'Trim',icon:'scissors'},{id:'voice',label:'Voice',icon:'mic'},{id:'crop',label:'Crop',icon:'crop'},{id:'captions',label:'Captions',icon:'type'},{id:'cover',label:'Cover',icon:'image'},{id:'filter',label:'Filters',icon:'aperture'},{id:'adjust',label:'Adjust',icon:'sliders'}]
     : [{id:'crop',label:'Crop',icon:'crop'},{id:'filter',label:'Filters',icon:'aperture'},{id:'adjust',label:'Adjust',icon:'sliders'}];
   const title = modes.find(tool => tool.id === mode)?.label ?? 'Edit';
   return (
@@ -276,7 +278,7 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
             <MediaCanvas localUri={uri} mediaType={mediaType} uploadState="idle" onRetry={() => {}} onLayout={() => {}} scaleAnim={scaleAnim} opacityAnim={opacityAnim}
               imageW={width} imageH={height} mediaFit={fit} postRotation={comparing ? 0 : edit.rotation} postFlipX={!comparing && edit.flipX} mediaTransform={comparing ? {fit,scale:1,translateNX:0,translateNY:0} : tx} onTransformChange={setTx}
               onFitToggle={() => setEdit(e => ({ ...e, fit: (e.fit || 'cover') === 'cover' ? 'contain' : 'cover' }))} interactive={mode === 'crop' && !comparing}
-              videoMuted={!!edit.muted} videoVolume={edit.muted ? 0 : 1} trimStart={edit.trimStart ?? null} trimEnd={edit.trimEnd ?? null} onVideoPlayer={setPlayer}>
+              videoSpeed={postPlaybackSettings(edit).rate} videoPreservesPitch={postPlaybackSettings(edit).preservesPitch} videoMuted={!!edit.muted} videoVolume={edit.muted ? 0 : 1} trimStart={edit.trimStart ?? null} trimEnd={edit.trimEnd ?? null} onVideoPlayer={setPlayer}>
               {!comparing && <><FilterLayer filterId={edit.filterId || null} amt={edit.filterAmt ?? 100} /><AdjustLayer adjust={edit.adjust || null} /></>}
             </MediaCanvas>
             {mode === 'cover' && coverPreview ? <View pointerEvents="none" style={StyleSheet.absoluteFill}><Image source={{uri:coverPreview}} style={[StyleSheet.absoluteFill, {transform:[{translateX:(edit.translateNX ?? 0)*canvasW},{translateY:(edit.translateNY ?? 0)*canvasH},{scale:edit.scale ?? 1},{rotate:`${edit.rotation ?? 0}deg`},{scaleX:edit.flipX?-1:1}]}]} resizeMode={fit === 'contain' ? 'contain' : 'cover'} /><FilterLayer filterId={edit.filterId || null} amt={edit.filterAmt ?? 100} /><AdjustLayer adjust={edit.adjust} /></View> : null}
@@ -345,6 +347,7 @@ export default function PostMediaEditSheet({ visible, uri, mediaType, width, hei
               <TouchableOpacity style={st.rowButton} onPress={()=>setSpeedOpen(v=>!v)}><Feather name="fast-forward" size={19} color="#E9DCC7"/><Text style={st.rowButtonText}>Speed</Text><Text style={st.mutedLabel}>{edit.speed||1}×</Text><Feather name="chevron-right" size={17} color="#99A0AB"/></TouchableOpacity>
               {speedOpen ? <View style={st.speedRow}>{[.5,1,1.5,2,3].map(speed=><TouchableOpacity key={speed} style={[st.speedChoice,(edit.speed||1)===speed&&st.selected]} onPress={()=>setEdit(e=>({...e,speed}))}><Text style={st.smallLabel}>{speed}×</Text></TouchableOpacity>)}</View>:null}
             </>:null}
+            {mode === 'voice' ? <><Text style={[st.sectionLabel,{textAlign:'center'}]}>Voice and pace</Text><Text style={st.hint}>Change the pitch and pace of your original audio together. Your video stays in sync. These effects need a video with sound.</Text><View style={st.speedRow}>{POST_VOICE_EFFECTS.map(effect=><TouchableOpacity key={effect.id} accessibilityRole="button" accessibilityLabel={`${effect.label} voice, ${effect.description}`} accessibilityState={{selected:(edit.voiceEffect??'original')===effect.id}} style={[st.captionStyle,(edit.voiceEffect??'original')===effect.id&&st.selected]} onPress={()=>setEdit(value=>({...value,voiceEffect:effect.id,muted:false}))}><Feather name="mic" size={24} color="#FFFFFF"/><Text style={st.smallLabel}>{effect.label}</Text><Text style={[st.mutedLabel,{textAlign:'center'}]}>{effect.description}</Text></TouchableOpacity>)}</View><TouchableOpacity accessibilityRole="button" style={st.rowButton} onPress={()=>{try{playing?player?.pause():player?.play();}catch{}}}><Feather name={playing?'pause':'play'} size={20} color="#E9DCC7"/><Text style={st.rowButtonText}>{playing?'Pause preview':'Hear preview'}</Text></TouchableOpacity></>:null}
             {mode === 'cover' && uri ? <>
               <Text style={[st.mutedLabel,{textAlign:'center',marginBottom:12}]}>Feed preview · {Math.abs(ratio-.8)<.001?'4:5':Math.abs(ratio-1)<.001?'1:1':Math.abs(ratio-16/9)<.001?'16:9':'Original'}</Text>
               {!edit.coverLocalUri ? <CoverStrip uri={uri} durationSec={dur||15} start={range.start} end={range.end} at={edit.coverAt??range.start} width={panelW} onChange={coverAt=>setEdit(e=>({...e,coverAt}))}/>:null}

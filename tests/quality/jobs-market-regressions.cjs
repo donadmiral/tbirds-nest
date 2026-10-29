@@ -9,7 +9,7 @@ const ts = require('typescript');
 const { execFileSync } = require('node:child_process');
 const root = path.resolve(__dirname, '../..');
 
-function loadModule(file, client) {
+function loadModule(file, client, overrides = {}) {
   const source = process.env.QUALITY_BASE_REF
     ? execFileSync('git', ['show', `${process.env.QUALITY_BASE_REF}:${file}`], { cwd: root, encoding: 'utf8' })
     : fs.readFileSync(path.join(root, file), 'utf8');
@@ -20,6 +20,7 @@ function loadModule(file, client) {
     '@/lib/supabase/client': { createClient: () => client },
     './flagsService': { flagsService: { isEnabled: async () => true } },
     '../stores/actorStore': { authorId: (id) => id },
+    ...overrides,
   };
   vm.runInNewContext(code, {
     module, exports: module.exports,
@@ -166,6 +167,73 @@ test('native: my applications surface a failed page instead of reporting an empt
   await assert.rejects(jobsService.getMyApplications('viewer'), /applications unavailable/);
   assert.equal(client.calls[0].name, 'my_application_page');
   assert.equal(client.calls[0].args.p_limit, 25);
+});
+
+for (const method of ['getJobs', 'getSavedJobs', 'getSavedJobIds', 'getAppliedJobIds']) test(`native: ${method} preserves an unavailable response for the retry UI`, async () => {
+  const { jobsService } = loadModule('src/services/jobsService.ts', mockClient({ error: new Error('jobs unavailable') }));
+  await assert.rejects(jobsService[method](method === 'getJobs' ? {} : 'viewer'), /jobs unavailable/);
+});
+test('native: open-role availability and popularity ordering are applied before the page limit', async () => {
+  const client = mockClient({ rows: [{ id: 'old', applications_count: 20, created_at: '2026-01-01' }, { id: 'new', applications_count: 1, created_at: '2026-10-01' }] });
+  const { jobsService } = loadModule('src/services/jobsService.ts', client);
+  const jobs = await jobsService.getJobs({ sortBy: 'popular', limit: 1 });
+  assert.equal(jobs[0].id, 'old');
+  assert.match(client.queries[0].operations.find(([op]) => op === 'or')[1], /^deadline\.is\.null,deadline\.gt\./);
+});
+test('native: Near me requires a city instead of returning every location', async () => {
+  const { jobsService } = loadModule('src/services/jobsService.ts', mockClient());
+  await assert.rejects(jobsService.getJobs({ scope: 'primary', userId: 'viewer' }), /Add your city/);
+});
+
+function publishingClient({ actor = null, authenticatedAs = 'owner', identityError = null, onAuthorize } = {}) {
+  const writes = [];
+  const client = {
+    auth: { getUser: async () => {
+      await onAuthorize?.();
+      return { data: { user: authenticatedAs ? { id: authenticatedAs } : null }, error: identityError };
+    } },
+    from(table) {
+      assert.equal(table, 'jobs');
+      let payload;
+      const query = { insert(value) { payload = value; writes.push(value); return query; }, select() { return query; }, async single() { return { data: { id: 'new-job', ...payload }, error: null }; } };
+      return query;
+    },
+  };
+  const { jobsService } = loadModule('src/services/jobsService.ts', client, { '../stores/actorStore': { authorId: fallback => actor ?? fallback } });
+  return { service: jobsService, writes, setActor(value) { actor = value; } };
+}
+const jobInput = { title: 'Engineer', company: 'Example', description: 'Role description', category: 'full_time' };
+
+test('native job publishing writes the verified signed-in owner used by the hiring RPCs', async () => {
+  const h = publishingClient();
+  const job = await h.service.createJob('owner', jobInput);
+  assert.equal(job.posted_by, 'owner'); assert.equal(h.writes.length, 1); assert.equal(h.writes[0].posted_by, 'owner');
+});
+test('native job publishing permits a signed-in business account when it is also the posting owner', async () => {
+  const h = publishingClient({ actor: 'business-account', authenticatedAs: 'business-account' });
+  await h.service.createJob('business-account', jobInput);
+  assert.equal(h.writes[0].posted_by, 'business-account');
+});
+test('native job publishing blocks a delegated organization before creating an unmanageable job', async () => {
+  const h = publishingClient({ actor: 'managed-organization' });
+  await assert.rejects(h.service.createJob('owner', jobInput), /managed organization.*not available yet/);
+  assert.equal(h.writes.length, 0);
+});
+test('a caller cannot substitute the selected actor ID for the authenticated job owner', async () => {
+  const h = publishingClient({ actor: 'managed-organization', authenticatedAs: 'owner' });
+  await assert.rejects(h.service.createJob('managed-organization', jobInput), /signed-in account changed/);
+  assert.equal(h.writes.length, 0);
+});
+test('changing the posting actor during authorization prevents job publication', async () => {
+  let h;
+  h = publishingClient({ onAuthorize: () => h.setActor('managed-organization') });
+  await assert.rejects(h.service.createJob('owner', jobInput), /managed organization.*not available yet/);
+  assert.equal(h.writes.length, 0);
+});
+test('failed account verification cannot publish a job using the cached profile owner', async () => {
+  const h = publishingClient({ identityError: new Error('Identity unavailable') });
+  await assert.rejects(h.service.createJob('owner', jobInput), /Identity unavailable/);
+  assert.equal(h.writes.length, 0);
 });
 test('native: recruiter updates cannot overwrite a withdrawn application', async () => {
   const client = mockClient();

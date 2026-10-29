@@ -1,6 +1,7 @@
 // Mirrors ConversationsScreen assembly and the messages row shape.
 import { signGroupAvatars } from "@/lib/chatMedia";
 import { createClient } from "@/lib/supabase/client";
+import { conversationUnreadCounts } from '../../shared/messageReceipts';
 
 export type Conv = {
   id: string;
@@ -90,9 +91,7 @@ export async function loadConversations(userId: string, context: string = "perso
   const unreadMap: Record<string, number> = {};
   try {
     const { data: unreadData } = await supabase.rpc("get_unread_counts");
-    ((unreadData ?? []) as { conversation_id: string; unread_count: number }[]).forEach((u) => {
-      unreadMap[u.conversation_id] = Number(u.unread_count) || 0;
-    });
+    Object.assign(unreadMap, conversationUnreadCounts(unreadData));
   } catch { /* non-fatal */ }
 
   const dms: Conv[] = ((dmConvs ?? []) as Record<string, unknown>[]).filter(keep).map((c) => {

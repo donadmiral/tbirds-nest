@@ -12,12 +12,13 @@ import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import type { FeedRow } from "@/lib/feed";
 import { PostCard } from "@/components/PostCard";
-import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { StoryRings } from "@/components/StoryRings";
 import { Composer } from "@/components/Composer";
 import { AnnouncementBanner } from "@/components/AnnouncementBanner";
 import { SponsoredCard } from "@/components/SponsoredCard";
 import { getActivePromos, type PromoRow } from "@/lib/ads";
+import { MarketplaceShelf } from './MarketplaceShelf';
+import { isMarketplacePost, MARKETPLACE_SHELF_AFTER, readMarketplaceRecommendations, type MarketplaceRecommendation } from '../../shared/marketplaceRecommendations';
 
 
 const MODES = [
@@ -74,17 +75,24 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
     } catch { /* fine */ }
   }, []);
   const [promos, setPromos] = useState<PromoRow[]>([]);
+  const [marketplace, setMarketplace] = useState<{ owner: string; items: MarketplaceRecommendation[] } | null>(null);
+  const [marketplaceRefresh, setMarketplaceRefresh] = useState(0);
+  const marketplaceRequest = useRef<AbortController | null>(null);
+  const refreshMarketplace = useCallback((sellerId?: string) => {
+    marketplaceRequest.current?.abort();
+    if (sellerId) setMarketplace(current => current ? { ...current, items: current.items.filter(item => item.seller_id !== sellerId) } : current);
+    setMarketplaceRefresh(value => value + 1);
+  }, []);
+  const marketplaceItems = marketplace?.owner === state.owner ? marketplace.items : [];
   const seenPendingRef = useRef<Set<string>>(new Set());
   const seenSentRef = useRef<Set<string>>(new Set());
   const seenObserverRef = useRef<IntersectionObserver | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
-  const [listTop, setListTop] = useState(0);
-  useEffect(() => { setListTop(listRef.current?.offsetTop ?? 0); }, [posts.length]);
-  // An initial viewport makes real posts part of the server HTML and first frame.
-  const rowVirtualizer = useWindowVirtualizer({ count: posts.length, estimateSize: () => 560,
-    initialRect: { width: 640, height: 900 }, overscan: 5, scrollMargin: listTop,
-    getItemKey: index => posts[index].post_id });
+  // Variable-height posts stay in document flow. Window virtualization was
+  // correcting scroll offsets as media loaded and cards changed height,
+  // causing the page to jump underneath a normal wheel/touch gesture.
+  // Infinite paging and lazy media still bound network and decoding work.
   const newDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -98,28 +106,51 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
         queueMicrotask(() => { if (next) router.refresh(); else router.replace('/login'); });
       }
     });
-    const onRefresh = () => { void load(false); };
+    const onRefresh = () => { void load(false); refreshMarketplace(); };
     const onHidden = (event: Event) => { const postId = (event as CustomEvent).detail?.postId; if (typeof postId === 'string') controller.hide(postId); };
-    const onVisibility = () => { if (document.visibilityState === 'visible') void load(false, true); };
+    const onAuthorHidden = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      if (!detail || detail.ownerId !== uidRef.current || typeof detail.authorId !== 'string') return;
+      refreshMarketplace(detail.authorId);
+      for (const post of controller.getSnapshot().rows) if (post.author_id === detail.authorId) controller.hide(post.post_id);
+      void load(false);
+    };
+    const onVisibility = () => { if (document.visibilityState === 'visible') { void load(false, true); refreshMarketplace(); } };
     window.addEventListener('pc-refresh-feed', onRefresh);
     window.addEventListener('pc-feed-hidden', onHidden);
+    window.addEventListener('pc-feed-author-hidden', onAuthorHidden);
     document.addEventListener('visibilitychange', onVisibility);
     const mediaRefresh = setInterval(onVisibility, 240_000);
     return () => {
       clearInterval(mediaRefresh); subscription.unsubscribe(); controller.dispose();
       window.removeEventListener('pc-refresh-feed', onRefresh); window.removeEventListener('pc-feed-hidden', onHidden);
+      window.removeEventListener('pc-feed-author-hidden', onAuthorHidden);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [controller, load, router, supabase]);
+  }, [controller, load, router, supabase, refreshMarketplace]);
 
   useEffect(() => {
     let active = true;
     setPromos([]);
     if (mode === "for_you" && state.owner) void getActivePromos(3).then(value => {
-      if (active) setPromos(value);
+      if (active) setPromos(value.filter(post => !isMarketplacePost(post)));
     }).catch(() => { if (active) setPromos([]); });
     return () => { active = false; };
   }, [mode, state.owner]);
+
+  useEffect(() => {
+    const owner = state.owner;
+    if (!owner || mode !== 'for_you') { setMarketplace(null); return; }
+    let active = true;
+    const request = new AbortController();
+    marketplaceRequest.current = request;
+    const timer = setTimeout(() => request.abort(), 10000);
+    void readMarketplaceRecommendations(supabase, request.signal)
+      .then(items => { if (active && !request.signal.aborted && uidRef.current === owner) setMarketplace({ owner, items }); })
+      .catch(() => { /* Optional recommendations never block the feed. */ })
+      .finally(() => clearTimeout(timer));
+    return () => { active = false; clearTimeout(timer); request.abort(); if (marketplaceRequest.current === request) marketplaceRequest.current = null; };
+  }, [supabase, mode, state.owner, marketplaceRefresh]);
 
   // Infinite scroll: the sentinel near the bottom triggers the next page.
   useEffect(() => {
@@ -180,15 +211,13 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
   }, [supabase, load]);
 
   const prefetched = useRef(new Set<string>());
-  const visibleItems = rowVirtualizer.getVirtualItems();
-  const firstVisible = visibleItems[0]?.index ?? 0;
   useEffect(() => {
     const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
     if (document.visibilityState !== 'visible' || connection?.saveData || connection?.effectiveType === '2g' || connection?.effectiveType === 'slow-2g') return;
-    const urls = feedPrefetchUrls(posts, firstVisible + 1, false).filter(url => !prefetched.current.has(url));
+    const urls = feedPrefetchUrls(posts, 0, false).filter(url => !prefetched.current.has(url));
     if (prefetched.current.size > 80) prefetched.current.clear();
     urls.forEach(url => { prefetched.current.add(url); const image = new Image(); image.decoding = 'async'; image.src = url; });
-  }, [posts, firstVisible]);
+  }, [posts]);
 
   useEffect(() => {
     function onQuote(e: Event) { setQuote((e as CustomEvent).detail); }
@@ -271,18 +300,16 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
         </div>
       ) : (
         <div>
-          <div ref={listRef} data-feed-content="true" style={{ height: rowVirtualizer.getTotalSize(), position: "relative" }}>
-            {rowVirtualizer.getVirtualItems().map((v) => {
-              const p = posts[v.index];
-              const i = v.index;
+          <div ref={listRef} data-feed-content="true">
+            {posts.filter(p => !isMarketplacePost(p)).map((p, i) => {
               const slot = i === 1 ? promos[0] : (i > 1 && (i - 1) % 6 === 0 ? promos[Math.floor((i - 1) / 6)] : null);
               return (
-                <div key={p.post_id + ((p as unknown as { reposted_by_id?: string | null }).reposted_by_id ?? "")} data-index={v.index} ref={rowVirtualizer.measureElement}
-                  style={{ position: "absolute", top: v.start - rowVirtualizer.options.scrollMargin, left: 0, width: "100%" }}>
+                <div key={p.post_id + ((p as unknown as { reposted_by_id?: string | null }).reposted_by_id ?? "")} data-index={i}>
                   <div data-pid={p.post_id} data-aid={p.author_id} ref={observeSeen}>
                     <PostCard post={p} />
                   </div>
                   {slot && slot.post_id !== p.post_id ? <SponsoredCard promo={slot} /> : null}
+                  {mode === 'for_you' && i === MARKETPLACE_SHELF_AFTER - 1 ? <MarketplaceShelf items={marketplaceItems} /> : null}
                 </div>
               );
             })}

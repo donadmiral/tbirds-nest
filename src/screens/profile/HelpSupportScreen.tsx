@@ -1,14 +1,15 @@
+import SettingsExit from '../../components/SettingsExit';
+import { settingsBack } from '../../navigation/settingsNavigation';
 /**
  * HelpSupportScreen - how the real app works, briefly and clearly.
  */
-import { themedSheet } from '../../theme/useTheme';
+import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 
-const NAVY = '#0B1E3D';
 
 const TOPICS: { icon: any; q: string; a: string }[] = [
   { icon: 'edit-3', q: 'Posting and who sees it', a: 'Tap the pen to compose. The audience chip beside your name controls who can see the post: everyone, followers, people you mention, or verified accounts. The lightning bolt sends a post to the Innovation channel, where you can add a field and a stage to what you are building.' },
@@ -23,26 +24,27 @@ const TOPICS: { icon: any; q: string; a: string }[] = [
 
 export default function HelpSupportScreen() {
   const navigation = useNavigation<any>();
+  const { isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const [open, setOpen] = useState<number | null>(null);
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7}>
+        <TouchableOpacity onPress={() => settingsBack(navigation, 'Settings')} style={s.backBtn} activeOpacity={0.7}>
           <Text style={s.backChev}>{'\u2039'}</Text><Text style={s.backLbl}>Back</Text>
         </TouchableOpacity>
         <Text style={s.headerTitle}>Help &amp; Support</Text>
-        <View style={{ width: 60 }} />
+        <SettingsExit navigation={navigation} />
       </View>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: Math.max(insets.bottom + 110, 130) }}>
         <Text style={s.lede}>Short answers to how Platinum Circles works. Tap a topic.</Text>
         {TOPICS.map((t, i) => (
           <TouchableOpacity key={t.q} style={s.row} activeOpacity={0.85} onPress={() => setOpen(open === i ? null : i)}>
             <View style={s.rowHead}>
-              <View style={s.iconWrap}><Feather name={t.icon} size={16} color={NAVY} /></View>
+              <View style={s.iconWrap}><Feather name={t.icon} size={16} color={getTheme().ink.primary} /></View>
               <Text style={s.q}>{t.q}</Text>
-              <Feather name={open === i ? 'chevron-up' : 'chevron-down'} size={17} color="rgba(11,30,61,0.4)" />
+              <Feather name={open === i ? 'chevron-up' : 'chevron-down'} size={17} color={getTheme().ink.muted} />
             </View>
             {open === i ? <Text style={s.a}>{t.a}</Text> : null}
           </TouchableOpacity>
@@ -56,13 +58,13 @@ const s = themedSheet((t) => ({
   safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10 },
   backBtn: { flexDirection: 'row', alignItems: 'center', width: 60 },
-  backChev: { fontSize: 26, color: NAVY, marginRight: 2, marginTop: -3 },
-  backLbl: { fontSize: 15, color: NAVY, fontWeight: '600' },
-  headerTitle: { fontSize: 16, fontWeight: '800', color: NAVY },
-  lede: { fontSize: 13, color: 'rgba(11,30,61,0.55)', marginBottom: 14, marginTop: 4 },
-  row: { backgroundColor: 'rgba(11,30,61,0.035)', borderRadius: 14, paddingHorizontal: 14, paddingVertical: 13, marginBottom: 10 },
+  backChev: { fontSize: 26, color: t.ink.primary, marginRight: 2, marginTop: -3 },
+  backLbl: { fontSize: 15, color: t.ink.primary, fontWeight: '600' },
+  headerTitle: { fontSize: 16, fontWeight: '800', color: t.ink.primary },
+  lede: { fontSize: 13, color: t.ink.muted, marginBottom: 14, marginTop: 4 },
+  row: { backgroundColor: t.surface.sunken, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 13, marginBottom: 10 },
   rowHead: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  iconWrap: { width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(11,30,61,0.07)', alignItems: 'center', justifyContent: 'center' },
-  q: { flex: 1, fontSize: 14, fontWeight: '700', color: NAVY },
-  a: { fontSize: 13, lineHeight: 20, color: 'rgba(11,30,61,0.75)', marginTop: 10, marginLeft: 40 },
+  iconWrap: { width: 30, height: 30, borderRadius: 15, backgroundColor: t.surface.sunken, alignItems: 'center', justifyContent: 'center' },
+  q: { flex: 1, fontSize: 14, fontWeight: '700', color: t.ink.primary },
+  a: { fontSize: 13, lineHeight: 20, color: t.ink.secondary, marginTop: 10, marginLeft: 40 },
 }));

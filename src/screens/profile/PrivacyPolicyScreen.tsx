@@ -1,13 +1,14 @@
+import SettingsExit from '../../components/SettingsExit';
+import { settingsBack } from '../../navigation/settingsNavigation';
 /**
  * PrivacyPolicyScreen - what is collected, how it is used, and your controls.
  */
-import { themedSheet } from '../../theme/useTheme';
+import { themedSheet, useTheme } from '../../theme/useTheme';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { useNavigation } from '@react-navigation/native';
 
-const NAVY = '#0B1E3D';
 
 function Sec({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -20,16 +21,17 @@ function Sec({ title, children }: { title: string; children: React.ReactNode }) 
 
 export default function PrivacyPolicyScreen() {
   const navigation = useNavigation<any>();
+  const { isDark } = useTheme();
   const insets = useSafeAreaInsets();
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
       <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7}>
+        <TouchableOpacity onPress={() => settingsBack(navigation, 'Settings')} style={s.backBtn} activeOpacity={0.7}>
           <Text style={s.backChev}>{'\u2039'}</Text><Text style={s.backLbl}>Back</Text>
         </TouchableOpacity>
         <Text style={s.headerTitle}>Privacy Policy</Text>
-        <View style={{ width: 60 }} />
+        <SettingsExit navigation={navigation} />
       </View>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: Math.max(insets.bottom + 110, 130) }}>
         <Text style={s.updated}>Effective 28 July 2026</Text>
@@ -58,11 +60,11 @@ const s = themedSheet((t) => ({
   safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 10 },
   backBtn: { flexDirection: 'row', alignItems: 'center', width: 60 },
-  backChev: { fontSize: 26, color: NAVY, marginRight: 2, marginTop: -3 },
-  backLbl: { fontSize: 15, color: NAVY, fontWeight: '600' },
-  headerTitle: { fontSize: 16, fontWeight: '800', color: NAVY },
+  backChev: { fontSize: 26, color: t.ink.primary, marginRight: 2, marginTop: -3 },
+  backLbl: { fontSize: 15, color: t.ink.primary, fontWeight: '600' },
+  headerTitle: { fontSize: 16, fontWeight: '800', color: t.ink.primary },
   updated: { fontSize: 12, color: t.ink.muted, marginBottom: 14, marginTop: 4 },
   sec: { marginBottom: 16 },
-  secTitle: { fontSize: 14.5, fontWeight: '800', color: NAVY, marginBottom: 6 },
-  body: { fontSize: 13.5, lineHeight: 21, color: 'rgba(11,30,61,0.8)' },
+  secTitle: { fontSize: 14.5, fontWeight: '800', color: t.ink.primary, marginBottom: 6 },
+  body: { fontSize: 13.5, lineHeight: 21, color: t.ink.primary },
 }));

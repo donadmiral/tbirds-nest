@@ -446,7 +446,7 @@ function FunCameraInner({ navigation, insets, route }: { navigation: any; insets
 
       <View style={[s.topControls, { paddingTop: Math.max(insets.top, 12) + 8 }]}>
         <View style={s.cornerRow}>
-          <TouchableOpacity style={s.topBtn} onPress={() => navigation.goBack()} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel={returnTo==='feed'?'Back to post draft':'Close camera'} style={s.topBtn} onPress={() => navigation.goBack()} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
             <Feather name="x" size={24} color="#FFF" />
           </TouchableOpacity>
           <View style={{ flex: 1 }} />
@@ -515,6 +515,7 @@ function FunCameraInner({ navigation, insets, route }: { navigation: any; insets
           <View style={{ width: 44 }} />
         </View>
         <Text style={s.hintTxt}>{processing?'Preparing your capture…':recording ? (captureMode==='video'?'Tap to stop recording':'Release to stop') : captureMode==='video'?'Tap to record · up to 60 seconds':'Tap for photo · hold for video'}</Text>
+        {returnTo==='feed'&&!recording&&!processing?<Text style={[s.hintTxt,{fontSize:12,marginTop:6}]}>Add a voice effect in Edit video after recording.</Text>:null}
       </View>
 
       {tab === 'filters' && (

@@ -7,6 +7,7 @@ const ts=require('typescript');
 const root=path.resolve(__dirname,'../..');
 const compile=source=>ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText;
 const common={exports:{}};vm.runInNewContext(compile(fs.readFileSync(path.join(root,'shared/postMediaEditing.ts'),'utf8')),common);
+const voice={exports:{}};vm.runInNewContext(compile(fs.readFileSync(path.join(root,'shared/postVoiceEffects.ts'),'utf8')),voice);
 const walk=node=>!node||typeof node!=='object'?[]:Array.isArray(node)?node.flatMap(walk):[node,...walk(node.props?.children)];
 const content=node=>typeof node==='string'?node:Array.isArray(node)?node.map(content).join(''):node?.props?content(node.props.children):'';
 function harness(item){
@@ -15,7 +16,7 @@ function harness(item){
   const jsx=(type,props)=>({type,props});
   const styles={default:{}};const icons=new Proxy({},{get:(_,key)=>key});
   const exports={};
-  vm.runInNewContext(compile(fs.readFileSync(path.join(root,'web/components/PostMediaEditor.tsx'),'utf8')),{exports,require:name=>({'react':react,'react/jsx-runtime':{jsx,jsxs:jsx},'lucide-react':icons,'@/lib/stories':{STORY_FILTERS:[{id:'warm',label:'Warm',layers:[],css:'sepia(.2)'}],filterCss:()=>undefined},'./PostMediaEditor.module.css':styles,'../../shared/postMediaEditing':common.exports,'./StoryEngine':{AdjustOverlay:'AdjustOverlay'},'./PostCaption':{PostCaption:'PostCaption'}}[name]??{}),crypto:require('node:crypto').webcrypto,URL:{createObjectURL:()=> 'blob:chosen-cover',revokeObjectURL(){}},createImageBitmap:async()=>({close(){}})});
+  vm.runInNewContext(compile(fs.readFileSync(path.join(root,'web/components/PostMediaEditor.tsx'),'utf8')),{exports,require:name=>({'react':react,'react/jsx-runtime':{jsx,jsxs:jsx},'lucide-react':icons,'@/lib/stories':{STORY_FILTERS:[{id:'warm',label:'Warm',layers:[],css:'sepia(.2)'}],filterCss:()=>undefined},'./PostMediaEditor.module.css':styles,'../../shared/postMediaEditing':common.exports,'../../shared/postVoiceEffects':voice.exports,'./StoryEngine':{AdjustOverlay:'AdjustOverlay'},'./PostCaption':{PostCaption:'PostCaption'}}[name]??{}),crypto:require('node:crypto').webcrypto,URL:{createObjectURL:()=> 'blob:chosen-cover',revokeObjectURL(){}},createImageBitmap:async()=>({close(){}})});
   const props={item,index:0,total:1,onClose(){},onSave:(...value)=>saved.push(value)};
   const render=()=>{cursor=0;return exports.PostMediaEditor(props);};
   const button=(label)=>walk(render()).find(n=>n.type==='button'&&content(n)===label);
@@ -56,3 +57,13 @@ for(const [width,height,preset] of [[800,1000,'4:5'],[1000,1000,'1:1'],[1600,900
   reopened.click('Original');reopened.click('Reset crop');assert.deepEqual(selected(reopened),['4:5']);
  });
 }
+
+test('voice selection applies a real audible pitch-and-pace recipe and survives Apply',()=>{
+  const h=harness({preview:'blob:video',width:1080,height:1920,isVideo:true,edit:{muted:true,trimStart:2,trimEnd:8}});
+  h.click('Voice');
+  h.find(n=>n.type==='button'&&content(n).includes('Chipmunk')).props.onClick();
+  const player={duration:10,videoWidth:1080,videoHeight:1920,currentTime:0,playbackRate:1,preservesPitch:true};
+  h.find(n=>n.type==='video').props.onLoadedMetadata({currentTarget:player});
+  assert.equal(player.playbackRate,1.5);assert.equal(player.preservesPitch,false);
+  h.click('Apply');const [recipe]=h.saved[0];assert.equal(recipe.voiceEffect,'chipmunk');assert.equal(recipe.muted,false);assert.equal(recipe.trimStart,2);assert.equal(recipe.trimEnd,8);
+});

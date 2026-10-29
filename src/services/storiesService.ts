@@ -74,6 +74,7 @@ export type StoryTextSticker = {
   postMediaCount?: number;
   postMediaWidth?: number | null;
   postMediaHeight?: number | null;
+  postMediaPlayback?: import('../../shared/postVoiceEffects').PostPlaybackRecipe | null;
   mentionUsername?: string;
   questionPrompt?: string;
   sliderEmoji?: string;

@@ -2,7 +2,7 @@ import { useAfterTransition } from '../../lib/screenTransition';
 import { PostSkeleton } from '../../components/skeletons';
 import PollCard from '../../components/PollCard';
 import CollaboratorsSheet from '../../components/CollaboratorsSheet';
-import { themedSheet } from '../../theme/useTheme';
+import { themedSheet, useTheme } from '../../theme/useTheme';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import ArticleBody from '../../components/ArticleBody';
@@ -19,12 +19,13 @@ import CommentsPanel, { CommentsPanelHandle } from '../../components/feed/Commen
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, Image, Linking, Keyboard,
-  Alert, StatusBar, Dimensions, AppState,
+  Alert, StatusBar, useWindowDimensions, AppState,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { PostMedia } from '../../components/MediaRenderer';
 import PostCarousel, { CarouselMedia } from '../../components/PostCarousel';
+import PostMediaViewer from '../../components/PostMediaViewer';
 import ProductCarousel, { PostProduct } from '../../components/ProductCarousel';
 import { useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';
@@ -36,11 +37,6 @@ import * as Haptics from 'expo-haptics';
 
 const bounded = <T,>(work: PromiseLike<T>) => orderTimeout(work, 15000, 'The post could not be loaded. Please try again.');
 
-const SCREEN_W = Dimensions.get('window').width;
-const NAVY = '#0B1E3D';
-const TEXT_PRIMARY = '#000000';
-const TEXT_SECONDARY = '#8E8E93';
-const HAIRLINE = '#E5E5EA';
 
 type Post = {
   id: string; user_id: string; content: string;
@@ -69,6 +65,9 @@ function initials(name?: string | null) {
 }
 
 export default function PostScreen({ route, navigation }: any) {
+  const { t, isDark } = useTheme();
+  const { width: SCREEN_W, height: screenHeight } = useWindowDimensions();
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const { postId, focusComment } = route.params ?? {};
   const insets = useSafeAreaInsets();
   const userId = useAuthStore(state => state.session?.user.id ?? null);
@@ -258,22 +257,22 @@ export default function PostScreen({ route, navigation }: any) {
   const pinned = !post?.article_title && mediaItems.some((m) => m.media_type === 'video');
   const pinAspect = (mediaItems[0]?.edit as any)?.aspect as string | undefined;
   const pinRatio = pinAspect === 'square' ? 1 : pinAspect === 'landscape' ? 1 / 1.91 : 1.25;
-  const pinH = Math.min(Math.round(SCREEN_W * pinRatio), Math.round(Dimensions.get('window').height * 0.42));
+  const pinH = Math.min(Math.round(SCREEN_W * pinRatio), Math.round(screenHeight * 0.42));
   const pinW = Math.min(SCREEN_W, Math.round(pinH / pinRatio));
-  const pinBoxH = pinH + (mediaItems.length > 1 ? 22 : 0); // room for the page dots under a carousel
+  const pinBoxH = pinH + (mediaItems.length > 1 ? 40 : 0); // room for the page dots under a carousel
   const rowMedia: CarouselMedia[] = pinned ? [] : mediaItems; // a pinned video is drawn above the thread, not inside it
 
   const openThreadPost = (id: string) => { const nav: any = navigation; if (nav.push) { nav.push('Post', { postId: id }); } else { nav.navigate('Post', { postId: id }); } };
   const renderThreadRow = (t: any) => (
     <TouchableOpacity key={'t-' + t.id} style={{ flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 10 }} activeOpacity={0.85} onPress={() => openThreadPost(t.id)}>
-      <View style={{ width: 2, backgroundColor: '#D1D5DB', borderRadius: 1, marginRight: 12 }} />
+      <View style={{ width: 2, backgroundColor: t.surface.sunken, borderRadius: 1, marginRight: 12 }} />
       <View style={{ flex: 1 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-          <TierName userId={t.author?.id ?? t.user_id} baseStyle={{ fontSize: 13, fontWeight: '700', color: '#0A0A0A', flexShrink: 1 }} text={t.author?.full_name || t.author?.username || 'Member'} />
+          <TierName userId={t.author?.id ?? t.user_id} baseStyle={{ fontSize: 13, fontWeight: '700', color: t.ink.primary, flexShrink: 1 }} text={t.author?.full_name || t.author?.username || 'Member'} />
           <VerifiedBadge userId={t.author?.id ?? t.user_id} size={12} />
-          <Text style={{ fontSize: 13, fontWeight: '400', color: '#8E8E93' }}>{relTime(t.created_at)}</Text>
+          <Text style={{ fontSize: 13, fontWeight: '400', color: t.ink.muted }}>{relTime(t.created_at)}</Text>
         </View>
-        <Text style={{ fontSize: 14, color: '#111827', marginTop: 2 }} numberOfLines={3}>{t.content}</Text>
+        <Text style={{ fontSize: 14, color: t.ink.primary, marginTop: 2 }} numberOfLines={3}>{t.content}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -281,7 +280,7 @@ export default function PostScreen({ route, navigation }: any) {
   const a = post?.author;
   const header = post ? (
     <View>
-      {loadError ? <Text accessibilityRole="alert" style={{ padding: 16, color: '#B91C1C' }}>{loadError}</Text> : null}
+      {loadError ? <Text accessibilityRole="alert" style={{ padding: 16, color: t.status.danger }}>{loadError}</Text> : null}
       {threadAbove.map(renderThreadRow)}
       <View style={s.postBanner}>
         <TouchableOpacity
@@ -338,7 +337,8 @@ export default function PostScreen({ route, navigation }: any) {
             <PostCarousel postId={postId}
               media={rowMedia}
               containerWidth={SCREEN_W}
-              isActive={screenFocused}
+              isActive={screenFocused && viewerIndex === null}
+              onMediaPress={index => setViewerIndex(index ?? 0)}
             />
           </View>
         )}
@@ -377,19 +377,19 @@ export default function PostScreen({ route, navigation }: any) {
         <View style={s.postDivider} />
         <View style={s.postActionsRow}>
           <TouchableOpacity style={s.actionBtn} onPress={togglePostLike} activeOpacity={0.7}>
-            <Ionicons name={likedPost ? 'heart' : 'heart-outline'} size={18} color={likedPost ? '#FF3040' : TEXT_SECONDARY} />
+            <Ionicons name={likedPost ? 'heart' : 'heart-outline'} size={18} color={likedPost ? '#FF3040' : t.ink.muted} />
             <Text style={[s.actionTxt, likedPost && { color: '#FF3B30', fontWeight: '700' }]}>Like</Text>
           </TouchableOpacity>
           <TouchableOpacity style={s.actionBtn} onPress={() => panelRef.current?.focusInput()} activeOpacity={0.7}>
-            <Feather name="message-circle" size={16} color={TEXT_SECONDARY} />
+            <Feather name="message-circle" size={16} color={t.ink.muted} />
             <Text style={s.actionTxt}>Comment</Text>
           </TouchableOpacity>
         </View>
         {collabInvite ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 10, marginTop: 8, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(11,30,61,0.08)' }}>
-            <Text style={{ flex: 1, fontSize: 13.5, color: '#0B1E3D', fontWeight: '600' }}>You're invited to collaborate on this post</Text>
+            <Text style={{ flex: 1, fontSize: 13.5, color: t.ink.primary, fontWeight: '600' }}>You're invited to collaborate on this post</Text>
             <TouchableOpacity onPress={async () => { if (!userId) return; await supabase.from('post_collaborators').update({ status: 'accepted' }).eq('post_id', postId).eq('user_id', userId); setCollabInvite(false); load(); }} style={s.collabBtn} activeOpacity={0.8}><Text style={s.collabBtnTxt}>Accept</Text></TouchableOpacity>
-            <TouchableOpacity onPress={async () => { if (!userId) return; await supabase.from('post_collaborators').update({ status: 'declined' }).eq('post_id', postId).eq('user_id', userId); setCollabInvite(false); }} style={[s.collabBtn, s.collabBtnGhost]} activeOpacity={0.8}><Text style={[s.collabBtnTxt, { color: '#0B1E3D' }]}>Decline</Text></TouchableOpacity>
+            <TouchableOpacity onPress={async () => { if (!userId) return; await supabase.from('post_collaborators').update({ status: 'declined' }).eq('post_id', postId).eq('user_id', userId); setCollabInvite(false); }} style={[s.collabBtn, s.collabBtnGhost]} activeOpacity={0.8}><Text style={[s.collabBtnTxt, { color: t.ink.primary }]}>Decline</Text></TouchableOpacity>
           </View>
         ) : null}
       </View>
@@ -403,11 +403,11 @@ export default function PostScreen({ route, navigation }: any) {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={t.surface.canvas} />
 
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Feather name="chevron-left" size={26} color={NAVY} />
+          <Feather name="chevron-left" size={26} color={t.brand.base} />
         </TouchableOpacity>
         <Text style={s.headerTitle}>Post</Text>
         <View style={{ width: 40 }} />
@@ -415,15 +415,15 @@ export default function PostScreen({ route, navigation }: any) {
 
       {pinned ? (
         <View style={{ width: SCREEN_W, height: pinBoxH, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-          <PostCarousel media={mediaItems} containerWidth={pinW} isActive={screenFocused} postId={postId} flush />
+          <PostCarousel media={mediaItems} containerWidth={pinW} maxHeight={pinH} isActive={screenFocused && viewerIndex === null} postId={postId} flush onMediaPress={index => setViewerIndex(index ?? 0)} />
         </View>
       ) : null}
       {loading || !afterSlide ? (
         <PostSkeleton />
       ) : loadError && !post ? (
-        <View style={s.loader}><Text accessibilityRole="alert" style={{ color: '#B91C1C', padding: 16 }}>{loadError}</Text><TouchableOpacity onPress={() => { setLoading(true); void load(); }}><Text style={{ color: NAVY, fontWeight: '700', padding: 16 }}>Retry</Text></TouchableOpacity></View>
+        <View style={s.loader}><Text accessibilityRole="alert" style={{ color: t.status.danger, padding: 16 }}>{loadError}</Text><TouchableOpacity onPress={() => { setLoading(true); void load(); }}><Text style={{ color: t.brand.base, fontWeight: '700', padding: 16 }}>Retry</Text></TouchableOpacity></View>
       ) : notFound ? (
-        <View style={s.loader}><Feather name="eye-off" size={34} color="#9CA3AF" /><Text style={{ marginTop: 10, fontSize: 15, fontWeight: '600', color: '#6B7280' }}>This post isn't available</Text></View>
+        <View style={s.loader}><Feather name="eye-off" size={34} color="#9CA3AF" /><Text style={{ marginTop: 10, fontSize: 15, fontWeight: '600', color: t.ink.muted }}>This post isn't available</Text></View>
       ) : (
         <View style={s.body}>
           <CommentsPanel
@@ -440,6 +440,7 @@ export default function PostScreen({ route, navigation }: any) {
           <CollaboratorsSheet visible={collabSheet} people={postCollabs} onClose={() => setCollabSheet(false)} />
         </View>
       )}
+      {viewerIndex !== null ? <PostMediaViewer media={mediaItems} initialIndex={viewerIndex} postId={postId} onClose={() => setViewerIndex(null)} /> : null}
     </SafeAreaView>
   );
 }
@@ -453,30 +454,30 @@ const s = themedSheet((t) => ({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 12, paddingVertical: 10,
     backgroundColor: t.surface.canvas,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE,
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline,
   },
   backBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { fontSize: 16, fontWeight: '600', color: TEXT_PRIMARY, flex: 1, textAlign: 'center' },
+  headerTitle: { fontSize: 16, fontWeight: '600', color: t.ink.primary, flex: 1, textAlign: 'center' },
 
-  postBanner: { paddingTop: 16, paddingBottom: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE },
+  postBanner: { paddingTop: 16, paddingBottom: 16, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline },
   postAuthorRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12, paddingHorizontal: 16 },
   postAvatar: { width: 46, height: 46, borderRadius: 23 },
-  postAvatarFb: { backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
+  postAvatarFb: { backgroundColor: t.brand.base, alignItems: 'center', justifyContent: 'center' },
   postAvatarFbTxt: { fontSize: 15, fontWeight: '700', color: t.ink.inverse },
-  postAuthorName: { fontSize: 15, fontWeight: '600', color: TEXT_PRIMARY, letterSpacing: -0.1 },
-  postAuthorRole: { fontSize: 12, color: '#3C3C43', marginTop: 1 },
-  postAuthorSub: { fontSize: 11, color: TEXT_SECONDARY, marginTop: 1 },
+  postAuthorName: { fontSize: 15, fontWeight: '600', color: t.ink.primary, letterSpacing: -0.1 },
+  postAuthorRole: { fontSize: 12, color: t.ink.primary, marginTop: 1 },
+  postAuthorSub: { fontSize: 11, color: t.ink.muted, marginTop: 1 },
   articleWrap: { marginTop: 4 },
   galleryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 18 },
-  galleryFull: { width: '100%', height: 260, borderRadius: 14, backgroundColor: '#F2F3F5' },
-  galleryHalf: { width: '48%', height: 150, borderRadius: 14, backgroundColor: '#F2F3F5' },
-  articleMeta: { fontSize: 12, fontWeight: '700', color: TEXT_SECONDARY, letterSpacing: 0.3 },
-  articleTitle: { marginTop: 6, fontSize: 24, fontWeight: '800', color: TEXT_PRIMARY, lineHeight: 30 },
-  linkCard: { flexDirection: 'row', marginTop: 10, marginHorizontal: 16, borderRadius: 14, borderWidth: 1, borderColor: HAIRLINE, overflow: 'hidden' },
-  linkCardImg: { width: 84, height: 84, backgroundColor: '#F2F3F5' },
+  galleryFull: { width: '100%', height: 260, borderRadius: 14, backgroundColor: t.surface.sunken },
+  galleryHalf: { width: '48%', height: 150, borderRadius: 14, backgroundColor: t.surface.sunken },
+  articleMeta: { fontSize: 12, fontWeight: '700', color: t.ink.muted, letterSpacing: 0.3 },
+  articleTitle: { marginTop: 6, fontSize: 24, fontWeight: '800', color: t.ink.primary, lineHeight: 30 },
+  linkCard: { flexDirection: 'row', marginTop: 10, marginHorizontal: 16, borderRadius: 14, borderWidth: 1, borderColor: t.surface.hairline, overflow: 'hidden' },
+  linkCardImg: { width: 84, height: 84, backgroundColor: t.surface.sunken },
   linkCardBody: { flex: 1, padding: 10, justifyContent: 'center' },
-  linkCardDomain: { fontSize: 10.5, fontWeight: '700', color: TEXT_SECONDARY, textTransform: 'uppercase', letterSpacing: 0.4 },
-  linkCardTitle: { fontSize: 13.5, fontWeight: '700', color: TEXT_PRIMARY, marginTop: 2 },
+  linkCardDomain: { fontSize: 10.5, fontWeight: '700', color: t.ink.muted, textTransform: 'uppercase', letterSpacing: 0.4 },
+  linkCardTitle: { fontSize: 13.5, fontWeight: '700', color: t.ink.primary, marginTop: 2 },
 
   // Edge-to-edge media: negative margin cancels parent padding
   mediaEdgeWrap: { marginHorizontal: 0, marginBottom: 14 },
@@ -484,22 +485,22 @@ const s = themedSheet((t) => ({
   postCounts: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, paddingHorizontal: 16 },
   countsLeft: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   likeBubble: { width: 18, height: 18, borderRadius: 9, backgroundColor: '#FF3B30', alignItems: 'center', justifyContent: 'center' },
-  postCount: { fontSize: 13, color: TEXT_SECONDARY },
-  postDivider: { height: StyleSheet.hairlineWidth, backgroundColor: '#F0F0F0', marginBottom: 4, marginHorizontal: 16 },
+  postCount: { fontSize: 13, color: t.ink.muted },
+  postDivider: { height: StyleSheet.hairlineWidth, backgroundColor: t.surface.sunken, marginBottom: 4, marginHorizontal: 16 },
 
   postActionsRow: { flexDirection: 'row', justifyContent: 'space-around', paddingTop: 6, paddingHorizontal: 16 },
   actionBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8 },
-  actionTxt: { fontSize: 13, fontWeight: '500', color: '#3C3C43' },
-  collabBtn: { backgroundColor: NAVY, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7 },
+  actionTxt: { fontSize: 13, fontWeight: '500', color: t.ink.primary },
+  collabBtn: { backgroundColor: t.brand.base, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7 },
   collabBtnGhost: { backgroundColor: 'transparent', borderWidth: 1, borderColor: 'rgba(11,30,61,0.25)' },
   collabBtnTxt: { color: t.ink.inverse, fontSize: 13, fontWeight: '700' },
 
   sectionHeader: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
     paddingHorizontal: 16, paddingVertical: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F5F5F5',
+    borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline,
   },
-  sectionHeaderTxt: { fontSize: 14, fontWeight: '700', color: TEXT_PRIMARY },
-  sectionBadge: { backgroundColor: '#F2F2F7', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 },
-  sectionBadgeTxt: { fontSize: 11, fontWeight: '700', color: '#3C3C43' },
+  sectionHeaderTxt: { fontSize: 14, fontWeight: '700', color: t.ink.primary },
+  sectionBadge: { backgroundColor: t.surface.sunken, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 },
+  sectionBadgeTxt: { fontSize: 11, fontWeight: '700', color: t.ink.primary },
 }));

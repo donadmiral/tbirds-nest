@@ -81,6 +81,11 @@ export function ApplyPanel({ jobId, applyUrl, deadline }: { jobId: string; apply
       const uid = sess.session?.user.id;
       if (!uid) throw new Error("Sign in to apply.");
       if (token !== generation.current) return;
+      const { data: currentJob, error: currentJobError } = await supabase.from("jobs")
+        .select("id, deadline").eq("id", jobId).maybeSingle();
+      if (currentJobError) throw currentJobError;
+      if (!currentJob || isJobDeadlinePassed(currentJob.deadline)) throw new Error("This job is closed for new applications.");
+      if (token !== generation.current) return;
       const portfolioValue = portfolio.trim();
       if (portfolioValue) {
         let url: URL;

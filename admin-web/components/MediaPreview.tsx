@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition, type CSSProperties } from 'react';
 import { useRouter } from 'next/navigation';
+import { applyPostPlayback } from '../../shared/postVoiceEffects';
 import { postAspectRatio, postCaptionAt, postTimeLabel, postTrimWindow, type PostFrameRecipe } from '../../shared/postMediaEditing';
 import { STORY_FILTERS, filterCss } from '../../shared/storyFilterAppearance';
 import { AdjustOverlay, type StoryAdjust } from './StoryAdjustOverlay';
@@ -88,7 +89,7 @@ function MediaPreviewSource({ url, video = false, thumbnail = false, edit, width
           if (!Number.isFinite(element.duration) || element.duration <= 0) return;
           const window = postTrimWindow(element.duration, edit?.trimStart, edit?.trimEnd);
           setDuration(element.duration);
-          element.playbackRate = bounded(edit?.speed, 1, .25, 3);
+          applyPostPlayback(element,edit);
           element.currentTime = thumbnail ? bounded(edit?.coverAt, Math.min(window.start + .1, window.coverEnd), window.start, window.coverEnd) : window.start;
           setTime(element.currentTime);
         }} onTimeUpdate={event => {

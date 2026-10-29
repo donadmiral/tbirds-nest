@@ -90,7 +90,6 @@ export default function VerificationPage() {
 
   return (
     <div className="mx-auto max-w-[640px] px-4 py-6">
-      <Link href="/settings" className="inline-flex items-center gap-1.5 text-[13px] text-ink/60 hover:text-ink"><ArrowLeft size={14} /> Settings</Link>
       <h1 className="mt-4 flex items-center gap-2 font-display text-[24px] font-bold text-ink"><BadgeCheck size={22} className="text-accent" /> Apply for verification</h1>
       <p className="mt-1 text-[13.5px] text-ink/60">A verified seal tells people the account is who it says it is. Applications are reviewed by a person, and you hear back in the app.</p>
 
