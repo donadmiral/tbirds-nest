@@ -28,7 +28,7 @@ export async function loadPostStorySticker(
   assertCurrent();
   if (profile.error || gallery.error) throw new Error('The post could not load. Please try again.');
   const author = profile.data;
-  if (!author || author.deactivated_at || author.profile_visibility === 'private') {
+  if (!author || author.deactivated_at || (author.profile_visibility ?? 'public') !== 'public') {
     throw new Error('Only posts from public profiles can be added to a story.');
   }
   const first = gallery.data?.[0];
@@ -42,7 +42,7 @@ export async function loadPostStorySticker(
     postVerified: !!author.is_verified, postVerifiedTier: author.verified_tier,
     postText: post.content || post.body || '', postArticleTitle: post.article_title,
     postMediaUrl: mediaUrl,
-    postMediaType: first?.media_type || (mediaUrl && /\.(mp4|mov|webm)(?:[?#]|$)/i.test(mediaUrl) ? 'video' : 'image'),
+    postMediaType: first?.media_type || (mediaUrl && /\.(mp4|mov|webm|m4v)(?:[?#]|$)/i.test(mediaUrl) ? 'video' : 'image'),
     postMediaCount: Math.max(gallery.data?.length || 0, mediaUrl ? 1 : 0),
     postMediaWidth: first?.width || null, postMediaHeight: first?.height || null,
     postCreatedAt: post.created_at,

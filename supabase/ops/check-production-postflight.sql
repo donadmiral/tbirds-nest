@@ -1,10 +1,13 @@
--- Read-only checks AFTER every reviewed production unit has committed.
--- Match these results to production-rollout-20261029.json and the release log.
-
+-- Read-only checks AFTER the small visual-only production chain commits.
+-- One result keeps all checks visible through the hosted SQL connector.
 WITH required(signature) AS (VALUES
   ('public.publish_story_v2(uuid,uuid,jsonb)'),
   ('public.content_media_manifest(jsonb)'),
   ('public.content_upload_manifest(jsonb)'),
+  ('public.get_feed_visibility(uuid[])'),
+  ('public.feed_media_access_allowed(uuid)'),
+  ('public.feed_media_json(uuid)'),
+  ('public.get_trending_stories(integer)'),
   ('public.get_memory_albums(uuid)'),
   ('public.get_memory_book(uuid)'),
   ('public.create_memory_book_presentation(text,text,text,text,uuid[],uuid)'),
@@ -12,52 +15,44 @@ WITH required(signature) AS (VALUES
   ('public.open_legacy_chat_media(uuid,uuid)'),
   ('public.consume_media_view(uuid)'),
   ('public.start_group_call_membership(uuid,boolean)'),
-  ('public.account_export_snapshot()')
+  ('public.join_group_call_membership(uuid)'),
+  ('public.leave_group_call_membership(uuid,uuid)')
+), rpc_checks AS (
+  SELECT r.signature,p.oid IS NOT NULL AS exists,
+    pg_get_function_result(p.oid) AS result_shape,
+    coalesce(has_function_privilege('anon',p.oid,'EXECUTE'),false) AS anon_can_execute,
+    coalesce(has_function_privilege('authenticated',p.oid,'EXECUTE'),false) AS authenticated_can_execute
+  FROM required r LEFT JOIN pg_proc p ON p.oid=to_regprocedure(r.signature)
+), snapshots AS (
+  SELECT entity_kind,count(*) AS reviewed_pairs,
+    count(*) FILTER (WHERE revoked_at IS NULL) AS active_pairs
+  FROM content_media_legacy.snapshots GROUP BY entity_kind
 )
-SELECT r.signature, p.oid IS NOT NULL AS exists,
-  pg_get_function_result(p.oid) AS result_shape,
-  coalesce(has_function_privilege('anon', p.oid, 'EXECUTE'), false) AS anon_can_execute,
-  coalesce(has_function_privilege('authenticated', p.oid, 'EXECUTE'), false) AS authenticated_can_execute
-FROM required r LEFT JOIN pg_proc p ON p.oid = to_regprocedure(r.signature)
-ORDER BY r.signature;
-
--- All pre-existing public buckets must retain their original visibility.
--- Newly created application-cvs and channel-media must be private.
-SELECT id, public FROM storage.buckets ORDER BY id;
-
--- Production must have ten exact snapshots: five post and five story pairs.
--- The separate preflight SQL proves the ten current object fingerprints.
-SELECT entity_kind, count(*) AS reviewed_pairs,
-  count(*) FILTER (WHERE revoked_at IS NULL) AS active_pairs
-FROM content_media_legacy.snapshots GROUP BY entity_kind ORDER BY entity_kind;
-
-SELECT to_regnamespace('private_media') IS NULL AS private_cutover_held,
-  to_regproc('public.triniti_admin_single_owner_access') IS NULL AS qa_exception_excluded;
-
--- These stay disabled. This release creates no monetary transfer or worker job.
-SELECT enrollment_open FROM creator_finance.program;
-SELECT id, payouts_enabled FROM creator_finance.providers ORDER BY id;
-SELECT (to_jsonb(c)->>'sandbox_enabled')::boolean AS sandbox_enabled
-FROM creator_finance.commerce_config c;
-
--- Confirm the legacy entry point retains the installed app's original shape.
-SELECT pg_get_function_result('public.consume_media_view(uuid)'::regprocedure)
-  = 'TABLE(url text, remaining integer)' AS legacy_result_compatible;
-
--- No direct client may read/write the finite exception registry.
-SELECT has_table_privilege('authenticated', 'content_media_legacy.snapshots', 'SELECT') AS client_can_read_snapshot,
-  has_table_privilege('authenticated', 'content_media_legacy.snapshots', 'INSERT') AS client_can_add_snapshot,
-  has_table_privilege('authenticated', 'public.content_media_bindings', 'INSERT') AS client_can_forge_binding;
-
--- The existing video webhook has a service-only lease API; clients get no
--- processing capabilities, and all final writes pass through the version guard.
-WITH worker(signature) AS (VALUES
-  ('public.claim_faststart_video_remux(text,text,uuid,text)'),
-  ('public.check_faststart_video_remux(uuid)'),
-  ('public.release_faststart_video_remux(uuid)')
-)
-SELECT w.signature, p.oid IS NOT NULL AS exists,
-  coalesce(has_function_privilege('authenticated', p.oid, 'EXECUTE'), false) AS authenticated_can_execute,
-  coalesce(has_function_privilege('service_role', p.oid, 'EXECUTE'), false) AS service_can_execute
-FROM worker w LEFT JOIN pg_proc p ON p.oid = to_regprocedure(w.signature)
-ORDER BY w.signature;
+SELECT jsonb_build_object(
+  'client_rpc_checks',(SELECT jsonb_agg(to_jsonb(r) ORDER BY signature) FROM rpc_checks r),
+  'bucket_visibility',(SELECT jsonb_agg(jsonb_build_object('id',id,'public',public) ORDER BY id) FROM storage.buckets),
+  'legacy_snapshots',coalesce((SELECT jsonb_agg(to_jsonb(s) ORDER BY entity_kind) FROM snapshots s),'[]'::jsonb),
+  'legacy_result_compatible',pg_get_function_result('public.consume_media_view(uuid)'::regprocedure)='TABLE(url text, remaining integer)',
+  'registry_client_permissions',jsonb_build_object(
+    'can_read_snapshot',has_table_privilege('authenticated','content_media_legacy.snapshots','SELECT'),
+    'can_add_snapshot',has_table_privilege('authenticated','content_media_legacy.snapshots','INSERT'),
+    'can_forge_binding',has_table_privilege('authenticated','public.content_media_bindings','INSERT')
+  ),
+  'held_changes',jsonb_build_object(
+    'private_cutover_held',to_regnamespace('private_media') IS NULL,
+    'qa_exception_excluded',to_regproc('public.triniti_admin_single_owner_access') IS NULL,
+    'music_validator_absent',to_regproc('public.validate_soundtrack') IS NULL,
+    'music_origins_absent',to_regclass('public.music_asset_origins') IS NULL,
+    'music_events_absent',to_regclass('public.music_rights_events') IS NULL,
+    'music_wrapper_absent',to_regprocedure('public.content_media_manifest_before_sound_rights(jsonb)') IS NULL,
+    'soundtrack_column_absent',NOT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='memory_albums' AND column_name='soundtrack'),
+    'finance_revenue_policies_absent',to_regclass('creator_finance.revenue_policies') IS NULL,
+    'finance_commerce_config_absent',to_regclass('creator_finance.commerce_config') IS NULL,
+    'finance_subscription_periods_absent',to_regclass('creator_finance.subscription_periods') IS NULL,
+    'active_subscription_api_absent',to_regproc('public.creator_has_active_subscription') IS NULL,
+    'admin_commands_absent',to_regclass('admin_ops.commands') IS NULL,
+    'new_diagnostics_api_absent',to_regprocedure('public.report_client_error(jsonb)') IS NULL,
+    'faststart_schema_absent',to_regnamespace('content_media_processing') IS NULL,
+    'faststart_api_absent',to_regproc('public.claim_faststart_video_remux') IS NULL
+  )
+) AS postflight;

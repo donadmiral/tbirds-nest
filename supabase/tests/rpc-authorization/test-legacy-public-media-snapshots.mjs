@@ -62,7 +62,7 @@ test.before(async () => {
   const plan = JSON.parse(await readFile(new URL('supabase/ops/production-rollout-20261029.json', root), 'utf8'));
   for (const unit of plan.units) {
     const sources = await Promise.all(unit.files.map(file => readFile(new URL(file.path, root), 'utf8')));
-    if (unit.name.endsWith('legacy_public_media_snapshots')) {
+    if (unit.legacySnapshotRegistry === true) {
       // Only the ten review fingerprints are fixture substitutions. The same
       // candidate query, exact-match whitelist and all runtime SQL are executed.
       const fingerprints = [];

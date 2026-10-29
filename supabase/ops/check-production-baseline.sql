@@ -1,4 +1,5 @@
--- Read-only gate before the first production rollout unit. All eight must match.
+-- Historical read-only gate before the first production rollout unit.
+-- Units 1–7 are now applied: use check-production-resume.sql before continuing.
 WITH expected(name, definition_md5) AS (VALUES
   ('get_feed','a5ba28b77f27dad8725fd6b0717106ec'),
   ('get_memory_albums','e8a351ece459652588539597b380d0bf'),

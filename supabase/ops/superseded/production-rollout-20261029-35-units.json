@@ -1,0 +1,675 @@
+{
+  "schemaVersion": 2,
+  "reviewDate": "2026-10-29",
+  "projectRef": "prlkikhckbifseosbukl",
+  "sourceBaseCommit": "b0c8fb377c3e78a61416fb6bff8e5bdf8381bd36",
+  "cloudMutated": true,
+  "bucketVisibilityMustRemainUnchanged": true,
+  "units": [
+    {
+      "order": 1,
+      "name": "20261022173041_platinum_private_application_cvs",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022173041_platinum_private_application_cvs.sql",
+          "sha256": "a5b98b749af9047147a969707c46a39845149207d8fc0c4cd862105c0984d550"
+        }
+      ],
+      "originalOrders": [
+        1
+      ],
+      "status": "applied"
+    },
+    {
+      "order": 2,
+      "name": "20261022173052_account_export_snapshot",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022173052_account_export_snapshot.sql",
+          "sha256": "a70c54b21bfb25d79173c8b1238912a558e6ee7ab88776ca54b943d414a1e174"
+        }
+      ],
+      "originalOrders": [
+        2
+      ],
+      "status": "applied"
+    },
+    {
+      "order": 3,
+      "name": "20261022173111_creator_monetization_foundation",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022173111_creator_monetization_foundation.sql",
+          "sha256": "fde33346f52ecdeec4b67d5640ed237add22451aa29c99dcee6aed78709fbb63"
+        }
+      ],
+      "originalOrders": [
+        3
+      ],
+      "status": "applied"
+    },
+    {
+      "order": 4,
+      "name": "20261022211223_marketplace_order_lifecycle",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022211223_marketplace_order_lifecycle.sql",
+          "sha256": "3834c909a543f9cef62c89cd772033c67d58126d177902d59526a9b45eaf8036"
+        }
+      ],
+      "originalOrders": [
+        4
+      ],
+      "status": "applied"
+    },
+    {
+      "order": 5,
+      "name": "20261022211236_message_call_access_compatible",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022211236_message_call_access.sql",
+          "sha256": "d4ef8ddd99fd5e29fd37d4b2cc92a38f063725dc6b5f225af61ed09dc9c11204"
+        },
+        {
+          "path": "supabase/migrations/20261029045648_legacy_chat_media_compatibility.sql",
+          "sha256": "a82333c55306f6123597fcd1e6acd8642dcfbe001fc76d055377e7fd8668b899"
+        }
+      ],
+      "originalOrders": [
+        5
+      ],
+      "status": "applied"
+    },
+    {
+      "order": 6,
+      "name": "20261022211253_social_directory_history_quality",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022211253_social_directory_history_quality.sql",
+          "sha256": "2ed303bacd7abc059e866c90d0b39acdb515c2e730dfed3eaed73f45248d6a77"
+        }
+      ],
+      "originalOrders": [
+        6
+      ],
+      "status": "applied"
+    },
+    {
+      "order": 7,
+      "name": "20261022211259_platinum_story_editor_and_hiring",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022211259_platinum_story_editor_and_hiring.sql",
+          "sha256": "8fd053855ae8bc8df568d84f72aad4e791944d7a77eb353d42336b17428208d1"
+        }
+      ],
+      "originalOrders": [
+        7
+      ],
+      "status": "applied"
+    },
+    {
+      "order": 8,
+      "name": "20261022211313_creator_finance_operations",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022211313_creator_finance_operations.sql",
+          "sha256": "544ea6e28782fe95c03465a10463f30e1909f7a71f7bd6c31a1a51d4bf1578f6"
+        }
+      ],
+      "originalOrders": [
+        9
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 9,
+      "name": "20261022211400_creator_product_entitlements",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022211400_creator_product_entitlements.sql",
+          "sha256": "2e7c9ef883033d2e4e579851d8f285d2514a86b8faadcaafa8c4c57a7108a399"
+        }
+      ],
+      "originalOrders": [
+        10
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 10,
+      "name": "20261022211411_feed_snapshot_visibility",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022211411_feed_snapshot_visibility.sql",
+          "sha256": "803023d64155032f6550bea0ad1dea821e8e1e3c7c159da298b6572bd3e0fe79"
+        }
+      ],
+      "originalOrders": [
+        11
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 11,
+      "name": "20261022211448_business_publishing_and_receipts",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022211448_business_publishing_and_receipts.sql",
+          "sha256": "37b524c77eeea048d3c4d3a21d143f4c6695ff6aab516300c22e3092617789e9"
+        }
+      ],
+      "originalOrders": [
+        12
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 12,
+      "name": "20261022211637_hiring_workflow_quality",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022211637_hiring_workflow_quality.sql",
+          "sha256": "5e85104b568d7370cd0e882a342c5e2694190a9b2b633da5fa491a96f90070db"
+        }
+      ],
+      "originalOrders": [
+        13
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 13,
+      "name": "20261022211641_feed_mute_feedback",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022211641_feed_mute_feedback.sql",
+          "sha256": "783ece6e9448d2df167417b0597c01f68f014fabd709ccb5c46546464fe817f4"
+        }
+      ],
+      "originalOrders": [
+        14
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 14,
+      "name": "20261029054347_visual_content_media_manifests",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261029054347_visual_content_media_manifests.sql",
+          "sha256": "5eecc44e96d6130e2b7acf103eca586e760731999cca6b78437f6edaa0d0b8d2"
+        }
+      ],
+      "originalOrders": [
+        15
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 15,
+      "name": "20261022211649_creator_finance_review",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022211649_creator_finance_review.sql",
+          "sha256": "f3d75f10a88d029f7264015bc6e766977a36a9967c59eb2d7772710d10f05607"
+        }
+      ],
+      "originalOrders": [
+        16
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 16,
+      "name": "20261022211701_admin_payment_reporting_and_support",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022211701_admin_payment_reporting_and_support.sql",
+          "sha256": "fba8914c4a186cbbcf4f977dd2399434ce26919d23a8310936521137a40815a9"
+        }
+      ],
+      "originalOrders": [
+        17
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 17,
+      "name": "20261022211835_admin_command_provision_contracts",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022211835_admin_command_provision_contracts.sql",
+          "sha256": "4b922762a877591ca1f6023b3fbdac428c27ad3a1daa7a4d2a7ed030b6168f0f"
+        }
+      ],
+      "originalOrders": [
+        18
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 18,
+      "name": "20261023185734_redacted_client_diagnostics",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261023185734_redacted_client_diagnostics.sql",
+          "sha256": "85061d9e1adb75d6b50ef912210dec2d88175d5b7c6929d7482b9da34ee4f998"
+        }
+      ],
+      "originalOrders": [
+        19
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 19,
+      "name": "20261023185851_market_receipt_binding_immutable",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261023185851_market_receipt_binding_immutable.sql",
+          "sha256": "81115e8b4a5df2c4f3f9c1a744d240a881b88784efa5b3acb603ba31efd4009d"
+        }
+      ],
+      "originalOrders": [
+        20
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 20,
+      "name": "20261023190047_content_owner_upload_previews",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261023190047_content_owner_upload_previews.sql",
+          "sha256": "2ca847ba47d5eed8e4157244a94c174c80a5a69c6656e2c6ccd82aa8367f93f0"
+        }
+      ],
+      "originalOrders": [
+        21
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 21,
+      "name": "20261023190254_creator_finance_dispatch_and_refund_guards",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261023190254_creator_finance_dispatch_and_refund_guards.sql",
+          "sha256": "baa64ca0da6425ec275c76787b5bd39e462ec673c99fb67d9605a3421c04c08a"
+        }
+      ],
+      "originalOrders": [
+        22
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 22,
+      "name": "20261023190316_admin_moderation_removal_guards",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261023190316_admin_moderation_removal_guards.sql",
+          "sha256": "ec0bec73bacf4a0e493dcd7a035badaeeafa54fbb3618a022df20ffe8ac1b453"
+        }
+      ],
+      "originalOrders": [
+        23
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 23,
+      "name": "20261023190601_platinum_storage_bootstrap",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261023190601_platinum_storage_bootstrap.sql",
+          "sha256": "f26d3657a23cb69356c2c9f2d24bc29ca645d2f1a1fc5382625dfb09167cd7c3"
+        }
+      ],
+      "originalOrders": [
+        24
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 24,
+      "name": "20261023191000_support_triage",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261023191000_support_triage.sql",
+          "sha256": "040bcae8d11f7b9ddf94a82bd67ec0853e7405fb6633fa38ba47e6125b7c00b6"
+        }
+      ],
+      "originalOrders": [
+        25
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 25,
+      "name": "20261023193500_call_membership_recovery",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261023193500_call_membership_recovery.sql",
+          "sha256": "e0cebdcd5a76ff486ce2c51358b788d7839883135b3c893f7b7f27bc36f72538"
+        }
+      ],
+      "originalOrders": [
+        27
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 26,
+      "name": "20261025073211_marketplace_verified_reviews",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261025073211_marketplace_verified_reviews.sql",
+          "sha256": "47dc3b396af2c1b9d17c59879d62f19c5087a9f71f637a30d5494787240becbb"
+        }
+      ],
+      "originalOrders": [
+        28
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 27,
+      "name": "20261025073232_verification_integrity",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261025073232_verification_integrity.sql",
+          "sha256": "58d3558991d3ec8d71020c13db2c7a2699e3f67459466ef3fd08bc3c4451a9e7"
+        }
+      ],
+      "originalOrders": [
+        29
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 28,
+      "name": "20261025073234_applicant_self_service_quality",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261025073234_applicant_self_service_quality.sql",
+          "sha256": "509c163953e6e3047efbfc642878cea1ca5f8f500ff38d4a6bbda51d433f1cc8"
+        }
+      ],
+      "originalOrders": [
+        30
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 29,
+      "name": "20261025073235_trending_story_visibility",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261025073235_trending_story_visibility.sql",
+          "sha256": "526d2d9483b627cc224c6504ee6841f4048b329a36f68d49c00be250da772ef8"
+        }
+      ],
+      "originalOrders": [
+        31
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 30,
+      "name": "20261026064639_post_media_edit_projections",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261026064639_post_media_edit_projections.sql",
+          "sha256": "9eeb13d5ca4aac2662615fa05971d57cd404d124f1ca2682d8af7bcec6166dc5"
+        }
+      ],
+      "originalOrders": [
+        33
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 31,
+      "name": "20261029054043_memory_book_visual_presentation",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261029054043_memory_book_visual_presentation.sql",
+          "sha256": "00a4aa58ed48b891dd33fd883778459f315f28c045961c0a95ca3a8d22b67987"
+        }
+      ],
+      "originalOrders": [
+        34,
+        37
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 32,
+      "name": "20261029054351_story_visual_publication_controls",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261029054351_story_visual_publication_controls.sql",
+          "sha256": "c101fe2f19b37b9516fa12e95d45898c1ef21fe4c837f0a26f66bcde3f9c24c3"
+        }
+      ],
+      "originalOrders": [
+        35,
+        38
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 33,
+      "name": "20261028153700_discover_media_access_guards",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261028153700_discover_media_access_guards.sql",
+          "sha256": "cff928cf9b2a9e240540e941e62ffdd464cee4663274bcbacd58d9af1314798f"
+        }
+      ],
+      "originalOrders": [
+        36
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 34,
+      "name": "20261029054355_visual_media_legacy_snapshots",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261029054355_visual_media_legacy_snapshots.sql",
+          "sha256": "36f6b84c4566375ee0053f8f987d051073db3c23c09a50c19b912843a11eb89f"
+        }
+      ],
+      "productionExpectedLegacySnapshots": 10,
+      "originalOrders": [
+        39
+      ],
+      "status": "pending",
+      "legacySnapshotRegistry": true
+    },
+    {
+      "order": 35,
+      "name": "20261029051017_faststart_registered_provenance",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261029051017_faststart_registered_provenance.sql",
+          "sha256": "541f963206f16588d791cc6a9abe9487ec0d1a3285a54fe9601bdc29a2789c6d"
+        }
+      ],
+      "originalOrders": [
+        40
+      ],
+      "status": "pending"
+    }
+  ],
+  "excluded": [
+    {
+      "path": "supabase/migrations/20261023185729_chat_storage_cutover_and_reference_guards.sql",
+      "reason": "Hold: flips existing public chat buckets private and changes legacy object access. Requires coordinated installed-client adoption."
+    },
+    {
+      "path": "supabase/migrations/20261025073213_single_owner_qa_access.sql",
+      "reason": "Exclude production: QA-only sole-owner assurance exception. Production admin keeps AAL2."
+    },
+    {
+      "path": "supabase/migrations/20261023190325_scoped_call_worker_credential.sql",
+      "reason": "Defer: only required by the daily-reconcile worker, which is not part of this rollout. Do not generate or distribute a worker secret."
+    },
+    {
+      "path": "supabase/migrations/20261028150938_private_media_sessions.sql",
+      "reason": "Hold: changes historical expiry, recipients/counters, media representation, object reservation and erasure lifecycle; incompatible with legacy installed clients."
+    },
+    {
+      "path": "supabase/migrations/20261022211311_story_sound_rights.sql",
+      "reason": "Excluded: user explicitly excluded music infrastructure. Original unit 8 was rejected by automatic approval review; do not retry or install equivalent music schema through another unit."
+    },
+    {
+      "path": "supabase/migrations/20261022211648_content_media_manifests.sql",
+      "reason": "Replaced with visual-only media bindings/manifest; no sound entity, rights reuse or audio URL signing."
+    },
+    {
+      "path": "supabase/migrations/20261023192203_story_soundtrack_authoring.sql",
+      "reason": "Excluded: user explicitly excluded music infrastructure. Original unit 8 was rejected by automatic approval review; do not retry or install equivalent music schema through another unit."
+    },
+    {
+      "path": "supabase/migrations/20261026063625_soundtrack_rights_and_post_audio.sql",
+      "reason": "Excluded: user explicitly excluded music infrastructure. Original unit 8 was rejected by automatic approval review; do not retry or install equivalent music schema through another unit."
+    },
+    {
+      "path": "supabase/migrations/20261028151016_memory_book_design_and_soundtrack.sql",
+      "reason": "Replaced with visual book metadata/ownership/order only; no soundtrack column, validation or parameter."
+    },
+    {
+      "path": "supabase/migrations/20261028152200_story_mention_reshare_quality.sql",
+      "reason": "Replaced with visual publication controls; rejects non-null audio_draft and installs no music resolver."
+    },
+    {
+      "path": "supabase/migrations/20261028185149_memory_book_presentation.sql",
+      "reason": "Merged into the visual book migration; no album soundtrack or story audio projection."
+    },
+    {
+      "path": "supabase/migrations/20261029044445_story_reply_controls.sql",
+      "reason": "Merged into visual publication controls so reply settings do not depend on the excluded audio publisher."
+    },
+    {
+      "path": "supabase/migrations/20261029050453_legacy_public_media_snapshots.sql",
+      "reason": "Replaced with the same finite read snapshot anchored directly to the visual manifest; no music-wrapper dependency."
+    },
+    {
+      "path": "supabase/migrations/20261029055318_memory_book_reader_visual_projection.sql",
+      "reason": "QA-only compatibility projection; production receives these exact two reader definitions in unit31. Do not replay this duplicate on production."
+    }
+  ],
+  "edgeFunctions": [
+    "content-media-sign",
+    "chat-media-sign",
+    "export-my-data",
+    "crisp-bridge",
+    "faststart-video"
+  ],
+  "baselineDoNotReplay": [
+    "00000000000151_capture_functions.sql",
+    "00000000000152_organizations.sql",
+    "20260910230211_chat_payment_recovery.sql"
+  ],
+  "productionBaselineFunctionMd5": {
+    "get_feed": "a5ba28b77f27dad8725fd6b0717106ec",
+    "get_memory_albums": "e8a351ece459652588539597b380d0bf",
+    "get_memory_book": "5a30eab09e21eb149309d9add37e0892",
+    "guard_payment_receipt_message": "e32bb3284b8c967ac7c4db2ae2938cf5",
+    "post_payment_message": "54f28d6cf740467c89ddb58709a6f042",
+    "preserve_chat_payment_record": "1b5d69dee5033327aaca401c6176c5fb",
+    "start_group_call": "875d741877cb5e5521788cb120396103",
+    "sweep_dead_calls": "e964a8734f3f924079b86529d39e8720"
+  },
+  "edgeFunctionNotes": {
+    "content-media-sign": "Built-in Supabase keys only; user-JWT manifest, exact matched paths,300-second URLs.",
+    "chat-media-sign": "Built-in Supabase keys; compatible legacy consume bridge with original grant expiry; private-session installations refuse the legacy path.",
+    "export-my-data": "Built-in URL/anon key, caller JWT reaches snapshot unchanged; no service identity or new worker.",
+    "crisp-bridge": "Existing CRISP_API_URL/CRISP_API_KEY required; updated order-aware receipts. No test transfer or payout is authorized by this rollout. Preserve verify_jwt=false: the handler authenticates the caller itself before payment access. Existing direct-payment and receipt-replay requests remain compatible; legacy new listing-only payment requests return an unsent MARKET_ORDER_REQUIRED 409.",
+    "daily-get-token": "HOLD production v34 after exact-source compatibility audit; do not replace with the stricter current source in this rollout.",
+    "faststart-video": "Built-in URL/service-role key; authenticated webhook, verified published bindings, exact Storage version/ETag and short commit lease. Files index.ts,handler.ts,remux.ts; verify_jwt=true. No active database webhook was found in production preflight; deployment does not establish an active processing pipeline or create a new webhook."
+  },
+  "privateMediaProtocolEnabled": {
+    "development": false,
+    "preview": false,
+    "production": false
+  },
+  "heldEdgeFunctions": {
+    "daily-get-token": {
+      "productionVersion": 34,
+      "reason": "Exact downloaded production handler accepts current callSessionId input; newer strict provider-membership handler can race incoming group-call join on installed clients. Keep v34. Provider-token identity binding/short TTL guarantees are not part of this release."
+    },
+    "crisp-payment-recovery": {
+      "productionVersion": 2,
+      "reason": "Existing worker remains compatible with persisted payment outcomes. Do not invoke or launch recovery workers during this UI release."
+    }
+  },
+  "reviewStatus": "ready-for-release-owner-review",
+  "musicInfrastructureExcluded": true,
+  "musicCatalogueEnabled": false,
+  "productionResumeAfterUnit": 7,
+  "productionAppliedPrefixEvidence": "Release owner reported units 1\u20137 successfully applied before original unit 8 was rejected. Re-read hosted history and resume checks; never replay the prefix.",
+  "productionResumeFunctionMd5": {
+    "public.get_feed(text,double precision,uuid,integer)": "a5ba28b77f27dad8725fd6b0717106ec",
+    "public.get_memory_albums(uuid)": "e8a351ece459652588539597b380d0bf",
+    "public.get_memory_book(uuid)": "5a30eab09e21eb149309d9add37e0892",
+    "public.get_discover_page(text,boolean,integer,integer,timestamp with time zone)": "4fad589831e967fe4cde4c31797d1476",
+    "public.get_profile_posts_page(uuid,integer,integer,timestamp with time zone)": "6f4f24da8506095f7323b707334464e8",
+    "public.open_legacy_chat_media(uuid,uuid)": "7e77610be112c7b1e69dcb2db082758e",
+    "public.consume_media_view(uuid)": "8e3e17e74717f3454b5c0deef3f62566",
+    "public.claim_chat_media_view(uuid,uuid)": "c47a9441784d6c13fd2f3b1d0363837b",
+    "public.account_export_snapshot()": "11c5ea5152feadd8e78ac64e073e6ade",
+    "public.publish_story_v2(uuid,uuid,jsonb)": "358247e1e132eede2dd5e4ec2b6d6624"
+  },
+  "supersedes": {
+    "unitCount": 40,
+    "sourceFileCount": 41,
+    "reason": "Original unit 8 rejected by automatic approval review because user excluded music infrastructure; this plan genuinely removes all new music infrastructure."
+  },
+  "qaCompatibilityPatch": {
+    "projectRef": "uaulhuelcfkjwojtymmw",
+    "path": "supabase/migrations/20261029055318_memory_book_reader_visual_projection.sql",
+    "sha256": "b5efb461b5280efecb0dac285197753fb9636ccf6435f164d5c99fde5e58a047",
+    "purpose": "Replace only two book reader functions on QA, which already has old presentation schema. Same definitions are already in production visual unit31; preserve schema/data/grants. Existing QA visual publisher already supports current non-music payload."
+  },
+  "productionResumeCheckpoint": "supabase/ops/production-resume-checkpoint-20261029.json"
+}

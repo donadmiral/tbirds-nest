@@ -2,16 +2,26 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const {PGlite}=require('./rpc-authorization/node_modules/@electric-sql/pglite');
 const A='81000000-0000-4000-8000-000000000001',B='81000000-0000-4000-8000-000000000002',C='81000000-0000-4000-8000-000000000003';
 const POST='82000000-0000-4000-8000-000000000001',GROUP='83000000-0000-4000-8000-000000000001',GROUPPOST='82000000-0000-4000-8000-000000000002';
+const visualRelease=process.env.PLATINUM_VISUAL_RELEASE==='1';
 const migration=fs.readFileSync(path.join(__dirname,'../migrations/20261026064639_post_media_edit_projections.sql'),'utf8');
 const signatures=['get_feed(text,double precision,uuid,integer)','get_discover_page(text,boolean,integer,integer,timestamp with time zone)','get_profile_posts(uuid,timestamp with time zone,integer)','get_profile_posts_page(uuid,integer,integer,timestamp with time zone)','get_community_posts(uuid,timestamp with time zone,integer)','get_community_posts_page(uuid,integer,integer,timestamp with time zone)','search_posts(text,text,timestamp with time zone,uuid,integer)','search_posts_page(text,text,integer,integer,timestamp with time zone)'];
 const edit={rotation:90,flipX:true,scale:1.25,translateNX:.05,filterId:'warm',filterAmt:55,adjust:{bri:10},trimStart:2,trimEnd:9,speed:1.5,coverUrl:'https://example.test/cover.jpg',soundtrack:{soundId:'84000000-0000-4000-8000-000000000001',startSec:3,durationSec:6,volume:.7,originalVolume:.3}};
-const accessMigration=fs.readFileSync(path.join(__dirname,'../migrations/20261028153700_discover_media_access_guards.sql'),'utf8');
+const accessMigration=fs.readFileSync(path.join(__dirname,'../migrations/'+(visualRelease?'20261029055848_visual_discover_existing_visibility.sql':'20261028153700_discover_media_access_guards.sql')),'utf8');
 let db,before,afterProjection;
 async function as(uid,sql){await db.exec('begin');try{await db.query("select set_config('request.jwt.claim.sub',$1,true)",[uid]);await db.query("select set_config('request.jwt.claim.role','authenticated',true)");await db.exec('set local role authenticated');const r=await db.query(sql);await db.exec('commit');return r.rows;}catch(e){await db.exec('rollback');throw e;}}
 async function definitions(){const result=[];for(const s of signatures)result.push((await db.query('select pg_get_functiondef($1::regprocedure) source,proacl::text acl from pg_proc where oid=$1::regprocedure',['public.'+s])).rows[0]);return result;}
 test.before(async()=>{
  const {extensions,loadLiveSchema}=await import('./rpc-authorization/live-schema-fixture.mjs');db=new PGlite({extensions});await loadLiveSchema(db);await db.exec("grant usage on schema auth to authenticated;grant execute on all functions in schema auth to authenticated;");
- for(const name of fs.readdirSync(path.join(__dirname,'../migrations')).filter(n=>/^202610(22|23|25)\d+.*\.sql$/.test(n)).sort())await db.exec(fs.readFileSync(path.join(__dirname,'../migrations',name),'utf8'));
+ if(visualRelease){
+  const release=JSON.parse(fs.readFileSync(path.join(__dirname,'../ops/production-rollout-20261029.json'),'utf8'));
+  for(const unit of release.units.filter(unit=>unit.order<=release.productionResumeAfterUnit)){
+   for(const file of unit.files)await db.exec(fs.readFileSync(path.join(__dirname,'../..',file.path),'utf8'));
+  }
+  for(const name of ['20261022211411_feed_snapshot_visibility.sql','20261022211641_feed_mute_feedback.sql'])await db.exec(fs.readFileSync(path.join(__dirname,'../migrations',name),'utf8'));
+  assert.equal((await db.query("select to_regprocedure('public.creator_has_active_subscription(uuid,uuid)') is null absent")).rows[0].absent,true);
+ }else{
+  for(const name of fs.readdirSync(path.join(__dirname,'../migrations')).filter(n=>/^202610(22|23|25)\d+.*\.sql$/.test(n)).sort())await db.exec(fs.readFileSync(path.join(__dirname,'../migrations',name),'utf8'));
+ }
  before=await definitions();await db.exec(migration);afterProjection=await definitions();await db.exec(accessMigration);
  await db.exec(`insert into auth.users(id,email) values('${A}','author@example.test'),('${B}','viewer@example.test'),('${C}','stranger@example.test');
  insert into profiles(id,email,full_name,username) values('${A}','author@example.test','Projection author','projection_author'),('${B}','viewer@example.test','Viewer','projection_viewer'),('${C}','stranger@example.test','Stranger','projection_stranger') on conflict(id) do update set full_name=excluded.full_name,username=excluded.username;
@@ -43,12 +53,20 @@ test('Discover and media helper never reveal blocked, private or excluded posts'
  await db.exec(`update profiles set profile_visibility='private' where id='${A}'`);assert.equal((await as(B,query)).length,0);await db.exec(`update profiles set profile_visibility='public' where id='${A}'`);
  assert.equal((await as(C,`select * from get_community_posts_page('${GROUP}',20,0,'2026-02-01')`)).length,0);
 });
-test('Discover and its media helper withhold exclusive and deactivated-account content',async()=>{
+test('Discover retains existing audience access and withholds deactivated-account content',async()=>{
  const query="select * from get_discover_page('comedy',true,20,0,'2026-02-01')";
  await db.exec(`update posts set is_exclusive=true where id='${POST}'`);
- assert.equal((await as(B,query)).length,0);
- assert.deepEqual((await as(B,`select feed_media_json('${POST}') media`))[0].media,[]);
+ assert.equal((await as(B,query)).length,visualRelease?1:0);
+ assert.equal((await as(B,`select feed_media_json('${POST}') media`))[0].media.length,visualRelease?1:0);
  assert.equal((await as(A,query)).length,1);
+ if(visualRelease){
+  await db.exec(`update posts set audience='verified' where id='${POST}'`);
+  assert.equal((await as(B,query)).length,0);
+  assert.deepEqual((await as(B,`select feed_media_json('${POST}') media`))[0].media,[]);
+  await db.exec(`update profiles set is_verified=true where id='${B}'`);
+  assert.equal((await as(B,query)).length,1);
+  await db.exec(`update posts set audience='everyone' where id='${POST}';update profiles set is_verified=false where id='${B}'`);
+ }
  await db.exec(`update posts set is_exclusive=false where id='${POST}';update profiles set deactivated_at=now() where id='${A}'`);
  assert.equal((await as(B,query)).length,0);
  await db.exec(`update profiles set deactivated_at=null where id='${A}'`);

@@ -6,6 +6,8 @@ const { PGlite } = require(process.env.PGLITE_MODULE || './rpc-authorization/nod
 const A = '10000000-0000-4000-8000-000000000001', B = '10000000-0000-4000-8000-000000000002';
 const P = '20000000-0000-4000-8000-000000000001', S = '30000000-0000-4000-8000-000000000001';
 const url = `https://example.supabase.co/storage/v1/object/public/post-media/${B}/photo.jpg`;
+const visualRelease = process.env.PLATINUM_VISUAL_RELEASE === '1';
+const visualOnly = visualRelease || process.env.PLATINUM_NON_MUSIC_RELEASE === '1';
 let db;
 async function identity(uid) { await db.query("select set_config('request.jwt.claim.sub',$1,false)", [uid || '']); }
 async function manifest(uid, refs) {
@@ -19,7 +21,7 @@ test.before(async () => {
     create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
     create function auth.jwt() returns jsonb language sql stable as $$select '{}'::jsonb$$;
     grant usage on schema auth to authenticated;
-    create table profiles(id uuid primary key, profile_visibility text, is_verified boolean default false);
+    create table profiles(id uuid primary key, profile_visibility text, is_verified boolean default false, deactivated_at timestamptz);
     create table close_friends(owner_id uuid,friend_id uuid);
     create table story_shared_with(story_id uuid,user_id uuid);
     create table story_hidden_from(story_id uuid,user_id uuid);
@@ -44,14 +46,18 @@ test.before(async () => {
     create table story_sounds(id uuid primary key default gen_random_uuid(),owner_id uuid,title text,url text,duration_sec integer,source text,use_count integer default 0,created_at timestamptz default now());
     create table storage.objects(id uuid primary key default gen_random_uuid(),bucket_id text,name text,owner uuid,owner_id text);
     create function can_act_as(target uuid) returns boolean language sql stable as $$select auth.uid()=target$$;
-    create function creator_has_active_subscription(creator uuid, viewer uuid) returns boolean language sql stable as $$select false$$;
+    ${visualRelease ? '' : 'create function creator_has_active_subscription(creator uuid, viewer uuid) returns boolean language sql stable as $$select false$$;'}
     create function viewer_can_see_story(target uuid) returns boolean language sql stable as $$select exists(select 1 from public.stories where id=target and expires_at>now())$$;
     grant select on all tables in schema public to authenticated;
   `);
   const original = fs.readFileSync(path.join(__dirname, '../migrations/00000000000151_capture_functions.sql'), 'utf8');
   await db.exec(original.slice(original.indexOf('CREATE OR REPLACE FUNCTION public.can_view_post('), original.indexOf('CREATE OR REPLACE FUNCTION public.can_view_profile(')));
-  await db.exec(fs.readFileSync(path.join(__dirname, '../migrations/20261022211311_story_sound_rights.sql'), 'utf8'));
-  await db.exec(fs.readFileSync(path.join(__dirname, '../migrations/20261022211648_content_media_manifests.sql'), 'utf8'));
+  if (visualRelease) {
+    const book = fs.readFileSync(path.join(__dirname, '../migrations/20261029054043_memory_book_visual_presentation.sql'), 'utf8');
+    await db.exec(book.slice(book.indexOf('CREATE OR REPLACE FUNCTION public.can_view_memory_book('), book.indexOf('CREATE OR REPLACE FUNCTION public.can_view_memory_album(')));
+  }
+  if (!visualOnly) await db.exec(fs.readFileSync(path.join(__dirname, '../migrations/20261022211311_story_sound_rights.sql'), 'utf8'));
+  await db.exec(fs.readFileSync(path.join(__dirname, '../migrations/' + (visualRelease ? '20261029055844_visual_media_existing_visibility.sql' : visualOnly ? '20261029054347_visual_content_media_manifests.sql' : '20261022211648_content_media_manifests.sql')), 'utf8'));
   await db.exec(fs.readFileSync(path.join(__dirname, '../migrations/20261023190047_content_owner_upload_previews.sql'), 'utf8'));
 });
 test.beforeEach(async () => {
@@ -106,14 +112,24 @@ test('unauthenticated and excessive manifest requests fail closed', async () => 
   await assert.rejects(() => manifest(null, [{ kind: 'post', id: P }]), /Authentication required/);
   await assert.rejects(() => manifest(A, Array.from({ length: 101 }, () => ({ kind: 'post', id: P }))), /At most 100/);
 });
-test('exclusive and archived media fail closed for non-owners', async () => {
+test('media retains the deployed visibility contract and withholds archived content from non-owners', async () => {
   await identity(B); await db.exec('update posts set is_exclusive=true');
-  assert.equal((await manifest(A, [{ kind: 'post', id: P }])).length, 0);
+  assert.equal((await manifest(A, [{ kind: 'post', id: P }])).length, visualRelease ? 1 : 0);
   assert.equal((await manifest(B, [{ kind: 'post', id: P }])).length, 1);
+  if (visualRelease) {
+    // The deployed schema has no subscription helper. is_exclusive is a writer
+    // qualification; actual viewer permissions remain can_view_post + audience.
+    assert.equal((await db.query("select to_regprocedure('public.creator_has_active_subscription(uuid,uuid)') is null absent")).rows[0].absent, true);
+    await db.exec("update posts set audience='verified'");
+    assert.equal((await manifest(A, [{ kind: 'post', id: P }])).length, 0);
+    await db.query('update profiles set is_verified=true where id=$1', [A]);
+    assert.equal((await manifest(A, [{ kind: 'post', id: P }])).length, 1);
+    await db.exec("update posts set audience='everyone'");
+  }
   await db.exec('update posts set is_exclusive=false, archived_at=now()');
   assert.equal((await manifest(A, [{ kind: 'post', id: P }])).length, 0);
 });
-test('sound publication is owner-bound, attested and idempotent', async () => {
+test('sound publication is owner-bound, attested and idempotent', { skip: visualOnly }, async () => {
   await identity(B);
   await db.query("insert into stories(id,user_id,audio_url,audio_source,audio_duration_sec) values($1,$2,$3,'voiceover',5)", [S, B, url]);
   await assert.rejects(() => db.query('select publish_story_sound($1,false)', [S]), /Confirm/);
@@ -148,6 +164,30 @@ test('album permissions authorize retained owner media without reopening expired
   assert.equal((await manifest(A,[{kind:'memory_album',id:P}])).length,1);
   await db.query("insert into memory_album_access values($1,$2,'block')",[B,A]);
   assert.equal((await manifest(A,[{kind:'memory_album',id:P}])).length,0);
+});
+test('book signing uses the reader permission for explicit custom access and inactive accounts', { skip: !visualRelease }, async () => {
+  await identity(B);
+  await db.query("insert into stories(id,user_id,media_url,expires_at) values($1,$2,$3,now()-interval '1 day')", [S,B,url]);
+  await db.query("insert into memory_albums values($1,$2,'custom')", [P,B]);
+  await db.query('insert into memory_pages(id,album_id,story_id,media_url) values($1,$2,$3,$4)', [S,P,S,url]);
+  await db.query("update profiles set profile_visibility='private' where id=$1", [B]);
+  await db.query("insert into memory_album_access values($1,$2,'allow')", [B,A]);
+  const references = [{kind:'memory_album',id:P}];
+  assert.equal((await manifest(A,references)).length, 1);
+  for (const person of [A,B]) {
+    await db.query('update profiles set deactivated_at=now() where id=$1',[person]);
+    assert.equal((await manifest(A,references)).length, 0);
+    await db.query('update profiles set deactivated_at=null where id=$1',[person]);
+  }
+  for (const pair of [[A,B],[B,A]]) {
+    await db.query('insert into blocked_users values($1,$2)',pair);
+    assert.equal((await manifest(A,references)).length, 0);
+    await db.exec('delete from blocked_users');
+  }
+  await db.exec("update memory_albums set audience='profile'");
+  assert.equal((await manifest(A,references)).length, 0);
+  await db.query('insert into follows values($1,$2)',[A,B]);
+  assert.equal((await manifest(A,references)).length, 1);
 });
 test('highlights retain stories but preserve close-friend audience and reject foreign covers', async () => {
   await identity(B);
@@ -197,4 +237,21 @@ test('cutover preflight ignores prose and external URLs instead of reporting nul
   assert.equal(rows.length,1);
   assert.equal(rows[0].bucket_id,'post-media');
   assert.equal(rows[0].object_path, `${B}/photo.jpg`);
+});
+
+
+test('visual-only manifests do not bind or sign separate audio, and install no soundtrack authorization', { skip: !visualOnly }, async () => {
+  const audio = `https://example.supabase.co/storage/v1/object/public/story-media/${B}/recording.m4a`;
+  await db.query("insert into storage.objects(bucket_id,name,owner_id) values('story-media',$1,$2)",[B+'/recording.m4a',B]);
+  await identity(B);
+  await db.query('insert into stories(id,user_id,media_url,audio_url,media_transform) values($1,$2,$3,$4,$5)',[S,B,url,audio,JSON.stringify({trimStart:2,trimEnd:8,mix:{orig:57}})]);
+  assert.deepEqual((await manifest(A,[{kind:'story',id:S}])).map(r=>r.media_url),[url]);
+  assert.equal((await db.query('select count(*)::int n from content_media_bindings where object_path=$1',[B+'/recording.m4a'])).rows[0].n,0);
+  await db.query('insert into post_media(post_id,url,edit) values($1,$2,$3)',[P,url,JSON.stringify({caption:'A picture',soundtrack:{url:audio,soundId:'held'}})]);
+  assert.deepEqual((await manifest(A,[{kind:'post',id:P}])).map(r=>r.media_url),[url]);
+  assert.equal((await manifest(A,[{kind:'sound',id:S}])).length,0);
+  assert.equal((await db.query("select to_regprocedure('public.publish_story_sound(uuid,boolean)') is null and to_regprocedure('public.resolve_story_soundtrack(jsonb)') is null as absent")).rows[0].absent,true);
+  assert.equal((await db.query("select count(*)::int n from information_schema.columns where table_schema='public' and table_name='story_sounds' and column_name='rights_status'")).rows[0].n,0);
+  const recipe=(await db.query('select media_transform from stories where id=$1',[S])).rows[0].media_transform;
+  assert.equal(recipe.mix.orig,57);assert.equal(recipe.trimStart,2);
 });
