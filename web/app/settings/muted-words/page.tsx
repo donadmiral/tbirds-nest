@@ -36,19 +36,19 @@ export default function MutedWordsPage() {
       <h1 className="mt-4 font-display text-[24px] font-bold text-ink">Muted words</h1>
       <p className="mt-1 text-[13.5px] text-ink/60">Posts that contain any of these words or phrases stay out of your feeds. Nobody is told.</p>
       <div className="mt-5 flex gap-2">
-        <input value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") add(); }} placeholder="Add a word or phrase" className="flex-1 rounded-xl border border-ink/12 bg-white px-3 py-2.5 text-[14px] text-ink outline-none placeholder:text-ink/35 focus:border-pearl" />
+        <input value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") add(); }} placeholder="Add a word or phrase" className="flex-1 rounded-xl border border-ink/12 bg-white px-3 py-2.5 text-[14px] text-ink outline-none placeholder:text-muted focus:border-pearl" />
         <button type="button" onClick={add} className="rounded-xl bg-ink px-4 text-[14px] font-bold text-white hover:opacity-90">Add</button>
       </div>
-      {err ? <p className="mt-2 text-[13px] text-red-500">{err}</p> : null}
+      {err ? <p className="mt-2 text-[13px] text-danger">{err}</p> : null}
       <ul className="mt-4 divide-y divide-ink/8">
         {words.map((w) => (
           <li key={w} className="flex items-center justify-between py-3">
             <span className="text-[15px] font-semibold text-ink">{w}</span>
-            <button type="button" onClick={() => save(words.filter((x) => x !== w))} className="rounded-full p-1 text-ink/50 hover:bg-surface hover:text-ink" title="Remove"><X size={16} /></button>
+            <button type="button" onClick={() => save(words.filter((x) => x !== w))} className="rounded-full p-1 text-muted hover:bg-surface hover:text-ink" title="Remove"><X size={16} /></button>
           </li>
         ))}
       </ul>
-      {words.length === 0 ? <p className="mt-3 text-[13.5px] text-ink/50">Nothing muted yet.</p> : null}
+      {words.length === 0 ? <p className="mt-3 text-[13.5px] text-muted">Nothing muted yet.</p> : null}
     </div>
   );
 }

@@ -17,11 +17,11 @@ export const STORY_CARD_H = 356;
 
 export default function StoryReshareCard({ sticker, onOpen, onOpenProfile }: { sticker: any; onOpen?: () => void; onOpenProfile?: () => void }) {
   const s: any = sticker;
-  const img = s.storyThumbUrl || (s.storyMediaType === 'image' ? s.storyMediaUrl : null) || s.storyMediaUrl;
+  const img = s.storyThumbUrl || (s.storyMediaType === 'image' ? s.storyMediaUrl : null);
   const isVideo = s.storyMediaType === 'video';
   const body = (
     <View style={c.card}>
-      {img ? <Image source={{ uri: img }} style={StyleSheet.absoluteFill} resizeMode="cover" /> : <View style={[StyleSheet.absoluteFill, { backgroundColor: '#0B1E3D' }]} />}
+      {img ? <Image source={{ uri: img }} style={StyleSheet.absoluteFill} resizeMode="contain" /> : <View style={[StyleSheet.absoluteFill, { backgroundColor: '#0B1E3D' }]} />}
       <View style={c.shadeTop} pointerEvents="none" />
       <View style={c.head}>
         {s.storyAuthorAvatar ? <Image source={{ uri: s.storyAuthorAvatar }} style={c.avatar} /> : <View style={[c.avatar, { backgroundColor: 'rgba(255,255,255,0.25)' }]} />}
@@ -37,8 +37,8 @@ export default function StoryReshareCard({ sticker, onOpen, onOpenProfile }: { s
   if (!onOpen && !onOpenProfile) return body;
   return (
     <View>
-      <TouchableOpacity activeOpacity={0.9} onPress={onOpen || onOpenProfile}>{body}</TouchableOpacity>
-      {onOpenProfile ? <TouchableOpacity style={c.headHit} onPress={onOpenProfile} activeOpacity={0.8} /> : null}
+      <TouchableOpacity delayLongPress={160} onLongPress={() => {}} activeOpacity={0.9} onPress={onOpen || onOpenProfile}>{body}</TouchableOpacity>
+      {onOpenProfile ? <TouchableOpacity delayLongPress={160} onLongPress={() => {}} style={c.headHit} onPress={onOpenProfile} activeOpacity={0.8} /> : null}
     </View>
   );
 }

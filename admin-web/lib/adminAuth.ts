@@ -2,6 +2,7 @@ import 'server-only';
 import { cookies } from 'next/headers';
 import { redirect, notFound } from 'next/navigation';
 import { serviceClient } from './supabaseAdmin';
+import { canAccessOperations } from './adminAssurance';
 import { STAFF_ROLES, canOpen, canPerform, type Permission } from './permissions';
 export { allowedDesks, VERIFICATION_ROLES, ADS_ROLES } from './permissions';
 export type Admin = { id: string; email: string; role: string; aal: string; sessionId: string };
@@ -37,14 +38,14 @@ export async function getAdmin(): Promise<Admin | null> {
 export async function requireDesk(desk: string): Promise<Admin> {
   const admin = await getAdmin();
   if (!admin) redirect('/');
-  if (admin.aal !== 'aal2') redirect('/security');
+  if (!await canAccessOperations(admin)) redirect('/security');
   if (!canOpen(admin.role, desk)) notFound();
   return admin;
 }
 export async function requirePermission(permission: Permission): Promise<Admin> {
   const admin = await getAdmin();
   if (!admin) redirect('/');
-  if (admin.aal !== 'aal2') redirect('/security');
+  if (!await canAccessOperations(admin)) redirect('/security');
   if (!canPerform(admin.role, permission)) throw new Error('This action is not available for your staff role.');
   return admin;
 }

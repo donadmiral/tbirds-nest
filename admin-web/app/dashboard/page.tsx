@@ -2,24 +2,25 @@ import { completeRead } from '@/lib/completeRead';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { requireDesk } from '@/lib/adminAuth';
-import { allowedDesks, hasFullOverview } from '@/lib/permissions';
+import { allowedDesks, hasFullOverview, canPerform } from '@/lib/permissions';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import Shell from '@/components/Shell';
 import Seal from '@/components/Seal';
 import { SeriesChart, Spark, Greeting, Empty } from '@/components/Viz';
 import { fmt, ago } from '@/lib/fmt';
 import { pickMedia, resolveMedia, isVideoUrl } from '@/lib/media';
+import { resolveModerationMedia } from '@/lib/moderationMedia';
 
 export const dynamic = 'force-dynamic';
 
 const TIER_LABEL: Record<string, string> = { public_figure: 'Green', business: 'Space grey', official: 'Platinum' };
 const ACTIVE_WINDOW_MIN = 5;
 
-const PANEL: React.CSSProperties = { borderRadius: 13, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', overflow: 'hidden' };
+const PANEL: React.CSSProperties = { minWidth: 0, borderRadius: 20, background: 'var(--panel)', border: '1px solid var(--line)', boxShadow: '0 6px 24px rgba(11,30,61,0.035)', overflow: 'hidden' };
 const HEAD: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px 12px', borderBottom: '1px solid rgba(var(--on),0.10)' };
 const H_TITLE: React.CSSProperties = { fontSize: 13.5, fontWeight: 700, color: 'var(--txt)' };
 const ROW: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 11, padding: '11px 16px', borderBottom: '1px solid rgba(var(--on),0.10)', textDecoration: 'none' };
-const LINK_SM: React.CSSProperties = { fontSize: 11.4, fontWeight: 600, color: 'rgba(var(--on),0.45)', textDecoration: 'none', whiteSpace: 'nowrap' };
+const LINK_SM: React.CSSProperties = { fontSize: 11.4, fontWeight: 600, color: 'var(--txt-muted)', textDecoration: 'none', whiteSpace: 'nowrap' };
 
 const IC = {
   users: 'M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z',
@@ -70,6 +71,7 @@ export default async function DashboardPage() {
   const from24h = new Date(now - 86400000).toISOString();
   const days30 = Array.from({ length: 30 }, (_, i) => dayKey(new Date(now - (29 - i) * 86400000)));
 
+  const readsStartedAt = Date.now();
   const [
     users, verified, active, apps, pr, lr, ur, audit, tickets, bizApps, flags, daily,
     prAll, lrAll, urAll, appAll, recent, topPostsRes, locRes, cerr,
@@ -101,12 +103,20 @@ export default async function DashboardPage() {
     svc.from('verification_applications').select('id', { count: 'exact', head: true }).eq('status', 'rejected'),
   ]);
 
+  const dashboardResults = [users, verified, active, apps, pr, lr, ur, audit, tickets, bizApps, flags, daily,
+    prAll, lrAll, urAll, appAll, recent, topPostsRes, locRes, cerr, vAll, vReview, vApproved, vRejected];
+  if (dashboardResults.some(result => result.error)) throw new Error('Dashboard information could not be loaded.');
+  if ([users, verified, active, apps, pr, lr, ur, tickets, bizApps, cerr, vAll, vReview, vApproved, vRejected].some(result => result.count === null)) {
+    throw new Error('Dashboard counts could not be confirmed.');
+  }
+  const readsElapsedMs = Date.now() - readsStartedAt;
   for (const result of [prAll, lrAll, urAll, appAll, locRes]) completeRead(result, 'Dashboard aggregate');
   const members = users.count ?? 0;
   const appRows = apps.data ?? [];
   const names: Record<string, { full_name: string | null; username: string | null }> = {};
   if (appRows.length) {
-    const { data } = await svc.from('profiles').select('id, full_name, username').in('id', appRows.map(a => a.applicant_id));
+    const { data, error } = await svc.from('profiles').select('id, full_name, username').in('id', appRows.map(a => a.applicant_id));
+    if (error) throw new Error('Dashboard applicant details could not be loaded.');
     (data ?? []).forEach((p: { id: string; full_name: string | null; username: string | null }) => { names[p.id] = p; });
   }
   const openReports = [
@@ -159,7 +169,9 @@ export default async function DashboardPage() {
     ((pm ?? []) as { post_id: string; url: string }[]).forEach(m => { if (!postMedia[m.post_id]) postMedia[m.post_id] = m.url; });
   }
   postRows.forEach(p => { if (!postMedia[p.id]) { const f = pickMedia(p.raw); if (f) postMedia[p.id] = f; } });
-  const postUrls = await resolveMedia(Object.values(postMedia));
+  const postUrls = canPerform(admin.role, 'post_moderate')
+    ? await resolveModerationMedia(Object.values(postMedia), 'post', postRows.map(p => p.id))
+    : await resolveMedia(Object.values(postMedia));
 
   const postAuthors: Record<string, { username: string | null; avatar_url: string | null }> = {};
   const pids = Array.from(new Set(postRows.map(p => p.user_id)));
@@ -188,10 +200,10 @@ export default async function DashboardPage() {
   const errors24 = cerr.count ?? 0;
 
   const health = [
-    { label: 'Database', state: 'Responding', ok: true, meta: 'every panel on this page answered' },
-    { label: 'Nightly statistics', state: statsFresh ? 'Current' : 'Stale', ok: statsFresh, meta: lastStatDay ? 'last day computed ' + lastStatDay : 'no rows in daily_stats' },
-    { label: 'Client errors, 24 hours', state: errors24 === 0 ? 'Clear' : String(errors24), ok: errors24 === 0, meta: 'client_errors' },
-    { label: 'Feature flags on', state: flagRows.filter(f => f.enabled).length + ' of ' + flagRows.length, ok: true, meta: 'feature_flags' },
+    { label: 'Dashboard data reads', state: 'Succeeded', ok: true, meta: `current page queries completed in ${readsElapsedMs} ms; not a service-wide health check` },
+    { label: 'Daily activity summary', state: statsFresh ? 'Current' : 'Awaiting update', ok: statsFresh, meta: lastStatDay ? 'Last updated ' + lastStatDay : 'The first daily summary is not available yet' },
+    { label: 'App errors, 24 hours', state: errors24 === 0 ? 'Clear' : String(errors24), ok: errors24 === 0, meta: 'Reported by the app' },
+    { label: 'Enabled features', state: flagRows.filter(f => f.enabled).length + ' of ' + flagRows.length, ok: true, meta: 'Current feature settings' },
   ];
 
   const funnel = [
@@ -214,7 +226,7 @@ export default async function DashboardPage() {
         {cards.map(c => (
           <Link key={c.label} href={c.href} className="pc-nav" style={{ ...PANEL, padding: '14px 15px 12px', display: 'block', textDecoration: 'none' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ flex: 1, fontSize: 11.3, fontWeight: 600, color: 'rgba(var(--on),0.5)' }}>{c.label}</span>
+              <span style={{ flex: 1, fontSize: 11.3, fontWeight: 600, color: 'var(--txt-muted)' }}>{c.label}</span>
               <span style={{ width: 26, height: 26, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(var(--on),0.05)' }}>
                 <svg width="13" height="13" viewBox="0 0 24 24" style={{ fill: c.color }}><path d={c.icon} /></svg>
               </span>
@@ -222,7 +234,7 @@ export default async function DashboardPage() {
             <div className="pc-num" style={{ marginTop: 9, fontSize: 27, lineHeight: 1, color: 'var(--txt-strong)' }}>{fmt(c.value)}</div>
             <div style={{ marginTop: 9, display: 'flex', alignItems: 'baseline', gap: 7, whiteSpace: 'nowrap', overflow: 'hidden' }}>
               <span className="pc-num" style={{ flex: '0 0 auto', fontSize: 10.5, fontWeight: 600, color: c.delta.fg }}>{c.delta.text}</span>
-              <span style={{ flex: 1, minWidth: 0, fontSize: 10, color: 'rgba(var(--on),0.3)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.note}</span>
+              <span style={{ flex: 1, minWidth: 0, fontSize: 10, color: 'var(--txt-muted)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.note}</span>
             </div>
             <div style={{ marginTop: 9 }}><Spark values={c.spark} color={c.color} height={26} /></div>
           </Link>
@@ -234,7 +246,7 @@ export default async function DashboardPage() {
           <div style={HEAD}>
             <div style={{ flex: 1 }}>
               <div style={H_TITLE}>Platform activity</div>
-              <div style={{ fontSize: 11.3, color: 'rgba(var(--on),0.36)', marginTop: 3 }}>daily_stats, rebuilt nightly. Click a series to fold it away.</div>
+              <div style={{ fontSize: 12, color: 'var(--txt-muted)', marginTop: 4 }}>Daily activity across your community. Select a series to show or hide it.</div>
             </div>
             <Link href="/analytics" className="pc-crumb" style={LINK_SM}>Full analytics</Link>
           </div>
@@ -252,7 +264,7 @@ export default async function DashboardPage() {
           <div style={HEAD}>
             <div style={{ flex: 1 }}>
               <div style={H_TITLE}>Needs attention</div>
-              <div style={{ fontSize: 11.3, color: 'rgba(var(--on),0.36)', marginTop: 3 }}>{attention ? attention + ' items across four desks' : 'Quiet is the goal'}</div>
+              <div style={{ fontSize: 11.3, color: 'var(--txt-muted)', marginTop: 3 }}>{attention ? attention + ' items across four desks' : 'Quiet is the goal'}</div>
             </div>
           </div>
           {needs.length === 0 ? <Empty note="Nothing is waiting. Every queue is clear." /> : needs.map(n => (
@@ -262,7 +274,7 @@ export default async function DashboardPage() {
               </span>
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: 'var(--txt)' }}>{n.label}</span>
-                <span style={{ display: 'block', fontSize: 10.8, color: 'rgba(var(--on),0.36)', marginTop: 2 }}>{n.sub}</span>
+                <span style={{ display: 'block', fontSize: 10.8, color: 'var(--txt-muted)', marginTop: 2 }}>{n.sub}</span>
               </span>
               <span className="pc-num" style={{ fontSize: 17, color: 'var(--txt-strong)' }}>{n.count}</span>
             </Link>
@@ -286,9 +298,9 @@ export default async function DashboardPage() {
                   <span style={{ fontSize: 12.3, fontWeight: 600, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.full_name || 'Unnamed'}</span>
                   {u.is_verified ? <Seal tier={u.verified_tier || 'business'} size={12} /> : null}
                 </span>
-                <span style={{ display: 'block', fontSize: 10.8, color: 'rgba(var(--on),0.36)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>@{u.username || 'member'}{u.location ? ' \u00b7 ' + u.location : ''}</span>
+                <span style={{ display: 'block', fontSize: 10.8, color: 'var(--txt-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>@{u.username || 'member'}{u.location ? ' \u00b7 ' + u.location : ''}</span>
               </span>
-              <span className="pc-num" style={{ flex: '0 0 auto', fontSize: 10.5, color: 'rgba(var(--on),0.3)' }}>{ago(u.created_at)}</span>
+              <span className="pc-num" style={{ flex: '0 0 auto', fontSize: 10.5, color: 'var(--txt-muted)' }}>{ago(u.created_at)}</span>
             </Link>
           ))}
         </div>
@@ -320,7 +332,7 @@ export default async function DashboardPage() {
               </span>
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ display: 'block', fontSize: 12.3, fontWeight: 600, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.content || 'Media post'}</span>
-                <span style={{ display: 'block', fontSize: 10.8, color: 'rgba(var(--on),0.36)', marginTop: 2 }}>@{postAuthors[p.user_id]?.username || 'member'}</span>
+                <span style={{ display: 'block', fontSize: 10.8, color: 'var(--txt-muted)', marginTop: 2 }}>@{postAuthors[p.user_id]?.username || 'member'}</span>
               </span>
               <span className="pc-num" style={{ flex: '0 0 auto', fontSize: 11.4, fontWeight: 600, color: 'var(--txt)' }}>{fmt(p.score)}</span>
             </Link>
@@ -332,7 +344,7 @@ export default async function DashboardPage() {
           <div style={HEAD}>
             <div style={{ flex: 1 }}>
               <div style={H_TITLE}>Top locations</div>
-              <div style={{ fontSize: 11.3, color: 'rgba(var(--on),0.36)', marginTop: 3 }}>profiles.location, as members typed it</div>
+              <div style={{ fontSize: 12, color: 'var(--txt-muted)', marginTop: 4 }}>Locations shared by your members</div>
             </div>
           </div>
           <div style={{ padding: 16 }}>
@@ -341,7 +353,7 @@ export default async function DashboardPage() {
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, marginBottom: 5 }}>
                   <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.label}</span>
                   <span className="pc-num" style={{ fontSize: 11.4, fontWeight: 600, color: 'var(--txt)' }}>{l.n}</span>
-                  <span className="pc-num" style={{ fontSize: 10.5, color: 'rgba(var(--on),0.34)', width: 44, textAlign: 'right' }}>{located ? ((l.n / located) * 100).toFixed(1) + '%' : '-'}</span>
+                  <span className="pc-num" style={{ fontSize: 10.5, color: 'var(--txt-muted)', width: 44, textAlign: 'right' }}>{located ? ((l.n / located) * 100).toFixed(1) + '%' : '-'}</span>
                 </div>
                 <div style={{ height: 6, borderRadius: 4, background: 'rgba(var(--on),0.06)', overflow: 'hidden' }}>
                   <div style={{ height: '100%', width: Math.max(2, (l.n / Math.max(1, topLocations[0].n)) * 100) + '%', borderRadius: 4, background: 'var(--c1)' }} />
@@ -362,9 +374,9 @@ export default async function DashboardPage() {
             <div key={i} style={ROW}>
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ display: 'block', fontSize: 12.3, fontWeight: 600, color: 'var(--txt)' }}>{a.action.replace(/[._]/g, ' ')}</span>
-                <span style={{ display: 'block', fontSize: 10.8, color: 'rgba(var(--on),0.36)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.reason || 'no note recorded'}</span>
+                <span style={{ display: 'block', fontSize: 10.8, color: 'var(--txt-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.reason || 'no note recorded'}</span>
               </span>
-              <span className="pc-num" style={{ flex: '0 0 auto', fontSize: 10.5, color: 'rgba(var(--on),0.3)' }}>{ago(a.created_at)}</span>
+              <span className="pc-num" style={{ flex: '0 0 auto', fontSize: 10.5, color: 'var(--txt-muted)' }}>{ago(a.created_at)}</span>
             </div>
           ))}
         </div>
@@ -379,7 +391,7 @@ export default async function DashboardPage() {
                 <span className={h.ok ? 'pc-pulse' : ''} style={{ width: 6, height: 6, borderRadius: '50%', flex: '0 0 6px', background: h.ok ? 'var(--ok)' : 'var(--warn)' }} />
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ display: 'block', fontSize: 12.2, color: 'rgba(var(--on),0.68)' }}>{h.label}</span>
-                  <span style={{ display: 'block', fontSize: 10.4, color: 'rgba(var(--on),0.3)', marginTop: 2 }}>{h.meta}</span>
+                  <span style={{ display: 'block', fontSize: 10.4, color: 'var(--txt-muted)', marginTop: 2 }}>{h.meta}</span>
                 </span>
                 <span className="pc-num" style={{ fontSize: 11, fontWeight: 600, color: h.ok ? 'var(--ok)' : 'var(--warn)' }}>{h.state}</span>
               </div>
@@ -410,7 +422,7 @@ export default async function DashboardPage() {
           <div style={HEAD}>
             <div style={{ flex: 1 }}>
               <div style={H_TITLE}>Verification funnel</div>
-              <div style={{ fontSize: 11.3, color: 'rgba(var(--on),0.36)', marginTop: 3 }}>All time, verification_applications</div>
+              <div style={{ fontSize: 12, color: 'var(--txt-muted)', marginTop: 4 }}>Verification applications, all time</div>
             </div>
           </div>
           <div style={{ padding: 16 }}>
@@ -432,7 +444,7 @@ export default async function DashboardPage() {
           <div style={HEAD}>
             <div style={{ flex: 1 }}>
               <div style={H_TITLE}>Waiting on a decision</div>
-              <div style={{ fontSize: 11.3, color: 'rgba(var(--on),0.36)', marginTop: 3 }}>Oldest first, because waiting is the cost</div>
+              <div style={{ fontSize: 11.3, color: 'var(--txt-muted)', marginTop: 3 }}>Oldest first, because waiting is the cost</div>
             </div>
           </div>
           {appRows.length + openReports.length === 0 ? <Empty note="No application or report is waiting." /> : (
@@ -444,9 +456,9 @@ export default async function DashboardPage() {
                     <Seal tier={a.tier} size={16} />
                     <span style={{ flex: 1, minWidth: 0, fontSize: 12.3, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       <b style={{ fontWeight: 600 }}>{p.full_name || '@' + (p.username || 'member')}</b>
-                      <span style={{ color: 'rgba(var(--on),0.45)' }}> applied for {TIER_LABEL[a.tier] || a.tier}{a.category ? ' \u00b7 ' + a.category : ''}</span>
+                      <span style={{ color: 'var(--txt-muted)' }}> applied for {TIER_LABEL[a.tier] || a.tier}{a.category ? ' \u00b7 ' + a.category : ''}</span>
                     </span>
-                    <span className="pc-num" style={{ flex: '0 0 auto', fontSize: 10.5, color: 'rgba(var(--on),0.3)' }}>{ago(a.created_at)}</span>
+                    <span className="pc-num" style={{ flex: '0 0 auto', fontSize: 10.5, color: 'var(--txt-muted)' }}>{ago(a.created_at)}</span>
                   </Link>
                 );
               })}
@@ -454,7 +466,7 @@ export default async function DashboardPage() {
                 <Link key={r.kind + r.id} href="/reports" className="pc-nav" style={ROW}>
                   <span style={{ flex: '0 0 auto', fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: 'rgba(var(--warn-rgb),0.12)', color: 'var(--warn)' }}>{r.kind}</span>
                   <span style={{ flex: 1, minWidth: 0, fontSize: 12.3, color: 'rgba(var(--on),0.55)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Reported for {r.reason}</span>
-                  <span className="pc-num" style={{ flex: '0 0 auto', fontSize: 10.5, color: 'rgba(var(--on),0.3)' }}>{ago(r.created_at)}</span>
+                  <span className="pc-num" style={{ flex: '0 0 auto', fontSize: 10.5, color: 'var(--txt-muted)' }}>{ago(r.created_at)}</span>
                 </Link>
               ))}
             </div>
@@ -475,7 +487,7 @@ export default async function DashboardPage() {
                   <span style={{ flex: 1, minWidth: 0, fontSize: 12.2, fontWeight: 600, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.key}</span>
                   <span style={{ width: 7, height: 7, borderRadius: '50%', flex: '0 0 7px', background: f.enabled ? 'var(--ok)' : 'rgba(var(--on),0.2)' }} />
                 </div>
-                {f.note ? <div style={{ fontSize: 10.4, color: 'rgba(var(--on),0.32)', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.note}</div> : null}
+                {f.note ? <div style={{ fontSize: 10.4, color: 'var(--txt-muted)', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.note}</div> : null}
               </div>
             ))}
           </div>

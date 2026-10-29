@@ -13,7 +13,7 @@
  * - Snap: magnetic spring to center (not hard threshold)
  */
 
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Text, View, StyleSheet } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -34,6 +34,7 @@ import { StoryTextSticker, StoryStickerStyle } from '../../services/storiesServi
 import { stickerTextStyle } from '../../utils/stickerStyles';
 import StickerPill from './StickerPill';
 import PostStoryCard from './PostStoryCard';
+import { sharedPostFrame } from '../../../shared/storyPresentation';
 import StoryReshareCard, { STORY_CARD_W, STORY_CARD_H } from './StoryReshareCard';
 import CountdownStickerCard from './CountdownStickerCard';
 import AddYoursStickerCard from './AddYoursStickerCard';
@@ -203,15 +204,15 @@ export interface DraggableStickerProps {
 // ── Helpers (pure, used in worklets via runOnJS bridge) ──
 
 function fireHapticLight() {
-  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
 }
 
 function fireHapticMedium() {
-  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
 }
 
 function fireHapticSelection() {
-  Haptics.selectionAsync();
+  void Haptics.selectionAsync().catch(() => {});
 }
 
 // ── Worklet helpers ──
@@ -271,7 +272,7 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
     if (isEmoji || isPill) {
       return { textStyle: { fontSize: isEmoji ? 44 : 13 }, wrapperStyle: {} as const };
     }
-    return stickerTextStyle(sticker.style, sticker.color, sticker.bgEnabled, sticker.fontSizeOverride);
+    return composedTextStyle(sticker.style, sticker.color, sticker.bgEnabled, sticker.fontSizeOverride);
   }, [isEmoji, isPill, sticker.style, sticker.color, sticker.bgEnabled, sticker.fontSizeOverride]);
 
   const stickerOpacityValue = (!isEmoji && !isPill && sticker.opacity !== undefined && sticker.opacity < 1)
@@ -306,6 +307,7 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
   const pinchBase = useSharedValue(sticker.scale);
   const rotationBase = useSharedValue(sticker.rotation);
   const inDeleteZone = useSharedValue(false);
+  const panActive = useSharedValue(false);
   const alignedX = useSharedValue(false);
   const alignedY = useSharedValue(false);
   // Centres of the other stickers, plain numbers the worklet can read.
@@ -409,6 +411,7 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
     .minDistance(4)
     .onStart(() => {
       'worklet';
+      panActive.value = true;
       cancelAnimation(translateX);
       cancelAnimation(translateY);
       if (containerW > 0 && containerH > 0) {
@@ -528,8 +531,10 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
         if (guideYOp) guideYOp.value = withTiming(yClose ? 1 : 0, { duration: 120 });
       }
     })
-    .onEnd((e) => {
+    .onEnd((e, success) => {
       'worklet';
+      if (!success) return;
+      panActive.value = false;
       if (alignXOp) alignXOp.value = 0; if (alignYOp) alignYOp.value = 0; alignedX.value = false; alignedY.value = false;
       if (containerW === 0 || containerH === 0) return;
 
@@ -593,6 +598,21 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
       translateX.value = withSpring(0, SPRING_LAND);
       translateY.value = withSpring(0, SPRING_LAND);
       runOnJS(jsDragEnd)(stickerId, finalNx, finalNy);
+    })
+    .onFinalize((_event, success) => {
+      'worklet';
+      if (success || !panActive.value) return;
+      panActive.value = false;
+      inDeleteZone.value = false;
+      pickupScale.value = withSpring(1, SPRING_SNAP);
+      translateX.value = 0; translateY.value = 0;
+      posNx.value = startNx.value; posNy.value = startNy.value;
+      if (deleteHotSV) deleteHotSV.value = 0;
+      if (guideXOp) guideXOp.value = 0; if (guideYOp) guideYOp.value = 0;
+      if (alignXOp) alignXOp.value = 0; if (alignYOp) alignYOp.value = 0;
+      runOnJS(jsDeleteZoneChange)(stickerId, false);
+      runOnJS(jsSmartGuideChange)(stickerId, null, null);
+      runOnJS(jsDragEnd)(stickerId, startNx.value, startNy.value);
     }),
     [containerW, containerH, stickerId, deleteZoneNy, safeTopNy, safeBottomNy, profile, stickerOpacityValue, jsDragStart, jsDragEnd, jsSnapChange, jsDeleteZoneChange, deleteHotSV, alignXPos, alignYPos, alignXOp, alignYOp, otherCenters, jsDeleteDrop, jsSmartGuideChange, guideXOp, guideYOp]
   );
@@ -718,9 +738,11 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
   // too, so their hit box follows the card, not the text-sticker default.
   const cellFw = sticker.kind === 'photo' && (sticker as any).photoShape === 'cell' ? Number((sticker as any).photoFw) || 0 : 0;
   const cellFh = sticker.kind === 'photo' && (sticker as any).photoShape === 'cell' ? Number((sticker as any).photoFh) || 0 : 0;
-  const cardHitH = cellFh ? Math.round(cellFh * containerH) : sticker.kind === 'story' ? STORY_CARD_H : sticker.kind === 'photo' ? 200 : sticker.kind === 'question' ? 150 : sticker.kind === 'slider' ? 140 : sticker.kind === 'quiz' ? 64 + 46 * Math.max(2, (sticker.quizOptions || []).length) : 0;
+  const [postMeasured, setPostMeasured] = useState<{ width: number; height: number } | null>(null);
+  const postFrame = sticker.kind === 'post' ? sharedPostFrame({ stageWidth: containerW, stageHeight: containerH, mediaWidth: sticker.postMediaWidth, mediaHeight: sticker.postMediaHeight, caption: sticker.postText, title: sticker.postArticleTitle, hasMedia: !!sticker.postMediaUrl }) : null;
+  const cardHitH = postFrame ? postMeasured?.height || postFrame.height : cellFh ? Math.round(cellFh * containerH) : sticker.kind === 'story' ? STORY_CARD_H : sticker.kind === 'photo' ? 200 : sticker.kind === 'question' ? 150 : sticker.kind === 'slider' ? 140 : sticker.kind === 'quiz' ? 64 + 46 * Math.max(2, (sticker.quizOptions || []).length) : 0;
   const baseHitH = cardHitH || (textMayWrap ? STICKER_HIT_H_WRAP : STICKER_HIT_H);
-  const hitW = Math.max(cellFw ? Math.round(cellFw * containerW) : cardHitH ? (sticker.kind === 'story' ? STORY_CARD_W : sticker.kind === 'photo' ? 200 : 270) : (textMaxWidth || STICKER_HIT_W), STICKER_HIT_W * sticker.scale);
+  const hitW = postFrame ? postMeasured?.width || postFrame.width : Math.max(cellFw ? Math.round(cellFw * containerW) : cardHitH ? (sticker.kind === 'story' ? STORY_CARD_W : sticker.kind === 'photo' ? 200 : 270) : (textMaxWidth || STICKER_HIT_W), STICKER_HIT_W * sticker.scale);
   const hitH = Math.max(baseHitH, baseHitH * sticker.scale);
 
 
@@ -779,7 +801,7 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
               <SupportStickerCard title={sticker.supportTitle || sticker.text} url={sticker.supportUrl} interactive={false} />
             ) : sticker.kind === 'story' ? (              <StoryReshareCard sticker={sticker} />
             ) : sticker.kind === 'post' ? (
-              <PostStoryCard sticker={sticker} />
+              <View onLayout={event => { const { width, height } = event.nativeEvent.layout; if (width > 0 && height > 0) setPostMeasured(current => current && Math.abs(current.width - width) < 1 && Math.abs(current.height - height) < 1 ? current : { width, height }); }}><PostStoryCard sticker={sticker} stageWidth={containerW} stageHeight={containerH} /></View>
             ) : sticker.kind === 'question' ? (
               <QuestionStickerCard prompt={sticker.questionPrompt || sticker.text} interactive={false} isOwn={true} responseCount={0} />
             ) : sticker.kind === 'slider' ? (
@@ -803,7 +825,9 @@ const DraggableSticker = React.memo(function DraggableSticker(props: DraggableSt
   if (prev.containerW !== next.containerW || prev.containerH !== next.containerH) return false;
   if (prev.deleteZoneNy !== next.deleteZoneNy) return false;
   if (prev.safeTopNy !== next.safeTopNy || prev.safeBottomNy !== next.safeBottomNy) return false;
-  return true;
+  // Callbacks and neighbour positions can change without this sticker changing.
+  // Keeping old closures loses newer edits and snaps to obsolete positions.
+  return Object.keys(prev).every(key => prev[key as keyof DraggableStickerProps] === next[key as keyof DraggableStickerProps]);
 });
 
 export default DraggableSticker;

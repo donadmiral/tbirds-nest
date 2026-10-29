@@ -1,5 +1,5 @@
 import { ChatSkeleton } from '../../components/skeletons';
-import { themedSheet } from '../../theme/useTheme';
+import { useTheme, themedSheet } from '../../theme/useTheme';
 import TierName from '../../components/TierName';
 import { flagsService } from '../../services/flagsService';
 import VerifiedBadge from '../../components/VerifiedBadge';
@@ -45,15 +45,22 @@ import { useAuthStore } from '../../stores/authStore';
 import { messageStatusService } from '../../services/messageStatusService';
 import { callService } from '../../services/callService';
 import { uploadMedia } from '../../services/mediaService';
-import { signChatMedia, signChatMediaMap, isChatMediaUrl } from '../../services/chatMediaService';
+import { signChatMedia, signChatMediaMap, isChatMediaUrl, signGroupAvatars } from '../../services/chatMediaService';
 import { useVoiceRecorder, formatVoiceDuration, MAX_VOICE_SECONDS } from '../../controllers/messages/useVoiceRecorder';
 import VoiceNote from '../../components/VoiceNote';
+import { ShareDetailsSheet } from '../../components/messages/ShareDetailsSheet';
+import { parseChatAttachmentCard, attachmentCardText, attachmentCardLinks } from '../../../shared/chatAttachmentCards';
+import { PrivateMediaViewer } from '../../components/messages/PrivateMediaViewer';
 import PaymentBubble, { ChatPayment } from '../../components/PaymentBubble';
 import ChatInfoSections from '../../components/ChatInfoSections';
 import CallEventBubble from '../../components/CallEventBubble';
 import ChatImageEditor from '../../components/ChatImageEditor';
 import { useDraftStore } from '../../stores/draftStore';
-import { useNetStore } from '../../stores/netStore';
+import { useNetStore, retryOutboxMessage } from '../../stores/netStore';
+import 'react-native-get-random-values';
+import { deliverMessage, makeMessageId, type MessageIntent } from '../../../shared/messageDelivery';
+import { canForwardMessage } from '../../../shared/messageContent';
+import { MESSAGE_PAGE_SIZE, olderMessageFilter, mergeMessagePage, type MessageCursor } from '../../../shared/messageHistory';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) { UIManager.setLayoutAnimationEnabledExperimental(true); }
 
@@ -84,6 +91,7 @@ type MessageItem = {
   read_at?: string | null;
   delivered_at?: string | null;
   viewed_at?: string | null;
+  view_limit?: number | null;
   media_url?: string | null;
   media_type?: string | null;
   media_b64?: string | null;
@@ -95,6 +103,7 @@ type MessageItem = {
   payment_id?: string | null;
   payment_receipt_verified?: boolean;
   _optimistic?: boolean;
+  _queued?: boolean;
   _reactions?: Reaction[];
 };
 
@@ -199,6 +208,7 @@ function computeImageDims(origW?: number | null, origH?: number | null) {
 }
 
 function GifPicker({ onSelect, onBack, gifMode = 'gifs' }: { onSelect: (url: string) => void; onBack: () => void; gifMode?: string }) {
+  const {t}=useTheme();
   const GIPHY_KEY = process.env.EXPO_PUBLIC_GIPHY_KEY || '';
   const [q, setQ] = useState('');
   const [gifs, setGifs] = useState<any[]>([]);
@@ -217,7 +227,7 @@ function GifPicker({ onSelect, onBack, gifMode = 'gifs' }: { onSelect: (url: str
       setGifs(Array.isArray(json?.data) ? json.data : []);
     } catch { setGifs([]); }
     finally { setBusy(false); }
-  }, [GIPHY_KEY]);
+  }, [GIPHY_KEY, gifMode]);
 
   useEffect(() => { fetchGifs(''); }, [fetchGifs]);
   useEffect(() => {
@@ -229,15 +239,15 @@ function GifPicker({ onSelect, onBack, gifMode = 'gifs' }: { onSelect: (url: str
   if (!GIPHY_KEY) {
     return (
       <View style={{ paddingHorizontal: 20, paddingVertical: 28, alignItems: 'center', gap: 8 }}>
-        <View style={{ width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(11,30,61,0.06)' }}>
-          <Feather name="film" size={20} color={TEXT_SECONDARY} />
+        <View style={{ width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor:t.surface.sunken }}>
+          <Feather name="film" size={20} color={t.ink.secondary} />
         </View>
-        <Text style={{ fontSize: 15, fontWeight: '700', color: '#0B1E3D' }}>GIF key needed</Text>
-        <Text style={{ fontSize: 13, color: TEXT_SECONDARY, textAlign: 'center', lineHeight: 19 }}>
-          Add EXPO_PUBLIC_GIPHY_KEY to .env (free at developers.giphy.com) and restart the app.
+        <Text style={{ fontSize: 15, fontWeight: '700', color: t.ink.primary }}>GIFs unavailable</Text>
+        <Text style={{ fontSize: 13, color: t.ink.secondary, textAlign: 'center', lineHeight: 19 }}>
+          GIF search is unavailable right now. You can still share photos and videos.
         </Text>
-        <TouchableOpacity onPress={onBack} style={{ marginTop: 6, paddingHorizontal: 18, paddingVertical: 8, borderRadius: 999, backgroundColor: 'rgba(11,30,61,0.06)' }}>
-          <Text style={{ fontSize: 13, fontWeight: '700', color: '#0B1E3D' }}>Back</Text>
+        <TouchableOpacity onPress={onBack} style={{ marginTop: 6, paddingHorizontal: 18, paddingVertical: 8, borderRadius: 999, backgroundColor:t.surface.sunken }}>
+          <Text style={{ fontSize: 13, fontWeight: '700', color: t.ink.primary }}>Back</Text>
         </TouchableOpacity>
       </View>
     );
@@ -246,17 +256,17 @@ function GifPicker({ onSelect, onBack, gifMode = 'gifs' }: { onSelect: (url: str
   const half = Math.floor((SCREEN_W - 14 * 2 - 8) / 2);
   return (
     <View style={{ flex: 1, paddingTop: 4 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 14, marginBottom: 8, backgroundColor: 'rgba(11,30,61,0.05)', borderRadius: 18, paddingHorizontal: 12 }}>
-        <Feather name="search" size={15} color={TEXT_SECONDARY} />
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 14, marginBottom: 8, backgroundColor:t.surface.sunken, borderRadius: 18, paddingHorizontal: 12 }}>
+        <Feather name="search" size={15} color={t.ink.secondary} />
         <TextInput
-          style={{ flex: 1, fontSize: 14.5, color: '#0B1E3D', paddingVertical: 9 }}
+          style={{ flex: 1, fontSize: 14.5, color: t.ink.primary, paddingVertical: 9 }}
           value={q} onChangeText={setQ}
           placeholder="Search GIPHY"
           placeholderTextColor="#9CA3AF"
           autoCapitalize="none"
         />
         <TouchableOpacity onPress={onBack} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Feather name="x" size={17} color={TEXT_SECONDARY} />
+          <Feather name="x" size={17} color={t.ink.secondary} />
         </TouchableOpacity>
       </View>
       {busy && gifs.length === 0 ? (
@@ -280,7 +290,7 @@ function GifPicker({ onSelect, onBack, gifMode = 'gifs' }: { onSelect: (url: str
               </TouchableOpacity>
             );
           }}
-          ListEmptyComponent={<Text style={{ textAlign: 'center', color: TEXT_SECONDARY, fontSize: 13, marginTop: 30 }}>No GIFs found</Text>}
+          ListEmptyComponent={<Text style={{ textAlign: 'center', color: t.ink.secondary, fontSize: 13, marginTop: 30 }}>No GIFs found</Text>}
         />
       )}
     </View>
@@ -378,7 +388,9 @@ export default function ChatScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const insets = useSafeAreaInsets();
-  const { profile } = useAuthStore();
+  const { profile, session } = useAuthStore();
+  const outbox = useNetStore(state => state.outbox);
+  const confirmedOutbox = useNetStore(state => state.confirmed);
 
   const actAsId: string | null = route.params?.actAsId ?? null;  const currentUserId = actAsId ?? profile?.id ?? null;
   const [conversationId, setConversationId] = useState<string | null>(route.params?.conversationId ?? null);
@@ -389,13 +401,18 @@ export default function ChatScreen() {
   // The conversation row fills in whatever the params left out (a notification or the community's Chat button pass only the id).
   const [convMeta, setConvMeta] = useState<any>(null);
   useEffect(() => {
-    if (!conversationId) return;
-    supabase.from('conversations').select('is_group, group_name, group_emoji, group_avatar_url, group_type, group_ref_id').eq('id', conversationId).maybeSingle().then(({ data }) => { if (data) setConvMeta(data); }, () => {});
-  }, [conversationId]);
+    let current = true;
+    setConvMeta(null);
+    if (!conversationId || !currentUserId) return;
+    supabase.from('conversations').select('is_group, group_name, group_emoji, group_avatar_url, group_type, group_ref_id').eq('id', conversationId).maybeSingle().then(async ({ data }) => {
+      if (data) { const [signed] = await signGroupAvatars([data]); if (current) setConvMeta(signed); }
+    }, () => {});
+    return () => { current = false; };
+  }, [conversationId, currentUserId]);
   const isGroup: boolean = route.params?.isGroup ?? !!convMeta?.is_group;
   const groupName: string = route.params?.groupName ?? (convMeta?.group_name || '');
   const groupEmoji: string = route.params?.groupEmoji ?? (convMeta?.group_emoji || '');
-  const groupAvatarUrl: string | null = route.params?.groupAvatarUrl ?? (convMeta?.group_avatar_url || null);
+  const groupAvatarUrl: string | null = convMeta?.group_avatar_url || (!isChatMediaUrl(route.params?.groupAvatarUrl) ? route.params?.groupAvatarUrl : null) || null;
   // A community's chat: the community is its home, so the header says so and the info sheet opens it.
   const groupType: string | null = route.params?.groupType ?? (convMeta?.group_type || null);
   const groupRefId: string | null = route.params?.groupRefId ?? (convMeta?.group_ref_id || null);
@@ -434,9 +451,27 @@ export default function ChatScreen() {
     const saved = useDraftStore.getState().drafts[conversationId];
     if (saved) setMessage(saved);
   }, [conversationId]);
+  const { t } = useTheme();
+  const [historyError, setHistoryError] = useState<string | null>(null);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [hasOlder, setHasOlder] = useState(false);
+  const historyCursor = useRef<MessageCursor | null>(null);
+  const historyRequest = useRef(0);
+  const olderPending = useRef(false);
+  const activeConversation = useRef(conversationId);
+  activeConversation.current = conversationId;
   const [messages, setMessages] = useState<MessageItem[]>([]);
+  const confirmationScope = `${session?.user.id || ''}:${conversationId || ''}`;
+  const confirmationBaseline = useRef({ scope: confirmationScope, seen: new Set(confirmedOutbox.map(receipt => receipt.message.id)) });
+  if (confirmationBaseline.current.scope !== confirmationScope) {
+    confirmationBaseline.current = { scope: confirmationScope, seen: new Set(confirmedOutbox.map(receipt => receipt.message.id)) };
+  }
+  const waitingMessages = outbox.filter(item => item.conversation_id === conversationId && item.sender_id === currentUserId
+    && (item.owner_auth_id === session?.user.id || !item.owner_auth_id)
+    && (item.failed || !messages.some(message => message.id === item.id)));
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const textSendPending = useRef(false);
   const [otherTyping, setOtherTyping] = useState(false);
   const [typingUserId, setTypingUserId] = useState<string | null>(null);
   const [seenByNames, setSeenByNames] = useState<string[]>([]);
@@ -460,6 +495,7 @@ export default function ChatScreen() {
   const [seenSheet, setSeenSheet] = useState<{ msg: any; rows: { name: string; avatar: string | null; seenAt: string | null }[] } | null>(null);
   const [lastStatus, setLastStatus] = useState<OutgoingStatus>(null);
 
+  const [shareDetails, setShareDetails] = useState<'contact'|'location'|null>(null);
   const [showToolbar, setShowToolbar] = useState(false);
   const [showGifs, setShowGifs] = useState(false);
   const [editingMsg, setEditingMsg] = useState<MessageItem | null>(null);
@@ -480,6 +516,13 @@ export default function ChatScreen() {
   const [showForwardPicker, setShowForwardPicker] = useState(false);
   const [forwardConvs, setForwardConvs] = useState<any[]>([]);
   const [fullscreenImg, setFullscreenImg] = useState<string | null>(null);
+  const [capturedVideo, setCapturedVideo] = useState<{ uri: string; type: 'video'; width?: number; height?: number } | null>(null);
+  const mediaSending = useRef(false);
+  const mediaOperation = useRef(0);
+  const reactionPending = useRef(new Set<string>());
+  const editPending = useRef(false);
+  const pinPending = useRef(false);
+  const forwardPending = useRef(false);
   const [fullscreenVideo, setFullscreenVideo] = useState<string | null>(null);
   const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const [starredIds, setStarredIds] = useState<Set<string>>(new Set());
@@ -489,7 +532,8 @@ export default function ChatScreen() {
   const [showTimestamp, setShowTimestamp] = useState<string | null>(null);
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [viewedOutIds, setViewedOutIds] = useState<Set<string>>(new Set());
-  const pendingViewLimitRef = useRef<number | null>(null);
+  const [privateMedia, setPrivateMedia] = useState<{ id: string; userId: string; scope: string } | null>(null);
+  useEffect(() => { setPrivateMedia(null); setShareDetails(null); setViewedOutIds(new Set()); setFullscreenImg(null); setFullscreenVideo(null); }, [conversationId, session?.user.id]);
   const sendScale = useRef(new Animated.Value(1)).current;
   const springSend = useCallback(() => {
     sendScale.setValue(0.82);
@@ -501,6 +545,26 @@ export default function ChatScreen() {
   const startingCallRef = useRef(false);
   const voice = useVoiceRecorder();
   const [sendingVoice, setSendingVoice] = useState(false);
+  const voiceSending = useRef(false);
+  const voiceScope = `${session?.user.id || ''}:${currentUserId || ''}:${conversationId || passedUserId || ''}`;
+  const voiceScopeRef = useRef(voiceScope); voiceScopeRef.current = voiceScope;
+  const attachmentScope = `${session?.user.id || ''}:${currentUserId || ''}:${route.params?.conversationId || passedUserId || conversationId || ''}`;
+  const attachmentScopeRef = useRef(attachmentScope); attachmentScopeRef.current = attachmentScope;
+  const accountScope = `${session?.user.id || ''}:${currentUserId || ''}`;
+  const accountScopeValue = useRef(accountScope), accountScopeRef = useRef(0);
+  if (accountScopeValue.current !== accountScope) { accountScopeValue.current = accountScope; accountScopeRef.current++; }
+  useEffect(() => {
+    ++mediaOperation.current; mediaSending.current = false; setUploadingMedia(false);
+    setEditTarget(null); setCapturedVideo(null); setSelectedMsg(null); setReplyTo(null); setForwardMsg(null); setShowForwardPicker(false);
+    setShowInfoModal(false); setInfoMedia([]); setInfoFiles([]); setInfoStarred([]); setOtherTyping(false); setTypingUserId(null);
+    setSharedPostsMap({}); setSavedIds(new Set()); setStarredIds(new Set()); setPinnedMsg(null);
+    lastTypingRef.current = false; typingSentAt.current = 0;
+  }, [attachmentScope]);
+  const voiceControl = useRef(voice); voiceControl.current = voice;
+  useEffect(() => {
+    setSendingVoice(false);
+    return () => { voiceSending.current = false; void voiceControl.current.cancel(); };
+  }, [voiceScope]);
   const [otherOnline, setOtherOnline] = useState(false);
 
   const mountedRef = useRef(true);
@@ -537,6 +601,7 @@ export default function ChatScreen() {
   }, [conversationId]);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastTypingRef = useRef(false);
+  const typingSentAt = useRef(0);
   const inputRef = useRef<TextInput>(null);
   const [pinnedMsg, setPinnedMsg] = useState<any | null>(null);
   useEffect(() => {
@@ -551,14 +616,17 @@ export default function ChatScreen() {
       } catch {}
     })();
     return () => { live = false; };
-  }, [conversationId]);
+  }, [conversationId, accountScope]);
   const togglePin = useCallback(async (msg: any) => {
-    if (!conversationId) return;
+    if (!conversationId || pinPending.current) return;
+    pinPending.current = true;
     const unpin = pinnedMsg?.id === msg.id;
     try {
       const { error } = await supabase.rpc('set_pinned_message', { p_conversation_id: conversationId, p_message_id: unpin ? null : msg.id });
-      if (!error) setPinnedMsg(unpin ? null : { id: msg.id, text: msg.text, media_url: msg.media_url, sender_id: msg.sender_id });
-    } catch {}
+      if (error) throw error;
+      if (activeConversation.current === conversationId) setPinnedMsg(unpin ? null : { id: msg.id, text: msg.text, media_url: msg.media_url, sender_id: msg.sender_id });
+    } catch { Alert.alert('Pin not saved', 'Please try again. Your conversation role may not allow this action.'); }
+    finally { pinPending.current = false; }
   }, [conversationId, pinnedMsg]);
   const [savedReplies, setSavedReplies] = useState<any[]>([]);
   const isBizSession = (useAuthStore.getState().profile as any)?.account_type === 'business' || !!actAsId;
@@ -608,7 +676,9 @@ export default function ChatScreen() {
     ), []);
 
   const mergeMsg = useCallback(async (incoming: MessageItem) => {
+    const scope = accountScopeRef.current;
     if (isChatMediaUrl(incoming.media_url)) incoming = (await signChatMedia([incoming]))[0];
+    if (!mountedRef.current || scope !== accountScopeRef.current || incoming.conversation_id !== activeConversation.current) return;
     LayoutAnimation.configureNext(LayoutAnimation.create(180, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
     setMessages(prev => {
       const ei = prev.findIndex(m => m.id === incoming.id);
@@ -617,34 +687,45 @@ export default function ChatScreen() {
         c[ei] = { ...incoming, media_b64: c[ei].media_b64 ?? incoming.media_b64, _optimistic: false };
         return c;
       }
-      const oi = prev.findIndex(m => m._optimistic && m.sender_id === incoming.sender_id && m.text === incoming.text && m.media_url === incoming.media_url);
-      if (oi !== -1) {
-        const c = [...prev];
-        c[oi] = { ...incoming, media_b64: c[oi].media_b64 ?? incoming.media_b64, _optimistic: false };
-        return c;
-      }
-      return [incoming, ...prev];
+      return mergeMessagePage(prev, [incoming]);
     });
   }, []);
 
+  useEffect(() => {
+    // Background reconciliation can confirm a row even if realtime was missed.
+    // Feed that receipt back into the open chat without reloading its history.
+    for (const receipt of confirmedOutbox) {
+      if (confirmationBaseline.current.seen.has(receipt.message.id)) continue;
+      if (receipt.owner_auth_id !== session?.user.id || receipt.message.conversation_id !== conversationId) continue;
+      confirmationBaseline.current.seen.add(receipt.message.id);
+      const shown = messagesRef.current.find(message => message.id === receipt.message.id);
+      if (!shown || shown._optimistic) void mergeMsg(receipt.message as MessageItem);
+    }
+  }, [confirmedOutbox, session?.user.id, conversationId, mergeMsg]);
+
   const loadSavedIds = useCallback(async () => {
+    const scope = attachmentScopeRef.current;
     if (!currentUserId || !conversationId) return;
     const { data } = await supabase.from('saved_messages').select('message_id').eq('user_id', currentUserId);
+    if(scope !== attachmentScopeRef.current || !mountedRef.current) return;
     setSavedIds(new Set((data || []).map((r: any) => r.message_id)));
   }, [currentUserId, conversationId]);
 
   const loadStarredIds = useCallback(async () => {
+    const scope = attachmentScopeRef.current;
     if (!currentUserId || !conversationId) return;
     const { data } = await supabase.from('starred_messages')
       .select('message_id').eq('conversation_id', conversationId).eq('starred_by', currentUserId);
+    if(scope !== attachmentScopeRef.current || !mountedRef.current) return;
     setStarredIds(new Set((data || []).map((r: any) => r.message_id)));
   }, [currentUserId, conversationId]);
 
   const refreshStatus = useCallback(async () => {
+    const scope = attachmentScopeRef.current;
     if (!conversationId || !currentUserId) return;
     try {
       const s = await messageStatusService.getLastOutgoingMessageStatus(conversationId, currentUserId);
-      if (mountedRef.current) setLastStatus(s ?? null);
+      if (mountedRef.current && scope === attachmentScopeRef.current) setLastStatus(s ?? null);
     } catch {}
   }, [conversationId, currentUserId]);
 
@@ -675,11 +756,12 @@ export default function ChatScreen() {
 
   const loadReactions = useCallback(async (msgIds: string[]) => {
     if (!msgIds.length) return;
+    const convId = activeConversation.current, scope = accountScopeRef.current;
     const { data } = await supabase.from('message_reactions').select('message_id, emoji, user_id').in('message_id', msgIds);
-    if (!data) return;
+    if (!data || !mountedRef.current || scope !== accountScopeRef.current || activeConversation.current !== convId) return;
     const byMsg: Record<string, Reaction[]> = {};
     data.forEach((r: any) => { if (!byMsg[r.message_id]) byMsg[r.message_id] = []; byMsg[r.message_id].push({ emoji: r.emoji, user_id: r.user_id }); });
-    setMessages(prev => prev.map(m => byMsg[m.id] ? { ...m, _reactions: byMsg[m.id] } : m));
+    setMessages(prev => prev.map(m => msgIds.includes(m.id) ? { ...m, _reactions: byMsg[m.id] || [] } : m));
   }, []);
 
   const getOrCreateConversation = useCallback(async (): Promise<string | null> => {
@@ -704,16 +786,19 @@ export default function ChatScreen() {
 
   useEffect(() => { if (isGroup && conversationId) loadGroupMembers(); }, [isGroup, conversationId]);
   const loadGroupMembers = useCallback(async () => {
+    const scope = attachmentScopeRef.current;
     if (!isGroup || !conversationId) return;
     try {
       const { data } = await supabase.from('conversation_members')
         .select('user_id, role, profile:profiles!user_id(id, full_name, username, avatar_url)')
         .eq('conversation_id', conversationId);
-      setGroupMembers(data || []);
+      if(scope === attachmentScopeRef.current && mountedRef.current) setGroupMembers(data || []);
     } catch (e) { console.log('[GROUP_MEMBERS_ERR]', e); }
   }, [isGroup, conversationId]);
 
   const loadInfoContent = useCallback(async () => {
+    const scope = attachmentScopeRef.current;
+    const current = () => mountedRef.current && attachmentScopeRef.current === scope;
     if (!conversationId) {
       setInfoMedia([]); setInfoFiles([]); setInfoStarred([]);
       return;
@@ -726,42 +811,46 @@ export default function ChatScreen() {
           .eq('conversation_id', conversationId)
           .not('media_url', 'is', null)
           .in('media_type', ['image', 'video', 'gif'])
+          .is('view_limit', null)
           .order('created_at', { ascending: false })
           .limit(200),
         supabase.from('messages')
           .select('id, media_url, text, created_at, sender_id')
           .eq('conversation_id', conversationId)
           .eq('media_type', 'document')
+          .is('view_limit', null)
           .not('media_url', 'is', null)
           .order('created_at', { ascending: false })
           .limit(100),
         supabase.from('starred_messages')
-          .select('id, message_id, starred_at, starred_by, msg:messages!message_id(id, text, media_url, media_type, created_at, sender_id)')
+          .select('id, message_id, starred_at, starred_by, msg:messages!message_id(id, text, media_url, media_type, view_limit, created_at, sender_id)')
           .eq('conversation_id', conversationId)
           .order('starred_at', { ascending: false })
           .limit(100),
       ]);
 
-      setInfoMedia(await signChatMedia((mediaRes.data || []) as InfoMediaMsg[]));
-      setInfoFiles(await signChatMedia((filesRes.data || []) as InfoFileMsg[]));
+      if(mediaRes.error || filesRes.error || starredRes.error) throw Error('Chat details unavailable');
+      const [mediaRows, fileRows] = await Promise.all([signChatMedia((mediaRes.data || []) as InfoMediaMsg[]), signChatMedia((filesRes.data || []) as InfoFileMsg[])]);
 
       const starredRows = (starredRes.data || []) as any[];
       const infoSigned = await signChatMediaMap(starredRows.map((r: any) => r.msg).filter(Boolean));
-      starredRows.forEach((r: any) => { if (r.msg && infoSigned[r.msg.id]) r.msg.media_url = infoSigned[r.msg.id]; });
+      starredRows.forEach((r: any) => { if (r.msg && isChatMediaUrl(r.msg.media_url)) r.msg.media_url = infoSigned[r.msg.id] || null; });
       const senderIds = Array.from(new Set(starredRows.map((r: any) => r.msg?.sender_id).filter(Boolean)));
       let nameMap: Record<string, string> = {};
       if (senderIds.length > 0) {
         const { data: profs } = await supabase.from('profiles').select('id, full_name').in('id', senderIds);
         (profs || []).forEach((p: any) => { nameMap[p.id] = p.full_name || 'Member'; });
       }
+      if(!current()) return;
+      setInfoMedia(mediaRows); setInfoFiles(fileRows);
       setInfoStarred(starredRows.map((r: any) => ({
         id: r.id, message_id: r.message_id, starred_at: r.starred_at, starred_by: r.starred_by,
         msg: r.msg ? { ...r.msg, sender_name: nameMap[r.msg.sender_id] || 'Member' } : null,
       })));
     } catch (e) {
-      console.log('[INFO_LOAD_ERR]', e);
+      if(current()) { setInfoMedia([]); setInfoFiles([]); setInfoStarred([]); Alert.alert('Chat details unavailable','Please reopen this panel to retry.'); }
     } finally {
-      setInfoLoading(false);
+      if(current()) setInfoLoading(false);
     }
   }, [conversationId]);
 
@@ -783,59 +872,100 @@ export default function ChatScreen() {
   };
 
   const fetchMessages = useCallback(async () => {
+    const scope = accountScopeRef.current;
     const convId = conversationId;
+    const request = ++historyRequest.current;
     if (!convId) { setMessages([]); setLoading(false); return; }
+    const current = () => mountedRef.current && scope === accountScopeRef.current && activeConversation.current === convId && historyRequest.current === request;
+    setHistoryError(null);
+    setLoading(true);
     try {
-      if (mountedRef.current) setLoading(true);
-      const { data, error } = await supabase.from('messages').select('*').eq('conversation_id', convId).order('created_at', { ascending: false });
-      if (!error && mountedRef.current) {
-        const msgs = await signChatMedia(sortDesc((data || []) as MessageItem[]));
-        setMessages(msgs);
-        const ids = msgs.map(m => m.id);
-        await loadReactions(ids);
-      }
-      await markRead();
-      await refreshStatus();
-      await loadStarredIds();
-      await loadSavedIds();
-    } catch {} finally { if (mountedRef.current) setLoading(false); }
-  }, [conversationId, markRead, refreshStatus, sortDesc, loadReactions, loadStarredIds, loadSavedIds]);
+      const { data, error } = await supabase.from('messages').select('*').eq('conversation_id', convId)
+        .order('created_at', { ascending: false }).order('id', { ascending: false }).limit(MESSAGE_PAGE_SIZE);
+      if (error) throw error;
+      const rows = (data || []) as MessageItem[];
+      const msgs = await signChatMedia(rows);
+      if (!current()) return;
+      const confirmedIds = new Set(msgs.map(message => message.id));
+      historyCursor.current = rows[rows.length - 1] || null;
+      setHasOlder(rows.length === MESSAGE_PAGE_SIZE);
+      setMessages(prev => mergeMessagePage(msgs, prev.filter(m => m.conversation_id === convId && (!m._optimistic || !confirmedIds.has(m.id)))));
+      await loadReactions(msgs.map(m => m.id));
+      await Promise.all([markRead(), refreshStatus(), loadStarredIds(), loadSavedIds()]);
+    } catch {
+      if (current()) setHistoryError('Messages could not be loaded. Please try again.');
+    } finally { if (current()) setLoading(false); }
+  }, [conversationId, markRead, refreshStatus, loadReactions, loadStarredIds, loadSavedIds]);
+
+  const loadOlderMessages = useCallback(async () => {
+    const scope = accountScopeRef.current;
+    const convId = conversationId;
+    const cursor = historyCursor.current;
+    if (!convId || !cursor || !hasOlder || olderPending.current || loading) return;
+    const request = historyRequest.current;
+    const current = () => mountedRef.current && scope === accountScopeRef.current && activeConversation.current === convId && historyRequest.current === request;
+    olderPending.current = true;
+    setLoadingOlder(true); setHistoryError(null);
+    try {
+      const { data, error } = await supabase.from('messages').select('*').eq('conversation_id', convId)
+        .or(olderMessageFilter(cursor)).order('created_at', { ascending: false }).order('id', { ascending: false }).limit(MESSAGE_PAGE_SIZE);
+      if (error) throw error;
+      const rows = (data || []) as MessageItem[];
+      const signed = await signChatMedia(rows);
+      if (!current()) return;
+      if (rows.length) historyCursor.current = rows[rows.length - 1];
+      setHasOlder(rows.length === MESSAGE_PAGE_SIZE);
+      setMessages(prev => mergeMessagePage(signed, prev));
+      await loadReactions(rows.map(m => m.id));
+    } catch {
+      if (current()) setHistoryError('Older messages could not be loaded. Please try again.');
+    } finally {
+      if (current()) { olderPending.current = false; setLoadingOlder(false); }
+    }
+  }, [conversationId, hasOlder, loading, loadReactions]);
 
   const fetchTyping = useCallback(async () => {
+    const scope = accountScopeRef.current;
     if (!conversationId || !currentUserId) return;
     try {
       const { data } = await supabase.from('conversation_typing').select('*').eq('conversation_id', conversationId);
-      const freshTypers = (data || []).filter((r: any) => r.user_id !== currentUserId && r.is_typing && (Date.now() - new Date(r.updated_at).getTime() < 7000));
+      if (scope !== accountScopeRef.current || activeConversation.current !== conversationId || !mountedRef.current) return;
+      const freshTypers = (data || []).filter((r: any) => r.user_id !== currentUserId && r.is_typing && (Date.now() - new Date(r.updated_at).getTime() >= 0 && Date.now() - new Date(r.updated_at).getTime() < 7000));
       setTypingUserId(freshTypers[0]?.user_id ?? null);
       setOtherTyping(freshTypers.length > 0);
     } catch {}
   }, [conversationId, currentUserId]);
 
   const setTyping = useCallback(async (isTyping: boolean) => {
-    if (!conversationId || !currentUserId || lastTypingRef.current === isTyping) return;
-    lastTypingRef.current = isTyping;
+    if (!conversationId || !currentUserId) return;
+    const now = Date.now();
+    if (lastTypingRef.current === isTyping && (!isTyping || now - typingSentAt.current < 2000)) return;
+    lastTypingRef.current = isTyping; typingSentAt.current = now;
     try { await supabase.from('conversation_typing').upsert({ conversation_id: conversationId, user_id: currentUserId, is_typing: isTyping, updated_at: new Date().toISOString() }, { onConflict: 'conversation_id,user_id' }); } catch {}
   }, [conversationId, currentUserId]);
 
   useEffect(() => {
-    if (!isGroup && otherUser?.id) {
-      const isRecent = (lastSeen: string | null) => !!lastSeen && (Date.now() - new Date(lastSeen).getTime() < 120000);
-      supabase.from('user_presence').select('is_online, last_seen').eq('user_id', otherUser.id).maybeSingle()
-        .then(({ data }) => { if (data) setOtherOnline(!!data.is_online && isRecent(data.last_seen)); });
-      const presSub = supabase.channel(`presence_${otherUser.id}`)
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'user_presence', filter: `user_id=eq.${otherUser.id}` },
-          (payload) => {
-            const p = payload.new as any;
-            if (isGroup && p?.is_system_message && !p?.payment_id) loadGroupMembers();
-            setOtherOnline(!!p?.is_online && isRecent(p?.last_seen));
-          })
-        .subscribe();
-      return () => { supabase.removeChannel(presSub); };
-    }
-  }, [isGroup, otherUser?.id]);
+    setOtherOnline(false);
+    if (isGroup || !otherUser?.id) return;
+    let live = true;
+    let presence: { is_online?: boolean; last_seen?: string | null } | null = null;
+    const refresh = () => {
+      if (!live) return;
+      const age = presence?.last_seen ? Date.now() - Date.parse(presence.last_seen) : Infinity;
+      setOtherOnline(!!presence?.is_online && age >= 0 && age < 120000);
+    };
+    void supabase.from('user_presence').select('is_online, last_seen').eq('user_id', otherUser.id).maybeSingle()
+      .then(({ data }) => { if (live) { presence = data; refresh(); } });
+    const channel = supabase.channel(`presence_${otherUser.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_presence', filter: `user_id=eq.${otherUser.id}` },
+        payload => { presence = payload.new; refresh(); }).subscribe();
+    const timer = setInterval(refresh, 5000);
+    return () => { live = false; clearInterval(timer); void supabase.removeChannel(channel); };
+  }, [isGroup, otherUser?.id, accountScope]);
 
   useEffect(() => {
     mountedRef.current = true;
+    setMessages([]); historyCursor.current = null; setHasOlder(false); setLoadingOlder(false); olderPending.current = false;
     fetchMessages();
     fetchTyping();
     if (!conversationId) return () => { mountedRef.current = false; };
@@ -879,9 +1009,10 @@ export default function ChatScreen() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'message_reactions' },
-        () => {
-          const ids = messagesRef.current.map(m => m.id);
-          if (ids.length) loadReactions(ids);
+        (payload) => {
+          const messageId = (payload.new as any)?.message_id || (payload.old as any)?.message_id;
+          const ids = messagesRef.current.filter(m => !messageId || m.id === messageId).map(m => m.id);
+          for (let i = 0; i < ids.length; i += MESSAGE_PAGE_SIZE) void loadReactions(ids.slice(i, i + MESSAGE_PAGE_SIZE));
         }
       )
       .subscribe();
@@ -894,7 +1025,7 @@ export default function ChatScreen() {
       clearInterval(typePoll); supabase.removeChannel(typeCh);
       supabase.removeChannel(reactCh);
     };
-  }, [conversationId, currentUserId, fetchMessages, fetchTyping, markRead, mergeMsg, refreshStatus, setTyping, loadReactions]);
+  }, [conversationId, currentUserId, fetchMessages, fetchTyping, markRead, mergeMsg, refreshStatus, setTyping, loadReactions, accountScope]);
 
   const handleTextChange = useCallback((text: string) => {
     setMessage(text);
@@ -1073,6 +1204,7 @@ const insertMention = useCallback((username: string) => {
   };
 
   const openForward = async (msg: MessageItem) => {
+    if (!canForwardMessage(msg)) { Alert.alert('Cannot forward', 'Limited-view attachments and payment events cannot be forwarded.'); return; }
     setForwardMsg(msg);
     try {
       const [dmRes, memberRes] = await Promise.all([
@@ -1092,166 +1224,227 @@ const insertMention = useCallback((username: string) => {
     setShowForwardPicker(true);
   };
 
-  const doSend = useCallback(async (text: string, mediaUrl?: string, mediaType?: string, mediaB64?: string | null, replyId?: string | null, mediaWidth?: number, mediaHeight?: number, mediaThumbUrl?: string): Promise<boolean> => {
-    if (!currentUserId) return false;
-
-    const convId = await getOrCreateConversation();
-    if (!convId) return false;
-    const receiverId = isGroup ? null : (otherUser?.id ?? passedUserId);
-    const tempId = 'opt_' + Date.now();
-    const now = new Date().toISOString();
-    const optimistic: MessageItem = {
-      id: tempId, text: text || null, sender_id: currentUserId, receiver_id: receiverId, conversation_id: convId,
-      created_at: now, media_url: mediaUrl || null, media_type: mediaType || null, media_b64: mediaB64 || null,
-      media_width: mediaWidth || null, media_height: mediaHeight || null, thumbnail_url: mediaThumbUrl || null,
-      reply_to_id: replyId || null, _optimistic: true,
-    };
-    LayoutAnimation.configureNext(LayoutAnimation.create(180, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
-    setMessages(prev => [optimistic, ...prev]);
+  const forwardToConversation = useCallback(async (destination: any) => {
+    if (!forwardMsg || !currentUserId || forwardPending.current) return;
+    forwardPending.current = true;
     try {
-      const { data, error } = await supabase.from('messages').insert([{
-        conversation_id: convId, text: text || null, sender_id: currentUserId, receiver_id: receiverId, view_limit: pendingViewLimitRef.current,
-        media_url: mediaUrl || null, media_type: mediaType || null, thumbnail_url: mediaThumbUrl || null, reply_to_id: replyId || null,
-      }]).select().single();
-      if (error) {
-        setMessages(prev => prev.filter(m => m.id !== tempId));
-        if (error.code === '42501') {
-          Alert.alert('Announcements only', 'Only admins can post in this community.');
-        }
-        return false;
-      }
-      mergeMsg({ ...data, media_width: mediaWidth || null, media_height: mediaHeight || null, media_b64: mediaB64 || null, thumbnail_url: mediaThumbUrl || null });
-      await refreshStatus();
-      const body = mediaUrl
-        ? (mediaType === 'image' ? ((pendingViewLimitRef.current ?? (data as any)?.view_limit) ? '🕐 Photo' : '📷 Photo')
-          : mediaType === 'video' ? '🎬 Video'
-          : mediaType === 'gif' ? 'GIF'
-          : mediaType === 'audio' ? '🎤 Voice message'
-          : mediaType === 'document' ? '📄 File' : '📎 Media')
-        : (text || '');
-      const preview = body;
-      // preview is written server-side by trg_sync_conversation_preview (0065)
-      return true;
-    } catch {
-      if (!mediaUrl && text) {
-        useNetStore.getState().enqueue({ conversation_id: convId, sender_id: currentUserId, receiver_id: receiverId ?? null, text, reply_to_id: replyId || null });
-        return true;
-      }
-      setMessages(prev => prev.filter(m => m.id !== tempId));
-      return false;
+      const { data: source, error: sourceError } = await supabase.from('messages').select('*')
+        .eq('id', forwardMsg.id).eq('conversation_id', forwardMsg.conversation_id).single();
+      if (sourceError || !source || !canForwardMessage(source)) throw new Error('This message is no longer available to forward.');
+      const receiverId = destination.is_group ? null : destination.user_1 === currentUserId ? destination.user_2 : destination.user_1;
+      const { error } = await supabase.from('messages').insert({
+        conversation_id: destination.id, sender_id: currentUserId, receiver_id: receiverId,
+        text: source.text || null, media_url: source.media_url || null, media_type: source.media_type || null,
+        thumbnail_url: source.thumbnail_url || null, shared_post_id: source.shared_post_id || null,
+        forwarded_from_id: source.id, reply_to_id: null,
+      });
+      if (error) throw new Error('The message could not be forwarded. Please try again.');
+      setShowForwardPicker(false); setForwardMsg(null); Alert.alert('Forwarded');
+    } catch (error) { Alert.alert('Not forwarded', error instanceof Error ? error.message : 'Please try again.'); }
+    finally { forwardPending.current = false; }
+  }, [forwardMsg, currentUserId]);
+
+  const doSend = useCallback(async (text: string, mediaUrl?: string, mediaType?: string, mediaB64?: string | null, replyId?: string | null, mediaWidth?: number, mediaHeight?: number, mediaThumbUrl?: string, viewLimit: number | null = null): Promise<boolean> => {
+    if (!currentUserId) return false;
+    const initiatingOwner = useAuthStore.getState().session?.user.id;
+    if (!initiatingOwner) return false;
+    const convId = await getOrCreateConversation();
+    if (!convId || useAuthStore.getState().session?.user.id !== initiatingOwner) return false;
+    const { data: session, error: sessionError } = await supabase.auth.getSession();
+    const owner = session?.session?.user?.id;
+    if (sessionError || owner !== initiatingOwner || useAuthStore.getState().session?.user.id !== initiatingOwner) return false;
+    const receiverId = isGroup ? null : (otherUser?.id ?? passedUserId ?? null);
+    const id = makeMessageId();
+    const intent: MessageIntent = {
+      id, conversation_id: convId, sender_id: currentUserId, receiver_id: receiverId,
+      text: text || null, media_url: mediaUrl || null, media_type: mediaType || null,
+      thumbnail_url: mediaThumbUrl || null, reply_to_id: replyId || null,
+      view_limit: viewLimit,
+    };
+    const optimistic: MessageItem = {
+      ...intent, created_at: new Date().toISOString(), media_b64: mediaB64 || null,
+      media_width: mediaWidth || null, media_height: mediaHeight || null, _optimistic: true,
+    };
+    // Persist the original ID before any attempt. Both the immediate sender and
+    // reconnection worker use this ID, so a lost response cannot make a new row.
+    await useNetStore.getState().enqueue({ ...intent, owner_auth_id: owner });
+    if (useAuthStore.getState().session?.user.id !== owner) return true;
+    if (mountedRef.current && activeConversation.current === convId) {
+      LayoutAnimation.configureNext(LayoutAnimation.create(180, LayoutAnimation.Types.easeInEaseOut, LayoutAnimation.Properties.opacity));
+      setMessages(prev => mergeMessagePage(prev, [optimistic]));
     }
+    const outcome = await deliverMessage(supabase, intent);
+    if (outcome.status === 'confirmed') {
+      useNetStore.getState().removeFromOutbox(id);
+      if (useAuthStore.getState().session?.user.id === owner) {
+        await mergeMsg({ ...outcome.row, media_width: mediaWidth || null, media_height: mediaHeight || null, media_b64: mediaB64 || null } as MessageItem);
+        void refreshStatus();
+      }
+      return true;
+    }
+    if (outcome.status === 'pending') {
+      if (useAuthStore.getState().session?.user.id === owner && mountedRef.current && activeConversation.current === convId) setMessages(prev => prev.map(item => item.id === id && item._optimistic ? { ...item, _queued: true } : item));
+      return true;
+    }
+    if (outcome.status === 'conflict') {
+      useNetStore.getState().setOutboxFailed(id, true);
+      return true;
+    }
+    useNetStore.getState().removeFromOutbox(id);
+    if (mountedRef.current && activeConversation.current === convId) setMessages(prev => prev.filter(item => item.id !== id));
+    Alert.alert('Message not sent', 'The server did not accept this message. Your draft is available to try again.');
+    return false;
   }, [getOrCreateConversation, currentUserId, isGroup, otherUser, passedUserId, mergeMsg, refreshStatus]);
 
   const sendMessage = useCallback(async () => {
     const clean = message.trim();
-    if (!clean || sending) return;
+    if (!clean || textSendPending.current) return;
+    const owner = useAuthStore.getState().session?.user.id;
+    textSendPending.current = true;
+    const origin = conversationId;
     setMessage('');
-    if (conversationId) useDraftStore.getState().clearDraft(conversationId);
+    if (origin) useDraftStore.getState().clearDraft(origin);
     setSending(true);
     if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     setTyping(false);
     const rid = replyTo?.id;
     setReplyTo(null);
-    const ok = await doSend(clean, undefined, undefined, null, rid);
-    if (!ok) setMessage(clean);
-    setSending(false);
-  }, [message, sending, setTyping, replyTo, doSend]);
-
-const chooseAndSendImage = useCallback(async (img: { uri: string; width: number; height: number; base64: string | null; caption?: string }) => {
-    pendingViewLimitRef.current = null;
-    const choice: number | null = await new Promise(res => {
-      Alert.alert('Send photo', 'Choose how it can be viewed', [
-        { text: 'Normal', onPress: () => res(null) },
-        { text: 'View once', onPress: () => res(1) },
-        { text: 'View twice', onPress: () => res(2) },
-        { text: 'Cancel', style: 'cancel', onPress: () => res(-1) },
-      ]);
-    });
-    if (choice === -1) return;
-    pendingViewLimitRef.current = choice;
-    setUploadingMedia(true);
     try {
-      const { url } = await uploadMedia('chat-media', currentUserId!, {
+      const ok = await doSend(clean, undefined, undefined, null, rid);
+      if (!ok && useAuthStore.getState().session?.user.id === owner) {
+        if (origin) useDraftStore.getState().setDraft(origin, clean);
+        if (mountedRef.current && activeConversation.current === origin) setMessage(clean);
+      }
+    } catch {
+      if (useAuthStore.getState().session?.user.id === owner) {
+        if (origin) useDraftStore.getState().setDraft(origin, clean);
+        if (mountedRef.current && activeConversation.current === origin) setMessage(clean);
+        Alert.alert('Message not sent', 'Please try again.');
+      }
+    } finally { textSendPending.current = false; if (mountedRef.current) setSending(false); }
+  }, [message, conversationId, setTyping, replyTo, doSend]);
+
+const chooseAndSendImage = useCallback(async (img: { uri: string; width: number; height: number; base64: string | null; caption?: string }): Promise<boolean> => {
+    const owner = useAuthStore.getState().session?.user.id;
+    if (!owner || !currentUserId || mediaSending.current) return false;
+    const scope = attachmentScopeRef.current, operation = ++mediaOperation.current;
+    const current = () => mountedRef.current && attachmentScopeRef.current === scope && useAuthStore.getState().session?.user.id === owner && mediaOperation.current === operation;
+    mediaSending.current = true;
+    try {
+      const choice = await new Promise<number | null>(resolve => Alert.alert('Send photo', 'Choose how it can be viewed', [
+        { text: 'Normal', onPress: () => resolve(null) }, { text: 'View once', onPress: () => resolve(1) },
+        { text: 'View twice', onPress: () => resolve(2) }, { text: 'Cancel', style: 'cancel', onPress: () => resolve(-1) },
+      ], { cancelable: true, onDismiss: () => resolve(-1) }));
+      if (choice === -1 || !current()) return false;
+      setUploadingMedia(true);
+      const { url } = await uploadMedia('chat-media', currentUserId, {
         uri: img.uri, kind: 'image', ext: 'jpg', mimeType: 'image/jpeg',
-        width: img.width, height: img.height, base64: img.base64,
+        width: img.width, height: img.height, base64: choice ? null : img.base64,
       }, { filename: `edited_${Date.now()}.jpg` });
-      await doSend(img.caption || '', url, 'image', img.base64, null, img.width, img.height);
-    } catch { Alert.alert('Upload failed'); }
-    finally { setUploadingMedia(false); pendingViewLimitRef.current = null; }
+      if (!current()) return false;
+      const sent = await doSend(img.caption || '', url, 'image', choice ? null : img.base64, null, img.width, img.height, undefined, choice);
+      if (!sent && current()) throw Error('Photo could not be sent.');
+      return sent;
+    } catch {
+      if (current()) Alert.alert('Photo not sent', 'Your edited photo is kept for retry.', [
+        { text: 'Cancel', style: 'cancel' }, { text: 'Retry', onPress: () => { void chooseAndSendImage(img); } },
+      ]);
+      return false;
+    } finally { if (operation === mediaOperation.current) { mediaSending.current = false; if (current()) setUploadingMedia(false); } }
   }, [currentUserId, doSend]);
 
-  const openSealedMedia = useCallback(async (msg: any) => {
+  const openSealedMedia = useCallback((msg: MessageItem) => {
+    const viewer = useAuthStore.getState().session?.user.id;
+    if (!viewer || msg.sender_id === viewer || !msg.view_limit || viewedOutIds.has(msg.id)) return;
+    if(msg.conversation_id !== activeConversation.current) return;
+    setPrivateMedia({ id: msg.id, userId: viewer, scope: attachmentScopeRef.current });
+  }, [viewedOutIds]);
+  const sendMediaAssets = useCallback(async (assets: { uri: string; type?: string | null; width?: number; height?: number; base64?: string | null }[]) => {
+    const owner = useAuthStore.getState().session?.user.id;
+    if (!owner || !currentUserId || mediaSending.current || !assets.length) return false;
+    const scope = attachmentScopeRef.current, operation = ++mediaOperation.current;
+    const current = () => mountedRef.current && attachmentScopeRef.current === scope && useAuthStore.getState().session?.user.id === owner && operation === mediaOperation.current;
+    mediaSending.current = true;
+    let failed = 0, failureReason = '', viewLimit: number | null = null;
+    setShowToolbar(false); setUploadingMedia(true);
     try {
-      const { data, error } = await supabase.rpc('consume_media_view', { p_message_id: msg.id });
-      const row = Array.isArray(data) ? data[0] : data;
-      if (error || !row?.url) {
-        setViewedOutIds(prev => new Set(prev).add(msg.id));
-        Alert.alert('Opened', 'This photo has already been viewed.');
-        return;
+      if (assets.length === 1 && assets[0].type === 'video') {
+        const choice = await new Promise<number|null>(resolve => Alert.alert('Send video', 'Choose how it can be viewed', [
+          {text:'Normal',onPress:()=>resolve(null)}, {text:'View once',onPress:()=>resolve(1)}, {text:'Cancel',style:'cancel',onPress:()=>resolve(-1)},
+        ], {cancelable:true,onDismiss:()=>resolve(-1)}));
+        if (choice === -1 || !current()) return false;
+        viewLimit = choice;
       }
-      if ((row.remaining ?? 0) <= 0) setViewedOutIds(prev => new Set(prev).add(msg.id));
-      setFullscreenImg(row.url);
-    } catch {}
-  }, []);
+      for (const asset of assets) {
+        if (!current()) return false;
+        const isVid = asset.type === 'video', ext = isVid ? 'mp4' : 'jpg', mime = isVid ? 'video/mp4' : 'image/jpeg';
+        const imgBase64 = viewLimit ? null : asset.base64 ?? null;
+        try {
+          const { url } = await uploadMedia('chat-media', currentUserId, {
+            uri: asset.uri, kind: isVid ? 'video' : 'image', ext, mimeType: mime,
+            width: asset.width, height: asset.height, base64: imgBase64,
+          }, { filename: `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}` });
+          if (!current()) return false;
+          let thumbUrl: string | undefined;
+          if (isVid && !viewLimit) {
+            try {
+              const th = await VideoThumbnails.getThumbnailAsync(asset.uri, { time: 0, quality: 0.7 });
+              if (!current()) return false;
+              const up = await uploadMedia('chat-media', currentUserId, {
+                uri: th.uri, kind: 'image', ext: 'jpg', mimeType: 'image/jpeg', base64: null,
+              }, { filename: `${Date.now()}_${Math.random().toString(36).slice(2)}_thumb.jpg` });
+              thumbUrl = up.url;
+            } catch (thumbErr: any) { console.log('[CHAT_THUMB_ERR]', thumbErr?.message); }
+          }
+          if (!current()) return false;
+          if (!(await doSend('', url, isVid ? 'video' : 'image', imgBase64, null, asset.width, asset.height, thumbUrl, viewLimit))) failed++;
+        } catch (error) { failed++; failureReason = error instanceof Error ? error.message : ''; }
+      }
+    } finally { if (operation === mediaOperation.current) { mediaSending.current = false; if (current()) setUploadingMedia(false); } }
+    if (!current()) return false;
+    if (failed) Alert.alert('Attachment not sent', failureReason || `${failed} attachment${failed === 1 ? '' : 's'} could not be sent. Please try again.`);
+    return failed === 0;
+  }, [currentUserId, doSend]);
+
   const pickAndSendMedia = useCallback(async () => {
+    const scope = attachmentScopeRef.current;
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (attachmentScopeRef.current !== scope || !mountedRef.current) return;
     if (!perm.granted) { Alert.alert('Permission required'); return; }
     const result = await ImagePicker.launchImageLibraryAsync({
         preferredAssetRepresentationMode: "compatible" as ImagePicker.UIImagePickerPreferredAssetRepresentationMode,
       mediaTypes: ['images', 'videos'] as ImagePicker.MediaType[], quality: 0.92,
       allowsMultipleSelection: true, selectionLimit: 10, base64: true,
     });
-    if (result.canceled || !result.assets?.length) return;
-    pendingViewLimitRef.current = null;
+    if (result.canceled || !result.assets?.length || attachmentScopeRef.current !== scope || !mountedRef.current) return;
     if (result.assets.length === 1 && result.assets[0].type !== 'video') {
       const a = result.assets[0];
       setShowToolbar(false);
       setEditTarget({ uri: a.uri, width: a.width ?? 1000, height: a.height ?? 1000 });
       return;
     }
-    setShowToolbar(false); setUploadingMedia(true);
-    try {
-      for (const asset of result.assets) {
-        const isVid = asset.type === 'video';
-        const ext = isVid ? 'mp4' : 'jpg';
-        const mime = isVid ? 'video/mp4' : 'image/jpeg';
-        const imgBase64 = asset.base64 ?? null;
-        try {
-          const { url } = await uploadMedia('chat-media', currentUserId!, {
-            uri: asset.uri, kind: isVid ? 'video' : 'image', ext, mimeType: mime,
-            width: asset.width, height: asset.height, base64: imgBase64,
-          }, { filename: `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}` });
-          let thumbUrl: string | undefined;
-          if (isVid) {
-            try {
-              const th = await VideoThumbnails.getThumbnailAsync(asset.uri, { time: 0, quality: 0.7 });
-              const up = await uploadMedia('chat-media', currentUserId!, {
-                uri: th.uri, kind: 'image', ext: 'jpg', mimeType: 'image/jpeg', base64: null,
-              }, { filename: `${Date.now()}_${Math.random().toString(36).slice(2)}_thumb.jpg` });
-              thumbUrl = up.url;
-            } catch (thumbErr: any) { console.log('[CHAT_THUMB_ERR]', thumbErr?.message); }
-          }
-          await doSend('', url, isVid ? 'video' : 'image', imgBase64, null, asset.width, asset.height, thumbUrl);
-        } catch (upErr: any) { console.log('[CHAT_UPLOAD_ERR]', upErr?.message); continue; }
-      }
-    } catch (e: any) { Alert.alert('Upload failed', e?.message); } finally { setUploadingMedia(false); pendingViewLimitRef.current = null; }
-  }, [currentUserId, doSend]);
+    await sendMediaAssets(result.assets);
+  }, [sendMediaAssets]);
 
 const pickAndSendDocument = useCallback(async () => {
-    setShowToolbar(false);
+    const owner = useAuthStore.getState().session?.user.id;
+    if (!owner || !currentUserId || mediaSending.current) return;
+    const scope = attachmentScopeRef.current, operation = ++mediaOperation.current;
+    const current = () => mountedRef.current && scope === attachmentScopeRef.current && owner === useAuthStore.getState().session?.user.id && operation === mediaOperation.current;
+    mediaSending.current = true; setShowToolbar(false);
     try {
       const result = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: true, multiple: false });
-      if (result.canceled || !result.assets?.[0]) return;
+      if (result.canceled || !result.assets?.[0] || !current()) return;
       const asset = result.assets[0];
       const ext = asset.name.split('.').pop()?.toLowerCase() || 'bin';
       setUploadingMedia(true);
-      const safeName = asset.name.replace(/[^a-zA-Z0-9/_.\-]/g, '_');
-      const { url } = await uploadMedia('chat-files', currentUserId!, {
-        uri: asset.uri, kind: 'document', ext, mimeType: 'application/octet-stream', base64: null,
+      const safeName = asset.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
+      const { url } = await uploadMedia('chat-files', currentUserId, {
+        uri: asset.uri, kind: 'document', ext, mimeType: asset.mimeType || 'application/octet-stream', base64: null,
       }, { filename: `${Date.now()}_${safeName}` });
-      await doSend(`📄 ${asset.name}`, url, 'document', null);
-    } catch (e: any) { Alert.alert('Error', 'Could not send file: ' + (e?.message || '')); }
-    finally { setUploadingMedia(false); }
+      if (current()) await doSend(`📄 ${asset.name}`, url, 'document', null);
+    } catch (e: any) { if(current()) Alert.alert('Error', 'Could not send file: ' + (e?.message || '')); }
+    finally { if(operation===mediaOperation.current){mediaSending.current=false;if(current())setUploadingMedia(false);} }
   }, [currentUserId, doSend]);
 
   const sendGif = useCallback(async (url: string) => {
@@ -1271,7 +1464,7 @@ const pickAndSendDocument = useCallback(async () => {
     const cm = (funCamRoute.params as any)?.capturedMedia;
     if (!cm) return;
     if (cm.type === 'video') {
-      Alert.alert('Video not supported here yet', 'Use the gallery picker to send a video for now.');
+      setCapturedVideo({ uri: cm.uri, type: 'video', width: cm.width, height: cm.height });
       funCamNav.setParams({ capturedMedia: undefined });
       return;
     }
@@ -1285,35 +1478,37 @@ const pickAndSendDocument = useCallback(async () => {
   }, [funCamNav]);
 
   const toggleReaction = useCallback(async (msgId: string, emoji: string) => {
-    if (!currentUserId) return;
-    setSelectedMsg(null);
-    const { data: existing } = await supabase.from('message_reactions').select('id, emoji').eq('message_id', msgId).eq('user_id', currentUserId).maybeSingle();
-    if (existing) {
-      if (existing.emoji === emoji) await supabase.from('message_reactions').delete().eq('id', existing.id);
-      else await supabase.from('message_reactions').update({ emoji }).eq('id', existing.id);
-    } else {
-      await supabase.from('message_reactions').insert({ message_id: msgId, user_id: currentUserId, emoji });
-    }
-    await loadReactions([msgId]);
+    if (!currentUserId || reactionPending.current.has(msgId)) return;
+    reactionPending.current.add(msgId); setSelectedMsg(null);
+    try {
+      const { data: existing, error: readError } = await supabase.from('message_reactions').select('id, emoji').eq('message_id', msgId).eq('user_id', currentUserId).maybeSingle();
+      if (readError) throw readError;
+      const result = existing
+        ? existing.emoji === emoji
+          ? await supabase.from('message_reactions').delete().eq('id', existing.id).eq('user_id', currentUserId)
+          : await supabase.from('message_reactions').update({ emoji }).eq('id', existing.id).eq('user_id', currentUserId)
+        : await supabase.from('message_reactions').insert({ message_id: msgId, user_id: currentUserId, emoji });
+      if (result.error) throw result.error;
+      await loadReactions([msgId]);
+    } catch { Alert.alert('Reaction not saved', 'Please try again.'); }
+    finally { reactionPending.current.delete(msgId); }
   }, [currentUserId, loadReactions]);
 
   const saveEdit = useCallback(async () => {
-    if (!editingMsg || !editText.trim()) return;
-    const newText = editText.trim();
-    const msgId = editingMsg.id;
-    setMessages(prev => prev.map(m => m.id === msgId ? { ...m, text: newText } : m));
-    setEditingMsg(null); setEditText('');
-    const { error } = await supabase.from('messages').update({ text: newText, edited_at: new Date().toISOString() })
-      .eq('id', msgId).eq('sender_id', currentUserId!);
-    if (error) { await fetchMessages(); }
-    else if (editingMsg.conversation_id) {
-      const { data: latest } = await supabase.from('messages').select('id').eq('conversation_id', editingMsg.conversation_id)
-        .order('created_at', { ascending: false }).limit(1).maybeSingle();
-      if (latest?.id === msgId) {
-        await supabase.from('conversations').update({ last_message: newText }).eq('id', editingMsg.conversation_id);
+    if (!editingMsg || !editText.trim() || editPending.current || !currentUserId) return;
+    editPending.current = true;
+    const newText = editText.trim(); const msgId = editingMsg.id;
+    try {
+      const { data, error } = await supabase.from('messages').update({ text: newText, edited_at: new Date().toISOString() })
+        .eq('id', msgId).eq('sender_id', currentUserId).is('deleted_at', null).select('*').single();
+      if (error || !data) throw error;
+      if (activeConversation.current === editingMsg.conversation_id) {
+        setMessages(prev => prev.map(m => m.id === msgId ? { ...m, ...data } : m));
+        setEditingMsg(null); setEditText('');
       }
-    }
-  }, [editingMsg, editText, currentUserId, fetchMessages]);
+    } catch { Alert.alert('Edit not saved', 'Your edit is still here. Please try again.'); }
+    finally { editPending.current = false; }
+  }, [editingMsg, editText, currentUserId]);
 
   const startCall = useCallback(async (isVideo = false) => {
     if (!(await flagsService.isEnabled('calls'))) {
@@ -1359,6 +1554,7 @@ const pickAndSendDocument = useCallback(async () => {
   const getStatus = useCallback((item: MessageItem, isMe: boolean, index: number) => {
     if (!isMe) return null;
     if (lastOwnIndex !== index) return null;
+    if (item._queued) return 'Waiting to send';
     if (item._optimistic) return 'Sending';
     const viewed = item.viewed_at || (lastStatus?.id === item.id ? lastStatus.viewed_at : null);
     const delivered = item.delivered_at || (lastStatus?.id === item.id ? lastStatus.delivered_at : null);
@@ -1464,6 +1660,7 @@ const pickAndSendDocument = useCallback(async () => {
   }, []);
   const [sharedPostsMap, setSharedPostsMap] = useState<Record<string, { content: string; author: any; media?: { url: string; media_type: string; thumbnail_url?: string | null } | null }>>({});
   useEffect(() => {
+    let live=true; const scope=accountScopeRef.current;
     const ids = Array.from(new Set(messages.map(m => m.shared_post_id).filter(Boolean))) as string[];
     const missing = ids.filter(id => !sharedPostsMap[id]);
     if (missing.length === 0) return;
@@ -1476,6 +1673,7 @@ const pickAndSendDocument = useCallback(async () => {
         const { data: aus } = await supabase.from('profiles').select('id, full_name, username, avatar_url').in('id', uids);
         (aus ?? []).forEach((a: any) => { am[a.id] = a; });
       }
+      if(!live || scope!==accountScopeRef.current)return;
       setSharedPostsMap(prev => {
         const n = { ...prev };
         rows.forEach((r: any) => {
@@ -1487,7 +1685,8 @@ const pickAndSendDocument = useCallback(async () => {
         return n;
       });
     })();
-  }, [messages, sharedPostsMap]);
+    return()=>{live=false;};
+  }, [messages, sharedPostsMap, accountScope]);
   const replySource = useMemo(() => {
     if (!replyTo) return null;
     return replyTo.text || (replyTo.media_type === 'image' ? '📷 Photo' : replyTo.media_type === 'video' ? '🎬 Video' : '📎 Media');
@@ -1535,8 +1734,8 @@ const pickAndSendDocument = useCallback(async () => {
             borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.14)',
             backgroundColor: 'rgba(11,30,61,0.03)',
           }}>
-            <Feather name='slash' size={12} color={TEXT_SECONDARY} />
-            <Text style={{ fontSize: 13.5, fontStyle: 'italic', color: TEXT_SECONDARY }}>
+            <Feather name='slash' size={12} color={t.ink.muted} />
+            <Text style={{ fontSize: 13.5, fontStyle: 'italic', color: t.ink.muted }}>
               {isMe ? 'You deleted this message' : 'This message was deleted'}
             </Text>
           </View>
@@ -1561,6 +1760,7 @@ const pickAndSendDocument = useCallback(async () => {
               {sender?.full_name || msg.sender_name || 'Member'}
             </Text>
           )}
+          {(() => { const card = msg.view_limit ? null : parseChatAttachmentCard(msg.media_url); return card ? <View style={{padding:12,borderWidth:1,borderColor:t.surface.hairline,borderRadius:12,backgroundColor:t.surface.raised}}><Text style={{color:t.ink.primary,fontWeight:'700'}}>{attachmentCardText(card)}</Text>{attachmentCardLinks(card).map(link=><TouchableOpacity key={link.url} accessibilityRole="link" onPress={()=>{void Linking.openURL(link.url).catch(()=>Alert.alert('Could not open','No compatible app is available.'));}} style={{paddingVertical:10}}><Text style={{color:t.status.link}}>{link.label}</Text></TouchableOpacity>)}</View> : null; })()}
           {msg.shared_post_id && (
             <View style={{ marginBottom: 4 }}>
               <SharedPostCard post={sharedPost ? { id: msg.shared_post_id, content: sharedPost.content, author: sharedPost.author, media: sharedPost.media } : null} width={232} onPress={() => navigation.navigate('Post', { postId: msg.shared_post_id })} onAuthorPress={sharedPost?.author?.id ? () => navigation.navigate('UserProfile' as never, { userId: sharedPost.author.id } as never) : undefined} />
@@ -1594,7 +1794,7 @@ const pickAndSendDocument = useCallback(async () => {
               isSticker && { backgroundColor: 'transparent', borderWidth: 0, shadowOpacity: 0, elevation: 0, padding: 0 },
                 !endsGroup && s.bubbleInRun,
             ]}>
-{(msg as any).view_limit && msg.media_type === 'image' ? (
+{(msg as any).view_limit && (msg.media_type === 'image' || msg.media_type === 'video') ? (
                 <TouchableOpacity
                   disabled={isMe || viewedOutIds.has(msg.id)}
                   onPress={() => openSealedMedia(msg)}
@@ -1602,19 +1802,19 @@ const pickAndSendDocument = useCallback(async () => {
                   style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 4, paddingVertical: 2 }}>
                   <View style={{
                     width: 34, height: 34, borderRadius: 17, borderWidth: 1.5,
-                    borderColor: isMe ? 'rgba(255,255,255,0.55)' : 'rgba(11,30,61,0.35)',
+                    borderColor: isMe ? 'rgba(255,255,255,0.55)' : t.ink.muted,
                     alignItems: 'center', justifyContent: 'center',
                   }}>
-                    <Text style={{ fontSize: 13, fontWeight: '800', color: isMe ? 'rgba(255,255,255,0.85)' : 'rgba(11,30,61,0.7)' }}>{(msg as any).view_limit}</Text>
+                    <Text style={{ fontSize: 13, fontWeight: '800', color: isMe ? 'rgba(255,255,255,0.85)' : t.ink.secondary }}>{(msg as any).view_limit}</Text>
                   </View>
-                  <Text style={{ fontSize: 14.5, fontWeight: '600', fontStyle: viewedOutIds.has(msg.id) ? 'italic' : 'normal', color: isMe ? 'rgba(255,255,255,0.9)' : 'rgba(11,30,61,0.8)' }}>
-                    {isMe ? ((msg as any).view_limit === 1 ? 'View once photo' : 'View twice photo')
+                  <Text style={{ fontSize: 14.5, fontWeight: '600', fontStyle: viewedOutIds.has(msg.id) ? 'italic' : 'normal', color: isMe ? 'rgba(255,255,255,0.9)' : t.ink.primary }}>
+                    {isMe ? `${msg.view_limit === 1 ? 'View once' : 'View twice'} ${msg.media_type === 'video' ? 'video' : 'photo'}`
                       : viewedOutIds.has(msg.id) ? 'Opened'
-                      : 'Photo · tap to view'}
+                      : `${msg.media_type === 'video' ? 'Video' : 'Photo'} · tap to view`}
                   </Text>
                 </TouchableOpacity>
               ) : null}
-              {isSticker ? (
+              {isSticker && !msg.view_limit ? (
                 <ExpoImage source={{ uri: msg.media_url! }} style={{ width: 150, height: 150 }} contentFit="contain" />
               ) : null}
               {(msg.media_type === 'image' || msg.media_type === 'gif') && msg.media_url && !(msg as any).view_limit ? (
@@ -1636,7 +1836,7 @@ const pickAndSendDocument = useCallback(async () => {
                 />
               ) : null}
               {(msg.payment_id || msg.media_type === 'payment') && msg.payment_receipt_verified !== true ? (
-                <Text style={{ color: isMe ? '#FFFFFF' : '#0B1E3D', fontSize: 12 }}>This message is not a verified payment receipt.</Text>
+                <Text style={{ color: isMe ? '#FFFFFF' : t.ink.primary, fontSize: 12 }}>This message is not a verified payment receipt.</Text>
               ) : null}
               {msg.media_type === 'offer' && msg.media_url ? (() => {
                 let j: any = null; try { j = JSON.parse(msg.media_url); } catch {}
@@ -1644,23 +1844,23 @@ const pickAndSendDocument = useCallback(async () => {
                 const live = offersMap[j.offer_id];
                 const status = live?.status || j.status || 'pending';
                 const myTurn = status === 'pending' && (live?.proposer_id ?? msg.sender_id) !== currentUserId;
-                const statusColor = status === 'accepted' ? '#059669' : status === 'pending' ? '#B08D3F' : 'rgba(11,30,61,0.45)';
+                const statusColor = status === 'accepted' ? '#059669' : status === 'pending' ? t.status.warning : t.ink.secondary;
                 return (
-                  <View style={{ minWidth: 200, borderRadius: 14, overflow: 'hidden', backgroundColor: isMe ? 'rgba(255,255,255,0.12)' : 'rgba(11,30,61,0.045)', borderWidth: 1, borderColor: isMe ? 'rgba(255,255,255,0.25)' : 'rgba(11,30,61,0.1)' }}>
+                  <View style={{ minWidth: 200, borderRadius: 14, overflow: 'hidden', backgroundColor: isMe ? 'rgba(255,255,255,0.12)' : t.surface.raised, borderWidth: 1, borderColor: isMe ? 'rgba(255,255,255,0.25)' : t.surface.hairline }}>
                     <View style={{ padding: 12 }}>
-                      <Text style={{ fontSize: 11.5, fontWeight: '700', color: isMe ? 'rgba(255,255,255,0.7)' : 'rgba(11,30,61,0.5)' }}>{j.counter_of ? 'COUNTER-OFFER' : 'OFFER'} · {String(j.listing_title || '').slice(0, 28)}</Text>
-                      <Text style={{ fontSize: 21, fontWeight: '800', marginTop: 3, color: isMe ? '#FFFFFF' : '#0B1E3D' }}>{j.currency} {j.amount}</Text>
+                      <Text style={{ fontSize: 11.5, fontWeight: '700', color: isMe ? 'rgba(255,255,255,0.7)' : t.ink.secondary }}>{j.counter_of ? 'COUNTER-OFFER' : 'OFFER'} · {String(j.listing_title || '').slice(0, 28)}</Text>
+                      <Text style={{ fontSize: 21, fontWeight: '800', marginTop: 3, color: isMe ? '#FFFFFF' : t.ink.primary }}>{j.currency} {j.amount}</Text>
                       <Text style={{ fontSize: 12, fontWeight: '700', marginTop: 3, color: statusColor }}>{status.toUpperCase()}</Text>
                     </View>
                     {myTurn && (
-                      <View style={{ flexDirection: 'row', borderTopWidth: 1, borderTopColor: isMe ? 'rgba(255,255,255,0.2)' : 'rgba(11,30,61,0.08)' }}>
+                      <View style={{ flexDirection: 'row', borderTopWidth: 1, borderTopColor: isMe ? 'rgba(255,255,255,0.2)' : t.surface.hairline }}>
                         <TouchableOpacity style={{ flex: 1, paddingVertical: 10, alignItems: 'center' }} onPress={() => respondOffer(j.offer_id, 'accepted')}>
                           <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#059669' }}>Accept</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={{ flex: 1, paddingVertical: 10, alignItems: 'center', borderLeftWidth: 1, borderLeftColor: 'rgba(11,30,61,0.08)' }} onPress={() => {
                           Alert.prompt ? Alert.prompt('Counter-offer', 'Your amount', (t) => { const n = Number(String(t).replace(/,/g, '')); if (Number.isFinite(n) && n > 0) respondOffer(j.offer_id, 'countered', n); }, 'plain-text', '', 'numeric') : respondOffer(j.offer_id, 'declined');
                         }}>
-                          <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#0B1E3D' }}>Counter</Text>
+                          <Text style={{ fontSize: 12.5, fontWeight: '800', color: t.ink.primary }}>Counter</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={{ flex: 1, paddingVertical: 10, alignItems: 'center', borderLeftWidth: 1, borderLeftColor: 'rgba(11,30,61,0.08)' }} onPress={() => respondOffer(j.offer_id, 'declined')}>
                           <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#DC2626' }}>Decline</Text>
@@ -1670,16 +1870,16 @@ const pickAndSendDocument = useCallback(async () => {
                   </View>
                 );
               })() : null}
-              {msg.media_type === 'audio' && msg.media_url ? (
+              {msg.media_type === 'audio' && msg.media_url && !msg.view_limit ? (
                 <VoiceNote
                   uri={msg.media_url}
                   durationSec={msg.media_width ?? null}
-                  tint={isMe ? '#FFFFFF' : NAVY}
-                  dim={isMe ? 'rgba(255,255,255,0.45)' : 'rgba(11,30,61,0.28)'}
-                  onTint={isMe ? NAVY : '#FFFFFF'}
+                  tint={isMe ? '#FFFFFF' : t.ink.primary}
+                  dim={isMe ? 'rgba(255,255,255,0.45)' : t.ink.muted}
+                  onTint={isMe ? NAVY : t.surface.canvas}
                 />
               ) : null}
-              {msg.media_type === 'video' && msg.media_url ? (
+              {msg.media_type === 'video' && msg.media_url && !msg.view_limit ? (
                 <TouchableOpacity style={[s.videoThumb, { width: MSG_IMG_MAX_W, height: MSG_VID_H }]}
                   activeOpacity={0.85} onPress={() => setFullscreenVideo(msg.media_url!)}
                   onLongPress={() => setSelectedMsg(msg)}>
@@ -1689,11 +1889,11 @@ const pickAndSendDocument = useCallback(async () => {
                   <View style={s.videoPlayCircle}><Feather name="play" size={24} color="#FFF" /></View>
                 </TouchableOpacity>
               ) : null}
-              {msg.media_type === 'document' && msg.media_url ? (
+              {msg.media_type === 'document' && msg.media_url && !msg.view_limit ? (
                 <TouchableOpacity style={s.docBubble} activeOpacity={0.8}
                   onPress={() => { if (msg.media_url) Linking.openURL(msg.media_url); }}>
                   <View style={[s.docIconBg, isMe && s.docIconBgMe]}>
-                    <Feather name="file-text" size={20} color={isMe ? '#FFF' : NAVY} />
+                    <Feather name="file-text" size={20} color={isMe ? '#FFF' : t.ink.primary} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={[s.docName, isMe && s.docNameMe]} numberOfLines={2}>
@@ -1760,25 +1960,28 @@ const pickAndSendDocument = useCallback(async () => {
   // Stop, upload, then send. The recording is only discarded once the message
   // exists, so a failed upload does not lose what was said.
   const sendVoiceNote = useCallback(async () => {
-    const result = await voice.stop();
-    if (!result) return;
-    setSendingVoice(true);
+    if (voiceSending.current || !currentUserId) return;
+    voiceSending.current = true; setSendingVoice(true);
+    const scope = voiceScopeRef.current;
     try {
-      const { url } = await uploadMedia('chat-media', currentUserId!, {
+      const result = await voice.stop();
+      if (!result || voiceScopeRef.current !== scope) return;
+      const { url } = await uploadMedia('chat-media', currentUserId, {
         uri: result.uri, kind: 'audio', ext: 'm4a', mimeType: 'audio/m4a', base64: null,
       }, { filename: 'voice_' + Date.now() + '.m4a' });
-      await doSend('', url, 'audio', null, replyTo?.id ?? null, result.durationSec, undefined);
-    } catch (e: any) {
-      console.log('[VOICE] send failed:', e?.message);
-      Alert.alert('Could not send', 'Your voice message did not send. Please try again.');
+      if (voiceScopeRef.current !== scope) return;
+      const queued = await doSend('', url, 'audio', null, replyTo?.id ?? null, result.durationSec, undefined);
+      if (queued && voiceScopeRef.current === scope) voice.clearResult();
+    } catch {
+      if (voiceScopeRef.current === scope) Alert.alert('Could not send', 'Your recording is saved here. Tap Send to retry.');
     } finally {
-      setSendingVoice(false);
+      if (voiceScopeRef.current === scope) { voiceSending.current = false; setSendingVoice(false); }
     }
-  }, [voice, currentUserId, replyTo]);
+  }, [voice, currentUserId, replyTo, doSend]);
   const toolbarMaxH = toolbarH.interpolate({ inputRange: [0, 1], outputRange: [0, 160] });
 
   const renderInfoMediaTab = () => {
-    if (infoLoading) return <View style={s.infoTabLoading}><ActivityIndicator color={NAVY} /></View>;
+    if (infoLoading) return <View style={s.infoTabLoading}><ActivityIndicator color={t.ink.primary} /></View>;
     if (infoMedia.length === 0) return <Text style={s.infoEmpty}>No photos or videos yet</Text>;
     return (
       <View style={s.mediaGrid}>
@@ -1786,8 +1989,10 @@ const pickAndSendDocument = useCallback(async () => {
           <TouchableOpacity key={m.id} style={s.mediaGridItem} activeOpacity={0.85}
             onPress={() => {
               if (!m.media_url) return;
+              const scope = attachmentScopeRef.current;
               setShowInfoModal(false);
               setTimeout(() => {
+                if(scope !== attachmentScopeRef.current || !mountedRef.current) return;
                 if (m.media_type === 'video') setFullscreenVideo(m.media_url);
                 else setFullscreenImg(m.media_url);
               }, 250);
@@ -1810,7 +2015,7 @@ const pickAndSendDocument = useCallback(async () => {
   };
 
   const renderInfoFilesTab = () => {
-    if (infoLoading) return <View style={s.infoTabLoading}><ActivityIndicator color={NAVY} /></View>;
+    if (infoLoading) return <View style={s.infoTabLoading}><ActivityIndicator color={t.ink.primary} /></View>;
     if (infoFiles.length === 0) return <Text style={s.infoEmpty}>No files yet</Text>;
     return (
       <View>
@@ -1818,7 +2023,7 @@ const pickAndSendDocument = useCallback(async () => {
           <TouchableOpacity key={f.id} style={s.infoFileRow} activeOpacity={0.7}
             onPress={() => { if (f.media_url) Linking.openURL(f.media_url); }}>
             <View style={s.infoFileIconBg}>
-              <Feather name="file-text" size={18} color={NAVY} />
+              <Feather name="file-text" size={18} color={t.ink.primary} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={s.infoFileName} numberOfLines={1}>
@@ -1836,7 +2041,7 @@ const pickAndSendDocument = useCallback(async () => {
   };
 
   const renderInfoStarredTab = () => {
-    if (infoLoading) return <View style={s.infoTabLoading}><ActivityIndicator color={NAVY} /></View>;
+    if (infoLoading) return <View style={s.infoTabLoading}><ActivityIndicator color={t.ink.primary} /></View>;
     if (infoStarred.length === 0) return <Text style={s.infoEmpty}>No starred messages yet</Text>;
     return (
       <View>
@@ -1875,7 +2080,7 @@ const pickAndSendDocument = useCallback(async () => {
 
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.6} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(11,30,61,0.06)', alignItems: 'center', justifyContent: 'center' }}><Ionicons name="chevron-back" size={22} color={NAVY} /></View>
+          <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(11,30,61,0.06)', alignItems: 'center', justifyContent: 'center' }}><Ionicons name="chevron-back" size={22} color={t.ink.primary} /></View>
         </TouchableOpacity>
         <TouchableOpacity style={s.headerCenter} activeOpacity={0.7}
           onPress={() => setShowInfoModal(true)}>
@@ -1900,27 +2105,27 @@ const pickAndSendDocument = useCallback(async () => {
         </TouchableOpacity>
         <View style={s.headerActions}>
           <TouchableOpacity onPress={() => startCall(false)} style={s.hActionBtn} activeOpacity={0.6} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
-            <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(11,30,61,0.06)', alignItems: 'center', justifyContent: 'center' }}><Ionicons name="call" size={18} color={NAVY} /></View>
+            <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(11,30,61,0.06)', alignItems: 'center', justifyContent: 'center' }}><Ionicons name="call" size={18} color={t.ink.primary} /></View>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setSearchActive(p => !p)}
             style={s.hActionBtn} activeOpacity={0.6} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
-            <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: searchActive ? 'rgba(11,30,61,0.12)' : 'rgba(11,30,61,0.06)', alignItems: 'center', justifyContent: 'center' }}><Ionicons name="search" size={18} color={NAVY} /></View>
+            <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: searchActive ? 'rgba(11,30,61,0.12)' : 'rgba(11,30,61,0.06)', alignItems: 'center', justifyContent: 'center' }}><Ionicons name="search" size={18} color={t.ink.primary} /></View>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => startCall(true)} style={s.hActionBtn} activeOpacity={0.6} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
-            <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(11,30,61,0.06)', alignItems: 'center', justifyContent: 'center' }}><Ionicons name="videocam" size={19} color={NAVY} /></View>
+            <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(11,30,61,0.06)', alignItems: 'center', justifyContent: 'center' }}><Ionicons name="videocam" size={19} color={t.ink.primary} /></View>
           </TouchableOpacity>
         </View>
       </View>
 
       {searchActive && (
         <View style={s.searchBar}>
-          <Feather name="search" size={15} color={TEXT_SECONDARY} />
+          <Feather name="search" size={15} color={t.ink.muted} />
           <TextInput value={searchQuery} onChangeText={setSearchQuery}
-            placeholder="Search in conversation..." placeholderTextColor={TEXT_SECONDARY}
+            placeholder="Search in conversation..." placeholderTextColor={t.ink.muted}
             style={s.searchBarInput} autoFocus returnKeyType="search" clearButtonMode="while-editing" />
           <TouchableOpacity onPress={() => { setSearchActive(false); setSearchQuery(''); }}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Feather name="x" size={16} color={TEXT_SECONDARY} />
+            <Feather name="x" size={16} color={t.ink.muted} />
           </TouchableOpacity>
         </View>
       )}
@@ -1987,7 +2192,7 @@ const pickAndSendDocument = useCallback(async () => {
       {pinnedMsg ? (
         <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F4F7FB', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E1E6EE', paddingHorizontal: 14, paddingVertical: 8, gap: 8 }}>
           <Feather name="paperclip" size={13} color="#1D7A38" />
-          <Text numberOfLines={1} style={{ flex: 1, fontSize: 12.5, color: '#0B1E3D' }}>{pinnedMsg.text || 'Media message'}</Text>
+          <Text numberOfLines={1} style={{ flex: 1, fontSize: 12.5, color: t.ink.primary }}>{pinnedMsg.text || 'Media message'}</Text>
           <TouchableOpacity onPress={() => togglePin(pinnedMsg)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
             <Feather name="x" size={14} color="#5B6B84" />
           </TouchableOpacity>
@@ -2007,6 +2212,15 @@ const pickAndSendDocument = useCallback(async () => {
                 </Text>
               </TouchableOpacity>
             ) : null}
+            maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
+            ListFooterComponent={historyError || hasOlder ? (
+              <TouchableOpacity accessibilityRole="button" disabled={loadingOlder}
+                onPress={() => historyCursor.current ? loadOlderMessages() : fetchMessages()}
+                style={{ padding: 16, alignItems: 'center' }}>
+                <Text style={{ color: t.ink.primary }}>{loadingOlder ? 'Loading older messages…' : historyError || 'Load older messages'}</Text>
+                {historyError ? <Text style={{ color: t.ink.muted }}>Tap to retry</Text> : null}
+              </TouchableOpacity>
+            ) : null}
             keyExtractor={(item: any) => item.type === 'sep' ? item.id : item.data.id}
             renderItem={renderMsg} contentContainerStyle={s.list}
             keyboardShouldPersistTaps="handled" keyboardDismissMode="interactive"
@@ -2023,7 +2237,7 @@ const pickAndSendDocument = useCallback(async () => {
                 <Text style={s.emptyName}>{chatTitle}</Text>
                 {otherUser?.username && <Text style={s.emptyHandle}>@{otherUser.username}</Text>}
                 <Text style={s.emptyHint}>
-                  Send a message to start the conversation.
+                  {historyError ? 'Your messages will appear when the connection is restored.' : 'Send a message to start the conversation.'}
                 </Text>
               </View>
             } />
@@ -2062,7 +2276,7 @@ const pickAndSendDocument = useCallback(async () => {
           </TouchableOpacity>
         )}
         {isGroup && mentionQuery !== null && (
-          <View style={{ maxHeight: 190, backgroundColor: '#FFFFFF', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(11,30,61,0.08)' }}>
+          <View style={{ maxHeight: 190, backgroundColor: t.surface.sunken, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(11,30,61,0.08)' }}>
             {groupMembers
               .filter((gm: any) => gm.profile?.id !== currentUserId && gm.profile?.username
                 && gm.profile.username.toLowerCase().startsWith(mentionQuery.toLowerCase()))
@@ -2075,13 +2289,25 @@ const pickAndSendDocument = useCallback(async () => {
                     ? <ExpoImage source={{ uri: gm.profile.avatar_url }} style={{ width: 30, height: 30, borderRadius: 15 }} contentFit="cover" />
                     : <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#FFF', fontSize: 12, fontWeight: '700' }}>{initials(gm.profile.full_name)}</Text></View>}
                   <View style={{ flex: 1 }}>
-                    <Text style={{ fontSize: 13.5, fontWeight: '700', color: '#0B1E3D' }} numberOfLines={1}><TierName userId={((gm.profile) as any)?.id ?? ((gm.profile) as any)?.user_id} baseStyle={{ fontSize: 13.5, fontWeight: '700', color: '#0B1E3D' }} text={gm.profile.full_name || ''} numberOfLines={1} /> <VerifiedBadge userId={((gm.profile) as any)?.id ?? ((gm.profile) as any)?.user_id} size={12} /></Text>
+                    <Text style={{ fontSize: 13.5, fontWeight: '700', color: t.ink.primary }} numberOfLines={1}><TierName userId={((gm.profile) as any)?.id ?? ((gm.profile) as any)?.user_id} baseStyle={{ fontSize: 13.5, fontWeight: '700', color: t.ink.primary }} text={gm.profile.full_name || ''} numberOfLines={1} /> <VerifiedBadge userId={((gm.profile) as any)?.id ?? ((gm.profile) as any)?.user_id} size={12} /></Text>
                     <Text style={{ fontSize: 11.5, color: 'rgba(11,30,61,0.5)' }} numberOfLines={1}>@{gm.profile.username}</Text>
                   </View>
                 </TouchableOpacity>
               ))}
           </View>
         )}
+        {waitingMessages.length > 0 && <ScrollView style={{ maxHeight: 150 }} contentContainerStyle={{ paddingHorizontal: 14, paddingVertical: 8, gap: 8 }}>
+          {waitingMessages.slice(0, 20).map(item => <View key={item.key} style={{ padding: 10, borderRadius: 12, backgroundColor: t.surface.sunken }}>
+            <Text style={{ color: t.ink.primary, fontWeight: '700' }}>{item.failed || !item.id ? 'Delivery needs review' : 'Waiting for confirmation'}</Text>
+            <Text style={{ color: t.ink.secondary, marginTop: 3 }} numberOfLines={2}>{item.text || 'Attachment'}</Text>
+            {!item.id ? <Text style={{ color: t.ink.secondary, marginTop: 3 }}>Check this chat before sending this older saved message again.</Text> : null}
+            <View style={{ flexDirection: 'row', gap: 16 }}>
+              {item.id ? <TouchableOpacity accessibilityRole="button" onPress={() => { void retryOutboxMessage(item.key).catch(() => Alert.alert('Could not check delivery', 'Please try again.')); }} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={{ color: t.ink.primary }}>Check delivery</Text></TouchableOpacity> : null}
+              {item.failed || !item.id ? <TouchableOpacity accessibilityRole="button" onPress={() => useNetStore.getState().removeFromOutbox(item.key)} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={{ color: t.ink.primary }}>Dismiss saved copy</Text></TouchableOpacity> : null}
+            </View>
+          </View>)}
+          {waitingMessages.length > 20 ? <Text style={{ color: t.ink.secondary }}>{waitingMessages.length - 20} more saved messages remain.</Text> : null}
+        </ScrollView>}
         {replyTo && (
           <View style={s.replyBanner}>
             <View style={s.replyBannerAccent} />
@@ -2090,7 +2316,7 @@ const pickAndSendDocument = useCallback(async () => {
               <Text style={s.replyBannerPrev} numberOfLines={1}>{replySource}</Text>
             </View>
             <TouchableOpacity onPress={() => setReplyTo(null)} style={s.replyBannerClose} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-              <Feather name="x" size={16} color={TEXT_SECONDARY} />
+              <Feather name="x" size={16} color={t.ink.muted} />
             </TouchableOpacity>
           </View>
         )}
@@ -2103,11 +2329,13 @@ const pickAndSendDocument = useCallback(async () => {
                   { iconName: 'image', label: 'Gallery', action: pickAndSendMedia },
                   { iconName: 'film', label: 'GIFs', action: () => { setShowToolbar(false); setShowGifs(true); } },
                   { iconName: 'file-text', label: 'Files', action: pickAndSendDocument },
+                  { iconName: 'user', label: 'Contact', action: () => { setShowToolbar(false); setShareDetails('contact'); } },
+                  { iconName: 'map-pin', label: 'Location', action: () => { setShowToolbar(false); setShareDetails('location'); } },
                   { iconName: 'info', label: 'Info', action: () => { setShowToolbar(false); setShowInfoModal(true); } },
                 ].map(btn => (
                   <TouchableOpacity key={btn.label} style={s.toolbarBtn} onPress={btn.action} activeOpacity={0.7}>
                     <View style={s.toolbarBtnInner}>
-                      <Feather name={btn.iconName as any} size={22} color={NAVY} />
+                      <Feather name={btn.iconName as any} size={22} color={t.ink.primary} />
                     </View>
                     <Text style={s.toolbarBtnLbl}>{btn.label}</Text>
                   </TouchableOpacity>
@@ -2116,7 +2344,7 @@ const pickAndSendDocument = useCallback(async () => {
             )}
         </Animated.View>
 
-        {voice.recording ? (
+        {voice.recording || voice.result ? (
             <View style={[s.voiceBar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
               <TouchableOpacity
                 onPress={() => voice.cancel()}
@@ -2130,7 +2358,7 @@ const pickAndSendDocument = useCallback(async () => {
               <View style={s.voiceDot} />
               <Text style={s.voiceTimer}>{formatVoiceDuration(voice.seconds)}</Text>
               <Text style={s.voiceHint} numberOfLines={1}>
-                {voice.atLimit ? 'Maximum length reached' : 'Recording'}
+                {voice.result ? 'Ready to send' : voice.atLimit ? 'Maximum length reached' : 'Recording'}
               </Text>
 
               <TouchableOpacity
@@ -2152,8 +2380,8 @@ const pickAndSendDocument = useCallback(async () => {
               {savedReplies.map(r => (
                 <TouchableOpacity key={r.id} activeOpacity={0.8} onPress={() => setMessage(r.body)}
                   onLongPress={() => Alert.alert('Remove saved reply?', r.body.slice(0, 60), [{ text: 'Cancel', style: 'cancel' }, { text: 'Remove', style: 'destructive', onPress: async () => { await supabase.from('business_saved_replies').delete().eq('id', r.id); setSavedReplies(p => p.filter(x => x.id !== r.id)); } }])}
-                  style={{ borderWidth: 1.2, borderColor: 'rgba(11,30,61,0.14)', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: '#FFFFFF' }}>
-                  <Text numberOfLines={1} style={{ fontSize: 12.5, color: '#0B1E3D', fontWeight: '600', maxWidth: 180 }}>{r.body}</Text>
+                  style={{ borderWidth: 1.2, borderColor: 'rgba(11,30,61,0.14)', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: t.surface.sunken }}>
+                  <Text numberOfLines={1} style={{ fontSize: 12.5, color: t.ink.primary, fontWeight: '600', maxWidth: 180 }}>{r.body}</Text>
                 </TouchableOpacity>
               ))}
               <TouchableOpacity activeOpacity={0.8} accessibilityLabel="Save current text as a reply"
@@ -2167,7 +2395,7 @@ const pickAndSendDocument = useCallback(async () => {
             <View style={s.inputWrap}>
               <TextInput ref={inputRef} value={message} onChangeText={handleTextChange}
                 placeholder="Message"
-                placeholderTextColor={TEXT_SECONDARY}
+                placeholderTextColor={t.ink.muted}
                 style={s.input} multiline maxLength={2000} returnKeyType="default" blurOnSubmit={false} />
 
               {/* Attachment and payment live inside the pill, the way WhatsApp
@@ -2176,13 +2404,13 @@ const pickAndSendDocument = useCallback(async () => {
               <TouchableOpacity style={s.inlineBtn}
                 onPress={() => { setShowToolbar(p => { if (p) setShowGifs(false); return !p; }); }}
                 activeOpacity={0.6} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
-                <Ionicons name={showToolbar ? 'close' : 'add'} size={24} color={showToolbar ? NAVY : TEXT_SECONDARY} />
+                <Ionicons name={showToolbar ? 'close' : 'add'} size={24} color={showToolbar ? t.ink.primary : t.ink.muted} />
               </TouchableOpacity>
 
               {!isGroup && !!passedUserId && (
                 <TouchableOpacity style={s.inlineBtn} onPress={() => setPayOpen(true)}
                   activeOpacity={0.6} hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}>
-                  <Ionicons name="card" size={21} color={TEXT_SECONDARY} />
+                  <Ionicons name="card" size={21} color={t.ink.muted} />
                 </TouchableOpacity>
               )}
             </View>
@@ -2214,9 +2442,9 @@ const pickAndSendDocument = useCallback(async () => {
         )}
       <Modal visible={!!seenSheet} transparent animationType="slide" onRequestClose={() => setSeenSheet(null)}>
         <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(11,30,61,0.45)' }} activeOpacity={1} onPress={() => setSeenSheet(null)} />
-        <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingTop: 8, paddingBottom: 34, maxHeight: '70%' }}>
+        <View style={{ backgroundColor: t.surface.sunken, borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingTop: 8, paddingBottom: 34, maxHeight: '70%' }}>
           <View style={{ alignSelf: 'center', width: 38, height: 4.5, borderRadius: 3, backgroundColor: 'rgba(11,30,61,0.16)', marginBottom: 10 }} />
-          <Text style={{ fontSize: 16.5, fontWeight: '800', color: '#0B1E3D', paddingHorizontal: 18, marginBottom: 10 }}>Message info</Text>
+          <Text style={{ fontSize: 16.5, fontWeight: '800', color: t.ink.primary, paddingHorizontal: 18, marginBottom: 10 }}>Message info</Text>
           {(seenSheet as any)?.rows === null && <ActivityIndicator style={{ marginVertical: 24 }} color="#0B1E3D" />}
           {(seenSheet as any)?.error ? <Text style={{ textAlign: 'center', color: 'rgba(11,30,61,0.5)', paddingVertical: 20 }}>{(seenSheet as any).error}</Text> : null}
           {Array.isArray(seenSheet?.rows) && seenSheet!.rows.length === 0 && !(seenSheet as any)?.error ? <Text style={{ textAlign: 'center', color: 'rgba(11,30,61,0.5)', paddingVertical: 20 }}>No other members</Text> : null}
@@ -2224,7 +2452,7 @@ const pickAndSendDocument = useCallback(async () => {
             {(seenSheet?.rows || []).map((r, i) => (
               <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 18, paddingVertical: 10 }}>
                 {r.avatar ? <ExpoImage source={{ uri: r.avatar }} style={{ width: 38, height: 38, borderRadius: 19 }} contentFit="cover" /> : <View style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: '#0B1E3D', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#FFF', fontWeight: '700' }}>{initials(r.name)}</Text></View>}
-                <Text style={{ flex: 1, fontSize: 15, fontWeight: '600', color: '#0B1E3D' }} numberOfLines={1}>{r.name}</Text>
+                <Text style={{ flex: 1, fontSize: 15, fontWeight: '600', color: t.ink.primary }} numberOfLines={1}>{r.name}</Text>
                 {r.seenAt
                   ? <View style={{ alignItems: 'flex-end' }}><Text style={{ fontSize: 12.5, fontWeight: '700', color: '#059669' }}>Seen</Text><Text style={{ fontSize: 11, color: 'rgba(11,30,61,0.45)' }}>{new Date(r.seenAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</Text></View>
                   : <Text style={{ fontSize: 12.5, fontWeight: '600', color: 'rgba(11,30,61,0.4)' }}>Pending</Text>}
@@ -2236,7 +2464,7 @@ const pickAndSendDocument = useCallback(async () => {
       <Modal visible={showGifs} transparent animationType="slide" onRequestClose={() => setShowGifs(false)}>
         <KeyboardAvoidingView style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(11,30,61,0.45)' }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setShowGifs(false)} />
-          <View style={{ backgroundColor: '#FFFFFF', borderTopLeftRadius: 22, borderTopRightRadius: 22, height: '78%', paddingTop: 8 }}>
+          <View style={{ backgroundColor: t.surface.sunken, borderTopLeftRadius: 22, borderTopRightRadius: 22, height: '78%', paddingTop: 8 }}>
             <View style={{ alignSelf: 'center', width: 38, height: 4.5, borderRadius: 3, backgroundColor: 'rgba(11,30,61,0.16)', marginBottom: 6 }} />
             <View style={{ flexDirection: 'row', alignSelf: 'center', backgroundColor: 'rgba(11,30,61,0.06)', borderRadius: 999, padding: 3, marginBottom: 6 }}>
               {[{ k: false, l: 'GIFs' }, { k: true, l: 'Stickers' }].map(t => (
@@ -2287,8 +2515,8 @@ const pickAndSendDocument = useCallback(async () => {
                 ].map(chip => (
                   <TouchableOpacity key={chip.label} onPress={chip.act} activeOpacity={0.75}
                     style={{ width: 86, paddingVertical: 10, borderRadius: 12, backgroundColor: 'rgba(11,30,61,0.05)', alignItems: 'center', gap: 3, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.1)' }}>
-                    <Ionicons name={chip.icon as any} size={20} color={NAVY} />
-                    <Text style={{ fontSize: 12, fontWeight: '600', color: NAVY }}>{chip.label}</Text>
+                    <Ionicons name={chip.icon as any} size={20} color={t.ink.primary} />
+                    <Text style={{ fontSize: 12, fontWeight: '600', color: t.ink.primary }}>{chip.label}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -2341,7 +2569,7 @@ const pickAndSendDocument = useCallback(async () => {
               ]).map((q: any) => (
                 <TouchableOpacity key={q.label} style={s.infoQuickBtn} onPress={q.action} activeOpacity={0.7}>
                   <View style={s.infoQuickInner}>
-                    <Feather name={q.iconName} size={20} color={NAVY} />
+                    <Feather name={q.iconName} size={20} color={t.ink.primary} />
                   </View>
                   <Text style={s.infoQuickLbl}>{q.label}</Text>
                 </TouchableOpacity>
@@ -2429,7 +2657,7 @@ const pickAndSendDocument = useCallback(async () => {
                       }},
                     ]);
                   }}>
-                    <Text style={[s.infoDangerTxt, { color: TEXT_SECONDARY }]}>Clear chat</Text>
+                    <Text style={[s.infoDangerTxt, { color: t.ink.muted }]}>Clear chat</Text>
                   </TouchableOpacity>
                 <TouchableOpacity style={s.infoDanger} onPress={() => {
                   Alert.alert('Block user?', `${chatTitle} will not be able to message you.`, [
@@ -2473,7 +2701,7 @@ const pickAndSendDocument = useCallback(async () => {
             )}
             <TextInput value={editText} onChangeText={setEditText} style={s.editMsgInput}
               multiline autoFocus maxLength={2000}
-              placeholderTextColor={TEXT_SECONDARY} placeholder="Edit your message..." />
+              placeholderTextColor={t.ink.muted} placeholder="Edit your message..." />
           </View>
         </KeyboardAvoidingView>
       </Modal>
@@ -2495,11 +2723,11 @@ const pickAndSendDocument = useCallback(async () => {
                 { iconName: 'copy', label: 'Copy', action: async () => {
                   if (selectedMsg?.text) { await Clipboard.setStringAsync(selectedMsg.text); setSelectedMsg(null); Alert.alert('Copied'); }
                 }},
-                { iconName: 'share-2', label: 'Share', action: async () => {
+                ...(!selectedMsg?.view_limit ? [{ iconName: 'share-2', label: 'Share', action: async () => {
                   if (!selectedMsg) return;
                   const content = selectedMsg.text || selectedMsg.media_url || '';
                   setSelectedMsg(null); await Share.share({ message: content });
-                }},
+                }}] : []),
                 { iconName: 'star',
                   label: selectedMsg && starredIds.has(selectedMsg.id) ? 'Unstar' : 'Star',
                   action: () => { if (selectedMsg) { toggleStar(selectedMsg); setSelectedMsg(null); } }},
@@ -2544,7 +2772,7 @@ const pickAndSendDocument = useCallback(async () => {
               ].map(a => (
                 <TouchableOpacity key={a.label} style={s.reactionActionBtn} onPress={a.action} activeOpacity={0.7}>
                   <View style={s.reactionActionInner}>
-                    <Feather name={a.iconName as any} size={18} color={a.label === 'Delete' ? '#EF4444' : NAVY} />
+                    <Feather name={a.iconName as any} size={18} color={a.label === 'Delete' ? '#EF4444' : t.ink.primary} />
                   </View>
                   <Text style={[s.reactionActionLbl, a.label === 'Delete' && { color: '#EF4444' }]}>{a.label}</Text>
                 </TouchableOpacity>
@@ -2554,6 +2782,12 @@ const pickAndSendDocument = useCallback(async () => {
         </Pressable>
       </Modal>
 
+      {shareDetails && <ShareDetailsSheet key={voiceScope} kind={shareDetails} onClose={()=>setShareDetails(null)} onSend={async card=>{
+        const scope=attachmentScope; if(attachmentScopeRef.current!==scope || useAuthStore.getState().session?.user.id !== session?.user.id)return false;
+        return doSend(attachmentCardText(card),JSON.stringify(card),'link');
+      }}/>}
+      {privateMedia && privateMedia.userId === session?.user.id && privateMedia.scope === attachmentScope && <PrivateMediaViewer key={privateMedia.userId+':'+privateMedia.id} messageId={privateMedia.id} userId={privateMedia.userId}
+        onClose={() => setPrivateMedia(current => current?.id === privateMedia.id && current?.userId === privateMedia.userId && current?.scope === privateMedia.scope ? null : current)} onConsumed={remaining => { if (remaining <= 0 && attachmentScopeRef.current === privateMedia.scope) setViewedOutIds(prev => new Set(prev).add(privateMedia.id)); }} />}
       <Modal visible={!!fullscreenImg} transparent animationType="fade" onRequestClose={() => setFullscreenImg(null)}>
         <View style={s.fullscreenRoot}>
           <TouchableOpacity style={s.fullscreenClose} onPress={() => setFullscreenImg(null)} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
@@ -2575,6 +2809,22 @@ const pickAndSendDocument = useCallback(async () => {
             </View>
           )}
         </View>
+      </Modal>
+
+      <Modal visible={!!capturedVideo} animationType="slide" onRequestClose={() => { if (!uploadingMedia) setCapturedVideo(null); }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#000', justifyContent: 'center' }}>
+          {capturedVideo ? <VideoPlayer uri={capturedVideo.uri} width={SCREEN_W} height={SCREEN_W * 0.75} fullscreen /> : null}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-around', padding: 24 }}>
+            <TouchableOpacity accessibilityRole="button" disabled={uploadingMedia} onPress={() => setCapturedVideo(null)} style={{ padding: 16 }}>
+              <Text style={{ color: '#FFFFFF' }}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity accessibilityRole="button" disabled={uploadingMedia} onPress={async () => {
+              if (capturedVideo && await sendMediaAssets([capturedVideo])) setCapturedVideo(null);
+            }} style={{ padding: 16 }}>
+              <Text style={{ color: '#FFFFFF' }}>{uploadingMedia ? 'Sending…' : 'Send video'}</Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
       </Modal>
 
       <Modal visible={!!fullscreenVideo} transparent animationType="fade" onRequestClose={() => setFullscreenVideo(null)}>
@@ -2599,49 +2849,31 @@ const pickAndSendDocument = useCallback(async () => {
       </Modal>
 
       <Modal visible={showForwardPicker} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowForwardPicker(false)}>
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#FFF', paddingTop: insets.top }} edges={['left', 'right', 'bottom']}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: t.surface.sunken, paddingTop: insets.top }} edges={['left', 'right', 'bottom']}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE }}>
-            <Text style={{ fontSize: 17, fontWeight: '700' }}>Forward to...</Text>
+            <Text style={{ fontSize: 17, fontWeight: '700', color: t.ink.primary }}>Forward to...</Text>
             <TouchableOpacity onPress={() => { setShowForwardPicker(false); setForwardMsg(null); }}>
-              <Feather name="x" size={22} color="#000" />
+              <Feather name="x" size={22} color={t.ink.primary} />
             </TouchableOpacity>
           </View>
           <FlatList data={forwardConvs} keyExtractor={c => c.id}
             contentContainerStyle={{ padding: 12, gap: 6 }}
             renderItem={({ item: c }) => (
-              <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#F7F7F7', borderRadius: 14, padding: 14 }}
+              <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surface.canvas, borderRadius: 14, padding: 14 }}
                 activeOpacity={0.7}
-                onPress={async () => {
-                  if (!forwardMsg || !currentUserId) return;
-                  setShowForwardPicker(false);
-                  const receiverId = c.is_group ? null : (c.user_1 === currentUserId ? c.user_2 : c.user_1);
-                  const { error } = await supabase.from('messages').insert({
-                    conversation_id: c.id, sender_id: currentUserId, receiver_id: receiverId,
-                    text: forwardMsg.text || null, media_url: forwardMsg.media_url || null,
-                    media_type: forwardMsg.media_type || null, forwarded_from_id: forwardMsg.id,
-                  });
-                  if (error) Alert.alert('Error', 'Could not forward: ' + error.message);
-                  else {
-                    await supabase.from('conversations').update({
-                      last_message: forwardMsg.text || (forwardMsg.media_type === 'image' ? '📷 Photo' : '📎 Media'),
-                      last_message_time: new Date().toISOString(),
-                    }).eq('id', c.id);
-                    Alert.alert('Forwarded');
-                  }
-                  setForwardMsg(null);
-                }}>
+                onPress={() => void forwardToConversation(c)}>
                 <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: c.is_group ? NAVY : NAVY_SOFT, alignItems: 'center', justifyContent: 'center' }}>
                   <Text style={{ color: '#FFF', fontSize: c.is_group ? 18 : 16, fontWeight: '700' }}>{c.is_group ? (c.group_emoji || '💬') : '💬'}</Text>
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 15, fontWeight: '600', color: '#111' }} numberOfLines={1}>
+                  <Text style={{ fontSize: 15, fontWeight: '600', color: t.ink.primary }} numberOfLines={1}>
                     {c.is_group ? (c.group_name || 'Group') : 'Direct Message'}
                   </Text>
-                  <Text style={{ fontSize: 12, color: TEXT_SECONDARY }} numberOfLines={1}>{c.last_message || 'No messages yet'}</Text>
+                  <Text style={{ fontSize: 12, color: t.ink.muted }} numberOfLines={1}>{c.last_message || 'No messages yet'}</Text>
                 </View>
               </TouchableOpacity>
             )}
-            ListEmptyComponent={<View style={{ alignItems: 'center', paddingTop: 60 }}><Text style={{ color: TEXT_SECONDARY }}>No other conversations</Text></View>} />
+            ListEmptyComponent={<View style={{ alignItems: 'center', paddingTop: 60 }}><Text style={{ color: t.ink.muted }}>No other conversations</Text></View>} />
         </SafeAreaView>
       </Modal>
     </SafeAreaView>
@@ -2652,32 +2884,32 @@ const s = themedSheet((t) => ({
   voiceBar: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 10, backgroundColor: t.surface.canvas, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(11,30,61,0.07)' },
   voiceDot: { width: 9, height: 9, borderRadius: 5, backgroundColor: '#FF3B30' },
   voiceTimer: { fontSize: 15, fontWeight: '700', color: t.ink.primary, minWidth: 46 },
-  voiceHint: { flex: 1, fontSize: 13, color: '#6B7280' },
+  voiceHint: { flex: 1, fontSize: 13, color: t.ink.muted },
   voiceSend: { width: 36, height: 36, borderRadius: 18, backgroundColor: t.brand.base, alignItems: 'center', justifyContent: 'center' },
   ctxCard: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 10, backgroundColor: '#F7F8FA', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E5EA' },
-  ctxThumb: { width: 46, height: 46, borderRadius: 8, backgroundColor: '#E5E5EA' },
+  ctxThumb: { width: 46, height: 46, borderRadius: 8, backgroundColor: t.surface.sunken },
   ctxThumbFallback: { alignItems: 'center', justifyContent: 'center' },
   ctxLabel: { fontSize: 10, fontWeight: '800', letterSpacing: 1, color: '#8E8E93' },
   ctxTitle: { fontSize: 14.5, fontWeight: '700', color: '#0A0A0A', letterSpacing: -0.2, marginTop: 2 },
   ctxSub: { fontSize: 12.5, fontWeight: '500', color: '#6B7280', marginTop: 1 },
-  safe: { flex: 1, backgroundColor: '#F6F5F2' },
-  flex: { flex: 1, backgroundColor: '#F6F5F2' },
+  safe: { flex: 1, backgroundColor: t.surface.sunken },
+  flex: { flex: 1, backgroundColor: t.surface.sunken },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingTop: 8, paddingBottom: 10, backgroundColor: t.surface.canvas, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE, minHeight: 58, gap: 8 },
   backBtn: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
-  searchBar: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#F2F2F7', marginHorizontal: 12, marginBottom: 4, marginTop: 2, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 9 },
-  searchBarInput: { flex: 1, fontSize: 14, color: '#000', padding: 0 },
+  searchBar: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: t.surface.sunken, marginHorizontal: 12, marginBottom: 4, marginTop: 2, borderRadius: 12, paddingHorizontal: 12, minHeight: 48 },
+  searchBarInput: { flex: 1, minWidth: 0, minHeight: 48, fontSize: 16, color: t.ink.primary, paddingHorizontal: 0, paddingVertical: 10, includeFontPadding: false, textAlignVertical: 'center' },
   headerCenter: { flex: 1, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 10 },
   hAvatar: { width: 38, height: 38, borderRadius: 19 },
-  hAvatarFb: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#E5E5EA', alignItems: 'center', justifyContent: 'center' },
-  hAvatarTxt: { fontSize: 14, fontWeight: '600', color: '#3C3C43' },
+  hAvatarFb: { width: 38, height: 38, borderRadius: 19, backgroundColor: t.surface.sunken, alignItems: 'center', justifyContent: 'center' },
+  hAvatarTxt: { fontSize: 14, fontWeight: '600', color: t.ink.primary },
   hInfo: { alignItems: 'flex-start', maxWidth: 160 },
-  hName: { fontSize: 15, fontWeight: '600', color: TEXT_PRIMARY, letterSpacing: -0.2 },
-  hSub: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 2 },
+  hName: { fontSize: 15, fontWeight: '600', color: t.ink.primary, letterSpacing: -0.2 },
+  hSub: { fontSize: 12, color: t.ink.muted, marginTop: 2 },
   headerActions: { flexDirection: 'row', gap: 4, alignItems: 'center' },
-  hActionBtn: { width: 36, height: 36, borderRadius: 10, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
+  hActionBtn: { width: 36, height: 36, borderRadius: 10, backgroundColor: t.surface.sunken, alignItems: 'center', justifyContent: 'center' },
   list: { paddingHorizontal: 0, paddingTop: 14, paddingBottom: 10, flexGrow: 1 },
   sep: { alignItems: 'center', paddingVertical: 14 },
-  sepTxt: { fontSize: 12, color: '#54656F', fontWeight: '600', letterSpacing: 0.2, backgroundColor: t.surface.canvas, overflow: 'hidden', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 5, shadowColor: '#000', shadowOpacity: 0, shadowRadius: 1, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
+  sepTxt: { fontSize: 12, color: t.ink.muted, fontWeight: '600', letterSpacing: 0.2, backgroundColor: t.surface.canvas, overflow: 'hidden', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 5, shadowColor: '#000', shadowOpacity: 0, shadowRadius: 1, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
   row: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 4, paddingHorizontal: 12 },
   rowMe: { justifyContent: 'flex-end' },
   rowOther: { justifyContent: 'flex-start' },
@@ -2685,8 +2917,8 @@ const s = themedSheet((t) => ({
   bubbleInRun: { borderBottomRightRadius: 20, borderBottomLeftRadius: 20 },
   sideAvatarSlot: { width: 28, marginRight: 6, alignItems: 'center', justifyContent: 'flex-end', marginBottom: 2 },
   sideAvatar: { width: 28, height: 28, borderRadius: 14 },
-  sideAvatarFb: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#E5E5EA', alignItems: 'center', justifyContent: 'center' },
-  sideAvatarTxt: { fontSize: 10, fontWeight: '700', color: '#3C3C43' },
+  sideAvatarFb: { width: 28, height: 28, borderRadius: 14, backgroundColor: t.surface.sunken, alignItems: 'center', justifyContent: 'center' },
+  sideAvatarTxt: { fontSize: 10, fontWeight: '700', color: t.ink.primary },
   bubbleCol: { maxWidth: '78%', flexShrink: 1 },
   bubbleColMe: { alignItems: 'flex-end' },
   bubbleColOther: { alignItems: 'flex-start' },
@@ -2694,24 +2926,24 @@ const s = themedSheet((t) => ({
   bubbleMe: { backgroundColor: NAVY, borderRadius: 20, borderBottomRightRadius: 6 },
   bubbleOther: { backgroundColor: t.surface.canvas, borderRadius: 20, borderBottomLeftRadius: 6, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.16)', shadowColor: t.ink.primary, shadowOpacity: 0.06, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
   bubbleMeFlat: { backgroundColor: NAVY, borderRadius: 20, borderBottomRightRadius: 6 },
-  bubbleOtherFlat: { backgroundColor: BUBBLE_OTHER, borderRadius: 20, borderBottomLeftRadius: 6, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.16)', shadowColor: t.ink.primary, shadowOpacity: 0.06, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
+  bubbleOtherFlat: { backgroundColor: t.surface.canvas, borderRadius: 20, borderBottomLeftRadius: 6, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(11,30,61,0.16)', shadowColor: t.ink.primary, shadowOpacity: 0.06, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
   bubbleTxt: { fontSize: 15.5, lineHeight: 20, letterSpacing: -0.1 },
-  bubbleTxtMe: { color: t.ink.inverse },
-  bubbleTxtOther: { color: TEXT_PRIMARY },
+  bubbleTxtMe: { color: '#FFFFFF' },
+  bubbleTxtOther: { color: t.ink.primary },
   linkTxt: { textDecorationLine: 'underline' },
   imgWrap: { borderRadius: 18, overflow: 'hidden', position: 'relative' },
   replyBar: { flexDirection: 'row', marginBottom: 4, borderRadius: 14, overflow: 'hidden', maxWidth: '100%' },
   replyBarMe: { backgroundColor: 'rgba(255,255,255,0.14)' },
   replyBarOther: { backgroundColor: t.brand.tintBg },
   replyAccent: { width: 3 },
-  replyAccentMe: { backgroundColor: t.surface.canvas },
-  replyAccentOther: { backgroundColor: NAVY },
-  replyLabel: { fontSize: 11, fontWeight: '700', color: NAVY, paddingHorizontal: 10, paddingTop: 7, paddingBottom: 1 },
+  replyAccentMe: { backgroundColor: t.surface.sunken },
+  replyAccentOther: { backgroundColor: t.ink.primary },
+  replyLabel: { fontSize: 11, fontWeight: '700', color: t.ink.primary, paddingHorizontal: 10, paddingTop: 7, paddingBottom: 1 },
   replyLabelMe: { color: 'rgba(255,255,255,0.75)' },
-  replyTxt: { fontSize: 13, color: '#3C3C43', paddingHorizontal: 10, paddingTop: 2, paddingBottom: 8, lineHeight: 17 },
+  replyTxt: { fontSize: 13, color: t.ink.primary, paddingHorizontal: 10, paddingTop: 2, paddingBottom: 8, lineHeight: 17 },
   replyTxtMe: { color: 'rgba(255,255,255,0.88)' },
   gifBadge: { position: 'absolute', bottom: 8, left: 8, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 5, paddingHorizontal: 6, paddingVertical: 2 },
-  gifBadgeTxt: { fontSize: 10, fontWeight: '700', color: t.ink.inverse, letterSpacing: 0.3 },
+  gifBadgeTxt: { fontSize: 10, fontWeight: '700', color: '#FFFFFF', letterSpacing: 0.3 },
   starBadge: { position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.55)', width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
   starBadgeInline: { position: 'absolute', top: 4, right: 4, backgroundColor: 'rgba(0,0,0,0.12)', width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   starBadgeTxt: { fontSize: 12, color: '#FFD60A', fontWeight: '700' },
@@ -2720,9 +2952,9 @@ const s = themedSheet((t) => ({
   docBubble: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 4, minWidth: 200 },
   docIconBg: { width: 40, height: 40, borderRadius: 10, backgroundColor: t.surface.hairline, alignItems: 'center', justifyContent: 'center' },
   docIconBgMe: { backgroundColor: 'rgba(255,255,255,0.15)' },
-  docName: { fontSize: 14, fontWeight: '600', color: TEXT_PRIMARY, lineHeight: 19 },
-  docNameMe: { color: t.ink.inverse },
-  docTap: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 2 },
+  docName: { fontSize: 14, fontWeight: '600', color: t.ink.primary, lineHeight: 19 },
+  docNameMe: { color: '#FFFFFF' },
+  docTap: { fontSize: 12, color: t.ink.muted, marginTop: 2 },
   docTapMe: { color: 'rgba(255,255,255,0.65)' },
   // Story reply label
   storyReplyLabel: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 4 },
@@ -2733,34 +2965,34 @@ const s = themedSheet((t) => ({
   reactionsRowMe: { justifyContent: 'flex-end' },
   reactionsRowOther: { justifyContent: 'flex-start' },
   reactionPill: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: t.surface.canvas, borderRadius: 14, paddingHorizontal: 9, paddingVertical: 4, borderWidth: StyleSheet.hairlineWidth, borderColor: HAIRLINE, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 1 },
-  reactionPillMine: { backgroundColor: '#E8EEF8', borderColor: NAVY },
+  reactionPillMine: { backgroundColor: t.brand.tintBg, borderColor: t.brand.base },
   reactionEmoji: { fontSize: 14 },
-  reactionCount: { fontSize: 11, fontWeight: '600', color: '#3C3C43' },
-  status: { fontSize: 11, marginTop: 5, color: TEXT_SECONDARY, fontWeight: '500', letterSpacing: 0.1 },
+  reactionCount: { fontSize: 11, fontWeight: '600', color: t.ink.primary },
+  status: { fontSize: 11, marginTop: 5, color: t.ink.muted, fontWeight: '500', letterSpacing: 0.1 },
   statusMe: { textAlign: 'right', marginRight: 4 },
   statusOther: { marginLeft: 4 },
-  tsLabel: { fontSize: 10.5, color: TEXT_SECONDARY, marginTop: 2 },
+  tsLabel: { fontSize: 10.5, color: t.ink.muted, marginTop: 2 },
   tsLabelMe: { textAlign: 'right', marginRight: 4 },
   tsLabelOther: { marginLeft: 4 },
   typingWrap: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 12, paddingBottom: 6, marginBottom: 2 },
   typingBubble: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 14, paddingVertical: 11 },
-  typingDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: TEXT_SECONDARY },
-  replyBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F7F7F9', paddingHorizontal: 14, paddingVertical: 10, gap: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: HAIRLINE },
+  typingDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: t.ink.muted },
+  replyBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: t.surface.sunken, paddingHorizontal: 14, paddingVertical: 10, gap: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: HAIRLINE },
   replyBannerAccent: { width: 3, height: 32, borderRadius: 2, backgroundColor: NAVY },
   replyBannerContent: { flex: 1 },
-  replyBannerLabel: { fontSize: 12, fontWeight: '600', color: NAVY },
-  replyBannerPrev: { fontSize: 13, color: '#3C3C43', marginTop: 1 },
+  replyBannerLabel: { fontSize: 12, fontWeight: '600', color: t.ink.primary },
+  replyBannerPrev: { fontSize: 13, color: t.ink.primary, marginTop: 1 },
   replyBannerClose: { padding: 4 },
   toolbar: { backgroundColor: t.surface.canvas, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: HAIRLINE },
   toolbarGrid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16, paddingVertical: 16, gap: 20, justifyContent: 'flex-start' },
   toolbarBtn: { alignItems: 'center', gap: 6 },
-  toolbarBtnInner: { width: 52, height: 52, borderRadius: 18, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
-  toolbarBtnLbl: { fontSize: 11, color: '#3C3C43', fontWeight: '500' },
+  toolbarBtnInner: { width: 52, height: 52, borderRadius: 18, backgroundColor: t.surface.sunken, alignItems: 'center', justifyContent: 'center' },
+  toolbarBtnLbl: { fontSize: 11, color: t.ink.muted, fontWeight: '500' },
   bar: { flexDirection: 'row', alignItems: 'flex-end', paddingHorizontal: 10, paddingTop: 8, backgroundColor: t.surface.canvas, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: 'rgba(11,30,61,0.07)', gap: 8 },
   addBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center', marginBottom: 1 },
   inlineBtn: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center', marginBottom: -3 },
-  inputWrap: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', gap: 4, backgroundColor: '#F1F3F5', borderRadius: 22, paddingLeft: 16, paddingRight: 6, paddingTop: 9, paddingBottom: 9, minHeight: 44, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.divider },
-  input: { flex: 1, fontSize: 16, color: TEXT_PRIMARY, maxHeight: 130, padding: 0, margin: 0, paddingTop: 2, paddingBottom: 2, letterSpacing: -0.1, lineHeight: 21 },
+  inputWrap: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', gap: 4, backgroundColor: t.surface.sunken, borderRadius: 22, paddingLeft: 16, paddingRight: 6, paddingTop: 9, paddingBottom: 9, minHeight: 44, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.divider },
+  input: { flex: 1, fontSize: 16, color: t.ink.primary, maxHeight: 130, padding: 0, margin: 0, paddingTop: 2, paddingBottom: 2, letterSpacing: -0.1, lineHeight: 21 },
   sendBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', shadowColor: t.ink.primary, shadowOpacity: 0.22, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 3 },
   lockedBar: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingTop: 14, backgroundColor: '#F9FAFB', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: HAIRLINE },
   lockedIcon: { width: 32, height: 32, borderRadius: 10, backgroundColor: '#F3E8FF', alignItems: 'center', justifyContent: 'center' },
@@ -2770,15 +3002,15 @@ const s = themedSheet((t) => ({
   fullscreenClose: { position: 'absolute', top: 60, right: 20, zIndex: 10, width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
   fullscreenActions: { position: 'absolute', bottom: 40, flexDirection: 'row', gap: 10 },
   fsActionBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 12, paddingHorizontal: 18, paddingVertical: 10 },
-  fsActionTxt: { color: t.ink.inverse, fontWeight: '600' },
+  fsActionTxt: { color: '#FFFFFF', fontWeight: '600' },
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 60, gap: 6 },
   emptyAvatar: { width: 72, height: 72, borderRadius: 36, marginBottom: 4 },
-  emptyAvatarFb: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#E5E5EA', alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
-  emptyAvatarTxt: { fontSize: 28, fontWeight: '600', color: '#3C3C43' },
-  emptyName: { fontSize: 18, fontWeight: '600', color: TEXT_PRIMARY },
-  emptyHandle: { fontSize: 14, color: TEXT_SECONDARY },
-  emptyHint: { fontSize: 13, color: '#C6C6C8', marginTop: 8, textAlign: 'center', paddingHorizontal: 40 },
+  emptyAvatarFb: { width: 72, height: 72, borderRadius: 36, backgroundColor: t.surface.sunken, alignItems: 'center', justifyContent: 'center', marginBottom: 4 },
+  emptyAvatarTxt: { fontSize: 28, fontWeight: '600', color: t.ink.primary },
+  emptyName: { fontSize: 18, fontWeight: '600', color: t.ink.primary },
+  emptyHandle: { fontSize: 14, color: t.ink.muted },
+  emptyHint: { fontSize: 13, color: t.ink.muted, marginTop: 8, textAlign: 'center', paddingHorizontal: 40 },
   reactionOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
   reactionSheet: { backgroundColor: t.surface.canvas, borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingTop: 14, paddingBottom: 34 },
   reactionEmojis: { flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 16, paddingBottom: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE },
@@ -2786,63 +3018,63 @@ const s = themedSheet((t) => ({
   reactionEmojiTxt: { fontSize: 30 },
   reactionActions: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-around', paddingHorizontal: 16, paddingVertical: 16, gap: 12 },
   reactionActionBtn: { alignItems: 'center', gap: 6, minWidth: 62 },
-  reactionActionInner: { width: 44, height: 44, borderRadius: 14, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
-  reactionActionLbl: { fontSize: 11, color: '#3C3C43', fontWeight: '500' },
-  infoSafe: { flex: 1, backgroundColor: '#F7F7F9' },
+  reactionActionInner: { width: 44, height: 44, borderRadius: 14, backgroundColor: t.surface.sunken, alignItems: 'center', justifyContent: 'center' },
+  reactionActionLbl: { fontSize: 11, color: t.ink.primary, fontWeight: '500' },
+  infoSafe: { flex: 1, backgroundColor: t.surface.sunken },
   infoHeader: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: t.surface.canvas, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE },
   infoDoneBtn: { paddingVertical: 4, paddingHorizontal: 4 },
-  infoDoneTxt: { fontSize: 16, color: NAVY, fontWeight: '600' },
+  infoDoneTxt: { fontSize: 16, color: t.ink.primary, fontWeight: '600' },
   infoContact: { backgroundColor: t.surface.canvas, alignItems: 'center', paddingVertical: 32, paddingHorizontal: 20, marginBottom: 8 },
   infoAvatar: { width: 110, height: 110, borderRadius: 55, marginBottom: 14 },
-  infoAvatarFb: { width: 90, height: 90, borderRadius: 45, backgroundColor: '#E5E5EA', alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
-  infoAvatarTxt: { fontSize: 34, fontWeight: '600', color: '#3C3C43' },
-  infoName: { fontSize: 22, fontWeight: '700', color: TEXT_PRIMARY, marginBottom: 4, letterSpacing: -0.3 },
-  infoHandle: { fontSize: 14, color: NAVY, marginBottom: 4, fontWeight: '500' },
-  infoProg: { fontSize: 13, color: '#3C3C43', marginBottom: 4 },
-  infoLoc: { fontSize: 13, color: TEXT_SECONDARY },
+  infoAvatarFb: { width: 90, height: 90, borderRadius: 45, backgroundColor: t.surface.sunken, alignItems: 'center', justifyContent: 'center', marginBottom: 14 },
+  infoAvatarTxt: { fontSize: 34, fontWeight: '600', color: t.ink.primary },
+  infoName: { fontSize: 22, fontWeight: '700', color: t.ink.primary, marginBottom: 4, letterSpacing: -0.3 },
+  infoHandle: { fontSize: 14, color: t.ink.primary, marginBottom: 4, fontWeight: '500' },
+  infoProg: { fontSize: 13, color: t.ink.primary, marginBottom: 4 },
+  infoLoc: { fontSize: 13, color: t.ink.muted },
   infoQuickRow: { flexDirection: 'row', backgroundColor: t.surface.canvas, paddingVertical: 16, paddingHorizontal: 8, marginBottom: 8, justifyContent: 'space-around' },
   infoQuickBtn: { alignItems: 'center', gap: 6, flex: 1 },
-  infoQuickInner: { width: 48, height: 48, borderRadius: 16, backgroundColor: '#F2F2F7', alignItems: 'center', justifyContent: 'center' },
-  infoQuickLbl: { fontSize: 11, color: '#3C3C43', fontWeight: '500' },
+  infoQuickInner: { width: 48, height: 48, borderRadius: 16, backgroundColor: t.surface.sunken, alignItems: 'center', justifyContent: 'center' },
+  infoQuickLbl: { fontSize: 11, color: t.ink.primary, fontWeight: '500' },
   infoTabsSection: { backgroundColor: t.surface.canvas, marginBottom: 8 },
   infoTabBar: { flexDirection: 'row', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: HAIRLINE },
   infoTab: { flex: 1, alignItems: 'center', paddingVertical: 12 },
   infoTabActive: { borderBottomWidth: 2, borderBottomColor: NAVY },
-  infoTabTxt: { fontSize: 13, fontWeight: '600', color: TEXT_SECONDARY },
-  infoTabTxtActive: { color: NAVY },
+  infoTabTxt: { fontSize: 13, fontWeight: '600', color: t.ink.muted },
+  infoTabTxtActive: { color: t.ink.primary },
   infoTabBody: { paddingHorizontal: 14, paddingVertical: 12, minHeight: 140 },
   infoTabLoading: { alignItems: 'center', justifyContent: 'center', paddingVertical: 30 },
-  infoEmpty: { fontSize: 14, color: TEXT_SECONDARY, textAlign: 'center', paddingVertical: 24 },
+  infoEmpty: { fontSize: 14, color: t.ink.muted, textAlign: 'center', paddingVertical: 24 },
   mediaGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 3 },
-  mediaGridItem: { width: Math.floor((SCREEN_W - 28 - 6) / 3), height: Math.floor((SCREEN_W - 28 - 6) / 3), borderRadius: 6, overflow: 'hidden', backgroundColor: '#F2F2F7', position: 'relative' },
+  mediaGridItem: { width: Math.floor((SCREEN_W - 28 - 6) / 3), height: Math.floor((SCREEN_W - 28 - 6) / 3), borderRadius: 6, overflow: 'hidden', backgroundColor: t.surface.sunken, position: 'relative' },
   mediaPlayOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.2)' },
   infoFileRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
   infoFileIconBg: { width: 38, height: 38, borderRadius: 10, backgroundColor: t.surface.hairline, alignItems: 'center', justifyContent: 'center' },
-  infoFileName: { fontSize: 14, fontWeight: '600', color: '#111' },
-  infoFileMeta: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 2 },
+  infoFileName: { fontSize: 14, fontWeight: '600', color: t.ink.primary },
+  infoFileMeta: { fontSize: 12, color: t.ink.muted, marginTop: 2 },
   infoStarredRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
-  infoStarredTxt: { fontSize: 14, color: '#111', lineHeight: 19 },
-  infoStarredMeta: { fontSize: 12, color: TEXT_SECONDARY, marginTop: 4 },
+  infoStarredTxt: { fontSize: 14, color: t.ink.primary, lineHeight: 19 },
+  infoStarredMeta: { fontSize: 12, color: t.ink.muted, marginTop: 4 },
   infoStarredUnstar: { padding: 4 },
   infoStarredIcon: { fontSize: 20, color: '#FFD60A' },
   infoSection: { backgroundColor: t.surface.canvas, padding: 16, marginBottom: 8 },
-  infoSectionTitle: { fontSize: 12, fontWeight: '600', color: TEXT_SECONDARY, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 },
-  infoBio: { fontSize: 15, color: '#3C3C43', lineHeight: 22 },
+  infoSectionTitle: { fontSize: 12, fontWeight: '600', color: t.ink.muted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 12 },
+  infoBio: { fontSize: 15, color: t.ink.primary, lineHeight: 22 },
   infoMemberRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
   infoMemberAvatar: { width: 36, height: 36, borderRadius: 10 },
-  infoMemberName: { flex: 1, fontSize: 14, fontWeight: '600', color: '#111' },
+  infoMemberName: { flex: 1, fontSize: 14, fontWeight: '600', color: t.ink.primary },
   infoAdminBadge: { backgroundColor: NAVY, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
-  infoAdminTxt: { fontSize: 10, color: t.ink.inverse, fontWeight: '700', letterSpacing: 0.3 },
-  infoSeeAll: { fontSize: 14, color: NAVY, fontWeight: '600', paddingVertical: 8 },
+  infoAdminTxt: { fontSize: 10, color: '#FFFFFF', fontWeight: '700', letterSpacing: 0.3 },
+  infoSeeAll: { fontSize: 14, color: t.ink.primary, fontWeight: '600', paddingVertical: 8 },
   infoDanger: { backgroundColor: '#FEF2F2', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
   infoDangerTxt: { fontSize: 15, fontWeight: '700', color: '#DC2626' },
   editMsgSheet: { backgroundColor: t.surface.canvas, borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingBottom: 24 },
   editMsgHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
-  editMsgTitle: { fontSize: 15, fontWeight: '700', color: '#000' },
-  editMsgCancelTxt: { fontSize: 15, color: TEXT_SECONDARY, fontWeight: '500' },
-  editMsgSaveTxt: { fontSize: 15, fontWeight: '700', color: NAVY },
-  editOriginal: { backgroundColor: '#F7F7F9', paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
-  editOriginalLabel: { fontSize: 11, fontWeight: '700', color: NAVY, marginBottom: 3, textTransform: 'uppercase', letterSpacing: 0.5 },
-  editOriginalTxt: { fontSize: 14, color: TEXT_SECONDARY, lineHeight: 19 },
-  editMsgInput: { backgroundColor: t.surface.canvas, paddingHorizontal: 16, paddingVertical: 14, fontSize: 16, color: '#000', minHeight: 90, textAlignVertical: 'top' },
+  editMsgTitle: { fontSize: 15, fontWeight: '700', color: t.ink.primary },
+  editMsgCancelTxt: { fontSize: 15, color: t.ink.muted, fontWeight: '500' },
+  editMsgSaveTxt: { fontSize: 15, fontWeight: '700', color: t.ink.primary },
+  editOriginal: { backgroundColor: t.surface.sunken, paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F0F0F0' },
+  editOriginalLabel: { fontSize: 11, fontWeight: '700', color: t.ink.primary, marginBottom: 3, textTransform: 'uppercase', letterSpacing: 0.5 },
+  editOriginalTxt: { fontSize: 14, color: t.ink.muted, lineHeight: 19 },
+  editMsgInput: { backgroundColor: t.surface.canvas, paddingHorizontal: 16, paddingVertical: 14, fontSize: 16, color: t.ink.primary, minHeight: 90, textAlignVertical: 'top' },
 }));

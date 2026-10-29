@@ -1,3 +1,4 @@
+import { normalizeStoryCapture, STORY_CAPTURE_VIDEO_QUALITY, STORY_CAPTURE_VIDEO_BITRATE } from '../../../shared/storyCapture';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useCameraLife } from '../../hooks/useCameraLife';
 import {
@@ -77,11 +78,10 @@ export default function StoryCameraScreen({ navigation }: any) {
           <Feather name="camera-off" size={48} color="rgba(255,255,255,0.4)" />
           <Text style={s.fallbackTitle}>Camera not available</Text>
           <Text style={s.fallbackSub}>
-            This feature requires a new app build. Run:{'\n'}
-            eas build --profile development --platform ios
+            The camera is unavailable in this app version. You can still create a story with text.
           </Text>
-          <TouchableOpacity style={s.fallbackBtn} onPress={() => navigation.goBack()} activeOpacity={0.8}>
-            <Text style={s.fallbackBtnTxt}>Go back</Text>
+          <TouchableOpacity accessibilityRole="button" style={s.fallbackBtn} onPress={() => navigation.navigate('StoryComposer', { mode: 'text', assets: [] })} activeOpacity={0.8}>
+            <Text style={s.fallbackBtnTxt}>Create with text</Text>
           </TouchableOpacity>
         </SafeAreaView>
       </View>
@@ -113,6 +113,13 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
   useEffect(() => { handsFreeRef.current = handsFree; }, [handsFree]);
   useEffect(() => { timerSecRef.current = timerSec; }, [timerSec]);
   useEffect(() => () => { if (countdownTimerRef.current) clearInterval(countdownTimerRef.current); }, []);
+  const [captureMode, setCaptureMode] = useState<'photo' | 'video'>('photo');
+  const captureModeRef = useRef<'photo' | 'video'>('photo');
+  const captureGeneration = useRef(0);
+  const mountedRef = useRef(true);
+  const photoLock = useRef(false);
+  const cameraReadyRef = useRef(false);
+  const [cameraReady, setCameraReady] = useState(false);
   const [camMode, setCamMode] = useState<'picture' | 'video'>('picture');
   const pendingRecordRef = useRef(false);
   const recordStartRef = useRef(0);
@@ -134,7 +141,7 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
       onPanResponderGrant: () => {
         pressStartRef.current = Date.now();
         zoomStartRef.current = zoomBaseRef.current;
-        if (!handsFreeRef.current) holdTimerRef.current = setTimeout(() => { captureCbRef.current.requestRecord?.(); }, 250);
+        if (captureModeRef.current === 'photo' && !handsFreeRef.current) holdTimerRef.current = setTimeout(() => { captureCbRef.current.requestRecord?.(); }, 250);
       },
       onPanResponderMove: (_e: any, g: any) => {
         if (!recordingRef.current) return;
@@ -153,7 +160,7 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
       },
       onPanResponderRelease: () => {
         if (holdTimerRef.current) { clearTimeout(holdTimerRef.current); holdTimerRef.current = null; }
-        if (handsFreeRef.current) { if (recordingRef.current) { captureCbRef.current.stopRecording?.(); } else { captureCbRef.current.timedFire?.('video'); } return; }
+        if (captureModeRef.current === 'video' || handsFreeRef.current) { if (recordingRef.current) { captureCbRef.current.stopRecording?.(); } else { captureCbRef.current.timedFire?.('video'); } return; }
         const held = Date.now() - pressStartRef.current;
         if (held < 250 && !recordingRef.current) { captureCbRef.current.timedFire?.('photo'); return; }
         captureCbRef.current.stopRecording?.();
@@ -216,25 +223,29 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
 
   // ── Instagram capture: tap = photo, hold = video ──
   const takePhoto = useCallback(async () => {
-    if (!cameraRef.current || processing || recordingRef.current) return;
+    if (!cameraRef.current || !cameraReadyRef.current || photoLock.current || processing || recordingRef.current) return;
+    const generation = captureGeneration.current;
+    photoLock.current = true;
     setProcessing(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     try {
       const photo = await cameraRef.current.takePictureAsync({
         quality: 1,
-        skipProcessing: Platform.OS === 'android',
+        skipProcessing: false,
       });
-      goToComposer(photo.uri, 'image', photo.width, photo.height);
+      if (mountedRef.current && generation === captureGeneration.current) goToComposer(photo.uri, 'image', photo.width, photo.height);
     } catch (e) {
+      if (!mountedRef.current || generation !== captureGeneration.current) return;
       console.error('[Camera] photo error:', e);
       Alert.alert('Error', 'Could not take photo.');
     } finally {
-      setProcessing(false);
+      if (mountedRef.current && generation === captureGeneration.current) { photoLock.current = false; setProcessing(false); }
     }
   }, [processing, goToComposer]);
 
   const doRecord = useCallback(async (attempt: number = 0) => {
     if (!cameraRef.current || recordingRef.current || processing || !pendingRecordRef.current) return;
+    const generation = captureGeneration.current;
     recordingRef.current = true;
     setRecording(true);
     progressAnim.setValue(0);
@@ -244,12 +255,13 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
       recordStartRef.current = Date.now();
       console.log('[Camera] recordAsync starting, attempt', attempt);
       const video = await cameraRef.current.recordAsync({ maxDuration: MAX_VIDEO_SEC, codec: 'avc1' });
+      if (!mountedRef.current || generation !== captureGeneration.current) return;
       pendingRecordRef.current = false;
       recordingRef.current = false;
       setRecording(false);
       progressAnim.stopAnimation();
       progressAnim.setValue(0);
-      setCamMode('picture');
+      setCamMode(captureModeRef.current === 'video' ? 'video' : 'picture');
       resetAudioMode();
       console.log('[Camera] recorded OK:', video?.uri ? 'uri received' : 'NO URI');
       if (video?.uri) {
@@ -258,23 +270,24 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
           let safeUri = video.uri;
           try { safeUri = (await ensureUploadSafe(video.uri, 'video')).uri; }
           catch (e: any) { console.log('[Camera] uploadSafe unavailable, using raw file:', e?.message || e); }
-          goToComposer(safeUri, 'video');
-        } finally { setProcessing(false); }
+          if (mountedRef.current && generation === captureGeneration.current) goToComposer(safeUri, 'video');
+        } finally { if (mountedRef.current && generation === captureGeneration.current) setProcessing(false); }
         return;
       }
       Alert.alert('Recording failed', 'No video was captured. Try again.');
     } catch (e: any) {
+      if (!mountedRef.current || generation !== captureGeneration.current) return;
       const msg = e?.message || '';
       recordingRef.current = false;
       setRecording(false);
       progressAnim.stopAnimation();
       progressAnim.setValue(0);
       if (msg.toLowerCase().includes('not ready') && pendingRecordRef.current && attempt < 20) {
-        setTimeout(() => doRecord(attempt + 1), 150);
+        setTimeout(() => { if (mountedRef.current && generation === captureGeneration.current && pendingRecordRef.current) doRecord(attempt + 1); }, 150);
         return;
       }
       pendingRecordRef.current = false;
-      setCamMode('picture');
+      setCamMode(captureModeRef.current === 'video' ? 'video' : 'picture');
       resetAudioMode();
       console.error('[Camera] video error:', e);
       if (!msg.toLowerCase().includes('not ready')) Alert.alert('Recording failed', msg || 'Unknown error');
@@ -284,49 +297,60 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
 
 
   const requestRecord = useCallback(async () => {
-    if (recordingRef.current || processing) return;
+    if (recordingRef.current || pendingRecordRef.current || processing || photoLock.current || !cameraReadyRef.current) return;
+    const generation = captureGeneration.current;
+    pendingRecordRef.current = true;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     console.log('[Camera] requestRecord, mic status:', micPerm ? micPerm.status : 'hook unavailable');
     if (micPerm && micPerm.granted === false && micPerm.canAskAgain === false) {
+      pendingRecordRef.current = false;
       Alert.alert('Microphone blocked', 'Enable Microphone for Platinum Circles in iOS Settings to record video.');
       return;
     }
-    if (micPerm && !micPerm.granted && requestMicPerm) requestMicPerm();
+    if (micPerm && !micPerm.granted && requestMicPerm) {
+      try { const result = await requestMicPerm(); if (!result?.granted) { if (generation === captureGeneration.current) pendingRecordRef.current = false; return; } }
+      catch { if (generation === captureGeneration.current) pendingRecordRef.current = false; return; }
+    }
+    if (!mountedRef.current || generation !== captureGeneration.current || !pendingRecordRef.current) return;
     try {
       if (ExpoAVAudio) await ExpoAVAudio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true });
       console.log('[Camera] audio session set for recording');
     } catch (e: any) { console.log('[Camera] audio session error:', e?.message); }
-    pendingRecordRef.current = true;
+    if (!mountedRef.current || generation !== captureGeneration.current || !pendingRecordRef.current) { if (!recordingRef.current && !pendingRecordRef.current) resetAudioMode(); return; }
     setCamMode('video');
-    setTimeout(() => { if (pendingRecordRef.current) doRecord(0); }, 300);
+    setTimeout(() => { if (mountedRef.current && generation === captureGeneration.current && pendingRecordRef.current) doRecord(0); }, 300);
   }, [processing, micPerm, requestMicPerm, doRecord]);
 
 
 
   const stopRecording = useCallback(() => {
     pendingRecordRef.current = false;
-    if (!recordingRef.current) { setCamMode('picture'); return; }
+    if (!recordingRef.current) { setCamMode(captureModeRef.current === 'video' ? 'video' : 'picture'); resetAudioMode(); return; }
+    const generation = captureGeneration.current, recordStart = recordStartRef.current;
+    const current = () => mountedRef.current && generation === captureGeneration.current && recordStart === recordStartRef.current;
     const elapsed = Date.now() - recordStartRef.current;
     const wait = Math.max(0, 800 - elapsed);
     setTimeout(() => {
+      if (!current()) return;
       console.log('[Camera] stopRecording (1st)');
       try { cameraRef.current?.stopRecording(); } catch {}
       setTimeout(() => {
-        if (recordingRef.current) {
+        if (current() && recordingRef.current) {
           console.log('[Camera] second stop attempt (expo#2837 workaround)');
           try { cameraRef.current?.stopRecording(); } catch {}
         }
       }, 700);
       setTimeout(() => {
-        if (recordingRef.current) {
+        if (current() && recordingRef.current) {
           console.log('[Camera] watchdog reset — recordAsync never resolved');
           recordingRef.current = false;
           setRecording(false);
           progressAnim.stopAnimation();
           progressAnim.setValue(0);
           pendingRecordRef.current = false;
-          setCamMode('picture');
+          setCamMode(captureModeRef.current === 'video' ? 'video' : 'picture');
           resetAudioMode();
+          captureGeneration.current += 1;
         }
       }, 2600);
     }, wait);
@@ -337,13 +361,32 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
   requestRecordRef.current = requestRecord;
   stopRecordingRef.current = stopRecording;
   const toggleFacing = useCallback(() => {
+    if (recordingRef.current || pendingRecordRef.current || photoLock.current) return;
     Haptics.selectionAsync();
     setFacing(f => (f === 'back' ? 'front' : 'back'));
   }, []);
 
+  useEffect(() => { cameraReadyRef.current = false; setCameraReady(false); }, [camMode, facing, cam.epoch]);
+  useEffect(() => {
+    mountedRef.current = true;
+    const cancel = () => {
+      captureGeneration.current += 1; pendingRecordRef.current = false; photoLock.current = false;
+      if (holdTimerRef.current) { clearTimeout(holdTimerRef.current); holdTimerRef.current = null; }
+      if (countdownTimerRef.current) { clearInterval(countdownTimerRef.current); countdownTimerRef.current = null; }
+      if (progressTimerRef.current) { clearInterval(progressTimerRef.current); progressTimerRef.current = null; }
+      try { cameraRef.current?.stopRecording(); } catch {}
+      recordingRef.current = false; progressAnim.stopAnimation(); progressAnim.setValue(0); resetAudioMode();
+      if (mountedRef.current) { setRecording(false); setProcessing(false); setCountdown(null); setProgressPct(0); setCamMode(captureModeRef.current === 'video' ? 'video' : 'picture'); }
+    };
+    const off = navigation.addListener?.('blur', cancel);
+    return () => { mountedRef.current = false; cancel(); off?.(); };
+  }, [navigation]);
+
   // ── Gallery shortcut ──
   const openGallery = useCallback(async () => {
+    const generation = captureGeneration.current;
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!mountedRef.current || generation !== captureGeneration.current) return;
     if (!perm.granted) {
       Alert.alert('Permission required', 'Allow photo library access in Settings.');
       return;
@@ -354,22 +397,13 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
         mediaTypes: ['images', 'videos'] as ImagePicker.MediaType[],
         allowsMultipleSelection: true,
         selectionLimit: 10,
+        orderedSelection: true,
         quality: 1,
       });
       if (!res.canceled && res.assets && res.assets.length > 0) {
-        const first = res.assets[0];
-        const isVideo = first.type === 'video';
-        if (isVideo) {
-          const durationSec = first.duration ? Math.round(first.duration / 1000) : null;
-          if (durationSec && durationSec > 60) { Alert.alert('Video too long', 'Please select a video under 60 seconds.'); return; }
-          let safeVidUri = first.uri;
-          try { safeVidUri = (await ensureUploadSafe(first.uri, 'video')).uri; }
-          catch (e: any) { console.log('[Camera] uploadSafe unavailable, using raw file:', e?.message || e); }
-          navigation.navigate('StoryComposer', { mode: 'video', assets: [{ localUri: safeVidUri, mediaType: 'video', width: first.width, height: first.height, durationSec }] });
-        } else {
-          const assets = res.assets.filter(a => a.type !== 'video').map(a => ({ localUri: a.uri, mediaType: 'image' as const, width: a.width, height: a.height }));
-          navigation.navigate('StoryComposer', { mode: 'image', assets });
-        }
+        if (!mountedRef.current || generation !== captureGeneration.current) return;
+        const assets = res.assets.map(asset => normalizeStoryCapture(asset));
+        navigation.navigate('StoryComposer', { mode: 'media', assets });
       }
     } catch (err: any) {
       const msg = err?.message || '';
@@ -431,7 +465,7 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
         <View style={{ flex: 1 }}>
           <PinchGestureHandler onGestureEvent={onPinch} onHandlerStateChange={onPinchState}>
             <View style={{ flex: 1 }}>
-              <CameraView key={camMode + ':' + cam.epoch} active={cam.active} ref={cameraRef} style={s.camera} facing={facing} flash={flash} zoom={zoom} mode={camMode} videoQuality="720p" onCameraReady={() => { if (pendingRecordRef.current && camMode === 'video') { doRecord(0); } }} />
+              <CameraView key={camMode + ':' + cam.epoch} active={cam.active} ref={cameraRef} style={s.camera} facing={facing} flash={flash} zoom={zoom} mode={camMode} videoQuality={STORY_CAPTURE_VIDEO_QUALITY} videoBitrate={STORY_CAPTURE_VIDEO_BITRATE} onCameraReady={() => { cameraReadyRef.current = true; setCameraReady(true); if (pendingRecordRef.current && camMode === 'video') { doRecord(0); } }} />
             </View>
           </PinchGestureHandler>
         </View>
@@ -445,13 +479,13 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
 
       {/* Top controls */}
       <View style={[s.topControls, { paddingTop: Math.max(insets.top, 12) + 8 }]}>
-        <TouchableOpacity style={s.topBtn} onPress={() => navigation.goBack()} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Close story camera" style={s.topBtn} onPress={() => navigation.goBack()} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Feather name="x" size={24} color="#FFF" />
         </TouchableOpacity>
         <View style={{ flex: 1 }} />
-        <TouchableOpacity style={s.topBtn} onPress={() => setTimerSec(t => (t === 0 ? 3 : t === 3 ? 10 : 0))} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Feather name="clock" size={20} color={timerSec ? '#FFD60A' : '#FFF'} />
-          {timerSec > 0 && <Text style={{ position: 'absolute', bottom: 2, right: 2, color: '#FFD60A', fontSize: 9, fontWeight: '800' }}>{timerSec}</Text>}
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Camera timer: ${timerSec ? timerSec + ' seconds' : 'off'}`} style={s.topBtn} onPress={() => setTimerSec(t => (t === 0 ? 3 : t === 3 ? 10 : 0))} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Feather name="clock" size={20} color={timerSec ? '#E8D3B6' : '#FFF'} />
+          {timerSec > 0 && <Text style={{ position: 'absolute', bottom: 2, right: 2, color: '#E8D3B6', fontSize: 9, fontWeight: '800' }}>{timerSec}</Text>}
         </TouchableOpacity>
         {zoom > 0.02 && !recording ? (
           <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top: insets.top + 64, alignItems: 'center', zIndex: 20 }} testID="zoomReadout">
@@ -460,18 +494,19 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
             </View>
           </View>
         ) : null}
-        <TouchableOpacity style={s.topBtn} onPress={() => setHandsFree(h => !h)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Feather name="video" size={20} color={handsFree ? '#FFD60A' : '#FFF'} />
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Hands-free recording" accessibilityState={{ selected: handsFree }} style={s.topBtn} onPress={() => setHandsFree(h => !h)} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Feather name="video" size={20} color={handsFree ? '#E8D3B6' : '#FFF'} />
         </TouchableOpacity>
-        <TouchableOpacity style={s.topBtn} onPress={() => setFlash(f => (f === 'off' ? 'on' : 'off'))} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Flash ${flash}`} style={s.topBtn} onPress={() => setFlash(f => (f === 'off' ? 'on' : 'off'))} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Feather name={flash === 'on' ? 'zap' : 'zap-off'} size={20} color="#FFF" />
         </TouchableOpacity>
       </View>
 
       {/* Bottom controls: gallery | capture | flip */}
-      <View style={[s.bottomControls, { paddingBottom: Math.max(insets.bottom + 18, 32) }]}>
+      <View style={[s.bottomControls, { paddingBottom: Math.max(insets.bottom + 12, 20) }]}>
+        {!recording ? <View style={s.captureModes}>{(['photo', 'video'] as const).map(mode => <TouchableOpacity key={mode} accessibilityRole="tab" accessibilityLabel={mode === 'photo' ? 'Photo capture' : 'Video capture'} accessibilityState={{ selected: captureMode === mode }} disabled={processing || countdown != null} onPress={() => { captureModeRef.current = mode; setCaptureMode(mode); setCamMode(mode === 'video' ? 'video' : 'picture'); }} style={[s.captureMode, captureMode === mode && s.captureModeOn]}><Text style={[s.captureModeText, captureMode === mode && { color: '#171B1E' }]}>{mode === 'photo' ? 'Photo' : 'Video'}</Text></TouchableOpacity>)}</View> : null}
         <View style={s.captureRow}>
-          <TouchableOpacity style={s.galleryBtn} onPress={openGallery} activeOpacity={0.8} disabled={recording}>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Choose story photo or video" style={s.galleryBtn} onPress={openGallery} activeOpacity={0.8} disabled={recording}>
             {lastThumb ? (
               <Image source={{ uri: lastThumb }} style={s.galleryThumb} />
             ) : (
@@ -479,7 +514,7 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
             )}
           </TouchableOpacity>
 
-          <View {...capturePan.panHandlers} style={[s.captureWrap, { transform: [{ scale: recording ? 1.08 : 1 }] }]}>
+          <View accessible accessibilityRole="button" accessibilityLabel={recording ? "Stop recording story" : captureMode === "photo" ? "Take story photo" : "Record story video"} accessibilityState={{ disabled: processing || !cameraReady }} onAccessibilityTap={() => { if (recordingRef.current) stopRecording(); else if (captureMode === "video") requestRecord(); else takePhoto(); }} {...capturePan.panHandlers} style={[s.captureWrap, { opacity: processing || !cameraReady ? .5 : 1 }, { transform: [{ scale: recording ? 1.08 : 1 }] }]}>
 
             <Svg width={CAPTURE_SIZE + 12} height={CAPTURE_SIZE + 12} style={StyleSheet.absoluteFill as any}>
               <Circle cx={(CAPTURE_SIZE + 12) / 2} cy={(CAPTURE_SIZE + 12) / 2} r={RING_R + 5} stroke={recording ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.9)'} strokeWidth={4} fill="none" />
@@ -503,25 +538,25 @@ function CameraScreenInner({ navigation, insets }: { navigation: any; insets: an
             </View>
           </View>
 
-          <TouchableOpacity style={s.flipBtn} onPress={toggleFacing} activeOpacity={0.7} disabled={recording}>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Switch story camera" style={s.flipBtn} onPress={toggleFacing} activeOpacity={0.7} disabled={recording}>
             <Feather name="refresh-cw" size={22} color="#FFF" />
           </TouchableOpacity>
         </View>
-        <Text style={s.hintTxt}>{recording ? (zoom > 0.02 ? 'Slide up to zoom · ' + Math.round(zoom * 100) + '%' : 'Release to stop · slide up to zoom') : (handsFree ? (timerSec ? `Hands-free · ${timerSec}s timer — tap to record` : 'Hands-free — tap to start and stop') : (timerSec ? `Timer ${timerSec}s — tap for photo, hold for video` : 'Tap for photo, hold for video'))}</Text>
+        <Text style={s.hintTxt}>{recording ? (zoom > 0.02 ? 'Slide up to zoom · ' + Math.round(zoom * 100) + '%' : 'Release to stop · slide up to zoom') : (handsFree ? (timerSec ? `Hands-free · ${timerSec}s timer — tap to record` : 'Hands-free — tap to start and stop') : (timerSec ? `Timer ${timerSec}s — tap for photo, hold for video` : captureMode === 'video' ? 'Tap to start and stop · up to 60s' : 'Tap for photo · hold for video'))}</Text>
         {!recording && (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} bounces={false} style={s.modeScroll} contentContainerStyle={s.modeRow}>
             <TouchableOpacity onPress={() => navigation.navigate('StoryComposer', { mode: 'text', assets: [] })} activeOpacity={0.7} style={s.modeItem}>
               <Text style={s.modeRowTxt}>TEXT</Text>
             </TouchableOpacity>
-            <TouchableOpacity activeOpacity={1} style={s.modeItem}>
+            <TouchableOpacity accessibilityRole="tab" accessibilityState={{ selected: true }} activeOpacity={1} style={[s.modeItem, { backgroundColor: '#E8D3B6' }]}>
               <Text style={[s.modeRowTxt, s.modeRowTxtOn]}>STORY</Text>
-              <View style={s.modeDot} />
+
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('StoryDualCapture')} activeOpacity={0.7} style={s.modeItem}>
               <Text style={s.modeRowTxt}>DUAL</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('StoryFunCamera')} activeOpacity={0.7} style={s.modeItem}>
-              <Text style={s.modeRowTxt}>FUN</Text>
+              <Text style={s.modeRowTxt}>LENSES</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('StoryLayout')} activeOpacity={0.7} style={s.modeItem}>
               <Text style={s.modeRowTxt}>LAYOUT</Text>
@@ -547,10 +582,14 @@ const s = StyleSheet.create({
   fallbackBtn: { marginTop: 20, backgroundColor: '#FFF', borderRadius: 14, paddingHorizontal: 28, paddingVertical: 14, alignItems: 'center', width: '100%' },
   fallbackBtnTxt: { color: '#000', fontSize: 15, fontWeight: '700' },
 
-  topControls: { position: 'absolute', top: 0, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8, zIndex: 10 },
+  topControls: { position: 'absolute', top: 0, left: 0, right: 0, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8, gap: 7, zIndex: 10 },
   topBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.35)', alignItems: 'center', justifyContent: 'center' },
 
-  bottomControls: { position: 'absolute', bottom: 0, left: 0, right: 0, alignItems: 'center', paddingTop: 16 },
+  bottomControls: { position: 'absolute', bottom: 0, left: 0, right: 0, alignItems: 'center', paddingTop: 20, backgroundColor: 'rgba(17,21,24,0.76)', borderTopLeftRadius: 28, borderTopRightRadius: 28 },
+  captureModes: { flexDirection: 'row', borderRadius: 24, backgroundColor: '#141719D9', padding: 3, marginBottom: 14 },
+  captureMode: { minWidth: 91, minHeight: 38, borderRadius: 21, justifyContent: 'center', alignItems: 'center' },
+  captureModeOn: { backgroundColor: '#F1DFC5' },
+  captureModeText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
   captureRow: { width: SCREEN_W, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 36 },
 
   galleryBtn: { width: 44, height: 44, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.5)' },
@@ -563,10 +602,10 @@ const s = StyleSheet.create({
   flipBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.15)', alignItems: 'center', justifyContent: 'center' },
 
   modeScroll: { marginTop: 14, alignSelf: 'stretch', flexGrow: 0 },
-  modeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16, paddingHorizontal: 12, flexGrow: 1 },
-  modeItem: { alignItems: 'center', paddingHorizontal: 3, paddingVertical: 4 },
-  modeRowTxt: { color: 'rgba(255,255,255,0.55)', fontSize: 12.5, fontWeight: '700', letterSpacing: 1.2 },
-  modeRowTxtOn: { color: '#FFFFFF' },
+  modeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 12, flexGrow: 1 },
+  modeItem: { alignItems: 'center', justifyContent: 'center', minHeight: 44, paddingHorizontal: 12, borderRadius: 23, paddingVertical: 7 },
+  modeRowTxt: { color: 'rgba(255,255,255,0.55)', fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
+  modeRowTxtOn: { color: '#171B1E' },
   modeDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: '#FFFFFF', marginTop: 5 },
   hintTxt: { color: 'rgba(255,255,255,0.55)', fontSize: 12, fontWeight: '500', marginTop: 12 },
 });

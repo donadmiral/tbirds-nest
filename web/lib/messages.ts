@@ -1,4 +1,5 @@
 // Mirrors ConversationsScreen assembly and the messages row shape.
+import { signGroupAvatars } from "@/lib/chatMedia";
 import { createClient } from "@/lib/supabase/client";
 
 export type Conv = {
@@ -31,30 +32,43 @@ export type Msg = {
   shared_post_id?: string | null;
   created_at: string;
   deleted_at?: string | null;
+  edited_at?: string | null;
+  read_at?: string | null;
+  delivered_at?: string | null;
+  forwarded_from_id?: string | null;
+  view_limit?: number | null;
+  is_system_message?: boolean;
+  _reactions?: { user_id: string; emoji: string }[];
+  _private_media_url?: string | null;
+  _private_thumbnail_url?: string | null;
+  _delivery?: 'pending' | 'rejected' | 'conflict';
 };
 
 export async function loadConversations(userId: string, context: string = "personal"): Promise<Conv[]> {
   const supabase = createClient();
-  const { data: dmConvs } = await supabase
+  const { data: dmConvs, error: dmError } = await supabase
     .from("conversations")
     .select("*")
     .or("user_1.eq." + userId + ",user_2.eq." + userId)
     .eq("is_group", false)
     .order("last_message_time", { ascending: false });
 
-  const { data: memberRows } = await supabase
+  if (dmError) throw new Error('Conversations could not be loaded.');
+  const { data: memberRows, error: memberError } = await supabase
     .from("conversation_members")
     .select("conversation_id")
     .eq("user_id", userId);
+  if (memberError) throw new Error('Group conversations could not be loaded.');
   const groupIds = (memberRows ?? []).map((r) => r.conversation_id);
   let groupConvs: Record<string, unknown>[] = [];
   if (groupIds.length > 0) {
-    const { data: gc } = await supabase
+    const { data: gc, error: groupError } = await supabase
       .from("conversations")
       .select("*")
       .in("id", groupIds)
       .eq("is_group", true)
       .order("last_message_time", { ascending: false });
+    if (groupError) throw new Error('Group conversations could not be loaded.');
     groupConvs = (gc ?? []) as Record<string, unknown>[];
   }
 
@@ -101,7 +115,8 @@ export async function loadConversations(userId: string, context: string = "perso
       request_pending: c.request_status === "pending" && !!c.request_sender_id && c.request_sender_id === otherId,
     };
   });
-  const groups: Conv[] = groupConvs.filter(keep).map((c) => ({
+  const signedGroups = await signGroupAvatars(groupConvs as (Record<string, unknown> & { group_avatar_url?: string | null })[]);
+  const groups: Conv[] = signedGroups.filter(keep).map((c) => ({
     id: c.id as string,
     is_group: true,
     other_id: null,

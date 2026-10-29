@@ -20,6 +20,7 @@ import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { DailyMediaView } from '@daily-co/react-native-daily-js';
+import { RemoteCallMedia, hasRemoteScreenShare } from '../../components/RemoteCallMedia';
 import { LinearGradient } from 'expo-linear-gradient';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
@@ -106,12 +107,6 @@ export default function CallScreen() {
     });
   }, [fromContext, callState, callerId, channelId, isGroupCall]);
 
-  useEffect(() => {
-    if (!isGroupCall || !params?.callId) return;
-    supabase.rpc('join_group_call', { p_session_id: params.callId }).then(() => {}, (e: any) => console.log('[JOIN] join_group_call failed:', e?.message));
-    // leave_group_call moved to CallContext.endCall teardown: leaving the SCREEN
-    // must not leave the CALL (the mini bar keeps it alive).
-  }, []);
 
   useEffect(() => {
     if (callState === 'idle' && wasEverActive) {
@@ -143,6 +138,8 @@ export default function CallScreen() {
   const viewProfile = () => { if (callerId) navigation.navigate('UserProfile', { userId: callerId }); };
 
   const remoteHasVideo = !!remoteParticipant?.videoTrack;
+  const mediaParticipants = remoteParticipants.length ? remoteParticipants : remoteParticipant ? [remoteParticipant] : [];
+  const screenSharing = hasRemoteScreenShare(mediaParticipants);
   const localHasVideo = !!localParticipant?.videoTrack && !videoOff;
   const ending = callState === 'ending';
 
@@ -165,19 +162,15 @@ export default function CallScreen() {
     : '#FF9500';
 
   // VIDEO CALL UI
-  if (isVideo) {
+  if (isVideo || screenSharing) {
     return (
       <View style={s.videoRoot}>
         <StatusBar barStyle="light-content" backgroundColor="#000" />
 
         <View style={s.remoteContainer}>
-          {isGroupCall && remoteParticipants.length > 0 ? (
-            <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap' }}>
-              {remoteParticipants.map((p: any, i: number) => (
-                <View key={p.session_id || i} style={{ width: remoteParticipants.length === 1 ? '100%' : '50%', height: remoteParticipants.length <= 2 ? '100%' : '50%', backgroundColor: '#111' }}>
-                  <DailyMediaView videoTrack={p.videoTrack as any} audioTrack={p.audioTrack as any} mirror={false} zOrder={0} objectFit="cover" style={{ flex: 1 }} />
-                </View>
-              ))}
+          {screenSharing || (isGroupCall && mediaParticipants.length > 0) ? (
+            <View style={{ flex: 1, paddingTop: insets.top + 64, paddingBottom: Math.max(insets.bottom, 16) + 100 }}>
+              <RemoteCallMedia key={channelId} participants={mediaParticipants} />
             </View>
           ) : remoteHasVideo ? (
             <DailyMediaView videoTrack={remoteParticipant?.videoTrack as any}
@@ -197,7 +190,7 @@ export default function CallScreen() {
           )}
         </View>
 
-        {localHasVideo && (
+        {localHasVideo && !screenSharing && (
           <View style={[s.selfView, { top: insets.top + 56 }]} pointerEvents="none">
             <DailyMediaView videoTrack={localParticipant?.videoTrack as any} audioTrack={null as any}
               mirror={true} zOrder={1} objectFit="cover" style={s.selfViewInner} />

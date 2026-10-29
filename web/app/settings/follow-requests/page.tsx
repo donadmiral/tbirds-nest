@@ -46,12 +46,12 @@ export default function FollowRequestsPage() {
   return (
     <div className="mx-auto max-w-[560px] px-1">
       <Link href="/settings" aria-label="Back to Settings" className="mb-4 inline-flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><ArrowLeft size={19} /></Link>
-      <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><UserCheck size={19} className="text-pearl" /> Follow requests</h1>
-      <p className="pb-5 text-[13px] text-ink/50">People asking to follow your private account.</p>
-      {rows === null ? <p className="py-10 text-center text-sm text-ink/40">Loading</p>
+      <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><UserCheck size={19} className="text-accent" /> Follow requests</h1>
+      <p className="pb-5 text-[13px] text-muted">People asking to follow your private account.</p>
+      {rows === null ? <p className="py-10 text-center text-sm text-muted">Loading</p>
       : rows.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-ink/15 py-14 text-center">
-          <UserCheck size={28} className="text-ink/25" />
+          <UserCheck size={28} className="text-muted" />
           <p className="text-[14px] font-semibold text-ink">No pending requests</p>
         </div>
       ) : rows.map(r => (
@@ -63,7 +63,7 @@ export default function FollowRequestsPage() {
             ) : <span className="flex h-14 w-14 items-center justify-center rounded-full bg-navy text-[17px] font-semibold text-white">{(r.full_name || "U").charAt(0)}</span>}
             <div className="min-w-0">
               <p className="truncate text-[14.5px] font-semibold text-ink">{r.full_name || "Member"} <VerifiedBadge userId={r.requester_id} size={13} /></p>
-              <p className="text-[12px] text-ink/45">{r.username ? "@" + r.username + " · " : ""}{relTime(r.created_at)}</p>
+              <p className="text-[12px] text-muted">{r.username ? "@" + r.username + " · " : ""}{relTime(r.created_at)}</p>
             </div>
           </Link>
           <button onClick={() => respond(r.id, "accept")} disabled={!!busy[r.id]} className="rounded-full bg-ink px-3.5 py-1.5 text-[12.5px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">Accept</button>

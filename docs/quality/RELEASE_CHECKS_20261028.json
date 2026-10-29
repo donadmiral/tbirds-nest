@@ -1,0 +1,95 @@
+{
+  "measuredAt": "2026-10-28T15:28:53.405Z",
+  "node": "v24.22.1",
+  "passed": true,
+  "stages": [
+    {
+      "name": "phone-types",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 19299,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "web-types",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 3503,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "admin-types",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 1801,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "phone-tests",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 25528,
+      "logSha256": "fad0cfaee5301e70c5e4dd3eeec1d1459d10a1c0f92f265eb6951eedbaf281db"
+    },
+    {
+      "name": "web-tests",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 11959,
+      "logSha256": "51dd324b7b735db51e99c686d3bba12fadf0c6bd204f201fc4da218d748fbf63"
+    },
+    {
+      "name": "admin-tests",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 2882,
+      "logSha256": "f4e843fd5658a75ce34e3d53a78c7a49390979f84d43395a48b22f686360e6be"
+    },
+    {
+      "name": "database-tests",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 69499,
+      "logSha256": "46abd9104cf18a77170cb27f54a1116ab6cfb093edf8a27defc05d2306428f21"
+    },
+    {
+      "name": "rpc-tests",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 18220,
+      "logSha256": "58fdb982a41aebabf07e9e732c7e76b2e9d44b385e47126fbc007e35216a8cd1"
+    }
+  ],
+  "qaProject": "uaulhuelcfkjwojtymmw",
+  "privateMediaCutover": "held pending compatible native build and coordinated acceptance",
+  "scope": "Automated source and database verification. Not a physical-device acceptance result or production-capacity certification.",
+  "sourceBaseCommit": "6461aac6d83bb3d866c0e8371579b32875dac56e",
+  "testCounts": {
+    "phone": 594,
+    "web": 387,
+    "admin": 58,
+    "database": 245,
+    "totalNamedTests": 1284,
+    "failed": 0,
+    "skipped": 0,
+    "rpc": "all runner suites and complete migration chain passed"
+  },
+  "iosExport": {
+    "exitCode": 0,
+    "logSha256": "ef68fdbf6698bde52fe1d375f3d6f8e0cc11d2571ed9e12a354a63340c3d8beb",
+    "meaning": "iOS production JavaScript/Hermes export, not a signed installable app"
+  },
+  "webProductionBuild": {
+    "exitCode": 0,
+    "logSha256": "b92551e419f68afbf1ee85339f476b7c0150d5032601d4c1578474ffa1becee9",
+    "note": "Clean .next rebuild after local Turbopack persistence-cache failure"
+  }
+}

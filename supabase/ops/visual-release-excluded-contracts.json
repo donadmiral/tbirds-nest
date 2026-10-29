@@ -1,0 +1,204 @@
+{
+  "scope": "Read-only frontend availability audit. Source names do not prove all functions are absent; replaced baseline APIs may exist with old signatures/behavior.",
+  "productionAppliedUnits": 7,
+  "excludedUnits": [
+    {
+      "originalOrders": [
+        9
+      ],
+      "source": "supabase/migrations/20261022211313_creator_finance_operations.sql",
+      "publicApiNames": [
+        "creator_begin_payout_dispatch",
+        "creator_claim_payouts",
+        "creator_finish_payout_attempt",
+        "creator_monetization_snapshot",
+        "creator_request_payout",
+        "creator_revenue_policy",
+        "creator_statement"
+      ],
+      "reason": "Excluded from remaining visual release; inspect existing production contract before enabling a new client action."
+    },
+    {
+      "originalOrders": [
+        10
+      ],
+      "source": "supabase/migrations/20261022211400_creator_product_entitlements.sql",
+      "publicApiNames": [
+        "creator_commerce_capabilities",
+        "creator_commerce_snapshot",
+        "creator_create_order",
+        "creator_has_active_subscription",
+        "creator_request_payout",
+        "creator_save_product"
+      ],
+      "reason": "Excluded from remaining visual release; inspect existing production contract before enabling a new client action."
+    },
+    {
+      "originalOrders": [
+        12
+      ],
+      "source": "supabase/migrations/20261022211448_business_publishing_and_receipts.sql",
+      "publicApiNames": [
+        "business_catalog",
+        "business_receipts",
+        "create_promotion",
+        "promo_daily_performance",
+        "publish_product_carousel",
+        "set_listing_stock"
+      ],
+      "reason": "Excluded from remaining visual release; inspect existing production contract before enabling a new client action."
+    },
+    {
+      "originalOrders": [
+        13
+      ],
+      "source": "supabase/migrations/20261022211637_hiring_workflow_quality.sql",
+      "publicApiNames": [
+        "guard_hiring_workflow",
+        "notify_hiring_change",
+        "studio_applicant_page",
+        "studio_schedule_interview",
+        "studio_set_stage",
+        "studio_update_application"
+      ],
+      "reason": "Excluded from remaining visual release; inspect existing production contract before enabling a new client action."
+    },
+    {
+      "originalOrders": [
+        16
+      ],
+      "source": "supabase/migrations/20261022211649_creator_finance_review.sql",
+      "publicApiNames": [
+        "creator_finance_admin_snapshot",
+        "creator_finance_review"
+      ],
+      "reason": "Excluded from remaining visual release; inspect existing production contract before enabling a new client action."
+    },
+    {
+      "originalOrders": [
+        17
+      ],
+      "source": "supabase/migrations/20261022211701_admin_payment_reporting_and_support.sql",
+      "publicApiNames": [
+        "admin_payment_report",
+        "admin_payment_summary"
+      ],
+      "reason": "Excluded from remaining visual release; inspect existing production contract before enabling a new client action."
+    },
+    {
+      "originalOrders": [
+        18
+      ],
+      "source": "supabase/migrations/20261022211835_admin_command_provision_contracts.sql",
+      "publicApiNames": [
+        "triniti_admin_deletion_requests",
+        "triniti_admin_provision",
+        "triniti_platinum_admin_command"
+      ],
+      "reason": "Excluded from remaining visual release; inspect existing production contract before enabling a new client action."
+    },
+    {
+      "originalOrders": [
+        19
+      ],
+      "source": "supabase/migrations/20261023185734_redacted_client_diagnostics.sql",
+      "publicApiNames": [
+        "report_client_error"
+      ],
+      "reason": "Excluded from remaining visual release; inspect existing production contract before enabling a new client action."
+    },
+    {
+      "originalOrders": [
+        20
+      ],
+      "source": "supabase/migrations/20261023185851_market_receipt_binding_immutable.sql",
+      "publicApiNames": [],
+      "reason": "Excluded from remaining visual release; inspect existing production contract before enabling a new client action."
+    },
+    {
+      "originalOrders": [
+        22
+      ],
+      "source": "supabase/migrations/20261023190254_creator_finance_dispatch_and_refund_guards.sql",
+      "publicApiNames": [],
+      "reason": "Excluded from remaining visual release; inspect existing production contract before enabling a new client action."
+    },
+    {
+      "originalOrders": [
+        23
+      ],
+      "source": "supabase/migrations/20261023190316_admin_moderation_removal_guards.sql",
+      "publicApiNames": [],
+      "reason": "Excluded from remaining visual release; inspect existing production contract before enabling a new client action."
+    },
+    {
+      "originalOrders": [
+        24
+      ],
+      "source": "supabase/migrations/20261023190601_platinum_storage_bootstrap.sql",
+      "publicApiNames": [
+        "platinum_upload_path_allowed"
+      ],
+      "reason": "Excluded from remaining visual release; inspect existing production contract before enabling a new client action."
+    },
+    {
+      "originalOrders": [
+        25
+      ],
+      "source": "supabase/migrations/20261023191000_support_triage.sql",
+      "publicApiNames": [
+        "admin_support_triage_read",
+        "admin_support_triage_update"
+      ],
+      "reason": "Excluded from remaining visual release; inspect existing production contract before enabling a new client action."
+    },
+    {
+      "originalOrders": [
+        28
+      ],
+      "source": "supabase/migrations/20261025073211_marketplace_verified_reviews.sql",
+      "publicApiNames": [
+        "admin_seller_review_reports",
+        "get_seller_rating",
+        "moderate_seller_review",
+        "report_market_listing",
+        "report_seller_review",
+        "seller_review_page",
+        "submit_seller_review"
+      ],
+      "reason": "Excluded from remaining visual release; inspect existing production contract before enabling a new client action."
+    },
+    {
+      "originalOrders": [
+        29
+      ],
+      "source": "supabase/migrations/20261025073232_verification_integrity.sql",
+      "publicApiNames": [],
+      "reason": "Excluded from remaining visual release; inspect existing production contract before enabling a new client action."
+    },
+    {
+      "originalOrders": [
+        30
+      ],
+      "source": "supabase/migrations/20261025073234_applicant_self_service_quality.sql",
+      "publicApiNames": [
+        "my_application_page",
+        "record_application_withdrawal",
+        "withdraw_job_application"
+      ],
+      "reason": "Excluded from remaining visual release; inspect existing production contract before enabling a new client action."
+    },
+    {
+      "originalOrders": [
+        40
+      ],
+      "source": "supabase/migrations/20261029051017_faststart_registered_provenance.sql",
+      "publicApiNames": [
+        "check_faststart_video_remux",
+        "claim_faststart_video_remux",
+        "release_faststart_video_remux"
+      ],
+      "reason": "Excluded from remaining visual release; inspect existing production contract before enabling a new client action."
+    }
+  ]
+}

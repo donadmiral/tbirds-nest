@@ -1,0 +1,535 @@
+{
+  "schemaVersion": 3,
+  "reviewDate": "2026-10-29",
+  "projectRef": "prlkikhckbifseosbukl",
+  "sourceBaseCommit": "31c2251c37d082af9cdcdae58cefb1968008c36a",
+  "cloudMutated": true,
+  "bucketVisibilityMustRemainUnchanged": true,
+  "units": [
+    {
+      "order": 1,
+      "name": "20261022173041_platinum_private_application_cvs",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022173041_platinum_private_application_cvs.sql",
+          "sha256": "a5b98b749af9047147a969707c46a39845149207d8fc0c4cd862105c0984d550"
+        }
+      ],
+      "originalOrders": [
+        1
+      ],
+      "status": "applied"
+    },
+    {
+      "order": 2,
+      "name": "20261022173052_account_export_snapshot",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022173052_account_export_snapshot.sql",
+          "sha256": "a70c54b21bfb25d79173c8b1238912a558e6ee7ab88776ca54b943d414a1e174"
+        }
+      ],
+      "originalOrders": [
+        2
+      ],
+      "status": "applied"
+    },
+    {
+      "order": 3,
+      "name": "20261022173111_creator_monetization_foundation",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022173111_creator_monetization_foundation.sql",
+          "sha256": "fde33346f52ecdeec4b67d5640ed237add22451aa29c99dcee6aed78709fbb63"
+        }
+      ],
+      "originalOrders": [
+        3
+      ],
+      "status": "applied"
+    },
+    {
+      "order": 4,
+      "name": "20261022211223_marketplace_order_lifecycle",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022211223_marketplace_order_lifecycle.sql",
+          "sha256": "3834c909a543f9cef62c89cd772033c67d58126d177902d59526a9b45eaf8036"
+        }
+      ],
+      "originalOrders": [
+        4
+      ],
+      "status": "applied"
+    },
+    {
+      "order": 5,
+      "name": "20261022211236_message_call_access_compatible",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022211236_message_call_access.sql",
+          "sha256": "d4ef8ddd99fd5e29fd37d4b2cc92a38f063725dc6b5f225af61ed09dc9c11204"
+        },
+        {
+          "path": "supabase/migrations/20261029045648_legacy_chat_media_compatibility.sql",
+          "sha256": "a82333c55306f6123597fcd1e6acd8642dcfbe001fc76d055377e7fd8668b899"
+        }
+      ],
+      "originalOrders": [
+        5
+      ],
+      "status": "applied"
+    },
+    {
+      "order": 6,
+      "name": "20261022211253_social_directory_history_quality",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022211253_social_directory_history_quality.sql",
+          "sha256": "2ed303bacd7abc059e866c90d0b39acdb515c2e730dfed3eaed73f45248d6a77"
+        }
+      ],
+      "originalOrders": [
+        6
+      ],
+      "status": "applied"
+    },
+    {
+      "order": 7,
+      "name": "20261022211259_platinum_story_editor_and_hiring",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022211259_platinum_story_editor_and_hiring.sql",
+          "sha256": "8fd053855ae8bc8df568d84f72aad4e791944d7a77eb353d42336b17428208d1"
+        }
+      ],
+      "originalOrders": [
+        7
+      ],
+      "status": "applied"
+    },
+    {
+      "order": 8,
+      "name": "20261029054043_memory_book_visual_presentation",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261029054043_memory_book_visual_presentation.sql",
+          "sha256": "00a4aa58ed48b891dd33fd883778459f315f28c045961c0a95ca3a8d22b67987"
+        }
+      ],
+      "originalOrders": [
+        34,
+        37
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 9,
+      "name": "20261022211411_feed_snapshot_visibility",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022211411_feed_snapshot_visibility.sql",
+          "sha256": "803023d64155032f6550bea0ad1dea821e8e1e3c7c159da298b6572bd3e0fe79"
+        }
+      ],
+      "originalOrders": [
+        11
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 10,
+      "name": "20261022211641_feed_mute_feedback",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261022211641_feed_mute_feedback.sql",
+          "sha256": "783ece6e9448d2df167417b0597c01f68f014fabd709ccb5c46546464fe817f4"
+        }
+      ],
+      "originalOrders": [
+        14
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 11,
+      "name": "20261029055844_visual_media_existing_visibility",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261029055844_visual_media_existing_visibility.sql",
+          "sha256": "4b7805c299e50f3b945e981a8bc1c2c66c734e6da263355ac6c4489e76abdeee"
+        }
+      ],
+      "originalOrders": [
+        15
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 12,
+      "name": "20261023190047_content_owner_upload_previews",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261023190047_content_owner_upload_previews.sql",
+          "sha256": "2ca847ba47d5eed8e4157244a94c174c80a5a69c6656e2c6ccd82aa8367f93f0"
+        }
+      ],
+      "originalOrders": [
+        21
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 13,
+      "name": "20261025073235_trending_story_visibility",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261025073235_trending_story_visibility.sql",
+          "sha256": "526d2d9483b627cc224c6504ee6841f4048b329a36f68d49c00be250da772ef8"
+        }
+      ],
+      "originalOrders": [
+        31
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 14,
+      "name": "20261026064639_post_media_edit_projections",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261026064639_post_media_edit_projections.sql",
+          "sha256": "9eeb13d5ca4aac2662615fa05971d57cd404d124f1ca2682d8af7bcec6166dc5"
+        }
+      ],
+      "originalOrders": [
+        33
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 15,
+      "name": "20261029054351_story_visual_publication_controls",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261029054351_story_visual_publication_controls.sql",
+          "sha256": "20c6eaa029f80adfe9cd9499f87b057186e0cdb99ae14530b463c8f253b3e18b"
+        }
+      ],
+      "originalOrders": [
+        35,
+        38
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 16,
+      "name": "20261029055848_visual_discover_existing_visibility",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261029055848_visual_discover_existing_visibility.sql",
+          "sha256": "c507383a21c39688f1318f8b18f02a40549b096a69b39db7b6bb5785a1680ae8"
+        }
+      ],
+      "originalOrders": [
+        36
+      ],
+      "status": "pending"
+    },
+    {
+      "order": 17,
+      "name": "20261029054355_visual_media_legacy_snapshots",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261029054355_visual_media_legacy_snapshots.sql",
+          "sha256": "36f6b84c4566375ee0053f8f987d051073db3c23c09a50c19b912843a11eb89f"
+        }
+      ],
+      "productionExpectedLegacySnapshots": 10,
+      "originalOrders": [
+        39
+      ],
+      "status": "pending",
+      "legacySnapshotRegistry": true
+    },
+    {
+      "order": 18,
+      "name": "20261023193500_call_membership_recovery",
+      "atomic": true,
+      "files": [
+        {
+          "path": "supabase/migrations/20261023193500_call_membership_recovery.sql",
+          "sha256": "e0cebdcd5a76ff486ce2c51358b788d7839883135b3c893f7b7f27bc36f72538"
+        }
+      ],
+      "originalOrders": [
+        27
+      ],
+      "status": "pending",
+      "reason": "Required compatibility for the shipping group-call client, which already calls these admission APIs; preserve existing calling rather than introduce a new call provider or feature."
+    }
+  ],
+  "excluded": [
+    {
+      "path": "supabase/migrations/20261023185729_chat_storage_cutover_and_reference_guards.sql",
+      "reason": "Hold: flips existing public chat buckets private and changes legacy object access. Requires coordinated installed-client adoption."
+    },
+    {
+      "path": "supabase/migrations/20261025073213_single_owner_qa_access.sql",
+      "reason": "Exclude production: QA-only sole-owner assurance exception. Production admin keeps AAL2."
+    },
+    {
+      "path": "supabase/migrations/20261023190325_scoped_call_worker_credential.sql",
+      "reason": "Defer: only required by the daily-reconcile worker, which is not part of this rollout. Do not generate or distribute a worker secret."
+    },
+    {
+      "path": "supabase/migrations/20261028150938_private_media_sessions.sql",
+      "reason": "Hold: changes historical expiry, recipients/counters, media representation, object reservation and erasure lifecycle; incompatible with legacy installed clients."
+    },
+    {
+      "path": "supabase/migrations/20261022211311_story_sound_rights.sql",
+      "reason": "Excluded: user explicitly excluded music infrastructure. Original unit 8 was rejected by automatic approval review; do not retry or install equivalent music schema through another unit."
+    },
+    {
+      "path": "supabase/migrations/20261022211648_content_media_manifests.sql",
+      "reason": "Replaced with visual-only media bindings/manifest; no sound entity, rights reuse or audio URL signing."
+    },
+    {
+      "path": "supabase/migrations/20261023192203_story_soundtrack_authoring.sql",
+      "reason": "Excluded: user explicitly excluded music infrastructure. Original unit 8 was rejected by automatic approval review; do not retry or install equivalent music schema through another unit."
+    },
+    {
+      "path": "supabase/migrations/20261026063625_soundtrack_rights_and_post_audio.sql",
+      "reason": "Excluded: user explicitly excluded music infrastructure. Original unit 8 was rejected by automatic approval review; do not retry or install equivalent music schema through another unit."
+    },
+    {
+      "path": "supabase/migrations/20261028151016_memory_book_design_and_soundtrack.sql",
+      "reason": "Replaced with visual book metadata/ownership/order only; no soundtrack column, validation or parameter."
+    },
+    {
+      "path": "supabase/migrations/20261028152200_story_mention_reshare_quality.sql",
+      "reason": "Replaced with visual publication controls; rejects non-null audio_draft and installs no music resolver."
+    },
+    {
+      "path": "supabase/migrations/20261028185149_memory_book_presentation.sql",
+      "reason": "Merged into the visual book migration; no album soundtrack or story audio projection."
+    },
+    {
+      "path": "supabase/migrations/20261029044445_story_reply_controls.sql",
+      "reason": "Merged into visual publication controls so reply settings do not depend on the excluded audio publisher."
+    },
+    {
+      "path": "supabase/migrations/20261029050453_legacy_public_media_snapshots.sql",
+      "reason": "Replaced with the same finite read snapshot anchored directly to the visual manifest; no music-wrapper dependency."
+    },
+    {
+      "path": "supabase/migrations/20261029055318_memory_book_reader_visual_projection.sql",
+      "reason": "QA-only compatibility projection; production receives these exact two reader definitions in unit8. Do not replay this duplicate on production."
+    },
+    {
+      "path": "supabase/migrations/20261022211313_creator_finance_operations.sql",
+      "reason": "Rejected by automatic approval review: live payout/finance infrastructure exceeds the visual task. NOT applied; do not retry, indirectly execute, or recreate an equivalent financial system."
+    },
+    {
+      "path": "supabase/migrations/20261022211400_creator_product_entitlements.sql",
+      "reason": "Excluded from the remaining visual release: unrelated finance, payment, marketplace, hiring, admin operations, diagnostics, call or remux changes are not required for profile/story/post/book presentation. Preserve existing installed behavior."
+    },
+    {
+      "path": "supabase/migrations/20261022211448_business_publishing_and_receipts.sql",
+      "reason": "Excluded from the remaining visual release: unrelated finance, payment, marketplace, hiring, admin operations, diagnostics, call or remux changes are not required for profile/story/post/book presentation. Preserve existing installed behavior."
+    },
+    {
+      "path": "supabase/migrations/20261022211637_hiring_workflow_quality.sql",
+      "reason": "Excluded from the remaining visual release: unrelated finance, payment, marketplace, hiring, admin operations, diagnostics, call or remux changes are not required for profile/story/post/book presentation. Preserve existing installed behavior."
+    },
+    {
+      "path": "supabase/migrations/20261029054347_visual_content_media_manifests.sql",
+      "reason": "Replaced with a narrow visual definition using existing production can_view_post authorization. This original depends on excluded new paid-subscription infrastructure."
+    },
+    {
+      "path": "supabase/migrations/20261022211649_creator_finance_review.sql",
+      "reason": "Excluded from the remaining visual release: unrelated finance, payment, marketplace, hiring, admin operations, diagnostics, call or remux changes are not required for profile/story/post/book presentation. Preserve existing installed behavior."
+    },
+    {
+      "path": "supabase/migrations/20261022211701_admin_payment_reporting_and_support.sql",
+      "reason": "Excluded from the remaining visual release: unrelated finance, payment, marketplace, hiring, admin operations, diagnostics, call or remux changes are not required for profile/story/post/book presentation. Preserve existing installed behavior."
+    },
+    {
+      "path": "supabase/migrations/20261022211835_admin_command_provision_contracts.sql",
+      "reason": "Excluded from the remaining visual release: unrelated finance, payment, marketplace, hiring, admin operations, diagnostics, call or remux changes are not required for profile/story/post/book presentation. Preserve existing installed behavior."
+    },
+    {
+      "path": "supabase/migrations/20261023185734_redacted_client_diagnostics.sql",
+      "reason": "Excluded from the remaining visual release: unrelated finance, payment, marketplace, hiring, admin operations, diagnostics, call or remux changes are not required for profile/story/post/book presentation. Preserve existing installed behavior."
+    },
+    {
+      "path": "supabase/migrations/20261023185851_market_receipt_binding_immutable.sql",
+      "reason": "Excluded from the remaining visual release: unrelated finance, payment, marketplace, hiring, admin operations, diagnostics, call or remux changes are not required for profile/story/post/book presentation. Preserve existing installed behavior."
+    },
+    {
+      "path": "supabase/migrations/20261023190254_creator_finance_dispatch_and_refund_guards.sql",
+      "reason": "Excluded from the remaining visual release: unrelated finance, payment, marketplace, hiring, admin operations, diagnostics, call or remux changes are not required for profile/story/post/book presentation. Preserve existing installed behavior."
+    },
+    {
+      "path": "supabase/migrations/20261023190316_admin_moderation_removal_guards.sql",
+      "reason": "Excluded from the remaining visual release: unrelated finance, payment, marketplace, hiring, admin operations, diagnostics, call or remux changes are not required for profile/story/post/book presentation. Preserve existing installed behavior."
+    },
+    {
+      "path": "supabase/migrations/20261023190601_platinum_storage_bootstrap.sql",
+      "reason": "Excluded: changes story audio MIME types and market/chat asset policies. Existing production bucket limits, MIME types and policies remain unchanged."
+    },
+    {
+      "path": "supabase/migrations/20261023191000_support_triage.sql",
+      "reason": "Excluded from the remaining visual release: unrelated finance, payment, marketplace, hiring, admin operations, diagnostics, call or remux changes are not required for profile/story/post/book presentation. Preserve existing installed behavior."
+    },
+    {
+      "path": "supabase/migrations/20261025073211_marketplace_verified_reviews.sql",
+      "reason": "Excluded from the remaining visual release: unrelated finance, payment, marketplace, hiring, admin operations, diagnostics, call or remux changes are not required for profile/story/post/book presentation. Preserve existing installed behavior."
+    },
+    {
+      "path": "supabase/migrations/20261025073232_verification_integrity.sql",
+      "reason": "Excluded from the remaining visual release: unrelated finance, payment, marketplace, hiring, admin operations, diagnostics, call or remux changes are not required for profile/story/post/book presentation. Preserve existing installed behavior."
+    },
+    {
+      "path": "supabase/migrations/20261025073234_applicant_self_service_quality.sql",
+      "reason": "Excluded from the remaining visual release: unrelated finance, payment, marketplace, hiring, admin operations, diagnostics, call or remux changes are not required for profile/story/post/book presentation. Preserve existing installed behavior."
+    },
+    {
+      "path": "supabase/migrations/20261028153700_discover_media_access_guards.sql",
+      "reason": "Replaced with a narrow visual definition using existing production can_view_post authorization. This original depends on excluded new paid-subscription infrastructure."
+    },
+    {
+      "path": "supabase/migrations/20261029051017_faststart_registered_provenance.sql",
+      "reason": "Excluded: no active remux webhook was found and new video processing is not required for the visual fixes. Preserve existing endpoint; do not launch a worker."
+    },
+    {
+      "path": "supabase/migrations/20261029060247_story_public_post_reference_cards.sql",
+      "reason": "QA-only canonical public post-card guard; production unit15 already contains this exact guard, so do not replay the duplicate there."
+    }
+  ],
+  "edgeFunctions": [
+    "content-media-sign",
+    "chat-media-sign"
+  ],
+  "baselineDoNotReplay": [
+    "00000000000151_capture_functions.sql",
+    "00000000000152_organizations.sql",
+    "20260910230211_chat_payment_recovery.sql"
+  ],
+  "productionBaselineFunctionMd5": {
+    "get_feed": "a5ba28b77f27dad8725fd6b0717106ec",
+    "get_memory_albums": "e8a351ece459652588539597b380d0bf",
+    "get_memory_book": "5a30eab09e21eb149309d9add37e0892",
+    "guard_payment_receipt_message": "e32bb3284b8c967ac7c4db2ae2938cf5",
+    "post_payment_message": "54f28d6cf740467c89ddb58709a6f042",
+    "preserve_chat_payment_record": "1b5d69dee5033327aaca401c6176c5fb",
+    "start_group_call": "875d741877cb5e5521788cb120396103",
+    "sweep_dead_calls": "e964a8734f3f924079b86529d39e8720"
+  },
+  "edgeFunctionNotes": {
+    "content-media-sign": "Built-in Supabase keys only; user-JWT manifest, exact matched paths,300-second URLs.",
+    "chat-media-sign": "Built-in Supabase keys; compatible legacy consume bridge with original grant expiry; private-session installations refuse the legacy path."
+  },
+  "privateMediaProtocolEnabled": {
+    "development": false,
+    "preview": false,
+    "production": false
+  },
+  "heldEdgeFunctions": {
+    "daily-get-token": {
+      "productionVersion": 34,
+      "reason": "Preserve installed-client call behavior; unrelated to visual changes."
+    },
+    "crisp-bridge": {
+      "reason": "No payment/receipt change in the visual release."
+    },
+    "crisp-payment-recovery": {
+      "productionVersion": 2,
+      "reason": "No payment/recovery worker change or execution."
+    },
+    "export-my-data": {
+      "reason": "Account-export endpoint rollout is unrelated to the visual fixes; existing state preserved."
+    },
+    "faststart-video": {
+      "reason": "No active webhook found; do not add a remux pipeline or new processing guard for this visual release."
+    }
+  },
+  "reviewStatus": "ready-for-release-owner-review",
+  "musicInfrastructureExcluded": true,
+  "musicCatalogueEnabled": false,
+  "productionResumeAfterUnit": 7,
+  "productionAppliedPrefixEvidence": "Release owner reported units 1\u20137 successfully applied before original unit 8 was rejected. Re-read hosted history and resume checks; never replay the prefix.",
+  "productionResumeFunctionMd5": {
+    "public.get_feed(text,double precision,uuid,integer)": "a5ba28b77f27dad8725fd6b0717106ec",
+    "public.get_memory_albums(uuid)": "e8a351ece459652588539597b380d0bf",
+    "public.get_memory_book(uuid)": "5a30eab09e21eb149309d9add37e0892",
+    "public.get_discover_page(text,boolean,integer,integer,timestamp with time zone)": "4fad589831e967fe4cde4c31797d1476",
+    "public.get_profile_posts_page(uuid,integer,integer,timestamp with time zone)": "6f4f24da8506095f7323b707334464e8",
+    "public.open_legacy_chat_media(uuid,uuid)": "7e77610be112c7b1e69dcb2db082758e",
+    "public.consume_media_view(uuid)": "8e3e17e74717f3454b5c0deef3f62566",
+    "public.claim_chat_media_view(uuid,uuid)": "c47a9441784d6c13fd2f3b1d0363837b",
+    "public.account_export_snapshot()": "11c5ea5152feadd8e78ac64e073e6ade",
+    "public.publish_story_v2(uuid,uuid,jsonb)": "358247e1e132eede2dd5e4ec2b6d6624"
+  },
+  "supersedes": {
+    "unitCount": 35,
+    "sourceFileCount": 36,
+    "manifestSha256": "bccfcd6b67fa85f1d8b21a1b8ffb4329b4da098d4bc9f1efd82cb7f08d992b9b",
+    "archivePath": "supabase/ops/superseded/production-rollout-20261029-35-units.json",
+    "reason": "Revised unit8 creator_finance_operations was rejected by automatic approval review as beyond the visual task. It was not applied. This plan removes finance and all other unrelated remaining infrastructure."
+  },
+  "qaCompatibilityPatch": {
+    "projectRef": "uaulhuelcfkjwojtymmw",
+    "path": "supabase/migrations/20261029055318_memory_book_reader_visual_projection.sql",
+    "sha256": "b5efb461b5280efecb0dac285197753fb9636ccf6435f164d5c99fde5e58a047",
+    "purpose": "Replace only two book reader functions on QA, which already has old presentation schema. Same definitions are already in production visual unit8; preserve schema/data/grants. Existing QA visual publisher already supports current non-music payload.",
+    "status": "applied",
+    "evidence": "Release owner reported successful QA projection apply before the finance rejection."
+  },
+  "productionResumeCheckpoint": "supabase/ops/production-resume-checkpoint-20261029.json",
+  "scope": "profile-story-post-memory-visual-only",
+  "financeInfrastructureExcluded": true,
+  "storageConfigurationMustRemainUnchanged": true,
+  "productionBaseline": {
+    "schemaFixture": "supabase/reference/live-schema-20261017.sql",
+    "managedSchemaFixture": "supabase/tests/rpc-authorization/live-schema-fixture.mjs",
+    "alreadyAppliedUnits": 7,
+    "checkpoint": "supabase/ops/production-resume-checkpoint-20261029.json",
+    "unchangedExcludedStateCheck": "supabase/ops/check-production-excluded-unchanged.sql"
+  },
+  "qaCompatibilityPatches": [
+    {
+      "projectRef": "uaulhuelcfkjwojtymmw",
+      "path": "supabase/migrations/20261029055318_memory_book_reader_visual_projection.sql",
+      "sha256": "b5efb461b5280efecb0dac285197753fb9636ccf6435f164d5c99fde5e58a047",
+      "purpose": "Replace only two book reader functions on QA, which already has old presentation schema. Same definitions are already in production visual unit8; preserve schema/data/grants. Existing QA visual publisher already supports current non-music payload.",
+      "status": "applied",
+      "evidence": "Release owner reported successful QA projection apply before the finance rejection."
+    },
+    {
+      "projectRef": "uaulhuelcfkjwojtymmw",
+      "path": "supabase/migrations/20261029060247_story_public_post_reference_cards.sql",
+      "sha256": "ff16641ca7dc5f9fc03bc0a7e90200ce84ac6e659b841df049823ae88243a15f",
+      "status": "applied",
+      "purpose": "Replace only the current public-post reference-card guard on existing QA; same visual guard is included in production unit15.",
+      "evidence": "Release owner reported successful QA guard apply during final18-unit review."
+    }
+  ]
+}

@@ -37,6 +37,7 @@ export const MEDIA_LIMITS = {
 
 export type Bucket =
   | 'post-media'
+  | 'channel-media'
   | 'chat-media'
   | 'chat-files'
   | 'avatars'
@@ -195,7 +196,7 @@ export async function uploadMedia(
       headers: {
         Authorization: `Bearer ${token}`,
         apikey: SUPABASE_ANON_KEY,
-        'x-upsert': 'true',
+        'x-upsert': ['post-media', 'chat-media', 'chat-files', 'channel-media'].includes(bucket) ? 'false' : 'true',
       },
       body: formData,
     }
@@ -210,7 +211,8 @@ export async function uploadMedia(
 
   // Cache-bust. Forces RN Image loader to fetch fresh bytes, avoids blank
   // renders from stale or partial cache entries.
-  const url = `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${path}?t=${Date.now()}`;
+  const canonical = `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${path}`;
+  const url = ['chat-media', 'chat-files', 'channel-media'].includes(bucket) ? canonical : `${canonical}?t=${Date.now()}`;
   return { url, path, kind: media.kind, width: media.width, height: media.height };
 }
 
@@ -268,7 +270,7 @@ export async function uploadDocument(
       headers: {
         Authorization: `Bearer ${token}`,
         apikey: SUPABASE_ANON_KEY,
-        'x-upsert': 'true',
+        'x-upsert': 'false',
       },
       body: formData,
     }
@@ -281,7 +283,7 @@ export async function uploadDocument(
   }
 
   return {
-    url: `${SUPABASE_URL}/storage/v1/object/public/chat-files/${path}?t=${Date.now()}`,
+    url: `${SUPABASE_URL}/storage/v1/object/public/chat-files/${path}`,
     path,
     kind: 'document',
     originalName: asset.name,

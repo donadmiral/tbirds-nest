@@ -1,13 +1,14 @@
+import { profilePath } from "@/lib/profileLookup";
 import type { Metadata } from "next";
 import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { ArrowLeft, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { type JobRow } from "@/lib/jobs";
+import { type JobRow, isJobDeadlinePassed } from "@/lib/jobs";
 import { ApplyPanel } from "@/components/ApplyPanel";
 import { JobActions } from "@/components/JobActions";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
-import { timeAgo } from "@/lib/feed";
+import { RelativeTime } from "@/components/RelativeTime";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -38,7 +39,7 @@ function Fact({ label, value }: { label: string; value: string | null | undefine
   if (!value) return null;
   return (
     <div className="rounded-md bg-surface px-3 py-2">
-      <p className="text-[11px] uppercase tracking-wide text-ink/40">{label}</p>
+      <p className="text-[11px] uppercase tracking-wide text-muted">{label}</p>
       <p className="mt-0.5 text-[14px] text-ink/90">{value}</p>
     </div>
   );
@@ -55,8 +56,8 @@ export default async function JobPage({ params }: Params) {
     return (
       <main className="flex flex-col items-center justify-center gap-3 px-6 py-24 text-center">
         <h1 className="font-display text-2xl text-porcelain">This job is not available</h1>
-        <p className="text-sm text-ink/50">It may have been closed or removed.</p>
-        <Link href="/jobs" className="mt-2 rounded-full bg-pearl px-5 py-2.5 text-sm font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90">Browse jobs</Link>
+        <p className="text-sm text-muted">It may have been closed or removed.</p>
+        <Link href="/jobs" className="mt-2 rounded-full bg-pearl px-5 py-2.5 text-sm font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90">Browse jobs</Link>
       </main>
     );
   }
@@ -70,7 +71,7 @@ export default async function JobPage({ params }: Params) {
   const poster = posterRes.data;
 
   const dLeft = daysLeft(j.deadline);
-  const deadlinePassed = dLeft !== null && dLeft < 0;
+  const deadlinePassed = isJobDeadlinePassed(j.deadline);
   const place = j.remote_type === "remote" ? "Remote"
     : j.remote_type === "hybrid" ? [j.location, "Hybrid"].filter(Boolean).join(" · ")
     : (j.location || "On site");
@@ -90,8 +91,8 @@ export default async function JobPage({ params }: Params) {
           {j.company}
           {j.verified ? <VerifiedBadge tier="business" size={15} /> : null}
         </p>
-        <p className="mt-1 text-[13px] text-ink/40">
-          Posted {timeAgo(j.created_at)}
+        <p className="mt-1 text-[13px] text-muted">
+          Posted <RelativeTime dateTime={j.created_at} />
           {j.applications_count > 0 ? " · " + j.applications_count + " applicants" : ""}
           {dLeft !== null ? " · " + (deadlinePassed ? "Deadline passed" : dLeft === 0 ? "Closes today" : dLeft + " days left") : ""}
         </p>
@@ -111,7 +112,7 @@ export default async function JobPage({ params }: Params) {
       </div>
 
       {isOwn ? (
-        <Link href={"/jobs/" + j.id + "/applicants"} className="mt-4 flex items-center gap-2 rounded-md border border-pearl/40 bg-pearl/10 px-4 py-3 text-[14px] font-semibold text-pearl transition-colors duration-[140ms] hover:bg-pearl/20">
+        <Link href={"/jobs/" + j.id + "/applicants"} className="mt-4 flex items-center gap-2 rounded-md border border-pearl/40 bg-pearl/10 px-4 py-3 text-[14px] font-semibold text-accent transition-colors duration-[140ms] hover:bg-pearl/20">
           <Users size={17} /> Manage applicants{applicantsRes.count ? " (" + applicantsRes.count + ")" : ""}
         </Link>
       ) : (
@@ -119,7 +120,7 @@ export default async function JobPage({ params }: Params) {
           {deadlinePassed ? (
             <p className="rounded-md bg-surface px-4 py-3 text-[14px] text-ink/60">The application deadline has passed.</p>
           ) : (
-            <ApplyPanel jobId={j.id} applyUrl={j.apply_url} />
+            <ApplyPanel key={j.id} jobId={j.id} applyUrl={j.apply_url} deadline={j.deadline} />
           )}
         </div>
       )}
@@ -136,7 +137,7 @@ export default async function JobPage({ params }: Params) {
       ) : null}
 
       {poster ? (
-        <Link href={poster.username ? "/" + poster.username : "#"} className="mt-7 flex items-center gap-3.5 rounded-lg border border-ink/10 p-4 transition-colors duration-[140ms] hover:bg-surface">
+        <Link href={profilePath(poster.username, j.posted_by)} className="mt-7 flex items-center gap-3.5 rounded-lg border border-ink/10 p-4 transition-colors duration-[140ms] hover:bg-surface">
           {poster.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={displayImageUrl(poster.avatar_url, 200) ?? poster.avatar_url} alt="" className="h-14 w-14 rounded-full object-cover" />
@@ -150,7 +151,7 @@ export default async function JobPage({ params }: Params) {
               {poster.full_name}
               {poster.is_verified ? <VerifiedBadge tier={poster.verified_tier} size={14} /> : null}
             </span>
-            <span className="block text-[13px] text-ink/50">Posted this role · @{poster.username}</span>
+            <span className="block text-[13px] text-muted">Posted this role · @{poster.username}</span>
           </span>
         </Link>
       ) : null}
@@ -162,7 +163,7 @@ export default async function JobPage({ params }: Params) {
             {(relatedRes.data ?? []).map((r) => (
               <Link key={r.id} href={"/jobs/" + r.id} className="rounded-md bg-surface px-4 py-3 transition-colors duration-[140ms] hover:bg-surface-elevated">
                 <span className="block text-[14px] font-medium text-ink">{r.title}</span>
-                <span className="block text-[13px] text-ink/50">{r.company}{r.location ? " · " + r.location : ""}</span>
+                <span className="block text-[13px] text-muted">{r.company}{r.location ? " · " + r.location : ""}</span>
               </Link>
             ))}
           </div>

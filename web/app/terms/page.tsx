@@ -17,7 +17,7 @@ export default function TermsPage() {
     <div className="mx-auto max-w-[640px] px-1">
       <Link href="/settings" className="mb-4 inline-flex items-center gap-1.5 text-[13px] text-ink/60 hover:text-ink"><ArrowLeft size={14} /> Settings</Link>
       <h1 className="pb-1 font-display text-xl text-porcelain">Terms of Service</h1>
-      <p className="mb-4 text-[12px] text-ink/45">Effective 28 July 2026</p>
+      <p className="mb-4 text-[12px] text-muted">Effective 28 July 2026</p>
 
       <Sec title="1. Agreement">Platinum Circles is a social and professional network for Zimbabwe. By creating an account or using the app, you agree to these terms. If you do not agree, do not use the service.</Sec>
       <Sec title="2. Your account">You must be at least 13 years old. Keep your account information accurate and your credentials private — what happens under your account is your responsibility. One person, one identity: impersonation is not allowed.</Sec>

@@ -16,6 +16,7 @@ import CommandPalette from '@/components/CommandPalette';
 import Workspace from '@/components/Workspace';
 import ShareMenu from '@/components/ShareMenu';
 import PresentTray from '@/components/PresentTray';
+import { deploymentEnvironment } from '@/lib/operationsReporting';
 
 const GROUPS: { label: string; items: { href: string; label: string; icon: string; key: string }[] }[] = [
   { label: 'Overview', items: [
@@ -74,6 +75,7 @@ export default async function Shell({ admin, active, title, crumb, sub, children
     canPerform(admin.role, 'report_user') ? svc.from('user_reports').select('id', { count: 'exact', head: true }).eq('status', 'open') : none,
     allow.has('/support') ? svc.from('support_tickets').select('id', { count: 'exact', head: true }).eq('status', 'open') : none,
   ]);
+  const countError = [apps, p1, p2, p3, tk].some(result => 'error' in result && result.error);
   const queueCount = apps.count || 0;
   const reportCount = (p1.count || 0) + (p2.count || 0) + (p3.count || 0);
   const supportCount = tk.count || 0;
@@ -87,6 +89,7 @@ export default async function Shell({ admin, active, title, crumb, sub, children
   const initial = (admin.email || '?').slice(0, 1).toUpperCase();
   const roleLabel = admin.role.replace(/_/g, ' ');
   const roleShort = admin.role.split('_').map(w => w[0]).join('').toUpperCase();
+  const environment = deploymentEnvironment(process.env.VERCEL_ENV, process.env.NODE_ENV);
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)', color: 'var(--txt)' }}>
@@ -95,52 +98,54 @@ export default async function Shell({ admin, active, title, crumb, sub, children
 
       <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
 
-        <header style={{ position: 'sticky', top: 0, zIndex: 30, display: 'flex', alignItems: 'center', gap: 14, height: 58, padding: '0 22px', background: 'var(--topbar)', backdropFilter: 'blur(26px) saturate(1.2)', WebkitBackdropFilter: 'blur(26px) saturate(1.2)', borderBottom: '1px solid rgba(var(--on),0.10)' }}>
+        <header className="pc-topbar" style={{ position: 'sticky', top: 0, zIndex: 30, background: 'var(--topbar)', backdropFilter: 'blur(26px) saturate(1.2)', WebkitBackdropFilter: 'blur(26px) saturate(1.2)', borderBottom: '1px solid rgba(var(--on),0.10)' }}>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12 }}>
-            <Link href="/dashboard" className="pc-crumb" style={{ color: 'rgba(var(--on),0.4)', fontWeight: 500, textDecoration: 'none' }}>Operations</Link>
-            <span style={{ color: 'rgba(var(--on),0.2)' }}>/</span>
+          <div className="pc-breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12 }}>
+            <Link href="/dashboard" className="pc-crumb" style={{ color: 'var(--txt-muted)', fontWeight: 500, textDecoration: 'none' }}>Operations</Link>
+            <span style={{ color: 'var(--txt-muted)' }}>/</span>
             <span style={{ fontWeight: 600, color: 'var(--txt)' }}>{crumb ?? title}</span>
           </div>
 
           <CommandPalette items={paletteItems} actions={actions} />
 
-          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 9 }}>
+          <div className="pc-topbar-actions">
 
             <ShareMenu path={active} label={crumb ?? (typeof title === 'string' ? title : '')} />
 
             <ThemeControls />
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4.5px 9px', borderRadius: 999, background: 'rgba(var(--ok-rgb),0.09)', border: '1px solid rgba(var(--ok-rgb),0.22)' }}>
-              <span className="pc-pulse" style={{ width: 5.5, height: 5.5, borderRadius: '50%', background: 'var(--ok)' }} />
-              <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--ok)', letterSpacing: '0.02em' }}>Production</span>
+            <div title="Deployment environment; not a service-health indicator" style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4.5px 9px', borderRadius: 999, background: `rgba(var(--${environment.tone}-rgb),0.09)`, border: `1px solid rgba(var(--${environment.tone}-rgb),0.22)` }}>
+              <span aria-hidden style={{ width: 5.5, height: 5.5, borderRadius: '50%', background: `var(--${environment.tone})` }} />
+              <span style={{ fontSize: 10.5, fontWeight: 600, color: `var(--${environment.tone})`, letterSpacing: '0.02em' }}>{environment.label}</span>
             </div>
 
             <Link href={['/queue', '/reports', '/support'].find(d => allow.has(d)) || '/dashboard'} title="Work waiting" className="pc-icon-btn" style={{ position: 'relative', width: 33, height: 33, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(var(--on),0.10)' }}>
               <svg width="15" height="15" viewBox="0 0 24 24" style={{ fill: 'rgba(var(--on),0.6)' }}><path d="M12 22a2.5 2.5 0 002.4-2h-4.8a2.5 2.5 0 002.4 2zm7-5v-1l-1.5-1.7V10a5.5 5.5 0 00-4-5.3V4a1.5 1.5 0 00-3 0v.7a5.5 5.5 0 00-4 5.3v4.3L5 16v1h14z" /></svg>
               {alerts > 0 ? (
-                <span className="pc-num" style={{ position: 'absolute', top: -2, right: -2, minWidth: 16, height: 16, padding: '0 3.5px', borderRadius: 999, background: 'var(--alert)', color: '#fff', fontSize: 9.5, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--bg)' }}>{alerts}</span>
+                <span className="pc-num" style={{ position: 'absolute', top: -2, right: -2, minWidth: 16, height: 16, padding: '0 3.5px', borderRadius: 999, background: 'var(--alert)', color: 'var(--alert-ink)', fontSize: 9.5, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--bg)' }}>{alerts}</span>
               ) : null}
             </Link>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 10px 4px 4px', borderRadius: 9, border: '1px solid rgba(var(--on),0.10)' }}>
+            <div className="pc-staff-chip" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 10px 4px 4px', borderRadius: 9, border: '1px solid rgba(var(--on),0.10)' }}>
               <span style={{ width: 25, height: 25, borderRadius: 6, background: 'var(--chip-bg)', color: 'var(--chip-fg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10.5, fontWeight: 700 }}>{initial}</span>
-              <span style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--txt)', whiteSpace: 'nowrap' }}>{local}</span>
+              <span className="pc-staff-name" style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--txt)' }}>{local}</span>
               <span style={{ fontSize: 9.5, fontWeight: 600, padding: '1.5px 5px', borderRadius: 4, background: 'rgba(var(--accent-rgb),0.13)', color: 'var(--accent)', letterSpacing: '0.02em' }}>{roleShort}</span>
               <form action={signOut}>
-                <button className="pc-seg" title="Sign out" style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: 10.5, fontWeight: 600, color: 'rgba(var(--on),0.4)', padding: 0 }}>Exit</button>
+                <button className="pc-seg" title="Sign out" style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: 10.5, fontWeight: 600, color: 'var(--txt-muted)', padding: 0 }}>Exit</button>
               </form>
             </div>
           </div>
         </header>
 
         <Workspace>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 18, marginBottom: 19 }}>
+          <div className="pc-page-heading">
             <div style={{ flex: 1, minWidth: 0 }}>
-              <h1 style={{ margin: 0, fontSize: 25, fontWeight: 400, letterSpacing: '0.005em', color: 'var(--txt-strong)' }}>{title}</h1>
-              {sub ? <p style={{ margin: '5px 0 0', fontSize: 12.8, color: 'rgba(var(--on),0.44)', maxWidth: 640, textWrap: 'pretty' }}>{sub}</p> : null}
+              <p className="pc-page-kicker">Platinum Circles / Operations</p>
+              <h1 className="pc-page-title">{title}</h1>
+              {sub ? <p className="pc-page-subtitle">{sub}</p> : null}
             </div>
           </div>
+          {countError ? <p role="status" style={{ color: 'var(--warn)', marginBottom: 12 }}>Queue counts are unavailable. Refresh to try again.</p> : null}
           {children}
         </Workspace>
         <PresentTray />

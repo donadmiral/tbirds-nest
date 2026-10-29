@@ -9,10 +9,13 @@ const cors = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 const json = (s: number, b: unknown) =>
-  new Response(JSON.stringify(b), { status: s, headers: { ...cors, 'Content-Type': 'application/json' } });
+  new Response(JSON.stringify(b), { status: s, headers: { ...cors, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
+
+const providerFetch = (url: string, init: RequestInit = {}) => fetch(url, { ...init, signal: AbortSignal.timeout(8000) });
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
+  if (req.method !== 'POST') return json(405, { error: 'method not allowed' });
   try {
     const DAILY_KEY = Deno.env.get('DAILY_API_KEY');
     if (!DAILY_KEY) return json(500, { error: 'DAILY_API_KEY not configured' });
@@ -26,27 +29,62 @@ Deno.serve(async (req) => {
     const uid = userData.user.id;
 
     const body = await req.json();
-    const sessionId: string | null = body.callSessionId || null;
-    const roomName: string = String(sessionId || body.roomName || '').replace(/[^a-zA-Z0-9-_]/g, '');
-    if (!roomName) return json(400, { error: 'no room' });
-    if (!sessionId) return json(400, { error: 'callSessionId required' });
+    const sessionId = typeof body?.callSessionId === 'string' ? body.callSessionId.toLowerCase() : '';
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sessionId)) {
+      return json(400, { error: 'valid callSessionId required' });
+    }
+    const expectedIdentity = body?.expectedProviderIdentity;
+    if (expectedIdentity !== undefined && (typeof expectedIdentity !== 'string'
+      || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(expectedIdentity))) {
+      return json(400, { error: 'valid expectedProviderIdentity required' });
+    }
+    const roomName = sessionId;
     let isOwner = false; // derived from call_sessions below, never from the client
+    let isVideo = false;
+    let providerUserId = uid;
+    let finalAccessCheck: (() => Promise<boolean>) | undefined;
 
     // The caller must belong to the session: initiator, receiver, or a
     // participant row (groups). Rooms are private; this is the gate.
     if (sessionId) {
       const svc = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
-      const { data: sess } = await svc.from('call_sessions')
-        .select('id, initiator_id, receiver_id').eq('id', sessionId).maybeSingle();
+      const { data: sess, error: sessionError } = await svc.from('call_sessions')
+        .select('id, initiator_id, receiver_id, conversation_id, is_group_call, is_video, status, expires_at, created_at')
+        .eq('id', sessionId).maybeSingle();
+      if (sessionError) return json(503, { error: 'call access unavailable' });
       if (!sess) return json(404, { error: 'call not found' });
+      const ringingDeadline = sess.expires_at ? Date.parse(sess.expires_at) : Date.parse(sess.created_at) + 90000;
+      if (!['ringing', 'active'].includes(sess.status)
+        || (sess.status === 'ringing' && (!Number.isFinite(ringingDeadline) || ringingDeadline <= Date.now()))) {
+        return json(409, { error: 'call is no longer available' });
+      }
       isOwner = sess.initiator_id === uid;
-      let allowed = sess.initiator_id === uid || sess.receiver_id === uid;
-      if (!allowed) {
-        const { data: part } = await svc.from('call_participants')
-          .select('user_id').eq('call_session_id', sessionId).eq('user_id', uid).maybeSingle();
-        allowed = !!part;
+      isVideo = sess.is_video === true;
+      let allowed = isOwner || sess.receiver_id === uid;
+      if (sess.is_group_call) {
+        // A historic invitation alone must not mint fresh room credentials.
+        // Both clients join through join_group_call before requesting a token.
+        const { data: part, error: partError } = await svc.from('call_participants')
+          .select('user_id, status, provider_identity').eq('call_session_id', sessionId).eq('user_id', uid).maybeSingle();
+        const { data: member, error: memberError } = await svc.from('conversation_members')
+          .select('user_id').eq('conversation_id', sess.conversation_id).eq('user_id', uid).maybeSingle();
+        if (partError || memberError) return json(503, { error: 'call access unavailable' });
+        allowed = part?.status === 'joined' && !!member && !!part.provider_identity;
+        if (allowed && expectedIdentity !== undefined && part.provider_identity !== expectedIdentity.toLowerCase()) {
+          return json(409, { error: 'call membership changed' });
+        }
+        if (allowed) providerUserId = part.provider_identity;
       }
       if (!allowed) return json(403, { error: 'not a participant' });
+      finalAccessCheck = async () => {
+        const { data: fresh, error } = await svc.from('call_sessions').select('status, expires_at, created_at').eq('id', sessionId).maybeSingle();
+        const deadline = fresh?.expires_at ? Date.parse(fresh.expires_at) : Date.parse(fresh?.created_at) + 90000;
+        if (error || !fresh || !['ringing', 'active'].includes(fresh.status) || (fresh.status === 'ringing' && !(deadline > Date.now()))) return false;
+        if (!sess.is_group_call) return true;
+        const { data: part, error: partError } = await svc.from('call_participants').select('status, provider_identity').eq('call_session_id', sessionId).eq('user_id', uid).maybeSingle();
+        const { data: member, error: memberError } = await svc.from('conversation_members').select('user_id').eq('conversation_id', sess.conversation_id).eq('user_id', uid).maybeSingle();
+        return !partError && !memberError && !!member && part?.status === 'joined' && providerUserId === part.provider_identity;
+      };
     }
 
     let displayName = '';
@@ -60,11 +98,11 @@ Deno.serve(async (req) => {
 
     // create-or-get the room
     let room: any = null;
-    const getRes = await fetch(`https://api.daily.co/v1/rooms/${roomName}`, { headers: dailyHeaders });
+    const getRes = await providerFetch(`https://api.daily.co/v1/rooms/${roomName}`, { headers: dailyHeaders });
     if (getRes.ok) {
       room = await getRes.json();
     } else if (getRes.status === 404) {
-      const createRes = await fetch('https://api.daily.co/v1/rooms', {
+      const createRes = await providerFetch('https://api.daily.co/v1/rooms', {
         method: 'POST', headers: dailyHeaders,
         body: JSON.stringify({
           name: roomName,
@@ -72,33 +110,48 @@ Deno.serve(async (req) => {
           properties: {
             exp: Math.floor(Date.now() / 1000) + 6 * 3600,
             eject_at_room_exp: true,
-            enable_screenshare: false,
-            start_video_off: false,
+            enable_screenshare: true,
+            start_video_off: !isVideo,
           },
         }),
       });
-      if (!createRes.ok) return json(502, { error: 'room create failed: ' + await createRes.text() });
-      room = await createRes.json();
+      if (createRes.ok) {
+        room = await createRes.json();
+      } else if (createRes.status === 400 || createRes.status === 409) {
+        // Simultaneous authorized joins may both see 404. Reuse the private
+        // room created by the other request instead of failing the second call.
+        const retry = await providerFetch(`https://api.daily.co/v1/rooms/${roomName}`, { headers: dailyHeaders });
+        if (!retry.ok) return json(502, { error: 'room create failed' });
+        room = await retry.json();
+      } else return json(502, { error: 'room create failed' });
     } else {
-      return json(502, { error: 'room lookup failed: ' + await getRes.text() });
+      return json(502, { error: 'room lookup failed' });
+    }
+    if (room?.privacy !== 'private' || typeof room?.url !== 'string' || !room.url.startsWith('https://')) {
+      return json(502, { error: 'invalid call room' });
     }
 
-    const tokenRes = await fetch('https://api.daily.co/v1/meeting-tokens', {
+    if (!await finalAccessCheck?.()) return json(409, { error: 'call access changed' });
+    const tokenRes = await providerFetch('https://api.daily.co/v1/meeting-tokens', {
       method: 'POST', headers: dailyHeaders,
       body: JSON.stringify({
         properties: {
           room_name: roomName,
           is_owner: isOwner,
+          user_id: providerUserId,
           user_name: displayName || undefined,
-          exp: Math.floor(Date.now() / 1000) + 6 * 3600,
+          exp: Math.floor(Date.now() / 1000) + 120,
+          eject_at_token_exp: false,
         },
       }),
     });
-    if (!tokenRes.ok) return json(502, { error: 'token failed: ' + await tokenRes.text() });
+    if (!tokenRes.ok) return json(502, { error: 'token failed' });
     const tokenData = await tokenRes.json();
+    if (typeof tokenData?.token !== 'string' || !tokenData.token) return json(502, { error: 'invalid call token' });
 
+    if (!await finalAccessCheck?.()) return json(409, { error: 'call access changed' });
     return json(200, { roomUrl: room.url, token: tokenData.token });
-  } catch (e) {
-    return json(500, { error: String((e as any)?.message || e) });
+  } catch {
+    return json(503, { error: 'call service unavailable' });
   }
 });

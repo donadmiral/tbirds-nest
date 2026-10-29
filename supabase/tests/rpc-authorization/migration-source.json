@@ -1,0 +1,19 @@
+{
+  "migration": "20261017231245_harden_push_and_group_rpc_authorization.sql",
+  "sha256": "7614375d9996a321859954663e85ec71cfde7104148e6d487c8e54a78237ca33",
+  "bytes": 10226,
+  "components": [
+    {
+      "name": "save-push-token-candidate.sql",
+      "offset": 311,
+      "bytes": 3372,
+      "sha256": "12eecb88f7ef39952d8f4deb2c187a134dd72c92131164236392b7b8e66b4b00"
+    },
+    {
+      "name": "community-group-candidate.sql",
+      "offset": 3685,
+      "bytes": 6541,
+      "sha256": "ec091567c297f15589883e68a59b130aa6d3c20255f926e75b16b848d80bcefb"
+    }
+  ]
+}

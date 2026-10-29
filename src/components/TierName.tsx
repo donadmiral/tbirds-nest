@@ -17,8 +17,8 @@ type Props = {
 };
 
 export default function TierName({ text, baseStyle, userId, tier, numberOfLines = 1 }: Props) {
-  const looked = useVerifiedTier(tier === undefined ? userId : null);
-  const resolved = tier !== undefined ? tier : looked;
+  const looked = useVerifiedTier(userId);
+  const resolved = userId ? looked : tier;
   const c = getTierColor(resolved);
   return (
     <Text style={[baseStyle, c ? { color: c } : null]} numberOfLines={numberOfLines}>{text}</Text>

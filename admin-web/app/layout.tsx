@@ -1,3 +1,4 @@
+import { ClientDiagnostics } from "@/components/ClientDiagnostics";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google";
@@ -19,6 +20,8 @@ const jetMono = JetBrains_Mono({
   subsets: ["latin"],
 });
 
+export const viewport = { width: 'device-width', initialScale: 1, viewportFit: 'cover' as const };
+
 export const metadata: Metadata = {
   title: "Platinum Circles Operations",
   description: "The operations desk for Platinum Circles.",
@@ -34,7 +37,8 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const jar = await cookies();
-  const theme = jar.get('pc-theme')?.value === 'dark' ? 'dark' : 'light';
+  const storedTheme = jar.get('pc-theme')?.value;
+  const theme = storedTheme === 'dark' || storedTheme === 'light' ? storedTheme : 'system';
   const density = jar.get('pc-density')?.value === 'compact' ? 'compact' : 'comfortable';
 
   return (
@@ -45,7 +49,7 @@ export default async function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} ${jetMono.variable} h-full antialiased`}
     >
-      <body suppressHydrationWarning className="min-h-full flex flex-col">{children}</body>
+      <body suppressHydrationWarning className="min-h-full flex flex-col">{children}<ClientDiagnostics /></body>
     </html>
   );
 }

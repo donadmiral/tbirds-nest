@@ -3,12 +3,13 @@
  * Signed in but the profile has not arrived: auto-retries every 4s,
  * offers Retry and Sign out. Never silent, never infinite.
  */
-import { themedSheet } from '../theme/useTheme';
+import { themedSheet, useTheme } from '../theme/useTheme';
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Image, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { useAuthStore } from '../stores/authStore';
 
 export default function ProfileRestore() {
+  const { t } = useTheme();
   const healProfile = useAuthStore(s => s.healProfile);
   const signOut = useAuthStore(s => s.signOut);
   const [tries, setTries] = useState(0);
@@ -23,7 +24,7 @@ export default function ProfileRestore() {
   return (
     <View style={s.wrap}>
       <Image source={require('../../assets/splash.png')} style={s.art} resizeMode="contain" />
-      <ActivityIndicator size="small" color="#0B1E3D" style={{ marginTop: 8 }} />
+      <ActivityIndicator size="small" color={t.ink.primary} style={{ marginTop: 8 }} />
       <Text style={s.title}>Restoring your profile</Text>
       <Text style={s.sub}>{tries < 2 ? 'One moment...' : 'Your connection seems slow. Retrying automatically.'}</Text>
       <TouchableOpacity style={s.btn} onPress={() => healProfile()}>
@@ -40,8 +41,8 @@ const s = themedSheet((t) => ({
   wrap: { flex: 1, backgroundColor: t.surface.canvas, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
   art: { width: '58%', height: '30%' },
   title: { marginTop: 10, fontSize: 16.5, fontWeight: '700', color: t.ink.primary },
-  sub: { marginTop: 6, fontSize: 13, color: '#8A8F98', textAlign: 'center' },
+  sub: { marginTop: 6, fontSize: 13, color: t.ink.secondary, textAlign: 'center' },
   btn: { marginTop: 18, backgroundColor: t.brand.base, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 34 },
   btnText: { color: t.ink.inverse, fontSize: 14.5, fontWeight: '700' },
-  out: { color: '#A32D2D', fontSize: 13.5, fontWeight: '600' },
+  out: { color: t.status.danger, fontSize: 13.5, fontWeight: '600' },
 }));

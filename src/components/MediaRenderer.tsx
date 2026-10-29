@@ -1,3 +1,5 @@
+import { postAspectRatio, type PostFrameRecipe } from '../../shared/postMediaEditing';
+import PostCaption from './PostCaption';
 /**
  * MediaRenderer.tsx
  *
@@ -44,7 +46,7 @@ export type PostMedia = {
   id: string;
   url: string;
   media_type: 'image' | 'video';
-  edit?: { scale?: number; translateNX?: number; translateNY?: number; fit?: 'cover' | 'contain'; filterId?: string | null; filterAmt?: number; adjust?: any; trimStart?: number | null; trimEnd?: number | null; muted?: boolean } | null;
+  edit?: PostFrameRecipe & { rotation?: number; flipX?: boolean; speed?: number | null; coverUrl?: string | null; scale?: number; translateNX?: number; translateNY?: number; fit?: 'cover' | 'contain'; filterId?: string | null; filterAmt?: number; adjust?: any; trimStart?: number | null; trimEnd?: number | null; muted?: boolean } | null;
   width?: number | null;
   height?: number | null;
   sort_order?: number;
@@ -80,12 +82,12 @@ async function ensureAudioSession() {
 function editStyle(item: PostMedia, w: number, h: number) {
   const e = item.edit; if (!e) return { transform: undefined as any, fit: 'cover' as 'cover' | 'contain' };
   const sc = typeof e.scale === 'number' && e.scale > 0 ? e.scale : 1; const nx = typeof e.translateNX === 'number' ? e.translateNX : 0; const ny = typeof e.translateNY === 'number' ? e.translateNY : 0;
-  const has = sc !== 1 || nx !== 0 || ny !== 0;
-  return { transform: has ? [{ translateX: nx * w }, { translateY: ny * h }, { scale: sc }] : undefined, fit: (e.fit === 'contain' ? 'contain' : 'cover') as 'cover' | 'contain' };
+  const has = sc !== 1 || nx !== 0 || ny !== 0 || !!e.rotation || !!e.flipX;
+  return { transform: has ? [{ translateX: nx * w }, { translateY: ny * h }, { scale: sc }, { rotate: `${e.rotation ?? 0}deg` }, { scaleX: e.flipX ? -1 : 1 }] : undefined, fit: (e.fit === 'contain' ? 'contain' : 'cover') as 'cover' | 'contain' };
 }
-function EditOverlays({ item }: { item: PostMedia }) {
+function EditOverlays({ item, time = 0 }: { item: PostMedia; time?: number }) {
   const e = item.edit; if (!e) return null;
-  return (<>{e.filterId ? <FilterLayer filterId={e.filterId} amt={e.filterAmt ?? 100} /> : null}{e.adjust ? <AdjustLayer adjust={e.adjust} /> : null}</>);
+  return (<>{e.filterId ? <FilterLayer filterId={e.filterId} amt={e.filterAmt ?? 100} /> : null}{e.adjust ? <AdjustLayer adjust={e.adjust} /> : null}<PostCaption captions={e.captions} time={time} /></>);
 }
 
 
@@ -207,15 +209,16 @@ export function TagLayer({ tags, width, height, mode = 'pins' }: { tags?: MediaT
 }
 
 function getRatio(item: PostMedia) {
+  if (item.edit?.aspectRatio || item.edit?.aspect) return postAspectRatio(item.edit,item.width,item.height);
   if (item.width && item.height && item.width > 0 && item.height > 0) {
     return item.width / item.height;
   }
   return 4 / 5;
 }
 
-function getHeightFromRatio(width: number, ratio: number, maxHeight: number) {
+function getHeightFromRatio(width: number, ratio: number, maxHeight: number, explicitFrame=false) {
   const safeRatio = ratio && ratio > 0.1 && ratio < 10 ? ratio : 4 / 5;
-  return Math.min(Math.round(width / safeRatio), maxHeight);
+  return explicitFrame?Math.round(width/safeRatio):Math.min(Math.round(width / safeRatio), maxHeight);
 }
 
 function ZoomModal({
@@ -324,8 +327,9 @@ function SingleImage({
     );
   }, [item.url, ratio]);
 
-  const finalRatio = ratio || getRatio(item);
-  const height = getHeightFromRatio(width, finalRatio, maxH);
+  const explicitFrame=!!(item.edit?.aspectRatio||item.edit?.aspect);
+  const finalRatio = explicitFrame?getRatio(item):(ratio||getRatio(item));
+  const height = getHeightFromRatio(width, finalRatio, maxH,explicitFrame);
   const radius = fullBleed ? 0 : 14;
 
   return (
@@ -380,15 +384,17 @@ function VideoItem({
   maxHeight: number;
 }) {
   const ratio = getRatio(item);
-  const height = getHeightFromRatio(width, ratio, maxHeight);
+  const height = getHeightFromRatio(width, ratio, maxHeight,!!(item.edit?.aspectRatio||item.edit?.aspect));
   const radius = fullBleed ? 0 : 14;
 
   useEffect(() => {
     ensureAudioSession();
   }, []);
 
+  const [captionTime,setCaptionTime] = useState(item.edit?.trimStart ?? 0);
   const player = useVideoPlayer(item.url, p => {
     p.loop = true;
+    p.playbackRate = item.edit?.speed || 1;
     p.muted = !!item.edit?.muted;
     p.volume = item.edit?.muted ? 0 : 1.0;
     try { (p as any).timeUpdateEventInterval = 0.1; } catch {}
@@ -401,10 +407,11 @@ function VideoItem({
   // Trim window from the edit recipe: seek to the start and loop inside it.
   useEffect(() => {
     const e = item.edit; const p: any = player; if (!e || !p) return;
+    try { p.playbackRate=e.speed||1;p.muted=!!e.muted; } catch {}
     const t0 = typeof e.trimStart === 'number' ? e.trimStart : 0; const t1 = typeof e.trimEnd === 'number' && e.trimEnd > t0 ? e.trimEnd : null;
     if (t0 > 0.05) { try { p.currentTime = t0; } catch {} }
     let sub: any = null;
-    try { sub = p.addListener?.('timeUpdate', (ev: any) => { const t = typeof ev?.currentTime === 'number' ? ev.currentTime : p.currentTime; if (t1 != null && typeof t === 'number' && t >= t1 - 0.05) { try { p.currentTime = t0; } catch {} } }); } catch {}
+    try { sub = p.addListener?.('timeUpdate', (ev: any) => { const t = typeof ev?.currentTime === 'number' ? ev.currentTime : p.currentTime; if(e.captions?.length)setCaptionTime(t); if (t1 != null && typeof t === 'number' && t >= t1 - 0.05) { try { p.currentTime = t0; } catch {} } }); } catch {}
     return () => { try { sub?.remove?.(); } catch {} };
   }, [player, item.edit]);
 
@@ -428,9 +435,9 @@ function VideoItem({
         allowsPictureInPicture={false}
       />
       {(item as any).edit?.coverUrl && !isActive ? (
-        <Image source={{ uri: (item as any).edit.coverUrl }} style={{ position: 'absolute', left: 0, top: 0, width, height }} resizeMode={editStyle(item, width, height).fit === 'contain' ? 'contain' : 'cover'} />
+        <Image source={{ uri: (item as any).edit.coverUrl }} style={{ position: 'absolute', left: 0, top: 0, width, height,transform:editStyle(item,width,height).transform }} resizeMode={editStyle(item, width, height).fit === 'contain' ? 'contain' : 'cover'} />
       ) : null}
-      <EditOverlays item={item} />
+      <EditOverlays item={item} time={captionTime} />
     </View>
   );
 }
@@ -448,10 +455,11 @@ function CarouselImageItem({
     <View style={{ width, height, backgroundColor: '#F0F0F0', overflow: 'hidden' }}>
       <Image
         source={{ uri: item.url }}
-        style={{ width, height }}
-        resizeMode="cover"
+        style={{ width, height, transform: editStyle(item,width,height).transform }}
+        resizeMode={editStyle(item,width,height).fit}
         onError={(e: any) => console.log('[CAROUSEL_IMG_ERR]', item.url, e.nativeEvent.error)}
       />
+      <EditOverlays item={item} />
     </View>
   );
 }
@@ -471,8 +479,10 @@ function CarouselVideoItem({
     ensureAudioSession();
   }, []);
 
+  const [captionTime,setCaptionTime] = useState(item.edit?.trimStart ?? 0);
   const player = useVideoPlayer(item.url, p => {
     p.loop = true;
+    p.playbackRate = item.edit?.speed || 1;
     p.muted = !!item.edit?.muted;
     p.volume = item.edit?.muted ? 0 : 1.0;
     try { (p as any).timeUpdateEventInterval = 0.1; } catch {}
@@ -485,10 +495,11 @@ function CarouselVideoItem({
   // Trim window from the edit recipe: seek to the start and loop inside it.
   useEffect(() => {
     const e = item.edit; const p: any = player; if (!e || !p) return;
+    try { p.playbackRate=e.speed||1;p.muted=!!e.muted; } catch {}
     const t0 = typeof e.trimStart === 'number' ? e.trimStart : 0; const t1 = typeof e.trimEnd === 'number' && e.trimEnd > t0 ? e.trimEnd : null;
     if (t0 > 0.05) { try { p.currentTime = t0; } catch {} }
     let sub: any = null;
-    try { sub = p.addListener?.('timeUpdate', (ev: any) => { const t = typeof ev?.currentTime === 'number' ? ev.currentTime : p.currentTime; if (t1 != null && typeof t === 'number' && t >= t1 - 0.05) { try { p.currentTime = t0; } catch {} } }); } catch {}
+    try { sub = p.addListener?.('timeUpdate', (ev: any) => { const t = typeof ev?.currentTime === 'number' ? ev.currentTime : p.currentTime; if(e.captions?.length)setCaptionTime(t); if (t1 != null && typeof t === 'number' && t >= t1 - 0.05) { try { p.currentTime = t0; } catch {} } }); } catch {}
     return () => { try { sub?.remove?.(); } catch {} };
   }, [player, item.edit]);
 
@@ -496,11 +507,12 @@ function CarouselVideoItem({
     <View style={{ width, height, backgroundColor: '#F0F0F0', overflow: 'hidden' }}>
       <VideoView
         player={player}
-        style={{ width, height }}
-        contentFit="cover"
+        style={{ width, height, transform: editStyle(item,width,height).transform }}
+        contentFit={editStyle(item,width,height).fit}
         nativeControls={false}
         allowsPictureInPicture={false}
       />
+      <EditOverlays item={item} time={captionTime} />
     </View>
   );
 }
@@ -519,9 +531,9 @@ function Carousel({
   maxHeight: number;
 }) {
   const [active, setActive] = useState(0);
-  const first = items[0];
-  const ratio = getRatio(first);
-  const calculatedMediaHeight = getHeightFromRatio(width, ratio, maxHeight);
+  const current = items[Math.min(active,items.length-1)];
+  const ratio = getRatio(current);
+  const calculatedMediaHeight = getHeightFromRatio(width, ratio, maxHeight,!!(current.edit?.aspectRatio||current.edit?.aspect));
   const radius = fullBleed ? 0.001 : 14;
 
   const onScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {

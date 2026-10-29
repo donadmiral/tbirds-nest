@@ -3,6 +3,7 @@
  * Prepares dual-captured media for handoff to StoryComposerScreen.
  */
 import { Image } from 'react-native';
+import { getThumbnailAsync } from 'expo-video-thumbnails';
 import type { DualCaptureAsset, LayoutConfig, CaptureMode } from './dual/dualCaptureTypes';
 import { DEFAULT_LAYOUT } from './dual/dualCaptureTypes';
 
@@ -14,23 +15,28 @@ interface CapturedMedia {
   durationSec?: number;
 }
 
+export function normalizeCaptureUri(uri: string): string {
+  if (!uri?.trim()) throw new Error('The captured media file is missing.');
+  return /^[a-z][a-z0-9+.-]*:/i.test(uri) ? uri : `file://${uri}`;
+}
+
 function getImageDimensions(uri: string): Promise<{ width: number; height: number }> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     Image.getSize(
-      uri.startsWith('file://') ? uri : `file://${uri}`,
+      normalizeCaptureUri(uri),
       (width, height) => resolve({ width, height }),
-      () => resolve({ width: 0, height: 0 }),
+      () => reject(new Error('The captured photo could not be opened. Please capture it again.')),
     );
   });
 }
 
 export async function prepareDualAsset(media: CapturedMedia): Promise<DualCaptureAsset> {
-  const frontUri = media.frontPath.startsWith('file://') ? media.frontPath : `file://${media.frontPath}`;
-  const rearUri = media.rearPath.startsWith('file://') ? media.rearPath : `file://${media.rearPath}`;
+  const frontUri = normalizeCaptureUri(media.frontPath);
+  const rearUri = normalizeCaptureUri(media.rearPath);
 
   const [frontDim, rearDim] = await Promise.all([
     getImageDimensions(frontUri),
-    media.mode === 'photo' ? getImageDimensions(rearUri) : Promise.resolve({ width: 1920, height: 1080 }),
+    media.mode === 'photo' ? getImageDimensions(rearUri) : getThumbnailAsync(rearUri, { time: 0, quality: .1 }).then(({ width, height }) => ({ width, height })),
   ]);
 
   return {
@@ -48,8 +54,8 @@ export async function prepareDualAsset(media: CapturedMedia): Promise<DualCaptur
 
 export function buildComposerParams(asset: DualCaptureAsset, extraParams?: Record<string, any>) {
   return {
+    ...(extraParams || {}),
     mode: 'dual',
     assets: [asset],
-    ...(extraParams || {}),
   };
 }

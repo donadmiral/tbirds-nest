@@ -1,0 +1,38 @@
+-- Real QA foreign keys whose endpoints are in the admin fixture.
+alter table public.admin_users add constraint admin_users_user_id_fkey FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE;
+alter table public.business_applications add constraint business_applications_applicant_id_fkey FOREIGN KEY (applicant_id) REFERENCES profiles(id) ON DELETE CASCADE;
+alter table public.business_members add constraint business_members_business_id_fkey FOREIGN KEY (business_id) REFERENCES profiles(id) ON DELETE CASCADE;
+alter table public.business_members add constraint business_members_member_id_fkey FOREIGN KEY (member_id) REFERENCES profiles(id) ON DELETE CASCADE;
+alter table public.listing_reports add constraint listing_reports_listing_id_fkey FOREIGN KEY (listing_id) REFERENCES marketplace_listings(id) ON DELETE CASCADE;
+alter table public.listing_reports add constraint listing_reports_reporter_id_fkey FOREIGN KEY (reporter_id) REFERENCES auth.users(id) ON DELETE CASCADE;
+alter table public.marketplace_listings add constraint marketplace_listings_seller_id_fkey FOREIGN KEY (seller_id) REFERENCES profiles(id) ON DELETE CASCADE;
+alter table public.member_strikes add constraint member_strikes_user_id_fkey FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE;
+alter table public.org_audit_log add constraint org_audit_log_actor_id_fkey FOREIGN KEY (actor_id) REFERENCES profiles(id) ON DELETE SET NULL;
+alter table public.org_audit_log add constraint org_audit_log_org_id_fkey FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE CASCADE;
+alter table public.org_delegations add constraint org_delegations_client_org_id_fkey FOREIGN KEY (client_org_id) REFERENCES organizations(id) ON DELETE CASCADE;
+alter table public.org_delegations add constraint org_delegations_granted_by_fkey FOREIGN KEY (granted_by) REFERENCES profiles(id) ON DELETE SET NULL;
+alter table public.org_delegations add constraint org_delegations_principal_org_id_fkey FOREIGN KEY (principal_org_id) REFERENCES organizations(id) ON DELETE CASCADE;
+alter table public.org_memberships add constraint org_memberships_invited_by_fkey FOREIGN KEY (invited_by) REFERENCES profiles(id) ON DELETE SET NULL;
+alter table public.org_memberships add constraint org_memberships_org_id_fkey FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE CASCADE;
+alter table public.org_memberships add constraint org_memberships_user_id_fkey FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE;
+alter table public.organizations add constraint organizations_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES organizations(id) ON DELETE RESTRICT;
+alter table public.organizations add constraint organizations_profile_id_fkey FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE SET NULL;
+alter table public.post_comments add constraint post_comments_parent_comment_id_fkey FOREIGN KEY (parent_comment_id) REFERENCES post_comments(id) ON DELETE CASCADE;
+alter table public.post_comments add constraint post_comments_post_id_fkey FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE;
+alter table public.post_comments add constraint post_comments_user_id_fkey FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE;
+alter table public.post_reports add constraint post_reports_post_id_fkey FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE;
+alter table public.post_reports add constraint post_reports_reporter_id_fkey FOREIGN KEY (reporter_id) REFERENCES profiles(id) ON DELETE CASCADE;
+alter table public.posts add constraint posts_quoted_post_id_fkey FOREIGN KEY (quoted_post_id) REFERENCES posts(id) ON DELETE SET NULL;
+alter table public.posts add constraint posts_thread_parent_id_fkey FOREIGN KEY (thread_parent_id) REFERENCES posts(id) ON DELETE SET NULL;
+alter table public.posts add constraint posts_user_id_fkey FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE;
+alter table public.profiles add constraint profiles_affiliated_org_id_fkey FOREIGN KEY (affiliated_org_id) REFERENCES organizations(id);
+alter table public.profiles add constraint profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE;
+alter table public.profiles add constraint profiles_pinned_post_id_fkey FOREIGN KEY (pinned_post_id) REFERENCES posts(id) ON DELETE SET NULL;
+alter table public.stories add constraint stories_user_id_fkey FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE;
+alter table public.studio_campaigns add constraint studio_campaigns_owner_id_fkey FOREIGN KEY (owner_id) REFERENCES profiles(id) ON DELETE CASCADE;
+alter table public.support_messages add constraint support_messages_ticket_id_fkey FOREIGN KEY (ticket_id) REFERENCES support_tickets(id) ON DELETE CASCADE;
+alter table public.support_tickets add constraint support_tickets_user_id_fkey FOREIGN KEY (user_id) REFERENCES profiles(id) ON DELETE CASCADE;
+alter table public.user_reports add constraint user_reports_reported_id_fkey FOREIGN KEY (reported_id) REFERENCES profiles(id) ON DELETE CASCADE;
+alter table public.user_reports add constraint user_reports_reporter_id_fkey FOREIGN KEY (reporter_id) REFERENCES profiles(id) ON DELETE CASCADE;
+alter table public.verification_applications add constraint verification_applications_applicant_id_fkey FOREIGN KEY (applicant_id) REFERENCES profiles(id) ON DELETE CASCADE;
+

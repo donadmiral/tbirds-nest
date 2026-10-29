@@ -38,16 +38,16 @@ export function GifPicker({ onPick, onClose }: { onPick: (g: Gif) => void; onClo
       <div className="flex h-[70vh] w-full max-w-lg flex-col rounded-xl border border-ink/10 bg-navy p-4" onClick={(e) => e.stopPropagation()}>
         <span className="flex items-center gap-2">
           <span className="flex flex-1 items-center gap-2 rounded-md bg-surface px-3 py-2">
-            <Search size={15} className="text-ink/40" />
+            <Search size={15} className="text-muted" />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search GIFs" autoFocus
-              className="w-full bg-transparent text-[14px] text-ink placeholder:text-ink/30 outline-none" />
+              className="w-full bg-transparent text-[14px] text-ink placeholder:text-muted outline-none" />
           </span>
-          <button onClick={onClose} aria-label="Close" className="rounded-full p-2 text-ink/40 hover:bg-surface hover:text-ink"><X size={16} /></button>
+          <button onClick={onClose} aria-label="Close" className="rounded-full p-2 text-muted hover:bg-surface hover:text-ink"><X size={16} /></button>
         </span>
         {!KEY ? (
           <p className="py-10 text-center text-[13px] text-danger">No GIF key configured. Restart the dev server after the env copy.</p>
         ) : loading ? (
-          <p className="py-10 text-center text-[13px] text-ink/40">Loading</p>
+          <p className="py-10 text-center text-[13px] text-muted">Loading</p>
         ) : (
           <div className="mt-3 grid flex-1 grid-cols-3 gap-1.5 overflow-y-auto">
             {gifs.map((g) => (
@@ -60,7 +60,7 @@ export function GifPicker({ onPick, onClose }: { onPick: (g: Gif) => void; onClo
             ))}
           </div>
         )}
-        <p className="pt-2 text-center text-[10px] text-ink/30">Powered by GIPHY</p>
+        <p className="pt-2 text-center text-[10px] text-muted">Powered by GIPHY</p>
       </div>
     </div>
   );

@@ -28,3 +28,24 @@ _audit/
 _export/
 .ffmpeg/
 *.bak
+# Local configuration and signing material are supplied through EAS separately.
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
+credentials.json
+**/credentials.json
+credentials/
+*.keystore
+*.jks
+*.p8
+*.p12
+*.pem
+*.key
+*.mobileprovision
+.vercel/
+.claude/
+/dist/
+/tmp/

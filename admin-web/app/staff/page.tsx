@@ -1,3 +1,5 @@
+import { allowedDesks } from '@/lib/permissions';
+import { staffIdentities } from '@/lib/staffDirectory';
 import { completeRead } from '@/lib/completeRead';
 import CommandForm from '@/components/CommandForm';
 import PermissionGate from '@/components/PermissionGate';
@@ -15,12 +17,11 @@ export const dynamic = 'force-dynamic';
 const PANEL: React.CSSProperties = { borderRadius: 13, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', overflow: 'hidden' };
 const HEAD: React.CSSProperties = { padding: '14px 16px 12px', borderBottom: '1px solid rgba(var(--on),0.10)' };
 const H_TITLE: React.CSSProperties = { fontSize: 13.5, fontWeight: 700, color: 'var(--txt)' };
-const H_SUB: React.CSSProperties = { fontSize: 11.3, color: 'rgba(var(--on),0.36)', marginTop: 3 };
+const H_SUB: React.CSSProperties = { fontSize: 11.3, color: 'var(--txt-muted)', marginTop: 3 };
 const FIELD: React.CSSProperties = { padding: '9px 11px', borderRadius: 9, background: 'rgba(var(--on),0.035)', border: '1px solid rgba(var(--on),0.12)', fontSize: 12.3, color: 'var(--txt)', outline: 'none' };
 
 const ROLES = ['super_admin', 'platform_admin', 'trust_safety', 'support_agent', 'ops_engineer', 'market_reviewer', 'jobs_reviewer', 'verification_reviewer', 'finance_admin', 'analyst', 'auditor_readonly'];
 
-const DESK_COUNT: Record<string, number> = { super_admin: 17, platform_admin: 16, trust_safety: 8, support_agent: 4, ops_engineer: 5, market_reviewer: 6, jobs_reviewer: 3, verification_reviewer: 4, finance_admin: 4, analyst: 3, auditor_readonly: 3 };
 
 const IC = {
   staff: 'M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3zm-8 0c1.7 0 3-1.3 3-3S9.7 5 8 5 5 6.3 5 8s1.3 3 3 3zm0 2c-2.3 0-7 1.2-7 3.5V19h14v-2.5C15 14.2 10.3 13 8 13zm8 0c-.3 0-.6 0-1 .1 1.2.8 2 1.9 2 3.4V19h6v-2.5c0-2.3-4.7-3.5-7-3.5z',
@@ -38,19 +39,16 @@ export default async function StaffPage() {
   const admin = await requireDesk('/staff');
   const svc = serviceClient();
 
-  const [staffResult, { data: recentActions }] = await Promise.all([
+  const [staffResult, auditResult] = await Promise.all([
     svc.from('admin_users').select('user_id, role, active, created_at', { count: 'exact' }).order('created_at', { ascending: true }),
     svc.from('admin_audit_log').select('admin_id, action, created_at').order('created_at', { ascending: false }).limit(500),
   ]);
 
   completeRead(staffResult, 'Staff directory');
   const staff = staffResult.data;
-  const authUsers = [];
-  for (const row of staff ?? []) {
-    const found = await svc.auth.admin.getUserById(row.user_id);
-    if (found.error) throw new Error('Staff identity lookup failed.');
-    authUsers.push(found.data.user);
-  }
+  if (auditResult.error) throw new Error('Staff activity could not be loaded. Retry the directory.');
+  const recentActions = auditResult.data;
+  const authUsers = await staffIdentities(staff ?? [], id => svc.auth.admin.getUserById(id));
   const rowsRaw = (staff ?? []) as { user_id: string; role: string; active: boolean; created_at: string }[];
   const emails: Record<string, string> = {};
   const lastSignIn: Record<string, string | null> = {};
@@ -107,7 +105,7 @@ export default async function StaffPage() {
           { v: s.active ? 'Active' : 'Deactivated', tone: s.active ? 'ok' : 'neutral' },
         ],
         stats: [
-          { label: 'Desks', value: String(DESK_COUNT[s.role] ?? 1) },
+          { label: 'Desks', value: String(allowedDesks(s.role).size) },
           { label: 'Actions logged', value: String(actionCount[s.user_id] || 0) },
           { label: 'Last action', value: lastAction[s.user_id] ? ago(lastAction[s.user_id]).replace(' ago', '') : 'none' },
         ],
@@ -144,9 +142,9 @@ export default async function StaffPage() {
           <div style={H_SUB}>A deactivated shell profile is created automatically, so staff never appear in the social graph</div>
         </div>
         <PermissionGate role={admin.role} permission="staff_manage"><CommandForm scope="inviteStaff" action={inviteStaff} style={{ display: 'flex', flexWrap: 'wrap', gap: 9, padding: 16 }}>
-          <input name="email" type="email" required placeholder="Email" style={{ ...FIELD, flex: '1 1 220px', minWidth: 200 }} />
-          <input name="password" type="text" required minLength={12} placeholder="Temporary password, 10 characters or more" style={{ ...FIELD, flex: '1 1 240px', minWidth: 220 }} />
-          <select name="role" style={{ ...FIELD, cursor: 'pointer' }}>
+          <input name="email" type="email" aria-label="Staff email" required placeholder="Email" style={{ ...FIELD, flex: '1 1 220px', minWidth: 200 }} />
+          <input name="password" type="password" autoComplete="new-password" aria-label="Temporary password, at least 12 characters" required minLength={12} placeholder="Temporary password, 12 characters or more" style={{ ...FIELD, flex: '1 1 240px', minWidth: 220 }} />
+          <select name="role" aria-label="Staff role" style={{ ...FIELD, cursor: 'pointer' }}>
             {ROLES.map(r => <option key={r} value={r}>{title(r)}</option>)}
           </select>
           <button type="submit" style={{ padding: '9px 16px', borderRadius: 9, cursor: 'pointer', fontSize: 12.3, fontWeight: 600, background: 'var(--accent)', color: 'var(--accent-ink)', border: 'none' }}>Invite</button>
@@ -192,7 +190,7 @@ export default async function StaffPage() {
               <div key={s.user_id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10.5px 16px', borderBottom: '1px solid rgba(var(--on),0.10)' }}>
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ display: 'block', fontSize: 12, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emails[s.user_id] || s.user_id.slice(0, 8)}</span>
-                  <span style={{ display: 'block', fontSize: 10.4, color: 'rgba(var(--on),0.32)', marginTop: 2 }}>{title(s.role)}</span>
+                  <span style={{ display: 'block', fontSize: 10.4, color: 'var(--txt-muted)', marginTop: 2 }}>{title(s.role)}</span>
                 </span>
                 <span className="pc-num" style={{ fontSize: 11.6, fontWeight: 600, color: 'var(--txt)' }}>{actionCount[s.user_id]}</span>
               </div>

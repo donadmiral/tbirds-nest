@@ -7,13 +7,15 @@ import KeyboardSafe from '../../components/KeyboardSafe';
  * office. Applications land in verification_applications for a human
  * decision in the admin; this screen also shows the live status.
  */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import VerifiedBadge from '../../components/VerifiedBadge';
+
+import { currentVerificationStatus, prepareVerificationEvidence, verificationError, type VerificationApplication, type VerificationProfile } from '../../../shared/verification';
 
 const NAVY = '#0B1E3D';
 
@@ -26,9 +28,12 @@ export default function ApplyVerificationScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
-  const isBusiness = (profile as any)?.account_type === 'business';
+  const [currentProfile, setCurrentProfile] = useState<VerificationProfile | null>(null);
+  const isBusiness = currentProfile?.account_type === 'business';
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const loadGeneration = useRef(0);
 
-  const [existing, setExisting] = useState<any | undefined>(undefined);
+  const [existing, setExisting] = useState<VerificationApplication | null | undefined>(undefined);
   const [tier, setTier] = useState<'public_figure' | 'official' | 'business'>(isBusiness ? 'business' : 'public_figure');
   const [category, setCategory] = useState<string | null>(null);
   const [links, setLinks] = useState('');
@@ -37,26 +42,31 @@ export default function ApplyVerificationScreen() {
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
-    if (!profile?.id) return;
-    const { data } = await supabase.from('verification_applications')
-      .select('*').eq('applicant_id', profile.id)
-      .order('created_at', { ascending: false }).limit(1).maybeSingle();
-    setExisting(data ?? null);
+    const generation = ++loadGeneration.current;
+    setLoadError(null);
+    if (!profile?.id) { setExisting(null); setCurrentProfile(null); return; }
+    try {
+      const [appResult, profileResult] = await Promise.all([
+        supabase.from('verification_applications').select('status,tier,decision_reason,created_at').eq('applicant_id', profile.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+        supabase.from('profiles').select('account_type,is_verified,verified_tier').eq('id', profile.id).single(),
+      ]);
+      if (appResult.error) throw appResult.error;
+      if (profileResult.error) throw profileResult.error;
+      if (generation !== loadGeneration.current) return;
+      setExisting(appResult.data ?? null);
+      setCurrentProfile(profileResult.data);
+      setTier(value => profileResult.data.account_type === 'business' ? 'business' : value === 'business' ? 'public_figure' : value);
+    } catch (failure) {
+      if (generation === loadGeneration.current) setLoadError(verificationError(failure));
+    }
   }, [profile?.id]);
-  useEffect(() => { load(); }, [load]);
+  useFocusEffect(useCallback(() => { void load(); return () => { ++loadGeneration.current; }; }, [load]));
 
   const submit = async () => {
     if (!profile?.id || busy) return;
-    if (tier === 'public_figure' && !category) { Alert.alert('Pick a category', 'Choose the category that fits you.'); return; }
-    if (tier === 'official' && !office.trim()) { Alert.alert('Office required', 'State the office or position you hold.'); return; }
-    if (!statement.trim()) { Alert.alert('Tell us why', 'Write a short statement making your case.'); return; }
     setBusy(true);
     try {
-      const evidence = {
-        links: links.split('\n').map(l => l.trim()).filter(Boolean),
-        statement: statement.trim(),
-        ...(tier === 'official' ? { office: office.trim() } : {}),
-      };
+      const evidence = prepareVerificationEvidence(tier, category, statement, links, office);
       const { error } = await supabase.from('verification_applications').insert({
         applicant_id: profile.id,
         tier,
@@ -66,14 +76,14 @@ export default function ApplyVerificationScreen() {
       if (error) throw error;
       await load();
     } catch (e: any) {
-      Alert.alert('Could not submit', e?.message || 'Try again.');
+      Alert.alert('Could not submit', verificationError(e));
     } finally { setBusy(false); }
   };
 
-  const Status = () => {
-    if (!existing) return null;
-    const st = existing.status;
-    const verdictTier = existing.tier as any;
+  const status = currentVerificationStatus(existing ?? null, currentProfile);
+  const renderStatus = () => {
+    const st = status;
+    const verdictTier = (currentProfile?.is_verified ? currentProfile.verified_tier : existing?.tier) as any;
     return (
       <View style={s.statusCard}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -82,10 +92,11 @@ export default function ApplyVerificationScreen() {
         </View>
         {st === 'approved' ? (
           <Text style={[s.statusLine, { color: '#059669' }]}>Approved. Your badge is live across Platinum Circles.</Text>
-        ) : st === 'rejected' ? (
+        ) : st === 'rejected' || st === 'revoked' ? (
           <>
-            <Text style={[s.statusLine, { color: '#FF3B30' }]}>Not approved this time.</Text>
-            {existing.decision_reason ? <Text style={s.statusReason}>{existing.decision_reason}</Text> : null}
+            <Text style={[s.statusLine, { color: '#FF3B30' }]}>{st === 'revoked' ? 'Verification is no longer active.' : 'Not approved this time.'}</Text>
+            {st === 'rejected' && existing?.decision_reason ? <Text style={s.statusReason}>{existing.decision_reason}</Text> : null}
+            <Text style={s.statusReason}>Submit updated evidence, or contact support in Settings for a review.</Text>
             <TouchableOpacity style={s.reapply} onPress={() => setExisting(null)} activeOpacity={0.85}>
               <Text style={s.reapplyTxt}>Apply again</Text>
             </TouchableOpacity>
@@ -109,9 +120,9 @@ export default function ApplyVerificationScreen() {
       </View>
       <KeyboardSafe>
       <ScrollView automaticallyAdjustKeyboardInsets={true} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: Math.max(insets.bottom + 110, 130) }} keyboardShouldPersistTaps="handled">
-        <Text style={s.lede}>The badge on Platinum Circles is earned, never bought. Applications are reviewed by a person against a high bar - most accounts will not qualify, and that is what makes it mean something.</Text>
+        <Text style={s.lede}>A verified seal identifies an account reviewed for authenticity. Supply public evidence of your identity and authority. Verification is not an endorsement.</Text>
 
-        {existing === undefined ? <ActivityIndicator color={NAVY} style={{ marginTop: 24 }} /> : existing ? <Status /> : (
+        {loadError ? <View style={s.statusCard}><Text accessibilityRole="alert" style={s.statusLine}>{loadError}</Text><TouchableOpacity style={s.reapply} onPress={() => void load()}><Text style={s.reapplyTxt}>Retry</Text></TouchableOpacity></View> : !profile?.id ? <Text style={s.statusLine}>Sign in to apply for verification.</Text> : existing === undefined ? <ActivityIndicator color={NAVY} style={{ marginTop: 24 }} /> : status ? renderStatus() : (
           <>
             {!isBusiness ? (
               <View style={s.tierRow}>
@@ -147,17 +158,17 @@ export default function ApplyVerificationScreen() {
             {tier === 'official' ? (
               <>
                 <Text style={s.fieldLabel}>Office or position you hold</Text>
-                <TextInput value={office} onChangeText={setOffice} placeholder="e.g. Member of Parliament, Harare" placeholderTextColor="#9CA3AF" style={s.input} />
+                <TextInput value={office} maxLength={200} onChangeText={setOffice} placeholder="e.g. Member of Parliament, Harare" placeholderTextColor="#9CA3AF" style={s.input} />
               </>
             ) : null}
 
             <Text style={s.fieldLabel}>{isBusiness ? 'Why this business qualifies' : 'Why you qualify'}</Text>
-            <TextInput value={statement} onChangeText={setStatement} multiline placeholder={isBusiness ? 'Registration number, how long established, public footprint...' : 'Your reach, your work, why Zimbabweans know you...'} placeholderTextColor="#9CA3AF" style={[s.input, { minHeight: 110, textAlignVertical: 'top' }]} />
+            <TextInput value={statement} maxLength={2000} onChangeText={setStatement} multiline placeholder={isBusiness ? 'Registration number, how long established, public footprint...' : 'Your reach, your work, why Zimbabweans know you...'} placeholderTextColor="#9CA3AF" style={[s.input, { minHeight: 110, textAlignVertical: 'top' }]} />
 
-            <Text style={s.fieldLabel}>Evidence links (one per line)</Text>
-            <TextInput value={links} onChangeText={setLinks} multiline autoCapitalize="none" placeholder={'Press coverage\nOfficial website\nOther profiles'} placeholderTextColor="#9CA3AF" style={[s.input, { minHeight: 90, textAlignVertical: 'top' }]} />
+            <Text style={s.fieldLabel}>Evidence links (1–8, one per line)</Text>
+            <TextInput value={links} onChangeText={setLinks} multiline autoCapitalize="none" placeholder={'https://example.com/official-profile\nhttps://example.com/press-coverage'} placeholderTextColor="#9CA3AF" style={[s.input, { minHeight: 90, textAlignVertical: 'top' }]} />
 
-            {tier === 'official' ? <Text style={s.note}>Identity documents are requested privately during review - never post them here.</Text> : null}
+            <Text style={s.note}>Link to public evidence. Do not include identity documents or private credentials.</Text>
 
             <TouchableOpacity style={[s.submit, busy && { opacity: 0.5 }]} onPress={submit} disabled={busy} activeOpacity={0.85}>
               {busy ? <ActivityIndicator color="#FFFFFF" size={16} /> : <Text style={s.submitTxt}>Submit for review</Text>}

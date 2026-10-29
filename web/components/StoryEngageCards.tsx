@@ -6,57 +6,74 @@
  * viewers answer once.
  */
 import { useEffect, useMemo, useState } from "react";
-import { submitStickerResponse, getMyStickerResponse, getStickerResponses, type StoryTextSticker, type StickerResponseValue } from "@/lib/stories";
+import Link from "next/link";
+import { submitStickerResponse, getMyStickerResponse, getStickerResponses, getStickerSummary, type StickerSummary, type StoryTextSticker, type StickerResponseValue } from "@/lib/stories";
 
-const CARD: React.CSSProperties = { background: "#FFFFFF", borderRadius: 18, padding: "12px 14px", boxShadow: "0 10px 30px rgba(0,0,0,0.28)", color: "#0B1E3D", width: 250 };
+const CARD: React.CSSProperties = { background: "#FFFEFC", borderRadius: 22, padding: "16px", boxShadow: "0 10px 30px rgba(0,0,0,0.18)", color: "#0B1E3D", width: 250 };
 const TITLE: React.CSSProperties = { fontSize: 15, fontWeight: 800, letterSpacing: -0.2, lineHeight: "19px", textAlign: "center", marginBottom: 10 };
 const HINT: React.CSSProperties = { color: "rgba(11,30,61,0.55)", fontSize: 11.5, fontWeight: 600, textAlign: "center", marginTop: 6 };
 
 function useMine(storyId: string, st: StoryTextSticker, isOwn: boolean) {
   const [mine, setMine] = useState<StickerResponseValue | null>(null);
   const [all, setAll] = useState<StickerResponseValue[]>([]);
+  const [summary, setSummary] = useState<StickerSummary | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
+  const [version, setVersion] = useState(0);
   useEffect(() => {
     let dead = false;
-    if (isOwn || st.kind === "quiz" || st.kind === "slider") getStickerResponses(storyId, st.id).then((r) => { if (!dead) setAll(r); }).catch(() => {});
-    if (!isOwn) getMyStickerResponse(storyId, st.id).then((r) => { if (!dead) setMine(r); }).catch(() => {});
+    setMine(null); setAll([]); setSummary(null); setReady(false); setError(null);
+    const work = async () => {
+      const [answers, ownAnswer, stats] = await Promise.all([
+        isOwn ? getStickerResponses(storyId, st.id) : Promise.resolve([]),
+        !isOwn ? getMyStickerResponse(storyId, st.id) : Promise.resolve(null),
+        isOwn || ["quiz", "slider", "addyours"].includes(st.kind ?? "") ? getStickerSummary(storyId, st.id) : Promise.resolve(null),
+      ]);
+      if (!dead) { setAll(answers); setMine(ownAnswer); setSummary(stats); setReady(true); }
+    };
+    void work().catch(() => { if (!dead) setError("Responses could not be loaded. Please retry."); });
     return () => { dead = true; };
-  }, [storyId, st.id, isOwn, st.kind]);
-  return { mine, setMine, all, setAll };
+  }, [storyId, st.id, isOwn, st.kind, version]);
+  return { mine, setMine, all, setAll, summary, error, setError, ready, reload: () => setVersion(v => v + 1) };
+}
+function ResponseError({ error, retry }: { error: string | null; retry: () => void }) {
+  return error ? <div role="alert" style={{ ...HINT, color: "#A21B2D" }}>{error} <button type="button" onClick={retry} style={{ textDecoration: "underline" }}>Retry</button></div> : null;
 }
 
 export function QuestionCard({ st, storyId, isOwn }: { st: StoryTextSticker; storyId: string; isOwn: boolean }) {
-  const { mine, setMine, all } = useMine(storyId, st, isOwn);
+  const { mine, setMine, all, summary, error, setError, ready, reload } = useMine(storyId, st, isOwn);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const send = async () => {
-    const v = text.trim(); if (!v || busy) return; setBusy(true);
-    try { if (await submitStickerResponse(storyId, st.id, "question", { text_value: v })) { setMine({ text_value: v }); setText(""); } } finally { setBusy(false); }
+    const v = text.trim(); if (!v || busy || !ready) return; setBusy(true); setError(null);
+    try { if (await submitStickerResponse(storyId, st.id, "question", { text_value: v })) { setMine({ text_value: v }); setText(""); } } catch { setError("Your response was not confirmed. Please retry."); } finally { setBusy(false); }
   };
   return (
-    <div className="pointer-events-auto" style={CARD}>
+    <div className="pointer-events-auto" style={{ ...CARD, background: "#F5B09A" }}>
       <div style={{ ...TITLE, marginBottom: 8 }}>{st.questionPrompt || st.text || "Ask me anything"}</div>
-      {isOwn ? <div style={HINT}>{all.length === 1 ? "1 answer" : all.length + " answers"}</div>
+      {isOwn ? <div style={HINT}>{(summary?.count ?? all.length) === 1 ? "1 answer" : (summary?.count ?? all.length) + " answers"}</div>
         : mine?.text_value ? <div style={{ ...HINT, color: "#0B1E3D", fontWeight: 700 }}>Sent: {mine.text_value}</div>
         : (
           <div style={{ display: "flex", gap: 6 }}>
-            <input value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") send(); }} placeholder="Type something..." style={{ flex: 1, minWidth: 0, border: "1.5px solid rgba(11,30,61,0.14)", borderRadius: 12, padding: "9px 11px", fontSize: 14, color: "#0B1E3D", background: "#F6F5F2", outline: "none" }} />
-            <button type="button" onClick={send} disabled={!text.trim() || busy} style={{ border: 0, borderRadius: 12, padding: "0 14px", background: "#0B1E3D", color: "#FFF", fontWeight: 800, fontSize: 13, cursor: "pointer", opacity: text.trim() ? 1 : 0.4 }}>Send</button>
+            <input value={text} onChange={(e) => setText(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") send(); }} aria-label="Your answer" maxLength={1000} placeholder="Type something..." style={{ flex: 1, minWidth: 0, border: "1.5px solid rgba(11,30,61,0.14)", borderRadius: 12, padding: "9px 11px", fontSize: 14, color: "#0B1E3D", background: "rgba(255,255,255,0.55)", outline: "none" }} />
+            <button type="button" onClick={send} disabled={!text.trim() || busy || !ready} style={{ border: 0, borderRadius: 12, padding: "0 14px", background: "#0B1E3D", color: "#FFF", fontWeight: 800, fontSize: 13, cursor: "pointer", opacity: text.trim() ? 1 : 0.4 }}>Send</button>
           </div>
         )}
+      <ResponseError error={error} retry={reload} />
     </div>
   );
 }
 
 export function QuizCard({ st, storyId, isOwn }: { st: StoryTextSticker; storyId: string; isOwn: boolean }) {
-  const { mine, setMine, all } = useMine(storyId, st, isOwn);
+  const { mine, setMine, all, summary, error, setError, ready, reload } = useMine(storyId, st, isOwn);
   const [busy, setBusy] = useState(false);
   const opts = st.quizOptions || [];
   const counts = useMemo(() => { const c: Record<string, number> = {}; all.forEach((r) => { if (r.option_id) c[r.option_id] = (c[r.option_id] || 0) + 1; }); return c; }, [all]);
-  const total = all.length;
+  const total = summary?.count ?? all.length;
   const revealed = isOwn || !!mine?.option_id;
   const pick = async (id: string) => {
-    if (revealed || busy) return; setBusy(true);
-    try { if (await submitStickerResponse(storyId, st.id, "quiz", { option_id: id })) setMine({ option_id: id }); } finally { setBusy(false); }
+    if (revealed || busy || !ready) return; setBusy(true); setError(null);
+    try { if (await submitStickerResponse(storyId, st.id, "quiz", { option_id: id })) setMine({ option_id: id }); } catch { setError("Your response was not confirmed. Please retry."); } finally { setBusy(false); }
   };
   return (
     <div className="pointer-events-auto" style={CARD}>
@@ -64,9 +81,9 @@ export function QuizCard({ st, storyId, isOwn }: { st: StoryTextSticker; storyId
       {opts.map((o, i) => {
         const chosen = mine?.option_id === o.id;
         const bg = !revealed ? "#F6F5F2" : o.isCorrect ? "#DCF5E6" : chosen ? "#FBE1E1" : "#F6F5F2";
-        const pct = total > 0 ? Math.round(((counts[o.id] || 0) / total) * 100) : null;
+        const pct = total > 0 ? Math.round(((summary?.options[o.id] ?? counts[o.id] ?? 0) / total) * 100) : null;
         return (
-          <button key={o.id} type="button" onClick={() => pick(o.id)} disabled={revealed || busy} style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", border: "1.5px solid rgba(11,30,61,0.14)", borderRadius: 12, background: bg, padding: "10px 12px", marginBottom: 8, cursor: revealed ? "default" : "pointer", textAlign: "left", color: "#0B1E3D", fontSize: 14, fontWeight: 600 }}>
+          <button key={o.id} type="button" onClick={() => pick(o.id)} disabled={revealed || busy || !ready} style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", border: "1.5px solid rgba(11,30,61,0.14)", borderRadius: 12, background: bg, padding: "10px 12px", marginBottom: 8, cursor: revealed ? "default" : "pointer", textAlign: "left", color: "#0B1E3D", fontSize: 14, fontWeight: 600 }}>
             <span style={{ width: 24, height: 24, borderRadius: 12, background: "#0B1E3D", color: "#FFF", fontSize: 12, fontWeight: 800, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{String.fromCharCode(65 + i)}</span>
             <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{o.label}</span>
             {revealed && o.isCorrect ? <span style={{ fontWeight: 800 }}>{"\u2713"}</span> : null}
@@ -75,20 +92,21 @@ export function QuizCard({ st, storyId, isOwn }: { st: StoryTextSticker; storyId
         );
       })}
       {isOwn ? <div style={HINT}>{total === 1 ? "1 answer" : total + " answers"}</div> : null}
+      <ResponseError error={error} retry={reload} />
     </div>
   );
 }
 
 export function SliderCard({ st, storyId, isOwn }: { st: StoryTextSticker; storyId: string; isOwn: boolean }) {
-  const { mine, setMine, all } = useMine(storyId, st, isOwn);
+  const { mine, setMine, all, summary, error, setError, ready, reload } = useMine(storyId, st, isOwn);
   const [val, setVal] = useState(50);
   const [busy, setBusy] = useState(false);
-  const avg = useMemo(() => { const v = all.map((r) => r.number_value).filter((n): n is number => typeof n === "number"); return v.length ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : null; }, [all]);
+  const avg = useMemo(() => { const v = all.map((r) => r.number_value).filter((n): n is number => typeof n === "number"); return summary?.average != null ? Math.round(summary.average * 100) : v.length ? Math.round(100 * v.reduce((a, b) => a + b, 0) / v.length) : null; }, [all, summary]);
   const done = isOwn || typeof mine?.number_value === "number";
-  const shown = typeof mine?.number_value === "number" ? mine.number_value : (isOwn && avg != null ? avg : val);
+  const shown = typeof mine?.number_value === "number" ? Math.round(mine.number_value * 100) : (isOwn && avg != null ? avg : val);
   const commit = async () => {
-    if (done || busy) return; setBusy(true);
-    try { if (await submitStickerResponse(storyId, st.id, "slider", { number_value: val })) setMine({ number_value: val }); } finally { setBusy(false); }
+    if (done || busy || !ready) return; setBusy(true); setError(null);
+    try { if (await submitStickerResponse(storyId, st.id, "slider", { number_value: val / 100 })) setMine({ number_value: val / 100 }); } catch { setError("Your response was not confirmed. Please retry."); } finally { setBusy(false); }
   };
   return (
     <div className="pointer-events-auto" style={CARD}>
@@ -97,9 +115,10 @@ export function SliderCard({ st, storyId, isOwn }: { st: StoryTextSticker; story
         <div style={{ position: "absolute", left: 0, right: 0, height: 10, borderRadius: 5, background: "rgba(11,30,61,0.10)" }} />
         <div style={{ position: "absolute", left: 0, width: shown + "%", height: 10, borderRadius: 5, background: "linear-gradient(90deg,#C9BFB0,#E8A13A)" }} />
         <span style={{ position: "absolute", left: "calc(" + shown + "% - 16px)", fontSize: 26, lineHeight: "32px", transition: "left 120ms" }}>{st.sliderEmoji || "\uD83D\uDE0D"}</span>
-        {!done ? <input type="range" min={0} max={100} value={val} onChange={(e) => setVal(Number(e.target.value))} onMouseUp={commit} onTouchEnd={commit} onKeyUp={(e) => { if (e.key === "Enter") commit(); }} style={{ position: "absolute", inset: 0, width: "100%", opacity: 0, cursor: "pointer" }} /> : null}
+        {!done ? <input aria-label={st.sliderLabel || "Your rating"} disabled={!ready || busy} type="range" min={0} max={100} value={val} onChange={(e) => setVal(Number(e.target.value))} onMouseUp={commit} onTouchEnd={commit} onKeyUp={(e) => { if (["Enter", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(e.key)) commit(); }} style={{ position: "absolute", inset: 0, width: "100%", opacity: 0, cursor: "pointer" }} /> : null}
       </div>
       <div style={HINT}>{isOwn ? (all.length ? all.length + (all.length === 1 ? " response" : " responses") + (avg != null ? " \u00B7 average " + avg + "%" : "") : "No responses yet") : done ? "You said " + shown + "%" : "Drag and release"}</div>
+      <ResponseError error={error} retry={reload} />
     </div>
   );
 }
@@ -110,9 +129,9 @@ export function CountdownCard({ st }: { st: StoryTextSticker }) {
   const target = st.countdownTarget ? new Date(st.countdownTarget).getTime() : NaN;
   const left = Number.isFinite(target) ? Math.max(0, target - now) : 0;
   const d = Math.floor(left / 86400000), h = Math.floor((left % 86400000) / 3600000), m = Math.floor((left % 3600000) / 60000), s = Math.floor((left % 60000) / 1000);
-  const cell = (n: number, lb: string) => (<div key={lb} style={{ textAlign: "center", minWidth: 44 }}><div style={{ fontSize: 24, fontWeight: 800, fontVariantNumeric: "tabular-nums", lineHeight: "28px" }}>{String(n).padStart(2, "0")}</div><div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.8, color: "rgba(11,30,61,0.55)" }}>{lb}</div></div>);
+  const cell = (n: number, lb: string) => (<div key={lb} style={{ textAlign: "center", minWidth: 44, borderRadius: 10, padding: "8px 4px", background: "#FAF6EE" }}><div style={{ fontSize: 24, fontWeight: 800, fontVariantNumeric: "tabular-nums", lineHeight: "28px" }}>{String(n).padStart(2, "0")}</div><div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.8, color: "rgba(11,30,61,0.55)" }}>{lb}</div></div>);
   return (
-    <div className="pointer-events-auto" style={{ ...CARD, width: 236 }}>
+    <div className="pointer-events-auto" style={{ ...CARD, width: 236, background: "#C5CEB4", color: "#263522" }}>
       <div style={{ ...TITLE, marginBottom: 6 }}>{st.countdownTitle || st.text || "Countdown"}</div>
       {!Number.isFinite(target) ? <div style={HINT}>No date set</div> : left <= 0 ? <div style={{ ...HINT, color: "#0B1E3D", fontWeight: 800 }}>It's here</div> : (
         <div style={{ display: "flex", justifyContent: "center", gap: 8 }}>{[cell(d, "DAYS"), cell(h, "HRS"), cell(m, "MIN"), cell(s, "SEC")]}</div>
@@ -122,14 +141,15 @@ export function CountdownCard({ st }: { st: StoryTextSticker }) {
 }
 
 export function AddYoursCard({ st, storyId, isOwn }: { st: StoryTextSticker; storyId: string; isOwn: boolean }) {
-  const { all } = useMine(storyId, st, true);
-  return (
-    <div className="pointer-events-auto" style={{ ...CARD, width: 236 }}>
-      <div style={{ color: "#8A7F70", fontSize: 10, fontWeight: 800, letterSpacing: 1, textAlign: "center", marginBottom: 4 }}>ADD YOURS</div>
-      <div style={{ ...TITLE, marginBottom: 6 }}>{(st as { addYoursPrompt?: string }).addYoursPrompt || st.text || "Add yours"}</div>
-      <div style={HINT}>{all.length === 1 ? "1 person joined" : all.length + " people joined"}{isOwn ? "" : " · join from the app"}</div>
-    </div>
-  );
+  const { summary, error, reload } = useMine(storyId, st, isOwn);
+  const count = summary?.count;
+  return <div className="pointer-events-auto" style={{ ...CARD, width: 236 }}>
+    <div style={{ color: "#8A7F70", fontSize: 10, fontWeight: 800, letterSpacing: 1, textAlign: "center", marginBottom: 4 }}>ADD YOURS</div>
+    <div style={{ ...TITLE, marginBottom: 6 }}>{st.addYoursPrompt || st.text || "Add yours"}</div>
+    {count != null ? <div style={HINT}>{count === 1 ? "1 person joined" : count + " people joined"}</div> : null}
+    <Link href={`/story/new?join=${encodeURIComponent(storyId)}&sticker=${encodeURIComponent(st.id)}`} style={{ display: "block", marginTop: 12, padding: 10, borderRadius: 10, textAlign: "center", background: "#0B1E3D", color: "white", fontWeight: 700 }}>Add your story</Link>
+    <ResponseError error={error} retry={reload} />
+  </div>;
 }
 export function MagicBallCard({ st }: { st: StoryTextSticker }) {
   const ANSWERS = ["Yes", "No", "Absolutely", "Not today", "Ask again later", "Without a doubt", "Very doubtful", "Signs point to yes", "Better not", "Count on it", "Cannot predict now", "Most likely"];

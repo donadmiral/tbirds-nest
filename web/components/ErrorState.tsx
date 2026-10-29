@@ -22,11 +22,11 @@ export function ErrorState({
 }) {
   return (
     <div className="rounded-2xl border border-ink/10 bg-white px-5 py-8 text-center">
-      <span className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-pearl/15 text-pearl">
+      <span className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-pearl/15 text-accent">
         <AlertTriangle size={18} />
       </span>
       <p className="text-[14.5px] font-semibold text-ink">{title}</p>
-      <p className="mx-auto mt-1 max-w-[320px] text-[13px] leading-6 text-ink/50">{line}</p>
+      <p className="mx-auto mt-1 max-w-[320px] text-[13px] leading-6 text-muted">{line}</p>
       {onRetry ? (
         <button
           onClick={onRetry}

@@ -11,6 +11,7 @@ export type PaymentIntent = PaymentScope & {
   amount: number;
   currency: string;
   listingId: string | null;
+  orderId?: string | null;
   createdAt: string;
 };
 
@@ -49,6 +50,7 @@ function decode(raw: string, scope: PaymentScope): PaymentIntent {
       !Number.isFinite(value.amount) || value.amount <= 0 ||
       typeof value.currency !== 'string' || !/^[A-Z]{3}$/.test(value.currency) ||
       !(value.listingId === null || typeof value.listingId === 'string') ||
+      !(value.orderId == null || (typeof value.orderId === 'string' && /^[0-9a-f-]{36}$/i.test(value.orderId))) ||
       typeof value.createdAt !== 'string' || !Number.isFinite(Date.parse(value.createdAt))) {
     throw new Error('The saved payment needs review. Do not send it again.');
   }
@@ -58,6 +60,7 @@ function decode(raw: string, scope: PaymentScope): PaymentIntent {
     conversationId: value.conversationId, idempotencyKey: value.idempotencyKey,
     amount: value.amount, currency: value.currency, listingId: value.listingId,
     createdAt: value.createdAt,
+    ...(value.orderId ? { orderId: value.orderId } : {}),
   };
 }
 
@@ -75,7 +78,7 @@ export function createPaymentIntentStore(storage: Storage, makeKey: () => string
   };
   return {
     load(scope: PaymentScope) { return locked(keyFor(scope), () => read(scope)); },
-    prepare(params: PaymentScope & { amount: number; currency?: string; listingId?: string | null }) {
+    prepare(params: PaymentScope & { amount: number; currency?: string; listingId?: string | null; orderId?: string | null }) {
       return locked(keyFor(params), async () => {
         const existing = await read(params);
         if (existing) return existing;
@@ -83,6 +86,7 @@ export function createPaymentIntentStore(storage: Storage, makeKey: () => string
           version: 1, ownerId: params.ownerId, recipientId: params.recipientId,
           conversationId: params.conversationId, amount: params.amount,
           currency: params.currency ?? 'USD', listingId: params.listingId ?? null,
+          ...(params.orderId ? { orderId: params.orderId } : {}),
           idempotencyKey: makeKey(), createdAt: new Date().toISOString(),
         }), params);
         // Persist BEFORE any payment request. If persistence fails, stop.

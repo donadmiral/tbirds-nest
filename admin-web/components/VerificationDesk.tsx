@@ -1,5 +1,6 @@
 'use client';
 import CommandForm from '@/components/CommandForm';
+import { safeEvidenceUrl } from '../../shared/verification';
 
 import { useState } from 'react';
 import Seal from '@/components/Seal';
@@ -23,7 +24,8 @@ function waiting(iso: string) {
 
 export default function VerificationDesk({ apps }: { apps: App[] }) {
   const [tab, setTab] = useState<'all' | 'submitted' | 'under_review'>('all');
-  const [selected, setSelected] = useState<App | null>(apps[0] ?? null);
+  const [selectedId, setSelectedId] = useState<string | null>(apps[0]?.id ?? null);
+  const selected = apps.find(app => app.id === selectedId) ?? apps[0] ?? null;
 
   const filtered = apps.filter(a => tab === 'all' || a.status === tab);
   const tabs: { key: typeof tab; label: string; count: number }[] = [
@@ -49,7 +51,7 @@ export default function VerificationDesk({ apps }: { apps: App[] }) {
         {filtered.length === 0 ? (
           <p className="px-5 py-14 text-center text-[13px] text-[#9A9DA4]">Nothing here.</p>
         ) : filtered.map(a => (
-          <button key={a.id} onClick={() => setSelected(a)}
+          <button key={a.id} onClick={() => setSelectedId(a.id)}
             className={'flex w-full items-center gap-3 border-t border-[#F0EFEC] px-4 py-3 text-left transition-colors duration-150 hover:bg-[#FAFAF9] ' + (selected?.id === a.id ? 'bg-[#FAFAF9]' : '')}>
             {a.avatar_url ? <img src={a.avatar_url} alt="" className="h-9 w-9 rounded-full object-cover" />
               : <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#17181C]/10 text-[12px] font-bold text-[#17181C]">{String(a.full_name || '?').slice(0, 1)}</span>}
@@ -77,13 +79,14 @@ export default function VerificationDesk({ apps }: { apps: App[] }) {
             </div>
             <div className="mt-4 rounded-[10px] bg-[#17181C]/[0.03] p-4">
               <p className="text-[11px] font-bold uppercase tracking-wide text-[#9A9DA4]">Their case</p>
-              <p className="mt-1 whitespace-pre-wrap text-[13.5px] leading-relaxed text-[#17181C]/85">{ev.statement || '\u2014'}</p>
-              {ev.office ? <p className="mt-2 text-[12px] font-semibold text-[#17181C]/70">Office: {ev.office}</p> : null}
+              <p className="mt-1 whitespace-pre-wrap text-[13.5px] leading-relaxed text-[#17181C]/85">{typeof ev.statement === 'string' ? ev.statement : '\u2014'}</p>
+              {typeof ev.office === 'string' && ev.office ? <p className="mt-2 text-[12px] font-semibold text-[#17181C]/70">Office: {ev.office}</p> : null}
               {Array.isArray(ev.links) && ev.links.length ? (
                 <ul className="mt-2 space-y-1">
-                  {ev.links.map((l: string, i: number) => (
-                    <li key={i}><a href={l.startsWith('http') ? l : 'https://' + l} target="_blank" rel="noreferrer" className="break-all text-[12px] text-blue-700 underline">{l}</a></li>
-                  ))}
+                  {ev.links.map((link: unknown, i: number) => {
+                    const href = safeEvidenceUrl(link);
+                    return <li key={i}>{href ? <a href={href} target="_blank" rel="noopener noreferrer" className="break-all text-[12px] text-blue-700 underline">{String(link)}</a> : <span className="text-[12px] text-red-700">Invalid evidence link</span>}</li>;
+                  })}
                 </ul>
               ) : null}
             </div>
@@ -102,18 +105,22 @@ export default function VerificationDesk({ apps }: { apps: App[] }) {
           <>
             <div className="grid grid-cols-2 gap-2 border-b border-[#F0EFEC] pb-3">
               <div><p className="text-[15px] font-bold tabular-nums text-[#17181C]">{selected.vouches}</p><p className="text-[10px] text-[#9A9DA4]">Vouches</p></div>
-              <div><p className="text-[15px] font-bold tabular-nums text-[#17181C]">{docCount}</p><p className="text-[10px] text-[#9A9DA4]">Docs</p></div>
+              <div><p className="text-[15px] font-bold tabular-nums text-[#17181C]">{docCount}</p><p className="text-[10px] text-[#9A9DA4]">Evidence items</p></div>
               <div><p className="text-[15px] font-bold tabular-nums text-[#17181C]">{waiting(selected.created_at)}</p><p className="text-[10px] text-[#9A9DA4]">Waiting</p></div>
               <div><p className="text-[15px] font-bold tabular-nums text-[#17181C]">{selected.strikes}</p><p className="text-[10px] text-[#9A9DA4]">Strikes</p></div>
             </div>
             <div className="mt-3 flex flex-col gap-2">
-              <CommandForm scope="approveApplication" action={approveApplication}>
+              <CommandForm key={selected.id + "approve"} scope="approveApplication" action={approveApplication} className="flex flex-col gap-2">
                 <input type="hidden" name="id" value={selected.id} />
+                <label className="text-[12px]">Review basis
+                  <textarea name="reason" required minLength={20} maxLength={2000} placeholder="Record how identity, account control and authority were independently confirmed. Links and vouches alone are insufficient." className="mt-1 w-full rounded-[8px] border border-[#E5E4E0] px-2.5 py-1.5 text-[12px] outline-none" rows={5} />
+                </label>
+                <label className="flex gap-2 text-[12px]"><input type="checkbox" required /> I checked identity, authority and impersonation risk against independent evidence.</label>
                 <button className="w-full rounded-[9px] bg-[#17181C] px-3 py-2 text-[12px] font-bold text-white transition-opacity duration-150 hover:opacity-90">Approve \u2014 {(TIER_LABEL[selected.tier] || selected.tier).toLowerCase()}</button>
               </CommandForm>
-              <CommandForm scope="rejectApplication" action={rejectApplication} className="flex flex-col gap-1.5">
+              <CommandForm key={selected.id + "reject"} scope="rejectApplication" action={rejectApplication} className="flex flex-col gap-1.5">
                 <input type="hidden" name="id" value={selected.id} />
-                <input name="reason" placeholder="Reason if rejecting" className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1.5 text-[12px] outline-none" />
+                <input name="reason" required maxLength={2000} placeholder="Reason if rejecting" className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1.5 text-[12px] outline-none" />
                 <button className="rounded-[9px] border border-[#F3C9C9] bg-[#FBF0F0] px-3 py-2 text-[12px] font-bold text-[#B03A3A] transition-colors duration-150 hover:bg-[#F8E4E4]">Reject</button>
               </CommandForm>
             </div>

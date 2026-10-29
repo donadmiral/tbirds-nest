@@ -1,0 +1,373 @@
+{
+  "projectRef": "prlkikhckbifseosbukl",
+  "observedAtUTC": "2026-10-29 05:53:13 UTC",
+  "source": "read-only production resume and music fingerprint SQL; no cloud writes",
+  "appliedUnits": 7,
+  "resume": {
+    "exclusions": {
+      "music_events_absent": true,
+      "music_origins_absent": true,
+      "private_cutover_held": true,
+      "music_validator_absent": true,
+      "soundtrack_column_absent": true,
+      "rejected_music_migration_absent": true
+    },
+    "function_checks": [
+      {
+        "matches": true,
+        "signature": "public.account_export_snapshot()",
+        "actual_md5": "11c5ea5152feadd8e78ac64e073e6ade",
+        "expected_md5": "11c5ea5152feadd8e78ac64e073e6ade"
+      },
+      {
+        "matches": true,
+        "signature": "public.claim_chat_media_view(uuid,uuid)",
+        "actual_md5": "c47a9441784d6c13fd2f3b1d0363837b",
+        "expected_md5": "c47a9441784d6c13fd2f3b1d0363837b"
+      },
+      {
+        "matches": true,
+        "signature": "public.consume_media_view(uuid)",
+        "actual_md5": "8e3e17e74717f3454b5c0deef3f62566",
+        "expected_md5": "8e3e17e74717f3454b5c0deef3f62566"
+      },
+      {
+        "matches": true,
+        "signature": "public.get_discover_page(text,boolean,integer,integer,timestamp with time zone)",
+        "actual_md5": "4fad589831e967fe4cde4c31797d1476",
+        "expected_md5": "4fad589831e967fe4cde4c31797d1476"
+      },
+      {
+        "matches": true,
+        "signature": "public.get_feed(text,double precision,uuid,integer)",
+        "actual_md5": "a5ba28b77f27dad8725fd6b0717106ec",
+        "expected_md5": "a5ba28b77f27dad8725fd6b0717106ec"
+      },
+      {
+        "matches": true,
+        "signature": "public.get_memory_albums(uuid)",
+        "actual_md5": "e8a351ece459652588539597b380d0bf",
+        "expected_md5": "e8a351ece459652588539597b380d0bf"
+      },
+      {
+        "matches": true,
+        "signature": "public.get_memory_book(uuid)",
+        "actual_md5": "5a30eab09e21eb149309d9add37e0892",
+        "expected_md5": "5a30eab09e21eb149309d9add37e0892"
+      },
+      {
+        "matches": true,
+        "signature": "public.get_profile_posts_page(uuid,integer,integer,timestamp with time zone)",
+        "actual_md5": "6f4f24da8506095f7323b707334464e8",
+        "expected_md5": "6f4f24da8506095f7323b707334464e8"
+      },
+      {
+        "matches": true,
+        "signature": "public.open_legacy_chat_media(uuid,uuid)",
+        "actual_md5": "7e77610be112c7b1e69dcb2db082758e",
+        "expected_md5": "7e77610be112c7b1e69dcb2db082758e"
+      },
+      {
+        "matches": true,
+        "signature": "public.publish_story_v2(uuid,uuid,jsonb)",
+        "actual_md5": "358247e1e132eede2dd5e4ec2b6d6624",
+        "expected_md5": "358247e1e132eede2dd5e4ec2b6d6624"
+      }
+    ],
+    "relation_checks": [
+      {
+        "name": "admin_ops.commands",
+        "matches": true,
+        "actual_present": false,
+        "expected_present": false
+      },
+      {
+        "name": "admin_ops.deletion_requests",
+        "matches": true,
+        "actual_present": false,
+        "expected_present": false
+      },
+      {
+        "name": "admin_ops.provisions",
+        "matches": true,
+        "actual_present": false,
+        "expected_present": false
+      },
+      {
+        "name": "admin_ops.removals",
+        "matches": true,
+        "actual_present": false,
+        "expected_present": false
+      },
+      {
+        "name": "admin_ops.support_triage",
+        "matches": true,
+        "actual_present": false,
+        "expected_present": false
+      },
+      {
+        "name": "content_media_legacy.snapshots",
+        "matches": true,
+        "actual_present": false,
+        "expected_present": false
+      },
+      {
+        "name": "content_media_processing.faststart_leases",
+        "matches": true,
+        "actual_present": false,
+        "expected_present": false
+      },
+      {
+        "name": "creator_finance.allocations",
+        "matches": true,
+        "actual_present": false,
+        "expected_present": false
+      },
+      {
+        "name": "creator_finance.balances",
+        "matches": true,
+        "actual_present": true,
+        "expected_present": true
+      },
+      {
+        "name": "creator_finance.commerce_config",
+        "matches": true,
+        "actual_present": false,
+        "expected_present": false
+      },
+      {
+        "name": "creator_finance.commerce_receipts",
+        "matches": true,
+        "actual_present": false,
+        "expected_present": false
+      },
+      {
+        "name": "creator_finance.enrollments",
+        "matches": true,
+        "actual_present": true,
+        "expected_present": true
+      },
+      {
+        "name": "creator_finance.ledger",
+        "matches": true,
+        "actual_present": true,
+        "expected_present": true
+      },
+      {
+        "name": "creator_finance.orders",
+        "matches": true,
+        "actual_present": false,
+        "expected_present": false
+      },
+      {
+        "name": "creator_finance.payout_accounts",
+        "matches": true,
+        "actual_present": true,
+        "expected_present": true
+      },
+      {
+        "name": "creator_finance.payouts",
+        "matches": true,
+        "actual_present": true,
+        "expected_present": true
+      },
+      {
+        "name": "creator_finance.products",
+        "matches": true,
+        "actual_present": false,
+        "expected_present": false
+      },
+      {
+        "name": "creator_finance.program",
+        "matches": true,
+        "actual_present": true,
+        "expected_present": true
+      },
+      {
+        "name": "creator_finance.providers",
+        "matches": true,
+        "actual_present": true,
+        "expected_present": true
+      },
+      {
+        "name": "creator_finance.receipts",
+        "matches": true,
+        "actual_present": true,
+        "expected_present": true
+      },
+      {
+        "name": "creator_finance.receivable_events",
+        "matches": true,
+        "actual_present": false,
+        "expected_present": false
+      },
+      {
+        "name": "creator_finance.receivables",
+        "matches": true,
+        "actual_present": false,
+        "expected_present": false
+      },
+      {
+        "name": "creator_finance.revenue_policies",
+        "matches": true,
+        "actual_present": false,
+        "expected_present": false
+      },
+      {
+        "name": "creator_finance.review_commands",
+        "matches": true,
+        "actual_present": false,
+        "expected_present": false
+      },
+      {
+        "name": "creator_finance.subscription_periods",
+        "matches": true,
+        "actual_present": false,
+        "expected_present": false
+      },
+      {
+        "name": "marketplace_ops.events",
+        "matches": true,
+        "actual_present": true,
+        "expected_present": true
+      },
+      {
+        "name": "marketplace_ops.orders",
+        "matches": true,
+        "actual_present": true,
+        "expected_present": true
+      },
+      {
+        "name": "marketplace_ops.publishing_requests",
+        "matches": true,
+        "actual_present": false,
+        "expected_present": false
+      },
+      {
+        "name": "public.call_provider_revocations",
+        "matches": true,
+        "actual_present": true,
+        "expected_present": true
+      },
+      {
+        "name": "public.chat_media_view_grants",
+        "matches": true,
+        "actual_present": true,
+        "expected_present": true
+      },
+      {
+        "name": "public.content_media_bindings",
+        "matches": true,
+        "actual_present": false,
+        "expected_present": false
+      },
+      {
+        "name": "public.job_application_events",
+        "matches": true,
+        "actual_present": false,
+        "expected_present": false
+      },
+      {
+        "name": "public.music_asset_origins",
+        "matches": true,
+        "actual_present": false,
+        "expected_present": false
+      },
+      {
+        "name": "public.music_rights_events",
+        "matches": true,
+        "actual_present": false,
+        "expected_present": false
+      },
+      {
+        "name": "public.seller_review_reports",
+        "matches": true,
+        "actual_present": false,
+        "expected_present": false
+      },
+      {
+        "name": "story_ops.publications",
+        "matches": true,
+        "actual_present": true,
+        "expected_present": true
+      }
+    ],
+    "book_constraints": [
+      {
+        "name": "memory_albums_audience_check",
+        "definition": "CHECK ((audience = ANY (ARRAY['profile'::text, 'followers'::text, 'custom'::text, 'only_me'::text])))"
+      },
+      {
+        "name": "memory_albums_title_check",
+        "definition": "CHECK (((char_length(title) >= 1) AND (char_length(title) <= 30)))"
+      }
+    ],
+    "bucket_visibility": [
+      {
+        "id": "application-cvs",
+        "public": false
+      },
+      {
+        "id": "avatars",
+        "public": true
+      },
+      {
+        "id": "business-media",
+        "public": true
+      },
+      {
+        "id": "channel-media",
+        "public": false
+      },
+      {
+        "id": "chat-files",
+        "public": true
+      },
+      {
+        "id": "chat-media",
+        "public": true
+      },
+      {
+        "id": "identity-training-photos",
+        "public": false
+      },
+      {
+        "id": "market-media",
+        "public": true
+      },
+      {
+        "id": "media",
+        "public": true
+      },
+      {
+        "id": "mingle-images",
+        "public": true
+      },
+      {
+        "id": "mingle-media",
+        "public": true
+      },
+      {
+        "id": "post-media",
+        "public": true
+      },
+      {
+        "id": "startup-media",
+        "public": true
+      },
+      {
+        "id": "story-media",
+        "public": true
+      }
+    ]
+  },
+  "musicBaseline": {
+    "existing_catalogue_rows": 0,
+    "catalogue_data_md5": "d751713988987e9331980363e24189ce",
+    "existing_music_columns_md5": "1093954cf491f316687fabeca3f46a4a",
+    "existing_music_functions_md5": "3378fe87d8ca0b5a6210b38c41107f82",
+    "existing_catalogue_policies_md5": "99c7d1265914be09c6028c963a26d46f",
+    "existing_music_relation_acl_md5": "8ae6880c99ef21606625101278aea7c2"
+  }
+}
+

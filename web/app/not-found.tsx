@@ -6,11 +6,11 @@ export default function NotFound() {
   return (
     <div className="flex min-h-[60vh] items-center justify-center px-6 py-16">
       <div className="w-full max-w-[420px] text-center">
-        <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-surface text-ink/40">
+        <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-surface text-muted">
           <SearchX size={22} />
         </span>
         <h1 className="font-display text-[22px] leading-tight text-porcelain">This page does not exist</h1>
-        <p className="mt-2 text-[13.5px] leading-6 text-ink/55">
+        <p className="mt-2 text-[13.5px] leading-6 text-muted">
           The link may be broken, or whatever was here has been removed.
         </p>
         <div className="mt-5 flex items-center justify-center gap-2.5">

@@ -8,6 +8,8 @@
  * below it. Money is grouped by currency rather than summed across them: this
  * business takes both USD and ZWG, and one blended number would be a lie.
  */
+import { decimalMinor } from "../../shared/commerceMoney";
+import { orderMoney } from "../../shared/marketOrders";
 import { useMemo } from "react";
 import Link from "next/link";
 import { TrendingUp, Package, Clock } from "lucide-react";
@@ -16,7 +18,7 @@ import { Panel } from "@/components/ui";
 
 type Order = {
   id: string;
-  amount: number;
+  amount: number | string;
   currency: string;
   status: string;
   created_at: string;
@@ -28,7 +30,7 @@ type Order = {
 type Listing = {
   id: string;
   title: string;
-  price: number;
+  price: number | string;
   currency: string;
   images: string[];
   status: string;
@@ -41,32 +43,33 @@ const DAYS = 30;
 export function CommerceOverview({ orders, listings }: { orders: Order[]; listings: Listing[] }) {
   const stats = useMemo(() => {
     const since = Date.now() - DAYS * 86400000;
-    const paid = orders.filter((o) => o.status === "completed" || o.status === "paid");
-    const recent = paid.filter((o) => new Date(o.created_at).getTime() >= since);
+    const paid = orders.filter((o) => o.status === "completed");
+    const recent = paid.filter((o) => new Date(o.completed_at || o.created_at).getTime() >= since);
 
     // Grouped by currency. Adding USD to ZWG would produce a number that means
     // nothing, however tidy it looks in a card.
-    const byCurrency = new Map<string, { total: number; count: number }>();
+    const byCurrency = new Map<string, { total: bigint; count: number }>();
     for (const o of recent) {
-      const cur = byCurrency.get(o.currency) ?? { total: 0, count: 0 };
-      cur.total += Number(o.amount || 0);
+      const cur = byCurrency.get(o.currency) ?? { total: BigInt(0), count: 0 };
+      cur.total += decimalMinor(o.amount);
       cur.count += 1;
       byCurrency.set(o.currency, cur);
     }
 
-    const buckets = new Map<string, number>();
+    const buckets = new Map<string, bigint>();
     for (let i = DAYS - 1; i >= 0; i--) {
-      buckets.set(new Date(Date.now() - i * 86400000).toISOString().slice(0, 10), 0);
+      buckets.set(new Date(Date.now() - i * 86400000).toISOString().slice(0, 10), BigInt(0));
     }
-    const primary = [...byCurrency.entries()].sort((a, b) => b[1].total - a[1].total)[0]?.[0] ?? null;
+    const currencies = [...byCurrency.entries()].sort(([a], [b]) => a.localeCompare(b));
+    const primary = currencies[0]?.[0] ?? null;
     for (const o of recent) {
       if (primary && o.currency !== primary) continue;
-      const k = o.created_at.slice(0, 10);
-      if (buckets.has(k)) buckets.set(k, (buckets.get(k) ?? 0) + Number(o.amount || 0));
+      const k = (o.completed_at || o.created_at).slice(0, 10);
+      if (buckets.has(k)) buckets.set(k, (buckets.get(k) ?? BigInt(0)) + decimalMinor(o.amount));
     }
 
     return {
-      byCurrency: [...byCurrency.entries()],
+      byCurrency: currencies,
       primary,
       series: [...buckets.entries()],
       pending: orders.filter((o) => o.status === "pending").length,
@@ -80,33 +83,32 @@ export function CommerceOverview({ orders, listings }: { orders: Order[]; listin
     [listings],
   );
 
-  const money = (n: number, cur: string) =>
-    cur + " " + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const money = (n: bigint, cur: string) => orderMoney(n.toString(), cur);
 
   return (
     <div className="mb-5">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {stats.byCurrency.length > 0 ? (
-          stats.byCurrency.slice(0, 2).map(([cur, v]) => (
+          stats.byCurrency.map(([cur, v]) => (
             <div key={cur} className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
-              <p className="text-[11.5px] text-ink/45">Revenue, {DAYS} days</p>
+              <p className="text-[11.5px] text-muted">Loaded sales, {DAYS} days</p>
               <p className="mt-0.5 font-display text-[24px] leading-tight text-porcelain">{money(v.total, cur)}</p>
-              <p className="mt-0.5 text-[11.5px] text-ink/40">{v.count} {v.count === 1 ? "order" : "orders"}</p>
+              <p className="mt-0.5 text-[11.5px] text-muted">{v.count} {v.count === 1 ? "order" : "orders"}</p>
             </div>
           ))
         ) : (
           <div className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
-            <p className="text-[11.5px] text-ink/45">Revenue, {DAYS} days</p>
+            <p className="text-[11.5px] text-muted">Loaded sales, {DAYS} days</p>
             <Metric value={0} size={24} />
-            <p className="mt-0.5 text-[11.5px] text-ink/40">no paid orders yet</p>
+            <p className="mt-0.5 text-[11.5px] text-muted">no paid orders yet</p>
           </div>
         )}
 
         <div className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
-          <p className="text-[11.5px] text-ink/45">Average order</p>
+          <p className="text-[11.5px] text-muted">Average order</p>
           {stats.byCurrency.length > 0 ? (
             <p className="mt-0.5 font-display text-[24px] leading-tight text-porcelain">
-              {money(stats.byCurrency[0][1].total / Math.max(1, stats.byCurrency[0][1].count), stats.byCurrency[0][0])}
+              {money((stats.byCurrency[0][1].total + BigInt(Math.floor(stats.byCurrency[0][1].count / 2))) / BigInt(Math.max(1, stats.byCurrency[0][1].count)), stats.byCurrency[0][0])}
             </p>
           ) : (
             <Metric value={0} size={24} />
@@ -114,9 +116,9 @@ export function CommerceOverview({ orders, listings }: { orders: Order[]; listin
         </div>
 
         <div className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
-          <p className="text-[11.5px] text-ink/45">Live listings</p>
+          <p className="text-[11.5px] text-muted">Live listings</p>
           <Metric value={stats.live} size={24} />
-          <p className="mt-0.5 text-[11.5px] text-ink/40">
+          <p className="mt-0.5 text-[11.5px] text-muted">
             {stats.awaiting > 0 ? stats.awaiting + " with offers waiting" : "no offers waiting"}
           </p>
         </div>
@@ -126,13 +128,13 @@ export function CommerceOverview({ orders, listings }: { orders: Order[]; listin
         <div className="rounded-2xl border border-ink/10 bg-white px-5 py-4">
           <div className="mb-3 flex items-baseline justify-between">
             <h2 className="text-[15px] font-semibold text-ink">
-              Revenue over time{stats.primary ? ", " + stats.primary : ""}
+              Loaded sales over time{stats.primary ? ", " + stats.primary : ""}
             </h2>
-            <span className="text-[11.5px] text-ink/40">last {DAYS} days</span>
+            <span className="text-[11.5px] text-muted">last {DAYS} days · UTC</span>
           </div>
           <TrendChart
-            series={[{ name: "Revenue", points: stats.series.map(([, v]) => v) }]}
-            labels={stats.series.map(([d]) => new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric" }))}
+            series={[{ name: "Completed sales", points: stats.series.map(([, v]) => Number(v) / 100) }]}
+            labels={stats.series.map(([d]) => new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric", timeZone: "UTC" }))}
             height={200}
             emptyLabel="No paid orders in this period"
           />
@@ -140,25 +142,25 @@ export function CommerceOverview({ orders, listings }: { orders: Order[]; listin
 
         <Panel title="Best sellers" icon={<TrendingUp size={15} />}>
           {bestSellers.length === 0 ? (
-            <p className="text-[13px] text-ink/45">Nothing has sold yet. Sales appear here as orders complete.</p>
+            <p className="text-[13px] text-muted">Nothing has sold yet. Sales appear here as orders complete.</p>
           ) : (
             <div className="flex flex-col gap-3">
               {bestSellers.map((l, i) => (
                 <div key={l.id} className="flex items-center gap-3">
-                  <span className="w-4 shrink-0 text-center font-display text-[15px] text-ink/35">{i + 1}</span>
+                  <span className="w-4 shrink-0 text-center font-display text-[15px] text-muted">{i + 1}</span>
                   {l.images?.[0] ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={l.images[0]} alt="" className="h-10 w-10 shrink-0 rounded-lg object-cover" />
                   ) : (
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface text-ink/30">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface text-muted">
                       <Package size={15} />
                     </span>
                   )}
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[13px] font-medium text-ink">{l.title}</span>
-                    <span className="block text-[11.5px] text-ink/45">{money(Number(l.price || 0), l.currency)}</span>
+                    <span className="block text-[11.5px] text-muted">{money(decimalMinor(l.price), l.currency)}</span>
                   </span>
-                  <span className="shrink-0 text-[12px] text-ink/45">{l.sold_count} sold</span>
+                  <span className="shrink-0 text-[12px] text-muted">{l.sold_count} sold</span>
                 </div>
               ))}
             </div>
@@ -171,7 +173,7 @@ export function CommerceOverview({ orders, listings }: { orders: Order[]; listin
           href="#orders"
           className="mt-3 flex items-center gap-2.5 rounded-2xl border border-pearl/40 bg-pearl/8 px-4 py-3 text-[13.5px] text-ink transition-colors duration-[140ms] hover:bg-pearl/12"
         >
-          <Clock size={15} className="shrink-0 text-pearl" />
+          <Clock size={15} className="shrink-0 text-accent" />
           <span className="font-semibold">{stats.pending}</span> {stats.pending === 1 ? "order is" : "orders are"} still
           pending payment
         </Link>
@@ -181,51 +183,44 @@ export function CommerceOverview({ orders, listings }: { orders: Order[]; listin
 }
 
 /**
- * The Commerce rail: money you are owed, and orders that need a human.
- *
- * "Available" here means orders marked completed. Anything still pending is
- * shown separately rather than folded into the balance, because money that has
- * not cleared is not money you can spend.
+ * Completed receipts in the loaded order history. This is not a bank balance
+ * or the amount available for withdrawal.
  */
 export function CommerceRail({ orders, listings }: { orders: Order[]; listings: Listing[] }) {
   const m = useMemo(() => {
-    const cleared = new Map<string, number>();
-    let pendingTotal = 0;
+    const cleared = new Map<string, bigint>();
     let pendingCount = 0;
     for (const o of orders) {
       if (o.status === "completed") {
-        cleared.set(o.currency, (cleared.get(o.currency) ?? 0) + Number(o.amount || 0));
+        cleared.set(o.currency, (cleared.get(o.currency) ?? BigInt(0)) + decimalMinor(o.amount));
       } else if (o.status === "pending") {
-        pendingTotal += Number(o.amount || 0);
         pendingCount += 1;
       }
     }
     return {
-      cleared: [...cleared.entries()].sort((a, b) => b[1] - a[1]),
+      cleared: [...cleared.entries()].sort(([a], [b]) => a.localeCompare(b)),
       pendingCount,
-      pendingTotal,
       offers: listings.filter((l) => (l.pending_offers || 0) > 0),
     };
   }, [orders, listings]);
 
-  const money = (n: number, cur: string) =>
-    cur + " " + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const money = (n: bigint, cur: string) => orderMoney(n.toString(), cur);
 
   return (
     <>
-      <Panel title="Balance">
+      <Panel title="Loaded completed sales">
         {m.cleared.length === 0 ? (
-          <p className="text-[13px] text-ink/45">Nothing cleared yet. Completed orders add up here.</p>
+          <p className="text-[13px] text-muted">No completed payments in the loaded orders.</p>
         ) : (
           m.cleared.map(([cur, total]) => (
             <div key={cur} className="mb-1 last:mb-0">
-              <p className="text-[11.5px] text-ink/45">Cleared, {cur}</p>
+              <p className="text-[11.5px] text-muted">Completed, {cur}</p>
               <p className="font-display text-[24px] leading-tight text-porcelain">{money(total, cur)}</p>
             </div>
           ))
         )}
         {m.pendingCount > 0 ? (
-          <p className="mt-2 border-t border-ink/8 pt-2 text-[12.5px] text-ink/55">
+          <p className="mt-2 border-t border-ink/8 pt-2 text-[12.5px] text-muted">
             <span className="font-semibold text-ink">{m.pendingCount}</span>{" "}
             {m.pendingCount === 1 ? "order" : "orders"} still pending
           </p>

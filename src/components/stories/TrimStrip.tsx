@@ -20,12 +20,12 @@ function fmt(v: number): string {
   return m + ':' + (r < 10 ? '0' : '') + r;
 }
 
-export default function TrimStrip({ uri, durationSec, start, end, onChange, onDuration, player, width }: {
+export default function TrimStrip({ uri, durationSec, start, end, onChange, onDuration, player, width, expanded = false }: {
   uri: string; durationSec: number; start: number; end: number;
-  onChange: (start: number, end: number) => void; onDuration?: (sec: number) => void; player: any; width: number;
+  onChange: (start: number, end: number) => void; onDuration?: (sec: number) => void; player: any; width: number; expanded?: boolean;
 }) {
   const dur = Math.max(1, durationSec || 1);
-  const trackW = Math.max(120, width - 160);
+  const trackW = Math.max(120, width - (expanded ? 32 : 160));
   const durRef = useRef(dur); durRef.current = dur;
   const [thumbs, setThumbs] = useState<string[]>([]);
   const [cur, setCur] = useState(start);
@@ -97,31 +97,35 @@ export default function TrimStrip({ uri, durationSec, start, end, onChange, onDu
     lastSeek.current = now;
     seek(sec);
   };
+  const handlers = useRef({ toX, toSec, commit, seekThrottled, dur });
+  handlers.current = { toX, toSec, commit, seekThrottled, dur };
   const startPan = useRef(PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: (_e, g) => Math.abs(g.dx) > 2,
     onPanResponderTerminationRequest: () => false,
-    onPanResponderGrant: () => { grabRef.current = toX(startRef.current); liveRef.current = { s: startRef.current, e: endRef.current }; setDragS(startRef.current); try { Haptics.selectionAsync(); } catch {} },
+    onPanResponderGrant: () => { grabRef.current = handlers.current.toX(startRef.current); liveRef.current = { s: startRef.current, e: endRef.current }; setDragS(startRef.current); try { Haptics.selectionAsync(); } catch {} },
     onPanResponderMove: (_e, g) => {
+      const { toSec, commit, seekThrottled } = handlers.current;
       const v = toSec(grabRef.current + g.dx);
-      const s2 = Math.max(0, Math.min(endRef.current - 1, v));
+      const s2 = Math.max(0, endRef.current - 60, Math.min(endRef.current - 1, v));
       liveRef.current.s = s2; setDragS(s2); commit(s2, endRef.current, false); seekThrottled(s2, false);
     },
-    onPanResponderRelease: () => { const s2 = liveRef.current.s; commit(s2, endRef.current, true); seekThrottled(s2, true); setDragS(null); },
-    onPanResponderTerminate: () => { const s2 = liveRef.current.s; commit(s2, endRef.current, true); setDragS(null); },
+    onPanResponderRelease: () => { const s2 = liveRef.current.s; handlers.current.commit(s2, endRef.current, true); handlers.current.seekThrottled(s2, true); setDragS(null); },
+    onPanResponderTerminate: () => { const s2 = liveRef.current.s; handlers.current.commit(s2, endRef.current, true); setDragS(null); },
   })).current;
   const endPan = useRef(PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: (_e, g) => Math.abs(g.dx) > 2,
     onPanResponderTerminationRequest: () => false,
-    onPanResponderGrant: () => { grabRef.current = toX(endRef.current); liveRef.current = { s: startRef.current, e: endRef.current }; setDragE(endRef.current); try { Haptics.selectionAsync(); } catch {} },
+    onPanResponderGrant: () => { grabRef.current = handlers.current.toX(endRef.current); liveRef.current = { s: startRef.current, e: endRef.current }; setDragE(endRef.current); try { Haptics.selectionAsync(); } catch {} },
     onPanResponderMove: (_e, g) => {
+      const { toSec, commit, seekThrottled, dur } = handlers.current;
       const v = toSec(grabRef.current + g.dx);
-      const e2 = Math.min(dur, Math.max(startRef.current + 1, v));
+      const e2 = Math.min(dur, startRef.current + 60, Math.max(startRef.current + 1, v));
       liveRef.current.e = e2; setDragE(e2); commit(startRef.current, e2, false); seekThrottled(Math.max(startRef.current, e2 - 1), false);
     },
-    onPanResponderRelease: () => { const e2 = liveRef.current.e; commit(startRef.current, e2, true); seekThrottled(Math.max(startRef.current, e2 - 1), true); setDragE(null); },
-    onPanResponderTerminate: () => { const e2 = liveRef.current.e; commit(startRef.current, e2, true); setDragE(null); },
+    onPanResponderRelease: () => { const e2 = liveRef.current.e; handlers.current.commit(startRef.current, e2, true); handlers.current.seekThrottled(Math.max(startRef.current, e2 - 1), true); setDragE(null); },
+    onPanResponderTerminate: () => { const e2 = liveRef.current.e; handlers.current.commit(startRef.current, e2, true); setDragE(null); },
   })).current;
   // Visual values: the finger wins while dragging.
   const vS = dragS ?? start;
@@ -132,11 +136,12 @@ export default function TrimStrip({ uri, durationSec, start, end, onChange, onDu
 
   return (
     <View style={[ts.wrap, { width }]} pointerEvents="box-none">
-      <View style={ts.row}>
-        <TouchableOpacity style={ts.playBtn} onPress={togglePlay} activeOpacity={0.75} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+      <View style={[ts.row, expanded && { flexWrap: 'wrap', width, justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 10 }]} >
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={playing ? "Pause timeline preview" : "Play timeline preview"} style={[ts.playBtn, expanded && { width: 44, height: 44, borderRadius: 22 }]} onPress={togglePlay} activeOpacity={0.75} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Feather name={playing ? 'pause' : 'play'} size={16} color="#FFFFFF" />
         </TouchableOpacity>
-        <View style={[ts.track, { width: trackW }]}>
+        {expanded ? <Text style={ts.counter}>{fmt(rel)} / {fmt(vE - vS)}</Text> : null}
+        <View style={[ts.track, { width: trackW }, expanded && { marginTop: 12 }]}>
           <View style={ts.thumbRow}>
             {thumbs.length === 0 ? <ActivityIndicator color="#FFF" style={{ flex: 1 }} /> : thumbs.map((t, i) => t ? <Image key={i} source={{ uri: t }} style={{ width: trackW / THUMBS, height: 44 }} resizeMode="cover" fadeDuration={0} /> : <View key={i} style={{ width: trackW / THUMBS, height: 44, backgroundColor: '#1B2233' }} />)}
           </View>
@@ -147,9 +152,9 @@ export default function TrimStrip({ uri, durationSec, start, end, onChange, onDu
           <View {...startPan.panHandlers} style={[ts.handle, dragS != null && ts.handleOn, { left: toX(vS) - HANDLE_W + 2 }]} hitSlop={{ top: 16, bottom: 16, left: 18, right: 12 }}><View style={ts.grip} /></View>
           <View {...endPan.panHandlers} style={[ts.handle, dragE != null && ts.handleOn, { left: toX(vE) - 2 }]} hitSlop={{ top: 16, bottom: 16, left: 12, right: 18 }}><View style={ts.grip} /></View>
         </View>
-        <Text style={ts.counter}>{fmt(rel)} / {fmt(vE - vS)}</Text>
+        {!expanded ? <Text style={ts.counter}>{fmt(rel)} / {fmt(vE - vS)}</Text> : null}
       </View>
-      <Text style={ts.hint}>Pinch to zoom {'\u00B7'} Drag to reposition</Text>
+      {!expanded ? <Text style={ts.hint}>Drag the ends to trim</Text> : null}
     </View>
   );
 }

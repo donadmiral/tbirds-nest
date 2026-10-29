@@ -2,23 +2,25 @@
 
 /* ══════════════════════════════════════════════════════════════════════════
    Platinum Circles Operations - design tokens
-   Light is the default. [data-theme="dark"] on <html> flips the whole desk.
-   Every value below comes from the operations design, nothing invented.
+   Appearance follows the device unless a light or dark preference is saved.
+   Canvas, surfaces and ink match src/constants/tokens/light.ts and dark.ts.
+   Status text and chart series retain their accessible, distinct colors.
    ══════════════════════════════════════════════════════════════════════════ */
 
 :root,
 [data-theme="light"] {
-  --on: 0, 0, 0;
-  --bg: #FAFAFA;
-  --rail: rgba(255, 255, 255, 0.82);
+  --on: 11, 30, 61;
+  --bg: #FBF9F5;
+  --rail: rgba(251, 249, 245, 0.96);
   --panel: #FFFFFF;
-  --panel-2: #F5F5F5;
-  --topbar: rgba(250, 250, 250, 0.82);
-  --txt: #262626;
-  --txt-strong: #000000;
-  --accent: #000000;
-  --accent-rgb: 0, 0, 0;
-  --accent-2: #404040;
+  --panel-2: #F2EEE7;
+  --topbar: rgba(251, 249, 245, 0.94);
+  --txt: #0B1E3D;
+  --txt-muted: rgba(11, 30, 61, 0.74);
+  --txt-strong: #0B1E3D;
+  --accent: #0B1E3D;
+  --accent-rgb: 11, 30, 61;
+  --accent-2: #263D5C;
   --accent-ink: #FFFFFF;
   --ok: #1A7F4B;
   --ok-rgb: 26, 127, 75;
@@ -31,11 +33,12 @@
   --vio: #3E6B99;
   --vio-rgb: 62, 107, 153;
   --alert: #C4302B;
-  --chip-bg: #EFEFEF;
-  --chip-fg: #262626;
-  --pearl: #8A7A62;
-  --deep: #1A1A1A;
-  --line: rgba(0, 0, 0, 0.10);
+  --alert-ink: #FFFFFF;
+  --chip-bg: #F4F3F1;
+  --chip-fg: #0B1E3D;
+  --pearl: #957239;
+  --deep: #0B1E3D;
+  --line: rgba(11, 30, 61, 0.08);
   --c1: #3B6FD4;
   --c1-rgb: 59, 111, 212;
   --c2: #17976A;
@@ -47,18 +50,19 @@
 }
 
 [data-theme="dark"] {
-  --on: 255, 255, 255;
-  --bg: #000000;
-  --rail: rgba(0, 0, 0, 0.82);
-  --panel: #0B0B0B;
-  --panel-2: #161616;
-  --topbar: rgba(0, 0, 0, 0.82);
-  --txt: #F0F0F0;
-  --txt-strong: #FFFFFF;
-  --accent: #FFFFFF;
-  --accent-rgb: 255, 255, 255;
+  --on: 245, 243, 239;
+  --bg: #0A1220;
+  --rail: rgba(17, 27, 46, 0.94);
+  --panel: #111B2E;
+  --panel-2: #0E1626;
+  --topbar: rgba(17, 27, 46, 0.94);
+  --txt: #F5F3EF;
+  --txt-muted: rgba(245, 243, 239, 0.74);
+  --txt-strong: #F5F3EF;
+  --accent: #F5F3EF;
+  --accent-rgb: 245, 243, 239;
   --accent-2: #D4D4D4;
-  --accent-ink: #000000;
+  --accent-ink: #0B1E3D;
   --ok: #4CC38A;
   --ok-rgb: 76, 195, 138;
   --bad: #F1707B;
@@ -70,11 +74,12 @@
   --vio: #7EA6D9;
   --vio-rgb: 126, 166, 217;
   --alert: #F1707B;
-  --chip-bg: #1F1F1F;
-  --chip-fg: #F0F0F0;
+  --alert-ink: #000000;
+  --chip-bg: #0E1626;
+  --chip-fg: #F5F3EF;
   --pearl: #C9BFB0;
-  --deep: #262626;
-  --line: rgba(255, 255, 255, 0.10);
+  --deep: #0E1626;
+  --line: rgba(245, 243, 239, 0.10);
   --c1: #6E9BEE;
   --c1-rgb: 110, 155, 238;
   --c2: #4FBE93;
@@ -84,6 +89,50 @@
   --c6: #46B4C4;
   color-scheme: dark;
 }
+
+@media (prefers-color-scheme: dark) {
+:root[data-theme="system"] {
+  --on: 245, 243, 239;
+  --bg: #0A1220;
+  --rail: rgba(17, 27, 46, 0.94);
+  --panel: #111B2E;
+  --panel-2: #0E1626;
+  --topbar: rgba(17, 27, 46, 0.94);
+  --txt: #F5F3EF;
+  --txt-muted: rgba(245, 243, 239, 0.74);
+  --txt-strong: #F5F3EF;
+  --accent: #F5F3EF;
+  --accent-rgb: 245, 243, 239;
+  --accent-2: #D4D4D4;
+  --accent-ink: #0B1E3D;
+  --ok: #4CC38A;
+  --ok-rgb: 76, 195, 138;
+  --bad: #F1707B;
+  --bad-rgb: 241, 112, 123;
+  --warn: #E3B341;
+  --warn-rgb: 227, 179, 65;
+  --info: #7EA6D9;
+  --info-rgb: 126, 166, 217;
+  --vio: #7EA6D9;
+  --vio-rgb: 126, 166, 217;
+  --alert: #F1707B;
+  --alert-ink: #000000;
+  --chip-bg: #0E1626;
+  --chip-fg: #F5F3EF;
+  --pearl: #C9BFB0;
+  --deep: #0E1626;
+  --line: rgba(245, 243, 239, 0.10);
+  --c1: #6E9BEE;
+  --c1-rgb: 110, 155, 238;
+  --c2: #4FBE93;
+  --c3: #E8A93C;
+  --c4: #9B85E8;
+  --c5: #E8756C;
+  --c6: #46B4C4;
+  color-scheme: dark;
+}
+}
+
 
 /* ── base ───────────────────────────────────────────────────────────────── */
 
@@ -186,16 +235,16 @@ body {
 .text-\[\#26282E\] { color: var(--txt); }
 .text-\[\#43454B\] { color: var(--txt); }
 .text-\[\#5A5D64\] { color: rgba(var(--on),0.62); }
-.text-\[\#5B6470\] { color: rgba(var(--on),0.55); }
-.text-\[\#7A7D84\] { color: rgba(var(--on),0.55); }
-.text-\[\#9A9DA4\] { color: rgba(var(--on),0.42); }
+.text-\[\#5B6470\] { color: var(--txt-muted); }
+.text-\[\#7A7D84\] { color: var(--txt-muted); }
+.text-\[\#9A9DA4\] { color: var(--txt-muted); }
 .text-\[\#B03A3A\] { color: var(--bad); }
 .text-\[\#B08D3F\] { color: var(--warn); }
 .text-\[\#B45309\] { color: var(--warn); }
-.text-\[\#B4B6BB\] { color: rgba(var(--on),0.36); }
-.text-\[\#C6C8CC\] { color: rgba(var(--on),0.28); }
-.text-\[\#C9CBD1\] { color: rgba(var(--on),0.30); }
-.text-\[\#D7DBE0\] { color: rgba(var(--on),0.26); }
+.text-\[\#B4B6BB\] { color: var(--txt-muted); }
+.text-\[\#C6C8CC\] { color: var(--txt-muted); }
+.text-\[\#C9CBD1\] { color: var(--txt-muted); }
+.text-\[\#D7DBE0\] { color: #D7DBE0; }
 .text-\[\#E7C878\] { color: var(--accent); }
 .focus-within\:border-\[\#B9BCC2\]:focus-within { border-color: rgba(var(--accent-rgb),0.30); }
 .focus\:border-\[\#0B1E3D\]:focus { border-color: var(--accent); }
@@ -210,7 +259,7 @@ body {
 .hover\:border-\[\#D6D4CE\]:hover { border-color: rgba(var(--on),0.18); }
 .hover\:text-\[\#17181C\]:hover { color: var(--txt); }
 .hover\:text-\[\#B03A3A\]:hover { color: var(--bad); }
-.placeholder\:text-\[\#A9ABB1\]::placeholder { color: rgba(var(--on),0.34); }
+.placeholder\:text-\[\#A9ABB1\]::placeholder { color: var(--txt-muted); }
 
 [fill="#5A5D64"] { fill: rgba(var(--on),0.62); }
 [stroke="#9A9DA4"] { stroke: rgba(var(--on),0.42); }
@@ -252,4 +301,109 @@ body {
   body { background: #fff !important; }
   .pc-slide { page-break-after: always; break-after: page; border: none !important; box-shadow: none !important; margin: 0 !important; border-radius: 0 !important; }
   .pc-deck { display: block !important; }
+}
+
+/* Readable controls and accessible interaction across every desk. */
+:where(button, a, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--info) !important;
+  outline-offset: 3px;
+}
+input::placeholder, textarea::placeholder { color: var(--txt-muted); opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  header, aside { background: var(--panel) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+}
+@media (pointer: coarse) { .pc-seg { min-width: 44px; min-height: 44px; } }
+[data-theme="dark"] .pc-wordmark { filter: invert(1); }
+@media (prefers-color-scheme: dark) { [data-theme="system"] .pc-wordmark { filter: invert(1); } }
+
+
+/* Flexible chrome keeps every desk reachable on phones, tablets and zoomed
+   desktop windows. Wide data tables scroll within their existing containers. */
+.pc-topbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  min-height: 58px;
+  padding: 10px max(22px, env(safe-area-inset-right)) 10px 22px;
+}
+.pc-breadcrumb { min-width: 0; flex-wrap: wrap; overflow-wrap: anywhere; }
+.pc-topbar-actions { margin-left: auto; display: flex; align-items: center; flex-wrap: wrap; gap: 9px; min-width: 0; }
+.pc-staff-chip { min-width: 0; max-width: 100%; }
+.pc-staff-chip > :not(.pc-staff-name) { flex-shrink: 0; }
+.pc-staff-name { min-width: 0; max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pc-workspace { padding: 22px max(22px, env(safe-area-inset-right)) 30px 22px; }
+.pc-page-heading { display: flex; align-items: flex-start; gap: 18px; margin: 4px 0 25px; }
+.pc-page-kicker { margin: 0 0 8px; color: var(--pearl); font-size: 10px; line-height: 1.5; font-weight: 700; letter-spacing: .19em; text-transform: uppercase; }
+.pc-page-title { margin: 0; color: var(--txt-strong); font-family: Georgia, 'Times New Roman', serif; font-size: clamp(29px, 3vw, 38px); font-weight: 400; line-height: 1.16; letter-spacing: -.035em; text-wrap: balance; }
+.pc-page-subtitle { max-width: 680px; margin: 9px 0 0; color: var(--txt-muted); font-size: 13px; line-height: 1.65; text-wrap: pretty; }
+.pc-desk-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-items: start; }
+.pc-desk-tab { min-height: 48px; }
+.pc-desk-toolbar .pc-search { min-height: 42px; border-radius: 14px !important; background: var(--panel-2) !important; }
+.pc-desk-toolbar input { font-size: 13px !important; }
+.pc-desk-toolbar select { min-height: 42px; border-radius: 12px !important; font-size: 12px !important; }
+.pc-desk-grid .pc-icon-btn { min-width: 44px; min-height: 40px; }
+.pc-desk-grid [role="columnheader"] { min-height: 42px; display: flex; align-items: center; letter-spacing: .04em; }
+.pc-desk-grid [role="gridcell"] { min-height: 64px; }
+.pc-media-review-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr)); gap: 14px; padding: 16px; }
+.pc-media-review-card { min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 15px; background: var(--panel); cursor: pointer; transition: border-color 140ms, box-shadow 140ms; }
+.pc-media-review-card:hover { border-color: var(--pearl); }
+.pc-media-review-card[data-selected="true"] { border-color: var(--pearl); box-shadow: 0 0 0 2px color-mix(in srgb, var(--pearl) 18%, transparent); }
+.pc-media-review-cover { position: relative; aspect-ratio: 4 / 5; overflow: hidden; background: var(--panel-2); }
+.pc-media-review-cover > img, .pc-media-review-cover > video, .pc-media-review-cover > button { width: 100%; height: 100%; }
+.pc-media-kind { position: absolute; bottom: 9px; left: 9px; padding: 4px 8px; border-radius: 99px; color: #fff; background: rgba(11,30,61,.72); font-size: 10px; font-weight: 700; pointer-events: none; }
+.pc-media-text-preview { display: flex; height: 100%; flex-direction: column; justify-content: center; padding: 20px; background: linear-gradient(145deg, var(--panel-2), var(--panel)); }
+.pc-media-text-preview > span { color: var(--pearl); font-size: 9px; letter-spacing: .18em; font-weight: 700; text-transform: uppercase; }
+.pc-media-text-preview p { display: -webkit-box; overflow: hidden; -webkit-line-clamp: 7; -webkit-box-orient: vertical; margin: 12px 0 0; font-family: Georgia, 'Times New Roman', serif; color: var(--txt); font-size: 19px; line-height: 1.4; }
+.pc-media-review-open { display: flex; width: 100%; min-height: 100px; flex-direction: column; align-items: stretch; padding: 12px; border: 0; text-align: left; color: var(--txt); background: var(--panel); cursor: pointer; }
+.pc-media-review-open strong { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 12px; font-weight: 650; line-height: 1.5; }
+.pc-media-review-open > span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; margin-top: 4px; font-size: 10.5px; color: var(--txt-muted); }
+.pc-media-review-open small { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 12px; font-size: 10px; font-weight: 650; color: var(--pearl); }
+.pc-media-empty { grid-column: 1 / -1; padding: 34px 18px; text-align: center; font-size: 13px; color: var(--txt-muted); }
+.pc-review-detail { scroll-margin-top: 105px; }
+.pc-media-player-controls { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 6px; background: var(--panel-2); }
+.pc-media-player-controls button, .pc-review-gallery-nav button { min-height: 44px; min-width: 44px; padding: 0 9px; border: 0; border-radius: 10px; background: var(--panel); color: var(--txt); font-size: 11px; cursor: pointer; }
+.pc-media-player-controls button:disabled, .pc-review-gallery-nav button:disabled { opacity: .4; cursor: default; }
+.pc-media-player-controls input { flex: 1; min-width: 50px; width: 50px; accent-color: var(--pearl); }
+.pc-media-player-controls > span { font-size: 9px; color: var(--txt-muted); font-variant-numeric: tabular-nums; }
+.pc-review-gallery-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px; border-top: 1px solid var(--line); }
+.pc-review-gallery-nav > span { font-size: 11px; color: var(--txt-muted); }
+.pc-review-gallery-items { display: flex; overflow-x: auto; gap: 6px; padding: 0 8px 8px; }
+.pc-review-gallery-items button { min-height: 36px; flex-shrink: 0; padding: 0 10px; border-radius: 9px; border: 1px solid var(--line); background: var(--panel); color: var(--txt-muted); font-size: 10px; cursor: pointer; }
+.pc-review-gallery-items button[aria-pressed="true"] { border-color: var(--pearl); color: var(--txt-strong); background: var(--panel-2); }
+.pc-content-insights { display: grid; grid-template-columns: minmax(0,1fr); gap: 18px; }
+.pc-content-insights > div { margin-top: 0 !important; }
+@media (min-width: 900px) { .pc-content-insights { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+@media (min-width: 1280px) { .pc-desk-grid { grid-template-columns: minmax(0, 1fr) 368px; } }
+.pc-rail-backdrop { position: fixed; inset: 0; z-index: 35; border: 0; background: rgba(11, 30, 61, 0.45); }
+.pc-side-rail { padding-bottom: env(safe-area-inset-bottom); }
+@media (max-width: 767px) {
+  .pc-topbar { padding: 10px max(12px, env(safe-area-inset-right)) 10px 12px; }
+  .pc-topbar-actions { margin-left: 0; }
+  .pc-command-trigger { max-width: none !important; flex-basis: 100% !important; }
+  .pc-workspace { padding: 18px max(12px, env(safe-area-inset-right)) 24px 12px; }
+  .pc-page-title { font-size: 28px; }
+  .pc-page-kicker { font-size: 9px; letter-spacing: .12em; }
+  .pc-page-subtitle { font-size: 12.5px; }
+  .pc-rail-spacer { width: 74px !important; flex-basis: 74px !important; }
+  .pc-side-rail[data-ready="false"] { width: 74px !important; overflow: hidden; }
+  .pc-staff-name { max-width: 110px; }
+  .pc-share-popover { left: 0; right: auto !important; width: min(262px, calc(100vw - 98px)) !important; }
+}
+@media (pointer: coarse) {
+  .pc-side-rail nav a, .pc-side-rail .pc-icon-btn, .pc-topbar .pc-icon-btn, .pc-command-trigger { min-width: 44px; min-height: 44px; }
+}
+@media (max-width: 767px) {
+  input:not([type="range"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]), textarea, select {
+    min-height: 44px;
+    min-width: 0;
+    max-width: 100%;
+    font-size: 16px;
+    line-height: 1.4;
+  }
+  .pc-desk-toolbar input, .pc-desk-toolbar select { font-size: 16px !important; min-height: 44px; }
+  .pc-desk-toolbar .pc-search { min-height: 48px; }
 }

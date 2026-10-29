@@ -1,0 +1,109 @@
+{
+  "project": "uaulhuelcfkjwojtymmw",
+  "environment": "isolated QA",
+  "base_commit": "d4492015d2bfa42db71a5c3fc68dd15e5f2924c1",
+  "migrations": [
+    {
+      "name": "platinum_marketplace_verified_reviews",
+      "sql_md5": "33026c5a9a5fdd00145d94becdbcf593",
+      "version": "20261025073815",
+      "source": "supabase/migrations/20261025073211_marketplace_verified_reviews.sql",
+      "matches_source": true
+    },
+    {
+      "name": "platinum_single_owner_qa_access",
+      "sql_md5": "b0b174cd6d39bebf37ee0371f8bf0aee",
+      "version": "20261025073820",
+      "source": "supabase/migrations/20261025073213_single_owner_qa_access.sql",
+      "matches_source": true
+    },
+    {
+      "name": "platinum_verification_integrity",
+      "sql_md5": "7ea5497093844518f9b84e881485caa6",
+      "version": "20261025073831",
+      "source": "supabase/migrations/20261025073232_verification_integrity.sql",
+      "matches_source": true
+    },
+    {
+      "name": "platinum_applicant_self_service_quality",
+      "sql_md5": "86c816a03246f04792267bf8a4004e22",
+      "version": "20261025073841",
+      "source": "supabase/migrations/20261025073234_applicant_self_service_quality.sql",
+      "matches_source": true
+    },
+    {
+      "name": "platinum_trending_story_visibility",
+      "sql_md5": "b6f67c6e392f130b62699430717b7d9b",
+      "version": "20261025073851",
+      "source": "supabase/migrations/20261025073235_trending_story_visibility.sql",
+      "matches_source": true
+    }
+  ],
+  "owner_policy": {
+    "enabled": true,
+    "eligible": true,
+    "active_staff": 1
+  },
+  "eligible_active_password_sessions": 3,
+  "production_mutated": false,
+  "browser_check": {
+    "owner_dashboard": "https://admin-web-git-codex-platinum-quality-20261017-intobank.vercel.app/dashboard",
+    "previous_page": "/security",
+    "authenticator_required": false,
+    "authenticated_desks_opened": [
+      "/dashboard",
+      "/market",
+      "/market/reviews",
+      "/queue"
+    ],
+    "web_landing": "https://platinum-web-git-codex-platinum-quality-20261017-intobank.vercel.app/login",
+    "web_authenticated_scenario_run": false,
+    "screenshot": "docs/quality/qa-owner-dashboard-20261025.jpg",
+    "console_observation": "Sampled errors were browser-extension metadata errors; no application error appeared in the sampled entries."
+  },
+  "source_commit": "56fda23eac087040f8a168a59887d8c6cd8a7ddf",
+  "source_tree": "d0d26aff6a7dc7b6a9ab9dd8efd1bf443421eead",
+  "database_owner_checks": {
+    "verification_role": "super_admin",
+    "marketplace_role": "super_admin",
+    "finance_snapshot_type": "object"
+  },
+  "vercel_status_source": "GitHub commit statuses; Vercel connector lacks team scope access",
+  "vercel_builds": [
+    {
+      "project": "tbirds-nest",
+      "state": "success",
+      "url": "https://vercel.com/donadmirals-projects/tbirds-nest/AytXC38gPS1A6Jdk2vf8B2rCcyrQ"
+    },
+    {
+      "project": "platinum-admin",
+      "state": "success",
+      "url": "https://vercel.com/donadmirals-projects/platinum-admin/G7DhCAUB4fGmbMmvtAt1tPYY7MaU"
+    },
+    {
+      "project": "admin-web",
+      "state": "success",
+      "url": "https://vercel.com/intobank/admin-web/AkLpTkbX5NxwnwA7BJMr8unkswqU"
+    },
+    {
+      "project": "platinum-web",
+      "state": "success",
+      "url": "https://vercel.com/intobank/platinum-web/5BrepdwMNjsPanH62PfEneaYbQqz"
+    }
+  ],
+  "native_build": {
+    "new_installable_binary_produced": false,
+    "eas_cli_installed": false,
+    "expo_token_available": false,
+    "note": "Source and TypeScript/tests verified; a new QA binary must be built and installed for device acceptance."
+  },
+  "github_checks": {
+    "run_id": 40173606034,
+    "commit": "56fda23eac087040f8a168a59887d8c6cd8a7ddf",
+    "jobs": {
+      "Phone app": "success",
+      "Web app": "success",
+      "Operations app": "success"
+    }
+  }
+}

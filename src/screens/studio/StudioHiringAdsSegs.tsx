@@ -1,3 +1,4 @@
+import { applicationCvUrl } from '../../services/applicationCvService';
 // src/screens/studio/StudioHiringAdsSegs.tsx
 // Phone Studio Recruiter and Ads desks. Same RPC contracts as the web pages:
 // studio_jobs / studio_applicants / studio_set_stage / studio_set_tags /
@@ -5,8 +6,8 @@
 // studio_campaigns / studio_save_campaign / studio_submit_campaign /
 // studio_set_campaign_status / studio_add_ad / studio_remove_ad /
 // studio_my_posts_for_ads. Keyboard-safe, safe-area-aware, tab bar cleared.
-import { themedSheet } from '../../theme/useTheme';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ScrollView, ActivityIndicator, Modal, Alert, KeyboardAvoidingView, Platform, RefreshControl, Linking } from 'react-native';
 import { useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
@@ -48,19 +49,19 @@ function campaignColor(st: string) {
 
 function Avatar({ uri, name, size = 38 }: { uri?: string | null; name?: string | null; size?: number }) {
   if (uri) return <ExpoImage source={{ uri }} style={{ width: size, height: size, borderRadius: size / 2 }} contentFit="cover" />;
-  return <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#FFF', fontWeight: '700' }}>{(name || '?').trim()[0]?.toUpperCase() || '?'}</Text></View>;
+  return <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: getTheme().brand.base, alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: getTheme().ink.inverse, fontWeight: '700' }}>{(name || '?').trim()[0]?.toUpperCase() || '?'}</Text></View>;
 }
 function BackRow({ title, label, onBack, right, sub }: { title: string; label: string; onBack: () => void; right?: React.ReactNode; sub?: string }) {
   return (
     <>
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingTop: 12 }}>
       <TouchableOpacity onPress={onBack} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-        <Feather name="chevron-left" size={20} color={NAVY} /><Text style={{ fontSize: 14, fontWeight: '700', color: NAVY }}>{label}</Text>
+        <Feather name="chevron-left" size={20} color={getTheme().ink.primary} /><Text style={{ fontSize: 14, fontWeight: '700', color: getTheme().ink.primary }}>{label}</Text>
       </TouchableOpacity>
       <Text style={[s.h1, { marginLeft: 6, flex: 1 }]} numberOfLines={1}>{title}</Text>
       {right}
     </View>
-    {sub ? <Text style={{ fontSize: 12.5, color: '#8E8E93', paddingHorizontal: 16, marginTop: 4, lineHeight: 17 }}>{sub}</Text> : null}
+    {sub ? <Text style={{ fontSize: 12.5, color: getTheme().ink.secondary, paddingHorizontal: 16, marginTop: 4, lineHeight: 17 }}>{sub}</Text> : null}
     </>
   );
 }
@@ -68,11 +69,11 @@ function Sheet({ visible, title, onClose, onSave, saveLabel, busy, canSave, chil
   const insets = useSafeAreaInsets();
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: '#FFF' }}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: getTheme().surface.canvas }}>
         <View style={[s.modalHeader, { paddingTop: Platform.OS === 'ios' ? 14 : insets.top + 8 }]}>
-          <TouchableOpacity onPress={onClose} style={{ width: 70 }}><Text style={{ fontSize: 16, color: '#8E8E93' }}>Cancel</Text></TouchableOpacity>
+          <TouchableOpacity onPress={onClose} style={{ width: 70 }}><Text style={{ fontSize: 16, color: getTheme().ink.secondary }}>Cancel</Text></TouchableOpacity>
           <Text style={s.modalTitle} numberOfLines={1}>{title}</Text>
-          {onSave ? <TouchableOpacity onPress={onSave} disabled={busy || canSave === false} style={{ width: 70, alignItems: 'flex-end' }}><Text style={{ fontSize: 15, fontWeight: '700', color: NAVY, opacity: busy || canSave === false ? 0.4 : 1 }}>{saveLabel || 'Save'}</Text></TouchableOpacity> : <View style={{ width: 70 }} />}
+          {onSave ? <TouchableOpacity onPress={onSave} disabled={busy || canSave === false} style={{ width: 70, alignItems: 'flex-end' }}><Text style={{ fontSize: 15, fontWeight: '700', color: getTheme().ink.primary, opacity: busy || canSave === false ? 0.4 : 1 }}>{saveLabel || 'Save'}</Text></TouchableOpacity> : <View style={{ width: 70 }} />}
         </View>
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 24 }} keyboardShouldPersistTaps="handled">{children}</ScrollView>
       </KeyboardAvoidingView>
@@ -152,7 +153,7 @@ export function RecruiterSeg({ role, navigation, onBack }: { role: string | null
             <TouchableOpacity key={st} style={[s.filterChip, stage === st && s.filterChipOn]} onPress={() => setStage(stage === st ? null : st)}><Text style={[s.filterTxt, stage === st && s.filterTxtOn]}>{st.charAt(0).toUpperCase() + st.slice(1)}{n ? ' · ' + n : ''}</Text></TouchableOpacity>
           ); })}
         </ScrollView>
-        {appsLoading && apps.length === 0 ? <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={NAVY} /></View>
+        {appsLoading && apps.length === 0 ? <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>
         : <FlatList data={shown} keyExtractor={a => a.id} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: TAB_CLEAR }}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await loadApps(job); setRefreshing(false); }} />}
             ListEmptyComponent={<View style={s.card}><Text style={s.cardMuted}>{stage ? 'Nobody at this stage.' : 'No applications yet.'}</Text></View>}
@@ -165,9 +166,9 @@ export function RecruiterSeg({ role, navigation, onBack }: { role: string | null
                     <Text style={[s.statusPill, { color: stageColor(a.status) }]}>{a.status.toUpperCase()}</Text>
                   </View>
                   <Text style={s.cardMeta} numberOfLines={1}>Applied {whenLabel(a.applied_at)}{a.location ? ' · ' + a.location : ''}{a.interview_at ? ' · interview ' + whenLabel(a.interview_at) : ''}</Text>
-                  {a.tags.length ? <Text style={[s.cardMeta, { color: NAVY }]} numberOfLines={1}>{a.tags.join(' · ')}</Text> : null}
+                  {a.tags.length ? <Text style={[s.cardMeta, { color: getTheme().ink.primary }]} numberOfLines={1}>{a.tags.join(' · ')}</Text> : null}
                 </View>
-                <Feather name="chevron-right" size={16} color="#8E8E93" />
+                <Feather name="chevron-right" size={16} color={getTheme().ink.secondary} />
               </TouchableOpacity>
             )}
           />}
@@ -183,31 +184,31 @@ export function RecruiterSeg({ role, navigation, onBack }: { role: string | null
                 </View>
               </View>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 14 }}>
-                <TouchableOpacity style={s.toolChip} onPress={() => moveStage(sel)} disabled={busy}><Feather name="arrow-right-circle" size={14} color={NAVY} /><Text style={s.toolTxt}>Move stage</Text></TouchableOpacity>
-                <TouchableOpacity style={s.toolChip} onPress={() => navigation.navigate('UserProfile', { userId: sel.applicant_id })}><Feather name="user" size={14} color={NAVY} /><Text style={s.toolTxt}>Profile</Text></TouchableOpacity>
-                {sel.cv_url ? <TouchableOpacity style={s.toolChip} onPress={() => Linking.openURL(sel.cv_url!)}><Feather name="file-text" size={14} color={NAVY} /><Text style={s.toolTxt}>{sel.cv_name || 'CV'}</Text></TouchableOpacity> : null}
-                {sel.portfolio_url ? <TouchableOpacity style={s.toolChip} onPress={() => Linking.openURL(sel.portfolio_url!)}><Feather name="link" size={14} color={NAVY} /><Text style={s.toolTxt}>Portfolio</Text></TouchableOpacity> : null}
-                {sel.phone ? <TouchableOpacity style={s.toolChip} onPress={() => Linking.openURL('tel:' + sel.phone)}><Feather name="phone" size={14} color={NAVY} /><Text style={s.toolTxt}>{sel.phone}</Text></TouchableOpacity> : null}
+                <TouchableOpacity style={s.toolChip} onPress={() => moveStage(sel)} disabled={busy}><Feather name="arrow-right-circle" size={14} color={getTheme().ink.primary} /><Text style={s.toolTxt}>Move stage</Text></TouchableOpacity>
+                <TouchableOpacity style={s.toolChip} onPress={() => navigation.navigate('UserProfile', { userId: sel.applicant_id })}><Feather name="user" size={14} color={getTheme().ink.primary} /><Text style={s.toolTxt}>Profile</Text></TouchableOpacity>
+                {sel.cv_url ? <TouchableOpacity style={s.toolChip} onPress={() => applicationCvUrl(sel.cv_url!, sel.cv_name).then(url => Linking.openURL(url)).catch((e) => Alert.alert('Could not open CV', e?.message || 'Please try again.'))}><Feather name="file-text" size={14} color={getTheme().ink.primary} /><Text style={s.toolTxt}>{sel.cv_name || 'CV'}</Text></TouchableOpacity> : null}
+                {sel.portfolio_url ? <TouchableOpacity style={s.toolChip} onPress={() => Linking.openURL(sel.portfolio_url!)}><Feather name="link" size={14} color={getTheme().ink.primary} /><Text style={s.toolTxt}>Portfolio</Text></TouchableOpacity> : null}
+                {sel.phone ? <TouchableOpacity style={s.toolChip} onPress={() => Linking.openURL('tel:' + sel.phone)}><Feather name="phone" size={14} color={getTheme().ink.primary} /><Text style={s.toolTxt}>{sel.phone}</Text></TouchableOpacity> : null}
               </View>
               {sel.cover_note || sel.cover_letter ? <View style={[s.card, { marginTop: 14 }]}><Text style={s.fieldLabel}>Cover note</Text><Text style={s.cardTxt}>{sel.cover_note || sel.cover_letter}</Text></View> : null}
               {sel.bio ? <View style={s.card}><Text style={s.fieldLabel}>Bio</Text><Text style={s.cardTxt}>{sel.bio}</Text></View> : null}
 
               <Text style={s.section}>Interview</Text>
-              <TextInput value={ivAt} onChangeText={setIvAt} placeholder="YYYY-MM-DD HH:mm" placeholderTextColor="#9AA0A6" style={s.input} autoCapitalize="none" autoCorrect={false} />
-              <TextInput value={ivLoc} onChangeText={setIvLoc} placeholder="Location or link" placeholderTextColor="#9AA0A6" style={[s.input, { marginTop: 8 }]} autoCapitalize="none" autoCorrect={false} />
+              <TextInput value={ivAt} onChangeText={setIvAt} placeholder="YYYY-MM-DD HH:mm" placeholderTextColor={getTheme().ink.secondary} style={s.input} autoCapitalize="none" autoCorrect={false} />
+              <TextInput value={ivLoc} onChangeText={setIvLoc} placeholder="Location or link" placeholderTextColor={getTheme().ink.secondary} style={[s.input, { marginTop: 8 }]} autoCapitalize="none" autoCorrect={false} />
               <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
                 <TouchableOpacity style={[s.primaryBtn, { flex: 1, marginTop: 0 }, (busy || !ivAt.trim()) && { opacity: 0.4 }]} disabled={busy || !ivAt.trim()} onPress={() => { const d = parseLocal(ivAt); if (!d) { Alert.alert('Check the date', 'Use YYYY-MM-DD HH:mm'); return; } void act(() => supabase.rpc('studio_schedule_interview', { p_application: sel.id, p_at: d.toISOString(), p_location: ivLoc.trim() || null })); }}><Text style={s.primaryTxt}>Schedule</Text></TouchableOpacity>
                 {sel.interview_at ? <TouchableOpacity style={[s.secondaryBtn, { justifyContent: 'center' }]} disabled={busy} onPress={() => act(() => supabase.rpc('studio_schedule_interview', { p_application: sel.id, p_at: null, p_location: null }))}><Text style={[s.secondaryTxt, { color: '#D64545' }]}>Clear</Text></TouchableOpacity> : null}
               </View>
 
               <Text style={s.section}>Tags</Text>
-              <TextInput value={tagText} onChangeText={setTagText} placeholder="senior, remote, shortlist" placeholderTextColor="#9AA0A6" style={s.input} autoCapitalize="none" onBlur={() => act(() => supabase.rpc('studio_set_tags', { p_application: sel.id, p_tags: tagText.split(',').map(t => t.trim()).filter(Boolean) }))} />
+              <TextInput value={tagText} onChangeText={setTagText} placeholder="senior, remote, shortlist" placeholderTextColor={getTheme().ink.secondary} style={s.input} autoCapitalize="none" onBlur={() => act(() => supabase.rpc('studio_set_tags', { p_application: sel.id, p_tags: tagText.split(',').map(t => t.trim()).filter(Boolean) }))} />
 
               <Text style={s.section}>Team notes</Text>
               {sel.notes.length === 0 ? <Text style={s.cardMuted}>No notes yet.</Text> : sel.notes.map(n => (
                 <View key={n.id} style={s.card}><Text style={s.cardTxt}>{n.body}</Text><Text style={s.cardMeta}>{n.author || 'Team'} · {whenLabel(n.created_at)}</Text></View>
               ))}
-              <TextInput value={note} onChangeText={setNote} placeholder="Add a note for the team" placeholderTextColor="#9AA0A6" multiline style={[s.textArea, { minHeight: 80, marginTop: 6 }]} />
+              <TextInput value={note} onChangeText={setNote} placeholder="Add a note for the team" placeholderTextColor={getTheme().ink.secondary} multiline style={[s.textArea, { minHeight: 80, marginTop: 6 }]} />
               <TouchableOpacity style={[s.primaryBtn, { marginTop: 8 }, (busy || !note.trim()) && { opacity: 0.4 }]} disabled={busy || !note.trim()} onPress={() => act(() => supabase.rpc('studio_add_note', { p_application: sel.id, p_body: note.trim() }), () => setNote(''))}><Text style={s.primaryTxt}>Add note</Text></TouchableOpacity>
             </View>
           ) : null}
@@ -219,7 +220,7 @@ export function RecruiterSeg({ role, navigation, onBack }: { role: string | null
   return (
     <View style={{ flex: 1 }}>
       <BackRow title="Recruiter" sub="Every application moves through one pipeline. Candidates hear from you on offer, hire, rejection and interviews." label="More" onBack={onBack} />
-      {loading ? <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={NAVY} /></View>
+      {loading ? <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>
       : <FlatList data={jobs} keyExtractor={j => j.id} contentContainerStyle={{ padding: 16, paddingBottom: TAB_CLEAR }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await loadJobs(); setRefreshing(false); }} />}
           ListEmptyComponent={<View style={s.card}><Text style={s.cardMuted}>No jobs posted by this business yet. Post one from the Jobs tab and applicants land here.</Text></View>}
@@ -254,6 +255,8 @@ export function AdsSeg({ role, navigation, onBack }: { role: string | null; navi
   const [rows, setRows] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const loadRequest = useRef(0);
   const [open, setOpen] = useState(false);
   const [f, setF] = useState<Form>(emptyForm());
   const [busy, setBusy] = useState(false);
@@ -261,12 +264,24 @@ export function AdsSeg({ role, navigation, onBack }: { role: string | null; navi
   const [picking, setPicking] = useState<Campaign | null>(null);
   const [posts, setPosts] = useState<{ id: string; content: string; thumb: string | null; products: number; likes: number }[]>([]);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try { const { data } = await supabase.rpc('studio_campaigns'); setRows(((data as any[]) || []) as Campaign[]); }
-    finally { setLoading(false); }
+  const load = useCallback(async (silent = false) => {
+    const token = ++loadRequest.current;
+    if (!silent) setLoading(true);
+    setLoadError(false);
+    try {
+      const { data, error } = await supabase.rpc('studio_campaigns');
+      if (error) throw error;
+      if (token === loadRequest.current) setRows(((data as any[]) || []) as Campaign[]);
+    } catch {
+      if (token === loadRequest.current) setLoadError(true);
+    } finally {
+      if (token === loadRequest.current) { setLoading(false); setRefreshing(false); }
+    }
   }, []);
-  useEffect(() => { if (canSee) void load(); else setLoading(false); }, [canSee, load]);
+  useEffect(() => {
+    if (canSee) void load(); else { setLoading(false); setRows([]); }
+    return () => { loadRequest.current += 1; };
+  }, [canSee, load]);
 
   const act = async (fn: () => PromiseLike<any>, then?: () => void) => {
     if (busy) return;
@@ -308,10 +323,11 @@ export function AdsSeg({ role, navigation, onBack }: { role: string | null; navi
 
   return (
     <View style={{ flex: 1 }}>
-      <BackRow title="Ads" sub="Campaigns with an objective, budget and schedule. Ads inside them run as Sponsored posts once the campaign is approved and live." label="More" onBack={onBack} right={canSpend ? <TouchableOpacity style={s.plusBtn} onPress={() => { setF(emptyForm()); setOpen(true); }}><Feather name="plus" size={18} color="#FFF" /></TouchableOpacity> : null} />
-      {loading ? <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={NAVY} /></View>
-      : <FlatList data={rows} keyExtractor={c => c.id} contentContainerStyle={{ padding: 16, paddingBottom: TAB_CLEAR }}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false); }} />}
+      <BackRow title="Ads" sub="Campaigns with an objective, budget and schedule. Ads inside them run as Sponsored posts once the campaign is approved and live." label="More" onBack={onBack} right={canSpend ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Create campaign" style={s.plusBtn} onPress={() => { setF(emptyForm()); setOpen(true); }}><Feather name="plus" size={18} color={getTheme().ink.inverse} /></TouchableOpacity> : null} />
+      {loadError ? <TouchableOpacity accessibilityRole="button" onPress={() => void load(true)} style={[s.card, { margin: 16, minHeight: 48 }]}><Text style={s.cardTxt}>Could not refresh campaigns. Tap to retry.</Text>{rows.length ? <Text style={s.cardMuted}>Showing the last loaded campaigns.</Text> : null}</TouchableOpacity> : null}
+      {loading ? <View style={[s.center, { flex: 1 }]}><ActivityIndicator color={getTheme().ink.primary} /></View>
+      : loadError && !rows.length ? null : <FlatList data={rows} keyExtractor={c => c.id} contentContainerStyle={{ padding: 16, paddingBottom: TAB_CLEAR }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load(true); setRefreshing(false); }} />}
           ListHeaderComponent={
             <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
               {[['Live', totals.live], ['Views', totals.imp], ['Clicks', totals.clk]].map(([l, n]) => (
@@ -334,13 +350,13 @@ export function AdsSeg({ role, navigation, onBack }: { role: string | null; navi
               ) : null}
               {expanded === c.id ? c.ads.map(a => (
                 <View key={a.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 8 }}>
-                  {a.thumb ? <ExpoImage source={{ uri: a.thumb }} style={s.thumbSm} contentFit="cover" /> : <View style={[s.thumbSm, { backgroundColor: '#E5E5EA' }]} />}
+                  {a.thumb ? <ExpoImage source={{ uri: a.thumb }} style={s.thumbSm} contentFit="cover" /> : <View style={[s.thumbSm, { backgroundColor: getTheme().surface.raised }]} />}
                   <View style={{ flex: 1 }}>
                     <Text style={s.cardTxt} numberOfLines={2}>{a.content || 'Post'}</Text>
                     <Text style={s.cardMeta}>{a.label} · {a.status} · {Number(a.impressions).toLocaleString()} views · {Number(a.clicks).toLocaleString()} clicks</Text>
                   </View>
-                  <TouchableOpacity onPress={() => navigation.navigate('Post', { postId: a.post_id })} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="external-link" size={16} color="#8E8E93" /></TouchableOpacity>
-                  {c.status !== 'ended' ? <TouchableOpacity onPress={() => removeAd(a)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="x" size={16} color="#8E8E93" /></TouchableOpacity> : null}
+                  <TouchableOpacity onPress={() => navigation.navigate('Post', { postId: a.post_id })} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="external-link" size={16} color={getTheme().ink.secondary} /></TouchableOpacity>
+                  {c.status !== 'ended' ? <TouchableOpacity onPress={() => removeAd(a)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="x" size={16} color={getTheme().ink.secondary} /></TouchableOpacity> : null}
                 </View>
               )) : null}
             </TouchableOpacity>
@@ -349,7 +365,7 @@ export function AdsSeg({ role, navigation, onBack }: { role: string | null; navi
 
       <Sheet visible={open} title={f.id ? 'Edit campaign' : 'New campaign'} onClose={() => setOpen(false)} onSave={save} busy={busy} canSave={!!f.name.trim()}>
         <Text style={s.fieldLabel}>Name</Text>
-        <TextInput value={f.name} onChangeText={v => setF({ ...f, name: v })} placeholder="Spring launch" placeholderTextColor="#9AA0A6" style={s.input} />
+        <TextInput value={f.name} onChangeText={v => setF({ ...f, name: v })} placeholder="Spring launch" placeholderTextColor={getTheme().ink.secondary} style={s.input} />
         <Text style={[s.fieldLabel, { marginTop: 14 }]}>Objective</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
           {OBJECTIVES.map(([k, l]) => <TouchableOpacity key={k} style={[s.catChip, f.objective === k && s.catChipOn]} onPress={() => setF({ ...f, objective: k })}><Text style={[s.catTxt, f.objective === k && s.catTxtOn]}>{l}</Text></TouchableOpacity>)}
@@ -357,15 +373,15 @@ export function AdsSeg({ role, navigation, onBack }: { role: string | null; navi
         <Text style={[s.fieldLabel, { marginTop: 14 }]}>Budget</Text>
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <TextInput value={f.currency} onChangeText={v => setF({ ...f, currency: v.toUpperCase().slice(0, 3) })} style={[s.input, { width: 72, textAlign: 'center' }]} autoCapitalize="characters" />
-          <TextInput value={f.budget} onChangeText={v => setF({ ...f, budget: v.replace(/[^0-9.]/g, '') })} placeholder="0" placeholderTextColor="#9AA0A6" keyboardType="decimal-pad" style={[s.input, { flex: 1 }]} />
+          <TextInput value={f.budget} onChangeText={v => setF({ ...f, budget: v.replace(/[^0-9.]/g, '') })} placeholder="0" placeholderTextColor={getTheme().ink.secondary} keyboardType="decimal-pad" style={[s.input, { flex: 1 }]} />
         </View>
         <Text style={[s.fieldLabel, { marginTop: 14 }]}>Paid with</Text>
         <View style={{ flexDirection: 'row', gap: 8 }}>
           {METHODS.map(([k, l]) => <TouchableOpacity key={k} style={[s.catChip, { flex: 1, alignItems: 'center' }, f.payment_method === k && s.catChipOn]} onPress={() => setF({ ...f, payment_method: k })}><Text style={[s.catTxt, f.payment_method === k && s.catTxtOn]}>{l}</Text></TouchableOpacity>)}
         </View>
         <Text style={[s.fieldLabel, { marginTop: 14 }]}>Schedule</Text>
-        <TextInput value={f.starts_at} onChangeText={v => setF({ ...f, starts_at: v })} placeholder="Start YYYY-MM-DD HH:mm" placeholderTextColor="#9AA0A6" style={s.input} autoCapitalize="none" autoCorrect={false} />
-        <TextInput value={f.ends_at} onChangeText={v => setF({ ...f, ends_at: v })} placeholder="End YYYY-MM-DD HH:mm" placeholderTextColor="#9AA0A6" style={[s.input, { marginTop: 8 }]} autoCapitalize="none" autoCorrect={false} />
+        <TextInput value={f.starts_at} onChangeText={v => setF({ ...f, starts_at: v })} placeholder="Start YYYY-MM-DD HH:mm" placeholderTextColor={getTheme().ink.secondary} style={s.input} autoCapitalize="none" autoCorrect={false} />
+        <TextInput value={f.ends_at} onChangeText={v => setF({ ...f, ends_at: v })} placeholder="End YYYY-MM-DD HH:mm" placeholderTextColor={getTheme().ink.secondary} style={[s.input, { marginTop: 8 }]} autoCapitalize="none" autoCorrect={false} />
         <Text style={[s.cardMuted, { marginTop: 12 }]}>Add ads after saving. Submit for review once the campaign has a budget, a payment method and at least one ad.</Text>
       </Sheet>
 
@@ -374,12 +390,12 @@ export function AdsSeg({ role, navigation, onBack }: { role: string | null; navi
           const already = !!picking?.ads.some(a => a.post_id === p.id);
           return (
             <TouchableOpacity key={p.id} style={[s.card, { flexDirection: 'row', alignItems: 'center', gap: 10 }, already && { opacity: 0.45 }]} disabled={already || busy} onPress={() => picking && addAd(picking, p.id)}>
-              {p.thumb ? <ExpoImage source={{ uri: p.thumb }} style={s.thumbSm} contentFit="cover" /> : <View style={[s.thumbSm, { backgroundColor: '#E5E5EA' }]} />}
+              {p.thumb ? <ExpoImage source={{ uri: p.thumb }} style={s.thumbSm} contentFit="cover" /> : <View style={[s.thumbSm, { backgroundColor: getTheme().surface.raised }]} />}
               <View style={{ flex: 1 }}>
                 <Text style={s.cardTxt} numberOfLines={2}>{p.content || 'Post'}</Text>
                 <Text style={s.cardMeta}>{p.likes} likes{p.products ? ' · ' + p.products + ' product' + (p.products === 1 ? '' : 's') : ''}{already ? ' · already in campaign' : ''}</Text>
               </View>
-              {!already ? <Feather name="plus-circle" size={18} color={NAVY} /> : null}
+              {!already ? <Feather name="plus-circle" size={18} color={getTheme().ink.primary} /> : null}
             </TouchableOpacity>
           );
         })}
@@ -390,36 +406,36 @@ export function AdsSeg({ role, navigation, onBack }: { role: string | null; navi
 
 const s = themedSheet((t) => ({
   center: { alignItems: 'center', justifyContent: 'center', gap: 8 },
-  h1: { fontSize: 20, fontWeight: '800', color: '#0F1419' },
-  section: { fontSize: 11.5, fontWeight: '800', color: '#8E8E93', textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 18, marginBottom: 8 },
-  card: { backgroundColor: '#F8F9FB', borderRadius: 14, padding: 12, marginBottom: 8 },
-  cardTxt: { fontSize: 14, color: '#0F1419', lineHeight: 19 },
-  cardMuted: { fontSize: 13, color: '#8E8E93', lineHeight: 18 },
-  cardMeta: { fontSize: 11.5, color: '#8E8E93', marginTop: 3 },
-  statLabel: { fontSize: 11.5, color: '#8E8E93' },
-  statNum: { fontSize: 22, fontWeight: '800', color: '#0F1419', marginTop: 2 },
-  filterChip: { paddingHorizontal: 13, paddingVertical: 7, borderRadius: 999, backgroundColor: '#F2F2F7' },
-  filterChipOn: { backgroundColor: NAVY },
-  filterTxt: { fontSize: 12.5, fontWeight: '700', color: '#5B6B84' },
+  h1: { fontSize: 20, fontWeight: '800', color: t.ink.primary },
+  section: { fontSize: 11.5, fontWeight: '800', color: t.ink.secondary, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: 18, marginBottom: 8 },
+  card: { backgroundColor: t.surface.raised, borderRadius: 14, padding: 12, marginBottom: 8 },
+  cardTxt: { fontSize: 14, color: t.ink.primary, lineHeight: 19 },
+  cardMuted: { fontSize: 13, color: t.ink.secondary, lineHeight: 18 },
+  cardMeta: { fontSize: 11.5, color: t.ink.secondary, marginTop: 3 },
+  statLabel: { fontSize: 11.5, color: t.ink.secondary },
+  statNum: { fontSize: 22, fontWeight: '800', color: t.ink.primary, marginTop: 2 },
+  filterChip: { paddingHorizontal: 13, paddingVertical: 7, borderRadius: 999, backgroundColor: t.surface.raised },
+  filterChipOn: { backgroundColor: t.brand.base },
+  filterTxt: { fontSize: 12.5, fontWeight: '700', color: t.ink.secondary },
   filterTxtOn: { color: t.ink.inverse },
-  labelPill: { fontSize: 10.5, fontWeight: '700', color: NAVY, backgroundColor: t.surface.hairline, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2, overflow: 'hidden' },
+  labelPill: { fontSize: 10.5, fontWeight: '700', color: t.ink.primary, backgroundColor: t.surface.hairline, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2, overflow: 'hidden' },
   statusPill: { fontSize: 10.5, fontWeight: '800' },
   thumbSm: { width: 44, height: 44, borderRadius: 8 },
-  plusBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
-  linkTxt: { fontSize: 12.5, fontWeight: '700', color: NAVY },
-  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#E5E5EA' },
-  modalTitle: { fontSize: 16.5, fontWeight: '700', color: '#0F1419', flex: 1, textAlign: 'center' },
-  textArea: { backgroundColor: '#F5F5F5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15.5, color: '#0F1419', minHeight: 110, textAlignVertical: 'top' },
-  input: { backgroundColor: '#F5F5F5', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: '#0F1419' },
-  fieldLabel: { fontSize: 12, fontWeight: '700', color: '#8E8E93', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 },
-  primaryBtn: { marginTop: 16, backgroundColor: NAVY, borderRadius: 12, paddingVertical: 13, paddingHorizontal: 22, alignItems: 'center', justifyContent: 'center' },
+  plusBtn: { width: 48, height: 48, borderRadius: 24, backgroundColor: t.brand.base, alignItems: 'center', justifyContent: 'center' },
+  linkTxt: { fontSize: 12.5, fontWeight: '700', color: t.ink.primary },
+  modalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline },
+  modalTitle: { fontSize: 16.5, fontWeight: '700', color: t.ink.primary, flex: 1, textAlign: 'center' },
+  textArea: { backgroundColor: t.surface.raised, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15.5, color: t.ink.primary, minHeight: 110, textAlignVertical: 'top' },
+  input: { backgroundColor: t.surface.raised, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: t.ink.primary },
+  fieldLabel: { fontSize: 12, fontWeight: '700', color: t.ink.secondary, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 },
+  primaryBtn: { marginTop: 16, backgroundColor: t.brand.base, borderRadius: 12, paddingVertical: 13, paddingHorizontal: 22, alignItems: 'center', justifyContent: 'center' },
   primaryTxt: { color: t.ink.inverse, fontWeight: '700', fontSize: 15 },
-  secondaryBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#F2F2F7', borderRadius: 12, paddingVertical: 13, paddingHorizontal: 16 },
-  secondaryTxt: { color: NAVY, fontWeight: '700', fontSize: 15 },
-  toolChip: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#F2F2F7', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8 },
-  toolTxt: { fontSize: 13, fontWeight: '700', color: NAVY },
-  catChip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: '#F5F5F5', borderWidth: 1, borderColor: '#E5E5EA' },
-  catChipOn: { backgroundColor: NAVY, borderColor: NAVY },
-  catTxt: { fontSize: 12.5, fontWeight: '600', color: '#5B6B84' },
+  secondaryBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: t.surface.raised, borderRadius: 12, paddingVertical: 13, paddingHorizontal: 16 },
+  secondaryTxt: { color: t.ink.primary, fontWeight: '700', fontSize: 15 },
+  toolChip: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: t.surface.raised, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8 },
+  toolTxt: { fontSize: 13, fontWeight: '700', color: t.ink.primary },
+  catChip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999, backgroundColor: t.surface.raised, borderWidth: 1, borderColor: t.surface.hairline },
+  catChipOn: { backgroundColor: t.brand.base, borderColor: t.ink.primary },
+  catTxt: { fontSize: 12.5, fontWeight: '600', color: t.ink.secondary },
   catTxtOn: { color: t.ink.inverse },
 }));

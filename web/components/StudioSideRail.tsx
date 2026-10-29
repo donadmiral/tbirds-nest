@@ -8,7 +8,7 @@
  * for a table that has not been built. And a panel with nothing to say hides
  * itself, so a quiet week produces a short rail rather than a column of zeroes.
  */
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   BarChart3,
@@ -20,6 +20,7 @@ import {
   Star,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { StudioLoadError } from "@/app/studio/LoadError";
 import { studioHome, type StudioHome } from "@/lib/studio";
 import { Panel } from "@/components/ui";
 
@@ -37,15 +38,21 @@ export function StudioSideRail({ role, username }: { role: string | null; userna
   const [home, setHome] = useState<StudioHome | null>(null);
   const [reviews, setReviews] = useState<{ n: number; avg: number } | null>(null);
 
-  useEffect(() => {
-    (async () => {
-      setHome(await studioHome());
-      // studio_reviews returns a summary object, not a list of rows.
-      const { data } = await supabase.rpc("studio_reviews");
-      const d = data as { average?: number; count?: number } | null;
-      if (d && (d.count ?? 0) > 0) setReviews({ n: d.count ?? 0, avg: d.average ?? 0 });
-    })();
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [summary, result] = await Promise.all([studioHome(), supabase.rpc("studio_reviews")]);
+      if (result.error) throw result.error;
+      setHome(summary);
+      const d = result.data as { average?: number; count?: number } | null;
+      setReviews(d && (d.count ?? 0) > 0 ? { n: d.count ?? 0, avg: d.average ?? 0 } : null);
+      setLoadError(null);
+    } catch { setLoadError("Studio summaries could not be refreshed."); }
+    finally { setLoading(false); }
   }, [supabase]);
+  useEffect(() => { void load(); }, [load]);
 
   const todos = home
     ? [
@@ -60,6 +67,7 @@ export function StudioSideRail({ role, username }: { role: string | null; userna
 
   return (
     <>
+      <StudioLoadError message={loadError} retry={() => { void load(); }} busy={loading} />
       {todos.length > 0 ? (
         <Panel title="Needs you">
           <div className="flex flex-col gap-2">
@@ -85,7 +93,7 @@ export function StudioSideRail({ role, username }: { role: string | null; userna
               href={a.href}
               className="-mx-2 flex items-center gap-3 rounded-lg px-2 py-2 text-[13.5px] text-ink transition-colors duration-[140ms] hover:bg-surface"
             >
-              <a.icon size={15} className="shrink-0 text-ink/45" />
+              <a.icon size={15} className="shrink-0 text-muted" />
               <span className="min-w-0 flex-1 truncate">{a.label}</span>
             </Link>
           ))}
@@ -96,8 +104,8 @@ export function StudioSideRail({ role, username }: { role: string | null; userna
         <Panel title="Reviews" action="View all" actionHref="/studio/reviews">
           <div className="flex items-baseline gap-2">
             <span className="font-display text-[26px] leading-none text-porcelain">{reviews.avg.toFixed(1)}</span>
-            <span className="flex items-center gap-1 text-[12.5px] text-ink/45">
-              <Star size={12} className="text-pearl" /> from {reviews.n} {reviews.n === 1 ? "review" : "reviews"}
+            <span className="flex items-center gap-1 text-[12.5px] text-muted">
+              <Star size={12} className="text-accent" /> from {reviews.n} {reviews.n === 1 ? "review" : "reviews"}
             </span>
           </div>
         </Panel>
@@ -105,13 +113,13 @@ export function StudioSideRail({ role, username }: { role: string | null; userna
 
       <Panel title="This workspace">
         <div className="flex items-center justify-between text-[13px]">
-          <span className="text-ink/55">Your role</span>
+          <span className="text-muted">Your role</span>
           <span className="font-semibold capitalize text-ink">{role ?? "member"}</span>
         </div>
         {username ? (
           <div className="mt-2 flex items-center justify-between gap-3 text-[13px]">
-            <span className="shrink-0 text-ink/55">Public page</span>
-            <Link href={"/" + username} className="min-w-0 truncate text-pearl transition-opacity duration-[140ms] hover:opacity-70">
+            <span className="shrink-0 text-muted">Public page</span>
+            <Link href={"/" + username} className="min-w-0 truncate text-accent transition-opacity duration-[140ms] hover:opacity-70">
               @{username}
             </Link>
           </div>

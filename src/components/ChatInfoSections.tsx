@@ -16,6 +16,7 @@ import { themedSheet, getTheme } from '../theme/useTheme';
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Switch, Alert, Image } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { signGroupAvatars } from '../services/chatMediaService';
 import { supabase } from '../services/supabase';
 import { light, typeSize, fontWeight, radius, space } from '../constants/tokens';
 
@@ -75,7 +76,7 @@ export default function ChatInfoSections({
         supabase.rpc('get_groups_in_common', { p_other_id: otherUserId }),
         supabase.from('user_reports').select('id').eq('reported_id', otherUserId).eq('status', 'open').maybeSingle(),
       ]);
-      setGroups((g ?? []) as GroupInCommon[]);
+      setGroups(await signGroupAvatars((g ?? []) as GroupInCommon[]));
       setReported(!!r);
     }
   }, [conversationId, otherUserId, isGroup]);

@@ -8,6 +8,7 @@ import FlashMessage from 'react-native-flash-message';
 import AppNavigator from './src/navigation/AppNavigator';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { useAuthStore } from './src/stores/authStore';
+import { feedSnapshots } from './src/services/feedSnapshot';
 import { useFonts } from 'expo-font';
 import { SpaceGrotesk_500Medium, SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk';
 import { Caveat_600SemiBold } from '@expo-google-fonts/caveat';
@@ -47,7 +48,12 @@ export default function App() {
   });
 
   useEffect(() => {
+    feedSnapshots.setAccount(useAuthStore.getState().session?.user.id ?? null);
+    const stop = useAuthStore.subscribe(state => {
+      feedSnapshots.setAccount(state.session?.user.id ?? null);
+    });
     initialize();
+    return stop;
   }, [initialize]);
 
   return (

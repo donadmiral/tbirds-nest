@@ -28,9 +28,10 @@ try {
   useExpoVideoPlayer = vm.useVideoPlayer;
 } catch {}
 
-function StoryVideoLayer({ uri, fit, muted, volume = 1, speed = 1, trimStart = null, trimEnd = null, onPlayer }: { uri: string; fit: 'cover' | 'contain'; muted: boolean; volume?: number; speed?: number; trimStart?: number | null; trimEnd?: number | null; onPlayer?: (p: any) => void }) {
-  const player = useExpoVideoPlayer(uri, (p: any) => { p.loop = true; p.muted = muted; p.volume = volume; try { p.timeUpdateEventInterval = 0.1; } catch {} try { p.playbackRate = speed; } catch {} p.play(); });
+function StoryVideoLayer({ uri, fit, muted, volume = 1, speed = 1, trimStart = null, trimEnd = null, paused = false, onPlayer }: { uri: string; fit: 'cover' | 'contain'; muted: boolean; volume?: number; speed?: number; trimStart?: number | null; trimEnd?: number | null; paused?: boolean; onPlayer?: (p: any) => void }) {
+  const player = useExpoVideoPlayer(uri, (p: any) => { p.loop = true; p.muted = muted; p.volume = volume; try { p.timeUpdateEventInterval = 0.1; } catch {} try { p.playbackRate = speed; } catch {} if (!paused) p.play(); });
   useEffect(() => { try { (player as any).muted = muted; (player as any).volume = volume; (player as any).playbackRate = speed; } catch {} }, [muted, volume, speed, player]);
+  useEffect(() => { try { if (paused) player.pause(); else player.play(); } catch {} }, [paused, player]);
   useEffect(() => { onPlayer?.(player); return () => { onPlayer?.(null); }; }, [player, onPlayer]);
   // Trim preview: play only the selected window and loop inside it, so the
   // editor shows exactly what the viewer will play. Handle drags seek live.
@@ -41,7 +42,7 @@ function StoryVideoLayer({ uri, fit, muted, volume = 1, speed = 1, trimStart = n
   useEffect(() => { try { const p: any = player; if (tE != null && typeof p?.currentTime === 'number' && p.currentTime > tE) p.currentTime = tS; } catch {} }, [tE, tS, player]);
   useEffect(() => {
     const p: any = player; let sub: any = null;
-    try { sub = p?.addListener?.('timeUpdate', (ev: any) => { const w = winRef.current; const t = typeof ev?.currentTime === 'number' ? ev.currentTime : p.currentTime; if (w.e != null && typeof t === 'number' && t >= w.e - 0.05) { try { p.currentTime = w.s; } catch {} } }); } catch {}
+    try { sub = p?.addListener?.('timeUpdate', (ev: any) => { const w = winRef.current; const t = typeof ev?.currentTime === 'number' ? ev.currentTime : p.currentTime; if (p.playing && w.e != null && typeof t === 'number' && t >= w.e - 0.05) { try { p.currentTime = w.s; } catch {} } }); } catch {}
     return () => { try { sub?.remove?.(); } catch {} };
   }, [player]);
   return <ExpoVideoView pointerEvents="none" style={StyleSheet.absoluteFill} player={player} contentFit={fit} nativeControls={false} />;
@@ -127,11 +128,14 @@ type MediaCanvasProps = {
   bottomInset?: number;
   bg?: StoryBg | null;
   videoMuted?: boolean;
+  videoPaused?: boolean;
   videoVolume?: number;
   videoSpeed?: number;
   trimStart?: number | null;
   trimEnd?: number | null;
   onVideoPlayer?: (p: any) => void;
+  postRotation?: number;
+  postFlipX?: boolean;
 };
 
 export default function MediaCanvas({
@@ -154,11 +158,14 @@ export default function MediaCanvas({
   bottomInset = 0,
   bg = null,
   videoMuted = false,
+  videoPaused = false,
   videoVolume = 1,
   videoSpeed = 1,
   trimStart = null,
   trimEnd = null,
   onVideoPlayer,
+  postRotation = 0,
+  postFlipX = false,
 }: MediaCanvasProps) {
   const gesturesEnabled = interactive && imageW > 0 && imageH > 0;
 
@@ -386,12 +393,14 @@ export default function MediaCanvas({
             { translateX: imgTx },
             { translateY: imgTy },
             { scale: imgScale },
+            { rotate: `${Number.isFinite(postRotation) ? postRotation : 0}deg` },
+            { scaleX: postFlipX ? -1 : 1 },
           ],
         },
       ]}
     >
       {mediaType === 'video' && ExpoVideoView && useExpoVideoPlayer ? (
-        <StoryVideoLayer key={localUri} uri={localUri} fit={resizeMode as any} muted={videoMuted} volume={videoVolume} speed={videoSpeed} trimStart={trimStart} trimEnd={trimEnd} onPlayer={onVideoPlayer} />
+        <StoryVideoLayer key={localUri} uri={localUri} fit={resizeMode as any} muted={videoMuted} paused={videoPaused} volume={videoVolume} speed={videoSpeed} trimStart={trimStart} trimEnd={trimEnd} onPlayer={onVideoPlayer} />
       ) : (
         <Image
           source={{ uri: localUri }}

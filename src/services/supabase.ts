@@ -45,6 +45,14 @@ export const supabase = createClient(url, anonKey, {
     },
     fetch: (input: any, init: any = {}) => {
       const ctrl = new AbortController();
+      const callerSignal = init?.signal ?? input?.signal;
+      // A query can be cancelled while waiting for the SDK's session lock,
+      // before this transport is reached. Do not resurrect that request.
+      if (callerSignal?.aborted) {
+        const error = new Error('The request was cancelled.');
+        error.name = 'AbortError';
+        return Promise.reject(error);
+      }
       const u = String((input as any)?.url ?? input);
       // Auth grants are sacred: aborting a token refresh mid-flight loses
       // the rotated refresh token and the server then rejects the old one -
@@ -52,7 +60,8 @@ export const supabase = createClient(url, anonKey, {
       const ms = u.includes('/storage/v1/') ? 90000 : u.includes('/auth/v1/') ? 60000 : u.includes('/rest/v1/stories') ? 45000 : 15000;
       const timer = setTimeout(() => ctrl.abort(), ms);
       // Listen to BOTH abort sources: the caller's signal and our deadline.
-      if (init?.signal) { try { init.signal.addEventListener('abort', () => ctrl.abort(), { once: true }); } catch {} }
+      const abortFromCaller = () => ctrl.abort();
+      if (callerSignal) { try { callerSignal.addEventListener('abort', abortFromCaller, { once: true }); } catch {} }
       const merged = { ...init, signal: ctrl.signal };
       return fetch(input, merged).then((res) => {
         // error lens folded in - 401 now VISIBLE, only 406 (no-row) excluded
@@ -63,7 +72,10 @@ export const supabase = createClient(url, anonKey, {
           }).catch(() => {});
         }
         return res;
-      }).finally(() => clearTimeout(timer)); /* fetchWithDeadline */
+      }).finally(() => {
+        clearTimeout(timer);
+        if (callerSignal) { try { callerSignal.removeEventListener('abort', abortFromCaller); } catch {} }
+      }); /* fetchWithDeadline */
     },
   },
 });

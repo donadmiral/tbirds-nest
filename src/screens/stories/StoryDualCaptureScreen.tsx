@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/rules-of-hooks -- the component body is wrapped in a try block for a crash guard; hook order is constant inside it. */
 /**
  * StoryDualCaptureScreen.tsx
  * 
@@ -12,7 +11,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useCameraLife } from '../../hooks/useCameraLife';
 import {
   View, Text, StyleSheet, TouchableOpacity, ActivityIndicator,
-  Dimensions, Alert, Animated, Image, Easing,
+  Dimensions, Alert, Animated, Image, Easing, Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from '../../components/SafeArea';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
@@ -28,7 +27,7 @@ const SCREEN_H = Dimensions.get('window').height;
 const BUBBLE_W = 120;
 const BUBBLE_H = 160;
 const BUBBLE_RADIUS = 28;
-const MAX_RETRIES = 8;
+const MAX_RETRIES = 20;
 // Front lens needs time for auto-exposure to meter the face after the flip.
 const FRONT_SETTLE_MS = 350;
 const RETRY_MS = 250;
@@ -43,7 +42,6 @@ type Phase =
   | 'processing';    // preparing asset for composer
 
 export default function StoryDualCaptureScreen() {
-  try {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const insets = useSafeAreaInsets();
@@ -58,7 +56,17 @@ export default function StoryDualCaptureScreen() {
   const [frontPhotoUri, setFrontPhotoUri] = useState<string | null>(null);
   const [mediaMode, setMediaMode] = useState<'photo' | 'video'>('photo');
   const [recording, setRecording] = useState(false);
+  const [captureBusy, setCaptureBusy] = useState(false);
   const [recSeconds, setRecSeconds] = useState(0);
+  const [cameraReady, setCameraReady] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [cameraEpoch, setCameraEpoch] = useState(0);
+  const cameraReadyRef = useRef(false);
+  const captureGeneration = useRef(0);
+  const captureLock = useRef(false);
+  const recordingRef = useRef(false);
+  // The reaction is a still image, even when the rear scene is a video.
+  const cameraMode = facing === 'front' ? 'picture' : mediaMode === 'video' ? 'video' : 'picture';
 
   const cameraRef = useRef<CameraView>(null);
   const cam = useCameraLife();
@@ -84,28 +92,35 @@ export default function StoryDualCaptureScreen() {
 
   // ── LIFECYCLE ──────────────────────────────────────────────
   useEffect(() => {
+    mountedRef.current = true;
     Animated.timing(uiOpacity, { toValue: 1, duration: 400, easing: Easing.out(Easing.ease), useNativeDriver: true }).start();
     return () => {
       mountedRef.current = false;
+      captureGeneration.current++;
       if (timerRef.current) clearTimeout(timerRef.current);
+      if (recTickRef.current) clearInterval(recTickRef.current);
+      try { cameraRef.current?.stopRecording(); } catch {}
     };
   }, []);
 
   useEffect(() => {
-    if (permission && !permission.granted) requestPermission();
+    if (permission && !permission.granted && permission.canAskAgain) void requestPermission();
   }, [permission]);
 
   useEffect(() => {
-    if (mediaMode === 'video' && micPermission && !micPermission.granted) requestMicPermission();
-  }, [mediaMode, micPermission]);
+    cameraReadyRef.current = false;
+    setCameraReady(false);
+    setCameraError(null);
+  }, [facing, cameraMode, cam.active, cam.epoch, cameraEpoch]);
 
   // ── CANCEL (works in ALL phases) ───────────────────────────
   const handleCancel = useCallback(() => {
+    captureGeneration.current++;
     if (timerRef.current) clearTimeout(timerRef.current);
     if (recTickRef.current) clearInterval(recTickRef.current);
     try { cameraRef.current?.stopRecording(); } catch {}
     mountedRef.current = false;
-    if (navigation.canGoBack()) navigation.goBack();
+    if (navigation.canGoBack()) navigation.goBack(); else navigation.navigate('StoryCamera');
   }, [navigation]);
 
   // ── SCREEN FLASH ───────────────────────────────────────────
@@ -116,10 +131,25 @@ export default function StoryDualCaptureScreen() {
 
   // ── REAR CAPTURE ───────────────────────────────────────────
   const captureRear = useCallback(async () => {
-    if (!cameraRef.current || phase !== 'idle') return;
+    if (!cameraRef.current || phase !== 'idle' || !cam.active) return;
+    if (recordingRef.current) { try { cameraRef.current.stopRecording(); } catch {} return; }
+    if (!cameraReadyRef.current || captureLock.current) return;
+    captureLock.current = true; setCaptureBusy(true);
+    const generation = captureGeneration.current;
+    const current = () => mountedRef.current && generation === captureGeneration.current;
 
     if (mediaMode === 'video') {
-      if (recording) { try { cameraRef.current.stopRecording(); } catch {} return; }
+      let microphone;
+      try { microphone = micPermission?.granted ? micPermission : await requestMicPermission(); }
+      catch { if (current()) { captureLock.current = false; setCaptureBusy(false); Alert.alert('Microphone unavailable', 'Try again after allowing microphone access in settings.'); } return; }
+      if (!current()) return;
+      if (!microphone.granted) {
+        captureLock.current = false; setCaptureBusy(false);
+        Alert.alert('Microphone access needed', 'Allow microphone access to record a video with sound.',
+          [{ text: 'Cancel', style: 'cancel' }, { text: 'Open settings', onPress: () => { void Linking.openSettings(); } }]);
+        return;
+      }
+      recordingRef.current = true;
       setRecording(true); setRecSeconds(0);
       recStartRef.current = Date.now();
       if (recTickRef.current) clearInterval(recTickRef.current);
@@ -128,10 +158,11 @@ export default function StoryDualCaptureScreen() {
       try {
         const recordWithRetry = async (attempt: number): Promise<any> => {
           try {
-            return await cameraRef.current!.recordAsync({ maxDuration: 15, codec: 'avc1' });
+            if (!current() || !cameraRef.current) return;
+            return await cameraTask(cameraRef.current.recordAsync({ maxDuration: 15, codec: 'avc1' }), 20000, 'The camera did not finish recording. Try again.');
           } catch (e: any) {
             const msg = String(e?.message || '').toLowerCase();
-            if (msg.includes('not ready') && attempt < 20) {
+            if (current() && msg.includes('not ready') && attempt < 20) {
               await new Promise(r => setTimeout(r, 150));
               return recordWithRetry(attempt + 1);
             }
@@ -139,23 +170,28 @@ export default function StoryDualCaptureScreen() {
           }
         };
         const video = await recordWithRetry(0);
+        if (!current()) return;
         if (recTickRef.current) { clearInterval(recTickRef.current); recTickRef.current = null; }
-        setRecording(false);
-        if (!video?.uri || !mountedRef.current) return;
+        recordingRef.current = false;
+        captureLock.current = false;
+        if (!current()) return;
+        setRecording(false); setCaptureBusy(false);
+        if (!video?.uri) throw new Error('The camera returned no video. Try again.');
         rearDurationRef.current = Math.max(1, Math.min(15, Math.round((Date.now() - recStartRef.current) / 1000)));
         setRearPhotoUri(video.uri);
         rearPhotoUriRef.current = video.uri;
         setPhase('rear_freeze');
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         timerRef.current = setTimeout(() => {
-          if (!mountedRef.current) return;
+          if (!current()) return;
           setCountdown(3);
           setPhase('countdown');
         }, 450);
       } catch (err: any) {
+        if (!current()) return;
         if (recTickRef.current) { clearInterval(recTickRef.current); recTickRef.current = null; }
-        setRecording(false);
-        if (mountedRef.current) Alert.alert('Recording failed', err?.message || 'Could not record video.');
+        recordingRef.current = false; captureLock.current = false;
+        if (current()) { try { cameraRef.current?.stopRecording(); } catch {} cameraReadyRef.current = false; setCameraReady(false); setCameraEpoch(value => value + 1); setRecording(false); setCaptureBusy(false); Alert.alert('Recording failed', err?.message || 'Could not record video.'); }
       }
       return;
     }
@@ -169,11 +205,9 @@ export default function StoryDualCaptureScreen() {
     triggerFlash();
 
     try {
-      const photo = await cameraRef.current.takePictureAsync({ quality: 1 });
-      if (!photo?.uri || !mountedRef.current) {
-        Alert.alert('Capture failed', 'Could not take photo.');
-        return;
-      }
+      const photo = await cameraTask(cameraRef.current.takePictureAsync({ quality: 1 }), 10000, 'The camera did not finish taking the photo. Try again.');
+      if (!current()) return;
+      if (!photo?.uri) throw new Error('Could not take photo.');
 
       setRearPhotoUri(photo.uri);
       rearPhotoUriRef.current = photo.uri;
@@ -193,22 +227,22 @@ export default function StoryDualCaptureScreen() {
 
       // After freeze, transition to countdown
       timerRef.current = setTimeout(() => {
-        if (!mountedRef.current) return;
+        if (!current()) return;
         Animated.timing(freezeOpacity, { toValue: 0, duration: 250, useNativeDriver: true }).start();
         setCountdown(3);
         setPhase('countdown');
       }, 450);
 
     } catch (err: any) {
-      if (mountedRef.current) {
-        Alert.alert('Capture failed', err?.message || 'Could not take photo.');
-      }
-    }
-  }, [phase, mediaMode, recording]);
+      if (current()) { cameraReadyRef.current = false; setCameraReady(false); setCameraEpoch(value => value + 1); Alert.alert('Capture failed', err?.message || 'Could not take photo.'); }
+    } finally { if (current()) { captureLock.current = false; setCaptureBusy(false); } }
+  }, [phase, mediaMode, cam.active, micPermission, requestMicPermission]);
 
   // ── COUNTDOWN ──────────────────────────────────────────────
   useEffect(() => {
     if (phase !== 'countdown') return;
+    const generation = captureGeneration.current;
+    const current = () => mountedRef.current && generation === captureGeneration.current;
 
     if (countdown <= 0) {
       // Countdown complete: flip camera
@@ -220,7 +254,7 @@ export default function StoryDualCaptureScreen() {
       Animated.timing(overlayOpacity, { toValue: 0.6, duration: 200, useNativeDriver: true }).start();
 
       timerRef.current = setTimeout(() => {
-        if (mountedRef.current) {
+        if (current()) {
           Animated.timing(overlayOpacity, { toValue: 0, duration: 300, useNativeDriver: true }).start();
           setPhase('awaiting_front');
         }
@@ -238,10 +272,10 @@ export default function StoryDualCaptureScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
     timerRef.current = setTimeout(() => {
-      if (!mountedRef.current) return;
+      if (!current()) return;
       // Fade out current number before next
       Animated.timing(countdownNumOpacity, { toValue: 0, duration: 200, useNativeDriver: true }).start(() => {
-        if (mountedRef.current) setCountdown(prev => prev - 1);
+        if (current()) setCountdown(prev => prev - 1);
       });
     }, 900);
 
@@ -253,15 +287,19 @@ export default function StoryDualCaptureScreen() {
   useEffect(() => {
     if (phase !== 'awaiting_front') return;
     let retries = 0;
+    const deadline = Date.now() + 10000;
+    let cancelled = false;
+    const generation = captureGeneration.current;
+    const current = () => !cancelled && mountedRef.current && generation === captureGeneration.current;
     frontCapturedRef.current = false;
 
     const attempt = async () => {
       await wait(FRONT_SETTLE_MS);
-      while (retries < MAX_RETRIES && !frontCapturedRef.current && mountedRef.current) {
+      while (Date.now() < deadline && retries < MAX_RETRIES && !frontCapturedRef.current && current()) {
         try {
-          if (cameraRef.current) {
-            const photo = await cameraRef.current.takePictureAsync({ quality: 1 });
-            if (photo?.uri && mountedRef.current && !frontCapturedRef.current) {
+          if (cameraReadyRef.current && cameraRef.current) {
+            const photo = await cameraTask(cameraRef.current.takePictureAsync({ quality: 1 }), 6000, 'The reaction photo could not finish.');
+            if (photo?.uri && current() && !frontCapturedRef.current) {
               frontCapturedRef.current = true;
               triggerFlash();
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
@@ -278,7 +316,7 @@ export default function StoryDualCaptureScreen() {
 
               // Process after memory imprint moment (1200ms to let it breathe)
               timerRef.current = setTimeout(() => {
-                if (mountedRef.current) {
+                if (mountedRef.current && generation === captureGeneration.current) {
                   Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                   processCapture(photo.uri);
                 }
@@ -292,13 +330,14 @@ export default function StoryDualCaptureScreen() {
         retries++;
         await wait(RETRY_MS);
       }
-      if (mountedRef.current && !frontCapturedRef.current) {
-        Alert.alert('Capture failed', 'Front camera did not respond. Please try again.');
+      if (current() && !frontCapturedRef.current) {
+        Alert.alert('Front camera unavailable', 'This device could not capture your reaction. Try again, or use the regular story camera.');
         resetToIdle();
       }
     };
 
-    attempt();
+    void attempt();
+    return () => { cancelled = true; };
   }, [phase]);
 
   // ── PROCESS AND NAVIGATE TO ARRANGEMENT ────────────────────
@@ -306,24 +345,25 @@ export default function StoryDualCaptureScreen() {
     const rearUri = rearPhotoUriRef.current;
     if (!rearUri || !mountedRef.current) return;
     setPhase('processing');
+    const generation = captureGeneration.current;
 
     try {
-      const asset = await prepareDualAsset({
+      const asset = await cameraTask(prepareDualAsset({
         frontPath: frontUri,
         rearPath: rearUri,
         mode: mediaMode,
         layout: DEFAULT_LAYOUT,
         durationSec: mediaMode === 'video' ? rearDurationRef.current : undefined,
-      });
-      if (mountedRef.current) {
+      }), 25000, 'The dual capture took too long to prepare. Please retry.');
+      if (mountedRef.current && generation === captureGeneration.current) {
         if (mediaMode === 'video') {
-          navigation.navigate('StoryComposer', { mode: 'dual', assets: [asset], ...extraParams });
+          navigation.navigate('StoryComposer', { ...extraParams, mode: 'dual', assets: [asset] });
         } else {
           navigation.navigate('MemoryArrangement', { asset, extraParams });
         }
       }
     } catch (err: any) {
-      if (mountedRef.current) {
+      if (mountedRef.current && generation === captureGeneration.current) {
         Alert.alert('Processing failed', err?.message || 'Could not prepare dual capture.');
         resetToIdle();
       }
@@ -332,6 +372,9 @@ export default function StoryDualCaptureScreen() {
 
   // ── RESET ──────────────────────────────────────────────────
   const resetToIdle = useCallback(() => {
+    captureGeneration.current++;
+    captureLock.current = false; recordingRef.current = false; setCaptureBusy(false);
+    if (timerRef.current) { clearTimeout(timerRef.current); timerRef.current = null; }
     setPhase('idle');
     setFacing('back');
     setRecording(false);
@@ -353,10 +396,18 @@ export default function StoryDualCaptureScreen() {
   // Returning to this screen must always show a live camera, never a spent capture.
   useFocusEffect(
     useCallback(() => {
+      mountedRef.current = true;
       resetToIdle();
-      return undefined;
+      return () => {
+        captureGeneration.current++;
+        if (timerRef.current) clearTimeout(timerRef.current);
+        if (recTickRef.current) clearInterval(recTickRef.current);
+        try { cameraRef.current?.stopRecording(); } catch {}
+      };
     }, [resetToIdle])
   );
+
+  useEffect(() => { if (!cam.active) resetToIdle(); }, [cam.active, resetToIdle]);
 
   // ── PERMISSION SCREENS ─────────────────────────────────────
   if (!permission) return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color="#FFFFFF" size="large" /></View>;
@@ -365,8 +416,8 @@ export default function StoryDualCaptureScreen() {
       <View style={s.loading}>
         <Feather name="camera-off" size={40} color="rgba(255,255,255,0.4)" />
         <Text style={s.permTxt}>Camera access is required for dual capture.</Text>
-        <TouchableOpacity style={s.permBtn} onPress={requestPermission} activeOpacity={0.7}>
-          <Text style={s.permBtnTxt}>Grant Access</Text>
+        <TouchableOpacity style={s.permBtn} onPress={() => { if (permission.canAskAgain) void requestPermission(); else void Linking.openSettings(); }} activeOpacity={0.7}>
+          <Text style={s.permBtnTxt}>{permission.canAskAgain ? 'Grant access' : 'Open settings'}</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={handleCancel} style={{ marginTop: 16 }}>
           <Text style={s.permBtnTxt}>Go Back</Text>
@@ -383,7 +434,10 @@ export default function StoryDualCaptureScreen() {
   return (
     <View style={s.root}>
       {/* Live camera preview */}
-      <CameraView key={'dual:' + cam.epoch} active={cam.active} ref={cameraRef} style={StyleSheet.absoluteFill} facing={facing} mode={mediaMode === 'video' ? 'video' : 'picture'} videoQuality="720p" />
+      {cam.active ? <CameraView key={`dual:${cam.epoch}:${cameraEpoch}:${facing}:${cameraMode}`} active ref={cameraRef}
+        style={StyleSheet.absoluteFill} facing={facing} mode={cameraMode} videoQuality="1080p" videoBitrate={8000000}
+        onCameraReady={() => { cameraReadyRef.current = true; setCameraReady(true); setCameraError(null); }}
+        onMountError={() => { cameraReadyRef.current = false; setCameraReady(false); setCameraError('This camera is unavailable. Try again, or return to the regular story camera.'); }} /> : null}
 
       {/* Atmospheric top gradient (always visible, gives depth) */}
       <LinearGradient colors={['rgba(0,0,0,0.4)', 'rgba(0,0,0,0)']} style={s.topGradient} pointerEvents="none" />
@@ -477,36 +531,43 @@ export default function StoryDualCaptureScreen() {
       {/* ── BOTTOM BAR ──────────────────────────────────────── */}
       {isIdle && (
         <Animated.View style={[s.bottomBar, { opacity: uiOpacity, paddingBottom: Math.max(insets.bottom, 20) + 8 }]}>
-          <Text style={s.instructionTxt}>{mediaMode === 'video' ? (recording ? 'Tap to stop' : 'Tap to record the world (max 15s)') : 'Tap to capture the world around you'}</Text>
+          <Text style={s.instructionTxt}>{mediaMode === 'video' ? (recording ? 'Tap to stop' : 'Record the scene, then take a reaction photo') : 'Capture the scene, then take your reaction photo'}</Text>
 
           {!recording && (
             <View style={s.modeRow}>
-              <TouchableOpacity style={[s.modePill, mediaMode === 'photo' && s.modePillActive]} onPress={() => setMediaMode('photo')} activeOpacity={0.8}>
+              <TouchableOpacity style={[s.modePill, mediaMode === 'photo' && s.modePillActive]} disabled={captureBusy} onPress={() => { if (!captureLock.current && mediaMode !== 'photo') { cameraReadyRef.current = false; setCameraReady(false); setMediaMode('photo'); } }} activeOpacity={0.8}>
                 <Text style={[s.modePillTxt, mediaMode === 'photo' && s.modePillTxtActive]}>Photo</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[s.modePill, mediaMode === 'video' && s.modePillActive]} onPress={() => setMediaMode('video')} activeOpacity={0.8}>
+              <TouchableOpacity style={[s.modePill, mediaMode === 'video' && s.modePillActive]} disabled={captureBusy} onPress={() => { if (!captureLock.current && mediaMode !== 'video') { cameraReadyRef.current = false; setCameraReady(false); setMediaMode('video'); } }} activeOpacity={0.8}>
                 <Text style={[s.modePillTxt, mediaMode === 'video' && s.modePillTxtActive]}>Video</Text>
               </TouchableOpacity>
             </View>
           )}
 
           <Animated.View style={{ transform: [{ scale: shutterScale }] }}>
-            <TouchableOpacity style={s.shutter} onPress={captureRear} activeOpacity={0.9}>
+            <TouchableOpacity style={[s.shutter, !cameraReady && { opacity: 0.4 }]} disabled={(!cameraReady || captureBusy) && !recording} accessibilityRole="button" accessibilityLabel={recording ? "Stop recording" : "Capture scene"} onPress={captureRear} activeOpacity={0.9}>
               <View style={s.shutterRing}>
                 <View style={[s.shutterInner, recording && s.shutterInnerRec]} />
               </View>
             </TouchableOpacity>
           </Animated.View>
 
-          <Text style={s.labelTxt}>Dual Capture</Text>
+          <Text style={s.labelTxt}>Dual Capture · captured one after the other</Text>
         </Animated.View>
       )}
+      {cameraError ? <View style={[s.processingWrap, { zIndex: 100, backgroundColor: '#000' }]}>
+        <Text accessibilityRole="alert" style={[s.permTxt, { paddingHorizontal: 24 }]}>{cameraError}</Text>
+        <TouchableOpacity style={s.permBtn} onPress={() => { resetToIdle(); setCameraEpoch(n => n + 1); }}><Text style={s.permBtnTxt}>Try again</Text></TouchableOpacity>
+        <TouchableOpacity style={s.permBtn} onPress={handleCancel}><Text style={s.permBtnTxt}>Go back</Text></TouchableOpacity>
+      </View> : null}
     </View>
   );
-  } catch (err: any) {
-    console.log('[DUALSCREEN] CRASH', err?.message, err?.stack);
-    return null;
-  }
+}
+
+async function cameraTask<T>(task: Promise<T>, timeoutMs: number, message: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try { return await Promise.race([task, new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error(message)), timeoutMs); })]); }
+  finally { if (timer !== undefined) clearTimeout(timer); }
 }
 
 function wait(ms: number): Promise<void> {

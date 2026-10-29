@@ -1,0 +1,362 @@
+"use client";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import {
+  createPrivateViewSession,
+  type PrivateGrant,
+  type PrivateCloseReason,
+} from "../../shared/privateMedia";
+import { PrivateCameraGuard } from "./PrivateCameraGuard";
+type Props = {
+  messageId: string;
+  userId: string;
+  onClose: () => void;
+  onConsumed?: (remaining: number) => void;
+};
+function PrivateVideo({ url, onError }: { url: string; onError: () => void }) {
+  const video = useRef<HTMLVideoElement>(null);
+  const [playing, setPlaying] = useState(false);
+  return (
+    <>
+      <video
+        ref={video}
+        src={url}
+        autoPlay
+        playsInline
+        controls={false}
+        disablePictureInPicture
+        disableRemotePlayback
+        className="h-full w-full object-contain"
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
+        onEnded={() => setPlaying(false)}
+        onError={onError}
+      />
+      <button
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 rounded-full bg-black/75 px-5 py-3 text-white"
+        onClick={() => {
+          const v = video.current;
+          if (!v) return;
+          if (playing) v.pause();
+          else {
+            if (v.ended) v.currentTime = 0;
+            void v.play().catch(() => setPlaying(false));
+          }
+        }}
+      >
+        {playing ? "Pause" : "Play"} video
+      </button>
+    </>
+  );
+}
+export function PrivateMediaViewer(props: Props) {
+  return (
+    <PrivateMediaSession
+      key={props.userId + ":" + props.messageId}
+      {...props}
+    />
+  );
+}
+function PrivateMediaSession({
+  messageId,
+  userId,
+  onClose,
+  onConsumed,
+}: Props) {
+  const client = useRef(createClient()).current;
+  const live = useRef(true),
+    terminal = useRef(false),
+    busy = useRef(false),
+    currentUser = useRef(userId),
+    root = useRef<HTMLDivElement>(null),
+    objectUrl = useRef<string | null>(null),
+    fetchAbort = useRef<AbortController | null>(null),
+    session = useRef<ReturnType<typeof createPrivateViewSession> | null>(null);
+  const callbacks = useRef({ onClose, onConsumed });
+  callbacks.current = { onClose, onConsumed };
+  const [phase, setPhase] = useState<
+      "notice" | "opening" | "viewing" | "closed"
+    >("notice"),
+    [guard, setGuard] = useState(false),
+    [guardReady, setGuardReady] = useState(false),
+    [grant, setGrant] = useState<PrivateGrant | null>(null),
+    [url, setUrl] = useState<string | null>(null),
+    [error, setError] = useState<string | null>(null);
+  const hide = useCallback(() => {
+    const element = root.current?.querySelector<HTMLElement>(
+      "[data-private-content]",
+    );
+    if (element) {
+      element.hidden = true;
+      element.querySelector("video")?.pause();
+    }
+    fetchAbort.current?.abort();
+    if (objectUrl.current) {
+      URL.revokeObjectURL(objectUrl.current);
+      objectUrl.current = null;
+    }
+    if (live.current) {
+      setUrl(null);
+      setGrant(null);
+      setPhase("closed");
+    }
+  }, []);
+  const close = useCallback(
+    (reason: PrivateCloseReason = "closed") => {
+      terminal.current = true;
+      hide();
+      void session.current?.close(reason);
+    },
+    [hide],
+  );
+  useEffect(() => {
+    live.current = true;
+    terminal.current = false;
+    currentUser.current = userId;
+    const before = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    root.current?.focus();
+    const active = () => !!session.current || busy.current;
+    const blur = () => {
+      if (active()) close("background");
+    };
+    const visibility = () => {
+      if (document.visibilityState !== "visible") blur();
+    };
+    const key = (event: KeyboardEvent) => {
+      if (event.key === "PrintScreen" && active()) close("screenshot");
+      if (event.key === "Escape") {
+        close();
+        callbacks.current.onClose();
+      }
+      if (event.key === "Tab") {
+        const nodes = root.current?.querySelectorAll<HTMLElement>(
+          'button:not(:disabled),input:not(:disabled),[tabindex="0"]',
+        );
+        if (!nodes?.length) return;
+        const first = nodes[0],
+          last = nodes[nodes.length - 1];
+        if (
+          event.shiftKey &&
+          (document.activeElement === first ||
+            document.activeElement === root.current)
+        ) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    document.addEventListener("visibilitychange", visibility);
+    window.addEventListener("blur", blur);
+    window.addEventListener("keydown", key);
+    const auth = client.auth.onAuthStateChange((_event, value) => {
+      currentUser.current = value?.user.id || "";
+      if (currentUser.current !== userId) close("account_changed");
+    });
+    return () => {
+      live.current = false;
+      terminal.current = true;
+      hide();
+      void session.current?.close();
+      auth.data.subscription.unsubscribe();
+      document.removeEventListener("visibilitychange", visibility);
+      window.removeEventListener("blur", blur);
+      window.removeEventListener("keydown", key);
+      document.body.style.overflow = previousOverflow;
+      before?.focus();
+    };
+  }, [client, userId, close, hide]);
+  useEffect(() => {
+    if (!grant) return;
+    const timer = setTimeout(
+      () => close("expired"),
+      Math.max(0, Date.parse(grant.expiresAt) - Date.now()),
+    );
+    return () => clearTimeout(timer);
+  }, [grant, close]);
+  const open = async () => {
+    if (busy.current || terminal.current || (guard && !guardReady)) return;
+    busy.current = true;
+    setPhase("opening");
+    setError(null);
+    try {
+      const auth = await client.auth.getSession();
+      if (auth.error || auth.data.session?.user.id !== userId)
+        throw Error("Sign in again to open this attachment.");
+      const current = () =>
+        live.current &&
+        !terminal.current &&
+        currentUser.current === userId &&
+        document.visibilityState === "visible";
+      if (!current()) return;
+      const transport = createPrivateViewSession({
+        endpoint:
+          process.env.NEXT_PUBLIC_SUPABASE_URL +
+          "/functions/v1/private-media-session",
+        token: auth.data.session.access_token,
+        apiKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
+        messageId,
+        requestId: crypto.randomUUID(),
+        fetch,
+        current,
+        hide,
+      });
+      session.current = transport;
+      const value = await transport.open();
+      if (!value || !current()) return;
+      callbacks.current.onConsumed?.(value.remaining);
+      setGrant(value);
+      const abort = new AbortController();
+      fetchAbort.current = abort;
+      const response = await fetch(transport.mediaUrl, {
+        headers: transport.headers,
+        cache: "no-store",
+        signal: abort.signal,
+      });
+      if (!response.ok) throw Error("This attachment is no longer available.");
+      const blob = await response.blob();
+      if (!current() || Date.parse(value.expiresAt) <= Date.now()) {
+        close("expired");
+        return;
+      }
+      const temporary = URL.createObjectURL(blob);
+      objectUrl.current = temporary;
+      setUrl(temporary);
+      setPhase("viewing");
+    } catch (e) {
+      if (live.current && !terminal.current) {
+        setError(e instanceof Error ? e.message : "Could not open attachment.");
+        close("error");
+      }
+    } finally {
+      busy.current = false;
+    }
+  };
+  const guardEvent = useCallback(
+    (kind: "ready" | "phone" | "error") => {
+      if (kind === "ready") {
+        if (live.current && !terminal.current) setGuardReady(true);
+      } else {
+        setGuardReady(false);
+        setError(
+          kind === "phone"
+            ? "A phone was detected. This view has closed."
+            : "Camera protection stopped. This view has closed.",
+        );
+        close(kind === "phone" ? "camera_detected" : "guard_failed");
+      }
+    },
+    [close],
+  );
+  return (
+    <div
+      ref={root}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Private attachment"
+      tabIndex={-1}
+      className="fixed inset-0 z-[200] flex flex-col bg-[var(--canvas)] text-ink"
+    >
+      <header className="flex items-center justify-between p-5">
+        <strong>Private view</strong>
+        <button
+          onClick={() => {
+            close();
+            callbacks.current.onClose();
+          }}
+          className="rounded-full border px-4 py-2"
+        >
+          Close
+        </button>
+      </header>
+      {(phase === "notice" || phase === "opening") && (
+        <div className="mx-auto w-full max-w-lg space-y-5 overflow-y-auto p-6">
+          <h2 className="text-2xl font-semibold">Keep this moment private.</h2>
+          <p>
+            Opening uses one permitted view. Closing ends that view. Saving and
+            forwarding are unavailable. Web browsers cannot prevent screenshots.
+            Another camera can still photograph this screen.
+          </p>
+          <label className="flex gap-3">
+            <input
+              type="checkbox"
+              checked={guard}
+              disabled={phase !== "notice"}
+              onChange={(e) => {
+                setGuard(e.target.checked);
+                setGuardReady(false);
+              }}
+            />
+            Optional camera guard
+          </label>
+          <p className="text-sm">
+            Processes camera images on this device. A detected phone or
+            interrupted analysis closes the attachment. Detection can miss
+            cameras. First use downloads about 20 MB.
+          </p>
+          <button
+            disabled={phase === "opening" || (guard && !guardReady)}
+            onClick={() => void open()}
+            className="w-full rounded-2xl bg-[#0B1E3D] p-4 font-semibold text-white disabled:opacity-50"
+          >
+            {phase === "opening"
+              ? "Opening…"
+              : guard && !guardReady
+                ? "Preparing camera guard…"
+                : "Open attachment"}
+          </button>
+        </div>
+      )}
+      {phase === "viewing" && grant && url && (
+        <div
+          data-private-content
+          className="relative min-h-0 flex-1 select-none overflow-hidden bg-black"
+          onContextMenu={(e) => e.preventDefault()}
+          onDragStart={(e) => e.preventDefault()}
+        >
+          {grant.mediaType === "video" ? (
+            <PrivateVideo url={url} onError={() => close("error")} />
+          ) : (
+            <img
+              src={url}
+              alt="Private attachment"
+              draggable={false}
+              className="h-full w-full object-contain"
+              onError={() => close("error")}
+            />
+          )}
+          <div className="pointer-events-none absolute inset-0 flex flex-col justify-around p-4">
+            {[0, 1, 2].map((i) => (
+              <p
+                key={i}
+                className="break-all text-center text-xs text-white/60 [text-shadow:0_1px_2px_black]"
+                style={{ transform: "rotate(-18deg)" }}
+              >
+                {grant.watermark}
+              </p>
+            ))}
+          </div>
+        </div>
+      )}
+      {guard && phase !== "closed" && (
+        <PrivateCameraGuard onStatus={guardEvent} />
+      )}
+      {phase === "closed" && (
+        <div className="mx-auto max-w-lg space-y-5 p-6">
+          <h2 className="text-2xl font-semibold">View closed</h2>
+          <p>{error || "This private viewing session has ended."}</p>
+          <button
+            className="underline"
+            onClick={() => callbacks.current.onClose()}
+          >
+            Return to chat
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}

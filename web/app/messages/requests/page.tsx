@@ -50,12 +50,12 @@ export default function MessageRequestsPage() {
   return (
     <div className="mx-auto max-w-[560px] px-1">
       <Link href="/messages" className="mb-4 inline-flex items-center gap-1.5 text-[13px] text-ink/60 hover:text-ink"><ArrowLeft size={14} /> Messages</Link>
-      <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><Inbox size={19} className="text-pearl" /> Message requests</h1>
-      <p className="pb-5 text-[13px] text-ink/50">Messages from people you do not follow wait here. Accept to reply, decline to remove.</p>
-      {rows === null ? <p className="py-10 text-center text-sm text-ink/40">Loading</p>
+      <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><Inbox size={19} className="text-accent" /> Message requests</h1>
+      <p className="pb-5 text-[13px] text-muted">Messages from people you do not follow wait here. Accept to reply, decline to remove.</p>
+      {rows === null ? <p className="py-10 text-center text-sm text-muted">Loading</p>
       : rows.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-ink/15 py-14 text-center">
-          <Inbox size={28} className="text-ink/25" />
+          <Inbox size={28} className="text-muted" />
           <p className="text-[14px] font-semibold text-ink">No requests</p>
         </div>
       ) : rows.map(r => (
@@ -67,9 +67,9 @@ export default function MessageRequestsPage() {
             ) : <span className="flex h-11 w-11 items-center justify-center rounded-full bg-navy text-[13px] font-semibold text-white">{(r.sender_name || "U").charAt(0)}</span>}
             <div className="min-w-0 flex-1">
               <p className="truncate text-[14px] font-semibold text-ink">{r.sender_name || "User"}</p>
-              <p className="text-[12px] text-ink/45">{r.sender_username ? "@" + r.sender_username : ""}</p>
+              <p className="text-[12px] text-muted">{r.sender_username ? "@" + r.sender_username : ""}</p>
             </div>
-            <p className="shrink-0 text-[11px] text-ink/40">{relTime(r.requested_at || r.last_message_time)}</p>
+            <p className="shrink-0 text-[11px] text-muted">{relTime(r.requested_at || r.last_message_time)}</p>
           </div>
           {r.last_message_preview ? <p className="mt-2 line-clamp-2 text-[13px] text-ink/70">{r.last_message_preview}</p> : null}
           <div className="mt-3 flex gap-2">

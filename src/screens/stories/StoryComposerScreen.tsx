@@ -1,4 +1,11 @@
+import { normalizeStoryCapture, STORY_CLIP_LIMIT } from '../../../shared/storyCapture';
+import { storyLayerWindow } from '../../../shared/storyPresentation';
+import StoryTimingPanel from '../../components/stories/StoryTimingPanel';
+import StoryTextEditorToolbar from '../../components/stories/StoryTextEditorToolbar';
+import { storyHandles } from '../../../shared/storyMentions';
+import SaveToMemorySheet from '../../components/stories/SaveToMemorySheet';
 import StoryAudienceSheet from '../../components/stories/StoryAudienceSheet';
+import { updateDraftStickers, type StickerChange } from '../../controllers/stories/stickerDraftUpdates';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Image, TextInput, FlatList,
@@ -12,6 +19,8 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import { useStoryAudioMix } from '../../hooks/useStoryAudioMix';
+import { useStorySoundPreview } from '../../hooks/useStorySoundPreview';
+import VideoThumb from '../../components/VideoThumb';
 import StudioRail, { type RailItem } from '../../components/stories/StudioRail';
 import TrimStrip from '../../components/stories/TrimStrip';
 import StudioSheet, { type StudioTile } from '../../components/stories/StudioSheet';
@@ -32,13 +41,14 @@ import DraggableSticker from '../../components/stories/DraggableSticker';
 import type { SmartGuideEntry } from '../../components/stories/DraggableSticker';
 import MediaCanvas from '../../components/stories/MediaCanvas';
 import CategoryPicker from '../../components/stories/CategoryPicker';
+import { MUSIC_CATALOG_ENABLED } from '../../../shared/musicAvailability';
 import MusicSheet from '../../components/stories/MusicSheet';
 import { FilterLayer, FilterPickerSheet } from '../../components/stories/StoryFilters';
 import type { StoryAudioDraft } from '../../services/storiesService';
 import StickerIcon from '../../components/stories/StickerIcons';
 import VideoTrimmer, { autoSegments, STORY_MAX_SEC } from '../../components/stories/VideoTrimmer';
 import DrawSurface, { DrawingLayer, type DrawStroke } from '../../components/stories/DrawLayer';
-import { AdjustPanel, AdjustLayer, BackgroundSheet, BackgroundLayer, AudioMixSheet, EntitySheet, PreviewChrome, type StoryAdjust, type StoryBg, type StoryMix, type EntityPick } from '../../components/stories/storyPanels';
+import { MiniSlider, AdjustPanel, AdjustLayer, BackgroundSheet, BackgroundLayer, AudioMixSheet, EntitySheet, PreviewChrome, type StoryAdjust, type StoryBg, type StoryMix, type EntityPick } from '../../components/stories/storyPanels';
 import { EXTRA_TEXT_STYLES, EXTRA_TEXT_LABELS, composedTextStyle, TEXT_ANIMS, fetchWeatherNow, PHOTO_SHAPES, TIME_STYLES, DATE_STYLES, WEATHER_STYLES } from '../../components/stories/storyExtras';
 import GifPickerLite from '../../components/GifPickerLite';
 import PollDragWrap from '../../components/stories/PollDragWrap';
@@ -78,7 +88,7 @@ const DELETE_ZONE_HEIGHT = 80;
 const SAFE_TOP_PX = 70;
 const SAFE_BOTTOM_PX = 20;
 
-const STICKER_COLORS = ['#FFFFFF','#0A0A0A','#E8A13A','#C62F1D','#8B7BB8','#2F9E63','#0B1E3D','#C9BFB0'];
+const STICKER_COLORS = ['#FFFFFF','#0A0A0A','#E8D3B6','#F2AF99','#C5CEB4','#A7C3D0','#0B1E3D','#8B7BB8'];
 const EMOJI_LIST = [
   '😀','😍','😂','😭','😎','🥳','😮','😡','🤯','🥹',
   '❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','💯',
@@ -113,8 +123,26 @@ type Draft = {
   category: StoryCategory | null; textBgId: string; textBackground: StoryTextBackground | null;
   dualFrontUri?: string | null; dualLayout?: any | null;
   audio?: StoryAudioDraft | null; filterId?: string | null;
-  hiddenMentions?: { id: string; username: string }[] | null; allowMentionReshare?: boolean;
+  hiddenMentions?: { id: string; username: string }[] | null; allowMentionReshare?: boolean; allowReplies?: boolean;
 };
+
+/** Review uses the same media, filters, drawing and sticker renderers as the canvas. */
+function StoryReviewPreview({ draft, width, height, textBackground, strokes }: { draft: Draft; width: number; height: number; textBackground: React.ReactNode; strokes: DrawStroke[] }) {
+  const scale = useRef(new Animated.Value(1)).current;
+  const opacity = useRef(new Animated.Value(1)).current;
+  const frameW = Math.max(1, width), frameH = Math.max(1, height), ratio = 132 / frameW;
+  const tx = draft.mediaTransform as any;
+  const overlays = <>
+    <FilterLayer filterId={draft.filterId || null} amt={tx?.filterAmt} />
+    <AdjustLayer adjust={tx?.adjust || null} />
+    <DrawingLayer strokes={strokes.length ? strokes : null} width={frameW} height={frameH} />
+    <StickerOverlay stickers={draft.stickers || []} containerW={frameW} containerH={frameH} interactive={false} storyPaused />
+    {draft.pollData ? <PollDragWrap containerW={frameW} containerH={frameH} nx={draft.pollData.nx ?? .5} ny={draft.pollData.ny ?? .4} scale={draft.pollData.scale ?? 1} onChange={() => {}} onTap={() => {}}><PollCard poll={{ poll_id: 'preview', question: draft.pollData.question, options: draft.pollData.options.map((label, i) => ({ id: String(i), label, vote_count: 0 })), total_votes: 0, my_vote: null }} isOwn={false} onVote={() => {}} onOpenVoters={() => {}} /></PollDragWrap> : null}
+  </>;
+  return <View style={[st.sharePreview, { height: frameH * ratio }]} pointerEvents="none"><View style={{ position: 'absolute', width: frameW, height: frameH, left: (132 - frameW) / 2, top: (frameH * ratio - frameH) / 2, transform: [{ scale: ratio }] }}>
+    {draft.mediaType === 'text' ? <View style={{ flex: 1 }}>{textBackground}{overlays}</View> : <MediaCanvas localUri={draft.localUri} mediaType={draft.mediaType} uploadState="idle" onRetry={() => {}} onLayout={() => {}} scaleAnim={scale} opacityAnim={opacity} imageW={draft.imageW} imageH={draft.imageH} mediaFit={draft.mediaFit} mediaTransform={draft.mediaTransform} onTransformChange={() => {}} onFitToggle={() => {}} interactive={false} bg={tx?.bg || null} videoMuted videoPaused trimStart={tx?.trimStart} trimEnd={tx?.trimEnd}>{overlays}</MediaCanvas>}
+  </View></View>;
+}
 
 function newDraftId() { return `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`; }
 function newStickerId() { return `stk_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`; }
@@ -123,13 +151,24 @@ type SmartGuidesState = { x: SmartGuideEntry; y: SmartGuideEntry; stickerId: str
 
 // ── ComposerStickerOverlay (unchanged from original) ──
 function ComposerStickerOverlay({
-  stickers, containerW, containerH, onDragEnd, onTapSticker, onScaleEnd, onRotateEnd, onDeleteDrop,
+  stickers, containerW, containerH, onDragEnd, onTapSticker, onScaleEnd, onRotateEnd, onDeleteDrop, player, timingPreview = false,
 }: {
   stickers: StoryTextSticker[]; containerW: number; containerH: number;
   onDragEnd: (id: string, nx: number, ny: number) => void; onTapSticker: (id: string) => void;
   onScaleEnd: (id: string, s: number) => void; onRotateEnd: (id: string, r: number) => void;
   onDeleteDrop: (id: string) => void;
+  player?: any; timingPreview?: boolean;
 }) {
+  const [clock, setClock] = useState(0);
+  useEffect(() => {
+    if (!timingPreview || !player) return;
+    setClock(Number(player.currentTime) || 0);
+    const subscription = player.addListener?.('timeUpdate', (event: any) => setClock(Number(event?.currentTime ?? player.currentTime) || 0));
+    // Expo does not emit timeUpdate on every paused seek. Keep timing handles
+    // and visible layers aligned while scrubbing without rerendering the editor.
+    const seekClock = setInterval(() => { try { setClock(Number(player.currentTime) || 0); } catch {} }, 100);
+    return () => { clearInterval(seekClock); try { subscription?.remove?.(); } catch {} };
+  }, [player, timingPreview]);
   // Drag feedback state lives here, not in the composer: a snap or delete-zone
   // transition re-renders this thin overlay only, never the whole editor.
   // Center guide lines are UI-thread only: the dragged sticker's worklet writes
@@ -152,7 +191,7 @@ function ComposerStickerOverlay({
   const handleDragEnd = useCallback((id: string, nx: number, ny: number) => { clearDrag(); onDragEnd(id, nx, ny); }, [clearDrag, onDragEnd]);
   const handleDeleteDrop = useCallback((id: string) => { clearDrag(); onDeleteDrop(id); }, [clearDrag, onDeleteDrop]);
   // Stable per-sticker neighbour lists so React.memo on DraggableSticker holds during drags.
-  const visibleStickers = useMemo(() => (stickers || []).filter(st => (st as any).kind !== 'drawing'), [stickers]);
+  const visibleStickers = useMemo(() => (stickers || []).filter(st => (st as any).kind !== 'drawing' && (!timingPreview || ((typeof st.startSec !== 'number' || clock >= st.startSec) && (typeof st.endSec !== 'number' || clock < st.endSec)))), [stickers, timingPreview, clock]);
   const othersById = useMemo(() => { const m: Record<string, StoryTextSticker[]> = {}; for (const st of visibleStickers) m[st.id] = visibleStickers.filter(s => s.id !== st.id); return m; }, [visibleStickers]);
   const deleteZoneNy = containerH > 0 ? 1 - DELETE_ZONE_HEIGHT / containerH : 0.88;
   const safeTopNy = containerH > 0 ? SAFE_TOP_PX / containerH : 0.1;
@@ -163,7 +202,7 @@ function ComposerStickerOverlay({
   }, [dragZone.draggingId]);
   if (!stickers || stickers.length === 0 || containerW === 0 || containerH === 0) return null;
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+    <View style={StyleSheet.absoluteFill} pointerEvents={timingPreview ? 'none' : 'box-none'}>
       <ReAnimated.View style={[snapStyles.guideVertical, guideXStyle]} pointerEvents="none" />
       <ReAnimated.View style={[snapStyles.guideHorizontal, guideYStyle]} pointerEvents="none" />
       <ReAnimated.View style={[{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 1, backgroundColor: 'rgba(201,191,176,0.9)', zIndex: 5 }, alignXStyle]} pointerEvents="none" />
@@ -226,9 +265,12 @@ export default function StoryComposerScreen() {
   const active = drafts[activeIndex];
   const mountedRef = useRef(true);
 
-  const updateActive = useCallback((patch: Partial<Draft>) => {
-    setDrafts(prev => prev.map((d, i) => (i === activeIndex ? { ...d, ...patch } : d)));
-  }, [activeIndex]);
+  const updateActive = useCallback((patch: Partial<Draft> | ((current: Draft) => Partial<Draft>)) => {
+    const draftId = active?.id;
+    if (!draftId) return;
+    setDrafts(prev => prev.map(d => d.id === draftId && d.uploadState !== 'uploading' && d.uploadState !== 'done'
+      ? { ...d, ...(typeof patch === 'function' ? patch(d) : patch) } : d));
+  }, [active?.id]);
 
   // ── Accessibility ──
   const [reduceMotion, setReduceMotion] = useState(false);
@@ -251,6 +293,15 @@ export default function StoryComposerScreen() {
   // writes story_shared_with, and this line refused to hold the value.
   const [audience, setAudienceState] = useState<'everyone' | 'followers' | 'close_friends' | 'only_with' | 'except'>('everyone');
   const [audienceSheetOpen, setAudienceSheetOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [allowReplies, setAllowReplies] = useState(true);
+  const [addingClips, setAddingClips] = useState(false);
+  const addingClipsRef = useRef(false);
+  const latestDrafts = useRef(drafts); latestDrafts.current = drafts;
+  const ownerRef = useRef(myId); ownerRef.current = myId;
+  const [timingOpen, setTimingOpen] = useState(false);
+  const [compareOriginal, setCompareOriginal] = useState(false);
+  const [textPanel, setTextPanel] = useState<'font' | 'color' | 'style' | 'animate'>('font');
   const isBusiness = (profile as any)?.account_type === 'business';
   const [reach, setReachState] = useState<'followers' | 'wider'>('followers');
   const toggleReach = useCallback(() => { setReachState(prev => { const next = prev === 'followers' ? 'wider' : 'followers'; setDrafts(ds => ds.map(d => ({ ...d, reach: next } as any))); return next; }); }, []);
@@ -312,11 +363,20 @@ export default function StoryComposerScreen() {
   // Sync refs so bloom/bubble read current values via their internal ref tracking
   useEffect(() => { arrangementOpenRef.current = arrangement.arrangementOpen; }, [arrangement.arrangementOpen]);
 
+  const [publishedStoryIds, setPublishedStoryIds] = useState<string[]>([]);
+  const onPublished = useCallback((ids: string[]) => setPublishedStoryIds(ids), []);
+  const finishPublishing = useCallback(() => {
+    setPublishedStoryIds([]);
+    const nav: any = navigation;
+    if (typeof nav.popToTop === 'function') nav.popToTop();
+    else if (nav.canGoBack?.()) nav.goBack();
+  }, [navigation]);
+
   // ── CONTROLLER: Publish (depends on bloom.closeBloom, mediaOpacity/Scale) ──
   const publish = usePublishOrchestrator({
     drafts, setDrafts, myId, navigation,
     closeBloom: bloom.closeBloom,
-    mediaOpacity, mediaScale,
+    mediaOpacity, mediaScale, onPublished,
   });
 
   // Sync publishing ref so bloom/bubble read current value
@@ -377,15 +437,16 @@ export default function StoryComposerScreen() {
     }
     if (initialAssets.length > 0) {
       const newDrafts: Draft[] = initialAssets.map((asset, idx) => {
-        const uri = asset.localUri || asset.uri;
-        const isVideo = mode === 'video' || asset.type === 'video' || asset.mediaType === 'video' || (uri && uri.toLowerCase().endsWith('.mp4'));
+        const normalized = normalizeStoryCapture(asset, mode);
+        const uri = normalized.localUri;
+        const isVideo = normalized.mediaType === 'video';
         if (!isVideo && uri) {
           Image.getSize(uri, (w, h) => { setDrafts(prev => prev.map((dd, di) => di === idx ? { ...dd, imageW: w, imageH: h } : dd)); }, () => {});
         }
         return {
           id: newDraftId(), localUri: uri, thumbnailUri: null, mediaType: isVideo ? 'video' as const : 'image' as const,
           caption: '', scope: 'global' as const, audience, reach, uploadState: 'idle' as const,
-          durationSec: isVideo ? (asset.duration || asset.durationSec ? Math.round((asset.duration || asset.durationSec * 1000) / 1000) : null) : null,
+          durationSec: normalized.durationSec,
           pollData: null, stickers: idx === 0 ? seedStickers : [], imageW: asset.width || 0, imageH: asset.height || 0,
           mediaFit: 'cover' as MediaFit,
           mediaTransform: { scale: 1, translateNX: 0, translateNY: 0, fit: 'cover' as MediaFit },
@@ -448,6 +509,7 @@ export default function StoryComposerScreen() {
   const [mentionResults, setMentionResults] = useState<any[]>([]);
   const [mentionLoading, setMentionLoading] = useState(false);
   const mentionDebounceRef = useRef<any>(null);
+  const mentionSearchVersion = useRef(0);
   const [mentionHidden, setMentionHidden] = useState(false);
   const [mentionPicks, setMentionPicks] = useState<any[]>([]);
 
@@ -484,7 +546,7 @@ export default function StoryComposerScreen() {
   const [cdTarget, setCdTarget] = useState<Date>(new Date(Date.now() + 24 * 3600 * 1000));
   const [musicOpen, setMusicOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
-  const openMusicSheet = useCallback(() => setMusicOpen(true), []);
+  const openMusicSheet = useCallback(() => { if (MUSIC_CATALOG_ENABLED) setMusicOpen(true); }, []);
   const openFilterSheet = useCallback(() => setFilterOpen(true), []);
 
   // ── Creative engine state ──
@@ -500,9 +562,11 @@ export default function StoryComposerScreen() {
   const [previewOn, setPreviewOn] = useState(false);
   const [vidPlayer, setVidPlayer] = useState<any>(null);
   // Music preview in the editor at the mixed volume, exactly as the viewer will play it.
-  const previewAudioUrl = active?.audio?.localUri || active?.audio?.url || null;
+  const soundPreview = useStorySoundPreview(MUSIC_CATALOG_ENABLED ? active?.audio : null, myId);
+  const previewAudioUrl = soundPreview.url;
   const previewMusicVol = Math.max(0, Math.min(1, (((active?.mediaTransform as any)?.mix?.music) ?? 100) / 100));
-  useStoryAudioMix(previewAudioUrl, !!previewAudioUrl && !publish.publishing && !textEditorOpen && !drawMode, previewMusicVol);
+  const previewAudio = useStoryAudioMix(previewAudioUrl, !!previewAudioUrl && !publish.publishing && !textEditorOpen && !drawMode && !musicOpen && !shareOpen, previewMusicVol, active?.audio?.durationSec);
+  useEffect(() => { if (musicOpen) { try { vidPlayer?.pause?.(); } catch {} } }, [musicOpen, vidPlayer]);
   // Video drafts picked without dimensions: probe the first frame so canvas
   // gestures work and the story publishes with a real thumbnail.
   useEffect(() => {
@@ -512,13 +576,15 @@ export default function StoryComposerScreen() {
     let dead = false;
     VideoThumbnails.getThumbnailAsync(d.localUri, { time: 0, quality: 0.6 }).then(t => {
       if (dead) return;
-      setDrafts(prev => prev.map(x => x.id === d.id ? { ...x, imageW: x.imageW || t.width || 0, imageH: x.imageH || t.height || 0, thumbnailUri: x.thumbnailUri || t.uri } : x));
+      setDrafts(prev => prev.map(x => x.id === d.id && x.uploadState !== 'uploading' && x.uploadState !== 'done' ? { ...x, imageW: x.imageW || t.width || 0, imageH: x.imageH || t.height || 0, thumbnailUri: x.thumbnailUri || t.uri } : x));
     }).catch(() => {});
     return () => { dead = true; };
   }, [active?.id, active?.localUri, active?.mediaType, active?.imageW, active?.thumbnailUri, setDrafts]);
   const autoTrimSetRef = useRef<Set<string>>(new Set());
   const getTx = useCallback((): MediaTransform => (active?.mediaTransform || { scale: 1, translateNX: 0, translateNY: 0, fit: (active?.mediaFit || 'cover') as MediaFit }), [active]);
-  const setTx = useCallback((patch: Partial<MediaTransform>) => { const cur = active?.mediaTransform || { scale: 1, translateNX: 0, translateNY: 0, fit: (active?.mediaFit || 'cover') as MediaFit }; updateActive({ mediaTransform: { ...cur, ...patch } as MediaTransform }); }, [active, updateActive]);
+  const setTx = useCallback((patch: Partial<MediaTransform>) => {
+    updateActive(current => ({ mediaTransform: { ...(current.mediaTransform || { scale: 1, translateNX: 0, translateNY: 0, fit: (current.mediaFit || 'cover') as MediaFit }), ...patch } }));
+  }, [updateActive]);
   // Backdrop: cut the subject out with the background-removal model behind the
   // Replicate proxy, then let the background layer show through behind them.
   const cutoutSubject = useCallback(async () => {
@@ -543,7 +609,11 @@ export default function StoryComposerScreen() {
     } finally { setCutBusy(false); }
   }, [active, cutBusy, updateActive, getTx, setTx]);
   const pushHistory = useCallback(() => { const cur = active?.stickers || []; undoStackRef.current.push(cur.map(s => ({ ...s }))); if (undoStackRef.current.length > MAX_HISTORY) undoStackRef.current.shift(); redoStackRef.current = []; setUndoCount(undoStackRef.current.length); setRedoCount(0); }, [active]);
-  const updateStickers = useCallback((ns: StoryTextSticker[]) => { pushHistory(); updateActive({ stickers: ns }); }, [pushHistory, updateActive]);
+  const updateStickers = useCallback((change: StickerChange) => {
+    if (!active?.id) return;
+    pushHistory();
+    setDrafts(prev => updateDraftStickers(prev, active.id, change));
+  }, [active?.id, pushHistory]);
   const drawStrokes: DrawStroke[] = ((active?.stickers || []).find(sx => (sx as any).kind === 'drawing') as any)?.strokes || [];
   const setDrawStrokes = useCallback((strokes: DrawStroke[]) => {
     const cur = active?.stickers || [];
@@ -555,7 +625,7 @@ export default function StoryComposerScreen() {
   }, [active, updateStickers]);
   const addSimpleSticker = useCallback((extra: any, nyStart = 0.4) => {
     const st: any = { id: newStickerId(), text: '', color: '#FFFFFF', nx: 0.5, ny: nyStart, scale: 1, rotation: 0, ...extra };
-    updateStickers([...(active?.stickers || []), st]);
+    updateStickers(current => [...current, st]);
   }, [active, updateStickers]);
   const addPhotoSticker = useCallback(async () => {
     try {
@@ -580,7 +650,7 @@ export default function StoryComposerScreen() {
     updateStickers([...(active?.stickers || []), ...made] as any);
   }, [active, updateStickers]);
   const setCellPhoto = useCallback((id: string, uri: string | null) => {
-    updateStickers(((active?.stickers || []) as any[]).map(s => s.id === id ? { ...s, photoUri: uri, photoUrl: null } : s) as any);
+    updateStickers(current => current.map(s => s.id === id ? { ...s, photoUri: uri, photoUrl: null } : s));
   }, [active, updateStickers]);
   const fillCellFromLibrary = useCallback(async (id: string) => {
     try {
@@ -651,11 +721,11 @@ export default function StoryComposerScreen() {
     if (tx.trimEnd != null) return;
     // Every video opens the trimmer once, the way Instagram does: long clips
     // get a 60s window pre-set, short ones open on their full length.
+    if (d <= 1.2) return;
     autoTrimSetRef.current.add(active.id);
     if (d > STORY_MAX_SEC + 0.5) setTx({ trimStart: 0, trimEnd: STORY_MAX_SEC });
     else if (d > 1.2) setTx({ trimStart: 0, trimEnd: d });
     else return;
-    setTrimOpen(true);
   }, [active?.id, active?.durationSec, active?.mediaType, setTx]);
 
   // Debounce cleanup
@@ -667,21 +737,40 @@ export default function StoryComposerScreen() {
 
   // ── Draft management ──
   const removeDraft = useCallback((index: number) => { setDrafts(prev => { const next = prev.filter((_, i) => i !== index); if (next.length === 0) { setActiveIndex(0); return next; } if (activeIndex >= next.length) setActiveIndex(next.length - 1); else if (activeIndex > index) setActiveIndex(activeIndex - 1); return next; }); }, [activeIndex]);
-  const handleFitToggle = useCallback(() => { if (!active) return; const nf: MediaFit = active.mediaFit === 'cover' ? 'contain' : 'cover'; updateActive({ mediaFit: nf, mediaTransform: { scale: 1, translateNX: 0, translateNY: 0, fit: nf } }); }, [active, updateActive]);
+  const addClips = useCallback(async () => {
+    if (addingClipsRef.current || publish.publishing || latestDrafts.current.length >= STORY_CLIP_LIMIT) return;
+    const owner = ownerRef.current;
+    addingClipsRef.current = true; setAddingClips(true);
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images', 'videos'], allowsMultipleSelection: true, orderedSelection: true, selectionLimit: STORY_CLIP_LIMIT - latestDrafts.current.length, quality: 1, preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible });
+      if (result.canceled || !mountedRef.current || owner !== ownerRef.current) return;
+      const slots = STORY_CLIP_LIMIT - latestDrafts.current.length;
+      const added: Draft[] = result.assets.slice(0, slots).map(asset => {
+        const item = normalizeStoryCapture(asset);
+        return { id: newDraftId(), localUri: item.localUri, thumbnailUri: null, mediaType: item.mediaType, durationSec: item.durationSec, caption: '', scope: 'global', audience, allowReplies, sharedWith: active?.sharedWith || null, reach, uploadState: 'idle', pollData: null, stickers: [], imageW: item.width, imageH: item.height, mediaFit: 'cover', mediaTransform: { scale: 1, translateNX: 0, translateNY: 0, fit: 'cover' }, category: null, textBgId: 'navy', textBackground: null };
+      });
+      if (added.length) { setActiveIndex(latestDrafts.current.length); setDrafts(current => [...current, ...added].slice(0, STORY_CLIP_LIMIT)); undoStackRef.current = []; redoStackRef.current = []; setUndoCount(0); setRedoCount(0); }
+    } catch (error: any) { if (mountedRef.current && owner === ownerRef.current) Alert.alert('Could not add clips', error?.message || 'Try selecting your photos and videos again.'); }
+    finally { addingClipsRef.current = false; if (mountedRef.current) setAddingClips(false); }
+  }, [active?.sharedWith, audience, allowReplies, reach, publish.publishing]);
+  const handleFitToggle = useCallback(() => { if (!active) return; const nf: MediaFit = (active.mediaFit || 'cover') === 'cover' ? 'contain' : 'cover'; updateActive({ mediaFit: nf, mediaTransform: { ...active.mediaTransform, scale: 1, translateNX: 0, translateNY: 0, fit: nf } }); }, [active, updateActive]);
   const handleTransformChange = useCallback((t: MediaTransform) => { updateActive({ mediaTransform: t }); }, [updateActive]);
   const nextStickerNy = useCallback((base: number = 0.4) => { const c = active?.stickers?.length ?? 0; return c === 0 ? base : Math.min(0.76, base + c * 0.12); }, [active]);
 
   // ── Text editor ──
   const openTextEditor = useCallback((existingId?: string) => {
+    setTextPanel('font');
     if (existingId && active?.stickers) { const ex = active.stickers.find(s => s.id === existingId); if (ex) { setEditingStickerId(existingId); setStickerText(ex.text); setStickerStyle(ex.style); setStickerColor(ex.color); setStickerBgEnabled(!!ex.bgEnabled); setStickerFontSize(ex.fontSizeOverride ?? 0); setStickerOpacity(ex.opacity ?? 1.0); setStickerTextAlign(ex.textAlign ?? 'center'); setStickerAnim((ex as any).anim || 'none'); setStickerStartSec(typeof (ex as any).startSec === 'number' ? (ex as any).startSec : null); setStickerEndSec(typeof (ex as any).endSec === 'number' ? (ex as any).endSec : null); setTextEditorOpen(true); const si = STICKER_STYLES.indexOf(ex.style); if (si > 0) setTimeout(() => stylePickerRef.current?.scrollTo({ x: si * 72, animated: false }), 100); setTimeout(() => stickerInputRef.current?.focus(), 200); return; } }
     if ((active?.stickers?.length ?? 0) >= MAX_STICKERS) { Alert.alert('Limit reached', `Maximum ${MAX_STICKERS} text overlays per story.`); return; }
     setEditingStickerId(null); setStickerText(''); setStickerStyle('classic'); setStickerColor(active?.mediaType === 'text' ? getDefaultStickerColor(active.textBgId) : '#FFFFFF'); setStickerBgEnabled(false); setStickerFontSize(0); setStickerOpacity(1.0); setStickerTextAlign('center'); setStickerAnim('none'); setStickerStartSec(null); setStickerEndSec(null); setTextEditorOpen(true); setTimeout(() => stickerInputRef.current?.focus(), 200);
   }, [active]);
-  const closeTextEditor = useCallback(() => { setTextEditorOpen(false); setStickerText(''); setEditingStickerId(null); }, []);
+  const closeTextEditor = useCallback(() => { Keyboard.dismiss(); setTextEditorOpen(false); setStickerText(''); setEditingStickerId(null); }, []);
   // A typed @handle inside a text sticker is a real mention: the person is notified and can add the story to theirs
   // (through the hidden-mention path the composer already has), and the handle opens their profile in the viewer.
   const resolveTextMentions = useCallback(async (stickerId: string, text: string) => {
-    const handles = Array.from(new Set((text.match(/@([A-Za-z0-9_.]{2,30})/g) || []).map(h => h.slice(1).toLowerCase())));
+    const draftId = active?.id;
+    if (!draftId) return;
+    const handles = storyHandles(text);
     let found: { id: string; username: string }[] = [];
     if (handles.length) {
       try {
@@ -690,18 +779,16 @@ export default function StoryComposerScreen() {
       } catch {}
     }
     if (!mountedRef.current) return;
-    setDrafts(prev => prev.map((d, i) => {
-      if (i !== activeIndex) return d;
+    setDrafts(prev => prev.map(d => {
+      if (d.id !== draftId || d.uploadState === 'uploading' || d.uploadState === 'done' || !d.stickers?.some(s => s.id === stickerId && s.text === text)) return d;
       const stickers = (d.stickers || []).map(s => (s.id === stickerId ? ({ ...s, mentions: found.length ? found : undefined } as any) : s));
-      const cur = (((d as any).hiddenMentions || []) as { id: string; username: string }[]);
-      const onStickers = new Set(stickers.filter((s: any) => s.kind === 'mention' && s.mentionUserId).map((s: any) => s.mentionUserId));
-      const add = found.filter(u => !cur.some(h => h.id === u.id) && !onStickers.has(u.id));
-      return { ...d, stickers, hiddenMentions: add.length ? [...cur, ...add] : cur } as any;
+      return { ...d, stickers } as any;
     }));
-  }, [activeIndex]);
+  }, [active?.id]);
   const saveSticker = useCallback(() => {
     const tr = stickerText.trim(); if (!tr) { if (editingStickerId) updateStickers((active?.stickers || []).filter(s => s.id !== editingStickerId)); closeTextEditor(); return; }
-    const extra: any = { bgEnabled: stickerBgEnabled, fontSizeOverride: stickerFontSize > 0 ? stickerFontSize : undefined, opacity: stickerOpacity < 1.0 ? stickerOpacity : undefined, textAlign: stickerTextAlign !== 'center' ? stickerTextAlign : undefined, anim: stickerAnim !== 'none' ? stickerAnim : undefined, startSec: stickerStartSec != null ? stickerStartSec : undefined, endSec: stickerEndSec != null ? stickerEndSec : undefined };
+    const timing = storyLayerWindow(stickerStartSec, stickerEndSec, active?.durationSec || 15);
+    const extra: any = { bgEnabled: stickerBgEnabled, fontSizeOverride: stickerFontSize > 0 ? stickerFontSize : undefined, opacity: stickerOpacity < 1.0 ? stickerOpacity : undefined, textAlign: stickerTextAlign !== 'center' ? stickerTextAlign : undefined, anim: stickerAnim !== 'none' ? stickerAnim : undefined, startSec: stickerStartSec != null ? timing.start : undefined, endSec: stickerEndSec != null ? timing.end : undefined };
     if (editingStickerId) { updateStickers((active?.stickers || []).map(s => s.id === editingStickerId ? { ...s, text: tr, style: stickerStyle, color: stickerColor, ...extra } : s)); void resolveTextMentions(editingStickerId, tr); }
     else { const nid = newStickerId(); updateStickers([...(active?.stickers || []), { id: nid, text: tr, style: stickerStyle, color: stickerColor, nx: 0.5, ny: nextStickerNy(0.4), scale: 1, rotation: 0, ...extra }]); void resolveTextMentions(nid, tr); }
     closeTextEditor();
@@ -720,10 +807,10 @@ export default function StoryComposerScreen() {
   // ── Sticker interaction handlers ──
   const handleTapSticker = useCallback((id: string) => { if (publish.publishing) return; const s = active?.stickers?.find(x => x.id === id); if (!s) return; if (s.kind === 'photo' && (s as any).photoShape === 'cell') openCellMenu(id, !!((s as any).photoUri || (s as any).photoUrl));
     else if (s.kind === 'emoji') openEmojiTray(id); else if (s.kind === 'question') openQuestionModal(id); else if (s.kind === 'slider') openSliderModal(id); else if (s.kind === 'quiz') openQuizModal(id); else if ((s as any).kind === 'photo') { const shapes = PHOTO_SHAPES as any; const cur = shapes.indexOf((s as any).photoShape || 'rounded'); updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, photoShape: shapes[(cur + 1) % shapes.length] } as any) : x)); } else if ((s as any).kind === 'time' || (s as any).kind === 'date' || (s as any).kind === 'weather') { const mod = (s as any).kind === 'time' ? TIME_STYLES : (s as any).kind === 'date' ? DATE_STYLES : WEATHER_STYLES; updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, infoStyle: (((x as any).infoStyle || 0) + 1) % mod } as any) : x)); } else if (s.kind === 'link' || s.kind === 'location' || s.kind === 'mention' || s.kind === 'hashtag') { updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, pillVariant: (((x as any).pillVariant || 0) + 1) % 4 } as any) : x)); } else if ((s as any).kind === 'gif' || (s as any).kind === 'entity' || (s as any).kind === 'drawing') { /* no editor */ } else openTextEditor(id); }, [publish.publishing, active]);
-  const handleDragEnd = useCallback((id: string, nx: number, ny: number) => { updateStickers((active?.stickers || []).map(s => s.id === id ? { ...s, nx, ny } : s)); }, [active, updateStickers]);
-  const handleScaleEnd = useCallback((id: string, ns: number) => { updateStickers((active?.stickers || []).map(s => s.id === id ? { ...s, scale: ns } : s)); }, [active, updateStickers]);
-  const handleRotateEnd = useCallback((id: string, nr: number) => { updateStickers((active?.stickers || []).map(s => s.id === id ? { ...s, rotation: nr } : s)); }, [active, updateStickers]);
-  const handleDeleteDrop = useCallback((id: string) => { updateStickers((active?.stickers || []).filter(s => s.id !== id)); }, [active, updateStickers]);
+  const handleDragEnd = useCallback((id: string, nx: number, ny: number) => { updateStickers(current => current.map(s => s.id === id ? { ...s, nx, ny } : s)); }, [active, updateStickers]);
+  const handleScaleEnd = useCallback((id: string, ns: number) => { updateStickers(current => current.map(s => s.id === id ? { ...s, scale: ns } : s)); }, [active, updateStickers]);
+  const handleRotateEnd = useCallback((id: string, nr: number) => { updateStickers(current => current.map(s => s.id === id ? { ...s, rotation: nr } : s)); }, [active, updateStickers]);
+  const handleDeleteDrop = useCallback((id: string) => { updateStickers(current => current.filter(s => s.id !== id)); }, [active, updateStickers]);
 
   // ── Poll ──
   const openPollEditor = useCallback(() => { if (active?.pollData) { setPollQuestion(active.pollData.question); setPollOptions([...active.pollData.options]); } else { setPollQuestion(''); setPollOptions(['', '']); } setPollEditorOpen(true); }, [active]);
@@ -749,11 +836,27 @@ export default function StoryComposerScreen() {
   const addLocationSticker = useCallback((item: any) => { const { name } = fmtLoc(item); updateStickers([...(active?.stickers || []), { id: newStickerId(), text: name, style: 'classic' as StoryStickerStyle, color: '#FFFFFF', nx: 0.5, ny: 0.45, scale: 1, rotation: 0, kind: 'location', locationName: name, locationDisplayName: item.display_name || name, locationLat: parseFloat(item.lat) || undefined, locationLng: parseFloat(item.lon) || undefined, locationPlaceId: item.place_id ? String(item.place_id) : undefined }]); closeLocationModal(); }, [active, updateStickers, closeLocationModal]);
 
   // ── Mention ──
-  const loadMentionDefaults = useCallback(async () => { setMentionLoading(true); try { const { data } = await supabase.from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier').neq('id', myId || '').order('last_seen', { ascending: false, nullsFirst: false }).limit(30); setMentionResults(data || []); } catch { setMentionResults([]); } finally { setMentionLoading(false); } }, [myId]);
-  const openMentionModal = useCallback(() => { setMentionSearch(''); setMentionResults([]); setMentionModalOpen(true); loadMentionDefaults(); }, [loadMentionDefaults]);
-  const closeMentionModal = useCallback(() => { setMentionModalOpen(false); setMentionSearch(''); setMentionResults([]); setMentionPicks([]); setMentionHidden(false); if (mentionDebounceRef.current) clearTimeout(mentionDebounceRef.current); }, []);
-  const searchUsers = useCallback(async (q: string) => { const c = q.trim().replace(/^@/, '').toLowerCase(); if (c.length < 2) { loadMentionDefaults(); return; } setMentionLoading(true); try { const { data } = await supabase.from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier').or(`username.ilike.%${c}%,full_name.ilike.%${c}%`).neq('id', myId || '').limit(10); setMentionResults(data || []); } catch { setMentionResults([]); } finally { setMentionLoading(false); } }, [myId, loadMentionDefaults]);
-  const onMentionSearchChange = useCallback((t: string) => { setMentionSearch(t); if (mentionDebounceRef.current) clearTimeout(mentionDebounceRef.current); mentionDebounceRef.current = setTimeout(() => searchUsers(t), 300); }, [searchUsers]);
+  const loadMentionDefaults = useCallback(async () => {
+    const version = ++mentionSearchVersion.current; setMentionLoading(true);
+    try {
+      const { data, error } = await supabase.from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier').neq('id', myId || '').order('last_seen', { ascending: false, nullsFirst: false }).limit(30);
+      if (version === mentionSearchVersion.current && mountedRef.current) setMentionResults(error ? [] : data || []);
+    } catch { if (version === mentionSearchVersion.current && mountedRef.current) setMentionResults([]); }
+    finally { if (version === mentionSearchVersion.current && mountedRef.current) setMentionLoading(false); }
+  }, [myId]);
+  const openMentionModal = useCallback(() => { setMentionSearch(''); setMentionResults([]); setMentionModalOpen(true); void loadMentionDefaults(); }, [loadMentionDefaults]);
+  const closeMentionModal = useCallback(() => { mentionSearchVersion.current++; setMentionModalOpen(false); setMentionSearch(''); setMentionResults([]); setMentionLoading(false); setMentionPicks([]); setMentionHidden(false); if (mentionDebounceRef.current) clearTimeout(mentionDebounceRef.current); }, []);
+  const searchUsers = useCallback(async (q: string) => {
+    const c = q.trim().replace(/^@/, '').replace(/[^A-Za-z0-9_. -]/g, '').toLowerCase().slice(0, 60);
+    if (c.length < 2) { void loadMentionDefaults(); return; }
+    const version = ++mentionSearchVersion.current; setMentionLoading(true);
+    try {
+      const { data, error } = await supabase.from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier').or(`username.ilike.%${c}%,full_name.ilike.%${c}%`).neq('id', myId || '').limit(10);
+      if (version === mentionSearchVersion.current && mountedRef.current) setMentionResults(error ? [] : data || []);
+    } catch { if (version === mentionSearchVersion.current && mountedRef.current) setMentionResults([]); }
+    finally { if (version === mentionSearchVersion.current && mountedRef.current) setMentionLoading(false); }
+  }, [myId, loadMentionDefaults]);
+  const onMentionSearchChange = useCallback((t: string) => { mentionSearchVersion.current++; setMentionSearch(t); setMentionResults([]); if (mentionDebounceRef.current) clearTimeout(mentionDebounceRef.current); mentionDebounceRef.current = setTimeout(() => void searchUsers(t), 250); }, [searchUsers]);
   const toggleMentionPick = useCallback((u: any) => { setMentionPicks(prev => prev.some(p => p.id === u.id) ? prev.filter(p => p.id !== u.id) : [...prev, u]); }, []);
   const confirmMentions = useCallback(() => {
     const picks = mentionPicks;
@@ -853,7 +956,7 @@ export default function StoryComposerScreen() {
     setStickerForm(null);
   }, [stickerForm, addSimpleSticker]);
   // ── Derived state ──
-  const canPublish = drafts.length > 0 && !publish.publishing;
+  const canPublish = publish.canPublish;
   const hasPoll = !!active?.pollData;
   const isTextStory = active?.mediaType === 'text';
   const stickerCounts = useMemo(() => { const st = active?.stickers || []; return { addyours: st.filter(s => s.kind === 'addyours').length, support: st.filter(s => s.kind === 'support').length, text: st.filter(s => !s.kind || s.kind === 'text').length, emoji: st.filter(s => s.kind === 'emoji').length, link: st.filter(s => s.kind === 'link').length, location: st.filter(s => s.kind === 'location').length, mention: st.filter(s => s.kind === 'mention').length, hashtag: st.filter(s => s.kind === 'hashtag').length, question: st.filter(s => s.kind === 'question').length, slider: st.filter(s => s.kind === 'slider').length, quiz: st.filter(s => s.kind === 'quiz').length, countdown: st.filter(s => s.kind === 'countdown').length, entity: st.filter(s => (s as any).kind === 'entity').length, gif: st.filter(s => (s as any).kind === 'gif').length, photo: st.filter(s => (s as any).kind === 'photo').length, time: st.filter(s => (s as any).kind === 'time').length, date: st.filter(s => (s as any).kind === 'date').length, weather: st.filter(s => (s as any).kind === 'weather').length }; }, [active?.stickers]);
@@ -862,7 +965,8 @@ export default function StoryComposerScreen() {
   if (drafts.length === 0) {
     return (
       <SafeAreaView style={st.safe} edges={['top', 'bottom']}>
-        <StatusBar barStyle="dark-content" />
+        <StatusBar barStyle="light-content" />
+      {myId && <SaveToMemorySheet visible={publishedStoryIds.length > 0} storyIds={publishedStoryIds} userId={myId} onClose={finishPublishing} />}
         <View style={st.emptyFallback}>
           <Feather name="image" size={40} color={accent.warmMuted} />
           <Text style={st.emptyFallbackTitle}>No media selected</Text>
@@ -902,13 +1006,13 @@ export default function StoryComposerScreen() {
     { id: 'location', cat: 'sharing', tint: '#F472B6', icon: 'map-pin', label: 'Location', on: stickerCounts.location > 0, run: openLocationModal },
     { id: 'link', cat: 'sharing', tint: '#7DD3FC', icon: 'link', label: 'Link', on: stickerCounts.link > 0, run: openLinkModal },
     { id: 'emoji', cat: 'fun', tint: '#FBBF24', icon: 'smile', label: 'Emoji', on: stickerCounts.emoji > 0, run: () => openEmojiTray() },
-    { id: 'music', cat: 'media', tint: '#F472B6', icon: 'music', label: 'Music', on: !!active?.audio, run: openMusicSheet },
+    ...(MUSIC_CATALOG_ENABLED ? [{ id: 'music', cat: 'media', tint: '#F472B6', icon: 'music', label: 'Music', on: !!active?.audio, run: openMusicSheet } as StudioTile] : []),
     { id: 'filter', cat: 'media', tint: '#818CF8', icon: 'droplet', label: 'Filter', on: !!active?.filterId, run: openFilterSheet },
     { id: 'trim', cat: 'media', tint: '#F59E0B', icon: 'trim', label: 'Trim', on: (getTx() as any).trimEnd != null, run: () => { if (active?.mediaType !== 'video') { Alert.alert('Video only', 'Trim works on video stories.'); return; } setTrimOpen(true); } },
     { id: 'adjust', cat: 'media', tint: '#34D399', icon: 'adjust', label: 'Adjust', on: !!(getTx() as any).adjust || (getTx() as any).filterAmt != null, run: () => setAdjustOpen(true) },
     { id: 'draw', cat: 'media', tint: '#FB7185', icon: 'draw', label: 'Draw', on: drawStrokes.length > 0, run: () => setDrawMode(true) },
     { id: 'bg', cat: 'media', tint: '#60A5FA', icon: 'bg', label: 'Background', on: !!(getTx() as any).bg, run: () => { if ((active?.mediaFit || 'cover') !== 'contain') { Alert.alert('Fit first', 'Backgrounds show around media in fit mode. Tap the fit toggle, then pick a background.'); } setBgOpen(true); } },
-    { id: 'mix', cat: 'media', tint: '#A78BFA', icon: 'mix', label: 'Sound mix', on: !!(getTx() as any).mix, run: () => { Alert.alert('Coming soon', 'Sound mix arrives together with music.'); } },
+    ...(MUSIC_CATALOG_ENABLED || active?.mediaType === 'video' ? [{ id: 'mix', cat: 'media', tint: '#A78BFA', icon: 'mix', label: 'Video sound', on: !!(getTx() as any).mix, run: () => setMixOpen(true) } as StudioTile] : []),
     { id: 'save', cat: 'media', tint: '#7DD3FC', icon: 'save', label: 'Save media', on: false, run: saveMediaToDevice },
     { id: 'preview', cat: 'media', tint: '#FBBF24', icon: 'preview', label: 'Preview', on: false, run: () => setPreviewOn(true) },
     { id: 'entity', cat: 'sharing', tint: '#E8A13A', icon: 'entity', label: 'Tag', on: stickerCounts.entity > 0, run: () => setEntityOpen(true) },
@@ -921,14 +1025,14 @@ export default function StoryComposerScreen() {
 
   return (
     <TouchableOpacity style={st.root} activeOpacity={1} onPress={() => Keyboard.dismiss()}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" />
 
       <Animated.View style={[st.canvasFrame, { opacity: mediaOpacity, transform: [{ scale: mediaScale }] }]}>
         {isTextStory ? (
           <View style={st.canvasInner} onLayout={e => setPreviewSize({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
-            {renderTextBg(active?.textBackground || null)}
+            {(() => { const sharedPhoto = active?.stickers?.find(s => s.kind === 'post' && s.postMediaType !== 'video' && s.postMediaUrl)?.postMediaUrl; return sharedPhoto ? <View style={StyleSheet.absoluteFill} pointerEvents="none"><Image source={{ uri: sharedPhoto }} style={StyleSheet.absoluteFill} resizeMode="cover" blurRadius={32} /><View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,.48)' }]} /></View> : renderTextBg(active?.textBackground || null); })()}
             {active?.stickers && active.stickers.length > 0 && active.uploadState === 'idle' && (
-              <ComposerStickerOverlay stickers={active.stickers} containerW={previewSize.w} containerH={previewSize.h} onDragEnd={handleDragEnd} onTapSticker={handleTapSticker} onScaleEnd={handleScaleEnd} onRotateEnd={handleRotateEnd} onDeleteDrop={handleDeleteDrop} />
+              <ComposerStickerOverlay stickers={active.stickers} containerW={previewSize.w} containerH={previewSize.h} onDragEnd={handleDragEnd} onTapSticker={handleTapSticker} onScaleEnd={handleScaleEnd} onRotateEnd={handleRotateEnd} onDeleteDrop={handleDeleteDrop} player={vidPlayer} timingPreview={timingOpen || previewOn} />
             )}
             {hasPoll && active?.uploadState === 'idle' && (<PollDragWrap containerW={previewSize.w} containerH={previewSize.h} nx={active.pollData!.nx ?? 0.5} ny={active.pollData!.ny ?? 0.4} scale={active.pollData!.scale ?? 1} onChange={(nx, ny, scale) => updateActive({ pollData: { ...active.pollData!, nx, ny, scale } })} onTap={openPollEditor}><PollCard poll={{ poll_id: 'preview', question: active.pollData!.question, options: active.pollData!.options.map((label, i) => ({ id: String(i), label, vote_count: 0 })), total_votes: 0, my_vote: null }} isOwn={true} onVote={() => {}} onOpenVoters={() => {}} /></PollDragWrap>)}
           </View>
@@ -941,49 +1045,42 @@ export default function StoryComposerScreen() {
             scaleAnim={canvasScaleRef} opacityAnim={canvasOpacityRef}
             imageW={active?.imageW} imageH={active?.imageH} mediaFit={active?.mediaFit || 'cover'}
             mediaTransform={active?.mediaTransform || { scale: 1, translateNX: 0, translateNY: 0, fit: 'cover' }}
-            bg={((getTx() as any).bg ?? null)} videoMuted={(((getTx() as any).mix?.orig ?? 100) <= 0)} videoVolume={Math.max(0, Math.min(1, ((getTx() as any).mix?.orig ?? 100) / 100))} videoSpeed={Number((getTx() as any).speed) || 1} trimStart={(getTx() as any).trimStart ?? null} trimEnd={(getTx() as any).trimEnd ?? null} onVideoPlayer={setVidPlayer}
+            bg={((getTx() as any).bg ?? null)} videoPaused={shareOpen || textEditorOpen || musicOpen || publish.publishing} videoMuted={(((getTx() as any).mix?.orig ?? 100) <= 0)} videoVolume={Math.max(0, Math.min(1, ((getTx() as any).mix?.orig ?? 100) / 100))} videoSpeed={Number((getTx() as any).speed) || 1} trimStart={(getTx() as any).trimStart ?? null} trimEnd={(getTx() as any).trimEnd ?? null} onVideoPlayer={setVidPlayer}
             onTransformChange={handleTransformChange} onFitToggle={handleFitToggle}
             bottomInset={Math.max(48, insets.bottom + 14) + (isBusiness ? 150 : 106) + (active?.mediaType === 'video' ? 66 : 0)}
             interactive={arrangement.canvasInteractive && active?.uploadState === 'idle'}
           >
-            <FilterLayer filterId={active?.filterId || null} amt={(getTx() as any).filterAmt} />
-            <AdjustLayer adjust={(getTx() as any).adjust || null} />
+            <FilterLayer filterId={compareOriginal ? null : active?.filterId || null} amt={(getTx() as any).filterAmt} />
+            <AdjustLayer adjust={compareOriginal ? null : (getTx() as any).adjust || null} />
             <DrawingLayer strokes={drawStrokes.length ? drawStrokes : null} width={previewSize.w} height={previewSize.h} />
             {!arrangement.arrangementOpen && active?.stickers && active.stickers.length > 0 && active.uploadState === 'idle' && (
-              <ComposerStickerOverlay stickers={active.stickers} containerW={previewSize.w} containerH={previewSize.h} onDragEnd={handleDragEnd} onTapSticker={handleTapSticker} onScaleEnd={handleScaleEnd} onRotateEnd={handleRotateEnd} onDeleteDrop={handleDeleteDrop} />
+              <ComposerStickerOverlay stickers={active.stickers} containerW={previewSize.w} containerH={previewSize.h} onDragEnd={handleDragEnd} onTapSticker={handleTapSticker} onScaleEnd={handleScaleEnd} onRotateEnd={handleRotateEnd} onDeleteDrop={handleDeleteDrop} player={vidPlayer} timingPreview={timingOpen || previewOn} />
             )}
             {hasPoll && active?.uploadState === 'idle' && (<PollDragWrap containerW={previewSize.w} containerH={previewSize.h} nx={active.pollData!.nx ?? 0.5} ny={active.pollData!.ny ?? 0.4} scale={active.pollData!.scale ?? 1} onChange={(nx, ny, scale) => updateActive({ pollData: { ...active.pollData!, nx, ny, scale } })} onTap={openPollEditor}><PollCard poll={{ poll_id: 'preview', question: active.pollData!.question, options: active.pollData!.options.map((label, i) => ({ id: String(i), label, vote_count: 0 })), total_votes: 0, my_vote: null }} isOwn={true} onVote={() => {}} onOpenVoters={() => {}} /></PollDragWrap>)}
           </MediaCanvas>
         )}
 
         {/* Studio rail: primary tools on the canvas, the rest behind the chevron */}
-        {!drawMode && !previewOn && active?.uploadState === 'idle' && (
-          <StudioRail top={insets.top + 64} maxHeight={previewSize.h - (insets.top + 64) - (Math.max(48, insets.bottom + 14) + (isBusiness ? 150 : 106) + (active?.mediaType === 'video' ? 92 : 0) + 10)} items={([
+        {!drawMode && !previewOn && !timingOpen && !adjustOpen && active?.uploadState === 'idle' && (
+          <StudioRail top={insets.top + 8} maxHeight={previewSize.h - (insets.top + 64) - (Math.max(48, insets.bottom + 14) + (isBusiness ? 150 : 106) + (active?.mediaType === 'video' ? 92 : 0) + 10)} items={([
             { id: 'rtext', label: 'Text', feather: 'type', primary: true, run: () => openTextEditor() },
             { id: 'rsticker', label: 'Sticker', feather: 'smile', primary: true, on: (active?.stickers || []).length > 0, run: () => setOverflowOpen(true) },
-            { id: 'rcrop', label: (active?.mediaFit || 'cover') === 'contain' ? 'Fill' : 'Fit', feather: 'crop', primary: true, on: (active?.mediaFit || 'cover') === 'contain', run: () => handleFitToggle() },
-            { id: 'rsound', label: 'Sound', feather: 'music', primary: true, on: !!active?.audio, run: () => openMusicSheet() },
-            ...(active?.mediaType === 'video' ? [{ id: 'rtrim', label: 'Trim', icon: 'trim', on: (getTx() as any).trimEnd != null, run: () => setTrimOpen(true) } as RailItem] : []),
+            { id: 'rcrop', label: (active?.mediaFit || 'cover') === 'contain' ? 'Fill' : 'Fit', feather: 'crop', on: (active?.mediaFit || 'cover') === 'contain', run: () => handleFitToggle() },
+            ...(MUSIC_CATALOG_ENABLED ? [{ id: 'rsound', label: 'Sound', feather: 'music', primary: true, on: !!active?.audio, run: openMusicSheet } as RailItem] : []),
+            ...(active?.mediaType === 'video' ? [{ id: 'rtiming', label: 'Timing & layers', icon: 'trim', on: false, run: () => setTimingOpen(true) } as RailItem, { id: 'rtrim', label: 'Split video', icon: 'trim', on: false, run: () => setTrimOpen(true) } as RailItem] : []),
             ...(active?.mediaType === 'video' ? [{ id: 'rmute', label: (((getTx() as any).mix?.orig ?? 100) <= 0) ? 'Unmute' : 'Mute', feather: (((getTx() as any).mix?.orig ?? 100) <= 0) ? 'volume-x' : 'volume-2', primary: true, on: (((getTx() as any).mix?.orig ?? 100) <= 0), run: () => { const mix = (getTx() as any).mix || {}; const wasMuted = (mix.orig ?? 100) <= 0; setTx({ mix: { ...mix, orig: wasMuted ? 100 : 0 } } as any); } } as RailItem] : []),
             ...(active?.mediaType === 'video' ? [{ id: 'rspeed', label: ((getTx() as any).speed && (getTx() as any).speed !== 1) ? (getTx() as any).speed + 'x' : 'Speed', feather: 'fast-forward', primary: true, on: !!((getTx() as any).speed && (getTx() as any).speed !== 1), run: () => { const cur = (getTx() as any).speed || 1; const opts = [0.5, 1, 1.5, 2, 3]; const i = opts.indexOf(cur); const next = opts[(i + 1) % opts.length]; setTx({ speed: next === 1 ? undefined : next } as any); } } as RailItem] : []),
             { id: 'rfilter', label: 'Filter', icon: 'filter', on: !!active?.filterId, run: () => openFilterSheet() },
             { id: 'radjust', label: 'Adjust', icon: 'adjust', on: !!(getTx() as any).adjust, run: () => setAdjustOpen(true) },
             { id: 'rdraw', label: 'Draw', icon: 'draw', on: drawStrokes.length > 0, run: () => setDrawMode(true) },
-            { id: 'rbg', label: 'Backdrop', icon: 'bg', on: false, run: () => Alert.alert('Coming soon', 'Backdrop arrives in a later update.') },
-            { id: 'rmix', label: 'Mix', icon: 'mix', on: !!(getTx() as any).mix, run: () => { Alert.alert('Coming soon', 'Sound mix arrives together with music.'); } },
+            { id: 'rbg', label: 'Backdrop', icon: 'bg', on: !!(getTx() as any).bg, run: () => { if ((active?.mediaFit || 'cover') !== 'contain') handleFitToggle(); setBgOpen(true); } },
+            ...(MUSIC_CATALOG_ENABLED || active?.mediaType === 'video' ? [{ id: 'rmix', label: 'Sound', icon: 'mix', on: !!(getTx() as any).mix, run: () => setMixOpen(true) } as RailItem] : []),
             { id: 'rpreview', label: 'Preview', icon: 'preview', run: () => setPreviewOn(true) },
             { id: 'rsave', label: 'Save', icon: 'save', run: () => saveMediaToDevice() },
           ] as RailItem[])} />
         )}
-        {/* Trim strip: live timeline under the canvas for video stories */}
-        {!drawMode && !previewOn && active?.mediaType === 'video' && !!active?.localUri && active?.uploadState === 'idle' && (
-          <View style={{ position: 'absolute', left: 0, right: 0, bottom: Math.max(48, insets.bottom + 14) + (isBusiness ? 150 : 106), alignItems: 'center', zIndex: 28 }} pointerEvents="box-none">
-            <TrimStrip uri={active.localUri} durationSec={active.durationSec || 15} start={(getTx() as any).trimStart ?? 0} end={(getTx() as any).trimEnd ?? Math.min(active.durationSec || 15, 60)} onChange={(s2, e2) => setTx({ trimStart: Math.round(s2 * 10) / 10, trimEnd: Math.round(e2 * 10) / 10 } as any)} onDuration={(d) => { const aid = active?.id; if (!aid) return; setDrafts(prev => prev.map(x => x.id === aid ? { ...x, durationSec: d } : x)); }} player={vidPlayer} width={previewSize.w - 24} />
-          </View>
-        )}
-
         {/* Song chip: what plays, tap x to remove */}
-        {!drawMode && !previewOn && !!active?.audio && (
+        {!drawMode && !previewOn && !timingOpen && !adjustOpen && MUSIC_CATALOG_ENABLED && !!active?.audio && (
           <View style={{ position: 'absolute', left: 14, top: insets.top + 60, zIndex: 30, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(12,16,26,0.62)', borderRadius: 16, paddingLeft: 10, paddingRight: 6, paddingVertical: 6, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.18)', maxWidth: 210 }}>
             <Feather name="music" size={13} color="#C9BFB0" />
             <Text style={{ color: '#FFFFFF', fontSize: 12.5, fontWeight: '700', flexShrink: 1 }} numberOfLines={1}>{active.audio.title || (active.audio.kind === 'voiceover' ? 'Voiceover' : 'Sound')}</Text>
@@ -1020,145 +1117,120 @@ export default function StoryComposerScreen() {
         )}
 
         {/* Close button */}
-        {!drawMode && !previewOn && (
-        <TouchableOpacity style={[st.closeBtn, { top: insets.top + 8 }]} onPress={() => navigation.goBack()} activeOpacity={0.7} disabled={publish.publishing} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <View style={st.closeBtnInner}><Feather name="x" size={18} color={textColor.primary} /></View>
+        {!drawMode && !previewOn && !timingOpen && !adjustOpen && (
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Close story editor" style={[st.closeBtn, { top: insets.top + 8 }]} onPress={() => navigation.goBack()} activeOpacity={0.7} disabled={publish.publishing} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <View style={st.closeBtnInner}><Feather name="x" size={18} color="#FFFFFF" /></View>
         </TouchableOpacity>
         )}
 
         {/* Top tool row — Instagram construction */}
-        {!drawMode && !previewOn && (
-        <View style={[st.undoRedoWrap, { top: insets.top + 8 }]}>
+        {!drawMode && !previewOn && !timingOpen && !adjustOpen && (
+        <View style={[st.undoRedoWrap, { top: insets.top + 62 }]}>
           {(undoCount > 0 || redoCount > 0) && <>
-            <TouchableOpacity style={st.undoBtn} onPress={undo} disabled={undoCount === 0 || publish.publishing} activeOpacity={0.6}>
-              <Feather name="corner-up-left" size={14} color={undoCount > 0 ? textColor.muted : textColor.whisper} />
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Undo story edit" style={st.undoBtn} onPress={undo} disabled={undoCount === 0 || publish.publishing} activeOpacity={0.6}>
+              <Feather name="corner-up-left" size={14} color={undoCount > 0 ? "#FFFFFF" : "rgba(255,255,255,0.35)"} />
             </TouchableOpacity>
-            <TouchableOpacity style={st.undoBtn} onPress={redo} disabled={redoCount === 0 || publish.publishing} activeOpacity={0.6}>
-              <Feather name="corner-up-right" size={14} color={redoCount > 0 ? textColor.muted : textColor.whisper} />
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Redo story edit" style={st.undoBtn} onPress={redo} disabled={redoCount === 0 || publish.publishing} activeOpacity={0.6}>
+              <Feather name="corner-up-right" size={14} color={redoCount > 0 ? "#FFFFFF" : "rgba(255,255,255,0.35)"} />
             </TouchableOpacity>
             <View style={st.toolRowGap} />
           </>}
         </View>
         )}
 
-        {/* Business reach switch */}
-        {isBusiness && !drawMode && !previewOn && (
-        <Animated.View style={[st.postPillWrap, { opacity: keyboard.controlsOpacityAnim, bottom: Math.max(48, insets.bottom + 14) + 96 }]}>
-          <TouchableOpacity onPress={toggleReach} activeOpacity={0.8} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: reach === 'wider' ? '#0B1E3D' : 'rgba(0,0,0,0.78)', borderWidth: 1, borderColor: reach === 'wider' ? '#E8A13A' : 'rgba(255,255,255,0.30)', borderRadius: 18, paddingHorizontal: 14, minHeight: 36 }} disabled={publish.publishing}>
-            <Feather name={reach === 'wider' ? 'trending-up' : 'users'} size={13} color={reach === 'wider' ? '#E8A13A' : '#FFFFFF'} />
-            <Text style={{ color: '#FFFFFF', fontSize: 12.5, fontWeight: '700', letterSpacing: -0.2 }}>{reach === 'wider' ? 'Wider reach' : 'Followers'}</Text>
-          </TouchableOpacity>
-        </Animated.View>
-        )}
-        <StoryAudienceSheet
-          visible={audienceSheetOpen}
-          onClose={() => setAudienceSheetOpen(false)}
-          audience={audience}
-          onChange={(a, people) => { setAudienceState(a as any); setDrafts(ds => ds.map(d => ({ ...d, audience: a, sharedWith: people || null } as any))); }}
-        />
-
-        {/* Audience picker */}
-        {!drawMode && !previewOn && (
-        <Animated.View style={[st.postPillWrap, { opacity: keyboard.controlsOpacityAnim, bottom: Math.max(48, insets.bottom + 14) + 52 }]}>
-          <TouchableOpacity onPress={() => setAudienceSheetOpen(true)} activeOpacity={0.8} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: audience === 'close_friends' ? '#2F9E63' : 'rgba(0,0,0,0.78)', borderWidth: 1, borderColor: audience === 'close_friends' ? '#2F9E63' : 'rgba(255,255,255,0.30)', borderRadius: 18, paddingHorizontal: 14, minHeight: 36 }} disabled={publish.publishing}>
-            <Feather name={(audience === 'close_friends' ? 'star' : audience === 'only_with' ? 'user-check' : audience === 'followers' ? 'users' : 'globe') as any} size={13} color="#FFFFFF" />
-            <Text style={{ color: '#FFFFFF', fontSize: 12.5, fontWeight: '700', letterSpacing: -0.2 }}>{audience === 'close_friends' ? 'Close friends' : 'Everyone'}</Text>
-          </TouchableOpacity>
-        </Animated.View>
-        )}
-        {/* Post button */}
-        {!drawMode && !previewOn && (
-        <Animated.View style={[st.postPillWrap, { opacity: keyboard.controlsOpacityAnim, bottom: Math.max(48, insets.bottom + 14) }]}>
-          <TouchableOpacity onPress={publish.publishAll} disabled={!canPublish} style={[st.postPillInner, !canPublish && { opacity: 0.4 }]} activeOpacity={0.85}>
-            {publish.publishing ? <ActivityIndicator color="#0A0A0A" size={14} /> : <><Text style={st.postPillTxt}>Post</Text><Feather name="arrow-up" size={13} color="#0A0A0A" /></>}
-          </TouchableOpacity>
-        </Animated.View>
-        )}
-
-
-
+        <StoryAudienceSheet visible={audienceSheetOpen} onClose={() => setAudienceSheetOpen(false)} audience={audience}
+          onChange={(a, people) => { setAudienceState(a as any); setDrafts(ds => ds.map(d => ({ ...d, audience: a, sharedWith: people || null } as any))); }} />
+        {!drawMode && !previewOn && !timingOpen && !adjustOpen && !shareOpen ? <View style={[st.creationDock, { paddingBottom: Math.max(insets.bottom, 14) }]}>
+          <View style={st.dockTop}>
+            <FlatList style={{ flex: 1 }} data={drafts} keyExtractor={d => d.id} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 7, paddingRight: 8 }} renderItem={({ item, index }) => <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Edit story clip ${index + 1}`} accessibilityState={{ selected: index === activeIndex }} style={[st.thumbWrap, index === activeIndex && st.thumbWrapActive]} onPress={() => { setActiveIndex(index); undoStackRef.current = []; redoStackRef.current = []; setUndoCount(0); setRedoCount(0); }} disabled={publish.publishing}>
+              {item.mediaType === 'text' ? <View style={[st.thumb, { backgroundColor: (item.textBackground as any)?.color || '#0B1E3D', alignItems: 'center', justifyContent: 'center' }]}><Text style={{ color: '#FFFFFF', fontSize: 20 }}>Aa</Text></View> : item.localUri ? item.mediaType === 'video' ? <VideoThumb uri={item.localUri} posterUri={item.thumbnailUri || undefined} fill /> : <Image source={{ uri: item.localUri }} style={st.thumb} /> : <View style={st.thumb} />}
+              {item.uploadState === 'done' ? <View style={st.thumbDone}><Feather name="check" size={16} color="#FFF" /></View> : null}
+              {item.uploadState === 'error' ? <View style={st.thumbError}><Feather name="alert-circle" size={16} color="#FFF" /></View> : null}
+              {!publish.publishing && item.uploadState !== 'done' && drafts.length > 1 ? <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Remove story clip ${index + 1}`} style={st.thumbRemove} onPress={() => removeDraft(index)} hitSlop={8}><Feather name="x" size={11} color="#FFF" /></TouchableOpacity> : null}
+            </TouchableOpacity>} ListFooterComponent={drafts.length < STORY_CLIP_LIMIT ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add story clips" disabled={addingClips || publish.publishing} onPress={() => void addClips()} style={st.addClip}>{addingClips ? <ActivityIndicator color="#FAF6EE" /> : <Feather name="plus" size={25} color="#FAF6EE" />}</TouchableOpacity> : null} />
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Choose story audience" onPress={() => setAudienceSheetOpen(true)} style={st.audiencePill} disabled={publish.publishing}><Feather name={audience === 'close_friends' ? 'star' : 'globe'} size={16} color="#FFFFFF" /><Text numberOfLines={1} style={st.audiencePillText}>{audience === 'close_friends' ? 'Close friends' : audience === 'followers' ? 'Followers' : audience === 'only_with' ? 'People' : 'Everyone'}</Text><Feather name="chevron-down" size={13} color="#FFFFFF" /></TouchableOpacity>
+          </View>
+          <View style={st.dockActions}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add story text" style={st.dockTool} onPress={() => openTextEditor()}><Feather name="type" size={24} color="#FFFFFF" /><Text style={st.dockToolText}>Text</Text></TouchableOpacity>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Open story stickers" style={st.dockTool} onPress={() => setOverflowOpen(true)}><Feather name="smile" size={24} color="#FFFFFF" /><Text style={st.dockToolText}>Stickers</Text></TouchableOpacity>
+            {MUSIC_CATALOG_ENABLED ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Choose story music or original audio" style={st.dockTool} onPress={openMusicSheet}><Feather name="music" size={24} color="#FFFFFF" /><Text style={st.dockToolText}>Music</Text></TouchableOpacity> : active?.mediaType === 'video' ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Adjust original video sound" style={st.dockTool} onPress={() => setMixOpen(true)}><Feather name="volume-2" size={24} color="#FFFFFF" /><Text style={st.dockToolText}>Sound</Text></TouchableOpacity> : null}
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Edit story media" style={st.dockTool} onPress={() => setAdjustOpen(true)}><Feather name="sliders" size={24} color="#FFFFFF" /><Text style={st.dockToolText}>Edit</Text></TouchableOpacity>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Review story before sharing" style={st.nextPill} onPress={() => { Keyboard.dismiss(); setShareOpen(true); }} disabled={publish.publishing}><Text style={st.nextText}>Next</Text><Feather name="arrow-right" size={18} color="#181B1E" /></TouchableOpacity>
+          </View>
+        </View> : null}
       </Animated.View>
 
-      {/* Caption */}
-      {active?.uploadState === 'idle' && !arrangement.arrangementOpen && !drawMode && !previewOn && (
-        <Animated.View style={[st.captionFloating, { bottom: keyboard.captionBottomAnim }]}>
-          <TextInput value={active?.caption || ''} onChangeText={t => updateActive({ caption: t })} placeholder="Add a caption..." placeholderTextColor={textColor.faint} style={st.captionInput} maxLength={200} editable={!publish.publishing} keyboardAppearance="dark" returnKeyType="done" onSubmitEditing={() => Keyboard.dismiss()} blurOnSubmit />
-        </Animated.View>
-      )}
-
-      {/* Draft strip */}
-      {drafts.length > 1 && (
-        <View style={st.stripWrap}>
-          <FlatList data={drafts} keyExtractor={d => d.id} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 12, gap: 8 }} renderItem={({ item, index }) => {
-            const isAct = index === activeIndex;
-            return (
-              <TouchableOpacity style={[st.thumbWrap, isAct && st.thumbWrapActive]} activeOpacity={0.7} onPress={() => { setActiveIndex(index); undoStackRef.current = []; redoStackRef.current = []; setUndoCount(0); setRedoCount(0); }} disabled={publish.publishing}>
-                {item.mediaType === 'text' ? <View style={[st.thumb, { backgroundColor: (item.textBackground as any)?.color || '#0B1E3D' }]} /> : item.localUri ? <Image source={{ uri: item.localUri }} style={st.thumb} /> : <View style={[st.thumb, { backgroundColor: surface.immersive }]} />}
-                {item.mediaType === 'video' && <View style={st.videoIndicator}><Feather name="play" size={10} color="#FFF" /></View>}
-                {item.uploadState === 'done' && <View style={st.thumbDone}><Feather name="check" size={14} color="#FFF" /></View>}
-                {item.uploadState === 'error' && <View style={st.thumbError}><Feather name="alert-circle" size={14} color="#FFF" /></View>}
-                {!publish.publishing && item.uploadState !== 'done' && drafts.length > 1 && <TouchableOpacity style={st.thumbRemove} onPress={() => removeDraft(index)} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}><Feather name="x" size={11} color="#FFF" /></TouchableOpacity>}
-              </TouchableOpacity>
-            );
-          }} />
-        </View>
-      )}
+      <StoryTimingPanel visible={timingOpen} uri={active?.mediaType === 'video' ? active.localUri : null} duration={active?.durationSec || 15} trimStart={(getTx() as any).trimStart || 0} trimEnd={(getTx() as any).trimEnd ?? Math.min(active?.durationSec || 15, 60)} player={vidPlayer} width={previewSize.w} topInset={insets.top} bottomInset={insets.bottom} stickers={active?.stickers || []} audioTitle={MUSIC_CATALOG_ENABLED ? active?.audio?.title : undefined} onClose={() => setTimingOpen(false)} onTrim={(start, end) => setTx({ trimStart: start, trimEnd: end } as any)} onDuration={duration => updateActive({ durationSec: duration })} onLayerChange={(id, start, end) => updateStickers((active?.stickers || []).map(s => s.id === id ? { ...s, startSec: start, endSec: end } : s))} />
+      {shareOpen ? <View accessibilityViewIsModal style={[st.shareScreen, { paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, 16) }]}>
+        <View style={st.shareHeader}><TouchableOpacity accessibilityRole="button" accessibilityLabel="Back to story editing" style={st.shareBack} onPress={() => setShareOpen(false)} disabled={publish.publishing}><Feather name="chevron-left" size={25} color="#FFFFFF" /></TouchableOpacity><Text style={st.shareTitle}>Share story</Text><View style={{ width: 44 }} /></View>
+        <ScrollView contentContainerStyle={{ padding: 22, paddingBottom: 32 }} keyboardShouldPersistTaps="handled">
+          {active ? <StoryReviewPreview draft={active} width={previewSize.w} height={previewSize.h} textBackground={renderTextBg(active.textBackground || null)} strokes={drawStrokes} /> : null}
+          <Text style={st.clipCount}>{drafts.length} {drafts.length === 1 ? 'story clip' : 'story clips'}</Text>
+          <Text style={st.shareSection}>Who can see this?</Text>
+          {([{ id: 'everyone', label: 'Everyone', icon: 'globe' }, { id: 'close_friends', label: 'Close friends', icon: 'users' }, { id: 'only_with', label: 'Choose people', icon: 'user' }] as const).map(option => <TouchableOpacity key={option.id} accessibilityRole="radio" accessibilityState={{ selected: audience === option.id }} onPress={() => { if (option.id === 'only_with') setAudienceSheetOpen(true); else { setAudienceState(option.id); setDrafts(current => current.map(d => ({ ...d, audience: option.id, sharedWith: null }))); } }} style={st.shareRow} disabled={publish.publishing}><Feather name={option.icon} size={22} color="#FFFFFF" /><Text style={st.shareRowText}>{option.label}</Text><View style={[st.shareRadio, audience === option.id && st.shareRadioOn]} /></TouchableOpacity>)}
+          {audience === 'followers' || audience === 'except' ? <TouchableOpacity accessibilityRole="button" onPress={() => setAudienceSheetOpen(true)} style={st.shareRow}><Text style={st.shareRowText}>{audience === 'followers' ? 'Followers' : 'Everyone except selected people'}</Text><Feather name="check-circle" size={22} color="#F1DFC5" /></TouchableOpacity> : null}
+          <TouchableOpacity accessibilityRole="button" onPress={() => setAudienceSheetOpen(true)} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={{ color: '#C9C6C0', fontSize: 12 }}>More audience options</Text></TouchableOpacity>
+          <View style={st.shareToggle}><Feather name="message-circle" size={21} color="#F8F4EC" /><Text style={st.shareRowText}>Allow replies</Text><Switch accessibilityLabel="Allow story replies" value={allowReplies} onValueChange={value => { setAllowReplies(value); setDrafts(current => current.map(d => ({ ...d, allowReplies: value }))); }} disabled={publish.publishing} trackColor={{ false: '#454B50', true: '#EBD5B6' }} thumbColor="#FFFFFF" /></View>
+          {isBusiness ? <TouchableOpacity accessibilityRole="button" onPress={toggleReach} style={st.shareRow} disabled={publish.publishing}><Feather name="trending-up" size={22} color="#FFFFFF" /><Text style={st.shareRowText}>{reach === 'wider' ? 'Wider reach' : 'Followers'}</Text><Feather name="chevron-right" size={20} color="#E8D3B6" /></TouchableOpacity> : null}
+          <Text style={st.shareSection}>Add a caption</Text>
+          <TextInput accessibilityLabel="Story caption" value={active?.caption || ''} onChangeText={t => updateActive({ caption: t })} placeholder="A moment worth sharing…" placeholderTextColor="#93989E" style={st.shareCaption} maxLength={120} multiline editable={!publish.publishing} keyboardAppearance="dark" />
+          <Text style={st.shareHint}>Your story will be available for 24 hours. You can keep it in a memory book after sharing.</Text>
+        </ScrollView>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Publish story" onPress={publish.publishAll} disabled={!canPublish} style={[st.shareButton, !canPublish && { opacity: 0.45 }]}>{publish.publishing ? <ActivityIndicator color="#181B1E" /> : <Text style={st.nextText}>Share story</Text>}</TouchableOpacity>
+      </View> : null}
 
       {/* ── MODALS (text editor, emoji, poll, link, location, mention, question, slider, quiz, overflow, preview) ── */}
       {/* Text Editor Modal — Instagram construction */}
       <Modal visible={textEditorOpen} transparent animationType="fade" onRequestClose={closeTextEditor}>
         <View style={[st.textEditorOverlay, { paddingBottom: Platform.OS === 'ios' ? keyboard.keyboardHeight : 0 }]}>
           {isTextStory && active?.textBackground && <View style={StyleSheet.absoluteFill} pointerEvents="none">{renderTextBg(active.textBackground)}<View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.45)' }]} /></View>}
-          <View style={[st.textEditorHeader, { paddingTop: Math.max(insets.top, 12) }]}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <TouchableOpacity onPress={closeTextEditor} style={st.editorActionBtn}><Feather name="x" size={16} color="#FFF" /></TouchableOpacity>
-              <TouchableOpacity style={st.editorActionBtn} onPress={() => setStickerTextAlign(a => a === 'center' ? 'left' : a === 'left' ? 'right' : 'center')}>
-                <Feather name={`align-${stickerTextAlign}` as any} size={16} color="#FFF" />
-              </TouchableOpacity>
-              <TouchableOpacity style={[st.editorActionBtn, stickerBgEnabled && st.editorActionBtnOn]} onPress={() => setStickerBgEnabled(b => !b)}>
-                <Feather name="square" size={16} color={stickerBgEnabled ? '#020408' : '#FFF'} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => setStickerFontSize(p => Math.max(0, (p || BASE_FONT_SIZES[stickerStyle] || 28) - 2))} style={st.editorActionBtn}><Text style={st.fontSizeBtnTxt}>A-</Text></TouchableOpacity>
-              <TouchableOpacity onPress={() => setStickerFontSize(p => Math.min(72, (p || BASE_FONT_SIZES[stickerStyle] || 28) + 2))} style={st.editorActionBtn}><Text style={st.fontSizeBtnTxt}>A+</Text></TouchableOpacity>
-            </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              {editingStickerId && <TouchableOpacity onPress={() => duplicateSticker(editingStickerId)} style={st.editorActionBtn}><Feather name="copy" size={16} color="#FFF" /></TouchableOpacity>}
-              {editingStickerId && <TouchableOpacity onPress={deleteEditingSticker} style={st.editorActionBtn}><Feather name="trash-2" size={16} color="#FF3B30" /></TouchableOpacity>}
-              <TouchableOpacity onPress={saveSticker}><Text style={st.textEditorDone}>Done</Text></TouchableOpacity>
-            </View>
-          </View>
+          <StoryTextEditorToolbar
+            compact topInset={insets.top} alignment={stickerTextAlign} background={stickerBgEnabled}
+            onClose={closeTextEditor} onSave={saveSticker}
+            onAlign={() => setStickerTextAlign(a => a === 'center' ? 'left' : a === 'left' ? 'right' : 'center')}
+            onBackground={() => setStickerBgEnabled(b => !b)}
+            onDecreaseSize={() => setStickerFontSize(p => Math.max(12, (p || BASE_FONT_SIZES[stickerStyle] || 28) - 2))}
+            onIncreaseSize={() => setStickerFontSize(p => Math.min(72, (p || BASE_FONT_SIZES[stickerStyle] || 28) + 2))}
+            onDuplicate={editingStickerId ? () => duplicateSticker(editingStickerId) : undefined}
+            onDelete={editingStickerId ? deleteEditingSticker : undefined}
+          />
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="always" bounces={false}>
           <View style={st.editorCenter}>
-            {(() => { const p = stickerTextStyle(stickerStyle, stickerColor, stickerBgEnabled, stickerFontSize > 0 ? stickerFontSize : undefined); return (
+            {(() => { const p = composedTextStyle(stickerStyle, stickerColor, stickerBgEnabled, stickerFontSize > 0 ? stickerFontSize : undefined); return (
               <View style={[p.wrapperStyle, stickerOpacity < 1 && { opacity: stickerOpacity }]}>
                 <TextInput ref={stickerInputRef} value={stickerText} onChangeText={setStickerText} placeholder="Type here" placeholderTextColor="rgba(255,255,255,0.35)" style={[p.textStyle as any, { textAlign: stickerTextAlign, maxWidth: STICKER_TEXT_MAX_W, minWidth: 40, padding: 0 }]} maxLength={100} autoFocus multiline keyboardAppearance="dark" />
               </View>
             ); })()}
           </View>
-          <View style={st.editorBottom}>
-            <ScrollView ref={stylePickerRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.stylePickerScroll} keyboardShouldPersistTaps="always">
-              {([...STICKER_STYLES, ...EXTRA_TEXT_STYLES.filter(x => !(STICKER_STYLES as any[]).includes(x))] as any[]).map(ss => { const fp = composedTextStyle(ss, '#FFFFFF', false); return (
-                <TouchableOpacity key={ss} style={[st.fontPill, stickerStyle === ss && st.fontPillActive]} onPress={() => setStickerStyle(ss)}>
-                  <Text style={[{ color: '#FFF', fontFamily: (fp.textStyle as any).fontFamily, fontWeight: (fp.textStyle as any).fontWeight, fontStyle: (fp.textStyle as any).fontStyle }, st.fontPillTxt, stickerStyle === ss && st.fontPillTxtActive]} numberOfLines={1}>{(STICKER_STYLE_LABELS as any)[ss] || (EXTRA_TEXT_LABELS as any)[ss] || ss}</Text>
+          </ScrollView>
+          <ScrollView style={[st.editorBottom, { flexGrow: 0, maxHeight: Math.max(100, (SCREEN_H - (Platform.OS === 'ios' ? keyboard.keyboardHeight : 0) - insets.top - 64) * .58) }]} keyboardShouldPersistTaps="always" showsVerticalScrollIndicator={false}>
+            <View style={st.textPanelTabs}>{(['font', 'color', 'style', 'animate'] as const).map(panel => <TouchableOpacity key={panel} accessibilityRole="tab" accessibilityState={{ selected: textPanel === panel }} onPress={() => setTextPanel(panel)} style={[st.textPanelTab, textPanel === panel && st.textPanelTabOn]}><Text style={[st.textPanelLabel, textPanel === panel && { color: '#181B1E' }]}>{panel[0].toUpperCase() + panel.slice(1)}</Text></TouchableOpacity>)}</View>
+            {textPanel === 'font' ? <ScrollView ref={stylePickerRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.stylePickerScroll} keyboardShouldPersistTaps="always">
+              {(['classic', 'luxury', 'bold', 'typewriter', ...[...STICKER_STYLES, ...EXTRA_TEXT_STYLES].filter((x, index, all) => !['classic', 'luxury', 'bold', 'typewriter'].includes(x) && all.indexOf(x) === index)] as any[]).map(ss => { const fp = composedTextStyle(ss, '#FFFFFF', false); return (
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel={ss === 'luxury' ? 'Editorial' : (STICKER_STYLE_LABELS as any)[ss] || (EXTRA_TEXT_LABELS as any)[ss] || ss} accessibilityState={{ selected: stickerStyle === ss }} key={ss} style={[st.fontPill, stickerStyle === ss && st.fontPillActive]} onPress={() => setStickerStyle(ss)}>
+                  <Text style={[{ color: '#FFF', fontFamily: (fp.textStyle as any).fontFamily, fontWeight: (fp.textStyle as any).fontWeight, fontStyle: (fp.textStyle as any).fontStyle }, st.fontPillTxt, stickerStyle === ss && st.fontPillTxtActive]} numberOfLines={1}>{ss === 'luxury' ? 'Editorial' : (STICKER_STYLE_LABELS as any)[ss] || (EXTRA_TEXT_LABELS as any)[ss] || ss}</Text>
                 </TouchableOpacity>
               ); })}
-            </ScrollView>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.colorRowScroll} keyboardShouldPersistTaps="always">
+            </ScrollView> : null}
+            {textPanel === 'font' ? <View style={st.fontSizeRow}><TouchableOpacity accessibilityRole="button" accessibilityLabel={`Text alignment: ${stickerTextAlign}`} onPress={() => setStickerTextAlign(a => a === 'center' ? 'left' : a === 'left' ? 'right' : 'center')} style={st.textAlignButton}><Feather name={`align-${stickerTextAlign}`} size={21} color="#FFFFFF" /></TouchableOpacity><MiniSlider label="Text size" value={stickerFontSize || BASE_FONT_SIZES[stickerStyle] || 28} min={12} max={72} width={Math.max(120, previewSize.w - 140)} onChange={setStickerFontSize} /><Text style={st.textPanelLabel}>{stickerFontSize || BASE_FONT_SIZES[stickerStyle] || 28}</Text></View> : null}
+            {textPanel === 'color' ? <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.colorRowScroll} keyboardShouldPersistTaps="always">
               {STICKER_COLORS.map(c => (
-                <TouchableOpacity key={c} style={[st.colorSwatch, stickerColor === c && st.colorSwatchActive]} onPress={() => setStickerColor(c)}><View style={[st.colorSwatchInner, { backgroundColor: c }]} /></TouchableOpacity>
+                <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Text color ${c}`} accessibilityState={{ selected: stickerColor === c }} key={c} style={[st.colorSwatch, stickerColor === c && st.colorSwatchActive]} onPress={() => setStickerColor(c)}><View style={[st.colorSwatchInner, { backgroundColor: c }]} /></TouchableOpacity>
               ))}
               <View style={{ width: 10 }} />
               {[0.3, 0.5, 0.7, 1.0].map(v => (
                 <TouchableOpacity key={v} style={[st.opacityDot, stickerOpacity === v && st.opacityDotActive]} onPress={() => setStickerOpacity(v)}><Text style={[st.opacityDotTxt, stickerOpacity === v && st.opacityDotTxtActive]}>{Math.round(v * 100)}%</Text></TouchableOpacity>
               ))}
-            </ScrollView>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.colorRowScroll} keyboardShouldPersistTaps="always">
+            </ScrollView> : null}
+            {textPanel === 'animate' ? <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={st.colorRowScroll} keyboardShouldPersistTaps="always">
               {TEXT_ANIMS.map(an => (
                 <TouchableOpacity key={an} style={[st.opacityDot, stickerAnim === an && st.opacityDotActive]} onPress={() => setStickerAnim(an)}>
                   <Text style={[st.opacityDotTxt, stickerAnim === an && st.opacityDotTxtActive]}>{an === 'none' ? 'No anim' : an}</Text>
                 </TouchableOpacity>
               ))}
-            </ScrollView>
-            {active?.mediaType === 'video' && (
+            </ScrollView> : null}
+            {textPanel === 'style' ? <View style={st.textStyleRow}><TouchableOpacity accessibilityRole="button" accessibilityState={{ selected: stickerBgEnabled }} onPress={() => setStickerBgEnabled(b => !b)} style={st.fontPill}><Text style={st.textPanelLabel}>{stickerBgEnabled ? 'Background on' : 'Background off'}</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={() => setStickerTextAlign(a => a === 'center' ? 'left' : a === 'left' ? 'right' : 'center')} style={st.fontPill}><Text style={st.textPanelLabel}>Align {stickerTextAlign}</Text></TouchableOpacity></View> : null}
+            {textPanel === 'animate' && active?.mediaType === 'video' && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingBottom: 8 }}>
                 <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12.5, fontWeight: '700' }}>Timing</Text>
                 {([['start', stickerStartSec, setStickerStartSec], ['end', stickerEndSec, setStickerEndSec]] as any[]).map(([lb, val, setV]: any) => (
@@ -1174,7 +1246,7 @@ export default function StoryComposerScreen() {
                 )}
               </View>
             )}
-          </View>
+          </ScrollView>
         </View>
       </Modal>
 
@@ -1218,11 +1290,12 @@ export default function StoryComposerScreen() {
       </Modal>
 
       {/* Sticker Tray - Instagram construction */}
-      <MusicSheet visible={musicOpen} onClose={() => setMusicOpen(false)} current={active?.audio || null} onSelect={(a: StoryAudioDraft) => { updateActive({ audio: a }); setMusicOpen(false); }} onRemove={() => { updateActive({ audio: null }); }} disabled={publish.publishing} />
+      {soundPreview.error || previewAudio.error ? <TouchableOpacity accessibilityRole="button" onPress={() => { soundPreview.retry(); previewAudio.retry(); }} style={{ padding: 12 }}><Text style={{ color: '#FFB4B4' }}>{soundPreview.error || previewAudio.error}</Text></TouchableOpacity> : null}
+      <MusicSheet userId={myId} visible={musicOpen} onClose={() => setMusicOpen(false)} current={active?.audio || null} onSelect={(a: StoryAudioDraft) => { updateActive({ audio: a }); setMusicOpen(false); }} onShareTrack={(track) => { addSimpleSticker({ kind: 'link', text: track.title + ' · ' + track.artist, url: track.url }); setMusicOpen(false); }} onRemove={() => { updateActive({ audio: null }); }} disabled={publish.publishing} />
       <FilterPickerSheet visible={filterOpen} onClose={() => setFilterOpen(false)} selected={active?.filterId || null} onSelect={(fid: string | null) => { updateActive({ filterId: fid }); }} previewUri={active?.localUri || null} />
-      <AdjustPanel visible={adjustOpen} onClose={() => setAdjustOpen(false)} adjust={((getTx() as any).adjust || {}) as StoryAdjust} onChange={(a: StoryAdjust) => setTx({ adjust: a } as any)} filterOn={!!active?.filterId} filterAmt={typeof (getTx() as any).filterAmt === 'number' ? (getTx() as any).filterAmt : 100} onFilterAmt={(v: number) => setTx({ filterAmt: v } as any)} />
+      <AdjustPanel visible={adjustOpen} onClose={() => { setAdjustOpen(false); setCompareOriginal(false); }} onCompare={setCompareOriginal} onCrop={() => { setAdjustOpen(false); handleFitToggle(); }} onFilters={() => { setAdjustOpen(false); openFilterSheet(); }} onDraw={() => { setAdjustOpen(false); setDrawMode(true); }} onTiming={active?.mediaType === 'video' ? () => { setAdjustOpen(false); setTimingOpen(true); } : undefined} adjust={((getTx() as any).adjust || {}) as StoryAdjust} onChange={(a: StoryAdjust) => setTx({ adjust: a } as any)} filterOn={!!active?.filterId} filterAmt={typeof (getTx() as any).filterAmt === 'number' ? (getTx() as any).filterAmt : 100} onFilterAmt={(v: number) => setTx({ filterAmt: v } as any)} />
       <BackgroundSheet visible={bgOpen} onClose={() => setBgOpen(false)} bg={((getTx() as any).bg || null) as StoryBg | null} onChange={(b: StoryBg) => setTx({ bg: b } as any)} />
-      <AudioMixSheet visible={mixOpen} onClose={() => setMixOpen(false)} isVideo={active?.mediaType === 'video'} hasMusic={!!active?.audio} mix={((getTx() as any).mix || {}) as StoryMix} onChange={(m: StoryMix) => setTx({ mix: m } as any)} />
+      <AudioMixSheet visible={mixOpen} onClose={() => setMixOpen(false)} isVideo={active?.mediaType === 'video'} hasMusic={MUSIC_CATALOG_ENABLED && !!active?.audio} mix={((getTx() as any).mix || {}) as StoryMix} onChange={(m: StoryMix) => setTx({ mix: m } as any)} />
       <EntitySheet visible={entityOpen} onClose={() => setEntityOpen(false)} onPick={handleEntityPick} />
       <GifPickerLite visible={gifOpen} onClose={() => setGifOpen(false)} onSelect={handleGifPick} />
       {trimOpen && active?.mediaType === 'video' && !!active?.localUri && (
@@ -1499,8 +1572,19 @@ export default function StoryComposerScreen() {
 // ════════════════════════════════════════════════════════════
 
 const st = StyleSheet.create({
-  root: { flex: 1, backgroundColor: palette.warmWhite },
-  safe: { flex: 1, backgroundColor: palette.warmWhite },
+  creationDock: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingTop: 14, paddingHorizontal: 16, backgroundColor: 'rgba(17,21,24,0.94)', borderTopLeftRadius: 28, borderTopRightRadius: 28, zIndex: 35, borderTopWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.18)' },
+  dockTop: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 64 },
+  audiencePill: { maxWidth: 145, minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 7, borderRadius: 24, paddingHorizontal: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' }, audiencePillText: { color: '#FFFFFF', fontSize: 12, fontWeight: '600', flexShrink: 1 },
+  dockActions: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingTop: 14 }, dockTool: { flex: 1, minHeight: 50, alignItems: 'center', justifyContent: 'center', gap: 5 }, dockToolText: { color: '#FFFFFF', fontSize: 11 },
+  nextPill: { minWidth: 98, minHeight: 50, paddingHorizontal: 19, borderRadius: 28, backgroundColor: '#FA927A', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }, nextText: { fontSize: 16, fontWeight: '800', color: '#181B1E' },
+  shareScreen: { ...StyleSheet.absoluteFillObject, zIndex: 80, backgroundColor: '#111518' }, shareHeader: { minHeight: 60, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12 }, shareBack: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }, shareTitle: { flex: 1, color: '#FFFFFF', fontSize: 21, fontWeight: '700', textAlign: 'center' },
+  sharePreview: { alignSelf: 'center', width: 132, height: 194, borderRadius: 17, overflow: 'hidden', backgroundColor: '#252A2E', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' }, clipCount: { color: '#C5C8CC', fontSize: 13, marginTop: 12, textAlign: 'center', marginBottom: 24 },
+  shareSection: { color: '#FFFFFF', fontWeight: '700', fontSize: 16, marginTop: 18, marginBottom: 12 }, shareRow: { minHeight: 58, borderRadius: 17, backgroundColor: '#22272B', borderWidth: 1, borderColor: '#353B40', paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 }, shareRowText: { flex: 1, fontSize: 15, color: '#FFFFFF', fontWeight: '600' },
+  shareToggle: { flexDirection: 'row', alignItems: 'center', gap: 13, minHeight: 58, marginTop: 6, marginBottom: 6 }, shareRadio: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: '#646A6E' }, shareRadioOn: { borderWidth: 6, borderColor: '#F1DFC5', backgroundColor: '#293034' },
+  shareCaption: { minHeight: 96, borderRadius: 18, backgroundColor: '#22272B', borderWidth: 1, borderColor: '#353B40', paddingHorizontal: 16, paddingVertical: 14, color: '#FFFFFF', fontSize: 15, textAlignVertical: 'top' }, shareHint: { color: '#A0A6AC', fontSize: 12, lineHeight: 18, marginTop: 16 }, shareButton: { minHeight: 54, marginHorizontal: 22, borderRadius: 29, backgroundColor: '#E8D3B6', alignItems: 'center', justifyContent: 'center' },
+
+  root: { flex: 1, backgroundColor: '#111518' },
+  safe: { flex: 1, backgroundColor: '#111518' },
   canvasFrame: { flex: 1, overflow: 'hidden', position: 'relative', backgroundColor: surface.immersive, ...SHADOW_CANVAS },
   canvasInner: { flex: 1, position: 'relative' },
   topScrim: { position: 'absolute', top: 0, left: 0, right: 0, height: 120, zIndex: Z_SCRIM, pointerEvents: 'none' as const },
@@ -1508,8 +1592,8 @@ const st = StyleSheet.create({
   dualBubble: { position: 'absolute', zIndex: Z_BUBBLE, borderWidth: 2, borderColor: 'rgba(255,255,255,0.4)', ...SHADOW_BUBBLE },
   dualBubbleImg: { width: '100%', height: '100%' },
   closeBtn: { position: 'absolute', left: 12, width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', zIndex: Z_CHROME },
-  closeBtnInner: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
-  undoRedoWrap: { position: 'absolute', right: 12, flexDirection: 'row', alignItems: 'center', gap: 8, zIndex: Z_CHROME },
+  closeBtnInner: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
+  undoRedoWrap: { position: 'absolute', left: 14, flexDirection: 'row', alignItems: 'center', gap: 8, zIndex: Z_CHROME },
   undoBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' },
   topToolBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' },
   toolRowGap: { width: 6 },
@@ -1533,25 +1617,28 @@ const st = StyleSheet.create({
   emptyFallbackBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 24, backgroundColor: accent.warm, paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20 },
   emptyFallbackBtnTxt: { color: '#FFF', fontSize: typeSize.caption, fontWeight: fontWeight.semibold },
   stripWrap: { paddingVertical: 8, backgroundColor: palette.warmWhite },
-  thumbWrap: { width: 48, height: 64, borderRadius: 10, overflow: 'hidden', borderWidth: 2, borderColor: 'transparent', position: 'relative' },
-  thumbWrapActive: { borderColor: accent.warmMuted },
+  thumbWrap: { width: 54, height: 64, borderRadius: 10, overflow: 'hidden', borderWidth: 2, borderColor: 'transparent', position: 'relative' },
+  thumbWrapActive: { borderColor: '#FA927A' },
+  addClip: { width: 54, height: 64, borderRadius: 10, borderWidth: 1, borderStyle: 'dashed', borderColor: '#86898A', alignItems: 'center', justifyContent: 'center' },
   thumb: { width: '100%', height: '100%', backgroundColor: surface.immersive },
   videoIndicator: { position: 'absolute', bottom: 2, left: 2, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 4, padding: 2 },
   thumbDone: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(52,199,89,0.5)', alignItems: 'center', justifyContent: 'center' } as any,
   thumbError: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255,59,48,0.5)', alignItems: 'center', justifyContent: 'center' } as any,
   thumbRemove: { position: 'absolute', top: -1, right: -1, backgroundColor: 'rgba(0,0,0,0.75)', borderRadius: 8, width: 16, height: 16, alignItems: 'center', justifyContent: 'center' },
-  textEditorOverlay: { flex: 1, backgroundColor: 'rgba(2,4,8,0.92)' },
+  textEditorOverlay: { flex: 1, backgroundColor: 'rgba(14,17,20,0.48)' },
   textEditorHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 8 },
   textEditorCancel: { color: textColor.secondary, fontSize: typeSize.body, fontWeight: fontWeight.medium },
   textEditorDone: { color: accent.warm, fontSize: typeSize.body, fontWeight: fontWeight.bold },
   editorActionBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: surface.secondary, alignItems: 'center', justifyContent: 'center' },
   editorActionBtnOn: { backgroundColor: '#FFFFFF' },
-  editorCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
-  editorBottom: { paddingBottom: 10 },
-  fontPill: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.14)' },
-  fontPillActive: { backgroundColor: '#FFFFFF' },
+  editorCenter: { flexGrow: 1, minHeight: 80, alignItems: 'center', justifyContent: 'flex-start', paddingTop: 46, paddingHorizontal: 24, paddingVertical: 12 },
+  textPanelTabs: { flexDirection: 'row', backgroundColor: '#25292D', borderRadius: 22, marginHorizontal: 14, padding: 3, marginBottom: 10 }, textPanelTab: { flex: 1, minHeight: 40, borderRadius: 21, alignItems: 'center', justifyContent: 'center' }, textPanelTabOn: { backgroundColor: '#E8D3B6' }, textPanelLabel: { color: '#FFFFFF', fontSize: 13, fontWeight: '600' }, textStyleRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingBottom: 12 },
+  fontSizeRow: { flexDirection: 'row', alignItems: 'center', gap: 17, paddingHorizontal: 16, minHeight: 50 }, textAlignButton: { width: 40, height: 40, borderRadius: 10, backgroundColor: '#2B2E30', alignItems: 'center', justifyContent: 'center' },
+  editorBottom: { paddingTop: 14, paddingBottom: 10, backgroundColor: '#191C1F', borderTopLeftRadius: 26, borderTopRightRadius: 26 },
+  fontPill: { minHeight: 46, justifyContent: 'center', paddingHorizontal: 16, paddingVertical: 9, borderRadius: 13, backgroundColor: 'rgba(255,255,255,0.14)' },
+  fontPillActive: { backgroundColor: '#25292D', borderWidth: 2, borderColor: '#F1DFC5' },
   fontPillTxt: { fontSize: 13 },
-  fontPillTxtActive: { color: '#020408' },
+  fontPillTxtActive: { color: '#FFFFFF' },
   colorRowScroll: { paddingHorizontal: 12, gap: 8, alignItems: 'center', paddingVertical: 8 },
   textEditorLivePreview: { alignItems: 'center', justifyContent: 'center', paddingVertical: space.md, paddingHorizontal: space.md, minHeight: 60 },
   textEditorInputWrap: { marginHorizontal: space.md, marginBottom: space.sm, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: borderColor.default },

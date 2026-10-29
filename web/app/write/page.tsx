@@ -6,15 +6,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ImagePlus, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useUploadPreview } from "@/lib/useUploadPreview";
 import { ArticleBody } from "@/components/ArticleBody";
 import { CATEGORIES } from "@/lib/categories";
+import { PublicationAttempt, publicationError } from "@/lib/publication";
 
 export default function WriteArticlePage() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(() => createClient());
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const previewSource = useMemo(() => ({ body }), [body]);
+  const mediaPreview = useUploadPreview(previewSource);
   const [cover, setCover] = useState<File | null>(null);
   const [category, setCategory] = useState<string | null>(null);
   const [preview, setPreview] = useState(false);
@@ -23,20 +27,43 @@ export default function WriteArticlePage() {
   const [linkUrl, setLinkUrl] = useState("https://");
   const linkRangeRef = useRef<{ start: number; end: number }>({ start: 0, end: 0 });
   const bodyRef = useRef<HTMLTextAreaElement | null>(null);
-  const DRAFT_KEY = "pc:article-draft";
+  const [draftOwner, setDraftOwner] = useState<string | null>(null);
+  const [restoredOwner, setRestoredOwner] = useState<string | null>(null);
+  const DRAFT_KEY = "pc:article-draft:" + draftOwner;
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [name, setName] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const busyRef = useRef(false);
+  const preparingImage = useRef(false);
+  const [imageBusy, setImageBusy] = useState(false);
+  const publishedRef = useRef(false);
+  const [publicationStatus, setPublicationStatus] = useState<{ postId: string | null; uncertain: boolean; locked: boolean; published: boolean }>({ postId: null, uncertain: false, locked: false, published: false });
+  const publication = useRef<{ progress: PublicationAttempt; run: () => Promise<string> } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useState(() => {
-    void (async () => {
-      const { data: auth } = await supabase.auth.getUser();
-      if (!auth.user) return;
-      const { data } = await supabase.from("profiles").select("full_name").eq("id", auth.user.id).single();
-      setName(data?.full_name ?? null);
-    })();
-  });
+  useEffect(() => {
+    let alive = true, version = 0, currentOwner: string | null = null;
+    const accept = (owner: string | null) => {
+      if (!alive) return;
+      if (currentOwner !== owner) {
+        currentOwner = owner;
+        setTitle(""); setBody(""); setCover(null); setCoverPreview(null); setName(null);
+        publication.current = null; publishedRef.current = false; setRestoredOwner(null);
+        setPublicationStatus({ postId: null, uncertain: false, locked: false, published: false });
+      }
+      setDraftOwner(owner);
+    };
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { version++; accept(session?.user.id ?? null); });
+    const initial = version;
+    void supabase.auth.getUser().then(({ data }) => { if (version === initial) accept(data.user?.id ?? null); });
+    return () => { alive = false; subscription.unsubscribe(); };
+  }, [supabase]);
+  useEffect(() => {
+    if (!draftOwner) return;
+    let alive = true;
+    void supabase.from("profiles").select("full_name").eq("id", draftOwner).single().then(({ data }) => { if (alive) setName(data?.full_name ?? null); });
+    return () => { alive = false; };
+  }, [supabase, draftOwner]);
 
   const minutes = useMemo(() => {
     const words = body.trim().split(/\s+/).filter(Boolean).length;
@@ -112,12 +139,15 @@ export default function WriteArticlePage() {
 
   async function insertImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file || busyRef.current || publication.current || preparingImage.current) return;
+    preparingImage.current = true;
+    setImageBusy(true);
+    try {
     const { data: sess } = await supabase.auth.getSession();
     const uid = sess.session?.user.id;
     if (!uid) return;
     const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-    const path = uid + "/article-" + Date.now() + "." + ext;
+    const path = uid + "/article-" + crypto.randomUUID() + "." + ext;
     const bad = await checkUploadableBytes(file);
     if (bad) { setError(bad); return; }
     const { error: upErr } = await supabase.storage.from("post-media").upload(path, file, { contentType: file.type });
@@ -125,28 +155,33 @@ export default function WriteArticlePage() {
     const { data } = supabase.storage.from("post-media").getPublicUrl(path);
     const el = bodyRef.current;
     const pos = el?.selectionStart ?? body.length;
-    const { next, newPos } = insertBlockAt(body, pos, "![](" + data.publicUrl + ")");
-    setBody(next);
-    requestAnimationFrame(() => {
-      el?.focus();
-      el?.setSelectionRange(newPos, newPos);
-    });
+    setBody((current) => insertBlockAt(current, pos, "![](" + data.publicUrl + ")").next);
+    requestAnimationFrame(() => { el?.focus(); });
     e.target.value = "";
+    } catch (failure) { setError(publicationError(failure)); }
+    finally { preparingImage.current = false; setImageBusy(false); }
   }
 
   // The draft outlives the tab: closing it by accident no longer loses the piece.
   useEffect(() => {
+    if (!draftOwner) return;
     try {
       const raw = window.localStorage.getItem(DRAFT_KEY);
       if (raw) { const d = JSON.parse(raw) as { title?: string; body?: string }; if (d.title) setTitle(d.title); if (d.body) setBody(d.body); }
     } catch { /* no draft */ }
-  }, []);
+    setRestoredOwner(draftOwner);
+  }, [DRAFT_KEY, draftOwner]);
   useEffect(() => {
+    if (!draftOwner || restoredOwner !== draftOwner) return;
     const t = setTimeout(() => {
-      if (title || body) window.localStorage.setItem(DRAFT_KEY, JSON.stringify({ title, body }));
+      if (publishedRef.current) return;
+      try {
+        if (title || body) window.localStorage.setItem(DRAFT_KEY, JSON.stringify({ title, body }));
+        else window.localStorage.removeItem(DRAFT_KEY);
+      } catch { /* Keep the in-memory draft if browser storage is unavailable. */ }
     }, 500);
     return () => clearTimeout(t);
-  }, [title, body]);
+  }, [title, body, DRAFT_KEY, draftOwner, restoredOwner]);
 
   const clearCover = () => { if (coverPreview) URL.revokeObjectURL(coverPreview); setCover(null); setCoverPreview(null); if (fileRef.current) fileRef.current.value = ""; };
 
@@ -191,65 +226,99 @@ function bodyToBlocks(text: string): Record<string, unknown>[] {
 }
 
   const publish = async () => {
-    if (busy) return;
+    if (busyRef.current || preparingImage.current || publication.current?.progress.uncertain) return;
     if (!title.trim() || body.trim().length < 100) {
       setError("An article needs a title and at least a real opening — write a little more.");
       return;
     }
-    setError(null);
+    busyRef.current = true;
     setBusy(true);
-    const { data: auth } = await supabase.auth.getUser();
-    const uid = auth.user?.id;
-    if (!uid) { setError("Sign in to publish."); setBusy(false); return; }
+    setError(null);
+    if (!publication.current) {
+      let author: string | null = null;
+      const progress = new PublicationAttempt(async () => {
+        const { data, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError || !author || data.session?.user.id !== author) throw new Error("Return to the account that started this article to finish it.");
+      });
+      let coverUrl: string | null = null;
+      const run = async (): Promise<string> => {
+        const { data: auth } = await supabase.auth.getUser();
+        const uid = auth.user?.id;
+        if (!uid) throw new Error("Sign in to publish.");
+        if (author && author !== uid) throw new Error("Return to the account that started this article to finish it.");
+        author = uid;
 
-    let coverUrl: string | null = null;
-    let coverWidth: number | null = null;
-    let coverHeight: number | null = null;
-    if (cover) {
-      const ext = (cover.name.split(".").pop() || "jpg").toLowerCase();
-      const path = uid + "/" + Date.now() + "_" + Math.random().toString(36).slice(2, 8) + "." + ext;
-      const badCover = await checkUploadableBytes(cover);
-      if (badCover) { setError(badCover); setBusy(false); return; }
-      const { error: upErr } = await supabase.storage.from("post-media").upload(path, cover, { contentType: cover.type });
-      if (upErr) { setError("The cover did not upload: " + upErr.message); setBusy(false); return; }
-      const { data: pub } = supabase.storage.from("post-media").getPublicUrl(path);
-      coverUrl = pub.publicUrl;
-      // Real width/height need decoding the file; the composer preview already
-      // does this via the browser for display, but doesn't currently keep the
-      // numbers around to send here. Left null for now rather than guessed.
+        const coverWidth: number | null = null;
+        const coverHeight: number | null = null;
+        if (cover && !coverUrl) {
+          const ext = (cover.name.split(".").pop() || "jpg").toLowerCase();
+          const path = uid + "/" + Date.now() + "_" + Math.random().toString(36).slice(2, 8) + "." + ext;
+          const badCover = await checkUploadableBytes(cover);
+          if (badCover) throw new Error(badCover);
+          const { error: upErr } = await supabase.storage.from("post-media").upload(path, cover, { contentType: cover.type });
+          if (upErr) throw new Error("The cover did not upload: " + upErr.message);
+          const { data: pub } = supabase.storage.from("post-media").getPublicUrl(path);
+          coverUrl = pub.publicUrl;
+          // Real width/height need decoding the file; the composer preview already
+          // does this via the browser for display, but doesn't currently keep the
+          // numbers around to send here. Left null for now rather than guessed.
+        }
+
+        // One server call, one transaction: the post and its cover post_media row
+        // are created or fail together, instead of two separate client inserts
+        // where the second one could silently fail.
+        const newPostId = await progress.write("article", () => supabase.rpc("publish_article", {
+          p_user_id: uid,
+          p_title: title.trim(),
+          p_body: body.trim(),
+          p_read_minutes: minutes,
+          p_cover_url: coverUrl,
+          p_cover_width: coverWidth,
+          p_cover_height: coverHeight,
+          p_blocks: bodyToBlocks(body.trim()),
+        }));
+        if (!newPostId) { progress.uncertain = true; throw new Error("Could not confirm the article."); }
+        progress.postId = newPostId;
+        if (category) await progress.write("category", () => supabase.from("posts").update({ category }).eq("id", newPostId).select("id").single());
+        await progress.check();
+        return newPostId;
+
+      };
+      publication.current = { progress, run };
+      setPublicationStatus({ postId: null, uncertain: false, locked: true, published: false });
     }
-
-    window.localStorage.removeItem(DRAFT_KEY);
-    // One server call, one transaction: the post and its cover post_media row
-    // are created or fail together, instead of two separate client inserts
-    // where the second one could silently fail.
-    const { data: newPostId, error: insErr } = await supabase.rpc("publish_article", {
-      p_user_id: uid,
-      p_title: title.trim(),
-      p_body: body.trim(),
-      p_read_minutes: minutes,
-      p_cover_url: coverUrl,
-      p_cover_width: coverWidth,
-      p_cover_height: coverHeight,
-      p_blocks: bodyToBlocks(body.trim()),
-    });
-
-    setBusy(false);
-    if (insErr || !newPostId) { setError(insErr?.message || "Could not publish."); return; }
-    if (category) { await supabase.from("posts").update({ category }).eq("id", newPostId); }
-    router.push("/post/" + newPostId);
+    try {
+      const postId = await publication.current.run();
+      publishedRef.current = true;
+      setPublicationStatus({ postId, uncertain: false, locked: true, published: true });
+      try { window.localStorage.removeItem(DRAFT_KEY); } catch { /* Published successfully even if storage is unavailable. */ }
+      try { router.push("/post/" + postId); } catch { setError("Your article was published. Use View article to open it."); }
+    } catch (failure) {
+      const progress = publication.current?.progress;
+      setPublicationStatus({ postId: progress?.postId ?? null, uncertain: progress?.uncertain ?? false, locked: !!progress?.postId || !!progress?.uncertain, published: false });
+      setError((progress?.uncertain
+        ? "We could not confirm the last save. Check your profile before publishing again. Your draft remains open here; keep this page open. "
+        : progress?.postId
+          ? "Your article is published, but its category did not save. Retry updates this same article. Your draft remains open here; keep this page open. "
+          : "Your draft remains open here; keep this page open. ") + publicationError(failure));
+      if (!progress?.postId && !progress?.uncertain) publication.current = null;
+    } finally {
+      busyRef.current = false;
+      setBusy(false);
+    }
   };
 
   return (
     <div className="mx-auto max-w-[680px] px-1 pb-20">
       <div className="flex items-center justify-between pb-4">
         <button type="button" onClick={() => { if (window.history.length > 1) router.back(); else router.push("/home"); }} className="inline-flex items-center gap-1.5 text-[13px] text-ink/60 hover:text-ink"><ArrowLeft size={14} /> Back</button>
-        <button onClick={publish} disabled={busy} className="rounded-full bg-ink px-4 py-1.5 text-[13.5px] font-bold text-white disabled:opacity-40">{busy ? "Publishing" : "Publish"}</button>
+        <button onClick={publish} disabled={busy || imageBusy || publicationStatus.published || publicationStatus.uncertain} className="rounded-full bg-ink px-4 py-1.5 text-[13.5px] font-bold text-white disabled:opacity-40">{busy ? "Publishing" : publicationStatus.postId ? "Retry" : "Publish"}</button>
       </div>
 
+      <fieldset disabled={publicationStatus.locked} className="contents">
       <textarea value={title} onChange={e => setTitle(e.target.value)} placeholder="Title" rows={1}
         onInput={e => { const el = e.currentTarget; el.style.height = "auto"; el.style.height = el.scrollHeight + "px"; }}
-        className="w-full resize-none overflow-hidden border-0 font-display text-[26px] font-bold leading-tight text-ink outline-none placeholder:text-ink/30" />
+        className="w-full resize-none overflow-hidden border-0 font-display text-[26px] font-bold leading-tight text-ink outline-none placeholder:text-muted" />
       <div className="mt-2 flex flex-wrap gap-1.5">
         {CATEGORIES.map((c) => (
           <button key={c.key} type="button" onClick={() => setCategory(category === c.key ? null : c.key)}
@@ -264,13 +333,13 @@ function bodyToBlocks(text: string): Record<string, unknown>[] {
           <button onClick={clearCover} className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white"><X size={14} /></button>
         </div>
       ) : (
-        <label className="mb-3 mt-2 flex min-h-[54px] cursor-pointer items-center justify-center gap-2 rounded-xl border border-ink/15 text-[13px] font-semibold text-ink/45 hover:border-ink/30">
+        <label className="mb-3 mt-2 flex min-h-[54px] cursor-pointer items-center justify-center gap-2 rounded-xl border border-ink/15 text-[13px] font-semibold text-muted hover:border-ink/30">
           <ImagePlus size={15} /> Add a cover image (optional)
           <input ref={fileRef} type="file" accept="image/*" onChange={pickCover} className="hidden" />
         </label>
       )}
 
-      <p className="mb-3 text-[12px] font-semibold text-ink/45">{minutes} min read · publishing as {name || "you"}</p>
+      <p className="mb-3 text-[12px] font-semibold text-muted">{minutes} min read · publishing as {name || "you"}</p>
 
       {/* Formatting inserts the same markup X uses under the hood: headings,
           bold, italic, quotes, links and images. Plain paragraphs need none. */}
@@ -289,7 +358,7 @@ function bodyToBlocks(text: string): Record<string, unknown>[] {
           <ImagePlus size={15} />
           <input type="file" accept="image/*" onChange={insertImage} className="hidden" />
         </label>
-        <span className="ml-auto text-[11.5px] text-ink/40">{body.trim() ? body.trim().split(/\s+/).length : 0} words</span>
+        <span className="ml-auto text-[11.5px] text-muted">{body.trim() ? body.trim().split(/\s+/).length : 0} words</span>
         <button type="button" onClick={() => setPreview((v) => !v)}
           className={"rounded-full px-3 py-1 text-[12.5px] font-semibold transition-colors " + (preview ? "bg-ink text-white" : "bg-surface text-ink/70 hover:text-ink")}>
           {preview ? "Edit" : "Preview"}
@@ -298,23 +367,24 @@ function bodyToBlocks(text: string): Record<string, unknown>[] {
 
       {preview ? (
         <div className="min-h-[420px] rounded-xl border border-ink/10 bg-white px-5 py-4">
-          {body.trim() ? <ArticleBody text={body} /> : <p className="text-[14px] text-ink/40">Nothing to preview yet.</p>}
+          {body.trim() ? <>{mediaPreview.error ? <p role="alert" className="text-sm text-danger">{mediaPreview.error} <button onClick={mediaPreview.retry} className="underline">Retry</button></p> : null}<ArticleBody text={mediaPreview.preview.body} /></> : <p className="text-[14px] text-muted">Nothing to preview yet.</p>}
         </div>
       ) : (
         <textarea ref={bodyRef} value={body} onChange={e => setBody(e.target.value)} placeholder="Write the piece. Paragraphs are preserved exactly as you write them. Use the toolbar for headings, emphasis, quotes, links and images."
-          className="min-h-[420px] w-full resize-none border-0 text-[16px] leading-relaxed text-ink outline-none placeholder:text-ink/30" />
+          className="min-h-[420px] w-full resize-none border-0 text-[16px] leading-relaxed text-ink outline-none placeholder:text-muted" />
       )}
 
-      {error ? <p className="mt-2 text-[13px] text-red-500">{error}</p> : null}
+      </fieldset>
+      {error ? <p role="alert" className="mt-2 text-[13px] text-danger">{error}{publicationStatus.postId ? <> <Link target="_blank" rel="noopener noreferrer" href={"/post/" + publicationStatus.postId} className="underline">View article</Link></> : null}</p> : null}
 
       {linkModalOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-6" onClick={() => setLinkModalOpen(false)}>
           <div className="w-full max-w-[360px] rounded-2xl bg-white p-5" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
             <p className="mb-3 text-[15px] font-bold text-ink">Add a link</p>
             <input value={linkText} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLinkText(e.target.value)} placeholder="Link text"
-              className="mb-2.5 w-full rounded-xl bg-surface px-3.5 py-2.5 text-[14px] text-ink outline-none placeholder:text-ink/35" />
+              className="mb-2.5 w-full rounded-xl bg-surface px-3.5 py-2.5 text-[14px] text-ink outline-none placeholder:text-muted" />
             <input value={linkUrl} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLinkUrl(e.target.value)} placeholder="https://" autoCapitalize="none" autoCorrect="off"
-              className="mb-3 w-full rounded-xl bg-surface px-3.5 py-2.5 text-[14px] text-ink outline-none placeholder:text-ink/35" />
+              className="mb-3 w-full rounded-xl bg-surface px-3.5 py-2.5 text-[14px] text-ink outline-none placeholder:text-muted" />
             <div className="flex gap-2.5">
               <button type="button" onClick={() => setLinkModalOpen(false)} className="flex-1 rounded-xl bg-surface py-2.5 text-[13.5px] font-bold text-ink/60">Cancel</button>
               <button type="button" onClick={confirmLink} className="flex-1 rounded-xl bg-ink py-2.5 text-[13.5px] font-bold text-white">Insert</button>

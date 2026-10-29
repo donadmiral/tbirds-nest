@@ -17,7 +17,7 @@ export default function AboutPage() {
           <span className="h-[34px] w-[34px] rounded-full border border-ink/10 bg-[#F3EFE7]" />
         </div>
         <h1 className="font-display text-2xl font-bold tracking-tight text-porcelain">Platinum Circles</h1>
-        <p className="mt-1 text-[13.5px] text-ink/55">Zimbabwe&apos;s professional network</p>
+        <p className="mt-1 text-[13.5px] text-muted">Zimbabwe&apos;s professional network</p>
         <span className="mt-3 rounded-full bg-ink/[0.06] px-3 py-1.5 text-[12px] font-semibold text-ink/60">Version {VERSION} ({BUILD})</span>
       </div>
 
@@ -36,7 +36,7 @@ export default function AboutPage() {
         <p className="text-[13.5px] leading-relaxed text-ink/80">Our symbol is a pearl set in a platinum ring. Platinum for the standard we hold ourselves to. The pearl at the center honors Pearl — the founder&apos;s mother — because everything built here is built on what she gave.</p>
       </div>
 
-      <p className="mt-4 text-center text-[12.5px] text-ink/45">Made with pride, for Zimbabwe.</p>
+      <p className="mt-4 text-center text-[12.5px] text-muted">Made with pride, for Zimbabwe.</p>
     </div>
   );
 }

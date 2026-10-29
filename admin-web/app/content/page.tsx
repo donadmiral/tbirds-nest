@@ -6,14 +6,16 @@ import Shell from '@/components/Shell';
 import { Desk, StatStrip, type DeskRow, type Tone } from '@/components/Desk';
 import { Donut, StackBars, Empty, type Slice } from '@/components/Viz';
 import { fmt, ago } from '@/lib/fmt';
-import { pickMedia, resolveMedia, isVideoUrl } from '@/lib/media';
+import { pickMedia, isVideoUrl } from '@/lib/media';
+import { resolveModerationMedia } from '@/lib/moderationMedia';
+import type { MediaPreviewEdit, ReviewMedia } from '@/components/MediaPreview';
 
 export const dynamic = 'force-dynamic';
 
 const PANEL: React.CSSProperties = { borderRadius: 13, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', overflow: 'hidden' };
 const HEAD: React.CSSProperties = { padding: '14px 16px 12px', borderBottom: '1px solid rgba(var(--on),0.10)' };
 const H_TITLE: React.CSSProperties = { fontSize: 13.5, fontWeight: 700, color: 'var(--txt)' };
-const H_SUB: React.CSSProperties = { fontSize: 11.3, color: 'rgba(var(--on),0.36)', marginTop: 3 };
+const H_SUB: React.CSSProperties = { fontSize: 11.3, color: 'var(--txt-muted)', marginTop: 3 };
 
 const IC = {
   post: 'M4 4h16v12H5.2L4 17.2V4zm2 3h12v2H6V7zm0 4h8v2H6v-2z',
@@ -49,16 +51,17 @@ export default async function ContentPage() {
   }[];
 
   const mediaByPost: Record<string, string[]> = {};
+  const mediaDetails: Record<string, { media_type?: string | null; width?: number | null; height?: number | null; edit?: MediaPreviewEdit | null }> = {};
   if (posts.length) {
-    const { data: media } = await svc.from('post_media').select('post_id, url, sort_order')
+    const { data: media } = await svc.from('post_media').select('post_id, url, sort_order, media_type, width, height, edit')
       .in('post_id', posts.map(p => p.id)).order('sort_order', { ascending: true });
-    ((media ?? []) as { post_id: string; url: string }[]).forEach(m => {
+    ((media ?? []) as { post_id: string; url: string; media_type?: string | null; width?: number | null; height?: number | null; edit?: MediaPreviewEdit | null }[]).forEach(m => {
       (mediaByPost[m.post_id] = mediaByPost[m.post_id] || []).push(m.url);
+      mediaDetails[m.post_id + ':' + m.url] = m;
     });
   }
 
-  // media lives in post_media, with media_url as a fallback, and every path is
-  // signed so a private bucket still renders
+  // Resolve verified post media for the authenticated moderation desk.
   posts.forEach(p => {
     if (!mediaByPost[p.id]?.length) {
       const found = pickMedia(p as unknown as Record<string, unknown>);
@@ -68,7 +71,12 @@ export default async function ContentPage() {
   // only real pictures and videos become tiles; a link inside a caption is not a picture
   const renderableMedia = (u: string) => /supabase\.co\/storage\/|\.(jpe?g|png|webp|gif|heic|heif|mp4|mov|m4v|webm)(\?|$)/i.test(u);
   Object.keys(mediaByPost).forEach(k => { mediaByPost[k] = mediaByPost[k].filter(renderableMedia); if (!mediaByPost[k].length) delete mediaByPost[k]; });
-  const urlMap = await resolveMedia(Object.values(mediaByPost).flat());
+  const previewSources = Object.values(mediaByPost).flat();
+  const coverSources = posts.flatMap(post => (mediaByPost[post.id] || []).flatMap(url => {
+    const cover = mediaDetails[post.id + ':' + url]?.edit?.coverUrl;
+    return typeof cover === 'string' ? [cover] : [];
+  }));
+  const urlMap = await resolveModerationMedia([...previewSources, ...coverSources], 'post', posts.map(p => p.id));
 
   const uids = Array.from(new Set(posts.map(p => p.user_id)));
   const people: Record<string, { full_name: string | null; username: string | null; avatar_url: string | null; is_verified: boolean }> = {};
@@ -94,7 +102,7 @@ export default async function ContentPage() {
 
   const totalPosts = totalRes.count ?? posts.length;
   const withMedia = posts.filter(p => (mediaByPost[p.id]?.length || 0) > 0 || p.media_url).length;
-  const videoPosts = posts.filter(p => (mediaByPost[p.id] || []).some(isVideo) || isVideo(p.media_url)).length;
+  const videoPosts = posts.filter(p => (mediaByPost[p.id] || []).some(url => mediaDetails[p.id + ':' + url]?.media_type === 'video' || isVideo(url)) || isVideo(p.media_url)).length;
   const flagged = posts.filter(p => (reportsByPost[p.id]?.open || 0) > 0).length;
   const engagement = posts.reduce((a, p) => a + (p.likes_count || 0) + (p.comments_count || 0) + (p.shares_count || 0), 0);
 
@@ -117,7 +125,7 @@ export default async function ContentPage() {
     .map((k, i) => ({ label: k.replace(/[._]/g, ' '), value: reasonCount[k], color: SERIES[i % SERIES.length] }));
 
   const cards = [
-    { label: 'Posts on the platform', value: fmt(totalPosts), note: 'every row in posts', icon: IC.post, color: 'var(--c1)', spark },
+    { label: 'Posts on the platform', value: fmt(totalPosts), note: 'all published posts', icon: IC.post, color: 'var(--c1)', spark },
     { label: 'Posted this week', value: fmt(posted7), delta: d7.text, deltaTone: d7.tone, note: 'against the week before', icon: IC.post, color: 'var(--c2)', spark: spark.slice(-14) },
     { label: 'Carrying open reports', value: fmt(flagged), note: fmt(reports.filter(r => r.status === 'open').length) + ' open reports in total', icon: IC.flag, color: 'var(--c5)' },
     { label: 'With media', value: fmt(withMedia), note: fmt(videoPosts) + ' of them video', icon: IC.media, color: 'var(--c4)' },
@@ -126,14 +134,22 @@ export default async function ContentPage() {
 
   const rows: DeskRow[] = posts.map(p => {
     const a = people[p.user_id] || { full_name: null, username: null, avatar_url: null, is_verified: false };
-    const urls = (mediaByPost[p.id] || []).map(u => urlMap[u]).filter(Boolean);
+    const resolvedRaw = (mediaByPost[p.id] || []).filter(u => !!urlMap[u]);
+    const urls = resolvedRaw.map(u => urlMap[u]);
+    const gallery: ReviewMedia[] = resolvedRaw.map(source => {
+      const item = mediaDetails[p.id + ':' + source];
+      const recipe = item?.edit && typeof item.edit === 'object' ? item.edit : null;
+      return { url: urlMap[source], video: item?.media_type === 'video' || isVideo(source), width: item?.width, height: item?.height,
+        edit: recipe ? { ...recipe, coverUrl: recipe.coverUrl ? urlMap[recipe.coverUrl] || null : null } : null };
+    });
     const first = urls[0] || null;
-    const video = isVideo(first);
+    const video = gallery[0]?.video || isVideo(resolvedRaw[0] || (mediaByPost[p.id] || [])[0]);
     const rep = reportsByPost[p.id];
     const trend = trendRank[p.id];
     const text = (p.content || p.body || '').trim();
     const score = (p.likes_count || 0) + (p.comments_count || 0) + (p.shares_count || 0);
-    const kind = urls.length === 0 ? 'Text' : video ? 'Video' : urls.length > 1 ? 'Gallery' : 'Photo';
+    const mediaCount = (mediaByPost[p.id] || []).length;
+    const kind = mediaCount === 0 ? 'Text' : video ? 'Video' : mediaCount > 1 ? 'Gallery' : 'Photo';
     const status: { v: string; tone: Tone } = rep?.open
       ? { v: 'Reported', tone: 'bad' }
       : trend ? { v: 'Trending', tone: 'warn' } : { v: 'Published', tone: 'ok' };
@@ -141,14 +157,14 @@ export default async function ContentPage() {
       id: p.id,
       tabs: [
         rep?.open ? 'reported' : 'clean',
-        urls.length ? 'media' : 'text',
+        mediaCount ? 'media' : 'text',
         ...(video ? ['video'] : []),
         ...(trend ? ['trending'] : []),
       ],
       search: [text, a.full_name, a.username, kind].map(x => String(x || '').toLowerCase()).join(' '),
       facets: { type: kind, status: status.v },
       cells: [
-        { t: 'media', v: text || (urls.length ? kind + ' post' : 'Empty post'), sub: '@' + (a.username || 'member'), thumb: first, video },
+        { t: 'media', v: text || (mediaCount ? kind + ' post' : 'Empty post'), sub: '@' + (a.username || 'member'), thumb: first, video },
         { t: 'user', v: a.full_name || 'Unnamed', sub: '@' + (a.username || 'member'), img: a.avatar_url },
         { t: 'pill', v: kind, tone: kind === 'Video' ? 'info' : kind === 'Text' ? 'neutral' : 'accent' },
         { t: 'pill', v: status.v, tone: status.tone },
@@ -161,7 +177,8 @@ export default async function ContentPage() {
         title: text ? (text.length > 70 ? text.slice(0, 70) + '...' : text) : kind + ' post',
         subtitle: (a.full_name || 'Unnamed') + ' \u00b7 @' + (a.username || 'member') + ' \u00b7 ' + ago(p.created_at),
         img: a.avatar_url,
-        media: first ? { url: first, video } : null,
+        media: gallery[0] || null,
+        gallery,
         pills: [
           { v: kind, tone: kind === 'Video' ? 'info' : kind === 'Text' ? 'neutral' : 'accent' },
           status,
@@ -178,7 +195,7 @@ export default async function ContentPage() {
           { label: 'Post id', value: p.id },
           { label: 'Author', value: (a.full_name || 'Unnamed') + ' (@' + (a.username || 'member') + ')' },
           { label: 'Type', value: kind },
-          { label: 'Media items', value: String(urls.length) },
+          { label: 'Media items', value: String(mediaCount) },
           { label: 'Posted', value: new Date(p.created_at).toLocaleString() },
           ...(rep ? [{ label: 'Reports', value: rep.open + ' open of ' + rep.total + ' total' }] : []),
           ...(trend ? [{ label: 'Trending', value: 'rank ' + trend.rank + ', ' + trend.engagers + ' unique engagers' }] : []),
@@ -186,7 +203,6 @@ export default async function ContentPage() {
         body: [
           ...(text ? [{ label: 'Caption', text }] : []),
           ...(rep && rep.reasons.length ? [{ label: 'Why it was reported', text: Array.from(new Set(rep.reasons)).join('\n') }] : []),
-          ...(urls.length > 1 ? [{ label: 'All media', text: urls.join('\n') }] : []),
         ],
         links: [
           { label: 'Open post', href: '/p/' + p.id },
@@ -209,12 +225,13 @@ export default async function ContentPage() {
   ];
 
   return (
-    <Shell admin={admin} active="/content" title="Posts" sub="Every post across Platinum Circles with its real media, engagement and reports. Removing deletes it everywhere and the trending snapshot rebuilds within three minutes.">
+    <Shell admin={admin} active="/content" title="Posts" sub="Review photos, videos and conversations. Open a post to see its context, engagement and moderation actions.">
       <StatStrip cards={cards} />
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_336px]">
+      <div className="mt-5 flex min-w-0 flex-col gap-5">
         <div>
           <Desk
+            presentation="media"
             tabs={tabs}
             columns={[{ label: 'Post' }, { label: 'Author' }, { label: 'Type' }, { label: 'Status' }, { label: 'Likes', align: 'right' }, { label: 'Comments', align: 'right' }, { label: 'Shares', align: 'right' }, { label: 'Posted', align: 'right' }]}
             grid="minmax(220px,2.4fr) minmax(150px,1.3fr) 96px 108px 74px 92px 76px 92px"
@@ -233,11 +250,11 @@ export default async function ContentPage() {
           />
         </div>
 
-        <div>
+        <div className="pc-content-insights">
           <div style={PANEL}>
             <div style={HEAD}>
               <div style={H_TITLE}>Why posts get reported</div>
-              <div style={H_SUB}>post_reports.reason, every report on file</div>
+              <div style={H_SUB}>Reasons reported by members</div>
             </div>
             <div style={{ padding: 16 }}>
               {reasonSlices.length === 0 ? <Empty note="No post has been reported yet." /> : <Donut slices={reasonSlices} centerLabel="reports" size={148} />}

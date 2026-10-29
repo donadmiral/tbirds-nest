@@ -1,11 +1,12 @@
 "use client";
 
+import { profilePath } from "@/lib/profileLookup";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Share2, Check } from "lucide-react";
 
 export function ProfileContext({ profileId, username }: { profileId: string; username: string }) {
-  const supabase = createClient();
+  const [supabase] = useState(createClient);
   const [mutual, setMutual] = useState<string | null>(null);
   const [insights, setInsights] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -36,9 +37,9 @@ export function ProfileContext({ profileId, username }: { profileId: string; use
   }, [profileId, supabase]);
 
   const share = async () => {
-    const url = window.location.origin + "/" + username;
+    const url = window.location.origin + profilePath(username, profileId);
     try {
-      if (navigator.share) { await navigator.share({ title: "@" + username + " on Platinum Circles", url }); return; }
+      if (navigator.share) { await navigator.share({ title: (username ? "@" + username : "Profile") + " on Platinum Circles", url }); return; }
     } catch { /* fall through */ }
     try {
       await navigator.clipboard.writeText(url);
@@ -48,11 +49,11 @@ export function ProfileContext({ profileId, username }: { profileId: string; use
   };
 
   return (
-    <div className="mt-2">
-      {mutual ? <p className="text-[12.5px] text-ink/45">{mutual}</p> : null}
-      {insights ? <p className="text-[12.5px] text-ink/45">{insights}</p> : null}
-      <button onClick={share} className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-3 py-1.5 text-[12px] font-semibold text-ink transition-colors duration-[140ms] hover:bg-ink/10">
-        {copied ? <Check size={13} /> : <Share2 size={13} />}
+    <div className="text-center">
+      {mutual ? <p className="text-[12.5px] text-muted">{mutual}</p> : null}
+      {insights ? <p className="text-[12.5px] text-muted">{insights}</p> : null}
+      <button onClick={share} className="mt-3 inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-ink/10 bg-[var(--surface-raised)] px-5 py-2 text-[13px] font-semibold text-ink transition-colors duration-[140ms] hover:bg-ink/5">
+        {copied ? <Check size={15} /> : <Share2 size={15} />}
         {copied ? "Link copied" : "Share profile"}
       </button>
     </div>

@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createBridgeHandler } from "../functions/crisp-bridge/handler.ts";
 import { createRecoveryHandler } from "../functions/crisp-payment-recovery/handler.ts";
+import { requestCrisp } from "../functions/crisp-bridge/paymentRecovery.ts";
 
 const sender = "11111111-1111-4111-8111-111111111111";
 const recipient = "22222222-2222-4222-8222-222222222222";
@@ -13,7 +14,7 @@ const body = { recipient_id: recipient, conversation_id: conversation, amount: 1
 // This models PostgREST responses and uniqueness, not bank execution. No network.
 function makeDb() {
   const payments: any[] = [];
-  const controls = { failRead: false, failInsert: false, failComplete: false, zeroComplete: false, queries: 0, receipts: 0 };
+  const controls = { failRead: false, failInsert: false, failComplete: false, failClaim: false, zeroComplete: false, queries: 0, receipts: 0 };
   class Query {
     table: string; verb = "select"; payload: any; filters: ((r: any) => boolean)[] = []; count = Infinity; orders: any[] = [];
     constructor(table: string) { this.table = table; }
@@ -49,6 +50,7 @@ function makeDb() {
       for (const [key, options] of this.orders.toReversed()) rows.sort((a, b) => a[key] == null ? (b[key] == null ? 0 : -1) : b[key] == null ? 1 : String(a[key]).localeCompare(String(b[key])) * (options.ascending ? 1 : -1));
       rows = rows.slice(0, this.count);
       if (this.verb === "update") {
+        if (this.payload.last_status_check_at && controls.failClaim) return { data: null, error: { code: "CLAIM_WRITE_FAILED" } };
         if (this.payload.status === "completed" && controls.failComplete) return { data: null, error: { code: "RECEIPT_WRITE_FAILED" } };
         if (this.payload.status === "completed" && controls.zeroComplete) return { data: null, error: null };
         for (const row of rows) {
@@ -65,6 +67,38 @@ function makeDb() {
     from: (table: string) => new Query(table),
   };
 }
+
+test("concurrent recovery workers make one provider lookup per pending payment", async () => {
+  const { worker, db, calls } = setup(canonical);
+  pending(db);
+  const req = () => new Request("http://localhost/recovery", { method: "POST", headers: { Authorization: `Bearer ${serviceKey}` } });
+  await Promise.all([worker(req()), worker(req())]);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0][1].method, "GET");
+  assert.equal(db.controls.receipts, 1);
+});
+
+test("an unpersisted recovery claim never calls the provider", async () => {
+  const { worker, db, calls } = setup(canonical);
+  pending(db); db.controls.failClaim = true;
+  const response = await worker(new Request("http://localhost/recovery", { method: "POST", headers: { Authorization: `Bearer ${serviceKey}` } }));
+  assert.equal(response.status, 503);
+  assert.equal(calls.length, 0);
+  assert.equal(db.payments[0].status, "pending");
+});
+
+test("read retries share one deadline and expired batch budgets never start requests", async () => {
+  const signals: AbortSignal[] = [];
+  const h = setup((_url: URL, init: RequestInit) => {
+    signals.push(init.signal as AbortSignal);
+    if (signals.length === 1) throw new TypeError("connection reset");
+    return Response.json({ success: true });
+  });
+  await requestCrisp(h.deps, { endpoint: "link-status" });
+  assert.equal(signals.length, 2); assert.equal(signals[0], signals[1]);
+  await assert.rejects(requestCrisp({ ...h.deps, deadlineAt: Date.now() - 1 }, { endpoint: "link-status" }), /did not answer/);
+  assert.equal(signals.length, 2);
+});
 function canonical(url: URL, init: any, extra: any = {}) {
   const input = init.method === "POST" ? JSON.parse(init.body) : null;
   return Response.json({ success: true, status: "completed",
@@ -242,6 +276,32 @@ test("missing explicit Crisp URL stops before recording or submitting a new paym
   const { deps, db, calls } = setup(); deps.crispUrl = "";
   assert.equal((await createBridgeHandler(deps)(request("pay", body))).status, 503);
   assert.equal(db.payments.length, 0); assert.equal(calls.length, 0);
+});
+
+test("peer connection status does not turn malformed successful responses into disconnected accounts", async () => {
+  for (const answer of [{}, { success: false }, { success: true }, { success: true, linked: "false" }]) {
+    const { handler } = setup(() => Response.json(answer));
+    const response = await handler(request(`peer-status&user=${recipient}`));
+    assert.equal(response.status, 502);
+    const result = await response.json();
+    assert.equal(result.code, "CRISP_BAD_RESPONSE");
+    assert.equal(result.linked, undefined);
+  }
+});
+
+test("peer connection returns only confirmed status and preserves provider outages", async () => {
+  for (const linked of [false, true]) {
+    const { handler } = setup(() => Response.json({ success: true, linked, linked_at: "private-metadata" }));
+    const response = await handler(request(`peer-status&user=${recipient}`));
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), { linked });
+  }
+  const { handler } = setup(() => Response.json({ error: "private-internals" }, { status: 503 }));
+  const response = await handler(request(`peer-status&user=${recipient}`));
+  assert.equal(response.status, 503);
+  const result = await response.json();
+  assert.equal(result.linked, undefined);
+  assert.equal(JSON.stringify(result).includes("private-internals"), false);
 });
 test("new non-USD chat payments reject before insert and send while old records remain recoverable", async () => {
   const { handler, db, calls } = setup((url: URL, init: any) => canonical(url, init, { currency: "ZWG" }));

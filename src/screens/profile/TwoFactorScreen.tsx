@@ -17,22 +17,30 @@ type Factor = { id: string; friendly_name?: string | null; status: string; facto
 export default function TwoFactorScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
-  const { t } = useTheme();
+  const { t, isDark } = useTheme();
   const [factors, setFactors] = useState<Factor[]>([]);
   const [loading, setLoading] = useState(true);
   const [enrolling, setEnrolling] = useState<{ id: string; qr: string; secret: string } | null>(null);
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [disablingFactor, setDisablingFactor] = useState<Factor | null>(null);
+  const [disableCode, setDisableCode] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase.auth.mfa.listFactors();
-    if (!error) setFactors(((data?.totp as any[]) || []).filter((f) => f.status === 'verified') as Factor[]);
-    setLoading(false);
+    setLoadError(false);
+    try {
+      const { data, error } = await supabase.auth.mfa.listFactors();
+      if (error) throw error;
+      setFactors(((data?.totp as any[]) || []).filter((f) => f.status === 'verified') as Factor[]);
+    } catch { setLoadError(true); }
+    finally { setLoading(false); }
   }, []);
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void load(); }, [load]);
 
   const start = async () => {
+    if (busy) return;
     setBusy(true);
     try {
       // Any unconfirmed leftover from an earlier attempt is cleared first.
@@ -47,8 +55,8 @@ export default function TwoFactorScreen() {
   };
 
   const confirm = async () => {
-    if (!enrolling) return;
-    if (code.trim().length < 6) { Alert.alert('Six digits', 'Enter the six-digit code from your authenticator app.'); return; }
+    if (!enrolling || busy) return;
+    if (!/^\d{6}$/.test(code.trim())) { Alert.alert('Six digits', 'Enter the six-digit code from your authenticator app.'); return; }
     setBusy(true);
     try {
       const { data: ch, error: chErr } = await supabase.auth.mfa.challenge({ factorId: enrolling.id });
@@ -62,44 +70,54 @@ export default function TwoFactorScreen() {
     finally { setBusy(false); }
   };
 
-  const turnOff = async (f: Factor) => {
-    Alert.prompt('Turn off two-factor?', 'Enter the current code from your authenticator app to confirm.', async (entered) => {
-      if (!entered) return;
-      setBusy(true);
-      try {
-        const { data: ch, error: chErr } = await supabase.auth.mfa.challenge({ factorId: f.id });
-        if (chErr || !ch) throw chErr || new Error('Could not verify');
-        const { error: vErr } = await supabase.auth.mfa.verify({ factorId: f.id, challengeId: ch.id, code: entered.trim() });
-        if (vErr) throw vErr;
-        const { error } = await supabase.auth.mfa.unenroll({ factorId: f.id });
-        if (error) throw error;
-        await load();
-        Alert.alert('Two-factor is off', 'Sign-in asks for your password only.');
-      } catch (e: any) { Alert.alert('Not turned off', e?.message || 'Check the code and try again.'); }
-      finally { setBusy(false); }
-    }, 'plain-text', '', 'number-pad');
+  const turnOff = (factor: Factor) => { setDisableCode(''); setDisablingFactor(factor); };
+  const confirmTurnOff = async () => {
+    if (!disablingFactor || busy) return;
+    if (!/^\d{6}$/.test(disableCode.trim())) { Alert.alert('Six digits', 'Enter the six-digit code from your authenticator app.'); return; }
+    setBusy(true);
+    try {
+      const { data: ch, error: chErr } = await supabase.auth.mfa.challenge({ factorId: disablingFactor.id });
+      if (chErr || !ch) throw chErr || new Error('Could not verify');
+      const { error: vErr } = await supabase.auth.mfa.verify({ factorId: disablingFactor.id, challengeId: ch.id, code: disableCode.trim() });
+      if (vErr) throw vErr;
+      const { error } = await supabase.auth.mfa.unenroll({ factorId: disablingFactor.id });
+      if (error) throw error;
+      setDisablingFactor(null); setDisableCode('');
+      await load();
+      Alert.alert('Authenticator removed', 'This authenticator is no longer used to verify sign-in.');
+    } catch (e: any) { Alert.alert('Not turned off', e?.message || 'Check the code and try again.'); }
+    finally { setBusy(false); }
   };
 
   const on = factors.length > 0;
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="chevron-left" size={26} color={t.ink.primary} /></TouchableOpacity>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Back" onPress={() => navigation.goBack()} style={s.backBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}><Feather name="chevron-left" size={26} color={t.ink.primary} /></TouchableOpacity>
         <Text style={s.title}>Two-factor authentication</Text>
         <View style={{ width: 40 }} />
       </View>
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 40 }} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
-        {loading ? <ActivityIndicator color={t.ink.primary} style={{ marginTop: 30 }} /> : enrolling ? (
+        {loading ? <ActivityIndicator color={t.ink.primary} style={{ marginTop: 30 }} /> : loadError ? (
+          <View><Text style={s.lede}>We could not check your two-factor settings.</Text><TouchableOpacity accessibilityRole="button" style={s.btn} onPress={() => void load()}><Text style={s.btnTxt}>Retry</Text></TouchableOpacity></View>
+        ) : disablingFactor ? (
+          <View>
+            <Text style={s.lede}>Enter the current code from your authenticator app to turn off this authenticator.</Text>
+            <TextInput accessibilityLabel="Authenticator code" value={disableCode} onChangeText={value => setDisableCode(value.replace(/\D/g, '').slice(0, 6))} placeholder="6-digit code" placeholderTextColor={t.ink.secondary} keyboardType="number-pad" textContentType="oneTimeCode" maxLength={6} style={s.input} onSubmitEditing={() => void confirmTurnOff()} editable={!busy} autoFocus />
+            <TouchableOpacity accessibilityRole="button" style={[s.btn, busy && { opacity: 0.5 }]} onPress={() => void confirmTurnOff()} disabled={busy}>{busy ? <ActivityIndicator color={t.ink.inverse} /> : <Text style={s.btnTxt}>Confirm and turn off</Text>}</TouchableOpacity>
+            <TouchableOpacity accessibilityRole="button" style={{ minHeight: 48, alignItems: 'center', justifyContent: 'center' }} disabled={busy} onPress={() => { setDisablingFactor(null); setDisableCode(''); }}><Text style={s.cancel}>Cancel</Text></TouchableOpacity>
+          </View>
+        ) : enrolling ? (
           <View>
             <Text style={s.lede}>Scan this with Google Authenticator, Authy or any authenticator app, then enter the six-digit code it shows.</Text>
             <View style={s.qrWrap}>{enrolling.qr ? <SvgXml xml={enrolling.qr} width={200} height={200} /> : null}</View>
             <Text style={s.secretLabel}>Can't scan? Enter this key by hand</Text>
             <Text selectable style={s.secret}>{enrolling.secret}</Text>
-            <TextInput value={code} onChangeText={setCode} placeholder="6-digit code" placeholderTextColor={t.ink.faint} keyboardType="number-pad" maxLength={6} style={s.input} onSubmitEditing={confirm} returnKeyType="done" />
+            <TextInput value={code} onChangeText={setCode} placeholder="6-digit code" placeholderTextColor={t.ink.secondary} keyboardType="number-pad" maxLength={6} style={s.input} onSubmitEditing={confirm} returnKeyType="done" />
             <TouchableOpacity style={[s.btn, busy && { opacity: 0.5 }]} onPress={confirm} disabled={busy} activeOpacity={0.85}>{busy ? <ActivityIndicator color={t.ink.inverse} /> : <Text style={s.btnTxt}>Confirm and turn on</Text>}</TouchableOpacity>
-            <TouchableOpacity onPress={async () => { try { await supabase.auth.mfa.unenroll({ factorId: enrolling.id }); } catch {} setEnrolling(null); }} style={{ alignSelf: 'center', marginTop: 14 }}><Text style={s.cancel}>Cancel</Text></TouchableOpacity>
+            <TouchableOpacity disabled={busy} onPress={async () => { try { const { error } = await supabase.auth.mfa.unenroll({ factorId: enrolling.id }); if (error) throw error; setEnrolling(null); } catch { Alert.alert('Could not cancel setup', 'Please try again.'); } }} style={{ alignSelf: 'center', marginTop: 14 }}><Text style={s.cancel}>Cancel</Text></TouchableOpacity>
           </View>
         ) : (
           <View>

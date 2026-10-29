@@ -1,0 +1,2 @@
+# Preserve deployed function bodies, including their original CRLF bytes.
+*-fixture.sql -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

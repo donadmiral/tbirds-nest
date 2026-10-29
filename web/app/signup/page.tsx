@@ -2,9 +2,10 @@
 
 import { useRef, useState } from "react";
 import Link from "next/link";
+import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 
-const input = "rounded-md bg-surface px-4 py-3 text-[15px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated";
+const input = "rounded-md bg-surface px-4 py-3 text-[15px] text-ink placeholder:text-muted outline-none focus:bg-surface-elevated";
 
 export default function SignUpPage() {
   const supabase = useRef(createClient()).current;
@@ -33,9 +34,20 @@ export default function SignUpPage() {
       },
     });
     if (err && /already/i.test(err.message)) {
-      await supabase.auth.resend({ type: "signup", email: cleanEmail, options: { emailRedirectTo: window.location.origin + "/login" } });
-      setSent(true);
-      setPending(false);
+      try {
+        const { error: resendError } = await supabase.auth.resend({ type: "signup", email: cleanEmail, options: { emailRedirectTo: window.location.origin + "/login" } });
+        if (resendError) {
+          setError(isAuthRetryableFetchError(resendError)
+            ? "We couldn't confirm that the verification email was resent. Check your inbox, then try again if needed."
+            : `We couldn't resend the verification email. ${resendError.message} Please try again shortly, or sign in if you've already verified your email.`);
+          return;
+        }
+        setSent(true);
+      } catch {
+        setError("We couldn't confirm that the verification email was resent. Check your inbox, then try again if needed.");
+      } finally {
+        setPending(false);
+      }
       return;
     }
     if (err) { setError(err.message); setPending(false); return; }
@@ -52,7 +64,7 @@ export default function SignUpPage() {
           <p className="mt-2 text-[14px] leading-relaxed text-ink/60">
             We sent a verification link to <span className="text-ink">{email.trim().toLowerCase()}</span>. Open it, then sign in.
           </p>
-          <Link href="/login" className="mt-6 inline-block rounded-md bg-pearl px-6 py-3 text-[15px] font-semibold text-ink">Go to sign in</Link>
+          <Link href="/login" className="mt-6 inline-block rounded-md bg-pearl px-6 py-3 text-[15px] font-semibold text-on-pearl">Go to sign in</Link>
         </div>
       </main>
     );
@@ -65,7 +77,7 @@ export default function SignUpPage() {
           <span className="h-9 w-9 rounded-full border-2 border-pearl" aria-hidden />
           <div>
             <h1 className="font-display text-xl text-porcelain">Create your account</h1>
-            <p className="text-[12px] text-ink/50">Join Platinum Circles</p>
+            <p className="text-[12px] text-muted">Join Platinum Circles</p>
           </div>
         </div>
         <div className="flex flex-col gap-3">
@@ -75,16 +87,16 @@ export default function SignUpPage() {
           {error ? <p className="text-[13px] text-danger">{error}</p> : null}
           <button onClick={signUp}
             disabled={pending || !fullName.trim() || !email.trim() || password.length < 6}
-            className="rounded-md bg-pearl px-5 py-3 text-[15px] font-semibold text-ink transition-opacity hover:opacity-90 disabled:opacity-40"
+            className="rounded-md bg-pearl px-5 py-3 text-[15px] font-semibold text-on-pearl transition-opacity hover:opacity-90 disabled:opacity-40"
           >
             {pending ? "Creating" : "Create account"}
           </button>
         </div>
-        <p className="mt-6 text-[13px] text-ink/50">
-          Already a member? <Link href="/login" className="text-pearl hover:underline">Sign in</Link>
+        <p className="mt-6 text-[13px] text-muted">
+          Already a member? <Link href="/login" className="text-accent hover:underline">Sign in</Link>
         </p>
-        <p className="mt-2 text-[13px] text-ink/50">
-          Company representative? <Link href="/business-login" className="text-pearl hover:underline">Business sign-in</Link>
+        <p className="mt-2 text-[13px] text-muted">
+          Company representative? <Link href="/business-login" className="text-accent hover:underline">Business sign-in</Link>
         </p>
       </div>
     </main>

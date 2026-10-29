@@ -173,5 +173,19 @@ test('real PostgreSQL migration preserves payment identities and trusted receipt
       assert.equal(next.rows[0].id,P2);
       assert.equal((await db.query("select indexname from pg_indexes where indexname='chat_payments_pending_recovery_idx'")).rows.length,1);
     });
+    await t.test('timestamp claim permits only one current lookup and allows later recovery',async()=>{
+      await asRole(db,'service_role');
+      const claim = (id, timestamp) => db.query(`update public.chat_payments
+        set last_status_check_at=$2::timestamptz
+        where id=$1 and status='pending'
+          and (last_status_check_at is null or last_status_check_at <= $2::timestamptz - interval '60 seconds')
+        returning id`,[id,timestamp]);
+      const now='2026-10-22T12:00:00.000Z';
+      assert.equal((await claim(P2,now)).rows.length,1);
+      assert.equal((await claim(P2,now)).rows.length,0);
+      assert.equal((await claim(P2,'2026-10-22T12:00:59.000Z')).rows.length,0);
+      assert.equal((await claim(P2,'2026-10-22T12:01:00.000Z')).rows.length,1);
+      assert.equal((await claim(P1,'2026-10-22T12:02:00.000Z')).rows.length,0);
+    });
   } finally {await db.close();}
 });

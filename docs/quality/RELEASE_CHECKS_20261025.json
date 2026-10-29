@@ -1,0 +1,81 @@
+{
+  "measuredAt": "2026-10-25T07:38:02.609Z",
+  "node": "v24.22.1",
+  "passed": true,
+  "stages": [
+    {
+      "name": "phone-types",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 19641,
+      "log": "/tmp/platinum-oct25-release/phone-types.log"
+    },
+    {
+      "name": "web-types",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 13637,
+      "log": "/tmp/platinum-oct25-release/web-types.log"
+    },
+    {
+      "name": "admin-types",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 2179,
+      "log": "/tmp/platinum-oct25-release/admin-types.log"
+    },
+    {
+      "name": "phone-tests",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 25027,
+      "log": "/tmp/platinum-oct25-recheck/phone-tests.log"
+    },
+    {
+      "name": "web-tests",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 13602,
+      "log": "/tmp/platinum-oct25-recheck/web-tests.log"
+    },
+    {
+      "name": "admin-tests",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 2797,
+      "log": "/tmp/platinum-oct25-release/admin-tests.log"
+    },
+    {
+      "name": "database-tests",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 59325,
+      "log": "/tmp/platinum-oct25-release/database-tests.log"
+    },
+    {
+      "name": "rpc-tests",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 16266,
+      "log": "/tmp/platinum-oct25-release/rpc-tests.log"
+    }
+  ],
+  "testCounts": {
+    "phone-tests": 526,
+    "web-tests": 344,
+    "admin-tests": 58,
+    "database-tests": 175
+  },
+  "totalTests": 1103,
+  "separateRpcAuthorizationGate": "passed",
+  "baseCommit": "d4492015d2bfa42db71a5c3fc68dd15e5f2924c1",
+  "note": "Initial combined run exposed outdated diagnostics, applications and story-control fixtures; corrected fixtures preserve/add behavioral assertions. Phone and web suites rerun in full. No implementation changes after successful typechecks and DB/RPC checks."
+}

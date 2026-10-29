@@ -1,10 +1,12 @@
 "use client";
 
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { displayImageUrl } from "@/lib/media";
 import { getCatchupFeed, type CatchupUser } from "@/lib/stories";
 import { createClient } from "@/lib/supabase/client";
 import { StoryViewer } from "@/components/StoryViewer";
+import { hydrateStoryMedia } from "@/lib/contentMedia";
+import { loadTrendingStories } from "../../shared/trendingStories";
 
 // Port of the phone's PlatinumRing: platinum gradient base circle plus a
 // rotating pale-glow arc (19% of the circumference) while unseen stories
@@ -35,71 +37,108 @@ function PlatinumRingWeb({ userId, size, active }: { userId: string; size: numbe
 export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
   const [users, setUsers] = useState<CatchupUser[]>([]);
   const [spot, setSpot] = useState<CatchupUser[]>([]);
-  const [openAt, setOpenAt] = useState<number | null>(null);
+  const [viewer, setViewer] = useState<{ users: CatchupUser[]; index: number; initialStoryId?: string } | null>(null);
+  const [supabase] = useState(() => createClient());
+  const refreshRef = useRef<() => void>(() => {});
   const [myAvatar, setMyAvatar] = useState<string | null>(null);
   const [myId, setMyId] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    getCatchupFeed(30, mode).then(async (u) => {
-      setUsers(u); setReady(true);
-      // Spotlight: public stories from people you don't follow, ranked by
-      // engagement, after your own and followed rings.
+    let alive = true;
+    let generation = 0;
+    let owner: string | null | undefined;
+    setUsers([]); setSpot([]); setReady(false); setViewer(null);
+    const refresh = async () => {
+      const request = ++generation;
+      const current = () => alive && generation === request;
       try {
-        const supabase = createClient();
-        const { data: sess } = await supabase.auth.getSession();
-        const me = sess.session?.user.id ?? null;
-        const { data: hot } = await supabase.rpc("get_trending_stories", { p_limit: 12 });
-        const known = new Set(u.map((x) => x.user_id));
-        if (me) known.add(me);
-        setSpot(((hot ?? []) as any[]).filter((h) => h?.user_id && !known.has(h.user_id)).map((h) => ({
-          user_id: h.user_id, full_name: h.full_name ?? null, username: h.username ?? null, avatar_url: h.avatar_url ?? null,
-          story_count: 1, unseen_count: 1, latest_story_at: new Date().toISOString(), latest_story_id: h.story_id, has_unseen: true,
-        } as unknown as CatchupUser)));
-      } catch { /* the rings still work without it */ }
+        const { data: session, error: sessionError } = await supabase.auth.getSession();
+        const me = session.session?.user.id ?? null;
+        if (!current()) return;
+        if (sessionError || !me) { setUsers([]); setSpot([]); setMyId(null); setMyAvatar(null); setReady(true); return; }
+        const [u, hot, profile] = await Promise.all([
+          getCatchupFeed(30, mode),
+          loadTrendingStories({
+            session: () => supabase.auth.getSession(),
+            ranked: limit => supabase.rpc('get_trending_stories', { p_limit: limit }),
+            stories: ids => supabase.from('stories').select('id,user_id,media_url,thumbnail_url,media_type,expires_at,created_at').in('id', ids),
+          }, rows => hydrateStoryMedia(rows, supabase), 12).catch(() => []),
+          supabase.from("profiles").select("avatar_url").eq("id", me).maybeSingle(),
+        ]);
+        const latest = await supabase.auth.getSession();
+        if (!current() || latest.error || latest.data.session?.user.id !== me) return;
+        const known = new Set(u.map(x => x.user_id)); known.add(me);
+        setUsers(u); setMyId(me); setMyAvatar(profile.data?.avatar_url ?? null);
+        setSpot(hot.filter(h => !known.has(h.user_id)).map(h => ({
+          user_id: h.user_id, full_name: h.full_name, username: h.username, avatar_url: h.avatar_url,
+          story_count: 1, unseen_count: 1, latest_story_at: h.created_at!, latest_story_id: h.story_id, has_unseen: true,
+        })));
+        setReady(true);
+      } catch {
+        if (current()) { setUsers([]); setSpot([]); setReady(true); }
+      }
+    };
+    refreshRef.current = () => { void refresh(); };
+    void refresh();
+    const visible = () => { if (!document.hidden) void refresh(); };
+    const timer = window.setInterval(visible, 30000);
+    const visibility = () => {
+      if (document.hidden) { generation++; setSpot([]); }
+      else void refresh();
+    };
+    window.addEventListener("focus", visible);
+    document.addEventListener("visibilitychange", visibility);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const next = session?.user.id ?? null;
+      if (owner === next) return;
+      owner = next; generation++;
+      setUsers([]); setSpot([]); setMyId(null); setMyAvatar(null); setViewer(null);
+      queueMicrotask(() => { if (alive) void refresh(); });
     });
-  }, [mode]);
+    return () => {
+      alive = false; generation++; clearInterval(timer); subscription.unsubscribe();
+      window.removeEventListener("focus", visible);
+      document.removeEventListener("visibilitychange", visibility);
+    };
+  }, [mode, supabase]);
 
-  useEffect(() => {
-    (async () => {
-      const supabase = createClient();
-      const { data: sess } = await supabase.auth.getSession();
-      const uid = sess.session?.user.id;
-      if (!uid) return;
-      setMyId(uid);
-      const { data } = await supabase.from("profiles").select("avatar_url").eq("id", uid).maybeSingle();
-      setMyAvatar(data?.avatar_url ?? null);
-    })();
-  }, []);
+  // Capture the selected sequence: a background rank refresh must not move the
+  // open viewer to another person's story while someone is watching.
+  const openAt = (index: number) => setViewer({ users: [...users, ...spot], index, initialStoryId: index >= users.length ? spot[index - users.length]?.latest_story_id : undefined });
+  const closeViewer = useCallback(() => { setViewer(null); refreshRef.current(); }, []);
 
   if (!ready) return null;
   // Your own stories live under Your story, not as a second person in the row.
   const mineIdx = myId ? users.findIndex((u) => u.user_id === myId) : -1;
   const mine = mineIdx >= 0 ? users[mineIdx] : null;
-  const others = users.map((u, i) => ({ u, i })).filter((x) => x.u.user_id !== myId);
+  const ownAvatar = (
+    <span className="relative block h-[62px] w-[62px]">
+      {mine && myId ? <PlatinumRingWeb userId={myId} size={62} active={false} /> : null}
+      {myAvatar ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={myAvatar} alt="" className="h-full w-full rounded-full border border-ink/10 object-cover" />
+      ) : <span className="flex h-full w-full items-center justify-center rounded-full bg-surface text-muted">+</span>}
+    </span>
+  );
 
   return (
     <>
       <div className="mb-4 flex gap-4 overflow-x-auto rounded-2xl border border-ink/10 bg-white px-4 py-4">
-        <a href={mine ? undefined : "/story/new"} onClick={mine ? (e) => { e.preventDefault(); setOpenAt(mineIdx); } : undefined} className="flex w-16 shrink-0 flex-col items-center gap-1.5 cursor-pointer">
-          {/* Your own face with a plus on it, rather than an empty dashed
-              circle: it reads as "add to your story" instead of as a gap. */}
-          <span className="relative block h-[62px] w-[62px]">
-            {mine && myId ? <PlatinumRingWeb userId={myId} size={62} active={false} /> : null}
-            {myAvatar ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={myAvatar} alt="" className="h-full w-full rounded-full border border-ink/10 object-cover" />
-            ) : (
-              <span className="flex h-full w-full items-center justify-center rounded-full bg-surface text-ink/40">+</span>
-            )}
-            <a href="/story/new" onClick={(e) => e.stopPropagation()} className="absolute -bottom-0.5 -right-0.5 flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-white bg-pearl text-[15px] leading-none text-ink">+</a>
-          </span>
-          <span className="w-full truncate text-center text-[11px] text-ink/60">Your story</span>
-        </a>
+        <div className="relative w-16 shrink-0">
+          {mine ? <button type="button" onClick={() => openAt(mineIdx)} aria-label="View your story" className="flex w-full flex-col items-center gap-1.5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current">
+            {ownAvatar}
+            <span className="w-full truncate text-center text-[11px] text-muted">Your story</span>
+          </button> : <a href="/story/new" aria-label="Add to your story" className="flex w-full flex-col items-center gap-1.5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current">
+            {ownAvatar}
+            <span className="w-full truncate text-center text-[11px] text-muted">Your story</span>
+          </a>}
+          <a href="/story/new" aria-label="Create a story" className="absolute -right-3 top-[31px] flex h-11 w-11 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"><span className="flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-white bg-pearl text-[15px] leading-none text-on-pearl" aria-hidden="true">+</span></a>
+        </div>
         {[...users, ...spot].map((u, i) => (u.user_id === myId ? null : (
           <Fragment key={u.user_id}>
           {i === users.length && spot.length > 0 ? <span className="my-2 w-px shrink-0 self-stretch bg-ink/10" title="Spotlight: public stories from people you don't follow" aria-hidden /> : null}
-          <button onClick={() => setOpenAt(i)} className="flex w-16 shrink-0 flex-col items-center gap-1.5">
+          <button onClick={() => openAt(i)} className="flex w-16 shrink-0 flex-col items-center gap-1.5">
             <span className="relative block h-[62px] w-[62px]">
               <PlatinumRingWeb userId={u.user_id} size={62} active={!!u.has_unseen} />
               <span className="absolute inset-[4px] overflow-hidden rounded-full bg-ink">
@@ -114,15 +153,15 @@ export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
               </span>
               {i >= users.length ? <span className="absolute -bottom-0.5 -right-0.5 flex h-[20px] w-[20px] items-center justify-center rounded-full border-2 border-white bg-white text-[11px] leading-none" aria-label="Spotlight">{"\uD83D\uDD25"}</span> : null}
             </span>
-            <span className={"w-full truncate text-center text-[11px] " + (u.has_unseen ? "text-ink" : "text-ink/50")}>
+            <span className={"w-full truncate text-center text-[11px] " + (u.has_unseen ? "text-ink" : "text-muted")}>
               {u.full_name?.split(" ")[0] ?? u.username}
             </span>
           </button>
           </Fragment>
         )))}
       </div>
-      {openAt !== null ? (
-        <StoryViewer users={[...users, ...spot]} startIndex={openAt} onClose={() => { setOpenAt(null); getCatchupFeed(30, mode).then(setUsers); }} />
+      {viewer ? (
+        <StoryViewer users={viewer.users} startIndex={viewer.index} initialStoryId={viewer.initialStoryId} onClose={closeViewer} />
       ) : null}
     </>
   );

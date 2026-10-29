@@ -14,7 +14,7 @@ import VerifiedBadge from '../VerifiedBadge';
 import VideoThumb from '../VideoThumb';
 import { light } from '../../constants/tokens';
 
-type Media = { url: string; media_type: 'image' | 'video'; edit?: any };
+type Media = { is_sensitive?: boolean; url: string; media_type: 'image' | 'video'; edit?: any };
 export type TilePost = {
   id: string; user_id: string; content?: string | null; article_title?: string | null;
   media?: Media[]; link?: { url?: string; domain?: string | null; title?: string | null; image_url?: string | null } | null;
@@ -43,7 +43,7 @@ export default function DiscoverTile({ post, author, width, onPress }: { post: T
     return (
       <TouchableOpacity style={[s.tile, { width }]} activeOpacity={0.85} onPress={onPress}>
         <View style={[s.frame, { height: width }]}>
-          {cover
+          {first.is_sensitive || first.edit?.sensitive ? <View style={[StyleSheet.absoluteFill, s.frameEmpty]}><Feather name="eye-off" size={24} color={getTheme().ink.muted} /><Text style={{color:getTheme().ink.secondary}}>Sensitive content</Text></View> : cover
             ? <ExpoImage source={{ uri: cover }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy="memory-disk" />
             : isVideo
               ? <VideoThumb uri={first.url} fill chip={false} />
@@ -100,14 +100,14 @@ const s = themedSheet((t) => ({
   play: { position: 'absolute', top: 8, right: 8, width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center', paddingLeft: 2 },
   count: { position: 'absolute', top: 8, left: 8, borderRadius: 999, backgroundColor: 'rgba(0,0,0,0.55)', paddingHorizontal: 7, paddingVertical: 2 },
   countTxt: { fontSize: 10.5, fontWeight: '600', color: t.ink.inverse },
-  caption: { fontSize: 13, lineHeight: 17, color: 'rgba(11,30,61,0.8)', paddingHorizontal: 11, paddingTop: 9 },
+  caption: { fontSize: 13, lineHeight: 17, color: t.ink.secondary, paddingHorizontal: 11, paddingTop: 9 },
   pad: { paddingHorizontal: 12, paddingTop: 12 },
   kindRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   kind: { fontSize: 10.5, fontWeight: '700', letterSpacing: 0.6, textTransform: 'uppercase', color: t.brand.base },
   articleTitle: { fontSize: 17, lineHeight: 22, fontWeight: '700', color: t.ink.primary, marginTop: 7 },
-  articleBody: { fontSize: 12.5, lineHeight: 17, color: 'rgba(11,30,61,0.55)', marginTop: 5 },
+  articleBody: { fontSize: 12.5, lineHeight: 17, color: t.ink.muted, marginTop: 5 },
   linkTitle: { fontSize: 13.5, lineHeight: 18, fontWeight: '600', color: t.ink.primary, marginTop: 4 },
-  quote: { fontSize: 15, lineHeight: 22, color: 'rgba(11,30,61,0.9)' },
+  quote: { fontSize: 15, lineHeight: 22, color: t.ink.primary },
   byline: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 11, paddingTop: 9, paddingBottom: 11 },
   avatar: { width: 22, height: 22, borderRadius: 11, backgroundColor: t.surface.sunken },
   avatarEmpty: {},

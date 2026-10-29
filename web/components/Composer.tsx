@@ -6,15 +6,23 @@ import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { BarChart3 } from "lucide-react";
 import { CATEGORIES } from "@/lib/categories";
-import { ImagePlus, X, Globe, Users, AtSign, BadgeCheck, Lightbulb, Tag, Image as ImageIcon, FileText, Feather, Video } from "lucide-react";
+import { ImagePlus, X, Globe, Users, AtSign, BadgeCheck, Lightbulb, Tag, Image as ImageIcon, FileText, Feather, Video, ChevronLeft, ChevronRight, SlidersHorizontal, Plus, Music, ArrowRight } from "lucide-react";
 import { ProductPicker, type ProductCard } from "@/components/ProductPicker";
 import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge, getTierColor } from "@/components/VerifiedBadge";
-import { STORY_FILTERS, filterCss } from "@/lib/stories";
+import { PostMediaEditor, PostDraftPreview, capturePostCover } from "./PostMediaEditor";
+import compose from "./PostComposer.module.css";
 import type { PostMediaEditRecipe } from "@/components/VideoPlayer";
-import { AdjustOverlay } from "@/components/StoryEngine";
 
-type Media = { file: File; preview: string; width: number; height: number; isVideo: boolean; alt: string; tags?: MediaTagDraft[]; edit?: PostMediaEditRecipe | null };
+import { PublicationAttempt, publicationError } from "@/lib/publication";
+
+
+import SoundtrackPicker from "./SoundtrackPicker";
+import { postLookRecipe } from "../../shared/postMediaEditing";
+import type {SoundtrackSelection} from "../../shared/soundtrack";
+import { MUSIC_CATALOG_ENABLED } from "../../shared/musicAvailability";
+
+type Media = { file: File; preview: string; width: number; height: number; isVideo: boolean; alt: string; tags?: MediaTagDraft[]; edit?: PostMediaEditRecipe | null; coverFile?:File|null; coverPreview?:string|null };
 type MediaTagDraft = { user_id: string; nx: number; ny: number; full_name: string | null; username: string | null; avatar_url: string | null };
 type PostKind = "post" | "media" | "video" | "article" | "listing" | "poll" | "innovation";
 
@@ -48,14 +56,31 @@ const AUDIENCES = [
   { key: "verified", label: "Verified only", icon: BadgeCheck },
 ] as const;
 
-export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPosted: (postId?: string) => void; quote?: QuoteTarget | null; onQuoteDone?: () => void; initialKind?: PostKind }) {
-  const supabase = useRef(createClient()).current;
+export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }: { ownerId: string; onPosted: (postId?: string) => void; quote?: QuoteTarget | null; onQuoteDone?: () => void; initialKind?: PostKind }) {
+  const [supabase] = useState(() => createClient());
+  const mounted = useRef(true), authenticatedOwner = useRef<string | undefined>(ownerId), renderedOwner = useRef(ownerId), ownerGeneration = useRef(0);
+  renderedOwner.current = ownerId;
+  const draftKey = DRAFT_KEY + ':' + ownerId;
+  const [draftLoaded, setDraftLoaded] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const taRef = useRef<HTMLTextAreaElement | null>(null);
+  const [pending, setPending] = useState(false);
+  const [postConfirmed,setPostConfirmed]=useState(false);
+  const publishing = useRef(false);
+  const preparingFiles = useRef(false);
+  const [preparing, setPreparing] = useState(false);
+  const publication = useRef<{ progress: PublicationAttempt; run: () => Promise<string> } | null>(null);
+  const [publicationLocked, setPublicationLocked] = useState(false);
+  const [publicationStatus, setPublicationStatus] = useState<{ postId: string | null; uncertain: boolean }>({ postId: null, uncertain: false });
   const [open, setOpen] = useState(false);
   const [myAvatar, setMyAvatar] = useState<string | null>(null);
+  const [myName,setMyName]=useState("You");
+  const [selectedMedia,setSelectedMedia]=useState(0);
+  const [review,setReview]=useState(false);
+  const [uploadProgress,setUploadProgress]=useState({completed:0,total:0,phase:""});
   const [text, setText] = useState("");
   const [items, setItems] = useState<Media[]>([]);
+  const itemsRef = useRef(items); itemsRef.current = items;
   const [audience, setAudience] = useState<(typeof AUDIENCES)[number]["key"]>("everyone");
   const [commentPolicy, setCommentPolicy] = useState<"everyone" | "following" | "followers" | "mentioned" | "off">("everyone");
   const [sensitiveMark, setSensitiveMark] = useState(false);
@@ -69,6 +94,8 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
   const [pollOn, setPollOn] = useState(false);
   // Tag people on a photo: open the tagger for one item, click where the person is, pick them.
   const [tagIdx, setTagIdx] = useState<number | null>(null);
+  const [soundtrack,setSoundtrack]=useState<SoundtrackSelection|null>(null);
+  const [musicOpen,setMusicOpen]=useState(false);
   const [editIdx, setEditIdx] = useState<number | null>(null);
   const [tagAt, setTagAt] = useState<{ nx: number; ny: number } | null>(null);
   const [tagQ, setTagQ] = useState("");
@@ -95,6 +122,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
   // truth: picking one sets the flags, so every downstream check still works.
   const [kind, setKindState] = useState<PostKind>("post");
   const setKind = (k: PostKind) => {
+    if (publicationLocked) return;
     setKindState(k);
     setPollOn(k === "poll");
     setInno(k === "innovation");
@@ -118,12 +146,21 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
   }, []);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      const uid = data.session?.user.id;
-      if (!uid) return;
-      supabase.from("profiles").select("avatar_url").eq("id", uid).maybeSingle().then(({ data: p }) => setMyAvatar(p?.avatar_url ?? null));
+    mounted.current = true;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const next = session?.user.id;
+      if (next !== authenticatedOwner.current) { ownerGeneration.current++; authenticatedOwner.current = next; setOpen(false); }
     });
+    return () => {
+      mounted.current = false; ownerGeneration.current++; subscription.unsubscribe();
+      itemsRef.current.forEach(item => { URL.revokeObjectURL(item.preview); if (item.coverPreview) URL.revokeObjectURL(item.coverPreview); });
+    };
   }, [supabase]);
+  useEffect(() => {
+    let active = true;
+    supabase.from("profiles").select("avatar_url,full_name,username").eq("id", ownerId).maybeSingle().then(({ data:p })=>{if(active&&mounted.current&&authenticatedOwner.current===ownerId){setMyAvatar(p?.avatar_url??null);setMyName(p?.full_name||p?.username||"You");}});
+    return () => { active = false; };
+  }, [supabase, ownerId]);
 
   useEffect(() => {
     const url = (text.match(/https?:\/\/\S+/) || [])[0] ?? null;
@@ -139,7 +176,6 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text]);
   const [mentions, setMentions] = useState<MentionHit[]>([]);
-  const [pending, setPending] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -149,26 +185,28 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(DRAFT_KEY);
+      const raw = localStorage.getItem(draftKey);
       if (raw) {
         const d = JSON.parse(raw) as { text?: string };
         if (d.text) { setText(d.text); setOpen(true); }
       }
     } catch { /* fresh start */ }
-  }, []);
+    setDraftLoaded(true);
+  }, [draftKey]);
   useEffect(() => {
+    if (!draftLoaded || authenticatedOwner.current !== ownerId) return;
     try {
-      if (text.trim()) localStorage.setItem(DRAFT_KEY, JSON.stringify({ text }));
-      else localStorage.removeItem(DRAFT_KEY);
+      if (text.trim()) localStorage.setItem(draftKey, JSON.stringify({ text }));
+      else localStorage.removeItem(draftKey);
     } catch { /* quota */ }
-  }, [text]);
+  }, [text, draftLoaded, draftKey, ownerId]);
 
   useEffect(() => {
     if (!open) return;
-    function onKey(e: KeyboardEvent) { if (e.key === "Escape") { setOpen(false); setError(null); onQuoteDone?.(); } }
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape" && editIdx===null && tagIdx===null && !publishing.current) { setOpen(false); if (!publication.current) setError(null); onQuoteDone?.(); } }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, onQuoteDone]);
+  }, [open, onQuoteDone, editIdx, tagIdx]);
 
   function onTextChange(v: string) {
     const next = v.slice(0, MAX_CHARS);
@@ -189,9 +227,14 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
   }
 
   async function addFiles(list: FileList | File[] | null) {
-    if (pollOn) return;
+    if (pollOn || publication.current || publishing.current || preparingFiles.current) return;
     if (!list) return;
+    preparingFiles.current = true;
+    setPreparing(true);
+    const generation = ownerGeneration.current;
+    const current = () => mounted.current && authenticatedOwner.current === ownerId && renderedOwner.current === ownerId && ownerGeneration.current === generation;
     const next = [...items];
+    try {
     for (const f of Array.from(list).slice(0, MAX_MEDIA - next.length)) {
       const isVideo = f.type.startsWith("video/");
       if (!f.type.startsWith("image/") && !isVideo) continue;
@@ -204,10 +247,14 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
           bmp.close();
         } catch { /* dims optional */ }
       }
-      next.push({ file: f, preview: URL.createObjectURL(f), width, height, isVideo, alt: "" });
+      if (!current()) return;
+      next.push({ file: f, preview: URL.createObjectURL(f), width, height, isVideo, alt: "", edit:{aspectRatio:4/5} });
     }
+    if (!current()) return;
     setItems(next);
+    setSelectedMedia(Math.max(0,items.length));setReview(false);
     setOpen(true);
+    } finally { preparingFiles.current = false; if (current()) setPreparing(false); else next.slice(items.length).forEach(item=>URL.revokeObjectURL(item.preview)); }
   }
 
   function onPaste(e: React.ClipboardEvent) {
@@ -223,115 +270,181 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
 
   async function post() {
     const content = text.trim();
-    if (pending || (!content && items.length === 0)) return;
+    const generation = ownerGeneration.current;
+    const current = () => mounted.current && !!ownerId && renderedOwner.current === ownerId && authenticatedOwner.current === ownerId && ownerGeneration.current === generation;
+    if (!current()) return;
+    if (publishing.current || preparingFiles.current || publication.current?.progress.uncertain || (!content && items.length === 0)) return;
+    if (pollOn && pollOpts.map((x) => x.trim()).filter(Boolean).length < 2) {
+      setError("Add at least two poll options before posting.");
+      return;
+    }
+    publishing.current = true;
+    setPostConfirmed(false);
+    if (!publication.current) setUploadProgress({completed:0,total:items.length,phase:'Preparing your post'});
     setPending(true);
     setError(null);
-    const { data: sess } = await supabase.auth.getSession();
-    const uid = sess.session?.user.id;
-    if (!uid) { setError("Sign in to post."); setPending(false); return; }
-
-    const media: { url: string; media_type: string; sort_order: number; width?: number; height?: number }[] = [];
-    for (let i = 0; i < items.length; i++) {
-      const p = items[i];
-      const ext = (p.file.name.split(".").pop() || (p.isVideo ? "mp4" : "jpg")).toLowerCase();
-      const path = uid + "/" + Date.now() + "_" + Math.random().toString(36).slice(2, 8) + "." + ext;
-      const bad = await checkUploadableBytes(p.file);
-      if (bad) { setError(bad); setPending(false); return; }
-      const { error: upErr } = await supabase.storage.from("post-media").upload(path, p.file, { contentType: p.file.type });
-      if (upErr) {
-        setError("Upload failed on \u201C" + p.file.name + "\u201D: " + upErr.message + ". Nothing was posted.");
-        setPending(false);
-        return;
-      }
-      const { data: pub } = supabase.storage.from("post-media").getPublicUrl(path);
-      media.push({ url: pub.publicUrl, media_type: p.isVideo ? "video" : "image", sort_order: i, ...(p.edit && Object.keys(p.edit).length ? { edit: p.edit } : {}), ...(p.width ? { width: p.width } : {}), ...(p.height ? { height: p.height } : {}), ...(p.alt.trim() ? { alt_text: p.alt.trim() } : {}) });
-    }
-
-    const insertData: Record<string, unknown> = {
-      user_id: uid,
-      content: content || null,
-      audience,
-      comment_policy: commentPolicy,
-      is_exclusive: false,
-      channel: inno ? "innovation" : null,
-    };
-    if (inno && innoField) insertData.innovation_field = innoField;
-    if (inno && innoStage) insertData.innovation_stage = innoStage;
-    // A title makes it an article, whether or not it is also an innovation
-    // post. This used to be gated on inno, so an article written without that
-    // toggle silently lost its title on save.
-    if (articleTitle.trim()) {
-      insertData.article_title = articleTitle.trim();
-      insertData.read_minutes = Math.max(1, Math.round((content.split(/\s+/).length || 0) / 200));
-    }
-    if (quote) insertData.quoted_post_id = quote.id;
-    if (threadTo) insertData.thread_parent_id = threadTo;
-    if (postCategory) insertData.category = postCategory;
-    if (preview?.url) insertData.link_url = preview.url;
-
-    const { data: newPost, error: insErr } = await supabase.from("posts").insert(insertData).select("id").single();
-    if (insErr || !newPost) { setError(insErr?.message || "Could not post."); setPending(false); return; }
-    if (preview?.url) {
-      supabase.rpc("upsert_link_preview", {
-        p_url: preview.url,
-        p_title: preview.title ?? null,
-        p_description: preview.description ?? null,
-        p_image_url: preview.image_url ?? null,
-        p_domain: preview.domain ?? null,
-      }).then(() => {});
-    }
-
-    if (products.length > 0) {
-      const { error: prodErr } = await supabase.rpc("set_post_products", {
-        p_post_id: newPost.id,
-        p_products: products.map((c, i) => ({ ...c, sort_order: i })),
+    if (!publication.current) {
+      const author = ownerId;
+      const stablePostId = crypto.randomUUID();
+      const mediaIds = items.map(() => crypto.randomUUID());
+      const tagIds = items.map(item => (item.tags || []).map(() => crypto.randomUUID()));
+      const pollIds = pollOpts.map(() => crypto.randomUUID());
+      const pollEnds = new Date(Date.now() + pollDays * 86400000).toISOString();
+      const saveRows = async (table: string, rows: any[], conflict = 'id') => {
+        const { error } = await supabase.from(table).upsert(rows, { onConflict: conflict, ignoreDuplicates: true });
+        return { data: rows, error };
+      };
+      const progress = new PublicationAttempt(async () => {
+        const { data, error: sessionError } = await supabase.auth.getSession();
+        if (!current() || sessionError || data.session?.user.id !== author) throw new Error("Return to the account that started this post to finish it.");
       });
-      if (prodErr) setError("Posted, but the product cards did not save: " + prodErr.message);
-    }
+      const media: { url: string; media_type: string; sort_order: number; width?: number; height?: number }[] = [];
+      // Retain this exact draft and each confirmed step for a retry.
+      const run = async (): Promise<string> => {
+        await progress.check();
+        const uid = author;
 
-    if (pollOn) {
-      const labels = pollOpts.map((x) => x.trim()).filter(Boolean);
-      if (labels.length >= 2) {
-        const ends = new Date(Date.now() + pollDays * 86400000).toISOString();
-        const { error: plErr } = await supabase.from("post_polls").insert({ post_id: newPost.id, ends_at: ends });
-        if (!plErr) await supabase.from("post_poll_options").insert(labels.map((label, i) => ({ post_id: newPost.id, label, sort_order: i })));
-        else setError("Posted, but the poll did not save: " + plErr.message);
-      }
-    }
-    if (media.length > 0) {
-      const rows = media.map((m) => ({ post_id: newPost.id, ...m }));
-      const { data: inserted, error: mErr } = await supabase.from("post_media").insert(rows).select("id, sort_order");
-      if (mErr) setError("Posted, but media did not attach: " + mErr.message);
-      else {
-        // Tagged people, anchored to the media row each tag was placed on.
-        const tagRows: any[] = [];
-        items.forEach((it, i) => { const row = (inserted || []).find((r: any) => r.sort_order === i); (it.tags || []).forEach((t) => { if (row) tagRows.push({ post_id: newPost.id, media_id: row.id, user_id: t.user_id, nx: t.nx, ny: t.ny }); }); });
-        if (tagRows.length) await supabase.from("post_media_tags").insert(tagRows);
-      }
-    }
+        for (let i = media.length; i < items.length; i++) {
+          const p = items[i];
+          setUploadProgress({completed:i,total:items.length,phase:`Uploading ${p.isVideo?"video":"photo"} ${i+1} of ${items.length}`});
+          const ext = (p.file.name.split(".").pop() || (p.isVideo ? "mp4" : "jpg")).toLowerCase();
+          const path = uid + "/" + stablePostId + "_" + i + "." + ext;
+          const bad = await checkUploadableBytes(p.file);
+          if (bad) throw new Error(bad);
+          await progress.check();
+          const { error: upErr } = await supabase.storage.from("post-media").upload(path, p.file, { contentType: p.file.type, upsert: true });
+          await progress.check();
+          if (upErr) {
+            throw new Error("Upload failed on \u201C" + p.file.name + "\u201D: " + upErr.message);
+          }
+          const { data: pub } = supabase.storage.from("post-media").getPublicUrl(path);
+          const {soundtrack:previousSoundtrack,...savedRecipe}=p.edit??{};
+          const chosenSoundtrack=i===0&&soundtrack?soundtrack:previousSoundtrack;
+          let recipe: PostMediaEditRecipe = {...savedRecipe,...(MUSIC_CATALOG_ENABLED&&chosenSoundtrack?{soundtrack:chosenSoundtrack}:{})};
+          if(p.isVideo) {
+            const cover=p.coverFile?await prepareImageCover(p.coverFile):await capturePostCover(p.preview,recipe.coverAt??recipe.trimStart??0);
+            const coverPath=uid+"/"+stablePostId+"_"+i+"_cover.jpg";
+            await progress.check();
+            const {error:coverError}=await supabase.storage.from("post-media").upload(coverPath,cover,{contentType:"image/jpeg",upsert:true});
+            await progress.check();
+            if(coverError)throw new Error("The video cover could not upload. Retry this post.");
+            recipe={...recipe,coverUrl:supabase.storage.from("post-media").getPublicUrl(coverPath).data.publicUrl};
+          }
+          media.push({ url: pub.publicUrl, media_type: p.isVideo ? "video" : "image", sort_order: i, ...(Object.keys(recipe).length ? { edit: recipe } : {}), ...(p.width ? { width: p.width } : {}), ...(p.height ? { height: p.height } : {}), ...(p.alt.trim() ? { alt_text: p.alt.trim() } : {}) });
+        }
 
-    items.forEach((p) => URL.revokeObjectURL(p.preview));
-    try { localStorage.removeItem(DRAFT_KEY); } catch { /* fine */ }
-    setText("");
-    setItems([]);
-    setAudience("everyone");
-    setProducts([]);
-    setPickerOpen(false);
-    setInno(false);
-    setInnoField(null);
-    setInnoStage(null);
-    setArticleTitle("");
-    setOpen(false);
-    setPending(false);
-    setThreadTo(null);
-    setPreview(null);
-    previewOff.current = null;
-    setPollOn(false);
-    setPollOpts(["", ""]);
-    setPollDays(1);
-    setPostCategory("");
-    onQuoteDone?.();
-    onPosted(newPost.id);
+        setUploadProgress({completed:items.length,total:items.length,phase:"Publishing your post"});
+        const insertData: Record<string, unknown> = {
+          id: stablePostId,
+          user_id: uid,
+          content: content || null,
+          audience,
+          comment_policy: commentPolicy,
+          is_exclusive: false,
+          channel: inno ? "innovation" : null,
+        };
+        if (inno && innoField) insertData.innovation_field = innoField;
+        if (inno && innoStage) insertData.innovation_stage = innoStage;
+        // A title makes it an article, whether or not it is also an innovation
+        // post. This used to be gated on inno, so an article written without that
+        // toggle silently lost its title on save.
+        if (articleTitle.trim()) {
+          insertData.article_title = articleTitle.trim();
+          insertData.read_minutes = Math.max(1, Math.round((content.split(/\s+/).length || 0) / 200));
+        }
+        if (quote) insertData.quoted_post_id = quote.id;
+        if (threadTo) insertData.thread_parent_id = threadTo;
+        if (postCategory) insertData.category = postCategory;
+        if (preview?.url) insertData.link_url = preview.url;
+
+        progress.postId = stablePostId;
+        const [newPost] = await progress.writeIdempotent("post", () => saveRows("posts", [insertData]));
+        if (!newPost) { progress.uncertain = true; throw new Error("Could not confirm the post."); }
+        progress.postId = newPost.id;
+        if (preview?.url) {
+          await progress.writeIdempotent("link-preview", () => supabase.rpc("upsert_link_preview", {
+            p_url: preview.url,
+            p_title: preview.title ?? null,
+            p_description: preview.description ?? null,
+            p_image_url: preview.image_url ?? null,
+            p_domain: preview.domain ?? null,
+          }));
+        }
+
+        if (products.length > 0) {
+          await progress.writeIdempotent("products", () => supabase.rpc("set_post_products", {
+            p_post_id: newPost.id,
+            p_products: products.map((c, i) => ({ ...c, sort_order: i })),
+          }));
+        }
+
+        if (pollOn) {
+          const labels = pollOpts.map((x) => x.trim()).filter(Boolean);
+          if (labels.length >= 2) {
+            await progress.writeIdempotent("poll", () => saveRows("post_polls", [{ post_id: newPost.id, ends_at: pollEnds }], "post_id"));
+            await progress.writeIdempotent("poll-options", () => saveRows("post_poll_options", labels.map((label, i) => ({ id: pollIds[i], post_id: newPost.id, label, sort_order: i }))));
+          }
+        }
+        if (media.length > 0) {
+          const rows = media.map((m,i) => ({ id: mediaIds[i], post_id: newPost.id, is_sensitive: sensitiveMark, ...m }));
+          const inserted = await progress.writeIdempotent("media", () => saveRows("post_media", rows));
+          if (!inserted || inserted.length !== media.length) { progress.uncertain = true; throw new Error("Could not confirm every media attachment."); }
+          {
+            // Tagged people, anchored to the media row each tag was placed on.
+            const tagRows: any[] = [];
+            items.forEach((it, i) => { const row = (inserted || []).find((r: any) => r.sort_order === i); (it.tags || []).forEach((t,j) => { if (row) tagRows.push({ id: tagIds[i][j], post_id: newPost.id, media_id: row.id, user_id: t.user_id, nx: t.nx, ny: t.ny }); }); });
+            if (tagRows.length) await progress.writeIdempotent("media-tags", () => saveRows("post_media_tags", tagRows));
+          }
+        }
+
+        await progress.check();
+        return newPost.id;
+      };
+      publication.current = { progress, run };
+      setPublicationLocked(true);
+    }
+    try {
+      const postId = await publication.current.run();
+      if (!current()) return;
+      publication.current = null;
+      setPostConfirmed(true);
+      setPublicationLocked(false);
+      setPublicationStatus({ postId: null, uncertain: false });
+      items.forEach((p) => { URL.revokeObjectURL(p.preview); if(p.coverPreview)URL.revokeObjectURL(p.coverPreview); });
+      try { localStorage.removeItem(draftKey); } catch { /* fine */ }
+      setText("");
+      setItems([]);setSoundtrack(null);setMusicOpen(false);setSelectedMedia(0);setReview(false);
+      setAudience("everyone");
+      setProducts([]);
+      setPickerOpen(false);
+      setInno(false);
+      setInnoField(null);
+      setInnoStage(null);
+      setArticleTitle("");
+      setOpen(false);
+      setThreadTo(null);
+      setPreview(null);
+      previewOff.current = null;
+      setPollOn(false);
+      setPollOpts(["", ""]);
+      setPollDays(1);
+      setPostCategory("");
+      try { onQuoteDone?.(); } catch { /* The post is already confirmed. */ }
+      try { onPosted(postId); } catch { /* Parent refresh failure must not report a failed publication. */ }
+    } catch (failure) {
+      if (!current()) return;
+      const progress = publication.current?.progress;
+      setPublicationStatus({ postId: progress?.postId ?? null, uncertain: progress?.uncertain ?? false });
+      const prefix = progress?.uncertain
+        ? "We could not confirm the last save. Check your profile before posting again. Your draft remains open here; keep this page open. "
+        : progress?.postId
+          ? "Your post is not fully confirmed. Keep this page open; retry continues this same post. "
+          : "Your draft remains open here; keep this page open. ";
+      setError(prefix + publicationError(failure));
+    } finally {
+      publishing.current = false;
+      if (current()) setPending(false);
+    }
   }
 
   // A page can open the composer already set to a kind: the ads wizard's
@@ -343,56 +456,69 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialKind]);
 
+  useEffect(()=>{if(!open)return;const before=document.body.style.overflow;document.body.style.overflow="hidden";return()=>{document.body.style.overflow=before;};},[open]);
+  const selected=items[Math.min(selectedMedia,Math.max(0,items.length-1))];
+  const moveMedia=(direction:number)=>{const from=Math.min(selectedMedia,items.length-1),to=from+direction;if(to<0||to>=items.length)return;setItems(prev=>{const next=[...prev];[next[from],next[to]]=[next[to],next[from]];return next;});setSelectedMedia(to);};
+  const removeMedia=()=>{const at=Math.min(selectedMedia,items.length-1);const item=items[at];if(item){URL.revokeObjectURL(item.preview);if(item.coverPreview)URL.revokeObjectURL(item.coverPreview);}setItems(prev=>prev.filter((_,i)=>i!==at));setSelectedMedia(Math.max(0,at-1));};
+  const readyToPublish=!pending&&!preparing&&!publicationStatus.uncertain&&(!!text.trim()||items.length>0);
+  const publishAction=()=>{if(publicationLocked||review)return post();else{setReview(true);taRef.current?.blur();}};
   const remaining = MAX_CHARS - text.length;
-  const chip = (on: boolean) => "rounded-full px-2.5 py-1 text-[12px] transition-colors duration-[140ms] " + (on ? "bg-surface-elevated font-semibold text-ink" : "bg-surface text-ink/55 hover:text-ink");
+  const chip = (on: boolean) => "rounded-full px-2.5 py-1 text-[12px] transition-colors duration-[140ms] " + (on ? "bg-surface-elevated font-semibold text-ink" : "bg-surface text-muted hover:text-ink");
 
   if (!open) {
+    if(pending||publicationLocked)return <section className={compose.progress} aria-live="polite"><div className={compose.progressHeading}><span>{pending?(uploadProgress.phase||'Preparing your post'):'Your post needs attention'}</span>{uploadProgress.total>0?<span>{uploadProgress.completed}/{uploadProgress.total}</span>:null}</div><div className={compose.progressBar}><span style={{width:`${uploadProgress.total?uploadProgress.completed/uploadProgress.total*100:0}%`}}/></div><p>{pending?'Keep this feed open until your post is confirmed.':'Open your draft to review and finish the same post.'}</p><button type="button" className={compose.continue} onClick={()=>setOpen(true)}>{pending?'View upload progress':'Review post'}</button></section>;
     // The collapsed state is a card, not a text field: the prompt line opens
     // the composer, and the row under it opens it already set to a kind of
     // post, so choosing "Poll" is one click rather than two.
     const start = (k?: PostKind) => () => {
+      setPostConfirmed(false);
       setOpen(true);
       if (k) setKind(k);
     };
     const action = "flex items-center gap-2 rounded-full px-3 py-1.5 text-[13px] text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink";
     return (
       <div className="mb-4 rounded-2xl border border-ink/10 bg-white px-5 pb-3 pt-4">
+        {postConfirmed?<div className={compose.posted} role="status"><span>Your post has been shared.</span><button type="button" aria-label="Dismiss post confirmation" onClick={()=>setPostConfirmed(false)}><X size={18}/></button></div>:null}
         <button onClick={start()} className="flex w-full items-center gap-3 text-left">
           {myAvatar ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={myAvatar} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" />
           ) : <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-navy text-white"><span className="h-2 w-2 rounded-full bg-pearl" /></span>}
-          <span className="text-[16px] text-ink/40">What&apos;s on your mind?</span>
+          <span className="text-[16px] text-muted">What&apos;s on your mind?</span>
         </button>
         <div className="mt-3 flex items-center gap-1 border-t border-ink/8 pt-2.5">
           <button onClick={start("media")} className={action}><ImageIcon size={16} className="text-pearl-muted" /> Photo</button>
           <button onClick={start("article")} className={action}><FileText size={16} className="text-pearl-muted" /> Article</button>
           <button onClick={start("poll")} className={action}><BarChart3 size={16} className="text-pearl-muted" /> Poll</button>
-          <button onClick={start()} className="ml-auto rounded-full bg-pearl px-5 py-1.5 text-[13px] font-bold text-ink transition-opacity duration-[140ms] hover:opacity-90">Post</button>
+          <button onClick={start()} className="ml-auto rounded-full bg-pearl px-5 py-1.5 text-[13px] font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90">Post</button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 px-4 py-[6vh]" onClick={(e) => { if (e.target === e.currentTarget) { setOpen(false); setError(null); onQuoteDone?.(); } }}>
+    <div className={compose.backdrop} onClick={(e) => { if (e.target === e.currentTarget && !publishing.current) { setOpen(false); if (!publication.current) setError(null); onQuoteDone?.(); } }}>
       <div onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
         onDrop={onDrop}
-        className={"relative flex max-h-[86vh] w-full max-w-[560px] flex-col rounded-2xl border bg-white p-5 shadow-2xl transition-colors duration-[140ms] " + (dragOver ? "border-pearl bg-surface" : "border-ink/10")}
+        role="dialog" aria-modal="true" aria-label={review?"Review post":"New post"} className={compose.dialog}
       >
+      <header className={compose.header}><button disabled={pending} className={compose.cancel} onClick={()=>{if(review&&!publicationLocked)setReview(false);else{setOpen(false);onQuoteDone?.();}}}>{review&&!publicationLocked?"Edit":"Cancel"}</button><h2>{pending?"Sharing your moment":review?"Review post":"New post"}</h2><button className={compose.primary} onClick={publishAction} disabled={!readyToPublish}>{pending?"Posting…":publicationLocked?"Retry":review?"Post":"Review"}</button></header>
+      {pending?<section aria-live="polite" className={compose.progress}><div className={compose.progressHeading}><span>{uploadProgress.phase||"Preparing your post"}</span>{uploadProgress.total>0?<span>{uploadProgress.completed}/{uploadProgress.total}</span>:null}</div><div className={compose.progressBar}><span style={{width:`${uploadProgress.total?uploadProgress.completed/uploadProgress.total*100:0}%`}}/></div><div className={compose.uploadFiles}>{items.map((item,index)=><div className={compose.uploadFile} key={item.preview}>{item.isVideo&&!item.coverPreview?<span className={compose.uploadThumb}>▶</span>:<img className={compose.uploadThumb} src={item.coverPreview||item.preview} alt=""/>}<span>{item.file.name||`${item.isVideo?'Video':'Photo'} ${index+1}`}</span><strong>{index<uploadProgress.completed?'Uploaded':index===uploadProgress.completed?'Uploading':'Waiting'}</strong></div>)}</div><p>Keep this feed open until your post is confirmed.</p><button type="button" className={compose.continue} onClick={()=>setOpen(false)}>Continue browsing this feed <ArrowRight size={17}/></button></section>:null}
+      {review&&!pending?<p className={compose.reviewHint}>Ready to share with {AUDIENCES.find(a=>a.key===audience)?.label.toLowerCase()}? Check your photos, caption and settings, then select Post.</p>:null}
+      <fieldset disabled={publicationLocked} className="contents">
       {/* What am I making? The kinds used to be icon-only toggles in the footer,
           so nothing named them and nothing showed which one was active. Naming
           them here means the answer is visible before you start typing, and
           switching kind is one click rather than hunting a tooltip. */}
-      {!quote && !threadTo ? (
+      {!review && !quote && !threadTo ? (
         <div className="mb-3 flex flex-wrap items-center gap-1.5 border-b border-ink/8 pb-3">
           {KINDS.map((k) => {
             const on = k.key === kind || (k.key === "post" && (kind === "media" || kind === "video" || kind === "poll"));
             const gold = k.key === "innovation";
             const cls = "flex h-[34px] items-center gap-1.5 rounded-xl border px-3 text-[12.5px] font-semibold transition-colors duration-[140ms] " +
               (gold
-                ? (on ? "border-pearl bg-pearl/55 text-navy" : "border-pearl bg-pearl/30 text-navy hover:bg-pearl/40")
+                ? (on ? "border-pearl bg-pearl text-on-pearl" : "border-pearl bg-pearl/15 text-accent hover:bg-pearl/20")
                 : (on ? "border-navy bg-navy text-white" : "border-ink/10 bg-surface text-ink/70 hover:text-ink"));
             if (k.href) return <a key={k.key} href={k.href} className={cls}><k.icon size={14} />{k.label}</a>;
             return (
@@ -405,13 +531,13 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
           <span className="mx-1 h-5 w-px bg-ink/10" aria-hidden />
           {TOOLS.map((t) => (
             <button key={t.key} onClick={() => setKind(t.key)} title={t.label} aria-label={t.label}
-              className={"flex h-9 w-9 items-center justify-center rounded-xl border transition-colors duration-[140ms] " + (kind === t.key ? "border-[#BFDBFE] bg-[#EFF6FF] text-ink" : "border-ink/10 bg-surface text-ink/45 hover:text-ink")}>
+              className={"flex h-9 w-9 items-center justify-center rounded-xl border transition-colors duration-[140ms] " + (kind === t.key ? "border-[#BFDBFE] bg-[#EFF6FF] text-ink" : "border-ink/10 bg-surface text-muted hover:text-ink")}>
               <t.icon size={17} />
             </button>
           ))}
           <Link
             href="/market/new"
-            className="ml-auto flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-semibold text-ink/55 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"
+            className="ml-auto flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-semibold text-muted transition-colors duration-[140ms] hover:bg-surface hover:text-ink"
           >
             <Tag size={14} /> Sell an item
           </Link>
@@ -421,34 +547,13 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
       <div className="min-h-0 flex-1 overflow-y-auto pr-1">
       {quote ? (
         <div className="mb-3 rounded-lg border border-ink/10 p-3">
-          <p className="text-[11px] uppercase tracking-wide text-ink/40">Quoting {quote.author}</p>
+          <p className="text-[11px] uppercase tracking-wide text-muted">Quoting {quote.author}</p>
           <p className="mt-0.5 line-clamp-2 text-[13px] text-ink/70">{quote.text}</p>
         </div>
       ) : null}
-      <div className="flex gap-3">
-        {myAvatar ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={myAvatar} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" />
-        ) : <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-navy text-white"><span className="h-2 w-2 rounded-full bg-pearl" /></span>}
-        <div className="min-w-0 flex-1">
-          {kind === "article" || inno ? (
-            <input value={articleTitle}
-              onChange={(e) => setArticleTitle(e.target.value)}
-              placeholder={kind === "article" ? "Article title" : "Article title (optional)"}
-              className="mb-2 w-full rounded-md bg-surface px-3 py-2 text-[16px] font-semibold text-ink placeholder:text-ink/30 outline-none"
-            />
-          ) : null}
-          <textarea ref={taRef}
-            value={text}
-            onChange={(e) => onTextChange(e.target.value)}
-            onPaste={onPaste}
-            placeholder={inno ? "Share your innovation" : "What is happening?"}
-            rows={4}
-            autoFocus
-            className="w-full resize-none bg-transparent text-[18px] leading-relaxed text-ink placeholder:text-ink/30 outline-none"
-          />
-        </div>
-      </div>
+      <div className={compose.author}>{myAvatar?<img src={myAvatar} alt=""/>:<span className={compose.avatar}/>}<div><div className={compose.authorName}>{myName}</div><div className={compose.audience}><Globe size={12}/><select aria-label="Post audience" value={audience} onChange={e=>setAudience(e.target.value as typeof audience)}>{AUDIENCES.map(a=><option key={a.key} value={a.key}>{a.label}</option>)}</select></div></div></div>
+      {kind==="article"||inno?<input value={articleTitle} onChange={e=>setArticleTitle(e.target.value)} placeholder="Article title (optional)" className="mb-2 w-full rounded-xl bg-surface px-3 py-3 text-base font-semibold text-ink outline-none"/>:null}
+      <textarea ref={taRef} readOnly={review} value={text} onChange={e=>onTextChange(e.target.value)} onPaste={onPaste} placeholder={inno?"Share your innovation":"Write a caption…"} rows={3} autoFocus className={compose.caption}/>
       {mentions.length > 0 ? (
         <div className="absolute z-20 w-64 overflow-hidden rounded-lg border border-ink/10 bg-navy shadow-2xl">
           {mentions.map((u) => (
@@ -461,51 +566,27 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
               )}
               <span className="min-w-0">
                 <span className="block truncate text-[13px] font-semibold text-ink">{u.full_name}</span>
-                <span className="block truncate text-[12px] text-ink/50">@{u.username}</span>
+                <span className="block truncate text-[12px] text-muted">@{u.username}</span>
               </span>
             </button>
           ))}
         </div>
       ) : null}
-      {dragOver ? <p className="ml-14 text-[12px] text-pearl">Drop photos or videos to attach</p> : null}
+      {dragOver ? <p className="ml-14 text-[12px] text-accent">Drop photos or videos to attach</p> : null}
       {inno ? (
         <div className="ml-14 mt-2 flex flex-wrap items-center gap-1.5">
           {INNO_FIELDS.map((f) => (
             <button key={f} onClick={() => setInnoField(innoField === f ? null : f)} className={chip(innoField === f)}>{f}</button>
           ))}
-          <span className="mx-1 text-ink/20">|</span>
+          <span className="mx-1 text-muted">|</span>
           {INNO_STAGES.map((g) => (
             <button key={g} onClick={() => setInnoStage(innoStage === g ? null : g)} className={chip(innoStage === g)}>{g}</button>
           ))}
         </div>
       ) : null}
-      {items.length > 0 ? (
-        <div className="ml-14 mt-3 flex flex-wrap gap-2">
-          {items.map((p, i) => (
-            <span key={i} className="relative">
-              {p.isVideo ? (
-                <video src={p.preview} muted className="h-20 w-20 rounded-lg object-cover" />
-              ) : (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={p.preview} alt="" className="h-20 w-20 rounded-lg object-cover" />
-              )}
-              {p.isVideo ? <span className="absolute bottom-1 left-1 rounded-sm bg-ink/70 px-1 text-[9px] font-bold text-white">VIDEO</span> : (
-                <button type="button" onClick={() => setTagIdx(i)} title="Tag people" className="absolute bottom-1 left-1 flex items-center gap-1 rounded-md bg-ink/70 px-1.5 py-0.5 text-[10px] font-bold text-white hover:bg-ink/85">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[#C9BFB0]" />{(p.tags || []).length ? (p.tags || []).length : "Tag"}
-                </button>
-              )}
-              <button type="button" onClick={() => setEditIdx(i)} title="Edit" className={"absolute bottom-1 right-1 rounded-md px-1.5 py-0.5 text-[10px] font-bold text-white " + (p.edit && Object.keys(p.edit).length ? "bg-[#C9BFB0] text-[#0B1E3D]" : "bg-ink/70 hover:bg-ink/85")}>Edit</button>
-              <button onClick={() => setItems(items.filter((_, x) => x !== i))} className="absolute -right-1.5 -top-1.5 rounded-full bg-ink p-0.5 text-white transition-opacity duration-[140ms] hover:opacity-80">
-                <X size={13} />
-              </button>
-            </span>
-          ))}
-        </div>
-      ) : null}
-      {editIdx !== null && items[editIdx] ? (
-        <MediaEditDialog item={items[editIdx]} onClose={() => setEditIdx(null)}
-          onSave={(edit) => { setItems((prev) => prev.map((it, x) => x !== editIdx ? it : { ...it, edit })); setEditIdx(null); }} />
-      ) : null}
+      {selected?<section className={compose.media}><PostDraftPreview key={selected.preview+JSON.stringify(selected.edit)} item={selected} soundtrack={soundtrack} active={!musicOpen&&editIdx===null}/><span className={compose.mediaCount}>{Math.min(selectedMedia+1,items.length)} / {items.length}</span>{!review?<><div className={compose.mediaActions}><button onClick={()=>setEditIdx(Math.min(selectedMedia,items.length-1))}><SlidersHorizontal size={16}/>Edit {selected.isVideo?'video':'photo'}</button>{!selected.isVideo?<button onClick={()=>setTagIdx(Math.min(selectedMedia,items.length-1))}><Users size={16}/>Tag people</button>:null}<button aria-label="Move media earlier" disabled={selectedMedia===0} onClick={()=>moveMedia(-1)}><ChevronLeft size={17}/></button><button aria-label="Move media later" disabled={selectedMedia>=items.length-1} onClick={()=>moveMedia(1)}><ChevronRight size={17}/></button><button aria-label="Remove selected media" onClick={removeMedia}><X size={17}/></button></div></>:null}<div className={compose.thumbs} style={{marginTop:review?12:0}}>{items.map((item,i)=><button key={item.preview} className={compose.thumb} aria-label={`Select media ${i+1}`} aria-pressed={selectedMedia===i} onClick={()=>setSelectedMedia(i)}>{item.isVideo?(item.coverPreview?<img src={item.coverPreview} alt=""/>:<video src={item.preview+'#t=0.1'} muted preload="metadata"/>):<img src={item.preview} alt=""/>}<span className={compose.number}>{i+1}</span></button>)}{!review&&items.length<MAX_MEDIA?<button className={compose.add} aria-label="Add more media" onClick={()=>fileRef.current?.click()}><Plus size={23}/></button>:null}</div></section>:null}
+      {items.length?<button type="button" className={compose.soundtrack} onClick={()=>setMusicOpen(true)}><Music size={18}/><span>Music</span><span>{soundtrack?`${soundtrack.durationSec.toFixed(1)}s excerpt`:'Add a soundtrack'}</span><ChevronRight size={17}/></button>:null}
+      {editIdx!==null&&items[editIdx]?<PostMediaEditor key={items[editIdx].preview} item={items[editIdx]} index={editIdx} total={items.length} onClose={()=>setEditIdx(null)} onSave={(edit,coverFile,coverPreview,applyAll)=>{setItems(prev=>prev.map((item,i)=>i===editIdx?{...item,edit,coverFile,coverPreview}:applyAll?{...item,edit:{...item.edit,...postLookRecipe(edit)}}:item));setEditIdx(null);}}/>:null}
       {tagIdx !== null && items[tagIdx] ? (
         <div role="dialog" aria-modal="true" className="fixed inset-0 z-[70] flex items-center justify-center bg-black/85 p-4" onClick={() => { setTagIdx(null); setTagAt(null); }}>
           <div className="relative max-h-[92vh] max-w-[92vw]" onClick={(e) => e.stopPropagation()}>
@@ -528,7 +609,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
                   {tagHits.map((p) => (
                     <button key={p.id} type="button" onClick={() => addTag(p)} className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-ink/5">
                       {p.avatar_url ? <img src={p.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" /> : <span className="h-8 w-8 rounded-full bg-ink/10" />}
-                      <span className="min-w-0"><span className="flex items-center gap-1 text-[14px] font-bold text-ink"><span className="truncate" style={p.is_verified && getTierColor(p.verified_tier) ? { color: getTierColor(p.verified_tier) as string } : undefined}>{p.full_name || p.username}</span>{p.is_verified ? <VerifiedBadge tier={p.verified_tier} size={13} /> : null}</span>{p.username ? <span className="block text-[12px] text-ink/55">@{p.username}</span> : null}</span>
+                      <span className="min-w-0"><span className="flex items-center gap-1 text-[14px] font-bold text-ink"><span className="truncate" style={p.is_verified && getTierColor(p.verified_tier) ? { color: getTierColor(p.verified_tier) as string } : undefined}>{p.full_name || p.username}</span>{p.is_verified ? <VerifiedBadge tier={p.verified_tier} size={13} /> : null}</span>{p.username ? <span className="block text-[12px] text-muted">@{p.username}</span> : null}</span>
                     </button>
                   ))}
                 </div>
@@ -539,7 +620,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
         </div>
       ) : null}
       {items.filter((m) => !m.isVideo).length > 0 ? (
-        <div className="ml-14 mt-2 flex flex-col gap-1.5">
+        <details className={compose.alt}><summary>Accessibility · image descriptions</summary><div className="mt-3 flex flex-col gap-2">
           {items.map((m, i) => m.isVideo ? null : (
             <span key={m.preview} className="flex items-center gap-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -548,11 +629,11 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
                 onChange={(e) => setItems((list) => list.map((x, j) => (j === i ? { ...x, alt: e.target.value } : x)))}
                 placeholder="Describe this image, helps people using screen readers"
                 maxLength={500}
-                className="min-w-0 flex-1 rounded-md bg-surface px-3 py-1.5 text-[12px] text-ink placeholder:text-ink/25 outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
+                className="min-w-0 flex-1 rounded-md bg-surface px-3 py-1.5 text-[12px] text-ink placeholder:text-muted outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
               />
             </span>
           ))}
-        </div>
+        </div></details>
       ) : null}
       {pollOn ? (
         <div className="ml-14 mt-3 flex flex-col gap-1.5 rounded-lg border border-ink/10 p-3">
@@ -561,7 +642,7 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
               onChange={(e) => setPollOpts((l) => l.map((x, j) => (j === i ? e.target.value : x)))}
               placeholder={"Option " + (i + 1) + (i > 1 ? ", optional" : "")}
               maxLength={60}
-              className="w-full rounded-md bg-surface px-3 py-2 text-[13.5px] text-ink placeholder:text-ink/30 outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
+              className="w-full rounded-md bg-surface px-3 py-2 text-[13.5px] text-ink placeholder:text-muted outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
             />
           ))}
           <span className="flex items-center gap-2 pt-1">
@@ -573,14 +654,14 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
               <option value={3} className="bg-navy">3 days</option>
               <option value={7} className="bg-navy">7 days</option>
             </select>
-            <button onClick={() => { setPollOn(false); setPollOpts(["", ""]); }} className="text-[12px] text-ink/45 hover:underline">Remove poll</button>
+            <button onClick={() => { setPollOn(false); setPollOpts(["", ""]); }} className="text-[12px] text-muted hover:underline">Remove poll</button>
           </span>
         </div>
       ) : null}
       {threadTo ? (
         <p className="ml-14 mt-3 flex items-center gap-2 rounded-md bg-surface px-3 py-2 text-[12px] text-ink/70">
           Adding to your thread
-          <button onClick={() => setThreadTo(null)} className="ml-auto text-pearl hover:underline">Cancel</button>
+          <button onClick={() => setThreadTo(null)} className="ml-auto text-accent hover:underline">Cancel</button>
         </p>
       ) : null}
       {preview ? (
@@ -590,10 +671,10 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
             <img src={preview.image_url} alt="" className="h-12 w-12 shrink-0 rounded-md bg-surface object-cover" />
           ) : null}
           <span className="min-w-0 flex-1">
-            <span className="block text-[10px] font-bold uppercase tracking-wide text-ink/40">{preview.domain ?? ""}</span>
+            <span className="block text-[10px] font-bold uppercase tracking-wide text-muted">{preview.domain ?? ""}</span>
             <span className="line-clamp-2 block text-[13px] font-semibold text-ink">{preview.title ?? preview.url}</span>
           </span>
-          <button onClick={() => { previewOff.current = preview.url; setPreview(null); }} title="Remove preview" className="shrink-0 rounded-full p-1 text-ink/40 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><X size={14} /></button>
+          <button onClick={() => { previewOff.current = preview.url; setPreview(null); }} title="Remove preview" className="shrink-0 rounded-full p-1 text-muted transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><X size={14} /></button>
         </span>
       ) : null}
       {pickerOpen ? <div className="ml-14 mt-3"><ProductPicker selected={products} onChange={setProducts} onClose={() => setPickerOpen(false)} /></div> : null}
@@ -601,44 +682,26 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
         <div className="ml-14 mt-3 flex flex-wrap gap-1.5">
           {products.map((c) => (
             <span key={c.id} className="flex items-center gap-1 rounded-full bg-surface px-2.5 py-1 text-[11px] text-ink/80">
-              <Tag size={10} className="text-pearl" /> {c.title}
-              <button onClick={() => setProducts(products.filter((x) => x.id !== c.id))} className="text-ink/40 hover:text-ink"><X size={11} /></button>
+              <Tag size={10} className="text-accent" /> {c.title}
+              <button onClick={() => setProducts(products.filter((x) => x.id !== c.id))} className="text-muted hover:text-ink"><X size={11} /></button>
             </span>
           ))}
         </div>
       ) : null}
-      {error ? <p className="ml-14 mt-3 text-[13px] text-danger">{error}</p> : null}
+      {error && publicationLocked && !publicationStatus.postId ? <button type="button" onClick={() => { publication.current=null; setPublicationLocked(false); setError(null); }} className="ml-14 mt-2 text-sm underline">Edit draft</button> : null}
+      {error ? <p role="alert" className="ml-14 mt-3 text-[13px] text-danger">{error}{publicationStatus.postId ? <> <Link target="_blank" rel="noopener noreferrer" href={"/post/" + publicationStatus.postId} className="underline">View post</Link></> : null}</p> : null}
       </div>
-      <div className="mt-4 flex shrink-0 flex-wrap items-center gap-1 border-t border-ink/10 pt-4">
-        <button onClick={() => fileRef.current?.click()} disabled={items.length >= MAX_MEDIA} title="Add photos or videos" className="rounded-full p-2.5 text-pearl transition-colors duration-[140ms] hover:bg-pearl/10 disabled:opacity-30">
-          <ImagePlus size={20} />
-        </button>
-        <input ref={fileRef} type="file" accept="image/*,video/*" multiple hidden onChange={(e) => addFiles(e.target.files)} />
-        <button onClick={() => setPickerOpen((v) => !v)} title="Attach products" className={"relative flex items-center rounded-full p-2.5 transition-colors duration-[140ms] " + (products.length > 0 ? "bg-pearl/10 text-pearl" : "text-pearl hover:bg-pearl/10")}>
-          <Tag size={18} />
-          {products.length > 0 ? <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-pearl px-1 text-[9px] font-bold text-ink">{products.length}</span> : null}
-        </button>
-        <button onClick={() => { if (items.length === 0) setPollOn((v) => !v); }} disabled={items.length > 0} title="Add a poll" className={"rounded-full p-2.5 transition-colors duration-[140ms] disabled:opacity-30 " + (pollOn ? "bg-pearl/10 text-pearl" : "text-pearl hover:bg-pearl/10")}>
-          <BarChart3 size={18} />
-        </button>
-        <button onClick={() => setInno((v) => !v)} title="Innovation post" className={"flex items-center gap-1 rounded-full px-3 py-2 text-[12.5px] font-semibold transition-colors duration-[140ms] " + (inno ? "bg-pearl/10 text-pearl" : "text-ink/50 hover:bg-surface hover:text-ink")}>
-          <Lightbulb size={16} /> Innovation
-        </button>
-        <div className="ml-auto flex items-center gap-2">
-          {items.length > 0 ? <span className="text-[12px] text-ink/40">{items.length}/{MAX_MEDIA}</span> : null}
-          {remaining <= 200 ? (
-            <span className={"text-[12px] font-semibold " + (remaining <= 20 ? "text-danger" : "text-ink/50")}>{remaining} left</span>
-          ) : null}
-        </div>
-      </div>
-      <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-ink/10 pt-3">
-        <select value={postCategory} onChange={(e) => setPostCategory(e.target.value)} title="Category" className="max-w-[120px] rounded-full bg-surface px-3 py-1.5 text-[12.5px] text-ink/80 outline-none">
+      {!review?<div className={compose.tools}><button className={compose.tool} onClick={()=>fileRef.current?.click()} disabled={items.length>=MAX_MEDIA}><ImagePlus size={19}/>Media</button><button className={compose.tool} disabled={!items.length} onClick={()=>setMusicOpen(true)}><Music size={19}/>Music</button><button className={compose.tool} onClick={()=>setPickerOpen(v=>!v)}><Tag size={18}/>Products{products.length?` · ${products.length}`:''}</button><button className={compose.tool} disabled={items.length>0} onClick={()=>setPollOn(v=>!v)}><BarChart3 size={18}/>{pollOn?'Remove poll':'Poll'}</button><input ref={fileRef} type="file" accept="image/*,video/*" multiple hidden onChange={e=>{void addFiles(e.target.files);e.target.value='';}}/></div>:null}
+      </fieldset>
+      {musicOpen?<SoundtrackPicker value={soundtrack} use="post" ownerId={ownerId} originalAudio={selected?.isVideo} onChange={setSoundtrack} onClose={()=>setMusicOpen(false)} renderPreview={(selection,active)=>selected?<PostDraftPreview item={selected} soundtrack={selection} active={active} autoPlay/>:null}/>:null}
+      <div className={compose.settings}>
+        <select disabled={publicationLocked||review} value={postCategory} onChange={(e) => setPostCategory(e.target.value)} title="Category" className="max-w-[120px] rounded-full bg-surface px-3 py-1.5 text-[12.5px] text-ink/80 outline-none">
           <option value="" className="bg-navy">Category</option>
           {CATEGORIES.filter((c) => c.key !== "innovation").map((c) => (
             <option key={c.key} value={c.key} className="bg-navy">{c.label}</option>
           ))}
         </select>
-        <select value={audience}
+        <select disabled={publicationLocked||review} value={audience}
           onChange={(e) => setAudience(e.target.value as typeof audience)}
           className="rounded-full bg-surface px-3 py-1.5 text-[12.5px] text-ink/80 outline-none"
         >
@@ -646,95 +709,20 @@ export function Composer({ onPosted, quote, onQuoteDone, initialKind }: { onPost
             <option key={a.key} value={a.key} className="bg-navy">{a.label}</option>
           ))}
         </select>
-        <select value={commentPolicy} onChange={(e) => setCommentPolicy(e.target.value as typeof commentPolicy)} title="Who can comment" className="rounded-full bg-surface px-3 py-1.5 text-[12.5px] text-ink/80 outline-none">
+        <select disabled={publicationLocked||review} value={commentPolicy} onChange={(e) => setCommentPolicy(e.target.value as typeof commentPolicy)} title="Who can comment" className="rounded-full bg-surface px-3 py-1.5 text-[12.5px] text-ink/80 outline-none">
           <option value="everyone" className="bg-navy">Comments: everyone</option>
           <option value="following" className="bg-navy">Comments: people I follow</option>
           <option value="followers" className="bg-navy">Comments: my followers</option>
           <option value="mentioned" className="bg-navy">Comments: mentioned only</option>
           <option value="off" className="bg-navy">Comments off</option>
-        </select>        <div className="ml-auto flex gap-2">
-          <button onClick={() => { setOpen(false); setError(null); onQuoteDone?.(); }} className="rounded-full bg-surface px-4 py-2 text-[13.5px] font-semibold text-ink transition-colors duration-[140ms] hover:bg-surface-elevated">Cancel</button>
-          <button onClick={post} disabled={pending || (!text.trim() && items.length === 0)} className="rounded-full bg-pearl px-6 py-2 text-[13.5px] font-bold text-ink shadow-sm transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">
-            {pending ? "Posting" : "Post"}
-          </button>
-        </div>
+        </select><span className="ml-auto text-[11px] text-muted">{items.length?`${items.length} of ${MAX_MEDIA} files`:''}{remaining<=200?` · ${remaining} characters left`:''}</span>
       </div>
       </div>
     </div>
   );
 }
 
-// The web edit stage: the same non-destructive recipe the phone writes to
-// post_media.edit (fit, filter with strength, adjust, video trim and mute), so
-// both surfaces render one post the same way.
-function MediaEditDialog({ item, onClose, onSave }: { item: Media; onClose: () => void; onSave: (e: PostMediaEditRecipe | null) => void }) {
-  const [e, setE] = useState<PostMediaEditRecipe>({ ...(item.edit || {}) });
-  const [dur, setDur] = useState(0);
-  const adj = e.adjust || {};
-  const setAdj = (k: string, v: number) => setE((p) => ({ ...p, adjust: { ...(p.adjust || {}), [k]: v } }));
-  const filterStyle = filterCss(e.filterId, (e.filterAmt ?? 100) / 100);
-  const fit = e.fit === "contain" ? "object-contain" : "object-cover";
-  const clean = (): PostMediaEditRecipe | null => {
-    const out: any = {};
-    if (e.fit === "contain") out.fit = "contain";
-    if (e.filterId) { out.filterId = e.filterId; if ((e.filterAmt ?? 100) !== 100) out.filterAmt = e.filterAmt; }
-    const a: any = {}; Object.entries(adj).forEach(([k, v]) => { if (v) a[k] = v; }); if (Object.keys(a).length) out.adjust = a;
-    if (e.muted) out.muted = true;
-    if (typeof e.trimStart === "number" && e.trimStart > 0) out.trimStart = e.trimStart;
-    if (typeof e.trimEnd === "number" && dur > 0 && e.trimEnd < dur - 0.05) out.trimEnd = e.trimEnd;
-    return Object.keys(out).length ? out : null;
-  };
-  const slider = (label: string, key: string, min = -100, max = 100) => (
-    <label className="flex items-center gap-3 text-[12.5px] text-ink/80"><span className="w-20 shrink-0">{label}</span>
-      <input type="range" min={min} max={max} value={(adj as any)[key] || 0} onChange={(ev) => setAdj(key, Number(ev.target.value))} className="flex-1 accent-[#0B1E3D]" />
-      <span className="w-8 text-right tabular-nums text-ink/50">{(adj as any)[key] || 0}</span></label>
-  );
-  return (
-    <div role="dialog" aria-modal="true" className="fixed inset-0 z-[70] flex items-center justify-center bg-black/85 p-4" onClick={onClose}>
-      <div className="flex max-h-[92vh] w-full max-w-[920px] flex-col gap-4 overflow-auto rounded-2xl bg-white p-4 md:flex-row" onClick={(ev) => ev.stopPropagation()}>
-        <div className="relative flex min-h-[260px] flex-1 items-center justify-center overflow-hidden rounded-xl bg-black">
-          {item.isVideo ? (
-            <video src={item.preview} muted={!!e.muted} controls playsInline className={"max-h-[70vh] w-full " + fit} style={{ filter: filterStyle }}
-              onLoadedMetadata={(ev) => { const d = ev.currentTarget.duration || 0; setDur(d); if (typeof e.trimEnd !== "number") setE((p) => ({ ...p, trimEnd: Math.round(d * 10) / 10 })); }} />
-          ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={item.preview} alt="" className={"max-h-[70vh] w-full " + fit} style={{ filter: filterStyle }} />
-          )}
-          <AdjustOverlay adjust={e.adjust} />
-        </div>
-        <div className="flex w-full flex-col gap-4 md:w-[320px]">
-          <div>
-            <p className="mb-1.5 text-[11px] font-extrabold uppercase tracking-wider text-ink/45">Filter</p>
-            <div className="flex flex-wrap gap-1.5">
-              <button type="button" onClick={() => setE((p) => ({ ...p, filterId: null }))} className={"rounded-full px-3 py-1 text-[12px] font-bold " + (!e.filterId ? "bg-ink text-white" : "bg-ink/5 text-ink hover:bg-ink/10")}>None</button>
-              {STORY_FILTERS.map((f) => <button key={f.id} type="button" onClick={() => setE((p) => ({ ...p, filterId: f.id }))} className={"rounded-full px-3 py-1 text-[12px] font-bold " + (e.filterId === f.id ? "bg-ink text-white" : "bg-ink/5 text-ink hover:bg-ink/10")}>{f.label}</button>)}
-            </div>
-            {e.filterId ? <label className="mt-2 flex items-center gap-3 text-[12.5px] text-ink/80"><span className="w-20 shrink-0">Strength</span><input type="range" min={0} max={100} value={e.filterAmt ?? 100} onChange={(ev) => setE((p) => ({ ...p, filterAmt: Number(ev.target.value) }))} className="flex-1 accent-[#0B1E3D]" /><span className="w-8 text-right tabular-nums text-ink/50">{e.filterAmt ?? 100}</span></label> : null}
-          </div>
-          <div>
-            <p className="mb-1.5 text-[11px] font-extrabold uppercase tracking-wider text-ink/45">Adjust</p>
-            <div className="flex flex-col gap-1.5">{slider("Brightness", "bri")}{slider("Saturation", "sat")}{slider("Warmth", "warm")}{slider("Fade", "fade", 0, 100)}{slider("Vignette", "vig", 0, 100)}</div>
-          </div>
-          <div className="flex items-center gap-2">
-            <button type="button" onClick={() => setE((p) => ({ ...p, fit: (p.fit || "cover") === "cover" ? "contain" : "cover" }))} className="rounded-full bg-ink/5 px-3 py-1 text-[12px] font-bold text-ink hover:bg-ink/10">{e.fit === "contain" ? "Fill" : "Fit"}</button>
-            {item.isVideo ? <button type="button" onClick={() => setE((p) => ({ ...p, muted: !p.muted }))} className={"rounded-full px-3 py-1 text-[12px] font-bold " + (e.muted ? "bg-ink text-white" : "bg-ink/5 text-ink hover:bg-ink/10")}>{e.muted ? "Muted" : "Sound on"}</button> : null}
-          </div>
-          {item.isVideo && dur > 0 ? (
-            <div>
-              <p className="mb-1.5 text-[11px] font-extrabold uppercase tracking-wider text-ink/45">Trim</p>
-              <label className="flex items-center gap-3 text-[12.5px] text-ink/80"><span className="w-20 shrink-0">Start</span><input type="range" min={0} max={dur} step={0.1} value={e.trimStart ?? 0} onChange={(ev) => setE((p) => ({ ...p, trimStart: Math.min(Number(ev.target.value), (p.trimEnd ?? dur) - 0.5) }))} className="flex-1 accent-[#0B1E3D]" /><span className="w-10 text-right tabular-nums text-ink/50">{(e.trimStart ?? 0).toFixed(1)}s</span></label>
-              <label className="mt-1.5 flex items-center gap-3 text-[12.5px] text-ink/80"><span className="w-20 shrink-0">End</span><input type="range" min={0} max={dur} step={0.1} value={e.trimEnd ?? dur} onChange={(ev) => setE((p) => ({ ...p, trimEnd: Math.max(Number(ev.target.value), (p.trimStart ?? 0) + 0.5) }))} className="flex-1 accent-[#0B1E3D]" /><span className="w-10 text-right tabular-nums text-ink/50">{(e.trimEnd ?? dur).toFixed(1)}s</span></label>
-            </div>
-          ) : null}
-          <div className="mt-auto flex items-center justify-between pt-2">
-            <button type="button" onClick={() => setE({})} className="text-[12.5px] font-bold text-ink/60 hover:text-ink">Reset</button>
-            <div className="flex gap-2">
-              <button type="button" onClick={onClose} className="rounded-full px-4 py-2 text-[13px] font-bold text-ink hover:bg-ink/5">Cancel</button>
-              <button type="button" onClick={() => onSave(clean())} className="rounded-full bg-[#0B1E3D] px-4 py-2 text-[13px] font-bold text-white">Done</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+async function prepareImageCover(file:File):Promise<Blob> {
+  const bad=await checkUploadableBytes(file);if(bad)throw new Error(bad);
+  const image=await createImageBitmap(file);try{const scale=Math.min(1,1200/image.width);const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(image.width*scale));canvas.height=Math.max(1,Math.round(image.height*scale));const ctx=canvas.getContext('2d');if(!ctx)throw new Error("The cover could not be prepared.");ctx.drawImage(image,0,0,canvas.width,canvas.height);return await new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("The cover could not be prepared.")),"image/jpeg",.9));}finally{image.close();}
 }

@@ -4,11 +4,13 @@
  * All values persist as plain JSON inside media_transform so the web
  * viewer replays them from the same numbers.
  */
+import { MUSIC_CATALOG_ENABLED } from '../../../shared/musicAvailability';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, Modal, TouchableOpacity, StyleSheet, PanResponder, TextInput, ScrollView, ActivityIndicator, Dimensions } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, StyleSheet, PanResponder, TextInput, ScrollView, ActivityIndicator, Dimensions, useWindowDimensions } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
+import { useSafeAreaInsets } from '../SafeArea';
 import { supabase } from '../../services/supabase';
 
 const SCREEN_W = Dimensions.get('window').width;
@@ -19,7 +21,7 @@ export type StoryMix = { orig?: number; music?: number };
 export type EntityPick = { entityType: 'profile' | 'listing' | 'job' | 'article'; entityId: string; entityTitle: string; entitySub?: string; entityImage?: string | null };
 
 /* ── MiniSlider: dependency-free track used by every panel ── */
-export function MiniSlider({ value, min, max, onChange, width = 210, onDragStateChange }: { value: number; min: number; max: number; onChange: (v: number) => void; width?: number; onDragStateChange?: (dragging: boolean) => void }) {
+export function MiniSlider({ value, min, max, onChange, width = 210, onDragStateChange, label = 'Adjustment' }: { label?: string; value: number; min: number; max: number; onChange: (v: number) => void; width?: number; onDragStateChange?: (dragging: boolean) => void }) {
   // Stable slider: the thumb follows the finger from where it was grabbed (no
   // jump on touch), the visual updates locally every frame, and the parent is
   // committed at most every 60ms plus once on release, so the editor never
@@ -73,7 +75,7 @@ export function MiniSlider({ value, min, max, onChange, width = 210, onDragState
   const pct = (live - min) / (max - min || 1);
   const thumbLeft = Math.max(0, Math.min(width - 18, pct * width - 9));
   return (
-    <View {...pan.panHandlers} style={[sl.track, { width }]} hitSlop={{ top: 14, bottom: 14, left: 8, right: 8 }}>
+    <View accessible accessibilityRole="adjustable" accessibilityLabel={label} accessibilityValue={{ min, max, now: value }} accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]} onAccessibilityAction={e => onChange(Math.max(min, Math.min(max, value + (e.nativeEvent.actionName === 'increment' ? 1 : -1))))} {...pan.panHandlers} style={[sl.track, { width }]} hitSlop={{ top: 14, bottom: 14, left: 8, right: 8 }}>
       <View style={[sl.fill, { width: Math.max(4, pct * width) }]} />
       {dragging && (
         <View style={[sl.bubble, { left: Math.max(0, Math.min(width - 40, thumbLeft - 11)) }]} pointerEvents="none">
@@ -170,47 +172,44 @@ const ADJ_FIELDS: { key: keyof StoryAdjust; label: string; min: number; max: num
   { key: 'vig', label: 'Vignette', min: 0, max: 100 },
 ];
 
-export function AdjustPanel({ visible, onClose, adjust, onChange, filterOn, filterAmt, onFilterAmt }: {
+export function AdjustPanel({ visible, onClose, adjust, onChange, filterOn, filterAmt, onFilterAmt, onCompare, onCrop, onFilters, onDraw, onTiming }: {
   visible: boolean; onClose: () => void;
   adjust: StoryAdjust; onChange: (a: StoryAdjust) => void;
   filterOn: boolean; filterAmt: number; onFilterAmt: (v: number) => void;
+  onCompare?: (original: boolean) => void; onCrop?: () => void; onFilters?: () => void; onDraw?: () => void; onTiming?: () => void;
 }) {
-  const [sliding, setSliding] = useState(false);
+  const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const [selected, setSelected] = useState<keyof StoryAdjust>('bri');
+  const original = useRef({ adjust, filterAmt });
+  useEffect(() => { if (visible) original.current = { adjust: { ...adjust }, filterAmt }; }, [visible]);
   if (!visible) return null;
-  const hasAny = ADJ_FIELDS.some(f => (adjust as any)[f.key]);
-  return (
-    <View style={pp.dockWrap} pointerEvents="box-none">
-      <View style={pp.dock}>
-        <View style={pp.dockHead}>
-          <Text style={pp.dockTitle}>Adjust</Text>
-          {(hasAny || filterAmt !== 100) && (
-            <TouchableOpacity onPress={() => { onChange({}); onFilterAmt(100); }} style={pp.dockResetBtn} activeOpacity={0.8}>
-              <Text style={pp.dockReset}>Reset</Text>
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity onPress={onClose} style={pp.dockDone} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Text style={pp.dockDoneTxt}>Done</Text>
-          </TouchableOpacity>
-        </View>
-        <ScrollView style={{ maxHeight: 300 }} scrollEnabled={!sliding} bounces={false} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 8 }}>
-          {filterOn && (
-            <View style={pp.row}>
-              <Text style={pp.rowLabel}>Filter strength</Text>
-              <MiniSlider value={filterAmt} min={0} max={100} onChange={onFilterAmt} onDragStateChange={setSliding} />
-              <Text style={pp.rowVal}>{filterAmt}</Text>
-            </View>
-          )}
-          {ADJ_FIELDS.map(f => (
-            <View key={f.key as string} style={pp.row}>
-              <Text style={pp.rowLabel}>{f.label}</Text>
-              <MiniSlider value={Number((adjust as any)[f.key]) || 0} min={f.min} max={f.max} onChange={v => onChange({ ...adjust, [f.key]: v === 0 ? undefined : v })} onDragStateChange={setSliding} />
-              <Text style={pp.rowVal}>{Number((adjust as any)[f.key]) || 0}</Text>
-            </View>
-          ))}
+  const field = ADJ_FIELDS.find(f => f.key === selected) || ADJ_FIELDS[0];
+  const value = Number(adjust[field.key]) || 0;
+  const icons: Record<string, React.ComponentProps<typeof Feather>['name']> = { bri: 'sun', con: 'circle', warm: 'thermometer', sat: 'aperture', tint: 'droplet', hi: 'sunrise', sh: 'sunset', fade: 'cloud', grain: 'grid', vig: 'maximize' };
+  const fields = ['bri', 'con', 'warm', 'sat', 'tint', 'hi', 'sh', 'fade', 'grain', 'vig'].map(key => ADJ_FIELDS.find(f => f.key === key)!);
+  return <View style={[StyleSheet.absoluteFill, { zIndex: 75 }]} pointerEvents="box-none" accessibilityViewIsModal>
+    <View style={{ position: 'absolute', left: 16, right: 16, top: Math.max(insets.top, 12), flexDirection: 'row', alignItems: 'center' }}>
+      <TouchableOpacity accessibilityRole="button" onPress={() => { onChange(original.current.adjust); onFilterAmt(original.current.filterAmt); onCompare?.(false); onClose(); }} style={{ minHeight: 44, minWidth: 64, justifyContent: 'center' }}><Text style={{ color: '#FFF', fontSize: 15 }}>Cancel</Text></TouchableOpacity>
+      <Text style={{ flex: 1, textAlign: 'center', color: '#FFF', fontWeight: '600', fontSize: 18 }}>Adjust</Text>
+      <TouchableOpacity accessibilityRole="button" onPress={onClose} style={pp.dockDone}><Text style={pp.dockDoneTxt}>Done</Text></TouchableOpacity>
+    </View>
+    <View style={[pp.dockWrap, { paddingBottom: 0 }]}>
+      {onCompare ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Hold to compare original media" onPressIn={() => onCompare(true)} onPressOut={() => onCompare(false)} style={{ alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#171A1DBB', borderWidth: 1, borderColor: '#FFF5', borderRadius: 24, minHeight: 44, paddingHorizontal: 18, marginBottom: 14 }}><Feather name="copy" size={17} color="#FFF" /><Text style={{ color: '#FFF', fontSize: 13 }}>Hold to compare</Text></TouchableOpacity> : null}
+      <View style={[pp.dock, { paddingTop: 20, paddingBottom: Math.max(insets.bottom, 16), backgroundColor: '#15191DF5' }]}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 19, paddingHorizontal: 24 }}>
+          {fields.map(f => <TouchableOpacity accessibilityRole="button" accessibilityState={{ selected: f.key === selected }} accessibilityLabel={f.label} key={f.key} onPress={() => setSelected(f.key)} style={{ alignItems: 'center', gap: 9, minWidth: 62 }}><View style={{ width: 58, height: 58, borderRadius: 29, borderWidth: 1, borderColor: '#FFFFFF30', alignItems: 'center', justifyContent: 'center', backgroundColor: f.key === selected ? '#F1DFC5' : '#24282B' }}><Feather name={icons[f.key] || 'sliders'} size={25} color={f.key === selected ? '#17191B' : '#FFF'} /></View><Text style={{ color: '#F3F0EB', fontSize: 12 }}>{f.key === 'bri' ? 'Light' : f.key === 'sat' ? 'Color' : f.label}</Text></TouchableOpacity>)}
         </ScrollView>
+        <Text style={{ color: '#FFF', fontSize: 21, fontWeight: '600', textAlign: 'center', marginTop: 25, marginBottom: 25 }}>{field.label}  {value > 0 ? '+' : ''}{value}</Text>
+        <View style={{ alignItems: 'center', paddingVertical: 12 }}><MiniSlider label={field.label} value={value} min={field.min} max={field.max} width={Math.max(180, width - 64)} onChange={v => onChange({ ...adjust, [field.key]: v === 0 ? undefined : v })} /></View>
+        {filterOn ? <View style={{ paddingHorizontal: 32, marginTop: 12 }}><Text style={{ color: '#D2D0CB', fontSize: 12, marginBottom: 10 }}>Filter strength · {filterAmt}%</Text><MiniSlider label="Filter strength" value={filterAmt} min={0} max={100} width={Math.max(180, width - 64)} onChange={onFilterAmt} /></View> : null}
+        <TouchableOpacity accessibilityRole="button" onPress={() => { onChange({}); onFilterAmt(100); }} style={{ minHeight: 50, marginTop: 12, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center' }}><Feather name="rotate-ccw" size={20} color="#FFF" /><Text style={{ color: '#FFF', fontSize: 14 }}>Reset</Text></TouchableOpacity>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-around', borderTopWidth: StyleSheet.hairlineWidth, borderColor: '#FFFFFF25', marginHorizontal: 14, paddingTop: 12 }}>
+          {([{ label: 'Crop', icon: 'crop', run: onCrop }, { label: 'Adjust', icon: 'sliders', run: () => {} }, { label: 'Filters', icon: 'aperture', run: onFilters }, { label: 'Draw', icon: 'edit-3', run: onDraw }, { label: 'Timing', icon: 'film', run: onTiming }] as const).filter(item => !!item.run).map(item => <TouchableOpacity key={item.label} accessibilityRole="button" accessibilityState={{ selected: item.label === 'Adjust' }} onPress={item.run} style={{ minHeight: 62, minWidth: 54, borderRadius: 20, alignItems: 'center', justifyContent: 'center', gap: 7, backgroundColor: item.label === 'Adjust' ? '#F1DFC5' : 'transparent' }}><Feather name={item.icon} size={22} color={item.label === 'Adjust' ? '#17191B' : '#FFF'} /><Text style={{ color: item.label === 'Adjust' ? '#17191B' : '#FFF', fontSize: 11 }}>{item.label}</Text></TouchableOpacity>)}
+        </View>
       </View>
     </View>
-  );
+  </View>;
 }
 
 /* ── Backgrounds for fit mode (doc 15) ── */
@@ -271,14 +270,14 @@ export function AudioMixSheet({ visible, onClose, isVideo, hasMusic, mix, onChan
   visible: boolean; onClose: () => void; isVideo: boolean; hasMusic: boolean;
   mix: StoryMix; onChange: (m: StoryMix) => void;
 }) {
-  if (!visible) return null;
+  if (!visible || (!MUSIC_CATALOG_ENABLED && !isVideo)) return null;
   const orig = typeof mix.orig === 'number' ? mix.orig : 100;
   const music = typeof mix.music === 'number' ? mix.music : 100;
   return (
     <View style={pp.dockWrap} pointerEvents="box-none">
       <View style={pp.dock}>
         <View style={pp.dockHead}>
-          <Text style={pp.dockTitle}>Sound mix</Text>
+          <Text style={pp.dockTitle}>{MUSIC_CATALOG_ENABLED ? 'Sound mix' : 'Video sound'}</Text>
           <TouchableOpacity onPress={onClose} style={pp.dockDone} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
             <Text style={pp.dockDoneTxt}>Done</Text>
           </TouchableOpacity>
@@ -295,15 +294,15 @@ export function AudioMixSheet({ visible, onClose, isVideo, hasMusic, mix, onChan
         ) : (
           <Text style={pp.dockHint}>Photo story — only music plays.</Text>
         )}
-        <View style={pp.row}>
+        {MUSIC_CATALOG_ENABLED && <View style={pp.row}>
           <TouchableOpacity onPress={() => onChange({ ...mix, music: music === 0 ? 100 : 0 })} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
             <Feather name={music === 0 ? 'volume-x' : 'music'} size={18} color="#FFF" />
           </TouchableOpacity>
           <Text style={pp.rowLabel}>Music</Text>
           <MiniSlider value={music} min={0} max={100} onChange={v => onChange({ ...mix, music: v })} width={170} />
           <Text style={pp.rowVal}>{music}</Text>
-        </View>
-        {!hasMusic && <Text style={pp.dockHint}>Add music from the tray to hear this channel.</Text>}
+        </View>}
+        {MUSIC_CATALOG_ENABLED && !hasMusic && <Text style={pp.dockHint}>Add music from the tray to hear this channel.</Text>}
         <Text style={pp.dockHint}>Original audio is never deleted — the mix just sets playback volume.</Text>
       </View>
     </View>
@@ -449,12 +448,12 @@ const vg = StyleSheet.create({
 
 const pp = StyleSheet.create({
   dockWrap: { position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 60 },
-  dock: { backgroundColor: 'rgba(12,14,20,0.96)', borderTopLeftRadius: 22, borderTopRightRadius: 22, paddingTop: 10, paddingBottom: 30, borderTopWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.12)' },
+  dock: { backgroundColor: '#191C1F', borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingTop: 10, paddingBottom: 30, borderTopWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.12)' },
   dockHead: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 6, gap: 10 },
-  dockTitle: { color: '#FFF', fontSize: 15.5, fontWeight: '800', flex: 1 },
-  dockResetBtn: { borderRadius: 12, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: 'rgba(255,255,255,0.10)' },
+  dockTitle: { color: '#FFF', fontSize: 19, fontWeight: '800', flex: 1 },
+  dockResetBtn: { minHeight: 44, justifyContent: 'center', borderRadius: 22, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: 'rgba(255,255,255,0.10)' },
   dockReset: { color: '#FFF', fontSize: 13, fontWeight: '700' },
-  dockDone: { backgroundColor: '#C9BFB0', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 6 },
+  dockDone: { minHeight: 44, justifyContent: 'center', backgroundColor: '#E8D3B6', borderRadius: 22, paddingHorizontal: 14, paddingVertical: 6 },
   dockDoneTxt: { color: '#0B1E3D', fontSize: 13, fontWeight: '800' },
   dockHint: { color: 'rgba(255,255,255,0.5)', fontSize: 11.5, paddingHorizontal: 16, paddingTop: 2, paddingBottom: 4 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 16, paddingVertical: 7 },

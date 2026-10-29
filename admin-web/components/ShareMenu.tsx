@@ -95,7 +95,7 @@ export default function ShareMenu({ path, label }: { path: string; label?: strin
       ) : null}
 
       {open ? (
-        <div style={{
+        <div className="pc-share-popover" style={{
           position: 'absolute', top: 40, right: 0, zIndex: 70, width: 262, padding: 5,
           borderRadius: 12, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.11)',
           boxShadow: '0 18px 46px rgba(0,0,0,0.24)', animation: 'pcRise 140ms ' + EASE,

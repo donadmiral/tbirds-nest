@@ -30,13 +30,13 @@ export default function SavedJobsPage() {
   return (
     <div>
       <div className="flex items-center gap-3 px-1 pb-4">
-        <Link href="/jobs" className="text-sm text-ink/50 hover:text-ink">← Jobs</Link>
+        <Link href="/jobs" className="text-sm text-muted hover:text-ink">← Jobs</Link>
         <h1 className="font-display text-xl text-porcelain">Saved jobs</h1>
       </div>
       {loading ? (
-        <p className="py-16 text-center text-sm text-ink/40">Loading</p>
+        <p className="py-16 text-center text-sm text-muted">Loading</p>
       ) : jobs.length === 0 ? (
-        <p className="py-16 text-center text-sm text-ink/40">Jobs you save will appear here.</p>
+        <p className="py-16 text-center text-sm text-muted">Jobs you save will appear here.</p>
       ) : (
         <div className="border-t border-ink/10">
           {jobs.map((j) => (

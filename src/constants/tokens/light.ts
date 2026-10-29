@@ -16,24 +16,24 @@ const NAVY = '#0B1E3D';
 
 export const light = {
   surface: {
-    canvas:   '#FFFFFF',
-    raised:   '#FAFAF9',
-    sunken:   '#F4F3F1',
+    canvas:   '#FBF9F5',
+    raised:   '#FFFFFF',
+    sunken:   '#F2EEE7',
     hairline: 'rgba(11,30,61,0.08)',
     divider:  'rgba(11,30,61,0.06)',
     scrim:    'rgba(11,30,61,0.45)',
   },
   ink: {
     primary:   NAVY,
-    secondary: 'rgba(11,30,61,0.62)',
-    muted:     'rgba(11,30,61,0.42)',
+    secondary: 'rgba(11,30,61,0.74)',
+    muted:     'rgba(11,30,61,0.62)',
     faint:     'rgba(11,30,61,0.24)',
     inverse:   '#FFFFFF',
   },
   brand: {
     base:  NAVY,
-    warm:  '#C9BFB0',
-    tintBg: 'rgba(11,30,61,0.05)',
+    warm:  '#AE8B49',
+    tintBg: 'rgba(174,139,73,0.10)',
   },
   status: {
     innovation:   '#D97706',

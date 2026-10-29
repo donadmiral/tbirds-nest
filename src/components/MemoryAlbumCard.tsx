@@ -1,122 +1,82 @@
-/**
- * MemoryAlbumCard — the shelf of memory books on a profile.
- * Fetches get_memory_albums(p_owner): owner sees every book plus a
- * New book tile; visitors see only viewable books that hold memories.
- * Each mini book mirrors the real cover: spine, stitched border, clasp.
- */
-import { themedSheet } from '../theme/useTheme';
-import React, { useCallback, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, Modal, TextInput, ActivityIndicator, useWindowDimensions, Platform, AppState } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../services/supabase';
+import { hydrateMemoryAlbumMedia, withoutPrivateMedia } from '../services/contentMedia';
+import { useAuthStore } from '../stores/authStore';
+import { profileRead } from '../utils/profileRead';
+import { useTheme } from '../theme/useTheme';
+import { SafeAreaView } from './SafeArea';
+import MemoryBookCover from './memory/MemoryBookCover';
+import MemoryBookDesigner from './memory/MemoryBookDesigner';
+import { MEMORY_COVER_COLORS, memoryCoverMedia, memoryAudienceLabel } from '../../shared/memoryBookDesign';
+export const COVER_COLORS = MEMORY_COVER_COLORS;
 
-export const COVER_COLORS: Record<string, { cover: string; spine: string; text: string }> = {
-  blush: { cover: '#FBE3EA', spine: '#F2B8C6', text: '#8a3b52' },
-  rose:  { cover: '#F4C0D1', spine: '#D4537E', text: '#72243E' },
-  pearl: { cover: '#F3EDE2', spine: '#C9BFB0', text: '#4a4438' },
-  cream: { cover: '#FAF3E3', spine: '#E8D9B8', text: '#6b5b35' },
-  sage:  { cover: '#E4EEE2', spine: '#AFC8AB', text: '#3c5738' },
-  sky:   { cover: '#E2EEF6', spine: '#A9CBE0', text: '#2c516b' },
-  lilac: { cover: '#ECE7F7', spine: '#C4B6E6', text: '#4b3c78' },
-  ink:   { cover: '#2A2D33', spine: '#16181c', text: '#f2f0ec' },
-};
-
-function MiniBook({ title, colorKey }: { title: string; colorKey: string }) {
-  const c = COVER_COLORS[colorKey] ?? COVER_COLORS.blush;
-  return (
-    <View style={{ width: 62, height: 78 }}>
-      <View style={{ flex: 1, borderRadius: 8, backgroundColor: c.spine, padding: 3, paddingLeft: 7, shadowColor: '#000', shadowOpacity: 0.14, shadowRadius: 4, shadowOffset: { width: 0, height: 2 }, elevation: 3 }}>
-        <View style={{ flex: 1, borderRadius: 5, backgroundColor: c.cover, borderWidth: 1, borderStyle: 'dashed', borderColor: c.text + '55', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 }}>
-          <View style={{ position: 'absolute', top: 3, left: 3, width: 5, height: 5, borderRadius: 2.5, backgroundColor: c.spine }} />
-          <View style={{ position: 'absolute', bottom: 3, right: 3, width: 5, height: 5, borderRadius: 2.5, backgroundColor: c.spine }} />
-          <Text numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.6} style={{ textAlign: 'center', fontSize: 9.5, lineHeight: 11.5, fontWeight: '800', color: c.text }}>{title}</Text>
-          <Feather name="heart" size={9} color={c.text} style={{ marginTop: 3, opacity: 0.9 }} />
-        </View>
-      </View>
-      <View style={{ position: 'absolute', right: -5, top: 28, width: 13, height: 18, borderRadius: 4, backgroundColor: '#E4D2A6', borderWidth: 1, borderColor: '#CBB27C', alignItems: 'center', justifyContent: 'center' }}>
-        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#F3EDE2' }} />
-      </View>
-    </View>
-  );
+export default function MemoryAlbumCard({ownerId,navigation}:{ownerId?:string|null;navigation:any}) {
+ const {t,isDark}=useTheme(),{width}=useWindowDimensions();
+ const [data,setData]=useState<any>(null),[error,setError]=useState(''),[creating,setCreating]=useState(false),[collection,setCollection]=useState(false),[query,setQuery]=useState(''),[filter,setFilter]=useState('All');
+ const pendingCreate=useRef(false),pendingDestination=useRef<{ownerId:string;albumId:string}|null>(null);
+ const viewerId=useAuthStore(state=>state.session?.user.id??null);
+ const scope=useRef({ownerId,viewerId});
+ if(scope.current.ownerId!==ownerId||scope.current.viewerId!==viewerId)scope.current={ownerId,viewerId};
+ const epoch=useRef(0),loadedOwner=useRef<string|null>(null),loadedScope=useRef<typeof scope.current|null>(null);
+ const pendingRead=useRef<{scope:typeof scope.current;promise:Promise<void>}|null>(null);
+ const [loading,setLoading]=useState(true);
+ const refresh=useCallback(()=>{
+  const owner=scope.current;
+  // Focus, foreground and a just-created book can all ask for the same read.
+  // Share it instead of invalidating a successful response with another load.
+  if(pendingRead.current?.scope===owner)return pendingRead.current.promise;
+  const id=++epoch.current;
+  const current=()=>scope.current===owner&&id===epoch.current;
+  if(loadedScope.current!==owner){loadedOwner.current=ownerId??null;loadedScope.current=owner;setData(null);}
+  setLoading(true);setError('');
+  if(!ownerId||!viewerId){setLoading(false);return Promise.resolve();}
+  const pending={scope:owner,promise:Promise.resolve()};
+  pendingRead.current=pending;
+  pending.promise=(async()=>{
+   try{
+    const {data:result,error:e}=await profileRead(supabase.rpc('get_memory_albums',{p_owner:ownerId}));
+    if(!current())return;
+    if(e||!result||!Array.isArray(result.books))throw e||Error('Memory books could not load. Tap to retry.');
+    // Titles, counts and create/open controls are already server-authorized.
+    // Never hold the entire shelf hostage to its separate cover signing step.
+    setData({...result,books:withoutPrivateMedia(result.books)});
+    setLoading(false);
+    try{
+     const books=await profileRead(hydrateMemoryAlbumMedia(result.books),25000);
+     if(current())setData({...result,books});
+    }catch{if(current())setError('Book covers could not load. Your books can still open. Tap to retry.');}
+   }catch{if(current())setError('Memory books could not load. Tap to retry.');}
+   finally{if(current())setLoading(false);if(pendingRead.current===pending)pendingRead.current=null;}
+  })();
+  return pending.promise;
+ },[ownerId,viewerId]);
+ useFocusEffect(useCallback(()=>{void refresh();const timer=setInterval(()=>{if(AppState.currentState==='active')void refresh();},240000);const sub=AppState.addEventListener('change',state=>{if(state==='active')void refresh();});return()=>{epoch.current++;pendingRead.current=null;clearInterval(timer);sub.remove();};},[refresh]));
+ useEffect(()=>{pendingCreate.current=false;pendingDestination.current=null;setCreating(false);setCollection(false);},[ownerId,viewerId]);
+ if(!ownerId)return null;
+ const shelf=loadedScope.current===scope.current&&loadedOwner.current===ownerId?data:null;
+ const books=(shelf?.books??[]).filter((b:any)=>shelf.is_owner||b.count>0);
+ if(shelf&&!error&&!shelf.is_owner&&!books.length)return null;
+ const coverW=Math.min(280,(width-48)/2),coverH=coverW*1.31,serif=Platform.OS==='ios'?'Georgia':'serif';
+ const finishNavigation=()=>{const target=pendingDestination.current;pendingDestination.current=null;if(target&&target.ownerId===ownerId)navigation.navigate('MemoryAlbum',target);};
+ const open=(b:any)=>{if(collection&&Platform.OS==='ios'){pendingDestination.current={ownerId,albumId:b.id};setCollection(false);}else{setCollection(false);navigation.navigate('MemoryAlbum',{ownerId,albumId:b.id});}};
+ const card=(b:any,audience=false)=><TouchableOpacity key={b.id} accessibilityRole="button" accessibilityLabel={`${b.title}, ${b.count} memories`} onPress={()=>open(b)} style={{width:coverW,marginBottom:12}}><MemoryBookCover title={b.title} subtitle={b.subtitle} color={b.cover_color} design={b.cover_design} {...memoryCoverMedia(b.cover_page)} width={coverW} height={coverH}/><Text numberOfLines={1} style={{fontFamily:serif,fontSize:17,color:t.ink.primary,marginTop:10}}>{b.title}</Text><Text style={{fontSize:12,color:t.ink.secondary,marginTop:4}}>{audience?memoryAudienceLabel(b.audience):b.count+' '+(b.count===1?'memory':'memories')}</Text></TouchableOpacity>;
+ const filtered=books.filter((b:any)=>(b.title+' '+(b.subtitle??'')).toLowerCase().includes(query.toLowerCase())&&(filter==='All'||(filter==='Public'?b.audience==='profile':b.audience!=='profile')));
+ return <View style={{paddingTop:18,paddingBottom:14}}>
+  <View style={{flexDirection:'row',alignItems:'center',justifyContent:'space-between',paddingHorizontal:16,marginBottom:12}}><Text style={{fontSize:19,fontWeight:'700',color:t.ink.primary}}>Memory books</Text>{!!books.length&&<TouchableOpacity onPress={()=>setCollection(true)} accessibilityLabel="View all memory books" style={{minHeight:44,justifyContent:'center'}}><Text style={{fontSize:13,color:t.ink.secondary}}>View all</Text></TouchableOpacity>}</View>
+  {!!error&&!creating&&<TouchableOpacity onPress={()=>void refresh()}><Text style={{color:t.ink.secondary,padding:16}}>{error}</Text></TouchableOpacity>}
+  <View style={{flexDirection:'row',gap:16,paddingHorizontal:16,minHeight:!shelf&&loading?coverH+48:undefined}}>
+   {!shelf&&loading&&<View accessibilityLabel="Loading memory books" style={{width:coverW,height:coverH,backgroundColor:t.surface.hairline,borderRadius:4,alignItems:'center',justifyContent:'center'}}><ActivityIndicator color={t.ink.secondary}/></View>}
+   {books.slice(0,2).map((b:any)=>card(b))}
+  </View>
+  {shelf?.is_owner&&<TouchableOpacity onPress={()=>{setCreating(true);setError('');}} accessibilityLabel="Create memory book" style={{marginHorizontal:16,marginTop:4,minHeight:48,borderRadius:13,borderWidth:1,borderStyle:'dashed',borderColor:t.surface.hairline,flexDirection:'row',gap:8,alignItems:'center',justifyContent:'center'}}><Feather name="plus" size={20} color={t.ink.primary}/><Text style={{color:t.ink.primary,fontSize:14}}>New book</Text></TouchableOpacity>}
+  <Modal visible={collection} animationType="slide" onRequestClose={()=>setCollection(false)} onDismiss={()=>{if(pendingCreate.current){pendingCreate.current=false;setCreating(true);}else finishNavigation();}}><SafeAreaView style={{flex:1,backgroundColor:isDark?t.surface.canvas:'#FCFAF5'}}><View style={{flexDirection:'row',paddingHorizontal:16,alignItems:'center',justifyContent:'space-between',height:58}}><TouchableOpacity accessibilityLabel="Back to profile" onPress={()=>setCollection(false)} style={{padding:10}}><Feather name="chevron-left" size={24} color={t.ink.primary}/></TouchableOpacity><Text style={{fontFamily:serif,fontSize:24,color:t.ink.primary}}>Memory books</Text>{shelf?.is_owner?<TouchableOpacity accessibilityLabel="New memory book" onPress={()=>{if(Platform.OS==='ios')pendingCreate.current=true;setCollection(false);if(Platform.OS!=='ios')setCreating(true);}} style={{padding:10}}><Feather name="plus" size={24} color={t.ink.primary}/></TouchableOpacity>:<View style={{width:44}}/>}</View>
+   <TextInput accessibilityLabel="Search memory books" value={query} onChangeText={setQuery} placeholder="Search your books" placeholderTextColor={t.ink.secondary} style={{marginHorizontal:18,marginBottom:16,borderRadius:24,paddingHorizontal:18,paddingVertical:12,backgroundColor:t.surface.hairline,color:t.ink.primary}}/>
+   <View style={{marginHorizontal:18,marginBottom:20,flexDirection:'row',backgroundColor:t.surface.hairline,borderRadius:22}}>{['All','Public','Private'].map(f=><TouchableOpacity key={f} onPress={()=>setFilter(f)} accessibilityRole="tab" accessibilityState={{selected:filter===f}} style={{flex:1,alignItems:'center',padding:11,borderRadius:22,backgroundColor:filter===f?(isDark?t.brand.base:'#E7DDC7'):'transparent'}}><Text style={{color:filter===f&&isDark?'#FFF':t.ink.primary,fontWeight:filter===f?'700':'400'}}>{f}</Text></TouchableOpacity>)}</View>
+   <ScrollView contentContainerStyle={{paddingHorizontal:16,paddingBottom:30}}><View style={{flexDirection:'row',flexWrap:'wrap',gap:16}}>{filtered.map((b:any)=>card(b,true))}</View>{!filtered.length&&<Text style={{textAlign:'center',color:t.ink.secondary,padding:30}}>No books match your search.</Text>}</ScrollView>
+  </SafeAreaView></Modal>
+  <MemoryBookDesigner visible={creating} ownerId={ownerId} onClose={()=>setCreating(false)} onDismiss={finishNavigation} onCreated={id=>{if(Platform.OS==='ios')pendingDestination.current={ownerId,albumId:id};setCreating(false);void refresh();if(Platform.OS!=='ios')navigation.navigate('MemoryAlbum',{ownerId,albumId:id});}}/>
+ </View>;
 }
-
-export default function MemoryAlbumCard({ ownerId, navigation }: { ownerId?: string | null; navigation: any }) {
-  const [data, setData] = useState<any | null>(null);
-  const [creating, setCreating] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const [newColor, setNewColor] = useState('blush');
-
-  const refresh = useCallback(() => {
-    if (!ownerId) { setData(null); return; }
-    supabase.rpc('get_memory_albums', { p_owner: ownerId }).then(({ data: d, error }) => {
-      if (!error) setData(d ?? null);
-    });
-  }, [ownerId]);
-
-  useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
-
-  if (!ownerId || !data) return null;
-  const books: any[] = (data.books ?? []).filter((b: any) => data.is_owner || b.count > 0);
-  if (!data.is_owner && (!data.can_view || books.length === 0)) return null;
-
-  const createBook = async () => {
-    const t = newTitle.trim();
-    if (!t) return;
-    try {
-      const { data: id, error } = await supabase.rpc('create_memory_book', { p_title: t, p_cover_color: newColor });
-      setCreating(false); setNewTitle('');
-      refresh();
-      if (!error && id) navigation.navigate('MemoryAlbum', { ownerId, albumId: id });
-    } catch {}
-  };
-
-  return (
-    <View style={{ paddingVertical: 10 }}>
-      <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#0B1E3D', paddingHorizontal: 16, marginBottom: 8 }}>Memory books</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 16, alignItems: 'flex-start' }}>
-        {books.map((b: any) => (
-          <TouchableOpacity key={b.id} activeOpacity={0.85} onPress={() => navigation.navigate('MemoryAlbum', { ownerId, albumId: b.id })} style={{ alignItems: 'center', width: 70 }}>
-            <MiniBook title={b.title} colorKey={b.cover_color} />
-            <Text numberOfLines={1} style={{ fontSize: 10.5, fontWeight: '700', color: '#0B1E3D', marginTop: 6, maxWidth: 70 }}>{b.title}</Text>
-            <Text style={{ fontSize: 9.5, color: '#8b93a3', marginTop: 1 }}>{b.count} {b.count === 1 ? 'memory' : 'memories'}</Text>
-          </TouchableOpacity>
-        ))}
-        {data.is_owner ? (
-          <TouchableOpacity activeOpacity={0.8} onPress={() => { setNewColor('blush'); setCreating(true); }} style={{ alignItems: 'center', width: 70 }}>
-            <View style={{ width: 62, height: 78, borderRadius: 8, borderWidth: 1.6, borderStyle: 'dashed', borderColor: '#B7C0CE', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(11,30,61,0.03)' }}>
-              <Feather name="plus" size={18} color="#5B6B84" />
-            </View>
-            <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#5B6B84', marginTop: 6 }}>New book</Text>
-          </TouchableOpacity>
-        ) : null}
-      </ScrollView>
-
-      <Modal visible={creating} transparent animationType="fade" onRequestClose={() => setCreating(false)}>
-        <View style={sc.wrap}>
-          <View style={sc.card}>
-            <Text style={sc.title}>New memory book</Text>
-            <TextInput value={newTitle} onChangeText={setNewTitle} placeholder="Happy moments" placeholderTextColor="#9AA6B8" style={sc.input} maxLength={40} autoFocus />
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 6 }}>
-              {Object.keys(COVER_COLORS).map(k => (
-                <TouchableOpacity key={k} onPress={() => setNewColor(k)}
-                  style={{ width: 28, height: 36, borderRadius: 5, backgroundColor: COVER_COLORS[k].cover, borderWidth: newColor === k ? 2.5 : 1, borderColor: newColor === k ? '#0B1E3D' : 'rgba(11,30,61,0.15)' }} />
-              ))}
-            </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 18, marginTop: 10 }}>
-              <TouchableOpacity onPress={() => setCreating(false)}><Text style={{ color: '#5B6B84', fontWeight: '700' }}>Cancel</Text></TouchableOpacity>
-              <TouchableOpacity onPress={createBook} disabled={!newTitle.trim()}><Text style={{ color: newTitle.trim() ? '#0B1E3D' : '#C7CEDA', fontWeight: '800' }}>Create</Text></TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-    </View>
-  );
-}
-
-const sc = themedSheet((t) => ({
-  wrap: { flex: 1, backgroundColor: 'rgba(11,30,61,0.5)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 28 },
-  card: { alignSelf: 'stretch', backgroundColor: t.surface.canvas, borderRadius: 16, padding: 16, maxHeight: '82%' },
-  title: { fontSize: 15.5, fontWeight: '800', color: t.ink.primary, marginBottom: 10 },
-  input: { borderWidth: 1, borderColor: '#E1E6EE', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, fontSize: 14, color: t.ink.primary, marginBottom: 12 },
-}));

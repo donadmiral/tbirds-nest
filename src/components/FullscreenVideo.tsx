@@ -10,7 +10,7 @@
  */
 import { themedSheet } from '../theme/useTheme';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text, ActivityIndicator, PanResponder, Dimensions } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, ActivityIndicator, PanResponder, useWindowDimensions, AccessibilityInfo } from 'react-native';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from './SafeArea';
@@ -28,8 +28,7 @@ export default function FullscreenVideo({
   uri, onClose, startMuted = false,
 }: { uri: string; onClose: () => void; startMuted?: boolean }) {
   const insets = useSafeAreaInsets();
-  const W = Dimensions.get('window').width;
-  const H = Dimensions.get('window').height;
+  const { width: W, height: H } = useWindowDimensions();
   const player = useVideoPlayer(uri, p => {
     p.loop = true;
     p.muted = startMuted;
@@ -47,6 +46,7 @@ export default function FullscreenVideo({
   const [scrubT, setScrubT] = useState(0);
   const [ripple, setRipple] = useState<{ side: 'l' | 'r'; n: number } | null>(null);
   const chromeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const screenReaderActive = useRef(false);
   const trackW = useRef(1);
   const rippleCount = useRef(0);
   const rippleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -62,11 +62,28 @@ export default function FullscreenVideo({
     return () => { t.remove(); p.remove(); };
   }, [player, scrubbing]);
 
+  useEffect(() => {
+    let mounted = true;
+    let observedChange = false;
+    function update(enabled: boolean) {
+      if (!mounted) return;
+      screenReaderActive.current = enabled;
+      if (enabled) {
+        if (chromeTimer.current) clearTimeout(chromeTimer.current);
+        setChrome(true);
+      }
+    }
+    const subscription = AccessibilityInfo.addEventListener('screenReaderChanged', (enabled) => { observedChange = true; update(enabled); });
+    void AccessibilityInfo.isScreenReaderEnabled().then(enabled => { if (!observedChange) update(enabled); }, () => {});
+    return () => { mounted = false; subscription.remove(); };
+  }, []);
+
   const armHide = useCallback(() => {
     if (chromeTimer.current) clearTimeout(chromeTimer.current);
-    chromeTimer.current = setTimeout(() => setChrome(false), 2600);
+    if (screenReaderActive.current) return;
+    chromeTimer.current = setTimeout(() => { if (!screenReaderActive.current) setChrome(false); }, 2600);
   }, []);
-  useEffect(() => { armHide(); return () => { if (chromeTimer.current) clearTimeout(chromeTimer.current); }; }, [armHide]);
+  useEffect(() => { armHide(); return () => { if (chromeTimer.current) clearTimeout(chromeTimer.current); if (rippleTimer.current) clearTimeout(rippleTimer.current); }; }, [armHide]);
 
   const seekTo = useCallback((sec: number) => {
     try { const d = player.duration || 0; player.currentTime = Math.max(0, Math.min(d > 0 ? d : sec, sec)); } catch {}
@@ -81,7 +98,7 @@ export default function FullscreenVideo({
     setChrome(true); armHide();
   }, [seekTo, armHide]);
 
-  const toggleChrome = useCallback(() => { setChrome(c => !c); armHide(); }, [armHide]);
+  const toggleChrome = useCallback(() => { setChrome(c => screenReaderActive.current || !c); armHide(); }, [armHide]);
 
   // Pinch to zoom: focal-correct, on the UI thread, springs back on release.
   const scale = useSharedValue(1); const tx = useSharedValue(0); const ty = useSharedValue(0);
@@ -140,16 +157,16 @@ export default function FullscreenVideo({
 
       {chrome ? (
         <>
-          <TouchableOpacity style={[s.close, { top: insets.top + 8 }]} onPress={onClose} activeOpacity={0.8} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Close video" style={[s.close, { top: insets.top + 8 }]} onPress={onClose} activeOpacity={0.8} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
             <Feather name="x" size={20} color="#FFFFFF" />
           </TouchableOpacity>
 
           <View style={s.centerRow} pointerEvents="box-none">
-            <TouchableOpacity onPress={() => skip(-1)} activeOpacity={0.7} style={s.btn}><Feather name="rotate-ccw" size={22} color="#FFFFFF" /><Text style={s.btnLbl}>10</Text></TouchableOpacity>
-            <TouchableOpacity onPress={() => { playing ? player.pause() : player.play(); armHide(); }} activeOpacity={0.7} style={s.btnCenter}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Back 10 seconds" onPress={() => skip(-1)} activeOpacity={0.7} style={s.btn}><Feather name="rotate-ccw" size={22} color="#FFFFFF" /><Text style={s.btnLbl}>10</Text></TouchableOpacity>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel={playing ? "Pause video" : "Play video"} onPress={() => { playing ? player.pause() : player.play(); armHide(); }} activeOpacity={0.7} style={s.btnCenter}>
               <Feather name={playing ? 'pause' : 'play'} size={30} color="#FFFFFF" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => skip(1)} activeOpacity={0.7} style={s.btn}><Feather name="rotate-cw" size={22} color="#FFFFFF" /><Text style={s.btnLbl}>10</Text></TouchableOpacity>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Forward 10 seconds" onPress={() => skip(1)} activeOpacity={0.7} style={s.btn}><Feather name="rotate-cw" size={22} color="#FFFFFF" /><Text style={s.btnLbl}>10</Text></TouchableOpacity>
           </View>
 
           <View style={[s.bottom, { paddingBottom: Math.max(insets.bottom, 12) + 10 }]} pointerEvents="box-none">
@@ -157,11 +174,21 @@ export default function FullscreenVideo({
               <Text style={s.time}>{fmt(shown)}</Text>
               <Text style={s.timeDim}> / {fmt(duration)}</Text>
               <View style={{ flex: 1 }} />
-              <TouchableOpacity onPress={() => { const n = !muted; setMuted(n); player.muted = n; armHide(); }} activeOpacity={0.8} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel={muted ? "Unmute video" : "Mute video"} onPress={() => { const n = !muted; setMuted(n); player.muted = n; armHide(); }} activeOpacity={0.8} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                 <Feather name={muted ? 'volume-x' : 'volume-2'} size={18} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
-            <View {...scrubPan.panHandlers} style={s.trackHit} onLayout={e => { trackW.current = Math.max(1, e.nativeEvent.layout.width); }}>
+            <View {...scrubPan.panHandlers} accessible accessibilityRole="adjustable" accessibilityLabel="Video position"
+              accessibilityValue={{ min: 0, max: Math.max(0, Math.floor(duration)), now: Math.max(0, Math.min(Math.floor(duration), Math.floor(shown))), text: `${fmt(shown)} of ${fmt(duration)}` }}
+              accessibilityState={{ disabled: duration <= 0 }}
+              accessibilityActions={[{ name: 'increment', label: 'Forward 10 seconds' }, { name: 'decrement', label: 'Back 10 seconds' }]}
+              onAccessibilityAction={(event) => {
+                const action = event.nativeEvent.actionName;
+                if (duration <= 0 || (action !== 'increment' && action !== 'decrement')) return;
+                seekTo(player.currentTime + (action === 'increment' ? SKIP : -SKIP));
+                setElapsed(player.currentTime); setChrome(true); armHide();
+              }}
+              style={s.trackHit} onLayout={e => { trackW.current = Math.max(1, e.nativeEvent.layout.width); }}>
               <View style={[s.track, scrubbing && { height: 5 }]}>
                 <View style={[s.fill, { width: `${pct * 100}%` }]} />
               </View>

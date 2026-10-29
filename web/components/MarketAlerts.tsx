@@ -47,21 +47,21 @@ export function MarketAlerts({ initialQuery, onClose }: { initialQuery: string; 
     <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
       <div className="w-full max-w-md rounded-xl border border-ink/10 bg-navy p-5" onClick={(e) => e.stopPropagation()}>
         <p className="flex items-center justify-between text-[15px] font-semibold text-ink">
-          <span className="flex items-center gap-2"><BellPlus size={17} className="text-pearl" /> Market alerts</span>
-          <button onClick={onClose} aria-label="Close" className="rounded-full p-1 text-ink/40 hover:bg-surface hover:text-ink"><X size={16} /></button>
+          <span className="flex items-center gap-2"><BellPlus size={17} className="text-accent" /> Market alerts</span>
+          <button onClick={onClose} aria-label="Close" className="rounded-full p-1 text-muted hover:bg-surface hover:text-ink"><X size={16} /></button>
         </p>
-        <p className="mt-1 text-[12px] text-ink/45">The moment a matching listing appears, you get notified.</p>
+        <p className="mt-1 text-[12px] text-muted">The moment a matching listing appears, you get notified.</p>
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="What are you looking for, iPhone, Toyota Aqua, apartment" maxLength={80}
-          className="mt-3 w-full rounded-md bg-surface px-3 py-2.5 text-[13.5px] text-ink placeholder:text-ink/25 outline-none focus:bg-surface-elevated" />
+          className="mt-3 w-full rounded-md bg-surface px-3 py-2.5 text-[13.5px] text-ink placeholder:text-muted outline-none focus:bg-surface-elevated" />
         <span className="mt-2 flex gap-2">
           <input value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Max price, optional" inputMode="numeric"
-            className="w-1/2 rounded-md bg-surface px-3 py-2 text-[13px] text-ink placeholder:text-ink/25 outline-none" />
+            className="w-1/2 rounded-md bg-surface px-3 py-2 text-[13px] text-ink placeholder:text-muted outline-none" />
           <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="City, optional"
-            className="w-1/2 rounded-md bg-surface px-3 py-2 text-[13px] text-ink placeholder:text-ink/25 outline-none" />
+            className="w-1/2 rounded-md bg-surface px-3 py-2 text-[13px] text-ink placeholder:text-muted outline-none" />
         </span>
         {err ? <p className="mt-2 text-[12px] text-danger">{err}</p> : null}
         <button onClick={save} disabled={busy || q.trim().length < 2}
-          className="mt-3 w-full rounded-md bg-pearl py-2.5 text-[13px] font-semibold text-ink transition-opacity hover:opacity-90 disabled:opacity-40">
+          className="mt-3 w-full rounded-md bg-pearl py-2.5 text-[13px] font-semibold text-on-pearl transition-opacity hover:opacity-90 disabled:opacity-40">
           {busy ? "Saving" : "Create alert"}
         </button>
         {alerts.length > 0 ? (
@@ -73,7 +73,7 @@ export function MarketAlerts({ initialQuery, onClose }: { initialQuery: string; 
                   {a.max_price !== null ? " under $" + a.max_price : ""}
                   {a.city ? " in " + a.city : ""}
                 </span>
-                <button onClick={() => remove(a.id)} aria-label="Delete alert" className="shrink-0 text-ink/40 hover:text-danger"><Trash2 size={14} /></button>
+                <button onClick={() => remove(a.id)} aria-label="Delete alert" className="shrink-0 text-muted hover:text-danger"><Trash2 size={14} /></button>
               </span>
             ))}
           </div>

@@ -2,7 +2,7 @@
  * CreateListingScreen - Facebook Marketplace style wizard.
  * Photos -> Details -> Meetup -> Preview, with per-step validation.
  */
-import { themedSheet } from '../../theme/useTheme';
+import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import React, { useMemo, useState } from 'react';
 import {
   ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView,
@@ -31,6 +31,7 @@ const MAX_IMAGES = 10;
 const STEPS = ['Photos', 'Details', 'Meetup', 'Preview'];
 
 export default function CreateListingScreen({ navigation }: any) {
+  useTheme();
   const { profile } = useAuthStore();
   const userId: string | undefined = profile?.id;
 
@@ -153,7 +154,7 @@ export default function CreateListingScreen({ navigation }: any) {
     <SafeAreaView style={s.safe} edges={['top']}>
       <View style={s.header}>
         <TouchableOpacity onPress={back} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Feather name={step === 0 ? 'x' : 'chevron-left'} size={24} color={GRAY_900} />
+          <Feather name={step === 0 ? 'x' : 'chevron-left'} size={24} color={getTheme().ink.primary} />
         </TouchableOpacity>
         <Text style={s.headerTitle}>{STEPS[step]}</Text>
         <Text style={s.stepCount}>{step + 1} of {STEPS.length}</Text>
@@ -175,13 +176,13 @@ export default function CreateListingScreen({ navigation }: any) {
                     <ExpoImage source={{ uri: m.uri }} style={s.tileImg} contentFit="cover" />
                     {i === 0 && <View style={s.coverTag}><Text style={s.coverTxt}>Cover</Text></View>}
                     <TouchableOpacity style={s.remove} onPress={() => setMedia(prev => prev.filter((_, x) => x !== i))}>
-                      <Feather name="x" size={13} color="#FFF" />
+                      <Feather name="x" size={13} color="#FFFFFF" />
                     </TouchableOpacity>
                   </View>
                 ))}
                 {media.length < MAX_IMAGES && (
                   <TouchableOpacity style={[s.tile, s.tileAdd]} onPress={addPhotos} activeOpacity={0.7}>
-                    <Feather name="plus" size={26} color={GRAY_400} />
+                    <Feather name="plus" size={26} color={getTheme().ink.secondary} />
                   </TouchableOpacity>
                 )}
               </View>
@@ -255,25 +256,25 @@ export default function CreateListingScreen({ navigation }: any) {
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 18, padding: 14, borderRadius: 14, backgroundColor: shareToFeed ? 'rgba(5,150,105,0.08)' : 'rgba(11,30,61,0.04)', borderWidth: 1, borderColor: shareToFeed ? 'rgba(5,150,105,0.35)' : 'rgba(11,30,61,0.08)' }}>
                 <Ionicons name={shareToFeed ? 'checkbox' : 'square-outline'} size={21} color={shareToFeed ? '#059669' : '#8E8E93'} />
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 14.5, fontWeight: '700', color: '#0B1E3D' }}>Share to feed</Text>
-                  <Text style={{ fontSize: 12, color: 'rgba(11,30,61,0.5)', marginTop: 1 }}>Post this listing so your followers see it in their feed.</Text>
+                  <Text style={{ fontSize: 14.5, fontWeight: '700', color: getTheme().ink.primary }}>Share to feed</Text>
+                  <Text style={{ fontSize: 12, color: getTheme().ink.secondary, marginTop: 1 }}>Post this listing so your followers see it in their feed.</Text>
                 </View>
               </TouchableOpacity>              <TouchableOpacity onPress={() => setDeliveryOn(v => !v)} activeOpacity={0.8}
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 18, padding: 14, borderRadius: 14, backgroundColor: deliveryOn ? 'rgba(5,150,105,0.08)' : 'rgba(11,30,61,0.04)', borderWidth: 1, borderColor: deliveryOn ? 'rgba(5,150,105,0.35)' : 'rgba(11,30,61,0.08)' }}>
                 <Ionicons name={deliveryOn ? 'checkbox' : 'square-outline'} size={21} color={deliveryOn ? '#059669' : '#8E8E93'} />
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: 14.5, fontWeight: '700', color: '#0B1E3D' }}>Offer delivery</Text>
-                  <Text style={{ fontSize: 12, color: 'rgba(11,30,61,0.5)', marginTop: 1 }}>Buyers collect by default. Turn this on if you can deliver.</Text>
+                  <Text style={{ fontSize: 14.5, fontWeight: '700', color: getTheme().ink.primary }}>Offer delivery</Text>
+                  <Text style={{ fontSize: 12, color: getTheme().ink.secondary, marginTop: 1 }}>Buyers collect by default. Turn this on if you can deliver.</Text>
                 </View>
               </TouchableOpacity>
               {deliveryOn && (
                 <View style={{ marginTop: 10, gap: 8 }}>
                   <TextInput value={deliveryFee} onChangeText={setDeliveryFee} keyboardType="numeric"
                     placeholder="Delivery fee (0 for free)" placeholderTextColor={GRAY_400}
-                    style={{ borderWidth: 1, borderColor: 'rgba(11,30,61,0.12)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, fontSize: 15, color: '#0B1E3D', backgroundColor: '#FFF' }} />
+                    style={{ borderWidth: 1, borderColor: getTheme().surface.hairline, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, fontSize: 15, color: getTheme().ink.primary, backgroundColor: getTheme().surface.canvas }} />
                   <TextInput value={deliveryNote} onChangeText={setDeliveryNote}
                     placeholder="Delivery note, e.g. Harare CBD only" placeholderTextColor={GRAY_400}
-                    style={{ borderWidth: 1, borderColor: 'rgba(11,30,61,0.12)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, fontSize: 15, color: '#0B1E3D', backgroundColor: '#FFF' }} />
+                    style={{ borderWidth: 1, borderColor: getTheme().surface.hairline, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, fontSize: 15, color: getTheme().ink.primary, backgroundColor: getTheme().surface.canvas }} />
                 </View>
               )}
 
@@ -312,7 +313,7 @@ export default function CreateListingScreen({ navigation }: any) {
             </TouchableOpacity>
           ) : (
             <TouchableOpacity style={[s.cta, saving && s.ctaOff]} onPress={submit} disabled={saving} activeOpacity={0.85}>
-              {saving ? <ActivityIndicator color={BG} /> : <Text style={s.ctaTxt}>Publish</Text>}
+              {saving ? <ActivityIndicator color={getTheme().ink.inverse} /> : <Text style={s.ctaTxt}>Publish</Text>}
             </TouchableOpacity>
           )}
         </View>
@@ -322,46 +323,46 @@ export default function CreateListingScreen({ navigation }: any) {
 }
 
 const s = themedSheet((t) => ({
-  safe: { flex: 1, backgroundColor: BG },
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 },
-  headerTitle: { fontSize: 17, fontWeight: '800', color: GRAY_900, letterSpacing: -0.4 },
-  stepCount: { fontSize: 13, color: GRAY_500, fontWeight: '600' },
-  progressTrack: { height: 3, backgroundColor: GRAY_100 },
-  progressFill: { height: 3, backgroundColor: NAVY },
+  headerTitle: { fontSize: 17, fontWeight: '800', color: t.ink.primary, letterSpacing: -0.4 },
+  stepCount: { fontSize: 13, color: t.ink.secondary, fontWeight: '600' },
+  progressTrack: { height: 3, backgroundColor: t.surface.raised },
+  progressFill: { height: 3, backgroundColor: t.brand.base },
   body: { padding: 16, paddingBottom: 40 },
-  lead: { fontSize: 14, color: GRAY_500, marginBottom: 14, lineHeight: 19 },
-  label: { fontSize: 13, fontWeight: '700', color: GRAY_900, marginTop: 16, marginBottom: 7 },
-  input: { backgroundColor: GRAY_100, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13, fontSize: 15.5, color: GRAY_900, borderWidth: 1, borderColor: 'transparent' },
+  lead: { fontSize: 14, color: t.ink.secondary, marginBottom: 14, lineHeight: 19 },
+  label: { fontSize: 13, fontWeight: '700', color: t.ink.primary, marginTop: 16, marginBottom: 7 },
+  input: { backgroundColor: t.surface.raised, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13, fontSize: 15.5, color: t.ink.primary, borderWidth: 1, borderColor: 'transparent' },
   inputErr: { borderColor: RED },
   textarea: { minHeight: 96 },
   err: { fontSize: 12.5, color: RED, marginTop: 6, fontWeight: '500' },
   priceRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
-  currBtn: { backgroundColor: NAVY, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 13 },
-  currTxt: { color: BG, fontWeight: '800', fontSize: 14 },
+  currBtn: { backgroundColor: t.brand.base, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 13 },
+  currTxt: { color: t.ink.inverse, fontWeight: '800', fontSize: 14 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { paddingHorizontal: 14, height: 34, borderRadius: 17, backgroundColor: GRAY_100, alignItems: 'center', justifyContent: 'center' },
-  chipActive: { backgroundColor: NAVY },
-  chipTxt: { fontSize: 13.5, fontWeight: '600', color: GRAY_900 },
-  chipTxtActive: { color: BG },
+  chip: { paddingHorizontal: 14, height: 34, borderRadius: 17, backgroundColor: t.surface.raised, alignItems: 'center', justifyContent: 'center' },
+  chipActive: { backgroundColor: t.brand.base },
+  chipTxt: { fontSize: 13.5, fontWeight: '600', color: t.ink.primary },
+  chipTxtActive: { color: t.ink.inverse },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  tile: { width: '31.5%', aspectRatio: 1, borderRadius: 10, overflow: 'hidden', backgroundColor: GRAY_100 },
+  tile: { width: '31.5%', aspectRatio: 1, borderRadius: 10, overflow: 'hidden', backgroundColor: t.surface.raised },
   tileImg: { width: '100%', height: '100%' },
-  tileAdd: { alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#E5E7EB', borderStyle: 'dashed' },
+  tileAdd: { alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: t.surface.hairline, borderStyle: 'dashed' },
   coverTag: { position: 'absolute', left: 5, bottom: 5, backgroundColor: 'rgba(0,0,0,0.72)', borderRadius: 5, paddingHorizontal: 6, paddingVertical: 2 },
-  coverTxt: { color: t.ink.inverse, fontSize: 10, fontWeight: '700' },
+  coverTxt: { color: '#FFFFFF', fontSize: 10, fontWeight: '700' },
   remove: { position: 'absolute', right: 4, top: 4, width: 20, height: 20, borderRadius: 10, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
-  safety: { marginTop: 22, backgroundColor: '#F7F8FA', borderRadius: 14, padding: 14, gap: 6 },
-  safetyTitle: { fontSize: 14, fontWeight: '800', color: GRAY_900, marginBottom: 2 },
-  safetyTxt: { fontSize: 13.5, color: GRAY_500, lineHeight: 19 },
-  preview: { borderRadius: 14, overflow: 'hidden', backgroundColor: BG, borderWidth: StyleSheet.hairlineWidth, borderColor: '#E5E7EB' },
+  safety: { marginTop: 22, backgroundColor: t.surface.raised, borderRadius: 14, padding: 14, gap: 6 },
+  safetyTitle: { fontSize: 14, fontWeight: '800', color: t.ink.primary, marginBottom: 2 },
+  safetyTxt: { fontSize: 13.5, color: t.ink.secondary, lineHeight: 19 },
+  preview: { borderRadius: 14, overflow: 'hidden', backgroundColor: t.surface.canvas, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline },
   previewImg: { width: '100%', aspectRatio: 1.15 },
-  previewPrice: { fontSize: 18, fontWeight: '800', color: GRAY_900, letterSpacing: -0.4 },
-  previewTitle: { fontSize: 14.5, color: GRAY_900, marginTop: 2 },
-  previewMeta: { fontSize: 12.5, color: GRAY_500, marginTop: 3 },
-  previewDesc: { fontSize: 14, color: GRAY_900, lineHeight: 20, marginTop: 14 },
-  previewNote: { fontSize: 12.5, color: GRAY_500, marginTop: 12 },
-  footer: { paddingHorizontal: 16, paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#E5E7EB', backgroundColor: BG },
-  cta: { height: 50, borderRadius: 14, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
+  previewPrice: { fontSize: 18, fontWeight: '800', color: t.ink.primary, letterSpacing: -0.4 },
+  previewTitle: { fontSize: 14.5, color: t.ink.primary, marginTop: 2 },
+  previewMeta: { fontSize: 12.5, color: t.ink.secondary, marginTop: 3 },
+  previewDesc: { fontSize: 14, color: t.ink.primary, lineHeight: 20, marginTop: 14 },
+  previewNote: { fontSize: 12.5, color: t.ink.secondary, marginTop: 12 },
+  footer: { paddingHorizontal: 16, paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.surface.hairline, backgroundColor: t.surface.canvas },
+  cta: { height: 50, borderRadius: 14, backgroundColor: t.brand.base, alignItems: 'center', justifyContent: 'center' },
   ctaOff: { opacity: 0.45 },
-  ctaTxt: { color: BG, fontSize: 16, fontWeight: '700' },
+  ctaTxt: { color: t.ink.inverse, fontSize: 16, fontWeight: '700' },
 }));

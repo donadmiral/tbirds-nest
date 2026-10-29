@@ -27,12 +27,12 @@ export default function SettingsPage() {
   );
   const NavRow = ({ href, icon, label, sub }: { href: string; icon: React.ReactNode; label: string; sub?: string }) => (
     <Link href={href} className="flex items-center gap-3 rounded-lg border border-ink/10 p-4 transition-colors duration-[140ms] hover:bg-surface">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-pearl/15 text-pearl">{icon}</span>
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-pearl/15 text-accent">{icon}</span>
       <span className="min-w-0 flex-1">
         <span className="block text-[14px] font-semibold text-ink">{label}</span>
-        {sub ? <span className="block text-[12px] text-ink/50">{sub}</span> : null}
+        {sub ? <span className="block text-[12px] text-muted">{sub}</span> : null}
       </span>
-      <ChevronRight size={16} className="shrink-0 text-ink/30" />
+      <ChevronRight size={16} className="shrink-0 text-muted" />
     </Link>
   );
 
@@ -58,7 +58,7 @@ export default function SettingsPage() {
               href={"#" + x.id}
               className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-[13.5px] text-ink/70 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"
             >
-              <x.icon size={15} className="shrink-0 text-ink/45" />
+              <x.icon size={15} className="shrink-0 text-muted" />
               {x.label}
             </a>
           ))}
@@ -70,6 +70,7 @@ export default function SettingsPage() {
         <h2 className="mb-2.5 text-[15px] font-semibold text-ink">Create</h2>
         <div className="flex flex-col gap-2">
         <NavRow href="/write" icon={<Edit3 size={16} />} label="Write an article" sub="Long-form publishing with a cover and read time" />
+        <NavRow href="/monetization" icon={<Briefcase size={16} />} label="Monetization" sub="Creator eligibility, earnings and payout status" />
         </div>
       </div>
 
@@ -108,21 +109,21 @@ export default function SettingsPage() {
           <div className="flex flex-col gap-3 rounded-lg border border-ink/10 p-4 sm:flex-row sm:items-center sm:justify-between">
             <span className="min-w-0">
               <span className="block text-[14px] font-semibold text-ink">Appearance</span>
-              <span className="block text-[12.5px] text-ink/50">Light, dark, or whatever your device uses.</span>
+              <span className="block text-[12.5px] text-muted">Light, dark, or whatever your device uses.</span>
             </span>
             <div className="shrink-0 self-start sm:self-auto"><ThemeToggle /></div>
           </div>
         <div className={row}>
           <span>
             <span className="block text-[14px] font-semibold text-ink">Autoplay videos</span>
-            <span className="block text-[12px] text-ink/50">Videos start on their own as you scroll. Off shows a poster with a play button.</span>
+            <span className="block text-[12px] text-muted">Videos start on their own as you scroll. Off shows a poster with a play button.</span>
           </span>
           <Toggle on={auto} onChange={(v) => { setAuto(v); setAutoplay(v); }} />
         </div>
         <div className={row}>
           <span>
             <span className="block text-[14px] font-semibold text-ink">Data saver</span>
-            <span className="block text-[12px] text-ink/50">Lower-size images and no video autoplay, for slow or metered connections.</span>
+            <span className="block text-[12px] text-muted">Lower-size images and no video autoplay, for slow or metered connections.</span>
           </span>
           <Toggle on={saver} onChange={(v) => { setSaver(v); setDataSaver(v); }} />
         </div>

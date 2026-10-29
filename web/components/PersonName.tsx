@@ -6,14 +6,14 @@ import { getTierColor } from "@/lib/tier";
 import { useTier } from "@/lib/tierLookup";
 
 export function PersonName({ name, verified, tier, userId, className, badgeSize = 14 }: { name: string; verified?: boolean | null; tier?: string | null; userId?: string | null; className?: string; badgeSize?: number }) {
-  const looked = useTier(tier === undefined || tier === null ? userId : null);
-  const isVerified = verified ?? looked?.verified ?? false;
-  const useTierValue = tier ?? looked?.tier ?? null;
+  const looked = useTier(userId);
+  const isVerified = userId ? looked?.verified ?? false : verified ?? false;
+  const useTierValue = userId ? looked?.tier ?? null : tier ?? null;
   const color = isVerified ? getTierColor(useTierValue) : null;
   return (
     <span className={"inline-flex min-w-0 items-center gap-1 " + (className || "")}>
       <span className="truncate" style={color ? { color } : undefined}>{name}</span>
-      {isVerified ? <VerifiedBadge tier={useTierValue} size={badgeSize} /> : null}
+      {isVerified ? <VerifiedBadge userId={userId} tier={useTierValue} size={badgeSize} /> : null}
     </span>
   );
 }

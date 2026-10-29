@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import { flagsService } from './flagsService';
 import { authorId as currentAuthorId } from '../stores/actorStore';
+import { loadMyApplicationPage, withdrawApplication, type ApplicantCursor, type MyApplicationPage } from '../../shared/hiring';
 
 /**
  * Canonical jobs service. Every jobs call in the app goes through this.
@@ -22,7 +23,11 @@ export type ApplicationStatus =
   | 'applied'
   | 'viewed'
   | 'shortlisted'
+  | 'screening'
   | 'interview'
+  | 'offer'
+  | 'hired'
+  | 'withdrawn'
   | 'rejected'
   | 'accepted';
 
@@ -41,10 +46,24 @@ export const STATUS_META: Record<ApplicationStatus, { label: string; color: stri
   applied:     { label: 'Applied',     color: '#2563EB', bg: '#EFF6FF' },
   viewed:      { label: 'Viewed',      color: '#7C3AED', bg: '#F5F3FF' },
   shortlisted: { label: 'Shortlisted', color: '#059669', bg: '#ECFDF5' },
+  screening:   { label: 'Screening',   color: '#7C3AED', bg: '#F5F3FF' },
+  offer:       { label: 'Offer',       color: '#059669', bg: '#ECFDF5' },
+  hired:       { label: 'Hired',       color: '#059669', bg: '#ECFDF5' },
+  withdrawn:   { label: 'Withdrawn',   color: '#6B7280', bg: '#F3F4F6' },
   interview:   { label: 'Interview',   color: '#D97706', bg: '#FFFBEB' },
   rejected:    { label: 'Rejected',    color: '#DC2626', bg: '#FEF2F2' },
   accepted:    { label: 'Accepted',    color: '#059669', bg: '#ECFDF5' },
 };
+
+export const APPLICATION_STATUS_ORDER: ApplicationStatus[] = [
+  'applied', 'viewed', 'shortlisted', 'screening', 'interview', 'offer', 'hired', 'accepted', 'rejected', 'withdrawn',
+];
+
+export function isJobDeadlinePassed(deadline?: string | null, now = Date.now()): boolean {
+  if (!deadline) return false;
+  const expiresAt = Date.parse(deadline);
+  return Number.isFinite(expiresAt) && expiresAt <= now;
+}
 
 export type Job = {
   id: string;
@@ -362,24 +381,18 @@ export const jobsService = {
   },
 
   async getMyApplications(userId: string): Promise<JobApplication[]> {
-    const { data, error } = await supabase
-      .from('job_applications')
-      .select('*')
-      .eq('applicant_id', userId)
-      .order('applied_at', { ascending: false });
-    if (error) {
-      console.log('[jobsService.getMyApplications]', error.message);
-      return [];
-    }
-    if (!data || data.length === 0) return [];
-    const jobIds = Array.from(new Set(data.map((a: any) => a.job_id)));
-    const { data: jobsData } = await supabase
-      .from('jobs')
-      .select('*')
-      .in('id', jobIds);
-    const jobMap: Record<string, Job> = {};
-    (jobsData || []).forEach((j: any) => { jobMap[j.id] = j as Job; });
-    return data.map((a: any) => ({ ...a, job: jobMap[a.job_id] })) as JobApplication[];
+    if (!userId) throw new Error('Sign in to see your applications.');
+    // The home badge needs only a bounded preview. The applications screen
+    // consumes the cursor so older applications remain reachable.
+    return (await loadMyApplicationPage<JobApplication>(supabase)).applications;
+  },
+
+  async getMyApplicationsPage(cursor: ApplicantCursor | null = null): Promise<MyApplicationPage<JobApplication>> {
+    return loadMyApplicationPage<JobApplication>(supabase, cursor);
+  },
+
+  async withdrawApplication(application: JobApplication): Promise<JobApplication> {
+    return withdrawApplication(supabase, application);
   },
 
   async getApplicationsForJob(jobId: string): Promise<JobApplication[]> {
@@ -387,17 +400,18 @@ export const jobsService = {
       .from('job_applications')
       .select('*')
       .eq('job_id', jobId)
-      .order('applied_at', { ascending: false });
+      .order('applied_at', { ascending: false }).limit(50);
     if (error) {
       console.log('[jobsService.getApplicationsForJob]', error.message);
-      return [];
+      throw error;
     }
     if (!data || data.length === 0) return [];
     const applicantIds = Array.from(new Set(data.map((a: any) => a.applicant_id)));
-    const { data: profiles } = await supabase
+    const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
       .select('id, full_name, username, avatar_url, degree_program')
       .in('id', applicantIds);
+    if (profilesError) throw profilesError;
     const pm: Record<string, any> = {};
     (profiles || []).forEach((p: any) => { pm[p.id] = p; });
     return data.map((a: any) => ({
@@ -413,7 +427,10 @@ export const jobsService = {
     const { error } = await supabase
       .from('job_applications')
       .update({ status, updated_at: new Date().toISOString() })
-      .eq('id', applicationId);
+      .eq('id', applicationId)
+      .neq('status', 'withdrawn')
+      .select('id')
+      .single();
     if (error) {
       console.log('[jobsService.updateApplicationStatus]', error.message);
       throw error;
@@ -421,10 +438,7 @@ export const jobsService = {
   },
 
   async scheduleInterview(applicationId: string, at: string | null, location: string | null): Promise<void> {
-    const { error } = await supabase
-      .from('job_applications')
-      .update({ interview_at: at, interview_location: location, updated_at: new Date().toISOString() })
-      .eq('id', applicationId);
+    const { error } = await supabase.rpc('studio_schedule_interview', { p_application: applicationId, p_at: at, p_location: location });
     if (error) throw error;
   },
 

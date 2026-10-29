@@ -58,10 +58,10 @@ export default function BusinessLoginPage() {
     <main className="flex min-h-screen items-center justify-center px-6">
       <div className="w-full max-w-sm">
         <div className="mb-6 flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-navy text-pearl"><Building2 size={20} /></span>
+          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-navy text-accent"><Building2 size={20} /></span>
           <div>
             <h1 className="font-display text-xl text-porcelain">Business sign-in</h1>
-            <p className="text-[12px] text-ink/50">For company representatives</p>
+            <p className="text-[12px] text-muted">For company representatives</p>
           </div>
         </div>
 
@@ -74,29 +74,29 @@ export default function BusinessLoginPage() {
             onChange={(e) => setHandle(e.target.value)}
             placeholder="Business handle"
             autoCapitalize="none"
-            className="rounded-md bg-surface px-4 py-3 text-[15px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated"
+            className="rounded-md bg-surface px-4 py-3 text-[15px] text-ink placeholder:text-muted outline-none focus:bg-surface-elevated"
           />
           <input value={code}
             onChange={(e) => setCode(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") signIn(); }}
             placeholder="Your access code"
             type="password"
-            className="rounded-md bg-surface px-4 py-3 text-[15px] text-ink placeholder:text-ink/30 outline-none focus:bg-surface-elevated"
+            className="rounded-md bg-surface px-4 py-3 text-[15px] text-ink placeholder:text-muted outline-none focus:bg-surface-elevated"
           />
           {error ? <p className="text-[13px] text-danger">{error}</p> : null}
           <button onClick={signIn}
             disabled={pending || !handle.trim() || !code.trim()}
-            className="rounded-md bg-pearl px-5 py-3 text-[15px] font-semibold text-ink transition-opacity hover:opacity-90 disabled:opacity-40"
+            className="rounded-md bg-pearl px-5 py-3 text-[15px] font-semibold text-on-pearl transition-opacity hover:opacity-90 disabled:opacity-40"
           >
             {pending ? "Signing in" : "Sign in as the business"}
           </button>
         </div>
 
-        <p className="mt-5 text-[12px] leading-relaxed text-ink/40">
+        <p className="mt-5 text-[12px] leading-relaxed text-muted">
           Every sign-in is recorded with the member and device. Access is revocable by the company at any moment.
         </p>
-        <p className="mt-6 text-[13px] text-ink/50">
-          Personal account? <Link href="/login" className="text-pearl hover:underline">Sign in here</Link>
+        <p className="mt-6 text-[13px] text-muted">
+          Personal account? <Link href="/login" className="text-accent hover:underline">Sign in here</Link>
         </p>
       </div>
     </main>

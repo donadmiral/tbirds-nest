@@ -92,7 +92,7 @@ export default function SliderStickerCard({
       <GestureDetector gesture={pan}>
         <View style={s.trackArea}>
           <View style={s.track}>
-            <Animated.View style={[s.fill, fillStyle]}><LinearGradient colors={['#C9BFB0', '#E8A13A']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFill} /></Animated.View>
+            <Animated.View style={[s.fill, fillStyle]}><LinearGradient colors={['#DEC9AB', '#EF9E89']} start={{ x: 0, y: 0.5 }} end={{ x: 1, y: 0.5 }} style={StyleSheet.absoluteFill} /></Animated.View>
           </View>
           {avgLeft !== null && (isOwn || answered) && (
             <View style={[s.avgMark, { left: avgLeft - 1 }]} pointerEvents="none" />
@@ -115,7 +115,7 @@ export default function SliderStickerCard({
 }
 
 const s = StyleSheet.create({
-  card: { width: CARD_W, backgroundColor: '#FFFFFF', borderRadius: 18, paddingHorizontal: PAD, paddingTop: 14, paddingBottom: 14, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 14, shadowOffset: { width: 0, height: 4 }, elevation: 6 },
+  card: { width: CARD_W, backgroundColor: '#FAF6EE', borderRadius: 22, paddingHorizontal: PAD, paddingTop: 14, paddingBottom: 14, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 14, shadowOffset: { width: 0, height: 4 }, elevation: 6 },
   label: { fontSize: 16, fontWeight: '800', color: '#0B1E3D', letterSpacing: -0.2, textAlign: 'center', marginBottom: 18 },
   trackArea: { height: KNOB, justifyContent: 'center' },
   track: { height: TRACK_H + 3, borderRadius: (TRACK_H + 3) / 2, backgroundColor: 'rgba(11,30,61,0.10)', overflow: 'hidden' },

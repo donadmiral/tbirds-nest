@@ -1,5 +1,7 @@
 "use client";
 
+import { StudioLoadError } from "../LoadError";
+
 import { StudioRailPortal } from "@/components/StudioRailPortal";
 import { Panel } from "@/components/ui";
 
@@ -9,6 +11,7 @@ import { CalendarClock, Image as ImageIcon, Plus, Send, Tag, Trash2, X, AlertTri
 import { CATEGORIES } from "@/lib/categories";
 import { createClient } from "@/lib/supabase/client";
 import { can, cancelScheduled, deleteScheduled, listScheduled, myListings, publishNow, savePost, uploadStudioMedia, type ScheduledPost } from "@/lib/studio";
+import { useUploadPreview } from "@/lib/useUploadPreview";
 import { useStudio } from "@/components/StudioShell";
 
 type Draft = { id: string | null; content: string; body: string; category: string | null; community: string | null; media: ScheduledPost["media"]; products: ScheduledPost["products"]; publishAt: string };
@@ -23,12 +26,23 @@ export default function PlannerPage() {
   const editor = can(me?.role ?? null, "publish");
   const [rows, setRows] = useState<ScheduledPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [tab, setTab] = useState<"upcoming" | "drafts" | "published">("upcoming");
   const [open, setOpen] = useState(false);
   const [d, setD] = useState<Draft>(empty());
+  const previewSource = useMemo(() => ({ rows, draft: d }), [rows, d]);
+  const mediaPreview = useUploadPreview(previewSource);
   const [busy, setBusy] = useState(false);
   const [listings, setListings] = useState<{ id: string; title: string; price: number; currency: string; images: string[] }[]>([]);
+  const [listingsLoaded, setListingsLoaded] = useState(false);
+  const [listingsLoading, setListingsLoading] = useState(true);
+  const [listingsError, setListingsError] = useState<string | null>(null);
+  const listingsRequest = useRef(0);
   const [communities, setCommunities] = useState<{ id: string; name: string }[]>([]);
+  const [communitiesLoading, setCommunitiesLoading] = useState(true);
+  const [communitiesError, setCommunitiesError] = useState<string | null>(null);
+  const communitiesRequest = useRef(0);
   const [pickOpen, setPickOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [span, setSpan] = useState<"week" | "month">("month");
@@ -36,15 +50,45 @@ export default function PlannerPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    try { setRows(await listScheduled()); } finally { setLoading(false); }
+    try { setRows(await listScheduled()); setLoaded(true); setLoadError(null); }
+    catch { setLoadError("The planner could not be refreshed. Please try again."); }
+    finally { setLoading(false); }
   }, []);
   useEffect(() => { void load(); }, [load]);
-  useEffect(() => {
-    myListings().then(setListings).catch(() => {});
-    supabase.rpc("get_communities", { p_query: null, p_limit: 60 }).then(({ data }) => {
-      setCommunities(((data as any[]) ?? []).filter(c => c.my_role === "owner" || c.my_role === "moderator").map(c => ({ id: c.id, name: c.name })));
-    });
+  const loadListings = useCallback(async () => {
+    const request = ++listingsRequest.current;
+    try {
+      const data = await myListings();
+      if (request !== listingsRequest.current) return;
+      setListings(data); setListingsLoaded(true); setListingsError(null);
+    } catch {
+      if (request === listingsRequest.current) setListingsError("Products could not be loaded. Please try again.");
+    } finally {
+      if (request === listingsRequest.current) setListingsLoading(false);
+    }
+  }, []);
+  const loadCommunities = useCallback(async () => {
+    const request = ++communitiesRequest.current;
+    try {
+      const { data, error } = await supabase.rpc("get_communities", { p_query: null, p_limit: 60 });
+      if (error) throw error;
+      if (request !== communitiesRequest.current) return;
+      setCommunities(((data as { id: string; name: string; my_role: string | null }[]) ?? [])
+        .filter(c => c.my_role === "owner" || c.my_role === "moderator").map(c => ({ id: c.id, name: c.name })));
+      setCommunitiesError(null);
+    } catch {
+      if (request === communitiesRequest.current) setCommunitiesError("Communities could not be loaded. Please try again.");
+    } finally {
+      if (request === communitiesRequest.current) setCommunitiesLoading(false);
+    }
   }, [supabase]);
+  useEffect(() => {
+    const pendingListings = listingsRequest;
+    const pendingCommunities = communitiesRequest;
+    void loadListings();
+    void loadCommunities();
+    return () => { ++pendingListings.current; ++pendingCommunities.current; };
+  }, [loadListings, loadCommunities]);
 
   const shown = useMemo(() => rows.filter(r =>
     tab === "upcoming" ? ["scheduled", "publishing", "failed"].includes(r.status)
@@ -129,7 +173,7 @@ export default function PlannerPage() {
   };
 
   const statusChip = (s: ScheduledPost["status"]) =>
-    s === "scheduled" ? "bg-pearl/15 text-pearl" : s === "published" ? "bg-success/15 text-success" : s === "failed" ? "bg-red-500/15 text-red-400" : "bg-surface text-ink/50";
+    s === "scheduled" ? "bg-pearl/15 text-accent" : s === "published" ? "bg-success/15 text-success" : s === "failed" ? "bg-danger/15 text-danger" : "bg-surface text-muted";
 
   const railRows = useMemo(() => {
     const now = Date.now();
@@ -147,6 +191,7 @@ export default function PlannerPage() {
 
   return (
     <div className="max-w-[960px]">
+      {mediaPreview.error ? <div role="alert" className="mb-3 text-sm text-danger">{mediaPreview.error} <button onClick={mediaPreview.retry} className="underline">Retry</button></div> : null}
       <StudioRailPortal>
         <>
           {railRows.failed > 0 || railRows.drafts > 0 || railRows.thisWeek > 0 ? (
@@ -166,7 +211,7 @@ export default function PlannerPage() {
                 ) : null}
                 {railRows.failed > 0 ? (
                   <div className="flex items-baseline gap-2.5">
-                    <span className="font-display text-[17px] leading-none text-red-400">{railRows.failed}</span>
+                    <span className="font-display text-[17px] leading-none text-danger">{railRows.failed}</span>
                     <span className="flex-1 text-[13px] text-ink/70">failed to publish</span>
                   </div>
                 ) : null}
@@ -179,7 +224,7 @@ export default function PlannerPage() {
                 {railRows.next.map(r => (
                   <div key={r.id}>
                     <p className="line-clamp-1 text-[13px] text-ink">{r.content || r.body || "Media post"}</p>
-                    <p className="text-[11.5px] text-ink/45">
+                    <p className="text-[11.5px] text-muted">
                       {new Date(r.publish_at!).toLocaleString([], { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
                     </p>
                   </div>
@@ -193,7 +238,7 @@ export default function PlannerPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-[21px] leading-tight text-porcelain">Planner</h1>
-          <p className="mt-1 text-[13px] text-ink/50">Drafts, schedule and publish. Scheduled posts go out on the minute, even with Studio closed.</p>
+          <p className="mt-1 text-[13px] text-muted">Drafts, schedule and publish. Scheduled posts go out on the minute, even with Studio closed.</p>
         </div>
         {editor ? <button onClick={() => openNew()} className="inline-flex items-center gap-1.5 rounded-md bg-ink px-4 py-2.5 text-[13px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90"><Plus size={15} /> New post</button> : null}
       </div>
@@ -225,7 +270,7 @@ export default function PlannerPage() {
         {span === "month" ? (
           <div className="mb-1.5 grid grid-cols-7 gap-1.5">
             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(d => (
-              <span key={d} className="px-1 text-[11px] font-semibold uppercase tracking-wide text-ink/35">{d}</span>
+              <span key={d} className="px-1 text-[11px] font-semibold uppercase tracking-wide text-muted">{d}</span>
             ))}
           </div>
         ) : null}
@@ -235,7 +280,7 @@ export default function PlannerPage() {
             const outside = span === "month" && day.getMonth() !== weekStart.getMonth();
             return (
               <button key={k} onClick={() => editor && openNew(day)} className={"rounded-lg border p-2 text-left transition-colors duration-[140ms] hover:bg-surface " + (span === "month" ? "min-h-[86px] " : "min-h-[110px] ") + (today ? "border-pearl/60 bg-pearl/6 " : "border-ink/10 ") + (outside ? "opacity-40" : "")}>
-                <span className={"text-[11px] font-semibold " + (today ? "text-pearl" : "text-ink/45")}>
+                <span className={"text-[11px] font-semibold " + (today ? "text-accent" : "text-muted")}>
                   {span === "month" ? day.getDate() : day.toLocaleDateString(undefined, { weekday: "short" }) + " " + day.getDate()}
                 </span>
                 {items.slice(0, span === "month" ? 2 : 4).map(r => (
@@ -243,7 +288,7 @@ export default function PlannerPage() {
                     {new Date(r.publish_at!).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} {r.content || r.body || "Media"}
                   </span>
                 ))}
-                {items.length > (span === "month" ? 2 : 4) ? <span className="mt-1 block text-[10.5px] text-ink/40">+{items.length - (span === "month" ? 2 : 4)} more</span> : null}
+                {items.length > (span === "month" ? 2 : 4) ? <span className="mt-1 block text-[10.5px] text-muted">+{items.length - (span === "month" ? 2 : 4)} more</span> : null}
               </button>
             );
           })}
@@ -258,30 +303,32 @@ export default function PlannerPage() {
         ))}
       </div>
 
-      {loading ? <p className="py-12 text-center text-sm text-ink/40">Loading</p>
-      : shown.length === 0 ? <p className="py-12 text-center text-sm text-ink/40">{tab === "upcoming" ? "Nothing scheduled. Tap a day above to plan one." : tab === "drafts" ? "No drafts." : "Nothing published from the Planner yet."}</p>
+      <StudioLoadError message={loadError} retry={() => { void load(); }} busy={loading} />
+      {loading && !loaded ? <p className="py-12 text-center text-sm text-muted">Loading</p>
+      : !loaded ? null
+      : shown.length === 0 ? <p className="py-12 text-center text-sm text-muted">{tab === "upcoming" ? "Nothing scheduled. Tap a day above to plan one." : tab === "drafts" ? "No drafts." : "Nothing published from the Planner yet."}</p>
       : shown.map(r => (
         <div key={r.id} className="mt-2.5 flex items-start gap-3.5 rounded-2xl border border-ink/10 bg-white p-3.5">
           {r.media?.[0]?.url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={r.media[0].url} alt="" className="h-16 w-16 rounded-lg object-cover" />
-          ) : <span className="flex h-16 w-16 items-center justify-center rounded-lg bg-surface text-ink/30"><FileText size={20} /></span>}
+            <img src={mediaPreview.preview.rows.find(row => row.id === r.id)?.media?.[0]?.url || undefined} alt="" className="h-16 w-16 rounded-lg object-cover" />
+          ) : <span className="flex h-16 w-16 items-center justify-center rounded-lg bg-surface text-muted"><FileText size={20} /></span>}
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <span className={"rounded px-1.5 py-0.5 text-[10.5px] font-semibold uppercase " + statusChip(r.status)}>{r.status}</span>
-              {r.publish_at ? <span className="flex items-center gap-1 text-[12px] text-ink/50"><CalendarClock size={12} /> {new Date(r.publish_at).toLocaleString()}</span> : null}
-              {r.products?.length ? <span className="flex items-center gap-1 text-[12px] text-ink/50"><Tag size={12} /> {r.products.length} products</span> : null}
-              {r.community_id ? <span className="flex items-center gap-1 text-[12px] text-ink/50"><Users size={12} /> community</span> : null}
+              {r.publish_at ? <span className="flex items-center gap-1 text-[12px] text-muted"><CalendarClock size={12} /> {new Date(r.publish_at).toLocaleString()}</span> : null}
+              {r.products?.length ? <span className="flex items-center gap-1 text-[12px] text-muted"><Tag size={12} /> {r.products.length} products</span> : null}
+              {r.community_id ? <span className="flex items-center gap-1 text-[12px] text-muted"><Users size={12} /> community</span> : null}
             </div>
             <p className="mt-1 line-clamp-2 text-[14px] text-ink">{r.content || r.body || "Media post"}</p>
-            {r.status === "failed" && r.error ? <p className="mt-1 flex items-center gap-1 text-[12px] text-red-400"><AlertTriangle size={12} /> {r.error}</p> : null}
+            {r.status === "failed" && r.error ? <p className="mt-1 flex items-center gap-1 text-[12px] text-danger"><AlertTriangle size={12} /> {r.error}</p> : null}
             {r.status === "published" && r.published_post_id ? <Link href={"/post/" + r.published_post_id} className="mt-1 inline-flex items-center gap-1 text-[12px] text-success"><CheckCircle2 size={12} /> View the live post</Link> : null}
           </div>
           {editor ? (
             <div className="flex shrink-0 flex-col gap-1">
               {r.status !== "published" && r.status !== "publishing" ? <button onClick={() => openEdit(r)} className="rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 transition-colors duration-[140ms] hover:text-ink">Edit</button> : null}
               {r.status === "scheduled" ? <button onClick={() => cancel(r)} className="rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 transition-colors duration-[140ms] hover:text-ink">Unschedule</button> : null}
-              <button onClick={() => remove(r)} className="rounded-md px-2.5 py-1 text-[12px] text-red-400 transition-colors duration-[140ms] hover:bg-red-500/10"><Trash2 size={13} /></button>
+              <button onClick={() => remove(r)} className="rounded-md px-2.5 py-1 text-[12px] text-danger transition-colors duration-[140ms] hover:bg-danger/10"><Trash2 size={13} /></button>
             </div>
           ) : null}
         </div>
@@ -292,7 +339,7 @@ export default function PlannerPage() {
           <div className="flex max-h-[90vh] w-full max-w-[600px] flex-col rounded-t-2xl bg-white sm:rounded-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between border-b border-ink/10 px-4 py-3">
               <p className="text-[15px] font-semibold text-ink">{d.id ? "Edit post" : "New post"}</p>
-              <button onClick={() => setOpen(false)} className="rounded-full p-1.5 text-ink/50 transition-colors duration-[140ms] hover:bg-black/5" aria-label="Close"><X size={16} /></button>
+              <button onClick={() => setOpen(false)} className="rounded-full p-1.5 text-muted transition-colors duration-[140ms] hover:bg-black/5" aria-label="Close"><X size={16} /></button>
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
               <textarea value={d.content} onChange={e => setD(x => ({ ...x, content: e.target.value }))} maxLength={2000} placeholder="What do you want to say?"
@@ -305,7 +352,7 @@ export default function PlannerPage() {
                     <span key={i} className="relative">
                       {m.media_type === "video" ? <span className="flex h-16 w-16 items-center justify-center rounded-lg bg-ink text-[10px] text-white">video</span>
                         // eslint-disable-next-line @next/next/no-img-element
-                        : <img src={m.url} alt="" className="h-16 w-16 rounded-lg object-cover" />}
+                        : <img src={mediaPreview.preview.draft.media[i]?.url || undefined} alt="" className="h-16 w-16 rounded-lg object-cover" />}
                       <button onClick={() => setD(x => ({ ...x, media: x.media.filter((_, j) => j !== i) }))} className="absolute -right-1 -top-1 rounded-full bg-ink p-0.5 text-white" aria-label="Remove"><X size={11} /></button>
                     </span>
                   ))}
@@ -315,16 +362,21 @@ export default function PlannerPage() {
                 <button onClick={() => fileRef.current?.click()} disabled={d.media.length >= 4 || busy} className="inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-3 py-1.5 text-[12.5px] font-semibold text-ink/70 transition-colors duration-[140ms] hover:bg-ink/10 disabled:opacity-40"><ImageIcon size={14} /> Media</button>
                 <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={e => { void attach(e.target.files); e.target.value = ""; }} />
                 <button onClick={() => setPickOpen(o => !o)} className="inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-3 py-1.5 text-[12.5px] font-semibold text-ink/70 transition-colors duration-[140ms] hover:bg-ink/10"><Tag size={14} /> Products {d.products.length ? "(" + d.products.length + ")" : ""}</button>
-                {communities.length ? (
+                {communities.length || d.community ? (
                   <select value={d.community || ""} onChange={e => setD(x => ({ ...x, community: e.target.value || null }))} className="rounded-full bg-ink/5 px-3 py-1.5 text-[12.5px] font-semibold text-ink/70 outline-none">
                     <option value="">Main feed</option>
+                    {d.community && !communities.some(c => c.id === d.community) ? <option value={d.community}>Current community (not in this list)</option> : null}
                     {communities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 ) : null}
               </div>
+              <StudioLoadError message={communitiesError} retry={() => { setCommunitiesLoading(true); void loadCommunities(); }} busy={communitiesLoading} />
               {pickOpen ? (
                 <div className="mt-2 max-h-40 overflow-y-auto rounded-2xl border border-ink/10 bg-white p-2">
-                  {listings.length === 0 ? <p className="text-[12.5px] text-ink/50">No active listings. Create one in Market to attach product cards.</p>
+                  <StudioLoadError message={listingsError} retry={() => { setListingsLoading(true); void loadListings(); }} busy={listingsLoading} />
+                  {listingsLoading && !listingsLoaded ? <p className="text-[12.5px] text-muted">Loading products</p>
+                  : !listingsLoaded ? null
+                  : listings.length === 0 ? <p className="text-[12.5px] text-muted">No active listings. Create one in Market to attach product cards.</p>
                   : listings.map(l => {
                     const on = d.products.some(p => p.listing_id === l.id);
                     return (
@@ -334,20 +386,20 @@ export default function PlannerPage() {
                           <img src={l.images[0]} alt="" className="h-8 w-8 rounded object-cover" />
                         ) : <span className="h-8 w-8 rounded bg-ink/10" />}
                         <span className="flex-1 truncate">{l.title}</span>
-                        <span className={on ? "text-white/70" : "text-ink/50"}>{l.currency} {l.price}</span>
+                        <span className={on ? "text-white/70" : "text-muted"}>{l.currency} {l.price}</span>
                       </button>
                     );
                   })}
                 </div>
               ) : null}
-              <p className="mb-1.5 mt-3 text-[11.5px] font-semibold uppercase tracking-wide text-ink/40">Category</p>
+              <p className="mb-1.5 mt-3 text-[11.5px] font-semibold uppercase tracking-wide text-muted">Category</p>
               <div className="flex flex-wrap gap-1.5">
                 {CATEGORIES.map(c => (
                   <button key={c.key} onClick={() => setD(x => ({ ...x, category: x.category === c.key ? null : c.key }))}
                     className={"rounded-full border px-2.5 py-1 text-[12px] font-semibold transition-colors duration-[140ms] " + (d.category === c.key ? "border-ink bg-ink text-white" : "border-ink/10 text-ink/60")}>{c.label}</button>
                 ))}
               </div>
-              <p className="mb-1.5 mt-3 text-[11.5px] font-semibold uppercase tracking-wide text-ink/40">Schedule</p>
+              <p className="mb-1.5 mt-3 text-[11.5px] font-semibold uppercase tracking-wide text-muted">Schedule</p>
               <input type="datetime-local" value={d.publishAt} onChange={e => setD(x => ({ ...x, publishAt: e.target.value }))}
                 className="rounded-lg border border-ink/15 px-3 py-2 text-[13.5px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
             </div>

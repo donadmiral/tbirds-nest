@@ -72,7 +72,7 @@ export default function SettingsPage() {
     } catch (e: any) { alert(e?.message || "Could not create the member."); } finally { setBusy(false); }
   };
 
-  if (!info) return <p className="py-12 text-center text-sm text-ink/40">Loading</p>;
+  if (!info) return <p className="py-12 text-center text-sm text-muted">Loading</p>;
 
   return (
     <div>
@@ -85,23 +85,23 @@ export default function SettingsPage() {
             >
               <span>
                 <span className="block text-[13.5px] font-semibold text-ink">Organization</span>
-                <span className="block text-[12px] text-ink/50">Team, brands and locations, desks, agencies, history</span>
+                <span className="block text-[12px] text-muted">Team, brands and locations, desks, agencies, history</span>
               </span>
-              <span className="text-pearl">&rarr;</span>
+              <span className="text-accent">&rarr;</span>
             </Link>
 
             <Panel title="Workspace">
               <div className="flex items-center justify-between text-[13px]">
-                <span className="text-ink/55">Your role</span>
+                <span className="text-muted">Your role</span>
                 <span className="font-semibold capitalize text-ink">{info.role ?? "member"}</span>
               </div>
               <div className="mt-2 flex items-center justify-between text-[13px]">
-                <span className="text-ink/55">Team</span>
+                <span className="text-muted">Team</span>
                 <span className="font-semibold text-ink">{info.members.length} {info.members.length === 1 ? "member" : "members"}</span>
               </div>
               <div className="mt-2 flex items-center justify-between text-[13px]">
-                <span className="text-ink/55">Verified</span>
-                <span className={"font-semibold " + (info.profile?.is_verified ? "text-success" : "text-ink/40")}>
+                <span className="text-muted">Verified</span>
+                <span className={"font-semibold " + (info.profile?.is_verified ? "text-success" : "text-muted")}>
                   {info.profile?.is_verified ? "Yes" : "Not yet"}
                 </span>
               </div>
@@ -112,7 +112,7 @@ export default function SettingsPage() {
             {info.devices.length > 0 ? (
               <Panel title="Devices">
                 <div className="flex items-center justify-between text-[13px]">
-                  <span className="text-ink/55">Approved</span>
+                  <span className="text-muted">Approved</span>
                   <span className="font-semibold text-ink">{info.devices.filter(d => d.status === "approved").length}</span>
                 </div>
                 {info.devices.filter(d => d.status === "pending").length > 0 ? (
@@ -120,7 +120,7 @@ export default function SettingsPage() {
                     <span className="font-semibold">{info.devices.filter(d => d.status === "pending").length}</span> waiting for approval
                   </p>
                 ) : (
-                  <p className="mt-2 text-[12.5px] text-ink/45">Nothing waiting for approval.</p>
+                  <p className="mt-2 text-[12.5px] text-muted">Nothing waiting for approval.</p>
                 )}
               </Panel>
             ) : null}
@@ -131,7 +131,7 @@ export default function SettingsPage() {
                   {info.signins.slice(0, 4).map((x, i) => (
                     <div key={i}>
                       <p className="truncate text-[13px] text-ink">{x.member_name ?? "Unknown member"}</p>
-                      <p className="text-[11.5px] text-ink/45">
+                      <p className="text-[11.5px] text-muted">
                         {new Date(x.created_at).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
                       </p>
                     </div>
@@ -144,7 +144,7 @@ export default function SettingsPage() {
       ) : null}
 
       <h1 className="font-display text-[21px] leading-tight text-porcelain">Settings</h1>
-      <p className="mt-1 text-[13px] text-ink/50">Business details and hours, who can work in Studio, and which devices may sign in.</p>
+      <p className="mt-1 text-[13px] text-muted">Business details and hours, who can work in Studio, and which devices may sign in.</p>
 
       <Link
         href="/studio/settings/organization"
@@ -152,9 +152,9 @@ export default function SettingsPage() {
       >
         <span>
           <span className="block text-[14px] font-semibold text-ink">Organization</span>
-          <span className="block text-[12.5px] text-ink/55">Team and roles, brands and locations, which desks are on, agencies, history</span>
+          <span className="block text-[12.5px] text-muted">Team and roles, brands and locations, which desks are on, agencies, history</span>
         </span>
-        <span className="text-[18px] text-pearl">&rarr;</span>
+        <span className="text-[18px] text-accent">&rarr;</span>
       </Link>
 
       <section className="mt-5 rounded-xl border border-ink/10 p-4">
@@ -165,7 +165,7 @@ export default function SettingsPage() {
           ) : <span className="h-12 w-12 rounded-xl bg-navy" />}
           <div className="min-w-0 flex-1">
             <p className="flex items-center gap-1.5 text-[15px] font-semibold text-ink">{info.profile?.full_name} <VerifiedBadge userId={uid} size={15} /></p>
-            <p className="text-[12px] text-ink/45">@{info.profile?.username}{info.business?.review_count ? " · " + Number(info.business.avg_rating).toFixed(1) + " from " + info.business.review_count + " reviews" : ""}{info.profile?.is_verified || info.business?.is_verified ? " · verified" : " · not verified, request verification from the admin team"}</p>
+            <p className="text-[12px] text-muted">@{info.profile?.username}{info.business?.review_count ? " · " + Number(info.business.avg_rating).toFixed(1) + " from " + info.business.review_count + " reviews" : ""}{info.profile?.is_verified || info.business?.is_verified ? " · verified" : " · not verified, request verification from the admin team"}</p>
           </div>
         </div>
         <textarea value={bio} onChange={e => setBio(e.target.value)} maxLength={300} placeholder="What you do, in two lines" className="mt-3 h-16 w-full rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13.5px] text-ink outline-none" />
@@ -177,7 +177,7 @@ export default function SettingsPage() {
           <input value={b.email} onChange={e => setB({ ...b, email: e.target.value })} placeholder="Email" className="rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13.5px] text-ink outline-none" />
           <input value={b.website} onChange={e => setB({ ...b, website: e.target.value })} placeholder="Website" className="rounded-md border border-ink/15 bg-transparent px-2.5 py-1.5 text-[13.5px] text-ink outline-none sm:col-span-2" />
         </div>
-        <p className="mb-1.5 mt-4 text-[11.5px] font-semibold uppercase tracking-wide text-ink/40">Opening hours, Harare time</p>
+        <p className="mb-1.5 mt-4 text-[11.5px] font-semibold uppercase tracking-wide text-muted">Opening hours, Harare time</p>
         {DAYS.map(([k, l]) => (
           <div key={k} className="flex flex-wrap items-center gap-2 py-1">
             <label className="flex w-16 items-center gap-1.5 text-[13px] text-ink"><input type="checkbox" checked={!!hours[k]} onChange={e => setDay(k, e.target.checked)} /> {l}</label>
@@ -186,20 +186,20 @@ export default function SettingsPage() {
                 <input type="time" value={r[0]} onChange={e => setRange(k, i, 0, e.target.value)} className="rounded-md border border-ink/15 bg-transparent px-2 py-1 text-[12.5px] text-ink outline-none" /> to
                 <input type="time" value={r[1]} onChange={e => setRange(k, i, 1, e.target.value)} className="rounded-md border border-ink/15 bg-transparent px-2 py-1 text-[12.5px] text-ink outline-none" />
               </span>
-            )) : <span className="text-[12.5px] text-ink/40">Closed</span>}
+            )) : <span className="text-[12.5px] text-muted">Closed</span>}
           </div>
         ))}
-        {isAdmin ? <button onClick={saveBusiness} disabled={busy} className="mt-3 rounded-md bg-pearl px-4 py-2 text-[13px] font-semibold text-ink disabled:opacity-40">{busy ? "Saving" : "Save details"}</button> : null}
+        {isAdmin ? <button onClick={saveBusiness} disabled={busy} className="mt-3 rounded-md bg-pearl px-4 py-2 text-[13px] font-semibold text-on-pearl disabled:opacity-40">{busy ? "Saving" : "Save details"}</button> : null}
       </section>
 
       <section className="mt-4 rounded-xl border border-ink/10 p-4">
-        <p className="flex items-center gap-1.5 text-[14px] font-semibold text-ink"><Users size={14} className="text-pearl" /> Team</p>
-        <p className="mt-1 text-[12.5px] text-ink/50">Each person signs in with the business handle and their own access code. Roles decide what they can do in Studio.</p>
+        <p className="flex items-center gap-1.5 text-[14px] font-semibold text-ink"><Users size={14} className="text-accent" /> Team</p>
+        <p className="mt-1 text-[12.5px] text-muted">Each person signs in with the business handle and their own access code. Roles decide what they can do in Studio.</p>
         {info.members.map(m => (
           <div key={m.id} className="mt-2 flex flex-wrap items-center gap-2 rounded-lg bg-surface px-3 py-2">
             <span className="text-[13.5px] font-semibold text-ink">{m.display_name}</span>
-            {!m.active ? <span className="text-[10.5px] uppercase text-red-400">inactive</span> : null}
-            <span className="text-[11.5px] text-ink/45">{m.last_sign_in_at ? "last sign in " + new Date(m.last_sign_in_at).toLocaleDateString() : "never signed in"}</span>
+            {!m.active ? <span className="text-[10.5px] uppercase text-danger">inactive</span> : null}
+            <span className="text-[11.5px] text-muted">{m.last_sign_in_at ? "last sign in " + new Date(m.last_sign_in_at).toLocaleDateString() : "never signed in"}</span>
             <span className="ml-auto" />
             {isOwner ? (
               <>
@@ -220,28 +220,28 @@ export default function SettingsPage() {
           <div className="mt-3 rounded-lg border border-pearl/50 bg-pearl/10 p-3">
             <p className="text-[13px] text-ink">Access code for <span className="font-semibold">{issued.name}</span>. It is shown once, copy it now.</p>
             <p className="mt-1 flex items-center gap-2 font-mono text-[18px] tracking-widest text-ink">{issued.code} <button onClick={() => navigator.clipboard.writeText(issued.code)} className="rounded-md bg-surface p-1 text-ink/60" aria-label="Copy"><Copy size={13} /></button></p>
-            <button onClick={() => setIssued(null)} className="mt-2 text-[12px] text-ink/50">Dismiss</button>
+            <button onClick={() => setIssued(null)} className="mt-2 text-[12px] text-muted">Dismiss</button>
           </div>
         ) : null}
       </section>
 
       <section className="mt-4 rounded-xl border border-ink/10 p-4">
-        <p className="flex items-center gap-1.5 text-[14px] font-semibold text-ink"><Smartphone size={14} className="text-pearl" /> Devices</p>
-        <p className="mt-1 text-[12.5px] text-ink/50">Only approved devices can sign in as the business. New devices wait here for approval.</p>
-        {info.devices.length === 0 ? <p className="mt-2 text-[12.5px] text-ink/45">No devices yet.</p> : info.devices.map(d => (
+        <p className="flex items-center gap-1.5 text-[14px] font-semibold text-ink"><Smartphone size={14} className="text-accent" /> Devices</p>
+        <p className="mt-1 text-[12.5px] text-muted">Only approved devices can sign in as the business. New devices wait here for approval.</p>
+        {info.devices.length === 0 ? <p className="mt-2 text-[12.5px] text-muted">No devices yet.</p> : info.devices.map(d => (
           <div key={d.id} className="mt-2 flex flex-wrap items-center gap-2 rounded-lg bg-surface px-3 py-2">
             <span className="text-[13px] text-ink">{d.label || "Device"}</span>
-            <span className="font-mono text-[11px] text-ink/45">{d.device_id.slice(0, 12)}</span>
-            <span className={"rounded px-1.5 py-0.5 text-[10.5px] font-semibold uppercase " + (d.status === "approved" ? "bg-success/15 text-success" : "bg-pearl/15 text-pearl")}>{d.status}</span>
+            <span className="font-mono text-[11px] text-muted">{d.device_id.slice(0, 12)}</span>
+            <span className={"rounded px-1.5 py-0.5 text-[10.5px] font-semibold uppercase " + (d.status === "approved" ? "bg-success/15 text-success" : "bg-pearl/15 text-accent")}>{d.status}</span>
             <span className="ml-auto" />
             {isAdmin && d.status !== "approved" ? <button onClick={() => act(() => supabase.rpc("studio_set_device", { p_device: d.id, p_status: "approved" }))} className="rounded-md bg-success/15 px-2.5 py-1 text-[12px] font-semibold text-success">Approve</button> : null}
-            {isAdmin ? <button onClick={() => confirm("Remove this device? It will need approval again.") && act(() => supabase.rpc("studio_set_device", { p_device: d.id, p_status: "removed" }))} className="rounded-md px-2 py-1 text-[12px] text-red-400">Remove</button> : null}
+            {isAdmin ? <button onClick={() => confirm("Remove this device? It will need approval again.") && act(() => supabase.rpc("studio_set_device", { p_device: d.id, p_status: "removed" }))} className="rounded-md px-2 py-1 text-[12px] text-danger">Remove</button> : null}
           </div>
         ))}
         {info.signins.length ? (
           <>
-            <p className="mb-1 mt-3 text-[11.5px] font-semibold uppercase tracking-wide text-ink/40">Recent sign-ins</p>
-            {info.signins.slice(0, 8).map((s, i) => <p key={i} className="text-[12px] text-ink/55">{s.member_name || "Member"} · {s.device_id ? s.device_id.slice(0, 12) : "unknown device"} · {new Date(s.created_at).toLocaleString()}</p>)}
+            <p className="mb-1 mt-3 text-[11.5px] font-semibold uppercase tracking-wide text-muted">Recent sign-ins</p>
+            {info.signins.slice(0, 8).map((s, i) => <p key={i} className="text-[12px] text-muted">{s.member_name || "Member"} · {s.device_id ? s.device_id.slice(0, 12) : "unknown device"} · {new Date(s.created_at).toLocaleString()}</p>)}
           </>
         ) : null}
       </section>

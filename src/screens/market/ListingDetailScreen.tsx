@@ -1,15 +1,16 @@
 import { takePrefetched } from '../../lib/screenTransition';
 import { useAfterTransition } from '../../lib/screenTransition';
 import { ListingSkeleton } from '../../components/skeletons';
-import { themedSheet } from '../../theme/useTheme';
+import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import SellerTrust from '../../components/market/SellerTrust';
 import ReportListingSheet from '../../components/market/ReportListingSheet';
 import { useSafeAreaInsets } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
+import MarketOrderPanel from '../../components/market/MarketOrderPanel';
 import SellerReviews from '../../components/market/SellerReviews';
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import {
   ActivityIndicator, Alert, Dimensions, ScrollView, StyleSheet,
   Text, TouchableOpacity, View, Modal, TextInput , KeyboardAvoidingView, Platform } from 'react-native';
@@ -42,6 +43,7 @@ function priceLabel(item: Listing): string {
 }
 
 export default function ListingDetailScreen({ navigation, route }: any) {
+  useTheme();
   const listingId: string = route.params?.listingId;
   const { profile } = useAuthStore();
   const userId: string | undefined = profile?.id;
@@ -51,15 +53,22 @@ export default function ListingDetailScreen({ navigation, route }: any) {
   const afterSlide = useAfterTransition();
   const [imgIndex, setImgIndex] = useState(0);
   const [busy, setBusy] = useState(false);
+  const saving = useRef(false);
+  const [loadError, setLoadError] = useState(false);
+  const [retry, setRetry] = useState(0);
 
   useFocusEffect(useCallback(() => {
     let cancelled = false;
+    setLoading(true); setLoadError(false);
     (async () => {
-      const row = takePrefetched<any>('listing:' + listingId) ?? await marketService.getListing(listingId);
-      if (!cancelled) { setListing(row); setLoading(false); }
+      try {
+        const row = await (takePrefetched<any>('listing:' + listingId) ?? marketService.getListing(listingId));
+        if (!cancelled) setListing(row);
+      } catch { if (!cancelled) setLoadError(true); }
+      finally { if (!cancelled) setLoading(false); }
     })();
     return () => { cancelled = true; };
-  }, [listingId]));
+  }, [listingId, retry]));
 
   const insets = useSafeAreaInsets();
   const [reportOpen, setReportOpen] = useState(false);
@@ -78,11 +87,13 @@ export default function ListingDetailScreen({ navigation, route }: any) {
   }, [listing?.id]);
 
   const toggleSaved = useCallback(async () => {
-    if (!listing?.id) return;
+    if (!listing?.id || saving.current) return;
+    saving.current = true;
     const next = !savedListing;
     setSavedListing(next);
     try { await marketService.toggleSaved(listing.id, next); }
     catch (e: any) { setSavedListing(!next); Alert.alert('Could not save', e?.message || 'Try again.'); }
+    finally { saving.current = false; }
   }, [listing?.id, savedListing]);
 
   const blockSeller = () => {
@@ -161,6 +172,8 @@ export default function ListingDetailScreen({ navigation, route }: any) {
     ]);
   };
 
+  if (loadError && !loading) return <SafeAreaView style={s.safe}><View style={s.center}><Text>Could not load listing.</Text><TouchableOpacity onPress={() => setRetry(n => n + 1)}><Text>Try again</Text></TouchableOpacity></View></SafeAreaView>;
+
   if (loading || !afterSlide) {
     return <SafeAreaView style={s.safe} edges={['top']}><ListingSkeleton /></SafeAreaView>;
   }
@@ -168,7 +181,7 @@ export default function ListingDetailScreen({ navigation, route }: any) {
     return (
       <SafeAreaView style={s.safe} edges={['top']}>
         <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
-          <Feather name="arrow-left" size={22} color={GRAY_900} />
+          <Feather name="arrow-left" size={22} color={getTheme().ink.primary} />
         </TouchableOpacity>
         <View style={s.center}><Text style={s.emptyTxt}>Listing not found.</Text></View>
       </SafeAreaView>
@@ -192,28 +205,28 @@ export default function ListingDetailScreen({ navigation, route }: any) {
                 <ExpoImage key={i} source={{ uri }} style={s.heroImg} contentFit="cover" cachePolicy="memory-disk" />
               ) : (
                 <View key={i} style={[s.heroImg, s.heroEmpty]}>
-                  <Feather name="image" size={40} color={GRAY_400} />
+                  <Feather name="image" size={40} color={getTheme().ink.secondary} />
                 </View>
               )
             ))}
           </ScrollView>
           <TouchableOpacity style={s.backBtnFloat} onPress={() => navigation.goBack()}>
-            <Ionicons name="chevron-back" size={21} color={GRAY_900} />
+            <Ionicons name="chevron-back" size={21} color={getTheme().ink.primary} />
           </TouchableOpacity>
           <View style={{ position: 'absolute', top: 12, right: 12, flexDirection: 'row', gap: 8 }}>
-            <TouchableOpacity onPress={toggleSaved} activeOpacity={0.8}
-              style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.94)', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 3 }}>
-              <Ionicons name={savedListing ? 'heart' : 'heart-outline'} size={19} color={savedListing ? '#FF3040' : '#0B1E3D'} />
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel={savedListing ? 'Unsave listing' : 'Save listing'} hitSlop={6} onPress={toggleSaved} activeOpacity={0.8}
+              style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: getTheme().surface.raised, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 3 }}>
+              <Ionicons name={savedListing ? 'heart' : 'heart-outline'} size={19} color={savedListing ? getTheme().status.danger : getTheme().ink.primary} />
             </TouchableOpacity>
-            <TouchableOpacity activeOpacity={0.8}
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Share listing" hitSlop={6} activeOpacity={0.8}
               onPress={() => listing && Share.share({ message: listing.title + ' · ' + priceLabel(listing) + ' on Platinum Circles' })}
-              style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.94)', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 3 }}>
-              <Ionicons name="share-outline" size={18} color="#0B1E3D" />
+              style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: getTheme().surface.raised, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 3 }}>
+              <Ionicons name="share-outline" size={18} color={getTheme().ink.primary} />
             </TouchableOpacity>
           </View>
           {images.length > 1 && (
             <View style={{ position: 'absolute', bottom: 14, right: 12, paddingHorizontal: 9, paddingVertical: 4, borderRadius: 999, backgroundColor: 'rgba(11,30,61,0.7)' }}>
-              <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#FFF' }}>{imgIndex + 1}/{images.length}</Text>
+              <Text style={{ fontSize: 11.5, fontWeight: '700', color: '#FFFFFF' }}>{imgIndex + 1}/{images.length}</Text>
             </View>
           )}
           {images.length > 1 && (
@@ -235,8 +248,8 @@ export default function ListingDetailScreen({ navigation, route }: any) {
             {[listing.category, listing.condition, listing.location_city].filter(Boolean).join(' · ')}
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 10, padding: 11, borderRadius: 12, backgroundColor: (listing as any).delivery_available ? 'rgba(5,150,105,0.08)' : 'rgba(11,30,61,0.04)' }}>
-            <Ionicons name={(listing as any).delivery_available ? 'bicycle' : 'location'} size={17} color={(listing as any).delivery_available ? '#059669' : '#0B1E3D'} />
-            <Text style={{ flex: 1, fontSize: 13, fontWeight: '600', color: '#0B1E3D' }}>
+            <Ionicons name={(listing as any).delivery_available ? 'bicycle' : 'location'} size={17} color={(listing as any).delivery_available ? getTheme().status.success : getTheme().ink.primary} />
+            <Text style={{ flex: 1, fontSize: 13, fontWeight: '600', color: getTheme().ink.primary }}>
               {(listing as any).delivery_available
                 ? 'Delivery available' + ((listing as any).delivery_fee ? ' · ' + listing.currency + ' ' + (listing as any).delivery_fee : ' · free') + ((listing as any).delivery_note ? '. ' + (listing as any).delivery_note : '')
                 : 'Collection · meet the seller'}
@@ -263,17 +276,19 @@ export default function ListingDetailScreen({ navigation, route }: any) {
           </TouchableOpacity>
         </View>
 
+        {!!listing && <MarketOrderPanel listing={listing} onMessage={order => navigation.navigate('Chat', { conversationId: order.conversation_id, otherUserId: order.buyer_id === userId ? order.seller_id : order.buyer_id })} />}
+
         {!!listing && <SellerReviews sellerId={listing.seller_id} listingId={listing.id} currentUserId={userId} />}
 
         {!!listing && !isOwner && (<>
           <TouchableOpacity style={{ alignSelf: 'center', marginTop: 22, marginBottom: 6, flexDirection: 'row', alignItems: 'center', gap: 6 }} onPress={() => setReportOpen(true)} activeOpacity={0.7}>
-            <Feather name="flag" size={13} color="#9CA3AF" />
-            <Text style={{ fontSize: 13.5, color: '#9CA3AF', fontWeight: '600' }}>Report listing</Text>
+            <Feather name="flag" size={13} color={getTheme().ink.secondary} />
+            <Text style={{ fontSize: 13.5, color: getTheme().ink.secondary, fontWeight: '600' }}>Report listing</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={{ alignSelf: 'center', marginTop: 10, marginBottom: 8, flexDirection: 'row', alignItems: 'center', gap: 6 }} onPress={blockSeller} activeOpacity={0.7}>
-            <Feather name="slash" size={13} color="#9CA3AF" />
-            <Text style={{ fontSize: 13.5, color: '#9CA3AF', fontWeight: '600' }}>Block seller</Text>
+            <Feather name="slash" size={13} color={getTheme().ink.secondary} />
+            <Text style={{ fontSize: 13.5, color: getTheme().ink.secondary, fontWeight: '600' }}>Block seller</Text>
           </TouchableOpacity>
           </>
         )}
@@ -288,11 +303,13 @@ export default function ListingDetailScreen({ navigation, route }: any) {
           {/* saveInFooter */}
           {!!listing && (
             <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={savedListing ? 'Unsave listing' : 'Save listing'}
               onPress={toggleSaved}
               activeOpacity={0.8}
-              style={{ width: 50, height: 50, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center', borderColor: savedListing ? '#0B1E3D' : '#D1D5DB', backgroundColor: savedListing ? '#EFF3FA' : '#FFFFFF' }}
+              style={{ width: 50, height: 50, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center', borderColor: savedListing ? getTheme().ink.primary : getTheme().surface.hairline, backgroundColor: savedListing ? getTheme().brand.tintBg : getTheme().surface.canvas }}
             >
-              <Feather name="bookmark" size={19} color={savedListing ? '#0B1E3D' : '#6B7280'} />
+              <Feather name="bookmark" size={19} color={savedListing ? getTheme().ink.primary : getTheme().ink.secondary} />
             </TouchableOpacity>
           )}
         {isOwner ? (
@@ -301,8 +318,8 @@ export default function ListingDetailScreen({ navigation, route }: any) {
               <Text style={s.ctaTxt}>Mark as sold</Text>
             </TouchableOpacity>
           ) : (
-            <View style={[s.cta, { backgroundColor: GRAY_100 }]}>
-              <Text style={[s.ctaTxt, { color: GRAY_500 }]}>This listing is sold</Text>
+            <View style={[s.cta, { backgroundColor: getTheme().surface.raised }]}>
+              <Text style={[s.ctaTxt, { color: getTheme().ink.secondary }]}>This listing is sold</Text>
             </View>
           )
         ) : (
@@ -314,16 +331,16 @@ export default function ListingDetailScreen({ navigation, route }: any) {
               activeOpacity={0.85}
             >
               {busy
-                ? <ActivityIndicator color={BG} size={16} />
+                ? <ActivityIndicator color={getTheme().ink.inverse} size={16} />
                 : <Text style={s.ctaTxt}>{listing.status === 'available' ? 'Message seller' : 'No longer available'}</Text>}
             </TouchableOpacity>
             {listing.status === 'available' && (
               <TouchableOpacity
-                style={[s.cta, { flex: 1, backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#0B1E3D' }]}
+                style={[s.cta, { flex: 1, backgroundColor: getTheme().surface.canvas, borderWidth: 1.5, borderColor: getTheme().ink.primary }]}
                 onPress={() => { setOfferAmt(''); setOfferOpen(true); }}
                 activeOpacity={0.85}
               >
-                <Text style={[s.ctaTxt, { color: '#0B1E3D' }]}>Make offer</Text>
+                <Text style={[s.ctaTxt, { color: getTheme().ink.primary }]}>Make offer</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -332,26 +349,26 @@ export default function ListingDetailScreen({ navigation, route }: any) {
       <Modal visible={offerOpen} transparent animationType="slide" onRequestClose={() => setOfferOpen(false)}>
         <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(11,30,61,0.45)' }} activeOpacity={1} onPress={() => setOfferOpen(false)} />
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <View style={{ backgroundColor: '#FFF', borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: 18, paddingBottom: 40 }}>
-          <Text style={{ fontSize: 17, fontWeight: '800', color: '#0B1E3D' }}>Make an offer</Text>
-          <Text style={{ fontSize: 13, color: 'rgba(11,30,61,0.55)', marginTop: 3 }}>Asking {listing ? listing.currency + ' ' + listing.price : ''}</Text>
+        <View style={{ backgroundColor: getTheme().surface.canvas, borderTopLeftRadius: 22, borderTopRightRadius: 22, padding: 18, paddingBottom: 40 }}>
+          <Text style={{ fontSize: 17, fontWeight: '800', color: getTheme().ink.primary }}>Make an offer</Text>
+          <Text style={{ fontSize: 13, color: getTheme().ink.secondary, marginTop: 3 }}>Asking {listing ? listing.currency + ' ' + listing.price : ''}</Text>
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 14 }}>
             {[0.9, 0.8, 0.7].map(f => {
               const v = listing ? Math.round(Number(listing.price) * f) : 0;
               return (
                 <TouchableOpacity key={f} onPress={() => setOfferAmt(String(v))}
-                  style={{ flex: 1, paddingVertical: 9, borderRadius: 10, backgroundColor: 'rgba(11,30,61,0.06)', alignItems: 'center' }}>
-                  <Text style={{ fontSize: 13.5, fontWeight: '700', color: '#0B1E3D' }}>{listing?.currency} {v}</Text>
+                  style={{ flex: 1, paddingVertical: 9, borderRadius: 10, backgroundColor: getTheme().brand.tintBg, alignItems: 'center' }}>
+                  <Text style={{ fontSize: 13.5, fontWeight: '700', color: getTheme().ink.primary }}>{listing?.currency} {v}</Text>
                 </TouchableOpacity>
               );
             })}
           </View>
           <TextInput value={offerAmt} onChangeText={setOfferAmt} keyboardType="numeric" placeholder="Your amount"
-            placeholderTextColor="#8E8E93"
-            style={{ marginTop: 12, borderWidth: 1.5, borderColor: 'rgba(11,30,61,0.15)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 17, fontWeight: '700', color: '#0B1E3D' }} />
+            placeholderTextColor={getTheme().ink.secondary}
+            style={{ marginTop: 12, borderWidth: 1.5, borderColor: getTheme().surface.hairline, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 17, fontWeight: '700', color: getTheme().ink.primary }} />
           <TouchableOpacity onPress={submitOffer} disabled={offerBusy}
-            style={{ marginTop: 12, backgroundColor: '#0B1E3D', borderRadius: 14, paddingVertical: 14, alignItems: 'center', opacity: offerBusy ? 0.6 : 1 }}>
-            {offerBusy ? <ActivityIndicator color="#FFF" size={16} /> : <Text style={{ color: '#FFF', fontSize: 15.5, fontWeight: '800' }}>Send offer</Text>}
+            style={{ marginTop: 12, backgroundColor: getTheme().brand.base, borderRadius: 14, paddingVertical: 14, alignItems: 'center', opacity: offerBusy ? 0.6 : 1 }}>
+            {offerBusy ? <ActivityIndicator color={getTheme().ink.inverse} size={16} /> : <Text style={{ color: getTheme().ink.inverse, fontSize: 15.5, fontWeight: '800' }}>Send offer</Text>}
           </TouchableOpacity>
         </View>
         </KeyboardAvoidingView>
@@ -361,44 +378,44 @@ export default function ListingDetailScreen({ navigation, route }: any) {
 }
 
 const s = themedSheet((t) => ({
-  safe: { flex: 1, backgroundColor: BG },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: BG },
+  safe: { flex: 1, backgroundColor: t.surface.canvas },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: t.surface.canvas },
   backBtn: { padding: 16 },
   backBtnFloat: {
     position: 'absolute', top: 12, left: 12, width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: t.surface.canvas, alignItems: 'center', justifyContent: 'center',
   },
-  heroImg: { width: SCREEN_W, height: SCREEN_W, backgroundColor: GRAY_100 },
+  heroImg: { width: SCREEN_W, height: SCREEN_W, backgroundColor: t.surface.raised },
   heroEmpty: { alignItems: 'center', justifyContent: 'center' },
   dots: {
     position: 'absolute', bottom: 12, alignSelf: 'center', flexDirection: 'row', gap: 5,
   },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.5)' },
-  dotActive: { backgroundColor: t.surface.canvas },
+  dotActive: { backgroundColor: '#FFFFFF' },
   soldBanner: {
     position: 'absolute', top: 12, right: 12, backgroundColor: RED,
     paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8,
   },
-  soldTxt: { color: t.ink.inverse, fontWeight: '800', fontSize: 12, letterSpacing: 1 },
+  soldTxt: { color: '#FFFFFF', fontWeight: '800', fontSize: 12, letterSpacing: 1 },
   body: { padding: 16 },
-  price: { fontSize: 24, fontWeight: '800', color: GRAY_900 },
-  title: { fontSize: 17, color: GRAY_900, marginTop: 2 },
-  meta: { fontSize: 13, color: GRAY_500, marginTop: 4 },
-  desc: { fontSize: 15, color: GRAY_900, lineHeight: 22, marginTop: 14 },
+  price: { fontSize: 24, fontWeight: '800', color: t.ink.primary },
+  title: { fontSize: 17, color: t.ink.primary, marginTop: 2 },
+  meta: { fontSize: 13, color: t.ink.secondary, marginTop: 4 },
+  desc: { fontSize: 15, color: t.ink.primary, lineHeight: 22, marginTop: 14 },
   sellerRow: {
     flexDirection: 'row', alignItems: 'center', marginTop: 20,
-    paddingVertical: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#E5E7EB',
+    paddingVertical: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.surface.hairline,
   },
-  sellerName: { fontSize: 15, fontWeight: '700', color: GRAY_900 },
-  sellerHandle: { fontSize: 13, color: GRAY_500 },
+  sellerName: { fontSize: 15, fontWeight: '700', color: t.ink.primary },
+  sellerHandle: { fontSize: 13, color: t.ink.secondary },
   footer: {
     paddingHorizontal: 16, paddingTop: 12,
-    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#E5E7EB', backgroundColor: BG,
+    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.surface.hairline, backgroundColor: t.surface.canvas,
   },
   cta: {
-    flex: 1, height: 50, borderRadius: 14, backgroundColor: NAVY,
+    flex: 1, height: 50, borderRadius: 14, backgroundColor: t.brand.base,
     alignItems: 'center', justifyContent: 'center',
   },
-  ctaTxt: { color: BG, fontSize: 16, fontWeight: '700' },
-  emptyTxt: { fontSize: 14, color: GRAY_500 },
+  ctaTxt: { color: t.ink.inverse, fontSize: 16, fontWeight: '700' },
+  emptyTxt: { fontSize: 14, color: t.ink.secondary },
 }));

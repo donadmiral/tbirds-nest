@@ -6,7 +6,7 @@ import VerifiedBadge from '../../components/VerifiedBadge';
  * Design C — Group Info Layout, Clean Premium.
  * Members list with admin/officer badges, shared media grid, group settings.
  */
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput, Image, Pressable,
   ActivityIndicator, Alert, ScrollView, StatusBar, Dimensions,
@@ -21,6 +21,7 @@ import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system/legacy';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
+import { signChatMedia, signGroupAvatars } from '../../services/chatMediaService';
 import { uploadMedia } from '../../services/mediaService';
 import MediaViewer, { MediaViewerItem } from '../../components/messages/MediaViewer';
 
@@ -146,6 +147,8 @@ export default function GroupManagementScreen({ route, navigation }: any) {
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerIndex, setViewerIndex] = useState(0);
 
+  const context = `${myId}:${conversationId}`;
+  const contextRef = useRef(context); contextRef.current = context;
   const canEditInfo = isAdmin || !adminOnlyEdit;
   const canAddMembers = isAdmin || !adminOnlyInvite;
   const muteLabel = useMemo(() => fmtMuteUntil(mutedUntil), [mutedUntil]);
@@ -186,7 +189,9 @@ export default function GroupManagementScreen({ route, navigation }: any) {
           .eq('conversation_id', conversationId),
       ]);
 
-      const conv = convRes.data;
+      if (contextRef.current !== context) return;
+      const conv = convRes.data ? (await signGroupAvatars([convRes.data]))[0] : null;
+      if (contextRef.current !== context) return;
       if (conv) {
         setGroupName(conv.group_name || initName || 'Group');
         setAvatarUrl(conv.group_avatar_url || null);
@@ -208,26 +213,31 @@ export default function GroupManagementScreen({ route, navigation }: any) {
     } finally {
       setLoading(false);
     }
-  }, [conversationId, myId, initName]);
+  }, [conversationId, myId, initName, context]);
 
   const loadMediaAndFiles = useCallback(async () => {
-    if (!conversationId) return;
+    if (!conversationId || !myId) return;
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('messages')
-        .select('id, media_url, media_type, text, created_at')
+        .select('id, media_url, media_type, text, created_at, deleted_at, view_limit')
         .eq('conversation_id', conversationId)
         .not('media_url', 'is', null)
+        .is('deleted_at', null)
+        .is('view_limit', null)
         .order('created_at', { ascending: false })
         .limit(200);
-      const rows = data || [];
+      if (error) throw error;
+      const rows = (await signChatMedia(data || [])).filter(row => !!row.media_url);
+      if (contextRef.current !== context) return;
       setMedia(rows.filter(r => r.media_type === 'image' || r.media_type === 'video' || r.media_type === 'gif') as MediaMsg[]);
       setFiles(rows.filter(r => r.media_type === 'document') as FileMsg[]);
     } catch (e) {
       console.log('[GROUP_MEDIA_LOAD_ERR]', e);
     }
-  }, [conversationId]);
+  }, [conversationId, myId, context]);
 
+  useEffect(() => { setMedia([]); setFiles([]); setMembers([]); setAvatarUrl(null); }, [context]);
   useEffect(() => { loadAll(); }, [loadAll]);
   useEffect(() => { loadMediaAndFiles(); }, [loadMediaAndFiles]);
 
@@ -333,7 +343,8 @@ export default function GroupManagementScreen({ route, navigation }: any) {
       );
       const { error } = await supabase.from('conversations').update({ group_avatar_url: url }).eq('id', conversationId);
       if (error) throw error;
-      setAvatarUrl(url);
+      const [signed] = await signGroupAvatars([{ group_avatar_url: url }]);
+      if (contextRef.current === context) setAvatarUrl(signed.group_avatar_url || null);
     } catch (e: any) {
       Alert.alert('Error', 'Could not update group photo: ' + (e?.message || ''));
     } finally {

@@ -1,0 +1,20 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+const ts = require('typescript');
+const source = fs.readFileSync(path.join(__dirname, '../lib/paymentReporting.ts'), 'utf8');
+const moduleObject = { exports: {} };
+vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText, { exports: moduleObject.exports, module: moduleObject });
+const { paymentTotals, isPaymentInFlight, paymentCurrency } = moduleObject.exports;
+
+assert.equal(paymentTotals([{ amount: 10, currency: 'USD' }, { amount: 20, currency: 'ZWG' }, { amount: '2.50', currency: 'usd' }]), 'USD 12.50 · ZWG 20.00');
+assert.equal(paymentTotals([{ amount: 10, currency: 'USD' }, { amount: 20, currency: 'ZWG' }, { amount: 30, currency: 'USD' }], true), 'USD 20.00 · ZWG 20.00');
+assert.equal(paymentTotals([{ amount: 5, currency: null }, { amount: 10, currency: 'USD' }]), 'Unknown currency 5.00 · USD 10.00');
+assert.equal(paymentTotals([]), '—');
+assert.throws(() => paymentTotals([{ amount: 'not money', currency: 'USD' }]));
+assert.equal(paymentCurrency(' zwg '), 'ZWG');
+assert.equal(isPaymentInFlight('pending'), true);
+assert.equal(isPaymentInFlight('processing'), true);
+for (const status of ['refunded', 'cancelled', 'failed', 'completed', 'unknown']) assert.equal(isPaymentInFlight(status), false, status);
+console.log('Payment reporting: 13 assertions passed. Mixed currencies stay separate; refunded/cancelled are not in flight.');

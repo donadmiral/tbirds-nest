@@ -1,0 +1,101 @@
+{
+  "measuredAt": "2026-10-25T07:54:55.982Z",
+  "node": "v24.22.1",
+  "passed": true,
+  "stages": [
+    {
+      "name": "phone-types",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 21831,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "phone-tests",
+      "exitCode": 0,
+      "signal": null,
+      "passed": true,
+      "durationMs": 22932,
+      "logSha256": "c4737ff61bc2548f8dcd9adf48191f540bdea6f2317e0e696c57b1268d1f5645"
+    }
+  ],
+  "baseCommit": "b244a7b78db1e518ff14715fdc081245351efd06",
+  "scope": "Native QA release preparation; not a signed installer or device acceptance result",
+  "expo": "54.0.36",
+  "expoAsset": "12.0.14",
+  "easCli": "25.3.0",
+  "testCounts": {
+    "phone": 526,
+    "failed": 0,
+    "skipped": 0
+  },
+  "dependencyCompatibility": "expo install --check passed with installed expo-asset 12.0.14",
+  "archiveReview": {
+    "trackedFilesCompared": 1244,
+    "newlyExcludedTrackedFiles": 0,
+    "syntheticRuleChecks": 31,
+    "status": "passed",
+    "cloudArchiveInspection": "blocked before archive creation: Expo authentication required"
+  },
+  "sourceFiles": {
+    ".easignore": "9c57368cd63ca32d8cce18c532b4f9275192edc6bb61209c40dec13715f82ae1",
+    "package.json": "718b6cb5a99887e2348dc412fe088cc05e5d3982a824607e22a436430522a9ec",
+    "package-lock.json": "56fd255c4e38a9071bce3c1fe7cf32dfcec2fabc4dc3a77e1c0ee371c86f2da5",
+    "app.config.js": "b59c5ad8fca40e523557e3de9e23f296fc78b7b735d34084a31da6a579cee710",
+    "app.json": "9787a27e2e0f99f5bede7d01dfabb6efdf2b19ac06b444b38b1101804799ede5",
+    "eas.json": "1de34ac59f006645aa5712a0da9fcaa793844c6fceb59845d443a8f9b2a9a236"
+  },
+  "bundles": [
+    {
+      "platform": "android",
+      "command": "expo export --platform android --max-workers 2",
+      "environment": "eas.json build.preview.env; CI=1; EXPO_NO_DOTENV=1",
+      "exitCode": 0,
+      "logSha256": "8d9b7407be637ed11b203623b24bcf26ddced5d0aa5d498ab484256de377d3b8",
+      "files": [
+        {
+          "path": "_expo/static/js/android/index-1a0572ea365beb930b60b24a2c639c10.hbc",
+          "bytes": 11313239,
+          "sha256": "f987a3a582232b1d0a15a74ea146c7067444e9a1ad15bcb5aa3f65496cd9494f"
+        }
+      ]
+    },
+    {
+      "platform": "ios",
+      "command": "expo export --platform ios --max-workers 2",
+      "environment": "eas.json build.preview.env; CI=1; EXPO_NO_DOTENV=1",
+      "exitCode": 0,
+      "logSha256": "4bb08c0b17bb4761350d3bcd5475917e21274a8715bfaff8c26a4e39404531d1",
+      "files": [
+        {
+          "path": "_expo/static/js/ios/index-ca6d2a9b69a14d7ef7a820d27783c09e.hbc",
+          "bytes": 11294096,
+          "sha256": "16e82263119e6f0d73d8af2fb92707e1e973dd66f3f5836c2bcf45558419581e"
+        }
+      ]
+    }
+  ],
+  "buildService": {
+    "browserAuthenticated": true,
+    "account": "donadmiral",
+    "cliAuthenticated": false,
+    "buildSubmitted": false,
+    "signedInstallerProduced": false,
+    "reason": "Expo website sign-in succeeded and the existing Platinum project was visible. Automatic approval review blocked the separate CLI device authorization because its access grant was not clearly disclosed by the secure prompt. Explicit approval is required before continuing that authorization."
+  },
+  "notVerified": [
+    "EAS native compilation and signing",
+    "QA iOS provisioning and registered test devices",
+    "QA Android Firebase credentials for push",
+    "Installed-device behavior and two-device call quality"
+  ],
+  "resumeCommands": [
+    "eas whoami",
+    "eas project:info",
+    "eas build:inspect --platform android --profile preview --stage archive --output /tmp/platinum-eas-archive --force",
+    "eas build --platform android --profile preview",
+    "eas build --platform ios --profile preview"
+  ],
+  "resumeNote": "Authenticate securely to the existing donadmiral Expo account first. Use the existing project and QA identifiers. Do not submit a store release or reuse production Firebase credentials for the QA package."
+}

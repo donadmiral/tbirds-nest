@@ -1,52 +1,27 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { Heart, Plus } from "lucide-react";
-import { COVER_COLORS, getMemoryBooks, type MemoryBookInfo } from "@/lib/memoryAlbum";
-
-export function MemoryAlbumBook({ profileId }: { profileId: string }) {
-  const [books, setBooks] = useState<MemoryBookInfo[]>([]);
-  const [isOwner, setIsOwner] = useState(false);
-
-  useEffect(() => {
-    let on = true;
-    getMemoryBooks(profileId).then((shelf) => {
-      if (!on) return;
-      setIsOwner(shelf.is_owner);
-      setBooks(shelf.is_owner ? shelf.books : shelf.books.filter(b => (b.count ?? 0) > 0));
-    });
-    return () => { on = false; };
-  }, [profileId]);
-
-  if (books.length === 0) return null;
-
-  return (
-    <div className="px-1 pb-5">
-      <p className="mb-2 text-[13px] font-semibold text-ink">Memory books</p>
-      <div className="flex gap-4 overflow-x-auto pb-1">
-        {books.map(b => {
-          const c = COVER_COLORS[b.cover_color] ?? COVER_COLORS.blush;
-          return (
-            <Link key={b.id} href={"/album/" + b.id} className="group shrink-0 text-center">
-              <span className="relative block h-[92px] w-[74px]">
-                <span className="absolute left-[4px] top-[4px] block h-[84px] w-[66px] rounded-r-[10px] rounded-l-[6px]" style={{ background: c.spine, opacity: 0.55 }} />
-                <span className="absolute left-0 top-0 flex h-[84px] w-[66px] overflow-hidden rounded-r-[10px] rounded-l-[6px] border border-ink/10 transition-transform group-hover:-translate-y-0.5" style={{ background: c.cover }}>
-                  <span className="block h-full w-[12px]" style={{ background: c.spine }} />
-                  <span className="flex flex-1 flex-col items-center justify-center gap-1 px-1">
-                    <Heart size={13} style={{ color: c.text }} />
-                    <span className="line-clamp-2 text-center font-display text-[10.5px] leading-tight" style={{ color: c.text }}>{b.title}</span>
-                  </span>
-                </span>
-              </span>
-              <span className="mt-1 block w-[74px] truncate text-[11px] text-ink/50">{b.count === 1 ? "1 memory" : String(b.count ?? 0) + " memories"}</span>
-            </Link>
-          );
-        })}
-        {isOwner ? (
-          <span className="flex h-[92px] w-[74px] shrink-0 items-center justify-center rounded-[10px] border border-dashed border-ink/20 text-ink/30" title="Create books in the app"><Plus size={18} /></span>
-        ) : null}
-      </div>
-    </div>
-  );
+'use client';
+import {useEffect,useRef,useState} from 'react';
+import Link from 'next/link';
+import {useRouter} from 'next/navigation';
+import {Plus,X,Search,Lock,Globe,Users} from 'lucide-react';
+import {getMemoryBooks,type MemoryBookInfo} from '@/lib/memoryAlbum';
+import {createClient} from '@/lib/supabase/client';
+import {memoryCoverMedia,memoryAudienceLabel} from '../../shared/memoryBookDesign';
+import {ResponsiveMemoryBookCover} from './memory/MemoryBookCover';
+import {MemoryBookDesigner} from './memory/MemoryBookDesigner';
+import {useMemoryDialog} from './memory/useMemoryDialog';
+export function MemoryAlbumBook({profileId}:{profileId:string}) {
+ const router=useRouter(),client=useRef(createClient()).current;
+ const [books,setBooks]=useState<MemoryBookInfo[]>([]),[isOwner,setIsOwner]=useState(false),[error,setError]=useState(''),[attempt,setAttempt]=useState(0),[creating,setCreating]=useState(false),[collection,setCollection]=useState(false),[query,setQuery]=useState(''),[filter,setFilter]=useState('All');const epoch=useRef(0),viewer=useRef<string|null|undefined>(undefined),loadedProfile=useRef<string|null>(null);
+ const dialog=useMemoryDialog(collection,()=>setCollection(false));
+ const [loading,setLoading]=useState(true),[loaded,setLoaded]=useState(false);
+ useEffect(()=>{const g=++epoch.current;if(loadedProfile.current!==profileId){loadedProfile.current=profileId;setBooks([]);setIsOwner(false);setLoaded(false);}setLoading(true);setError('');void getMemoryBooks(profileId).then(s=>{if(g!==epoch.current)return;setIsOwner(s.is_owner);setBooks(s.books.filter(b=>s.is_owner||b.count>0));setLoaded(true);}).catch(()=>{if(g===epoch.current)setError('Memory books could not load. Retry.');}).finally(()=>{if(g===epoch.current)setLoading(false);});return()=>{epoch.current++;};},[profileId,attempt]);
+ useEffect(()=>{const {data:{subscription}}=client.auth.onAuthStateChange((_event,session)=>{const next=session?.user.id??null;if(viewer.current===next)return;viewer.current=next;epoch.current++;setCreating(false);setCollection(false);setBooks([]);setIsOwner(false);setLoaded(false);setAttempt(x=>x+1);});return()=>subscription.unsubscribe();},[client]);
+ useEffect(()=>{const refresh=()=>{if(!document.hidden)setAttempt(x=>x+1);};const timer=setInterval(refresh,240000);window.addEventListener('focus',refresh);document.addEventListener('visibilitychange',refresh);return()=>{clearInterval(timer);window.removeEventListener('focus',refresh);document.removeEventListener('visibilitychange',refresh);};},[]);
+ if(loaded&&!books.length&&!isOwner&&!error)return null;
+ const filtered=books.filter(b=>(b.title+' '+(b.subtitle??'')).toLowerCase().includes(query.toLowerCase())&&(filter==='All'||(filter==='Public'?b.audience==='profile':b.audience!=='profile')));
+ const card=(b:MemoryBookInfo,audience=false)=><Link key={b.id} href={'/album/'+b.id} onClick={()=>setCollection(false)} aria-label={`${b.title}, ${b.count} memories`} className="group block min-w-0"><span className="block transition-transform duration-200 group-hover:-translate-y-1 motion-reduce:transform-none"><ResponsiveMemoryBookCover title={b.title} subtitle={b.subtitle} color={b.cover_color} design={b.cover_design} {...memoryCoverMedia(b.cover_page)}/></span><span className="mt-3 block truncate font-display text-lg text-ink">{b.title}</span><span className="mt-1 flex items-center gap-1.5 text-xs text-muted">{audience?<>{b.audience==='only_me'?<Lock size={12}/>:b.audience==='profile'?<Globe size={12}/>:<Users size={12}/>} {memoryAudienceLabel(b.audience)}</>:b.count+' '+(b.count===1?'memory':'memories')}</span></Link>;
+ return <section className="border-y border-ink/10 px-1 pb-5 pt-3"><header className="mb-3 flex items-center justify-between"><h2 className="text-lg font-semibold text-ink">Memory books</h2>{!!books.length&&<button onClick={()=>setCollection(true)} className="min-h-11 text-sm text-muted">View all</button>}</header>{error&&!creating&&<button className="mb-4 text-sm text-muted underline" onClick={()=>setAttempt(x=>x+1)}>{error}</button>}<div className="grid grid-cols-2 gap-4 pb-4 sm:max-w-[440px] sm:gap-5">{loading&&!books.length&&!isOwner&&<span role="status" aria-label="Loading memory books" className="block aspect-[200/262] animate-pulse rounded bg-ink/10 motion-reduce:animate-none"/>}{books.slice(0,2).map(b=>card(b))}</div>{isOwner&&<button onClick={()=>{setCreating(true);setError('');}} aria-label="Create memory book" className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-ink/25 text-sm text-ink"><Plus size={18}/>New book</button>}
+ {collection&&<div ref={dialog} tabIndex={-1} className="fixed inset-0 z-50 flex items-end justify-center bg-[#071326]/55 sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label="Your memory books" onKeyDown={e=>{if(e.key==='Escape')setCollection(false);}}><section className="flex max-h-[94dvh] w-full max-w-[660px] flex-col rounded-t-3xl bg-[var(--canvas)] p-5 text-ink shadow-2xl sm:rounded-3xl sm:p-7"><header className="mb-4 flex items-center justify-between"><h2 className="font-display text-2xl">Memory books</h2><button aria-label="Close memory books" onClick={()=>setCollection(false)} className="flex h-11 w-11 items-center justify-center"><X size={21}/></button></header><label className="mb-4 flex items-center gap-2 rounded-full bg-ink/5 px-4 py-3"><Search size={17} className="text-muted"/><input aria-label="Search memory books" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search your books" className="w-full bg-transparent text-sm outline-none"/></label><div className="mb-6 flex rounded-full bg-ink/5 p-1" role="tablist" aria-label="Book visibility">{['All','Public','Private'].map(f=><button key={f} role="tab" aria-selected={filter===f} onClick={()=>setFilter(f)} className={'min-h-10 flex-1 rounded-full text-sm '+(filter===f?'bg-pearl font-semibold text-on-pearl':'text-muted')}>{f}</button>)}</div><div className="overflow-y-auto px-1 pb-4"><div className="grid grid-cols-2 gap-x-5 gap-y-7">{filtered.map(b=>card(b,true))}</div>{!filtered.length&&<p className="py-10 text-center text-sm text-muted">No books match your search.</p>}</div>{isOwner&&<button onClick={()=>{setCollection(false);setCreating(true);}} className="mt-3 flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-[#142642] font-display text-lg text-white"><Plus size={20}/>New book</button>}</section></div>}
+ {creating&&<MemoryBookDesigner ownerId={profileId} onClose={()=>setCreating(false)} onCreated={id=>{setCreating(false);router.push('/album/'+id);}}/>}
+ </section>;
 }
