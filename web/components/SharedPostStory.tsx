@@ -38,7 +38,7 @@ export function SharedPostStory({ sticker, paused, preview = false }: { sticker:
   const top = Math.max(92 + frame.height / 2, Math.min(sticker.ny * stage.height, stage.height - 78 - frame.height / 2));
   const href = preview ? undefined : "/post/" + sticker.postId;
   const Link = preview ? "span" : "a";
-  return <div ref={ref} className={preview ? "pointer-events-none relative text-white" : "pointer-events-auto absolute text-white"} style={{ width: frame.width, ...(preview ? { height: frame.height } : { left: Math.max(frame.width / 2 + 8, Math.min(sticker.nx * stage.width, stage.width - frame.width / 2 - 8)), top, transform: `translate(-50%,-50%) rotate(${sticker.rotation || 0}rad) scale(${sticker.scale || 1})`, opacity: sticker.opacity ?? 1 }) }}>
+  return <div ref={ref} className={preview ? "pointer-events-none relative text-white" : "pointer-events-auto absolute text-white"} style={{ width: frame.width, ...(preview ? { minHeight: frame.height } : { left: Math.max(frame.width / 2 + 8, Math.min(sticker.nx * stage.width, stage.width - frame.width / 2 - 8)), top, transform: `translate(-50%,-50%) rotate(${sticker.rotation || 0}rad) scale(${sticker.scale || 1})`, opacity: sticker.opacity ?? 1 }) }}>
     {sticker.postText || sticker.postArticleTitle ? <Link href={href} className="flex flex-col justify-end pb-3.5 text-center text-[16px] leading-[22px] text-white [text-shadow:0_2px_8px_#0008]" style={{ minHeight: frame.captionHeight }}>
       {sticker.postArticleTitle ? <span className="line-clamp-2 font-bold">{sticker.postArticleTitle}</span> : null}
       {sticker.postText ? <span className="line-clamp-3 font-medium">{sticker.postText}</span> : null}

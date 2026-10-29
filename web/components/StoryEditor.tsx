@@ -12,6 +12,7 @@ import { DrawSvg, extraFontCss, STICKER_ANIM_CSS } from "./StoryEngine";
 import { StoryStickerPreview } from "@/components/StoryStickerPreview";
 import { createClient } from "@/lib/supabase/client";
 import { currentTextMentions, storyHandles } from "../../shared/storyMentions";
+import { useStoryPostEditorFit } from "./useStoryPostEditorFit";
 
 const KINDS = ["text", "emoji", "link", "question", "quiz", "slider", "countdown", "addyours", "hashtag", "location", "mention"] as const;
 const buttonClass = studio.button;
@@ -25,6 +26,7 @@ export function StoryEditor({ children, value, onChange, onNext, onOpenEdit, onC
   clips?: { id: string; thumbnail: ReactNode; selected: boolean }[]; onSelectClip?: (id: string) => void; onRemoveClip?: (id: string) => void; onAddClip?: () => void;
   onOpenMusic?: () => void; onOpenTiming?: () => void; onOpenDraw?: () => void; duration?: number; clock?: number; onTogglePreview?: () => void; previewPlaying?: boolean;
 }) {
+  const { stageRef, topbarRef, dockRef, keepOwnerPlacement } = useStoryPostEditorFit(value, onChange);
   const [panel, setPanel] = useState<"none" | "gallery" | "add" | "selected">("none");
   const [galleryTab, setGalleryTab] = useState<"foryou" | "saved" | "recent">("foryou");
   const [search, setSearch] = useState("");
@@ -118,7 +120,7 @@ export function StoryEditor({ children, value, onChange, onNext, onOpenEdit, onC
   const active = value.find(s => s.id === selected);
   const editableText = !active?.kind || active.kind === "text" || active.kind === "emoji";
   const commit = (next: StoryTextSticker[]) => { if (!(panel === "selected" && editableText && textSession.current)) { setHistory(h => [...h.slice(-29), value]); setFuture([]); } onChange(next); };
-  const update = (patch: Partial<StoryTextSticker>) => commit(value.map(s => s.id === selected ? { ...s, ...patch } : s));
+  const update = (patch: Partial<StoryTextSticker>) => { if (selected && ('nx' in patch || 'ny' in patch || 'scale' in patch || 'rotation' in patch)) keepOwnerPlacement(selected); commit(value.map(s => s.id === selected ? { ...s, ...patch } : s)); };
   async function add(extra?: Partial<StoryTextSticker>) {
     const request = mentionRequest.current;
     const label = extra?.text ?? text.trim();
@@ -160,29 +162,29 @@ export function StoryEditor({ children, value, onChange, onNext, onOpenEdit, onC
   const finishText = (save: boolean) => { const start = textSession.current; if (!save && start) onChange(start); else { const next = value.filter(s => s.id !== selected || s.text.trim()); if (start && JSON.stringify(start) !== JSON.stringify(next)) { setHistory(h => [...h.slice(-29), start]); setFuture([]); } onChange(next); } textSession.current = null; setPanel("none"); };
   const label = (item: string) => item === "luxury" ? "Editorial" : item === "typewriter" ? "Mono" : item === "addyours" ? "Add yours" : item[0].toUpperCase() + item.slice(1);
   const galleryKinds = (galleryTab === "saved" ? KINDS.filter(k => favorites.includes(k)) : galleryTab === "recent" ? recents.filter(k => KINDS.includes(k as typeof KINDS[number])) as (typeof KINDS[number])[] : ["location", "mention", "question", "quiz", "link", "slider", "countdown", "addyours", "hashtag", "emoji", "text"] as const).filter(k => label(k).toLowerCase().includes(search.toLowerCase()));
-  const undo = () => { setFuture(f => [...f, value]); onChange(history[history.length - 1]); setHistory(h => h.slice(0, -1)); };
-  const redo = () => { setHistory(h => [...h, value]); onChange(future[future.length - 1]); setFuture(f => f.slice(0, -1)); };
+  const undo = () => { keepOwnerPlacement(); setFuture(f => [...f, value]); onChange(history[history.length - 1]); setHistory(h => h.slice(0, -1)); };
+  const redo = () => { keepOwnerPlacement(); setHistory(h => [...h, value]); onChange(future[future.length - 1]); setFuture(f => f.slice(0, -1)); };
   return <div className={studio.studio}>
     <style>{STICKER_ANIM_CSS}</style>
-    <div className={studio.stage} data-story-stage>
+    <div ref={stageRef} className={studio.stage} data-story-stage>
       <div className={studio.stageMedia}>{children}</div>
       <DrawSvg stickers={value} />
       {guides.vertical ? <div aria-hidden className="pointer-events-none absolute inset-y-0 left-1/2 z-10 w-px bg-white/80" /> : null}
       {guides.horizontal ? <div aria-hidden className="pointer-events-none absolute inset-x-0 top-1/2 z-10 h-px bg-white/80" /> : null}
       <div className="pointer-events-none absolute inset-0 z-[2]" aria-label="Story stickers">
-        {value.filter(s => s.kind !== "drawing" && !(panel === "selected" && editableText && s.id === selected) && (clock == null || (s.startSec == null || clock >= s.startSec) && (s.endSec == null || clock <= s.endSec))).map(s => <button key={s.id} type="button" aria-label={`Edit ${s.kind || "text"} sticker: ${s.text}`} aria-pressed={selected === s.id}
+        {value.filter(s => s.kind !== "drawing" && !(panel === "selected" && editableText && s.id === selected) && (clock == null || (s.startSec == null || clock >= s.startSec) && (s.endSec == null || clock <= s.endSec))).map(s => <button key={s.id} type="button" data-story-post-id={s.kind === "post" ? s.id : undefined} aria-label={`Edit ${s.kind || "text"} sticker: ${s.text}`} aria-pressed={selected === s.id}
           className="pointer-events-auto absolute max-w-[80%] touch-none select-none whitespace-pre-wrap rounded-xl px-3 py-2 text-center text-base font-bold outline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
           style={{ maxWidth: s.kind === "post" ? "100%" : undefined, padding: s.kind === "post" ? 0 : undefined, left: `${s.nx * 100}%`, top: `${s.ny * 100}%`, transform: `translate(-50%,-50%) rotate(${s.rotation}rad) scale(${s.scale})`, color: s.color, background: "transparent", boxShadow: selected === s.id ? "0 0 0 2px #E8D3B6" : undefined }}
           onClick={() => { if (dragged.current) { dragged.current = false; return; } textSession.current = value; setSelected(s.id); setTextTab("font"); setPanel("selected"); }}
-          onPointerDown={e => { if (e.button !== 0) return; dragged.current = false; setSelected(s.id); e.currentTarget.setPointerCapture(e.pointerId); drag.current = { id: s.id, start: value, box: e.currentTarget.parentElement!.getBoundingClientRect(), x: e.clientX, y: e.clientY, moved: false }; }}
+          onPointerDown={e => { if (e.button !== 0) return; keepOwnerPlacement(s.id); dragged.current = false; setSelected(s.id); e.currentTarget.setPointerCapture(e.pointerId); drag.current = { id: s.id, start: value, box: e.currentTarget.parentElement!.getBoundingClientRect(), x: e.clientX, y: e.clientY, moved: false }; }}
           onPointerMove={e => { const d = drag.current; if (!d || d.id !== s.id || !e.currentTarget.hasPointerCapture(e.pointerId)) return; const original = d.start.find(x => x.id === s.id)!; const dx = e.clientX - d.x, dy = e.clientY - d.y; if (!d.moved && Math.hypot(dx, dy) < 3) return; d.moved = true; const next = moveStorySticker(original, dx, dy, d.box.width, d.box.height); setGuides({ vertical: next.vertical, horizontal: next.horizontal }); onChange(d.start.map(x => x.id === s.id ? { ...x, nx: next.nx, ny: next.ny } : x)); }}
           onPointerUp={() => { if (drag.current?.moved) { dragged.current = true; const start = drag.current.start; setHistory(h => [...h.slice(-29), start]); setFuture([]); } drag.current = null; setGuides({ vertical: false, horizontal: false }); }}
           onPointerCancel={() => { if (drag.current?.moved) onChange(drag.current.start); drag.current = null; setGuides({ vertical: false, horizontal: false }); }}
-          onKeyDown={e => { if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); commit(value.filter(x => x.id !== s.id)); setSelected(null); return; } if (e.key === "Escape") { setSelected(null); return; } const offset = e.shiftKey ? .05 : .01; if (e.key.startsWith("Arrow")) { e.preventDefault(); setSelected(s.id); commit(value.map(x => x.id !== s.id ? x : { ...x, nx: clamp(x.nx + (e.key === "ArrowRight" ? offset : e.key === "ArrowLeft" ? -offset : 0), .05, .95), ny: clamp(x.ny + (e.key === "ArrowDown" ? offset : e.key === "ArrowUp" ? -offset : 0), .05, .95) })); } }}>
+          onKeyDown={e => { if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); commit(value.filter(x => x.id !== s.id)); setSelected(null); return; } if (e.key === "Escape") { setSelected(null); return; } const offset = e.shiftKey ? .05 : .01; if (e.key.startsWith("Arrow")) { e.preventDefault(); keepOwnerPlacement(s.id); setSelected(s.id); commit(value.map(x => x.id !== s.id ? x : { ...x, nx: clamp(x.nx + (e.key === "ArrowRight" ? offset : e.key === "ArrowLeft" ? -offset : 0), .05, .95), ny: clamp(x.ny + (e.key === "ArrowDown" ? offset : e.key === "ArrowUp" ? -offset : 0), .05, .95) })); } }}>
           <StoryStickerPreview sticker={s} />
         </button>)}
       </div>
-      <div className={studio.topbar}>
+      <div ref={topbarRef} className={studio.topbar}>
         {onClose ? <button type="button" className={studio.icon} aria-label="Remove current story media" onClick={onClose}><X size={21} /></button> : null}
         <span className={studio.topbarSpacer} />
         <button type="button" className={studio.icon} aria-label="Add story text" onClick={() => openKind("text")}><Type size={22} /></button>
@@ -192,7 +194,7 @@ export function StoryEditor({ children, value, onChange, onNext, onOpenEdit, onC
       </div>
       {onTogglePreview ? <button type="button" className={`${studio.icon} ${studio.previewPlay}`} aria-label={previewPlaying ? "Pause story preview" : "Play story preview"} onClick={onTogglePreview}>{previewPlaying ? <Pause size={19} /> : <Play size={19} />}</button> : null}
       {history.length || future.length ? <div className={studio.history}><button type="button" className={studio.icon} aria-label="Undo story edit" disabled={!history.length} onClick={undo}><Undo2 size={18} /></button><button type="button" className={studio.icon} aria-label="Redo story edit" disabled={!future.length} onClick={redo}><Redo2 size={18} /></button></div> : null}
-      <div className={studio.dock}>
+      <div ref={dockRef} className={studio.dock}>
         <div className={studio.dockTop}><div className={studio.filmstrip}>{clips?.length ? clips.map((clip, index) => <div className={studio.filmstripItem} key={clip.id}><button type="button" className={studio.thumb} aria-label={`Edit story clip ${index + 1}`} aria-current={clip.selected} onClick={() => onSelectClip?.(clip.id)}>{clip.thumbnail}</button>{onRemoveClip && clips.length > 1 ? <button type="button" aria-label={`Remove story clip ${index + 1}`} className={studio.clipRemove} onClick={() => onRemoveClip(clip.id)}><X size={11} /></button> : null}</div>) : <span className={studio.thumb}>{thumbnail || "Aa"}</span>}{onAddClip ? <button type="button" className={studio.addClip} aria-label="Add story clips" onClick={onAddClip}><Plus size={24} /></button> : null}</div>{onAudience ? <button type="button" className={studio.audience} onClick={onAudience}><Globe2 size={15} />{audience}<ChevronDown size={14} /></button> : null}</div>
         <div className={studio.dockTools} style={{ overflowX: "auto", paddingBottom: 2 }}>
           <button type="button" className={studio.dockTool} onClick={() => openKind("text")}><Type size={24} />Text</button>

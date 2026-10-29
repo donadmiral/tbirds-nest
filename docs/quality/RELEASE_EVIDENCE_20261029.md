@@ -1,31 +1,36 @@
 # Release evidence — 2026-10-29
 
-**Status: the reviewed production database rollout and both required media endpoints are deployed and verified. iPhone build 16 has finished and was submitted successfully to App Store Connect; Apple is processing it. Production frontend promotion, TestFlight availability, distribution/installation and installed-device verification remain pending receipts.** Readiness of a QA deployment does not establish production frontend delivery.
+**Status: the reviewed production database rollout and both required media endpoints are deployed and verified. iPhone build 16 is Apple `VALID` / `READY_FOR_BETA_TESTING` and available to the existing internal Don and Team (Expo) groups; installation on a physical iPhone has not been verified. Production frontend promotion remains pending. The web editor footer overlap is repaired and has passed focused tests; its deployment still needs a browser check.** Readiness of a QA deployment does not establish production frontend delivery.
 
 ## Identified versions
 
 | Item | Recorded evidence |
 | --- | --- |
 | Tested frontend source | `31c2251c37d082af9cdcdae58cefb1968008c36a` |
-| GitHub CI | Run `40827013295`: all three jobs succeeded, as reported by the release owner. The phone job includes the committed RPC suite. |
+| Backend/operations evidence commit | `1bffc3234e350855804bfad4c8895dd13303496e` |
+| GitHub CI | Run `40828809871`: all three jobs succeeded for `1bffc3234e350855804bfad4c8895dd13303496e`, as reported by the release owner. Earlier frontend run `40827013295` also passed all three jobs for `31c2251`. The phone job includes the committed RPC suite. |
 | QA web and admin | Deployments from `31c2251` are `READY`; QA aliases were reloaded for verification. |
-| Production iOS build | Build **16**, EAS ID `df17a360-0dcd-4ece-9624-4dc2084c10c8`: **FINISHED**, artifact exists and **submitted successfully to App Store Connect; Apple processing**. |
+| Production iOS build | Build **16**, EAS ID `df17a360-0dcd-4ece-9624-4dc2084c10c8`: **FINISHED**, submitted successfully to App Store Connect, Apple **`VALID` / `READY_FOR_BETA_TESTING`**. |
 | iOS submission | EAS submit completed **SUCCESS, exit 0**. Submission `21c8a8ae-68af-4a35-a6dc-8c206021681e`: [submission receipt](https://expo.dev/accounts/donadmiral/projects/platinum-circles/submissions/21c8a8ae-68af-4a35-a6dc-8c206021681e). |
-| TestFlight destination | [App Store Connect TestFlight](https://appstoreconnect.apple.com/apps/6764038613/testflight/ios); availability to testers and installation have not yet been verified. |
+| TestFlight destination | [App Store Connect TestFlight](https://appstoreconnect.apple.com/apps/6764038613/testflight/ios). A read-only SDK check verified assignment to the existing internal **Don** and **Team (Expo)** groups; no assignment changes were made. Build 16 is ready for Don in TestFlight; physical installation is unverified. |
 | Production bundle | `app.platinumcircles.mobile`; QA bundle `app.platinumcircles.mobile.qa` is separate. |
 | Production rollout | All 18 ordered units / 19 SQL source files are applied. The first seven additive units were retained; units 8–18 were applied successfully under the `platinum_visual_only_20261029_u08` through `_u18` release prefixes. |
 | Production media endpoints | `content-media-sign`: **ACTIVE v1**; `chat-media-sign`: **ACTIVE v15**. Both have `verify_jwt=true`; other endpoints remain held. |
 | Final manifest SHA-256 | `c3023f8dc69ba1b9e6857553c15bc337ede3b3ca0cbe7074632bba5ad14c2136` |
 
-The manifest hash includes the metadata correction from the obsolete “unit31” wording to the actual book **unit8**. SQL source hashes did not change. The final backend/ops/test changes remain separate from the identified frontend commit until the release owner records their commit.
+The manifest hash includes the metadata correction from the obsolete “unit31” wording to the actual book **unit8**. SQL source hashes did not change. The backend/ops/test release is recorded in commit `1bffc3234e350855804bfad4c8895dd13303496e`; the pending web footer repair is not covered by that commit's CI result.
 
 ## Observed QA behavior
 
-The release owner inspected the signed-in QA profile showing **six posts and two books**. A screenshot of the updated book reader confirms that saved text and its styling are visible. Both narrowly scoped QA patches—the book read projection and canonical public-post reference-card guard—were applied successfully.
+The release owner initially inspected the signed-in QA profile showing **six posts and two books**. The later walkthrough showed **seven posts**, and the **Release gallery** book contained **four pages**. A screenshot of the updated book reader confirms that saved text and its styling are visible. Both narrowly scoped QA patches—the book read projection and canonical public-post reference-card guard—were applied successfully.
+
+The later QA walkthrough used public post `dd607e75-0383-4f75-9301-c2f96aa8ae7d`: **Add to story → review with Followers audience and replies off → publish** displayed **“Your moment is shared”**. Adding the result to the Release gallery book was confirmed. A restricted followers-only post was rejected with a clear message. The profile reviewer also verified that the Music entry opens an unavailable panel without issuing catalog queries.
 
 The release owner also checked reader page 3: its video decoded at **720 × 1280**, reported `readyState=4` and no error, initialized at **0.5 seconds with playback rate 1.5**, and entered the playing state after clicking Play. This supplies actual browser evidence for decoding, the saved start/rate and playback; it does not by itself verify the entire trim-end loop.
 
 These observations cover that QA account and flow. They do not verify the physical iPhone build, every viewport/gesture, or a signed-in admin walkthrough.
+
+One concrete web editor footer overlap was found during this walkthrough. The web-only repair measures the real card, top tools and bottom dock, then persists a fitted initial placement without overriding owner edits. Twelve focused geometry/lifecycle tests passed, four restoration tests and thirteen existing editor/renderer cases passed, and web TypeScript passed. A second reviewer independently reran the twelve tests. Actual deployment/browser confirmation remains pending at this checkpoint. The published story viewer already displayed the caption, uncropped image, handle and working post links.
 
 ## Production receipts
 
@@ -45,7 +50,7 @@ The isolated suites cover book creation/cover/order/privacy and saved media reci
 
 Local and actual production before/after checks show that the chain leaves existing music state, the 21 audited finance/payment/market/hiring/support data sets and their relevant schema/functions/permissions, all Storage bucket settings/policies, and existing post-access helpers unchanged. Local managed Auth/Storage fixtures do not establish every hosted provider behavior; the separate production receipts above record the hosted checks actually performed.
 
-The release owner reports native, web and admin TypeScript gates passing; web tests passed across 41 files, admin tests passed 81 cases, and native tests passed 799 cases after rerunning 32 sandbox-dependent checks. GitHub CI success above applies to its identified committed inputs; the final local database run establishes the separately prepared rollout manifest.
+The release owner reports native, web and admin TypeScript gates passing; web tests passed across 41 files, admin tests passed 81 cases, and native tests passed 799 cases after rerunning 32 sandbox-dependent checks. GitHub CI success applies to the exact committed inputs identified above, including the backend/ops/test commit. The final local database run additionally establishes the complete rollout manifest; the in-progress footer repair needs its own checks.
 
 ## Explicit release boundaries
 
@@ -58,7 +63,8 @@ QA-only migrations `20261029055318_memory_book_reader_visual_projection.sql` and
 ## Evidence still required
 
 - Production web/admin alias promotion receipts and checks against those exact deployments.
-- Completion of Apple processing, TestFlight availability, distribution/installation status and actual physical-iPhone verification of build 16.
+- Browser verification of the deployed web editor footer overlap repair.
+- Actual installation and physical-iPhone verification of TestFlight build 16; Apple readiness and existing internal-group assignment are verified.
 - A signed-in admin visual walkthrough.
 - Web CameraKit secure configuration and live camera/lens behavior.
 
