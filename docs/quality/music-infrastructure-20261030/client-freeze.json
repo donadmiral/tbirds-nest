@@ -1,7 +1,7 @@
 {
   "createdAt": "2026-10-30T17:21:45.245617+00:00",
   "libraryStateTests": 8,
-  "infrastructureTests": 18,
+  "infrastructureTests": 19,
   "nativeTypes": "passed",
   "webTypes": "passed",
   "editedMusicLint": {
@@ -20,7 +20,7 @@
     },
     {
       "path": "shared/musicUpload.ts",
-      "sha256": "bb7010c05ec23b6a9dc8a69a6c24102e89eab921cc46347427d368b4ca4364e3"
+      "sha256": "e7f12d82f4a0d7cb19cd0a4af6773d97ac0e8e7e159939e913291b927813dfc1"
     },
     {
       "path": "shared/originalAudioAvailability.ts",
@@ -52,7 +52,7 @@
     },
     {
       "path": "tests/quality/original-audio-infrastructure.cjs",
-      "sha256": "21e18ed9ef87c3bb60132380cfe9fb7fe81c267445924d2687e0d58509ed45c3"
+      "sha256": "a6821868d5e5ce60d2806369d535cf364a5a96aeab190a0e8891bf97a4c00820"
     },
     {
       "path": "src/services/storiesService.ts",
@@ -71,8 +71,18 @@
       "sha256": "c0f6206c23b59b1d6582344b60133513f8a8abd7cf8ae8875bdc871278db253d"
     }
   ],
-  "revision": 2,
+  "revision": 3,
   "storyAudioWebTests": 7,
   "serviceGuardTests": 4,
-  "rolloutGuard": "Soundtrack and story readers require capability version1; upload readiness is separate; non-original rows rejected."
+  "rolloutGuard": "Soundtrack and story readers require capability version1; upload readiness is separate; non-original rows rejected.",
+  "previousRevision": {
+    "revision": 2,
+    "scope": "Historical initial client freeze; retained-storage error copy and its regression are revised below."
+  },
+  "updatedAt": "2026-10-30T19:58:19.131347+00:00",
+  "retainedCapacityFollowup": {
+    "sharedUploadLint": "zero errors or warnings",
+    "infrastructureChecks": "19 passed",
+    "scope": "Quota failure copy only; no other client runtime changed by this followup."
+  }
 }

@@ -10,20 +10,21 @@
   "interpretation": "Implemented source, local synthetic tests, QA installation and production installation are separate states. A source/build/CI pass never implies a hosted migration, provider action or physical-device pass.",
   "coverage": {
     "music": {
-      "implementedSource": "Private original-audio upload/library/favorites, byte-verified finalization, audience/reuse/export distinctions, story/post/book attachment, no-store delivery/revocation, admin licensing drafts and erasure integration. Upload readiness defaults off; commercial catalogue remains disabled.",
-      "locallyExercised": "22/22 database cases in each of two dependency modes, independently repeated; 18/18 parser/Edge/upload cases. Both SQL modes reran after CI registration. Browser export CI is separate and still under repair at this receipt.",
+      "implementedSource": "Private original-audio upload/library/favorites, byte-verified finalization, audience/reuse/export distinctions, story/post/book attachment, no-store delivery/revocation, admin licensing drafts and erasure integration. Upload readiness defaults off; commercial catalogue remains disabled. Revision3 adds a retained1,000-record/1GiB budget, charging50MiB per unverified slot across all ages/statuses and verified bytes after finalization/revocation.",
+      "locallyExercised": "Current revision3:31/31 database cases in each dependency mode and19/19 parser/Edge/upload cases, each independently rerun with zero failures/skips. Both SQL modes are registered in CI. Browser export CI is separate and is not inferred from these cases.",
       "qa": {
         "status": "not_installed",
         "observedAt": "2026-10-30T17:20:06.855532+00:00",
-        "detail": "After the stalled apply, schema, bucket, reserve/finish/capability/metadata RPCs and migration history were absent. Prior definitions/ACLs unchanged; no active candidate transaction or waiting lock. No Edge rollout or readiness activation."
+        "detail": "Historical revision2 stalled apply postflight: schema, bucket, reserve/finish/capability/metadata RPCs and migration history absent; prior definitions/ACLs unchanged, no active candidate transaction or waiting lock. Revision3 retained-capacity candidate has not been submitted. No Edge rollout or readiness activation."
       },
       "production": {
         "status": "not_deployed",
         "detail": "No music rollout occurred. Required private-media delivery and account-erasure prerequisites were absent in the recorded production inspection; this candidate cannot be applied alone."
       },
-      "remaining": "Recover migration transport, verify exact QA install and Edge bundles, then perform authenticated upload/publication/revoke/erase acceptance before readiness. Native whole-book composed export, animated/nested/dual-camera movie export and abandoned-upload scheduled cleanup remain outside the implemented scope. Catalogue licensing/activation remains the requested later handoff.",
+      "remaining": "Recover migration transport, verify exact revision3 QA install and Edge bundles, then authenticated upload/publication/revoke/erase acceptance before readiness. Native whole-book composed export and animated/nested/dual-camera movie export remain unsupported. Automatic abandoned-upload cleanup remains an operational limitation; retained capacity is now bounded and stays charged until bytes are actually removed. Catalogue licensing/activation remains the requested later handoff.",
       "evidence": [
-        "musicReview",
+        "musicQuotaReview",
+        "musicHistoricalReview",
         "musicInstall",
         "musicCandidate",
         "musicScope",
@@ -92,7 +93,7 @@
     },
     "accountErasure": {
       "implementedSource": "Retryable private queue, dedicated worker authentication/leases, Storage API deletion before acknowledgment, cache wait, application cleanup/Auth deletion, write fences, operator holds and restore prevention.",
-      "locallyExercised": "Latest generic rerun: 10 worker/client + 11 erasure-chain + 20 operator cases passed. Music tests additionally exercise original-object queueing, false acknowledgments, finalizer denial and Auth cascade cleanup on synthetic records.",
+      "locallyExercised": "Latest generic rerun: 10 worker/client + 11 erasure-chain + 20 operator cases passed. Music tests additionally exercise original-object queueing, false acknowledgments, finalizer denial and Auth cascade cleanup on synthetic records. Current music quota regression additionally verifies erasure queues an expired unfinalized object with no published sound.",
       "qa": {
         "status": "installed_without_disposable_account_acceptance",
         "observedAt": "2026-10-30T16:31:12.463421+00:00",
@@ -109,7 +110,7 @@
         "security",
         "privacy",
         "erasureOperatorQa",
-        "musicReview"
+        "musicQuotaReview"
       ]
     },
     "adminContracts": {
@@ -193,7 +194,9 @@
       "resultReceived": false,
       "waitSeconds": 738.4,
       "postflight": "Absent schema/bucket/RPCs/history, unchanged definitions, no active candidate transaction or waiting lock at 17:20:06 UTC.",
-      "evidence": "musicInstall"
+      "evidence": "musicInstall",
+      "revision": 2,
+      "currentRevision3Attempted": false
     },
     "actionsNotTaken": [
       "No blind second pending apply",
@@ -212,21 +215,30 @@
     "focusedChecks": [
       {
         "command": "node supabase/tests/rpc-authorization/test-original-music-library.mjs",
-        "passed": 22,
+        "passed": 31,
         "failed": 0,
         "skipped": 0
       },
       {
         "command": "MUSIC_FIXTURE_PREEXISTING=1 node supabase/tests/rpc-authorization/test-original-music-library.mjs",
-        "passed": 22,
+        "passed": 31,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "command": "node tests/quality/original-audio-infrastructure.cjs",
+        "passed": 19,
         "failed": 0,
         "skipped": 0
       }
     ],
     "hostedCiForThisRegistration": "Pending publication; not claimed passed.",
     "frozenMusicBackend": {
+      "revision": 3,
       "filesCompared": 7,
-      "allHashesMatchRevision2": true
+      "allHashesMatchCurrentCandidate": true,
+      "unchangedEdgeOrSharedParserFilesFromRevision2": 6,
+      "sqlChange": "Retained-capacity quota only; historical revision2 receipts retain their exact old hash."
     },
     "businessCandidate": {
       "unchangedFiles": 21,
@@ -236,10 +248,15 @@
       ],
       "currentConfigSha256": "73058a11d541dd09711dffe28063f35aea94e3001d1d021840432f73a11ea3d3"
     },
-    "reviewBoundary": "No additional blocking source integration mismatch identified in this targeted receipt/hash/runner review. Known unsupported composition/provider/device and hosted-installation work remains explicitly open."
+    "reviewBoundary": "Two source integration issues were found and fixed: persistent music SQL CI registration and retained-storage quota accounting. Both are locally verified; quota also independently reviewed and rerun. No further runtime expansion occurred. Known unsupported composition/provider/device and hosted-installation work remains open.",
+    "retainedCapacityGap": {
+      "finding": "Rolling-only quota excluded retained objects after24hours and trusted declared bytes before finalization.",
+      "resolution": "Revision3 counts all retained rows and conservative capacity under the existing owner lock; includes expired/revoked entries and preserves exact retries. Distinct storage-limit copy prevents a false tomorrow/revocation cleanup promise.",
+      "receipt": "docs/quality/backend-acceptance-20261030/music-storage-capacity-review.json",
+      "currentSqlSha256": "bd3e6791a141d2ba1efb10a4e3dac090680d6dc5d5629307f99f665753c60e11"
+    }
   },
   "evidence": {
-    "musicReview": "docs/quality/backend-acceptance-20261030/music-independent-review.json",
     "musicInstall": "docs/quality/backend-acceptance-20261030/music-qa-connector-blocker.json",
     "musicCandidate": "docs/quality/music-infrastructure-20261030/backend-candidate.json",
     "musicScope": "docs/quality/music-infrastructure-20261030/README.md",
@@ -259,6 +276,9 @@
     "hardeningSource": "docs/quality/DATABASE_HARDENING_GATE_20261029.json",
     "hardeningQaTests": "docs/quality/QA_DATABASE_HARDENING_GATE_20261029.json",
     "hardeningQa": "docs/quality/QA_DATABASE_HARDENING_POSTFLIGHT_20261029.json",
-    "liveWalkthrough": "docs/quality/interaction-acceptance-20261030/live-qa-walkthrough.json"
-  }
+    "liveWalkthrough": "docs/quality/interaction-acceptance-20261030/live-qa-walkthrough.json",
+    "musicHistoricalReview": "docs/quality/backend-acceptance-20261030/music-independent-review.json",
+    "musicQuotaReview": "docs/quality/backend-acceptance-20261030/music-storage-capacity-review.json"
+  },
+  "updatedAt": "2026-10-30T19:59:33.561392+00:00"
 }

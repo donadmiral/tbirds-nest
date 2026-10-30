@@ -72,3 +72,17 @@ test('an account change during Storage transfer cannot finalize the old account 
  const {uploadOriginalAudio}=load('shared/musicUpload.ts'),h=uploadClient();h.transport.upload=async()=>{h.auth('different-owner');h.auth(owner);};
  await assert.rejects(()=>uploadOriginalAudio(h.client,h.input,h.transport),/account changed/);assert.equal(h.calls.some(call=>call.name==='finalize'),false);assert.equal(h.listeners.size,0);
 });
+test('retained storage exhaustion is distinct from the daily upload limit and cannot start a transfer',async()=>{
+ const {uploadOriginalAudio}=load('shared/musicUpload.ts');
+ for(const code of ['AUDIO_STORAGE_LIMIT','AUDIO_UPLOAD_LIMIT']){
+  const h=uploadClient();h.client.rpc=async()=>({data:null,error:{message:code}});
+  await assert.rejects(()=>uploadOriginalAudio(h.client,h.input,h.transport),error=>{
+   if(code==='AUDIO_STORAGE_LIMIT'){
+    assert.match(error.message,/storage limit/);assert.match(error.message,/Contact support/);
+    assert.doesNotMatch(error.message,/tomorrow|revoke|delete/i);
+   }else{assert.match(error.message,/daily audio upload limit/);assert.match(error.message,/tomorrow/);}
+   return true;
+  });
+  assert.equal(h.calls.length,0);assert.equal(h.listeners.size,0);
+ }
+});

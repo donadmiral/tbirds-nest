@@ -1,0 +1,126 @@
+{
+  "recordedAt": "2026-10-30T19:58:19.131347+00:00",
+  "revision": 3,
+  "status": "source_fixed_locally_and_independently_verified_not_attempted_on_host",
+  "hostedActions": false,
+  "historicalRevision2": {
+    "sqlSha256": "7d7449a59c4678c91985cada1d8b20ec035ce7fd8cb02c1dfbb0fc0cd94e04b8",
+    "review": "docs/quality/backend-acceptance-20261030/music-independent-review.json",
+    "applyReceipt": "docs/quality/backend-acceptance-20261030/music-qa-connector-blocker.json",
+    "unchanged": true
+  },
+  "preFixReproduction": {
+    "environment": "Isolated PGlite using actual revision2 migration and synthetic Auth/Storage rows; no hosted upload",
+    "daily101stReservationDenied": true,
+    "newReservationAfterAging100ExistingRowsPast24HoursAllowed": true,
+    "retainedReservationsAfterwards": 101,
+    "retainedStorageObjects": 1,
+    "declaredBytesForRetainedObject": 44,
+    "allowedStorageMetadataBytes": 52428800,
+    "interpretation": "The old rolling quota did not bound retained objects across days; finalization rejects mismatched byte counts but does not delete the object."
+  },
+  "fix": {
+    "maxRetainedRecords": 1000,
+    "maxRetainedBytes": 1073741824,
+    "unverifiedReservationCharge": 52428800,
+    "verifiedReadyOrRevokedCharge": "verified byte_size",
+    "includesExpiredAndRevokedUnverified": true,
+    "existingOwnerAdvisoryLockPreserved": true,
+    "dailyLimitsPreserved": true,
+    "exactRetryPrecedesNewQuotaChecks": true,
+    "clientStorageError": "Your audio library has reached its storage limit. Existing uploads can still be retried. Contact support for storage cleanup.",
+    "erasure": "All owned canonical objects are queued, including expired reservations that never produced a sound."
+  },
+  "verification": [
+    {
+      "command": "node supabase/tests/rpc-authorization/test-original-music-library.mjs",
+      "passed": 31,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "MUSIC_FIXTURE_PREEXISTING=1 node supabase/tests/rpc-authorization/test-original-music-library.mjs",
+      "passed": 31,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "node tests/quality/original-audio-infrastructure.cjs",
+      "passed": 19,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "node_modules/.bin/eslint shared/musicUpload.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "files": [
+    {
+      "path": "supabase/migrations/20261030153811_original_music_library_and_delivery.sql",
+      "sha256": "bd3e6791a141d2ba1efb10a4e3dac090680d6dc5d5629307f99f665753c60e11"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/test-original-music-library.mjs",
+      "sha256": "d04a68363a9f45b6d552800ecbd7ecf2dfdc305b87cb7ed7eb9ac9f8b8350dfa"
+    },
+    {
+      "path": "shared/musicUpload.ts",
+      "sha256": "e7f12d82f4a0d7cb19cd0a4af6773d97ac0e8e7e159939e913291b927813dfc1"
+    },
+    {
+      "path": "tests/quality/original-audio-infrastructure.cjs",
+      "sha256": "a6821868d5e5ce60d2806369d535cf364a5a96aeab190a0e8891bf97a4c00820"
+    }
+  ],
+  "limits": [
+    "Automatic garbage collection remains unimplemented. Retained capacity stays charged until a trusted cleanup actually removes and verifies bytes.",
+    "PGlite is single-connection; ordered competing-allocation tests do not prove real multi-session lock contention.",
+    "The bound depends on the reviewed private bucket50MiB file limit, one canonical non-overwritable path per reservation, and no direct client mutation/deletion grants.",
+    "No new hosted apply or Edge rollout occurred. Revision2 stall/postflight evidence is historical and cannot be presented as installation of revision3."
+  ],
+  "independentReview": {
+    "status": "passed",
+    "reviewer": "music_infrastructure",
+    "noBlockingFindings": true,
+    "verified": [
+      "Existing owner advisory lock covers new allocations",
+      "Exact retries precede both quota checks",
+      "Unverified and expired/revoked-unverified slots retain50MiB",
+      "Only service-verified fields reduce a charge",
+      "Verified revocation preserves retained bytes",
+      "Direct story-sound writes cannot delete the quota row",
+      "Erasure selects owned objects regardless of finalization"
+    ],
+    "runs": [
+      {
+        "mode": "default",
+        "passed": 31,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "mode": "existing",
+        "passed": 31,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "mode": "infrastructure",
+        "passed": 19,
+        "failed": 0,
+        "skipped": 0
+      }
+    ],
+    "logsReadByBackendReviewer": [
+      "/tmp/platinum-music-quota-independent-default.log",
+      "/tmp/platinum-music-quota-independent-existing.log",
+      "/tmp/platinum-music-quota-independent-infrastructure.log"
+    ]
+  },
+  "reviewedAt": "2026-10-30T19:59:33.561392+00:00"
+}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Activity, Archive, AtSign, Bell, Briefcase, ChevronRight, Download, EyeOff, FileText, Fingerprint, HelpCircle, Info, KeyRound, LifeBuoy, ListFilter, LockKeyhole, Monitor, Search, Shield, ShieldAlert, ShieldOff, Trash2, UserCheck, UserMinus, UserRound, Users, VolumeX, Wallet, X, type LucideIcon } from "lucide-react";
+import { Activity, Archive, AtSign, Bell, Briefcase, ChevronRight, Download, EyeOff, FileText, Fingerprint, HelpCircle, Info, KeyRound, LifeBuoy, ListFilter, LockKeyhole, Monitor, Music2, Search, Shield, ShieldAlert, ShieldOff, Trash2, UserCheck, UserMinus, UserRound, Users, VolumeX, Wallet, X, type LucideIcon } from "lucide-react";
 import { autoplayEnabled, dataSaverEnabled, setAutoplay, setDataSaver } from "@/lib/mediaPrefs";
 import { PageHeader } from "@/components/ui";
 import { AccountStatus } from "@/components/AccountStatus";
@@ -40,6 +40,7 @@ const SECTIONS: SettingsSection[] = [
   ] },
   { id: 'professional', label: 'Professional tools', icon: Briefcase, description: 'Manage publishing, your business and your earnings.', rows: [
     { href: '/studio', icon: Briefcase, label: 'Studio', description: 'Your content, professional workflows and account insights' },
+    { href: '/settings/audio', icon: Music2, label: 'Audio library', description: 'Your original music, voiceovers and reuse permissions' },
     { href: '/monetization', icon: Wallet, label: 'Monetization', description: 'Creator eligibility, earnings and payout status' },
     { href: '/businesses', icon: Users, label: 'Your businesses', description: 'Business accounts and teams you manage' },
     { href: '/businesses/apply', icon: FileText, label: 'Apply for a business account', description: 'Submit your organization for review' },

@@ -4,14 +4,14 @@
   "uploadsEnabledByMigration": false,
   "catalogEnabled": false,
   "databaseTests": {
-    "bootstrapWithInstalledPrivacyErasurePrerequisites": "22 passed",
-    "existingMusicContracts": "22 passed"
+    "bootstrapWithInstalledPrivacyErasurePrerequisites": "31 passed",
+    "existingMusicContracts": "31 passed"
   },
-  "edgeTests": "18 passed: existing14 Edge/parser cases plus MP3 truncation and3 client-upload lifecycle cases",
+  "edgeTests": "19 passed: prior18 parser/Edge/upload lifecycle cases plus distinct retained-storage versus daily-limit failure recovery",
   "files": [
     {
       "path": "supabase/migrations/20261030153811_original_music_library_and_delivery.sql",
-      "sha256": "7d7449a59c4678c91985cada1d8b20ec035ce7fd8cb02c1dfbb0fc0cd94e04b8"
+      "sha256": "bd3e6791a141d2ba1efb10a4e3dac090680d6dc5d5629307f99f665753c60e11"
     },
     {
       "path": "supabase/functions/music-asset-finalize/index.ts",
@@ -38,12 +38,40 @@
       "sha256": "1bc4d4e88886441d70cdb6671077e68166a51e861e0a41af68dfa7371333fee8"
     }
   ],
-  "revision": 2,
+  "revision": 3,
   "reviewFixes": [
     "Recreated story_sounds SELECT policy bound to guarded current-identity metadata helper",
     "Explicit service-only ACL for internal resolve_story_soundtrack",
     "Admin session NULL rejected with IS DISTINCT FROM TRUE",
     "Read and cancel cannot extend finalizer deadline",
-    "Finalization denied once account erasure has been accepted"
-  ]
+    "Finalization denied once account erasure has been accepted",
+    "Retained capacity is bounded across all ages/statuses:1000 records and1GiB, charging50MiB for every unverified slot and verified bytes after successful finalization.",
+    "Exact retries precede new-slot checks; expiry/revocation do not free capacity; daily limits remain separate."
+  ],
+  "previousRevision": {
+    "revision": 2,
+    "sqlSha256": "7d7449a59c4678c91985cada1d8b20ec035ce7fd8cb02c1dfbb0fc0cd94e04b8",
+    "qaAttemptReceipt": "docs/quality/backend-acceptance-20261030/music-qa-connector-blocker.json",
+    "interpretation": "Historical revision2 attempt stalled and was absent in its postflight. Revision3 has not been submitted to a hosted migration tool."
+  },
+  "updatedAt": "2026-10-30T19:58:19.131347+00:00",
+  "hostedAttemptedForCurrentRevision": false,
+  "retainedCapacity": {
+    "maxRecords": 1000,
+    "maxBytes": 1073741824,
+    "unverifiedSlotBytes": 52428800,
+    "allAgesAndStatusesCounted": true,
+    "automatedCleanup": false,
+    "reviewReceipt": "docs/quality/backend-acceptance-20261030/music-storage-capacity-review.json"
+  },
+  "independentRevision3Review": {
+    "receipt": "docs/quality/backend-acceptance-20261030/music-storage-capacity-review.json",
+    "result": "passed",
+    "reviewedAt": "2026-10-30T19:59:33.561392+00:00",
+    "databaseModes": [
+      31,
+      31
+    ],
+    "infrastructureCases": 19
+  }
 }

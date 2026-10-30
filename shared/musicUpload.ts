@@ -28,7 +28,8 @@ export async function uploadOriginalAudio(client: Client, input: OriginalAudioUp
    p_title: input.title.slice(0,200), p_mime: info.mime, p_bytes: input.bytes.byteLength, p_sha256: input.sha256,
    p_reuse: input.reuseAllowed, p_rights_attested: true }));
   if (error?.message && /ORIGINAL_AUDIO_SERVICE_NOT_READY|Could not find.*function|does not exist/i.test(error.message)) throw new Error('Original audio uploads are not available in this app environment yet. Please try again later.');
-  if (error || !data) throw new Error(error?.message?.includes('LIMIT') ? 'Your audio upload limit has been reached. Try again tomorrow.' : 'The audio library could not reserve this upload. Please retry.');
+  if (error?.message?.includes('AUDIO_STORAGE_LIMIT')) throw new Error('Your audio library has reached its storage limit. Existing uploads can still be retried. Contact support for storage cleanup.');
+  if (error || !data) throw new Error(error?.message?.includes('AUDIO_UPLOAD_LIMIT') ? 'Your daily audio upload limit has been reached. Try again tomorrow.' : 'The audio library could not reserve this upload. Please retry.');
   const reservation = data as Reservation;
   if (reservation.id !== input.requestId || reservation.path !== `${input.owner}/${input.requestId}.${info.extension}`) throw new Error('The audio reservation did not match this upload.');
   await check();

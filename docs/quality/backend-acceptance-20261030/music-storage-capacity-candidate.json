@@ -1,0 +1,65 @@
+{
+  "frozenAt": "2026-10-30T19:59:33.561392+00:00",
+  "revision": 3,
+  "sourceHead": "09cf8a9d6008590b08f7d5b98b0f28481e11b14d",
+  "scope": "Narrow retained-storage quota fix, truthful quota error, focused regressions and corresponding evidence. No new worker or hosted action.",
+  "files": [
+    {
+      "path": "supabase/migrations/20261030153811_original_music_library_and_delivery.sql",
+      "sha256": "bd3e6791a141d2ba1efb10a4e3dac090680d6dc5d5629307f99f665753c60e11"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/test-original-music-library.mjs",
+      "sha256": "d04a68363a9f45b6d552800ecbd7ecf2dfdc305b87cb7ed7eb9ac9f8b8350dfa"
+    },
+    {
+      "path": "shared/musicUpload.ts",
+      "sha256": "e7f12d82f4a0d7cb19cd0a4af6773d97ac0e8e7e159939e913291b927813dfc1"
+    },
+    {
+      "path": "tests/quality/original-audio-infrastructure.cjs",
+      "sha256": "a6821868d5e5ce60d2806369d535cf364a5a96aeab190a0e8891bf97a4c00820"
+    },
+    {
+      "path": "docs/quality/music-infrastructure-20261030/backend-candidate.json",
+      "sha256": "228059180879c0f3a10e4f4ef4372ae0397cf836a43738f07df3f811c2f2fd33"
+    },
+    {
+      "path": "docs/quality/music-infrastructure-20261030/client-freeze.json",
+      "sha256": "e37103b62817ff0d60f75b44afa95364fee67703ec2a9520c9d274c9ee2ee7fb"
+    },
+    {
+      "path": "docs/quality/music-infrastructure-20261030/README.md",
+      "sha256": "14b0d01c69719f029a82d0e126c894dbea259f11f676521f9e1081135ae00e68"
+    },
+    {
+      "path": "docs/quality/backend-acceptance-20261030/music-storage-capacity-review.json",
+      "sha256": "62fe139bcb0e9d64098831f71c9f28d5979bfb1ff3c5d1577e72851bc28edc0e"
+    },
+    {
+      "path": "docs/quality/backend-acceptance-20261030/final-backend-coverage.json",
+      "sha256": "9c787bec03f3be7e2e9006cd3ebbe70fbd68e3c785332c620f8b8b27ce27e1b0"
+    }
+  ],
+  "historicalEvidenceUnchanged": [
+    "docs/quality/backend-acceptance-20261030/music-qa-connector-blocker.json",
+    "docs/quality/backend-acceptance-20261030/music-independent-review.json",
+    "docs/quality/backend-acceptance-20261030/music-qa-preflight.json"
+  ],
+  "checks": {
+    "databaseModes": [
+      31,
+      31
+    ],
+    "infrastructure": 19,
+    "independentDatabaseModes": [
+      31,
+      31
+    ],
+    "independentInfrastructure": 19,
+    "lint": "pass",
+    "whitespace": "pass"
+  },
+  "hostedAttempted": false,
+  "automaticCleanup": "Unimplemented; expired/abandoned capacity remains counted and bounded."
+}

@@ -417,6 +417,16 @@ begin
   if existing.status='reserved' then update music_library.uploads set expires_at=now()+interval '24 hours' where id=p_request_id returning * into existing;end if;
   return jsonb_build_object('id',existing.id,'path',existing.object_path,'status',existing.status,'soundId',existing.sound_id);
  end if;
+ -- Retained capacity does not reset with the rolling rate limit. Until byte
+ -- verification succeeds, every path can hold the bucket's full 50 MiB, even
+ -- when the client declares fewer bytes. Expiry and revocation delete no bytes.
+ if (select count(*) from music_library.uploads where owner_id=u)>=1000
+ or (select coalesce(sum(case
+      when status in ('ready','revoked') and object_id is not null
+       and object_version is not null and verified_duration between 1 and 600
+      then byte_size else 52428800 end),0)
+     from music_library.uploads where owner_id=u)+52428800>1073741824
+ then raise exception 'AUDIO_STORAGE_LIMIT';end if;
  if (select count(*) from music_library.uploads where owner_id=u and created_at>now()-interval '24 hours')>=100
  or (select coalesce(sum(byte_size),0) from music_library.uploads where owner_id=u and created_at>now()-interval '24 hours')+p_bytes>1073741824 then raise exception 'AUDIO_UPLOAD_LIMIT';end if;
  origin:=regexp_replace(auth.jwt()->>'iss','/auth/v1/?$','');

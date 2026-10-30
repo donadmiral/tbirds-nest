@@ -15,6 +15,27 @@ async function actor(name,sql,args=[],role='authenticated',extra={}) {
 }
 const reserve=(request=randomUUID(),reuse=false)=>actor('owner','select public.reserve_original_audio($1,$2,$3,$4,$5,$6,$7,$8)',[request,ids.owner,'Synthetic original','audio/wav',88244,hash,reuse,true]);
 async function original(reuse=false){const reservation=await reserve(randomUUID(),reuse),version=randomUUID();await db.query("insert into storage.objects(bucket_id,name,owner_id,owner,version,metadata) values('music-audio',$1,$2::text,$2::uuid,$3,$4)",[reservation.path,ids.owner,version,JSON.stringify({size:88244,mimetype:'audio/wav'})]);const soundId=await actor(null,'select public.finish_original_audio_upload($1,$2,2,$3,$4)',[reservation.id,ids.owner,hash,version],'service_role');return {...reservation,version,soundId};}
+// Previously verified synthetic rows let the quota cases exercise real RPCs at
+// their boundaries without allocating large media files or bypassing the quota
+// inside the tested request. The object, sound and reservation remain linked.
+async function seedVerifiedAudio(count,bytes=88244,status='ready',ageDays=2){
+ await db.query(`with seed as materialized (
+  select gen_random_uuid() request_id,gen_random_uuid() object_id,gen_random_uuid() sound_id
+  from generate_series(1,$1::integer)
+ ), objects as (
+  insert into storage.objects(id,bucket_id,name,owner_id,owner,version,metadata)
+  select object_id,'music-audio',$2::text||'/'||request_id::text||'.wav',$2::text,$2::uuid,'quota-v1',
+   jsonb_build_object('size',$3::integer,'mimetype','audio/wav') from seed returning id
+ ), sounds as (
+  insert into public.story_sounds(id,owner_id,title,url,duration_sec,source,rights_status,rights_attested_at,asset_sha256,max_excerpt_sec,permitted_uses)
+  select sound_id,$2::uuid,'Synthetic verified original','https://example.supabase.co/storage/v1/object/public/music-audio/'||$2::text||'/'||request_id::text||'.wav',
+   2,'original','creator_attested',now(),$4,2,array['story','post','memory_album'] from seed returning id
+ )
+ insert into music_library.uploads(id,owner_id,object_path,origin,title,mime,byte_size,sha256,rights_attested_at,sound_id,object_id,object_version,verified_duration,status,created_at,expires_at)
+ select s.request_id,$2::uuid,$2::text||'/'||s.request_id::text||'.wav','https://example.supabase.co','Synthetic verified original','audio/wav',$3::integer,$4,now(),
+  s.sound_id,s.object_id,'quota-v1',2,$5,now()-make_interval(days=>$6::integer),now()-make_interval(days=>$6::integer)+interval '24 hours'
+ from seed s join objects o on o.id=s.object_id join sounds a on a.id=s.sound_id`,[count,ids.owner,bytes,hash,status,ageDays]);
+}
 before(async()=>{
  await loadDeployedMediaBaseline(db);
  for(const name of ['20261029224550_admin_operations_completion','20261029224812_account_storage_erasure','20261029224813_private_media_cutover_compatibility','20261029231321_account_erasure_admin_review_queue','20261029231440_bounded_media_delivery','20261030010250_account_erasure_admin_restore_guard'])await db.exec(await source(`supabase/migrations/${name}.sql`));
@@ -210,4 +231,95 @@ test('legacy sound publication is retired and new write tables carry erasure fen
  assert.equal(await value("select has_function_privilege('authenticated','public.resolve_story_soundtrack(jsonb)','execute')"),false);
  assert.equal(await value("select has_function_privilege('service_role','public.resolve_story_soundtrack(jsonb)','execute')"),true);
  const guarded=await value("select count(*) from pg_trigger t join pg_class c on c.oid=t.tgrelid join pg_namespace n on n.oid=c.relnamespace where n.nspname='music_library' and t.tgname='account_erasure_actor_write'");assert.equal(guarded,6);
+});
+
+test('expired reservations retain capacity beyond the daily window and exact retry reuses its slot',async()=>{
+ const rows=[];for(let i=0;i<20;i++)rows.push(await reserve());
+ await db.query("update music_library.uploads set created_at=now()-interval '2 days',expires_at=now()-interval '1 day' where owner_id=$1",[ids.owner]);
+ assert.equal(await value('select count(*)::int from music_library.uploads where owner_id=$1',[ids.owner]),20);
+ assert.equal(await actor('owner','select get_original_audio_upload($1)',[rows[0].id]),null);
+ await assert.rejects(()=>reserve(),/AUDIO_STORAGE_LIMIT/);
+ const retry=await reserve(rows[0].id);assert.equal(retry.path,rows[0].path);
+ assert.equal(await value('select count(*)::int from music_library.uploads where owner_id=$1',[ids.owner]),20);
+ assert.ok(await actor('owner','select get_original_audio_upload($1)',[rows[0].id]));
+ await assert.rejects(()=>reserve(),/AUDIO_STORAGE_LIMIT/);
+});
+
+test('underdeclared unverified files consume full bucket capacity before finalization',async()=>{
+ const tiny=()=>actor('owner','select reserve_original_audio($1,$2,$3,$4,44,$5,false,true)',[randomUUID(),ids.owner,'Synthetic tiny declaration','audio/wav',hash]);
+ const first=await tiny();
+ // This is a synthetic Storage metadata insertion under the real RLS policy,
+ // not a claim that a hosted upload or 50 MiB of actual audio was transferred.
+ await actor('owner',"insert into storage.objects(bucket_id,name,owner_id,owner,version,metadata) values('music-audio',$1,$2::text,$2::uuid,'oversized-v1','{\"size\":52428800,\"mimetype\":\"audio/wav\"}')",[first.path,ids.owner]);
+ for(let i=1;i<20;i++)await tiny();
+ assert.equal(await value('select sum(byte_size)::int from music_library.uploads where owner_id=$1',[ids.owner]),880);
+ await assert.rejects(tiny,/AUDIO_STORAGE_LIMIT/);
+ await assert.rejects(()=>actor(null,'select finish_original_audio_upload($1,$2,2,$3,$4)',[first.id,ids.owner,hash,'oversized-v1'],'service_role'),/AUDIO_OBJECT_CHANGED/);
+ assert.equal(await value('select status from music_library.uploads where id=$1',[first.id]),'reserved');
+ await assert.rejects(tiny,/AUDIO_STORAGE_LIMIT/);
+});
+
+test('verified byte size releases only unused capacity and remains accounted after revocation',async()=>{
+ const rows=[];for(let i=0;i<20;i++)rows.push(await reserve());
+ await assert.rejects(()=>reserve(),/AUDIO_STORAGE_LIMIT/);
+ const first=rows[0];
+ await db.query("insert into storage.objects(bucket_id,name,owner_id,owner,version,metadata) values('music-audio',$1,$2::text,$2::uuid,'verified-v1','{\"size\":88244,\"mimetype\":\"audio/wav\"}')",[first.path,ids.owner]);
+ const sound=await actor(null,'select finish_original_audio_upload($1,$2,2,$3,$4)',[first.id,ids.owner,hash,'verified-v1'],'service_role');
+ await actor('owner','select revoke_original_audio($1)',[sound]);
+ assert.equal((await reserve()).status,'reserved');
+ await assert.rejects(()=>reserve(),/AUDIO_STORAGE_LIMIT/);
+ assert.equal(await value('select count(*)::int from music_library.uploads where owner_id=$1',[ids.owner]),21);
+});
+
+test('revoking old verified audio cannot release the bytes still retained in Storage',async()=>{
+ await seedVerifiedAudio(20,52428800,'ready',2);
+ const rows=(await db.query('select sound_id from music_library.uploads where owner_id=$1',[ids.owner])).rows;
+ for(const row of rows)await actor('owner','select revoke_original_audio($1)',[row.sound_id]);
+ assert.equal(await value("select count(*)::int from music_library.uploads where owner_id=$1 and status='revoked'",[ids.owner]),20);
+ assert.equal(await value("select count(*)::int from storage.objects where bucket_id='music-audio' and owner_id=$1",[ids.owner]),20);
+ await assert.rejects(()=>reserve(),/AUDIO_STORAGE_LIMIT/);
+});
+
+test('a revoked unverified reservation keeps its full capacity charge',async()=>{
+ for(let i=0;i<20;i++)await reserve();
+ await db.query("update music_library.uploads set status='revoked',created_at=now()-interval '2 days',expires_at=now()-interval '1 day' where owner_id=$1",[ids.owner]);
+ assert.equal(await value('select count(*)::int from music_library.uploads where owner_id=$1 and object_id is null',[ids.owner]),20);
+ await assert.rejects(()=>reserve(),/AUDIO_STORAGE_LIMIT/);
+});
+
+test('the retained record cap includes old verified originals even when byte capacity remains',async()=>{
+ await seedVerifiedAudio(999,88244,'ready',2);
+ assert.equal((await reserve()).status,'reserved');
+ assert.equal(await value('select count(*)::int from music_library.uploads where owner_id=$1',[ids.owner]),1000);
+ await assert.rejects(()=>reserve(),/AUDIO_STORAGE_LIMIT/);
+});
+
+test('the daily upload rate limit remains separate from retained storage capacity',async()=>{
+ await seedVerifiedAudio(100,88244,'ready',0);
+ await assert.rejects(()=>reserve(),error=>error.message==='AUDIO_UPLOAD_LIMIT');
+ await db.query("update music_library.uploads set created_at=now()-interval '2 days' where owner_id=$1",[ids.owner]);
+ assert.equal((await reserve()).status,'reserved');
+});
+
+test('a second stale allocation cannot consume the last slot twice and another owner has its own budget',async()=>{
+ for(let i=0;i<19;i++)await reserve();
+ const winning=await reserve();await assert.rejects(()=>reserve(),/AUDIO_STORAGE_LIMIT/);
+ assert.equal((await reserve(winning.id)).path,winning.path);
+ assert.equal(await value('select count(*)::int from music_library.uploads where owner_id=$1',[ids.owner]),20);
+ const other=await actor('viewer','select reserve_original_audio($1,$2,$3,$4,88244,$5,false,true)',[randomUUID(),ids.viewer,'Other owner original','audio/wav',hash]);
+ assert.equal(other.status,'reserved');
+ // PGlite has one connection. The production RPC's existing owner advisory
+ // lock serializes allocations; this case verifies ordered winning/stale state.
+});
+
+test('erasure queues expired unfinished original objects without a published sound',async()=>{
+ const pending=await reserve();
+ await db.query("insert into storage.objects(bucket_id,name,owner_id,owner,version,metadata) values('music-audio',$1,$2::text,$2::uuid,'expired-v1','{\"size\":88244,\"mimetype\":\"audio/wav\"}')",[pending.path,ids.owner]);
+ await db.query("update music_library.uploads set created_at=now()-interval '2 days',expires_at=now()-interval '1 day' where id=$1",[pending.id]);
+ assert.equal(await value('select sound_id from music_library.uploads where id=$1',[pending.id]),null);
+ await db.exec("update account_erasure.worker set last_seen_at=clock_timestamp(),secret_digest=extensions.digest('test-worker','sha256')");
+ const job=randomUUID(),worker=randomUUID(),token=randomBytes(32).toString('hex');
+ const request=await actor('owner','select request_account_erasure($1,$2)',[job,token]);assert.equal(request.filesTotal,1);
+ const claim=await actor(null,'select claim_account_erasure($1)',[worker],'service_role');
+ assert.equal(claim.objects.length,1);assert.equal(claim.objects[0].bucket,'music-audio');assert.equal(claim.objects[0].path,pending.path);
 });
