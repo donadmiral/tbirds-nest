@@ -309,6 +309,29 @@ class StoryAudioExportTest {
     record("original mute", mapOf("original330Hz" to audio.amplitude(330, .2, 1.8), "soundtrack440Hz" to audio.amplitude(440, .2, 1.8)))
   }
 
+  @Test fun slowedVideoRepeatsOnlyTheSelectedExcerptThroughItsPartialFinalLoop() {
+    val source = sourceMovie("slow-mix-source")
+    val request = request("slow-video-mix", 3.0)
+    request["inputKind"] = "video"; request["inputUri"] = Uri.fromFile(source).toString()
+    recipe(request).putAll(mapOf("trimStart" to 1.0, "trimEnd" to 3.175, "speed" to .5, "volume" to .25))
+    request["audio"] = sound(wav(), start = 1.0, duration = 1.5, volume = .5)
+    val file = export(request, "slow-video-fractional-soundtrack-loop"); val audio = decodeAudio(file)
+    assertEquals(4.35, duration(file), .15)
+    assertTrue("The slowed output exceeded its frame bound", videoFrames(file) in 60..142)
+    val first = audio.amplitude(440, .2, .8)
+    val selectedTail = audio.amplitude(880, 1.1, 1.35)
+    val repeated = audio.amplitude(440, 1.8, 2.3)
+    val finalPartial = audio.amplitude(440, 3.2, 3.8)
+    val finalTail = audio.amplitude(880, 4.1, 4.25)
+    listOf(first, selectedTail, repeated, finalPartial, finalTail).forEach { assertTrue("The selected excerpt did not fill the edited timeline: $it", it in .07.. .13) }
+    assertTrue("Original slow-motion pitch or volume changed", audio.amplitude(330, 2.2, 3.7) in .03.. .07)
+    assertTrue("Audio before the selected excerpt leaked", audio.amplitude(220, .2, 4.25) < .01)
+    assertTrue("Audio after the selected excerpt leaked", audio.amplitude(1760, .2, 4.25) < .01)
+    record("slowed video and final partial soundtrack loop", mapOf("duration" to duration(file),
+      "videoFrames" to videoFrames(file), "first440Hz" to first, "selected880Hz" to selectedTail,
+      "repeated440Hz" to repeated, "finalPartial440Hz" to finalPartial, "finalTail880Hz" to finalTail))
+  }
+
   @Test fun originalOnlyAudioIsPreservedAndMeasured() {
     val source = sourceMovie("original-only-source")
     val request = request("original-only", 2.0); request["inputKind"] = "video"; request["inputUri"] = Uri.fromFile(source).toString()

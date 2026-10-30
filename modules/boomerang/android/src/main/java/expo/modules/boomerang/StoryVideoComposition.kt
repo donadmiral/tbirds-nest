@@ -348,10 +348,13 @@ object StoryVideoComposition {
     return mutableListOf(ToInt16PcmAudioProcessor(), channels, resample)
   }
 
-  private fun clipped(file: File, start: Double, end: Double): MediaItem = MediaItem.Builder()
+  private fun clipped(file: File, start: Double, end: Double): MediaItem = clippedUs(file,
+    (start * 1_000_000).roundToLong(), (end * 1_000_000).roundToLong())
+
+  private fun clippedUs(file: File, start: Long, end: Long): MediaItem = MediaItem.Builder()
     .setUri(Uri.fromFile(file))
     .setClippingConfiguration(MediaItem.ClippingConfiguration.Builder()
-      .setStartPositionMs((start * 1000).roundToLong()).setEndPositionMs((end * 1000).roundToLong()).build())
+      .setStartPositionUs(start).setEndPositionUs(end).build())
     .build()
 
   private fun prepare(context: Context, raw: Map<String, Any?>, job: Job) {
@@ -414,11 +417,25 @@ object StoryVideoComposition {
       val volume = number(audio, "volume", 0.0, 1.0)
       val loop = audio["loop"] as? Boolean ?: error("The soundtrack loop is invalid.")
       require(info.hasAudio && !info.hasVideo && info.duration <= 600.1 && start + duration <= info.duration + .1) { "The soundtrack excerpt could not be read." }
-      // A non-looping voiceover must never extend a shorter output video.
-      val end = minOf(start + duration, info.duration, start + r.duration)
-      val editedAudio = EditedMediaItem.Builder(clipped(file, start, end)).setRemoveVideo(true)
-        .setEffects(Effects(processors(volume.toFloat()), emptyList())).build()
-      sequences.add(EditedMediaItemSequence.Builder(editedAudio).setIsLooping(loop).build())
+      // Media3 1.8's automatic looping end uses the other sequence's duration
+      // before speed effects. Build a finite sequence against the edited output
+      // clock instead, so music cannot overrun accelerated video or stop early
+      // on slowed video. A one-pass voiceover still contributes just one clip.
+      val startUs = (start * 1_000_000).roundToLong()
+      val excerptUs = (minOf(duration, info.duration - start) * 1_000_000).roundToLong()
+      val outputUs = (r.duration * 1_000_000).roundToLong()
+      require(excerptUs > 0) { "The soundtrack excerpt could not be read." }
+      var remainingUs = if (loop) outputUs else minOf(outputUs, excerptUs)
+      require((remainingUs + excerptUs - 1) / excerptUs <= 136) { "The soundtrack needs too many repetitions." }
+      val audioItems = mutableListOf<EditedMediaItem>()
+      while (remainingUs > 0) {
+        job.check()
+        val takeUs = minOf(remainingUs, excerptUs)
+        audioItems.add(EditedMediaItem.Builder(clippedUs(file, startUs, startUs + takeUs)).setRemoveVideo(true)
+          .setEffects(Effects(processors(volume.toFloat()), emptyList())).build())
+        remainingUs -= takeUs
+      }
+      sequences.add(EditedMediaItemSequence.Builder(audioItems).build())
       soundtrack = true
     }
     val composition = Composition.Builder(sequences).setHdrMode(Composition.HDR_MODE_TONE_MAP_HDR_TO_SDR_USING_OPEN_GL).build()
