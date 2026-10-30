@@ -1,0 +1,1395 @@
+{
+  "checkedAt": "2026-10-30T23:00:28.141050+00:00",
+  "status": "passed",
+  "repository": "donadmiral/tbirds-nest",
+  "branch": "codex/app-quality-20261029",
+  "sourceHead": "71aa363a5967d523a852516469a83ec163f93196",
+  "sourceTree": "54758f064e900675d74d931fd17aa1b70ec0e9e1",
+  "testedMerge": "6bd29458013b492b4ecb18b4aa475e7408952dc8",
+  "sameTreeIndependentlyVerified": true,
+  "workflowRunId": 41140916569,
+  "jobId": 124354670782,
+  "jobConclusion": "success",
+  "runUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41140916569",
+  "artifact": {
+    "id": 13017479670,
+    "name": "browser-quality-evidence",
+    "sizeBytes": 7646993,
+    "sha256": "065d0bf4ff0bac29d2142b96b1be12a82bbf0080a316e29196d8046e6104a164",
+    "publishedDigestMatched": true,
+    "retainedFileCount": 56,
+    "jsonReceiptCount": 7,
+    "screenshotCount": 49,
+    "movieBytesRetained": false,
+    "receiptFiles": [
+      {
+        "path": "admin/browser-receipt.json",
+        "sha256": "af7670f54f6a3e692dcea12170a38625425fc3ac87f4be73b2fb16d430e6818a"
+      },
+      {
+        "path": "video/browser-receipt.json",
+        "sha256": "9c2ef544ef4470b809cbb23608fa435a4093519ad7a181f9c04ea1cd74c728a1"
+      },
+      {
+        "path": "memory/browser-receipt.json",
+        "sha256": "026652c0e0ddec18ec543de88edca0ef2d0721f6969cb5c1ebafd89affd0d176"
+      },
+      {
+        "path": "music/browser-receipt.json",
+        "sha256": "da02d9c255cb3bc76bccc45389179ff6aed70e5bc7f797b6c2c71b954f9091a5"
+      },
+      {
+        "path": "web/browser-receipt.json",
+        "sha256": "4b54f6eaa48ada3a9e9a58ede9a60f35f7c9bdd01617ac982ef68af13c17c923"
+      },
+      {
+        "path": "commerce/browser-receipt.json",
+        "sha256": "d81ada3217bc05810ff92b47a6ddbb339b7a2c190935e7cfa27e5fc9956ac928"
+      },
+      {
+        "path": "studio/browser-receipt.json",
+        "sha256": "c77d59a317439bd42e7ed0250beeb3d8f1294e1ad9d8b48d4eeade32b7a4c37f"
+      }
+    ]
+  },
+  "groups": {
+    "admin": {
+      "receiptSha256": "af7670f54f6a3e692dcea12170a38625425fc3ac87f4be73b2fb16d430e6818a",
+      "uiChecks": 37,
+      "mediaModes": 0,
+      "encodedOutputs": 0,
+      "retainedReceipt": {
+        "checkedAt": "2026-10-30T22:53:22.687Z",
+        "runtime": "153.0.8010.12",
+        "scope": "Actual shared admin components, synthetic records and navigation adapter; not authenticated hosted acceptance",
+        "checks": [
+          {
+            "name": "Corrupt saved navigation preferences do not crash the workspace",
+            "passed": true
+          },
+          {
+            "name": "Unknown queue count is shown as unavailable",
+            "passed": true
+          },
+          {
+            "name": "Command search traps focus, supports Escape and restores focus",
+            "passed": true
+          },
+          {
+            "name": "Record switch clears the previous record action text",
+            "passed": true
+          },
+          {
+            "name": "Required review length prevents a short form submission",
+            "passed": true
+          },
+          {
+            "name": "A valid review submits the selected identity with an idempotency key",
+            "passed": true
+          },
+          {
+            "name": "Pagination never leaves an actionable record from the hidden page",
+            "passed": true
+          },
+          {
+            "name": "Search is case-insensitive and clearing filters restores all rows",
+            "passed": true
+          },
+          {
+            "name": "Tab filter keeps selection inside the visible records",
+            "passed": true
+          },
+          {
+            "name": "Numeric column sorting and rows-per-page controls update actual records",
+            "passed": true
+          },
+          {
+            "name": "Closing record details returns focus to its selected row",
+            "passed": true
+          },
+          {
+            "name": "Closing a full-screen photo preserves the record and restores its original trigger",
+            "passed": true
+          },
+          {
+            "name": "Full-screen gallery navigation retains the selected attachment after closing",
+            "passed": true
+          },
+          {
+            "name": "Charts expose exact values and keyboard-operable series controls",
+            "passed": true
+          },
+          {
+            "name": "Share actions move focus into the panel and Escape returns to the trigger",
+            "passed": true
+          },
+          {
+            "name": "Clipboard rejection is visible and success is announced only after a confirmed copy",
+            "passed": true
+          },
+          {
+            "name": "Table export actions escape the clipped table and remain inside the viewport",
+            "passed": true
+          },
+          {
+            "name": "Dark appearance changes the actual workspace palette",
+            "passed": true
+          },
+          {
+            "name": "Desktop rail collapse preserves accessible route labels",
+            "passed": true
+          },
+          {
+            "name": "Mobile workspace has no horizontal page overflow",
+            "passed": true
+          },
+          {
+            "name": "Mobile drawer traps navigation, closes on Escape and restores trigger focus",
+            "passed": true
+          },
+          {
+            "name": "A note survives storage failure and is collected only after persistence succeeds",
+            "passed": true
+          },
+          {
+            "name": "Mobile export panel and collection tray have no horizontal overflow",
+            "passed": true
+          },
+          {
+            "name": "Presentation builder loads scoped collections and remains usable at 390 pixels",
+            "passed": true
+          },
+          {
+            "name": "Presentation works when fullscreen is unavailable and offers a visible exit",
+            "passed": true
+          },
+          {
+            "name": "Restricted roles receive no member-search escape or unauthorized quick action",
+            "passed": true
+          },
+          {
+            "name": "Restricted workspace directory excludes deletion, staff and marketplace tools",
+            "passed": true
+          },
+          {
+            "name": "Navigation uses the same scalable outline icon grid for every destination",
+            "passed": true
+          },
+          {
+            "name": "Workflow directory is keyboard-contained, searchable and restores focus on Escape",
+            "passed": true
+          },
+          {
+            "name": "Deletion requests have a real route, selected navigation, breadcrumb and return path",
+            "passed": true
+          },
+          {
+            "name": "Orders and seller reviews remain distinct workflows with their correct parent desks",
+            "passed": true
+          },
+          {
+            "name": "Record details offer a deterministic return to the list even on direct navigation",
+            "passed": true
+          },
+          {
+            "name": "Role guide matches current policy and closes without changing an account",
+            "passed": true
+          },
+          {
+            "name": "Changing the selected record initializes its confirmed role and cannot carry a previous role",
+            "passed": true
+          },
+          {
+            "name": "Offline submission preserves the draft and requires explicit retry after reconnecting",
+            "passed": true
+          },
+          {
+            "name": "The account menu provides security, presentation and actual sign-out controls",
+            "passed": true
+          },
+          {
+            "name": "Workflow map and account controls fit a phone viewport",
+            "passed": true
+          }
+        ],
+        "browserErrors": [],
+        "screenshots": [
+          "desktop-light.png",
+          "desktop-dark.png",
+          "mobile-light.png",
+          "presentation-mobile.png",
+          "workspace-tools.png"
+        ]
+      }
+    },
+    "video": {
+      "receiptSha256": "9c2ef544ef4470b809cbb23608fa435a4093519ad7a181f9c04ea1cd74c728a1",
+      "uiChecks": 0,
+      "mediaModes": 8,
+      "encodedOutputs": 5,
+      "retainedReceipt": {
+        "browser": "153.0.8010.12",
+        "cases": [
+          {
+            "mode": "graded_audio",
+            "bytes": 38671,
+            "mime": "video/webm;codecs=vp9,opus",
+            "codec": "vp9",
+            "width": 1080,
+            "height": 1918,
+            "duration": 1.069,
+            "encodedVideoEnd": 0.966,
+            "trimmedFirstPixel": [
+              125,
+              0,
+              0
+            ],
+            "hasAudio": true,
+            "audioRms": 0.04886459432635681,
+            "red": [
+              125,
+              0,
+              0
+            ],
+            "blue": [
+              0,
+              0,
+              126
+            ],
+            "tagBefore": [
+              1,
+              255,
+              0
+            ],
+            "tagAfter": [
+              16,
+              34,
+              50
+            ],
+            "gradedImageSticker": [
+              1,
+              127,
+              126
+            ]
+          },
+          {
+            "mode": "muted",
+            "bytes": 23414,
+            "mime": "video/webm;codecs=vp9",
+            "codec": "vp9",
+            "width": 1080,
+            "height": 1918,
+            "duration": 1.075799,
+            "encodedVideoEnd": 0.953,
+            "trimmedFirstPixel": [
+              125,
+              0,
+              0
+            ],
+            "hasAudio": false,
+            "audioRms": null,
+            "red": [
+              125,
+              0,
+              0
+            ],
+            "blue": [
+              0,
+              0,
+              127
+            ],
+            "tagBefore": [
+              1,
+              255,
+              0
+            ],
+            "tagAfter": [
+              16,
+              34,
+              50
+            ],
+            "gradedImageSticker": [
+              1,
+              127,
+              126
+            ]
+          },
+          {
+            "mode": "added_audio",
+            "bytes": 41396,
+            "mime": "video/webm;codecs=vp9,opus",
+            "codec": "vp9",
+            "width": 1080,
+            "height": 1918,
+            "duration": 1.0416,
+            "encodedVideoEnd": 0.947,
+            "trimmedFirstPixel": [
+              125,
+              0,
+              0
+            ],
+            "hasAudio": true,
+            "audioRms": 0.09937542836226473,
+            "red": [
+              125,
+              0,
+              0
+            ],
+            "blue": [
+              0,
+              0,
+              127
+            ],
+            "tagBefore": [
+              1,
+              255,
+              0
+            ],
+            "tagAfter": [
+              16,
+              34,
+              50
+            ],
+            "gradedImageSticker": [
+              1,
+              127,
+              126
+            ]
+          },
+          {
+            "mode": "added_only",
+            "bytes": 39898,
+            "mime": "video/webm;codecs=vp9,opus",
+            "codec": "vp9",
+            "width": 1080,
+            "height": 1918,
+            "duration": 1.0589,
+            "encodedVideoEnd": 0.937,
+            "trimmedFirstPixel": [
+              125,
+              0,
+              0
+            ],
+            "hasAudio": true,
+            "audioRms": 0.08638099597472702,
+            "red": [
+              125,
+              0,
+              0
+            ],
+            "blue": [
+              0,
+              0,
+              127
+            ],
+            "tagBefore": [
+              1,
+              255,
+              0
+            ],
+            "tagAfter": [
+              16,
+              34,
+              50
+            ],
+            "gradedImageSticker": [
+              1,
+              127,
+              126
+            ]
+          },
+          {
+            "mode": "bad_added_audio",
+            "rejected": true
+          },
+          {
+            "mode": "delayed_start",
+            "bytes": 39266,
+            "mime": "video/webm;codecs=vp9,opus",
+            "codec": "vp9",
+            "width": 1080,
+            "height": 1918,
+            "duration": 1.059899,
+            "encodedVideoEnd": 0.939,
+            "trimmedFirstPixel": [
+              125,
+              0,
+              0
+            ],
+            "hasAudio": true,
+            "audioRms": 0.048715493935610386,
+            "red": [
+              125,
+              0,
+              0
+            ],
+            "blue": [
+              0,
+              0,
+              127
+            ],
+            "tagBefore": [
+              1,
+              255,
+              0
+            ],
+            "tagAfter": [
+              16,
+              34,
+              50
+            ],
+            "gradedImageSticker": [
+              1,
+              127,
+              126
+            ]
+          },
+          {
+            "mode": "oversized_final_chunk",
+            "rejected": true
+          },
+          {
+            "mode": "cancelled",
+            "cancelled": true
+          }
+        ]
+      }
+    },
+    "memory": {
+      "receiptSha256": "026652c0e0ddec18ec543de88edca0ef2d0721f6969cb5c1ebafd89affd0d176",
+      "uiChecks": 0,
+      "mediaModes": 19,
+      "encodedOutputs": 6,
+      "retainedReceipt": {
+        "browser": "153.0.8010.12",
+        "cases": [
+          {
+            "mode": "original",
+            "bytes": 150993,
+            "codec": "vp9",
+            "duration": 7.0026,
+            "dimensions": [
+              720,
+              1280
+            ],
+            "trimmed": [
+              126,
+              0,
+              0
+            ],
+            "first": [
+              237,
+              179,
+              67
+            ],
+            "timed": [
+              0,
+              254,
+              0
+            ],
+            "untimed": [
+              237,
+              179,
+              67
+            ],
+            "red": [
+              126,
+              0,
+              0
+            ],
+            "blue": [
+              0,
+              0,
+              125
+            ],
+            "last": [
+              21,
+              68,
+              92
+            ],
+            "sound": {
+              "before": 0,
+              "during": 0.035279205374040674,
+              "after": 0,
+              "voiceBefore": 0,
+              "voiceAfter": 0,
+              "originalDuring": 0.04983040970145392
+            },
+            "audioClosed": true,
+            "tracksEnded": true
+          },
+          {
+            "mode": "silent",
+            "bytes": 125563,
+            "codec": "vp9",
+            "duration": 7.015899,
+            "dimensions": [
+              720,
+              1280
+            ],
+            "trimmed": [
+              126,
+              0,
+              0
+            ],
+            "first": [
+              237,
+              179,
+              67
+            ],
+            "timed": [
+              0,
+              254,
+              0
+            ],
+            "untimed": [
+              237,
+              179,
+              67
+            ],
+            "red": [
+              126,
+              0,
+              0
+            ],
+            "blue": [
+              0,
+              0,
+              125
+            ],
+            "last": [
+              21,
+              68,
+              92
+            ],
+            "sound": null,
+            "audioClosed": true,
+            "tracksEnded": true
+          },
+          {
+            "mode": "score",
+            "bytes": 272513,
+            "codec": "vp9",
+            "duration": 7.0112,
+            "dimensions": [
+              720,
+              1280
+            ],
+            "trimmed": [
+              126,
+              0,
+              0
+            ],
+            "first": [
+              237,
+              179,
+              67
+            ],
+            "timed": [
+              0,
+              254,
+              0
+            ],
+            "untimed": [
+              237,
+              179,
+              67
+            ],
+            "red": [
+              126,
+              0,
+              0
+            ],
+            "blue": [
+              0,
+              0,
+              125
+            ],
+            "last": [
+              21,
+              68,
+              92
+            ],
+            "sound": {
+              "before": 0.03818341491053912,
+              "during": 0.035537887533571164,
+              "after": 0.025324414820481516,
+              "voiceBefore": 0.0014814836010325423,
+              "voiceAfter": 0.008963641226467105,
+              "originalDuring": 0.04985656229803446
+            },
+            "audioClosed": true,
+            "tracksEnded": true
+          },
+          {
+            "mode": "local_once",
+            "bytes": 185303,
+            "codec": "vp9",
+            "duration": 7.009299,
+            "dimensions": [
+              720,
+              1280
+            ],
+            "trimmed": [
+              126,
+              0,
+              0
+            ],
+            "first": [
+              237,
+              179,
+              67
+            ],
+            "timed": [
+              0,
+              254,
+              0
+            ],
+            "untimed": [
+              237,
+              179,
+              67
+            ],
+            "red": [
+              126,
+              0,
+              0
+            ],
+            "blue": [
+              0,
+              0,
+              125
+            ],
+            "last": [
+              21,
+              68,
+              92
+            ],
+            "sound": {
+              "before": 0.061877652243303584,
+              "during": 0.03523929639821285,
+              "after": 1.401298464324817e-45,
+              "voiceBefore": 0.08750774642118576,
+              "voiceAfter": 1.1092618751087618e-61,
+              "originalDuring": 0.04977659441619031
+            },
+            "audioClosed": true,
+            "tracksEnded": true
+          },
+          {
+            "mode": "local_loop",
+            "bytes": 273616,
+            "codec": "vp9",
+            "duration": 7.0145,
+            "dimensions": [
+              720,
+              1280
+            ],
+            "trimmed": [
+              126,
+              0,
+              0
+            ],
+            "first": [
+              237,
+              179,
+              67
+            ],
+            "timed": [
+              0,
+              254,
+              0
+            ],
+            "untimed": [
+              237,
+              179,
+              67
+            ],
+            "red": [
+              126,
+              0,
+              0
+            ],
+            "blue": [
+              0,
+              0,
+              125
+            ],
+            "last": [
+              21,
+              68,
+              92
+            ],
+            "sound": {
+              "before": 0.06189818615299333,
+              "during": 0.07110714500312401,
+              "after": 0.061929293959041544,
+              "voiceBefore": 0.08749787505483878,
+              "voiceAfter": 0.08758043708488489,
+              "originalDuring": 0.04986348034817641
+            },
+            "audioClosed": true,
+            "tracksEnded": true
+          },
+          {
+            "mode": "static_images",
+            "bytes": 153580,
+            "codec": "vp9",
+            "duration": 7.013899,
+            "dimensions": [
+              720,
+              1280
+            ],
+            "trimmed": [
+              126,
+              0,
+              0
+            ],
+            "first": [
+              237,
+              179,
+              67
+            ],
+            "timed": [
+              26,
+              84,
+              163
+            ],
+            "untimed": [
+              237,
+              179,
+              67
+            ],
+            "red": [
+              126,
+              0,
+              0
+            ],
+            "blue": [
+              0,
+              0,
+              125
+            ],
+            "last": [
+              21,
+              68,
+              92
+            ],
+            "sound": {
+              "before": 0,
+              "during": 0.03530981573433903,
+              "after": 0,
+              "voiceBefore": 0,
+              "voiceAfter": 0,
+              "originalDuring": 0.04988075900111052
+            },
+            "audioClosed": true,
+            "tracksEnded": true
+          },
+          {
+            "mode": "cancel",
+            "noPartialDownload": true,
+            "resourcesClosed": true
+          },
+          {
+            "mode": "call",
+            "noPartialDownload": true,
+            "resourcesClosed": true
+          },
+          {
+            "mode": "hidden",
+            "noPartialDownload": true,
+            "resourcesClosed": true
+          },
+          {
+            "mode": "unmount",
+            "noPartialDownload": true,
+            "resourcesClosed": true
+          },
+          {
+            "mode": "missing",
+            "noPartialDownload": true,
+            "resourcesClosed": true
+          },
+          {
+            "mode": "overflow",
+            "noPartialDownload": true,
+            "resourcesClosed": true
+          },
+          {
+            "mode": "animated_primary",
+            "noPartialDownload": true,
+            "resourcesClosed": true,
+            "rejectedBeforeRecording": true
+          },
+          {
+            "mode": "animated_sticker",
+            "noPartialDownload": true,
+            "resourcesClosed": true,
+            "rejectedBeforeRecording": true
+          },
+          {
+            "mode": "animated_background",
+            "noPartialDownload": true,
+            "resourcesClosed": true,
+            "rejectedBeforeRecording": true
+          },
+          {
+            "mode": "animated_data",
+            "noPartialDownload": true,
+            "resourcesClosed": true,
+            "rejectedBeforeRecording": true
+          },
+          {
+            "mode": "image_inspection_cancel",
+            "noPartialDownload": true,
+            "resourcesClosed": true,
+            "imageReadAborted": true
+          },
+          {
+            "mode": "unsupported_composition",
+            "limits": {
+              "gif": "Memory 1: Animated GIF export is not available yet. Remove the GIF to export this edited video.",
+              "animated": "Memory 1: Animated sticker export is not available yet. Set sticker animations to None to export this edited video.",
+              "nested": "Memory 1: a shared-post card layered over another memory cannot be exported yet. The card will not be left out.",
+              "dual": "Memory 1: dual-camera composition cannot be exported yet. The second camera will not be discarded.",
+              "savedAudio": "Memory 1: this older added audio needs verification. Upload the original and select it again before exporting.",
+              "soundtrack": "Choose the book soundtrack again before exporting.",
+              "missing": "Memory 1: the original media is unavailable. Refresh the book and try again.",
+              "tooMany": "A browser movie can contain up to 30 memories. Create a shorter book before exporting."
+            }
+          },
+          {
+            "mode": "film_entry_exit",
+            "keepsPaused": true,
+            "mobileNoOverflow": true
+          }
+        ],
+        "consoleErrors": []
+      }
+    },
+    "music": {
+      "receiptSha256": "da02d9c255cb3bc76bccc45389179ff6aed70e5bc7f797b6c2c71b954f9091a5",
+      "uiChecks": 0,
+      "mediaModes": 5,
+      "encodedOutputs": 2,
+      "retainedReceipt": {
+        "browser": "153.0.8010.12",
+        "syntheticTransport": true,
+        "cases": [
+          {
+            "mode": "book",
+            "bytes": 164822,
+            "duration": "6.010299",
+            "lateFrame": [
+              209,
+              177,
+              108
+            ],
+            "before": 0.0870154015191881,
+            "after": 0.08822093020604216,
+            "passed": true
+          },
+          {
+            "mode": "retained",
+            "bytes": 104064,
+            "duration": "6.003500",
+            "lateFrame": [
+              209,
+              177,
+              108
+            ],
+            "before": 0.08706503613309721,
+            "after": 0,
+            "passed": true
+          },
+          {
+            "mode": "revoked_during_export",
+            "noDownload": true
+          },
+          {
+            "mode": "microphone_verified",
+            "duration": 2.2291156462585033
+          },
+          {
+            "mode": "recording_cancel",
+            "tracksEnded": true,
+            "noUpload": true
+          }
+        ],
+        "consoleErrors": [],
+        "calls": [
+          {
+            "operation": "get_original_audio_capabilities"
+          },
+          {
+            "operation": "reserve_original_audio",
+            "args": {
+              "p_request_id": "11e658d2-d5c4-477c-8aff-d4b732ef525e",
+              "p_expected_user": "10000000-0000-4000-8000-000000000001",
+              "p_title": "synthetic-original",
+              "p_mime": "audio/wav",
+              "p_bytes": 192078,
+              "p_sha256": "b28b91f2eee541a30f5b6c244ebfa0334ebe3ff50a314a3e8284030504f37114",
+              "p_reuse": false,
+              "p_rights_attested": true
+            }
+          },
+          {
+            "operation": "verified",
+            "bytes": 192078,
+            "duration": 2
+          },
+          {
+            "operation": "get_original_audio_capabilities"
+          },
+          {
+            "operation": "get_playable_sound",
+            "args": {
+              "p_sound_id": "67a9cdaa-5861-45d6-87de-9996910ee85d",
+              "p_use": "story"
+            }
+          },
+          {
+            "operation": "get_original_audio_capabilities"
+          },
+          {
+            "operation": "get_playable_sound",
+            "args": {
+              "p_sound_id": "67a9cdaa-5861-45d6-87de-9996910ee85d",
+              "p_use": "post"
+            }
+          },
+          {
+            "operation": "get_original_audio_capabilities"
+          },
+          {
+            "operation": "authorize_original_audio_export",
+            "args": {
+              "p_sound_id": "67a9cdaa-5861-45d6-87de-9996910ee85d",
+              "p_use": "memory_album"
+            }
+          },
+          {
+            "operation": "get_original_audio_capabilities"
+          },
+          {
+            "operation": "authorize_original_audio_export",
+            "args": {
+              "p_sound_id": "67a9cdaa-5861-45d6-87de-9996910ee85d",
+              "p_use": "memory_album"
+            }
+          },
+          {
+            "operation": "get_original_audio_capabilities"
+          },
+          {
+            "operation": "authorize_original_audio_export",
+            "args": {
+              "p_sound_id": "67a9cdaa-5861-45d6-87de-9996910ee85d",
+              "p_use": "memory_album"
+            }
+          },
+          {
+            "operation": "get_original_audio_capabilities"
+          },
+          {
+            "operation": "authorize_original_audio_export",
+            "args": {
+              "p_sound_id": "67a9cdaa-5861-45d6-87de-9996910ee85d",
+              "p_use": "memory_album"
+            }
+          },
+          {
+            "operation": "get_original_audio_capabilities"
+          },
+          {
+            "operation": "authorize_original_audio_export",
+            "args": {
+              "p_sound_id": "67a9cdaa-5861-45d6-87de-9996910ee85d",
+              "p_use": "memory_album"
+            }
+          },
+          {
+            "operation": "get_original_audio_capabilities"
+          },
+          {
+            "operation": "authorize_original_audio_export",
+            "args": {
+              "p_sound_id": "67a9cdaa-5861-45d6-87de-9996910ee85d",
+              "p_use": "memory_album"
+            }
+          },
+          {
+            "operation": "reserve_original_audio",
+            "args": {
+              "p_request_id": "cd8c56ca-d3ed-4b0a-aa4c-0e1df254dc8a",
+              "p_expected_user": "10000000-0000-4000-8000-000000000001",
+              "p_title": "Voiceover",
+              "p_mime": "audio/wav",
+              "p_bytes": 196652,
+              "p_sha256": "8c3ff296141c30941e84f90adc08d69dd2acfa529f0f2292399601564f72e738",
+              "p_reuse": false,
+              "p_rights_attested": true
+            }
+          },
+          {
+            "operation": "verified",
+            "bytes": 196652,
+            "duration": 2.2291156462585033
+          },
+          {
+            "operation": "get_original_audio_capabilities"
+          },
+          {
+            "operation": "get_playable_sound",
+            "args": {
+              "p_sound_id": "6698ed21-5499-4ec4-a7ab-a5ee2a55c82f",
+              "p_use": "story"
+            }
+          },
+          {
+            "operation": "get_original_audio_capabilities"
+          }
+        ]
+      }
+    },
+    "web": {
+      "receiptSha256": "4b54f6eaa48ada3a9e9a58ede9a60f35f7c9bdd01617ac982ef68af13c17c923",
+      "uiChecks": 38,
+      "mediaModes": 0,
+      "encodedOutputs": 0,
+      "retainedReceipt": {
+        "checkedAt": "2026-10-30T22:53:45.576Z",
+        "runtime": "153.0.8010.12",
+        "scope": "Actual public-web modules compiled with synthetic Auth/database, media and Next navigation adapters. No real-provider, hosted authentication or physical-device acceptance.",
+        "checks": [
+          {
+            "name": "Actual Home feed renders with its primary destinations and consistent outline icons",
+            "passed": true
+          },
+          {
+            "name": "Global keyboard search opens the encoded destination",
+            "passed": true
+          },
+          {
+            "name": "Create disclosure supports Escape and returns keyboard focus",
+            "passed": true
+          },
+          {
+            "name": "Create Post opens the actual composer and Cancel retains its caption",
+            "passed": true
+          },
+          {
+            "name": "Composer keeps keyboard focus inside and supports Review then Edit without resetting",
+            "passed": true
+          },
+          {
+            "name": "Desktop feed media uses the available card width after closing the composer",
+            "passed": true
+          },
+          {
+            "name": "Account menu changes appearance and the composer remains readable in Dim",
+            "passed": true
+          },
+          {
+            "name": "Settings search finds relevant destinations and offers a clear no-results exit",
+            "passed": true
+          },
+          {
+            "name": "Media preference switches are named, persist, and explain data-saver precedence",
+            "passed": true
+          },
+          {
+            "name": "A failed initial account check retries without a page reload or premature profile writes",
+            "passed": true
+          },
+          {
+            "name": "Edit profile opens the actual owner-bound editor",
+            "passed": true
+          },
+          {
+            "name": "A failed profile save retains the draft, and retry confirms exactly one owner",
+            "passed": true
+          },
+          {
+            "name": "Unsaved profile changes block an unrelated search when discard is declined",
+            "passed": true
+          },
+          {
+            "name": "Cancel offers a reviewable discard and returns to the owner profile",
+            "passed": true
+          },
+          {
+            "name": "Owner profile has working edit, private collection and draft destinations",
+            "passed": true
+          },
+          {
+            "name": "Invalid profile links and disguised image bytes stop before any write or upload",
+            "passed": true
+          },
+          {
+            "name": "Profile photo selection previews locally and Cancel makes no Storage write",
+            "passed": true
+          },
+          {
+            "name": "Browser Back preserves the owner draft and photo for explicit restoration on return",
+            "passed": true
+          },
+          {
+            "name": "Photo save retry reuses the verified owner path and keeps both local previews intact",
+            "passed": true
+          },
+          {
+            "name": "Repeated submit is deduplicated and a late save cannot overwrite a switched account",
+            "passed": true
+          },
+          {
+            "name": "Visitor profile surfaces conversation failure and recovers without duplicate actions",
+            "passed": true
+          },
+          {
+            "name": "Messages opens the actual conversation with profile, shared-media, details and exit actions",
+            "passed": true
+          },
+          {
+            "name": "Closing and reopening a conversation preserves its unsent draft",
+            "passed": true
+          },
+          {
+            "name": "New message has a keyboard exit and makes no conversation or message write on Cancel",
+            "passed": true
+          },
+          {
+            "name": "Recipient search and conversation failures retain review context and retry without sending a message",
+            "passed": true
+          },
+          {
+            "name": "Mobile messages keep search, requests, compose actions and Back reachable without losing the draft",
+            "passed": true
+          },
+          {
+            "name": "Communities search has a real clear-search exit and connected channel navigation",
+            "passed": true
+          },
+          {
+            "name": "Community creation contains focus, keeps a cancelled draft and preserves it on failure",
+            "passed": true
+          },
+          {
+            "name": "Community detail opens members and returns focus to its actual member control",
+            "passed": true
+          },
+          {
+            "name": "Community settings preview files locally and Cancel does not update Storage or community settings",
+            "passed": true
+          },
+          {
+            "name": "Community settings preserve an uncertain save and retry the same uploaded photo path",
+            "passed": true
+          },
+          {
+            "name": "Community layout and create dialog fit a narrow screen with all actions reachable",
+            "passed": true
+          },
+          {
+            "name": "Channel creation keeps its draft through Escape and reaches the confirmed channel",
+            "passed": true
+          },
+          {
+            "name": "Channel settings protect unsaved edits and reject a failed save without closing",
+            "passed": true
+          },
+          {
+            "name": "Offline and restored notices preserve the current composer caption without reloading",
+            "passed": true
+          },
+          {
+            "name": "Mobile all-destinations menu fits and contains every major journey",
+            "passed": true
+          },
+          {
+            "name": "320px viewport keeps the brand, top actions and post controls inside the viewport",
+            "passed": true
+          },
+          {
+            "name": "Failed sign-out remains visible and never reports a signed-out route",
+            "passed": true
+          }
+        ],
+        "browserErrors": []
+      }
+    },
+    "commerce": {
+      "receiptSha256": "d81ada3217bc05810ff92b47a6ddbb339b7a2c190935e7cfa27e5fc9956ac928",
+      "uiChecks": 24,
+      "mediaModes": 0,
+      "encodedOutputs": 0,
+      "retainedReceipt": {
+        "checkedAt": "2026-10-30T22:53:58.231Z",
+        "runtime": "153.0.8010.12",
+        "scope": "Actual Jobs/Market components with synthetic Auth/database and navigation adapters. No hosted authentication, real provider, payment, Storage, or physical-device acceptance.",
+        "checks": [
+          "Jobs uses real named destinations, line icons and independent card actions",
+          "Job search, remote filtering and empty-state reset change actual rendered results",
+          "Failed job save rolls back without navigation; retry updates Saved jobs and unsave removes it",
+          "Cancelling native job sharing does not silently copy the link",
+          "Application review and Escape keep r\u00e9sum\u00e9 and text local, with focus returned to Review",
+          "Application upload failure retains the draft and repeated confirmation sends only one application",
+          "Application status route and withdrawal require a separate review before the versioned RPC",
+          "Jobs read failures have a working in-place retry",
+          "Market filters validate ranges, Cancel makes no query change, and Apply changes actual listing results",
+          "Saved and Selling views connect to actual records, and saved removal updates the grid",
+          "Market alert failures preserve input, success and removal confirm real adapter writes, and Escape exits",
+          "Product gallery supports keyboard selection and meaningful image descriptions",
+          "Offer editing and cancellation send nothing; a failed send remains reviewable before retry",
+          "Order request review is local and Edit keeps quantity and delivery notes",
+          "Lost order response preserves the immutable request; retry confirms one existing order without payment",
+          "Order actions require review, retain failures, and submit the current order version",
+          "Order history has a working close path and retains the actual event timeline",
+          "Listing reports open a named focused dialog and Cancel makes no report RPC",
+          "Seller actions require review, refuse an unconfirmed update, and confirm one ownership-bound retry",
+          "Switching accounts during an order request clears private drafts and contains the late result",
+          "Signed-out job saving opens the actual sign-in destination",
+          "Market stays readable in Dim with the real appearance control",
+          "Jobs, applications, Market, product and orders fit a 390px screen without horizontal overflow",
+          "Mobile review keeps the footer reachable and native dialog focus contained"
+        ],
+        "browserErrors": []
+      }
+    },
+    "studio": {
+      "receiptSha256": "c77d59a317439bd42e7ed0250beeb3d8f1294e1ad9d8b48d4eeade32b7a4c37f",
+      "uiChecks": 25,
+      "mediaModes": 0,
+      "encodedOutputs": 0,
+      "retainedReceipt": {
+        "checkedAt": "2026-10-30T22:54:08.402Z",
+        "runtime": "153.0.8010.12",
+        "scope": "Actual Studio components with synthetic records and RPC adapters. This does not establish authenticated QA, Storage, provider, publishing-worker or physical-device acceptance.",
+        "checks": [
+          {
+            "name": "Professional shell uses a dedicated rail with a real return to the public app",
+            "passed": true
+          },
+          {
+            "name": "Tool search focuses, filters actual destinations and restores focus on Escape",
+            "passed": true
+          },
+          {
+            "name": "Overview publishing queue opens the exact draft and failed-upload destination",
+            "passed": true
+          },
+          {
+            "name": "Campaign filtering cannot leave an actionable hidden campaign selected",
+            "passed": true
+          },
+          {
+            "name": "Campaign creation validates the budget and saves a draft after a review step",
+            "passed": true
+          },
+          {
+            "name": "Advertising review keeps submission blocked until creative is present",
+            "passed": true
+          },
+          {
+            "name": "Failed ad-picker loading is shown with retry and retains the current campaign",
+            "passed": true
+          },
+          {
+            "name": "Insights separates organic and paid reports and exposes exact daily chart values",
+            "passed": true
+          },
+          {
+            "name": "A failed Insights period change retains and labels the last confirmed report",
+            "passed": true
+          },
+          {
+            "name": "Planner deep link opens the intended draft and guards Cancel against unsaved changes",
+            "passed": true
+          },
+          {
+            "name": "Newsroom reads the linked draft before review and requires feedback for requested changes",
+            "passed": true
+          },
+          {
+            "name": "Ambiguous workflow submission preserves one exact request and safely retries it",
+            "passed": true
+          },
+          {
+            "name": "Scheduling requires a separate confirmation with the approved publication time",
+            "passed": true
+          },
+          {
+            "name": "Business deliverable approval does not grant either creator permission",
+            "passed": true
+          },
+          {
+            "name": "Switching to the named creator exposes permission controls with expiry and explicit consent",
+            "passed": true
+          },
+          {
+            "name": "A changed source invalidates displayed consent and still allows revoking the recorded grant",
+            "passed": true
+          },
+          {
+            "name": "Creator permission can be revoked without accidentally granting paid promotion",
+            "passed": true
+          },
+          {
+            "name": "Earnings preserves provider restrictions and does not turn absent balances into invented totals",
+            "passed": true
+          },
+          {
+            "name": "Creator routes remain available and business-only tools have an intentional return path",
+            "passed": true
+          },
+          {
+            "name": "Team navigation opens real organization members and links to protected business codes",
+            "passed": true
+          },
+          {
+            "name": "Member creation binds the submitted identity and uses least privilege by default",
+            "passed": true
+          },
+          {
+            "name": "Dark Studio inherits readable surfaces while retaining professional navigation",
+            "passed": true
+          },
+          {
+            "name": "Studio fits a 390-pixel viewport without horizontal page overflow",
+            "passed": true
+          },
+          {
+            "name": "Mobile navigation opens, traps focus, closes on Escape and restores its trigger",
+            "passed": true
+          },
+          {
+            "name": "Mobile assignment creation preserves text when closing is cancelled",
+            "passed": true
+          }
+        ],
+        "browserErrors": [],
+        "screenshots": [
+          "studio-overview-desktop.png",
+          "studio-ads-desktop.png",
+          "studio-insights-desktop.png",
+          "studio-newsroom-desktop.png",
+          "studio-partnerships-desktop.png",
+          "studio-earnings-desktop.png",
+          "studio-team-desktop.png",
+          "studio-newsroom-dark.png",
+          "studio-newsroom-mobile.png"
+        ]
+      }
+    }
+  },
+  "acceptanceScope": [
+    "Actual Chromium 153.0.8010.12 runs the shared admin, public web, commerce and Studio modules.",
+    "Actual browser encoders and decoded-output checks exercise thirteen successful media outputs, plus cancellation and rejection modes.",
+    "Auth, database, Storage transport, navigation, provider responses and microphone source use synthetic fixtures in these CI harnesses.",
+    "The artifact retains measurements and screenshots; generated browser movie bytes are not retained in this archive.",
+    "This receipt does not prove hosted business authentication, real-provider behavior, production privacy cutover, a physical microphone or physical-device Photos export.",
+    "Signed-in hosted route checks are recorded separately in continuation-live-routes.json and android-candidate-preview-check.json."
+  ]
+}

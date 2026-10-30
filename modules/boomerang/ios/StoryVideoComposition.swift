@@ -231,6 +231,9 @@ enum StoryVideoComposition {
       request.finish(with: frame.cropped(to: rect), context: StoryVideoPixels.context)
     })
     videoComposition.renderSize = rect.size
+    // The filter initializer preserves source-frame timing. Disable that
+    // override so a speed change cannot bypass the fixed 30 fps output bound.
+    videoComposition.sourceTrackIDForFrameTiming = kCMPersistentTrackID_Invalid
     videoComposition.frameDuration = CMTime(value: 1, timescale: 30)
     videoComposition.colorPrimaries = AVVideoColorPrimaries_ITU_R_709_2
     videoComposition.colorTransferFunction = AVVideoTransferFunction_ITU_R_709_2

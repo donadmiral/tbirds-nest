@@ -1,0 +1,263 @@
+{
+  "observedAt": "2026-10-30T23:01:09Z",
+  "source": {
+    "head": "71aa363a5967d523a852516469a83ec163f93196",
+    "testedPrMerge": "6bd29458013b492b4ecb18b4aa475e7408952dc8",
+    "tree": "54758f064e900675d74d931fd17aa1b70ec0e9e1",
+    "treeEqualityVerified": true,
+    "checkoutVerifiedInEveryJobLog": true
+  },
+  "run": {
+    "id": 41140916515,
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41140916515",
+    "attempt": 1,
+    "event": "pull_request",
+    "status": "completed",
+    "conclusion": "success",
+    "completedAt": "2026-10-30T22:58:24Z"
+  },
+  "runtime": {
+    "node": "22.23.4",
+    "deno": "2.1.4",
+    "database": "PostgreSQL 18.6 / PGlite 0.5.10, local WASM fixtures"
+  },
+  "jobs": [
+    {
+      "id": 124354670229,
+      "name": "Link preview Edge TLS",
+      "result": "success",
+      "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41140916515/job/124354670229"
+    },
+    {
+      "id": 124354670403,
+      "name": "Web app",
+      "result": "success",
+      "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41140916515/job/124354670403"
+    },
+    {
+      "id": 124354670579,
+      "name": "Operations app",
+      "result": "success",
+      "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41140916515/job/124354670579"
+    },
+    {
+      "id": 124354670595,
+      "name": "Phone app",
+      "result": "success",
+      "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41140916515/job/124354670595"
+    }
+  ],
+  "typechecks": {
+    "phone": "passed",
+    "web": "passed",
+    "operations": "passed"
+  },
+  "nodeSuites": {
+    "nativeRoot": {
+      "tests": 1390,
+      "suites": 0,
+      "pass": 1390,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 56458.506386
+    },
+    "web": {
+      "tests": 621,
+      "suites": 0,
+      "pass": 621,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 19254.315964
+    },
+    "operations": {
+      "tests": 189,
+      "suites": 0,
+      "pass": 189,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 12313.731747
+    },
+    "supabaseDefault": {
+      "tests": 299,
+      "suites": 0,
+      "pass": 296,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 3,
+      "todo": 0,
+      "duration_ms": 83188.254946
+    }
+  },
+  "customRpcEvidence": [
+    {
+      "index": 0,
+      "hostedWrites": false,
+      "testCount": 13
+    },
+    {
+      "index": 1,
+      "suite": "community_group_authorization",
+      "checks": 19
+    },
+    {
+      "index": 2,
+      "hostedWrites": false,
+      "testCount": 4
+    },
+    {
+      "index": 3,
+      "suite": "admin-commands-integrated",
+      "passed": 22,
+      "hostedWrites": false
+    },
+    {
+      "index": 4,
+      "suite": "pending-migration-chain",
+      "passed": 41,
+      "hostedWrites": false,
+      "appliedMigrations": 41
+    },
+    {
+      "index": 5,
+      "ok": true,
+      "units": 18,
+      "sourceFiles": 19,
+      "alreadyAppliedUnits": 7,
+      "remainingUnits": 11,
+      "heldMigrations": 34
+    },
+    {
+      "index": 6,
+      "ok": true,
+      "baselineUnits": 18,
+      "candidateUnits": 7,
+      "checks": 9
+    },
+    {
+      "index": 7,
+      "success": true,
+      "candidate": "20261023185734_redacted_client_diagnostics",
+      "checks": 11
+    },
+    {
+      "index": 8,
+      "success": true,
+      "candidate": "20261029190200_comment_author_highlights",
+      "checks": 15
+    },
+    {
+      "index": 9,
+      "success": true,
+      "baselineUnits": 25,
+      "candidate": "20261025073234_applicant_self_service_quality",
+      "checks": 16
+    }
+  ],
+  "additionalRpcChecks": {
+    "postflight": "Exact definitions/ACLs and six expected role denials passed.",
+    "verificationIntegrityScenarios": 8
+  },
+  "edgeTls": {
+    "tests": 2,
+    "passed": 2,
+    "failed": 0,
+    "scope": "Actual local HTTPS, pinned IP, original Host/SNI, certificate validation and cancellation."
+  },
+  "complementarySkips": [
+    {
+      "name": "book signing uses the reader permission for explicit custom access and inactive accounts",
+      "passOccurrences": 1,
+      "skipOccurrences": 1
+    },
+    {
+      "name": "visual-only manifests do not bind or sign separate audio, and install no soundtrack authorization",
+      "passOccurrences": 1,
+      "skipOccurrences": 1
+    },
+    {
+      "name": "visual-only publisher works without audio infrastructure, rejects added sound, and preserves recorded video controls",
+      "passOccurrences": 1,
+      "skipOccurrences": 1
+    },
+    {
+      "name": "sound publication is owner-bound, attested and idempotent",
+      "passOccurrences": 1,
+      "skipOccurrences": 1
+    }
+  ],
+  "artifacts": [],
+  "limits": [
+    "Actual hosted CI execution; database fixtures are local synthetic PostgreSQL, not the QA or production Supabase projects. This run installs no migration or dependent Edge deployment and establishes no live Auth/Storage/provider acceptance.",
+    "Three visual cases are skipped in default Supabase mode and pass in the visual fixture. The visual fixture skips one audio-publication case that passes in default mode; each exact case has one observed pass and one complementary skip.",
+    "QA/production compatibility modes and overlapping entrypoints are retained separately. No aggregate unique end-to-end journey count is inferred.",
+    "Pending-chain entries and production rollout units describe DDL compatibility, not behavioral test totals.",
+    "This workflow runs types and tests. Strict lint, browser acceptance, native compilation, encoded-media runtime checks and the music Edge Deno dependency check have separate evidence.",
+    "No physical device, installed-product, production activation or release submission is established."
+  ],
+  "rpcExecution": {
+    "isolatedInvocations": 40,
+    "tapReporters": 37,
+    "tests": 711,
+    "pass": 710,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 1,
+    "todo": 0,
+    "countsInRunnerOrder": [
+      16,
+      34,
+      36,
+      11,
+      14,
+      21,
+      21,
+      18,
+      18,
+      20,
+      20,
+      16,
+      16,
+      41,
+      41,
+      27,
+      27,
+      15,
+      31,
+      31,
+      31,
+      19,
+      22,
+      6,
+      6,
+      12,
+      12,
+      12,
+      21,
+      11,
+      11,
+      16,
+      17,
+      33,
+      6,
+      1,
+      1
+    ],
+    "exactPerInvocationCountsMatchReferencedInventory": true
+  },
+  "rpcInventoryReference": {
+    "path": "docs/quality/interaction-acceptance-20261030/candidate-type-backend-ci.json",
+    "sha256": "fbb66d3d017a56c72e166541b55be357da256088bd82436ef066a80951cc623b",
+    "note": "Contains the exact unchanged 40 script/environment entries. Current log counts were independently parsed and compared per invocation; this is not a reuse of the earlier run status."
+  },
+  "sourceSha256": {
+    ".github/workflows/typecheck.yml": "9cf76a697c8476aa41ea63bab3f3a3da25c8edb15549208a1d6c07cfcdcfc46d",
+    "supabase/tests/rpc-authorization/run-all.mjs": "6a476ee1d9c3cefd84d35041ee32db38fdb67e69912666d7d35a91972b1ac2e3",
+    "docs/quality/music-operations-20261030/candidate.json": "202531fe22d0bc7cdebcd195f4608138d7e81a75d719c3d0308658583ffb7344"
+  }
+}

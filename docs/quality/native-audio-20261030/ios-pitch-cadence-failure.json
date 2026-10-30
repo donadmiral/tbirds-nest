@@ -1,0 +1,216 @@
+{
+  "verifiedAtUtc": "2026-10-30T23:03:59+00:00",
+  "reviewHead": "71aa363a5967d523a852516469a83ec163f93196",
+  "testedMerge": "6bd29458013b492b4ecb18b4aa475e7408952dc8",
+  "sourceTree": "54758f064e900675d74d931fd17aa1b70ec0e9e1",
+  "mergeTreeMatchesHead": true,
+  "runId": 41140916520,
+  "runUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41140916520",
+  "jobId": 124354956326,
+  "jobConclusion": "failure",
+  "artifact": {
+    "id": 13017719965,
+    "name": "native-story-audio-export",
+    "bytes": 247452,
+    "sha256": "64ecec9b763dc9b2905932ac07e291fce55005714162c59bb91b681f71197655",
+    "downloadedAndDigestVerified": true
+  },
+  "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-26-2",
+  "architecture": "arm64",
+  "expectedCaseCount": 8,
+  "completedCaseCount": 3,
+  "completedCases": [
+    "video trim and speed keep looping excerpt and music pitch",
+    "voiceover stops while the remaining video stays present",
+    "original mix level and muted soundtrack are preserved"
+  ],
+  "error": "Mixed export frame count does not cover the edited timeline",
+  "partialCaseDiagnostics": [
+    {
+      "duration": 2.295,
+      "expectedDuration": 2.25,
+      "name": "2x original pitch and independent looping music stay in sync",
+      "speed": 2,
+      "windows": [
+        {
+          "afterExcerpt1760Hz": 4.552527199115481e-05,
+          "at": 0.3,
+          "beforeExcerpt1540Hz": 9.378930412587423e-05,
+          "music660Hz": 0.19934500134522226,
+          "original440Hz": 0.09972103969054533,
+          "samples": 14400,
+          "shiftedMusicAmplitude": 0.0002656408232868188,
+          "shiftedMusicHz": 1320,
+          "shiftedOriginalAmplitude": 0.0005757536587579983,
+          "shiftedOriginalHz": 880
+        },
+        {
+          "afterExcerpt1760Hz": 4.552099780289832e-05,
+          "at": 1.3,
+          "beforeExcerpt1540Hz": 9.451092735442547e-05,
+          "music660Hz": 0.1993467463863889,
+          "original440Hz": 0.09971816513834851,
+          "samples": 14400,
+          "shiftedMusicAmplitude": 0.00026630763060183705,
+          "shiftedMusicHz": 1320,
+          "shiftedOriginalAmplitude": 0.0005748416720296979,
+          "shiftedOriginalHz": 880
+        },
+        {
+          "afterExcerpt1760Hz": 0.0002397309292710011,
+          "at": 1.9,
+          "beforeExcerpt1540Hz": 0.00015263010507883155,
+          "music660Hz": 0.1990430883914158,
+          "original440Hz": 0.0990828254586426,
+          "samples": 14349,
+          "shiftedMusicAmplitude": 0.00039747797821979356,
+          "shiftedMusicHz": 1320,
+          "shiftedOriginalAmplitude": 0.001083702808357559,
+          "shiftedOriginalHz": 880
+        }
+      ]
+    }
+  ],
+  "sources": {
+    "modules/boomerang/ios/StoryVideoComposition.swift": "1fd77c1eaa9f802caabc75c20534606d5d4dee219ca044629045f70895945a87",
+    "scripts/quality/StoryAudioExportHarness.swift": "f62d1d285283d6b45a2dc8ab9b55f2e1c47f18a8e44bc3b56631d3f90379d714",
+    "scripts/quality/test-ios-story-audio.sh": "c024ac519360f68b3e2a9b30694439ab7e94fb6c34519ff1bc4d0309c8d61215"
+  },
+  "sourceHashesMatchTestedHead": true,
+  "retainedMovies": {
+    "pc-story-export-mixed-speed-2x.mp4": {
+      "sha256": "87a9792ecfaeac84fb05a9401b7d804709d650e82caac873f14d89fb8c87f4e1",
+      "bytes": 84593
+    },
+    "pc-story-export-original.mp4": {
+      "sha256": "5f45160a6ca85cbaebf51db6b6af44e1eaf6d1e743bbf6f498b6867a3d3a00f9",
+      "bytes": 99384
+    },
+    "pc-story-export-loop.mp4": {
+      "sha256": "c61f6bc0556f33034ce928cbe85e8cbdfde8386c70d78768ec648c35f78d19d7",
+      "bytes": 74608
+    },
+    "pc-story-export-voice.mp4": {
+      "sha256": "e557f44c8476580e2bd9f9f88409ab9f4758f1c8291a6c771487f5a114db5761",
+      "bytes": 53584
+    }
+  },
+  "allRetainedMovieHashesAndBytesVerified": true,
+  "independentMixedMovieReview": {
+    "movieSha256": "87a9792ecfaeac84fb05a9401b7d804709d650e82caac873f14d89fb8c87f4e1",
+    "movieBytes": 84593,
+    "ffmpeg": "ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers",
+    "streams": [
+      {
+        "type": "audio",
+        "codec": "aac",
+        "duration": "2.295011",
+        "nominalFrameRate": "0/0",
+        "decodedFrames": "99"
+      },
+      {
+        "type": "video",
+        "codec": "h264",
+        "duration": "2.250000",
+        "nominalFrameRate": "60/1",
+        "decodedFrames": "135"
+      }
+    ],
+    "formatDuration": 2.295011,
+    "decodedAudioFramesAt48k": 110272,
+    "windows": [
+      {
+        "at": 0.3,
+        "samples": 14400,
+        "original440Hz": 0.10002512154004044,
+        "music660Hz": 0.19997147919896938,
+        "shiftedOriginal880Hz": 4.832943509739396e-06,
+        "shiftedMusic1320Hz": 1.2357401737245164e-06,
+        "outside1540Hz": 6.052959588216045e-07,
+        "outside1760Hz": 9.840397500661612e-08
+      },
+      {
+        "at": 1.3,
+        "samples": 14400,
+        "original440Hz": 0.100021885098367,
+        "music660Hz": 0.1999733251627791,
+        "shiftedOriginal880Hz": 1.1958639812007542e-06,
+        "shiftedMusic1320Hz": 5.180876804742357e-07,
+        "outside1540Hz": 1.0793415972652988e-07,
+        "outside1760Hz": 6.1682062958308e-08
+      },
+      {
+        "at": 1.9,
+        "samples": 14400,
+        "original440Hz": 0.10003488078148602,
+        "music660Hz": 0.19998936814577772,
+        "shiftedOriginal880Hz": 4.451356357839046e-07,
+        "shiftedMusic1320Hz": 6.69210006056636e-07,
+        "outside1540Hz": 2.77189896114533e-07,
+        "outside1760Hz": 2.1167042352470768e-07
+      }
+    ],
+    "tracks": {
+      "v:0": {
+        "packets": 135,
+        "firstPresentation": 0.0,
+        "lastPresentation": 2.233333,
+        "end": 2.25,
+        "stepMin": 0.016665999999999848,
+        "stepMax": 0.0166670000000001
+      },
+      "a:0": {
+        "packets": 101,
+        "firstPresentation": -0.047891,
+        "lastPresentation": 2.274104,
+        "end": 2.2950109999999997,
+        "stepMin": 0.023218999999999657,
+        "stepMax": 0.02322000000000024
+      }
+    },
+    "lateFrame": {
+      "at": 2.1,
+      "dimensions": [
+        360,
+        640
+      ],
+      "centerRgb": [
+        20,
+        88,
+        180
+      ]
+    },
+    "note": "Independent analysis of the retained first mixed movie only; not an8-case runtime pass.",
+    "timelineAndAudioChecksPass": true,
+    "fixed30FpsCheckPasses": false
+  },
+  "finding": {
+    "oldAssumedFramesPerSecond": 30,
+    "oldAllowedFrameCount": [
+      65,
+      70
+    ],
+    "actualFrames": 135,
+    "actualFramesPerSecond": 60,
+    "videoEndSeconds": 2.25,
+    "audioEndSeconds": 2.295011,
+    "expectedDurationSeconds": 2.25,
+    "interpretation": "The retained output preserves the edited timeline and audible frequencies/gains, but its 135 frames at 60 fps exceed the production renderer's explicitly requested 30 fps cadence. Source-frame timing can override frameDuration. The production correction disables that override; the strict 30 fps gate remains in force."
+  },
+  "scope": "Historical failed standalone iOS Simulator harness acceptance with synthetic local media. The 2x output has independent measured support; the 0.5x case and remaining runtime sequence did not complete in this run. No physical-device, Photos-write, hosted backend or signed-release acceptance.",
+  "productionRepair": {
+    "file": "modules/boomerang/ios/StoryVideoComposition.swift",
+    "sha256": "5aacf6fe5842f6b846d11b9155b04df6ecbb5c3c923afc8b6479d477ddf2903c",
+    "change": "Set sourceTrackIDForFrameTiming = kCMPersistentTrackID_Invalid before the existing frameDuration = 1/30 assignment.",
+    "harnessSha256": "f62d1d285283d6b45a2dc8ab9b55f2e1c47f18a8e44bc3b56631d3f90379d714",
+    "strict30FpsCountAndSpacingRetained": true,
+    "coverageToleranceSeconds": 0.12,
+    "frameSpacingToleranceSeconds": 0.01,
+    "pitchGainExcerptRequirementsChanged": false,
+    "localSwiftSyntaxParse": "pass",
+    "scopedDiffCheck": "pass",
+    "independentReview": "ios-frame-timing-independent-71aa363a.json",
+    "newNativeCompileAndEightCaseRuntime": "pending",
+    "discardedUnpublishedProposal": "A nominal-cadence harness relaxation was considered and discarded once the intended fixed 30 fps production limit was confirmed."
+  }
+}
