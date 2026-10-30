@@ -66,10 +66,25 @@ from pathlib import Path
 p=Path('native-audio-logs/receipt.json')
 receipt=json.loads(p.read_text())
 receipt.update(commit=os.environ.get('GITHUB_SHA'), workflow_run=os.environ.get('GITHUB_RUN_ID'), architecture=sys.argv[1], runtime=sys.argv[2])
-receipt['sources']={str(f):hashlib.sha256(f.read_bytes()).hexdigest() for f in [Path('modules/boomerang/ios/StoryVideoComposition.swift'),Path('scripts/quality/StoryAudioExportHarness.swift')]}
+receipt['sources']={str(f):hashlib.sha256(f.read_bytes()).hexdigest() for f in [Path('modules/boomerang/ios/StoryVideoComposition.swift'),Path('scripts/quality/StoryAudioExportHarness.swift'),Path('scripts/quality/test-ios-story-audio.sh')]}
 receipt['movies']={f.name:{'sha256':hashlib.sha256(f.read_bytes()).hexdigest(),'bytes':f.stat().st_size} for f in Path('native-audio-logs').glob('*.mp4')}
 p.write_text(json.dumps(receipt,indent=2)+'\n')
-if receipt.get('passed') is not True or len(receipt.get('cases',[])) != 6:
+expected_cases={
+ 'video trim and speed keep looping excerpt and music pitch',
+ 'voiceover stops while the remaining video stays present',
+ 'original mix level and muted soundtrack are preserved',
+ '2x original pitch and independent looping music stay in sync',
+ '0.5x original pitch and independent looping music stay in sync',
+ 'photo or text artwork becomes a movie with actual audio',
+ 'invalid audio range is rejected and partial output removed',
+ 'cancellation stops the native writer and removes temporary movies',
+}
+cases=receipt.get('cases',[])
+names=[case.get('name') for case in cases if isinstance(case,dict)] if isinstance(cases,list) else []
+if receipt.get('passed') is not True or not isinstance(cases,list) or len(cases) != len(expected_cases) or len(names) != len(expected_cases) or not all(isinstance(name,str) for name in names) or set(names) != expected_cases:
  raise SystemExit('Native story audio export failed: '+str(receipt.get('error')))
-print('Native encoded story audio: all six simulator cases passed.')
+expected_movies={'pc-story-export-'+name+'.mp4' for name in ['loop','voice','original','mixed-speed-2x','mixed-speed-0.5x','still']}
+if set(receipt['movies']) != expected_movies or any(movie['bytes'] <= 1024 for movie in receipt['movies'].values()):
+ raise SystemExit('Native story audio export did not retain all six expected encoded movies.')
+print('Native encoded story audio: all eight named simulator cases passed; all six movies retained and hashed.')
 PY

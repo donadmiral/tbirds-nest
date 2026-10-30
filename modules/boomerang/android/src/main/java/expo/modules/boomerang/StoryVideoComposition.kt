@@ -16,7 +16,6 @@ import android.os.ParcelFileDescriptor
 import android.system.Os
 import android.system.OsConstants
 import android.system.StructPollfd
-import androidx.media3.common.C
 import androidx.media3.common.Effect
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
@@ -24,7 +23,6 @@ import androidx.media3.common.audio.AudioProcessor
 import androidx.media3.common.audio.ChannelMixingAudioProcessor
 import androidx.media3.common.audio.ChannelMixingMatrix
 import androidx.media3.common.audio.SonicAudioProcessor
-import androidx.media3.common.audio.SpeedProvider
 import androidx.media3.common.audio.ToInt16PcmAudioProcessor
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.effect.DefaultVideoFrameProcessor
@@ -335,7 +333,7 @@ object StoryVideoComposition {
       number(map, "y", -2.0, 2.0).toFloat(), matrix.map { it.toFloat() }.toFloatArray())
   }
 
-  private fun processors(volume: Float): MutableList<AudioProcessor> {
+  private fun processors(volume: Float, speed: Float = 1f): MutableList<AudioProcessor> {
     val channels = ChannelMixingAudioProcessor()
     for (count in 1..6) {
       // Mono duplication and stereo gain match the editor/iOS volume scale;
@@ -344,7 +342,14 @@ object StoryVideoComposition {
         else ChannelMixingMatrix.createForConstantPower(count, 2)
       channels.putChannelMixingMatrix(matrix.scaleBy(volume))
     }
-    val resample = SonicAudioProcessor().apply { setOutputSampleRateHz(48_000) }
+    // The editor changes the clip's duration while preserving the original
+    // voice/music pitch. Media3's experimental speed pair changes both speed
+    // and pitch, so use Sonic's independent controls for this constant rate.
+    val resample = SonicAudioProcessor().apply {
+      setOutputSampleRateHz(48_000)
+      setSpeed(speed)
+      setPitch(1f)
+    }
     return mutableListOf(ToInt16PcmAudioProcessor(), channels, resample)
   }
 
@@ -386,17 +391,9 @@ object StoryVideoComposition {
     job.check()
     val useOriginalAudio = sourceInfo.hasAudio && r.volume > 0 &&
       minOf(r.end, sourceInfo.audioEnd) - maxOf(r.start, sourceInfo.audioStart) > .001
-    val audioEffects = if (useOriginalAudio) processors(r.volume) else mutableListOf()
+    val audioEffects = if (useOriginalAudio) processors(r.volume, r.speed) else mutableListOf()
     val videoEffects = mutableListOf<Effect>()
-    if (r.speed != 1f) {
-      if (audioEffects.isNotEmpty()) {
-        val pair = Effects.createExperimentalSpeedChangingEffect(object : SpeedProvider {
-          override fun getSpeed(timeUs: Long) = r.speed
-          override fun getNextSpeedChangeTimeUs(timeUs: Long) = C.TIME_UNSET
-        })
-        audioEffects.add(pair.first); videoEffects.add(pair.second)
-      } else videoEffects.add(SpeedChangeEffect(r.speed))
-    }
+    if (r.speed != 1f) videoEffects.add(SpeedChangeEffect(r.speed))
     // Media3 1.8 ignores setFrameRate for videos. Bound the actual post-speed
     // frame stream before the full-resolution canvas/bitmap work.
     videoEffects.add(FrameDropEffect.createDefaultFrameDropEffect(30f))

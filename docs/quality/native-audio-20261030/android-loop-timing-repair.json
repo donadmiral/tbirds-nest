@@ -20,7 +20,7 @@
       "videoDurationUs": 999999,
       "audioDurationUs": 1984000
     },
-    "failure": "Strict output attestation rejected audio extending beyond the accelerated video. The failed output was deleted.",
+    "failure": "Strict output attestation rejected audio extending beyond the accelerated video. The failure path deletes the rejected output; this failing method did not separately assert file absence.",
     "tests": [
       {
         "name": "trimmingPastShortOriginalAudioProducesAValidSilentMovie",
