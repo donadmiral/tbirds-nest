@@ -41,7 +41,9 @@ export function storyVideoLayerWindows(stickers: readonly any[], recipe: Pick<St
 
 export function storyNativeEditingUnavailable(platform: string | undefined, feature: 'video' | 'audio' | 'color' = 'video'): string {
   const operation = feature === 'audio' ? 'Export with added music or voiceover' : feature === 'color' ? 'Video color editing' : 'Edited video export';
-  const availability = platform === 'ios' ? 'needs the new iPhone build' : platform === 'android' ? 'is not available on Android yet' : 'is not available in this build';
+  const availability = platform === 'ios' ? 'needs the new iPhone build'
+    : platform === 'android' ? feature === 'color' ? 'is not available on Android yet' : 'needs the new Android build'
+      : 'is not available in this build';
   return `${operation} ${availability}. Your ${feature === 'audio' ? 'soundtrack and draft are' : 'draft is'} kept.`;
 }
 

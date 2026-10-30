@@ -91,11 +91,12 @@ test('native adjustment taps and full-width drags change the rendered value and 
   assert.ok(children.every(child => child.props.pointerEvents === 'none'));
 });
 
-function snapshot({ mediaType = 'text', readiness = [], available = true, platform = 'ios', compose, saveToLibrary, audio, prepareAudio, permissions = async () => ({ granted: true }) } = {}) {
+function snapshot({ mediaType = 'text', readiness = [], available = true, platform = 'ios', compose, saveToLibrary, audio, prepareAudio, inputUri, permissions = async () => ({ granted: true }) } = {}) {
   const calls = [], ref = { current: { artworkOnly: true } }, lock = { current: false }, owner = { current: 'owner' };
+  const authListeners = new Set();
   const context = {
-    active: { id: 'draft', mediaType, localUri: mediaType === 'text' ? null : 'file:///source.mp4', uploadState: 'idle', audio }, snapshotBusy: lock, storySnapshotRef: ref,
-    useAuthStore: { getState: () => ({ session: { user: { id: owner.current } }, profile: { id: owner.current } }) },
+    active: { id: 'draft', mediaType, localUri: inputUri ?? (mediaType === 'text' ? null : 'file:///source.mp4'), uploadState: 'idle', audio }, snapshotBusy: lock, storySnapshotRef: ref,
+    useAuthStore: { getState: () => ({ session: { user: { id: owner.current } }, profile: { id: owner.current } }), subscribe(fn) { authListeners.add(fn); return () => authListeners.delete(fn); } },
     ownerRef: owner, activeDraftRef: { current: 'draft' }, mountedRef: { current: true }, photoReadiness: { current: new Map(readiness.map((state, i) => [String(i), state])) }, previewSize: { w: 390, h: 693.3333 },
     setCapturing: value => calls.push(['capturing', value]), requestAnimationFrame: fn => fn(),
     AbortController, exportAbort: { current: null }, exportCommitting: { current: false }, exportArtworkRef: ref,
@@ -106,11 +107,11 @@ function snapshot({ mediaType = 'text', readiness = [], available = true, platfo
     vidPlayer: { duration: 4, pause() {} }, FileSystem: { cacheDirectory: 'file:///cache/', deleteAsync: async uri => calls.push(['delete', uri]) },
     composeStoryVideo: async (request, signal) => { calls.push(['compose', request]); return compose ? compose(request, signal) : { uri: request.outputUri }; },
     prepareStoryExportAudio: async (...args) => { calls.push(['prepare-audio']); return prepareAudio ? prepareAudio(...args) : { layer: { uri: 'file:///private-audio.wav', start: 1, duration: 2, volume: 1, loop: true }, assertRights: async () => calls.push(['rights']), release: async () => calls.push(['release-audio']) }; },
-    MediaLibrary: { requestPermissionsAsync: permissions, saveToLibraryAsync: async uri => { calls.push(['save', uri]); return saveToLibrary?.(uri); } },
+    MediaLibrary: { requestPermissionsAsync: (...args) => { assert.equal(args[0], true, 'saving requests add-only media access'); return permissions(...args); }, saveToLibraryAsync: async uri => { calls.push(['save', uri]); return saveToLibrary?.(uri); } },
     captureRef: async (target, options) => { assert.equal(target, ref); calls.push(['capture', options]); return 'file:///rendered.png'; }, releaseCapture: uri => calls.push(['release', uri]),
     Haptics: { notificationAsync: async () => {}, NotificationFeedbackType: { Success: 1 } }, Alert: { alert: (...args) => calls.push(['alert', ...args]) },
   };
-  return { context, calls, run: callback('saveMediaToDevice', context) };
+  return { context, calls, authListeners, auth(next) { owner.current = next; for (const listener of authListeners) listener(context.useAuthStore.getState()); }, run: callback('saveMediaToDevice', context) };
 }
 test('native Save renders a text/shared-card composition rather than requiring an original photo URI', async () => {
   const h = snapshot(); await h.run();
@@ -149,15 +150,69 @@ test('native video export keeps older builds and account changes from saving an 
   assert.equal(h.calls.some(c => c[0] === 'save' || c[0] === 'alert'), false); assert.equal(h.context.snapshotBusy.current, false);
   assert.ok(h.calls.some(c => c[0] === 'delete'));
 });
-test('Android Save explains its unsupported composer before permissions or native work', async () => {
+test('older Android Save explains its required build before permissions or native work', async () => {
   let permissions = 0;
   const h = snapshot({ mediaType: 'video', platform: 'android', available: false,
     permissions: async () => { permissions++; return { granted: true }; } });
   await h.run();
   assert.equal(permissions, 0);
   assert.equal(h.calls.some(c => c[0] === 'save' || c[0] === 'compose' || c[0] === 'capture'), false);
-  assert.match(h.calls.find(c => c[0] === 'alert')[2], /not available on Android yet/);
+  assert.match(h.calls.find(c => c[0] === 'alert')[2], /new Android build/);
   assert.equal(h.context.snapshotBusy.current, false);
+});
+
+test('Android Save delegates provider video staging to the gated native job and saves only its verified output', async () => {
+  for (const inputUri of ['content://media/external/video/media/7', 'file:///storage/emulated/0/Movies/story.mp4']) {
+    const h = snapshot({ mediaType: 'video', platform: 'android', inputUri }); await h.run();
+    const request = h.calls.find(call => call[0] === 'compose')[1]; assert.equal(request.inputUri, inputUri);
+    assert.deepEqual(h.calls.find(call => call[0] === 'save'), ['save', request.outputUri]);
+    assert.ok(h.calls.some(call => call[0] === 'delete' && call[1] === request.outputUri));
+    assert.equal(h.authListeners.size, 0); assert.equal(h.context.snapshotBusy.current, false);
+  }
+});
+
+test('Android native input failure or account cancellation cannot save to Photos', async () => {
+  const failed = snapshot({ mediaType: 'video', platform: 'android', compose: async () => { throw Error('No file access'); } }); await failed.run();
+  assert.equal(failed.calls.some(call => call[0] === 'save'), false); assert.equal(failed.authListeners.size, 0);
+  let complete;
+  const h = snapshot({ mediaType: 'video', platform: 'android', compose: request => new Promise(resolve => { complete = () => resolve({ uri: request.outputUri }); }) }); const work = h.run();
+  for (let i = 0; i < 20 && !complete; i++) await new Promise(resolve => setImmediate(resolve));
+  h.auth('other'); h.auth('owner'); assert.equal(h.context.exportAbort.current.signal.aborted, true); complete(); await work;
+  assert.equal(h.calls.some(call => ['save', 'alert'].includes(call[0])), false);
+  assert.ok(h.calls.some(call => call[0] === 'delete')); assert.equal(h.authListeners.size, 0);
+});
+
+test('all native story exports retain an account round-trip cancellation before Photos', async () => {
+  for (const mediaType of ['text', 'image', 'video']) {
+    let grant; const h = snapshot({ mediaType, permissions: () => new Promise(resolve => { grant = resolve; }) });
+    const work = h.run(); h.auth('other'); h.auth('owner'); grant({ granted: true }); await work;
+    assert.equal(h.calls.some(call => ['compose', 'capture', 'save', 'alert'].includes(call[0])), false);
+    assert.equal(h.context.snapshotBusy.current, false); assert.equal(h.authListeners.size, 0);
+  }
+});
+
+test('Android export capability never opens unsupported video color controls', () => {
+  const calls = [];
+  callback('openFilterSheet', { active: { mediaType: 'video' }, storyVideoCompositionAvailable: true, storyVideoPreviewAvailable: false,
+    Platform: { OS: 'android' }, storyNativeEditingUnavailable: sharedComposition.exports.storyNativeEditingUnavailable,
+    Alert: { alert: (...args) => calls.push(args) }, setFilterOpen: () => calls.push(['opened']),
+  })();
+  assert.equal(calls.length, 1); assert.match(calls[0][1], /Video color editing is not available on Android yet/);
+});
+
+test('Android keeps legacy preview overlays while iPhone pixel preview suppresses duplicate color', () => {
+  const attributes = [];
+  function collect(node) {
+    if (ts.isJsxAttribute(node) && node.initializer?.getText(ast).includes('storyVideoPreviewAvailable') && ['filterId', 'adjust'].includes(node.name.getText(ast))) attributes.push(node);
+    ts.forEachChild(node, collect);
+  }
+  collect(ast); assert.equal(attributes.length, 4);
+  for (const available of [false, true]) for (const attribute of attributes) {
+    const exports = {}, tx = { adjust: { bri: 50 }, filterAmt: 40 }, draft = { mediaType: 'video', filterId: 'warm' };
+    vm.runInNewContext(compile('export const value = ' + attribute.initializer.expression.getText(ast)), { exports, storyVideoPreviewAvailable: available,
+      storyVideoCompositionAvailable: true, draft, active: draft, tx, compareOriginal: false, getTx: () => tx, storyPhotoSpatialAdjust: () => 'spatial-only' });
+    assert.deepEqual(exports.value, attribute.name.getText(ast) === 'filterId' ? available ? null : 'warm' : available ? 'spatial-only' : tx.adjust);
+  }
 });
 
 function activeExportModal(context) {

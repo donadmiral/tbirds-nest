@@ -2,11 +2,11 @@ import React, { useContext, useEffect, useMemo, useState, useSyncExternalStore }
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { requireNativeViewManager } from 'expo-modules-core';
 import { VideoView as ExpoVideoView, useVideoPlayer as useExpoVideoPlayer, type VideoPlayer } from 'expo-video';
-import { storyVideoCompositionAvailable } from './storyComposition';
+import { storyVideoPreviewAvailable } from './storyComposition';
 import { StoryPhotoLookContext } from '../../src/components/stories/StoryPixelImage';
 import { storyPhotoColorMatrix, type StoryPhotoLook } from '../../shared/storyColorMatrix';
 
-const NativeView: any = storyVideoCompositionAvailable ? requireNativeViewManager('Boomerang') : null;
+const NativeView: any = storyVideoPreviewAvailable ? requireNativeViewManager('Boomerang') : null;
 type Listener = (event: any) => void;
 /** The small player interface used by story clocks and trim controls. No second audio player. */
 export class StoryVideoController {
@@ -43,7 +43,7 @@ function useNativeStoryVideoPlayer(source: string | null, setup?: (player: any) 
   useEffect(() => { player.released = false; return () => player.release(); }, [player]);
   return player;
 }
-export const useStoryVideoPlayer: (source: string | null, setup?: (player: VideoPlayer) => void) => VideoPlayer = storyVideoCompositionAvailable ? (useNativeStoryVideoPlayer as unknown as typeof useExpoVideoPlayer) : useExpoVideoPlayer;
+export const useStoryVideoPlayer: (source: string | null, setup?: (player: VideoPlayer) => void) => VideoPlayer = storyVideoPreviewAvailable ? (useNativeStoryVideoPlayer as unknown as typeof useExpoVideoPlayer) : useExpoVideoPlayer;
 
 function NativeStoryVideo({ player, look, onFirstFrameRender, ...props }: any) {
   useSyncExternalStore(player.subscribe, player.snapshot, player.snapshot);

@@ -1,5 +1,7 @@
 # Integrated local completion gates — 30 October 2026
 
+For the current music infrastructure, interaction repairs, source identities and unresolved hosted/device gates, start with [MUSIC_ACCEPTANCE_CONTINUATION_20261030.md](MUSIC_ACCEPTANCE_CONTINUATION_20261030.md). This document retains the earlier integrated receipt and must not be used as the current branch's test count or release decision.
+
 For the subsequent reference-driven web/admin/Studio implementation, whole-book movie export and business-session repair, start with [DESIGN_COMPLETION_20261030.md](DESIGN_COMPLETION_20261030.md). The checkpoint evidence below remains historical.
 
 The integrated local checks pass for the working tree based on `efe9dc8a234dcffb58e15a93c739dce076e7e103`. This is a source-verification receipt, not a claim that every device, provider, hosted deployment, or end-to-end journey is complete. Hosted CI must still pass for the published integrated commit. The companion JSON retains the baseline, replacement results, exact skipped cases, source hashes, lockfile hashes, and audit output.

@@ -129,7 +129,8 @@
     "Creator earnings Overview, Earnings activity, Payouts and Payout account switched to their matching panels; empty records, unavailable payouts and an unconfirmed provider connection remained explicit",
     "Messages Groups and Unread filters switched without stale loading or errors",
     "Message requests completed its query and displayed the empty request state",
-    "Call history completed its query, showed the empty history, and returned to Messages through its visible link"
+    "Call history completed its query, showed the empty history, and returned to Messages through its visible link",
+    "The tested synthetic video playback preference was restored to 1x; actual video playbackRate=1, readyState=4 and error=null before closing the viewer"
   ],
   "observedTransientStates": [
     "Client routes initially render loading states. Those states were not counted as successful data retrieval.",

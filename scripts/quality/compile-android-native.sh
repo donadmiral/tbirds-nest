@@ -3,7 +3,7 @@ set -euo pipefail
 
 # This is a disposable native compilation gate, not a release or device test.
 # It builds one ARM64 QA APK with signing disabled, never installs or uploads it,
-# and retains only diagnostics. The current Android module has no story encoder.
+# and retains only diagnostics. Encoded-media acceptance is a separate gate.
 if [[ "$(uname -s)" != Linux || "${CI:-}" != true ]]; then
   printf '%s\n' 'Run this compile gate only in a disposable Linux CI checkout.' >&2
   exit 2
@@ -80,16 +80,28 @@ PY
 # Debug skips the JS bundle; the separate quality gate verifies JS and types.
 bash android/gradlew -p android --no-daemon --console=plain --stacktrace \
   --max-workers=2 '-Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g' \
-  -PreactNativeArchitectures=arm64-v8a :app:assembleDebug \
+  -I "$PWD/scripts/quality/android-media-dependencies.init.gradle" \
+  "-PplatinumStoryMediaReceipt=$PWD/android-native-compile-logs/media3-runtime.json" \
+  -PreactNativeArchitectures=arm64-v8a :app:verifyStoryMediaDependencies :app:assembleDebug \
   2>&1 | tee android-native-compile-logs/gradle.log
 
 python3 - "$android_sdk" <<'PY' 2>&1 | tee android-native-compile-logs/postflight.log
 from pathlib import Path
-import hashlib, json, os, subprocess, sys, tomllib, zipfile
+import hashlib, json, os, re, subprocess, sys, tomllib, zipfile
 source = Path('modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt')
 objects = list(Path('modules/boomerang/android/build').rglob('BoomerangModule.class'))
 if not objects or any(p.read_bytes()[:4] != bytes.fromhex('cafebabe') for p in objects):
     raise SystemExit('Required Boomerang Kotlin bytecode was not compiled.')
+native_sources = {str(source): {'sha256': hashlib.sha256(source.read_bytes()).hexdigest(), 'compiled_classes': [str(p) for p in objects]}}
+for name, class_name in [('StoryVideoComposition.kt', 'StoryVideoComposition.class'), ('StoryVideoEffects.kt', 'StoryCanvasEffect.class')]:
+    engine_source = source.parent / name
+    classes = list(Path('modules/boomerang/android/build').rglob(class_name))
+    if not engine_source.is_file() or not classes or any(p.read_bytes()[:4] != bytes.fromhex('cafebabe') for p in classes):
+        raise SystemExit(f'Required production story encoder bytecode was not compiled: {name}')
+    native_sources[str(engine_source)] = {'sha256': hashlib.sha256(engine_source.read_bytes()).hexdigest(), 'compiled_classes': [str(p) for p in classes]}
+capabilities = re.search(r'Constants\("storyVideoVersion" to ([01]), "storyAudioExportVersion" to ([01])\)', source.read_text())
+if not capabilities:
+    raise SystemExit('Review the native capability receipt after changing the Android bridge contract.')
 packages = list(Path('node_modules/expo/android/build').rglob('ExpoModulesPackageList.java'))
 if not any('expo.modules.boomerang.BoomerangModule' in p.read_text() for p in packages):
     raise SystemExit('The generated Expo package list does not register Boomerang.')
@@ -122,13 +134,18 @@ receipt = {
     'result': 'unsigned Android QA native compile passed',
     'native_source': {'path': str(source), 'sha256': hashlib.sha256(source.read_bytes()).hexdigest(),
                       'compiled_classes': [str(p) for p in objects]},
+    'native_sources': native_sources,
+    'media3_runtime': json.loads(Path('android-native-compile-logs/media3-runtime.json').read_text()),
     'expo_module_registration_verified': True,
     'android_abi': 'arm64-v8a',
     'apk': {'path': str(apk), 'sha256': hashlib.sha256(apk.read_bytes()).hexdigest(), 'bytes': apk.stat().st_size},
     'application_id': 'app.platinumcircles.mobile.qa',
     'apk_signed': False,
     'javascript_bundle_included': False,
-    'android_story_composition_implemented': False,
+    'android_story_encoder_compiled': True,
+    'advertised_story_video_version': int(capabilities.group(1)),
+    'advertised_story_audio_export_version': int(capabilities.group(2)),
+    'encoded_media_acceptance_inferred': False,
     'device_or_provider_acceptance': False,
     'app_installed_uploaded_or_submitted': False,
 }

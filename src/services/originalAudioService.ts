@@ -8,6 +8,7 @@ import { uploadOriginalAudio } from '../../shared/musicUpload';
 import { inspectOriginalAudio, ORIGINAL_AUDIO_MAX_BYTES } from '../../shared/originalAudio';
 import { getSoundtrack } from './soundtrackService';
 import type { SoundtrackUse } from '../../shared/soundtrack';
+import type { Session } from '@supabase/supabase-js';
 const attempts = new Map<string, string>();
 export async function addOriginalAudio(uri: string, owner: string, options: { title?: string; rightsAttested: boolean; reuseAllowed?: boolean; use?: SoundtrackUse }) {
  const stat = await FileSystem.getInfoAsync(uri);
@@ -40,24 +41,40 @@ export async function addOriginalAudio(uri: string, owner: string, options: { ti
  if (attempts.size > 50) attempts.delete(attempts.keys().next().value!);
  return getSoundtrack(soundId, options.use || 'story');
 }
-async function favoriteSession(expectedOwner?: string) {
- const { data, error } = await soundtrackRead(supabase.auth.getSession());
- const session = data.session;
- if (error || !session || (expectedOwner && session.user.id !== expectedOwner)) throw new Error('Return to the account that owns this saved selection.');
- return session;
+async function favoriteSession<T>(expectedOwner: string | undefined, task: (session: Session, ensure: () => void) => Promise<T>) {
+ let changed = false, observedOwner = expectedOwner;
+ const watcher = supabase.auth.onAuthStateChange((event, session) => {
+  const next = session?.user.id;
+  if (event === 'SIGNED_OUT' || !next || (observedOwner !== undefined && next !== observedOwner)) changed = true;
+  observedOwner = next;
+ });
+ const ensure = () => { if (changed) throw new Error('The account changed. Return to the account that owns this saved selection.'); };
+ try {
+  const { data, error } = await soundtrackRead(supabase.auth.getSession());
+  const session = data.session;
+  ensure();
+  if (error || !session || (expectedOwner && session.user.id !== expectedOwner) || (observedOwner && observedOwner !== session.user.id)) throw new Error('Return to the account that owns this saved selection.');
+  observedOwner = session.user.id;
+  return await task(session, ensure);
+ } finally { watcher.data.subscription.unsubscribe(); }
 }
 export async function soundFavorites(expectedOwner?: string): Promise<string[]> {
- const session = await favoriteSession(expectedOwner);
- const { data, error } = await soundtrackRead(supabase.rpc('list_sound_favorites').setHeader('Authorization', `Bearer ${session.access_token}`));
- if (error) throw new Error('Saved audio could not load. Please retry.');
- return Array.isArray(data) ? data : [];
+ return favoriteSession(expectedOwner, async (session, ensure) => {
+  ensure();
+  const { data, error } = await soundtrackRead(supabase.rpc('list_sound_favorites').setHeader('Authorization', `Bearer ${session.access_token}`));
+  ensure();
+  if (error || !Array.isArray(data) || data.length > 200 || data.some(id => typeof id !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))) throw new Error('Saved audio could not load. Please retry.');
+  return [...new Set(data as string[])];
+ });
 }
 export async function saveSoundFavorite(id: string, saved: boolean, expectedOwner?: string): Promise<void> {
- const session = await favoriteSession(expectedOwner);
- // Pin this mutation to its initiating account. A subsequent account switch
- // must not change the JWT that Supabase attaches when the request is sent.
- const { error } = await soundtrackRead(supabase.rpc('set_sound_favorite', { p_sound_id: id, p_saved: saved }).setHeader('Authorization', `Bearer ${session.access_token}`));
- if (error) throw new Error('This sound could not be saved. Please retry.');
+ return favoriteSession(expectedOwner, async (session, ensure) => {
+  ensure();
+  // Pin the JWT and keep watching identity until the response is confirmed.
+  const { data, error } = await soundtrackRead(supabase.rpc('set_sound_favorite', { p_sound_id: id, p_saved: saved }).setHeader('Authorization', `Bearer ${session.access_token}`));
+  ensure();
+  if (error || data !== saved) throw new Error('This sound could not be saved. Please retry.');
+ });
 }
 
 export const originalAudioReady = () => readAudioReady(supabase);

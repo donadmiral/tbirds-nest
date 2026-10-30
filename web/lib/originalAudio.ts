@@ -36,14 +36,37 @@ export async function addOriginalAudio(file: File, owner: string, options: { rig
  if (attempts.size > 50) attempts.delete(attempts.keys().next().value!);
  return getSoundtrack(soundId, options.use || 'story', client);
 }
-export async function soundFavorites(client = createClient()): Promise<string[]> {
- const { data, error } = await soundtrackRead(client.rpc('list_sound_favorites'));
- if (error) throw new Error('Saved audio could not load. Please retry.');
- return Array.isArray(data) ? data : [];
+type AudioClient = ReturnType<typeof createClient>;
+// Keep the previous client argument position available to callers and fixtures.
+const favoriteClient = (ownerOrClient?: string | AudioClient, client?: AudioClient) =>
+ typeof ownerOrClient === 'object' ? ownerOrClient : client || createClient();
+async function withFavoriteSession<T>(client: AudioClient, expectedOwner: string | undefined, work: (token: string) => PromiseLike<T>): Promise<T> {
+ let changed = false, observedOwner = expectedOwner, token: string | undefined;
+ const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
+  const next = session?.user.id;
+  if (event === 'SIGNED_OUT' || !next || (observedOwner !== undefined && next !== observedOwner) || (token && event === 'SIGNED_IN' && session.access_token !== token)) changed = true;
+  observedOwner = next;
+ });
+ try {
+  const { data, error } = await soundtrackRead(client.auth.getSession());
+  const session = data.session;
+  if (changed || error || !session || (expectedOwner && session.user.id !== expectedOwner) || (observedOwner && session.user.id !== observedOwner)) throw new Error('Return to the account that owns this saved selection.');
+  observedOwner = session.user.id; token = session.access_token;
+  const result = await soundtrackRead(work(token));
+  if (changed) throw new Error('The account changed. Check your saved selection again.');
+  return result;
+ } finally { subscription.unsubscribe(); }
 }
-export async function saveSoundFavorite(id: string, saved: boolean, client = createClient()): Promise<void> {
- const { error } = await soundtrackRead(client.rpc('set_sound_favorite', { p_sound_id: id, p_saved: saved }));
- if (error) throw new Error('This sound could not be saved. Please retry.');
+export async function soundFavorites(ownerOrClient?: string | AudioClient, client?: AudioClient): Promise<string[]> {
+ const current = favoriteClient(ownerOrClient, client), owner = typeof ownerOrClient === 'string' ? ownerOrClient : undefined;
+ const { data, error } = await withFavoriteSession(current, owner, token => current.rpc('list_sound_favorites').setHeader('Authorization', `Bearer ${token}`));
+ if (error || !Array.isArray(data) || data.length > 200 || data.some(id => typeof id !== 'string' || !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id))) throw new Error('Saved audio could not load. Please retry.');
+ return [...new Set(data as string[])];
+}
+export async function saveSoundFavorite(id: string, saved: boolean, ownerOrClient?: string | AudioClient, client?: AudioClient): Promise<void> {
+ const current = favoriteClient(ownerOrClient, client), owner = typeof ownerOrClient === 'string' ? ownerOrClient : undefined;
+ const { data, error } = await withFavoriteSession(current, owner, token => current.rpc('set_sound_favorite', { p_sound_id: id, p_saved: saved }).setHeader('Authorization', `Bearer ${token}`));
+ if (error || data !== saved) throw new Error('The saved selection could not be confirmed. Check its status before trying again.');
 }
 
 export const originalAudioReady = (client = createClient()) => readAudioReady(client);

@@ -11,30 +11,44 @@ test('animated or embedded media never silently becomes a static export',()=>{as
 test('export format is chosen only when the recorder reports support',()=>{assert.equal(lib.storyVideoMime(t=>t==='video/webm;codecs=vp8,opus'),'video/webm;codecs=vp8,opus');assert.equal(lib.storyVideoMime(()=>false),null);});
 function bridge(native,os='ios'){return modules({'expo-modules-core':{requireOptionalNativeModule:()=>native},'react-native':{Platform:{OS:os}}})('modules/boomerang/storyComposition.ts');}
 const request={id:'story-test-1',inputUri:'file:///source.mp4',outputUri:'file:///cache/pc-story-export-1.mp4',recipe:base(),layers:[]};
+const capable = (extra = {}) => ({ storyVideoVersion: 1, cancelStoryComposition: async () => {}, ...extra });
+const verified = (extra = {}) => ({ uri: request.outputUri, duration: 4, width: request.recipe.width, height: request.recipe.height, bytes: 5000, ...extra });
 test('an older native build cannot claim edited video export',async()=>{const b=bridge({make(){}});assert.equal(b.storyVideoCompositionAvailable,false);await assert.rejects(b.composeStoryVideo(request),/new iPhone build/);assert.equal(bridge({storyVideoVersion:1,composeStory(){}},'android').storyVideoCompositionAvailable,false);});
-test('Android export is explicitly unavailable even if a linked module advertises iOS capabilities', async () => {
-  let calls = 0;
-  const b = bridge({ storyVideoVersion: 1, storyAudioExportVersion: 1, composeStory: async () => { calls++; } }, 'android');
-  assert.equal(b.storyVideoCompositionAvailable, false);
-  assert.equal(b.storyAudioCompositionAvailable, false);
-  await assert.rejects(b.composeStoryVideo(request), /not available on Android yet/);
-  await assert.rejects(b.composeStoryVideo({ ...request, audio: { uri: 'file:///audio.wav' } }), /added music or voiceover is not available on Android yet/);
-  assert.equal(calls, 0);
+test('Android export stays unavailable until a complete version-one encoder is installed', async () => {
+  for (const native of [null, {}, capable({ storyVideoVersion: 0, composeStory() {} }), { storyVideoVersion: 1, composeStory() {} }, capable()]) {
+    const b = bridge(native, 'android');
+    assert.equal(b.storyVideoCompositionAvailable, false); assert.equal(b.storyAudioCompositionAvailable, false);
+    assert.equal(b.storyVideoPreviewAvailable, false);
+    await assert.rejects(b.composeStoryVideo(request), /new Android build/);
+    await assert.rejects(b.composeStoryVideo({ ...request, audio: { uri: 'file:///audio.wav' } }), /added music or voiceover needs the new Android build/);
+  }
   assert.match(lib.storyNativeEditingUnavailable('android', 'color'), /Video color editing is not available on Android yet/);
   assert.doesNotMatch(lib.storyVideoExportLimit([], true, false), /iPhone/);
 });
+test('Android version-one export is independent of the iPhone-only native preview', async () => {
+  const b = bridge(capable({ storyAudioExportVersion: 1, composeStory: async () => verified() }), 'android');
+  assert.equal(b.storyVideoCompositionAvailable, true); assert.equal(b.storyAudioCompositionAvailable, true);
+  assert.equal(b.storyVideoPreviewAvailable, false); assert.equal((await b.composeStoryVideo(request)).bytes, 5000);
+  assert.equal(bridge(capable({ composeStory() {} }), 'ios').storyVideoPreviewAvailable, true);
+  assert.equal(bridge(capable({ composeStory() {} }), 'web').storyVideoCompositionAvailable, false);
+});
 test('native bridge cancels pending work and rejects late completion after an account fence',async()=>{let resolve,cancelled=[];const b=bridge({storyVideoVersion:1,composeStory:()=>new Promise(r=>resolve=r),cancelStoryComposition:async id=>cancelled.push(id)}),abort=new AbortController();const work=b.composeStoryVideo(request,abort.signal);abort.abort();resolve({uri:request.outputUri,duration:4,bytes:2048});await assert.rejects(work,/cancelled/);assert.deepEqual(cancelled,[request.id]);});
-test('native bridge verifies returned output identity, media duration and bytes',async()=>{for(const invalid of [{uri:'file:///wrong.mp4',duration:4,bytes:5000},{uri:request.outputUri,duration:NaN,bytes:5000},{uri:request.outputUri,duration:4,bytes:0}]){await assert.rejects(bridge({storyVideoVersion:1,composeStory:async()=>invalid}).composeStoryVideo(request),/verified/);}const result={uri:request.outputUri,duration:4,bytes:5000};assert.equal((await bridge({storyVideoVersion:1,composeStory:async()=>result}).composeStoryVideo(request)).bytes,5000);});
+test('both native bridges verify output identity, finite media duration, dimensions and bytes',async()=>{
+  for(const os of ['ios','android'])for(const invalid of [{uri:'file:///wrong.mp4'},{duration:NaN},{bytes:0},{bytes:undefined},{bytes:NaN},{bytes:Infinity},{width:undefined},{width:NaN},{height:0}]){
+    await assert.rejects(bridge(capable({composeStory:async()=>verified(invalid)}),os).composeStoryVideo(request),/verified/);
+  }
+  assert.equal((await bridge(capable({composeStory:async()=>verified()})).composeStoryVideo(request)).bytes,5000);
+});
 test('native controller maintains actual clock events, bounded settings, exact seeks and released fencing',()=>{const load=modules({'react':{createContext:()=>({})},'react/jsx-runtime':{},'react-native':{Platform:{OS:'ios'},StyleSheet:{create:x=>x}},'expo-modules-core':{requireOptionalNativeModule:()=>null,requireNativeViewManager:()=>{}},'expo-video':{useVideoPlayer(){}},'../../src/components/stories/StoryPixelImage':{StoryPhotoLookContext:{}},});const {StoryVideoController}=load('modules/boomerang/storyVideo.tsx'),p=new StoryVideoController('file:///clip.mp4');let ticks=0;p.addListener('timeUpdate',()=>ticks++);p.volume=2;assert.equal(p.volume,1);p.playbackRate=100;assert.equal(p.playbackRate,4);p.currentTime=3;assert.equal(p.props().seekSeconds,3);p.play();p.receive({type:'timeUpdate',currentTime:4,playing:true});assert.equal(p.currentTime,4);assert.equal(p.playing,true);p.pause();p.receive({type:'timeUpdate',currentTime:4.1,playing:true});assert.equal(p.playing,false);assert.equal(ticks,2);p.release();p.receive({type:'timeUpdate',currentTime:9,playing:true});assert.equal(p.currentTime,4.1);});
 
 test('only the new audio-capable native build can export a soundtrack or still movie', async () => {
   assert.equal(lib.storyVideoExportLimit([], true, true), null);
   const audio = { uri: 'file:///cache/verified.wav', start: 1, duration: 2, volume: .4, loop: true };
-  const old = bridge({ storyVideoVersion: 1, composeStory: async () => ({}) });
+  const old = bridge(capable({ composeStory: async () => ({}) }));
   await assert.rejects(old.composeStoryVideo({ ...request, audio }), /added music or voiceover/);
   await assert.rejects(old.composeStoryVideo({ ...request, inputKind: 'image' }), /added music or voiceover/);
   let called = 0;
-  const current = bridge({ storyVideoVersion: 1, storyAudioExportVersion: 1, composeStory: async () => { called++; return { uri: request.outputUri, duration: 4, bytes: 5000, soundtrackMixed: true }; } });
+  const current = bridge(capable({ storyAudioExportVersion: 1, composeStory: async () => { called++; return verified({ soundtrackMixed: true }); } }));
   assert.equal(current.storyAudioCompositionAvailable, true);
   await current.composeStoryVideo({ ...request, audio }); assert.equal(called, 1);
   await assert.rejects(current.composeStoryVideo({ ...request, audio: { ...audio, uri: 'https://foreign/audio' } }), /excerpt is invalid/);
@@ -42,6 +56,40 @@ test('only the new audio-capable native build can export a soundtrack or still m
   assert.equal(called, 1);
 });
 test('native soundtrack export cannot report success when the encoded file lost its audio', async () => {
-  const current = bridge({ storyVideoVersion: 1, storyAudioExportVersion: 1, composeStory: async () => ({ uri: request.outputUri, duration: 4, bytes: 5000 }) });
+  const current = bridge(capable({ storyAudioExportVersion: 1, composeStory: async () => verified() }));
   await assert.rejects(current.composeStoryVideo({ ...request, audio: { uri: 'file:///cache/verified.wav', start: 0, duration: 2, volume: 1, loop: false } }), /soundtrack could not be verified/);
+});
+
+test('Android keeps Expo video even when its native audio encoder is available', () => {
+  for (const os of ['android', 'ios']) {
+    let views = 0;
+    const expoPlayer = () => 'expo-player';
+    const load = modules({ 'react': { useContext: () => null }, 'react/jsx-runtime': { jsx: (type, props) => ({ type, props }) },
+      'react-native': { Platform: { OS: os }, StyleSheet: { create: value => value } },
+      'expo-modules-core': { requireOptionalNativeModule: () => capable({ storyAudioExportVersion: 1, composeStory() {} }), requireNativeViewManager: () => { views++; return 'NativeStoryVideo'; } },
+      'expo-video': { useVideoPlayer: expoPlayer, VideoView: 'ExpoVideo' }, '../../src/components/stories/StoryPixelImage': { StoryPhotoLookContext: {} },
+    });
+    const player = load('modules/boomerang/storyVideo.tsx');
+    assert.equal(views, os === 'ios' ? 1 : 0);
+    assert.equal(player.useStoryVideoPlayer === expoPlayer, os === 'android');
+    if (os === 'android') assert.equal(player.StoryVideoView({ player: {} }).type, 'ExpoVideo');
+  }
+});
+
+test('Android published story viewers retain color overlays independently of export support', () => {
+  const source = fs.readFileSync(path.join(root, 'src/screens/stories/StoryViewerScreen.tsx'), 'utf8');
+  const ast = ts.createSourceFile('viewer.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX), attributes = [];
+  function collect(node) {
+    if (ts.isJsxAttribute(node) && ['filterId', 'adjust'].includes(node.name.getText(ast)) && node.initializer?.getText(ast).includes('storyVideoPreviewAvailable')) attributes.push(node);
+    ts.forEachChild(node, collect);
+  }
+  collect(ast); assert.equal(attributes.length, 2);
+  for (const available of [false, true]) for (const attribute of attributes) {
+    const exports = {}, adjust = { bri: 50 };
+    vm.runInNewContext(ts.transpileModule('export const value = ' + attribute.initializer.expression.getText(ast), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, {
+      exports, isText: false, isVideo: true, storyVideoCompositionAvailable: true, storyVideoPreviewAvailable: available,
+      currentStory: { filter_id: 'warm' }, mediaMt: { adjust }, storyPhotoSpatialAdjust: () => 'spatial-only',
+    });
+    assert.deepEqual(exports.value, attribute.name.getText(ast) === 'filterId' ? available ? null : 'warm' : available ? 'spatial-only' : adjust);
+  }
 });

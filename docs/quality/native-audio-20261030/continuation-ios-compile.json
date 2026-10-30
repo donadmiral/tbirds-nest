@@ -1,0 +1,61 @@
+{
+  "checkedAt": "2026-10-30T21:19:06.776926+00:00",
+  "repository": "donadmiral/tbirds-nest",
+  "pullRequest": 3,
+  "headCommit": "ddc968bd11be40d37af7a5aeff1c134e53c397d8",
+  "workflowRun": 41127054909,
+  "job": 124308175623,
+  "jobConclusion": "success",
+  "runUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41127054909",
+  "artifact": {
+    "id": 13012831429,
+    "name": "ios-native-compile-diagnostics",
+    "sha256": "e8ec08f4cf3fc5c579d5c616f291bcc787a4029c75f168cfd1396c42beb974ce",
+    "digestVerified": true
+  },
+  "nativeSourceHashesMatchHead": {
+    "modules/boomerang/ios/BoomerangModule.swift": true,
+    "modules/boomerang/ios/StoryVideoView.swift": true,
+    "modules/boomerang/ios/StoryVideoComposition.swift": true
+  },
+  "compilerSuccessMarker": "** BUILD SUCCEEDED **",
+  "toolchain": [
+    "Xcode 16.4",
+    "Build version 16F6",
+    "18.5",
+    "v22.23.4",
+    "10.9.9",
+    "1.16.2"
+  ],
+  "compileReceipt": {
+    "commit": "bed8712a27d3e9f39768d577bd29c5e6e881eba9",
+    "workflow_run": "41127054909",
+    "result": "unsigned iOS Simulator compile passed",
+    "native_sources": {
+      "modules/boomerang/ios/BoomerangModule.swift": {
+        "sha256": "8d254293d79f3c3c317f77da3f12c84390f14bf1f15cdfe3784433c7bdc83598",
+        "compiled_objects": [
+          "native-compile-derived/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/Boomerang.build/Objects-normal/x86_64/BoomerangModule.o"
+        ]
+      },
+      "modules/boomerang/ios/StoryVideoView.swift": {
+        "sha256": "1601cd03287a4c42e395a1c7f7163cf3465daaab6f0f6957a1264569725749ac",
+        "compiled_objects": [
+          "native-compile-derived/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/Boomerang.build/Objects-normal/x86_64/StoryVideoView.o"
+        ]
+      },
+      "modules/boomerang/ios/StoryVideoComposition.swift": {
+        "sha256": "1fd77c1eaa9f802caabc75c20534606d5d4dee219ca044629045f70895945a87",
+        "compiled_objects": [
+          "native-compile-derived/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/Boomerang.build/Objects-normal/x86_64/StoryVideoComposition.o"
+        ]
+      }
+    },
+    "simulator_architecture": "x86_64",
+    "app_executable_linked": true,
+    "device_or_provider_acceptance": false,
+    "archive_or_ipa_created": false,
+    "app_uploaded_or_submitted": false
+  },
+  "scope": "Actual unsigned x86_64 iOS Simulator compile and native application link. No installed iPhone, provider journey, release archive, signing or publication acceptance is inferred."
+}

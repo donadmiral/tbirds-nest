@@ -136,7 +136,7 @@ test('native trim playback preserves paused seek positions and loops only while 
   };
   const appState = { currentState:'active', addEventListener(name,listener) { assert.equal(name,'change'); foregroundListeners.add(listener); return { remove:()=>foregroundListeners.delete(listener) }; } };
   const jsx = { jsx:(type,props)=>({type,props}), jsxs:(type,props)=>({type,props}), Fragment:'Fragment' };
-  const native = { storyVideoVersion:1, composeStory() { throw new Error('trim preview must not start an export'); } };
+  const native = { storyVideoVersion:1, cancelStoryComposition:async()=>{}, composeStory() { throw new Error('trim preview must not start an export'); } };
   function evaluate(file, providedSource) {
     file=path.resolve(root,file);
     if(cache.has(file)) return cache.get(file);

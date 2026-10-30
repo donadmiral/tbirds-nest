@@ -1,0 +1,47 @@
+plugins {
+  id 'com.android.application' version '8.11.0'
+  id 'org.jetbrains.kotlin.android' version '2.1.20'
+}
+
+android {
+  namespace 'expo.modules.boomerang.acceptance'
+  compileSdk 36
+  defaultConfig {
+    applicationId 'app.platinumcircles.storyexporttest'
+    minSdk 24
+    targetSdk 35
+    versionCode 1
+    versionName '1.0'
+    testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+  }
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
+  }
+  kotlinOptions { jvmTarget = '17' }
+  sourceSets {
+    main {
+      java.srcDirs += layout.buildDirectory.dir('generated/production-renderer').get().asFile
+    }
+  }
+  testOptions { animationsDisabled true }
+}
+
+// Android's Java source exclusion does not exclude Kotlin sources. Copy the two
+// production engine files byte-for-byte so the fixture cannot accidentally
+// compile the unrelated Expo wrapper or a test replacement of the renderer.
+tasks.register('copyProductionRenderer', Sync) {
+  from '../../../modules/boomerang/android/src/main/java/expo/modules/boomerang'
+  include 'StoryVideoComposition.kt', 'StoryVideoEffects.kt'
+  into layout.buildDirectory.dir('generated/production-renderer/expo/modules/boomerang')
+}
+tasks.named('preBuild').configure { dependsOn 'copyProductionRenderer' }
+
+dependencies {
+  implementation 'androidx.media3:media3-transformer:1.8.1'
+  implementation 'androidx.media3:media3-effect:1.8.1'
+  implementation 'androidx.media3:media3-common:1.8.1'
+  androidTestImplementation 'androidx.test:runner:1.6.2'
+  androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+  androidTestImplementation 'junit:junit:4.13.2'
+}

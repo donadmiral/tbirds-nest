@@ -46,7 +46,7 @@ import IdentityPresence from '../../components/stories/IdentityPresence';
 import MemoryCaption from '../../components/stories/MemoryCaption';
 import StoryProgressBar from '../../components/stories/StoryProgressBar';
 import { FilterLayer } from '../../components/stories/StoryFilters';
-import { storyVideoCompositionAvailable } from '../../../modules/boomerang/storyComposition';
+import { storyVideoPreviewAvailable } from '../../../modules/boomerang/storyComposition';
 import { useCallContext } from '../../contexts/CallContext';
 import { useStoryAudioMix } from '../../hooks/useStoryAudioMix';
 import { useStoryInteractionScope } from '../../hooks/useStoryInteractionScope';
@@ -1004,8 +1004,8 @@ export default function StoryViewerScreen() {
         )}
         </ReAnimated.View>
 
-        <FilterLayer filterId={isText || isVideo && !storyVideoCompositionAvailable ? ((currentStory as any)?.filter_id as string) || null : null} zIndex={2} amt={(mediaMt as any)?.filterAmt} />
-        <AdjustLayer adjust={isText || isVideo && !storyVideoCompositionAvailable ? mediaMt?.adjust || null : storyPhotoSpatialAdjust(mediaMt?.adjust)} zIndex={2} />
+        <FilterLayer filterId={isText || isVideo && !storyVideoPreviewAvailable ? ((currentStory as any)?.filter_id as string) || null : null} zIndex={2} amt={(mediaMt as any)?.filterAmt} />
+        <AdjustLayer adjust={isText || isVideo && !storyVideoPreviewAvailable ? mediaMt?.adjust || null : storyPhotoSpatialAdjust(mediaMt?.adjust)} zIndex={2} />
         <DrawingLayer strokes={(((stickers.find(sx => (sx as any).kind === 'drawing') as any)?.strokes) || null) as any} width={mediaSize.w} height={mediaSize.h} zIndex={3} />
         {renderPipDual()}
         {mediaError && (<View style={{ ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', zIndex: 4 }}><Feather name="image" size={28} color="rgba(245,240,235,0.08)" /><TouchableOpacity accessibilityRole="button" onPress={() => { storyAudio.retry(); void loadForCurrentUser(); }}><Text style={{ color: '#FFFFFF', fontSize: 14, marginTop: 14 }}>Media unavailable. Tap to retry.</Text></TouchableOpacity></View>)}

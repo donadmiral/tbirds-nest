@@ -1,0 +1,476 @@
+{
+  "observedAt": "2026-10-30T21:27:13Z",
+  "source": {
+    "head": "f25a0263ee08dee8e589feee6479f0e357085c45",
+    "testedPrMerge": "6b113710435e96b03dd5f9c15413d2ef6f211e26",
+    "tree": "b8e69a3c40f66a1e3de197b206eeddd2313b6aac",
+    "treeEqualityVerified": true
+  },
+  "quality": {
+    "run": 41130166026,
+    "result": "success",
+    "jobs": {
+      "phone": 124318739713,
+      "web": 124318739472,
+      "admin": 124318740419,
+      "edgeTls": 124318739866
+    },
+    "nativeNode": {
+      "tests": 1329,
+      "suites": 0,
+      "pass": 1329,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 45650.945299
+    },
+    "supabaseNode": {
+      "tests": 299,
+      "suites": 0,
+      "pass": 296,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 3,
+      "todo": 0,
+      "duration_ms": 71094.117835
+    },
+    "rpcSummaryBlocks": [
+      {
+        "tests": 16,
+        "suites": 0,
+        "pass": 16,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3226.946474
+      },
+      {
+        "tests": 34,
+        "suites": 0,
+        "pass": 34,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3587.203559
+      },
+      {
+        "tests": 36,
+        "suites": 0,
+        "pass": 36,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3594.509984
+      },
+      {
+        "tests": 11,
+        "suites": 0,
+        "pass": 11,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 2755.471033
+      },
+      {
+        "tests": 14,
+        "suites": 0,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 2652.484733
+      },
+      {
+        "tests": 21,
+        "suites": 0,
+        "pass": 21,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3344.268929
+      },
+      {
+        "tests": 21,
+        "suites": 0,
+        "pass": 21,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3376.081539
+      },
+      {
+        "tests": 18,
+        "suites": 0,
+        "pass": 18,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 2745.294368
+      },
+      {
+        "tests": 18,
+        "suites": 0,
+        "pass": 18,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3032.953253
+      },
+      {
+        "tests": 20,
+        "suites": 0,
+        "pass": 20,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 2940.618718
+      },
+      {
+        "tests": 20,
+        "suites": 0,
+        "pass": 20,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3441.958201
+      },
+      {
+        "tests": 16,
+        "suites": 0,
+        "pass": 16,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 2891.459428
+      },
+      {
+        "tests": 16,
+        "suites": 0,
+        "pass": 16,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3302.719323
+      },
+      {
+        "tests": 41,
+        "suites": 0,
+        "pass": 41,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3534.743907
+      },
+      {
+        "tests": 41,
+        "suites": 0,
+        "pass": 41,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3726.023601
+      },
+      {
+        "tests": 27,
+        "suites": 0,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3312.558403
+      },
+      {
+        "tests": 27,
+        "suites": 0,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3502.53265
+      },
+      {
+        "tests": 15,
+        "suites": 0,
+        "pass": 15,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 2593.378088
+      },
+      {
+        "tests": 31,
+        "suites": 0,
+        "pass": 31,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3514.626163
+      },
+      {
+        "tests": 31,
+        "suites": 0,
+        "pass": 31,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3507.659771
+      },
+      {
+        "tests": 31,
+        "suites": 0,
+        "pass": 31,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3635.464737
+      },
+      {
+        "tests": 19,
+        "suites": 0,
+        "pass": 19,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3110.595345
+      },
+      {
+        "tests": 22,
+        "suites": 0,
+        "pass": 22,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3223.565004
+      },
+      {
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3161.124968
+      },
+      {
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3419.084792
+      },
+      {
+        "tests": 12,
+        "suites": 0,
+        "pass": 12,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 2720.696508
+      },
+      {
+        "tests": 12,
+        "suites": 0,
+        "pass": 12,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 2784.136103
+      },
+      {
+        "tests": 12,
+        "suites": 0,
+        "pass": 12,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3025.356748
+      },
+      {
+        "tests": 21,
+        "suites": 0,
+        "pass": 21,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 195.96321
+      },
+      {
+        "tests": 11,
+        "suites": 0,
+        "pass": 11,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 2477.416159
+      },
+      {
+        "tests": 11,
+        "suites": 0,
+        "pass": 11,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 2667.913662
+      },
+      {
+        "tests": 16,
+        "suites": 0,
+        "pass": 16,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 2705.741759
+      },
+      {
+        "tests": 17,
+        "suites": 0,
+        "pass": 16,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 1,
+        "todo": 0,
+        "duration_ms": 1849.501799
+      },
+      {
+        "tests": 33,
+        "suites": 0,
+        "pass": 33,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 2052.438392
+      },
+      {
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 2701.520617
+      },
+      {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 1628.269451
+      },
+      {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 1577.775514
+      }
+    ],
+    "webNode": {
+      "tests": 621,
+      "passed": 621,
+      "failed": 0,
+      "skipped": 0
+    },
+    "adminNode": {
+      "tests": 189,
+      "passed": 189,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "browser": {
+    "run": 41130165933,
+    "job": 124318740637,
+    "result": "success",
+    "groups": 7,
+    "scope": "Actual components and encoded movie files with synthetic account/provider transport."
+  },
+  "previewDeployments": [
+    {
+      "context": "Vercel \u2013 tbirds-nest",
+      "state": "success",
+      "target_url": "https://vercel.com/donadmirals-projects/tbirds-nest/FRBHqNe5gzEmMS4DXu8kcrHjraqY"
+    },
+    {
+      "context": "Vercel \u2013 platinum-admin",
+      "state": "success",
+      "target_url": "https://vercel.com/donadmirals-projects/platinum-admin/DAuvE5p2PaaSooTD1uqBpNvzR6CZ"
+    },
+    {
+      "context": "Vercel \u2013 admin-web",
+      "state": "success",
+      "target_url": "https://vercel.com/intobank/admin-web/FQaGb4HW1rsUwh1B8zQepCFBAiG8"
+    },
+    {
+      "context": "Vercel \u2013 platinum-web",
+      "state": "success",
+      "target_url": "https://vercel.com/intobank/platinum-web/4G7Mqyh9V7145xLR3Erk77xPRaSk"
+    }
+  ],
+  "nativeBuilds": {
+    "ios": {
+      "run": 41130166013,
+      "fullCompileJob": 124318739677,
+      "audioJob": 124318740121,
+      "statusAtObservation": "completed",
+      "conclusion": "success",
+      "audioConclusion": "success",
+      "observedAt": "2026-10-30T21:46:01Z"
+    },
+    "android": {
+      "run": 41130166018,
+      "compileJob": 124318739898,
+      "statusAtObservation": "completed",
+      "conclusion": "success",
+      "observedAt": "2026-10-30T21:34:07Z",
+      "receipt": "../native-audio-20261030/baseline-android-compile.json"
+    }
+  },
+  "complementarySkips": [
+    "Default Supabase Node mode skips three visual-only fixture cases, which the RPC visual fixture executes.",
+    "The visual-only RPC fixture skips one separate-sound publication case, which the default Supabase Node mode executes."
+  ],
+  "scope": "Checkpoint receipt, not final continuation source. Later client and Android encoder work is recorded in its own receipts. Overlapping SQL fixture modes are not unique live journeys. No hosted music installation, commercial catalogue activation or physical device acceptance."
+}

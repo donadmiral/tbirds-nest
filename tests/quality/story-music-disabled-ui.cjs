@@ -21,6 +21,8 @@ test('an emergency original-audio shutdown keeps a working original-video volume
     react: new Proxy({}, { get() { return () => { throw Error('Music hooks must not run'); }; } }),
     'react/jsx-runtime': runtime, 'lucide-react': {}, '@/lib/storyAudio': {},
     './StoryStudio.module.css': { default: {} },'./OriginalAudioUpload':{},'@/lib/originalAudio':{},
+    '@/lib/supabase/client': { createClient() { throw Error('Disabled music must not initialize Auth'); } },
+    '@/lib/soundtrack': {}, '../../shared/soundtrackPicker': {},
   });
   const changes = [], props = { owner: 'owner', value: { kind: 'sound', soundId: 'old' }, isVideo: true, disabled: false, mix: { orig: 62 }, onMixChange: value => changes.push(value), onChange() {}, onBusyChange() {} };
   const nodes = walk(StoryAudioEditor(props)), input = nodes.find(n => n.type === 'input');

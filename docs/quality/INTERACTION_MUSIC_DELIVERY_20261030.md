@@ -2,6 +2,8 @@
 
 Date: 30 October 2026. Branch: `codex/app-quality-20261029`. Review: [draft PR #3](https://github.com/donadmiral/tbirds-nest/pull/3).
 
+**Historical checkpoint.** The subsequent [music and acceptance continuation](MUSIC_ACCEPTANCE_CONTINUATION_20261030.md) supersedes this report's current-state statements about missing catalogue services, abandoned-upload maintenance, native soundtrack encoding and remaining client repairs. The receipts and counts below remain evidence for their explicitly identified earlier source, rather than a description of the latest branch.
+
 This report continues the earlier [design delivery](DESIGN_COMPLETION_20261030.md). Historical reports retain their original source identities and observations. The final implementation is published at `8591b1a36f0a47d6493af6f8fa0a336d7421ec92`, tree `873614d8f4ac64815417e06208008a070274b658`. CI checked PR merge `af66ad4914cb039e9058292607509389afc43103`; its tree is exactly the same. The final publication and hosted results are recorded in the [companion verification receipt](interaction-acceptance-20261030/final-hosted-verification.json). A later evidence-only commit does not change the tested implementation.
 
 ## Outcome and release decision

@@ -1,0 +1,79 @@
+{
+  "assessedAt": "2026-10-30T21:21:53.701338+00:00",
+  "status": "Feasible implementation route; not implemented or activated by this assessment.",
+  "installedVersions": {
+    "expo": "54.0.37",
+    "expo-video": "3.0.16",
+    "expo-audio": "1.1.1",
+    "expoMedia3": "1.8.0"
+  },
+  "recommendedDependencies": [
+    "androidx.media3:media3-transformer:1.8.0",
+    "androidx.media3:media3-effect:1.8.0",
+    "androidx.media3:media3-common:1.8.0"
+  ],
+  "dependencyConstraint": "Align every Media3 artifact with the Expo1.8.0 graph; do not copy current1.11 example APIs or independently upgrade shared playback.",
+  "officialSources": [
+    "https://developer.android.com/media/media3/transformer/getting-started",
+    "https://developer.android.com/media/media3/transformer/composition",
+    "https://developer.android.com/media/media3/transformer/transformations",
+    "https://developer.android.com/media/media3/transformer/troubleshooting",
+    "https://developer.android.com/jetpack/androidx/releases/media3"
+  ],
+  "versionSpecificSourceArtifacts": [
+    {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/media3/media3-common/1.8.0/media3-common-1.8.0-sources.jar",
+      "sha256": "800866952af08b1f1c39b2a56f906a46f3a0e7ca4ae5e92310ea5388beef7a38"
+    },
+    {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/media3/media3-common/1.8.0/media3-common-1.8.0.pom",
+      "sha256": "ce750d72f014571accb524eb85f964be076b0fb1baf7e9c8d7655ef8cb5620a8"
+    },
+    {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/media3/media3-effect/1.8.0/media3-effect-1.8.0-sources.jar",
+      "sha256": "3e5cfcc9f6ea341786d71e68cfad1b4eb5c422188d9ed662f151a7e4af05a5f1"
+    },
+    {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/media3/media3-effect/1.8.0/media3-effect-1.8.0.pom",
+      "sha256": "84bae304f7c1abb8966452324dd9d6db690d0efd8d03f3bc8d2231aff02a3ace"
+    },
+    {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/media3/media3-transformer/1.8.0/media3-transformer-1.8.0-sources.jar",
+      "sha256": "dad8f262b90cfb76c7f74458f022356bfa13ee267a932da0c681669bfc015a1f"
+    },
+    {
+      "url": "https://dl.google.com/dl/android/maven2/androidx/media3/media3-transformer/1.8.0/media3-transformer-1.8.0.pom",
+      "sha256": "736c8293694eaa6264a8770a37a68c47e68b8d8820fea22a4391fed1616b705f"
+    }
+  ],
+  "contractMapping": {
+    "trim": "MediaItem.ClippingConfiguration before item effects; validate actual source duration and requested bounds.",
+    "speed": "1.8.0 Effects.createExperimentalSpeedChangingEffect links audio/video timing; silent/video-only inputs need forced audio or SpeedChangeEffect. Current EditedMediaItem.setSpeed examples do not exist in the inspected1.8.0 source.",
+    "originalMix": "Normalize to16-bit PCM and matching channel layout before per-source volume scaling and composition mixing.",
+    "stillCanvas": "Image MediaItem with explicit image duration and frame rate, preserving the already-rendered story snapshot.",
+    "music": "Independent trimmed audio sequence with setIsLooping(true); only the selected excerpt repeats until the non-looping video ends.",
+    "voiceover": "Non-looping audio sequence clipped to min(excerpt duration,output duration), then silence so it cannot extend the video.",
+    "canvasAndColor": "Exact4x5 color matrix, fit/scale/translation, background and timed full-canvas artwork require a tested GL canvas effect and timed bitmap overlay. Built-in4x4 RgbMatrix alone does not establish contract parity.",
+    "cancellation": "All Transformer calls run on its configured Looper. cancel() does not remove output; engine must settle once, delete partial output, release bitmaps and allow retry after timeout/background/cancel.",
+    "verification": "Inspect encoded MP4 using MediaExtractor and MediaMetadataRetriever; account for portrait rotation because Transformer may swap physical encoded dimensions. Verify duration, displayed dimensions, bytes, video samples and audio samples when requested.",
+    "rights": "Reuse existing prepared local sound, current Supabase export authorization and final pre-save rights recheck. Native file access stays within app-private cache/files."
+  },
+  "validationPlan": [
+    "First observe baseline full-app ARM64 Android compile with existing dependencies.",
+    "Compile actual new Kotlin engine in full application and a small instrumentation harness using the same pinned Media3 dependencies.",
+    "Run real Android emulator exports from generated local tone, color, still and video fixtures; preserve encoded outputs and source-hash receipts.",
+    "Decode output audio and measure selected excerpt, independent volumes, looping, one-pass voiceover, original-audio speed and A/V duration.",
+    "Inspect frames for color matrix, fit/contain/cover, translation, alpha/background, portrait orientation and timed artwork.",
+    "Exercise invalid/bounded paths, cancellation, background interruption, deadline, partial-output cleanup, single-job rejection and retry.",
+    "Advertise Android capability only after those checks pass; physical-device codec/camera/HEIC/HDR/Photos behavior remains separate acceptance."
+  ],
+  "deviceOrProviderAcceptance": false,
+  "androidComposerAvailable": false,
+  "supersededRecommendation": {
+    "decision": "The original assessment is historical. The implementation uses the minimal aligned Media3 1.8.1 patch, including the surfaceless framebuffer GL fix, after independent exact-source and published dependency-constraint review.",
+    "review": "android-media3-patch-review.json",
+    "localCompileEvidence": "android-local-compile.json",
+    "currentState": "Source implemented and locally compiled; native advertised capabilities remain zero until actual hosted emulator acceptance passes.",
+    "sourceStaging": "Video source may be app-private, a content provider, or readable external device media. External bytes are copied into a unique app-cache file with a 512 MiB ceiling, polling and cancellation. Audio, artwork and output remain app-private."
+  }
+}

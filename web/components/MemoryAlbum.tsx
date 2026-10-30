@@ -28,6 +28,8 @@ import { memoryStoryRecipe, memoryStorySeek, memoryStoryStickers } from '../../s
 import { memoryPageSoundtrack } from '../../shared/memoryFilm';
 import { memoryPhotoDuration } from '../../shared/memoryPlayback';
 import { useMemoryPlayback } from '@/lib/useMemoryPlayback';
+import { createMemorySoundtrackSaveHook } from '../../shared/useMemorySoundtrackSave';
+const useMemorySoundtrackSave = createMemorySoundtrackSaveHook({ useEffect, useRef, useState });
 
 const AUDIENCES = [
   { key: "profile", label: "Everyone who can view my profile" },
@@ -121,6 +123,13 @@ function MemoryAlbumController({ ownerId: albumRef }: { ownerId: string }) {
   const [uid, setUid] = useState<string | null>(null);
 
   const loadGeneration = useRef(0);
+  const soundtrackSave = useMemorySoundtrackSave({ client: supabase, owner: uid, book: album?.id ?? ownerId,
+    route: ownerId, canEdit: album?.is_owner === true,
+    onConfirmed: (id, selection) => {
+      loadGeneration.current += 1;
+      setAlbum(previous => previous?.id === id && previous.is_owner ? { ...previous, soundtrack: selection } : previous);
+    },
+  });
   const reactionLock=useRef(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const load = useCallback(async () => {
@@ -217,13 +226,14 @@ function MemoryAlbumController({ ownerId: albumRef }: { ownerId: string }) {
         {album.is_owner ? (
           <>
             <button onClick={() => setAdding(true)} className="rounded-full bg-black/5 p-2 text-ink/70 hover:bg-black/10" title="Add memories"><Plus size={17} /></button>
-            <button type="button" aria-label="Book soundtrack" onClick={()=>setMusicOpen(true)} className="min-h-11 rounded-full border border-ink/15 px-3 text-sm">Music</button>
+            <button type="button" aria-label="Book soundtrack" disabled={soundtrackSave.busy || soundtrackSave.needsConfirmation} onClick={()=>setMusicOpen(true)} className="min-h-11 rounded-full border border-ink/15 px-3 text-sm disabled:opacity-50">Music</button>
             <button onClick={() => setManage(true)} className="rounded-full bg-black/5 p-2 text-ink/70 hover:bg-black/10" title="Album settings"><Settings2 size={17} /></button>
           </>
         ) : null}
       </div>
 
-      {musicOpen&&uid&&album.is_owner?<SoundtrackPicker value={album.soundtrack??null} use="memory_album" ownerId={uid} originalAudio={false} onClose={()=>setMusicOpen(false)} onChange={selection=>{const id=album.id;setMutationError('');void supabase.rpc('save_memory_book_soundtrack',{p_album:id,p_soundtrack:selection}).then(({error})=>{if(error)setMutationError('The book soundtrack could not save. Retry from Music.');else void load();});}}/>:null}
+      {musicOpen&&uid&&album.is_owner?<SoundtrackPicker value={soundtrackSave.draft ? soundtrackSave.draft.selection : album.soundtrack??null} use="memory_album" ownerId={uid} originalAudio={false} onClose={()=>setMusicOpen(false)} onChange={selection=>{void soundtrackSave.save(selection);}}/>:null}
+      {soundtrackSave.busy ? <p role="status" className="mb-3 text-sm text-muted">{soundtrackSave.draft?.retry === 'check' ? 'Checking saved soundtrack…' : 'Saving soundtrack…'}</p> : soundtrackSave.error ? <div className="mb-3 text-sm"><p role="alert" className="text-danger">{soundtrackSave.error}</p><button type="button" className="min-h-11 underline" onClick={()=>void soundtrackSave.retry()}>{soundtrackSave.needsConfirmation ? 'Check saved music' : 'Retry soundtrack save'}</button></div> : soundtrackSave.notice ? <p role="status" className="mb-3 text-sm text-muted">{soundtrackSave.notice}</p> : null}
       <PostSoundtrack key={album.id} selection={album.soundtrack} use="memory_album" active={view==='book'&&foreground&&!filmVisible&&(!playMode||playing)&&!manage&&!adding&&!musicOpen} autoPlay={playMode} controls={!playMode} className="mb-3" />
       {filmVisible && pages.length > 0 && <MemoryFilm key={`${album.id}:${uid}`} title={album.title} pages={pages} soundtrack={album.soundtrack} reduceMotion={reduceMotion} onClose={() => setFilmVisible(false)} onReadBook={() => { setFilmVisible(false); openBook(); }} onRetry={retryMedia} />}
       {mutationError&&<p role="alert" className="mb-3 text-sm text-danger">{mutationError}</p>}

@@ -17,7 +17,7 @@ import MemoryPageTurn,{MemoryTurnPreview,type MemoryPageTurnHandle} from '../../
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, Modal, TextInput, FlatList,
-  ActivityIndicator, Alert, Dimensions, StatusBar, ScrollView, Animated,
+  ActivityIndicator, Alert, StatusBar, ScrollView, Animated,
   Easing, KeyboardAvoidingView, Platform, AppState, useWindowDimensions, AccessibilityInfo,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
@@ -37,6 +37,8 @@ import { memoryArtwork, memoryCoverMedia, memoryCoverPage, MEMORY_FEATURED_DESIG
 import { memoryPhotoDuration } from '../../../shared/memoryPlayback';
 import { useMemoryPlayback } from '../../hooks/useMemoryPlayback';
 import { useSoundtrackPlayer } from '../../hooks/useSoundtrackPlayer';
+import { createMemorySoundtrackSaveHook } from '../../../shared/useMemorySoundtrackSave';
+const useMemorySoundtrackSave = createMemorySoundtrackSaveHook({ useEffect, useRef, useState });
 const PAGE_CREAM = '#FBF6EC';
 
 const AUDIENCES = [
@@ -54,7 +56,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
   const [playMode, setPlayMode] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [filmVisible, setFilmVisible] = useState(false);
-  const [playRun, setPlayRun] = useState(0);
+  const [playRun] = useState(0);
   const [foreground, setForeground] = useState(AppState.currentState === 'active');
   const [readyPage, setReadyPage] = useState('');
   const [videoProgress, setVideoProgress] = useState(0);
@@ -131,6 +133,13 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
   const bookGeneration = useRef(0);
   const idxRef = useRef(0);
   useEffect(() => { idxRef.current = idx; }, [idx]);
+  const soundtrackSave = useMemorySoundtrackSave({ client: supabase, owner: viewerId, book: bookId,
+    route: `${ownerId}:${albumIdParam ?? 'default'}`, canEdit: album?.is_owner === true,
+    onConfirmed: (id, selection) => {
+      loadGeneration.current += 1;
+      setAlbum((previous: any) => previous?.id === id && previous.is_owner ? { ...previous, soundtrack: selection } : previous);
+    },
+  });
 
   const load = useCallback(async () => {
     const generation = ++loadGeneration.current;
@@ -345,7 +354,8 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
         ) : <View style={{ width: 22 }} />}
       </View>
 
-      {album.is_owner&&viewerId&&<><TouchableOpacity accessibilityRole="button" accessibilityLabel="Book soundtrack" onPress={()=>setMusicOpen(true)} style={{minHeight:44,alignSelf:'center',justifyContent:'center',paddingHorizontal:20}}><Text style={{color:t.ink.primary,fontWeight:'600'}}>Music</Text></TouchableOpacity><SoundtrackPicker visible={musicOpen} value={album.soundtrack??null} use="memory_album" ownerId={viewerId} originalAudio={false} onClose={()=>setMusicOpen(false)} onChange={selection=>{setMutationError('');void supabase.rpc('save_memory_book_soundtrack',{p_album:album.id,p_soundtrack:selection}).then(({error})=>{if(error)setMutationError('The book soundtrack could not save. Retry from Music.');else void load();});}}/></>}
+      {album.is_owner&&viewerId&&<><TouchableOpacity accessibilityRole="button" accessibilityLabel="Book soundtrack" disabled={soundtrackSave.busy || soundtrackSave.needsConfirmation} onPress={()=>setMusicOpen(true)} style={{minHeight:44,alignSelf:'center',justifyContent:'center',paddingHorizontal:20}}><Text style={{color:t.ink.primary,fontWeight:'600'}}>Music</Text></TouchableOpacity><SoundtrackPicker visible={musicOpen} value={soundtrackSave.draft ? soundtrackSave.draft.selection : album.soundtrack??null} use="memory_album" ownerId={viewerId} originalAudio={false} onClose={()=>setMusicOpen(false)} onChange={selection=>{void soundtrackSave.save(selection);}}/></>}
+      {soundtrackSave.busy ? <Text accessibilityLiveRegion="polite" style={{color:t.ink.secondary,paddingHorizontal:16}}>{soundtrackSave.draft?.retry === 'check' ? 'Checking saved soundtrack…' : 'Saving soundtrack…'}</Text> : soundtrackSave.error ? <View style={{paddingHorizontal:16,gap:6}}><Text accessibilityRole="alert" style={{color:t.ink.secondary}}>{soundtrackSave.error}</Text><TouchableOpacity accessibilityRole="button" style={{minHeight:44,justifyContent:'center'}} onPress={()=>void soundtrackSave.retry()}><Text style={{color:t.ink.primary,fontWeight:'600'}}>{soundtrackSave.needsConfirmation ? 'Check saved music' : 'Retry soundtrack save'}</Text></TouchableOpacity></View> : soundtrackSave.notice ? <Text accessibilityLiveRegion="polite" style={{color:t.ink.secondary,paddingHorizontal:16}}>{soundtrackSave.notice}</Text> : null}
       {!!mutationError&&!settings&&<Text style={{color:t.ink.secondary,paddingHorizontal:16}}>{mutationError}</Text>}
       {!!(music.error||pageAudio.error)&&opened&&<TouchableOpacity onPress={()=>{music.retry();pageAudio.retry();}}><Text style={{color:t.ink.secondary,paddingHorizontal:16}}>Soundtrack could not play. Tap to retry.</Text></TouchableOpacity>}
       {!opened ? (

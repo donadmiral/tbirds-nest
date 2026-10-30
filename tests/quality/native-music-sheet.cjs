@@ -296,15 +296,54 @@ test('pending stop cannot reset the audio session after a newer recording starts
   h.dispose(); await h.flush();
 });
 
-test('native saved-sound reads and mutations pin the initiating session and reject a mismatched owner', async () => {
+function favoriteService(options = {}) {
   const calls = [], session = { user: { id: 'owner' }, access_token: 'fixture-owner-token' };
-  const supabase = { auth: { getSession: async () => ({ data: { session }, error: null }) }, rpc(name, args) { const call = { name, args }; calls.push(call); return { setHeader(key, value) { call.header = [key, value]; return Promise.resolve({ data: [first.id], error: null }); } }; } };
+  const listeners = new Set();
+  const supabase = { auth: { getSession: () => options.session ? options.session() : Promise.resolve({ data: { session }, error: null }), onAuthStateChange(fn) { listeners.add(fn); return { data: { subscription: { unsubscribe() { listeners.delete(fn); } } } }; } }, rpc(name, args) { const call = { name, args }; calls.push(call); return { setHeader(key, value) { call.header = [key, value]; return options.reply ? options.reply(call) : Promise.resolve({ data: name === 'set_sound_favorite' ? args.p_saved : [first.id], error: null }); } }; } };
   const mods = { '../../shared/soundtrackPicker': { soundtrackRead: promise => promise }, '../../shared/originalAudioAvailability': {}, 'expo-file-system/legacy': {}, 'expo-crypto': {}, 'base64-arraybuffer': {}, './supabase': { supabase }, '../../shared/musicUpload': {}, '../../shared/originalAudio': {}, './soundtrackService': {} };
   const exports = {};
   vm.runInNewContext(compile(fs.readFileSync(path.join(root, 'src/services/originalAudioService.ts'), 'utf8')), { exports, require(name) { assert.ok(name in mods, name); return mods[name]; } });
+  return { api: exports, calls, session, listeners, auth(id, event = 'SIGNED_IN') { for (const listener of listeners) listener(event, id ? { user: { id }, access_token: 'fixture-' + id } : null); } };
+}
+test('native saved-sound reads and mutations pin the initiating session and reject a mismatched owner', async () => {
+  const { api: exports, calls, listeners } = favoriteService();
   await exports.saveSoundFavorite(first.id, true, 'owner'); assert.equal(calls.length, 1); assert.deepEqual(Array.from(calls[0].header), ['Authorization', 'Bearer fixture-owner-token']);
   await assert.rejects(exports.saveSoundFavorite(first.id, false, 'other'), /account/); assert.equal(calls.length, 1);
   const ids = await exports.soundFavorites('owner'); assert.deepEqual(Array.from(ids), [first.id]);
   assert.equal(calls[1].name, 'list_sound_favorites'); assert.deepEqual(Array.from(calls[1].header), ['Authorization', 'Bearer fixture-owner-token']);
   await assert.rejects(exports.soundFavorites('other'), /account/); assert.equal(calls.length, 2);
+  assert.equal(listeners.size, 0);
+});
+
+test('native favorite mutations reject malformed success acknowledgements', async () => {
+  for (const data of [null, undefined, [], 'true', false]) {
+    const h = favoriteService({ reply: async () => ({ data, error: null }) });
+    await assert.rejects(h.api.saveSoundFavorite(first.id, true, 'owner'), /could not be saved/);
+    assert.equal(h.listeners.size, 0);
+  }
+});
+
+test('native favorite reads reject malformed or oversized baselines and preserve all valid IDs', async () => {
+  for (const data of [null, {}, ['not-a-uuid'], [first.id, null], Array.from({ length: 201 }, () => first.id)]) {
+    const h = favoriteService({ reply: async () => ({ data, error: null }) });
+    await assert.rejects(h.api.soundFavorites('owner'), /could not load/); assert.equal(h.listeners.size, 0);
+  }
+  const h = favoriteService({ reply: async () => ({ data: [first.id, first.id, second.id], error: null }) });
+  assert.deepEqual(Array.from(await h.api.soundFavorites('owner')), [first.id, second.id]); assert.equal(h.listeners.size, 0);
+});
+
+test('native favorite transport rejects an account round trip during session lookup before dispatch', async () => {
+  for (const mutation of [false, true]) {
+    const gate = deferred(), h = favoriteService({ session: () => gate.promise });
+    const work = mutation ? h.api.saveSoundFavorite(first.id, true, 'owner') : h.api.soundFavorites('owner');
+    h.auth('other'); h.auth('owner'); gate.resolve({ data: { session: h.session }, error: null });
+    await assert.rejects(work, /account/); assert.equal(h.calls.length, 0); assert.equal(h.listeners.size, 0);
+  }
+});
+
+test('native favorite transport discards late confirmation after identity change and releases its watcher', async () => {
+  const gate = deferred(), h = favoriteService({ reply: () => gate.promise });
+  const work = h.api.saveSoundFavorite(first.id, true, 'owner'); await new Promise(resolve => setImmediate(resolve));
+  assert.equal(h.calls.length, 1); h.auth('other'); h.auth('owner'); gate.resolve({ data: true, error: null });
+  await assert.rejects(work, /account/); assert.equal(h.listeners.size, 0); assert.deepEqual(Array.from(h.calls[0].header), ['Authorization', 'Bearer fixture-owner-token']);
 });

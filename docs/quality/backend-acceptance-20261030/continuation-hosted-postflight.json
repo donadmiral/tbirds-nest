@@ -1,0 +1,17 @@
+{
+  "checkedAt": "2026-10-30 21:46:57.038652+00",
+  "project": "uaulhuelcfkjwojtymmw",
+  "operation": "Read-only independent Supabase postflight",
+  "businessAuthSchemaPresent": false,
+  "musicLibrarySchemaPresent": false,
+  "candidateMigrationsPresent": 0,
+  "candidateMigrationVersions": [
+    "20261030034752",
+    "20261030153811",
+    "20261030181000",
+    "20261030203619",
+    "20261030204339"
+  ],
+  "interpretation": "The previous stalled connector operation did not subsequently install the business or music candidate. This continuation has not deployed dependent Edge bundles or activated music readiness. Local fixture and client/build results remain separate from hosted installation.",
+  "query": "select now() as checked_at, to_regnamespace('business_auth') is not null as business_auth_schema_present, to_regnamespace('music_library') is not null as music_library_schema_present, (select count(*) from supabase_migrations.schema_migrations where version in ('20261030034752','20261030153811','20261030181000','20261030203619','20261030204339')) as candidate_migrations_present;"
+}

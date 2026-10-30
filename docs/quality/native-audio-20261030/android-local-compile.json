@@ -1,0 +1,141 @@
+{
+  "recordedAt": "2026-10-30T21:52:06Z",
+  "baseCommit": "f25a0263ee08dee8e589feee6479f0e357085c45",
+  "status": "Production renderer and the complete instrumentation harness compiled and packaged locally; encoded-media acceptance is pending the hosted emulator.",
+  "commands": [
+    "verifyStoryMediaDependencies assembleDebug assembleDebugAndroidTest"
+  ],
+  "buildResult": "BUILD SUCCESSFUL in 41s; 62 actionable tasks: 41 executed, 21 up-to-date",
+  "toolchain": {
+    "gradle": "8.14.3, from the locked Expo 54 template",
+    "agp": "8.11.0",
+    "kotlin": "2.1.20",
+    "java": "Temurin 17.0.21+9",
+    "compileSdk": 36,
+    "minSdk": 24,
+    "targetSdk": 35
+  },
+  "logSha256": "109fd00a8ad50a90707048251e4365609a969f6f30c436038098a106de4ed841",
+  "resolvedMedia3": {
+    "project": ":",
+    "configuration": "debugRuntimeClasspath",
+    "expectedVersion": "1.8.1",
+    "aligned": true,
+    "components": [
+      {
+        "group": "androidx.media3",
+        "module": "media3-common",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-container",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-database",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-datasource",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-decoder",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-effect",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-exoplayer",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-extractor",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-muxer",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-transformer",
+        "version": "1.8.1"
+      }
+    ],
+    "scope": "Resolved runtime version alignment; separate from security or encoded-media acceptance."
+  },
+  "sourceHashes": {
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": "9ae63531a14a68d1f258ac568215858ac3b0dd78b5a56c43a469c9b6c7ecf908",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": "754eaa2052a1b48c527eb2a2f9ccfb94cdd88ed269aa1bb4933fdde3e066633e",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt": "fba427784dd706134c2125717d7dc4accbcedb26fe668196228135064ec68f46",
+    "modules/boomerang/android/build.gradle": "1073ed103b08ff07f4f21f79d5914497ef03c990b11bb2be7eadcfe6e287dbb4",
+    "scripts/quality/android-story-export/build.gradle": "098fc5d3653eeae9c26678c7a365ce7dfe607c3bbfa54ba7beb3a569183bc625",
+    "scripts/quality/android-story-export/settings.gradle": "c28f8c006ff219e6e7e8c9dc90d5d2eff36eb87b59f0dd7596ee7e1be61d695b",
+    "scripts/quality/android-story-export/gradle.properties": "d477c6ea499a0b0916442e37bca983ae0a6f22d4b8c22f1882be0e5cd34b7b4c",
+    "scripts/quality/android-story-export/src/main/AndroidManifest.xml": "a6c09b92672c80c279243f688eff43369a6d327305e40e9d6fc99edadf0d07be",
+    "scripts/quality/android-story-export/src/main/java/expo/modules/boomerang/FixtureMediaProvider.kt": "6b253b3cf247efdaee5e539361de5f4189d1fe0641def507c5b92cac79efb450",
+    "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/StoryAudioExportTest.kt": "eb818fa05200f6a30e96e70aec3d37ca927b21358e27e46e79ed96a3b39cb16c",
+    "scripts/quality/android-media-dependencies.init.gradle": "19537f9653fe95d4271c5cadc52e3363c3103b3e7dfdb79b70e37979593b005f"
+  },
+  "productionSourceCopiesExact": true,
+  "compiledInstrumentationMethods": [
+    "selectedExcerptLoopsThroughActualStillMovie",
+    "onePassVoiceoverEndsInSilenceWithoutShorteningVideo",
+    "longVoiceoverIsClippedToTheOutputMovie",
+    "soundtrackVolumeAndZeroGainAreEncoded",
+    "videoTrimSpeedAndOriginalMixStayAlignedWithIndependentSoundtrack",
+    "mutedOriginalDoesNotLeakIntoTheMovie",
+    "originalOnlyAudioIsPreservedAndMeasured",
+    "trimmingPastShortOriginalAudioProducesAValidSilentMovie",
+    "canvasBackgroundAndTimedArtworkMatchDecodedPixels",
+    "fullColorMatrixScaleAndTranslationMatchPixels",
+    "matrixAlphaAndBiasAreNotDroppedByAFourByFourShortcut",
+    "verticalTextureOrientationAndBothTranslationDirectionsMatchTheCanvas",
+    "trimmedAndAcceleratedVideoUsesOutputTimeForArtwork",
+    "invalidInputsCannotOverwriteOrEscapeTheCache",
+    "cancellationStopsTheWriterCleansThePartialAndAllowsRetry",
+    "backgroundCancellationSettlesOnceAndPreservesTheDraftInputs",
+    "fullPortraitResolutionProducesActualVideoAndSoundtrack",
+    "cancellationAtTheCompletionBoundaryCannotLeaveARejectedOutput",
+    "unknownLengthContentAndReadableExternalVideoAreStagedAndRemoved",
+    "oversizedUnknownLengthProviderCannotConsumeUnboundedDisk",
+    "knownLengthProviderDoesNotNeedEofAndCannotHideAnEarlyEnd",
+    "blockedContentProviderCanBeCancelledWithoutWaitingForAnotherChunk"
+  ],
+  "compiledInstrumentationMethodCount": 22,
+  "apkArtifacts": [
+    {
+      "path": "scripts/quality/android-story-export/build/outputs/apk/androidTest/debug/PlatinumStoryExportAcceptance-debug-androidTest.apk",
+      "sha256": "6bb54e05047705518ffaf00137add871a79d64faea85cb162577ccae6eaf6179",
+      "bytes": 893253
+    },
+    {
+      "path": "scripts/quality/android-story-export/build/outputs/apk/debug/PlatinumStoryExportAcceptance-debug.apk",
+      "sha256": "f0d92d12fb5041cc6be9614341d79d010f7d8e55da14b3526e18e1d4a4a46886",
+      "bytes": 4300087
+    }
+  ],
+  "nativeAdvertisedCapabilities": {
+    "storyVideoVersion": 0,
+    "storyAudioExportVersion": 0
+  },
+  "acceptanceLimits": [
+    "No emulator or physical Android device is available in this local environment.",
+    "Successful compilation and packaging do not prove encoded audio, pixel, provider or cancellation behavior. The 22 instrumentation cases must pass on the actual emulator before native capability activation.",
+    "The isolated harness compiles byte-for-byte production renderer files. The Expo bridge and complete application dependency graph still require the hosted full-application build.",
+    "Physical-device camera/HDR/HEIC/Gallery/accessibility and device-specific encoders remain separate acceptance.",
+    "Nested video, animated sticker and dual-camera composition remain explicitly unsupported by the existing shared export scope."
+  ],
+  "clockSource": "Session UTC clock; local executor clock differs."
+}

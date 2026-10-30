@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "verifiedAtUtc": "2026-10-30T21:46:33.491838+00:00",
+  "repository": "donadmiral/tbirds-nest",
+  "branch": "codex/app-quality-20261029",
+  "baseCommit": "f25a0263ee08dee8e589feee6479f0e357085c45",
+  "workingTreeIncludesUncommittedFollowup": true,
+  "kind": "Complete local client Node regression and lint/type gates; native encoder/device and hosted-service acceptance are separate.",
+  "environment": {
+    "node": "v24.22.1",
+    "platform": "Linux",
+    "machine": "x86_64",
+    "ciNodeMajor": 22
+  },
+  "source": {
+    "recordedBeforeChecksUtc": "2026-10-30T21:44:44.314504+00:00",
+    "clientSourceFileCount": 1199,
+    "clientSourceTreeSha256": "382c837ce2ca2ffd89e6dc723903cadcc2d35ef0da79980149f3b03538843da6",
+    "unchangedThroughFinalChecks": true,
+    "aggregateRecipe": "SHA256 of sorted UTF-8 path + NUL + file SHA256 hex + newline entries.",
+    "scope": {
+      "roots": [
+        "root-level files",
+        "src/",
+        "shared/",
+        "tests/",
+        "web/",
+        "admin-web/",
+        "tools/",
+        "modules/boomerang/"
+      ],
+      "extensions": [
+        ".cjs",
+        ".js",
+        ".json",
+        ".jsx",
+        ".mjs",
+        ".ts",
+        ".tsx"
+      ],
+      "inventory": "git ls-files --cached --others --exclude-standard",
+      "excluded": [
+        "modules/boomerang/android/",
+        "modules/boomerang/ios/",
+        "documentation receipts and ignored/generated files"
+      ]
+    },
+    "changedClientSourceSha256": {
+      "modules/boomerang/storyComposition.ts": "94ce20c34f1d7e893057127364a43aa21ca69e0ee57a018007af22a533b0c075",
+      "modules/boomerang/storyVideo.tsx": "803d9eb95350ed2379681b5fee83dc89a81a7d9db3be39bb1aa548f973da112a",
+      "shared/soundtrackPicker.ts": "31658b8e58c756896bd42b004029c16f111e5fe3d2be6516b3485289af56b456",
+      "shared/storyVideoComposition.ts": "cc3016616f2ad31ff4cd725b2160773c40605b8903bc21a46cf31ac147aca5a1",
+      "shared/useMemorySoundtrackSave.ts": "733387723d25b448dc93e05d3b4f42a4669573e222d137b18f0d8dbee0fa5817",
+      "src/components/SoundtrackPicker.tsx": "7ea59aeadc58c0092df0e100ecb0554553cf85c4091557cfa8ec133fa26d3f8f",
+      "src/components/memory/MemoryStoryFrame.tsx": "4028c0da12ef1ab1a78d971134bfe52d5f2755a74fa101702bcace4c7f6a293c",
+      "src/screens/profile/MemoryAlbumScreen.tsx": "e34100e786626835767af28ba4a51b2144ffa28ff2ce32c5f61b89f93f429e6c",
+      "src/screens/stories/StoryComposerScreen.tsx": "f088cfc18159dac8155389bd9d353b95aeba5cd1d3833c72b0c94b09bbf0a0f4",
+      "src/screens/stories/StoryViewerScreen.tsx": "c9870912f1c5dbe93aebaf028cbcb5be215f60796ce238f08ba784b502bc6727",
+      "src/services/originalAudioService.ts": "5a91081ed0671dfd261153ced02fb8701555f16b227e37f88bbd46f6b1cdb8c9",
+      "tests/quality/draft-soundtrack-interaction.cjs": "e3c71ca3b6e64254e060dc011170229cdf81d8813356def73aae42d0b9f6c44e",
+      "tests/quality/memory-soundtrack-save.cjs": "f2548ca3a9986bd05a1d634a86373afdc4ed8badd2d31c42bdde94bf945dbc71",
+      "tests/quality/memory-story-presentation.cjs": "d583c939d37a84834e3f17a1b1fc305b8ec50c68701356314a85fed029fbd10e",
+      "tests/quality/music-favorites.cjs": "edbef5c2da9e811ca596669788a0fa824d1d16d81d7f9c5fb84cc5429e6c4506",
+      "tests/quality/native-music-sheet.cjs": "a7a62c7e847c1e7e4330c4e29da6a80218797f35fd8aadd58351aa08ddb69178",
+      "tests/quality/story-audio-web-regressions.cjs": "0c1ce13e6a805e758a2af2acb777e8d4439bb8c14a87a4cef2aac49ab6f7ede9",
+      "tests/quality/story-capture-delivery.cjs": "842856caa1ecdbc7cb73bfcbdba7c4f1078a64e9e63f3e3879b9333cf86d84bf",
+      "tests/quality/story-editing-state.cjs": "0378d023cff8ff21d519ab24a42aa05d88947637091471dc61d8cb35bacd3fb8",
+      "tests/quality/story-music-disabled-ui.cjs": "c1ed5f0dc772c0d62128955ac402827ae4595c1ae2134fc80f4bac817378cef7",
+      "tests/quality/story-video-composition.cjs": "ededbaec50b4720cb49c3e0adad5823578f29e0e1eef9f180b1b32925acd1a01",
+      "web/components/MemoryAlbum.tsx": "ccf9eaa447d46e48f087140adeca64b917348475fbe82a2be2d8f400234ea245",
+      "web/components/SoundtrackPicker.tsx": "6472725c20a811a4de6b2066a8b70be52d6113ca8364a4f15233e0ee11a02c33",
+      "web/components/StoryAudioEditor.tsx": "2d6cd5def8e0671986c72bb62542706b702eb7f6c34ba425752c3859f6432d68",
+      "web/lib/originalAudio.ts": "6f47b07059cf06067fdf83c8386e45cb0c35bb925b2cbe275dfb9169ad96132c",
+      "web/lib/storyAudio.ts": "bec6103c1312f152522279c1dd2f5401f2d93d8cde696faffaa7ae31fa314356"
+    }
+  },
+  "nodeTests": [
+    {
+      "scope": "root",
+      "cwd": ".",
+      "command": "node --test --test-concurrency=2 tests/*.cjs tests/quality/*.cjs",
+      "exitCode": 0,
+      "testFileCount": 141,
+      "summary": {
+        "tests": 1390,
+        "suites": 0,
+        "pass": 1390,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 59641.339229
+      },
+      "logSha256": "5f0fb1fa4c41617bc1c8443481e511724b827edc763090804d580d0592c02411",
+      "execution": "Approved escalation for local child-process fixtures; tests unchanged."
+    },
+    {
+      "scope": "web",
+      "cwd": "web",
+      "command": "node --test --test-concurrency=2 tests/*.cjs tests/quality/*.cjs",
+      "exitCode": 0,
+      "testFileCount": 56,
+      "summary": {
+        "tests": 621,
+        "suites": 0,
+        "pass": 621,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 29858.057496
+      },
+      "logSha256": "6b990d0a6bbf6a960cbe0013fa7acab3f5fd1876aa22d42b885b8c957e4f5f34",
+      "execution": "Approved escalation for local child-process fixtures; tests unchanged."
+    }
+  ],
+  "lint": [
+    {
+      "scope": "root",
+      "cwd": ".",
+      "command": "node node_modules/eslint/bin/eslint.js . --format json",
+      "exitCode": 0,
+      "files": 595,
+      "errors": 0,
+      "warnings": 432,
+      "fatalErrors": 0,
+      "strictlyClean": false,
+      "logSha256": "3cad1b41b37e44b02279d1e01f666a728ba7132d0928e8107507ace256bd188e",
+      "warningsByRule": {
+        "@typescript-eslint/array-type": 2,
+        "@typescript-eslint/no-unused-vars": 204,
+        "import/no-duplicates": 6,
+        "import/no-named-as-default-member": 1,
+        "no-unused-expressions": 7,
+        "react-hooks/exhaustive-deps": 211,
+        "unused-eslint-disable-directive": 1
+      }
+    },
+    {
+      "scope": "web",
+      "cwd": "web",
+      "command": "node node_modules/eslint/bin/eslint.js . --max-warnings 0 --format json",
+      "exitCode": 0,
+      "files": 438,
+      "errors": 0,
+      "warnings": 0,
+      "fatalErrors": 0,
+      "strictlyClean": true,
+      "logSha256": "4465a057f6b77752552ab7cceb1d0cb03954022e79e51b321d59b686ec3f61fd"
+    },
+    {
+      "scope": "admin",
+      "cwd": "admin-web",
+      "command": "node node_modules/eslint/bin/eslint.js . --max-warnings 0 --format json",
+      "exitCode": 0,
+      "files": 158,
+      "errors": 0,
+      "warnings": 0,
+      "fatalErrors": 0,
+      "strictlyClean": true,
+      "logSha256": "63cfcc68e363e8497e6453180188c1017092b09b09645e5b89668a28d433d082"
+    }
+  ],
+  "types": [
+    {
+      "cwd": ".",
+      "command": "node node_modules/typescript/bin/tsc --noEmit",
+      "exitCode": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "cwd": "web",
+      "command": "node node_modules/typescript/bin/tsc --noEmit",
+      "exitCode": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "supersededStaging": {
+    "implementationRemoved": "src/services/storyExportMedia.ts",
+    "suiteRemoved": "tests/quality/story-export-media.cjs",
+    "includedInCounts": false,
+    "replacement": "Android native job must own provider streaming, byte ceiling, cancellation and temporary-file cleanup; native capability remains disabled pending its separate encoded-file/provider tests."
+  },
+  "limits": [
+    "Root/native ESLint retains 432 warnings; it is not globally strict-clean.",
+    "Local Node used v24.22.1; the configured hosted workflow uses Node22 and has separate receipts.",
+    "These local suites do not prove physical iPhone/Android acceptance, Photos-library saves, live Supabase installation or external-provider behavior."
+  ]
+}

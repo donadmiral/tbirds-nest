@@ -1,0 +1,174 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-10-30T21:56:42+00:00",
+  "conclusion": "No remaining concrete source blocker found in the reviewed native lifecycle, staging, output verification, or CI boundary. Runtime acceptance is required separately.",
+  "scope": "Independent source and pinned dependency-contract review. This receipt does not claim an emulator run, installed product journey, physical device test or production backend deployment.",
+  "sourceSha256": {
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": "9ae63531a14a68d1f258ac568215858ac3b0dd78b5a56c43a469c9b6c7ecf908",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": "754eaa2052a1b48c527eb2a2f9ccfb94cdd88ed269aa1bb4933fdde3e066633e",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt": "fba427784dd706134c2125717d7dc4accbcedb26fe668196228135064ec68f46",
+    "modules/boomerang/android/build.gradle": "1073ed103b08ff07f4f21f79d5914497ef03c990b11bb2be7eadcfe6e287dbb4",
+    "scripts/quality/android-story-export/build.gradle": "098fc5d3653eeae9c26678c7a365ce7dfe607c3bbfa54ba7beb3a569183bc625",
+    "scripts/quality/android-story-export/settings.gradle": "c28f8c006ff219e6e7e8c9dc90d5d2eff36eb87b59f0dd7596ee7e1be61d695b",
+    "scripts/quality/android-story-export/gradle.properties": "d477c6ea499a0b0916442e37bca983ae0a6f22d4b8c22f1882be0e5cd34b7b4c",
+    "scripts/quality/android-story-export/src/main/AndroidManifest.xml": "a6c09b92672c80c279243f688eff43369a6d327305e40e9d6fc99edadf0d07be",
+    "scripts/quality/android-story-export/src/main/java/expo/modules/boomerang/FixtureMediaProvider.kt": "6b253b3cf247efdaee5e539361de5f4189d1fe0641def507c5b92cac79efb450",
+    "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/StoryAudioExportTest.kt": "eb818fa05200f6a30e96e70aec3d37ca927b21358e27e46e79ed96a3b39cb16c",
+    "scripts/quality/test-android-story-audio.sh": "999d0acaf0b341e9068b4f490225b26a1e7af779cb8ecee0b0ea1e94c5861204",
+    "scripts/quality/compile-android-native.sh": "761690dabd2b15bca5088ec506d8532a780760460e7e7f40ae656e72bd53f2d9",
+    "scripts/quality/android-media-dependencies.init.gradle": "19537f9653fe95d4271c5cadc52e3363c3103b3e7dfdb79b70e37979593b005f",
+    ".github/workflows/android-native-compile.yml": "85167aeaa8bd94b739c44ba018652d604fd52cdba9505654f72d89e9bcf3e6da"
+  },
+  "primarySources": [
+    {
+      "url": "https://raw.githubusercontent.com/androidx/media/1.8.0/libraries/transformer/src/main/java/androidx/media3/transformer/EditedMediaItem.java",
+      "sha256": "67e41af485084c5bd2e3e42c1c4048b5adcd15b354e429b65af4b56f58252b9e"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/androidx/media/1.8.0/libraries/effect/src/main/java/androidx/media3/effect/FrameDropEffect.java",
+      "sha256": "be94686fc947d06e41d6403d889aa6c985f9cc361c4d49890fd5659c1a74ac49"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/androidx/media/1.8.0/libraries/transformer/src/main/java/androidx/media3/transformer/Transformer.java",
+      "sha256": "3eedc9cb7b4ccc7ec04f3775a1f67c5798cdc7828260e9f369a975211d2c1966"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/JetBrains/kotlin/v2.1.20/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/gradle/targets/android/AndroidProjectHandler.kt",
+      "sha256": "4bb15c8f67d48fffb7bd05380bac472938948ff2042ac95b3684980bb8a6ce16"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/aosp-mirror/platform_frameworks_base/android-15.0.0_r1/core/java/android/content/res/AssetFileDescriptor.java",
+      "sha256": "58b01542bc495b72fcd2e447ddf67b3b40cf12e6821860b98d3bd6a58dd86c22"
+    }
+  ],
+  "resolvedFindings": [
+    {
+      "finding": "Cancellation could reject after finish chose to retain the output.",
+      "resolution": "Cancellation and terminal output/settlement decisions use the same lock. Reservation is retained until Transformer cancellation finishes; timeout captures the Job identity."
+    },
+    {
+      "finding": "Original-only audio loss and audio duration masking a truncated video were not covered by output verification.",
+      "resolution": "Expected original audio reflects actual trim overlap; per-video duration, required audio, positive sample bytes, timeline coverage and displayed output geometry are checked. Low-rate final frame coverage is handled separately from high-rate bounds."
+    },
+    {
+      "finding": "Input decode dimensions and artwork/resource cleanup needed explicit bounds.",
+      "resolution": "Video decode is capped to a 4K pixel envelope; artwork is sampled toward output canvas size and decoded one at a time; GL resources are released independently and idempotently."
+    },
+    {
+      "finding": "Media3 1.8 setFrameRate does not bound input video frame rates.",
+      "resolution": "An explicit FrameDropEffect follows speed effects and precedes canvas processing; output sample count is bounded. Exact pinned source was checked instead of relying on newer API documentation."
+    },
+    {
+      "finding": "The custom shader needed direct checks for vertical coordinates and output-time layer windows.",
+      "resolution": "The real instrumentation suite includes vertical source orientation, both translation directions, and timed artwork after trim/speed, in addition to matrix alpha/bias and audio waveform checks."
+    },
+    {
+      "finding": "Java source exclusions do not exclude the Kotlin Expo bridge from the isolated renderer harness.",
+      "resolution": "A Sync task copies exactly the two production engine files; CI verifies those actual generated files against preflight source hashes and rejects unexpected Kotlin source copies."
+    },
+    {
+      "finding": "Provider-backed video staging needed bounded reads and cancellation outside a blocked reader.",
+      "resolution": "Video-only content or readable external-storage sources are copied into a unique owned cache file using 64KiB chunks, a 512MiB ceiling, a free-space floor and nonblocking polling. An opened descriptor is registered before inspection. Audio/artwork/output remain private local files."
+    },
+    {
+      "finding": "Known-length open pipes could wait for EOF unnecessarily; ranged stream constructors could read before cancellation was registered.",
+      "resolution": "The copy loop stops at declared length and rejects early EOF. AssetFileDescriptor reading constructors are bypassed; regular files use explicit seek, while nonzero streamed offsets are rejected before reading. Actual provider fixtures cover each boundary."
+    },
+    {
+      "finding": "The renderer needed the narrow surfaceless-context graphics repair without a Media3 API upgrade.",
+      "resolution": "Module and harness select 1.8.1; CI inspects the actual resolved runtime graph and requires every Media3 component to match. Exact source/metadata comparison is retained in android-media3-patch-review.json."
+    },
+    {
+      "finding": "AGP 8.11 connected tests uninstall the test APKs and private data by default before run-as evidence extraction.",
+      "resolution": "The connected-test invocation now sets the supported android.injected.androidTest.leaveApksInstalledAfterRun=true property. The disposable harness remains installed through evidence extraction; the owned emulator and AVD are still removed by the bounded cleanup path. This repairs evidence retention and does not establish a passing runtime test."
+    }
+  ],
+  "reviewedInvariants": {
+    "oneActiveNativeJob": true,
+    "nativeTimeoutMilliseconds": 180000,
+    "newOutputOnlyInPrivateCache": true,
+    "canonicalSourceAndOutputPaths": true,
+    "originalInputsPreserved": true,
+    "stagedAndFailedOutputsCleanedAfterWriterStop": true,
+    "sourceStreamBufferBytes": 65536,
+    "sourceByteCeiling": 536870912,
+    "sourcePollMilliseconds": 100,
+    "audioByteCeiling": 52428800,
+    "maximumArtworkLayers": 23,
+    "maximumCanvas": [
+      1080,
+      1920
+    ],
+    "maximumOutputSeconds": 120.01,
+    "maximumStillMovieSeconds": 30,
+    "codecFallbackDisabled": true,
+    "outputVerifiedByExtractorAndRetriever": true,
+    "nativeCapabilityVersionsAtReview": [
+      0,
+      0
+    ]
+  },
+  "localChecks": {
+    "shellSyntax": "passed for both CI shell scripts",
+    "embeddedPythonBlocksParsed": {
+      "scripts/quality/test-android-story-audio.sh": 4,
+      "scripts/quality/compile-android-native.sh": 3
+    },
+    "diffWhitespace": "passed",
+    "exactExpoWrapperMembersVerified": true,
+    "lockedToolchainMatchesHarness": {
+      "agp": "8.11.0",
+      "kotlin": "2.1.20",
+      "compileSdk": "36",
+      "buildTools": "36.0.0",
+      "ndk": "27.1.12297006",
+      "minSdk": "24"
+    },
+    "instrumentationEvidenceRetention": {
+      "agpVersion": "8.11.0",
+      "property": "android.injected.androidTest.leaveApksInstalledAfterRun",
+      "value": true,
+      "commandVerified": true,
+      "shellSyntax": "passed after retention patch",
+      "runtimeVerified": false
+    }
+  },
+  "declaredInstrumentationMethods": [
+    "selectedExcerptLoopsThroughActualStillMovie",
+    "onePassVoiceoverEndsInSilenceWithoutShorteningVideo",
+    "longVoiceoverIsClippedToTheOutputMovie",
+    "soundtrackVolumeAndZeroGainAreEncoded",
+    "videoTrimSpeedAndOriginalMixStayAlignedWithIndependentSoundtrack",
+    "mutedOriginalDoesNotLeakIntoTheMovie",
+    "originalOnlyAudioIsPreservedAndMeasured",
+    "trimmingPastShortOriginalAudioProducesAValidSilentMovie",
+    "canvasBackgroundAndTimedArtworkMatchDecodedPixels",
+    "fullColorMatrixScaleAndTranslationMatchPixels",
+    "matrixAlphaAndBiasAreNotDroppedByAFourByFourShortcut",
+    "verticalTextureOrientationAndBothTranslationDirectionsMatchTheCanvas",
+    "trimmedAndAcceleratedVideoUsesOutputTimeForArtwork",
+    "invalidInputsCannotOverwriteOrEscapeTheCache",
+    "cancellationStopsTheWriterCleansThePartialAndAllowsRetry",
+    "backgroundCancellationSettlesOnceAndPreservesTheDraftInputs",
+    "fullPortraitResolutionProducesActualVideoAndSoundtrack",
+    "cancellationAtTheCompletionBoundaryCannotLeaveARejectedOutput",
+    "unknownLengthContentAndReadableExternalVideoAreStagedAndRemoved",
+    "oversizedUnknownLengthProviderCannotConsumeUnboundedDisk",
+    "knownLengthProviderDoesNotNeedEofAndCannotHideAnEarlyEnd",
+    "blockedContentProviderCanBeCancelledWithoutWaitingForAnotherChunk"
+  ],
+  "ciAcceptanceRequirements": [
+    "Full ARM64 New Architecture QA compile with actual renderer bytecode, Expo registration, required native libraries, QA application ID and unsigned APK checks.",
+    "Standalone API35 emulator must execute every declared instrumentation method, produce decoded PCM/pixel/provider measurements, retain successful test XML and hashed movie evidence.",
+    "Actual generated renderer copies must match production source hashes before/after execution.",
+    "Both full app and harness must resolve every Media3 runtime component to 1.8.1."
+  ],
+  "runtimeAcceptanceVerifiedByThisReceipt": false,
+  "limits": [
+    "Source review and compilation alone cannot establish actual codec, graphics or provider behavior.",
+    "A timeout rejects the request and requests cancellation; Android OS metadata/codec and ContentProvider opening still rely on platform cancellation behavior. The single-job reservation prevents a stopped UI promise from starting another native writer before cleanup finishes.",
+    "Physical Android camera, HDR/HEIC media, interruptions, Photos/media-library export and installed-account journeys remain separate acceptance work.",
+    "The standalone provider is synthetic and non-exported; no QA or production user data or provider accounts are accessed.",
+    "The Media3 OSV receipt covers six direct-coordinate queries only, not the complete resolved dependency graph."
+  ]
+}
