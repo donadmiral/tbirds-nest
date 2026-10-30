@@ -40,6 +40,8 @@ for (const {script, env = {}} of [
   {script: './test-business-auth-chain.mjs'},
   {script: './test-business-auth-chain.mjs',env:{PLATINUM_QA_BUSINESS_AUTH:'1'}},
   {script: './test-offer-response-serialization.mjs'},
+  {script: './test-original-music-library.mjs'},
+  {script: './test-original-music-library.mjs',env:{MUSIC_FIXTURE_PREEXISTING:'1'}},
   {script: './test-link-preview-chain.mjs',env:{PLATINUM_CURRENT_PRODUCTION_LINK_PREVIEW:'1'}},
   {script: './test-link-preview-chain.mjs'},
   {script: './test-link-preview-chain.mjs',env:{PLATINUM_QA_LINK_PREVIEW:'1'}},

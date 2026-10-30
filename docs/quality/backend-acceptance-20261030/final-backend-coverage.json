@@ -1,0 +1,264 @@
+{
+  "recordedAt": "2026-10-30T19:25:46.589334+00:00",
+  "scope": "Final backend evidence map from existing receipts and current source; no fresh hosted query or mutation in this consolidation. Hosted observations retain their original timestamps.",
+  "sourceHead": "09cf8a9d6008590b08f7d5b98b0f28481e11b14d",
+  "projects": {
+    "qa": "uaulhuelcfkjwojtymmw",
+    "production": "prlkikhckbifseosbukl"
+  },
+  "releaseStatus": "held",
+  "interpretation": "Implemented source, local synthetic tests, QA installation and production installation are separate states. A source/build/CI pass never implies a hosted migration, provider action or physical-device pass.",
+  "coverage": {
+    "music": {
+      "implementedSource": "Private original-audio upload/library/favorites, byte-verified finalization, audience/reuse/export distinctions, story/post/book attachment, no-store delivery/revocation, admin licensing drafts and erasure integration. Upload readiness defaults off; commercial catalogue remains disabled.",
+      "locallyExercised": "22/22 database cases in each of two dependency modes, independently repeated; 18/18 parser/Edge/upload cases. Both SQL modes reran after CI registration. Browser export CI is separate and still under repair at this receipt.",
+      "qa": {
+        "status": "not_installed",
+        "observedAt": "2026-10-30T17:20:06.855532+00:00",
+        "detail": "After the stalled apply, schema, bucket, reserve/finish/capability/metadata RPCs and migration history were absent. Prior definitions/ACLs unchanged; no active candidate transaction or waiting lock. No Edge rollout or readiness activation."
+      },
+      "production": {
+        "status": "not_deployed",
+        "detail": "No music rollout occurred. Required private-media delivery and account-erasure prerequisites were absent in the recorded production inspection; this candidate cannot be applied alone."
+      },
+      "remaining": "Recover migration transport, verify exact QA install and Edge bundles, then perform authenticated upload/publication/revoke/erase acceptance before readiness. Native whole-book composed export, animated/nested/dual-camera movie export and abandoned-upload scheduled cleanup remain outside the implemented scope. Catalogue licensing/activation remains the requested later handoff.",
+      "evidence": [
+        "musicReview",
+        "musicInstall",
+        "musicCandidate",
+        "musicScope",
+        "security"
+      ]
+    },
+    "businessAuth": {
+      "implementedSource": "Bound principal/business Auth sessions, member/device approval, request/RLS guards and eight dependent Edge entrypoints. Existing reserve/create/finish provisioning is a separate contract.",
+      "locallyExercised": "27/27 SQL cases in each QA/production-shaped mode; 21 Edge/provider/guard cases; 24 actual daily entrypoint cases; eight Deno entrypoints checked in the recorded candidate receipt.",
+      "qa": {
+        "status": "not_installed",
+        "observedAt": "2026-10-30T17:20:06.855532+00:00",
+        "detail": "business_auth remained absent. Earlier 16:17/16:19 post-stall checks also found owner contract absent, unchanged prerequisites and no active matching transaction/lock. Eight associated Edge deployments were not started."
+      },
+      "production": {
+        "status": "not_deployed",
+        "detail": "No business Auth rollout occurred. Production and QA have different prerequisite histories; QA helpers cannot be assumed present on production."
+      },
+      "remaining": "Resolve connector or establish an authenticated documented migration transport; fresh exact preflight, one approved install, postflight, then Edge rollout and real reserve/create/finish, owner/member/device and revocation journeys.",
+      "evidence": [
+        "businessInstall",
+        "businessCandidate",
+        "musicInstall",
+        "security"
+      ]
+    },
+    "offerResponse": {
+      "implementedSource": "Legacy respond_offer(uuid,text,numeric) returns void retained; current-session checks, participant-filtered FOR UPDATE, proposer/state/precise-amount checks and atomic child/message writes. New authenticated capability gates the Counter dialog; no mutation replay.",
+      "locallyExercised": "15/15 database cases, independently rerun 15/15. Includes duplicate/stale decisions, unauthorized/proposer/amount failures, rollback and LockRows plan. PGlite is single-connection; real multi-session contention is not established.",
+      "qa": {
+        "status": "not_installed",
+        "observedAt": "2026-10-30T17:24:16.444747+00:00",
+        "detail": "Legacy definition MD5 ff552c77266afb38f9674d912028fb35 recorded; no offer migration attempt was made. New Counter correctly remains unavailable until capability installation."
+      },
+      "production": {
+        "status": "not_installed",
+        "observedAt": "2026-10-30T17:24:22.801367+00:00",
+        "detail": "Same legacy definition recorded; two retained resolved offers. No production migration attempt."
+      },
+      "remaining": "Install the exact reviewed candidate after fresh drift/ACL/transaction checks; verify real concurrent decisions and installed-client recovery. Business Counter also requires installed/approved business Auth.",
+      "evidence": [
+        "offer"
+      ]
+    },
+    "mediaPrivacy": {
+      "implementedSource": "Private-bucket-compatible clients, current-session/object-version/audience-bound no-store byte delivery, authenticated limited-view delivery, restrictive object policies and staff-bound moderation media.",
+      "locallyExercised": "Recorded 146-case privacy/erasure/client suite passed; combined production-shaped and QA-shaped database chains each passed 18 cases. Counts overlap with erasure coverage and must not be summed as unique global tests.",
+      "qa": {
+        "status": "installed_partial_acceptance",
+        "observedAt": "2026-10-30T17:20:06.855532+00:00",
+        "detail": "chat-files, chat-media, media, post-media and story-media were private; delivery prerequisites remain present. Earlier rollout receipt reports five exact Edge bundles active. Two anonymous requests to a known real object returned no media bytes; authenticated staff photo review also decoded a real protected photo."
+      },
+      "production": {
+        "status": "cutover_not_performed",
+        "observedAt": "2026-10-30T16:31:52.2497+00:00",
+        "detail": "The same five media buckets remained public; the new bounded delivery/erasure prerequisite chain was not installed. Other intentionally public buckets are not implicitly included in a cutover."
+      },
+      "remaining": "Installed-client compatibility, authorized/unauthorized ordinary and limited-view access, expiry/revocation, warmed-cache invalidation and physical-device checks. Ordinary valid delivery URLs remain short-lived bearer capabilities; they are not DRM or proof that every copied valid URL is unusable.",
+      "evidence": [
+        "privacy",
+        "security",
+        "musicInstall",
+        "knownUrlDenial",
+        "liveWalkthrough"
+      ]
+    },
+    "accountErasure": {
+      "implementedSource": "Retryable private queue, dedicated worker authentication/leases, Storage API deletion before acknowledgment, cache wait, application cleanup/Auth deletion, write fences, operator holds and restore prevention.",
+      "locallyExercised": "Latest generic rerun: 10 worker/client + 11 erasure-chain + 20 operator cases passed. Music tests additionally exercise original-object queueing, false acknowledgments, finalizer denial and Auth cascade cleanup on synthetic records.",
+      "qa": {
+        "status": "installed_without_disposable_account_acceptance",
+        "observedAt": "2026-10-30T16:31:12.463421+00:00",
+        "detail": "Private RLS tables deny direct anon/app/service access; worker configured and healthy at 16:31; queue empty and zero unfenced application tables. Operator review/restore guards installed. No real account was erased."
+      },
+      "production": {
+        "status": "not_installed",
+        "observedAt": "2026-10-30T16:31:52.2497+00:00",
+        "detail": "account_erasure schema, jobs and worker were absent. No complete Storage/CDN/Auth erasure is claimed."
+      },
+      "remaining": "Actual authorized disposable-account Storage/CDN/Auth erasure, partial-failure retry, ownership completeness and cache verification; separate production installation and credential/schedule postflight.",
+      "evidence": [
+        "erasureTests",
+        "security",
+        "privacy",
+        "erasureOperatorQa",
+        "musicReview"
+      ]
+    },
+    "adminContracts": {
+      "implementedSource": "General commands including support reply/status, staff/business provisioning, deletion-request/operator queue, audited moderation/verification/staff governance and read-only Creator Finance using existing contracts.",
+      "locallyExercised": "General admin: 34 production-shaped DB + 36 QA-forward DB + 16 server contract cases passed. Creator Finance: 10 report + five finance-release cases and existing operation tests passed. Synthetic providers do not establish actual Auth account creation or payments.",
+      "qa": {
+        "status": "installed_partial_acceptance",
+        "observedAt": "2026-10-29T23:39:34.317Z",
+        "detail": "Exact admin forward catalog matched its gate, including all three central service-only contracts. Later erasure operator and restore guards are separately installed. Authenticated staff post review passed on 30 October; complete role/mutation/provider journeys remain unverified."
+      },
+      "production": {
+        "status": "partially_installed",
+        "observedAt": "2026-10-29",
+        "detail": "Support assignment/triage and seller-review restoration applied/verified. Central admin command, provisioning and deletion-request contracts remained absent; support_commands_available=false. Latest recorded 30 October production history still ends at that support/review restoration."
+      },
+      "remaining": "Production exact forward rollout and postflight; actual Auth reserve/create/finish/retry using disposable identities; concurrent governance/provisioning and full role journeys. Creator payments, automatic payouts and finalized statements stay disabled.",
+      "evidence": [
+        "adminSource",
+        "adminQaTests",
+        "adminQa",
+        "adminProduction",
+        "erasureOperatorQa",
+        "security",
+        "finance",
+        "liveWalkthrough"
+      ]
+    },
+    "databaseHardening": {
+      "implementedSource": "Exact-state production and QA-forward candidates for function search paths, inappropriate execution/table grants, private helpers, highlight ownership and pg_trgm relocation.",
+      "locallyExercised": "18/18 production-shaped and 18/18 QA-shaped checks passed; expected schema/ACL comparisons retain intentional private tables.",
+      "qa": {
+        "status": "installed",
+        "observedAt": "2026-10-30T16:31:57.109795+00:00",
+        "detail": "Installed exact catalog previously matched; current recorded application definers missing configured search paths=0; pg_trgm is in extensions. Advisory definer-execution and RLS-without-policy findings still need interpretation against identity checks/private ACLs."
+      },
+      "production": {
+        "status": "not_installed",
+        "observedAt": "2026-10-30T16:31:52.2497+00:00",
+        "detail": "Exact hardening preflight matched, but that is not installation evidence. pg_trgm remains public and 26 selected application definers lack configured paths; advisor broader mutable-path count=61."
+      },
+      "remaining": "Reviewed production rollout/postflight and individual grant/identity review. Advisor counts are findings, not counts of proven exploitable vulnerabilities.",
+      "evidence": [
+        "hardeningSource",
+        "hardeningQaTests",
+        "hardeningQa",
+        "security"
+      ]
+    },
+    "providerSettings": {
+      "implementedSource": "Existing provider boundaries and truthful unavailable/unknown states retained. Creator Finance is read-only; no synthetic readiness or money movement was added.",
+      "locallyExercised": "Recorded mocked provider/authorization/timeout contracts only; no real payment, payout, external-provider workflow or Auth reserve/create/finish acceptance.",
+      "qa": {
+        "status": "not_fully_verified",
+        "observedAt": "2026-10-30T16:31:57.109795+00:00",
+        "detail": "Leaked-password protection disabled in advisor; health_runs=0, so IntoBank has no verified connection check. Creator program environment text live does not prove provider readiness; enrollment_open=false and payouts=0."
+      },
+      "production": {
+        "status": "settings_unchanged",
+        "observedAt": "2026-10-30",
+        "detail": "Provider reported ACTIVE_HEALTHY, database version 17.6.1.104. Database patch upgrade and leaked-password protection change were not performed; leaked-password protection remained disabled."
+      },
+      "remaining": "Authenticated provider settings workflow with post-change verification, real role/provider/payment/payout acceptance where supported, and later music licensing agreements and authorized activation.",
+      "evidence": [
+        "security",
+        "finance",
+        "businessCandidate",
+        "musicScope"
+      ]
+    }
+  },
+  "connectorBlockers": {
+    "businessAuth": {
+      "kind": "connector_stall_not_approval_rejection",
+      "resultReceived": false,
+      "latestWaitSeconds": 2592.6,
+      "postflight": "Absent schema/owner contract, unchanged definitions, no matching active transaction or waiting lock at recorded checks.",
+      "evidence": "businessInstall"
+    },
+    "music": {
+      "kind": "connector_stall_not_approval_rejection",
+      "resultReceived": false,
+      "waitSeconds": 738.4,
+      "postflight": "Absent schema/bucket/RPCs/history, unchanged definitions, no active candidate transaction or waiting lock at 17:20:06 UTC.",
+      "evidence": "musicInstall"
+    },
+    "actionsNotTaken": [
+      "No blind second pending apply",
+      "No alternate execute_sql DDL or migration-history repair",
+      "No dependent Edge rollout after an unconfirmed install",
+      "No production cutover, real account deletion, payment or readiness activation"
+    ]
+  },
+  "sourceIntegrationReview": {
+    "overlookedGap": "Both original-music SQL dependency modes had passed locally but were missing from the persistent RPC CI runner.",
+    "resolution": "Added the two existing suites to run-all.mjs, with root authorization and music ownership coordination. No runtime or migration changed.",
+    "runner": {
+      "path": "supabase/tests/rpc-authorization/run-all.mjs",
+      "sha256": "02504119dec31e75f2795e81fd13c3ebfee6dc402e4b06949ef3cf5f50f0cafa"
+    },
+    "focusedChecks": [
+      {
+        "command": "node supabase/tests/rpc-authorization/test-original-music-library.mjs",
+        "passed": 22,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "command": "MUSIC_FIXTURE_PREEXISTING=1 node supabase/tests/rpc-authorization/test-original-music-library.mjs",
+        "passed": 22,
+        "failed": 0,
+        "skipped": 0
+      }
+    ],
+    "hostedCiForThisRegistration": "Pending publication; not claimed passed.",
+    "frozenMusicBackend": {
+      "filesCompared": 7,
+      "allHashesMatchRevision2": true
+    },
+    "businessCandidate": {
+      "unchangedFiles": 21,
+      "intentionalManifestDifferences": [
+        "supabase/config.toml adds only the original-audio finalizer block in commit 470e609; existing business configuration is unchanged.",
+        "Shared run-all.mjs now includes later offer and music SQL regressions."
+      ],
+      "currentConfigSha256": "73058a11d541dd09711dffe28063f35aea94e3001d1d021840432f73a11ea3d3"
+    },
+    "reviewBoundary": "No additional blocking source integration mismatch identified in this targeted receipt/hash/runner review. Known unsupported composition/provider/device and hosted-installation work remains explicitly open."
+  },
+  "evidence": {
+    "musicReview": "docs/quality/backend-acceptance-20261030/music-independent-review.json",
+    "musicInstall": "docs/quality/backend-acceptance-20261030/music-qa-connector-blocker.json",
+    "musicCandidate": "docs/quality/music-infrastructure-20261030/backend-candidate.json",
+    "musicScope": "docs/quality/music-infrastructure-20261030/README.md",
+    "businessInstall": "docs/quality/backend-acceptance-20261030/business-auth-connector-recheck.json",
+    "businessCandidate": "docs/quality/studio-workflows-20261030/business-auth-candidate.json",
+    "offer": "docs/quality/backend-acceptance-20261030/offer-response-serialization.json",
+    "security": "docs/quality/backend-acceptance-20261030/security-and-erasure-readonly.json",
+    "erasureTests": "docs/quality/backend-acceptance-20261030/erasure-regressions.json",
+    "privacy": "docs/quality/MEDIA_PRIVACY_ERASURE_GATE_20261029.json",
+    "knownUrlDenial": "docs/quality/QA_KNOWN_MEDIA_URL_DENIAL_20261030.json",
+    "adminSource": "docs/quality/ADMIN_COMPLETION_GATE_20261029.json",
+    "adminQa": "docs/quality/QA_ADMIN_COMPLETION_POSTFLIGHT_20261029.json",
+    "adminQaTests": "docs/quality/QA_ADMIN_COMPLETION_GATE_20261029.json",
+    "adminProduction": "docs/quality/ADMIN_SUPPORT_REVIEW_POSTFLIGHT_20261029.json",
+    "erasureOperatorQa": "docs/quality/QA_ERASURE_OPERATOR_POSTFLIGHT_20261030.json",
+    "finance": "docs/quality/backend-acceptance-20261030/creator-finance-readonly.json",
+    "hardeningSource": "docs/quality/DATABASE_HARDENING_GATE_20261029.json",
+    "hardeningQaTests": "docs/quality/QA_DATABASE_HARDENING_GATE_20261029.json",
+    "hardeningQa": "docs/quality/QA_DATABASE_HARDENING_POSTFLIGHT_20261029.json",
+    "liveWalkthrough": "docs/quality/interaction-acceptance-20261030/live-qa-walkthrough.json"
+  }
+}

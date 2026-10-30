@@ -209,14 +209,74 @@ function renderRichText(text: string, onHashtag: (t: string) => void, onMention:
   });
 }
 
+type FeedTextDraft = { ownerId: string | null; text: string; exclusive: boolean; innovation: boolean };
+
+/** Restore only into an untouched draft, and never save a pre-hydration value. */
+function useFeedTextDraft(ownerId: string | null) {
+  const [draft, setDraft] = useState<FeedTextDraft>({ ownerId, text: '', exclusive: false, innovation: false });
+  const [hydrated, setHydrated] = useState<{ ownerId: string; generation: number; revision: number; read: boolean } | null>(null);
+  const generation = useRef(0), revision = useRef(0), mounted = useRef(false);
+  const visibleOwner = useRef(ownerId); visibleOwner.current = ownerId;
+  const current = useCallback((request: number) => mounted.current && generation.current === request
+    && !!ownerId && visibleOwner.current === ownerId && useAuthStore.getState().session?.user.id === ownerId
+    && useAuthStore.getState().profile?.id === ownerId, [ownerId]);
+
+  useEffect(() => {
+    const request = ++generation.current, startRevision = revision.current;
+    mounted.current = true;
+    let read = false;
+    if (ownerId && current(request)) {
+      void AsyncStorage.getItem('pc_draft:' + ownerId).then(raw => {
+        if (!current(request)) return;
+        read = true;
+        if (revision.current !== startRevision) return;
+        let saved: unknown = null;
+        try { saved = raw ? JSON.parse(raw) : null; } catch { /* Ignore invalid local metadata. */ }
+        const value = saved && typeof saved === 'object' ? saved as Record<string, unknown> : {};
+        setDraft({ ownerId, text: typeof value.text === 'string' ? value.text : '', exclusive: value.exclusive === true, innovation: value.innovation === true });
+      }).catch(() => {}).finally(() => {
+        if (current(request)) setHydrated({ ownerId, generation: request, revision: startRevision, read });
+      });
+    }
+    return () => { mounted.current = false; generation.current = request + 1; };
+  }, [ownerId, current]);
+
+  useEffect(() => {
+    if (!ownerId || hydrated?.ownerId !== ownerId || draft.ownerId !== ownerId
+      || !current(hydrated.generation) || (!hydrated.read && revision.current === hydrated.revision)) return;
+    const timer = setTimeout(() => {
+      if (!current(hydrated.generation)) return;
+      const key = 'pc_draft:' + ownerId;
+      if (draft.text.trim()) {
+        void AsyncStorage.setItem(key, JSON.stringify({ text: draft.text, exclusive: draft.exclusive, innovation: draft.innovation })).catch(() => {});
+      } else { void AsyncStorage.removeItem(key).catch(() => {}); }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [draft, hydrated, ownerId, current]);
+
+  const update = useCallback((change: Partial<Pick<FeedTextDraft, 'text' | 'exclusive' | 'innovation'>>) => {
+    if (!current(generation.current)) return;
+    revision.current++;
+    setDraft(previous => ({ ...(previous.ownerId === ownerId ? previous : { ownerId, text: '', exclusive: false, innovation: false }), ...change }));
+  }, [current, ownerId]);
+  const setComposerText = useCallback((text: string) => update({ text }), [update]);
+  const setExclusivePost = useCallback((exclusive: boolean) => update({ exclusive }), [update]);
+  const setInnovationPost = useCallback((innovation: boolean) => update({ innovation }), [update]);
+  const value = draft.ownerId === ownerId ? draft : { text: '', exclusive: false, innovation: false };
+  return { composerText: value.text, exclusivePost: value.exclusive, innovationPost: value.innovation,
+    setComposerText, setExclusivePost, setInnovationPost };
+}
+
 export default function FeedScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { t } = useTheme();
   const { width: SCREEN_W } = useWindowDimensions();
   const TILE_W = Math.floor((SCREEN_W - 12 * 2 - 10) / 2);
   const NAVY = t.ink.primary;
-  const { profile } = useAuthStore();
+  const { profile, session } = useAuthStore();
   const userId = profile?.id ?? null;
+  const { composerText, setComposerText, exclusivePost, setExclusivePost, innovationPost, setInnovationPost }
+    = useFeedTextDraft(session?.user.id === userId ? userId : null);
   const isVerifiedSchoolUser = !!(profile as any)?.is_verified_school_user;
 
   const [posts, setPosts] = useState<Post[]>([]);
@@ -327,7 +387,6 @@ export default function FeedScreen({ navigation }: any) {
   const [requestedIds, setRequestedIds] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState('');
   const [composerOpen, setComposerOpen] = useState(false);
-  const [composerText, setComposerText] = useState('');
   const [composerMedia, setComposerMedia] = useState<LocalMedia[]>([]);
   const composerMediaRef = useRef(composerMedia); composerMediaRef.current = composerMedia;
   const [editMediaIdx, setEditMediaIdx] = useState<number | null>(null);
@@ -346,8 +405,6 @@ export default function FeedScreen({ navigation }: any) {
     Keyboard.dismiss(); setComposerOpen(true);
     return false;
   };
-  const [exclusivePost, setExclusivePost] = useState(false);
-  const [innovationPost, setInnovationPost] = useState(false);
   const [postCategory, setPostCategory] = useState<string | null>(null);
   const [innoField, setInnoField] = useState<string | null>(null);
   const [innoStage, setInnoStage] = useState<string | null>(null);
@@ -422,27 +479,6 @@ export default function FeedScreen({ navigation }: any) {
   const mediaNodeRef = useRef<Record<string, any>>({});
   // While the sheet holds the media in its stage the card stays idle; the sheet hands the player back just before it leaves.
   const [commentsHold, setCommentsHold] = useState(false);
-  useEffect(() => {
-    AsyncStorage.getItem(('pc_draft:' + (userId || 'anon'))).then(v => {
-      if (!v) return;
-      try {
-        const d = JSON.parse(v);
-        if (d?.text) setComposerText(d.text);
-        if (d?.exclusive) setExclusivePost(true);
-        if (d?.innovation) setInnovationPost(true);
-      } catch {}
-    }).catch(() => {});
-  }, []);
-  useEffect(() => {
-    const t = setTimeout(() => {
-      if (composerText.trim().length > 0) {
-        AsyncStorage.setItem(('pc_draft:' + (userId || 'anon')), JSON.stringify({ text: composerText, exclusive: exclusivePost, innovation: innovationPost })).catch(() => {});
-      } else {
-        AsyncStorage.removeItem(('pc_draft:' + (userId || 'anon'))).catch(() => {});
-      }
-    }, 400);
-    return () => clearTimeout(t);
-  }, [composerText, exclusivePost, innovationPost]);
   const [likersPost, setLikersPost] = useState<Post | null>(null);
   const [likersList, setLikersList] = useState<any[]>([]);
   const [likersKind, setLikersKind] = useState<'likes' | 'reposts' | 'bookmarks'>('likes');

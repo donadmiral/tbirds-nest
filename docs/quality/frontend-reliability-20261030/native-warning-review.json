@@ -1,0 +1,108 @@
+{
+  "scope": "Native warning review and two reproduced behavior repairs",
+  "audit": {
+    "command": "npx eslint . -f json",
+    "errors": 0,
+    "warnings": 462,
+    "filesWithFindings": 117,
+    "rules": {
+      "@typescript-eslint/no-unused-vars": 222,
+      "react-hooks/exhaustive-deps": 223,
+      "@typescript-eslint/array-type": 2,
+      "import/no-named-as-default-member": 1,
+      "no-unused-expressions": 7,
+      "import/no-duplicates": 6,
+      "unused-eslint-disable-directive": 1
+    },
+    "previousWarnings": 468,
+    "sourceArtifactSha256": "fe2d64beb689d60f130af00a31917c6bfe85574aca985ef4dd32b6648cd0f03c",
+    "latestFollowAndHarnessLint": "0 errors, 0 warnings after independent review correction"
+  },
+  "files": [
+    {
+      "file": "src/screens/feed/FeedScreen.tsx",
+      "sha256": "aa3cdc8b476815d01d5a35c3200ba72623854b08f22abaad40f081810b84e767"
+    },
+    {
+      "file": "src/screens/profile/FollowListScreen.tsx",
+      "sha256": "4f7dded08f2bf1a390146451727a22499f5c7cf924bf2b4de99d4c362e9c81fb"
+    },
+    {
+      "file": "tests/quality/native-draft-follow-reliability.cjs",
+      "sha256": "793a7f5d844ca246a2f39dc312d3d59021881b0e20a6838fc67d6d57d9288ef0"
+    }
+  ],
+  "closedFindings": [
+    {
+      "issue": "Late draft hydration overwrote text typed while storage was loading",
+      "repair": "Owner-scoped draft hook gates hydration by edit revision, delays persistence until hydration settles, and rejects late account/unmount work",
+      "evidence": "Actual shipping draft hook executes against deferred storage responses, typed edits, account changes, failed reads and pending writes"
+    },
+    {
+      "issue": "A resolved follow API error left the optimistic Following state selected",
+      "repair": "Returned API errors trigger guarded rollback and visible Retry. Explicit retry first reconciles server state. Mutation ownership and read revisions prevent stale rollback and stale list overwrite",
+      "evidence": "Actual screen covers rejection, duplicate taps, lost response with committed server state, account/unmount changes, and reads beginning before and during a mutation"
+    }
+  ],
+  "verification": {
+    "nativeTypecheck": "passed",
+    "newBehaviorCases": {
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0
+    },
+    "feedCapacity": {
+      "passed": 23,
+      "failed": 0
+    },
+    "feedSnapshot": {
+      "passed": 9,
+      "failed": 0
+    },
+    "authRegression": {
+      "passed": 31,
+      "failed": 0
+    },
+    "postDraftOwnership": {
+      "passed": 7,
+      "failed": 0
+    },
+    "nativeQualityRegression": {
+      "passed": 15,
+      "failed": 0
+    },
+    "changedFileLint": {
+      "errors": 0,
+      "warnings": 35,
+      "note": "All 35 remaining changed-file warnings are older FeedScreen findings; FollowListScreen and focused harness are 0/0"
+    },
+    "independentReview": "Music lane reviewed draft/connection lifecycle and identified the during-mutation list read race; repaired and covered before freeze"
+  },
+  "remainingReviewPriorities": [
+    {
+      "area": "Account and media lifecycle hooks",
+      "finding": "223 exhaustive-dependencies warnings remain, notably Feed, Chat, StoryViewer, StoryComposer, CallContext and CallScreen",
+      "interpretation": "Some capture stable animation values or refs; each needs lifecycle inspection before changing dependencies. Counts alone do not establish a reachable bug."
+    },
+    {
+      "area": "Unused declarations and imports",
+      "finding": "222 unused-variable warnings and 6 duplicate-import warnings remain",
+      "interpretation": "Review side effects and intended behavior before removal; blanket deletion or rule suppression was not used."
+    },
+    {
+      "area": "Conditional statements",
+      "finding": "7 unused-expression warnings remain after the two FollowList expressions were rewritten",
+      "interpretation": "All remaining expressions were inspected as conditional player calls, state updates or Set mutations; they are not dead no-op expressions. Style cleanup is still open."
+    },
+    {
+      "area": "Physical device acceptance",
+      "finding": "No physical iPhone or Android execution in this lane",
+      "interpretation": "Camera, media export, audio routing, push/calls, gestures, interruptions, offline recovery and accessibility remain separate operating-environment gates."
+    }
+  ],
+  "limits": [
+    "No music runtime files were changed",
+    "No Supabase hosted mutation or deployment was performed by this lane",
+    "Global native lint is not warning-free; web/admin 0/0 results do not imply native 0/0"
+  ]
+}

@@ -1,6 +1,6 @@
 import TierName from '../../components/TierName';
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from '../../components/SafeArea';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -25,6 +25,7 @@ export default function FollowListScreen() {
   const route = useRoute<any>();
   const { userId, initial, isSelf, username } = (route.params || {}) as { userId: string; initial?: 'followers' | 'following'; isSelf?: boolean; username?: string };
   const me = useAuthStore(s => s.profile?.id) as string | undefined;
+  const ownerId = useAuthStore(s => s.session?.user.id) as string | undefined;
   const [tab, setTab] = useState<'followers' | 'following'>(initial === 'following' ? 'following' : 'followers');
   const [query, setQuery] = useState('');
   const [people, setPeople] = useState<Person[]>([]);
@@ -34,62 +35,147 @@ export default function FollowListScreen() {
   const [iFollow, setIFollow] = useState<Set<string>>(new Set());
   const [busy, setBusy] = useState<Set<string>>(new Set());
 
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const scope = `${ownerId || ''}:${me || ''}:${userId || ''}`;
+  const visibleScope = useRef(scope); visibleScope.current = scope;
+  const mounted = useRef(false);
+  const operations = useRef(new Map<string, object>());
+  const revisions = useRef(new Map<string, number>());
+  const followingState = useRef(iFollow); followingState.current = iFollow;
+  const loadRequest = useRef<object | null>(null);
+  const current = useCallback(() => mounted.current && visibleScope.current === scope
+    && !!ownerId && useAuthStore.getState().session?.user.id === ownerId
+    && useAuthStore.getState().profile?.id === me, [me, ownerId, scope]);
+
+  useEffect(() => {
+    mounted.current = true;
+    operations.current.clear(); revisions.current.clear(); loadRequest.current = null;
+    followingState.current = new Set(); setIFollow(new Set()); setBusy(new Set());
+    return () => { mounted.current = false; loadRequest.current = null; };
+  }, [scope]);
+
   const load = useCallback(async (which: 'followers' | 'following', pageN: number, replace: boolean) => {
-    if (!userId) return;
+    if (!userId || !current() || (!replace && loadRequest.current)) return;
+    const request = {}; loadRequest.current = request;
+    const readRevisions = new Map(revisions.current);
+    const active = () => current() && loadRequest.current === request;
     if (replace) setLoading(true);
+    setLoadError(null);
     try {
       const from = pageN * PAGE;
       const col = which === 'followers' ? 'follower_id' : 'following_id';
       const eqCol = which === 'followers' ? 'following_id' : 'follower_id';
-      const { data: rows } = await supabase.from('follows').select(col).eq(eqCol, userId).neq(col, userId)
+      const { data: rows, error: rowsError } = await supabase.from('follows').select(col).eq(eqCol, userId).neq(col, userId)
         .order('created_at', { ascending: false }).range(from, from + PAGE - 1);
-      const ids = (rows || []).map((r: any) => r[col]).filter(Boolean);
+      if (!active()) return;
+      if (rowsError) throw rowsError;
+      const ids = (rows || []).map((r: any) => r[col]).filter(Boolean) as string[];
       let found: Person[] = [];
       if (ids.length > 0) {
-        const { data: profs } = await supabase.from('profiles').select('id,full_name,username,avatar_url').in('id', ids);
+        const { data: profs, error: profileError } = await supabase.from('profiles').select('id,full_name,username,avatar_url').in('id', ids);
+        if (!active()) return;
+        if (profileError) throw profileError;
         const byId = new Map((profs || []).map((p: any) => [p.id, p]));
         found = ids.map((id: string) => byId.get(id)).filter(Boolean) as Person[];
       }
-      let mine = new Set(iFollow);
       if (me && ids.length > 0) {
-        const { data: fl } = await supabase.from('follows').select('following_id').eq('follower_id', me).in('following_id', ids);
-        (fl || []).forEach((r: any) => mine.add(r.following_id));
-        setIFollow(new Set(mine));
+        const { data: fl, error: followError } = await supabase.from('follows').select('following_id').eq('follower_id', me).in('following_id', ids);
+        if (!active()) return;
+        if (followError) throw followError;
+        const mine = new Set((fl || []).map((r: any) => r.following_id));
+        setIFollow(previous => {
+          const next = new Set(previous);
+          for (const id of ids) {
+            // A read started before a button press cannot undo that response.
+            if (operations.current.has(id) || revisions.current.get(id) !== readRevisions.get(id)) continue;
+            if (mine.has(id)) next.add(id); else next.delete(id);
+          }
+          followingState.current = next;
+          return next;
+        });
       }
-      setPeople(prev => replace ? found : [...prev, ...found]);
-      setHasMore(ids.length >= PAGE);
-      setPage(pageN);
-    } catch (e) { console.log('[FollowList]', e); }
-    finally { setLoading(false); }
-  }, [userId, me, iFollow]);
+      setPeople(previous => replace ? found : [...new Map([...previous, ...found].map(person => [person.id, person])).values()]);
+      setHasMore(ids.length >= PAGE); setPage(pageN);
+    } catch {
+      if (active()) setLoadError('Connections could not be loaded. Please try again.');
+    } finally {
+      if (active()) { loadRequest.current = null; setLoading(false); }
+    }
+  }, [current, me, userId]);
 
-  useEffect(() => { setPeople([]); setPage(0); load(tab, 0, true); }, [tab, userId]);
+  useEffect(() => {
+    setPeople([]); setPage(0); setHasMore(false); void load(tab, 0, true);
+    return () => { loadRequest.current = null; };
+  }, [load, tab]);
 
-  const toggleFollow = useCallback(async (target: Person) => {
-    if (!me || busy.has(target.id)) return;
-    const following = iFollow.has(target.id);
-    setBusy(prev => new Set(prev).add(target.id));
-    setIFollow(prev => { const n = new Set(prev); following ? n.delete(target.id) : n.add(target.id); return n; });
+  const toggleFollow = useCallback(async function respond(target: Person, expectedFollowing?: boolean) {
+    if (!me || me === target.id || !current() || operations.current.has(target.id)) return;
+    const following = followingState.current.has(target.id);
+    if (expectedFollowing !== undefined && following !== expectedFollowing) return;
+    const operation = {}; operations.current.set(target.id, operation);
+    revisions.current.set(target.id, (revisions.current.get(target.id) || 0) + 1);
+    const active = () => current() && operations.current.get(target.id) === operation;
+    setBusy(previous => new Set(previous).add(target.id));
+    setIFollow(previous => {
+      const next = new Set(previous); if (following) next.delete(target.id); else next.add(target.id);
+      followingState.current = next; return next;
+    });
     try {
-      if (following) await supabase.from('follows').delete().eq('follower_id', me).eq('following_id', target.id);
-      else await supabase.from('follows').insert({ follower_id: me, following_id: target.id });
-    } catch (e) {
-      setIFollow(prev => { const n = new Set(prev); following ? n.add(target.id) : n.delete(target.id); return n; });
-    } finally { setBusy(prev => { const n = new Set(prev); n.delete(target.id); return n; }); }
-  }, [me, iFollow, busy]);
+      if (expectedFollowing !== undefined) {
+        // A disconnected response can still have committed. Reconcile before
+        // an explicit retry so a confirmed follow is not submitted twice.
+        const { data, error } = await supabase.from('follows').select('following_id')
+          .eq('follower_id', me).eq('following_id', target.id).maybeSingle();
+        if (!active()) return;
+        if (error) throw error;
+        if (!!data === !following) {
+          setIFollow(previous => {
+            const next = new Set(previous); if (following) next.delete(target.id); else next.add(target.id);
+            followingState.current = next; return next;
+          });
+          return;
+        }
+      }
+      const result = following
+        ? await supabase.from('follows').delete().eq('follower_id', me).eq('following_id', target.id)
+        : await supabase.from('follows').insert({ follower_id: me, following_id: target.id });
+      if (!active()) return;
+      if (result.error) throw result.error;
+    } catch {
+      if (!active()) return;
+      setIFollow(previous => {
+        const next = new Set(previous); if (following) next.add(target.id); else next.delete(target.id);
+        followingState.current = next; return next;
+      });
+      Alert.alert(following ? 'Could not unfollow' : 'Could not follow', 'The change could not be confirmed. You can retry.', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Retry', onPress: () => { if (current()) void respond(target, following); } },
+      ]);
+    } finally {
+      if (active()) {
+        // Also invalidate reads that began while this response was in flight.
+        revisions.current.set(target.id, (revisions.current.get(target.id) || 0) + 1);
+        operations.current.delete(target.id);
+        setBusy(previous => { const next = new Set(previous); next.delete(target.id); return next; });
+      }
+    }
+  }, [current, me]);
 
   const removeFollower = useCallback((target: Person) => {
+    if (!current()) return;
     Alert.alert('Remove follower?', (target.full_name || 'This member') + ' will no longer follow you. They will not be notified.', [
       { text: 'Cancel', style: 'cancel' },
       { text: 'Remove', style: 'destructive', onPress: async () => {
+        if (!current()) return;
         try {
           const { error } = await supabase.rpc('remove_follower', { p_follower_id: target.id });
+          if (!current()) return;
           if (error) throw error;
           setPeople(prev => prev.filter(p => p.id !== target.id));
-        } catch (e: any) { Alert.alert('Could not remove', e?.message || 'Please try again.'); }
+        } catch { if (current()) Alert.alert('Could not remove', 'Please try again.'); }
       } },
     ]);
-  }, []);
+  }, [current]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -153,6 +239,12 @@ export default function FollowListScreen() {
           <TouchableOpacity onPress={() => setQuery('')}><Feather name="x-circle" size={16} color="rgba(11,30,61,0.24)" /></TouchableOpacity>
         ) : null}
       </View>
+      {loadError && <View style={{ paddingHorizontal: 16, paddingVertical: 12, gap: 8 }}>
+        <Text accessibilityRole="alert" style={s.emptyTitle}>{loadError}</Text>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Retry connections" style={s.followBtn} onPress={() => { void load(tab, 0, true); }}>
+          <Text style={s.followTxt}>Retry</Text>
+        </TouchableOpacity>
+      </View>}
       {loading ? (
         <View style={s.center}><ActivityIndicator color={NAVY} /></View>
       ) : filtered.length === 0 ? (
@@ -163,7 +255,7 @@ export default function FollowListScreen() {
       ) : (
         <FlatList data={filtered} keyExtractor={p => p.id} renderItem={renderRow} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
           onEndReachedThreshold={0.4} onEndReached={() => { if (hasMore && !query) load(tab, page + 1, false); }}
-          ListFooterComponent={hasMore && !query ? <ActivityIndicator color={NAVY} style={{ marginVertical: 16 }} /> : null}
+          ListFooterComponent={hasMore && !query && !loadError ? <ActivityIndicator color={NAVY} style={{ marginVertical: 16 }} /> : null}
           keyboardShouldPersistTaps="handled" />
       )}
     </SafeAreaView>

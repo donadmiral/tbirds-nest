@@ -30,7 +30,7 @@
     },
     {
       "path": "supabase/tests/rpc-authorization/run-all.mjs",
-      "sha256": "630d2476bf673e2483a6ea8eead984deba10732573d68c98c783a5e84617f3ca"
+      "sha256": "02504119dec31e75f2795e81fd13c3ebfee6dc402e4b06949ef3cf5f50f0cafa"
     }
   ],
   "verification": {
@@ -101,5 +101,21 @@
       "PGlite limitation is explicit; no real multi-session lock-contention claim"
     ]
   },
-  "frozen": true
+  "frozen": true,
+  "runnerIntegrationUpdate": {
+    "recordedAt": "2026-10-30T19:25:46.589334+00:00",
+    "change": "Registered both existing original-music SQL dependency modes in the shared runner. Offer SQL and test bytes are unchanged.",
+    "musicChecks": [
+      {
+        "mode": "bootstrapWithPrivacyErasurePrerequisites",
+        "passed": 22,
+        "failed": 0
+      },
+      {
+        "mode": "existingMusicContracts",
+        "passed": 22,
+        "failed": 0
+      }
+    ]
+  }
 }
