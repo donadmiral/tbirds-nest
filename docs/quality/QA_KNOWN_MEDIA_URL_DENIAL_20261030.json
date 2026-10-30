@@ -1,0 +1,24 @@
+{
+  "checked_at": "2026-10-30T01:22:17.365480+00:00",
+  "environment": "QA",
+  "project": "uaulhuelcfkjwojtymmw",
+  "object_path_sha256": "c3a42b8cb85f699fe3f11ce5748c196ac9ef541e0be035072aed813077c5c00b",
+  "requests": [
+    {
+      "route": "public",
+      "identity": "anonymous",
+      "status": 400,
+      "content_type": "application/json; charset=utf-8",
+      "media_bytes_returned": false,
+      "response_bytes": 98
+    },
+    {
+      "route": "authenticated",
+      "identity": "anonymous",
+      "status": 400,
+      "content_type": "application/json; charset=utf-8",
+      "media_bytes_returned": false,
+      "response_bytes": 124
+    }
+  ]
+}

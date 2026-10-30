@@ -1,0 +1,37 @@
+{
+  "scope": "Admin/self-service erasure cross-module guard, recovered operator workflow and registered link-preview gates",
+  "hostedMutationsByThisLane": false,
+  "regressionBeforeFix": {
+    "suite": "test-bounded-media-delivery-chain.mjs",
+    "passed": 18,
+    "failed": 1,
+    "failure": "Missing expected rejection: ordinary admin restore cleared a self-service erasure ban"
+  },
+  "afterFix": {
+    "productionMediaAdminCases": 21,
+    "qaMediaAdminCases": 21,
+    "productionOperatorCases": 20,
+    "qaOperatorCases": 20,
+    "adminCommandProvisionCases": 16,
+    "erasureReviewServerCases": 9,
+    "erasureQueueRenderingCases": 3,
+    "linkPreviewCurrentProductionCases": 12,
+    "linkPreviewFullProductionCases": 12,
+    "linkPreviewQaCases": 12,
+    "linkPreviewNodeCases": 21
+  },
+  "sourceSha256": {
+    "supabase/migrations/20261030005241_account_erasure_operator_review.sql": "28fcbb0674951fe61b2c88079a9df2af62378e6eef512cf9f0f9083d0fc23e8b",
+    "supabase/migrations/20261030010250_account_erasure_admin_restore_guard.sql": "b861269a012135ef9d5b59cdd4fd3149b2a486569a08bb98cde781e419c336ed",
+    "supabase/tests/rpc-authorization/test-bounded-media-delivery-chain.mjs": "245feab46b00da5369847aa671881eb4540bf1e4bd3f95cb6b87a0b0c1cbeb83",
+    "supabase/tests/rpc-authorization/test-erasure-operator-chain.mjs": "55e7a4aeb77649da46f2a444fc84029c599e6d6e0958f5f3eb194c845f175a3a",
+    "supabase/tests/rpc-authorization/run-all.mjs": "dcfd079a233a1447c40e6dfa273d736fe1b9ab3f6f2736ad46a41a864cf2fd71",
+    "admin-web/lib/adminCommand.ts": "2e44e5f230ea2a0f1acdaeb8d062e67444d7517bcb36383177ee9984d8d77ba2"
+  },
+  "limits": [
+    "Real hosted Auth reserve/create/finish remains release-owner acceptance",
+    "Real disposable-account Storage/CDN/Auth erasure remains release-owner acceptance",
+    "Isolated PGlite checks do not prove multi-connection lock contention",
+    "Physical iPhone acceptance remains separate"
+  ]
+}

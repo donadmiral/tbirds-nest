@@ -18,6 +18,37 @@ permissions:
   contents: read
 
 jobs:
+  edge-tls:
+    name: Link preview Edge TLS
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          deno-version: 2.1.4
+      - name: Verify Edge runtime version
+        run: deno --version
+      - name: Test actual pinned-IP HTTPS and cancellation
+        env:
+          PLATINUM_LINK_TLS_FIXTURE: ${{ runner.temp }}/platinum-link-tls
+        run: |
+          mkdir -p "$PLATINUM_LINK_TLS_FIXTURE"
+          openssl req -x509 -newkey rsa:2048 -nodes -days 1 \
+            -subj '/CN=preview.example.com' \
+            -addext 'subjectAltName=DNS:preview.example.com' \
+            -addext 'basicConstraints=critical,CA:FALSE' \
+            -addext 'extendedKeyUsage=serverAuth' \
+            -keyout "$PLATINUM_LINK_TLS_FIXTURE/key.pem" \
+            -out "$PLATINUM_LINK_TLS_FIXTURE/cert.pem"
+          deno test --node-modules-dir=none --no-lock \
+            --allow-net=127.0.0.1,preview.example.com,wrong.example.com \
+            --allow-read="$PLATINUM_LINK_TLS_FIXTURE" \
+            --allow-env=PLATINUM_LINK_TLS_FIXTURE,NODE_DEBUG,NODE_EXTRA_CA_CERTS,NODE_TLS_REJECT_UNAUTHORIZED \
+            supabase/tests/link-preview.deno.ts
+
   admin-web:
     name: Operations app
     runs-on: ubuntu-latest

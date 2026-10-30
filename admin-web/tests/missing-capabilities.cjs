@@ -89,17 +89,22 @@ function harness({ available = false, rpcError, triageRows, deny = false, ticket
     return { id: 'staff-1', sessionId: 'session-1', role: 'super_admin' };
   };
   const triage = load('lib/supportTriage.ts', { 'server-only': {}, './supabaseAdmin': api, './adminRpcAvailability': availability });
+  const erasureReview = load('lib/adminErasureReview.ts', {
+    'server-only': {}, './adminAuth': { requirePermission: authorize },
+    './supabaseAdmin': api, './adminRpcAvailability': availability,
+  });
   const common = {
     'next/link': { default: 'Link' }, 'next/navigation': { redirect() { throw new Error('redirect'); } },
     '@/lib/adminAuth': { requireDesk: authorize, requirePermission: authorize }, '@/lib/supabaseAdmin': api,
     '@/lib/permissions': permissions, '@/lib/fmt': fmt, '@/lib/supportReporting': reporting, '@/lib/supportTriage': triage,
     '@/lib/adminRpcAvailability': availability, '@/components/Shell': { default: 'Shell' },
+    '@/lib/adminErasureReview': erasureReview,
     '@/components/CommandForm': { default: 'CommandForm' }, '@/components/PermissionGate': { default: 'PermissionGate' },
     '@/components/Desk': { Desk: 'Desk', StatStrip: 'StatStrip' }, '@/components/ReportsDesk': { default: 'ReportsDesk' },
     '@/components/Viz': { Donut: 'Donut', StackBars: 'StackBars', Empty: 'Empty' },
     '@/lib/actions': { sendTicketReply() { throw new Error('no write'); }, setTicketStatus() { throw new Error('no write'); } },
     '@/lib/supportTriageActions': { updateSupportTriage() { throw new Error('no write'); } },
-    './actions': { moderateReview() { throw new Error('no write'); } },
+    './actions': { moderateReview() { throw new Error('no write'); }, reviewErasure() { throw new Error('Rendering must not submit an erasure review'); } },
   };
   const render = async file => load(file, common).default({ params: Promise.resolve({ tid: ticket.id }), searchParams: Promise.resolve({}) });
   return { requests, list: () => render('app/support/page.tsx'), detail: () => render('app/support/[tid]/page.tsx'), reviews: () => render('app/market/reviews/page.tsx'), reports: () => render('app/reports/page.tsx'), deletions: () => render('app/users/deletions/page.tsx') };
@@ -213,12 +218,14 @@ test('missing capability never bypasses support or review desk authorization', a
 });
 
 test('missing deletion queue shows a truthful unavailable state and recovery links, not an empty queue', async () => {
-  const tree = await harness().deletions();
+  const unavailable = harness(), tree = await unavailable.deletions();
   assert.match(textOf(tree), /Deletion requests cannot be loaded/);
   assert.match(textOf(tree), /does not confirm.*personal data has been erased/);
   assert.doesNotMatch(textOf(tree), /No deletion requests on this page/);
   assert.equal(elements(tree, 'Link')[0].props.href, '/users');
   assert.equal(elements(tree, 'a')[0].props.href, '/users/deletions?page=1');
+  assert.equal(elements(tree, 'CommandForm').length, 0);
+  assert.deepEqual(unavailable.requests.filter(request => request.url.pathname.includes('/rpc/')).map(request => request.url.pathname.split('/').at(-1)), ['triniti_admin_deletion_requests']);
   const available = await harness({ available: true }).deletions();
   assert.match(textOf(available), /No deletion requests on this page/);
   await assert.rejects(harness({ rpcError: { code: 'PGRST003', message: 'Pool timeout' } }).deletions(), /Deletion requests could not be loaded/);

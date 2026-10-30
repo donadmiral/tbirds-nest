@@ -1,0 +1,679 @@
+{
+  "base_commit": "efe9dc8a234dcffb58e15a93c739dce076e7e103",
+  "source_sha256": {
+    "web/lib/storyVideoExport.ts": "589f0c7942bae4659b396d43361ff3deb987c82ebed74853554c6a374cdb19fb",
+    "web/tests/browser/story-video-export.cjs": "8d17c1718f1f59396134689c5b25ff608622445545405a97a23c15eaef064e5b",
+    "scripts/quality/compile-ios-simulator.sh": "c920dab98837d4cb4397cd8bf7ac7e9ec078c29f2cf30639717be59257eaf898"
+  },
+  "browser_runs": [
+    {
+      "browser": "153.0.8010.12",
+      "cases": [
+        {
+          "mode": "graded_audio",
+          "bytes": 39360,
+          "mime": "video/webm;codecs=vp9,opus",
+          "codec": "vp9",
+          "width": 1080,
+          "height": 1918,
+          "duration": 1.0683,
+          "encodedVideoEnd": 0.974,
+          "trimmedFirstPixel": [
+            125,
+            0,
+            0
+          ],
+          "hasAudio": true,
+          "audioRms": 0.048715493935610386,
+          "red": [
+            125,
+            0,
+            0
+          ],
+          "blue": [
+            0,
+            0,
+            126
+          ],
+          "tagBefore": [
+            5,
+            253,
+            1
+          ],
+          "tagAfter": [
+            16,
+            34,
+            50
+          ],
+          "gradedImageSticker": [
+            1,
+            127,
+            126
+          ]
+        },
+        {
+          "mode": "muted",
+          "bytes": 23405,
+          "mime": "video/webm;codecs=vp9",
+          "codec": "vp9",
+          "width": 1080,
+          "height": 1918,
+          "duration": 1.0985,
+          "encodedVideoEnd": 0.971,
+          "trimmedFirstPixel": [
+            125,
+            0,
+            0
+          ],
+          "hasAudio": false,
+          "audioRms": null,
+          "red": [
+            125,
+            0,
+            0
+          ],
+          "blue": [
+            0,
+            0,
+            127
+          ],
+          "tagBefore": [
+            6,
+            253,
+            1
+          ],
+          "tagAfter": [
+            16,
+            34,
+            50
+          ],
+          "gradedImageSticker": [
+            1,
+            127,
+            126
+          ]
+        },
+        {
+          "mode": "delayed_start",
+          "bytes": 39462,
+          "mime": "video/webm;codecs=vp9,opus",
+          "codec": "vp9",
+          "width": 1080,
+          "height": 1918,
+          "duration": 1.062099,
+          "encodedVideoEnd": 0.966,
+          "trimmedFirstPixel": [
+            125,
+            0,
+            0
+          ],
+          "hasAudio": true,
+          "audioRms": 0.048715493935610386,
+          "red": [
+            125,
+            0,
+            0
+          ],
+          "blue": [
+            0,
+            0,
+            127
+          ],
+          "tagBefore": [
+            6,
+            253,
+            1
+          ],
+          "tagAfter": [
+            16,
+            34,
+            50
+          ],
+          "gradedImageSticker": [
+            1,
+            127,
+            126
+          ]
+        },
+        {
+          "mode": "oversized_final_chunk",
+          "rejected": true
+        },
+        {
+          "mode": "cancelled",
+          "cancelled": true
+        }
+      ]
+    },
+    {
+      "browser": "156.0.8078.80",
+      "cases": [
+        {
+          "mode": "graded_audio",
+          "bytes": 39462,
+          "mime": "video/webm;codecs=vp9,opus",
+          "codec": "vp9",
+          "width": 1080,
+          "height": 1918,
+          "duration": 1.070199,
+          "encodedVideoEnd": 0.971,
+          "trimmedFirstPixel": [
+            125,
+            0,
+            0
+          ],
+          "hasAudio": true,
+          "audioRms": 0.048715493935610386,
+          "red": [
+            125,
+            0,
+            0
+          ],
+          "blue": [
+            0,
+            0,
+            127
+          ],
+          "tagBefore": [
+            6,
+            253,
+            1
+          ],
+          "tagAfter": [
+            16,
+            34,
+            50
+          ],
+          "gradedImageSticker": [
+            1,
+            127,
+            126
+          ]
+        },
+        {
+          "mode": "muted",
+          "bytes": 25947,
+          "mime": "video/webm;codecs=vp9",
+          "codec": "vp9",
+          "width": 1080,
+          "height": 1918,
+          "duration": 1.112399,
+          "encodedVideoEnd": 0.966,
+          "trimmedFirstPixel": [
+            125,
+            0,
+            0
+          ],
+          "hasAudio": false,
+          "audioRms": null,
+          "red": [
+            125,
+            0,
+            0
+          ],
+          "blue": [
+            0,
+            0,
+            127
+          ],
+          "tagBefore": [
+            6,
+            253,
+            1
+          ],
+          "tagAfter": [
+            16,
+            34,
+            48
+          ],
+          "gradedImageSticker": [
+            1,
+            127,
+            126
+          ]
+        },
+        {
+          "mode": "delayed_start",
+          "bytes": 38700,
+          "mime": "video/webm;codecs=vp9,opus",
+          "codec": "vp9",
+          "width": 1080,
+          "height": 1918,
+          "duration": 1.082699,
+          "encodedVideoEnd": 0.943,
+          "trimmedFirstPixel": [
+            125,
+            0,
+            0
+          ],
+          "hasAudio": true,
+          "audioRms": 0.04886459432635681,
+          "red": [
+            125,
+            0,
+            0
+          ],
+          "blue": [
+            0,
+            0,
+            127
+          ],
+          "tagBefore": [
+            6,
+            253,
+            1
+          ],
+          "tagAfter": [
+            16,
+            34,
+            50
+          ],
+          "gradedImageSticker": [
+            1,
+            127,
+            126
+          ]
+        },
+        {
+          "mode": "oversized_final_chunk",
+          "rejected": true
+        },
+        {
+          "mode": "cancelled",
+          "cancelled": true
+        }
+      ]
+    }
+  ],
+  "regression_before_fix": {
+    "source_commit": "efe9dc8a234dcffb58e15a93c739dce076e7e103",
+    "fixture": "strengthened current fixture with original exporter substituted in memory",
+    "failure": "trim/speed duration 0.7045",
+    "required_duration_seconds": 1
+  },
+  "native_hosted_observation": {
+    "run_id": 40982006582,
+    "job_id": 123824043086,
+    "source_commit": "efe9dc8a234dcffb58e15a93c739dce076e7e103",
+    "artifact_id": 12945254286,
+    "artifact_sha256": "aba990f57c446ba645838e31760b1b76abe08c4ca0cefa4fd34f99549eb66038",
+    "xcodebuild_result": "BUILD SUCCEEDED",
+    "postflight_receipt_present": false,
+    "workflow_conclusion": "failure",
+    "postflight_stderr_available": false,
+    "next_hosted_run_required": true
+  },
+  "skia_package_version": "2.2.12",
+  "skia_binary_minimum_os": [
+    {
+      "file": "libskunicode_libgrapheme.xcframework/ios-arm64_arm64e_x86_64-simulator/libskunicode_libgrapheme.a",
+      "build_versions": [
+        {
+          "architecture": "0x1000007:0x3",
+          "platform": 7,
+          "minimumOS": "16.0.0",
+          "objects": 25
+        },
+        {
+          "architecture": "0x100000c:0x0",
+          "platform": 7,
+          "minimumOS": "16.0.0",
+          "objects": 25
+        },
+        {
+          "architecture": "0x100000c:0x2",
+          "platform": 7,
+          "minimumOS": "16.0.0",
+          "objects": 25
+        }
+      ]
+    },
+    {
+      "file": "libskunicode_libgrapheme.xcframework/ios-arm64_arm64e/libskunicode_libgrapheme.a",
+      "build_versions": [
+        {
+          "architecture": "0x100000c:0x0",
+          "platform": 2,
+          "minimumOS": "13.0.0",
+          "objects": 25
+        },
+        {
+          "architecture": "0x100000c:0x2",
+          "platform": 2,
+          "minimumOS": "14.0.0",
+          "objects": 25
+        }
+      ]
+    },
+    {
+      "file": "libskparagraph.xcframework/ios-arm64_arm64e_x86_64-simulator/libskparagraph.a",
+      "build_versions": [
+        {
+          "architecture": "0x1000007:0x3",
+          "platform": 7,
+          "minimumOS": "16.0.0",
+          "objects": 15
+        },
+        {
+          "architecture": "0x100000c:0x0",
+          "platform": 7,
+          "minimumOS": "16.0.0",
+          "objects": 15
+        },
+        {
+          "architecture": "0x100000c:0x2",
+          "platform": 7,
+          "minimumOS": "16.0.0",
+          "objects": 15
+        }
+      ]
+    },
+    {
+      "file": "libskparagraph.xcframework/ios-arm64_arm64e/libskparagraph.a",
+      "build_versions": [
+        {
+          "architecture": "0x100000c:0x0",
+          "platform": 2,
+          "minimumOS": "13.0.0",
+          "objects": 15
+        },
+        {
+          "architecture": "0x100000c:0x2",
+          "platform": 2,
+          "minimumOS": "14.0.0",
+          "objects": 15
+        }
+      ]
+    },
+    {
+      "file": "libsksg.xcframework/ios-arm64_arm64e_x86_64-simulator/libsksg.a",
+      "build_versions": [
+        {
+          "architecture": "0x1000007:0x3",
+          "platform": 7,
+          "minimumOS": "16.0.0",
+          "objects": 23
+        },
+        {
+          "architecture": "0x100000c:0x0",
+          "platform": 7,
+          "minimumOS": "16.0.0",
+          "objects": 23
+        },
+        {
+          "architecture": "0x100000c:0x2",
+          "platform": 7,
+          "minimumOS": "16.0.0",
+          "objects": 23
+        }
+      ]
+    },
+    {
+      "file": "libsksg.xcframework/ios-arm64_arm64e/libsksg.a",
+      "build_versions": [
+        {
+          "architecture": "0x100000c:0x0",
+          "platform": 2,
+          "minimumOS": "13.0.0",
+          "objects": 23
+        },
+        {
+          "architecture": "0x100000c:0x2",
+          "platform": 2,
+          "minimumOS": "14.0.0",
+          "objects": 23
+        }
+      ]
+    },
+    {
+      "file": "libpathops.xcframework/ios-arm64_arm64e_x86_64-simulator/libpathops.a",
+      "build_versions": [
+        {
+          "architecture": "0x1000007:0x3",
+          "platform": 7,
+          "minimumOS": "16.0.0",
+          "objects": 32
+        },
+        {
+          "architecture": "0x100000c:0x0",
+          "platform": 7,
+          "minimumOS": "16.0.0",
+          "objects": 32
+        },
+        {
+          "architecture": "0x100000c:0x2",
+          "platform": 7,
+          "minimumOS": "16.0.0",
+          "objects": 32
+        }
+      ]
+    },
+    {
+      "file": "libpathops.xcframework/ios-arm64_arm64e/libpathops.a",
+      "build_versions": [
+        {
+          "architecture": "0x100000c:0x0",
+          "platform": 2,
+          "minimumOS": "13.0.0",
+          "objects": 32
+        },
+        {
+          "architecture": "0x100000c:0x2",
+          "platform": 2,
+          "minimumOS": "14.0.0",
+          "objects": 32
+        }
+      ]
+    },
+    {
+      "file": "libskia.xcframework/ios-arm64_arm64e_x86_64-simulator/libskia.a",
+      "build_versions": [
+        {
+          "architecture": "0x1000007:0x3",
+          "platform": 7,
+          "minimumOS": "16.0.0",
+          "objects": 1141
+        },
+        {
+          "architecture": "0x100000c:0x0",
+          "platform": 7,
+          "minimumOS": "16.0.0",
+          "objects": 1156
+        },
+        {
+          "architecture": "0x100000c:0x2",
+          "platform": 7,
+          "minimumOS": "16.0.0",
+          "objects": 1156
+        }
+      ]
+    },
+    {
+      "file": "libskia.xcframework/ios-arm64_arm64e/libskia.a",
+      "build_versions": [
+        {
+          "architecture": "0x100000c:0x0",
+          "platform": 2,
+          "minimumOS": "13.0.0",
+          "objects": 1156
+        },
+        {
+          "architecture": "0x100000c:0x2",
+          "platform": 2,
+          "minimumOS": "14.0.0",
+          "objects": 1156
+        }
+      ]
+    },
+    {
+      "file": "libskottie.xcframework/ios-arm64_arm64e_x86_64-simulator/libskottie.a",
+      "build_versions": [
+        {
+          "architecture": "0x1000007:0x3",
+          "platform": 7,
+          "minimumOS": "16.0.0",
+          "objects": 73
+        },
+        {
+          "architecture": "0x100000c:0x0",
+          "platform": 7,
+          "minimumOS": "16.0.0",
+          "objects": 73
+        },
+        {
+          "architecture": "0x100000c:0x2",
+          "platform": 7,
+          "minimumOS": "16.0.0",
+          "objects": 73
+        }
+      ]
+    },
+    {
+      "file": "libskottie.xcframework/ios-arm64_arm64e/libskottie.a",
+      "build_versions": [
+        {
+          "architecture": "0x100000c:0x0",
+          "platform": 2,
+          "minimumOS": "13.0.0",
+          "objects": 73
+        },
+        {
+          "architecture": "0x100000c:0x2",
+          "platform": 2,
+          "minimumOS": "14.0.0",
+          "objects": 73
+        }
+      ]
+    },
+    {
+      "file": "libskshaper.xcframework/ios-arm64_arm64e_x86_64-simulator/libskshaper.a",
+      "build_versions": [
+        {
+          "architecture": "0x1000007:0x3",
+          "platform": 7,
+          "minimumOS": "16.0.0",
+          "objects": 71
+        },
+        {
+          "architecture": "0x100000c:0x0",
+          "platform": 7,
+          "minimumOS": "16.0.0",
+          "objects": 71
+        },
+        {
+          "architecture": "0x100000c:0x2",
+          "platform": 7,
+          "minimumOS": "16.0.0",
+          "objects": 71
+        }
+      ]
+    },
+    {
+      "file": "libskshaper.xcframework/ios-arm64_arm64e/libskshaper.a",
+      "build_versions": [
+        {
+          "architecture": "0x100000c:0x0",
+          "platform": 2,
+          "minimumOS": "13.0.0",
+          "objects": 71
+        },
+        {
+          "architecture": "0x100000c:0x2",
+          "platform": 2,
+          "minimumOS": "14.0.0",
+          "objects": 71
+        }
+      ]
+    },
+    {
+      "file": "libsvg.xcframework/ios-arm64_arm64e_x86_64-simulator/libsvg.a",
+      "build_versions": [
+        {
+          "architecture": "0x1000007:0x3",
+          "platform": 7,
+          "minimumOS": "16.0.0",
+          "objects": 46
+        },
+        {
+          "architecture": "0x100000c:0x0",
+          "platform": 7,
+          "minimumOS": "16.0.0",
+          "objects": 46
+        },
+        {
+          "architecture": "0x100000c:0x2",
+          "platform": 7,
+          "minimumOS": "16.0.0",
+          "objects": 46
+        }
+      ]
+    },
+    {
+      "file": "libsvg.xcframework/ios-arm64_arm64e/libsvg.a",
+      "build_versions": [
+        {
+          "architecture": "0x100000c:0x0",
+          "platform": 2,
+          "minimumOS": "13.0.0",
+          "objects": 46
+        },
+        {
+          "architecture": "0x100000c:0x2",
+          "platform": 2,
+          "minimumOS": "14.0.0",
+          "objects": 46
+        }
+      ]
+    },
+    {
+      "file": "libskunicode_core.xcframework/ios-arm64_arm64e_x86_64-simulator/libskunicode_core.a",
+      "build_versions": [
+        {
+          "architecture": "0x1000007:0x3",
+          "platform": 7,
+          "minimumOS": "16.0.0",
+          "objects": 2
+        },
+        {
+          "architecture": "0x100000c:0x0",
+          "platform": 7,
+          "minimumOS": "16.0.0",
+          "objects": 2
+        },
+        {
+          "architecture": "0x100000c:0x2",
+          "platform": 7,
+          "minimumOS": "16.0.0",
+          "objects": 2
+        }
+      ]
+    },
+    {
+      "file": "libskunicode_core.xcframework/ios-arm64_arm64e/libskunicode_core.a",
+      "build_versions": [
+        {
+          "architecture": "0x100000c:0x0",
+          "platform": 2,
+          "minimumOS": "13.0.0",
+          "objects": 2
+        },
+        {
+          "architecture": "0x100000c:0x2",
+          "platform": 2,
+          "minimumOS": "14.0.0",
+          "objects": 2
+        }
+      ]
+    }
+  ],
+  "unchanged_ios_device_minimum": "15.1",
+  "local_validation": {
+    "web_typescript": "passed",
+    "video_composition_tests": 10,
+    "webm_header_tests": 4,
+    "shell_syntax": "passed",
+    "postflight_python_syntax": "passed"
+  },
+  "physical_device_acceptance": false,
+  "testflight_submission": false
+}

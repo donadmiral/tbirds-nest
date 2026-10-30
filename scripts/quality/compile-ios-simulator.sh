@@ -48,7 +48,7 @@ xcodebuild \
   ONLY_ACTIVE_ARCH=YES "ARCHS=$native_arch" SKIP_BUNDLING=1 \
   build 2>&1 | tee native-compile-logs/xcodebuild.log
 
-python3 - <<'PY'
+python3 - 2>&1 <<'PY' | tee native-compile-logs/postflight.log
 from pathlib import Path
 import hashlib, json, os, subprocess
 sources = [Path('modules/boomerang/ios') / name for name in (
@@ -65,7 +65,9 @@ for source in sources:
 executable = Path('native-compile-derived/Build/Products/Debug-iphonesimulator/PlatinumQA.app/PlatinumQA')
 if not executable.is_file() or executable.stat().st_size == 0:
     raise SystemExit('The required unsigned simulator app executable was not linked.')
-subprocess.run(['xcrun', 'lipo', '-verify_arch', 'x86_64', str(executable)], check=True)
+# lipo consumes every argument after -verify_arch as an architecture. The
+# executable must precede it, otherwise a successful build fails this receipt.
+subprocess.run(['xcrun', 'lipo', str(executable), '-verify_arch', 'x86_64'], check=True)
 receipt = {
     'commit': os.environ.get('GITHUB_SHA'),
     'workflow_run': os.environ.get('GITHUB_RUN_ID'),

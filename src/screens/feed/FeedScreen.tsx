@@ -1235,19 +1235,24 @@ export default function FeedScreen({ navigation }: any) {
 
   const [composerPreview, setComposerPreview] = useState<any>(null);
   const lpDebounceRef = useRef<any>(null);
+  const lpPreviewIntentRef = useRef({ owner: userId, url: null as string | null, dismissed: false });
   useEffect(() => {
+    let active = true;
     if (lpDebounceRef.current) clearTimeout(lpDebounceRef.current);
-    const m = composerText.match(/https?:\/\/[^\s<>"]+/);
-    if (!m) { setComposerPreview(null); return; }
-    const url = m[0];
+    const url = composerText.match(/https?:\/\/[^\s<>"]+/)?.[0] ?? null;
+    if (lpPreviewIntentRef.current.owner !== userId || lpPreviewIntentRef.current.url !== url) {
+      lpPreviewIntentRef.current = { owner: userId, url, dismissed: false };
+    }
+    if (!url || lpPreviewIntentRef.current.dismissed) { setComposerPreview(null); return; }
+    setComposerPreview((previous: any) => previous?.url === url ? previous : null);
     lpDebounceRef.current = setTimeout(async () => {
       try {
         const { data, error } = await supabase.functions.invoke('link-preview', { body: { url } });
-        if (!error && data && !data.error) setComposerPreview(data);
+        if (active && !lpPreviewIntentRef.current.dismissed && useAuthStore.getState().profile?.id === userId && !error && data && !data.error && data.url === url) setComposerPreview(data);
       } catch {}
     }, 800);
-    return () => { if (lpDebounceRef.current) clearTimeout(lpDebounceRef.current); };
-  }, [composerText]);
+    return () => { active = false; if (lpDebounceRef.current) clearTimeout(lpDebounceRef.current); };
+  }, [composerText, userId]);
 
   const hidePost = useCallback(async (postId: string) => {
     hiddenIdsRef.current.add(postId);
@@ -1669,6 +1674,7 @@ export default function FeedScreen({ navigation }: any) {
             return `${process.env.EXPO_PUBLIC_SUPABASE_URL}/storage/v1/object/public/post-media/${name}`;
           } finally { clearTimeout(timeout); }
         };
+        const currentLink = composerText.match(/https?:\/\/[^\s<>"]+/)?.[0] ?? null;
         const post: any = {
           id: postId, user_id: author, content: composerText.trim() || null, is_exclusive: exclusivePost,
           channel: innovationPost ? 'innovation' : null, audience: postAudience, comment_policy: commentPolicy,
@@ -1678,7 +1684,7 @@ export default function FeedScreen({ navigation }: any) {
           ...(innovationPost && articleTitle.trim() ? { article_title: articleTitle.trim(), read_minutes: Math.max(1, Math.round(composerText.trim().split(/\s+/).length / 200)) } : {}),
           ...(quotingPost ? { quoted_post_id: quotingPost.id } : {}),
           ...(threadingPost ? { thread_parent_id: threadingPost.id } : {}),
-          ...(composerPreview?.url ? { link_url: composerPreview.url } : {}),
+          ...(composerPreview?.url && composerPreview.url === currentLink ? { link_url: composerPreview.url } : {}),
         };
         publicationAttempt.current = {
           owner, postId, started: false,
@@ -1712,9 +1718,6 @@ export default function FeedScreen({ navigation }: any) {
             }
             if (composerProducts.length) await step('products', async () => {
               const { error } = await supabase.rpc('set_post_products', { p_post_id: postId, p_products: composerProducts.map((p, i) => ({ ...p, sort_order: i })) }); if (error) throw error;
-            });
-            if (composerPreview?.url) await step('link-preview', async () => {
-              const { error } = await supabase.rpc('upsert_link_preview', { p_url: composerPreview.url, p_title: composerPreview.title ?? null, p_description: composerPreview.description ?? null, p_image_url: composerPreview.image_url ?? null, p_domain: composerPreview.domain ?? null }); if (error) throw error;
             });
             await check();
           },
@@ -2575,7 +2578,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                       <Text style={{ fontSize: 10.5, fontWeight: '700', letterSpacing: 0.6, color: getTheme().ink.muted }}>{String(composerPreview.domain || '').toUpperCase()}</Text>
                       <Text style={{ fontSize: 13.5, fontWeight: '600', color: getTheme().ink.primary }} numberOfLines={2}>{composerPreview.title || composerPreview.url}</Text>
                     </View>
-                    <TouchableOpacity onPress={() => setComposerPreview(null)} hitSlop={8}>
+                    <TouchableOpacity accessibilityRole="button" accessibilityLabel="Remove link preview" onPress={() => { lpPreviewIntentRef.current.dismissed = true; setComposerPreview(null); }} hitSlop={8}>
                       <Feather name="x" size={16} color={getTheme().ink.muted} />
                     </TouchableOpacity>
                   </View>

@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { fmt } from '@/lib/fmt';
 import { Spark } from '@/components/Viz';
 import { csv, downloadText, slug, stamp, trayAdd } from '@/lib/share';
+import ActionPopover from '@/components/ActionPopover';
 
 export type Tone = 'ok' | 'bad' | 'warn' | 'info' | 'neutral' | 'accent';
 
@@ -123,12 +124,17 @@ function deskName(): string {
 /** The small plus that drops a number or a table into the presentation tray. */
 function CollectButton({ title, onAdd }: { title: string; onAdd: () => void }) {
   const [done, setDone] = useState(false);
+  const [error, setError] = useState('');
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   useEffect(() => () => clearTimeout(timer.current), []);
   return (
-    <button type="button" title={'Add ' + title + ' to the presentation'} className="pc-collect-btn"
+    <><button type="button" title={'Add ' + title + ' to the presentation'} className="pc-collect-btn"
       aria-label={done ? 'Added to presentation' : 'Add ' + title + ' to the presentation'}
-      onClick={() => { onAdd(); setDone(true); clearTimeout(timer.current); timer.current = setTimeout(() => setDone(false), 1300); }}
+      onClick={() => {
+        clearTimeout(timer.current);
+        try { onAdd(); setError(''); setDone(true); timer.current = setTimeout(() => setDone(false), 3000); }
+        catch (failure) { setDone(false); setError(failure instanceof Error ? failure.message : 'The item could not be saved.'); }
+      }}
       style={{
         position: 'absolute', top: 8, right: 8, width: 22, height: 22, borderRadius: 7,
         display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
@@ -138,7 +144,7 @@ function CollectButton({ title, onAdd }: { title: string; onAdd: () => void }) {
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" strokeWidth="2.6" strokeLinecap="round" style={{ stroke: 'currentColor' }}>
         <path d={done ? 'M5 13l4 4L19 7' : 'M12 5v14M5 12h14'} />
       </svg>
-    </button>
+    </button>{error ? <span role="alert" className="pc-collect-feedback">{error}</span> : null}</>
   );
 }
 
@@ -473,76 +479,38 @@ function TableShare({ page, columns, filtered, all, state }: {
   all: DeskRow[];
   state: string[];
 }) {
-  const [open, setOpen] = useState(false);
   const [flash, setFlash] = useState('');
-
-  const body = (rs: DeskRow[]) => rs.map(r => r.cells.map(c => {
-    const v = String((c as { v?: string }).v ?? '');
-    const sub = (c as { sub?: string }).sub;
-    return sub ? v + ' (' + sub + ')' : v;
+  const [failure, setFailure] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => () => clearTimeout(timer.current), []);
+  const body = (records: DeskRow[]) => records.map(record => record.cells.map(cell => {
+    const value = String((cell as { v?: string }).v ?? '');
+    const sub = (cell as { sub?: string }).sub;
+    return sub ? value + ' (' + sub + ')' : value;
   }));
 
-  function note(msg: string) {
-    setFlash(msg);
-    setOpen(false);
-    setTimeout(() => setFlash(''), 1500);
+  function perform(action: () => void, message: string, close: () => void) {
+    clearTimeout(timer.current);
+    try { action(); setFailure(false); setFlash(message); close(); }
+    catch (error) { setFailure(true); setFlash(error instanceof Error ? error.message : 'The export could not be prepared.'); }
+    timer.current = setTimeout(() => setFlash(''), 8000);
   }
 
-  function exportRows(rs: DeskRow[], which: string) {
-    downloadText(slug(page + '-' + which) + '-' + stamp() + '.csv', 'text/csv', csv(columns, body(rs)));
-    note(rs.length + ' rows exported');
-  }
-
-  function exportJson(rs: DeskRow[]) {
-    downloadText(slug(page) + '-' + stamp() + '.json', 'application/json', JSON.stringify({
-      page, filters: state, exportedAt: new Date().toISOString(),
-      columns, rows: body(rs),
-    }, null, 2));
-    note('JSON exported');
-  }
-
-  function collect() {
-    trayAdd({
-      kind: 'table', title: page + ' table', subtitle: state.join(' \u00b7 '), page, path: here(),
-      table: { columns, rows: body(filtered).slice(0, 60), total: filtered.length, filters: state.length ? state : ['No filters, the full desk'] },
-    });
-    note('Added to presentation');
-  }
-
-  const row: React.CSSProperties = {
-    display: 'flex', alignItems: 'center', gap: 8, width: '100%', textAlign: 'left',
-    padding: '7.5px 10px', borderRadius: 7, border: 'none', background: 'transparent',
-    cursor: 'pointer', fontSize: 12, fontWeight: 500, color: 'var(--txt)',
-  };
-
-  return (
-    <div style={{ position: 'relative' }}>
-      <button type="button" onClick={() => setOpen(o => !o)} title="Share or export this table" className="pc-icon-btn"
-        style={{ width: 27, height: 27, borderRadius: 7, border: '1px solid rgba(var(--on),0.10)', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <svg width="13" height="13" viewBox="0 0 24 24" style={{ fill: 'var(--txt-muted)' }}>
-          <circle cx="12" cy="5" r="1.7" /><circle cx="12" cy="12" r="1.7" /><circle cx="12" cy="19" r="1.7" />
-        </svg>
-      </button>
-
-      {flash ? (
-        <span style={{ position: 'absolute', top: 33, right: 0, whiteSpace: 'nowrap', padding: '5px 9px', borderRadius: 7, fontSize: 11, fontWeight: 600, color: 'var(--txt)', background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', boxShadow: '0 10px 24px rgba(0,0,0,0.16)', zIndex: 40 }}>{flash}</span>
-      ) : null}
-
-      {open ? (
-        <>
-          <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 30 }} />
-          <div style={{ position: 'absolute', top: 33, right: 0, zIndex: 40, width: 246, padding: 5, borderRadius: 11, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.11)', boxShadow: '0 16px 42px rgba(0,0,0,0.22)' }}>
-            <div style={{ padding: '6px 10px 7px', fontSize: 9.6, fontWeight: 700, letterSpacing: '0.04em', color: 'var(--txt-muted)' }}>
-              {state.length ? state.join(' \u00b7 ').toUpperCase() : 'NO FILTERS APPLIED'}
-            </div>
-            <button type="button" className="pc-nav" style={row} onClick={() => exportRows(filtered, 'filtered')}>Export these {filtered.length} rows (CSV)</button>
-            <button type="button" className="pc-nav" style={row} onClick={() => exportRows(all, 'all')}>Export all {all.length} rows (CSV)</button>
-            <button type="button" className="pc-nav" style={row} onClick={() => exportJson(filtered)}>Export these rows (JSON)</button>
-            <div style={{ height: 1, margin: '5px 8px', background: 'rgba(var(--on),0.08)' }} />
-            <button type="button" className="pc-nav" style={row} onClick={collect}>Add this table to the presentation</button>
-          </div>
-        </>
-      ) : null}
-    </div>
-  );
+  return <div className="pc-share-control">
+    <ActionPopover label="Share or export this table" trigger={<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7" /><circle cx="12" cy="12" r="1.7" /><circle cx="12" cy="19" r="1.7" /></svg>}>
+      {close => <>
+        <p className="pc-popover-heading">{state.length ? state.join(' · ') : 'No filters applied'}</p>
+        <button type="button" className="pc-popover-action" onClick={() => perform(() => downloadText(slug(page + '-filtered') + '-' + stamp() + '.csv', 'text/csv', csv(columns, body(filtered))), 'CSV download prepared', close)}>Export these {filtered.length} rows (CSV)</button>
+        <button type="button" className="pc-popover-action" onClick={() => perform(() => downloadText(slug(page + '-all') + '-' + stamp() + '.csv', 'text/csv', csv(columns, body(all))), 'CSV download prepared', close)}>Export all {all.length} loaded rows (CSV)</button>
+        <button type="button" className="pc-popover-action" onClick={() => perform(() => downloadText(slug(page) + '-' + stamp() + '.json', 'application/json', JSON.stringify({ page, filters: state, exportedAt: new Date().toISOString(), columns, rows: body(filtered) }, null, 2)), 'JSON download prepared', close)}>Export these rows (JSON)</button>
+        <div className="pc-popover-divider" />
+        <button type="button" className="pc-popover-action" onClick={() => perform(() => {
+          trayAdd({ kind: 'table', title: page + ' table', subtitle: state.join(' · '), page, path: here(),
+            table: { columns, rows: body(filtered).slice(0, 60), total: filtered.length, filters: state.length ? state : ['No filters, the loaded desk'] } });
+        }, 'Added to presentation', close)}>Add this table to the presentation</button>
+        {filtered.length > 60 ? <p className="pc-popover-help">The presentation keeps the first 60 rows. Use CSV to export all {filtered.length} matching loaded rows.</p> : null}
+      </>}
+    </ActionPopover>
+    {flash ? <p role={failure ? 'alert' : 'status'} className="pc-share-feedback" data-error={failure}>{flash}</p> : null}
+  </div>;
 }

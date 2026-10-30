@@ -9,9 +9,9 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { csv, downloadText, maskRow, slug, stamp, trayClear, trayRead, trayRemove, whenLong, type TrayItem } from '@/lib/share';
+import { csv, downloadText, maskRow, slug, stamp, trayClear, trayRead, trayRemove, whenLong, TRAY_EVENT, type TrayItem } from '@/lib/share';
 
-type Audience = 'Internal' | 'Management' | 'External sanitized';
+type Audience = 'Internal' | 'Management' | 'Mask identifier columns';
 
 type Slide =
   | { kind: 'cover'; title: string; sub: string }
@@ -33,12 +33,19 @@ export default function PresentBuilder({ by, role, env }: { by: string; role: st
   const [dark, setDark] = useState(true);
   const [at, setAt] = useState(0);
   const [live, setLive] = useState(false);
+  const [error, setError] = useState('');
   const deck = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => { setItems(trayRead()); }, []);
+  useEffect(() => {
+    const sync = () => setItems(trayRead());
+    sync();
+    window.addEventListener(TRAY_EVENT, sync);
+    window.addEventListener('storage', sync);
+    return () => { window.removeEventListener(TRAY_EVENT, sync); window.removeEventListener('storage', sync); };
+  }, []);
 
-  const kept = items.filter(i => !drop[i.id]);
-  const sanitize = audience === 'External sanitized';
+  const kept = useMemo(() => items.filter(item => !drop[item.id]), [items, drop]);
+  const sanitize = audience === 'Mask identifier columns';
 
   const slides: Slide[] = useMemo(() => {
     const out: Slide[] = [];
@@ -70,17 +77,27 @@ export default function PresentBuilder({ by, role, env }: { by: string; role: st
   useEffect(() => {
     if (!live) return;
     function key(e: KeyboardEvent) {
+      if (e.target instanceof Element && e.target.closest('input,textarea,select,button,a,[contenteditable="true"]') && e.key !== 'Escape') return;
       if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); setAt(a => Math.min(a + 1, total - 1)); }
       else if (e.key === 'ArrowLeft') { e.preventDefault(); setAt(a => Math.max(a - 1, 0)); }
-      else if (e.key === 'Escape') { setLive(false); if (document.fullscreenElement) void document.exitFullscreen(); }
+      else if (e.key === 'Escape') { setLive(false); if (document.fullscreenElement) void document.exitFullscreen().catch(() => {}); }
     }
+    const fullscreen = () => { if (!document.fullscreenElement) setLive(false); };
     window.addEventListener('keydown', key);
-    return () => window.removeEventListener('keydown', key);
+    document.addEventListener('fullscreenchange', fullscreen);
+    return () => { window.removeEventListener('keydown', key); document.removeEventListener('fullscreenchange', fullscreen); };
   }, [live, total]);
 
   function present() {
     setLive(true);
-    void deck.current?.requestFullscreen?.();
+    // Some mobile browsers do not offer fullscreen. The same presentation
+    // remains usable in a viewport-filling layer with explicit exit controls.
+    void deck.current?.requestFullscreen?.().catch(() => {});
+  }
+
+  function changeTray(action: () => void) {
+    try { action(); setItems(trayRead()); setError(''); }
+    catch (failure) { setError(failure instanceof Error ? failure.message : 'The presentation could not be updated.'); }
   }
 
   function exportTables() {
@@ -106,7 +123,7 @@ export default function PresentBuilder({ by, role, env }: { by: string; role: st
       <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', color: 'var(--txt)' }}>
         <div style={{ textAlign: 'center', maxWidth: 460, padding: 24 }}>
           <div style={{ fontSize: 21, color: 'var(--txt-strong)' }}>Nothing collected yet</div>
-          <p style={{ marginTop: 10, fontSize: 13, lineHeight: 1.6, color: 'rgba(var(--on),0.5)' }}>
+          <p style={{ marginTop: 10, fontSize: 13, lineHeight: 1.6, color: 'var(--txt-muted)' }}>
             Open any desk and use the plus on a number, the share menu on a table, or Add a note from the topbar.
             Everything you collect lands here and becomes a deck, a briefing or a spreadsheet.
           </p>
@@ -119,25 +136,29 @@ export default function PresentBuilder({ by, role, env }: { by: string; role: st
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--txt)' }}>
 
-      <header className="pc-no-print" style={{ position: 'sticky', top: 0, zIndex: 30, display: 'flex', alignItems: 'center', gap: 12, height: 56, padding: '0 18px', background: 'var(--topbar)', backdropFilter: 'blur(26px)', borderBottom: '1px solid rgba(var(--on),0.10)' }}>
+      <header className="pc-no-print pc-present-header">
         <a href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none' }}>
           <img src="/pearl.png" alt="" className="pc-mark" style={{ width: 26, height: 26, objectFit: 'contain' }} />
           <span style={{ fontSize: 13, color: 'var(--txt-strong)' }}>Presentation builder</span>
         </a>
-        <span className="pc-num" style={{ fontSize: 11, color: 'rgba(var(--on),0.34)' }}>{total} slides</span>
+        <span className="pc-num" style={{ fontSize: 11, color: 'var(--txt-muted)' }}>{total} slides</span>
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button type="button" onClick={exportTables} style={ghost}>Export data</button>
+          <button type="button" disabled={!kept.some(item => item.kind === 'table')} onClick={exportTables} style={ghost}>Export collected data</button>
           <button type="button" onClick={exportJson} style={ghost}>Export JSON</button>
-          <button type="button" onClick={() => window.print()} style={ghost}>Download PDF</button>
+          <button type="button" onClick={() => window.print()} style={ghost}>Print / save PDF</button>
           <button type="button" onClick={present} style={solid}>Present</button>
         </div>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '182px 1fr 296px', alignItems: 'start', gap: 0, minHeight: 'calc(100vh - 56px)' }}>
+      {error ? <p role="alert" className="pc-service-notice">{error}</p> : null}
+      <div className="pc-present-layout">
 
-        <aside className="pc-no-print pc-rail-scroll" style={{ position: 'sticky', top: 56, height: 'calc(100vh - 56px)', overflowY: 'auto', padding: 12, borderRight: '1px solid rgba(var(--on),0.09)' }}>
+        <aside className="pc-no-print pc-rail-scroll pc-present-slides" aria-label="Slides">
           {slides.map((s, i) => (
-            <button key={i} type="button" onClick={() => setAt(i)}
+            <button key={i} type="button" aria-current={i === cur ? 'true' : undefined} onClick={() => {
+              setAt(i);
+              document.getElementById(`pc-slide-${i}`)?.scrollIntoView({ block: 'center', behavior: 'instant' });
+            }}
               style={{
                 display: 'block', width: '100%', textAlign: 'left', marginBottom: 8, padding: '9px 10px',
                 borderRadius: 9, cursor: 'pointer', fontSize: 11.4, lineHeight: 1.35,
@@ -145,21 +166,27 @@ export default function PresentBuilder({ by, role, env }: { by: string; role: st
                 background: i === cur ? 'rgba(var(--on),0.05)' : 'transparent',
                 color: i === cur ? 'var(--txt-strong)' : 'rgba(var(--on),0.5)',
               }}>
-              <span className="pc-num" style={{ fontSize: 9.5, color: 'rgba(var(--on),0.32)' }}>{String(i + 1).padStart(2, '0')}</span>
+              <span className="pc-num" style={{ fontSize: 9.5, color: 'var(--txt-muted)' }}>{String(i + 1).padStart(2, '0')}</span>
               <span style={{ display: 'block', marginTop: 3, fontWeight: 600 }}>{slideTitle(s)}</span>
             </button>
           ))}
         </aside>
 
-        <main ref={deck} style={{ padding: live ? 0 : '22px 20px 40px', background: live ? (dark ? NAVY : '#FFFFFF') : 'transparent' }}>
+        <main ref={deck} className="pc-present-canvas" style={{ padding: live ? 0 : undefined, background: live ? (dark ? NAVY : '#FFFFFF') : 'transparent' }}>
           {live ? (
-            <div onClick={() => setAt(a => Math.min(a + 1, total - 1))} style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-              <div style={{ width: 'min(1180px, 92vw)' }}>{renderSlide(slides[cur], dark, sanitize)}</div>
+            <div className="pc-live-presentation" style={{ background: dark ? NAVY : '#FFFFFF' }}>
+              <div className="pc-live-slide" role="region" aria-label={`Slide ${cur + 1} of ${total}: ${slideTitle(slides[cur])}`}>{renderSlide(slides[cur], dark, sanitize)}</div>
+              <div className="pc-live-controls">
+                <button type="button" disabled={cur === 0} onClick={() => setAt(value => Math.max(0, value - 1))}>Previous</button>
+                <span role="status">{cur + 1} / {total}</span>
+                <button type="button" disabled={cur === total - 1} onClick={() => setAt(value => Math.min(total - 1, value + 1))}>Next</button>
+                <button type="button" onClick={() => { setLive(false); if (document.fullscreenElement) void document.exitFullscreen().catch(() => {}); }}>Exit presentation</button>
+              </div>
             </div>
           ) : (
             <div className="pc-deck">
               {slides.map((s, i) => (
-                <section key={i} className="pc-slide" onClick={() => setAt(i)}
+                <section key={i} id={`pc-slide-${i}`} className="pc-slide" onClick={() => setAt(i)}
                   style={{
                     marginBottom: 18, borderRadius: 14, overflow: 'hidden',
                     border: '1px solid ' + (i === cur ? 'rgba(var(--accent-rgb),0.35)' : 'rgba(var(--on),0.10)'),
@@ -173,13 +200,13 @@ export default function PresentBuilder({ by, role, env }: { by: string; role: st
           )}
         </main>
 
-        <aside className="pc-no-print pc-rail-scroll" style={{ position: 'sticky', top: 56, height: 'calc(100vh - 56px)', overflowY: 'auto', padding: 14, borderLeft: '1px solid rgba(var(--on),0.09)' }}>
-          <Field label="Title"><input value={title} onChange={e => setTitle(e.target.value)} style={input} /></Field>
-          <Field label="Date range"><input value={range} onChange={e => setRange(e.target.value)} placeholder="1 to 31 August 2026" style={input} /></Field>
+        <aside className="pc-no-print pc-rail-scroll pc-present-settings" aria-label="Presentation settings">
+          <Field label="Title"><input aria-label="Presentation title" value={title} onChange={e => setTitle(e.target.value)} maxLength={200} style={input} /></Field>
+          <Field label="Date range"><input aria-label="Presentation date range" value={range} onChange={e => setRange(e.target.value)} maxLength={200} placeholder="Date range covered by your collected data" style={input} /></Field>
           <Field label="Audience">
             <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-              {(['Internal', 'Management', 'External sanitized'] as Audience[]).map(a => (
-                <button key={a} type="button" onClick={() => setAudience(a)}
+              {(['Internal', 'Management', 'Mask identifier columns'] as Audience[]).map(a => (
+                <button key={a} type="button" aria-pressed={audience === a} onClick={() => setAudience(a)}
                   style={{ padding: '8px 10px', textAlign: 'left', borderRadius: 8, cursor: 'pointer', fontSize: 11.8, fontWeight: 600,
                     border: '1px solid ' + (audience === a ? 'rgba(var(--accent-rgb),0.4)' : 'rgba(var(--on),0.11)'),
                     background: audience === a ? 'rgba(var(--on),0.05)' : 'transparent',
@@ -188,12 +215,12 @@ export default function PresentBuilder({ by, role, env }: { by: string; role: st
                 </button>
               ))}
             </div>
-            {sanitize ? <p style={hint}>Emails, phone numbers, identifiers, wallet and transaction references are masked in every table and export.</p> : null}
+            {sanitize ? <p style={hint}>Masks table columns labeled as email, phone, identifier, wallet or transaction reference. Review names, notes and free text before sharing externally.</p> : null}
           </Field>
           <Field label="Theme">
             <div style={{ display: 'flex', gap: 6 }}>
               {[{ k: true, l: 'Platinum navy' }, { k: false, l: 'Paper' }].map(t => (
-                <button key={String(t.k)} type="button" onClick={() => setDark(t.k)}
+                <button key={String(t.k)} type="button" aria-pressed={dark === t.k} onClick={() => setDark(t.k)}
                   style={{ flex: 1, padding: '8px 0', borderRadius: 8, cursor: 'pointer', fontSize: 11.5, fontWeight: 600,
                     border: '1px solid ' + (dark === t.k ? 'rgba(var(--accent-rgb),0.4)' : 'rgba(var(--on),0.11)'),
                     background: dark === t.k ? 'rgba(var(--on),0.05)' : 'transparent',
@@ -202,22 +229,22 @@ export default function PresentBuilder({ by, role, env }: { by: string; role: st
             </div>
           </Field>
           <Field label="Key findings">
-            <textarea value={commentary} onChange={e => setCommentary(e.target.value)} rows={5} placeholder="What should the reader do with this?"
+            <textarea aria-label="Key findings" value={commentary} onChange={e => setCommentary(e.target.value)} rows={5} maxLength={10000} placeholder="What should the reader do with this?"
               style={{ ...input, resize: 'vertical', lineHeight: 1.5 }} />
           </Field>
           <Field label={'Collected items (' + items.length + ')'}>
             {items.map(i => (
               <div key={i.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderBottom: '1px solid rgba(var(--on),0.06)' }}>
-                <input type="checkbox" checked={!drop[i.id]} onChange={e => setDrop(p => ({ ...p, [i.id]: !e.target.checked }))} />
+                <input type="checkbox" aria-label={`Include ${i.title}`} checked={!drop[i.id]} onChange={e => setDrop(p => ({ ...p, [i.id]: !e.target.checked }))} />
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ display: 'block', fontSize: 11.8, fontWeight: 600, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{i.title}</span>
-                  <span style={{ display: 'block', fontSize: 10, color: 'rgba(var(--on),0.34)' }}>{i.page + ' \u00b7 ' + i.kind}</span>
+                  <span style={{ display: 'block', fontSize: 10, color: 'var(--txt-muted)' }}>{i.page + ' \u00b7 ' + i.kind}</span>
                 </span>
-                <button type="button" onClick={() => { trayRemove(i.id); setItems(trayRead()); }} title="Remove"
-                  style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'rgba(var(--on),0.34)', fontSize: 14, lineHeight: 1 }}>&times;</button>
+                <button type="button" onClick={() => changeTray(() => trayRemove(i.id))} aria-label={`Remove ${i.title}`} title="Remove"
+                  style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--txt-muted)', fontSize: 14, lineHeight: 1 }}>&times;</button>
               </div>
             ))}
-            <button type="button" onClick={() => { trayClear(); setItems([]); }} style={{ ...ghost, marginTop: 10, width: '100%' }}>Clear everything</button>
+            <button type="button" onClick={() => changeTray(trayClear)} style={{ ...ghost, marginTop: 10, width: '100%' }}>Clear everything</button>
           </Field>
         </aside>
       </div>
@@ -296,7 +323,7 @@ function renderSlide(s: Slide, dark: boolean, sanitize: boolean) {
             ))}
           </tbody>
         </table>
-        {t && t.total > rows.length ? <div style={{ marginTop: 12, fontSize: 11, color: dim }}>Showing {rows.length} of {t.total} matching rows. The full set is in the CSV export.</div> : null}
+        {t && t.total > rows.length ? <div style={{ marginTop: 12, fontSize: 11, color: dim }}>Showing {rows.length} of {t.total} matching rows. This collection contains {t.rows.length} rows.{t.total > t.rows.length ? ' Export the full matching set from the original desk.' : ' Export collected data for all collected rows.'}</div> : null}
       </div>
     );
   }
@@ -340,7 +367,7 @@ function SlideHead({ title, dim, ink }: { title: string; dim: string; ink: strin
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div style={{ marginBottom: 16 }}>
-      <div style={{ marginBottom: 7, fontSize: 10, fontWeight: 700, letterSpacing: '0.04em', color: 'rgba(var(--on),0.4)' }}>{label.toUpperCase()}</div>
+      <div style={{ marginBottom: 7, fontSize: 10, fontWeight: 700, letterSpacing: '0.04em', color: 'var(--txt-muted)' }}>{label.toUpperCase()}</div>
       {children}
     </div>
   );
@@ -353,7 +380,7 @@ const input: React.CSSProperties = {
 
 const ghost: React.CSSProperties = {
   padding: '7px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 11.6, fontWeight: 600,
-  color: 'rgba(var(--on),0.6)', background: 'transparent', border: '1px solid rgba(var(--on),0.11)',
+  color: 'var(--txt-muted)', background: 'transparent', border: '1px solid rgba(var(--on),0.11)',
 };
 
 const solid: React.CSSProperties = {
@@ -361,4 +388,4 @@ const solid: React.CSSProperties = {
   color: 'var(--accent-ink)', background: 'var(--accent)', border: 'none',
 };
 
-const hint: React.CSSProperties = { marginTop: 8, fontSize: 10.8, lineHeight: 1.5, color: 'rgba(var(--on),0.38)' };
+const hint: React.CSSProperties = { marginTop: 8, fontSize: 10.8, lineHeight: 1.5, color: 'var(--txt-muted)' };

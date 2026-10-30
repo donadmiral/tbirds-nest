@@ -1,0 +1,100 @@
+{
+  "candidate": "supabase/migrations/20261030000331_link_preview_verified_cache.sql",
+  "sha256": "999e44ee9602e15069443caed2590b5a3b2fb82c6044e8c2195abd2521c82daa",
+  "qaMode": false,
+  "currentProduction": true,
+  "fullAdminPrivacyHardeningChain": false,
+  "existingPostsAndQaDataPreserved": true,
+  "testsPassed": 12,
+  "tests": [
+    "untrusted derived cache is invalidated while URL rows and posts remain",
+    "legacy authenticated RPC still succeeds but cannot forge or replace shared metadata",
+    "app roles cannot mutate or truncate the cache and anonymous RPC access is removed",
+    "the service can persist verified metadata and stable image tokens",
+    "the atomic service store preserves the first token across all subsequent writes",
+    "app roles cannot call atomic writers or image budgets even with forged service claims",
+    "public image origins have a persistent per-token limit and unknown/unverified tokens cannot fetch",
+    "distinct image tokens cannot bypass the shared origin-fetch limit",
+    "service-only fetch budgets resist forged role claims and private budget rows remain inaccessible",
+    "fetch budgets enforce eight misses per minute per real active user and reset safely",
+    "an installed client can finish a real text post and its legacy preview acknowledgment",
+    "repeat application refuses to overwrite the new verified contract"
+  ],
+  "postflight": {
+    "cache": {
+      "acl": "{postgres=arwdDxtm/postgres,authenticated=r/postgres,service_role=r/postgres}",
+      "rls": true,
+      "columns": [
+        "url",
+        "title",
+        "description",
+        "image_url",
+        "domain",
+        "fetched_at",
+        "verified_at",
+        "image_origin_url",
+        "image_token"
+      ],
+      "policies": [
+        {
+          "cmd": "r",
+          "name": "link_previews_read",
+          "check": null,
+          "using": "true"
+        }
+      ],
+      "verifiedRows": 0,
+      "unverifiedMetadataRows": 0
+    },
+    "budgets": [
+      {
+        "rls": true,
+        "name": "fetch_budget",
+        "tableAcl": "{postgres=arwdDxtm/postgres}",
+        "schemaAcl": "{postgres=UC/postgres}",
+        "policyCount": 0
+      },
+      {
+        "rls": true,
+        "name": "image_budget",
+        "tableAcl": "{postgres=arwdDxtm/postgres}",
+        "schemaAcl": "{postgres=UC/postgres}",
+        "policyCount": 0
+      },
+      {
+        "rls": true,
+        "name": "image_global_budget",
+        "tableAcl": "{postgres=arwdDxtm/postgres}",
+        "schemaAcl": "{postgres=UC/postgres}",
+        "policyCount": 0
+      }
+    ],
+    "functions": [
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "e0908680c18f32fa02835683b678690f",
+        "name": "claim_link_preview_fetch",
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "96a3182b0230199d35ec398a2b038d59",
+        "name": "claim_link_preview_image",
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "be97c0dfdbd87f558cd682f4dcad994d",
+        "name": "store_verified_link_preview",
+        "securityDefiner": true
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "md5": "9f29e9b4f9eb03c6dbd9d813e24f2168",
+        "name": "upsert_link_preview",
+        "securityDefiner": false
+      }
+    ]
+  },
+  "verifiedAt": "2026-10-30T00:26:33.016Z"
+}

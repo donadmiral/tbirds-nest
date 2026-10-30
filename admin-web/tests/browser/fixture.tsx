@@ -4,6 +4,9 @@ import SideRail from '@/components/SideRail';
 import CommandPalette from '@/components/CommandPalette';
 import ThemeControls from '@/components/ThemeControls';
 import RefreshDesk from '@/components/RefreshDesk';
+import ShareMenu from '@/components/ShareMenu';
+import PresentTray from '@/components/PresentTray';
+import PresentBuilder from '@/components/PresentBuilder';
 import { Desk, StatStrip, type DeskRow } from '@/components/Desk';
 import { SeriesChart } from '@/components/Viz';
 import { GROUPS, ACTIONS } from '@/lib/navigation';
@@ -38,13 +41,15 @@ async function recordAction(data: FormData) {
 }
 function Fixture() {
   const path = usePathname();
-  return <div style={{ display:'flex',minHeight:'100vh' }}>
+  const staff = `fixture-reviewer:${role}`;
+  if (path === '/present') return <div data-pc-staff={staff}><PresentBuilder by="reviewer@example.test" role={role} env="QA fixture" /></div>;
+  return <div data-pc-staff={staff} style={{ display:'flex',minHeight:'100vh' }}>
     <SideRail groups={groups} counts={{'/reports':7,'/queue':null,'/support':12}} active={path} email="reviewer@example.test" roleLabel={role.replaceAll('_',' ')} />
     <main style={{flex:1,minWidth:0}}>
       <header className="pc-topbar" style={{background:'var(--topbar)',borderBottom:'1px solid var(--line)',position:'sticky',top:0,zIndex:30}}>
         <div className="pc-breadcrumb">Operations <span style={{color:'var(--txt-muted)'}}> / Overview</span></div>
         <CommandPalette items={items} actions={actions} />
-        <div className="pc-topbar-actions"><ThemeControls /><span style={{fontSize:11,color:'var(--txt-muted)'}}>QA fixture</span></div>
+        <div className="pc-topbar-actions"><ShareMenu path={path} label="Overview" /><ThemeControls /><span style={{fontSize:11,color:'var(--txt-muted)'}}>QA fixture</span></div>
       </header>
       <div id="workspace" tabIndex={-1} className="pc-workspace">
         <div className="pc-page-heading"><div><p className="pc-page-kicker">Overview</p><h1 className="pc-page-title">Workspace overview</h1><p className="pc-page-subtitle">Community activity and the work that needs your attention.</p></div><div className="pc-page-actions"><RefreshDesk /><button type="button" className="pc-button pc-button-primary" onClick={()=>document.getElementById('fixture-records')?.scrollIntoView({block:'start'})}>Review records ↗</button></div></div>
@@ -58,7 +63,7 @@ function Fixture() {
             actions={[{key:'review',label:'Save review note',action:recordAction,idName:'id',tone:'info',inputs:[{name:'reason',label:'Review basis',type:'textarea',required:true,minLength:20,maxLength:2000,help:'Use 20–2,000 characters. This fixture records locally and never writes to a backend.'}]}]} />
         </section><output id="fixture-receipt" hidden />
       </div>
-    </main>
+    </main><PresentTray />
   </div>;
 }
 createRoot(document.getElementById('root')!).render(<Fixture />);

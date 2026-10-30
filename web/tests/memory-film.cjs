@@ -22,3 +22,21 @@ test('web film video pauses immediately on visibility changes and cannot finish 
 test('a late successful browser play cannot reactivate audio after the film unmounts',async()=>{
  const h=createFilmHarness(ts,'web');let resolve;h.audioNode.playPending=new Promise(done=>{resolve=done;});await h.settle();h.dispose();h.audioNode.paused=false;resolve();await h.settle();assert.equal(h.audioNode.paused,true);
 });
+test('web film surfaces a video stall after readiness, once, and releases its timer',async()=>{
+ const h=createFilmHarness(ts,'web',{component:'video'});await h.settle();h.nodes().find(n=>n.type==='video').props.onLoadedMetadata();await h.settle();
+ await h.tick(20000);assert.equal(h.failed,1);assert.equal(h.videoNode.paused,true);
+ await h.tick(20000);assert.equal(h.failed,1);assert.equal(h.ended,0);h.dispose();assert.equal(h.timerCount,0);
+});
+test('web film does not treat pauses, background time or blocked autoplay as stalled media',async()=>{
+ const h=createFilmHarness(ts,'web',{component:'video'});await h.settle();h.nodes().find(n=>n.type==='video').props.onLoadedMetadata();await h.settle();
+ await h.tick(15000);h.videoNode.currentTime=3;await h.tick(1000);await h.tick(15000);assert.equal(h.failed,0);
+ h.setActive(false);await h.settle();await h.tick(90000);assert.equal(h.failed,0);
+ h.setActive(true);await h.settle();h.setForeground(false);await h.settle();await h.tick(90000);assert.equal(h.failed,0);
+ h.setForeground(true);await h.settle();await h.tick(19000);assert.equal(h.failed,0);await h.tick(1000);assert.equal(h.failed,1);h.dispose();
+ const blocked=createFilmHarness(ts,'web',{component:'video'});blocked.videoNode.playReject={name:'NotAllowedError'};await blocked.settle();blocked.nodes().find(n=>n.type==='video').props.onLoadedMetadata();await blocked.settle();await blocked.tick(90000);assert.equal(blocked.failed,0);assert.ok(blocked.nodes().some(n=>n.type==='button'&&n.props.className==='videoPlay'));blocked.dispose();
+});
+test('web film photo artwork uses elapsed playback and stays fixed while paused',async()=>{
+ const h=createFilmHarness(ts,'web');await h.settle();h.mediaReady();await h.settle();
+ const frame=()=>h.nodes().find(node=>node.type==='MemoryStoryFrame');assert.equal(frame().props.clock,0);
+ await h.tick(2000);assert.equal(frame().props.clock,2);h.press('Pause memory film');await h.settle();await h.tick(20000);assert.equal(frame().props.clock,2);h.dispose();
+});

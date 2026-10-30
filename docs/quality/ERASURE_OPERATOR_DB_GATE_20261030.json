@@ -1,0 +1,125 @@
+{
+  "candidate": "supabase/migrations/20261030005241_account_erasure_operator_review.sql",
+  "sha256": "28fcbb0674951fe61b2c88079a9df2af62378e6eef512cf9f0f9083d0fc23e8b",
+  "restoreGuard": "supabase/migrations/20261030010250_account_erasure_admin_restore_guard.sql",
+  "restoreGuardSha256": "b861269a012135ef9d5b59cdd4fd3149b2a486569a08bb98cde781e419c336ed",
+  "restoreGuardPostflight": {
+    "data_counts": {
+      "profiles": 0,
+      "auth_users": 0,
+      "admin_users": 0,
+      "erasure_jobs": 0,
+      "storage_objects": 0
+    },
+    "admin_command": {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "md5": "8f6cc47dc9d8e7745a8f8cff4c22358e",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "signature": "triniti_platinum_admin_command(uuid,uuid,uuid,text,jsonb)",
+      "anon_execute": false,
+      "service_execute": true,
+      "security_definer": true,
+      "authenticated_execute": false
+    }
+  },
+  "qaMode": false,
+  "testsPassed": 20,
+  "tests": [
+    "private review records and service contracts deny app callers",
+    "staff request becomes a linked eligible worker job without deleting source records",
+    "notes are idempotent, private and leave erasure state unchanged",
+    "changed review versions and reused keys cannot execute new work",
+    "live role and native-session checks run before replay",
+    "resume requires explicit confirmation and valid source without auditing a false action",
+    "financial obligations remain held, including zero balances",
+    "managed staff identity remains held after staff deactivation",
+    "ambiguous ownership cannot be overridden or treated as an erasure manifest",
+    "unhealthy worker prevents eligible scheduling atomically",
+    "application cleanup failure remains an explicit hold with source data preserved",
+    "partial file progress, cache deadline, receipt and retry history survive review",
+    "changed stored-object versions remain held without refreshing the proof",
+    "an active lease is never stolen by an operator",
+    "identity provider failure preserves the prepared phase through exhaustion and resume",
+    "admin progress mirrors only verified completion and survives technical receipt expiry",
+    "completed and queued requests cannot be reactivated by another review command",
+    "a staff request added after member scheduling follows that job through completion and receipt expiry",
+    "any audit failure rolls back scheduling, link and private review together",
+    "ordinary restore cannot bypass a self-service hold before or after operator resume"
+  ],
+  "preflight": {
+    "data_counts": {
+      "profiles": 0,
+      "auth_users": 0,
+      "admin_users": 0,
+      "erasure_jobs": 0,
+      "admin_requests": 0,
+      "storage_objects": 0
+    },
+    "queue_matches": true,
+    "review_absent": true,
+    "admin_queue_installed": true,
+    "account_erasure_installed": true
+  },
+  "postflight": {
+    "triggers": [
+      "CREATE TRIGGER account_erasure_admin_completion AFTER UPDATE OF state ON account_erasure.jobs FOR EACH ROW EXECUTE FUNCTION account_erasure.complete_admin_request()",
+      "CREATE TRIGGER account_erasure_identity_phase BEFORE INSERT OR UPDATE ON account_erasure.jobs FOR EACH ROW EXECUTE FUNCTION account_erasure.keep_identity_phase()"
+    ],
+    "functions": [
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "44a4d8acdf616bb4582d2a8faa1b3922",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "account_erasure.admin_review_snapshot(text,uuid)"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "e718ac9df6499c39c922d08f1b23fe17",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "account_erasure.complete_admin_request()"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "241317001b38db8ebabd5cc3af958c9d",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "account_erasure.keep_identity_phase()"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "80165fb6f6f306969931d78a2ecab1d8",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "triniti_admin_deletion_requests(uuid,uuid,integer)"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "3f3aa2286501469f53fdf2a4d94f875e",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "triniti_admin_erasure_review(uuid,uuid,uuid,text,uuid,text,text,text,text)"
+      }
+    ],
+    "data_counts": {
+      "profiles": 0,
+      "auth_users": 0,
+      "admin_users": 0,
+      "erasure_jobs": 0,
+      "admin_requests": 0,
+      "storage_objects": 0
+    },
+    "reviews_private": true
+  },
+  "qaExistingDataPreserved": false,
+  "verifiedAt": "2026-10-30T01:07:38.272Z"
+}

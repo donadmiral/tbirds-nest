@@ -1,6 +1,7 @@
 "use client";
 
 import { createHomeFeedController, type FeedSeed, type FeedMode } from "@/lib/homeFeedController";
+import { restoreHomeFeedScroll } from "@/lib/homeFeedScroll";
 import { hydratePostMedia } from "@/lib/contentMedia";
 import { getFeedCache } from "@/lib/feedCache";
 import { feedPrefetchUrls } from "../../shared/feedSnapshot";
@@ -58,7 +59,7 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
   const { mode, rows: posts, loading, loadingMore, hasMore, error, pending: pendingNew } = state;
   const uidRef = useRef<string | null>(seed.owner);
   const load = useCallback((more = false, background = false) => controller.load(more, background), [controller]);
-  const setMode = (value: FeedMode) => controller.setMode(value);
+  const setMode = (value: FeedMode) => controller.setMode(value, window.scrollY);
   const [quote, setQuote] = useState<{ id: string; author: string; text: string } | null>(null);
   const [composerGeneration, setComposerGeneration] = useState(0);
   const router = useRouter();
@@ -89,11 +90,17 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
   const seenObserverRef = useRef<IntersectionObserver | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
+  const feedRef = useRef<HTMLDivElement | null>(null);
   // Variable-height posts stay in document flow. Window virtualization was
   // correcting scroll offsets as media loaded and cards changed height,
   // causing the page to jump underneath a normal wheel/touch gesture.
   // Infinite paging and lazy media still bound network and decoding work.
   const newDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!state.scrollRestore) return;
+    return restoreHomeFeedScroll(controller, () => feedRef.current, state.scrollRestore);
+  }, [controller, state.scrollRestore]);
 
   useEffect(() => {
     void controller.start();
@@ -231,7 +238,7 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
   }
 
   return (
-    <div>
+    <div ref={feedRef} data-feed-owner={state.owner ?? ''} data-feed-mode={mode}>
       <AnnouncementBanner />
       <StoryRings />
       {state.owner ? <Composer key={state.owner + ':' + composerGeneration} ownerId={state.owner} initialKind={composeKind} onPosted={(id) => { load(false); if (id && thenPromote.current) router.push("/ads/new?post=" + id); }} quote={quote} onQuoteDone={() => setQuote(null)} /> : null}

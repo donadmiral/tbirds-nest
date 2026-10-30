@@ -113,7 +113,14 @@ export async function exportStoryVideo(options: { url: string; recipe: StoryVide
     video.src = options.url; video.load(); await bounded(metadata, signal);
     if (!Number.isFinite(video.duration) || video.duration < recipe.trimEnd - .1 || !video.videoWidth || !video.videoHeight) throw new Error('The video duration or dimensions changed. Reopen this draft before exporting.');
     video.playbackRate = recipe.speed; video.preservesPitch = true;
-    if (recipe.trimStart > .001) { const seeked = new Promise<void>(resolve => { video.onseeked = () => resolve(); }); video.currentTime = recipe.trimStart; await bounded(seeked, signal); }
+    if (recipe.trimStart > .001) {
+      const seeked = new Promise<void>(resolve => { video.onseeked = () => resolve(); });
+      video.currentTime = recipe.trimStart;
+      await bounded(seeked, signal);
+      // Some browsers fire seeked at zero when an origin cannot serve a byte
+      // range. Never export the untrimmed beginning as if the edit succeeded.
+      if (Math.abs(video.currentTime - recipe.trimStart) > .05) throw new Error('The video could not seek to the selected trim. Download it and reopen the local file before exporting.');
+    }
     else if (video.readyState < 2) await bounded(new Promise<void>(resolve => { video.onloadeddata = () => resolve(); }), signal);
     options.progress('Preparing story artwork…'); const artwork = await options.capture(); check(signal);
     renderer = gradeRenderer(video, recipe);
@@ -124,9 +131,20 @@ export async function exportStoryVideo(options: { url: string; recipe: StoryVide
     recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 7_000_000, audioBitsPerSecond: 128_000 });
     const outputDuration = (recipe.trimEnd-recipe.trimStart)/recipe.speed;
     const finished = new Promise<void>((resolve, reject) => {
-      let ended = false, started = performance.now();
-      const stop = (error?: Error) => { if (ended) return; ended = true; recordedSeconds = (performance.now()-started)/1000; video.pause(); cancelAnimationFrame(frame); if (recorder && recorder.state !== 'inactive') recorder.stop(); if (error) reject(error); };
-      recorder!.onstart = () => { started = performance.now(); };
+      let ended = false;
+      // start is an asynchronously delivered event. It can arrive hundreds of
+      // milliseconds after recording/playback began while an encoder warms up.
+      // The monotonic clock must cover those already-recorded media timestamps.
+      const started = performance.now();
+      const stop = (error?: Error) => {
+        // The last dataavailable event follows stop(). Its size/error must still
+        // reject the export instead of returning the earlier, truncated chunks.
+        if (error) reject(error);
+        if (ended) return;
+        ended = true; recordedSeconds = (performance.now()-started)/1000;
+        video.pause(); cancelAnimationFrame(frame);
+        if (recorder && recorder.state !== 'inactive') recorder.stop();
+      };
       recorder!.ondataavailable = event => { if (event.data.size) { recordedBytes += event.data.size; if (recordedBytes > 160 * 1024 * 1024) { stop(new Error('The export is too large. Use a shorter clip.')); return; } chunks.push(event.data); } };
       recorder!.onerror = () => stop(new Error('The browser video recorder failed.'));
       recorder!.onstop = () => resolve();
@@ -136,15 +154,20 @@ export async function exportStoryVideo(options: { url: string; recipe: StoryVide
       const tick = () => {
         try {
           check(signal); if (document.hidden) throw new Error('Export paused because this tab was hidden. Keep it open and retry.');
-          draw();
           if (video.currentTime >= recipe.trimEnd - .015 || video.ended) { stop(); return; }
+          draw();
           const percent = Math.floor((video.currentTime-recipe.trimStart)/(recipe.trimEnd-recipe.trimStart)*100);
           options.progress(`Rendering edited video… ${Math.max(0,Math.min(99,percent))}%`);
           frame = requestAnimationFrame(tick);
         } catch (error) { stop(error instanceof Error ? error : new Error('Video rendering failed.')); }
       };
       watchdog = setTimeout(() => stop(new Error('The video stalled during export. Try a shorter clip.')), Math.min(180000, (outputDuration+30)*1000));
-      recorder!.start(1000); void video.play().then(() => { frame = requestAnimationFrame(tick); }, () => stop(new Error('Your browser blocked video playback. Click Save again to retry.')));
+      recorder!.start(1000);
+      // Request the selected first frame before the media clock advances.
+      draw();
+      const canvasTrack = stream!.getVideoTracks()[0] as CanvasCaptureMediaStreamTrack | undefined;
+      canvasTrack?.requestFrame?.();
+      void video.play().then(() => { frame = requestAnimationFrame(tick); }, () => stop(new Error('Your browser blocked video playback. Click Save again to retry.')));
     });
     await finished; check(signal);
     const blob = await finalizeRecordedWebm(new Blob(chunks, { type: recorder.mimeType || mime }), recordedSeconds);

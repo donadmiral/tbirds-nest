@@ -1,7 +1,6 @@
 import { completeRead } from '@/lib/completeRead';
 import CommandForm from '@/components/CommandForm';
 import PermissionGate from '@/components/PermissionGate';
-import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
@@ -27,10 +26,15 @@ export default async function OrganizationsPage({ searchParams }: { searchParams
   const admin = await requireDesk('/organizations');
   const svc = serviceClient();
   const sp = await searchParams;
-  const q = (sp.q ?? '').trim().toLowerCase();
+  const search = typeof sp.q === 'string' ? sp.q.trim().slice(0, 120) : '';
+  const q = search.toLowerCase();
   const showArchived = sp.show === 'archived';
+  const archiveParams = new URLSearchParams();
+  if (search) archiveParams.set('q', search);
+  if (!showArchived) archiveParams.set('show', 'archived');
+  const archiveHref = '/organizations' + (archiveParams.size ? '?' + archiveParams.toString() : '');
 
-  const [orgResult, memberResult, delegationResult, { data: audit }] = await Promise.all([
+  const [orgResult, memberResult, delegationResult, auditResult] = await Promise.all([
     svc.from('organizations').select('id, parent_id, kind, name, slug, profile_id, created_at, archived_at', {count:'exact'}).order('created_at'),
     svc.from('org_memberships').select('org_id, user_id, role, expires_at', {count:'exact'}),
     svc.from('org_delegations').select('principal_org_id, client_org_id, scopes, expires_at', {count:'exact'}),
@@ -38,10 +42,13 @@ export default async function OrganizationsPage({ searchParams }: { searchParams
   ]);
 
   for (const result of [orgResult, memberResult, delegationResult]) completeRead(result, 'Organization directory');
+  if (auditResult.error) throw new Error('Organization changes could not be loaded.');
+  const audit = auditResult.data;
   const orgs=orgResult.data, members=memberResult.data, delegations=delegationResult.data;
   const all = (orgs ?? []) as Org[];
   const userIds = Array.from(new Set([...(members ?? []).map((m: Membership) => m.user_id), ...(audit ?? []).map((a: Audit) => a.actor_id).filter(Boolean) as string[]]));
-  const { data: people } = userIds.length ? await svc.from('profiles').select('id, full_name, username').in('id', userIds) : { data: [] };
+  const { data: people, error: peopleError } = userIds.length ? await svc.from('profiles').select('id, full_name, username').in('id', userIds) : { data: [], error: null };
+  if (peopleError) throw new Error('Organization members could not be loaded.');
   const who = Object.fromEntries(((people ?? []) as { id: string; full_name: string | null; username: string | null }[]).map((p) => [p.id, p.full_name ?? (p.username ? '@' + p.username : p.id.slice(0, 8))]));
   const byId = Object.fromEntries(all.map((o) => [o.id, o]));
 
@@ -61,55 +68,60 @@ export default async function OrganizationsPage({ searchParams }: { searchParams
 
   return (
     <Shell admin={admin} active="/organizations" title="Organizations" sub="Every organization at every level: owners, members, agencies acting for them, and what changed.">
-      <form className="mb-4 flex gap-2">
-        <input name="q" defaultValue={sp.q ?? ''} placeholder="Search by name or handle" className="w-[320px] rounded-[10px] border border-[#E5E4E0] bg-white px-3 py-2 text-[13px] outline-none" />
+      <form className="mb-4 flex flex-wrap items-end gap-2" action="/organizations">
+        {showArchived ? <input type="hidden" name="show" value="archived" /> : null}
+        <label className="min-w-0 flex-1 text-[12px] font-semibold text-[var(--txt-muted)]">Find an organization
+          <input name="q" defaultValue={search} maxLength={120} placeholder="Search by name or handle" className="mt-1 block w-full rounded-[10px] border border-[#E5E4E0] bg-white px-3 py-2 text-[13px] outline-none" />
+        </label>
         <button className="rounded-[10px] border border-[#E5E4E0] bg-white px-3 py-2 text-[13px] font-semibold">Search</button>
-        <Link href={showArchived ? '/organizations' : '/organizations?show=archived'} className="ml-auto rounded-[10px] border border-[#E5E4E0] bg-white px-3 py-2 text-[13px] font-semibold text-[#6B6E76]">
+        <Link href={archiveHref} className="rounded-[10px] border border-[#E5E4E0] bg-white px-3 py-2 text-[13px] font-semibold text-[var(--txt-muted)]">
           {showArchived ? 'Hide archived' : 'Show archived'}
         </Link>
       </form>
 
       <p className="mb-2 text-[12px] font-semibold uppercase tracking-wider text-[#9A9DA4]">{visible.length} of {all.length}</p>
       <div className="overflow-hidden rounded-[12px] border border-[#E5E4E0] bg-white">
-        {visible.length === 0 ? <p className="p-5 text-[13px] text-[#6B6E76]">Nothing matches.</p> : visible.map(({ org, depth }) => {
+        {visible.length === 0 ? <p className="p-5 text-[13px] text-[var(--txt-muted)]">Nothing matches.</p> : visible.map(({ org, depth }) => {
           const ms = memberOf(org.id);
           const ds = delegated(org.id);
           return (
-            <div key={org.id} className="flex items-start gap-4 border-b border-[#EEEDE9] px-5 py-3.5 last:border-0" style={{ paddingLeft: 20 + depth * 22 }}>
+            <div key={org.id} className="pc-organization-row flex flex-wrap items-start gap-4 border-b border-[var(--line)] px-5 py-3.5 last:border-0" style={{ paddingLeft: 20 + Math.min(depth, 4) * 22 }}>
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-[14px] font-semibold text-[#1B1C1F]">{org.name}</span>
-                  <span className="rounded-full bg-[#F3F2EE] px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-wide text-[#6B6E76]">{org.kind}</span>
-                  {org.archived_at ? <span className="rounded-full bg-[#FDECEC] px-2 py-0.5 text-[10.5px] font-semibold text-[#B42318]">archived</span> : null}
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[14px] font-semibold text-[var(--txt)]">{org.name}</span>
+                  <span className="rounded-full bg-[var(--panel-2)] px-2 py-0.5 text-[10.5px] font-semibold uppercase tracking-wide text-[var(--txt-muted)]">{org.kind}</span>
+                  {org.archived_at ? <span className="rounded-full bg-[rgba(var(--bad-rgb),0.1)] px-2 py-0.5 text-[10.5px] font-semibold text-[var(--bad)]">archived</span> : null}
                   {org.parent_id ? <span className="text-[11.5px] text-[#9A9DA4]">under {byId[org.parent_id]?.name ?? 'unknown'}</span> : null}
                 </div>
-                <div className="mt-1 text-[12.5px] text-[#6B6E76]">
+                <div className="mt-1 text-[12.5px] text-[var(--txt-muted)]">
                   {org.slug ? '@' + org.slug + ' · ' : ''}
-                  owner {owners(org.id).join(', ') || <span className="text-[#B42318]">none</span>} · {ms.length} {ms.length === 1 ? 'member' : 'members'}
+                  owner {owners(org.id).join(', ') || <span className="text-[var(--bad)]">none</span>} · {ms.length} {ms.length === 1 ? 'member' : 'members'}
                   {ds.length ? ' · ' + ds.length + (ds.length === 1 ? ' agency' : ' agencies') : ''}
                   {!org.profile_id ? ' · no page of its own' : ''}
                 </div>
                 {ms.length ? (
                   <div className="mt-1.5 flex flex-wrap gap-1">
                     {ms.map((m) => (
-                      <span key={m.user_id} className="rounded-full border border-[#E5E4E0] px-2 py-0.5 text-[11px] text-[#4B4E56]">
+                      <span key={m.user_id} className="rounded-full border border-[#E5E4E0] px-2 py-0.5 text-[11px] text-[var(--txt-muted)]">
                         {who[m.user_id] ?? m.user_id.slice(0, 8)} · {m.role}{m.expires_at ? ' · until ' + new Date(m.expires_at).toLocaleDateString() : ''}
                       </span>
                     ))}
                   </div>
                 ) : null}
               </div>
-              <div className="flex shrink-0 flex-col gap-1.5">
-                {org.profile_id ? <Link href={'/p/' + org.profile_id} className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1 text-center text-[12px] font-semibold text-[#4B4E56]">Profile</Link> : null}
+              <div className="pc-organization-actions flex shrink-0 flex-col gap-1.5">
+                {org.profile_id ? <Link href={'/p/' + org.profile_id} className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1 text-center text-[12px] font-semibold text-[var(--txt-muted)]">Profile</Link> : null}
                 {org.archived_at ? (
-                  <PermissionGate role={admin.role} permission="organization_manage"><CommandForm scope="restoreOrganization" action={restoreOrganization}><input type="hidden" name="id" value={org.id} /><button className="w-full rounded-[8px] bg-[#1B1C1F] px-2.5 py-1 text-[12px] font-semibold text-white">Restore</button></CommandForm></PermissionGate>
+                  <PermissionGate role={admin.role} permission="organization_manage"><CommandForm scope="restoreOrganization" action={restoreOrganization}><input type="hidden" name="id" value={org.id} /><button className="w-full rounded-[8px] bg-[var(--deep)] px-2.5 py-1 text-[12px] font-semibold text-white">Restore</button></CommandForm></PermissionGate>
                 ) : (
-                  <PermissionGate role={admin.role} permission="organization_manage"><CommandForm scope="archiveOrganization" action={archiveOrganization}><input type="hidden" name="id" value={org.id} /><button className="w-full rounded-[8px] border border-[#E5E4E0] px-2.5 py-1 text-[12px] font-semibold text-[#B42318]">Archive</button></CommandForm></PermissionGate>
+                  <PermissionGate role={admin.role} permission="organization_manage"><CommandForm scope="archiveOrganization" action={archiveOrganization}><input type="hidden" name="id" value={org.id} /><button className="w-full rounded-[8px] border border-[#E5E4E0] px-2.5 py-1 text-[12px] font-semibold text-[var(--bad)]">Archive</button></CommandForm></PermissionGate>
                 )}
                 <PermissionGate role={admin.role} permission="organization_manage"><CommandForm scope="adminTransferOwnership" action={adminTransferOwnership} className="flex gap-1">
                   <input type="hidden" name="id" value={org.id} />
-                  <input name="username" placeholder="@new owner" className="w-[120px] rounded-[8px] border border-[#E5E4E0] px-2 py-1 text-[11.5px] outline-none" />
-                  <button className="rounded-[8px] border border-[#E5E4E0] px-2 py-1 text-[11.5px] font-semibold text-[#4B4E56]">Set</button>
+                  <label className="text-[12px] text-[var(--txt-muted)]">New owner username
+                    <input name="username" required aria-label={`New owner username for ${org.name}`} placeholder="@username" className="mt-1 block w-[150px] rounded-[8px] border border-[#E5E4E0] px-2 py-1.5 text-[12px] outline-none" />
+                  </label>
+                  <button className="self-end rounded-[8px] border border-[#E5E4E0] px-2 py-1.5 text-[12px] font-semibold text-[var(--txt)]">Transfer ownership</button>
                 </CommandForm></PermissionGate>
               </div>
             </div>
@@ -119,10 +131,10 @@ export default async function OrganizationsPage({ searchParams }: { searchParams
 
       <p className="mb-2 mt-8 text-[12px] font-semibold uppercase tracking-wider text-[#9A9DA4]">Recent changes</p>
       <div className="overflow-hidden rounded-[12px] border border-[#E5E4E0] bg-white">
-        {(audit ?? []).length === 0 ? <p className="p-5 text-[13px] text-[#6B6E76]">No organization changes recorded yet.</p> : ((audit ?? []) as Audit[]).map((a, i) => (
-          <div key={i} className="flex gap-4 border-b border-[#EEEDE9] px-5 py-2.5 text-[12.5px] last:border-0">
+        {(audit ?? []).length === 0 ? <p className="p-5 text-[13px] text-[var(--txt-muted)]">No organization changes recorded yet.</p> : ((audit ?? []) as Audit[]).map((a, i) => (
+          <div key={i} className="flex flex-wrap gap-2 border-b border-[var(--line)] px-5 py-2.5 text-[12.5px] last:border-0">
             <span className="w-[120px] shrink-0 text-[#9A9DA4]">{new Date(a.created_at).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
-            <span className="min-w-0 flex-1 text-[#4B4E56]"><span className="font-semibold text-[#1B1C1F]">{byId[a.org_id]?.name ?? 'organization'}</span> · {a.action.replace(/_/g, ' ')} · by {a.actor_id ? (who[a.actor_id] ?? 'member') : 'system'}</span>
+            <span className="min-w-0 flex-1 text-[var(--txt-muted)]"><span className="font-semibold text-[var(--txt)]">{byId[a.org_id]?.name ?? 'organization'}</span> · {a.action.replace(/_/g, ' ')} · by {a.actor_id ? (who[a.actor_id] ?? 'member') : 'system'}</span>
           </div>
         ))}
       </div>

@@ -47,6 +47,23 @@ test('native film video honors trim/speed and advances once at the real media bo
 test('native film video cannot complete or continue playback while backgrounded or inactive',async()=>{
  const h=createFilmHarness(ts,'native',{component:'video'});await h.settle();const p=h.players[0];h.setForeground(false);await h.settle();assert.equal(p.playing,false);p.emit('timeUpdate',{currentTime:5});assert.equal(h.ended,0);h.setForeground(true);h.setActive(false);await h.settle();p.emit('playToEnd',{});assert.equal(h.ended,0);h.dispose();
 });
+test('native film gives stalled video an error instead of remaining stuck after initial readiness',async()=>{
+ const h=createFilmHarness(ts,'native',{component:'video'});await h.settle();assert.equal(h.ready,1);
+ await h.tick(20000);assert.equal(h.failed,1);assert.equal(h.players[0].playing,false);
+ await h.tick(20000);assert.equal(h.failed,1);assert.equal(h.ended,0);h.dispose();assert.equal(h.timerCount,0);
+});
+test('native film video progress and deliberate pauses reset its stalled-media deadline',async()=>{
+ const h=createFilmHarness(ts,'native',{component:'video'});await h.settle();
+ await h.tick(15000);h.players[0].currentTime=3;await h.tick(1000);await h.tick(15000);assert.equal(h.failed,0);
+ h.setActive(false);await h.settle();await h.tick(90000);assert.equal(h.failed,0);
+ h.setActive(true);await h.settle();h.setForeground(false);await h.settle();await h.tick(90000);assert.equal(h.failed,0);
+ h.setForeground(true);await h.settle();await h.tick(19000);assert.equal(h.failed,0);await h.tick(1000);assert.equal(h.failed,1);h.dispose();
+});
+test('native film photo artwork follows the playback clock and freezes on pause',async()=>{
+ const h=createFilmHarness(ts,'native');await h.settle();h.mediaReady();await h.settle();
+ const frame=()=>h.nodes().find(node=>node.type==='MemoryStoryFrame');assert.equal(frame().props.clock,0);
+ await h.tick(2000);assert.equal(frame().props.clock,2);h.press('Pause memory film');await h.settle();await h.tick(20000);assert.equal(frame().props.clock,2);h.dispose();
+});
 test('film source selection includes embedded videos and text posts without inventing URLs',async()=>{
  const h=createFilmHarness(ts,'native'),lib=h.load('shared/memoryFilm.ts');const [video,text]=lib.memoryFilmItems([{id:'v',media_type:'text',stickers:JSON.stringify([{kind:'post',postId:'post',postMediaType:'video',postMediaUrl:'signed:post',postText:'A memory',postAuthorName:'Don'}])},{id:'t',stickers:[{kind:'post',postText:'Text-only story'}]}]);assert.equal(video.kind,'video');assert.equal(video.uri,'signed:post');assert.equal(video.author,'Don');assert.equal(text.kind,'text');assert.equal(text.uri,null);assert.equal(text.excerpt,'Text-only story');assert.deepEqual(JSON.parse(JSON.stringify(lib.memoryFilmStep(0,1,1))),{index:0,wrapped:true});assert.equal(lib.memoryFilmVideoWindow({media_transform:{}},NaN).end,null);h.dispose();
 });

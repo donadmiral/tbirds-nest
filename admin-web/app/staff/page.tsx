@@ -133,7 +133,7 @@ export default async function StaffPage() {
   ];
 
   return (
-    <Shell admin={admin} active="/staff" title="Staff" sub="Who holds keys to this desk, what each role can reach, and everything they have done. Staff identities are never social accounts.">
+    <Shell admin={admin} active="/staff" title="Staff" sub="Manage operations access, role permissions and recorded staff activity.">
       <StatStrip cards={cards} />
 
       <div className="mt-4" style={PANEL}>
@@ -144,7 +144,7 @@ export default async function StaffPage() {
         <PermissionGate role={admin.role} permission="staff_manage"><CommandForm scope="inviteStaff" action={inviteStaff} style={{ display: 'flex', flexWrap: 'wrap', gap: 9, padding: 16 }}>
           <input name="email" type="email" aria-label="Staff email" required placeholder="Email" style={{ ...FIELD, flex: '1 1 220px', minWidth: 200 }} />
           <input name="password" type="password" autoComplete="new-password" aria-label="Temporary password, at least 12 characters" required minLength={12} placeholder="Temporary password, 12 characters or more" style={{ ...FIELD, flex: '1 1 240px', minWidth: 220 }} />
-          <select name="role" aria-label="Staff role" style={{ ...FIELD, cursor: 'pointer' }}>
+          <select name="role" aria-label="Staff role" defaultValue="auditor_readonly" style={{ ...FIELD, cursor: 'pointer' }}>
             {ROLES.map(r => <option key={r} value={r}>{title(r)}</option>)}
           </select>
           <button type="submit" style={{ padding: '9px 16px', borderRadius: 9, cursor: 'pointer', fontSize: 13, fontWeight: 600, background: 'var(--accent)', color: 'var(--accent-ink)', border: 'none' }}>Invite</button>

@@ -47,7 +47,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
   ];
 
   return (
-    <Shell admin={admin} active="/users" title="Users" sub="Every member on Platinum Circles \u2014 verification tier, strikes, restriction state and account standing.">
+    <Shell admin={admin} active="/users" title="Users" sub="Every member on Platinum Circles, with verification tier, strikes, restriction state and account standing.">
       {canPerform(admin.role, 'account_delete') && <Link href="/users/deletions" className="mb-4 inline-block text-sm underline">Deletion requests</Link>}
       <form method="get" className="mb-4 flex gap-2">
         <input name="q" aria-label="Search all members" defaultValue={q || ''} placeholder="Search name, username, or email"

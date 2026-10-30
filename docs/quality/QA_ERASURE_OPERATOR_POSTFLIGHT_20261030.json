@@ -1,0 +1,64 @@
+{
+  "project": "uaulhuelcfkjwojtymmw",
+  "scope": "isolated QA",
+  "migration": "20261030005241_account_erasure_operator_review.sql",
+  "sourceSha256": "28fcbb0674951fe61b2c88079a9df2af62378e6eef512cf9f0f9083d0fc23e8b",
+  "installed": true,
+  "postflight": {
+    "triggers": [
+      "CREATE TRIGGER account_erasure_admin_completion AFTER UPDATE OF state ON account_erasure.jobs FOR EACH ROW EXECUTE FUNCTION account_erasure.complete_admin_request()",
+      "CREATE TRIGGER account_erasure_identity_phase BEFORE INSERT OR UPDATE ON account_erasure.jobs FOR EACH ROW EXECUTE FUNCTION account_erasure.keep_identity_phase()"
+    ],
+    "functions": [
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "44a4d8acdf616bb4582d2a8faa1b3922",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "account_erasure.admin_review_snapshot(text,uuid)"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "e718ac9df6499c39c922d08f1b23fe17",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "account_erasure.complete_admin_request()"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "241317001b38db8ebabd5cc3af958c9d",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "account_erasure.keep_identity_phase()"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "80165fb6f6f306969931d78a2ecab1d8",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "triniti_admin_deletion_requests(uuid,uuid,integer)"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "3f3aa2286501469f53fdf2a4d94f875e",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "triniti_admin_erasure_review(uuid,uuid,uuid,text,uuid,text,text,text,text)"
+      }
+    ],
+    "data_counts": {
+      "profiles": 1,
+      "auth_users": 1,
+      "admin_users": 1,
+      "erasure_jobs": 0,
+      "admin_requests": 0,
+      "storage_objects": 15
+    },
+    "reviews_private": true
+  }
+}

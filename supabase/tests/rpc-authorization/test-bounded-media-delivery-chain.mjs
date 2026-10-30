@@ -59,6 +59,7 @@ before(async()=>{
   assert.deepEqual(await media.qaDataSnapshot(db),before,'QA upgrade must preserve every existing account/session/profile/staff/Storage row and bucket');
   await admin.cleanQaPreservationFixture(db);
  } else for(const name of migrations) await db.exec(await source(`supabase/migrations/${name}.sql`));
+ await db.exec(await source('supabase/migrations/20261030010250_account_erasure_admin_restore_guard.sql'));
  await db.exec("select set_config('request.jwt.claim.role','service_role',false),set_config('request.jwt.claims','{\"role\":\"service_role\"}',false)");
  for(const [name,id] of Object.entries(actors)) {
   await db.query('insert into auth.users(id,email) values($1,$2)',[id,`delivery-${name}@example.test`]);
@@ -197,4 +198,43 @@ test('self-service retention holds appear only in the authorized deletion queue,
  const data=await queue('admin'),row=data.rows.find(r=>r.request_id===request);
  assert.equal(row.source,'self_service');assert.equal(row.status,'retention_review');assert.equal(row.full_name,null);
  assert.equal(JSON.stringify(data).includes(token),false);assert.equal(JSON.stringify(data).includes('photo.jpg'),false);
+});
+
+test('ordinary admin restore cannot reopen an account with a self-service erasure request',async()=>{
+ const request=randomUUID(),token='a'.repeat(64);
+ const accepted=await as('authenticated','owner','select public.request_account_erasure($1,$2)',[request,token]);
+ assert.equal(accepted.state,'queued');
+ for(const operation of ['restoreUser','liftRestriction']) {
+  const payload=operation==='restoreUser'?{id:actors.owner}:{uid:actors.owner};
+  await assert.rejects(service('select public.triniti_platinum_admin_command($1,$2,$3,$4,$5)',
+   [actors.admin,sessions.admin,randomUUID(),operation,JSON.stringify(payload)]),/DELETION_REVIEW_REQUIRED/);
+ }
+ assert.equal(await value('select banned_until is not null from auth.users where id=$1',[actors.owner]),true);
+ assert.equal(await value('select deactivated_at is not null from public.profiles where id=$1',[actors.owner]),true);
+ assert.equal(await value('select state from account_erasure.jobs where id=$1',[request]),'queued');
+});
+
+test('pending erasure rejects replayed restore receipts and retention-review restores',async()=>{
+ const key=randomUUID(),payload=JSON.stringify({id:actors.owner});
+ const restore=()=>service('select public.triniti_platinum_admin_command($1,$2,$3,$4,$5)',
+  [actors.admin,sessions.admin,key,'restoreUser',payload]);
+ assert.equal((await restore()).success,true);
+ await object('post-media',null);const request=randomUUID(),token='b'.repeat(64);
+ const accepted=await as('authenticated','owner','select public.request_account_erasure($1,$2)',[request,token]);
+ assert.equal(accepted.state,'retention_review');
+ await assert.rejects(restore(),/DELETION_REVIEW_REQUIRED/);
+ assert.equal(await value('select banned_until is not null from auth.users where id=$1',[actors.owner]),true);
+ assert.equal(await value('select state from account_erasure.jobs where id=$1',[request]),'retention_review');
+});
+
+test('restore guard preserves the service-only admin API and fails on a repeated or drifted migration',async()=>{
+ const signature='public.triniti_platinum_admin_command(uuid,uuid,uuid,text,jsonb)';
+ for(const role of ['anon','authenticated']) assert.equal(await value('select has_function_privilege($1,$2,\'execute\')',[role,signature]),false);
+ assert.equal(await value("select has_function_privilege('service_role',$1,'execute')",[signature]),true);
+ assert.deepEqual(await value('select proconfig from pg_proc where oid=to_regprocedure($1)',[signature]),['search_path=""']);
+ const before=await value('select md5(pg_get_functiondef(to_regprocedure($1)))',[signature]);
+ const migration=await source('supabase/migrations/20261030010250_account_erasure_admin_restore_guard.sql');
+ await assert.rejects(db.exec(migration),/ERASURE_RESTORE_ADMIN_DEFINITION_DRIFT/);
+ await db.exec('rollback;begin');
+ assert.equal(await value('select md5(pg_get_functiondef(to_regprocedure($1)))',[signature]),before);
 });

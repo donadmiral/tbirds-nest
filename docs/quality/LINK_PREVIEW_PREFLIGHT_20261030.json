@@ -1,0 +1,100 @@
+{
+  "production": {
+    "table": {
+      "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+      "rls": true,
+      "rows": 6,
+      "policies": [
+        {
+          "cmd": "r",
+          "name": "link_previews_read",
+          "check": null,
+          "roles": [
+            "16485"
+          ],
+          "using": "true"
+        }
+      ]
+    },
+    "function": {
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "md5": "686178f5e0db6e4bf417d153a2bc585f",
+      "owner": "postgres",
+      "definition": "CREATE OR REPLACE FUNCTION public.upsert_link_preview(p_url text, p_title text DEFAULT NULL::text, p_description text DEFAULT NULL::text, p_image_url text DEFAULT NULL::text, p_domain text DEFAULT NULL::text)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  update public.link_previews\r\n    set title = coalesce(p_title, title),\r\n        description = coalesce(p_description, description),\r\n        image_url = coalesce(p_image_url, image_url),\r\n        domain = coalesce(p_domain, domain),\r\n        fetched_at = now()\r\n    where url = p_url;\r\n  if not found then\r\n    insert into public.link_previews (url, title, description, image_url, domain, fetched_at)\r\n    values (p_url, p_title, p_description, p_image_url, p_domain, now());\r\n  end if;\r\nend;\r\n$function$\n"
+    }
+  },
+  "qa": {
+    "table": {
+      "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+      "rls": true,
+      "rows": 0,
+      "columns": [
+        "url",
+        "title",
+        "description",
+        "image_url",
+        "domain",
+        "fetched_at"
+      ],
+      "policies": [
+        {
+          "cmd": "r",
+          "name": "link_previews_read",
+          "check": null,
+          "roles": [
+            "authenticated"
+          ],
+          "using": "true"
+        }
+      ],
+      "triggers": 1
+    },
+    "function": {
+      "acl": "{postgres=X/postgres,=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "md5": "686178f5e0db6e4bf417d153a2bc585f",
+      "owner": "postgres"
+    },
+    "observed_at": "2026-10-30T00:03:35.650909+00:00",
+    "targetsAbsent": true
+  },
+  "finalChecks": [
+    {
+      "project": "prlkikhckbifseosbukl",
+      "result": [
+        {
+          "preflight": {
+            "cacheRows": 6,
+            "tableReady": true,
+            "policyReady": true,
+            "functionReady": true,
+            "targetsAbsent": true,
+            "authColumnReady": true,
+            "serviceRoleReady": true
+          }
+        }
+      ]
+    },
+    {
+      "project": "uaulhuelcfkjwojtymmw",
+      "result": [
+        {
+          "preflight": {
+            "cacheRows": 0,
+            "tableReady": true,
+            "policyReady": true,
+            "functionReady": true,
+            "targetsAbsent": true,
+            "authColumnReady": true,
+            "serviceRoleReady": true
+          }
+        }
+      ]
+    }
+  ],
+  "additionalObservedCoreMetadata": {
+    "serviceRoleBypassesRls": true,
+    "appRolesBypassRls": false,
+    "authBannedUntilType": "timestamp with time zone",
+    "linkPreviewColumnAcls": []
+  }
+}

@@ -1,4 +1,3 @@
-import { redirect } from 'next/navigation';
 import { requireDesk } from '@/lib/adminAuth';
 import PresentBuilder from '@/components/PresentBuilder';
 import { deploymentEnvironment } from '@/lib/operationsReporting';
@@ -9,5 +8,5 @@ import { deploymentEnvironment } from '@/lib/operationsReporting';
  */
 export default async function PresentPage() {
   const admin = await requireDesk('/dashboard');
-  return <PresentBuilder by={admin.email} role={admin.role} env={deploymentEnvironment(process.env.VERCEL_ENV,process.env.NODE_ENV).label} />;
+  return <div data-pc-staff={`${admin.id}:${admin.role}`}><PresentBuilder by={admin.email} role={admin.role} env={deploymentEnvironment(process.env.VERCEL_ENV,process.env.NODE_ENV).label} /></div>;
 }

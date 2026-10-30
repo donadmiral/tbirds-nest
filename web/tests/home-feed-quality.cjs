@@ -75,7 +75,7 @@ test('muted words apply to server rows and hidden posts cannot return after refr
 test('the actual HomeFeed server rendering includes post content before JavaScript hydration', () => {
   const h=harness();const empty=()=>null;
   const overrides={
-    '@/lib/homeFeedController':{createHomeFeedController}, '@/lib/contentMedia':{hydratePostMedia:async rows=>rows}, '@/lib/feedCache':{getFeedCache:()=>h.cache}, '../../shared/feedSnapshot':shared, '../../shared/feedMedia':load('../shared/feedMedia.ts'),
+    '@/lib/homeFeedController':{createHomeFeedController}, '@/lib/homeFeedScroll':load('lib/homeFeedScroll.ts'), '@/lib/contentMedia':{hydratePostMedia:async rows=>rows}, '@/lib/feedCache':{getFeedCache:()=>h.cache}, '../../shared/feedSnapshot':shared, '../../shared/feedMedia':load('../shared/feedMedia.ts'),
     '@/lib/supabase/client':{createClient:()=>h.client}, 'next/navigation':{useRouter:()=>({push(){},refresh(){},replace(){}})},
     '@/components/PostCard':{PostCard:({post})=>React.createElement('article',null,post.content)},
     '@/components/StoryRings':{StoryRings:empty}, '@/components/Composer':{Composer:empty},
@@ -86,6 +86,7 @@ test('the actual HomeFeed server rendering includes post content before JavaScri
   const {default:HomeFeed}=load('components/HomeFeed.tsx',overrides);
   const html=renderToStaticMarkup(React.createElement(HomeFeed,{seed:h.seed}));
   assert.match(html,/Visible content first/);assert.match(html,/data-feed-content="true"/);
+  assert.match(html,/data-feed-owner="alice" data-feed-mode="for_you"/);
   assert.doesNotMatch(html,/animate-pulse/);
 });
 

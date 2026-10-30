@@ -437,3 +437,8 @@ verify_jwt = false
 
 [functions.chat-media-sign]
 verify_jwt = false
+
+# POST verifies the real Auth user inside the handler. GET serves only a
+# service-created preview-image token and never accepts an arbitrary image URL.
+[functions.link-preview]
+verify_jwt = false

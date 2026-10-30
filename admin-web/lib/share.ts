@@ -1,8 +1,8 @@
 /**
  * Share and Present - the transfer layer.
  * Anything an admin finds on a desk can leave the dashboard as a file, a
- * briefing or a deck. The tray lives in localStorage so items survive
- * navigation between desks; nothing here touches the database.
+ * briefing or a deck. The tray belongs to the current staff identity and role
+ * in this browser tab. It survives navigation, not a shared global cache.
  */
 
 export type TrayKind = 'stat' | 'table' | 'note';
@@ -22,22 +22,59 @@ export type TrayItem = {
   note?: { text: string };
 };
 
-const KEY = 'pc-present-tray';
+const KEY = 'pc-present-tray-v2';
+const MAX_ITEMS = 40;
 export const TRAY_EVENT = 'pc-tray-changed';
+
+function storageKey(): string | null {
+  if (typeof document === 'undefined') return null;
+  const staff = document.querySelector('[data-pc-staff]')?.getAttribute('data-pc-staff');
+  return staff && /^[a-zA-Z0-9_:-]{1,160}$/.test(staff) ? `${KEY}:${staff}` : null;
+}
+
+const text = (value: unknown, max = 2000): value is string => typeof value === 'string' && value.length <= max;
+const strings = (value: unknown, max: number): value is string[] => Array.isArray(value) && value.length <= max && value.every(item => text(item));
+
+function validItem(value: unknown): value is TrayItem {
+  if (!value || typeof value !== 'object') return false;
+  const item = value as Partial<TrayItem>;
+  if (!text(item.id, 80) || !text(item.title) || !text(item.page, 200) || !text(item.path, 2000)
+    || !item.path.startsWith('/') || item.path.startsWith('//') || !text(item.createdAt, 40)
+    || !Number.isFinite(Date.parse(item.createdAt)) || (item.subtitle !== undefined && !text(item.subtitle))) return false;
+  if (item.kind === 'note') return !!item.note && text(item.note.text, 10000);
+  if (item.kind === 'stat') return !!item.stat && text(item.stat.value)
+    && (item.stat.delta === undefined || text(item.stat.delta)) && (item.stat.note === undefined || text(item.stat.note));
+  if (item.kind === 'table') {
+    const table = item.table;
+    return !!table && strings(table.columns, 30) && Array.isArray(table.rows) && table.rows.length <= 60
+      && table.rows.every(row => strings(row, 30) && row.length === table.columns.length)
+      && Number.isSafeInteger(table.total) && table.total >= table.rows.length && strings(table.filters, 20);
+  }
+  return false;
+}
 
 export function trayRead(): TrayItem[] {
   if (typeof window === 'undefined') return [];
   try {
-    const raw = window.localStorage.getItem(KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as TrayItem[];
-    return Array.isArray(parsed) ? parsed : [];
+    const key = storageKey();
+    const raw = key ? window.sessionStorage.getItem(key) : null;
+    if (!raw || raw.length > 1000000) return [];
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter(validItem).slice(0, MAX_ITEMS) : [];
   } catch { return []; }
 }
 
 export function trayWrite(items: TrayItem[]) {
-  if (typeof window === 'undefined') return;
-  try { window.localStorage.setItem(KEY, JSON.stringify(items.slice(0, 40))); } catch { /* private mode */ }
+  const key = storageKey();
+  if (!key) throw new Error('Refresh your staff workspace before collecting presentation items.');
+  if (items.length > MAX_ITEMS) throw new Error('Your presentation holds 40 items. Remove an item before adding another.');
+  if (!items.every(validItem)) throw new Error('This item cannot be added to the presentation. Export the table from its desk instead.');
+  const serialized = JSON.stringify(items);
+  if (serialized.length > 1000000) throw new Error('This presentation is too large. Remove a table before adding another.');
+  try {
+    window.sessionStorage.setItem(key, serialized);
+    if (window.sessionStorage.getItem(key) !== serialized) throw new Error();
+  } catch { throw new Error('Browser storage is unavailable. Allow storage and try again.'); }
   window.dispatchEvent(new CustomEvent(TRAY_EVENT));
 }
 
@@ -56,11 +93,12 @@ export function trayClear() {
   trayWrite([]);
 }
 
-/** RFC-4180 enough for Excel, Numbers and Sheets. */
+/** Quote CSV controls and neutralize executable spreadsheet formulas. */
 export function csv(columns: string[], rows: string[][]): string {
   const esc = (v: string) => {
-    const s = String(v ?? '');
-    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    const value = String(v ?? '');
+    const s = /^[\s\uFEFF]*[=+\-@]/.test(value) ? "'" + value : value;
+    return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
   };
   return [columns.map(esc).join(','), ...rows.map(r => r.map(esc).join(','))].join('\r\n');
 }

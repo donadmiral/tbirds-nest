@@ -47,6 +47,23 @@ export function memoryFilmProgress(time: number, start: number, end: number | nu
 }
 
 export function memoryFilmPhotoDuration(item: MemoryFilmItem) { return memoryPhotoDuration(item.page); }
+
+/** Only foreground playback counts towards a stalled-media deadline. */
+export function createMemoryFilmProgressGuard(timeout = 20000) {
+  let position = NaN, changedAt: number | null = null;
+  return {
+    reset() { position = NaN; changedAt = null; },
+    stalled(time: number, now: number, expected: boolean) {
+      if (!expected || !Number.isFinite(time) || !Number.isFinite(now)) {
+        position = NaN; changedAt = null; return false;
+      }
+      if (changedAt == null || now < changedAt || !Number.isFinite(position) || Math.abs(time - position) > .001) {
+        position = time; changedAt = now; return false;
+      }
+      return now - changedAt >= timeout;
+    },
+  };
+}
 export const MEMORY_SCORE_TITLE = 'Quiet light';
 export const MEMORY_SCORE_DESCRIPTION = 'Original instrumental for Platinum Circles';
 export const MEMORY_SCORE_VOLUME = .32;

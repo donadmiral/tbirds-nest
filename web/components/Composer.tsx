@@ -165,18 +165,21 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
   }, [supabase, ownerId]);
 
   useEffect(() => {
+    let active = true;
     const url = (text.match(/https?:\/\/\S+/) || [])[0] ?? null;
     if (!url) { setPreview(null); return; }
-    if (previewOff.current === url || preview?.url === url) return;
+    if (previewOff.current === url) { setPreview(null); return; }
+    if (preview?.url === url) return;
+    setPreview(null);
     const t = setTimeout(async () => {
       try {
         const { data, error: e } = await supabase.functions.invoke("link-preview", { body: { url } });
-        if (!e && data && !data.error) setPreview({ url, ...data });
+        if (active && mounted.current && authenticatedOwner.current === ownerId && previewOff.current !== url && !e && data && !data.error && data.url === url) setPreview(data);
       } catch { /* no preview, fine */ }
     }, 800);
-    return () => clearTimeout(t);
+    return () => { active = false; clearTimeout(t); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [text]);
+  }, [text, ownerId]);
   const [mentions, setMentions] = useState<MentionHit[]>([]);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -357,21 +360,13 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
         if (quote) insertData.quoted_post_id = quote.id;
         if (threadTo) insertData.thread_parent_id = threadTo;
         if (postCategory) insertData.category = postCategory;
-        if (preview?.url) insertData.link_url = preview.url;
+        const currentLink = (text.match(/https?:\/\/\S+/) || [])[0] ?? null;
+        if (preview && preview.url === currentLink) insertData.link_url = preview.url;
 
         progress.postId = stablePostId;
         const [newPost] = await progress.writeIdempotent("post", () => saveRows("posts", [insertData]));
         if (!newPost) { progress.uncertain = true; throw new Error("Could not confirm the post."); }
         progress.postId = newPost.id;
-        if (preview?.url) {
-          await progress.writeIdempotent("link-preview", () => supabase.rpc("upsert_link_preview", {
-            p_url: preview.url,
-            p_title: preview.title ?? null,
-            p_description: preview.description ?? null,
-            p_image_url: preview.image_url ?? null,
-            p_domain: preview.domain ?? null,
-          }));
-        }
 
         if (products.length > 0) {
           await progress.writeIdempotent("products", () => supabase.rpc("set_post_products", {

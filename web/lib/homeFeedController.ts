@@ -10,13 +10,15 @@ type Query = PromiseLike<Result> & { abortSignal?: (signal: AbortSignal) => Quer
 type Client = { rpc: (name: string, args: Record<string, unknown>) => Query };
 type Snapshots = ReturnType<typeof createFeedSnapshotStore>;
 type Measurement = { operation: 'refresh' | 'page'; durationMs: number; outcome: 'ok' | 'error'; rows: number };
+export type FeedScrollRestore = { id: number; owner: string; mode: FeedMode; top: number };
 export type HomeFeedState = {
   owner: string | null; mode: FeedMode; rows: FeedRow[]; loading: boolean; loadingMore: boolean;
-  hasMore: boolean; pending: number; error: string | null;
+  hasMore: boolean; pending: number; error: string | null; scrollRestore: FeedScrollRestore | null;
 };
 const PAGE_SIZE = 20;
 const cacheMode = (mode: FeedMode) => mode === 'for_you' ? 'forYou' : mode;
 const uniqueRows = (rows: FeedRow[]) => [...new Map(rows.map(row => [row.post_id, row])).values()];
+const scrollOffset = (value: number) => Number.isFinite(value) && value >= 0 ? value : 0;
 export const filterMutedFeedRows = (rows: FeedRow[], words: string[]) => rows.filter(row => {
   if (isMarketplacePost(row)) return false;
   const text = `${row.content ?? row.body ?? ''} ${row.article_title ?? ''}`.toLowerCase();
@@ -27,11 +29,11 @@ export const filterMutedFeedRows = (rows: FeedRow[], words: string[]) => rows.fi
 export function createHomeFeedController(client: Client, seed: FeedSeed, snapshots: Snapshots,
   measure: (value: Measurement) => void = () => {}, hydrate: (rows: FeedRow[]) => Promise<FeedRow[]> = async rows => rows) {
   let state: HomeFeedState = { owner: seed.owner, mode: 'for_you', rows: filterMutedFeedRows(seed.rows, seed.mutedWords),
-    loading: false, loadingMore: false, hasMore: seed.rows.length >= PAGE_SIZE, pending: 0, error: seed.error };
+    loading: false, loadingMore: false, hasMore: seed.rows.length >= PAGE_SIZE, pending: 0, error: seed.error, scrollRestore: null };
   let cursor = seed.rows.length ? seed.rows[seed.rows.length - 1] : null;
   let words = seed.mutedWords;
-  const tabs = createFeedTabCache<{ rows: FeedRow[]; cursor: FeedRow | null; hasMore: boolean; pending: number }>();
-  let revision = 0, pageRevision = 0, disposed = false, liveResolved = !seed.error, refreshing = false;
+  const tabs = createFeedTabCache<{ rows: FeedRow[]; cursor: FeedRow | null; hasMore: boolean; pending: number; scrollTop: number }>();
+  let revision = 0, pageRevision = 0, scrollRevision = 0, disposed = false, liveResolved = !seed.error, refreshing = false;
   const hidden = new Set<string>(), listeners = new Set<() => void>(), active = new Set<AbortController>();
   const publish = (patch: Partial<HomeFeedState>) => { state = { ...state, ...patch }; listeners.forEach(fn => fn()); };
   const current = (token: number, owner: string | null, mode: FeedMode) => !disposed && revision === token && state.owner === owner && state.mode === mode;
@@ -69,13 +71,14 @@ export function createHomeFeedController(client: Client, seed: FeedSeed, snapsho
       await snapshots.write(owner, cacheMode(mode), rows, new Set([...eligibility].filter(([, eligible]) => eligible).map(([id]) => id)), snapshotRevision);
     } catch { /* Optional disk caching never blocks a live feed. */ }
   }
-  async function load(more = false, background = false) {
+  async function load(more = false, background = false, modeChange = false) {
     if (!state.owner || disposed || (more && (refreshing || state.loadingMore || !state.hasMore || !cursor))) return;
     if (!more) { revision++; pageRevision++; cancel(); refreshing = true; }
     const token = revision, pageToken = more ? ++pageRevision : pageRevision, owner = state.owner, mode = state.mode;
     const valid = () => current(token, owner, mode) && (!more || pageToken === pageRevision);
     const started = performance.now();
-    publish({ loading: !more && !state.rows.length, loadingMore: more, error: null });
+    publish({ loading: !more && !state.rows.length, loadingMore: more, error: null,
+      ...(!more && !background && !modeChange ? { scrollRestore: null } : {}) });
     try {
       const result = await query('get_feed', { p_mode: mode, p_cursor_key: more ? cursor?.sort_key : null,
         p_cursor_id: more ? cursor?.post_id : null, p_limit: PAGE_SIZE });
@@ -137,28 +140,36 @@ export function createHomeFeedController(client: Client, seed: FeedSeed, snapsho
       });
       await Promise.all([restored, fresh]);
     },
-    load,
-    setMode(mode: FeedMode) {
-      if (mode === state.mode) return;
+    load: (more = false, background = false) => load(more, background),
+    setMode(mode: FeedMode, currentScrollTop = 0) {
+      if (disposed || mode === state.mode) return;
       // Save only an established result. A request interrupted by another tab
       // must not turn that tab's next visit into a cached empty state.
-      if (!state.loading && !state.error) tabs.save(state.mode, { rows: state.rows, cursor, hasMore: state.hasMore, pending: state.pending });
+      if (!state.loading && !state.error) tabs.save(state.mode, { rows: state.rows, cursor, hasMore: state.hasMore, pending: state.pending,
+        // Rapid tab changes must not replace an unapplied destination offset
+        // with the previous tab's temporarily clamped window position.
+        scrollTop: state.rows.length ? state.scrollRestore?.top ?? scrollOffset(currentScrollTop) : 0 });
       const restored = tabs.read(mode);
       cursor = restored?.cursor ?? null;
-      publish({ mode, rows: restored?.rows.filter(row => !hidden.has(row.post_id)) ?? [], pending: restored?.pending ?? 0,
-        hasMore: restored?.hasMore ?? false, loading: !restored, loadingMore: false, error: null });
-      void load(false, !!restored);
+      const rows = restored?.rows.filter(row => !hidden.has(row.post_id)) ?? [];
+      publish({ mode, rows, pending: restored?.pending ?? 0,
+        hasMore: restored?.hasMore ?? false, loading: !restored, loadingMore: false, error: null,
+        scrollRestore: state.owner ? { id: ++scrollRevision, owner: state.owner, mode, top: rows.length ? scrollOffset(restored?.scrollTop ?? 0) : 0 } : null });
+      void load(false, !!restored, true);
+    },
+    finishScrollRestore(id: number) {
+      if (state.scrollRestore?.id === id) publish({ scrollRestore: null });
     },
     setOwner(owner: string | null) {
       if (owner === state.owner) return;
       revision++; pageRevision++; cancel(); refreshing = false; snapshots.setAccount(owner); hidden.clear(); tabs.clear(); words = []; cursor = null; liveResolved = false;
-      publish({ owner, rows: [], pending: 0, hasMore: false, loading: !!owner, loadingMore: false, error: null });
+      publish({ owner, rows: [], pending: 0, hasMore: false, loading: !!owner, loadingMore: false, error: null, scrollRestore: null });
       if (owner) queueMicrotask(() => { if (state.owner === owner) void load(); });
     },
     hide(postId: string) {
       hidden.add(postId); if (state.owner) void snapshots.clear(state.owner);
       publish({ rows: state.rows.filter(row => row.post_id !== postId) });
     },
-    dispose() { disposed = true; revision++; pageRevision++; cancel(); tabs.clear(); listeners.clear(); },
+    dispose() { disposed = true; revision++; pageRevision++; cancel(); tabs.clear(); state = { ...state, scrollRestore: null }; listeners.clear(); },
   };
 }

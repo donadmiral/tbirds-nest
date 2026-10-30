@@ -14,7 +14,7 @@ import { deploymentEnvironment } from '@/lib/operationsReporting';
 import { GROUPS, ACTIONS } from '@/lib/navigation';
 
 export default async function Shell({ admin, active, title, crumb, sub, children, pageActions }: {
-  admin: { email: string; role: string }; active: string; title: React.ReactNode; crumb?: string; sub?: string; children: React.ReactNode; pageActions?: React.ReactNode;
+  admin: { id: string; email: string; role: string }; active: string; title: React.ReactNode; crumb?: string; sub?: string; children: React.ReactNode; pageActions?: React.ReactNode;
 }) {
   if (!canOpen(admin.role, active)) notFound();
   const allow = allowedDesks(admin.role);
@@ -44,7 +44,7 @@ export default async function Shell({ admin, active, title, crumb, sub, children
   const environment = deploymentEnvironment(process.env.VERCEL_ENV, process.env.NODE_ENV);
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)', color: 'var(--txt)' }}>
+    <div data-pc-staff={`${admin.id}:${admin.role}`} style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)', color: 'var(--txt)' }}>
 
       <SideRail groups={groups} counts={counts} active={active} email={admin.email} roleLabel={roleLabel} />
 
