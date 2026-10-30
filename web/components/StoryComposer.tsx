@@ -1,5 +1,5 @@
 "use client";
-import { libraryExportAudio, assertOriginalExportRights } from '@/lib/libraryExportAudio';
+import { libraryExportAudio, assertLibraryExportRights } from '@/lib/libraryExportAudio';
 import type { SoundtrackSelection } from '../../shared/soundtrack';
 
 import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -589,7 +589,7 @@ function ComposerInner() {
       for (const window of storyVideoLayerWindows(stickers, recipe)) layers.push({ image: await capture('layers', window.clock), start: window.start, end: window.end });
       setExportArtwork(null); return { background, layers };
     } })).then(async result => {
-      if(savedMusic)await assertOriginalExportRights(savedMusic,'story',abort.signal);
+      if(savedMusic)await assertLibraryExportRights(savedMusic,'story',abort.signal);
       ensure(); const url = URL.createObjectURL(result.blob); exportFile.current = url;
       setExportOptions(null); setExportReady({ url, name: 'platinum-story-' + Date.now() + '.' + result.extension, localAudio: !!(exportAudio||savedMusic) });
     }).catch(failure => { if (isCurrent(owner, version)) setExportError(abort.signal.aborted ? 'Export cancelled. No file was saved. Your export choices are ready to try again.' : publicationError(failure)); }).finally(() => {

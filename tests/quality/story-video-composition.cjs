@@ -15,3 +15,22 @@ test('an older native build cannot claim edited video export',async()=>{const b=
 test('native bridge cancels pending work and rejects late completion after an account fence',async()=>{let resolve,cancelled=[];const b=bridge({storyVideoVersion:1,composeStory:()=>new Promise(r=>resolve=r),cancelStoryComposition:async id=>cancelled.push(id)}),abort=new AbortController();const work=b.composeStoryVideo(request,abort.signal);abort.abort();resolve({uri:request.outputUri,duration:4,bytes:2048});await assert.rejects(work,/cancelled/);assert.deepEqual(cancelled,[request.id]);});
 test('native bridge verifies returned output identity, media duration and bytes',async()=>{for(const invalid of [{uri:'file:///wrong.mp4',duration:4,bytes:5000},{uri:request.outputUri,duration:NaN,bytes:5000},{uri:request.outputUri,duration:4,bytes:0}]){await assert.rejects(bridge({storyVideoVersion:1,composeStory:async()=>invalid}).composeStoryVideo(request),/verified/);}const result={uri:request.outputUri,duration:4,bytes:5000};assert.equal((await bridge({storyVideoVersion:1,composeStory:async()=>result}).composeStoryVideo(request)).bytes,5000);});
 test('native controller maintains actual clock events, bounded settings, exact seeks and released fencing',()=>{const load=modules({'react':{createContext:()=>({})},'react/jsx-runtime':{},'react-native':{Platform:{OS:'ios'},StyleSheet:{create:x=>x}},'expo-modules-core':{requireOptionalNativeModule:()=>null,requireNativeViewManager:()=>{}},'expo-video':{useVideoPlayer(){}},'../../src/components/stories/StoryPixelImage':{StoryPhotoLookContext:{}},});const {StoryVideoController}=load('modules/boomerang/storyVideo.tsx'),p=new StoryVideoController('file:///clip.mp4');let ticks=0;p.addListener('timeUpdate',()=>ticks++);p.volume=2;assert.equal(p.volume,1);p.playbackRate=100;assert.equal(p.playbackRate,4);p.currentTime=3;assert.equal(p.props().seekSeconds,3);p.play();p.receive({type:'timeUpdate',currentTime:4,playing:true});assert.equal(p.currentTime,4);assert.equal(p.playing,true);p.pause();p.receive({type:'timeUpdate',currentTime:4.1,playing:true});assert.equal(p.playing,false);assert.equal(ticks,2);p.release();p.receive({type:'timeUpdate',currentTime:9,playing:true});assert.equal(p.currentTime,4.1);});
+
+test('only the new audio-capable native build can export a soundtrack or still movie', async () => {
+  assert.equal(lib.storyVideoExportLimit([], true, true), null);
+  const audio = { uri: 'file:///cache/verified.wav', start: 1, duration: 2, volume: .4, loop: true };
+  const old = bridge({ storyVideoVersion: 1, composeStory: async () => ({}) });
+  await assert.rejects(old.composeStoryVideo({ ...request, audio }), /Added audio export/);
+  await assert.rejects(old.composeStoryVideo({ ...request, inputKind: 'image' }), /Added audio export/);
+  let called = 0;
+  const current = bridge({ storyVideoVersion: 1, storyAudioExportVersion: 1, composeStory: async () => { called++; return { uri: request.outputUri, duration: 4, bytes: 5000, soundtrackMixed: true }; } });
+  assert.equal(current.storyAudioCompositionAvailable, true);
+  await current.composeStoryVideo({ ...request, audio }); assert.equal(called, 1);
+  await assert.rejects(current.composeStoryVideo({ ...request, audio: { ...audio, uri: 'https://foreign/audio' } }), /excerpt is invalid/);
+  await assert.rejects(current.composeStoryVideo({ ...request, audio: { ...audio, volume: Infinity } }), /excerpt is invalid/);
+  assert.equal(called, 1);
+});
+test('native soundtrack export cannot report success when the encoded file lost its audio', async () => {
+  const current = bridge({ storyVideoVersion: 1, storyAudioExportVersion: 1, composeStory: async () => ({ uri: request.outputUri, duration: 4, bytes: 5000 }) });
+  await assert.rejects(current.composeStoryVideo({ ...request, audio: { uri: 'file:///cache/verified.wav', start: 0, duration: 2, volume: 1, loop: false } }), /soundtrack could not be verified/);
+});

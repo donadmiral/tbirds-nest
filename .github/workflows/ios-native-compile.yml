@@ -12,6 +12,8 @@ on:
       - 'app.config.js'
       - 'ios/**'
       - 'scripts/quality/compile-ios-simulator.sh'
+      - 'scripts/quality/test-ios-story-audio.sh'
+      - 'scripts/quality/StoryAudioExportHarness.swift'
       - '.github/workflows/ios-native-compile.yml'
   push:
     branches: [master]
@@ -25,6 +27,8 @@ on:
       - 'app.config.js'
       - 'ios/**'
       - 'scripts/quality/compile-ios-simulator.sh'
+      - 'scripts/quality/test-ios-story-audio.sh'
+      - 'scripts/quality/StoryAudioExportHarness.swift'
       - '.github/workflows/ios-native-compile.yml'
   workflow_dispatch:
 
@@ -36,6 +40,32 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  simulator-audio-export:
+    name: Verify encoded story audio on iOS Simulator
+    runs-on: macos-15
+    timeout-minutes: 15
+    env:
+      CI: 'true'
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+    steps:
+      - name: Read source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Verify actual story soundtrack movies in an isolated simulator
+        run: bash scripts/quality/test-ios-story-audio.sh
+      - name: Keep native audio export evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: native-story-audio-export
+          path: |
+            native-audio-logs/*.log
+            native-audio-logs/receipt.json
+            native-audio-logs/*.mp4
+          if-no-files-found: ignore
+          retention-days: 7
+
   simulator-compile:
     name: Compile Swift and native integration
     runs-on: macos-15

@@ -1,6 +1,6 @@
 import { addOriginalAudio } from './originalAudioService';
 import { ORIGINAL_AUDIO_ENABLED, MUSIC_UNAVAILABLE_MESSAGE } from '../../shared/musicAvailability';
-import { originalAudioSupported } from '../../shared/originalAudioAvailability';
+import { audioLibraryCapabilities, librarySourceAvailable } from '../../shared/originalAudioAvailability';
 import { soundtrackRead } from '../../shared/soundtrackPicker';
 import { canonicalContentMedia } from '../../shared/contentMedia';
 import { supabase } from './supabase';
@@ -479,7 +479,8 @@ export async function uploadAndCreateStory(params: {
   if (dualFrontLocalUri) {
     jobs.push(async () => { dualFrontPublicUrl = (await uploadAsset('front_photo', dualFrontLocalUri, 'image')).url; });
   }
-  if (audio && !await originalAudioSupported(supabase)) throw new Error('The original audio library is not available in this app environment yet.');
+  const audioCapabilities = audio ? await audioLibraryCapabilities(supabase) : null;
+  if (audio && !audioCapabilities) throw new Error('The audio library is not available in this app environment yet.');
   if (audio?.kind === 'voiceover' && audio.localUri) {
     if (!audio.rightsAttested) throw new Error('Confirm that you own and can publish this voiceover before sharing.');
     if (!audio.durationSec || !Number.isFinite(audio.durationSec) || audio.durationSec < 1 || audio.durationSec > 30) throw new Error('Record a voiceover between 1 and 30 seconds.');
@@ -495,7 +496,7 @@ export async function uploadAndCreateStory(params: {
     if (!audio.soundId) throw new Error('Choose an available sound from the sound library.');
     const { data: sounds, error } = await soundtrackRead(supabase.rpc('get_playable_sound', { p_sound_id: audio.soundId, p_use: 'story' }));
     const sound = sounds?.[0];
-    if (error || !sound || sound.source !== 'original') throw new Error('This sound is no longer available for reuse. Choose another sound.');
+    if (error || !sound || sound.id !== audio.soundId || !librarySourceAvailable(sound.source, audioCapabilities)) throw new Error('This sound is no longer available for reuse. Choose another sound.');
     audioFinalUrl = sound.url;
     audioMeta = { title: sound.title, source: sound.source, durationSec: Math.min(30,audio.durationSec||sound.duration_sec) };
   }
@@ -627,21 +628,23 @@ export const storiesService = {
 
   async getStorySound(id: string): Promise<StorySound> {
     if (!ORIGINAL_AUDIO_ENABLED) throw new Error(MUSIC_UNAVAILABLE_MESSAGE);
-    if (!await originalAudioSupported(supabase)) throw new Error('The original audio library is not available in this app environment yet.');
+    const capabilities = await audioLibraryCapabilities(supabase);
+    if (!capabilities) throw new Error('The audio library is not available in this app environment yet.');
     const { data: sounds, error } = await soundtrackRead(supabase.rpc('get_playable_sound', { p_sound_id: id, p_use: 'story' }));
     const data = sounds?.[0];
-    if (error || !data || data.source !== 'original') throw new Error('This sound is no longer available. Choose another sound.');
+    if (error || !data || data.id !== id || !librarySourceAvailable(data.source, capabilities)) throw new Error('This sound is no longer available. Choose another sound.');
     const [sound] = await soundtrackRead(hydrateSoundMedia([data as StorySound]));
     if (!sound.url) throw new Error('This sound could not load. Please retry.');
-    return { ...sound, duration_sec: Math.min(sound.duration_sec || 30, (data as any).max_excerpt_sec || 30, 30) };
+    return { ...sound, max_excerpt_sec: Math.min((data as any).max_excerpt_sec || 30, 30) };
   },
 
   async listStorySounds(source: 'original' | 'library', limit = 50): Promise<StorySound[]> {
-    if (!ORIGINAL_AUDIO_ENABLED || source !== 'original') return [];
-    if (!await originalAudioSupported(supabase)) return [];
+    if (!ORIGINAL_AUDIO_ENABLED) return [];
+    const capabilities = await audioLibraryCapabilities(supabase);
+    if (!librarySourceAvailable(source, capabilities)) return [];
     const { data, error } = await soundtrackRead(supabase.rpc('list_playable_sounds', { p_use: 'story', p_limit: Math.min(100, Math.max(1, Math.trunc(limit) || 50)), p_query: '' }));
     if (error) throw new Error('Sounds could not be loaded. Please try again.');
-    return soundtrackRead(hydrateSoundMedia(((data || []) as (StorySound & { max_excerpt_sec?: number })[]).filter(sound => sound.source === source).map(sound => ({...sound, duration_sec: Math.min(sound.duration_sec || 30, sound.max_excerpt_sec || 30, 30)}))));
+    return soundtrackRead(hydrateSoundMedia(((data || []) as (StorySound & { max_excerpt_sec?: number })[]).filter(sound => sound.source === source).map(sound => ({...sound, max_excerpt_sec: Math.min(sound.max_excerpt_sec || 30, 30)}))));
   },
 
   async getCatchupFeed(mode: CatchupMode = 'all', limit = 30): Promise<CatchupUser[]> {
@@ -746,8 +749,7 @@ export const storiesService = {
       p_story_id: storyId,
     });
     if (error) {
-      console.log('[storiesService.getMyReactions]', error.message);
-      return [];
+      throw new Error('Your story reactions could not be loaded. Please try again.');
     }
     return (data || []).map((r: any) => r.emoji);
   },

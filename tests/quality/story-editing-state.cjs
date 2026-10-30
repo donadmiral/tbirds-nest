@@ -87,18 +87,20 @@ test('native adjustment taps and full-width drags change the rendered value and 
   assert.ok(children.every(child => child.props.pointerEvents === 'none'));
 });
 
-function snapshot({ mediaType = 'text', readiness = [], available = true, compose, saveToLibrary, permissions = async () => ({ granted: true }) } = {}) {
+function snapshot({ mediaType = 'text', readiness = [], available = true, compose, saveToLibrary, audio, prepareAudio, permissions = async () => ({ granted: true }) } = {}) {
   const calls = [], ref = { current: { artworkOnly: true } }, lock = { current: false }, owner = { current: 'owner' };
   const context = {
-    active: { id: 'draft', mediaType, localUri: mediaType === 'text' ? null : 'file:///source.mp4', uploadState: 'idle' }, snapshotBusy: lock, storySnapshotRef: ref,
+    active: { id: 'draft', mediaType, localUri: mediaType === 'text' ? null : 'file:///source.mp4', uploadState: 'idle', audio }, snapshotBusy: lock, storySnapshotRef: ref,
+    useAuthStore: { getState: () => ({ session: { user: { id: owner.current } }, profile: { id: owner.current } }) },
     ownerRef: owner, activeDraftRef: { current: 'draft' }, mountedRef: { current: true }, photoReadiness: { current: new Map(readiness.map((state, i) => [String(i), state])) }, previewSize: { w: 390, h: 693.3333 },
     setCapturing: value => calls.push(['capturing', value]), requestAnimationFrame: fn => fn(),
     AbortController, exportAbort: { current: null }, exportCommitting: { current: false }, exportArtworkRef: ref,
     setExportArtwork: value => calls.push(['artwork', value]), setExportStatus: value => calls.push(['status', value]),
-    storyVideoCompositionAvailable: available, storyVideoExportLimit: () => null,
+    storyVideoCompositionAvailable: available, storyAudioCompositionAvailable: available, storyVideoExportLimit: () => null,
     storyVideoRecipe: () => ({ width: 1080, height: 1920, trimStart: 0 }), storyVideoLayerWindows: () => [{ clock: 2, start: 0, end: 4 }],
     vidPlayer: { duration: 4, pause() {} }, FileSystem: { cacheDirectory: 'file:///cache/', deleteAsync: async uri => calls.push(['delete', uri]) },
     composeStoryVideo: async (request, signal) => { calls.push(['compose', request]); return compose ? compose(request, signal) : { uri: request.outputUri }; },
+    prepareStoryExportAudio: async (...args) => { calls.push(['prepare-audio']); return prepareAudio ? prepareAudio(...args) : { layer: { uri: 'file:///private-audio.wav', start: 1, duration: 2, volume: 1, loop: true }, assertRights: async () => calls.push(['rights']), release: async () => calls.push(['release-audio']) }; },
     MediaLibrary: { requestPermissionsAsync: permissions, saveToLibraryAsync: async uri => { calls.push(['save', uri]); return saveToLibrary?.(uri); } },
     captureRef: async (target, options) => { assert.equal(target, ref); calls.push(['capture', options]); return 'file:///rendered.png'; }, releaseCapture: uri => calls.push(['release', uri]),
     Haptics: { notificationAsync: async () => {}, NotificationFeedbackType: { Success: 1 } }, Alert: { alert: (...args) => calls.push(['alert', ...args]) },
@@ -205,4 +207,26 @@ test('native export stops offering cancellation once Photos has accepted the fin
   assert.equal(h.calls.filter(call => call[0] === 'save').length, 1);
   assert.equal(h.calls.find(call => call[0] === 'alert')[1], 'Edited video saved');
   assert.equal(h.context.exportCommitting.current, false); assert.equal(h.context.snapshotBusy.current, false);
+});
+
+test('native photo and text stories with audio export movies with a final rights check and cleanup', async () => {
+  for (const mediaType of ['text', 'image', 'video']) {
+    const h = snapshot({ mediaType, audio: { kind: 'sound', soundId: 'owned-sound', durationSec: 4 } });
+    await h.run();
+    const composed = h.calls.find(call => call[0] === 'compose')[1];
+    assert.equal(composed.inputKind, mediaType === 'video' ? 'video' : 'image');
+    assert.equal(composed.audio.uri, 'file:///private-audio.wav');
+    assert.ok(h.calls.findIndex(call => call[0] === 'rights') < h.calls.findIndex(call => call[0] === 'save'));
+    assert.equal(h.calls.filter(call => call[0] === 'release-audio').length, 1);
+    assert.ok(h.calls.some(call => call[0] === 'delete'));
+  }
+});
+test('native revocation during video composition prevents a Photos save and releases audio', async () => {
+  let released = false;
+  const h = snapshot({ mediaType: 'video', audio: { kind: 'sound', soundId: 'owned-sound' }, prepareAudio: async () => ({
+    layer: { uri: 'file:///private-audio.wav' }, assertRights: async () => { throw Error('Audio revoked'); }, release: async () => { released = true; },
+  }) });
+  await h.run();
+  assert.equal(h.calls.some(call => call[0] === 'save'), false); assert.equal(released, true);
+  assert.ok(h.calls.some(call => call[0] === 'delete')); assert.equal(h.context.snapshotBusy.current, false);
 });

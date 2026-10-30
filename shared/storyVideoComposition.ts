@@ -40,8 +40,8 @@ export function storyVideoLayerWindows(stickers: readonly any[], recipe: Pick<St
 }
 
 /** A still raster must never silently replace an animation or an embedded video. */
-export function storyVideoExportLimit(stickers: readonly any[], hasExternalAudio = false): string | null {
-  if (hasExternalAudio) return 'Export with added music or voiceover is not available yet. Remove the added sound to export the video and its original audio.';
+export function storyVideoExportLimit(stickers: readonly any[], hasExternalAudio = false, supportsExternalAudio = false): string | null {
+  if (hasExternalAudio && !supportsExternalAudio) return 'Export with added music or voiceover needs the new iPhone build. Your soundtrack and draft are kept.';
   if (stickers.some(s => s?.kind === 'gif')) return 'Animated GIF export is not available yet. Remove the GIF to export this edited video.';
   if (stickers.some(s => s?.anim && s.anim !== 'none' || s?.textAnim && s.textAnim !== 'none')) return 'Animated sticker export is not available yet. Set sticker animations to None to export this edited video.';
   if (stickers.some(s => s?.postMediaType === 'video' || s?.storyMediaType === 'video')) return 'Exporting a video inside another video is not available yet. Remove the embedded clip to export this edited video.';

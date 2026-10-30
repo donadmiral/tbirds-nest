@@ -342,6 +342,31 @@ test('native audio readers and publication reject catalogue and unverified legac
   }
 });
 
+test('native story audio keeps full track duration so later excerpts remain selectable', async () => {
+  const sound = { ...originalSound, duration_sec: 180, max_excerpt_sec: 25, url: originalUrl };
+  const h = harness({ rpc: async () => ({ data: [sound], error: null }) });
+  const selected = await h.service.getStorySound(sound.id);
+  assert.equal(selected.duration_sec, 180);
+  assert.equal(selected.max_excerpt_sec, 25);
+  const listed = await h.service.listStorySounds('original');
+  assert.equal(listed[0].duration_sec, 180);
+  assert.equal(listed[0].max_excerpt_sec, 25);
+});
+
+test('native story catalogue reads and publication require the explicit v2 server gate', async () => {
+  const sound = { ...originalSound, source: 'library', url: originalUrl };
+  const capabilities = { data: { version: 2, uploadsEnabled: false, catalogEnabled: true }, error: null };
+  const audio = { kind: 'sound', soundId: sound.id, startSec: 0, durationSec: 4 };
+  const h = harness({ capabilities, drafts: [draft('catalogue-audio', { audio })], rpc: async () => ({ data: [sound], error: null }) });
+  assert.equal((await h.service.listStorySounds('library')).length, 1);
+  assert.equal((await h.service.getStorySound(sound.id)).source, 'library');
+  await h.render().publishAll();
+  assert.equal(tableCalls(h, 'stories').length, 1);
+  capabilities.data.catalogEnabled = false;
+  assert.equal((await h.service.listStorySounds('library')).length, 0);
+  await assert.rejects(h.service.getStorySound(sound.id), /no longer available/);
+});
+
 test('native account changes while verified original audio finishes prevent story publication', async () => {
   const audio = deferred();
   const h = harness({ drafts: [draft('pending-audio', { audio: { kind: 'voiceover', localUri: 'file:///owned.m4a', rightsAttested: true, durationSec: 5 } })], originalAudio: () => audio.promise });

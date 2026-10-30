@@ -2,17 +2,18 @@ import { createClient } from './supabase/client';
 import { hydrateSoundMedia } from './contentMedia';
 import { readSoundtrack, type SoundtrackSelection, type SoundtrackUse } from '../../shared/soundtrack';
 import { inspectOriginalAudio, ORIGINAL_AUDIO_MAX_BYTES } from '../../shared/originalAudio';
+import { authorizeLibraryAudioExport } from '../../shared/musicExportAuthorization';
+import { isMediaDeliveryCapability } from '../../shared/contentMedia';
 import { exportStep, exportCancelled, type LocalExportAudio } from './videoExportAudio';
-export async function assertOriginalExportRights(selection: SoundtrackSelection, use: SoundtrackUse, signal: AbortSignal) {
- const client=createClient();const {data,error}=await exportStep(Promise.resolve(client.rpc('authorize_original_audio_export',{p_sound_id:selection.soundId,p_use:use})),signal,'Audio rights could not be checked. Retry.');
- if(error||!data)throw new Error('Only original audio you own can be exported from the library. This sound needs separate export permission.');
+export async function assertLibraryExportRights(selection: SoundtrackSelection, use: SoundtrackUse, signal: AbortSignal) {
+ const client=createClient();const data=await exportStep(authorizeLibraryAudioExport(client,selection,use),signal,'Audio rights could not be checked. Retry.');
  return {client,data};
 }
 export async function libraryExportAudio(selection: SoundtrackSelection, use: SoundtrackUse, signal: AbortSignal): Promise<LocalExportAudio> {
  if(!readSoundtrack(selection))throw new Error('The saved audio excerpt is invalid. Choose it again.');
- const {client,data}=await assertOriginalExportRights(selection,use,signal);
+ const {client,data}=await assertLibraryExportRights(selection,use,signal);
  const [track]=await exportStep(hydrateSoundMedia([data],client),signal,'Audio access could not be prepared. Retry.');
- if(!track?.url)throw new Error('This original audio is unavailable.');
+ if(!track?.url || !isMediaDeliveryCapability(track.url,process.env.NEXT_PUBLIC_SUPABASE_URL!))throw new Error('Private audio delivery is unavailable. Please retry.');
  const response=await exportStep(fetch(track.url,{signal,cache:'no-store',credentials:'omit'}),signal,'The original audio took too long to download.');
  if(!response.ok||!response.body)throw new Error('This original audio could not be downloaded.');
  const reader=response.body.getReader(),chunks:Uint8Array[]=[];let size=0;

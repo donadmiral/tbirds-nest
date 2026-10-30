@@ -2,7 +2,7 @@
 import Image from 'next/image';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
+import Link, { useLinkStatus } from 'next/link';
 import { usePathname } from 'next/navigation';
 import { readPreferenceFlag, readPreferenceList, savePreference } from '@/lib/browserPreferences';
 import { preferenceList, usePreference } from '@/lib/browserPreferenceHooks';
@@ -19,7 +19,14 @@ const K_CLOSED = 'pc-rail-closed-groups';
 const K_PINS = 'pc-rail-pins';
 
 function RailIcon({ item }: { item: RailItem }) {
-  return <AdminIcon name={item.icon} size={20} className="pc-rail-icon" />;
+  const { pending } = useLinkStatus();
+  return <>
+    <span className="pc-rail-icon-slot" data-pending={pending}>
+      <AdminIcon name={item.icon} size={20} className="pc-rail-icon" />
+      <span className="pc-navigation-spinner" aria-hidden="true" />
+    </span>
+    <span role="status" className="sr-only">{pending ? `Opening ${item.label}` : ''}</span>
+  </>;
 }
 
 export default function SideRail({ groups, counts, active, email, roleLabel, tools = NO_TOOLS }: {

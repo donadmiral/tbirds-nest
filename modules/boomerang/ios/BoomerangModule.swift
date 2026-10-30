@@ -9,6 +9,7 @@ public class BoomerangModule: Module {
     Name("Boomerang")
 
     Constant("storyVideoVersion") { 1 }
+    Constant("storyAudioExportVersion") { 1 }
     AsyncFunction("composeStory") { (request: [String: Any]) async throws -> [String: Any] in
       try await StoryVideoComposition.make(request)
     }

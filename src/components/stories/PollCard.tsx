@@ -4,9 +4,8 @@
  * After voting, rows fill as bars with the percentage on the right.
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import * as Haptics from 'expo-haptics';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -33,6 +32,7 @@ type PollCardProps = {
   onVote: (optionId: string) => void;
   onOpenVoters: (optionId: string) => void;
   onShareResults?: () => void;
+  votingOptionId?: string | null;
 };
 
 const BAR_EASE = { duration: 520, easing: Easing.bezier(0.16, 1, 0.3, 1) };
@@ -45,6 +45,8 @@ function OptionRow({
   revealed,
   index,
   onPress,
+  disabled,
+  busy,
 }: {
   label: string;
   pct: number;
@@ -52,6 +54,8 @@ function OptionRow({
   revealed: boolean;
   index: number;
   onPress: () => void;
+  disabled: boolean;
+  busy: boolean;
 }) {
   const fill = useSharedValue(0);
 
@@ -61,7 +65,7 @@ function OptionRow({
     } else {
       fill.value = withTiming(0, { duration: 180 });
     }
-  }, [revealed, pct, index]);
+  }, [revealed, pct, index, fill]);
 
   const barStyle = useAnimatedStyle(() => ({
     width: (((fill.value * 100).toString() + '%') as any),
@@ -71,8 +75,11 @@ function OptionRow({
     <TouchableOpacity delayLongPress={160} onLongPress={() => {}}
       style={s.row}
       onPress={onPress}
+      disabled={disabled}
       activeOpacity={0.85}
+      accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{ disabled, selected: chosen, busy }}
     >
       <Animated.View
         style={[s.bar, chosen ? s.barChosen : s.barPlain, barStyle]}
@@ -90,24 +97,17 @@ function OptionRow({
   );
 }
 
-export default function PollCard({ poll, isOwn, onVote, onOpenVoters, onShareResults }: PollCardProps) {
-  const [myVote, setMyVote] = useState<string | null>(poll.my_vote);
-  const [optimistic, setOptimistic] = useState<Record<string, number>>({});
-
-  useEffect(() => {
-    setMyVote(poll.my_vote);
-    setOptimistic({});
-  }, [poll.poll_id, poll.my_vote]);
-
+export default function PollCard({ poll, isOwn, onVote, onOpenVoters, onShareResults, votingOptionId = null }: PollCardProps) {
+  const myVote = poll.my_vote;
   const revealed = isOwn || !!myVote;
 
   const counts = useMemo(() => {
     const map: Record<string, number> = {};
     poll.options.forEach(o => {
-      map[o.id] = (o.vote_count || 0) + (optimistic[o.id] || 0);
+      map[o.id] = o.vote_count || 0;
     });
     return map;
-  }, [poll.options, optimistic]);
+  }, [poll.options]);
 
   const total = useMemo(
     () => Object.values(counts).reduce((a, b) => a + b, 0),
@@ -120,13 +120,10 @@ export default function PollCard({ poll, isOwn, onVote, onOpenVoters, onShareRes
         onOpenVoters(optionId);
         return;
       }
-      if (myVote) return;
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      setMyVote(optionId);
-      setOptimistic(prev => ({ ...prev, [optionId]: (prev[optionId] || 0) + 1 }));
+      if (myVote || votingOptionId) return;
       onVote(optionId);
     },
-    [isOwn, myVote, onVote, onOpenVoters]
+    [isOwn, myVote, votingOptionId, onVote, onOpenVoters]
   );
 
   return (
@@ -144,10 +141,14 @@ export default function PollCard({ poll, isOwn, onVote, onOpenVoters, onShareRes
             chosen={myVote === o.id}
             revealed={revealed}
             index={i}
+            disabled={!isOwn && (!!myVote || !!votingOptionId)}
+            busy={votingOptionId === o.id}
             onPress={() => handlePress(o.id)}
           />
         ))}
       </View>
+
+      {votingOptionId ? <Text style={s.total} accessibilityLiveRegion="polite">Saving vote…</Text> : null}
 
       {revealed && (
         <Text style={s.total}>

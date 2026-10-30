@@ -1,5 +1,5 @@
 import { readSoundtrack, type SoundtrackSelection } from '../../shared/soundtrack';
-import { libraryExportAudio, assertOriginalExportRights } from './libraryExportAudio';
+import { libraryExportAudio, assertLibraryExportRights } from './libraryExportAudio';
 import { MEMORY_SCORE_DUCK, memoryFilmItems, memoryPageSoundtrack, memoryFilmPhotoDuration, memoryFilmVideoWindow, type MemoryFilmItem, type MemoryFilmPage } from '../../shared/memoryFilm';
 import { memoryStoryStickers } from '../../shared/memoryStoryPresentation';
 import { storyPhotoColorMatrix } from '../../shared/storyColorMatrix';
@@ -229,8 +229,8 @@ export async function exportMemoryMovie(options: {
     exportCancelled(signal); options.progress({ phase: 'finishing', message: 'Preparing your download…', percent: 100 });
     const blob = await finalizeRecordedWebm(new Blob(chunks, { type: recorder.mimeType || mime }), recordedSeconds, MEMORY_MOVIE_MAX_SECONDS + 30); exportCancelled(signal);
     if (blob.size < 1024) throw new Error('The movie file is empty. No file was saved.');
-    if(savedMusic)await assertOriginalExportRights(savedMusic,'memory_album',signal);
-    for(const selection of new Map(pageSounds.map(sound=>[sound.soundId,sound])).values())await assertOriginalExportRights(selection,'memory_album',signal);
+    if(savedMusic)await assertLibraryExportRights(savedMusic,'memory_album',signal);
+    for(const selection of new Map(pageSounds.map(sound=>[sound.soundId,sound])).values())await assertLibraryExportRights(selection,'memory_album',signal);
     return { blob, extension: blob.type.includes('mp4') ? 'mp4' : 'webm', duration, memories: scenes.length };
   } finally {
     if (!signal.aborted) controller.abort(new Error('Movie export finished.'));

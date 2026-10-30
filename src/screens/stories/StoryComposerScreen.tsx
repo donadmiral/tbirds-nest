@@ -1,5 +1,5 @@
 import StoryPixelImage, { StoryPhotoLookContext, StoryPhotoReadinessContext, type StoryPhotoReadiness } from '../../components/stories/StoryPixelImage';
-import { composeStoryVideo, storyVideoCompositionAvailable } from '../../../modules/boomerang/storyComposition';
+import { composeStoryVideo, storyVideoCompositionAvailable, storyAudioCompositionAvailable } from '../../../modules/boomerang/storyComposition';
 import { storyVideoRecipe, storyVideoLayerWindows, storyVideoExportLimit, storyVideoLayerAtTime } from '../../../shared/storyVideoComposition';
 import { storyPhotoSpatialAdjust } from '../../../shared/storyColorMatrix';
 import { captureRef, releaseCapture } from 'react-native-view-shot';
@@ -25,6 +25,7 @@ import * as Haptics from 'expo-haptics';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import { useStoryAudioMix } from '../../hooks/useStoryAudioMix';
 import { useStorySoundPreview } from '../../hooks/useStorySoundPreview';
+import { prepareStoryExportAudio, type PreparedStoryExportAudio } from '../../services/storyExportAudio';
 import VideoThumb from '../../components/VideoThumb';
 import StudioRail, { type RailItem } from '../../components/stories/StudioRail';
 import TrimStrip from '../../components/stories/TrimStrip';
@@ -727,28 +728,36 @@ export default function StoryComposerScreen() {
     snapshotBusy.current = true;
     exportCommitting.current = false;
     const owner = ownerRef.current, draftId = active.id;
-    const current = () => mountedRef.current && ownerRef.current === owner && activeDraftRef.current === draftId;
+    const authOwner = useAuthStore.getState().session?.user.id;
+    const current = () => !!authOwner && mountedRef.current && ownerRef.current === owner && activeDraftRef.current === draftId
+      && useAuthStore.getState().session?.user.id === authOwner && useAuthStore.getState().profile?.id === owner;
     const assertCurrent = () => { if (!current()) throw new Error('Return to the story you were saving.'); };
     let snapshot: string | null = null, output: string | null = null;
+    let soundtrack: PreparedStoryExportAudio | null = null;
     const artworkFiles: string[] = [];
     const abort = new AbortController(); exportAbort.current = abort;
     const ensure = () => { assertCurrent(); if (abort.signal.aborted) throw new Error('Video export was cancelled.'); };
     try {
-      if (active.mediaType === 'video') {
+      if (active.mediaType === 'video' || active.audio) {
         if (!storyVideoCompositionAvailable) throw new Error('Edited video export needs the new iPhone build. Your draft is kept.');
-        const limit = storyVideoExportLimit(active.stickers || [], !!active.audio); if (limit) throw new Error(limit);
+        const limit = storyVideoExportLimit(active.stickers || [], !!active.audio, storyAudioCompositionAvailable); if (limit) throw new Error(limit);
       }
       const perm = await MediaLibrary.requestPermissionsAsync();
-      assertCurrent();
+      ensure();
       if (!perm.granted) { Alert.alert('Allow Photos access', 'Enable photo library access in Settings to save.'); return; }
-      if (active.mediaType === 'video') {
-        if (!active.localUri) throw new Error('No video was selected.');
-        if (!storyVideoCompositionAvailable) throw new Error('Edited video export needs the new iPhone build. Your draft is kept.');
-        const limit = storyVideoExportLimit(active.stickers || [], !!active.audio);
-        if (limit) throw new Error(limit);
-        if (active.dualFrontUri) throw new Error('Dual-camera video export is not available yet. Your draft stays available.');
-        const recipe = storyVideoRecipe({ duration: Number(vidPlayer?.duration) || active.durationSec || 0, width: previewSize.w, height: previewSize.h, transform: { ...active.mediaTransform, fit: active.mediaFit }, filterId: active.filterId });
+      if (active.mediaType === 'video' || active.audio) {
+        const isVideo = active.mediaType === 'video';
+        if (isVideo && !active.localUri) throw new Error('No video was selected.');
+        if (isVideo && active.dualFrontUri) throw new Error('Dual-camera video export is not available yet. Your draft stays available.');
+        const recipe = storyVideoRecipe(isVideo
+          ? { duration: Number(vidPlayer?.duration) || active.durationSec || 0, width: previewSize.w, height: previewSize.h, transform: { ...active.mediaTransform, fit: active.mediaFit }, filterId: active.filterId }
+          : { duration: Math.max(1, Math.min(30, Number(active.audio?.durationSec) || 5)), width: previewSize.w, height: previewSize.h, transform: { fit: 'contain', mix: { orig: 0 } } });
         setCapturing(true); setExportStatus('Preparing story artwork…'); vidPlayer?.pause?.();
+        if (active.audio) {
+          setExportStatus('Preparing soundtrack…');
+          soundtrack = await prepareStoryExportAudio(active.audio, Math.max(0, Math.min(1, (active.mediaTransform?.mix?.music ?? 100) / 100)), owner, abort.signal, ensure);
+          ensure(); setExportStatus('Preparing story artwork…');
+        }
         const captureArtwork = async (phase: 'background' | 'layers', clock: number) => {
           ensure(); setExportArtwork({ phase, clock });
           await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
@@ -758,20 +767,33 @@ export default function StoryComposerScreen() {
           const uri = await captureRef(exportArtworkRef, { format: 'png', result: 'tmpfile', width: recipe.width, height: recipe.height, handleGLSurfaceViewOnAndroid: true });
           artworkFiles.push(uri); ensure(); return uri;
         };
-        const backgroundUri = await captureArtwork('background', recipe.trimStart);
-        const layers = [];
-        for (const window of storyVideoLayerWindows(active.stickers || [], recipe)) {
-          layers.push({ uri: await captureArtwork('layers', window.clock), start: window.start, end: window.end });
+        let backgroundUri: string | undefined;
+        const layers: { uri: string; start: number; end: number }[] = [];
+        if (isVideo) {
+          backgroundUri = await captureArtwork('background', recipe.trimStart);
+          for (const window of storyVideoLayerWindows(active.stickers || [], recipe)) {
+            layers.push({ uri: await captureArtwork('layers', window.clock), start: window.start, end: window.end });
+          }
+        } else {
+          if (!storySnapshotRef.current) throw new Error('The story preview is not ready.');
+          const states = [...photoReadiness.current.values()];
+          if (states.some(state => state !== 'ready')) throw new Error('Wait for all story photos to load before saving.');
+          await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+          ensure();
+          snapshot = await captureRef(storySnapshotRef, { format: 'png', result: 'tmpfile', width: recipe.width, height: recipe.height, handleGLSurfaceViewOnAndroid: true });
+          ensure();
         }
         ensure(); setExportArtwork(null); setExportStatus('Rendering edited video…');
         const id = 'story-' + Date.now() + '-' + Math.random().toString(36).slice(2);
         if (!FileSystem.cacheDirectory) throw new Error('The video export cache is unavailable.');
         output = FileSystem.cacheDirectory + 'pc-story-export-' + id + '.mp4';
-        const result = await composeStoryVideo({ id, inputUri: active.localUri, outputUri: output, recipe, backgroundUri, layers }, abort.signal);
+        const result = await composeStoryVideo({ id, inputUri: isVideo ? active.localUri! : snapshot!, inputKind: isVideo ? 'video' : 'image', outputUri: output, recipe, backgroundUri, layers, ...(soundtrack ? { audio: soundtrack.layer } : {}) }, abort.signal);
+        ensure();
+        if (soundtrack) { setExportStatus('Checking soundtrack permission…'); await soundtrack.assertRights(); }
         ensure(); exportCommitting.current = true; setExportStatus('Saving to Photos…');
         await MediaLibrary.saveToLibraryAsync(result.uri);
         if (!current() || abort.signal.aborted) return;
-        Alert.alert('Edited video saved', 'Your trim, framing, color, original sound and supported story artwork were saved to Photos.');
+        Alert.alert('Edited video saved', soundtrack ? 'Your edited story and selected soundtrack were saved to Photos.' : 'Your trim, framing, color, original sound and supported story artwork were saved to Photos.');
       } else {
         if (!storySnapshotRef.current) throw new Error('The story preview is not ready.');
         const states = [...photoReadiness.current.values()];
@@ -790,7 +812,7 @@ export default function StoryComposerScreen() {
       }
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     } catch (error: any) { if (current() && !abort.signal.aborted) Alert.alert('Could not save', error?.message || 'The story could not be saved. Try again.'); }
-    finally { if (snapshot) releaseCapture(snapshot); artworkFiles.forEach(releaseCapture); if (output) await FileSystem.deleteAsync(output, { idempotent: true }).catch(() => {}); if (exportAbort.current === abort) exportAbort.current = null; exportCommitting.current = false; if (mountedRef.current) { setCapturing(false); setExportArtwork(null); setExportStatus(null); } snapshotBusy.current = false; }
+    finally { if (snapshot) releaseCapture(snapshot); artworkFiles.forEach(releaseCapture); if (output) await FileSystem.deleteAsync(output, { idempotent: true }).catch(() => {}); if (soundtrack) await soundtrack.release(); if (exportAbort.current === abort) exportAbort.current = null; exportCommitting.current = false; if (mountedRef.current) { setCapturing(false); setExportArtwork(null); setExportStatus(null); } snapshotBusy.current = false; }
   }, [active, previewSize, vidPlayer]);
   // Long videos: pre-set a 60s window once so publish is never over-length
   useEffect(() => {
