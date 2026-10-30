@@ -33,9 +33,11 @@ jobs:
       PLATINUM_STUDIO_UI_ARTIFACTS: /tmp/platinum-browser-evidence/studio
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        id: checkout
         with:
           persist-credentials: false
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        id: node_setup
         with:
           node-version: 22
           cache: npm
@@ -43,32 +45,43 @@ jobs:
             web/package-lock.json
             admin-web/package-lock.json
       - name: Install locked browser and admin dependencies
+        id: dependencies
         run: |
           npm ci --prefix web --no-fund
           npm ci --prefix admin-web --no-fund
       - name: Install browser and media verification tools
+        id: browser_tools
         run: |
           sudo apt-get update
           sudo apt-get install --yes ffmpeg
           node web/node_modules/playwright/cli.js install --with-deps chromium
           node -e 'const p=require("./web/node_modules/playwright").chromium.executablePath(); console.log("PLATINUM_CHROMIUM="+p); console.log("STORY_QA_CHROME="+p)' >> "$GITHUB_ENV"
       - name: Exercise actual admin components
+        # Run independent gates after an earlier test fails, but only after successful setup.
+        # Ordinary step failures still fail the job; cancellation stops further gates.
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
         run: |
           node admin-web/tests/browser/compile.cjs
           node admin-web/tests/browser/run.cjs
       - name: Exercise public-web navigation, account changes and recovery
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
         run: node web/tests/browser/social-run.cjs
       - name: Exercise jobs, application review, market offers and orders
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
         run: node web/tests/browser/commerce-run.cjs
       - name: Exercise Studio approval, campaign and creator journeys
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
         run: |
           node web/tests/browser/studio-compile.cjs
           node web/tests/browser/studio-run.cjs
       - name: Export and decode actual graded story video
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
         run: node web/tests/browser/story-video-export.cjs
       - name: Export and decode full memory movies and audio mixes
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
         run: node web/tests/browser/memory-movie-export.cjs
       - name: Verify private original uploads, microphone capture and retained music exports
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
         run: node web/tests/browser/music-library-export.cjs
       - name: Keep synthetic browser evidence
         if: always()

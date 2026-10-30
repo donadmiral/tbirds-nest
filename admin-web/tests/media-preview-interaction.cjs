@@ -13,7 +13,7 @@ function harness(file,props){
   let cursor=0;const states=[],deps=[],effects=[],cleanups=[],listeners=new Map();
   const react={useState(initial){const i=cursor++;if(!(i in states))states[i]=typeof initial==='function'?initial():initial;return[states[i],value=>{states[i]=typeof value==='function'?value(states[i]):value;}];},useRef(value){const i=cursor++;return states[i]??={current:value};},useTransition(){return[false,fn=>fn()];},useEffect(fn,next){const i=cursor++;if(!deps[i]||next.some((value,n)=>value!==deps[i][n])){deps[i]=next;effects.push(()=>{cleanups[i]?.();cleanups[i]=fn();});}}};
   const jsx=(type,props,key)=>({type,props,key});
-  class Element { constructor(){this.focused=0;} focus(){this.focused++;} }
+  class Element { constructor(){this.focused=0;this.isConnected=true;} focus(){this.focused++;} }
   const trigger=new Element();
   const document={activeElement:trigger,body:{style:{overflow:"auto"}},hidden:false,addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name)};
   const window={dispatchEvent:event=>listeners.get(event.type)?.(),addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name)};
@@ -63,6 +63,8 @@ test('admin media review reproduces the authored voice preset without altering t
 test('expanded admin photos consume Escape without closing the record and restore focus',()=>{
   const h=harness('ReviewMediaGallery.tsx',{media:[{url:'signed:photo'}]});
   h.find(n=>n.type==='MediaPreview').props.onExpand();
+  // Hiding the inline preview can move browser focus before the effect runs.
+  h.document.activeElement = null;
   const open=h.render();
   assert.equal(h.dialog.open,true);assert.equal(h.document.body.style.overflow,'hidden');
   assert.equal(walk(open).filter(n=>n.type==='MediaPreview').length,2,'The inline trigger stays mounted behind the modal');

@@ -1,12 +1,18 @@
 'use client';
 import { useCallback, useSyncExternalStore } from 'react';
-import { preferenceValue } from './browserPreferences';
+import { preferenceValue, syncPreferenceStorage } from './browserPreferences';
 
 const serverSnapshot = () => '';
 function subscribe(listener: () => void) {
-  window.addEventListener('storage', listener);
+  const storageChanged = (event: StorageEvent) => {
+    try { if (event.storageArea && event.storageArea !== window.localStorage) return; }
+    catch { return; }
+    syncPreferenceStorage(event.key, event.newValue);
+    listener();
+  };
+  window.addEventListener('storage', storageChanged);
   window.addEventListener('platinum:preference', listener);
-  return () => { window.removeEventListener('storage', listener); window.removeEventListener('platinum:preference', listener); };
+  return () => { window.removeEventListener('storage', storageChanged); window.removeEventListener('platinum:preference', listener); };
 }
 
 /** Primitive snapshots are stable, survive unavailable storage, and hydrate with

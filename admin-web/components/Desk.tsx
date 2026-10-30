@@ -259,6 +259,9 @@ export function Desk({
   const safePage = Math.min(page, pages - 1);
   const shown = filtered.slice(safePage * limit, safePage * limit + limit);
   const selected = sel === null ? null : shown.find(r => r.id === sel) || shown[0] || null;
+  const selectedMedia = selected?.detail.gallery?.length
+    ? selected.detail.gallery
+    : selected?.detail.media ? [selected.detail.media] : [];
   const selectedIndex = selected ? shown.findIndex(row => row.id === selected.id) : -1;
   const hasFilters = !!q.trim() || Object.values(facet).some(value => value && value !== 'All');
   function closeDetails() {
@@ -382,9 +385,9 @@ export function Desk({
           <div style={{ padding: '44px 16px', textAlign: 'center', fontSize: 13, color: 'var(--txt-muted)' }}>Select an item to review its details.</div>
         ) : (
           <div style={{ padding: 16 }}>
-            {selected.detail.media ? (
+            {selectedMedia.length ? (
               <div style={{ marginBottom: 14, borderRadius: 11, overflow: 'hidden', background: 'rgba(var(--on),0.05)', border: '1px solid rgba(var(--on),0.10)' }}>
-                <ReviewMediaGallery key={selected.id} media={selected.detail.gallery?.length ? selected.detail.gallery : [selected.detail.media]} />
+                <ReviewMediaGallery key={selected.id} media={selectedMedia} />
               </div>
             ) : null}
             <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>

@@ -9,16 +9,28 @@ export default function ReviewMediaGallery({ media }: { media: ReviewMedia[] }) 
   const [index, setIndex] = useState(0);
   const [expanded, setExpanded] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
+  const returnFocus = useRef<HTMLElement | null>(null);
+  const expandButton = useRef<HTMLButtonElement>(null);
+  const openGallery = () => {
+    returnFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setExpanded(true);
+  };
   const current = Math.max(0, Math.min(index, media.length - 1));
   useEffect(() => {
     if (!expanded) return;
     const node = dialog.current;
-    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousFocus = returnFocus.current;
+    const fallbackFocus = expandButton.current;
     const overflow = document.body.style.overflow;
     window.dispatchEvent(new Event('platinum:stop-media'));
     node?.showModal();
     document.body.style.overflow = 'hidden';
-    return () => { node?.close(); document.body.style.overflow = overflow; previousFocus?.focus({ preventScroll: true }); };
+    return () => {
+      node?.close();
+      document.body.style.overflow = overflow;
+      const focusTarget = previousFocus?.isConnected ? previousFocus : fallbackFocus;
+      if (focusTarget?.isConnected) focusTarget.focus({ preventScroll: true });
+    };
   }, [expanded]);
   if (!media.length) return null;
   const navigation = media.length > 1 ? <>
@@ -33,8 +45,8 @@ export default function ReviewMediaGallery({ media }: { media: ReviewMedia[] }) 
     </div>
   </> : null;
   return <div className="pc-review-gallery">
-    <div hidden={expanded}><MediaPreview key={`${current}:${media[current].url}`} {...media[current]} onExpand={() => setExpanded(true)} />{navigation}</div>
-    <button type="button" className="pc-button pc-gallery-expand" onClick={() => setExpanded(true)}><AdminIcon name="expand" size={17} /> Full screen</button>
+    <div hidden={expanded}><MediaPreview key={`${current}:${media[current].url}`} {...media[current]} onExpand={openGallery} />{navigation}</div>
+    <button ref={expandButton} type="button" className="pc-button pc-gallery-expand" onClick={openGallery}><AdminIcon name="expand" size={17} /> Full screen</button>
     <dialog ref={dialog} className="pc-media-dialog" aria-label="Full screen media review"
       onKeyDown={event => { if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); setExpanded(false); } else trapDialogTab(event); }}
       onCancel={event => { event.preventDefault(); event.stopPropagation(); setExpanded(false); }} onClose={() => setExpanded(false)}>
