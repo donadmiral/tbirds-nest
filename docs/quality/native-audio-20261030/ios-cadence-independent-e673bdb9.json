@@ -1,0 +1,268 @@
+{
+  "kind": "independent decoded iOS cadence and mixed-audio acceptance",
+  "recordedAt": "2026-10-30T23:20:25.015879+00:00",
+  "status": "passed",
+  "candidate": {
+    "head": "e673bdb97f77fc8f9763ef997f75fb805fe0f26f",
+    "testedMerge": "4b0cf24573e12e88c92a23abfcf298bbd788740c",
+    "tree": "4c5be88ea0a505a065ba5a191325357978ed6870",
+    "mergeTreeIndependentlyMatches": true
+  },
+  "githubEvidence": {
+    "workflowRun": 41142738914,
+    "job": 124361180841,
+    "artifact": 13019707631,
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41142738914/job/124361180841",
+    "artifactZipSha256": "679868efe69d2218c8df0de9a0317bb0bd57e7d641f3501e7adb9128828d44d2",
+    "artifactZipBytes": 409293,
+    "artifactReceiptSha256": "64eb15647f5cb56069ccbf7b524e3b9d2d44bd4f121c09b2e55011c51eb68f05"
+  },
+  "runtime": {
+    "architecture": "arm64",
+    "simulator": "com.apple.CoreSimulator.SimRuntime.iOS-26-2",
+    "networkUsed": false,
+    "photosWritten": false,
+    "physicalDevice": false
+  },
+  "sourceHashes": {
+    "modules/boomerang/ios/StoryVideoComposition.swift": "5aacf6fe5842f6b846d11b9155b04df6ecbb5c3c923afc8b6479d477ddf2903c",
+    "scripts/quality/StoryAudioExportHarness.swift": "f62d1d285283d6b45a2dc8ab9b55f2e1c47f18a8e44bc3b56631d3f90379d714",
+    "scripts/quality/test-ios-story-audio.sh": "c024ac519360f68b3e2a9b30694439ab7e94fb6c34519ff1bc4d0309c8d61215"
+  },
+  "sourceVerification": "All artifact source hashes match the exact published e673 git blobs. The strict eight-case harness is unchanged from the failed 71aa cadence attempt; only the reviewed production timing-track reset changed.",
+  "runtimeReceiptVerification": {
+    "passed": true,
+    "exactNamedCases": [
+      "video trim and speed keep looping excerpt and music pitch",
+      "voiceover stops while the remaining video stays present",
+      "original mix level and muted soundtrack are preserved",
+      "2x original pitch and independent looping music stay in sync",
+      "0.5x original pitch and independent looping music stay in sync",
+      "photo or text artwork becomes a movie with actual audio",
+      "invalid audio range is rejected and partial output removed",
+      "cancellation stops the native writer and removes temporary movies"
+    ],
+    "caseCount": 8,
+    "retainedMovieCount": 6,
+    "allRetainedHashesAndSizesMatched": true
+  },
+  "retainedMovies": {
+    "pc-story-export-mixed-speed-2x.mp4": {
+      "sha256": "372039358b268df15c803828291f330ab7f6ab2ec0fa0f879c39d0a5bc41f47f",
+      "bytes": 76009
+    },
+    "pc-story-export-original.mp4": {
+      "sha256": "5a942b09406612e34c3a492589516a1eb0a96a030f816248ef1793cadf1c9b03",
+      "bytes": 99384
+    },
+    "pc-story-export-still.mp4": {
+      "sha256": "ff74e91ab8a47103813252debbc35a96ee3484fc84b8901ef2687c95c87db6d7",
+      "bytes": 66832
+    },
+    "pc-story-export-loop.mp4": {
+      "sha256": "8dce11251a63d4aa38a9db0305b6b0d8292d197b13069542163749419fdd7cbe",
+      "bytes": 66850
+    },
+    "pc-story-export-voice.mp4": {
+      "sha256": "fdd738423ec2fcdd4a6f3ceb7ed65d7b380f68b8d32d75e61edc3712295aad33",
+      "bytes": 53584
+    },
+    "pc-story-export-mixed-speed-0.5x.mp4": {
+      "sha256": "b1bc616ee2256e74376de3bac0fb4c12c341b071029fc0a40a5e1a718e694111",
+      "bytes": 115833
+    }
+  },
+  "independentMethod": {
+    "tools": "ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers",
+    "video": "Decode every video frame with FFprobe; require 360x640 geometry, nominal and average 30/1 rates, positive PTS intervals within 10 ms of 1/30, unchanged expectedDuration*30 count bounds, and start/end within 120 ms. Final-frame end uses the observed median interval.",
+    "audio": "Decode first audio channel to 48000 Hz float PCM; measure six exact 0.3-second windows using 2*abs(sum(samples*exp(-2*pi*i*frequency*t)))/sampleCount. Keep original amplitude in (0.05,0.15), added music in (0.13,0.27), and shifted/outside-excerpt tones below 0.02.",
+    "audioCoverage": "Separately decode AAC frames and combine their PTS and sample counts at 44100 Hz; require start and end within 120 ms. Container duration is also retained; codec padding may make these values differ slightly.",
+    "lateVideo": "Decode actual frames at expectedDuration-0.15; verify dimensions and retain center RGB. This checks later-frame existence, not full visual-art fidelity."
+  },
+  "independentMeasurements": [
+    {
+      "movie": "pc-story-export-mixed-speed-2x.mp4",
+      "sha256": "372039358b268df15c803828291f330ab7f6ab2ec0fa0f879c39d0a5bc41f47f",
+      "bytes": 76009,
+      "speed": 2.0,
+      "expectedDuration": 2.25,
+      "video": {
+        "codec": "h264",
+        "width": 360,
+        "height": 640,
+        "nominalRate": "30/1",
+        "averageRate": "30/1",
+        "decodedFrames": 68,
+        "firstPts": 0.0,
+        "lastPts": 2.233333,
+        "intervalMin": 0.033332999999999835,
+        "intervalMax": 0.033334000000000086,
+        "intervalMedian": 0.03333300000000006,
+        "decodedEnd": 2.266666,
+        "containerTrackEnd": 2.266667
+      },
+      "audio": {
+        "codec": "aac",
+        "sampleRate": 44100,
+        "channels": 1,
+        "decodedFrames": 99,
+        "firstPts": 0.0,
+        "decodedEnd": 2.297323954648526,
+        "containerTrackEnd": 2.295011,
+        "decodedSamplesAt48000": 110272
+      },
+      "windows": [
+        {
+          "start": 0.3,
+          "samples": 14400,
+          "duration": 0.3,
+          "amplitudes": {
+            "original440Hz": 0.1000251215400404,
+            "music660Hz": 0.1999714791989694,
+            "shiftedOriginal": 4.832943509556075e-06,
+            "shiftedMusic": 1.2357401734834388e-06,
+            "beforeExcerpt1540Hz": 6.052959586994328e-07,
+            "afterExcerpt1760Hz": 9.84039750012802e-08
+          }
+        },
+        {
+          "start": 1.3,
+          "samples": 14400,
+          "duration": 0.3,
+          "amplitudes": {
+            "original440Hz": 0.10002188509836697,
+            "music660Hz": 0.19997332516277916,
+            "shiftedOriginal": 1.19586398101732e-06,
+            "shiftedMusic": 5.180876802534525e-07,
+            "beforeExcerpt1540Hz": 1.0793415980844551e-07,
+            "afterExcerpt1760Hz": 6.168206294970313e-08
+          }
+        },
+        {
+          "start": 1.9,
+          "samples": 14400,
+          "duration": 0.3,
+          "amplitudes": {
+            "original440Hz": 0.100034880781486,
+            "music660Hz": 0.1999893681457777,
+            "shiftedOriginal": 4.45135635720213e-07,
+            "shiftedMusic": 6.692100058164559e-07,
+            "beforeExcerpt1540Hz": 2.7718989600107314e-07,
+            "afterExcerpt1760Hz": 2.116704235111463e-07
+          }
+        }
+      ],
+      "lateFrame": {
+        "at": 2.1,
+        "width": 360,
+        "height": 640,
+        "centerRgb": [
+          20,
+          88,
+          180
+        ]
+      },
+      "allIndependentAssertionsPass": true
+    },
+    {
+      "movie": "pc-story-export-mixed-speed-0.5x.mp4",
+      "sha256": "b1bc616ee2256e74376de3bac0fb4c12c341b071029fc0a40a5e1a718e694111",
+      "bytes": 115833,
+      "speed": 0.5,
+      "expectedDuration": 3.5,
+      "video": {
+        "codec": "h264",
+        "width": 360,
+        "height": 640,
+        "nominalRate": "30/1",
+        "averageRate": "30/1",
+        "decodedFrames": 105,
+        "firstPts": 0.0,
+        "lastPts": 3.466667,
+        "intervalMin": 0.033332999999999835,
+        "intervalMax": 0.033334000000000086,
+        "intervalMedian": 0.03333300000000006,
+        "decodedEnd": 3.5,
+        "containerTrackEnd": 3.5
+      },
+      "audio": {
+        "codec": "aac",
+        "sampleRate": 44100,
+        "channels": 1,
+        "decodedFrames": 151,
+        "firstPts": 0.0,
+        "decodedEnd": 3.5047619546485262,
+        "containerTrackEnd": 3.498345,
+        "decodedSamplesAt48000": 168229
+      },
+      "windows": [
+        {
+          "start": 0.3,
+          "samples": 14400,
+          "duration": 0.3,
+          "amplitudes": {
+            "original440Hz": 0.10001605428784577,
+            "music660Hz": 0.19997563534015952,
+            "shiftedOriginal": 1.5887627213781756e-06,
+            "shiftedMusic": 3.729296810865595e-06,
+            "beforeExcerpt1540Hz": 3.3593939010997975e-07,
+            "afterExcerpt1760Hz": 2.8685606754817197e-07
+          }
+        },
+        {
+          "start": 1.3,
+          "samples": 14400,
+          "duration": 0.3,
+          "amplitudes": {
+            "original440Hz": 0.10000445874271656,
+            "music660Hz": 0.2000010502326796,
+            "shiftedOriginal": 5.479545314553371e-07,
+            "shiftedMusic": 1.4549694624942266e-06,
+            "beforeExcerpt1540Hz": 1.0658122277490826e-07,
+            "afterExcerpt1760Hz": 4.384249716109244e-08
+          }
+        },
+        {
+          "start": 3.15,
+          "samples": 14400,
+          "duration": 0.3,
+          "amplitudes": {
+            "original440Hz": 0.09996219508519846,
+            "music660Hz": 0.19997487192832453,
+            "shiftedOriginal": 1.068203483368385e-05,
+            "shiftedMusic": 2.129087376954355e-05,
+            "beforeExcerpt1540Hz": 3.825074120388084e-06,
+            "afterExcerpt1760Hz": 3.1994624117348546e-06
+          }
+        }
+      ],
+      "lateFrame": {
+        "at": 3.35,
+        "width": 360,
+        "height": 640,
+        "centerRgb": [
+          20,
+          88,
+          180
+        ]
+      },
+      "allIndependentAssertionsPass": true
+    }
+  ],
+  "conclusions": [
+    "Both accelerated and slowed movies meet the intended fixed 30 fps contract. Fast output has 68 frames and ends at 2.266667 s for a 2.25 s target; slow output has 105 frames and ends at 3.5 s.",
+    "All six audio windows preserve original 440 Hz near 0.1 amplitude and independent 660 Hz near 0.2, including final repetitions. All measured unwanted tones remain below 0.000022.",
+    "Independent decoded audio and video coverage stay within the unchanged 120 ms limits; no assertion was relaxed.",
+    "With the unchanged harness and the one-property production change, the new retained outputs verify that explicitly resetting source-track timing restores the configured 30 fps cadence."
+  ],
+  "relatedEvidence": [
+    "docs/quality/native-audio-20261030/ios-frame-timing-independent-71aa363a.json",
+    "docs/quality/native-audio-20261030/ios-cadence-source-equivalence.json"
+  ],
+  "scopeLimits": [
+    "Eight cases were executed by the retained synthetic iOS 26.2 arm64 Simulator harness; this independent review redecoded both mixed movies and checked all retained file/source identities. It did not rerun native code locally.",
+    "Full application compilation is a separate gate and is not inferred from this standalone renderer harness.",
+    "No physical iPhone, installed app, Photos-library write, camera/HEIC/HDR, microphone hardware, Bluetooth, calls, interruptions, offline recovery or accessibility acceptance is established.",
+    "No hosted Supabase installation, live Storage/CDN erasure, commercial licensing, provider payment or production rollout is established."
+  ]
+}

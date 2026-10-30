@@ -1,0 +1,110 @@
+{
+  "verifiedAtUtc": "2026-10-30T23:32:00.833035+00:00",
+  "reviewHead": "e673bdb97f77fc8f9763ef997f75fb805fe0f26f",
+  "testedMerge": "4b0cf24573e12e88c92a23abfcf298bbd788740c",
+  "sourceTree": "4c5be88ea0a505a065ba5a191325357978ed6870",
+  "mergeTreeMatchesHead": true,
+  "runId": 41142738914,
+  "jobId": 124361180734,
+  "runConclusion": "success",
+  "jobConclusion": "success",
+  "runUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41142738914",
+  "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41142738914/job/124361180734",
+  "artifact": {
+    "id": 13019999335,
+    "name": "ios-native-compile-diagnostics",
+    "bytes": 984967,
+    "sha256": "a8dd5b9dd1cf74671b5092e68aee60c27a04017f26e3b859c64436b4847eead0",
+    "downloadedAndDigestVerified": true,
+    "createdAtUtc": "2026-10-30T23:28:39Z",
+    "expiresAtUtc": "2026-11-06T23:28:36Z"
+  },
+  "checks": {
+    "receiptMatchesTestedMergeAndRun": true,
+    "allThreeNativeSourceHashesMatchPublishedHead": true,
+    "allThreeNativeObjectPathsAttestedInCompileReceipt": true,
+    "correctedRendererSwiftCompileObservedInLog": true,
+    "appExecutableLinkObservedInLog": true,
+    "buildSucceededObservedInLog": true
+  },
+  "compilerLogMarkers": [
+    "SwiftCompile normal x86_64 Compiling\\ StoryVideoComposition.swift /Users/runner/work/tbirds-nest/tbirds-nest/modules/boomerang/ios/StoryVideoComposition.swift (in target 'Boomerang' from project 'Pods')",
+    "SwiftCompile normal x86_64 /Users/runner/work/tbirds-nest/tbirds-nest/modules/boomerang/ios/StoryVideoComposition.swift (in target 'Boomerang' from project 'Pods')",
+    "Ld /Users/runner/work/tbirds-nest/tbirds-nest/native-compile-derived/Build/Products/Debug-iphonesimulator/PlatinumQA.app/__preview.dylib normal (in target 'PlatinumQA' from project 'PlatinumQA')",
+    "Ld /Users/runner/work/tbirds-nest/tbirds-nest/native-compile-derived/Build/Products/Debug-iphonesimulator/PlatinumQA.app/PlatinumQA.debug.dylib normal (in target 'PlatinumQA' from project 'PlatinumQA')",
+    "Ld /Users/runner/work/tbirds-nest/tbirds-nest/native-compile-derived/Build/Products/Debug-iphonesimulator/PlatinumQA.app/PlatinumQA normal (in target 'PlatinumQA' from project 'PlatinumQA')",
+    "** BUILD SUCCEEDED **"
+  ],
+  "toolchain": {
+    "xcode": "16.4",
+    "xcodeBuild": "16F6",
+    "iosSimulatorSdk": "18.5",
+    "node": "22.23.4",
+    "npm": "10.9.9",
+    "cocoapods": "1.16.2"
+  },
+  "compileReceipt": {
+    "commit": "4b0cf24573e12e88c92a23abfcf298bbd788740c",
+    "workflow_run": "41142738914",
+    "result": "unsigned iOS Simulator compile passed",
+    "native_sources": {
+      "modules/boomerang/ios/BoomerangModule.swift": {
+        "sha256": "8d254293d79f3c3c317f77da3f12c84390f14bf1f15cdfe3784433c7bdc83598",
+        "compiled_objects": [
+          "native-compile-derived/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/Boomerang.build/Objects-normal/x86_64/BoomerangModule.o"
+        ]
+      },
+      "modules/boomerang/ios/StoryVideoView.swift": {
+        "sha256": "1601cd03287a4c42e395a1c7f7163cf3465daaab6f0f6957a1264569725749ac",
+        "compiled_objects": [
+          "native-compile-derived/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/Boomerang.build/Objects-normal/x86_64/StoryVideoView.o"
+        ]
+      },
+      "modules/boomerang/ios/StoryVideoComposition.swift": {
+        "sha256": "5aacf6fe5842f6b846d11b9155b04df6ecbb5c3c923afc8b6479d477ddf2903c",
+        "compiled_objects": [
+          "native-compile-derived/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/Boomerang.build/Objects-normal/x86_64/StoryVideoComposition.o"
+        ]
+      }
+    },
+    "simulator_architecture": "x86_64",
+    "app_executable_linked": true,
+    "device_or_provider_acceptance": false,
+    "archive_or_ipa_created": false,
+    "app_uploaded_or_submitted": false
+  },
+  "diagnosticFiles": [
+    {
+      "name": "pods.log",
+      "bytes": 31077,
+      "sha256": "35a40557cb8385581f1c9593a615735f55dfc5267650058c9b4cfc204cb2fbe1"
+    },
+    {
+      "name": "postflight.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "prebuild.log",
+      "bytes": 168,
+      "sha256": "760817c0abef0754ae42e2529d618519cf915fee2cdeec02b4741f131bac4111"
+    },
+    {
+      "name": "receipt.json",
+      "bytes": 1357,
+      "sha256": "1bb7c6ebae225fc5f285130a8fa270b54b3d2ce43fb4f5e1cfc5f0ccfdb2ad7e"
+    },
+    {
+      "name": "toolchain.log",
+      "bytes": 58,
+      "sha256": "2b7b932c05dad4e90abcfd0182b2285b4271dc11d5d2ce134d567d40d7456dc6"
+    },
+    {
+      "name": "xcodebuild.log",
+      "bytes": 18614764,
+      "sha256": "dd329064566bf85039a33ff90494e9df662c2e7fb3be88bc2ab974b378c3b9e1"
+    }
+  ],
+  "separateEncodedRuntimeEvidence": "docs/quality/native-audio-20261030/final-ios-audio-e673bdb9.json",
+  "scope": "Final corrected production renderer compiled as part of the complete unsigned x86_64 iOS Simulator application and the app executable linked successfully. The artifact contains diagnostics and native object attestations, not an app binary or object archive. Actual eight-case arm64 Simulator movie acceptance is recorded separately. This does not establish physical-iPhone behavior, Photos export, signed archive or App Store release acceptance."
+}

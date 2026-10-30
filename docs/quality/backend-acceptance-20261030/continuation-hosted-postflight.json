@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-10-30 22:40:03.743883+00",
+  "checkedAt": "2026-10-30 23:13:17.862175+00",
   "project": "uaulhuelcfkjwojtymmw",
   "operation": "Read-only independent Supabase postflight",
   "businessAuthSchemaPresent": false,
@@ -17,6 +17,12 @@
   "previousChecks": [
     {
       "checkedAt": "2026-10-30 21:46:57.038652+00",
+      "businessAuthSchemaPresent": false,
+      "musicLibrarySchemaPresent": false,
+      "candidateMigrationsPresent": 0
+    },
+    {
+      "checkedAt": "2026-10-30 22:40:03.743883+00",
       "businessAuthSchemaPresent": false,
       "musicLibrarySchemaPresent": false,
       "candidateMigrationsPresent": 0

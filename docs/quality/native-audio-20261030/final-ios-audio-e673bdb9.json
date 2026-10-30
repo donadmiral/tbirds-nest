@@ -1,0 +1,380 @@
+{
+  "verifiedAtUtc": "2026-10-30T23:19:34+00:00",
+  "repository": "donadmiral/tbirds-nest",
+  "reviewHead": "e673bdb97f77fc8f9763ef997f75fb805fe0f26f",
+  "testedMerge": "4b0cf24573e12e88c92a23abfcf298bbd788740c",
+  "sourceTree": "4c5be88ea0a505a065ba5a191325357978ed6870",
+  "mergeTreeMatchesHead": true,
+  "runId": 41142738914,
+  "runUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41142738914",
+  "jobId": 124361180841,
+  "jobConclusion": "success",
+  "successLogMarkersVerified": true,
+  "artifact": {
+    "id": 13019707631,
+    "name": "native-story-audio-export",
+    "bytes": 409293,
+    "sha256": "679868efe69d2218c8df0de9a0317bb0bd57e7d641f3501e7adb9128828d44d2",
+    "createdAt": "2026-10-30T23:17:40Z",
+    "expiresAt": "2026-11-06T23:17:39Z",
+    "downloadedAndDigestVerified": true
+  },
+  "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-26-2",
+  "architecture": "arm64",
+  "expectedCaseCount": 8,
+  "passedCaseCount": 8,
+  "expectedMovieCount": 6,
+  "verifiedMovieCount": 6,
+  "sources": {
+    "modules/boomerang/ios/StoryVideoComposition.swift": "5aacf6fe5842f6b846d11b9155b04df6ecbb5c3c923afc8b6479d477ddf2903c",
+    "scripts/quality/StoryAudioExportHarness.swift": "f62d1d285283d6b45a2dc8ab9b55f2e1c47f18a8e44bc3b56631d3f90379d714",
+    "scripts/quality/test-ios-story-audio.sh": "c024ac519360f68b3e2a9b30694439ab7e94fb6c34519ff1bc4d0309c8d61215"
+  },
+  "sourceHashesMatchTestedHead": true,
+  "allMovieHashesAndBytesVerified": true,
+  "measuredCases": [
+    {
+      "duration": 2,
+      "early": {
+        "hz": 879.7825632448254,
+        "rms": 0.14112127865889765,
+        "samples": 14349
+      },
+      "late": {
+        "hz": 879.7825632448254,
+        "rms": 0.1411133296833416,
+        "samples": 14349
+      },
+      "name": "video trim and speed keep looping excerpt and music pitch"
+    },
+    {
+      "afterBoundary": {
+        "hz": 0,
+        "rms": 0,
+        "samples": 0
+      },
+      "duration": 6,
+      "early": {
+        "hz": 876.6666666666666,
+        "rms": 0.14113944628582312,
+        "samples": 14400
+      },
+      "name": "voiceover stops while the remaining video stays present"
+    },
+    {
+      "audio": {
+        "hz": 436.6666666666667,
+        "rms": 0.07057355279306406,
+        "samples": 14400
+      },
+      "name": "original mix level and muted soundtrack are preserved"
+    },
+    {
+      "audio": {
+        "end": 2.2939374999999997,
+        "firstPresentation": 0,
+        "frameInterval": 0,
+        "pcmFrames": 110109,
+        "sampleBuffers": 15
+      },
+      "duration": 2.295,
+      "expectedDuration": 2.25,
+      "name": "2x original pitch and independent looping music stay in sync",
+      "speed": 2,
+      "video": {
+        "end": 2.2666666666666666,
+        "firstPresentation": 0,
+        "frameInterval": 0.033333333333333326,
+        "pcmFrames": 0,
+        "sampleBuffers": 68
+      },
+      "windows": [
+        {
+          "afterExcerpt1760Hz": 4.552527199115481e-05,
+          "at": 0.3,
+          "beforeExcerpt1540Hz": 9.378930412587423e-05,
+          "music660Hz": 0.19934500134522226,
+          "original440Hz": 0.09972103969054533,
+          "samples": 14400,
+          "shiftedMusicAmplitude": 0.0002656408232868188,
+          "shiftedMusicHz": 1320,
+          "shiftedOriginalAmplitude": 0.0005757536587579983,
+          "shiftedOriginalHz": 880
+        },
+        {
+          "afterExcerpt1760Hz": 4.552099780289832e-05,
+          "at": 1.3,
+          "beforeExcerpt1540Hz": 9.451092735442547e-05,
+          "music660Hz": 0.1993467463863889,
+          "original440Hz": 0.09971816513834851,
+          "samples": 14400,
+          "shiftedMusicAmplitude": 0.00026630763060183705,
+          "shiftedMusicHz": 1320,
+          "shiftedOriginalAmplitude": 0.0005748416720296979,
+          "shiftedOriginalHz": 880
+        },
+        {
+          "afterExcerpt1760Hz": 4.5627350130771e-05,
+          "at": 1.9,
+          "beforeExcerpt1540Hz": 9.413087336342346e-05,
+          "music660Hz": 0.19936295385327135,
+          "original440Hz": 0.09973095403559742,
+          "samples": 14400,
+          "shiftedMusicAmplitude": 0.00026621755633437664,
+          "shiftedMusicHz": 1320,
+          "shiftedOriginalAmplitude": 0.0005749982963748899,
+          "shiftedOriginalHz": 880
+        }
+      ]
+    },
+    {
+      "audio": {
+        "end": 3.4972708333333333,
+        "firstPresentation": 0,
+        "frameInterval": 0,
+        "pcmFrames": 167869,
+        "sampleBuffers": 23
+      },
+      "duration": 3.5,
+      "expectedDuration": 3.5,
+      "name": "0.5x original pitch and independent looping music stay in sync",
+      "speed": 0.5,
+      "video": {
+        "end": 3.5,
+        "firstPresentation": 0,
+        "frameInterval": 0.033333333333333326,
+        "pcmFrames": 0,
+        "sampleBuffers": 105
+      },
+      "windows": [
+        {
+          "afterExcerpt1760Hz": 0.00022397282083736763,
+          "at": 0.3,
+          "beforeExcerpt1540Hz": 0.00014723472779853524,
+          "music660Hz": 0.19907791090272683,
+          "original440Hz": 0.0991768356452801,
+          "samples": 14400,
+          "shiftedMusicAmplitude": 0.0008187074087692443,
+          "shiftedMusicHz": 330,
+          "shiftedOriginalAmplitude": 0.0006905015652286121,
+          "shiftedOriginalHz": 220
+        },
+        {
+          "afterExcerpt1760Hz": 0.00022403192375866613,
+          "at": 1.3,
+          "beforeExcerpt1540Hz": 0.0001470225491689648,
+          "music660Hz": 0.19910227277035958,
+          "original440Hz": 0.09916517070611912,
+          "samples": 14400,
+          "shiftedMusicAmplitude": 0.0008175407310951662,
+          "shiftedMusicHz": 330,
+          "shiftedOriginalAmplitude": 0.0006909022243504615,
+          "shiftedOriginalHz": 220
+        },
+        {
+          "afterExcerpt1760Hz": 0.00022119158447946274,
+          "at": 3.15,
+          "beforeExcerpt1540Hz": 0.0001486725881941337,
+          "music660Hz": 0.1990760658855083,
+          "original440Hz": 0.09912386160804895,
+          "samples": 14400,
+          "shiftedMusicAmplitude": 0.0008101551812096234,
+          "shiftedMusicHz": 330,
+          "shiftedOriginalAmplitude": 0.000681041270440117,
+          "shiftedOriginalHz": 220
+        }
+      ]
+    },
+    {
+      "audio": {
+        "hz": 876.6666666666666,
+        "rms": 0.14113121941615647,
+        "samples": 14400
+      },
+      "name": "photo or text artwork becomes a movie with actual audio"
+    },
+    {
+      "name": "invalid audio range is rejected and partial output removed"
+    },
+    {
+      "name": "cancellation stops the native writer and removes temporary movies"
+    }
+  ],
+  "movies": {
+    "pc-story-export-loop.mp4": {
+      "duration": 2.0,
+      "videoCodec": "h264",
+      "audioCodec": "aac",
+      "dimensions": [
+        360,
+        640
+      ],
+      "nominalFrameRate": 30.0,
+      "bytes": 66850,
+      "sha256": "8dce11251a63d4aa38a9db0305b6b0d8292d197b13069542163749419fdd7cbe"
+    },
+    "pc-story-export-mixed-speed-0.5x.mp4": {
+      "duration": 3.5,
+      "videoCodec": "h264",
+      "audioCodec": "aac",
+      "dimensions": [
+        360,
+        640
+      ],
+      "nominalFrameRate": 30.0,
+      "bytes": 115833,
+      "sha256": "b1bc616ee2256e74376de3bac0fb4c12c341b071029fc0a40a5e1a718e694111"
+    },
+    "pc-story-export-mixed-speed-2x.mp4": {
+      "duration": 2.295011,
+      "videoCodec": "h264",
+      "audioCodec": "aac",
+      "dimensions": [
+        360,
+        640
+      ],
+      "nominalFrameRate": 30.0,
+      "bytes": 76009,
+      "sha256": "372039358b268df15c803828291f330ab7f6ab2ec0fa0f879c39d0a5bc41f47f"
+    },
+    "pc-story-export-original.mp4": {
+      "duration": 3.000499,
+      "videoCodec": "h264",
+      "audioCodec": "aac",
+      "dimensions": [
+        360,
+        640
+      ],
+      "nominalFrameRate": 30.0,
+      "bytes": 99384,
+      "sha256": "5a942b09406612e34c3a492589516a1eb0a96a030f816248ef1793cadf1c9b03"
+    },
+    "pc-story-export-still.mp4": {
+      "duration": 2.0,
+      "videoCodec": "h264",
+      "audioCodec": "aac",
+      "dimensions": [
+        360,
+        640
+      ],
+      "nominalFrameRate": 30.0,
+      "bytes": 66832,
+      "sha256": "ff74e91ab8a47103813252debbc35a96ee3484fc84b8901ef2687c95c87db6d7"
+    },
+    "pc-story-export-voice.mp4": {
+      "duration": 6.0,
+      "videoCodec": "h264",
+      "audioCodec": "aac",
+      "dimensions": [
+        360,
+        640
+      ],
+      "nominalFrameRate": 30.0,
+      "bytes": 53584,
+      "sha256": "fdd738423ec2fcdd4a6f3ceb7ed65d7b380f68b8d32d75e61edc3712295aad33"
+    }
+  },
+  "independentDecode": {
+    "tool": "ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers",
+    "result": "pass",
+    "expectedVideoCadence": 30,
+    "coverageToleranceSeconds": 0.12,
+    "frameSpacingToleranceSeconds": 0.01,
+    "originalAmplitudeBounds": [
+      0.05,
+      0.15
+    ],
+    "musicAmplitudeBounds": [
+      0.13,
+      0.27
+    ],
+    "shiftedPitchAndOutsideExcerptMaximum": 0.02,
+    "mixedMovies": [
+      {
+        "name": "mixed-speed-2x",
+        "speed": 2,
+        "expectedDuration": 2.25,
+        "videoFrames": 68,
+        "nominalFrameRate": 30.0,
+        "videoStart": 0.0,
+        "videoEnd": 2.266666,
+        "audioFirstPacket": -0.047891,
+        "windowTimes": [
+          0.3,
+          1.3,
+          1.9
+        ],
+        "samplesPerWindow": [
+          14400,
+          14400,
+          14400
+        ],
+        "original440HzAmplitudeRange": [
+          0.10002188509836696,
+          0.100034880781486
+        ],
+        "music660HzAmplitudeRange": [
+          0.1999714791989694,
+          0.19998936814577772
+        ],
+        "maximumShiftedPitchOrOutsideExcerptAmplitude": 4.832943509555354e-06,
+        "lateDecodedFrameCenterRgb": [
+          20,
+          88,
+          180
+        ],
+        "audioPacketEnd": 2.2950109999999997
+      },
+      {
+        "name": "mixed-speed-0.5x",
+        "speed": 0.5,
+        "expectedDuration": 3.5,
+        "videoFrames": 105,
+        "nominalFrameRate": 30.0,
+        "videoStart": 0.0,
+        "videoEnd": 3.5,
+        "audioFirstPacket": -0.047891,
+        "windowTimes": [
+          0.3,
+          1.3,
+          3.15
+        ],
+        "samplesPerWindow": [
+          14400,
+          14400,
+          14400
+        ],
+        "original440HzAmplitudeRange": [
+          0.09996219508519846,
+          0.10001605428784575
+        ],
+        "music660HzAmplitudeRange": [
+          0.19997487192832453,
+          0.2000010502326796
+        ],
+        "maximumShiftedPitchOrOutsideExcerptAmplitude": 2.1290873769543408e-05,
+        "lateDecodedFrameCenterRgb": [
+          20,
+          88,
+          180
+        ],
+        "audioPacketEnd": 3.498345
+      }
+    ]
+  },
+  "limits": [
+    "Actual standalone production renderer running on iOS Simulator with generated local fixtures.",
+    "The independently decoded2x and0.5x outputs meet the strict30fps, pitch, gain, excerpt and tail requirements.",
+    "No physical iPhone, Photos-library write, network/backend, signed release or store acceptance is established.",
+    "Full-app compilation is a separate gate and receipt."
+  ],
+  "supersededFailures": [
+    "ios-pitch-harness-timing-failure.json",
+    "ios-pitch-cadence-failure.json"
+  ],
+  "secondIndependentReview": {
+    "file": "ios-cadence-independent-e673bdb9.json",
+    "sha256": "9c0dc858145ae9bc3e69f284bee2dfc06989a894885ae3b812f0a646026e0aaf",
+    "result": "pass"
+  }
+}
