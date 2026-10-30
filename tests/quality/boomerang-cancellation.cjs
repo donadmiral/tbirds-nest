@@ -10,7 +10,7 @@ const source = ts.transpileModule(fs.readFileSync(path.join(__dirname, '../../mo
 }).outputText;
 const deferred = () => { let resolve, reject; const promise = new Promise((a, b) => { resolve = a; reject = b; }); return { promise, resolve, reject }; };
 const turn = () => new Promise(resolve => setImmediate(resolve));
-function fixture(kind = 'current') {
+function fixture(kind = 'current', platform = 'ios') {
   const work = deferred(), calls = [], removed = [];
   const native = kind === 'absent' ? null : { make: (...args) => { calls.push(['legacy', ...args]); return work.promise; } };
   if (kind === 'current' || kind === 'partial') Object.assign(native, {
@@ -21,11 +21,20 @@ function fixture(kind = 'current') {
   const module = { exports: {} };
   vm.runInNewContext(source, { module, exports: module.exports, Promise, Error, require(name) {
     if (name === 'expo-modules-core') return { requireOptionalNativeModule: () => native };
+    if (name === 'react-native') return { Platform: { OS: platform } };
     assert.equal(name, 'expo-file-system/legacy');
     return { deleteAsync: async (...args) => { removed.push(args); } };
   } });
   return { ...module.exports, work, calls, removed, native };
 }
+
+test('the linked Android stub is not an available encoder and cannot start work', async () => {
+  const h = fixture('current', 'android');
+  assert.equal(h.boomerangAvailable, false);
+  await assert.rejects(h.makeBoomerang('input.mp4', 'output.mp4'), /not available on Android/);
+  assert.deepEqual(h.calls, []);
+  assert.deepEqual(h.removed, []);
+});
 
 test('the current native bridge reserves before encoding and preserves a completed output', async () => {
   const h = fixture(), controller = new AbortController();

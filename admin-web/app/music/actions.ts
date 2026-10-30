@@ -18,3 +18,17 @@ export async function saveMusicLicenseDraft(form:FormData) {
 export async function revokeMusicSound(form:FormData) {
  return command('sound.revoke',{soundId:String(form.get('soundId')||''),reason:String(form.get('reason')||'').trim()});
 }
+export async function stageMusicCatalogue(form:FormData) {
+ const admin=await requirePermission('post_moderate');
+ const file=form.get('manifest');
+ if(!(file instanceof File)||file.size<2||file.size>262144)redirect('/music?result=invalid-catalogue');
+ let manifest:unknown;
+ try{manifest=JSON.parse(await file.text());}catch{redirect('/music?result=invalid-catalogue');}
+ const requestId=String(form.get('requestId')||'');
+ if(!/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(requestId))redirect('/music?result=invalid-catalogue');
+ const {error}=await serviceClient().rpc('admin_stage_music_catalogue',{
+  p_actor:admin.id,p_session:admin.sessionId,p_request:requestId,p_provider:String(form.get('providerId')||''),p_manifest:manifest,
+ });
+ if(error)redirect('/music?result=catalogue-failed');
+ revalidatePath('/music');redirect('/music?result=staged');
+}

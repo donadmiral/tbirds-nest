@@ -5,8 +5,8 @@ import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
-// Android reports itself unavailable for now; the JavaScript keeps the straight
-// clip. The MediaCodec encoder lands here next.
+// Native Android encoding is unavailable. The JavaScript bridge reports this
+// capability accurately and uses its frame-encoder fallback where supported.
 class BoomerangModule : Module() {
   override fun definition() = ModuleDefinition {
     Name("Boomerang")

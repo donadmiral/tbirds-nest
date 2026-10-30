@@ -39,9 +39,15 @@ export function storyVideoLayerWindows(stickers: readonly any[], recipe: Pick<St
   return times.slice(0, -1).map((time, i) => ({ start: (time - recipe.trimStart) / recipe.speed, end: (times[i + 1] - recipe.trimStart) / recipe.speed, clock: (time + times[i + 1]) / 2 }));
 }
 
+export function storyNativeEditingUnavailable(platform: string | undefined, feature: 'video' | 'audio' | 'color' = 'video'): string {
+  const operation = feature === 'audio' ? 'Export with added music or voiceover' : feature === 'color' ? 'Video color editing' : 'Edited video export';
+  const availability = platform === 'ios' ? 'needs the new iPhone build' : platform === 'android' ? 'is not available on Android yet' : 'is not available in this build';
+  return `${operation} ${availability}. Your ${feature === 'audio' ? 'soundtrack and draft are' : 'draft is'} kept.`;
+}
+
 /** A still raster must never silently replace an animation or an embedded video. */
-export function storyVideoExportLimit(stickers: readonly any[], hasExternalAudio = false, supportsExternalAudio = false): string | null {
-  if (hasExternalAudio && !supportsExternalAudio) return 'Export with added music or voiceover needs the new iPhone build. Your soundtrack and draft are kept.';
+export function storyVideoExportLimit(stickers: readonly any[], hasExternalAudio = false, supportsExternalAudio = false, platform?: string): string | null {
+  if (hasExternalAudio && !supportsExternalAudio) return storyNativeEditingUnavailable(platform, 'audio');
   if (stickers.some(s => s?.kind === 'gif')) return 'Animated GIF export is not available yet. Remove the GIF to export this edited video.';
   if (stickers.some(s => s?.anim && s.anim !== 'none' || s?.textAnim && s.textAnim !== 'none')) return 'Animated sticker export is not available yet. Set sticker animations to None to export this edited video.';
   if (stickers.some(s => s?.postMediaType === 'video' || s?.storyMediaType === 'video')) return 'Exporting a video inside another video is not available yet. Remove the embedded clip to export this edited video.';

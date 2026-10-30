@@ -451,3 +451,9 @@ verify_jwt = false
 # The upload verifier checks the real owner and active session in its handler.
 [functions.music-asset-finalize]
 verify_jwt = false
+
+[functions.music-maintenance]
+verify_jwt = false
+
+[functions.music-catalogue-ingest]
+verify_jwt = false

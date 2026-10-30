@@ -41,6 +41,7 @@ before(async()=>{
  for(const name of ['20261029224550_admin_operations_completion','20261029224812_account_storage_erasure','20261029224813_private_media_cutover_compatibility','20261029231321_account_erasure_admin_review_queue','20261029231440_bounded_media_delivery','20261030010250_account_erasure_admin_restore_guard'])await db.exec(await source(`supabase/migrations/${name}.sql`));
  if(process.env.MUSIC_FIXTURE_PREEXISTING==='1')for(const name of ['20261022211311_story_sound_rights','20261026063625_soundtrack_rights_and_post_audio'])await db.exec(await source(`supabase/migrations/${name}.sql`));
  try { await db.exec(await source('supabase/migrations/20261030153811_original_music_library_and_delivery.sql')); assert.equal(await value('select uploads_enabled from music_library.service_state'),false);await db.exec("select set_original_audio_service_ready(true,'Synthetic worker contract verified')"); } catch(error) { throw new Error(error.message); }
+ if(process.env.MUSIC_PIPELINE_FIXTURE==='1')for(const name of ['20261030203619_music_catalogue_operations_and_cleanup','20261030204339_licensed_catalogue_pipeline'])await db.exec(await source(`supabase/migrations/${name}.sql`));
  for(const [name,id]of Object.entries(ids)){await db.query('insert into auth.users(id,email) values($1,$2)',[id,`music-${name}@example.test`]);await db.query("insert into public.profiles(id,username,full_name,email,profile_visibility) values($1,$2,$2,$3,'public') on conflict(id) do update set username=excluded.username,profile_visibility='public'",[id,`music_${name}`,`music-${name}@example.test`]);await db.query("insert into auth.sessions(id,user_id,aal) values($1,$2,'aal1')",[sessions[name],id]);}
 });
 after(()=>db.close());beforeEach(()=>db.exec('begin'));afterEach(()=>db.exec('rollback'));
@@ -230,7 +231,7 @@ test('legacy sound publication is retired and new write tables carry erasure fen
  await assert.rejects(()=>actor('owner',"select resolve_story_soundtrack('{}')"),/permission denied/);
  assert.equal(await value("select has_function_privilege('authenticated','public.resolve_story_soundtrack(jsonb)','execute')"),false);
  assert.equal(await value("select has_function_privilege('service_role','public.resolve_story_soundtrack(jsonb)','execute')"),true);
- const guarded=await value("select count(*) from pg_trigger t join pg_class c on c.oid=t.tgrelid join pg_namespace n on n.oid=c.relnamespace where n.nspname='music_library' and t.tgname='account_erasure_actor_write'");assert.equal(guarded,6);
+ const guarded=await value("select count(*) from pg_trigger t join pg_class c on c.oid=t.tgrelid join pg_namespace n on n.oid=c.relnamespace where n.nspname='music_library' and t.tgname='account_erasure_actor_write'");assert.equal(guarded,process.env.MUSIC_PIPELINE_FIXTURE==='1'?16:6);
 });
 
 test('expired reservations retain capacity beyond the daily window and exact retry reuses its slot',async()=>{

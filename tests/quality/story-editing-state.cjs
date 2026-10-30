@@ -8,6 +8,10 @@ const root = path.resolve(__dirname, '../..');
 const source = fs.readFileSync(path.join(root, 'src/screens/stories/StoryComposerScreen.tsx'), 'utf8');
 const ast = ts.createSourceFile('composer.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 const compile = code => ts.transpileModule(code, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText;
+const sharedComposition = { exports: {} };
+vm.runInNewContext(compile(fs.readFileSync(path.join(root, 'shared/storyVideoComposition.ts'), 'utf8')), {
+  module: sharedComposition, exports: sharedComposition.exports, require: () => ({}),
+});
 function callback(name, context) {
   let body;
   function visit(node) {
@@ -87,7 +91,7 @@ test('native adjustment taps and full-width drags change the rendered value and 
   assert.ok(children.every(child => child.props.pointerEvents === 'none'));
 });
 
-function snapshot({ mediaType = 'text', readiness = [], available = true, compose, saveToLibrary, audio, prepareAudio, permissions = async () => ({ granted: true }) } = {}) {
+function snapshot({ mediaType = 'text', readiness = [], available = true, platform = 'ios', compose, saveToLibrary, audio, prepareAudio, permissions = async () => ({ granted: true }) } = {}) {
   const calls = [], ref = { current: { artworkOnly: true } }, lock = { current: false }, owner = { current: 'owner' };
   const context = {
     active: { id: 'draft', mediaType, localUri: mediaType === 'text' ? null : 'file:///source.mp4', uploadState: 'idle', audio }, snapshotBusy: lock, storySnapshotRef: ref,
@@ -97,6 +101,7 @@ function snapshot({ mediaType = 'text', readiness = [], available = true, compos
     AbortController, exportAbort: { current: null }, exportCommitting: { current: false }, exportArtworkRef: ref,
     setExportArtwork: value => calls.push(['artwork', value]), setExportStatus: value => calls.push(['status', value]),
     storyVideoCompositionAvailable: available, storyAudioCompositionAvailable: available, storyVideoExportLimit: () => null,
+    storyNativeEditingUnavailable: sharedComposition.exports.storyNativeEditingUnavailable, Platform: { OS: platform },
     storyVideoRecipe: () => ({ width: 1080, height: 1920, trimStart: 0 }), storyVideoLayerWindows: () => [{ clock: 2, start: 0, end: 4 }],
     vidPlayer: { duration: 4, pause() {} }, FileSystem: { cacheDirectory: 'file:///cache/', deleteAsync: async uri => calls.push(['delete', uri]) },
     composeStoryVideo: async (request, signal) => { calls.push(['compose', request]); return compose ? compose(request, signal) : { uri: request.outputUri }; },
@@ -143,6 +148,16 @@ test('native video export keeps older builds and account changes from saving an 
   const h = snapshot({ mediaType: 'video', compose: async request => { h.context.ownerRef.current = 'other'; return { uri: request.outputUri }; } }); await h.run();
   assert.equal(h.calls.some(c => c[0] === 'save' || c[0] === 'alert'), false); assert.equal(h.context.snapshotBusy.current, false);
   assert.ok(h.calls.some(c => c[0] === 'delete'));
+});
+test('Android Save explains its unsupported composer before permissions or native work', async () => {
+  let permissions = 0;
+  const h = snapshot({ mediaType: 'video', platform: 'android', available: false,
+    permissions: async () => { permissions++; return { granted: true }; } });
+  await h.run();
+  assert.equal(permissions, 0);
+  assert.equal(h.calls.some(c => c[0] === 'save' || c[0] === 'compose' || c[0] === 'capture'), false);
+  assert.match(h.calls.find(c => c[0] === 'alert')[2], /not available on Android yet/);
+  assert.equal(h.context.snapshotBusy.current, false);
 });
 
 function activeExportModal(context) {

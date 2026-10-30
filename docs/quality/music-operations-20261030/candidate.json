@@ -1,0 +1,1107 @@
+{
+  "formatVersion": 1,
+  "generatedAt": "2026-10-30T21:08:22.284Z",
+  "sourceHeadAtGeneration": "ddc968bd11be40d37af7a5aeff1c134e53c397d8",
+  "scope": "Complete local file manifest and ordered handoff; not hosted installation or commercial activation evidence.",
+  "builder": {
+    "path": "scripts/quality/build-music-candidate.mjs",
+    "sha256": "9d8e0d85763eda48058bb979a143deaf6b67197664b76ad9a6ac110e2b9ad0c9",
+    "bytes": 22586
+  },
+  "checkCommand": "node scripts/quality/build-music-candidate.mjs --check",
+  "projects": {
+    "qa": "uaulhuelcfkjwojtymmw",
+    "production": "prlkikhckbifseosbukl"
+  },
+  "observedQaState": {
+    "evidence": {
+      "path": "docs/quality/backend-acceptance-20261030/continuation-installation-attempt.json",
+      "sha256": "19d456ff1a35f8a9ae58f08168ab3f3f7e068eb7140246da9af3c6756b26eb37",
+      "bytes": 3156
+    },
+    "observedAt": "2026-10-30T20:51:20.335408Z",
+    "businessSchemaAbsent": true,
+    "musicSchemaAbsent": true,
+    "dependentEdgeDeploymentsStarted": false
+  },
+  "hostedStatus": "Apply connector stalled; schemas absent at recorded postflight. No dependent Edge rollout or readiness activation. Recheck actual state before resuming.",
+  "productionStatus": "Held. This is not an authorization to skip production prerequisites, client compatibility, exact target preflights or separate postflight.",
+  "functionConfiguration": {
+    "path": "supabase/config.toml",
+    "sha256": "1c657b8bd6d9c0e3fa2afbe52e0fd40f3ee1382fbbad2a546dab7800cf742019",
+    "bytes": 16511
+  },
+  "functionConfigurationDocumentation": "https://supabase.com/docs/guides/functions/function-configuration",
+  "functionConfigurationDocumentationVerified": "2026-10-30; current official documentation confirms JWT verification defaults on and entrypoint/import-map paths are relative to config.toml.",
+  "bundleRules": [
+    "Preserve every repository-relative path in each bundle. For the deployment tool use each path as files[].name and its exact contents as files[].content.",
+    "Use entrypointPath and, where present, importMapPath exactly. Send the recorded verifyJwt value explicitly.",
+    "The recursive TypeScript parser includes imports, re-exports, type imports, static dynamic imports and literal import.meta.url assets; unresolved or dynamic module paths fail the builder.",
+    "externalImports are runtime/bundler dependencies, not vendored files; actual hosted build/readback still needs verification. The unused daily-get-token Deno import-map alias is preserved.",
+    "verifyJwt=false handlers authenticate the current Auth user/session, signed capability or scoped worker/provider credential in code. Never replace these checks with anonymous access.",
+    "After deployment retrieve function metadata/source and compare file hashes, settings and active version; a submitted deployment alone is not acceptance."
+  ],
+  "qaExistingPrerequisiteOrder": [
+    {
+      "path": "supabase/ops/qa/20261029233252_qa_admin_completion_forward.sql",
+      "sha256": "6b12d607dfeb999708351819dce164e4355374b05edf3d6c2029fb097e73c463",
+      "bytes": 44003
+    },
+    {
+      "path": "supabase/ops/qa/20261029233915_qa_media_completion_forward.sql",
+      "sha256": "7cf263362002f01f5db989bf9fa63682de8e05d2460319c30f6cd49b312ebf81",
+      "bytes": 75597
+    },
+    {
+      "path": "supabase/migrations/20261029224812_account_storage_erasure.sql",
+      "sha256": "be2aaa4a1804e35aea4fd0b0543a4a08afa87a3b7e682728f60c12e4ed573bb1",
+      "bytes": 25642,
+      "sourceVersion": "20261029224812",
+      "migrationName": "account_storage_erasure"
+    },
+    {
+      "path": "supabase/migrations/20261029231321_account_erasure_admin_review_queue.sql",
+      "sha256": "33eccb5845c22caa16aeaeb5a05690667f02abcc4d9ea9ae6253896264e35012",
+      "bytes": 1523,
+      "sourceVersion": "20261029231321",
+      "migrationName": "account_erasure_admin_review_queue"
+    },
+    {
+      "path": "supabase/ops/qa/20261029235400_qa_database_access_hardening_forward.sql",
+      "sha256": "d24f7737b0ad77b4936ff809e91ea45ff8fb9e21cf20e95fd08458bd938b8644",
+      "bytes": 54927
+    },
+    {
+      "path": "supabase/migrations/20261030000331_link_preview_verified_cache.sql",
+      "sha256": "999e44ee9602e15069443caed2590b5a3b2fb82c6044e8c2195abd2521c82daa",
+      "bytes": 11294,
+      "sourceVersion": "20261030000331",
+      "migrationName": "link_preview_verified_cache"
+    },
+    {
+      "path": "supabase/migrations/20261030005241_account_erasure_operator_review.sql",
+      "sha256": "28fcbb0674951fe61b2c88079a9df2af62378e6eef512cf9f0f9083d0fc23e8b",
+      "bytes": 16214,
+      "sourceVersion": "20261030005241",
+      "migrationName": "account_erasure_operator_review"
+    },
+    {
+      "path": "supabase/migrations/20261030010250_account_erasure_admin_restore_guard.sql",
+      "sha256": "b861269a012135ef9d5b59cdd4fd3149b2a486569a08bb98cde781e419c336ed",
+      "bytes": 2096,
+      "sourceVersion": "20261030010250",
+      "migrationName": "account_erasure_admin_restore_guard"
+    },
+    {
+      "path": "supabase/migrations/20261030012831_staff_social_shells.sql",
+      "sha256": "fbb7d221defb64168d6601f55ffdcb21ff4f061430a340e420e3b766ed3457a0",
+      "bytes": 7857,
+      "sourceVersion": "20261030012831",
+      "migrationName": "staff_social_shells"
+    },
+    {
+      "path": "supabase/migrations/20261030024125_studio_editorial_and_partnership_workflows.sql",
+      "sha256": "74fb83e842c349a49ec28c9b1181ced33e855432b1c1e614c0d2d8d5a278ff4c",
+      "bytes": 70395,
+      "sourceVersion": "20261030024125",
+      "migrationName": "studio_editorial_and_partnership_workflows"
+    },
+    {
+      "path": "supabase/migrations/20261030031124_reserve_web_route_usernames.sql",
+      "sha256": "625fd871ff4a6a83938086d78b47e482ee0a492ec1dee54310cb56eacc14248c",
+      "bytes": 3303,
+      "sourceVersion": "20261030031124",
+      "migrationName": "reserve_web_route_usernames"
+    },
+    {
+      "path": "supabase/migrations/20261030033214_reserve_business_provision_usernames.sql",
+      "sha256": "57313ea2c22c90d28f62933c757e178b93cae31958b557ada792429e4a690260",
+      "bytes": 1887,
+      "sourceVersion": "20261030033214",
+      "migrationName": "reserve_business_provision_usernames"
+    }
+  ],
+  "qaPrerequisiteInterpretation": "Historical target-specific forward order, already recorded installed. Verify current contracts; do not replay these files. The QA media forward contains compatibility and bounded delivery and must not be followed by those production files again.",
+  "productionPrerequisiteOrder": [
+    {
+      "path": "supabase/migrations/20261029224550_admin_operations_completion.sql",
+      "sha256": "22eaa117a397c5973055f9e1c6f4c612328e93cbf7438e0e37e82e068f051cbc",
+      "bytes": 52162,
+      "sourceVersion": "20261029224550",
+      "migrationName": "admin_operations_completion"
+    },
+    {
+      "path": "supabase/migrations/20261029224812_account_storage_erasure.sql",
+      "sha256": "be2aaa4a1804e35aea4fd0b0543a4a08afa87a3b7e682728f60c12e4ed573bb1",
+      "bytes": 25642,
+      "sourceVersion": "20261029224812",
+      "migrationName": "account_storage_erasure"
+    },
+    {
+      "path": "supabase/migrations/20261029224813_private_media_cutover_compatibility.sql",
+      "sha256": "e95b6958699507679692dc59106cebafbb6001b25048bcd32ca1d50928e8e5d8",
+      "bytes": 18498,
+      "sourceVersion": "20261029224813",
+      "migrationName": "private_media_cutover_compatibility"
+    },
+    {
+      "path": "supabase/migrations/20261029231321_account_erasure_admin_review_queue.sql",
+      "sha256": "33eccb5845c22caa16aeaeb5a05690667f02abcc4d9ea9ae6253896264e35012",
+      "bytes": 1523,
+      "sourceVersion": "20261029231321",
+      "migrationName": "account_erasure_admin_review_queue"
+    },
+    {
+      "path": "supabase/migrations/20261029231440_bounded_media_delivery.sql",
+      "sha256": "44c6f9d4cbcf858fdbc6a4c50a27bbc5f871347e8dfc45dc97825f52e9e82982",
+      "bytes": 22534,
+      "sourceVersion": "20261029231440",
+      "migrationName": "bounded_media_delivery"
+    },
+    {
+      "path": "supabase/migrations/20261029234214_database_access_hardening.sql",
+      "sha256": "551a9ce4f90751cee7c70dd4be826036bb043fea935b7ba56fe0eb95f9a485a3",
+      "bytes": 55065,
+      "sourceVersion": "20261029234214",
+      "migrationName": "database_access_hardening"
+    },
+    {
+      "path": "supabase/migrations/20261030000331_link_preview_verified_cache.sql",
+      "sha256": "999e44ee9602e15069443caed2590b5a3b2fb82c6044e8c2195abd2521c82daa",
+      "bytes": 11294,
+      "sourceVersion": "20261030000331",
+      "migrationName": "link_preview_verified_cache"
+    },
+    {
+      "path": "supabase/migrations/20261030005241_account_erasure_operator_review.sql",
+      "sha256": "28fcbb0674951fe61b2c88079a9df2af62378e6eef512cf9f0f9083d0fc23e8b",
+      "bytes": 16214,
+      "sourceVersion": "20261030005241",
+      "migrationName": "account_erasure_operator_review"
+    },
+    {
+      "path": "supabase/migrations/20261030010250_account_erasure_admin_restore_guard.sql",
+      "sha256": "b861269a012135ef9d5b59cdd4fd3149b2a486569a08bb98cde781e419c336ed",
+      "bytes": 2096,
+      "sourceVersion": "20261030010250",
+      "migrationName": "account_erasure_admin_restore_guard"
+    },
+    {
+      "path": "supabase/migrations/20261030012831_staff_social_shells.sql",
+      "sha256": "fbb7d221defb64168d6601f55ffdcb21ff4f061430a340e420e3b766ed3457a0",
+      "bytes": 7857,
+      "sourceVersion": "20261030012831",
+      "migrationName": "staff_social_shells"
+    },
+    {
+      "path": "supabase/migrations/20261030024125_studio_editorial_and_partnership_workflows.sql",
+      "sha256": "74fb83e842c349a49ec28c9b1181ced33e855432b1c1e614c0d2d8d5a278ff4c",
+      "bytes": 70395,
+      "sourceVersion": "20261030024125",
+      "migrationName": "studio_editorial_and_partnership_workflows"
+    },
+    {
+      "path": "supabase/migrations/20261030031124_reserve_web_route_usernames.sql",
+      "sha256": "625fd871ff4a6a83938086d78b47e482ee0a492ec1dee54310cb56eacc14248c",
+      "bytes": 3303,
+      "sourceVersion": "20261030031124",
+      "migrationName": "reserve_web_route_usernames"
+    },
+    {
+      "path": "supabase/migrations/20261030033214_reserve_business_provision_usernames.sql",
+      "sha256": "57313ea2c22c90d28f62933c757e178b93cae31958b557ada792429e4a690260",
+      "bytes": 1887,
+      "sourceVersion": "20261030033214",
+      "migrationName": "reserve_business_provision_usernames"
+    }
+  ],
+  "productionPrerequisiteInterpretation": "Relative order after the inspected existing production baseline and installed narrow support/review restoration. Each exact target preflight is required. Do not bulk db-push repository history, apply QA adapters to production, or use source fixtures as live-state evidence.",
+  "pendingQaMigrationOrder": [
+    {
+      "path": "supabase/migrations/20261030034752_business_bound_auth_sessions.sql",
+      "sha256": "66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996",
+      "bytes": 33277,
+      "sourceVersion": "20261030034752",
+      "migrationName": "business_bound_auth_sessions",
+      "note": "Fresh exact six-function/hash/ACL, hook, session and transaction preflight required."
+    },
+    {
+      "path": "supabase/migrations/20261030153811_original_music_library_and_delivery.sql",
+      "sha256": "bd3e6791a141d2ba1efb10a4e3dac090680d6dc5d5629307f99f665753c60e11",
+      "bytes": 67268,
+      "sourceVersion": "20261030153811",
+      "migrationName": "original_music_library_and_delivery",
+      "note": "Includes missing historical rights primitives only when absent; do not separately replay those historical music files."
+    },
+    {
+      "path": "supabase/migrations/20261030181000_market_offer_response_serialization.sql",
+      "sha256": "b50b2e547fd23ac101b222270d348b036af737705a4b62fde8a239a3083d1407",
+      "bytes": 7775,
+      "sourceVersion": "20261030181000",
+      "migrationName": "market_offer_response_serialization",
+      "note": "Independent wider-app acceptance gate, included in the tested combined chain; not an audio prerequisite."
+    },
+    {
+      "path": "supabase/migrations/20261030203619_music_catalogue_operations_and_cleanup.sql",
+      "sha256": "36500836cd925af7aade1a6bff7d85e547fab9c00c5306fb0130cbca9ce7d0bd",
+      "bytes": 30019,
+      "sourceVersion": "20261030203619",
+      "migrationName": "music_catalogue_operations_and_cleanup"
+    },
+    {
+      "path": "supabase/migrations/20261030204339_licensed_catalogue_pipeline.sql",
+      "sha256": "25914fee9c333ab9802793c4737ad467d0b7d712e603e71769a384350046a849",
+      "bytes": 29907,
+      "sourceVersion": "20261030204339",
+      "migrationName": "licensed_catalogue_pipeline"
+    }
+  ],
+  "musicOnlyMigrationOrder": [
+    "supabase/migrations/20261030034752_business_bound_auth_sessions.sql",
+    "supabase/migrations/20261030153811_original_music_library_and_delivery.sql",
+    "supabase/migrations/20261030203619_music_catalogue_operations_and_cleanup.sql",
+    "supabase/migrations/20261030204339_licensed_catalogue_pipeline.sql"
+  ],
+  "migrationRules": [
+    "Apply reviewed SQL through the supported migration transport once and record its returned migration identity. SourceVersion is the filename identity, not a claim about the version allocated by a hosted connector.",
+    "Compare fresh preflight and postflight definitions, ACLs, bucket state, history and preserved row counts. Abort on exact-state drift; do not weaken guards or reset the project.",
+    "Capture business-auth postflight immediately after that migration; later music migrations intentionally wrap the media resolver. Use the combined chain checks for the final composition.",
+    "If a connector stalls, independently inspect schema/history/transactions. A timeout is not success; do not repeat indefinite waits or route DDL through an execute_sql operation that forbids it."
+  ],
+  "affectedEdgeBundles": [
+    {
+      "name": "business-signin",
+      "purpose": "Business-session enforcement; deploy after verified business Auth migration",
+      "entrypointPath": "supabase/functions/business-signin/index.ts",
+      "verifyJwt": false,
+      "verifyJwtSource": "supabase/config.toml",
+      "files": [
+        {
+          "path": "supabase/functions/_shared/boundedFetch.ts",
+          "sha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+          "bytes": 676
+        },
+        {
+          "path": "supabase/functions/business-session/handler.ts",
+          "sha256": "bb0eb68831fc5213d985d0348781fde9ded16f72a1cbeeb7a006970eb3ae353f",
+          "bytes": 10044
+        },
+        {
+          "path": "supabase/functions/business-session/runtime.ts",
+          "sha256": "e80f5b829184acc0dc2071a507c298f6418b64d53e75b37996b1c8ac733dacf9",
+          "bytes": 2235
+        },
+        {
+          "path": "supabase/functions/business-signin/index.ts",
+          "sha256": "9ce1cde6b74e99a5f8545bf3af043160943240c3d1c922b3c5eff7321a4174ba",
+          "bytes": 117
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "business-owner-access",
+      "purpose": "Business-session enforcement; deploy after verified business Auth migration",
+      "entrypointPath": "supabase/functions/business-owner-access/index.ts",
+      "verifyJwt": false,
+      "verifyJwtSource": "supabase/config.toml",
+      "files": [
+        {
+          "path": "supabase/functions/_shared/boundedFetch.ts",
+          "sha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+          "bytes": 676
+        },
+        {
+          "path": "supabase/functions/business-owner-access/index.ts",
+          "sha256": "417ee201d011b8b59314363d72baa577be0ca266ee62d816342344f6c55a49c0",
+          "bytes": 118
+        },
+        {
+          "path": "supabase/functions/business-session/handler.ts",
+          "sha256": "bb0eb68831fc5213d985d0348781fde9ded16f72a1cbeeb7a006970eb3ae353f",
+          "bytes": 10044
+        },
+        {
+          "path": "supabase/functions/business-session/runtime.ts",
+          "sha256": "e80f5b829184acc0dc2071a507c298f6418b64d53e75b37996b1c8ac733dacf9",
+          "bytes": 2235
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "daily-get-token",
+      "purpose": "Business-session enforcement; deploy after verified business Auth migration",
+      "entrypointPath": "supabase/functions/daily-get-token/index.ts",
+      "verifyJwt": true,
+      "verifyJwtSource": "supabase/config.toml",
+      "importMapPath": "supabase/functions/daily-get-token/deno.json",
+      "importMaps": [
+        {
+          "path": "supabase/functions/daily-get-token/deno.json",
+          "imports": {
+            "@supabase/functions-js": "jsr:@supabase/functions-js@^2"
+          }
+        }
+      ],
+      "files": [
+        {
+          "path": "supabase/functions/_shared/boundedFetch.ts",
+          "sha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+          "bytes": 676
+        },
+        {
+          "path": "supabase/functions/_shared/businessSessionGuard.ts",
+          "sha256": "eb9272e639582100a5a9111db9a63f0d36ed85968923556960ddfd1047a28c44",
+          "bytes": 1443
+        },
+        {
+          "path": "supabase/functions/_shared/serveBusinessRequest.ts",
+          "sha256": "3844186f8839915178b129481c649ca975417228e086fe494f53b4ad9facefed",
+          "bytes": 675
+        },
+        {
+          "path": "supabase/functions/daily-get-token/deno.json",
+          "sha256": "776494746017e3d2b06d84933befb734499e53c2ef2e951566801b8cb65882ba",
+          "bytes": 85
+        },
+        {
+          "path": "supabase/functions/daily-get-token/index.ts",
+          "sha256": "31e7f5dfb9b6635f96d2a5231c1cab0436c9c4172778ac10fc4d3402ce5bcb8d",
+          "bytes": 8922
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "crisp-bridge",
+      "purpose": "Business-session enforcement; deploy after verified business Auth migration",
+      "entrypointPath": "supabase/functions/crisp-bridge/index.ts",
+      "verifyJwt": true,
+      "verifyJwtSource": "Supabase default; send this value explicitly during deployment",
+      "files": [
+        {
+          "path": "supabase/functions/_shared/boundedFetch.ts",
+          "sha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+          "bytes": 676
+        },
+        {
+          "path": "supabase/functions/_shared/businessSessionGuard.ts",
+          "sha256": "eb9272e639582100a5a9111db9a63f0d36ed85968923556960ddfd1047a28c44",
+          "bytes": 1443
+        },
+        {
+          "path": "supabase/functions/_shared/serveBusinessRequest.ts",
+          "sha256": "3844186f8839915178b129481c649ca975417228e086fe494f53b4ad9facefed",
+          "bytes": 675
+        },
+        {
+          "path": "supabase/functions/crisp-bridge/handler.ts",
+          "sha256": "d2203c15d8ac9dee9deeb8d47cbdd02b2b7821b1a4a7ccd5dfe45e684b8366cf",
+          "bytes": 12138
+        },
+        {
+          "path": "supabase/functions/crisp-bridge/index.ts",
+          "sha256": "3ad65fba3f5aa66becbe0ed3d1df0ede623e2c91edee90380393c7da36b08197",
+          "bytes": 599
+        },
+        {
+          "path": "supabase/functions/crisp-bridge/paymentRecovery.ts",
+          "sha256": "799f90ef5841e2d59133b0c696c85d4b189a980adb2fe8fae25f612d4f2784a7",
+          "bytes": 7452
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "link-preview",
+      "purpose": "Business-session enforcement; deploy after verified business Auth migration",
+      "entrypointPath": "supabase/functions/link-preview/index.ts",
+      "verifyJwt": false,
+      "verifyJwtSource": "supabase/config.toml",
+      "files": [
+        {
+          "path": "supabase/functions/_shared/boundedFetch.ts",
+          "sha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+          "bytes": 676
+        },
+        {
+          "path": "supabase/functions/_shared/businessSessionGuard.ts",
+          "sha256": "eb9272e639582100a5a9111db9a63f0d36ed85968923556960ddfd1047a28c44",
+          "bytes": 1443
+        },
+        {
+          "path": "supabase/functions/_shared/serveBusinessRequest.ts",
+          "sha256": "3844186f8839915178b129481c649ca975417228e086fe494f53b4ad9facefed",
+          "bytes": 675
+        },
+        {
+          "path": "supabase/functions/link-preview/denoTransport.ts",
+          "sha256": "b56554f8e32cf9e1de19ebf9bd732c4ec54fb76ca5777df4ee6d5d4d5d92b99a",
+          "bytes": 9509
+        },
+        {
+          "path": "supabase/functions/link-preview/handler.ts",
+          "sha256": "b0b4979cfbf2cfa414ace29bab9a084a5f08e29eaa60a2571522ba8e8e98f149",
+          "bytes": 10561
+        },
+        {
+          "path": "supabase/functions/link-preview/index.ts",
+          "sha256": "ba538924c931d806f4e2421667849e6b597f6e21fb82f60aebda94e3c711797f",
+          "bytes": 2202
+        },
+        {
+          "path": "supabase/functions/link-preview/networkPolicy.ts",
+          "sha256": "fa325525dbcab85eeacd5920d606ea313dbaecbd739620c302f8d0c7725c5f94",
+          "bytes": 3083
+        },
+        {
+          "path": "supabase/functions/link-preview/transport.ts",
+          "sha256": "8ba42c01bdeb1c47626ff981992a57bff3a131a4730d9e9d7c017a1abbe1b82a",
+          "bytes": 7284
+        }
+      ],
+      "externalImports": [
+        "node:buffer",
+        "node:dns/promises",
+        "node:http",
+        "node:https",
+        "node:net",
+        "node:tls",
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "apple-music",
+      "purpose": "Business-session enforcement; deploy after verified business Auth migration",
+      "entrypointPath": "supabase/functions/apple-music/index.ts",
+      "verifyJwt": true,
+      "verifyJwtSource": "Supabase default; send this value explicitly during deployment",
+      "files": [
+        {
+          "path": "shared/appleMusic.ts",
+          "sha256": "db28575b3032a1300c571531a7a661d6992f197d9e3a1929ae96dc9678ce61b5",
+          "bytes": 2556
+        },
+        {
+          "path": "supabase/functions/_shared/boundedFetch.ts",
+          "sha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+          "bytes": 676
+        },
+        {
+          "path": "supabase/functions/_shared/businessSessionGuard.ts",
+          "sha256": "eb9272e639582100a5a9111db9a63f0d36ed85968923556960ddfd1047a28c44",
+          "bytes": 1443
+        },
+        {
+          "path": "supabase/functions/_shared/serveBusinessRequest.ts",
+          "sha256": "3844186f8839915178b129481c649ca975417228e086fe494f53b4ad9facefed",
+          "bytes": 675
+        },
+        {
+          "path": "supabase/functions/apple-music/handler.ts",
+          "sha256": "882e2924fe00d2c6f17533a124cbd70c2977a64b44500d52152fe809ff4810f2",
+          "bytes": 6543
+        },
+        {
+          "path": "supabase/functions/apple-music/index.ts",
+          "sha256": "653b8f5b1be36ab226f48b56c7a4e71136093b8f98f6c525dee903ae42eda22c",
+          "bytes": 837
+        },
+        {
+          "path": "supabase/functions/apple-music/token.ts",
+          "sha256": "da4c6037358a67374cdcc51dbeb60bfb11d07502b410f6c532b56b01713a20b1",
+          "bytes": 1357
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "replicate-proxy",
+      "purpose": "Business-session enforcement; deploy after verified business Auth migration",
+      "entrypointPath": "supabase/functions/replicate-proxy/index.ts",
+      "verifyJwt": true,
+      "verifyJwtSource": "Supabase default; send this value explicitly during deployment",
+      "files": [
+        {
+          "path": "supabase/functions/_shared/boundedFetch.ts",
+          "sha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+          "bytes": 676
+        },
+        {
+          "path": "supabase/functions/_shared/businessSessionGuard.ts",
+          "sha256": "eb9272e639582100a5a9111db9a63f0d36ed85968923556960ddfd1047a28c44",
+          "bytes": 1443
+        },
+        {
+          "path": "supabase/functions/_shared/serveBusinessRequest.ts",
+          "sha256": "3844186f8839915178b129481c649ca975417228e086fe494f53b4ad9facefed",
+          "bytes": 675
+        },
+        {
+          "path": "supabase/functions/replicate-proxy/index.ts",
+          "sha256": "487ddfd78f4eb098465fe3af9538e789b4ed10a11e9221ebabff732d6b56fbdf",
+          "bytes": 5146
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "create-business",
+      "purpose": "Business-session enforcement; deploy after verified business Auth migration",
+      "entrypointPath": "supabase/functions/create-business/index.ts",
+      "verifyJwt": true,
+      "verifyJwtSource": "Supabase default; send this value explicitly during deployment",
+      "files": [
+        {
+          "path": "supabase/functions/_shared/boundedFetch.ts",
+          "sha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+          "bytes": 676
+        },
+        {
+          "path": "supabase/functions/_shared/businessSessionGuard.ts",
+          "sha256": "eb9272e639582100a5a9111db9a63f0d36ed85968923556960ddfd1047a28c44",
+          "bytes": 1443
+        },
+        {
+          "path": "supabase/functions/_shared/serveBusinessRequest.ts",
+          "sha256": "3844186f8839915178b129481c649ca975417228e086fe494f53b4ad9facefed",
+          "bytes": 675
+        },
+        {
+          "path": "supabase/functions/create-business/index.ts",
+          "sha256": "c3453e54f045688887e8781d43999d4b8d75b7d0e512617a3c3c3fbf86f89581",
+          "bytes": 4190
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "music-asset-finalize",
+      "purpose": "Original audio, private byte delivery or account erasure; deploy before upload readiness",
+      "entrypointPath": "supabase/functions/music-asset-finalize/index.ts",
+      "verifyJwt": false,
+      "verifyJwtSource": "supabase/config.toml",
+      "files": [
+        {
+          "path": "shared/originalAudio.ts",
+          "sha256": "527377ecfb0f17c1805e8db06803bf7ecc4f9599e4239060f19c3c66bde8ea4a",
+          "bytes": 6978
+        },
+        {
+          "path": "supabase/functions/music-asset-finalize/handler.ts",
+          "sha256": "9377de1a11b0a67c02ff36aa6013513a49272b407cf4305c713f1bca9bd06c62",
+          "bytes": 7228
+        },
+        {
+          "path": "supabase/functions/music-asset-finalize/index.ts",
+          "sha256": "8baaa840b234476713a7b7f7f240762635ad1d2c92c885bd25b775a7c933299a",
+          "bytes": 1924
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "content-media-sign",
+      "purpose": "Original audio, private byte delivery or account erasure; deploy before upload readiness",
+      "entrypointPath": "supabase/functions/content-media-sign/index.ts",
+      "verifyJwt": false,
+      "verifyJwtSource": "supabase/config.toml",
+      "files": [
+        {
+          "path": "shared/contentMedia.ts",
+          "sha256": "a744a17a33a5b0f93be5b84ec943f4a5a05c94059ddd128109077031a2667664",
+          "bytes": 11290
+        },
+        {
+          "path": "shared/mediaDelivery.ts",
+          "sha256": "354cc6d04dd8f70b53e6bf96539d679db9884efd00899a0cb191dfe23a2cfdc5",
+          "bytes": 1637
+        },
+        {
+          "path": "supabase/functions/content-media-sign/handler.ts",
+          "sha256": "9fc8a12d93641046a06ec122062e5817e9473f281a7c521e51e9b314781a7d3f",
+          "bytes": 5695
+        },
+        {
+          "path": "supabase/functions/content-media-sign/index.ts",
+          "sha256": "99cb4805e16148680ef4c322ce288f84766a72882ccf118ce698d48e85cc7220",
+          "bytes": 2108
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "media-content",
+      "purpose": "Original audio, private byte delivery or account erasure; deploy before upload readiness",
+      "entrypointPath": "supabase/functions/media-content/index.ts",
+      "verifyJwt": false,
+      "verifyJwtSource": "supabase/config.toml",
+      "files": [
+        {
+          "path": "supabase/functions/media-content/handler.ts",
+          "sha256": "3ebe70908160a5ded596284d43eb9ffa47f24bb7be277710d89bee95275c672a",
+          "bytes": 6106
+        },
+        {
+          "path": "supabase/functions/media-content/index.ts",
+          "sha256": "1f5ab0dd6151589f61d9de231e729e68f65582181acae9bd3853b63dd668ff88",
+          "bytes": 661
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "account-storage-erasure",
+      "purpose": "Original audio, private byte delivery or account erasure; deploy before upload readiness",
+      "entrypointPath": "supabase/functions/account-storage-erasure/index.ts",
+      "verifyJwt": false,
+      "verifyJwtSource": "supabase/config.toml",
+      "files": [
+        {
+          "path": "supabase/functions/account-storage-erasure/handler.ts",
+          "sha256": "1bc4d4e88886441d70cdb6671077e68166a51e861e0a41af68dfa7371333fee8",
+          "bytes": 6645
+        },
+        {
+          "path": "supabase/functions/account-storage-erasure/index.ts",
+          "sha256": "2d702130678cdd0b6eec1821948f634bb68864b9a5c08fedfff4ca250ca387c6",
+          "bytes": 360
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "music-maintenance",
+      "purpose": "Music operations; requires both new migrations and explicit scoped caller authentication",
+      "entrypointPath": "supabase/functions/music-maintenance/index.ts",
+      "verifyJwt": false,
+      "verifyJwtSource": "supabase/config.toml",
+      "files": [
+        {
+          "path": "supabase/functions/music-maintenance/handler.ts",
+          "sha256": "d111e7a50e852dc952263aab1afeeed9a3d034d5845f5de5a34a0b6f97fabe3f",
+          "bytes": 6477
+        },
+        {
+          "path": "supabase/functions/music-maintenance/index.ts",
+          "sha256": "80709e750f339de4984ee509b8454b3bab02d540b3aebd3d297193e61ded230e",
+          "bytes": 630
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "music-catalogue-ingest",
+      "purpose": "Music operations; requires both new migrations and explicit scoped caller authentication",
+      "entrypointPath": "supabase/functions/music-catalogue-ingest/index.ts",
+      "verifyJwt": false,
+      "verifyJwtSource": "supabase/config.toml",
+      "files": [
+        {
+          "path": "shared/originalAudio.ts",
+          "sha256": "527377ecfb0f17c1805e8db06803bf7ecc4f9599e4239060f19c3c66bde8ea4a",
+          "bytes": 6978
+        },
+        {
+          "path": "supabase/functions/music-catalogue-ingest/handler.ts",
+          "sha256": "a239a2e8dfa8d31ccf95e31df04a67766c6c9d3b1e6fa1a066858fef8dc594f6",
+          "bytes": 5541
+        },
+        {
+          "path": "supabase/functions/music-catalogue-ingest/index.ts",
+          "sha256": "449fec2818d6b8401be14aebc6b79523a12f7f8e5c1deb786a2c08918e98d198",
+          "bytes": 2000
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    }
+  ],
+  "existingMediaPrerequisiteBundles": [
+    {
+      "name": "limited-media-file",
+      "purpose": "Existing bounded private-media prerequisite; verify target deployment, use its separate rollout if absent",
+      "entrypointPath": "supabase/functions/limited-media-file/index.ts",
+      "verifyJwt": false,
+      "verifyJwtSource": "supabase/config.toml",
+      "files": [
+        {
+          "path": "supabase/functions/limited-media-file/index.ts",
+          "sha256": "7ff81f4742a4a6501abf9fcf9c12985363134580f551179bdcaa6598d2a4477d",
+          "bytes": 448
+        },
+        {
+          "path": "supabase/functions/private-media-session/handler.ts",
+          "sha256": "11b53d74da4607c6a89bc5ef11d258694a8d4e6409f3c2f5606c00e133add1ac",
+          "bytes": 9583
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    },
+    {
+      "name": "chat-media-sign",
+      "purpose": "Existing bounded private-media prerequisite; verify target deployment, use its separate rollout if absent",
+      "entrypointPath": "supabase/functions/chat-media-sign/index.ts",
+      "verifyJwt": false,
+      "verifyJwtSource": "supabase/config.toml",
+      "importMaps": [
+        {
+          "path": "supabase/functions/chat-media-sign/deno.json",
+          "imports": {
+            "@supabase/functions-js": "jsr:@supabase/functions-js@^2"
+          }
+        }
+      ],
+      "files": [
+        {
+          "path": "shared/mediaDelivery.ts",
+          "sha256": "354cc6d04dd8f70b53e6bf96539d679db9884efd00899a0cb191dfe23a2cfdc5",
+          "bytes": 1637
+        },
+        {
+          "path": "supabase/functions/chat-media-sign/deno.json",
+          "sha256": "c3e35c3fa9f31537196d35670e608adacf3af7ee2d4bb8f61d8f24c72e27176a",
+          "bytes": 84
+        },
+        {
+          "path": "supabase/functions/chat-media-sign/index.ts",
+          "sha256": "ccc74a28ae1330763e9a0a1bddef8df51503ff28a168ddf0cda7c6e485b9a4e1",
+          "bytes": 7548
+        }
+      ],
+      "externalImports": [
+        "npm:@supabase/supabase-js@2.112.3"
+      ]
+    }
+  ],
+  "deployGroupsInOrder": [
+    [
+      "business-signin",
+      "business-owner-access",
+      "daily-get-token",
+      "crisp-bridge",
+      "link-preview",
+      "apple-music",
+      "replicate-proxy",
+      "create-business"
+    ],
+    [
+      "music-asset-finalize",
+      "content-media-sign",
+      "media-content",
+      "account-storage-erasure"
+    ],
+    [
+      "music-maintenance",
+      "music-catalogue-ingest"
+    ]
+  ],
+  "operations": [
+    {
+      "path": "supabase/ops/check-business-bound-auth-preflight.sql",
+      "sha256": "457a50ae329b5211631bc96d9781de364e41a2a518fc389be0b8cdda071ffe9d",
+      "bytes": 3978
+    },
+    {
+      "path": "supabase/ops/check-business-bound-auth-postflight.sql",
+      "sha256": "2de5234f98b5df9fe2904033d6c9301b7a35be1c4c19641af0a2735ba6ba9cdb",
+      "bytes": 3819
+    },
+    {
+      "path": "supabase/ops/check-music-operations-postflight.sql",
+      "sha256": "048fdc41fdb4f889cc67a4e18c40516a7150b19faae6c489fd5f479c82347fd5",
+      "bytes": 2335
+    },
+    {
+      "path": "supabase/ops/setup-music-maintenance-credential.sql",
+      "sha256": "06f691279c5d2a64d125816f48b5b601412ede8be0d4f5418be685c79979df2c",
+      "bytes": 1005
+    },
+    {
+      "path": "supabase/ops/install-music-maintenance-cron.sql",
+      "sha256": "91b135086ce230dca5b4aae9adc7cc64a9f6231e28f92570ee5ddcae57882bbb",
+      "bytes": 1593
+    },
+    {
+      "path": "supabase/ops/check-media-completion-postflight.sql",
+      "sha256": "a2f29b261fcc1a71b8437a22ca51bcac3de56d8b202c514f75334cdf48dfce2e",
+      "bytes": 4564
+    },
+    {
+      "path": "supabase/ops/check-account-erasure-health.sql",
+      "sha256": "fea47d0bc6ae1b710daea97780f0eae452c7571d48924d6365bd44a316dc953a",
+      "bytes": 1462
+    },
+    {
+      "path": "supabase/ops/setup-account-erasure-credential.sql",
+      "sha256": "0417fb868f4c28072f070b4570199c453abdae3eeaac952218d72ad0b20d4174",
+      "bytes": 979
+    },
+    {
+      "path": "supabase/ops/install-account-erasure-cron.sql",
+      "sha256": "91dc5c429775d46084aad28318a4046babb86b0a824417ccb036b602b6ed8513",
+      "bytes": 1452
+    },
+    {
+      "path": "supabase/ops/check-erasure-operator-preflight.sql",
+      "sha256": "7cafee22d184f989dd2e5f588b6fff4ab1d3f73e23a759c6f985cc5eb312d859",
+      "bytes": 910
+    },
+    {
+      "path": "supabase/ops/check-erasure-operator-postflight.sql",
+      "sha256": "764e365e9309d926653be8df30a292a32339672ff66df1d430b1c35a32d7958c",
+      "bytes": 1517
+    },
+    {
+      "path": "supabase/ops/check-erasure-restore-preflight.sql",
+      "sha256": "4b518c03c72bde0c7d509339de77241cf424c857b5e7884d526e514d844475f9",
+      "bytes": 1056
+    },
+    {
+      "path": "supabase/ops/check-erasure-restore-postflight.sql",
+      "sha256": "430b9ca654df81ba61e5c23802ab92b65d0da508cf0f4be9ea7298226c1a1037",
+      "bytes": 916
+    },
+    {
+      "path": "supabase/ops/check-admin-completion-preflight.sql",
+      "sha256": "d426e13918a61c57a0248fd7a1eb57527d85d4f768396322ae94dee9be28a6f5",
+      "bytes": 2473
+    },
+    {
+      "path": "supabase/ops/check-admin-completion-postflight.sql",
+      "sha256": "4281fb50a759f4f333de14e1e2fe6ecb42eb5cf555c7c2d4344e78bd9aeceded",
+      "bytes": 3084
+    },
+    {
+      "path": "supabase/ops/check-qa-admin-completion-preflight.sql",
+      "sha256": "c20536a2816e267e63fa943490f3687cb324c018fc049b9062bf47775c66d61a",
+      "bytes": 2331
+    },
+    {
+      "path": "supabase/ops/check-qa-media-completion-preflight.sql",
+      "sha256": "00592e96ae7fe04fdff7bb0699c8f5db7c64090e7e053c2eb3cc847965609c12",
+      "bytes": 2111
+    },
+    {
+      "path": "supabase/ops/check-database-hardening-preflight.sql",
+      "sha256": "f39a05ef173df017b4811491d7a5ba1707b126ecd47e11f49579f1a1a72f0897",
+      "bytes": 27641
+    },
+    {
+      "path": "supabase/ops/check-database-hardening-postflight.sql",
+      "sha256": "28ee1d2ec71e4af956077f732ff2919c06c30ada87d2d692efa134349b9ea207",
+      "bytes": 7427
+    },
+    {
+      "path": "supabase/ops/check-qa-database-hardening-preflight.sql",
+      "sha256": "90c1cd4854f2e2aba55e8d5d1fac5ed6da6c1b642903b81d063b8f3ea092befa",
+      "bytes": 27118
+    },
+    {
+      "path": "supabase/ops/check-link-preview-preflight.sql",
+      "sha256": "73186d64b51a6dd86d3a70502e25885e6a48c7b486ba7d52de55d9b518845731",
+      "bytes": 2324
+    },
+    {
+      "path": "supabase/ops/check-link-preview-postflight.sql",
+      "sha256": "cf0d208121db478f4d8bcb73e6ef84fdb09d02d731aaf560c0acc252ba618468",
+      "bytes": 1716
+    },
+    {
+      "path": "supabase/ops/check-staff-social-shells-preflight.sql",
+      "sha256": "b0c6139add8dae974f9c4f5f3bc48fb597d8fc6a659c9b1875b7975075a335fb",
+      "bytes": 3293
+    },
+    {
+      "path": "supabase/ops/check-staff-social-shells-postflight.sql",
+      "sha256": "1daa368b657a7b6de6889720dd969903195bf2e0abca8689be2069e31499189e",
+      "bytes": 2078
+    },
+    {
+      "path": "supabase/ops/check-studio-workflows-preflight.sql",
+      "sha256": "f7e432e526ad5185534a4c389f3df370f347e1098c2c9391eaba7d4b0bc4d5d1",
+      "bytes": 3374
+    },
+    {
+      "path": "supabase/ops/check-studio-workflows-postflight.sql",
+      "sha256": "4fc0f20e1f8c38f8ea50dd3db3e809cec29ecc9723b69fdb314d8e1432a30683",
+      "bytes": 3491
+    },
+    {
+      "path": "supabase/ops/check-reserved-business-provision.sql",
+      "sha256": "f8943b9fec9e602da3cb66a8ba25befc7e8da2e5aaba00c5c1cc4a8801f38691",
+      "bytes": 794
+    },
+    {
+      "path": "supabase/ops/check-reserved-web-usernames.sql",
+      "sha256": "215c5048d7990c1ca7a193320a390c02c97f26630090a60035c17e590aad31f6",
+      "bytes": 1492
+    }
+  ],
+  "readiness": {
+    "expectedInitialState": {
+      "originalUploads": false,
+      "maintenance": false,
+      "catalogueIngestion": false,
+      "cataloguePlayback": false,
+      "providerCredentials": 0,
+      "signedCatalogueGrants": 0
+    },
+    "initialStateMeaning": "Migration/test expectation. Read actual values from the target; this is not an installed-state observation.",
+    "originalUploads": {
+      "state": "music_library.service_state.uploads_enabled",
+      "operatorRpc": "public.set_original_audio_service_ready(boolean,text)",
+      "steps": [
+        "Verify finalizer/signer/proxy/erasure bundles and all migrations.",
+        "Enable only in disposable QA for the real upload/finalize/preview/story-post-book/audience/revoke/erase journey.",
+        "Record complete hosted acceptance before separate production readiness; disable on failure."
+      ]
+    },
+    "maintenance": {
+      "state": "music_library.maintenance_worker.enabled",
+      "operatorRpc": "public.set_music_maintenance_ready(boolean,text)",
+      "steps": [
+        "Deploy the worker only after both operations and catalogue migrations; it services both queues.",
+        "Run setup-music-maintenance-credential.sql; the scoped secret remains in Vault as music_maintenance_worker_secret.",
+        "Store the exact project URL in Vault as music_maintenance_project_url; verify it targets this project.",
+        "Verify exact deployed source and expected authentication rejection while disabled, then enable maintenance through its service-only RPC in QA.",
+        "Invoke using the scoped credential and verify response plus heartbeat; validation intentionally does not update heartbeat while disabled.",
+        "Install install-music-maintenance-cron.sql and inspect cron plus HTTP outcomes and worker heartbeat.",
+        "Run actual disposable abandoned-upload Storage cleanup before production readiness; quota releases only after verified object absence."
+      ]
+    },
+    "catalogue": {
+      "states": [
+        "music_library.catalogue_service.ingestion_enabled",
+        "music_library.catalogue_service.playback_enabled"
+      ],
+      "activationProvided": false,
+      "steps": [
+        "Keep both switches off; this handoff provisions no commercial credentials, agreements or licensed-provider state.",
+        "After real licensing review, use separately reviewed signed-grant/provider/territory setup and acceptance based on actual provider requirements.",
+        "Staging metadata does not authorize ingestion, playback, reuse or export."
+      ]
+    },
+    "immediatePause": [
+      "set_original_audio_service_ready(false, reason)",
+      "set_music_maintenance_ready(false, reason)"
+    ],
+    "rollback": "Pause the appropriate readiness gate. Preserve grants, tombstones, erasure state and migration history; use a separately reviewed forward repair for schema changes."
+  },
+  "acceptanceStillRequired": [
+    "Actual hosted migrations, recursive Edge bundle deployment/readback and real Auth/Storage user and business-role journeys.",
+    "Installed-client private-delivery compatibility, revoked/expired/range requests, warmed CDN/browser caches and disposable-account Storage/CDN/Auth erasure.",
+    "Hosted Storage metadata-trigger compatibility, concurrent reservation/finalize/cleanup fencing and provider-level orphan byte cleanup.",
+    "Actual licensed-provider credential/rights/territory/revocation/export/reporting acceptance after licensing; operation counts are not royalty statements.",
+    "Physical iPhone/Android permissions, interruption/background behavior, camera/Photos export and media routes remain separate."
+  ],
+  "tests": [
+    {
+      "path": "supabase/tests/rpc-authorization/test-business-music-integration.mjs",
+      "sha256": "3b2e77ec28e2e9cb0d178e10764f721d006b779091836103001ced5399c0d15f",
+      "bytes": 11055,
+      "commands": [
+        "node supabase/tests/rpc-authorization/test-business-music-integration.mjs",
+        "PLATINUM_QA_BUSINESS_AUTH=1 node supabase/tests/rpc-authorization/test-business-music-integration.mjs"
+      ]
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/test-original-music-library.mjs",
+      "sha256": "f9075a07639a91cd10e489d4f1c1f9ffb7e9bf9991225ff394f9f77bbe7e10aa",
+      "bytes": 33905,
+      "commands": [
+        "MUSIC_PIPELINE_FIXTURE=1 node supabase/tests/rpc-authorization/test-original-music-library.mjs"
+      ]
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/test-music-operations.mjs",
+      "sha256": "723631d7d96a511478935557dc1077668e9a284cde7ff42a52d186b8db873825",
+      "bytes": 18912,
+      "commands": [
+        "node supabase/tests/rpc-authorization/test-music-operations.mjs"
+      ]
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/test-licensed-catalogue.mjs",
+      "sha256": "26a5499396705b9a84cddfd34d5cfd99ba13fe4541e8e526e27b8a14b0a8a6af",
+      "bytes": 23618,
+      "commands": [
+        "node supabase/tests/rpc-authorization/test-licensed-catalogue.mjs"
+      ]
+    },
+    {
+      "path": "tests/quality/catalogue-ingestion.cjs",
+      "sha256": "bbeb021884e6cbe9f2b4c859ff23e64724dc01fd26e4467b547314146e50868d",
+      "bytes": 6420,
+      "commands": [
+        "node tests/quality/catalogue-ingestion.cjs"
+      ]
+    },
+    {
+      "path": "tests/quality/music-maintenance.cjs",
+      "sha256": "cf2f0feb19d8d5b4f9f08e0e8dc96eb10ab0f00202a308e92b5e109ed3203437",
+      "bytes": 9267,
+      "commands": [
+        "node tests/quality/music-maintenance.cjs"
+      ]
+    },
+    {
+      "path": "admin-web/tests/music-operations.cjs",
+      "sha256": "945a2df8b7010df0e48214ace35b107eb4469cd8c4bd6898166c655e01c4ed9a",
+      "bytes": 5511,
+      "commands": [
+        "node admin-web/tests/music-operations.cjs"
+      ]
+    }
+  ],
+  "integrationFixture": {
+    "path": "supabase/tests/rpc-authorization/business-auth-fixture.mjs",
+    "sha256": "eb13e7295842f6e6e8502074f51925e73533335021d7f3e5914c905e42cb79d5",
+    "bytes": 3832
+  },
+  "persistentDatabaseRunner": {
+    "path": "supabase/tests/rpc-authorization/run-all.mjs",
+    "sha256": "6a476ee1d9c3cefd84d35041ee32db38fdb67e69912666d7d35a91972b1ac2e3",
+    "bytes": 3779
+  },
+  "references": [
+    "docs/quality/music-operations-20261030/README.md",
+    "docs/quality/music-operations-20261030/verification.json",
+    "docs/quality/backend-acceptance-20261030/music-pipeline-independent-review.json",
+    "docs/quality/music-infrastructure-20261030/backend-candidate.json",
+    "docs/quality/studio-workflows-20261030/business-auth-candidate.json",
+    "docs/quality/MEDIA_PRIVACY_ERASURE_COMPLETION_20261029.md",
+    "docs/quality/ERASURE_OPERATOR_WORKFLOW_20261030.md",
+    "docs/quality/ADMIN_COMPLETION_20261029.md",
+    "docs/quality/DATABASE_HARDENING_20261029.md",
+    "docs/quality/backend-acceptance-20261030/final-backend-coverage.json"
+  ]
+}

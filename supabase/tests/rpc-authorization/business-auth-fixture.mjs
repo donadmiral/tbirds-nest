@@ -4,10 +4,14 @@ import {readCandidate} from './migration-source.mjs';
 // Same deployed baseline and reviewed forward migrations used by the Studio
 // regression suite. This fixture intentionally starts before business sessions
 // exist; upgrading installed business clients is an explicit rollout gate.
-export async function loadBusinessAuthBaseline(db,qaMode=false){
+export async function loadBusinessAuthBaseline(db,qaMode=false,completeMusicDependencies=false){
  await loadDeployedMediaBaseline(db);await db.exec(await readCandidate());
  await db.exec(await source('supabase/migrations/20261029224550_admin_operations_completion.sql'));
  if(qaMode){
+  // The legacy QA catalog includes music wrappers. Most business tests need
+  // only their captured signatures; combined audio tests need the actual
+  // existing table/trigger dependencies too, before restoring that catalog.
+  if(completeMusicDependencies)for(const name of ['20261022211311_story_sound_rights','20261026063625_soundtrack_rights_and_post_audio'])await db.exec(await source(`supabase/migrations/${name}.sql`));
   await(await import('./qa-admin-baseline.mjs')).installQaAdminBaseline(db);
   await(await import('./qa-media-baseline.mjs')).installQaMediaBaseline(db);
   await db.exec(await source('supabase/ops/qa/20261029233252_qa_admin_completion_forward.sql'));

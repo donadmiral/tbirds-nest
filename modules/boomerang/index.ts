@@ -5,15 +5,16 @@
 // the straight clip.
 import { requireOptionalNativeModule } from 'expo-modules-core';
 import * as FileSystem from 'expo-file-system/legacy';
+import { Platform } from 'react-native';
 
 const Native: any = requireOptionalNativeModule('Boomerang');
 
-export const boomerangAvailable = !!Native;
+export const boomerangAvailable = Platform.OS === 'ios' && typeof Native?.make === 'function';
 
 const cancellationError = () => Object.assign(new Error('Boomerang encoding was cancelled.'), { name: 'AbortError' });
 
 export async function makeBoomerang(inputUri: string, outputUri: string, loops = 1, signal?: AbortSignal): Promise<string> {
-  if (!Native) throw new Error('Boomerang is not in this build');
+  if (!boomerangAvailable) throw new Error(Platform.OS === 'android' ? 'Native Boomerang encoding is not available on Android. Use the frame encoder.' : 'Boomerang is not in this build');
   if (signal?.aborted) throw cancellationError();
   const cancellable = typeof Native.createBoomerangJob === 'function'
     && typeof Native.makeCancellable === 'function' && typeof Native.cancelBoomerang === 'function';

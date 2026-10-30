@@ -1,0 +1,63 @@
+{
+  "recordedAt": "2026-10-30T20:51:20.335408Z",
+  "project": "uaulhuelcfkjwojtymmw",
+  "productionChanged": false,
+  "sourceHead": "1dafab65c2dc87ba0ad10d865ad821914eb19a1a",
+  "candidate": {
+    "path": "supabase/migrations/20261030034752_business_bound_auth_sessions.sql",
+    "sha256": "66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996",
+    "migrationName": "business_bound_auth_sessions"
+  },
+  "preflight": {
+    "observedAt": "2026-10-30T20:34:47.156240Z",
+    "allSixFunctionDefinitionsAndAclsMatched": true,
+    "businessSchemaAbsent": true,
+    "musicSchemaAbsent": true,
+    "offerCapabilityAbsent": true,
+    "requestHookAbsent": true,
+    "unboundBusinessSessions": 0,
+    "unfencedTables": 0,
+    "activeTransactions": 0,
+    "targetMigrationHistoryEntries": 0,
+    "privateMediaBuckets": ["chat-files", "chat-media", "media", "post-media", "story-media"]
+  },
+  "attempt": {
+    "transport": "Supabase apply_migration connector",
+    "submissionsThisContinuation": 1,
+    "resultReceived": false,
+    "initialCallYieldedRunningCell": true,
+    "waitRequestedMilliseconds": 1000,
+    "waitToolElapsedSeconds": 955.4,
+    "waitOutcome": "aborted by user",
+    "classification": "connector_stall_without_success_result_or_approval_rejection",
+    "interpretation": "The requested short wait did not return in its requested interval. The agent was interrupted after the independent postflight still showed absent installation. No second apply or alternate DDL route followed."
+  },
+  "postflight": {
+    "observedAt": "2026-10-30T20:51:20.335408Z",
+    "businessSchemaAbsent": true,
+    "musicSchemaAbsent": true,
+    "offerCapabilityAbsent": true,
+    "targetMigrationHistoryEntries": 0,
+    "activeTransactions": 0,
+    "dependentEdgeDeploymentsStarted": false,
+    "uploadsEnabled": false,
+    "catalogueEnabled": false
+  },
+  "supportedCliRecovery": {
+    "supabaseCliPresent": false,
+    "psqlPresent": false,
+    "supabaseOrDatabaseCredentialEnvironmentNamesPresent": false,
+    "conventionalSupabaseTokenFilesPresent": false,
+    "projectEnvironmentFilesPresent": false,
+    "result": "No existing authenticated CLI or management API credential was available. Installing a binary alone would not authorize that transport. No service role credential was treated as a database management credential."
+  },
+  "qaAdvisors": {
+    "observedAt": "2026-10-30T20:34:11.354Z",
+    "rlsEnabledNoPolicyInfo": 86,
+    "anonymousSecurityDefinerExecutionWarnings": 135,
+    "authenticatedSecurityDefinerExecutionWarnings": 335,
+    "leakedPasswordProtectionDisabled": true,
+    "interpretation": "Execution warnings require per-function authorization review. Private tables intentionally denied to app roles can have RLS with no policies. These counts are not counts of proven exploitable bugs."
+  },
+  "nextSupportedStep": "Restore the authenticated migration connector or provide a documented authenticated migration transport. Recheck exact schema, ACL and transaction preflight before applying. Verify migration history, functions, grants and actual Auth/Storage behavior before dependent Edge rollout and readiness activation."
+}

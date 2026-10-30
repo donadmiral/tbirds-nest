@@ -26,17 +26,18 @@ function callback(name, context) {
 }
 function scopeHarness() {
   let cursor = 0, effect;
-  const refs = [];
+  const refs = [], listeners = new Set();
   const store = { session: { user: { id: 'auth-a' } }, profile: { id: 'viewer-a' } };
   const hook = moduleSource(fs.readFileSync(path.join(root, 'src/hooks/useStoryInteractionScope.ts'), 'utf8'), {
-    react: { useRef(value) { return refs[cursor++] ||= { current: value }; }, useCallback: fn => fn, useEffect(fn) { effect ||= fn; } },
-    '../stores/authStore': { useAuthStore: { getState: () => store } },
+    react: { useRef(value) { return refs[cursor++] ||= { current: value }; }, useState(value) { const i = cursor++; if (!(i in refs)) refs[i] = value; return [refs[i], next => { refs[i] = typeof next === 'function' ? next(refs[i]) : next; }]; }, useCallback: fn => fn, useEffect(fn) { effect ||= fn; } },
+    '../stores/authStore': { useAuthStore: { getState: () => store, subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); } } },
   }).useStoryInteractionScope;
   let actor = 'viewer-a', story = 'story-a', capture;
   const render = () => { cursor = 0; capture = hook(actor, story); };
   render(); let cleanup = effect();
-  return { capture: (viewerId, storyId) => capture(viewerId, storyId), store,
+  return { capture: (viewerId, storyId) => capture(viewerId, storyId), store, render,
     move(nextActor, nextStory) { actor = nextActor; story = nextStory; store.profile = actor ? { id: actor } : null; render(); },
+    auth(nextOwner, nextActor) { store.session = nextOwner ? { user: { id: nextOwner } } : null; store.profile = nextActor ? { id: nextActor } : null; for (const listener of listeners) listener(store); },
     unmount() { cleanup(); }, remountEffects() { cleanup(); cleanup = effect(); },
   };
 }
@@ -51,6 +52,14 @@ test('native story completions belong to one visit, including account return and
 test('native story identity checks reject old controls and session changes before a render', () => {
   const h = scopeHarness(); assert.equal(h.capture('other', 'story-a')(), false);
   const current = h.capture('viewer-a', 'story-a'); h.store.session = null; assert.equal(current(), false);
+});
+test('an account round trip before React renders cannot revive an earlier story callback', () => {
+  const h = scopeHarness(), first = h.capture('viewer-a', 'story-a');
+  h.auth('auth-b', 'viewer-b'); h.auth('auth-a', 'viewer-a');
+  assert.equal(first(), false);
+  assert.equal(h.capture('viewer-a', 'story-a')(), false, 'an old-render control cannot adopt the new visit');
+  h.render();
+  assert.equal(h.capture('viewer-a', 'story-a')(), true);
 });
 
 function scenario(overrides = {}) {

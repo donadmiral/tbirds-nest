@@ -40,13 +40,23 @@ export async function addOriginalAudio(uri: string, owner: string, options: { ti
  if (attempts.size > 50) attempts.delete(attempts.keys().next().value!);
  return getSoundtrack(soundId, options.use || 'story');
 }
-export async function soundFavorites(): Promise<string[]> {
- const { data, error } = await soundtrackRead(supabase.rpc('list_sound_favorites'));
+async function favoriteSession(expectedOwner?: string) {
+ const { data, error } = await soundtrackRead(supabase.auth.getSession());
+ const session = data.session;
+ if (error || !session || (expectedOwner && session.user.id !== expectedOwner)) throw new Error('Return to the account that owns this saved selection.');
+ return session;
+}
+export async function soundFavorites(expectedOwner?: string): Promise<string[]> {
+ const session = await favoriteSession(expectedOwner);
+ const { data, error } = await soundtrackRead(supabase.rpc('list_sound_favorites').setHeader('Authorization', `Bearer ${session.access_token}`));
  if (error) throw new Error('Saved audio could not load. Please retry.');
  return Array.isArray(data) ? data : [];
 }
-export async function saveSoundFavorite(id: string, saved: boolean): Promise<void> {
- const { error } = await soundtrackRead(supabase.rpc('set_sound_favorite', { p_sound_id: id, p_saved: saved }));
+export async function saveSoundFavorite(id: string, saved: boolean, expectedOwner?: string): Promise<void> {
+ const session = await favoriteSession(expectedOwner);
+ // Pin this mutation to its initiating account. A subsequent account switch
+ // must not change the JWT that Supabase attaches when the request is sent.
+ const { error } = await soundtrackRead(supabase.rpc('set_sound_favorite', { p_sound_id: id, p_saved: saved }).setHeader('Authorization', `Bearer ${session.access_token}`));
  if (error) throw new Error('This sound could not be saved. Please retry.');
 }
 
