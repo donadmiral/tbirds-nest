@@ -1,0 +1,78 @@
+{
+  "scope": "Bounded native email verification lifecycle and cross-platform Counter dialog repair",
+  "files": [
+    {
+      "file": "src/screens/auth/VerifyEmailScreen.tsx",
+      "sha256": "8fc2a07cba8f9ebdac52159ba6c2b385696417454f15c710e3b2216a7f3378e9"
+    },
+    {
+      "file": "src/screens/messages/ChatScreen.tsx",
+      "sha256": "761f89b8c3a054c1cc3faa3e112b79e662e7029c83f9bce47aebaa740e4e0631"
+    },
+    {
+      "file": "src/components/messages/CounterOfferDialog.tsx",
+      "sha256": "5a54993adf15451243211d61c12d149666585c7adf490fcba16bd4aba5fefc17"
+    },
+    {
+      "file": "tests/quality/native-verification-offers.cjs",
+      "sha256": "9076a833ee0bace3c093de032b57f02ab64be4c7c88f1ab299837548f451d879"
+    }
+  ],
+  "changes": {
+    "verification": [
+      "Expected email plus Auth-confirmed email check before updating local verified state and authStore",
+      "Mounted-email generation and account-change/sign-out fences reject delayed work",
+      "Single-flight polling and explicit timer/listener cleanup",
+      "Normal matching-user profile setup remains intact"
+    ],
+    "counter": [
+      "Same native Modal/TextInput/review/cancel flow on Android and iOS",
+      "Live offer participant/proposer/status/amount/currency validation",
+      "Strict positive integer-cent amount up to numeric(12,2) maximum",
+      "Capability requires compatible serialized legacy endpoint before enabling Counter",
+      "Review snapshot is re-read before mutation; local duplicate lock; no automatic mutation retry",
+      "Ambiguous responses lead to Check status; close/account changes suppress stale completion"
+    ]
+  },
+  "verification": {
+    "nativeTypecheck": "passed: npx tsc --noEmit",
+    "newBehaviorCases": {
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0
+    },
+    "existingChatRegressionCases": {
+      "passed": 13,
+      "failed": 0
+    },
+    "existingAuthRegressionCases": {
+      "passed": 31,
+      "failed": 0
+    },
+    "lint": {
+      "errors": 0,
+      "warnings": 21,
+      "warningScope": "Pre-existing ChatScreen warnings only; VerifyEmailScreen, CounterOfferDialog and new harness have zero warnings"
+    },
+    "diffWhitespace": "passed"
+  },
+  "backendContract": {
+    "capability": "offer_response_capabilities()",
+    "required": {
+      "version": 1,
+      "serialized": true,
+      "fractionDigits": 2,
+      "maxAmount": "9999999999.99"
+    },
+    "mutation": "respond_offer(p_offer_id uuid,p_action text,p_counter_amount numeric) returns void",
+    "action": "countered",
+    "replay": false,
+    "installation": "Backend lane supplies compatible migration; no hosted deployment performed by this lane. Counter is unavailable on an environment without that capability."
+  },
+  "limits": [
+    "Synthetic native adapters execute actual components and shipping chat action; no physical device or simulator was exercised",
+    "Legacy endpoint has no request-id/version contract; UI makes no such guarantee",
+    "Backend transaction/permission tests and installation evidence are owned by backend/root lanes",
+    "Other native warning/lifecycle work remains outside this bounded repair"
+  ]
+}

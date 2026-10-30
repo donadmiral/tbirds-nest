@@ -1,6 +1,7 @@
 import { themedSheet } from '../../theme/useTheme';
 import { useSafeAreaInsets } from '../../components/SafeArea';
 import { useEffect, useRef, useState } from 'react';
+import type { Session } from '@supabase/supabase-js';
 import { View, Text, TouchableOpacity, ActivityIndicator, AppState, Animated, Easing } from 'react-native';
 import * as Linking from 'expo-linking';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -18,7 +19,6 @@ const GRAY_100 = '#F3F4F6';
 const GRAY_400 = '#9CA3AF';
 const GRAY_500 = '#6B7280';
 const GRAY_900 = '#111827';
-const GREEN_500 = '#16A34A';
 const GREEN_50 = '#F0FDF4';
 const GREEN_200 = '#BBF7D0';
 const MAROON = '#8C1D40';
@@ -37,124 +37,149 @@ export default function VerifyEmailScreen({ route, navigation }: any) {
   const checkScale = useRef(new Animated.Value(0)).current;
   const fadeIn = useRef(new Animated.Value(0)).current;
 
-  // Recover from persisted verification state
-  useEffect(() => {
-    AsyncStorage.getItem(`pc_email_verified_${email}`).then(val => {
-      if (val === 'true') {
-        supabase.auth.getSession().then(({ data }) => {
-          if (data?.session) handleVerificationSuccess(data.session);
-          else AsyncStorage.removeItem(`pc_email_verified_${email}`).catch(() => {});
-        });
-      }
-    }).catch(() => {});
-  }, []);
+  const verificationRef = useRef<{
+    check: (notify?: boolean) => Promise<void>;
+    current: () => boolean;
+    verifiedUserId: () => string | null;
+  } | null>(null);
+  const verificationGeneration = useRef(0);
 
-  // Pulse animation on the mail icon
+  // Work belongs to this mounted email screen, never the next signed-in account.
+  useEffect(() => {
+    const generation = ++verificationGeneration.current;
+    const expectedEmail = String(email || '').trim().toLowerCase();
+    const matchesEmail = (value: Session | null) => !!expectedEmail
+      && value?.user.email?.trim().toLowerCase() === expectedEmail;
+    const initial = useAuthStore.getState().session;
+    let invalidated = !!initial && !matchesEmail(initial);
+    let expectedUserId = matchesEmail(initial) ? initial?.user.id ?? null : null;
+    let seenSession = !!initial;
+    let completedUserId: string | null = null;
+    let checkingSession = false;
+    let exchanging = false;
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
+    let endRetry: (() => void) | undefined;
+    const current = () => verificationGeneration.current === generation && !invalidated;
+    const compatible = (candidate: Session) => current() && matchesEmail(candidate)
+      && (!expectedUserId || candidate.user.id === expectedUserId)
+      && (!useAuthStore.getState().session || useAuthStore.getState().session?.user.id === candidate.user.id);
+    const unsubscribe = useAuthStore.subscribe((state, previous) => {
+      if (state.session?.user.id === previous.session?.user.id) return;
+      if (!state.session) {
+        if (seenSession) invalidated = true;
+      } else if (!matchesEmail(state.session) || (expectedUserId && state.session.user.id !== expectedUserId)) {
+        invalidated = true;
+      } else {
+        expectedUserId = state.session.user.id;
+        seenSession = true;
+      }
+    });
+    setVerified(false); setChecking(false); setNavigating(false);
+
+    async function accept(candidate: Session | null): Promise<boolean> {
+      if (!candidate || !compatible(candidate)) return false;
+      if (completedUserId) return completedUserId === candidate.user.id;
+      // A saved UI flag and cached session cannot confirm email verification.
+      const { data, error } = await supabase.auth.getUser(candidate.access_token);
+      if (error) throw error;
+      if (!compatible(candidate) || !data.user?.email_confirmed_at
+        || data.user.id !== candidate.user.id
+        || data.user.email?.trim().toLowerCase() !== expectedEmail) return false;
+      if (completedUserId) return completedUserId === candidate.user.id;
+      expectedUserId = candidate.user.id;
+      completedUserId = candidate.user.id;
+      setVerified(true);
+      Animated.spring(checkScale, { toValue: 1, friction: 4, tension: 100, useNativeDriver: true }).start(() => {
+        if (current()) Animated.timing(fadeIn, { toValue: 1, duration: 400, useNativeDriver: true }).start();
+      });
+      AsyncStorage.setItem(`pc_email_verified_${email}`, 'true').catch(() => {});
+      useAuthStore.getState().setSession({ ...candidate, user: data.user });
+      await useAuthStore.getState().refreshProfile();
+      return true;
+    }
+
+    async function check(notify = false) {
+      if (!current() || completedUserId || checkingSession) return;
+      checkingSession = true; setChecking(true);
+      try {
+        for (let attempt = 0; attempt < (notify ? 1 : 5) && current(); attempt++) {
+          const { data, error } = await supabase.auth.getSession();
+          if (error) throw error;
+          if (!current() || await accept(data.session)) return;
+          if (notify || attempt === 4) break;
+          await new Promise<void>(resolve => { endRetry = resolve; retryTimer = setTimeout(resolve, 500 * (attempt + 1)); });
+          retryTimer = undefined; endRetry = undefined;
+        }
+        if (notify && current()) showMessage({ message: 'Not verified yet', description: 'Open the link in your email first.', type: 'info' });
+      } catch {
+        if (notify && current()) showMessage({ message: 'Verification could not be checked', description: 'Please try again when your connection is available.', type: 'danger' });
+        console.log('[VerifyEmail] session check failed');
+      } finally {
+        checkingSession = false;
+        if (current() && !exchanging) setChecking(false);
+      }
+    }
+
+    async function exchangeFromUrl(url: string) {
+      if (!current() || completedUserId || exchanging || !url.includes('auth/callback')) return;
+      exchanging = true; setChecking(true);
+      try {
+        const hash = new URLSearchParams(url.split('#')[1] || '');
+        const accessToken = hash.get('access_token');
+        const refreshToken = hash.get('refresh_token');
+        if (accessToken && refreshToken) {
+          const checked = await supabase.auth.getUser(accessToken);
+          if (!current() || checked.error || !checked.data.user?.email_confirmed_at
+            || checked.data.user.email?.trim().toLowerCase() !== expectedEmail
+            || (expectedUserId && checked.data.user.id !== expectedUserId)) return;
+          const { data, error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+          if (error) throw error;
+          if (!current() || await accept(data.session)) return;
+        } else {
+          const query = new URLSearchParams(url.split('?')[1]?.split('#')[0] || '');
+          const token = query.get('token'); const type = query.get('type');
+          if (token && (type === 'signup' || type === 'email' || type === 'email_change')) {
+            const { data, error } = await supabase.auth.verifyOtp({ token_hash: token, type });
+            if (error) throw error;
+            if (!current() || await accept(data.session)) return;
+          }
+        }
+        await check();
+      } catch {
+        if (current()) showMessage({ message: 'Verification could not be completed', description: 'Open the latest verification email or check your status again.', type: 'danger' });
+        console.log('[VerifyEmail] exchange failed');
+      } finally {
+        exchanging = false;
+        if (current() && !checkingSession) setChecking(false);
+      }
+    }
+
+    verificationRef.current = { check, current, verifiedUserId: () => completedUserId };
+    const foreground = AppState.addEventListener('change', state => { if (state === 'active') void check(); });
+    const links = Linking.addEventListener('url', ({ url }) => { void exchangeFromUrl(url); });
+    void Linking.getInitialURL().then(url => { if (url && current()) return exchangeFromUrl(url); }).catch(() => {});
+    void check();
+    return () => {
+      verificationGeneration.current = generation + 1; verificationRef.current = null;
+      unsubscribe(); foreground.remove(); links.remove();
+      if (retryTimer !== undefined) clearTimeout(retryTimer);
+      endRetry?.();
+    };
+  }, [email, checkScale, fadeIn]);
+
   useEffect(() => {
     if (verified) return;
-    const pulse = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 1.08, duration: 1200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 1200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-      ])
-    );
+    const pulse = Animated.loop(Animated.sequence([
+      Animated.timing(pulseAnim, { toValue: 1.08, duration: 1200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      Animated.timing(pulseAnim, { toValue: 1, duration: 1200, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+    ]));
     pulse.start();
     return () => pulse.stop();
-  }, [verified]);
-
-  // Check for session on foreground with retry
-  useEffect(() => {
-    const checkSessionWithRetry = async () => {
-      if (verified || checking) return;
-      setChecking(true);
-      try {
-        for (let attempt = 0; attempt < 5; attempt++) {
-          const { data } = await supabase.auth.getSession();
-          if (data?.session) {
-            handleVerificationSuccess(data.session);
-            return;
-          }
-          await new Promise(r => setTimeout(r, 500 * (attempt + 1)));
-        }
-      } catch (e) {
-        console.log('[VerifyEmail] session check error:', e);
-      } finally {
-        setChecking(false);
-      }
-    };
-
-    const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active') checkSessionWithRetry();
-    });
-
-    checkSessionWithRetry();
-    return () => sub.remove();
-  }, [verified]);
-
-  // Deep link listener - exchange the tokens the link carries, do not just poll
-  useEffect(() => {
-    async function exchangeFromUrl(url: string): Promise<boolean> {
-      try {
-        const hash = url.split('#')[1];
-        if (hash) {
-          const p = new URLSearchParams(hash);
-          const at = p.get('access_token'); const rt = p.get('refresh_token');
-          if (at && rt) {
-            const { data, error } = await supabase.auth.setSession({ access_token: at, refresh_token: rt });
-            if (!error && data?.session) { handleVerificationSuccess(data.session); return true; }
-          }
-        }
-        const qm = url.indexOf('?');
-        if (qm !== -1) {
-          const q = new URLSearchParams(url.substring(qm + 1).split('#')[0]);
-          const th = q.get('token'); const ty = q.get('type');
-          if (th && ty) {
-            const { data, error } = await supabase.auth.verifyOtp({ token_hash: th, type: ty as any });
-            if (!error && data?.session) { handleVerificationSuccess(data.session); return true; }
-          }
-        }
-      } catch (e) { console.log('[VerifyEmail] exchange error:', e); }
-      return false;
-    }
-    Linking.getInitialURL().then((u) => { if (u && u.includes('auth/callback')) { setChecking(true); exchangeFromUrl(u).finally(() => setChecking(false)); } }).catch(() => {});
-    const sub = Linking.addEventListener('url', async ({ url }) => {
-      if (url && url.includes('auth/callback')) {
-        setChecking(true);
-        const ok = await exchangeFromUrl(url);
-        if (!ok) { const { data } = await supabase.auth.getSession(); if (data?.session) handleVerificationSuccess(data.session); }
-        setChecking(false);
-      }
-    });
-    return () => sub.remove();
-  }, []);
-
-  async function handleVerificationSuccess(session: any) {
-    if (verified) return;
-    setVerified(true);
-
-    const userId = session?.user?.id;
-    const userEmail = session?.user?.email || '';
-
-    // Animate checkmark, then fade in content
-    Animated.spring(checkScale, {
-      toValue: 1, friction: 4, tension: 100, useNativeDriver: true,
-    }).start(() => {
-      Animated.timing(fadeIn, {
-        toValue: 1, duration: 400, useNativeDriver: true,
-      }).start();
-    });
-
-    // Persist verification state
-    AsyncStorage.setItem(`pc_email_verified_${email}`, 'true').catch(() => {});
-
-    // Update auth store
-    useAuthStore.getState().setSession(session);
-
-    await useAuthStore.getState().refreshProfile();
-  }
+  }, [verified, pulseAnim]);
 
   async function handleContinue() {
-    if (navigating) return;
+    const verification = verificationRef.current;
+    if (navigating || !verification?.current()) return;
     setNavigating(true);
 
     // Clean up persistence flag
@@ -162,7 +187,7 @@ export default function VerifyEmailScreen({ route, navigation }: any) {
 
     // Safety check: verify session still exists
     const session = useAuthStore.getState().session;
-    if (!session) {
+    if (!session || session.user.id !== verification.verifiedUserId()) {
       navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
       return;
     }
@@ -178,28 +203,32 @@ export default function VerifyEmailScreen({ route, navigation }: any) {
       // to re-render and show the main tab navigator automatically.
       await useAuthStore.getState().refreshProfile();
       // Fallback: if AppNavigator doesn't switch, unfreeze the button
-      setNavigating(false);
+      if (verification.current()) setNavigating(false);
     }
   }
 
   async function handleResend() {
+    const verification = verificationRef.current;
+    if (loading || !verification?.current()) return;
     setLoading(true);
     try {
       const redirectTo = Linking.createURL('auth/callback');
       await authService.resendVerification(email, redirectTo);
+      if (!verification.current()) return;
       showMessage({
         message: 'Verification email sent',
         description: `Check ${email} and tap the link.`,
         type: 'success',
         duration: 4000,
       });
-    } catch (err: any) {
+    } catch {
+      if (!verification.current()) return;
       showMessage({
-        message: err?.message ?? 'Failed to resend verification email',
+        message: 'Failed to resend verification email',
         type: 'danger',
       });
     } finally {
-      setLoading(false);
+      if (verification.current()) setLoading(false);
     }
   }
 
@@ -288,20 +317,8 @@ export default function VerifyEmailScreen({ route, navigation }: any) {
 
       <TouchableOpacity
         style={s.checkBtn}
-        onPress={async () => {
-          setChecking(true);
-          const { data } = await supabase.auth.getSession();
-          if (data?.session) {
-            handleVerificationSuccess(data.session);
-          } else {
-            showMessage({
-              message: 'Not verified yet',
-              description: 'Open the link in your email first.',
-              type: 'info',
-            });
-          }
-          setChecking(false);
-        }}
+        onPress={() => { void verificationRef.current?.check(true); }}
+        disabled={checking}
         activeOpacity={0.7}
       >
         <Text style={s.checkBtnTxt}>I already verified</Text>

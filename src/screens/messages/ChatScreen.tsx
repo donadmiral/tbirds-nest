@@ -49,6 +49,7 @@ import { signChatMedia, signChatMediaMap, isChatMediaUrl, signGroupAvatars } fro
 import { useVoiceRecorder, formatVoiceDuration } from '../../controllers/messages/useVoiceRecorder';
 import VoiceNote from '../../components/VoiceNote';
 import { ShareDetailsSheet } from '../../components/messages/ShareDetailsSheet';
+import { CounterOfferDialog } from '../../components/messages/CounterOfferDialog';
 import { parseChatAttachmentCard, attachmentCardText, attachmentCardLinks } from '../../../shared/chatAttachmentCards';
 import { PrivateMediaViewer } from '../../components/messages/PrivateMediaViewer';
 import PaymentBubble, { ChatPayment } from '../../components/PaymentBubble';
@@ -586,6 +587,7 @@ export default function ChatScreen() {
   useEffect(() => {
     ++mediaOperation.current; mediaSending.current = false; setUploadingMedia(false);
     setEditTarget(null); setCapturedVideo(null); setSelectedMsg(null); setReplyTo(null); setForwardMsg(null); setShowForwardPicker(false);
+    setCounterOffer(null);
     setShowInfoModal(false); setInfoMedia([]); setInfoFiles([]); setInfoStarred([]); setOtherTyping(false); setTypingUserId(null);
     setSharedPostsMap({}); setSavedIds(new Set()); setStarredIds(new Set()); setPinnedMsg(null);
     lastTypingRef.current = false; typingSentAt.current = 0;
@@ -1624,6 +1626,7 @@ const pickAndSendDocument = useCallback(async () => {
 
   const [paymentsMap, setPaymentsMap] = useState<Record<string, ChatPayment>>({});
   const [offersMap, setOffersMap] = useState<Record<string, any>>({});
+  const [counterOffer, setCounterOffer] = useState<{ id: string; scope: string; ownerId: string; actorId: string } | null>(null);
   useEffect(() => {
     const ids: string[] = [];
     messages.forEach(m => {
@@ -1902,7 +1905,7 @@ const pickAndSendDocument = useCallback(async () => {
                           <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#059669' }}>Accept</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={{ flex: 1, paddingVertical: 10, alignItems: 'center', borderLeftWidth: 1, borderLeftColor: 'rgba(11,30,61,0.08)' }} onPress={() => {
-                          Alert.prompt ? Alert.prompt('Counter-offer', 'Your amount', (t) => { const n = Number(String(t).replace(/,/g, '')); if (Number.isFinite(n) && n > 0) respondOffer(j.offer_id, 'countered', n); }, 'plain-text', '', 'numeric') : respondOffer(j.offer_id, 'declined');
+                          if (session?.user.id && currentUserId) setCounterOffer({ id: j.offer_id, scope: attachmentScope, ownerId: session.user.id, actorId: currentUserId });
                         }}>
                           <Text style={{ fontSize: 12.5, fontWeight: '800', color: t.ink.primary }}>Counter</Text>
                         </TouchableOpacity>
@@ -2121,6 +2124,16 @@ const pickAndSendDocument = useCallback(async () => {
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right', 'bottom']}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={t.surface.canvas} />
+      {counterOffer && counterOffer.scope === attachmentScope && counterOffer.ownerId === session?.user.id && (
+        <CounterOfferDialog key={`${counterOffer.scope}:${counterOffer.id}`} offerId={counterOffer.id}
+          ownerId={counterOffer.ownerId} actorId={counterOffer.actorId}
+          onClose={() => setCounterOffer(null)}
+          onResolved={offer => {
+            if (attachmentScopeRef.current !== counterOffer.scope || useAuthStore.getState().session?.user.id !== counterOffer.ownerId) return;
+            setOffersMap(previous => ({ ...previous, [offer.id]: offer }));
+            setCounterOffer(null);
+          }} />
+      )}
 
       <View style={s.header}>
         <TouchableOpacity accessibilityRole="button" accessibilityLabel="Back to conversations" onPress={() => messagesBack(navigation)} style={s.backBtn} activeOpacity={0.6} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
