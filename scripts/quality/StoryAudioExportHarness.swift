@@ -18,6 +18,7 @@ private enum StoryAudioFixture {
   static var cache: URL { files.urls(for: .cachesDirectory, in: .userDomainMask)[0] }
   static var documents: URL { files.urls(for: .documentDirectory, in: .userDomainMask)[0] }
   static var results: [[String: Any]] = []
+  static var diagnostics: [[String: Any]] = []
 
   static func wave(_ url: URL, seconds: Int, sample: (Double) -> Double) throws {
     let rate = 48000, count = seconds * rate
@@ -120,18 +121,54 @@ private enum StoryAudioFixture {
   static func trackCoverage(_ url: URL, mediaType: AVMediaType, expectedDuration: Double) async throws -> [String: Double] {
     let asset = AVURLAsset(url: url)
     guard let track = try await asset.loadTracks(withMediaType: mediaType).first else { throw FixtureError.failed("Mixed export track is missing") }
-    let reader = try AVAssetReader(asset: asset), output = AVAssetReaderTrackOutput(track: track, outputSettings: nil)
+    // Compressed samples need not expose a numeric duration. Attest decoded
+    // PCM frames and decoded video timestamps instead of inventing that value.
+    let settings: [String: Any] = mediaType == .audio
+      ? [AVFormatIDKey: kAudioFormatLinearPCM, AVSampleRateKey: 48000, AVNumberOfChannelsKey: 1,
+         AVLinearPCMBitDepthKey: 32, AVLinearPCMIsFloatKey: true, AVLinearPCMIsNonInterleaved: false, AVLinearPCMIsBigEndianKey: false]
+      : [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA]
+    let reader = try AVAssetReader(asset: asset), output = AVAssetReaderTrackOutput(track: track, outputSettings: settings)
     try require(reader.canAdd(output), "Mixed export track reader is unavailable"); reader.add(output)
     try require(reader.startReading(), "Mixed export track reader did not start")
-    var count = 0, first = Double.infinity, end = 0.0
+    var count = 0, first = Double.infinity, end = 0.0, pcmFrames = 0
+    var videoTimes: [Double] = []
     while let sample = output.copyNextSampleBuffer() {
-      let start = CMSampleBufferGetPresentationTimeStamp(sample).seconds, duration = CMSampleBufferGetDuration(sample).seconds
-      try require(start.isFinite && duration.isFinite && duration > 0, "Mixed export has invalid sample timing")
-      first = min(first, start); end = max(end, start + duration); count += 1
+      let start = CMSampleBufferGetPresentationTimeStamp(sample).seconds
+      try require(start.isFinite, "Mixed export has an invalid presentation timestamp")
+      first = min(first, start); count += 1
+      if mediaType == .audio {
+        guard let format = CMSampleBufferGetFormatDescription(sample),
+              let stream = CMAudioFormatDescriptionGetStreamBasicDescription(format),
+              let buffer = CMSampleBufferGetDataBuffer(sample) else { throw FixtureError.failed("Decoded PCM format or bytes are missing") }
+        let frames = CMSampleBufferGetNumSamples(sample), rate = stream.pointee.mSampleRate
+        try require(frames > 0 && rate.isFinite && rate > 0 && stream.pointee.mFormatID == kAudioFormatLinearPCM, "Decoded PCM has no finite sample duration")
+        let bytesPerFrame = Int(stream.pointee.mBytesPerFrame)
+        try require(bytesPerFrame > 0 && CMBlockBufferGetDataLength(buffer) >= frames * bytesPerFrame, "Decoded PCM frames are truncated")
+        let duration = Double(frames) / rate
+        end = max(end, start + duration); pcmFrames += frames
+      } else {
+        guard let image = CMSampleBufferGetImageBuffer(sample) else { throw FixtureError.failed("Decoded video frame is missing") }
+        try require(CVPixelBufferGetWidth(image) == width && CVPixelBufferGetHeight(image) == height, "Decoded video frame has the wrong size")
+        videoTimes.append(start)
+      }
     }
     try require(reader.status == .completed && count > 0, "Mixed export track could not be read completely")
+    var frameInterval = 0.0
+    if mediaType == .video {
+      videoTimes.sort()
+      try require(videoTimes.count >= Int(floor(expectedDuration * 30)) - 2 && videoTimes.count <= Int(ceil(expectedDuration * 30)) + 2, "Mixed export frame count does not cover the edited timeline")
+      var intervals: [Double] = []
+      for index in 1..<videoTimes.count {
+        let interval = videoTimes[index] - videoTimes[index - 1]
+        try require(interval > 0 && abs(interval - 1.0 / 30.0) < 0.01, "Mixed export has duplicate frames or an unexpected frame gap")
+        intervals.append(interval)
+      }
+      try require(!intervals.isEmpty, "Mixed export has no measurable video frame interval")
+      intervals.sort(); frameInterval = intervals[intervals.count / 2]
+      end = videoTimes.last! + frameInterval
+    }
     try require(abs(first) < 0.12 && abs(end - expectedDuration) < 0.12, "Mixed export has a missing start, truncated track or trailing audio/video")
-    return ["sampleBuffers": Double(count), "firstPresentation": first, "end": end]
+    return ["sampleBuffers": Double(count), "pcmFrames": Double(pcmFrames), "frameInterval": frameInterval, "firstPresentation": first, "end": end]
   }
   static func frame(_ url: URL, at: Double) throws {
     let generator = AVAssetImageGenerator(asset: AVURLAsset(url: url)); generator.appliesPreferredTrackTransform = true
@@ -196,6 +233,7 @@ private enum StoryAudioFixture {
       let expectedDuration = (test.end - test.start) / test.speed
       let selected = request(test.id, input: source, recipe: recipe(end: test.end, speed: test.speed, start: test.start, volume: 0.25), music: speedMusic, loop: true)
       let result = try await StoryVideoComposition.make(selected), file = output(selected)
+      try retain(file)
       guard let reportedDuration = result["duration"] as? Double else { throw FixtureError.failed("Mixed export duration is absent") }
       try require(result["soundtrackMixed"] as? Bool == true && abs(reportedDuration - expectedDuration) < 0.12, "Mixed export returned an incorrect duration or no soundtrack")
       var windows: [[String: Double]] = []
@@ -207,9 +245,10 @@ private enum StoryAudioFixture {
         try require(measured["beforeExcerpt1540Hz"]! < 0.02 && measured["afterExcerpt1760Hz"]! < 0.02, "Audio outside the selected music excerpt leaked into the mix: \(measured)")
         windows.append(measured)
       }
+      diagnostics.append(["name": test.name, "speed": test.speed, "duration": reportedDuration, "expectedDuration": expectedDuration, "windows": windows])
       let videoCoverage = try await trackCoverage(file, mediaType: .video, expectedDuration: expectedDuration)
       let audioCoverage = try await trackCoverage(file, mediaType: .audio, expectedDuration: expectedDuration)
-      try frame(file, at: expectedDuration - 0.15); try retain(file)
+      try frame(file, at: expectedDuration - 0.15)
       results.append(["name": test.name, "speed": test.speed, "duration": reportedDuration, "expectedDuration": expectedDuration,
         "windows": windows, "video": videoCoverage, "audio": audioCoverage])
     }
@@ -244,7 +283,7 @@ private enum StoryAudioFixture {
     results.append(["name": "cancellation stops the native writer and removes temporary movies"])
   }
   static func finish(error: Error?) {
-    let receipt: [String: Any] = ["passed": error == nil, "cases": results, "error": error?.localizedDescription as Any? ?? NSNull(), "physicalDevice": false, "photosWritten": false, "networkUsed": false]
+    let receipt: [String: Any] = ["passed": error == nil, "cases": results, "diagnostics": diagnostics, "error": error?.localizedDescription as Any? ?? NSNull(), "physicalDevice": false, "photosWritten": false, "networkUsed": false]
     do {
       try files.createDirectory(at: documents, withIntermediateDirectories: true)
       try JSONSerialization.data(withJSONObject: receipt, options: [.prettyPrinted, .sortedKeys]).write(to: documents.appendingPathComponent("story-audio-receipt.json"), options: .atomic)

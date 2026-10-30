@@ -1,0 +1,182 @@
+{
+  "recordedAt": "2026-10-30T22:50:56Z",
+  "status": "The exact pitch-corrected renderer and Expo bridge compiled successfully into the unsigned ARM64 Android QA target.",
+  "publishedCandidate": {
+    "commit": "be95700a0cf2f015c5bc355b76be20729d12e3e4",
+    "testedMerge": "a793fb3c88ae568cf0ff924902920f72b46603d3",
+    "sourceTree": "5abe57e0cacf2494374f19fcf6e536da23cf81ea",
+    "headAndMergeTreesMatch": true
+  },
+  "githubEvidence": {
+    "workflowRun": 41139363933,
+    "jobId": 124349582645,
+    "jobConclusion": "success",
+    "workflowUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41139363933",
+    "artifactId": 13018942430,
+    "artifactName": "android-native-compile-diagnostics",
+    "artifactZipSha256": "0f6ae68be75928a0b35bc09d0e36304bc6c27af7a2cc442a6af08af3fde56082",
+    "digestVerifiedBeforeExtraction": true
+  },
+  "verification": {
+    "buildResult": "BUILD SUCCESSFUL in 9m 56s",
+    "compiledSourcesMatchPublishedCandidate": true,
+    "verifiedMedia3RuntimeComponents": 16,
+    "retainedDiagnosticHashes": {
+      "autolinking.log": "aa426f75876a1102352b68b241a1afb35c4fdfbf4245b5123c8afd3d56459a0b",
+      "gradle.log": "ff8edb63ba43127930c5b95491e41e692a1ed300c3b53f70acf9cc8448d58f2b",
+      "media3-runtime.json": "e7497daa9b1cc36080a84fcc67f6d210fc7f57c0cfadf738a1bdaff119c1666b",
+      "postflight.log": "2dd467ef27511322c268550bfe6876711f9d6ebfe05765bc3921331c45e415c8",
+      "prebuild.log": "d5e4be0a0c10691bffa446716505e068d943d1fca32f0d93d5af6f817e29c4e4",
+      "preflight.log": "0cf970a57a00b458d2486d34e05ca529f499ffaa614607a379b428d6169a6dbb",
+      "receipt.json": "2dd467ef27511322c268550bfe6876711f9d6ebfe05765bc3921331c45e415c8",
+      "sdk-install.log": "3536cc14036e25ef48b76f673d962a0ce1ddd3c4abd4ad7f047ba1a81b3cf4a4",
+      "sdk-packages.log": "4606b5394efa3c07916c1b7a97706fa12620e8bb2d4938ca9f30d4725d6e5a3f",
+      "signature.log": "1413af210d1627fde4f14e31934eb5d9d031684e4f7a5c3371a74b3bdeb8764c",
+      "toolchain.log": "2b65777abc16ba4f3fa64856448c59cbfc9f15c0bd6920b9121b992d0682a90c"
+    }
+  },
+  "compileReceipt": {
+    "commit": "a793fb3c88ae568cf0ff924902920f72b46603d3",
+    "workflow_run": "41139363933",
+    "result": "unsigned Android QA native compile passed",
+    "native_source": {
+      "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt",
+      "sha256": "fba427784dd706134c2125717d7dc4accbcedb26fe668196228135064ec68f46",
+      "compiled_classes": [
+        "modules/boomerang/android/build/tmp/kotlin-classes/debug/expo/modules/boomerang/BoomerangModule.class"
+      ]
+    },
+    "native_sources": {
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt": {
+        "sha256": "fba427784dd706134c2125717d7dc4accbcedb26fe668196228135064ec68f46",
+        "compiled_classes": [
+          "modules/boomerang/android/build/tmp/kotlin-classes/debug/expo/modules/boomerang/BoomerangModule.class"
+        ]
+      },
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": {
+        "sha256": "3ce3a5c568a332468e064dd7b03c508fa2ee6d79ad94309a58adb14a54a24f4d",
+        "compiled_classes": [
+          "modules/boomerang/android/build/tmp/kotlin-classes/debug/expo/modules/boomerang/StoryVideoComposition.class"
+        ]
+      },
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": {
+        "sha256": "754eaa2052a1b48c527eb2a2f9ccfb94cdd88ed269aa1bb4933fdde3e066633e",
+        "compiled_classes": [
+          "modules/boomerang/android/build/tmp/kotlin-classes/debug/expo/modules/boomerang/StoryCanvasEffect.class"
+        ]
+      }
+    },
+    "media3_runtime": {
+      "project": ":app",
+      "configuration": "debugRuntimeClasspath",
+      "expectedVersion": "1.8.1",
+      "aligned": true,
+      "components": [
+        {
+          "group": "androidx.media3",
+          "module": "media3-common",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-container",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-database",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-datasource",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-datasource-okhttp",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-decoder",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-effect",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-exoplayer",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-exoplayer-dash",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-exoplayer-hls",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-exoplayer-smoothstreaming",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-extractor",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-muxer",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-session",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-transformer",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-ui",
+          "version": "1.8.1"
+        }
+      ],
+      "scope": "Resolved runtime version alignment; separate from security or encoded-media acceptance."
+    },
+    "expo_module_registration_verified": true,
+    "android_abi": "arm64-v8a",
+    "apk": {
+      "path": "android/app/build/outputs/apk/debug/app-debug-unsigned.apk",
+      "sha256": "8e685b64d51fad5545e02bd252c49e1b7733b394d41758f028d17ca4baf85d83",
+      "bytes": 134778080
+    },
+    "application_id": "app.platinumcircles.mobile.qa",
+    "apk_signed": false,
+    "javascript_bundle_included": false,
+    "android_story_encoder_compiled": true,
+    "advertised_story_video_version": 0,
+    "advertised_story_audio_export_version": 0,
+    "encoded_media_acceptance_inferred": false,
+    "device_or_provider_acceptance": false,
+    "app_installed_uploaded_or_submitted": false
+  },
+  "correspondingRuntimeEvidence": "docs/quality/native-audio-20261030/android-emulator-acceptance-be95700a.json",
+  "scopeLimits": [
+    "This candidate had native version constants 0. The reviewed activation to 1 changes only the bridge declarations/comment and requires its own final hosted compile result.",
+    "The compiled renderer and effect bytes are identical to the independently verified 23-case emulator acceptance source.",
+    "This CI target is unsigned, includes no embedded JavaScript bundle and was not installed, uploaded or submitted.",
+    "Physical-device, installed-product, backend deployment and provider acceptance are not inferred from native compilation."
+  ]
+}

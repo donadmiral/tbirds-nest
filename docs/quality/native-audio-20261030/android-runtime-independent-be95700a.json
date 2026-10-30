@@ -1,0 +1,328 @@
+{
+  "observedAt": "2026-10-30T22:44:44Z",
+  "conclusion": "Independent source, artifact, executed-case and decoded-output review passed for this production Android encoder.",
+  "source": {
+    "candidateCommit": "be95700a0cf2f015c5bc355b76be20729d12e3e4",
+    "testedPrMerge": "a793fb3c88ae568cf0ff924902920f72b46603d3",
+    "tree": "5abe57e0cacf2494374f19fcf6e536da23cf81ea",
+    "mergeTreeEqualsCandidateTree": true,
+    "productionSha256": {
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": "3ce3a5c568a332468e064dd7b03c508fa2ee6d79ad94309a58adb14a54a24f4d",
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": "754eaa2052a1b48c527eb2a2f9ccfb94cdd88ed269aa1bb4933fdde3e066633e"
+    },
+    "harnessSha256": "b044919dde2469f0b466d8eb1341b3414b75cfa522eb89925c5dec25488546a7",
+    "compiledSourceCopiesVerifiedByCI": true
+  },
+  "workflowRun": 41139363933,
+  "job": {
+    "id": 124349582961,
+    "conclusion": "success"
+  },
+  "workflowUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41139363933",
+  "artifact": {
+    "id": 13018681786,
+    "name": "android-story-audio-export",
+    "bytes": 1090025,
+    "sha256": "1f58825cde11fb9a28325273f6f529e7e9e4876d138544841d80b40184484b77",
+    "githubDigestIndependentlyMatched": true,
+    "memberSha256": {
+      "receipt.json": "254e816ed359cc682b4621dcca01e90b1baf829b089ebbf88921b8070e1f774a",
+      "device/receipt.json": "74815152a300547a192c1e8870fced194850ce4d4abe85b5d0ea76b09d1ea083",
+      "preflight.json": "7961e2e1633825a64c1918c45649d1da4a6517b020c931df1233bb73dcda5895",
+      "media3-runtime.json": "123101047be09d917e452a7b6d74b6a886c2d3394fa28a0d636988c1e70e24fa",
+      "emulator-build.log": "e07fd7d414c3b262449a1a48ec96db76edc31b2273ac896fc04f4f44870e7426",
+      "instrumentation-results/connected/debug/TEST-emulator-5556 - 15-_-.xml": "46bc1c663d2dd90c76404f916fec4b55eb3c013877c383089508fe033208b2cf"
+    }
+  },
+  "runtime": {
+    "sdk": 35,
+    "model": "Android SDK built for x86_64",
+    "abis": [
+      "x86_64"
+    ],
+    "emulatorBuild": "Android/sdk_phone64_x86_64/emu64x:15/AE3A.240806.019/12368160:userdebug/test-keys",
+    "media3Version": "1.8.1",
+    "resolvedHarnessMedia3Components": 10
+  },
+  "instrumentation": {
+    "declaredMethods": 23,
+    "executedMethods": 23,
+    "passed": 23,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "seconds": 38.09,
+    "exactMethodSetMatched": true,
+    "methodNames": [
+      "backgroundCancellationSettlesOnceAndPreservesTheDraftInputs",
+      "blockedContentProviderCanBeCancelledWithoutWaitingForAnotherChunk",
+      "cancellationAtTheCompletionBoundaryCannotLeaveARejectedOutput",
+      "cancellationStopsTheWriterCleansThePartialAndAllowsRetry",
+      "canvasBackgroundAndTimedArtworkMatchDecodedPixels",
+      "fullColorMatrixScaleAndTranslationMatchPixels",
+      "fullPortraitResolutionProducesActualVideoAndSoundtrack",
+      "invalidInputsCannotOverwriteOrEscapeTheCache",
+      "knownLengthProviderDoesNotNeedEofAndCannotHideAnEarlyEnd",
+      "longVoiceoverIsClippedToTheOutputMovie",
+      "matrixAlphaAndBiasAreNotDroppedByAFourByFourShortcut",
+      "mutedOriginalDoesNotLeakIntoTheMovie",
+      "onePassVoiceoverEndsInSilenceWithoutShorteningVideo",
+      "originalOnlyAudioIsPreservedAndMeasured",
+      "oversizedUnknownLengthProviderCannotConsumeUnboundedDisk",
+      "selectedExcerptLoopsThroughActualStillMovie",
+      "slowedVideoRepeatsOnlyTheSelectedExcerptThroughItsPartialFinalLoop",
+      "soundtrackVolumeAndZeroGainAreEncoded",
+      "trimmedAndAcceleratedVideoUsesOutputTimeForArtwork",
+      "trimmingPastShortOriginalAudioProducesAValidSilentMovie",
+      "unknownLengthContentAndReadableExternalVideoAreStagedAndRemoved",
+      "verticalTextureOrientationAndBothTranslationDirectionsMatchTheCanvas",
+      "videoTrimSpeedAndOriginalMixStayAlignedWithIndependentSoundtrack"
+    ],
+    "measuredCaseRecords": 23
+  },
+  "retainedMovies": {
+    "count": 31,
+    "allSizesAndHashesIndependentlyMatched": true,
+    "includesSyntheticSourceFixtures": true,
+    "manifestSha256": "de2a37b849ecb925cf9bc7339815cf71596f739cb07c9d12680efbe3e855a12c"
+  },
+  "independentDecodedOutput": {
+    "method": "FFmpeg decoded first channel at 48 kHz; frequency amplitudes independently calculated from the resulting PCM. No stereo downmix gain normalization.",
+    "outputs": [
+      {
+        "name": "trim-speed-original-mix.mp4",
+        "sha256": "0e82748d6c6ab7f24c7d5e2d5a0501481169caa945743525a5e67c68e914d469",
+        "bytes": 20903,
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "aac",
+            "codec_type": "audio",
+            "sample_rate": "48000",
+            "avg_frame_rate": "0/0",
+            "duration": "1.002667",
+            "nb_frames": "47",
+            "tags": {}
+          },
+          {
+            "index": 1,
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 480,
+            "height": 320,
+            "avg_frame_rate": "30/1",
+            "duration": "1.000000",
+            "nb_frames": "30",
+            "tags": {},
+            "side_data_list": [
+              {
+                "rotation": -90
+              }
+            ],
+            "displayWidth": 320,
+            "displayHeight": 480
+          }
+        ],
+        "decodedFirstChannelSamples": 48128,
+        "analysisWindowSeconds": [
+          0.2,
+          0.8
+        ],
+        "toneAmplitudes": {
+          "165": 0.00020973667101329603,
+          "220": 0.00028634680603552005,
+          "330": 0.08588923940924588,
+          "440": 0.049439314473871405,
+          "660": 0.00016768670971066733,
+          "880": 0.0001107241627425846,
+          "1760": 4.951526105549177e-05
+        }
+      },
+      {
+        "name": "slow-video-fractional-soundtrack-loop.mp4",
+        "sha256": "7863dbb16d3daa9ea8f9f41f46dc1f05567338f7f014e1401f9649057106b43c",
+        "bytes": 78734,
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "aac",
+            "codec_type": "audio",
+            "sample_rate": "48000",
+            "avg_frame_rate": "0/0",
+            "duration": "4.394667",
+            "nb_frames": "206",
+            "tags": {}
+          },
+          {
+            "index": 1,
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 480,
+            "height": 320,
+            "avg_frame_rate": "15/1",
+            "duration": "4.333333",
+            "nb_frames": "65",
+            "tags": {},
+            "side_data_list": [
+              {
+                "rotation": -90
+              }
+            ],
+            "displayWidth": 320,
+            "displayHeight": 480
+          }
+        ],
+        "decodedFirstChannelSamples": 210944,
+        "analysisWindowSeconds": [
+          2.2,
+          3.7
+        ],
+        "toneAmplitudes": {
+          "165": 6.532307586906008e-05,
+          "220": 8.410424199864647e-05,
+          "330": 0.03982287317367395,
+          "440": 0.06650594775063767,
+          "660": 2.617880320207092e-05,
+          "880": 0.03332226538149142,
+          "1760": 6.273787969605677e-06
+        },
+        "soundtrackWindowChecks": [
+          {
+            "name": "firstSelected",
+            "frequencyHz": 440,
+            "windowSeconds": [
+              0.2,
+              0.8
+            ],
+            "amplitude": 0.09971155909739385,
+            "acceptedRange": [
+              0.07,
+              0.13
+            ]
+          },
+          {
+            "name": "selectedTail",
+            "frequencyHz": 880,
+            "windowSeconds": [
+              1.1,
+              1.35
+            ],
+            "amplitude": 0.09969606476737632,
+            "acceptedRange": [
+              0.07,
+              0.13
+            ]
+          },
+          {
+            "name": "repeatedSelection",
+            "frequencyHz": 440,
+            "windowSeconds": [
+              1.8,
+              2.3
+            ],
+            "amplitude": 0.09958248175527193,
+            "acceptedRange": [
+              0.07,
+              0.13
+            ]
+          },
+          {
+            "name": "finalPartialLoop",
+            "frequencyHz": 440,
+            "windowSeconds": [
+              3.2,
+              3.8
+            ],
+            "amplitude": 0.09964266178271265,
+            "acceptedRange": [
+              0.07,
+              0.13
+            ]
+          },
+          {
+            "name": "finalTail",
+            "frequencyHz": 880,
+            "windowSeconds": [
+              4.1,
+              4.25
+            ],
+            "amplitude": 0.09974908864210104,
+            "acceptedRange": [
+              0.07,
+              0.13
+            ]
+          }
+        ],
+        "excludedExcerptToneChecks": {
+          "beforeSelection220Hz": 6.839129616123192e-05,
+          "afterSelection1760Hz": 5.483664640961826e-06,
+          "limit": 0.01
+        }
+      }
+    ]
+  },
+  "cleanupAndResourceMeasurements": [
+    {
+      "attempts": 4,
+      "rejectedAndCleaned": 4,
+      "completedBeforeCancellation": 0,
+      "case": "completion cancellation race",
+      "passed": true
+    },
+    {
+      "inputPreserved": true,
+      "partialRemoved": true,
+      "case": "background cancellation",
+      "passed": true
+    },
+    {
+      "unknownLengthProvider": true,
+      "externalSourcePreserved": true,
+      "temporaryFilesRemoved": true,
+      "case": "bounded source staging",
+      "passed": true
+    },
+    {
+      "peakTemporaryBytes": 536870912,
+      "providerWrittenBytes": 537001984,
+      "limitBytes": 536870912,
+      "case": "unknown-size byte ceiling",
+      "passed": true
+    },
+    {
+      "partialRemoved": true,
+      "singleJobEnforced": true,
+      "retryDuration": 0.967,
+      "case": "real cancellation cleanup and retry",
+      "passed": true
+    },
+    {
+      "succeededWithoutEof": true,
+      "earlyEndRejected": true,
+      "seekableOffsetAccepted": true,
+      "streamedOffsetRejectedMilliseconds": 1,
+      "temporaryFilesRemoved": true,
+      "case": "declared-length provider boundary",
+      "passed": true
+    },
+    {
+      "milliseconds": 20,
+      "providerStillOpen": true,
+      "temporaryFilesRemoved": true,
+      "retryPassed": true,
+      "case": "blocked provider cancellation",
+      "passed": true
+    }
+  ],
+  "publishedBridgeCapabilitiesAtTest": {
+    "storyVideoVersion": 0,
+    "storyAudioExportVersion": 0
+  },
+  "limits": [
+    "The runtime was the standalone production-renderer harness on an API 35 x86_64 emulator. Physical Android, hardware-specific camera/HDR/HEIC behavior and installed-product acceptance remain unverified.",
+    "The full Android application compile is a separate job and receipt. This review does not claim that job completed for be957.",
+    "The four completion/cancellation race attempts in this run all observed cancellation and cleanup; they are bounded regression evidence, not exhaustive scheduling coverage.",
+    "No QA or production accounts, hosted Supabase state or commercial provider recordings were accessed. No production activation, store release or installed-device rollout is established.",
+    "The passing result applies to the recorded renderer/harness hashes. The published bridge still advertised capability zero during this test; any later capability advertisement is a separate source change."
+  ]
+}

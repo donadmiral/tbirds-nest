@@ -13,9 +13,10 @@ class BoomerangModule : Module() {
   override fun definition() = ModuleDefinition {
     Name("Boomerang")
 
-    // Enable only after the real encoded-audio, pixel and cancellation harness
-    // passes. The candidate renderer does not imply installed-device support.
-    Constants("storyVideoVersion" to 0, "storyAudioExportVersion" to 0)
+    // The exact production renderer passed all 23 encoded-audio, pixel,
+    // cancellation and bounded-input emulator cases. New binaries expose this
+    // contract; physical-device acceptance remains a separate check.
+    Constants("storyVideoVersion" to 1, "storyAudioExportVersion" to 1)
 
     AsyncFunction("composeStory") { request: Map<String, Any?>, promise: Promise ->
       val context = appContext.reactContext
