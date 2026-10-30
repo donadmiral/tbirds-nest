@@ -5,7 +5,7 @@
  * so light and dark both work. Nothing here invents a number: each component
  * draws exactly the values it is handed.
  */
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { fmt } from '@/lib/fmt';
 
 const MONO: React.CSSProperties = { fontVariantNumeric: 'tabular-nums' };
@@ -149,11 +149,10 @@ export function Donut({ slices, centerLabel, size = 168 }: { slices: Slice[]; ce
   if (total <= 0) return <Empty note="Nothing recorded in this window yet." />;
 
   const r = 54, c = 2 * Math.PI * r;
-  let acc = 0;
   const arcs = slices.map((s, i) => {
     const frac = s.value / total;
+    const acc = slices.slice(0, i).reduce((sum, slice) => sum + slice.value / total, 0);
     const seg = { ...s, i, frac, dash: c * frac, offset: -c * acc };
-    acc += frac;
     return seg;
   });
 
@@ -259,8 +258,5 @@ export function Empty({ note }: { note: string }) {
 /* -- greeting ----------------------------------------------------------- */
 
 export function Greeting({ name }: { name: string }) {
-  const [hour, setHour] = useState<number | null>(null);
-  useEffect(() => { setHour(new Date().getHours()); }, []);
-  const word = hour === null ? 'Welcome back' : hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-  return <span>{word}, {name}</span>;
+  return <span>Welcome back, {name}</span>;
 }

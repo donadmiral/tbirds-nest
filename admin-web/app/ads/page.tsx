@@ -1,6 +1,7 @@
+import Image from 'next/image';
+import { requestTime } from '@/lib/requestTime';
 import CommandForm from '@/components/CommandForm';
 import PermissionGate from '@/components/PermissionGate';
-import { redirect } from 'next/navigation';
 import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import { approveCampaign, rejectCampaign, adminEndCampaign } from '@/lib/actions';
@@ -14,6 +15,8 @@ const OBJ_LABEL: Record<string, string> = {
   reach: 'Reach', traffic: 'Website visits', messages: 'Messages', storefront: 'Storefront visits', applications: 'Job applications',
 };
 const PAY_LABEL: Record<string, string> = { crisp: 'Crisp', intobank: 'IntoBank' };
+type CampaignOwner = { id: string; full_name: string | null; username: string | null; avatar_url: string | null; is_verified: boolean; verified_tier: string | null };
+type PromotedPost = { id: string; campaign_id: string; post_id: string; label: string; status: string; total_cap: number | null; impressions_count: number | null; clicks_count: number | null; content?: string; thumb?: string | null };
 
 function statusPill(s: string) {
   if (s === 'live' || s === 'approved') return <span className="rounded-full border border-[#DCEFE0] bg-[#F2F9F3] px-2 py-0.5 text-[10.5px] font-bold capitalize text-[#1D7A38]">{s}</span>;
@@ -24,6 +27,7 @@ function statusPill(s: string) {
 
 export default async function AdsPage() {
   const admin = await requireDesk('/ads');
+  const now = await requestTime();
   const svc = serviceClient();
 
   const [submittedResult, liveResult, historyResult] = await Promise.all([
@@ -38,7 +42,7 @@ export default async function AdsPage() {
   const allCampaigns = [...submitted, ...live, ...history];
 
   const ownerIds = Array.from(new Set(allCampaigns.map(c => c.owner_id)));
-  const owners: Record<string, any> = {};
+  const owners: Record<string, CampaignOwner> = {};
   if (ownerIds.length) {
     const { data, error } = await svc.from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier').in('id', ownerIds);
     if (error) throw new Error('Campaign owners could not be loaded.');
@@ -46,7 +50,7 @@ export default async function AdsPage() {
   }
 
   const activeCampaignIds = [...submitted, ...live].map(c => c.id);
-  const promoByCampaign: Record<string, any[]> = {};
+  const promoByCampaign: Record<string, PromotedPost[]> = {};
   if (activeCampaignIds.length) {
     const { data: promos, error: promosError } = await svc.from('promoted_posts')
       .select('id, campaign_id, post_id, label, status, total_cap, impressions_count, clicks_count')
@@ -60,18 +64,18 @@ export default async function AdsPage() {
         svc.from('post_media').select('post_id, url, sort_order').in('post_id', postIds).order('sort_order', { ascending: true }),
       ]);
       if (postsError || mediaError) throw new Error('Campaign media could not be loaded.');
-      const postById: Record<string, any> = {};
+      const postById: Record<string, { id: string; content: string | null; body: string | null }> = {};
       (posts ?? []).forEach(p => { postById[p.id] = p; });
       const thumbByPost: Record<string, string> = {};
       (media ?? []).forEach(m => { if (!thumbByPost[m.post_id]) thumbByPost[m.post_id] = m.url; });
-      Object.values(promoByCampaign).forEach(rows => rows.forEach((r: any) => {
+      Object.values(promoByCampaign).forEach(rows => rows.forEach(r => {
         r.content = postById[r.post_id]?.content || postById[r.post_id]?.body || '';
         r.thumb = thumbByPost[r.post_id] || null;
       }));
     }
   }
 
-  const week = Date.now() - 7 * 86400000;
+  const week = now - 7 * 86400000;
   const [impressions, clicks, paidResult, liveCountResult] = await Promise.all([
     svc.from('ad_events').select('id', { count: 'exact', head: true }).eq('kind', 'impression').gte('created_at', new Date(week).toISOString()),
     svc.from('ad_events').select('id', { count: 'exact', head: true }).eq('kind', 'click').gte('created_at', new Date(week).toISOString()),
@@ -89,7 +93,7 @@ export default async function AdsPage() {
     return (
       <div className="flex items-center gap-3">
         {p.avatar_url
-          ? <img src={p.avatar_url} alt="" className="h-11 w-11 rounded-full object-cover" />
+          ? <Image unoptimized width={44} height={44} src={p.avatar_url} alt="" className="h-11 w-11 rounded-full object-cover" />
           : <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#17181C]/10 text-sm font-bold text-[#17181C]">{String(p.full_name || '?').slice(0, 1)}</div>}
         <div>
           <p className="flex items-center gap-1 text-sm font-extrabold text-[#17181C]">
@@ -110,7 +114,7 @@ export default async function AdsPage() {
         {rows.map(r => (
           <div key={r.id} className="flex w-64 items-center gap-2 rounded-[12px] border border-[#17181C]/10 bg-white p-2">
             {r.thumb
-              ? <img src={r.thumb} alt="" className="h-9 w-9 rounded-lg object-cover" />
+              ? <Image unoptimized width={36} height={36} src={r.thumb} alt="" className="h-9 w-9 rounded-lg object-cover" />
               : <div className="h-9 w-9 rounded-lg bg-[#17181C]/5" />}
             <div className="min-w-0">
               <p className="truncate text-[11.5px] font-semibold text-[#17181C]">{r.label || 'Sponsored'}</p>

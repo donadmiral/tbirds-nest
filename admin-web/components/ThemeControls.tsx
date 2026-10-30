@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import AdminIcon from '@/components/AdminIcon';
 
 const SEG_WRAP: React.CSSProperties = {
@@ -29,16 +29,20 @@ function seg(on: boolean): React.CSSProperties {
 }
 
 type Theme = 'light' | 'dark' | 'system';
+function subscribeTheme(listener: () => void) {
+  const observer = new MutationObserver(listener);
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  return () => observer.disconnect();
+}
+function currentTheme(): Theme {
+  const value = document.documentElement.getAttribute('data-theme');
+  return value === 'dark' || value === 'light' ? value : 'system';
+}
+const serverTheme = (): Theme => 'system';
 export default function ThemeControls() {
-  const [theme, setTheme] = useState<Theme>('system');
-
-  useEffect(() => {
-    const now = document.documentElement.getAttribute('data-theme');
-    setTheme(now === 'dark' || now === 'light' ? now : 'system');
-  }, []);
+  const theme = useSyncExternalStore(subscribeTheme, currentTheme, serverTheme);
 
   function choose(next: Theme) {
-    setTheme(next);
     document.documentElement.setAttribute('data-theme', next);
     document.cookie = 'pc-theme=' + next + '; path=/; max-age=31536000; samesite=lax';
   }

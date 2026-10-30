@@ -1,3 +1,4 @@
+import { requestTime } from '@/lib/requestTime';
 import Link from 'next/link';
 import { paymentSearch, paymentHref, paymentDecimal, paymentVolumes, PAYMENT_STATUSES, type PaymentSearch } from '@/lib/paymentPage';
 import { requireDesk } from '@/lib/adminAuth';
@@ -36,9 +37,7 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
   const admin = await requireDesk('/payments');
   const svc = serviceClient();
 
-  const now = Date.now();
-  const from7 = new Date(now - 7 * 86400000).toISOString();
-  const from14 = new Date(now - 14 * 86400000).toISOString();
+  const now = await requestTime();
   const days30 = Array.from({ length: 30 }, (_, i) => new Date(now - (29 - i) * 86400000).toISOString().slice(0, 10));
 
   const [page, report, health] = await Promise.all([

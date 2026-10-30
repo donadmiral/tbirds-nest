@@ -9,27 +9,28 @@ import type { NavigationGroup, NavigationItem } from '@/lib/navigation';
 
 /** A role-shaped map of the product, including desks that live under another desk. */
 export default function WorkspaceLauncher({ groups, tools }: { groups: NavigationGroup[]; tools: NavigationItem[] }) {
-  const [open, setOpen] = useState(false);
+  const [openPath, setOpenPath] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const dialog = useRef<HTMLDialogElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const field = useRef<HTMLInputElement>(null);
   const pathname = usePathname();
+  const open = openPath === pathname;
+  function setOpen(value: boolean) { setOpenPath(value ? pathname : null); if (value) setSearch(''); }
   const sections = useMemo(() => {
     const term = search.trim().toLowerCase();
     return [...groups, { label: 'Your workspace', items: tools }].map(group => ({ ...group, items: group.items.filter(item => `${group.label} ${item.label} ${item.description}`.toLowerCase().includes(term)) })).filter(group => group.items.length);
   }, [groups, tools, search]);
 
-  useEffect(() => { setOpen(false); }, [pathname]);
   useEffect(() => {
     if (!open) { dialog.current?.close(); return; }
     const node = dialog.current;
+    const triggerNode = trigger.current;
     const overflow = document.body.style.overflow;
-    setSearch('');
     node?.showModal();
     document.body.style.overflow = 'hidden';
     field.current?.focus();
-    return () => { node?.close(); document.body.style.overflow = overflow; trigger.current?.focus({ preventScroll: true }); };
+    return () => { node?.close(); document.body.style.overflow = overflow; triggerNode?.focus({ preventScroll: true }); };
   }, [open]);
 
   return <>

@@ -19,7 +19,7 @@ export default async function SystemPage() {
     .order('created_at', { ascending: false }).limit(15);
   if (flagsError || notesError || errorsError) throw new Error('Platform controls could not be loaded.');
   const eids = Array.from(new Set((cerrs ?? []).map(e => e.user_id).filter(Boolean)));
-  const epeople: Record<string, any> = {};
+  const epeople: Record<string, { id: string; full_name: string | null; username: string | null }> = {};
   if (eids.length) {
     const { data, error } = await svc.from('profiles').select('id, username, full_name').in('id', eids as string[]);
     if (error) throw new Error('Error-report participants could not be loaded.');

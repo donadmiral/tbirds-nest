@@ -1,6 +1,7 @@
+import Image from 'next/image';
+import { requestTime, measureRead } from '@/lib/requestTime';
 import AdminIcon from '@/components/AdminIcon';
 import { completeRead } from '@/lib/completeRead';
-import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { requireDesk } from '@/lib/adminAuth';
 import { allowedDesks, hasFullOverview, canPerform } from '@/lib/permissions';
@@ -65,7 +66,7 @@ export default async function DashboardPage() {
   }
   const svc = serviceClient();
 
-  const now = Date.now();
+  const now = await requestTime();
   const activeSince = new Date(now - ACTIVE_WINDOW_MIN * 60000).toISOString();
   const from30 = new Date(now - 30 * 86400000).toISOString();
   const from7 = new Date(now - 7 * 86400000).toISOString();
@@ -73,12 +74,11 @@ export default async function DashboardPage() {
   const from24h = new Date(now - 86400000).toISOString();
   const days30 = Array.from({ length: 30 }, (_, i) => dayKey(new Date(now - (29 - i) * 86400000)));
 
-  const readsStartedAt = Date.now();
-  const [
+  const { value: [
     users, verified, active, apps, pr, lr, ur, audit, tickets, bizApps, flags, daily,
     prAll, lrAll, urAll, appAll, recent, topPostsRes, locRes, cerr,
     vAll, vReview, vApproved, vRejected,
-  ] = await Promise.all([
+  ], elapsedMs: readsElapsedMs } = await measureRead(() => Promise.all([
     svc.from('profiles').select('id', { count: 'exact', head: true }),
     svc.from('profiles').select('id', { count: 'exact', head: true }).eq('is_verified', true),
     svc.from('profiles').select('id', { count: 'exact', head: true }).gte('last_seen', activeSince),
@@ -103,7 +103,7 @@ export default async function DashboardPage() {
     svc.from('verification_applications').select('id', { count: 'exact', head: true }).in('status', ['under_review', 'approved', 'rejected']),
     svc.from('verification_applications').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
     svc.from('verification_applications').select('id', { count: 'exact', head: true }).eq('status', 'rejected'),
-  ]);
+  ]));
 
   const dashboardResults = [users, verified, active, apps, pr, lr, ur, audit, tickets, bizApps, flags, daily,
     prAll, lrAll, urAll, appAll, recent, topPostsRes, locRes, cerr, vAll, vReview, vApproved, vRejected];
@@ -111,7 +111,6 @@ export default async function DashboardPage() {
   if ([users, verified, active, apps, pr, lr, ur, tickets, bizApps, cerr, vAll, vReview, vApproved, vRejected].some(result => result.count === null)) {
     throw new Error('Dashboard counts could not be confirmed.');
   }
-  const readsElapsedMs = Date.now() - readsStartedAt;
   for (const result of [prAll, lrAll, urAll, appAll, locRes]) completeRead(result, 'Dashboard aggregate');
   const members = users.count ?? 0;
   const appRows = apps.data ?? [];
@@ -132,7 +131,6 @@ export default async function DashboardPage() {
   const signupSeries = daysRows.map(r => Number(r.new_signups) || 0);
   const signups7 = signupSeries.slice(-7).reduce((a, b) => a + b, 0);
   const signupsPrev7 = signupSeries.slice(-14, -7).reduce((a, b) => a + b, 0);
-  const avgDau7 = dauSeries.length ? Math.round(dauSeries.slice(-7).reduce((a, b) => a + b, 0) / Math.min(7, dauSeries.length)) : 0;
 
   const reportRows = [...(prAll.data ?? []), ...(lrAll.data ?? []), ...(urAll.data ?? [])] as { created_at: string }[];
   const reportSeries = bucketByDay(reportRows, days30);
@@ -291,7 +289,7 @@ export default async function DashboardPage() {
           {(recent.data ?? []).length === 0 ? <Empty note="No profiles yet." /> : (recent.data ?? []).map((u: { id: string; full_name: string | null; username: string | null; avatar_url: string | null; is_verified: boolean; verified_tier: string | null; location: string | null; created_at: string }) => (
             <Link key={u.id} href={'/users/' + u.id} className="pc-nav" style={ROW}>
               {u.avatar_url
-                ? <img src={u.avatar_url} alt="" style={{ width: 30, height: 30, flex: '0 0 30px', borderRadius: '50%', objectFit: 'cover' }} />
+                ? <Image unoptimized width={30} height={30} src={u.avatar_url} alt="" style={{ width: 30, height: 30, flex: '0 0 30px', borderRadius: '50%', objectFit: 'cover' }} />
                 : <span style={{ width: 30, height: 30, flex: '0 0 30px', borderRadius: '50%', background: 'var(--chip-bg)', color: 'var(--chip-fg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{String(u.full_name || u.username || '?').slice(0, 1).toUpperCase()}</span>}
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -315,14 +313,14 @@ export default async function DashboardPage() {
             const url = rawUrl ? postUrls[rawUrl] || null : null;
             const video = isVideoUrl(rawUrl);
             return (
-            <Link key={p.id} href={'/p/' + p.id} className="pc-nav" style={ROW}>
+            <Link key={p.id} href={'/content/' + p.id} className="pc-nav" style={ROW}>
               <span style={{ width: 38, height: 38, flex: '0 0 38px', borderRadius: 9, overflow: 'hidden', background: 'rgba(var(--on),0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
                 {url
                   ? (video
                     ? <video src={url} muted playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />)
+                    : <Image unoptimized width={38} height={38} src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />)
                   : (postAuthors[p.user_id]?.avatar_url
-                    ? <img src={postAuthors[p.user_id]!.avatar_url as string} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ? <Image unoptimized width={38} height={38} src={postAuthors[p.user_id]!.avatar_url as string} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     : <svg width="14" height="14" viewBox="0 0 24 24" style={{ fill: 'rgba(var(--on),0.24)' }}><path d="M4 4h16v12H5.2L4 17.2V4zm2 3h12v2H6V7zm0 4h8v2H6v-2z" /></svg>)}
                 {video && url ? (
                   <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.28)' }}>

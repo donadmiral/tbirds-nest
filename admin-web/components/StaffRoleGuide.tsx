@@ -36,11 +36,12 @@ export default function StaffRoleGuide() {
   useEffect(() => {
     if (!open) { dialog.current?.close(); return; }
     const node = dialog.current;
+    const triggerNode = trigger.current;
     const overflow = document.body.style.overflow;
     node?.showModal();
     document.body.style.overflow = 'hidden';
     field.current?.focus();
-    return () => { node?.close(); document.body.style.overflow = overflow; trigger.current?.focus({ preventScroll: true }); };
+    return () => { node?.close(); document.body.style.overflow = overflow; triggerNode?.focus({ preventScroll: true }); };
   }, [open]);
 
   return <>

@@ -94,6 +94,7 @@ function harness({ available = false, rpcError, triageRows, deny = false, ticket
     './supabaseAdmin': api, './adminRpcAvailability': availability,
   });
   const common = {
+    '@/lib/requestTime': { requestTime: async () => Date.parse('2026-10-30T12:00:00Z') },
     'next/link': { default: 'Link' }, 'next/navigation': { redirect() { throw new Error('redirect'); } },
     '@/lib/adminAuth': { requireDesk: authorize, requirePermission: authorize }, '@/lib/supabaseAdmin': api,
     '@/lib/permissions': permissions, '@/lib/fmt': fmt, '@/lib/supportReporting': reporting, '@/lib/supportTriage': triage,

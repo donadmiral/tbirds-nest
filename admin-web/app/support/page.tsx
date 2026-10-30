@@ -1,3 +1,4 @@
+import { requestTime } from '@/lib/requestTime';
 import Link from 'next/link';
 import { supportSearch, supportSubjectPattern, supportHref, supportMap, SUPPORT_PAGE_SIZE, type SupportSearch } from '@/lib/supportReporting';
 import { requireDesk } from '@/lib/adminAuth';
@@ -34,7 +35,7 @@ export default async function SupportPage({ searchParams }: { searchParams: Prom
   const admin = await requireDesk('/support');
   const svc = serviceClient();
 
-  const now = Date.now();
+  const now = await requestTime();
   const days30 = Array.from({ length: 30 }, (_, i) => new Date(now - (29 - i) * 86400000).toISOString().slice(0, 10));
 
   let ticketQuery = svc.from('support_tickets')

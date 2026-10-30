@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { readPreferenceList, savePreference } from '@/lib/browserPreferences';
+import { preferenceList, usePreference } from '@/lib/browserPreferenceHooks';
 import { trapDialogTab } from '@/lib/dialogFocus';
 import AdminIcon, { type AdminIconName } from '@/components/AdminIcon';
 import { matchingDestination, routePath } from '@/lib/navigation';
@@ -15,11 +16,16 @@ export default function CommandPalette({ items, actions }: { items: PaletteItem[
   const router = useRouter();
   const pathname = usePathname();
   const id = useId();
-  const [open, setOpen] = useState(false);
+  const [openPath, setOpenPath] = useState<string | null>(null);
+  const open = openPath === pathname;
   const [q, setQ] = useState('');
   const [cursor, setCursor] = useState(0);
-  const [recent, setRecent] = useState<string[]>([]);
-  const [mac, setMac] = useState(false);
+  const savedRecent = usePreference(K_RECENT);
+  const recent = useMemo(() => preferenceList(savedRecent), [savedRecent]);
+  const setOpen = useCallback((value: boolean) => {
+    setOpenPath(value ? pathname : null);
+    if (value) { setQ(''); setCursor(0); }
+  }, [pathname]);
   const inputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -28,13 +34,10 @@ export default function CommandPalette({ items, actions }: { items: PaletteItem[
   const memberSearchAllowed = byHref.has('/users');
 
   useEffect(() => {
-    setMac(/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent));
     const root = matchingDestination(pathname, items);
     const previous = readPreferenceList(K_RECENT, new Set(byHref.keys()));
     const next = (root ? [root, ...previous.filter(href => href !== root)] : previous).slice(0, 6);
-    setRecent(next);
     savePreference(K_RECENT, next);
-    setOpen(false);
   }, [pathname, byHref, items]);
 
   const rows: Row[] = useMemo(() => {
@@ -58,7 +61,7 @@ export default function CommandPalette({ items, actions }: { items: PaletteItem[
   }, [q, recent, byHref, pathname, items, actions, memberSearchAllowed]);
   const selectedIndex = Math.min(cursor, Math.max(0, rows.length - 1));
 
-  const go = useCallback((href: string) => { setOpen(false); setQ(''); router.push(href); }, [router]);
+  const go = useCallback((href: string) => { setOpen(false); setQ(''); router.push(href); }, [router, setOpen]);
 
   useEffect(() => {
     let armed = false;
@@ -66,7 +69,7 @@ export default function CommandPalette({ items, actions }: { items: PaletteItem[
     function onKey(event: KeyboardEvent) {
       const target = event.target as HTMLElement | null;
       const typing = !!target?.closest('input, textarea, select, [contenteditable="true"]');
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); setOpen(previous => !previous); return; }
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') { event.preventDefault(); setOpen(!open); return; }
       if (open || typing || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey || target?.closest('dialog')) { armed = false; return; }
       if (armed) {
         armed = false;
@@ -80,14 +83,13 @@ export default function CommandPalette({ items, actions }: { items: PaletteItem[
     }
     window.addEventListener('keydown', onKey);
     return () => { window.removeEventListener('keydown', onKey); clearTimeout(timer); };
-  }, [items, go, open]);
+  }, [items, go, open, setOpen]);
 
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!open) { dialog?.close(); return; }
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : triggerRef.current;
     const previousOverflow = document.body.style.overflow;
-    setQ(''); setCursor(0);
     dialog?.showModal();
     document.body.style.overflow = 'hidden';
     inputRef.current?.focus();
@@ -99,7 +101,7 @@ export default function CommandPalette({ items, actions }: { items: PaletteItem[
   return <>
     <button ref={triggerRef} type="button" onClick={() => setOpen(true)} className="pc-search pc-command-trigger" aria-haspopup="dialog">
       <AdminIcon name="search" size={18} />
-      <span>{memberSearchAllowed ? 'Search desks, members, actions' : 'Search desks and actions'}</span><kbd>{mac ? '⌘ K' : 'Ctrl K'}</kbd>
+      <span>{memberSearchAllowed ? 'Search desks, members, actions' : 'Search desks and actions'}</span><kbd>Ctrl / ⌘ K</kbd>
     </button>
     <dialog ref={dialogRef} className="pc-command-dialog" aria-label="Search operations" onKeyDown={trapDialogTab} onClose={() => setOpen(false)} onClick={event => { if (event.target === event.currentTarget) setOpen(false); }}>
       <div className="pc-command-panel">

@@ -1,15 +1,17 @@
+import { requestTime } from '@/lib/requestTime';
 import Link from 'next/link';
 import { requireDesk } from '@/lib/adminAuth';
 import { canOpen, canPerform } from '@/lib/permissions';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import { USER_DIRECTORY_SELECT, withDirectoryCounts } from '@/lib/userDirectory';
 import Shell from '@/components/Shell';
-import UsersDesk from '@/components/UsersDesk';
+import UsersDesk, { type UserDirectoryRow } from '@/components/UsersDesk';
 
 export const dynamic = 'force-dynamic';
 
 export default async function UsersPage({ searchParams }: { searchParams: Promise<{ q?: string; page?: string }> }) {
   const admin = await requireDesk('/users');
+  const now = await requestTime();
   const { q, page: rawPage } = await searchParams;
   const page = /^\d{1,6}$/.test(rawPage || '') ? Math.max(1, Number(rawPage)) : 1;
   const start = (page - 1) * 25;
@@ -22,7 +24,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
   }
   profilesQuery = profilesQuery.order('created_at', {ascending:false}).order('id').range(start, start + 24);
 
-  const dayAgo = new Date(Date.now() - 24 * 60 * 60_000).toISOString();
+  const dayAgo = new Date(now - 24 * 60 * 60_000).toISOString();
   const [profilesRes, totalRes, verifiedRes, activeRes, restrictedRes, appealsRes] = await Promise.all([
     profilesQuery,
     svc.from('profiles').select('id', { count: 'exact', head: true }),
@@ -36,7 +38,8 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
   }
   if ([profilesRes, totalRes, verifiedRes, activeRes, restrictedRes].some(result => result.count === null)) throw new Error('Member counts could not be confirmed.');
 
-  const rows = (profilesRes.data ?? []).map(withDirectoryCounts);
+  type DirectoryRecord = Omit<UserDirectoryRow, 'followers' | 'following' | 'strikes'> & { follower_counts: unknown; following_counts: unknown; strike_counts: unknown };
+  const rows = ((profilesRes.data ?? []) as DirectoryRecord[]).map(withDirectoryCounts);
 
   const stats = [
     { label: 'Total members', value: totalRes.count ?? 0 },
@@ -72,7 +75,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
       {rows.length === 0 ? (
         <p className="py-16 text-center text-[13px] text-[#9A9DA4]">No accounts match.</p>
       ) : (
-        <UsersDesk role={admin.role} rows={rows as any} appeals={appealsRes.data ?? []} />
+        <UsersDesk role={admin.role} rows={rows} appeals={appealsRes.data ?? []} />
       )}
     </Shell>
   );

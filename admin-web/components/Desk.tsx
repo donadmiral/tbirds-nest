@@ -1,4 +1,5 @@
 'use client';
+import Image from 'next/image';
 import CommandForm from '@/components/CommandForm';
 import MediaPreview, { type ReviewMedia } from '@/components/MediaPreview';
 import ReviewMediaGallery from '@/components/ReviewMediaGallery';
@@ -180,7 +181,7 @@ function CellView({ c }: { c: Cell }) {
     return (
       <span style={{ display: 'flex', alignItems: 'center', gap: 9, minWidth: 0 }}>
         {c.img
-          ? <img src={c.img} alt="" style={{ width: 29, height: 29, flex: '0 0 29px', borderRadius: '50%', objectFit: 'cover' }} />
+          ? <Image unoptimized width={29} height={29} src={c.img} alt="" style={{ width: 29, height: 29, flex: '0 0 29px', borderRadius: '50%', objectFit: 'cover' }} />
           : <span style={{ width: 29, height: 29, flex: '0 0 29px', borderRadius: '50%', background: 'rgba(var(--on),0.07)', color: 'var(--txt-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700 }}>{c.v.slice(0, 1).toUpperCase()}</span>}
         <span style={{ minWidth: 0 }}>
           <span style={{ display: 'block', fontSize: 14, fontWeight: 600, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.v}</span>
@@ -388,7 +389,7 @@ export function Desk({
             ) : null}
             <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
               {selected.detail.img
-                ? <img src={selected.detail.img} alt="" style={{ width: 42, height: 42, flex: '0 0 42px', borderRadius: 11, objectFit: 'cover' }} />
+                ? <Image unoptimized width={42} height={42} src={selected.detail.img} alt="" style={{ width: 42, height: 42, flex: '0 0 42px', borderRadius: 11, objectFit: 'cover' }} />
                 : <span style={{ width: 42, height: 42, flex: '0 0 42px', borderRadius: 11, background: 'var(--chip-bg)', color: 'var(--chip-fg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 15, fontWeight: 700 }}>{selected.detail.title.slice(0, 1).toUpperCase()}</span>}
               <div style={{ minWidth: 0, flex: 1 }}>
                 <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--txt-strong)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{selected.detail.title}</div>

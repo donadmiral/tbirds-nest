@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation';
+import { requestTime } from '@/lib/requestTime';
 import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import Shell from '@/components/Shell';
@@ -33,7 +33,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
   const requestedActor = (await searchParams).actor;
   const svc = serviceClient();
 
-  const now = Date.now();
+  const now = await requestTime();
   const from30 = new Date(now - 30 * 86400000).toISOString();
   const today = new Date(now).toISOString().slice(0, 10);
   const days30 = Array.from({ length: 30 }, (_, i) => new Date(now - (29 - i) * 86400000).toISOString().slice(0, 10));

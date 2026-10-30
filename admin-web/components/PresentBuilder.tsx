@@ -1,4 +1,5 @@
 'use client';
+import Image from 'next/image';
 
 /**
  * The presentation builder. Everything on these slides came off a real desk:
@@ -138,7 +139,7 @@ export default function PresentBuilder({ by, role, env }: { by: string; role: st
 
       <header className="pc-no-print pc-present-header">
         <a href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none' }}>
-          <img src="/pearl.png" alt="" className="pc-mark" style={{ width: 26, height: 26, objectFit: 'contain' }} />
+          <Image unoptimized width={26} height={26} src="/pearl.png" alt="" className="pc-mark" style={{ width: 26, height: 26, objectFit: 'contain' }} />
           <span style={{ fontSize: 13, color: 'var(--txt-strong)' }}>Presentation builder</span>
         </a>
         <span className="pc-num" style={{ fontSize: 11, color: 'var(--txt-muted)' }}>{total} slides</span>
@@ -268,7 +269,7 @@ function renderSlide(s: Slide, dark: boolean, sanitize: boolean) {
   if (s.kind === 'cover') {
     return (
       <div style={{ ...pad, justifyContent: 'center' }}>
-        <img src="/pearl.png" alt="" style={{ width: 44, height: 44, objectFit: 'contain', marginBottom: 26 }} />
+        <Image unoptimized width={44} height={44} src="/pearl.png" alt="" style={{ width: 44, height: 44, objectFit: 'contain', marginBottom: 26 }} />
         <div style={{ fontSize: 40, lineHeight: 1.12, color: ink, letterSpacing: '-0.01em' }}>{s.title}</div>
         <div style={{ marginTop: 14, fontSize: 15, color: dim }}>{s.sub}</div>
       </div>
@@ -356,7 +357,7 @@ function renderSlide(s: Slide, dark: boolean, sanitize: boolean) {
 function SlideHead({ title, dim, ink }: { title: string; dim: string; ink: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-      <img src="/pearl.png" alt="" style={{ width: 18, height: 18, objectFit: 'contain' }} />
+      <Image unoptimized width={18} height={18} src="/pearl.png" alt="" style={{ width: 18, height: 18, objectFit: 'contain' }} />
       <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', color: dim }}>{title.toUpperCase()}</span>
       <span style={{ flex: 1 }} />
       <span style={{ fontSize: 11, color: ink, opacity: 0.5 }}>Platinum Circles</span>

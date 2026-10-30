@@ -1,9 +1,11 @@
 'use client';
+import Image from 'next/image';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { readPreferenceFlag, readPreferenceList, savePreference } from '@/lib/browserPreferences';
+import { preferenceList, usePreference } from '@/lib/browserPreferenceHooks';
 import { trapDialogTab } from '@/lib/dialogFocus';
 import AdminIcon from '@/components/AdminIcon';
 import { matchingDestination, type NavigationItem, type NavigationGroup } from '@/lib/navigation';
@@ -24,56 +26,46 @@ export default function SideRail({ groups, counts, active, email, roleLabel, too
   groups: RailGroup[]; counts: Record<string, number | null>; active: string; email: string; roleLabel: string; tools?: NavigationItem[];
 }) {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
-  const [closed, setClosed] = useState<string[]>([]);
-  const [pins, setPins] = useState<string[]>([]);
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const collapsed = usePreference(K_COLLAPSED) === 'true';
+  const closed = preferenceList(usePreference(K_CLOSED), new Set(groups.map(group => group.label)));
+  const savedPins = usePreference(K_PINS);
+  const [mobilePath, setMobilePath] = useState<string | null>(null);
+  const mobileOpen = mobilePath === pathname;
+  const setMobileOpen = (value: boolean) => setMobilePath(value ? pathname : null);
   const mobileRef = useRef<HTMLDialogElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const items = useMemo(() => [...groups.flatMap(group => group.items), ...tools], [groups, tools]);
   const selectedHref = matchingDestination(pathname, items) || active;
   const allowed = useMemo(() => new Set(items.map(item => item.href)), [items]);
+  const pins = preferenceList(savedPins, allowed);
   const pinned = pins.flatMap(href => { const item = items.find(value => value.href === href); return item ? [item] : []; });
-
-  useEffect(() => {
-    setCollapsed(readPreferenceFlag(K_COLLAPSED));
-    setClosed(readPreferenceList(K_CLOSED, new Set(groups.map(group => group.label))));
-    setPins(readPreferenceList(K_PINS, allowed));
-  }, [allowed, groups]);
-
-  useEffect(() => { setMobileOpen(false); }, [pathname]);
 
   useEffect(() => {
     if (!mobileOpen) { mobileRef.current?.close(); return; }
     const dialog = mobileRef.current;
+    const trigger = triggerRef.current;
     const previousOverflow = document.body.style.overflow;
     dialog?.showModal();
     document.body.style.overflow = 'hidden';
     const media = window.matchMedia('(min-width: 768px)');
-    const onResize = () => { if (media.matches) setMobileOpen(false); };
+    const onResize = () => { if (media.matches) setMobilePath(null); };
     media.addEventListener('change', onResize);
     return () => {
       media.removeEventListener('change', onResize);
       document.body.style.overflow = previousOverflow;
       dialog?.close();
-      triggerRef.current?.focus({ preventScroll: true });
+      trigger?.focus({ preventScroll: true });
     };
   }, [mobileOpen]);
 
   function togglePin(href: string) {
-    setPins(previous => {
-      const next = previous.includes(href) ? previous.filter(item => item !== href) : [...previous, href];
-      savePreference(K_PINS, next);
-      return next;
-    });
+    const previous = readPreferenceList(K_PINS, allowed);
+    savePreference(K_PINS, previous.includes(href) ? previous.filter(item => item !== href) : [...previous, href]);
   }
 
   function toggleGroup(label: string) {
-    setClosed(previous => {
-      const next = previous.includes(label) ? previous.filter(item => item !== label) : [...previous, label];
-      savePreference(K_CLOSED, next);
-      return next;
-    });
+    const previous = readPreferenceList(K_CLOSED, new Set(groups.map(group => group.label)));
+    savePreference(K_CLOSED, previous.includes(label) ? previous.filter(item => item !== label) : [...previous, label]);
   }
 
   function navigation(compact: boolean, mobile: boolean) {
@@ -98,7 +90,7 @@ export default function SideRail({ groups, counts, active, email, roleLabel, too
     }
     return <>
       <div className="pc-rail-brand">
-        <Link href="/dashboard" aria-label="Platinum Circles overview" onClick={() => mobile && setMobileOpen(false)}><img src="/logo.png" alt="" width="36" height="36" /></Link>
+        <Link href="/dashboard" aria-label="Platinum Circles overview" onClick={() => mobile && setMobileOpen(false)}><Image unoptimized src="/logo.png" alt="" width="36" height="36" /></Link>
         {!compact ? <div className="pc-rail-brand-name"><strong>Platinum Circles</strong><span>OPERATIONS</span></div> : null}
         {mobile ? <button type="button" className="pc-icon-btn pc-rail-close" aria-label="Close navigation" onClick={() => setMobileOpen(false)}><AdminIcon name="close" /></button> : null}
       </div>
@@ -123,7 +115,7 @@ export default function SideRail({ groups, counts, active, email, roleLabel, too
           <span className="pc-rail-avatar">{email.slice(0, 1).toUpperCase() || 'P'}</span>
           <span className={compact ? 'sr-only' : 'pc-rail-identity'}><strong>{email}</strong><span>{roleLabel}</span></span>
         </Link>
-        {!mobile ? <button type="button" className="pc-rail-collapse" aria-label={compact ? 'Expand navigation' : 'Collapse navigation'} aria-expanded={!compact} onClick={() => setCollapsed(previous => { savePreference(K_COLLAPSED, !previous); return !previous; })}>
+        {!mobile ? <button type="button" className="pc-rail-collapse" aria-label={compact ? 'Expand navigation' : 'Collapse navigation'} aria-expanded={!compact} onClick={() => savePreference(K_COLLAPSED, !readPreferenceFlag(K_COLLAPSED))}>
           <AdminIcon name="panel" size={18} style={compact ? { transform: 'scaleX(-1)' } : undefined} />
           {!compact ? <span>Collapse navigation</span> : null}
         </button> : null}

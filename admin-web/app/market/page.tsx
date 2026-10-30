@@ -1,5 +1,5 @@
+import { requestTime } from '@/lib/requestTime';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import { adminRemoveListing } from '@/lib/actions';
@@ -34,7 +34,7 @@ export default async function MarketPage() {
   const admin = await requireDesk('/market');
   const svc = serviceClient();
 
-  const now = Date.now();
+  const now = await requestTime();
   const from7 = new Date(now - 7 * 86400000).toISOString();
   const from14 = new Date(now - 14 * 86400000).toISOString();
   const days30 = Array.from({ length: 30 }, (_, i) => new Date(now - (29 - i) * 86400000).toISOString().slice(0, 10));
@@ -70,8 +70,6 @@ export default async function MarketPage() {
 
   const available = listings.filter(l => ['available', 'active'].includes(statusOf(l)));
   const sold = listings.filter(l => statusOf(l) === 'sold');
-  const listedValue = available.reduce((a, l) => a + priceOf(l), 0);
-  const soldValue = sold.reduce((a, l) => a + priceOf(l), 0);
   const flagged = listings.filter(l => (reportsByListing[String(l.id)]?.open || 0) > 0).length;
   const sellers = new Set(listings.map(l => String(l.seller_id))).size;
 

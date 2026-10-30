@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation';
+import { requestTime } from '@/lib/requestTime';
 import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import { adminRemovePost } from '@/lib/actions';
@@ -31,7 +31,7 @@ export default async function ContentPage() {
   const admin = await requireDesk('/content');
   const svc = serviceClient();
 
-  const now = Date.now();
+  const now = await requestTime();
   const from7 = new Date(now - 7 * 86400000).toISOString();
   const from14 = new Date(now - 14 * 86400000).toISOString();
   const days30 = Array.from({ length: 30 }, (_, i) => new Date(now - (29 - i) * 86400000).toISOString().slice(0, 10));
@@ -64,7 +64,7 @@ export default async function ContentPage() {
   // Resolve verified post media for the authenticated moderation desk.
   posts.forEach(p => {
     if (!mediaByPost[p.id]?.length) {
-      const found = pickMedia(p as unknown as Record<string, unknown>);
+      const found = pickMedia({ media_url: p.media_url });
       if (found) mediaByPost[p.id] = [found];
     }
   });
@@ -205,7 +205,7 @@ export default async function ContentPage() {
           ...(rep && rep.reasons.length ? [{ label: 'Why it was reported', text: Array.from(new Set(rep.reasons)).join('\n') }] : []),
         ],
         links: [
-          { label: 'Open post', href: '/p/' + p.id },
+          { label: 'Open post', href: '/content/' + p.id },
           { label: 'Open author', href: '/users/' + p.user_id },
           ...(rep?.open ? [{ label: 'Open reports desk', href: '/reports' }] : []),
         ],

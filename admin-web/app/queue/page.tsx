@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation';
+import { requestTime } from '@/lib/requestTime';
 import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import { approveApplication, rejectApplication } from '@/lib/actions';
@@ -34,9 +34,10 @@ function medianHours(pairs: { created_at: string; decided_at: string }[]): numbe
 
 export default async function QueuePage() {
   const admin = await requireDesk('/queue');
+  const now = await requestTime();
   const svc = serviceClient();
 
-  const from30 = new Date(Date.now() - 30 * 86400000).toISOString();
+  const from30 = new Date(now - 30 * 86400000).toISOString();
 
   const [appsRes, decidedRes, approvedAllRes, rejectedAllRes, approved30Res, totalRes] = await Promise.all([
     svc.from('verification_applications').select('*').in('status', ['submitted', 'under_review']).order('created_at', { ascending: true }),

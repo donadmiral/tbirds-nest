@@ -1,3 +1,4 @@
+import { requestTime } from '@/lib/requestTime';
 import CommandForm from '@/components/CommandForm';
 import PermissionGate from '@/components/PermissionGate';
 import Shell from '@/components/Shell';
@@ -23,6 +24,7 @@ export default async function TicketPage({ params, searchParams }: { params: Pro
   const page = supportPage((await searchParams).page);
   const start = (page - 1) * SUPPORT_MESSAGE_PAGE_SIZE;
   const admin = await requireDesk('/support');
+  const now = await requestTime();
   const svc = serviceClient();
   const { data: t, error: ticketError } = await svc.from('support_tickets').select('*').eq('id', tid).maybeSingle();
   if (ticketError) throw new Error('Support ticket could not be loaded.');
@@ -65,7 +67,7 @@ export default async function TicketPage({ params, searchParams }: { params: Pro
         <h2 className="text-sm font-bold">Case ownership and priority</h2>
         {triage ? <>
         <p className="my-2 text-xs text-[#5A5D64]">Internal response targets: urgent 15 minutes, high 1 hour, normal 24 hours, low 72 hours. These targets do not promise staffed coverage.</p>
-        {triage.response_due_at ? <p className="mb-3 text-sm">Response due {new Date(triage.response_due_at).toLocaleString()}{Date.parse(triage.response_due_at) < Date.now() ? ' · Overdue' : ''}</p> : null}
+        {triage.response_due_at ? <p className="mb-3 text-sm">Response due {new Date(triage.response_due_at).toLocaleString()}{Date.parse(triage.response_due_at) < now ? ' · Overdue' : ''}</p> : null}
         <PermissionGate role={admin.role} permission="support"><CommandForm scope="supportTriage" action={updateSupportTriage} className="flex flex-wrap items-end gap-3">
           <input type="hidden" name="ticket_id" value={t.id} /><input type="hidden" name="version" value={triage.version} />
           <label className="text-sm">Owner<select name="assigned_to" defaultValue={triage.assigned_to ?? ''} className="block rounded-lg border p-2"><option value="">Unassigned</option>{triage.assigned_to && !staffIds.includes(triage.assigned_to) ? <option value={triage.assigned_to}>Inactive staff: reassign this case</option> : null}{(staff.data ?? []).map(member => <option key={member.user_id} value={member.user_id}>{staffNames.get(member.user_id) ?? member.user_id} ({member.role})</option>)}</select></label>

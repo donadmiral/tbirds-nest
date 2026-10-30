@@ -15,10 +15,14 @@ export default function ActionPopover({ label, trigger, children, align = 'end' 
   const root = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
-  const close = () => { setOpen(false); button.current?.focus({ preventScroll: true }); };
+  // The render prop receives only a state transition. Focus restoration belongs
+  // to the popover lifecycle, so calling a child renderer never reads a DOM ref.
+  const close = () => setOpen(false);
 
   useLayoutEffect(() => {
     if (!open) return;
+    const panelNode = panel.current;
+    const triggerNode = button.current;
     const position = () => {
       const anchor = button.current?.getBoundingClientRect();
       const node = panel.current;
@@ -46,6 +50,7 @@ export default function ActionPopover({ label, trigger, children, align = 'end' 
       document.removeEventListener('pointerdown', away);
       window.removeEventListener('resize', position);
       window.removeEventListener('scroll', position, true);
+      if (document.activeElement === document.body || panelNode?.contains(document.activeElement)) triggerNode?.focus({ preventScroll: true });
     };
   }, [open, align]);
 

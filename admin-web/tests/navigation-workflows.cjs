@@ -80,6 +80,7 @@ async function auditFilters(role, requestedActor) {
     return query;
   } };
   const component = load('app/audit/page.tsx', {
+    '@/lib/requestTime': { requestTime: async () => Date.parse('2026-10-30T12:00:00Z') },
     '@/lib/adminAuth': { requireDesk: async desk => { assert.equal(desk, '/audit'); return { id: own, role }; } },
     '@/lib/supabaseAdmin': { serviceClient: () => service },
     '@/components/Shell': { default: 'Shell' }, '@/components/Desk': { Desk: 'Desk', StatStrip: 'StatStrip' },

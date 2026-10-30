@@ -1,6 +1,6 @@
+import Image from 'next/image';
+import { requestTime } from '@/lib/requestTime';
 import { completeRead } from '@/lib/completeRead';
-import { redirect } from 'next/navigation';
-import Link from 'next/link';
 import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import Shell from '@/components/Shell';
@@ -9,6 +9,7 @@ import { fmt } from '@/lib/fmt';
 import { pickMedia, resolveMedia, isVideoUrl } from '@/lib/media';
 import { resolveModerationMedia } from '@/lib/moderationMedia';
 import { canPerform } from '@/lib/permissions';
+import ContentReviewLink from '@/components/ContentReviewLink';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,9 +38,10 @@ function weekStart(iso: string) {
 
 export default async function AnalyticsPage() {
   const admin = await requireDesk('/analytics');
+  const now = await requestTime();
   const svc = serviceClient();
 
-  const cohortFrom = new Date(Date.now() - 70 * 86400000).toISOString();
+  const cohortFrom = new Date(now - 70 * 86400000).toISOString();
 
   const [daysRes, membersRes, bizRes, verifiedRes, bizVerifiedRes, tierRes, postRes, cohortRes, locRes] = await Promise.all([
     svc.from('daily_stats').select('*').order('day', { ascending: false }).limit(90),
@@ -164,7 +166,7 @@ export default async function AnalyticsPage() {
     }
   });
   const cohorts = Object.keys(cohortMap).sort().reverse().map(w => {
-    const ageDays = (Date.now() - new Date(w).getTime()) / 86400000 - 7;
+    const ageDays = (now - new Date(w).getTime()) / 86400000 - 7;
     return { week: w, size: cohortMap[w].size, kept: cohortMap[w].kept, ageDays };
   });
 
@@ -345,14 +347,14 @@ export default async function AnalyticsPage() {
             const url = rawUrl ? postUrlMap[rawUrl] || null : null;
             const video = isVideoUrl(rawUrl);
             return (
-              <Link key={p.id} href={'/p/' + p.id} className="pc-nav" style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 16px', borderBottom: '1px solid rgba(var(--on),0.10)', textDecoration: 'none' }}>
+              <ContentReviewLink key={p.id} role={admin.role} id={p.id} className="pc-nav" style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 16px', borderBottom: '1px solid rgba(var(--on),0.10)', textDecoration: 'none' }}>
                 <span style={{ width: 40, height: 40, flex: '0 0 40px', borderRadius: 9, overflow: 'hidden', background: 'rgba(var(--on),0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
                   {url
                     ? (video
                       ? <video src={url} muted playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      : <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />)
+                      : <Image unoptimized width={40} height={40} src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />)
                     : (a?.avatar_url
-                      ? <img src={a.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ? <Image unoptimized width={40} height={40} src={a.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       : <svg width="15" height="15" viewBox="0 0 24 24" style={{ fill: 'rgba(var(--on),0.24)' }}><path d="M4 4h16v12H5.2L4 17.2V4zm2 3h12v2H6V7zm0 4h8v2H6v-2z" /></svg>)}
                   {video && url ? (
                     <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.28)' }}>
@@ -369,7 +371,7 @@ export default async function AnalyticsPage() {
                   <span>{fmt(p.comments_count || 0)} comments</span>
                   <span>{fmt(p.shares_count || 0)} shares</span>
                 </div>
-              </Link>
+              </ContentReviewLink>
             );
           })}
         </div>

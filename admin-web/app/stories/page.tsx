@@ -1,3 +1,4 @@
+import { requestTime } from '@/lib/requestTime';
 import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import { adminRemoveStory } from '@/lib/actions';
@@ -31,7 +32,7 @@ export default async function StoriesPage() {
   const admin = await requireDesk('/stories');
   const svc = serviceClient();
 
-  const now = Date.now();
+  const now = await requestTime();
   const nowIso = new Date(now).toISOString();
   const days30 = Array.from({ length: 30 }, (_, i) => new Date(now - (29 - i) * 86400000).toISOString().slice(0, 10));
 

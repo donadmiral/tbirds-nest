@@ -1,11 +1,12 @@
+import Image from 'next/image';
 import CommandForm from '@/components/CommandForm';
 import PermissionGate from '@/components/PermissionGate';
-import { redirect, notFound } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { requireDesk } from '@/lib/adminAuth';
 import { canOpen, canPerform } from '@/lib/permissions';
 import { serviceClient } from '@/lib/supabaseAdmin';
-import { suspendUser, restoreUser, revokeVerification, adminRemovePost, adminRemoveListing, issueStrike, liftRestriction } from '@/lib/actions';
+import { restoreUser, revokeVerification, adminRemovePost, adminRemoveListing, issueStrike, liftRestriction } from '@/lib/actions';
 import Shell from '@/components/Shell';
 import Seal from '@/components/Seal';
 
@@ -132,6 +133,7 @@ export default async function MemberRecordPage({ params, searchParams }: {
             <p className="line-clamp-2 whitespace-pre-wrap text-[13px] text-[#43454B]">{p.content || p.body || (p.media_url ? '(media post)' : '(empty)')}</p>
             <div className="mt-1.5 flex items-center gap-3">
               <p className="text-[11.5px] tabular-nums text-[#9A9DA4]">{p.likes_count} likes - {p.comments_count} comments - {new Date(p.created_at).toLocaleString()}</p>
+              <Link href={`/content/${p.id}`} className="pc-button">Open post</Link>
               <PermissionGate role={admin.role} permission="post_moderate"><CommandForm scope="adminRemovePost" action={adminRemovePost} className="ml-auto">
                 <input type="hidden" name="pid" value={p.id} />
                 <button className="rounded-[8px] border border-[#F0DEDE] bg-[#FBF2F2] px-3 py-1 text-[11px] font-bold text-[#B03A3A] hover:bg-[#F6E4E4]">Remove</button>
@@ -184,7 +186,7 @@ export default async function MemberRecordPage({ params, searchParams }: {
       svc.from('user_reports').select('id, reason, status, created_at').eq('reporter_id', uid).order('created_at', { ascending: false }).limit(15),
       svc.from('user_reports').select('id, reason, status, created_at').eq('reported_id', uid).order('created_at', { ascending: false }).limit(15),
     ]);
-    const list = (rows: any[], empty: string) => (
+    const list = (rows: { id: string; reason: string; status: string; created_at: string }[], empty: string) => (
       <div className="rounded-[12px] border border-[#E5E4E0] bg-white">
         {rows.length === 0 ? <p className="px-5 py-8 text-center text-[12.5px] text-[#9A9DA4]">{empty}</p>
         : rows.map(r => (
@@ -239,7 +241,7 @@ export default async function MemberRecordPage({ params, searchParams }: {
     <Shell admin={admin} active="/users" title="Member record" sub={'Everything about one member in one place'}>
       <div className="mb-5 flex items-center gap-3">
         {u.avatar_url
-          ? <img src={u.avatar_url} alt="" className="h-12 w-12 rounded-full object-cover" />
+          ? <Image unoptimized width={48} height={48} src={u.avatar_url} alt="" className="h-12 w-12 rounded-full object-cover" />
           : <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#ECEBE7] text-[15px] font-bold text-[#5A5D64]">{String(u.full_name || '?').slice(0, 1)}</div>}
         <div className="min-w-0">
           <p className="flex items-center gap-1.5 text-[16px] font-semibold">{u.full_name || 'Unnamed'}{(u.verified_tier || u.is_verified) ? <Seal tier={u.verified_tier || 'business'} size={16} /> : null}<span className="font-normal text-[#9A9DA4]">@{u.username || '-'}</span></p>

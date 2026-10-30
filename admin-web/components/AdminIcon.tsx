@@ -27,6 +27,8 @@ export const ADMIN_ICON_PATHS = {
   security: 'm12 3 8 3v5c0 5-3.3 8.2-8 10-4.7-1.8-8-5-8-10V6l8-3Zm-3.5 9 2.5 2.5 4.5-5',
   search: 'M18 10.5a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Zm-2 5.5 5 5',
   close: 'm6 6 12 12M6 18 18 6',
+  expand: 'M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6',
+  music: 'M9 18V5l12-2v13M9 9l12-2M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm12-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z',
   chevronDown: 'm6 9 6 6 6-6',
   chevronUp: 'm6 15 6-6 6 6',
   chevronLeft: 'm15 6-6 6 6 6',

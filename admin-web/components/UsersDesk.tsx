@@ -1,4 +1,5 @@
 'use client';
+import Image from 'next/image';
 import CommandForm from '@/components/CommandForm';
 import PermissionGate from '@/components/PermissionGate';
 import { canPerform } from '@/lib/permissions';
@@ -8,13 +9,14 @@ import Link from 'next/link';
 import Seal from '@/components/Seal';
 import { suspendUser, restoreUser, revokeVerification, issueStrike, adminDeleteAccount } from '@/lib/actions';
 
-type Row = {
+export type UserDirectoryRow = {
   id: string; full_name: string | null; username: string | null; email: string | null;
   avatar_url: string | null; account_type: string | null; is_verified: boolean;
   verified_tier: string | null; verified_category: string | null; created_at: string;
   deactivated_at: string | null; suspended_reason: string | null; restricted_until: string | null;
   followers: number; following: number; strikes: number;
 };
+type Row = UserDirectoryRow;
 
 function standing(u: Row): { label: string; cls: string } {
   if (u.deactivated_at) return { label: 'Suspended', cls: 'bg-[#FBF0F0] text-[#B03A3A]' };
@@ -81,7 +83,7 @@ export default function UsersDesk({ rows, appeals, role }: { role: string; rows:
                   className={'cursor-pointer border-t border-[#F0EFEC] transition-colors duration-150 hover:bg-[#FAFAF9] ' + (selected?.id === u.id ? 'bg-[#FAFAF9]' : '')}>
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-2.5">
-                      {u.avatar_url ? <img src={u.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
+                      {u.avatar_url ? <Image unoptimized width={32} height={32} src={u.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
                         : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#17181C]/10 text-[11px] font-bold text-[#17181C]">{String(u.full_name || '?').slice(0, 1)}</span>}
                       <span className="min-w-0">
                         <span className="flex items-center gap-1 truncate font-semibold text-[#17181C]">{u.full_name || 'Unnamed'}{(u.verified_tier || u.is_verified) ? <Seal tier={u.verified_tier || 'business'} size={12} /> : null}</span>
@@ -106,7 +108,7 @@ export default function UsersDesk({ rows, appeals, role }: { role: string; rows:
         ) : (
           <div key={selected.id} className="rounded-[14px] border border-[#E5E4E0] bg-white p-5" role="region" aria-label="Selected member details">
             <div className="flex items-center gap-3">
-              {selected.avatar_url ? <img src={selected.avatar_url} alt="" className="h-12 w-12 rounded-full object-cover" />
+              {selected.avatar_url ? <Image unoptimized width={48} height={48} src={selected.avatar_url} alt="" className="h-12 w-12 rounded-full object-cover" />
                 : <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#17181C]/10 text-[15px] font-bold text-[#17181C]">{String(selected.full_name || '?').slice(0, 1)}</span>}
               <div className="min-w-0">
                 <p className="flex items-center gap-1 truncate text-[14.5px] font-semibold text-[#17181C]">{selected.full_name || 'Unnamed'}{(selected.verified_tier || selected.is_verified) ? <Seal tier={selected.verified_tier || 'business'} size={14} /> : null}</p>

@@ -110,7 +110,7 @@ export default async function OrganizationsPage({ searchParams }: { searchParams
                 ) : null}
               </div>
               <div className="pc-organization-actions flex shrink-0 flex-col gap-1.5">
-                {org.profile_id ? <Link href={'/p/' + org.profile_id} className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1 text-center text-[12px] font-semibold text-[var(--txt-muted)]">Profile</Link> : null}
+                {org.profile_id ? <Link href={'/users/' + org.profile_id} className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1 text-center text-[12px] font-semibold text-[var(--txt-muted)]">Profile</Link> : null}
                 {org.archived_at ? (
                   <PermissionGate role={admin.role} permission="organization_manage"><CommandForm scope="restoreOrganization" action={restoreOrganization}><input type="hidden" name="id" value={org.id} /><button className="w-full rounded-[8px] bg-[var(--deep)] px-2.5 py-1 text-[12px] font-semibold text-white">Restore</button></CommandForm></PermissionGate>
                 ) : (

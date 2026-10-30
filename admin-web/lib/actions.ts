@@ -7,7 +7,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { anonClient, serviceClient } from '@/lib/supabaseAdmin';
-import { adminFromToken, requirePermission } from '@/lib/adminAuth';
+import { adminFromToken } from '@/lib/adminAuth';
 import { provisionAccount } from '@/lib/adminProvision';
 import { saveAdminSession } from '@/lib/adminSession';
 
@@ -125,6 +125,7 @@ export async function adminRemovePost(formData: FormData) {
   const result = await runAdminCommand('adminRemovePost', 'post_moderate', formData);
   if (!result.success) return result;
   revalidatePath('/content');
+  revalidatePath('/content/[id]', 'page');
   revalidatePath('/dashboard');
   return result;
 }

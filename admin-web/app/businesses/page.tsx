@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import CommandForm from '@/components/CommandForm';
 import PermissionGate from '@/components/PermissionGate';
 import Link from 'next/link';
@@ -30,7 +31,7 @@ export default async function BusinessesPage({ searchParams }: { searchParams: P
   const decidedApps = decidedResult.data;
   const bizs = businessResult.data;
   const aids = Array.from(new Set((pendingApps ?? []).map(application => application.applicant_id).filter((id): id is string => typeof id === 'string' && id.length > 0)));
-  const applicants: Record<string, any> = {};
+  const applicants: Record<string, { id: string; full_name: string | null; username: string | null }> = {};
   if (aids.length) {
     const { data, error } = await svc.from('profiles').select('id, full_name, username').in('id', aids);
     if (error) throw new Error('Business applicant identities could not be loaded.');
@@ -115,7 +116,7 @@ export default async function BusinessesPage({ searchParams }: { searchParams: P
         ) : (bizs ?? []).map(b => (
           <div key={b.id} className="flex items-center gap-3 border-b border-[#F0EFEC] px-5 py-3 last:border-0">
             {b.avatar_url
-              ? <img src={b.avatar_url} alt="" className="h-9 w-9 rounded-full object-cover" />
+              ? <Image unoptimized width={36} height={36} src={b.avatar_url} alt="" className="h-9 w-9 rounded-full object-cover" />
               : <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#ECEBE7] text-[12px] font-bold text-[#5A5D64]">{String(b.full_name || '?').slice(0, 1)}</div>}
             <div className="min-w-0 flex-1">
               <p className="flex items-center gap-1 truncate text-[13px] font-semibold">{b.full_name || 'Unnamed'}{(b.verified_tier || b.is_verified) ? <Seal tier={b.verified_tier || 'business'} size={14} /> : null}<span className="font-normal text-[#9A9DA4]">@{b.username || '-'}</span></p>

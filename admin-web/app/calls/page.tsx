@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation';
+import { requestTime } from '@/lib/requestTime';
 import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import Shell from '@/components/Shell';
@@ -36,7 +36,7 @@ export default async function CallsPage() {
   const admin = await requireDesk('/calls');
   const svc = serviceClient();
 
-  const now = Date.now();
+  const now = await requestTime();
   const from7 = new Date(now - 7 * 86400000).toISOString();
   const from14 = new Date(now - 14 * 86400000).toISOString();
   const days30 = Array.from({ length: 30 }, (_, i) => new Date(now - (29 - i) * 86400000).toISOString().slice(0, 10));
