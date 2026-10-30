@@ -1,0 +1,624 @@
+{
+  "observedAt": "2026-10-30T22:07:13Z",
+  "source": {
+    "head": "aa7804d436a2b079770a5d2e122c159162af2610",
+    "testedPrMerge": "0c1fb9e30d875de7d93f15fcc63040b734222e22",
+    "tree": "f394693bece5c0eb4ff78f73ab518fbc67a7cda6",
+    "treeEqualityVerified": true,
+    "checkoutVerifiedInEveryJobLog": true
+  },
+  "run": {
+    "id": 41134795940,
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41134795940",
+    "attempt": 1,
+    "event": "pull_request",
+    "status": "completed",
+    "conclusion": "success",
+    "completedAt": "2026-10-30T22:05:25Z"
+  },
+  "runtime": {
+    "node": "22.23.4",
+    "deno": "2.1.4",
+    "database": "PostgreSQL 18.6 / PGlite 0.5.10 (local WASM fixtures)"
+  },
+  "jobs": [
+    {
+      "id": 124334480264,
+      "name": "Phone app",
+      "result": "success",
+      "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41134795940/job/124334480264"
+    },
+    {
+      "id": 124334480564,
+      "name": "Operations app",
+      "result": "success",
+      "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41134795940/job/124334480564"
+    },
+    {
+      "id": 124334480592,
+      "name": "Web app",
+      "result": "success",
+      "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41134795940/job/124334480592"
+    },
+    {
+      "id": 124334480613,
+      "name": "Link preview Edge TLS",
+      "result": "success",
+      "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41134795940/job/124334480613"
+    }
+  ],
+  "typechecks": {
+    "phone": "passed",
+    "web": "passed",
+    "operations": "passed"
+  },
+  "nodeSuites": {
+    "nativeRoot": {
+      "tests": 1390,
+      "suites": 0,
+      "pass": 1390,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 72204.646911
+    },
+    "web": {
+      "tests": 621,
+      "suites": 0,
+      "pass": 621,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 31907.775892
+    },
+    "operations": {
+      "tests": 189,
+      "suites": 0,
+      "pass": 189,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 12597.045093
+    },
+    "supabaseDefault": {
+      "tests": 299,
+      "suites": 0,
+      "pass": 296,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 3,
+      "todo": 0,
+      "duration_ms": 104840.315942
+    }
+  },
+  "edgeTls": {
+    "tests": 2,
+    "passed": 2,
+    "failed": 0,
+    "scope": "Actual local HTTPS with pinned IP, original Host/SNI, certificate-name validation and cancellation; this is the link-preview transport fixture."
+  },
+  "customRpcEvidence": [
+    {
+      "index": 0,
+      "hostedWrites": false,
+      "testCount": 13
+    },
+    {
+      "index": 1,
+      "suite": "community_group_authorization",
+      "checks": 19
+    },
+    {
+      "index": 2,
+      "hostedWrites": false,
+      "testCount": 4
+    },
+    {
+      "index": 3,
+      "suite": "admin-commands-integrated",
+      "passed": 22,
+      "hostedWrites": false
+    },
+    {
+      "index": 4,
+      "suite": "pending-migration-chain",
+      "passed": 41,
+      "hostedWrites": false,
+      "appliedMigrations": 41
+    },
+    {
+      "index": 5,
+      "ok": true,
+      "units": 18,
+      "sourceFiles": 19,
+      "alreadyAppliedUnits": 7,
+      "remainingUnits": 11,
+      "heldMigrations": 34
+    },
+    {
+      "index": 6,
+      "ok": true,
+      "baselineUnits": 18,
+      "candidateUnits": 7,
+      "checks": 9
+    },
+    {
+      "index": 7,
+      "success": true,
+      "candidate": "20261023185734_redacted_client_diagnostics",
+      "checks": 11
+    },
+    {
+      "index": 8,
+      "success": true,
+      "candidate": "20261029190200_comment_author_highlights",
+      "checks": 15
+    },
+    {
+      "index": 9,
+      "success": true,
+      "baselineUnits": 25,
+      "candidate": "20261025073234_applicant_self_service_quality",
+      "checks": 16
+    }
+  ],
+  "additionalRpcChecks": {
+    "postflight": "Exact definitions/ACLs and six expected role denials passed.",
+    "verificationIntegrityScenarios": 8
+  },
+  "complementarySkips": [
+    {
+      "name": "book signing uses the reader permission for explicit custom access and inactive accounts",
+      "passOccurrences": 1,
+      "skipOccurrences": 1
+    },
+    {
+      "name": "visual-only manifests do not bind or sign separate audio, and install no soundtrack authorization",
+      "passOccurrences": 1,
+      "skipOccurrences": 1
+    },
+    {
+      "name": "visual-only publisher works without audio infrastructure, rejects added sound, and preserves recorded video controls",
+      "passOccurrences": 1,
+      "skipOccurrences": 1
+    },
+    {
+      "name": "sound publication is owner-bound, attested and idempotent",
+      "passOccurrences": 1,
+      "skipOccurrences": 1
+    }
+  ],
+  "artifacts": [],
+  "limits": [
+    "These are CI processes and local synthetic PostgreSQL fixtures. They do not install or verify hosted Supabase migrations, Auth, Storage, Edge deployments, live provider journeys or production rollout.",
+    "Three visual-only cases are skipped in the default Supabase mode and pass in the visual fixture; the visual fixture skips one audio-publication case that passes in default mode. Each exact name is retained below.",
+    "Repeated QA/production compatibility shapes and overlapping test entrypoints are not summed into a unique end-to-end journey count.",
+    "The 41 pending-chain entries and production rollout unit counts are DDL compatibility units, not standalone behavioral test totals.",
+    "This workflow runs types and tests. It does not run the native compiler/emulator, browser acceptance, strict lint or the music Edge entrypoint Deno dependency check; those receipts are separate.",
+    "The earlier local client verification used Node 24.22.1. This receipt records the independently executed hosted Node 22.23.4 run.",
+    "GitHub Actions uploaded no artifacts for this workflow; evidence is the completed run/job logs and immutable tested source tree."
+  ],
+  "rpcInvocations": [
+    {
+      "script": "./test-production-rollout-chain.mjs",
+      "env": {},
+      "result": "passed with custom JSON reports below"
+    },
+    {
+      "script": "./test-parity-release-chain.mjs",
+      "env": {},
+      "result": "passed with custom JSON reports below"
+    },
+    {
+      "script": "./test-app-quality-hiring-chain.mjs",
+      "env": {},
+      "result": "passed with custom JSON reports below"
+    },
+    {
+      "script": "./test-admin-support-review-chain.mjs",
+      "env": {},
+      "tests": 16,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-admin-completion-chain.mjs",
+      "env": {},
+      "tests": 34,
+      "pass": 34,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-qa-admin-completion-chain.mjs",
+      "env": {},
+      "tests": 36,
+      "pass": 36,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-account-storage-erasure-chain.mjs",
+      "env": {},
+      "tests": 11,
+      "pass": 11,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-private-media-cutover-chain.mjs",
+      "env": {},
+      "tests": 14,
+      "pass": 14,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-bounded-media-delivery-chain.mjs",
+      "env": {},
+      "tests": 21,
+      "pass": 21,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-bounded-media-delivery-chain.mjs",
+      "env": {
+        "PLATINUM_QA_MEDIA_UPGRADE": "1"
+      },
+      "tests": 21,
+      "pass": 21,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-database-hardening-chain.mjs",
+      "env": {},
+      "tests": 18,
+      "pass": 18,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-database-hardening-chain.mjs",
+      "env": {
+        "PLATINUM_QA_DATABASE_HARDENING": "1"
+      },
+      "tests": 18,
+      "pass": 18,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-erasure-operator-chain.mjs",
+      "env": {},
+      "tests": 20,
+      "pass": 20,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-erasure-operator-chain.mjs",
+      "env": {
+        "PLATINUM_QA_ERASURE_OPERATOR": "1"
+      },
+      "tests": 20,
+      "pass": 20,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-staff-social-shells-chain.mjs",
+      "env": {},
+      "tests": 16,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-staff-social-shells-chain.mjs",
+      "env": {
+        "PLATINUM_QA_STAFF_SHELLS": "1"
+      },
+      "tests": 16,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-studio-workflow-chain.mjs",
+      "env": {},
+      "tests": 41,
+      "pass": 41,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-studio-workflow-chain.mjs",
+      "env": {
+        "PLATINUM_QA_STUDIO_WORKFLOWS": "1"
+      },
+      "tests": 41,
+      "pass": 41,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-business-auth-chain.mjs",
+      "env": {},
+      "tests": 27,
+      "pass": 27,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-business-auth-chain.mjs",
+      "env": {
+        "PLATINUM_QA_BUSINESS_AUTH": "1"
+      },
+      "tests": 27,
+      "pass": 27,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-offer-response-serialization.mjs",
+      "env": {},
+      "tests": 15,
+      "pass": 15,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-original-music-library.mjs",
+      "env": {},
+      "tests": 31,
+      "pass": 31,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-original-music-library.mjs",
+      "env": {
+        "MUSIC_FIXTURE_PREEXISTING": "1"
+      },
+      "tests": 31,
+      "pass": 31,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-original-music-library.mjs",
+      "env": {
+        "MUSIC_PIPELINE_FIXTURE": "1"
+      },
+      "tests": 31,
+      "pass": 31,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-music-operations.mjs",
+      "env": {},
+      "tests": 19,
+      "pass": 19,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-licensed-catalogue.mjs",
+      "env": {},
+      "tests": 22,
+      "pass": 22,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-business-music-integration.mjs",
+      "env": {},
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-business-music-integration.mjs",
+      "env": {
+        "PLATINUM_QA_BUSINESS_AUTH": "1"
+      },
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-link-preview-chain.mjs",
+      "env": {
+        "PLATINUM_CURRENT_PRODUCTION_LINK_PREVIEW": "1"
+      },
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-link-preview-chain.mjs",
+      "env": {},
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-link-preview-chain.mjs",
+      "env": {
+        "PLATINUM_QA_LINK_PREVIEW": "1"
+      },
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "../../../tests/link-preview.test.cjs",
+      "env": {},
+      "tests": 21,
+      "pass": 21,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-legacy-chat-media-compatibility.mjs",
+      "env": {},
+      "tests": 11,
+      "pass": 11,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-legacy-public-media-snapshots.mjs",
+      "env": {},
+      "tests": 11,
+      "pass": 11,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "./test-memory-book-visual-presentation.mjs",
+      "env": {},
+      "tests": 16,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "../content-media-db.test.cjs",
+      "env": {
+        "PLATINUM_VISUAL_RELEASE": "1"
+      },
+      "tests": 17,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 1,
+      "todo": 0
+    },
+    {
+      "script": "../story-mention-reshare-db.test.cjs",
+      "env": {
+        "PLATINUM_VISUAL_RELEASE": "1"
+      },
+      "tests": 33,
+      "pass": 33,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "../discover-media-projections.test.cjs",
+      "env": {
+        "PLATINUM_VISUAL_RELEASE": "1"
+      },
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "../../../tests/quality/chat-call-authorization.cjs",
+      "env": {},
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "script": "../../../tests/quality/call-membership-recovery.cjs",
+      "env": {},
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  ],
+  "sourceSha256": {
+    ".github/workflows/typecheck.yml": "9cf76a697c8476aa41ea63bab3f3a3da25c8edb15549208a1d6c07cfcdcfc46d",
+    "supabase/tests/rpc-authorization/run-all.mjs": "6a476ee1d9c3cefd84d35041ee32db38fdb67e69912666d7d35a91972b1ac2e3",
+    "docs/quality/music-operations-20261030/candidate.json": "202531fe22d0bc7cdebcd195f4608138d7e81a75d719c3d0308658583ffb7344"
+  }
+}

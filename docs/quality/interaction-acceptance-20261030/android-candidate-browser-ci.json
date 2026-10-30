@@ -1,0 +1,183 @@
+{
+  "observedAt": "2026-10-30T22:06:33Z",
+  "repository": "donadmiral/tbirds-nest",
+  "source": {
+    "head": "aa7804d436a2b079770a5d2e122c159162af2610",
+    "testedPrMerge": "0c1fb9e30d875de7d93f15fcc63040b734222e22",
+    "mergeParents": [
+      "ce4f2f2ebbd7f7669b630caf650fd97cd59297b0",
+      "aa7804d436a2b079770a5d2e122c159162af2610"
+    ],
+    "headTree": "f394693bece5c0eb4ff78f73ab518fbc67a7cda6",
+    "testedMergeTree": "f394693bece5c0eb4ff78f73ab518fbc67a7cda6",
+    "treeEqualityVerified": true,
+    "evidence": "GitHub Git commit API for both commits and checkout SHA in the completed job log."
+  },
+  "workflow": {
+    "name": "Browser interaction and video gates",
+    "path": ".github/workflows/browser-quality.yml",
+    "run": 41134796025,
+    "attempt": 1,
+    "event": "pull_request",
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41134796025",
+    "status": "completed",
+    "conclusion": "success",
+    "startedAt": "2026-10-30T21:57:36Z",
+    "updatedAt": "2026-10-30T22:01:56Z",
+    "job": 124334480561,
+    "jobName": "Connected app, Studio, admin and encoded movies",
+    "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41134796025/job/124334480561",
+    "browser": "Chromium 153.0.8010.12"
+  },
+  "groups": [
+    {
+      "name": "Admin workspace",
+      "passed": 37,
+      "unit": "checks",
+      "ciStep": 6,
+      "result": "success",
+      "receipt": "admin/browser-receipt.json",
+      "receiptSha256": "cec75323d91a76a66b44a41ab378fbce56fb739c8aa1cf2d7ce44263dd3f60f3",
+      "scope": "Actual shared admin components with synthetic records/navigation.",
+      "browserErrors": 0
+    },
+    {
+      "name": "Public web and social",
+      "passed": 38,
+      "unit": "checks",
+      "ciStep": 7,
+      "result": "success",
+      "receipt": "web/browser-receipt.json",
+      "receiptSha256": "dcc2d3eb2cb5edb620f7c45b5d34ffe22222a8361a6aceb9394ac19a13c844af",
+      "scope": "Actual public-web modules with synthetic Auth/database/media/navigation adapters.",
+      "browserErrors": 0
+    },
+    {
+      "name": "Jobs, applications, Market and orders",
+      "passed": 24,
+      "unit": "checks",
+      "ciStep": 8,
+      "result": "success",
+      "receipt": "commerce/browser-receipt.json",
+      "receiptSha256": "a0e3fbb07d162ba5b4a68a2e0df9c37f5e6809c159ab7b9eaa4b364d01d44528",
+      "scope": "Actual commerce components with synthetic Auth/database/navigation; no real payment or provider operation.",
+      "browserErrors": 0
+    },
+    {
+      "name": "Studio business and creator journeys",
+      "passed": 25,
+      "unit": "checks",
+      "ciStep": 9,
+      "result": "success",
+      "receipt": "studio/browser-receipt.json",
+      "receiptSha256": "d7464ec5abc731a21e1cd99f9eaa9bbe57a60b806833b0bc52cd9253724750b5",
+      "scope": "Actual Studio components with synthetic records/RPC adapters; no real publishing worker.",
+      "browserErrors": 0
+    },
+    {
+      "name": "Story video export",
+      "passed": 8,
+      "unit": "modes",
+      "ciStep": 10,
+      "result": "success",
+      "receipt": "video/browser-receipt.json",
+      "receiptSha256": "197bf2de14c4770c34a3d966b356e576a1f315b083ae7dab285d2f0f1447b0c0",
+      "scope": "Five real encoded VP9 WebM outputs; decoded trim, color, timed-sticker and audio checks, plus rejection/cancellation modes.",
+      "modes": [
+        "graded_audio",
+        "muted",
+        "added_audio",
+        "added_only",
+        "bad_added_audio",
+        "delayed_start",
+        "oversized_final_chunk",
+        "cancelled"
+      ],
+      "successfulEncodedFiles": 5
+    },
+    {
+      "name": "Memory movie export",
+      "passed": 19,
+      "unit": "modes",
+      "ciStep": 11,
+      "result": "success",
+      "receipt": "memory/browser-receipt.json",
+      "receiptSha256": "a9c112d65c12b05999f9aa3ccaec1d998a0a30b652825e01b01c1a9bfe1c37d6",
+      "scope": "Six real encoded VP9 movies with decoded pixels/audio, including silence, score and once/loop voiceover; interruption and unsupported-content guards.",
+      "consoleErrors": 0,
+      "modes": [
+        "original",
+        "silent",
+        "score",
+        "local_once",
+        "local_loop",
+        "static_images",
+        "cancel",
+        "call",
+        "hidden",
+        "unmount",
+        "missing",
+        "overflow",
+        "animated_primary",
+        "animated_sticker",
+        "animated_background",
+        "animated_data",
+        "image_inspection_cancel",
+        "unsupported_composition",
+        "film_entry_exit"
+      ],
+      "successfulEncodedFiles": 6
+    },
+    {
+      "name": "Music library and retained exports",
+      "passed": 5,
+      "unit": "modes",
+      "ciStep": 12,
+      "result": "success",
+      "receipt": "music/browser-receipt.json",
+      "receiptSha256": "ebf17f73270d9bfb303eaf4706dd780a21435d29be8ee3b94b42dcf146c84cec",
+      "scope": "Two real encoded movies, revocation before download, browser capture through a fake microphone, and cancelled-recording cleanup; synthetic private-audio transport.",
+      "consoleErrors": 0,
+      "modes": [
+        "book",
+        "retained",
+        "revoked_during_export",
+        "microphone_verified",
+        "recording_cancel"
+      ],
+      "successfulEncodedFiles": 2
+    }
+  ],
+  "totals": {
+    "groups": 7,
+    "uiChecksPassed": 124,
+    "mediaModesPassed": 32,
+    "successfulEncodedFiles": 13,
+    "note": "Media modes include deliberate rejection and cancellation cases; these are not counts of live backend or provider journeys."
+  },
+  "artifact": {
+    "id": 13016595569,
+    "name": "browser-quality-evidence",
+    "bytes": 7643509,
+    "sha256": "a5e8e03f374516aa0fe86dd370025b563d979fef2bcf945541fe62738634a811",
+    "downloadedAndDigestVerified": true,
+    "members": 56,
+    "receiptFiles": 7,
+    "createdAt": "2026-10-30T22:01:53Z",
+    "expiresAt": "2026-11-06T22:01:52Z",
+    "metadataUrl": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/artifacts/13016595569",
+    "receiptCountsAndMediaJsonMatchJobLog": true
+  },
+  "scope": {
+    "actual": "Chromium executes mounted application components and browser media APIs. Encoded output files are decoded to check pixels, timing and audio.",
+    "synthetic": "Backend, Auth, Storage, navigation and provider adapters use controlled fixtures. Microphone input and source media are generated fixtures.",
+    "notEstablished": [
+      "Hosted Supabase migration/Edge installation",
+      "Real provider payments or publishing",
+      "Physical microphone, iPhone/Android or Photos acceptance",
+      "Native Android renderer execution"
+    ],
+    "separateDeployedPreviewReceipt": "android-candidate-preview-check.json",
+    "reviewOnly": "This receipt independently inspects the completed hosted run, logs and downloaded artifact. No application tests were rerun and no application source was changed."
+  }
+}

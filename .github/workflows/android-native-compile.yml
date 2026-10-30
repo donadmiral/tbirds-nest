@@ -67,6 +67,11 @@ jobs:
           echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
       - name: Install locked dependencies
         run: npm ci --ignore-scripts --no-fund
+      - name: Install the emulator host audio library
+        # The emulator binary links libpulse even when its audio output is disabled.
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends libpulse0
       - name: Allow this disposable runner to use KVM
         run: |
           test -c /dev/kvm
