@@ -1,6 +1,6 @@
 {
   "date": "2026-10-29",
-  "scope": "Verified source/local dependency audit and separately verified dependency-only web/admin production rollout; no iPhone build",
+  "scope": "Verified source/local dependency audits and independently reviewable local compatibility backports; separately verified dependency-only web/admin production rollout; no iPhone distribution",
   "node": "24.22.1",
   "npm": "11.9.0",
   "applications": {
@@ -15,23 +15,23 @@
       },
       "after_counts": {
         "info": 0,
-        "low": 11,
-        "moderate": 7,
-        "high": 6,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
         "critical": 0,
-        "total": 24
+        "total": 0
       },
       "manifest_unchanged": false,
       "direct_dependency_versions": {
         "@config-plugins/react-native-callkeep": {
           "kind": "dependencies",
           "before": "14.0.1",
-          "after": "14.0.1"
+          "after": "12.0.0"
         },
         "@daily-co/react-native-daily-js": {
           "kind": "dependencies",
           "before": "0.84.1",
-          "after": "0.84.1"
+          "after": "0.86.0"
         },
         "@daily-co/react-native-webrtc": {
           "kind": "dependencies",
@@ -482,6 +482,20 @@
           "kind": "devDependencies",
           "before": "5.9.3",
           "after": "5.9.3"
+        },
+        "decode-uri-component": {
+          "kind": "dependencies",
+          "before": null,
+          "after": "0.5.1-pc.1",
+          "spec": "file:vendor/decode-uri-component-cjs",
+          "package_name": "@platinumcircles/decode-uri-component-cjs"
+        },
+        "deepmerge": {
+          "kind": "dependencies",
+          "before": null,
+          "after": "4.3.1-pc.1",
+          "spec": "file:vendor/deepmerge-safe-cjs",
+          "package_name": "@platinumcircles/deepmerge-safe-cjs"
         }
       },
       "lock_version_changes": [
@@ -584,6 +598,24 @@
           "location": "node_modules/zod",
           "before": "3.25.76",
           "after": null
+        },
+        {
+          "location": "node_modules/decode-uri-component",
+          "before": "0.2.2",
+          "after": "0.5.1-pc.1",
+          "resolution": {
+            "resolved": "vendor/decode-uri-component-cjs",
+            "link": true
+          }
+        },
+        {
+          "location": "node_modules/deepmerge",
+          "before": "4.3.1",
+          "after": "4.3.1-pc.1",
+          "resolution": {
+            "resolved": "vendor/deepmerge-safe-cjs",
+            "link": true
+          }
         }
       ],
       "before_advisories": {
@@ -1412,7 +1444,7 @@
               "source": 1130709,
               "name": "postcss",
               "dependency": "postcss",
-              "title": "PostCSS: incomplete fix of GHSA-6g55-p6wh-862q \u2014 attacker-controlled sourceMappingURL reads arbitrary .map files when `from` is unset",
+              "title": "PostCSS: incomplete fix of GHSA-6g55-p6wh-862q — attacker-controlled sourceMappingURL reads arbitrary .map files when `from` is unset",
               "url": "https://github.com/advisories/GHSA-fxqj-rqcc-2cmp",
               "severity": "moderate",
               "cwe": [
@@ -1714,615 +1746,1589 @@
           }
         }
       },
-      "after_advisories": {
-        "@expo/cli": {
-          "name": "@expo/cli",
-          "severity": "moderate",
-          "isDirect": false,
-          "via": [
-            "@expo/config",
-            "@expo/metro-config",
-            "@expo/prebuild-config"
-          ],
-          "effects": [],
-          "range": "<=0.0.0-canary-20231123-1b19f96-4 || 0.0.1-canary-20231125-d600e44 - 0.0.1-canary-20240418-8d74597 || >=0.8.0",
-          "nodes": [
-            "node_modules/@expo/cli"
-          ],
-          "fixAvailable": true
+      "after_advisories": {},
+      "lock_sha256": "c8cae4044365f61f34b5b3ae2876e2a1038f9861baacc6cfdabd627b752f0cb8",
+      "manifest_change": "First repair removed unused Zod. Completion pins SDK-compatible CallKeep and Daily, adds scoped Metro/PostCSS/UUID overrides, and replaces the two remaining vulnerable implementations with private, hash-reviewed local compatibility/security sources.",
+      "first_repair": {
+        "after_counts": {
+          "info": 0,
+          "low": 11,
+          "moderate": 7,
+          "high": 6,
+          "critical": 0,
+          "total": 24
         },
-        "@expo/config": {
-          "name": "@expo/config",
-          "severity": "low",
-          "isDirect": false,
-          "via": [
-            "deepmerge"
-          ],
-          "effects": [
-            "@expo/cli",
-            "@expo/metro-config",
-            "@expo/prebuild-config",
-            "expo",
-            "expo-constants",
-            "expo-manifests"
-          ],
-          "range": ">=9.1.0-canary-20240628-1ba8152",
-          "nodes": [
-            "node_modules/@expo/config"
-          ],
-          "fixAvailable": {
-            "name": "expo-constants",
-            "version": "58.0.14",
-            "isSemVerMajor": true
-          }
-        },
-        "@expo/config-plugins": {
-          "name": "@expo/config-plugins",
-          "severity": "moderate",
-          "isDirect": false,
-          "via": [
-            "xcode"
-          ],
-          "effects": [],
-          "range": "<=54.0.5 || 54.1.0-canary-20250930-9dc59d3 - 55.0.11 || 56.0.0-canary-20260212-4f61309 - 56.0.16 || 57.0.0-canary-20260526-13e89ca - 57.0.10 || 58.0.0-canary-20260806-8c2d007 - 58.0.9",
-          "nodes": [
-            "node_modules/@expo/config-plugins"
-          ],
-          "fixAvailable": true
-        },
-        "@expo/metro-config": {
-          "name": "@expo/metro-config",
-          "severity": "moderate",
-          "isDirect": false,
-          "via": [
-            "@expo/config",
-            "postcss"
-          ],
-          "effects": [
-            "@expo/cli",
-            "expo"
-          ],
-          "range": "<=0.0.1-canary-20240418-8d74597 || >=0.8.0",
-          "nodes": [
-            "node_modules/@expo/metro-config"
-          ],
-          "fixAvailable": {
-            "name": "expo",
-            "version": "51.0.39",
-            "isSemVerMajor": true
-          }
-        },
-        "@expo/ngrok": {
-          "name": "@expo/ngrok",
-          "severity": "moderate",
-          "isDirect": true,
-          "via": [
-            "uuid"
-          ],
-          "effects": [],
-          "range": "*",
-          "nodes": [
-            "node_modules/@expo/ngrok"
-          ],
-          "fixAvailable": false
-        },
-        "@expo/prebuild-config": {
-          "name": "@expo/prebuild-config",
-          "severity": "low",
-          "isDirect": false,
-          "via": [
-            "@expo/config"
-          ],
-          "effects": [],
-          "range": ">=7.1.0-canary-20240904-69100c1",
-          "nodes": [
-            "node_modules/@expo/prebuild-config"
-          ],
-          "fixAvailable": true
-        },
-        "@react-navigation/core": {
-          "name": "@react-navigation/core",
-          "severity": "high",
-          "isDirect": false,
-          "via": [
-            "query-string"
-          ],
-          "effects": [
-            "@react-navigation/native"
-          ],
-          "range": "<=7.22.0 || 8.0.0-alpha.0 - 8.0.0-alpha.9",
-          "nodes": [
-            "node_modules/@react-navigation/core"
-          ],
-          "fixAvailable": {
-            "name": "@react-navigation/native",
-            "version": "7.5.1",
-            "isSemVerMajor": true
-          }
-        },
-        "@react-navigation/native": {
-          "name": "@react-navigation/native",
-          "severity": "high",
-          "isDirect": true,
-          "via": [
-            "@react-navigation/core"
-          ],
-          "effects": [],
-          "range": "<=3.0.0-alpha.12 || 3.0.1 - 3.6.5 || 4.0.0-alpha.0 - 6.1.18",
-          "nodes": [
-            "node_modules/@react-navigation/native"
-          ],
-          "fixAvailable": {
-            "name": "@react-navigation/native",
-            "version": "7.5.1",
-            "isSemVerMajor": true
-          }
-        },
-        "decode-uri-component": {
-          "name": "decode-uri-component",
-          "severity": "high",
-          "isDirect": false,
-          "via": [
-            {
-              "source": 1147955,
-              "name": "decode-uri-component",
-              "dependency": "decode-uri-component",
-              "title": "decode-uri-component: Denial of service via exponential decoding of malformed percent-encoded input",
-              "url": "https://github.com/advisories/GHSA-vcc3-ghjq-m6fr",
-              "severity": "moderate",
-              "cwe": [
-                "CWE-400",
-                "CWE-405",
-                "CWE-407",
-                "CWE-1176"
-              ],
-              "cvss": {
-                "score": 0,
-                "vectorString": null
-              },
-              "range": "<=0.4.2"
-            },
-            {
-              "source": 1243857,
-              "name": "decode-uri-component",
-              "dependency": "decode-uri-component",
-              "title": "decode-uri-component vulnerable to denial of service via quadratic replacement of percent-encoded runs",
-              "url": "https://github.com/advisories/GHSA-qr28-fpjm-wq7f",
-              "severity": "high",
-              "cwe": [
-                "CWE-400",
-                "CWE-407"
-              ],
-              "cvss": {
-                "score": 0,
-                "vectorString": null
-              },
-              "range": "<=0.5.0"
+        "after_advisories": {
+          "@expo/cli": {
+            "name": "@expo/cli",
+            "severity": "moderate",
+            "isDirect": false,
+            "via": [
+              "@expo/config",
+              "@expo/metro-config",
+              "@expo/prebuild-config"
+            ],
+            "effects": [],
+            "range": "<=0.0.0-canary-20231123-1b19f96-4 || 0.0.1-canary-20231125-d600e44 - 0.0.1-canary-20240418-8d74597 || >=0.8.0",
+            "nodes": [
+              "node_modules/@expo/cli"
+            ],
+            "fixAvailable": true
+          },
+          "@expo/config": {
+            "name": "@expo/config",
+            "severity": "low",
+            "isDirect": false,
+            "via": [
+              "deepmerge"
+            ],
+            "effects": [
+              "@expo/cli",
+              "@expo/metro-config",
+              "@expo/prebuild-config",
+              "expo",
+              "expo-constants",
+              "expo-manifests"
+            ],
+            "range": ">=9.1.0-canary-20240628-1ba8152",
+            "nodes": [
+              "node_modules/@expo/config"
+            ],
+            "fixAvailable": {
+              "name": "expo-constants",
+              "version": "58.0.14",
+              "isSemVerMajor": true
             }
-          ],
-          "effects": [
-            "query-string"
-          ],
-          "range": "<=0.5.0",
-          "nodes": [
-            "node_modules/decode-uri-component"
-          ],
-          "fixAvailable": {
-            "name": "@react-navigation/native",
-            "version": "7.5.1",
-            "isSemVerMajor": true
-          }
-        },
-        "deepmerge": {
-          "name": "deepmerge",
-          "severity": "low",
-          "isDirect": false,
-          "via": [
-            {
-              "source": 1243505,
-              "name": "deepmerge",
-              "dependency": "deepmerge",
-              "title": "deepmerge mergeObject() allows prototype poisoning of returned objects",
-              "url": "https://github.com/advisories/GHSA-gcqx-w48m-w2h4",
-              "severity": "low",
-              "cwe": [
-                "CWE-1321"
-              ],
-              "cvss": {
-                "score": 5.3,
-                "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:N"
-              },
-              "range": ">=4.2.0 <=4.3.1"
+          },
+          "@expo/config-plugins": {
+            "name": "@expo/config-plugins",
+            "severity": "moderate",
+            "isDirect": false,
+            "via": [
+              "xcode"
+            ],
+            "effects": [],
+            "range": "<=54.0.5 || 54.1.0-canary-20250930-9dc59d3 - 55.0.11 || 56.0.0-canary-20260212-4f61309 - 56.0.16 || 57.0.0-canary-20260526-13e89ca - 57.0.10 || 58.0.0-canary-20260806-8c2d007 - 58.0.9",
+            "nodes": [
+              "node_modules/@expo/config-plugins"
+            ],
+            "fixAvailable": true
+          },
+          "@expo/metro-config": {
+            "name": "@expo/metro-config",
+            "severity": "moderate",
+            "isDirect": false,
+            "via": [
+              "@expo/config",
+              "postcss"
+            ],
+            "effects": [
+              "@expo/cli",
+              "expo"
+            ],
+            "range": "<=0.0.1-canary-20240418-8d74597 || >=0.8.0",
+            "nodes": [
+              "node_modules/@expo/metro-config"
+            ],
+            "fixAvailable": {
+              "name": "expo",
+              "version": "51.0.39",
+              "isSemVerMajor": true
             }
-          ],
-          "effects": [
-            "@expo/config"
-          ],
-          "range": ">=4.2.0",
-          "nodes": [
-            "node_modules/deepmerge"
-          ],
-          "fixAvailable": {
-            "name": "expo-constants",
-            "version": "58.0.14",
-            "isSemVerMajor": true
-          }
-        },
-        "expo": {
-          "name": "expo",
-          "severity": "moderate",
-          "isDirect": true,
-          "via": [
-            "@expo/cli",
-            "@expo/config",
-            "@expo/metro-config",
-            "expo-asset",
-            "expo-constants"
-          ],
-          "effects": [],
-          "range": ">=50.0.0-alpha.0",
-          "nodes": [
-            "node_modules/expo"
-          ],
-          "fixAvailable": {
+          },
+          "@expo/ngrok": {
+            "name": "@expo/ngrok",
+            "severity": "moderate",
+            "isDirect": true,
+            "via": [
+              "uuid"
+            ],
+            "effects": [],
+            "range": "*",
+            "nodes": [
+              "node_modules/@expo/ngrok"
+            ],
+            "fixAvailable": false
+          },
+          "@expo/prebuild-config": {
+            "name": "@expo/prebuild-config",
+            "severity": "low",
+            "isDirect": false,
+            "via": [
+              "@expo/config"
+            ],
+            "effects": [],
+            "range": ">=7.1.0-canary-20240904-69100c1",
+            "nodes": [
+              "node_modules/@expo/prebuild-config"
+            ],
+            "fixAvailable": true
+          },
+          "@react-navigation/core": {
+            "name": "@react-navigation/core",
+            "severity": "high",
+            "isDirect": false,
+            "via": [
+              "query-string"
+            ],
+            "effects": [
+              "@react-navigation/native"
+            ],
+            "range": "<=7.22.0 || 8.0.0-alpha.0 - 8.0.0-alpha.9",
+            "nodes": [
+              "node_modules/@react-navigation/core"
+            ],
+            "fixAvailable": {
+              "name": "@react-navigation/native",
+              "version": "7.5.1",
+              "isSemVerMajor": true
+            }
+          },
+          "@react-navigation/native": {
+            "name": "@react-navigation/native",
+            "severity": "high",
+            "isDirect": true,
+            "via": [
+              "@react-navigation/core"
+            ],
+            "effects": [],
+            "range": "<=3.0.0-alpha.12 || 3.0.1 - 3.6.5 || 4.0.0-alpha.0 - 6.1.18",
+            "nodes": [
+              "node_modules/@react-navigation/native"
+            ],
+            "fixAvailable": {
+              "name": "@react-navigation/native",
+              "version": "7.5.1",
+              "isSemVerMajor": true
+            }
+          },
+          "decode-uri-component": {
+            "name": "decode-uri-component",
+            "severity": "high",
+            "isDirect": false,
+            "via": [
+              {
+                "source": 1147955,
+                "name": "decode-uri-component",
+                "dependency": "decode-uri-component",
+                "title": "decode-uri-component: Denial of service via exponential decoding of malformed percent-encoded input",
+                "url": "https://github.com/advisories/GHSA-vcc3-ghjq-m6fr",
+                "severity": "moderate",
+                "cwe": [
+                  "CWE-400",
+                  "CWE-405",
+                  "CWE-407",
+                  "CWE-1176"
+                ],
+                "cvss": {
+                  "score": 0,
+                  "vectorString": null
+                },
+                "range": "<=0.4.2"
+              },
+              {
+                "source": 1243857,
+                "name": "decode-uri-component",
+                "dependency": "decode-uri-component",
+                "title": "decode-uri-component vulnerable to denial of service via quadratic replacement of percent-encoded runs",
+                "url": "https://github.com/advisories/GHSA-qr28-fpjm-wq7f",
+                "severity": "high",
+                "cwe": [
+                  "CWE-400",
+                  "CWE-407"
+                ],
+                "cvss": {
+                  "score": 0,
+                  "vectorString": null
+                },
+                "range": "<=0.5.0"
+              }
+            ],
+            "effects": [
+              "query-string"
+            ],
+            "range": "<=0.5.0",
+            "nodes": [
+              "node_modules/decode-uri-component"
+            ],
+            "fixAvailable": {
+              "name": "@react-navigation/native",
+              "version": "7.5.1",
+              "isSemVerMajor": true
+            }
+          },
+          "deepmerge": {
+            "name": "deepmerge",
+            "severity": "low",
+            "isDirect": false,
+            "via": [
+              {
+                "source": 1243505,
+                "name": "deepmerge",
+                "dependency": "deepmerge",
+                "title": "deepmerge mergeObject() allows prototype poisoning of returned objects",
+                "url": "https://github.com/advisories/GHSA-gcqx-w48m-w2h4",
+                "severity": "low",
+                "cwe": [
+                  "CWE-1321"
+                ],
+                "cvss": {
+                  "score": 5.3,
+                  "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:N"
+                },
+                "range": ">=4.2.0 <=4.3.1"
+              }
+            ],
+            "effects": [
+              "@expo/config"
+            ],
+            "range": ">=4.2.0",
+            "nodes": [
+              "node_modules/deepmerge"
+            ],
+            "fixAvailable": {
+              "name": "expo-constants",
+              "version": "58.0.14",
+              "isSemVerMajor": true
+            }
+          },
+          "expo": {
             "name": "expo",
-            "version": "51.0.39",
-            "isSemVerMajor": true
-          }
-        },
-        "expo-asset": {
-          "name": "expo-asset",
-          "severity": "low",
-          "isDirect": true,
-          "via": [
-            "expo-constants"
-          ],
-          "effects": [],
-          "range": "10.0.11-canary-20240625-2333e70 - 55.0.0-canary-20260223-05214f1 || 55.0.3-canary-20260128-67ce8d5 || 55.0.8-canary-20260424-7bedc9d - 55.0.8-canary-20260429-a5e59cf || 55.0.11-canary-20260327-0789fbc - 55.0.11-canary-20260402-9da566b || 56.0.0-canary-20260212-4f61309 - 56.0.0-canary-20260506-964f25d",
-          "nodes": [
-            "node_modules/expo-asset"
-          ],
-          "fixAvailable": {
+            "severity": "moderate",
+            "isDirect": true,
+            "via": [
+              "@expo/cli",
+              "@expo/config",
+              "@expo/metro-config",
+              "expo-asset",
+              "expo-constants"
+            ],
+            "effects": [],
+            "range": ">=50.0.0-alpha.0",
+            "nodes": [
+              "node_modules/expo"
+            ],
+            "fixAvailable": {
+              "name": "expo",
+              "version": "51.0.39",
+              "isSemVerMajor": true
+            }
+          },
+          "expo-asset": {
             "name": "expo-asset",
-            "version": "58.0.19",
-            "isSemVerMajor": true
-          }
-        },
-        "expo-constants": {
-          "name": "expo-constants",
-          "severity": "low",
-          "isDirect": true,
-          "via": [
-            "@expo/config"
-          ],
-          "effects": [
-            "expo",
-            "expo-asset",
-            "expo-linking",
-            "expo-notifications"
-          ],
-          "range": "16.0.3-canary-20240625-2333e70 - 55.0.14 || 56.0.0-canary-20260212-4f61309 - 56.0.0-canary-20260506-964f25d",
-          "nodes": [
-            "node_modules/expo-constants"
-          ],
-          "fixAvailable": {
+            "severity": "low",
+            "isDirect": true,
+            "via": [
+              "expo-constants"
+            ],
+            "effects": [],
+            "range": "10.0.11-canary-20240625-2333e70 - 55.0.0-canary-20260223-05214f1 || 55.0.3-canary-20260128-67ce8d5 || 55.0.8-canary-20260424-7bedc9d - 55.0.8-canary-20260429-a5e59cf || 55.0.11-canary-20260327-0789fbc - 55.0.11-canary-20260402-9da566b || 56.0.0-canary-20260212-4f61309 - 56.0.0-canary-20260506-964f25d",
+            "nodes": [
+              "node_modules/expo-asset"
+            ],
+            "fixAvailable": {
+              "name": "expo-asset",
+              "version": "58.0.19",
+              "isSemVerMajor": true
+            }
+          },
+          "expo-constants": {
             "name": "expo-constants",
-            "version": "58.0.14",
-            "isSemVerMajor": true
-          }
-        },
-        "expo-dev-client": {
-          "name": "expo-dev-client",
-          "severity": "low",
-          "isDirect": true,
-          "via": [
-            "expo-dev-launcher",
-            "expo-manifests"
-          ],
-          "effects": [],
-          "range": "5.0.0-canary-20240814-ce0f7d5 - 55.0.0-canary-20260223-05214f1 || 55.0.4-canary-20260128-67ce8d5 || 55.0.10-canary-20260424-7bedc9d - 55.0.10-canary-20260429-a5e59cf || 55.0.20-canary-20260327-0789fbc - 55.0.20-canary-20260402-9da566b || 56.0.0-canary-20260212-4f61309 - 56.0.0-canary-20260506-964f25d",
-          "nodes": [
-            "node_modules/expo-dev-client"
-          ],
-          "fixAvailable": {
+            "severity": "low",
+            "isDirect": true,
+            "via": [
+              "@expo/config"
+            ],
+            "effects": [
+              "expo",
+              "expo-asset",
+              "expo-linking",
+              "expo-notifications"
+            ],
+            "range": "16.0.3-canary-20240625-2333e70 - 55.0.14 || 56.0.0-canary-20260212-4f61309 - 56.0.0-canary-20260506-964f25d",
+            "nodes": [
+              "node_modules/expo-constants"
+            ],
+            "fixAvailable": {
+              "name": "expo-constants",
+              "version": "58.0.14",
+              "isSemVerMajor": true
+            }
+          },
+          "expo-dev-client": {
             "name": "expo-dev-client",
-            "version": "58.0.17",
-            "isSemVerMajor": true
-          }
-        },
-        "expo-dev-launcher": {
-          "name": "expo-dev-launcher",
-          "severity": "low",
-          "isDirect": false,
-          "via": [
-            "expo-manifests"
-          ],
-          "effects": [],
-          "range": "5.0.0-canary-20240814-ce0f7d5 - 55.0.0-canary-20260223-05214f1 || 55.0.5-canary-20260128-67ce8d5 || 55.0.11-canary-20260424-7bedc9d - 55.0.11-canary-20260429-a5e59cf || 55.0.21-canary-20260327-0789fbc - 55.0.21-canary-20260402-9da566b || 56.0.0-canary-20260212-4f61309 - 56.0.0-canary-20260506-964f25d",
-          "nodes": [
-            "node_modules/expo-dev-launcher"
-          ],
-          "fixAvailable": true
-        },
-        "expo-linking": {
-          "name": "expo-linking",
-          "severity": "low",
-          "isDirect": true,
-          "via": [
-            "expo-constants"
-          ],
-          "effects": [],
-          "range": "6.3.2-canary-20240625-2333e70 - 55.0.0-canary-20260223-05214f1 || 55.0.4-canary-20260128-67ce8d5 || 55.0.8-canary-20260424-7bedc9d - 55.0.8-canary-20260429-a5e59cf || 55.0.10-canary-20260327-0789fbc - 55.0.10-canary-20260402-9da566b || 56.0.0-canary-20260212-4f61309 - 56.0.0-canary-20260506-964f25d || 57.0.0-canary-20260526-13e89ca - 57.0.0-canary-20260623-1c70a78 || 58.0.0-canary-20260806-8c2d007 - 58.0.0-canary-20260908-e343e6e",
-          "nodes": [
-            "node_modules/expo-linking"
-          ],
-          "fixAvailable": {
+            "severity": "low",
+            "isDirect": true,
+            "via": [
+              "expo-dev-launcher",
+              "expo-manifests"
+            ],
+            "effects": [],
+            "range": "5.0.0-canary-20240814-ce0f7d5 - 55.0.0-canary-20260223-05214f1 || 55.0.4-canary-20260128-67ce8d5 || 55.0.10-canary-20260424-7bedc9d - 55.0.10-canary-20260429-a5e59cf || 55.0.20-canary-20260327-0789fbc - 55.0.20-canary-20260402-9da566b || 56.0.0-canary-20260212-4f61309 - 56.0.0-canary-20260506-964f25d",
+            "nodes": [
+              "node_modules/expo-dev-client"
+            ],
+            "fixAvailable": {
+              "name": "expo-dev-client",
+              "version": "58.0.17",
+              "isSemVerMajor": true
+            }
+          },
+          "expo-dev-launcher": {
+            "name": "expo-dev-launcher",
+            "severity": "low",
+            "isDirect": false,
+            "via": [
+              "expo-manifests"
+            ],
+            "effects": [],
+            "range": "5.0.0-canary-20240814-ce0f7d5 - 55.0.0-canary-20260223-05214f1 || 55.0.5-canary-20260128-67ce8d5 || 55.0.11-canary-20260424-7bedc9d - 55.0.11-canary-20260429-a5e59cf || 55.0.21-canary-20260327-0789fbc - 55.0.21-canary-20260402-9da566b || 56.0.0-canary-20260212-4f61309 - 56.0.0-canary-20260506-964f25d",
+            "nodes": [
+              "node_modules/expo-dev-launcher"
+            ],
+            "fixAvailable": true
+          },
+          "expo-linking": {
             "name": "expo-linking",
-            "version": "58.0.15",
-            "isSemVerMajor": true
-          }
-        },
-        "expo-manifests": {
-          "name": "expo-manifests",
-          "severity": "low",
-          "isDirect": false,
-          "via": [
-            "@expo/config"
-          ],
-          "effects": [
-            "expo-dev-client",
-            "expo-dev-launcher",
-            "expo-updates"
-          ],
-          "range": "0.14.4-canary-20240625-2333e70 - 55.0.15 || 56.0.0-canary-20260212-4f61309 - 56.0.0-canary-20260506-964f25d",
-          "nodes": [
-            "node_modules/expo-manifests"
-          ],
-          "fixAvailable": {
-            "name": "expo-dev-client",
-            "version": "58.0.17",
-            "isSemVerMajor": true
-          }
-        },
-        "expo-notifications": {
-          "name": "expo-notifications",
-          "severity": "low",
-          "isDirect": true,
-          "via": [
-            "expo-constants"
-          ],
-          "effects": [],
-          "range": "0.29.0 - 55.0.0-canary-20260223-05214f1 || 55.0.5-canary-20260128-67ce8d5 || 55.0.11-canary-20260424-7bedc9d - 55.0.11-canary-20260429-a5e59cf || 55.0.15-canary-20260327-0789fbc - 55.0.15-canary-20260402-9da566b || 56.0.0-canary-20260212-4f61309 - 56.0.0-canary-20260506-964f25d || 56.0.15-canary-20260526-6cd5e37 - 56.0.15-canary-20260628-fc0d9b4 || 58.0.0-canary-20260806-8c2d007 - 58.0.0-canary-20260909-ea7a89a",
-          "nodes": [
-            "node_modules/expo-notifications"
-          ],
-          "fixAvailable": {
+            "severity": "low",
+            "isDirect": true,
+            "via": [
+              "expo-constants"
+            ],
+            "effects": [],
+            "range": "6.3.2-canary-20240625-2333e70 - 55.0.0-canary-20260223-05214f1 || 55.0.4-canary-20260128-67ce8d5 || 55.0.8-canary-20260424-7bedc9d - 55.0.8-canary-20260429-a5e59cf || 55.0.10-canary-20260327-0789fbc - 55.0.10-canary-20260402-9da566b || 56.0.0-canary-20260212-4f61309 - 56.0.0-canary-20260506-964f25d || 57.0.0-canary-20260526-13e89ca - 57.0.0-canary-20260623-1c70a78 || 58.0.0-canary-20260806-8c2d007 - 58.0.0-canary-20260908-e343e6e",
+            "nodes": [
+              "node_modules/expo-linking"
+            ],
+            "fixAvailable": {
+              "name": "expo-linking",
+              "version": "58.0.15",
+              "isSemVerMajor": true
+            }
+          },
+          "expo-manifests": {
+            "name": "expo-manifests",
+            "severity": "low",
+            "isDirect": false,
+            "via": [
+              "@expo/config"
+            ],
+            "effects": [
+              "expo-dev-client",
+              "expo-dev-launcher",
+              "expo-updates"
+            ],
+            "range": "0.14.4-canary-20240625-2333e70 - 55.0.15 || 56.0.0-canary-20260212-4f61309 - 56.0.0-canary-20260506-964f25d",
+            "nodes": [
+              "node_modules/expo-manifests"
+            ],
+            "fixAvailable": {
+              "name": "expo-dev-client",
+              "version": "58.0.17",
+              "isSemVerMajor": true
+            }
+          },
+          "expo-notifications": {
             "name": "expo-notifications",
-            "version": "58.1.7",
-            "isSemVerMajor": true
-          }
-        },
-        "expo-updates": {
-          "name": "expo-updates",
-          "severity": "low",
-          "isDirect": true,
-          "via": [
-            "expo-manifests"
-          ],
-          "effects": [],
-          "range": "0.26.0-canary-20240628-1ba8152 - 55.0.0-canary-20260223-05214f1 || 55.0.6-canary-20260128-67ce8d5 || 55.0.12-canary-20260424-7bedc9d - 55.0.12-canary-20260429-a5e59cf || 55.0.17-canary-20260327-0789fbc - 55.0.17-canary-20260402-9da566b || 56.0.0-canary-20260212-4f61309 - 56.0.0-canary-20260506-964f25d || 58.0.0-canary-20260805-ccd18b9 - 58.0.0-canary-20260909-ea7a89a",
-          "nodes": [
-            "node_modules/expo-updates"
-          ],
-          "fixAvailable": {
+            "severity": "low",
+            "isDirect": true,
+            "via": [
+              "expo-constants"
+            ],
+            "effects": [],
+            "range": "0.29.0 - 55.0.0-canary-20260223-05214f1 || 55.0.5-canary-20260128-67ce8d5 || 55.0.11-canary-20260424-7bedc9d - 55.0.11-canary-20260429-a5e59cf || 55.0.15-canary-20260327-0789fbc - 55.0.15-canary-20260402-9da566b || 56.0.0-canary-20260212-4f61309 - 56.0.0-canary-20260506-964f25d || 56.0.15-canary-20260526-6cd5e37 - 56.0.15-canary-20260628-fc0d9b4 || 58.0.0-canary-20260806-8c2d007 - 58.0.0-canary-20260909-ea7a89a",
+            "nodes": [
+              "node_modules/expo-notifications"
+            ],
+            "fixAvailable": {
+              "name": "expo-notifications",
+              "version": "58.1.7",
+              "isSemVerMajor": true
+            }
+          },
+          "expo-updates": {
             "name": "expo-updates",
-            "version": "58.0.19",
-            "isSemVerMajor": true
+            "severity": "low",
+            "isDirect": true,
+            "via": [
+              "expo-manifests"
+            ],
+            "effects": [],
+            "range": "0.26.0-canary-20240628-1ba8152 - 55.0.0-canary-20260223-05214f1 || 55.0.6-canary-20260128-67ce8d5 || 55.0.12-canary-20260424-7bedc9d - 55.0.12-canary-20260429-a5e59cf || 55.0.17-canary-20260327-0789fbc - 55.0.17-canary-20260402-9da566b || 56.0.0-canary-20260212-4f61309 - 56.0.0-canary-20260506-964f25d || 58.0.0-canary-20260805-ccd18b9 - 58.0.0-canary-20260909-ea7a89a",
+            "nodes": [
+              "node_modules/expo-updates"
+            ],
+            "fixAvailable": {
+              "name": "expo-updates",
+              "version": "58.0.19",
+              "isSemVerMajor": true
+            }
+          },
+          "image-size": {
+            "name": "image-size",
+            "severity": "high",
+            "isDirect": false,
+            "via": [
+              {
+                "source": 1239765,
+                "name": "image-size",
+                "dependency": "image-size",
+                "title": "image-size: JXL and HEIF parsers allow denial of service through infinite loops",
+                "url": "https://github.com/advisories/GHSA-5p2g-fcmc-qvqq",
+                "severity": "high",
+                "cwe": [
+                  "CWE-835"
+                ],
+                "cvss": {
+                  "score": 7.5,
+                  "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+                },
+                "range": ">=1.2.0 <=2.0.2"
+              },
+              {
+                "source": 1239766,
+                "name": "image-size",
+                "dependency": "image-size",
+                "title": "image-size: ICNS parser allows denial of service through an infinite loop",
+                "url": "https://github.com/advisories/GHSA-w3rx-r6r6-pgpr",
+                "severity": "high",
+                "cwe": [
+                  "CWE-835"
+                ],
+                "cvss": {
+                  "score": 7.5,
+                  "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+                },
+                "range": ">=0.6.3 <=2.0.2"
+              }
+            ],
+            "effects": [],
+            "range": "0.6.3 - 2.0.2",
+            "nodes": [
+              "node_modules/image-size"
+            ],
+            "fixAvailable": true
+          },
+          "postcss": {
+            "name": "postcss",
+            "severity": "high",
+            "isDirect": false,
+            "via": [
+              {
+                "source": 1117015,
+                "name": "postcss",
+                "dependency": "postcss",
+                "title": "PostCSS has XSS via Unescaped </style> in its CSS Stringify Output",
+                "url": "https://github.com/advisories/GHSA-qx2v-qp2m-jg93",
+                "severity": "moderate",
+                "cwe": [
+                  "CWE-79"
+                ],
+                "cvss": {
+                  "score": 6.1,
+                  "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N"
+                },
+                "range": "<8.5.10"
+              },
+              {
+                "source": 1124252,
+                "name": "postcss",
+                "dependency": "postcss",
+                "title": "PostCSS: Arbitrary file read and information disclosure via attacker-controlled sourceMappingURL in CSS comments",
+                "url": "https://github.com/advisories/GHSA-6g55-p6wh-862q",
+                "severity": "high",
+                "cwe": [
+                  "CWE-22",
+                  "CWE-200"
+                ],
+                "cvss": {
+                  "score": 7.5,
+                  "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+                },
+                "range": "<=8.5.11"
+              },
+              {
+                "source": 1130709,
+                "name": "postcss",
+                "dependency": "postcss",
+                "title": "PostCSS: incomplete fix of GHSA-6g55-p6wh-862q — attacker-controlled sourceMappingURL reads arbitrary .map files when `from` is unset",
+                "url": "https://github.com/advisories/GHSA-fxqj-rqcc-2cmp",
+                "severity": "moderate",
+                "cwe": [
+                  "CWE-22",
+                  "CWE-200"
+                ],
+                "cvss": {
+                  "score": 0,
+                  "vectorString": null
+                },
+                "range": "<=8.5.22"
+              },
+              {
+                "source": 1139510,
+                "name": "postcss",
+                "dependency": "postcss",
+                "title": "PostCSS: Path Traversal in Previous Source Map Auto-Loading (sourceMappingURL) leads to Arbitrary .map File Disclosure",
+                "url": "https://github.com/advisories/GHSA-r28c-9q8g-f849",
+                "severity": "high",
+                "cwe": [
+                  "CWE-22"
+                ],
+                "cvss": {
+                  "score": 7.5,
+                  "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
+                },
+                "range": "<=8.5.17"
+              }
+            ],
+            "effects": [
+              "@expo/metro-config"
+            ],
+            "range": "<=8.5.22",
+            "nodes": [
+              "node_modules/postcss"
+            ],
+            "fixAvailable": {
+              "name": "expo",
+              "version": "51.0.39",
+              "isSemVerMajor": true
+            }
+          },
+          "query-string": {
+            "name": "query-string",
+            "severity": "high",
+            "isDirect": false,
+            "via": [
+              "decode-uri-component"
+            ],
+            "effects": [
+              "@react-navigation/core"
+            ],
+            "range": "5.0.0 - 9.4.1",
+            "nodes": [
+              "node_modules/query-string"
+            ],
+            "fixAvailable": {
+              "name": "@react-navigation/native",
+              "version": "7.5.1",
+              "isSemVerMajor": true
+            }
+          },
+          "uuid": {
+            "name": "uuid",
+            "severity": "moderate",
+            "isDirect": false,
+            "via": [
+              {
+                "source": 1119441,
+                "name": "uuid",
+                "dependency": "uuid",
+                "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
+                "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq",
+                "severity": "moderate",
+                "cwe": [
+                  "CWE-787",
+                  "CWE-1285"
+                ],
+                "cvss": {
+                  "score": 7.5,
+                  "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
+                },
+                "range": "<11.1.1"
+              }
+            ],
+            "effects": [
+              "@expo/ngrok",
+              "xcode"
+            ],
+            "range": "<11.1.1",
+            "nodes": [
+              "node_modules/@expo/ngrok/node_modules/uuid",
+              "node_modules/uuid"
+            ],
+            "fixAvailable": false
+          },
+          "xcode": {
+            "name": "xcode",
+            "severity": "moderate",
+            "isDirect": false,
+            "via": [
+              "uuid"
+            ],
+            "effects": [
+              "@expo/config-plugins"
+            ],
+            "range": "0.9.2 - 3.0.2-nightly.20251125002453809.sha.e6b981ec",
+            "nodes": [
+              "node_modules/xcode"
+            ],
+            "fixAvailable": true
           }
         },
-        "image-size": {
-          "name": "image-size",
-          "severity": "high",
-          "isDirect": false,
-          "via": [
-            {
-              "source": 1239765,
-              "name": "image-size",
-              "dependency": "image-size",
-              "title": "image-size: JXL and HEIF parsers allow denial of service through infinite loops",
-              "url": "https://github.com/advisories/GHSA-5p2g-fcmc-qvqq",
-              "severity": "high",
-              "cwe": [
-                "CWE-835"
-              ],
-              "cvss": {
-                "score": 7.5,
-                "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
-              },
-              "range": ">=1.2.0 <=2.0.2"
-            },
-            {
-              "source": 1239766,
-              "name": "image-size",
-              "dependency": "image-size",
-              "title": "image-size: ICNS parser allows denial of service through an infinite loop",
-              "url": "https://github.com/advisories/GHSA-w3rx-r6r6-pgpr",
-              "severity": "high",
-              "cwe": [
-                "CWE-835"
-              ],
-              "cvss": {
-                "score": 7.5,
-                "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
-              },
-              "range": ">=0.6.3 <=2.0.2"
-            }
-          ],
-          "effects": [],
-          "range": "0.6.3 - 2.0.2",
-          "nodes": [
-            "node_modules/image-size"
-          ],
-          "fixAvailable": true
-        },
-        "postcss": {
-          "name": "postcss",
-          "severity": "high",
-          "isDirect": false,
-          "via": [
-            {
-              "source": 1117015,
-              "name": "postcss",
-              "dependency": "postcss",
-              "title": "PostCSS has XSS via Unescaped </style> in its CSS Stringify Output",
-              "url": "https://github.com/advisories/GHSA-qx2v-qp2m-jg93",
-              "severity": "moderate",
-              "cwe": [
-                "CWE-79"
-              ],
-              "cvss": {
-                "score": 6.1,
-                "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N"
-              },
-              "range": "<8.5.10"
-            },
-            {
-              "source": 1124252,
-              "name": "postcss",
-              "dependency": "postcss",
-              "title": "PostCSS: Arbitrary file read and information disclosure via attacker-controlled sourceMappingURL in CSS comments",
-              "url": "https://github.com/advisories/GHSA-6g55-p6wh-862q",
-              "severity": "high",
-              "cwe": [
-                "CWE-22",
-                "CWE-200"
-              ],
-              "cvss": {
-                "score": 7.5,
-                "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
-              },
-              "range": "<=8.5.11"
-            },
-            {
-              "source": 1130709,
-              "name": "postcss",
-              "dependency": "postcss",
-              "title": "PostCSS: incomplete fix of GHSA-6g55-p6wh-862q \u2014 attacker-controlled sourceMappingURL reads arbitrary .map files when `from` is unset",
-              "url": "https://github.com/advisories/GHSA-fxqj-rqcc-2cmp",
-              "severity": "moderate",
-              "cwe": [
-                "CWE-22",
-                "CWE-200"
-              ],
-              "cvss": {
-                "score": 0,
-                "vectorString": null
-              },
-              "range": "<=8.5.22"
-            },
-            {
-              "source": 1139510,
-              "name": "postcss",
-              "dependency": "postcss",
-              "title": "PostCSS: Path Traversal in Previous Source Map Auto-Loading (sourceMappingURL) leads to Arbitrary .map File Disclosure",
-              "url": "https://github.com/advisories/GHSA-r28c-9q8g-f849",
-              "severity": "high",
-              "cwe": [
-                "CWE-22"
-              ],
-              "cvss": {
-                "score": 7.5,
-                "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N"
-              },
-              "range": "<=8.5.17"
-            }
-          ],
-          "effects": [
-            "@expo/metro-config"
-          ],
-          "range": "<=8.5.22",
-          "nodes": [
-            "node_modules/postcss"
-          ],
-          "fixAvailable": {
-            "name": "expo",
-            "version": "51.0.39",
-            "isSemVerMajor": true
+        "lock_sha256": "d4c2f12ad04cacb5295bc1a76a29288ac00b37be40e3f6c261ef08055f8c1ade",
+        "manifest_change": "Removed unused direct zod dependency; exact source import search found no consumers. All other direct versions unchanged.",
+        "lock_version_changes": [
+          {
+            "location": "node_modules/@eslint/config-array/node_modules/brace-expansion",
+            "before": "1.1.18",
+            "after": "1.1.21"
+          },
+          {
+            "location": "node_modules/@eslint/eslintrc/node_modules/brace-expansion",
+            "before": "1.1.18",
+            "after": "1.1.21"
+          },
+          {
+            "location": "node_modules/@expo/fingerprint/node_modules/brace-expansion",
+            "before": "5.0.9",
+            "after": "5.0.12"
+          },
+          {
+            "location": "node_modules/@react-native/codegen/node_modules/brace-expansion",
+            "before": "1.1.18",
+            "after": "1.1.21"
+          },
+          {
+            "location": "node_modules/@typescript-eslint/typescript-estree/node_modules/brace-expansion",
+            "before": "5.0.9",
+            "after": "5.0.12"
+          },
+          {
+            "location": "node_modules/brace-expansion",
+            "before": "2.1.4",
+            "after": "2.1.7"
+          },
+          {
+            "location": "node_modules/compression",
+            "before": "1.8.1",
+            "after": "1.8.2"
+          },
+          {
+            "location": "node_modules/eslint-plugin-import/node_modules/brace-expansion",
+            "before": "1.1.18",
+            "after": "1.1.21"
+          },
+          {
+            "location": "node_modules/eslint-plugin-react/node_modules/brace-expansion",
+            "before": "1.1.18",
+            "after": "1.1.21"
+          },
+          {
+            "location": "node_modules/eslint/node_modules/brace-expansion",
+            "before": "1.1.18",
+            "after": "1.1.21"
+          },
+          {
+            "location": "node_modules/fast-uri",
+            "before": "3.1.7",
+            "after": "3.1.9"
+          },
+          {
+            "location": "node_modules/glob/node_modules/brace-expansion",
+            "before": "5.0.9",
+            "after": "5.0.12"
+          },
+          {
+            "location": "node_modules/node-forge",
+            "before": "1.4.0",
+            "after": "1.4.2"
+          },
+          {
+            "location": "node_modules/react-native/node_modules/brace-expansion",
+            "before": "1.1.18",
+            "after": "1.1.21"
+          },
+          {
+            "location": "node_modules/rimraf/node_modules/brace-expansion",
+            "before": "1.1.18",
+            "after": "1.1.21"
+          },
+          {
+            "location": "node_modules/shell-quote",
+            "before": "1.10.0",
+            "after": "1.12.0"
+          },
+          {
+            "location": "node_modules/source-map-js",
+            "before": "1.2.1",
+            "after": "1.2.2"
+          },
+          {
+            "location": "node_modules/test-exclude/node_modules/brace-expansion",
+            "before": "1.1.18",
+            "after": "1.1.21"
+          },
+          {
+            "location": "node_modules/undici",
+            "before": "6.28.1",
+            "after": "6.29.1"
+          },
+          {
+            "location": "node_modules/zod",
+            "before": "3.25.76",
+            "after": null
           }
-        },
-        "query-string": {
-          "name": "query-string",
-          "severity": "high",
-          "isDirect": false,
-          "via": [
-            "decode-uri-component"
-          ],
-          "effects": [
-            "@react-navigation/core"
-          ],
-          "range": "5.0.0 - 9.4.1",
-          "nodes": [
-            "node_modules/query-string"
-          ],
-          "fixAvailable": {
-            "name": "@react-navigation/native",
-            "version": "7.5.1",
-            "isSemVerMajor": true
-          }
-        },
-        "uuid": {
-          "name": "uuid",
-          "severity": "moderate",
-          "isDirect": false,
-          "via": [
-            {
-              "source": 1119441,
-              "name": "uuid",
-              "dependency": "uuid",
-              "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
-              "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq",
-              "severity": "moderate",
-              "cwe": [
-                "CWE-787",
-                "CWE-1285"
-              ],
-              "cvss": {
-                "score": 7.5,
-                "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N"
-              },
-              "range": "<11.1.1"
-            }
-          ],
-          "effects": [
-            "@expo/ngrok",
-            "xcode"
-          ],
-          "range": "<11.1.1",
-          "nodes": [
-            "node_modules/@expo/ngrok/node_modules/uuid",
-            "node_modules/uuid"
-          ],
-          "fixAvailable": false
-        },
-        "xcode": {
-          "name": "xcode",
-          "severity": "moderate",
-          "isDirect": false,
-          "via": [
-            "uuid"
-          ],
-          "effects": [
-            "@expo/config-plugins"
-          ],
-          "range": "0.9.2 - 3.0.2-nightly.20251125002453809.sha.e6b981ec",
-          "nodes": [
-            "node_modules/xcode"
-          ],
-          "fixAvailable": true
-        }
+        ]
       },
-      "lock_sha256": "d4c2f12ad04cacb5295bc1a76a29288ac00b37be40e3f6c261ef08055f8c1ade",
-      "manifest_change": "Removed unused direct zod dependency; exact source import search found no consumers. All other direct versions unchanged."
+      "completion_pass": {
+        "baseline_commit": "b2e261332ea449a19c19a128e8ec3b50ce032a2e",
+        "before_counts": {
+          "info": 0,
+          "low": 11,
+          "moderate": 7,
+          "high": 6,
+          "critical": 0,
+          "total": 24
+        },
+        "after_counts": {
+          "info": 0,
+          "low": 0,
+          "moderate": 0,
+          "high": 0,
+          "critical": 0,
+          "total": 0
+        },
+        "overrides": {
+          "metro@>=0.83.0 <0.84.0": "0.83.8",
+          "metro-babel-transformer@>=0.83.0 <0.84.0": "0.83.8",
+          "metro-cache@>=0.83.0 <0.84.0": "0.83.8",
+          "metro-cache-key@>=0.83.0 <0.84.0": "0.83.8",
+          "metro-config@>=0.83.0 <0.84.0": "0.83.8",
+          "metro-core@>=0.83.0 <0.84.0": "0.83.8",
+          "metro-file-map@>=0.83.0 <0.84.0": "0.83.8",
+          "metro-minify-terser@>=0.83.0 <0.84.0": "0.83.8",
+          "metro-resolver@>=0.83.0 <0.84.0": "0.83.8",
+          "metro-runtime@>=0.83.0 <0.84.0": "0.83.8",
+          "metro-source-map@>=0.83.0 <0.84.0": "0.83.8",
+          "metro-symbolicate@>=0.83.0 <0.84.0": "0.83.8",
+          "metro-transform-plugins@>=0.83.0 <0.84.0": "0.83.8",
+          "metro-transform-worker@>=0.83.0 <0.84.0": "0.83.8",
+          "@expo/metro-config@54.0.17": {
+            "postcss": "8.5.23"
+          },
+          "xcode@3.0.1": {
+            "uuid": "11.1.1"
+          },
+          "@expo/ngrok": {
+            ".": "$@expo/ngrok",
+            "uuid": "11.1.1"
+          },
+          "query-string@7.1.3": {
+            "decode-uri-component": "$decode-uri-component"
+          },
+          "@expo/config@12.0.14": {
+            "deepmerge": "$deepmerge"
+          }
+        },
+        "changed_packages": [
+          {
+            "path": "node_modules/@config-plugins/react-native-callkeep",
+            "before": "14.0.1",
+            "after": "12.0.0"
+          },
+          {
+            "path": "node_modules/@daily-co/daily-js",
+            "before": "0.89.1",
+            "after": "0.91.0"
+          },
+          {
+            "path": "node_modules/@daily-co/react-native-daily-js",
+            "before": "0.84.1",
+            "after": "0.86.0"
+          },
+          {
+            "path": "node_modules/@sentry-internal/browser-utils",
+            "before": "8.55.1",
+            "after": "8.55.2"
+          },
+          {
+            "path": "node_modules/@sentry-internal/feedback",
+            "before": "8.55.1",
+            "after": "8.55.2"
+          },
+          {
+            "path": "node_modules/@sentry-internal/replay",
+            "before": "8.55.1",
+            "after": "8.55.2"
+          },
+          {
+            "path": "node_modules/@sentry-internal/replay-canvas",
+            "before": "8.55.1",
+            "after": "8.55.2"
+          },
+          {
+            "path": "node_modules/@sentry/browser",
+            "before": "8.55.1",
+            "after": "8.55.2"
+          },
+          {
+            "path": "node_modules/@sentry/core",
+            "before": "8.55.1",
+            "after": "8.55.2"
+          },
+          {
+            "path": "node_modules/bowser",
+            "before": "2.14.1",
+            "after": "2.15.0"
+          },
+          {
+            "path": "node_modules/content-type",
+            "before": null,
+            "after": "2.1.0"
+          },
+          {
+            "path": "node_modules/metro",
+            "before": "0.83.3",
+            "after": "0.83.8"
+          },
+          {
+            "path": "node_modules/metro-babel-transformer",
+            "before": "0.83.3",
+            "after": "0.83.8"
+          },
+          {
+            "path": "node_modules/metro-babel-transformer/node_modules/hermes-estree",
+            "before": "0.32.0",
+            "after": "0.35.0"
+          },
+          {
+            "path": "node_modules/metro-babel-transformer/node_modules/hermes-parser",
+            "before": "0.32.0",
+            "after": "0.35.0"
+          },
+          {
+            "path": "node_modules/metro-cache",
+            "before": "0.83.3",
+            "after": "0.83.8"
+          },
+          {
+            "path": "node_modules/metro-cache-key",
+            "before": "0.83.3",
+            "after": "0.83.8"
+          },
+          {
+            "path": "node_modules/metro-config",
+            "before": "0.83.3",
+            "after": "0.83.8"
+          },
+          {
+            "path": "node_modules/metro-core",
+            "before": "0.83.3",
+            "after": "0.83.8"
+          },
+          {
+            "path": "node_modules/metro-file-map",
+            "before": "0.83.3",
+            "after": "0.83.8"
+          },
+          {
+            "path": "node_modules/metro-minify-terser",
+            "before": "0.83.3",
+            "after": "0.83.8"
+          },
+          {
+            "path": "node_modules/metro-resolver",
+            "before": "0.83.3",
+            "after": "0.83.8"
+          },
+          {
+            "path": "node_modules/metro-runtime",
+            "before": "0.83.3",
+            "after": "0.83.8"
+          },
+          {
+            "path": "node_modules/metro-source-map",
+            "before": "0.83.3",
+            "after": "0.83.8"
+          },
+          {
+            "path": "node_modules/metro-symbolicate",
+            "before": "0.83.3",
+            "after": "0.83.8"
+          },
+          {
+            "path": "node_modules/metro-transform-plugins",
+            "before": "0.83.3",
+            "after": "0.83.8"
+          },
+          {
+            "path": "node_modules/metro-transform-worker",
+            "before": "0.83.3",
+            "after": "0.83.8"
+          },
+          {
+            "path": "node_modules/metro/node_modules/accepts",
+            "before": null,
+            "after": "2.0.0"
+          },
+          {
+            "path": "node_modules/metro/node_modules/hermes-estree",
+            "before": "0.32.0",
+            "after": "0.35.0"
+          },
+          {
+            "path": "node_modules/metro/node_modules/hermes-parser",
+            "before": "0.32.0",
+            "after": "0.35.0"
+          },
+          {
+            "path": "node_modules/metro/node_modules/mime-types",
+            "before": null,
+            "after": "3.0.2"
+          },
+          {
+            "path": "node_modules/metro/node_modules/negotiator",
+            "before": null,
+            "after": "1.1.0"
+          },
+          {
+            "path": "node_modules/ob1",
+            "before": "0.83.3",
+            "after": "0.83.8"
+          },
+          {
+            "path": "node_modules/postcss",
+            "before": "8.4.49",
+            "after": "8.5.23"
+          },
+          {
+            "path": "node_modules/uuid",
+            "before": "7.0.3",
+            "after": "11.1.1"
+          }
+        ],
+        "removed_package_locations": [
+          {
+            "path": "node_modules/@babel/traverse--for-generate-function-map",
+            "version": "7.29.0"
+          },
+          {
+            "path": "node_modules/@expo/ngrok/node_modules/uuid",
+            "version": "3.4.0"
+          },
+          {
+            "path": "node_modules/@react-native/community-cli-plugin/node_modules/accepts",
+            "version": "2.0.0"
+          },
+          {
+            "path": "node_modules/@react-native/community-cli-plugin/node_modules/hermes-estree",
+            "version": "0.35.0"
+          },
+          {
+            "path": "node_modules/@react-native/community-cli-plugin/node_modules/hermes-parser",
+            "version": "0.35.0"
+          },
+          {
+            "path": "node_modules/@react-native/community-cli-plugin/node_modules/metro",
+            "version": "0.83.6"
+          },
+          {
+            "path": "node_modules/@react-native/community-cli-plugin/node_modules/metro-babel-transformer",
+            "version": "0.83.6"
+          },
+          {
+            "path": "node_modules/@react-native/community-cli-plugin/node_modules/metro-cache",
+            "version": "0.83.6"
+          },
+          {
+            "path": "node_modules/@react-native/community-cli-plugin/node_modules/metro-cache-key",
+            "version": "0.83.6"
+          },
+          {
+            "path": "node_modules/@react-native/community-cli-plugin/node_modules/metro-config",
+            "version": "0.83.6"
+          },
+          {
+            "path": "node_modules/@react-native/community-cli-plugin/node_modules/metro-core",
+            "version": "0.83.6"
+          },
+          {
+            "path": "node_modules/@react-native/community-cli-plugin/node_modules/metro-file-map",
+            "version": "0.83.6"
+          },
+          {
+            "path": "node_modules/@react-native/community-cli-plugin/node_modules/metro-minify-terser",
+            "version": "0.83.6"
+          },
+          {
+            "path": "node_modules/@react-native/community-cli-plugin/node_modules/metro-resolver",
+            "version": "0.83.6"
+          },
+          {
+            "path": "node_modules/@react-native/community-cli-plugin/node_modules/metro-runtime",
+            "version": "0.83.6"
+          },
+          {
+            "path": "node_modules/@react-native/community-cli-plugin/node_modules/metro-source-map",
+            "version": "0.83.6"
+          },
+          {
+            "path": "node_modules/@react-native/community-cli-plugin/node_modules/metro-symbolicate",
+            "version": "0.83.6"
+          },
+          {
+            "path": "node_modules/@react-native/community-cli-plugin/node_modules/metro-transform-plugins",
+            "version": "0.83.6"
+          },
+          {
+            "path": "node_modules/@react-native/community-cli-plugin/node_modules/metro-transform-worker",
+            "version": "0.83.6"
+          },
+          {
+            "path": "node_modules/@react-native/community-cli-plugin/node_modules/mime-types",
+            "version": "3.0.2"
+          },
+          {
+            "path": "node_modules/@react-native/community-cli-plugin/node_modules/negotiator",
+            "version": "1.0.0"
+          },
+          {
+            "path": "node_modules/@react-native/community-cli-plugin/node_modules/ob1",
+            "version": "0.83.6"
+          },
+          {
+            "path": "node_modules/@react-native/community-cli-plugin/node_modules/ws",
+            "version": "7.5.13"
+          },
+          {
+            "path": "node_modules/image-size",
+            "version": "1.2.1"
+          },
+          {
+            "path": "node_modules/queue",
+            "version": "6.0.2"
+          },
+          {
+            "path": "node_modules/react-native/node_modules/metro-runtime",
+            "version": "0.83.6"
+          }
+        ],
+        "checks": {
+          "npm_ls_all": "exit 0, no dependency errors",
+          "native_dependency_compatibility": "10 passed; zero failed/skipped",
+          "guarded_navigation_actual_parser": "8 passed; zero failed/skipped",
+          "typescript": "exit 0 after source replacements",
+          "local_ios_javascript_export": {
+            "result": "pass",
+            "modules": 2856,
+            "assets": 45,
+            "hermes_bundle": "index-acfdbb9b7c4505576f1de4efa024c12d.hbc",
+            "log": "/tmp/platinum-native-vendor-export.log",
+            "native_compilation": false,
+            "eas_or_testflight": false
+          },
+          "native_vendored_source_compatibility": "7 passed; zero failed/skipped; includes 139 unchanged upstream decoder cases / 164 assertions",
+          "full_clean_npm_ci": "exit 0; 1,063 packages; /tmp/platinum-native-vendor-clean-install.log",
+          "full_clean_npm_ls": "exit 0; /tmp/platinum-native-vendor-clean-tree.json",
+          "npm10_local_override_fixture": "npm 10.9.4 clean install and actual consumer resolution passed"
+        },
+        "remaining_underlying_packages": [],
+        "maintenance_only_intermediate_counts": {
+          "info": 0,
+          "low": 14,
+          "moderate": 0,
+          "high": 4,
+          "critical": 0,
+          "total": 18
+        },
+        "manual_review_components": [
+          {
+            "path": "vendor/decode-uri-component-cjs",
+            "consumer": "query-string@7.1.3",
+            "registry_advisory_coverage": false,
+            "provenance": {
+              "upstream": {
+                "package": "decode-uri-component",
+                "version": "0.5.1",
+                "repository": "https://github.com/SamVerschueren/decode-uri-component",
+                "commit": "58ed85f5adc7cfaee5e49e4d52b067f172d0bcb6",
+                "tarball": "https://registry.npmjs.org/decode-uri-component/-/decode-uri-component-0.5.1.tgz",
+                "integrity": "sha512-vWHQkXgg2cE3BB4rR0c+PYw9BCQzLoNIRMI7AunIkZst74tw/vpPp7VLoYtsR/cy1f55g3XDWUslfeCZjiZJyA==",
+                "tarballSha256": "68747a955bbb6a700d758155cf5ff15595c0dfa38504d385abdb249c688bfb15",
+                "filesSha256": {
+                  "index.js": "6a86ac891edf15c5efa0841ebb31935e3669d58b98318b57d7b08a4530317cb0",
+                  "license": "ed7a9a0f74e43951b2520efe1a4349cb9ed5f3dff0b0f268e2e51a4d38df7ea4",
+                  "test.js": "acb81f2173ef208c173465fa98f054923c1ca78b7aa09e1493ee5936b963acba",
+                  "package.metadata.json": "8822236f8ec0fc7c8f540812dda32b81797bec92e51bd567fbb196fda04a7f13"
+                },
+                "originalPathByFile": {
+                  "package.metadata.json": "package.json"
+                }
+              },
+              "local": {
+                "package": "@platinumcircles/decode-uri-component-cjs",
+                "version": "0.5.1-pc.1",
+                "runtimeSha256": "e82696ecdf0ee2c25bd90169cc7915e552d2ccb82a5006c55bc17aecdb55b919",
+                "patchSha256": "b1a29230e5db5a2b7cdc9ac2a99703dcbdd6eed5be44f9dc6bb333a5ddc025a5",
+                "changes": [
+                  "One export declaration is adapted from ESM default export to callable CommonJS module.exports; the 0.5.1 decoding algorithm is unchanged."
+                ]
+              },
+              "advisories": [
+                "https://github.com/advisories/GHSA-qr28-fpjm-wq7f",
+                "https://github.com/advisories/GHSA-vcc3-ghjq-m6fr"
+              ],
+              "registryAuditCoverage": "The private local adaptation is not indexed in npm advisory metadata. Do not treat its absence from npm audit as independent security assurance."
+            }
+          },
+          {
+            "path": "vendor/deepmerge-safe-cjs",
+            "consumer": "@expo/config@12.0.14",
+            "registry_advisory_coverage": false,
+            "provenance": {
+              "upstream": {
+                "package": "deepmerge",
+                "version": "4.3.1",
+                "repository": "https://github.com/TehShrike/deepmerge",
+                "commit": "5b87756a5671635679001cbac72aa42f23472c81",
+                "tarball": "https://registry.npmjs.org/deepmerge/-/deepmerge-4.3.1.tgz",
+                "integrity": "sha512-3sUqbMEc77XqpdNO7FRyRog+eW3ph+GYCbj+rK+uYyRMuwsVy0rMiVtPn+QJlKFvWP/1PYpapqYn0Me2knFn+A==",
+                "tarballSha256": "4003a0a348276a95543fa969f561f6b5968629acbbb59d66018dd23e7b8f1d5c",
+                "filesSha256": {
+                  "dist/cjs.js": "2e5160f84a1141bd927264afe4d15766f1e6cf07daef182b37ff53fea121de7d",
+                  "license.txt": "6cfc4687cb2f2d86f4a77e6b526290d3878e5e512f3fec2f4cb36a9cb36f798b",
+                  "is-mergeable-object/index.js": "29449d50d8b7b7b45b1104ad5a21c92f34de22cc0aa55d0296197ecf5303e2fe",
+                  "is-mergeable-object/readme.md": "0bfa1f6512f467b72d7edb2fdd283889e8fcc9b1fc9627ce997616ecf5e47262",
+                  "package.metadata.json": "f56978e7a6da1a3c6edee41abb54f98584a2fa2680458c48db820ae772fef0c9",
+                  "is-mergeable-object/package.metadata.json": "e8b4126b398f22247c9b8177f492dc9e75b1c4506807ccc0263624a91dda7c2b"
+                },
+                "bundledComponent": {
+                  "package": "is-mergeable-object",
+                  "version": "1.1.0",
+                  "commit": "0d3d3c837e74b03191850544abd1abf23e94ae89",
+                  "tarball": "https://registry.npmjs.org/is-mergeable-object/-/is-mergeable-object-1.1.0.tgz",
+                  "integrity": "sha512-JfyDDwUdtS4yHCgUpxOyKB9dnfZ0gecufxB0eytX6BmSXSE+8dbxDGt+V7CNRIRJ9sYFV/WQt2KJG6hNob2sBw==",
+                  "tarballSha256": "a6158ee33c03f765ebfb2d863784a3fbcd6874cecb758eede903b8a7edec05ba",
+                  "license": "MIT",
+                  "notice": "The upstream deepmerge CJS distribution already bundles this helper. Its npm archive provides package/readme MIT declarations but no separate license file; both declarations are retained here with its exact source."
+                },
+                "originalPathByFile": {
+                  "package.metadata.json": "package.json",
+                  "is-mergeable-object/package.metadata.json": "is-mergeable-object/package.json"
+                }
+              },
+              "local": {
+                "package": "@platinumcircles/deepmerge-safe-cjs",
+                "version": "4.3.1-pc.1",
+                "runtimeSha256": "07da2fe622bdb3781eddce30b2d89d6c3bd55c1da66a9ce613cac7018b96e92d",
+                "patchSha256": "ee1ba00842e7a45f3d78a0d34620246d1d0f4c95e33e11beb6a336f46c5abc7f",
+                "changes": [
+                  "Discard __proto__ before reading or assigning it in both target and source loops, independent of the target shape.",
+                  "Define own enumerable writable configurable data properties for all three merge writes; preserve array/customMerge/clone/symbol behavior and ordinary constructor/prototype data semantics."
+                ]
+              },
+              "advisories": [
+                "https://github.com/advisories/GHSA-gcqx-w48m-w2h4"
+              ],
+              "registryAuditCoverage": "The private local adaptation is not indexed in npm advisory metadata. Do not treat its absence from npm audit as independent security assurance."
+            }
+          }
+        ],
+        "registry_audit_caveat": "Private local source adaptations are not analyzed by npm advisory metadata. Zero registry findings does not independently attest these two components or the whole application. Their reviewed immutable source, minimal patches and consumer/security regressions are recorded separately."
+      },
+      "pre_local_source_replacement": {
+        "source_commit": "acff541376315e01d24f279815fca0f714c8089f",
+        "counts": {
+          "info": 0,
+          "low": 14,
+          "moderate": 0,
+          "high": 4,
+          "critical": 0,
+          "total": 18
+        },
+        "advisories": {
+          "@expo/cli": {
+            "name": "@expo/cli",
+            "severity": "low",
+            "isDirect": false,
+            "via": [
+              "@expo/config",
+              "@expo/metro-config",
+              "@expo/prebuild-config"
+            ],
+            "effects": [],
+            "range": ">=0.19.0-canary-20240625-2333e70",
+            "nodes": [
+              "node_modules/@expo/cli"
+            ],
+            "fixAvailable": true
+          },
+          "@expo/config": {
+            "name": "@expo/config",
+            "severity": "low",
+            "isDirect": false,
+            "via": [
+              "deepmerge"
+            ],
+            "effects": [
+              "@expo/cli",
+              "@expo/metro-config",
+              "@expo/prebuild-config",
+              "expo",
+              "expo-constants",
+              "expo-manifests"
+            ],
+            "range": ">=9.1.0-canary-20240628-1ba8152",
+            "nodes": [
+              "node_modules/@expo/config"
+            ],
+            "fixAvailable": {
+              "name": "expo-constants",
+              "version": "58.0.14",
+              "isSemVerMajor": true
+            }
+          },
+          "@expo/metro-config": {
+            "name": "@expo/metro-config",
+            "severity": "low",
+            "isDirect": false,
+            "via": [
+              "@expo/config"
+            ],
+            "effects": [],
+            "range": ">=0.19.0-canary-20240625-2333e70",
+            "nodes": [
+              "node_modules/@expo/metro-config"
+            ],
+            "fixAvailable": true
+          },
+          "@expo/prebuild-config": {
+            "name": "@expo/prebuild-config",
+            "severity": "low",
+            "isDirect": false,
+            "via": [
+              "@expo/config"
+            ],
+            "effects": [],
+            "range": ">=7.1.0-canary-20240904-69100c1",
+            "nodes": [
+              "node_modules/@expo/prebuild-config"
+            ],
+            "fixAvailable": true
+          },
+          "@react-navigation/core": {
+            "name": "@react-navigation/core",
+            "severity": "high",
+            "isDirect": false,
+            "via": [
+              "query-string"
+            ],
+            "effects": [
+              "@react-navigation/native"
+            ],
+            "range": "<=7.22.0 || 8.0.0-alpha.0 - 8.0.0-alpha.9",
+            "nodes": [
+              "node_modules/@react-navigation/core"
+            ],
+            "fixAvailable": {
+              "name": "@react-navigation/native",
+              "version": "7.5.1",
+              "isSemVerMajor": true
+            }
+          },
+          "@react-navigation/native": {
+            "name": "@react-navigation/native",
+            "severity": "high",
+            "isDirect": true,
+            "via": [
+              "@react-navigation/core"
+            ],
+            "effects": [],
+            "range": "<=3.0.0-alpha.12 || 3.0.1 - 3.6.5 || 4.0.0-alpha.0 - 6.1.18",
+            "nodes": [
+              "node_modules/@react-navigation/native"
+            ],
+            "fixAvailable": {
+              "name": "@react-navigation/native",
+              "version": "7.5.1",
+              "isSemVerMajor": true
+            }
+          },
+          "decode-uri-component": {
+            "name": "decode-uri-component",
+            "severity": "high",
+            "isDirect": false,
+            "via": [
+              {
+                "source": 1147955,
+                "name": "decode-uri-component",
+                "dependency": "decode-uri-component",
+                "title": "decode-uri-component: Denial of service via exponential decoding of malformed percent-encoded input",
+                "url": "https://github.com/advisories/GHSA-vcc3-ghjq-m6fr",
+                "severity": "moderate",
+                "cwe": [
+                  "CWE-400",
+                  "CWE-405",
+                  "CWE-407",
+                  "CWE-1176"
+                ],
+                "cvss": {
+                  "score": 0,
+                  "vectorString": null
+                },
+                "range": "<=0.4.2"
+              },
+              {
+                "source": 1243857,
+                "name": "decode-uri-component",
+                "dependency": "decode-uri-component",
+                "title": "decode-uri-component vulnerable to denial of service via quadratic replacement of percent-encoded runs",
+                "url": "https://github.com/advisories/GHSA-qr28-fpjm-wq7f",
+                "severity": "high",
+                "cwe": [
+                  "CWE-400",
+                  "CWE-407"
+                ],
+                "cvss": {
+                  "score": 0,
+                  "vectorString": null
+                },
+                "range": "<=0.5.0"
+              }
+            ],
+            "effects": [
+              "query-string"
+            ],
+            "range": "<=0.5.0",
+            "nodes": [
+              "node_modules/decode-uri-component"
+            ],
+            "fixAvailable": {
+              "name": "@react-navigation/native",
+              "version": "7.5.1",
+              "isSemVerMajor": true
+            }
+          },
+          "deepmerge": {
+            "name": "deepmerge",
+            "severity": "low",
+            "isDirect": false,
+            "via": [
+              {
+                "source": 1243505,
+                "name": "deepmerge",
+                "dependency": "deepmerge",
+                "title": "deepmerge mergeObject() allows prototype poisoning of returned objects",
+                "url": "https://github.com/advisories/GHSA-gcqx-w48m-w2h4",
+                "severity": "low",
+                "cwe": [
+                  "CWE-1321"
+                ],
+                "cvss": {
+                  "score": 5.3,
+                  "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:N"
+                },
+                "range": ">=4.2.0 <=4.3.1"
+              }
+            ],
+            "effects": [
+              "@expo/config"
+            ],
+            "range": ">=4.2.0",
+            "nodes": [
+              "node_modules/deepmerge"
+            ],
+            "fixAvailable": {
+              "name": "expo-constants",
+              "version": "58.0.14",
+              "isSemVerMajor": true
+            }
+          },
+          "expo": {
+            "name": "expo",
+            "severity": "low",
+            "isDirect": true,
+            "via": [
+              "@expo/cli",
+              "@expo/config",
+              "@expo/metro-config",
+              "expo-asset",
+              "expo-constants"
+            ],
+            "effects": [],
+            "range": ">=52.0.0-canary-20240625-2333e70",
+            "nodes": [
+              "node_modules/expo"
+            ],
+            "fixAvailable": {
+              "name": "expo",
+              "version": "51.0.39",
+              "isSemVerMajor": true
+            }
+          },
+          "expo-asset": {
+            "name": "expo-asset",
+            "severity": "low",
+            "isDirect": true,
+            "via": [
+              "expo-constants"
+            ],
+            "effects": [],
+            "range": "10.0.11-canary-20240625-2333e70 - 55.0.0-canary-20260223-05214f1 || 55.0.3-canary-20260128-67ce8d5 || 55.0.8-canary-20260424-7bedc9d - 55.0.8-canary-20260429-a5e59cf || 55.0.11-canary-20260327-0789fbc - 55.0.11-canary-20260402-9da566b || 56.0.0-canary-20260212-4f61309 - 56.0.0-canary-20260506-964f25d",
+            "nodes": [
+              "node_modules/expo-asset"
+            ],
+            "fixAvailable": {
+              "name": "expo-asset",
+              "version": "58.0.19",
+              "isSemVerMajor": true
+            }
+          },
+          "expo-constants": {
+            "name": "expo-constants",
+            "severity": "low",
+            "isDirect": true,
+            "via": [
+              "@expo/config"
+            ],
+            "effects": [
+              "expo",
+              "expo-asset",
+              "expo-linking",
+              "expo-notifications"
+            ],
+            "range": "16.0.3-canary-20240625-2333e70 - 55.0.14 || 56.0.0-canary-20260212-4f61309 - 56.0.0-canary-20260506-964f25d",
+            "nodes": [
+              "node_modules/expo-constants"
+            ],
+            "fixAvailable": {
+              "name": "expo-constants",
+              "version": "58.0.14",
+              "isSemVerMajor": true
+            }
+          },
+          "expo-dev-client": {
+            "name": "expo-dev-client",
+            "severity": "low",
+            "isDirect": true,
+            "via": [
+              "expo-dev-launcher",
+              "expo-manifests"
+            ],
+            "effects": [],
+            "range": "5.0.0-canary-20240814-ce0f7d5 - 55.0.0-canary-20260223-05214f1 || 55.0.4-canary-20260128-67ce8d5 || 55.0.10-canary-20260424-7bedc9d - 55.0.10-canary-20260429-a5e59cf || 55.0.20-canary-20260327-0789fbc - 55.0.20-canary-20260402-9da566b || 56.0.0-canary-20260212-4f61309 - 56.0.0-canary-20260506-964f25d",
+            "nodes": [
+              "node_modules/expo-dev-client"
+            ],
+            "fixAvailable": {
+              "name": "expo-dev-client",
+              "version": "58.0.17",
+              "isSemVerMajor": true
+            }
+          },
+          "expo-dev-launcher": {
+            "name": "expo-dev-launcher",
+            "severity": "low",
+            "isDirect": false,
+            "via": [
+              "expo-manifests"
+            ],
+            "effects": [],
+            "range": "5.0.0-canary-20240814-ce0f7d5 - 55.0.0-canary-20260223-05214f1 || 55.0.5-canary-20260128-67ce8d5 || 55.0.11-canary-20260424-7bedc9d - 55.0.11-canary-20260429-a5e59cf || 55.0.21-canary-20260327-0789fbc - 55.0.21-canary-20260402-9da566b || 56.0.0-canary-20260212-4f61309 - 56.0.0-canary-20260506-964f25d",
+            "nodes": [
+              "node_modules/expo-dev-launcher"
+            ],
+            "fixAvailable": true
+          },
+          "expo-linking": {
+            "name": "expo-linking",
+            "severity": "low",
+            "isDirect": true,
+            "via": [
+              "expo-constants"
+            ],
+            "effects": [],
+            "range": "6.3.2-canary-20240625-2333e70 - 55.0.0-canary-20260223-05214f1 || 55.0.4-canary-20260128-67ce8d5 || 55.0.8-canary-20260424-7bedc9d - 55.0.8-canary-20260429-a5e59cf || 55.0.10-canary-20260327-0789fbc - 55.0.10-canary-20260402-9da566b || 56.0.0-canary-20260212-4f61309 - 56.0.0-canary-20260506-964f25d || 57.0.0-canary-20260526-13e89ca - 57.0.0-canary-20260623-1c70a78 || 58.0.0-canary-20260806-8c2d007 - 58.0.0-canary-20260908-e343e6e",
+            "nodes": [
+              "node_modules/expo-linking"
+            ],
+            "fixAvailable": {
+              "name": "expo-linking",
+              "version": "58.0.15",
+              "isSemVerMajor": true
+            }
+          },
+          "expo-manifests": {
+            "name": "expo-manifests",
+            "severity": "low",
+            "isDirect": false,
+            "via": [
+              "@expo/config"
+            ],
+            "effects": [
+              "expo-dev-client",
+              "expo-dev-launcher",
+              "expo-updates"
+            ],
+            "range": "0.14.4-canary-20240625-2333e70 - 55.0.15 || 56.0.0-canary-20260212-4f61309 - 56.0.0-canary-20260506-964f25d",
+            "nodes": [
+              "node_modules/expo-manifests"
+            ],
+            "fixAvailable": {
+              "name": "expo-updates",
+              "version": "58.0.19",
+              "isSemVerMajor": true
+            }
+          },
+          "expo-notifications": {
+            "name": "expo-notifications",
+            "severity": "low",
+            "isDirect": true,
+            "via": [
+              "expo-constants"
+            ],
+            "effects": [],
+            "range": "0.29.0 - 55.0.0-canary-20260223-05214f1 || 55.0.5-canary-20260128-67ce8d5 || 55.0.11-canary-20260424-7bedc9d - 55.0.11-canary-20260429-a5e59cf || 55.0.15-canary-20260327-0789fbc - 55.0.15-canary-20260402-9da566b || 56.0.0-canary-20260212-4f61309 - 56.0.0-canary-20260506-964f25d || 56.0.15-canary-20260526-6cd5e37 - 56.0.15-canary-20260628-fc0d9b4 || 58.0.0-canary-20260806-8c2d007 - 58.0.0-canary-20260909-ea7a89a",
+            "nodes": [
+              "node_modules/expo-notifications"
+            ],
+            "fixAvailable": {
+              "name": "expo-notifications",
+              "version": "58.1.7",
+              "isSemVerMajor": true
+            }
+          },
+          "expo-updates": {
+            "name": "expo-updates",
+            "severity": "low",
+            "isDirect": true,
+            "via": [
+              "expo-manifests"
+            ],
+            "effects": [],
+            "range": "0.26.0-canary-20240628-1ba8152 - 55.0.0-canary-20260223-05214f1 || 55.0.6-canary-20260128-67ce8d5 || 55.0.12-canary-20260424-7bedc9d - 55.0.12-canary-20260429-a5e59cf || 55.0.17-canary-20260327-0789fbc - 55.0.17-canary-20260402-9da566b || 56.0.0-canary-20260212-4f61309 - 56.0.0-canary-20260506-964f25d || 58.0.0-canary-20260805-ccd18b9 - 58.0.0-canary-20260909-ea7a89a",
+            "nodes": [
+              "node_modules/expo-updates"
+            ],
+            "fixAvailable": {
+              "name": "expo-updates",
+              "version": "58.0.19",
+              "isSemVerMajor": true
+            }
+          },
+          "query-string": {
+            "name": "query-string",
+            "severity": "high",
+            "isDirect": false,
+            "via": [
+              "decode-uri-component"
+            ],
+            "effects": [
+              "@react-navigation/core"
+            ],
+            "range": "5.0.0 - 9.4.1",
+            "nodes": [
+              "node_modules/query-string"
+            ],
+            "fixAvailable": {
+              "name": "@react-navigation/native",
+              "version": "7.5.1",
+              "isSemVerMajor": true
+            }
+          }
+        },
+        "lock_sha256": "c00c41409dba16d8e88c76e94e120454728788232655528182d9cab2acff2d06"
+      }
     },
     "web": {
       "before_counts": {
@@ -3174,7 +4180,8 @@
         }
       },
       "after_advisories": {},
-      "lock_sha256": "1a0a029d06acb66ea43db5ef4f2def59c695736fd43e37258b2c2e327e8ee408"
+      "lock_sha256": "1a0a029d06acb66ea43db5ef4f2def59c695736fd43e37258b2c2e327e8ee408",
+      "latest_registry_audit_receipt": "/tmp/platinum-final-web-audit.json"
     },
     "admin": {
       "before_counts": {
@@ -3850,7 +4857,7 @@
               "source": 1138115,
               "name": "js-yaml",
               "dependency": "js-yaml",
-              "title": "JS-YAML: Quadratic CPU consumption in !!omap resolution (3.x and 4.x) \u2014 CVE-2026-59870 fix not backported",
+              "title": "JS-YAML: Quadratic CPU consumption in !!omap resolution (3.x and 4.x) — CVE-2026-59870 fix not backported",
               "url": "https://github.com/advisories/GHSA-5p4m-2wfm-xmqj",
               "severity": "high",
               "cwe": [
@@ -4153,7 +5160,7 @@
               "source": 1130709,
               "name": "postcss",
               "dependency": "postcss",
-              "title": "PostCSS: incomplete fix of GHSA-6g55-p6wh-862q \u2014 attacker-controlled sourceMappingURL reads arbitrary .map files when `from` is unset",
+              "title": "PostCSS: incomplete fix of GHSA-6g55-p6wh-862q — attacker-controlled sourceMappingURL reads arbitrary .map files when `from` is unset",
               "url": "https://github.com/advisories/GHSA-fxqj-rqcc-2cmp",
               "severity": "moderate",
               "cwe": [
@@ -4324,7 +5331,8 @@
         }
       },
       "after_advisories": {},
-      "lock_sha256": "e587e53d2b1fe34364a3df6d8899615ee731a9973d8d202beb3463651320b7ce"
+      "lock_sha256": "e587e53d2b1fe34364a3df6d8899615ee731a9973d8d202beb3463651320b7ce",
+      "latest_registry_audit_receipt": "/tmp/platinum-final-admin-audit.json"
     }
   },
   "checks": {
@@ -4359,17 +5367,29 @@
       "uses_actual_installed_navigation_parser": true,
       "invalid_or_oversized_input_never_delegated": true,
       "native_tsc_exit_code": 0
+    },
+    "native_vendored_source_compatibility": {
+      "passed": 7,
+      "failed": 0,
+      "upstream_decoder_cases": 139,
+      "upstream_decoder_assertions": 164,
+      "actual_query_string_and_expo_config_consumers": true,
+      "bounded_advisory_subprocesses": true,
+      "source_provenance_hashes_verified": true
+    },
+    "native_boomerang_cancellation": {
+      "bridge_cases_passed": 5,
+      "capture_lifecycle_and_frame_engine_cases_passed": 15,
+      "native_xcode_result": "Owned by separate simulator compilation gate; not established by these JavaScript tests",
+      "device_acceptance": false
     }
   },
   "residual_runtime_priority": [
-    "decode-uri-component remains in Navigation 6; configured cold/warm links now reject malformed encoding and paths longer than 16,384 UTF-16 code units before the decoder. Maintained dependency replacement and physical-device link acceptance remain open."
+    "Physical-device cold/warm links and actual auth redirects remain acceptance work. The former vulnerable 0.2.2 decoder is no longer a resolved/installed runtime dependency; the 0.5.1 CJS source adaptation remains in the manual-review inventory."
   ],
   "residual_no_source_use_found": [],
   "residual_build_or_developer_packages": [
-    "image-size",
-    "postcss",
-    "deepmerge",
-    "uuid"
+    "Expo config now resolves the reviewed local deepmerge security backport. No upstream patched release exists; retain this source adaptation in manual maintenance until compatible maintained replacement is available."
   ],
   "master_hotfix_validation": {
     "base_commit": "9906c187521c59254277a00571bded3c8db49b98",
@@ -4416,5 +5436,99 @@
       "public_routes": "all six checks HTTP200; admin requests resolve to public entry",
       "authenticated_workflows": "not exercised"
     }
-  }
+  },
+  "updated_utc": "2026-10-30T00:08:00.087216+00:00",
+  "manual_review_components": [
+    {
+      "path": "vendor/decode-uri-component-cjs",
+      "consumer": "query-string@7.1.3",
+      "registry_advisory_coverage": false,
+      "provenance": {
+        "upstream": {
+          "package": "decode-uri-component",
+          "version": "0.5.1",
+          "repository": "https://github.com/SamVerschueren/decode-uri-component",
+          "commit": "58ed85f5adc7cfaee5e49e4d52b067f172d0bcb6",
+          "tarball": "https://registry.npmjs.org/decode-uri-component/-/decode-uri-component-0.5.1.tgz",
+          "integrity": "sha512-vWHQkXgg2cE3BB4rR0c+PYw9BCQzLoNIRMI7AunIkZst74tw/vpPp7VLoYtsR/cy1f55g3XDWUslfeCZjiZJyA==",
+          "tarballSha256": "68747a955bbb6a700d758155cf5ff15595c0dfa38504d385abdb249c688bfb15",
+          "filesSha256": {
+            "index.js": "6a86ac891edf15c5efa0841ebb31935e3669d58b98318b57d7b08a4530317cb0",
+            "license": "ed7a9a0f74e43951b2520efe1a4349cb9ed5f3dff0b0f268e2e51a4d38df7ea4",
+            "test.js": "acb81f2173ef208c173465fa98f054923c1ca78b7aa09e1493ee5936b963acba",
+            "package.metadata.json": "8822236f8ec0fc7c8f540812dda32b81797bec92e51bd567fbb196fda04a7f13"
+          },
+          "originalPathByFile": {
+            "package.metadata.json": "package.json"
+          }
+        },
+        "local": {
+          "package": "@platinumcircles/decode-uri-component-cjs",
+          "version": "0.5.1-pc.1",
+          "runtimeSha256": "e82696ecdf0ee2c25bd90169cc7915e552d2ccb82a5006c55bc17aecdb55b919",
+          "patchSha256": "b1a29230e5db5a2b7cdc9ac2a99703dcbdd6eed5be44f9dc6bb333a5ddc025a5",
+          "changes": [
+            "One export declaration is adapted from ESM default export to callable CommonJS module.exports; the 0.5.1 decoding algorithm is unchanged."
+          ]
+        },
+        "advisories": [
+          "https://github.com/advisories/GHSA-qr28-fpjm-wq7f",
+          "https://github.com/advisories/GHSA-vcc3-ghjq-m6fr"
+        ],
+        "registryAuditCoverage": "The private local adaptation is not indexed in npm advisory metadata. Do not treat its absence from npm audit as independent security assurance."
+      }
+    },
+    {
+      "path": "vendor/deepmerge-safe-cjs",
+      "consumer": "@expo/config@12.0.14",
+      "registry_advisory_coverage": false,
+      "provenance": {
+        "upstream": {
+          "package": "deepmerge",
+          "version": "4.3.1",
+          "repository": "https://github.com/TehShrike/deepmerge",
+          "commit": "5b87756a5671635679001cbac72aa42f23472c81",
+          "tarball": "https://registry.npmjs.org/deepmerge/-/deepmerge-4.3.1.tgz",
+          "integrity": "sha512-3sUqbMEc77XqpdNO7FRyRog+eW3ph+GYCbj+rK+uYyRMuwsVy0rMiVtPn+QJlKFvWP/1PYpapqYn0Me2knFn+A==",
+          "tarballSha256": "4003a0a348276a95543fa969f561f6b5968629acbbb59d66018dd23e7b8f1d5c",
+          "filesSha256": {
+            "dist/cjs.js": "2e5160f84a1141bd927264afe4d15766f1e6cf07daef182b37ff53fea121de7d",
+            "license.txt": "6cfc4687cb2f2d86f4a77e6b526290d3878e5e512f3fec2f4cb36a9cb36f798b",
+            "is-mergeable-object/index.js": "29449d50d8b7b7b45b1104ad5a21c92f34de22cc0aa55d0296197ecf5303e2fe",
+            "is-mergeable-object/readme.md": "0bfa1f6512f467b72d7edb2fdd283889e8fcc9b1fc9627ce997616ecf5e47262",
+            "package.metadata.json": "f56978e7a6da1a3c6edee41abb54f98584a2fa2680458c48db820ae772fef0c9",
+            "is-mergeable-object/package.metadata.json": "e8b4126b398f22247c9b8177f492dc9e75b1c4506807ccc0263624a91dda7c2b"
+          },
+          "bundledComponent": {
+            "package": "is-mergeable-object",
+            "version": "1.1.0",
+            "commit": "0d3d3c837e74b03191850544abd1abf23e94ae89",
+            "tarball": "https://registry.npmjs.org/is-mergeable-object/-/is-mergeable-object-1.1.0.tgz",
+            "integrity": "sha512-JfyDDwUdtS4yHCgUpxOyKB9dnfZ0gecufxB0eytX6BmSXSE+8dbxDGt+V7CNRIRJ9sYFV/WQt2KJG6hNob2sBw==",
+            "tarballSha256": "a6158ee33c03f765ebfb2d863784a3fbcd6874cecb758eede903b8a7edec05ba",
+            "license": "MIT",
+            "notice": "The upstream deepmerge CJS distribution already bundles this helper. Its npm archive provides package/readme MIT declarations but no separate license file; both declarations are retained here with its exact source."
+          },
+          "originalPathByFile": {
+            "package.metadata.json": "package.json",
+            "is-mergeable-object/package.metadata.json": "is-mergeable-object/package.json"
+          }
+        },
+        "local": {
+          "package": "@platinumcircles/deepmerge-safe-cjs",
+          "version": "4.3.1-pc.1",
+          "runtimeSha256": "07da2fe622bdb3781eddce30b2d89d6c3bd55c1da66a9ce613cac7018b96e92d",
+          "patchSha256": "ee1ba00842e7a45f3d78a0d34620246d1d0f4c95e33e11beb6a336f46c5abc7f",
+          "changes": [
+            "Discard __proto__ before reading or assigning it in both target and source loops, independent of the target shape.",
+            "Define own enumerable writable configurable data properties for all three merge writes; preserve array/customMerge/clone/symbol behavior and ordinary constructor/prototype data semantics."
+          ]
+        },
+        "advisories": [
+          "https://github.com/advisories/GHSA-gcqx-w48m-w2h4"
+        ],
+        "registryAuditCoverage": "The private local adaptation is not indexed in npm advisory metadata. Do not treat its absence from npm audit as independent security assurance."
+      }
+    }
+  ]
 }

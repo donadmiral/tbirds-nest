@@ -17,6 +17,7 @@ import { memoryArtwork, memoryCoverMedia, memoryCoverPage, MEMORY_FEATURED_DESIG
 import { MemoryBookCover, ResponsiveMemoryBookCover } from './memory/MemoryBookCover';
 import { MemoryStoryPreview } from './memory/MemoryStoryPreview';
 import { MemoryPageImage } from './memory/MemoryPageImage';
+import { MemoryFilm } from './memory/MemoryFilm';
 import {MemoryPageTurn,MemoryTurnPreview,type MemoryPageTurnHandle} from './memory/MemoryPageTurn';
 import {useMemoryDialog} from './memory/useMemoryDialog';
 import { PostSoundtrack } from './PostSoundtrack';
@@ -95,6 +96,7 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
   const [idx, setIdx] = useState(0);
   const [playMode, setPlayMode] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [filmVisible, setFilmVisible] = useState(false);
   const [playRun, setPlayRun] = useState(0);
   const [foreground, setForeground] = useState(true);
   const [readyPage, setReadyPage] = useState('');
@@ -138,7 +140,7 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
     let alive = true, authVersion = 0, viewer: string | null = null;
     const apply = (next: string | null) => {
       if (!alive) return;
-      if (viewer !== next) { loadGeneration.current++; setAlbum(null); setLikedPages(new Set()); setManage(false); setAdding(false); setIdx(0); }
+      if (viewer !== next) { loadGeneration.current++; setAlbum(null); setLikedPages(new Set()); setManage(false); setAdding(false); setIdx(0); setFilmVisible(false); }
       viewer = next; setUid(next); setLoadError(next ? null : "Sign in to view this album.");
     };
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { authVersion++; apply(session?.user.id ?? null); });
@@ -160,30 +162,30 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
   }, [uid, album, supabase]);
 
   const pages = useMemo(() => album?.pages ?? [], [album]);
-  useEffect(() => { setAlbum(null); setIdx(0); setManage(false); setAdding(false); setView("cover"); setPlayMode(false); setPlaying(false); setLikedPages(new Set()); setMutationError(''); setNextBook(null); }, [ownerId]);
+  useEffect(() => { setAlbum(null); setIdx(0); setManage(false); setAdding(false); setView("cover"); setPlayMode(false); setPlaying(false); setFilmVisible(false); setLikedPages(new Set()); setMutationError(''); setNextBook(null); }, [ownerId]);
   useEffect(() => { setIdx(i => Math.min(i, Math.max(0, pages.length - 1))); }, [pages.length]);
   const page = pages[idx];
   const artwork = memoryArtwork(album?.cover_design, album?.cover_color);
 
   const go = useCallback((d: number) => {pageTurn.current?.turn(d<0?-1:1);}, []);
   const finishPage=useCallback(()=>{if(idx>=pages.length-1)setPlaying(false);else pageTurn.current?.turn(1);},[idx,pages.length]);
-  const movieActive=playMode&&playing&&foreground&&view==='book'&&!turning&&!manage&&!adding;
+  const movieActive=playMode&&playing&&foreground&&view==='book'&&!filmVisible&&!turning&&!manage&&!adding;
   const photoProgress=useMemoryPlayback(`${album?.id}:${page?.id}:${playRun}`,movieActive&&page?.media_type!=='video'&&(!page?.media_url||readyPage===page?.id),memoryPhotoDuration(page),finishPage);
   useEffect(()=>{setReadyPage('');setVideoProgress(0);},[page?.id,playRun]);
   const openBook=()=>{setPlayMode(false);setPlaying(false);setView('book');};
   const closeBook=()=>{setPlaying(false);setPlayMode(false);setView('cover');};
-  const playBook=()=>{setIdx(0);setPlayRun(value=>value+1);setPlayMode(true);setPlaying(true);setView('book');};
+  const playBook=()=>{setPlaying(false);setPlayMode(false);setFilmVisible(true);};
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if(manage||adding||view!=='book')return;
+      if(manage||adding||filmVisible||view!=='book')return;
       if ((e.target as HTMLElement)?.closest("input,textarea,select,[contenteditable=true]")) return;
       if (e.key === "ArrowRight") {e.preventDefault();go(1);}
       if (e.key === "ArrowLeft") {e.preventDefault();go(-1);}
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [go,manage,adding,view]);
+  }, [go,manage,adding,view,filmVisible]);
 
   const retryMedia=()=>{setMediaAttempt(value=>value+1);void load();};
 
@@ -213,7 +215,8 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
         ) : null}
       </div>
 
-      <PostSoundtrack key={album.id} selection={album.soundtrack} use="memory_album" active={view==='book'&&foreground&&(!playMode||playing)&&!manage&&!adding} autoPlay={playMode} controls={!playMode} className="mb-3" />
+      <PostSoundtrack key={album.id} selection={album.soundtrack} use="memory_album" active={view==='book'&&foreground&&!filmVisible&&(!playMode||playing)&&!manage&&!adding} autoPlay={playMode} controls={!playMode} className="mb-3" />
+      {filmVisible && pages.length > 0 && <MemoryFilm key={`${album.id}:${uid}`} title={album.title} pages={pages} reduceMotion={reduceMotion} onClose={() => setFilmVisible(false)} onReadBook={() => { setFilmVisible(false); openBook(); }} onRetry={retryMedia} />}
       {mutationError&&<p role="alert" className="mb-3 text-sm text-danger">{mutationError}</p>}
       {view === "cover" ? (
         <section className="mx-auto flex max-w-[360px] flex-col items-center px-5 pb-8 pt-8 sm:pt-10">
@@ -221,7 +224,7 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
           {album.subtitle&&<p className="mt-7 text-center font-display text-[23px] leading-tight text-ink">{album.subtitle}</p>}
           <p className="mt-3 text-sm text-muted">{pages.length} {pages.length===1?'memory':'memories'}</p>
           <button onClick={openBook} className="mt-7 min-h-12 w-full rounded-2xl bg-[#142642] px-6 py-3 font-display text-[23px] text-[#FFFFFF]">Open book</button>
-          {pages.length>0&&<button type="button" onClick={playBook} className="mt-3 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-ink/20 px-6 py-3 font-semibold text-ink"><Play size={18}/>Play book</button>}
+          {pages.length>0&&<button type="button" onClick={playBook} className="mt-3 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-ink/20 px-6 py-3 font-semibold text-ink"><Play size={18}/>Play memories</button>}
           {album.is_owner&&<button onClick={()=>setAdding(true)} className="mt-3 min-h-12 w-full rounded-2xl border border-ink/15 px-6 py-3 text-sm text-ink">+ Add memories</button>}
         </section>
       ) : pages.length === 0 ? (
@@ -250,7 +253,7 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
                   <div className={"flex min-h-0 flex-1 flex-col "+(page.style === "polaroid" ? "border border-[#DCD4C7] bg-[#FFFCF6] p-1.5 pb-3" : "")}>
                     <div className="media-frame relative min-h-0 flex-1 overflow-hidden bg-ink">
                       {page.media_type === "video" && (page.media_url || !postSticker(page)) ? (
-                        <MemoryVideo key={[page.id,page.media_url,mediaAttempt,playRun].join(':')} src={page.media_url ?? ''} poster={page.thumbnail_url ?? undefined} page={page} ownerId={album.user_id ?? ownerId} active={view==='book'&&foreground&&(!playMode||playing)&&!turning&&!manage&&!adding} onRetry={retryMedia} onEnd={playMode?finishPage:undefined} onProgress={setVideoProgress} />
+                        <MemoryVideo key={[page.id,page.media_url,mediaAttempt,playRun].join(':')} src={page.media_url ?? ''} poster={page.thumbnail_url ?? undefined} page={page} ownerId={album.user_id ?? ownerId} active={view==='book'&&foreground&&!filmVisible&&(!playMode||playing)&&!turning&&!manage&&!adding} onRetry={retryMedia} onEnd={playMode?finishPage:undefined} onProgress={setVideoProgress} />
                       ) : page.media_url || page.thumbnail_url || (page.media_type === "image" && !postSticker(page)) ? (
                         <MemoryStoryFrame key={[page.id,page.media_url,page.thumbnail_url,mediaAttempt,playRun].join(':')} page={page}>{style=><MemoryPageImage src={page.media_url} poster={page.thumbnail_url} style={{...style,transform:`${style.transform||''} scale(${playMode&&!reduceMotion?1+photoProgress*.06:1})`,transition:reduceMotion?'none':'transform .15s linear'}} onRetry={retryMedia} onReady={()=>setReadyPage(page.id)} />}</MemoryStoryFrame>
                       ) : postSticker(page) ? ((): any => { const ps: any = postSticker(page); return (
@@ -277,7 +280,7 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
           {playMode&&<div role="progressbar" aria-label="Memory playback" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((page?.media_type==='video'?videoProgress:photoProgress)*100)} className="mx-auto mt-4 h-1 max-w-[440px] overflow-hidden rounded-full bg-ink/15"><div className="h-full bg-ink transition-[width] duration-100" style={{width:`${(page?.media_type==='video'?videoProgress:photoProgress)*100}%`}}/></div>}
           <div className="mt-4 flex items-center justify-center gap-3">
             <button onClick={() => go(-1)} disabled={turning||idx === 0} className="min-h-11 min-w-11 rounded-full border border-ink/10 bg-[var(--canvas)] p-2.5 text-ink/70 backdrop-blur disabled:opacity-30" aria-label="Previous page"><ChevronLeft size={18} /></button>
-            <button type="button" aria-label={playMode&&playing?'Pause book':'Play book'} onClick={()=>{if(!playMode){setPlayMode(true);setPlaying(true);}else if(!playing&&idx>=pages.length-1&&(photoProgress>=1||videoProgress>=.99))playBook();else setPlaying(value=>!value);}} className="min-h-11 min-w-11 rounded-full border border-ink/15 p-2.5 text-ink">{playMode&&playing?<Pause size={18}/>:<Play size={18}/>}</button>
+            <button type="button" aria-label="Play continuous memory film" onClick={playBook} className="min-h-11 min-w-11 rounded-full border border-ink/15 p-2.5 text-ink">{playMode&&playing?<Pause size={18}/>:<Play size={18}/>}</button>
             <span aria-live="polite" aria-atomic="true" className="rounded-full border border-ink/10 bg-[var(--canvas)] px-4 py-1.5 text-[13px] font-semibold text-ink/70 backdrop-blur">{idx + 1} / {pages.length}</span>
             <button onClick={async () => {const sid=page?.story_id;if(!sid||reactionLock.current)return;reactionLock.current=true;const generation=loadGeneration.current;try{const {data,error}=await supabase.rpc('toggle_story_reaction',{p_story_id:sid,p_emoji:'❤️'});if(error)throw error;if(generation===loadGeneration.current)setLikedPages(prev=>{const next=new Set(prev);if(data?.reacted)next.add(sid);else next.delete(sid);return next;});}catch{setMutationError('Your reaction could not save. Retry.');}finally{reactionLock.current=false;}}} className={"rounded-full border border-ink/10 bg-[var(--canvas)] p-2.5 backdrop-blur " + (page && likedPages.has(String((page as any).story_id)) ? "text-danger" : "text-muted")} aria-label="Love this memory">{"\u2764"}</button>
             <button onClick={() => go(1)} disabled={turning||idx >= pages.length - 1} className="min-h-11 min-w-11 rounded-full border border-ink/10 bg-[var(--canvas)] p-2.5 text-ink/70 backdrop-blur disabled:opacity-30" aria-label="Next page"><ChevronRight size={18} /></button>

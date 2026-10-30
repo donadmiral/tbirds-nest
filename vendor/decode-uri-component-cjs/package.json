@@ -1,0 +1,16 @@
+{
+  "name": "@platinumcircles/decode-uri-component-cjs",
+  "version": "0.5.1-pc.1",
+  "private": true,
+  "description": "Reviewed local compatibility/security adaptation of decode-uri-component 0.5.1; see PROVENANCE.json.",
+  "main": "index.cjs",
+  "license": "MIT",
+  "files": [
+    "index.cjs",
+    "LICENSE",
+    "PROVENANCE.json"
+  ],
+  "engines": {
+    "node": ">=14.16"
+  }
+}

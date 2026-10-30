@@ -684,7 +684,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
               <div className="pointer-events-none absolute inset-0 z-0"><BgLayer bg={story.media_transform.bg} mediaUrl={story.media_type === "image" ? story.media_url : null} /></div>
             ) : null}
             {story.media_type === "video" && story.media_url ? (
-              <video
+              <StoryPixelGrade className="h-full w-full"><video
                 ref={videoRef}
                 key={story.id + "-" + mediaRetry}
                 src={story.media_url}
@@ -699,7 +699,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
                 onTimeUpdate={(e) => { const el = e.target as HTMLVideoElement; const m = (story.media_transform || {}) as StoryMediaTransform; setClock(el.currentTime); const t1 = Number(m.trimEnd) || 0; if (t1 > 0 && el.currentTime >= t1) advance(); }}
                 className="h-full w-full object-contain"
                 style={mediaStyle(story.media_transform)}
-              />
+              /></StoryPixelGrade>
             ) : story.media_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <StoryPixelGrade className="h-full w-full"><img
@@ -718,8 +718,8 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
                 <button className="rounded-full border border-white/50 px-4 py-2" onClick={() => void refreshCurrentMedia()}>Retry</button>
               </div>
             ) : null}
-            <FilterOverlay filterId={story.media_type === 'image' ? null : story.filter_id} amt={story.media_transform?.filterAmt ?? 100} />
-            <AdjustOverlay adjust={story.media_type === 'image' ? storyPhotoSpatialAdjust(story.media_transform?.adjust) : story.media_transform?.adjust || null} />
+            <FilterOverlay filterId={story.media_type === 'text' ? story.filter_id : null} amt={story.media_transform?.filterAmt ?? 100} />
+            <AdjustOverlay adjust={story.media_type === 'text' ? story.media_transform?.adjust || null : storyPhotoSpatialAdjust(story.media_transform?.adjust)} />
             <DrawSvg stickers={story.stickers_json} />
             <style dangerouslySetInnerHTML={{ __html: STICKER_ANIM_CSS }} />
             {storyAudioUrl ? (

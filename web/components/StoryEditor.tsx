@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { StoryTextSticker } from "@/lib/stories";
 import { moveStorySticker, storyStickerLabel } from "../../shared/storyCanvas";
 import { MUSIC_CATALOG_ENABLED } from "../../shared/musicAvailability";
-import { ArrowRight, ChevronDown, Globe2, Link2, MapPin, Music, MoreHorizontal, Pause, Pencil, Play, Plus, Redo2, Search, SlidersHorizontal, Smile, Star, Type, Undo2, Volume2, X } from "lucide-react";
+import { ArrowRight, ChevronDown, Globe2, Download, Link2, MapPin, Music, MoreHorizontal, Pause, Pencil, Play, Plus, Redo2, Search, SlidersHorizontal, Smile, Star, Type, Undo2, Volume2, X } from "lucide-react";
 import studio from "./StoryStudio.module.css";
 import { stickerCss } from "./storyTextAppearance";
 import { DrawSvg, extraFontCss, STICKER_ANIM_CSS } from "./StoryEngine";
@@ -20,9 +20,9 @@ const inputClass = studio.input;
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 
 /** Editing metadata uses the same coordinate system and sticker shapes as mobile. */
-export function StoryEditor({ children, value, onChange, onNext, onOpenEdit, onClose, audience = "Everyone", onAudience, thumbnail, clips, onSelectClip, onRemoveClip, onAddClip, onOpenMusic, onOpenTiming, onOpenDraw, duration = 15, clock, onTogglePreview, previewPlaying = false }: {
+export function StoryEditor({ children, value, onChange, onNext, onOpenEdit, onSaveVideo, onClose, audience = "Everyone", onAudience, thumbnail, clips, onSelectClip, onRemoveClip, onAddClip, onOpenMusic, onOpenTiming, onOpenDraw, duration = 15, clock, onTogglePreview, previewPlaying = false }: {
   children: ReactNode; value: StoryTextSticker[]; onChange: (stickers: StoryTextSticker[]) => void;
-  onNext?: () => void; onOpenEdit?: () => void; onClose?: () => void; audience?: string; onAudience?: () => void; thumbnail?: ReactNode;
+  onSaveVideo?: (stage: HTMLElement) => void; onNext?: () => void; onOpenEdit?: () => void; onClose?: () => void; audience?: string; onAudience?: () => void; thumbnail?: ReactNode;
   clips?: { id: string; thumbnail: ReactNode; selected: boolean }[]; onSelectClip?: (id: string) => void; onRemoveClip?: (id: string) => void; onAddClip?: () => void;
   onOpenMusic?: () => void; onOpenTiming?: () => void; onOpenDraw?: () => void; duration?: number; clock?: number; onTogglePreview?: () => void; previewPlaying?: boolean;
 }) {
@@ -174,7 +174,7 @@ export function StoryEditor({ children, value, onChange, onNext, onOpenEdit, onC
       <div className="pointer-events-none absolute inset-0 z-[2]" aria-label="Story stickers">
         {value.filter(s => s.kind !== "drawing" && !(panel === "selected" && editableText && s.id === selected) && (clock == null || (s.startSec == null || clock >= s.startSec) && (s.endSec == null || clock <= s.endSec))).map(s => <button key={s.id} type="button" data-story-post-id={s.kind === "post" ? s.id : undefined} aria-label={`Edit ${s.kind || "text"} sticker: ${s.text}`} aria-pressed={selected === s.id}
           className="pointer-events-auto absolute max-w-[80%] touch-none select-none whitespace-pre-wrap rounded-xl px-3 py-2 text-center text-base font-bold outline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
-          style={{ maxWidth: s.kind === "post" ? "100%" : undefined, padding: s.kind === "post" ? 0 : undefined, left: `${s.nx * 100}%`, top: `${s.ny * 100}%`, transform: `translate(-50%,-50%) rotate(${s.rotation}rad) scale(${s.scale})`, color: s.color, background: "transparent", boxShadow: selected === s.id ? "0 0 0 2px #E8D3B6" : undefined }}
+          style={{ width: s.kind === "photo" && s.photoShape === "cell" ? `${(s.photoFw || .4)*100}%` : undefined, height: s.kind === "photo" && s.photoShape === "cell" ? `${(s.photoFh || .3)*100}%` : undefined, maxWidth: s.kind === "post" ? "100%" : s.kind === "photo" && s.photoShape === "cell" ? "none" : undefined, padding: s.kind === "post" || s.kind === "photo" && s.photoShape === "cell" ? 0 : undefined, left: `${s.nx * 100}%`, top: `${s.ny * 100}%`, transform: `translate(-50%,-50%) rotate(${s.rotation}rad) scale(${s.scale})`, color: s.color, background: "transparent", boxShadow: selected === s.id ? "0 0 0 2px #E8D3B6" : undefined }}
           onClick={() => { if (dragged.current) { dragged.current = false; return; } textSession.current = value; setSelected(s.id); setTextTab("font"); setPanel("selected"); }}
           onPointerDown={e => { if (e.button !== 0) return; keepOwnerPlacement(s.id); dragged.current = false; setSelected(s.id); e.currentTarget.setPointerCapture(e.pointerId); drag.current = { id: s.id, start: value, box: e.currentTarget.parentElement!.getBoundingClientRect(), x: e.clientX, y: e.clientY, moved: false }; }}
           onPointerMove={e => { const d = drag.current; if (!d || d.id !== s.id || !e.currentTarget.hasPointerCapture(e.pointerId)) return; const original = d.start.find(x => x.id === s.id)!; const dx = e.clientX - d.x, dy = e.clientY - d.y; if (!d.moved && Math.hypot(dx, dy) < 3) return; d.moved = true; const next = moveStorySticker(original, dx, dy, d.box.width, d.box.height); setGuides({ vertical: next.vertical, horizontal: next.horizontal }); onChange(d.start.map(x => x.id === s.id ? { ...x, nx: next.nx, ny: next.ny } : x)); }}
@@ -202,6 +202,7 @@ export function StoryEditor({ children, value, onChange, onNext, onOpenEdit, onC
           {onOpenMusic ? <button type="button" className={studio.dockTool} onClick={onOpenMusic}>{MUSIC_CATALOG_ENABLED ? <><Music size={23} />Music</> : <><Volume2 size={23} />Sound</>}</button> : null}
           {onOpenDraw ? <button type="button" className={studio.dockTool} aria-label="Draw on story" onClick={onOpenDraw}><Pencil size={22} />Draw</button> : null}
           {onOpenEdit ? <button type="button" className={studio.dockTool} onClick={onOpenEdit}><SlidersHorizontal size={22} />Edit</button> : null}
+          {onSaveVideo ? <button type="button" className={studio.dockTool} aria-label="Save edited video" onClick={() => { if (stageRef.current) onSaveVideo(stageRef.current); }}><Download size={22} />Save</button> : null}
           {onNext ? <button type="button" className={`${studio.primary} ${studio.next}`} onClick={onNext}>Next<ArrowRight size={18} /></button> : null}
         </div>
       </div>

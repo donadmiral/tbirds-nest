@@ -36,17 +36,20 @@ export async function provisionAccount(kind: 'staff' | 'business', form: FormDat
       APPLICATION_NOT_PENDING: 'This business application has already been reviewed.',
       BUSINESS_OWNER_REQUIRED: 'The business application needs an active account owner.',
       COMMAND_KEY_REUSED: 'These details differ from the original request. Restore them to finish the original request.',
-      ACTIVE_ADMIN_SESSION_REQUIRED: 'Sign in and complete two-factor verification again.',
+      ACTIVE_ADMIN_SESSION_REQUIRED: 'Sign in again with an active staff session to continue.',
     };
     return failure(errors[reserved.error?.message || ''] || 'Provisioning could not be reserved. Retry the original form details.');
   }
   const job = reserved.data;
-  if (job.complete === true) return { success: true as const };
-  if (!uuid.test(job.auth_user_id || '') || !uuid.test(job.provision_id || '') || typeof job.email !== 'string') {
-    return failure('The provisioning reservation was incomplete. Contact the platform administrator.');
+  if (job.command_key !== key || typeof job.complete !== 'boolean'
+    || !uuid.test(job.auth_user_id || '') || !uuid.test(job.provision_id || '') || typeof job.email !== 'string'
+    || (kind === 'staff' && job.email !== payload.email)
+    || (kind === 'business' && job.email !== `business+${job.auth_user_id}@accounts.platinumcircles.invalid`)) {
+    return failure('The provisioning reservation could not be verified. No account creation was attempted. Contact the platform administrator.');
   }
+  if (job.complete === true) return { success: true as const };
   const matches = (user: User | null) => user !== null && user.id === job.auth_user_id
-    && user.app_metadata.triniti_provision_id === job.provision_id
+    && user.app_metadata?.triniti_provision_id === job.provision_id
     && user.email?.toLowerCase() === job.email;
   const existing = await svc.auth.admin.getUserById(job.auth_user_id);
   if (existing.data.user) {
@@ -69,8 +72,17 @@ export async function provisionAccount(kind: 'staff' | 'business', form: FormDat
   if (isMissingAdminRpc(finished.error, 'triniti_admin_provision')) {
     return failure('Account setup is unavailable on this deployment. The reserved account identity may already exist. Keep the same form details and contact the platform administrator to complete setup.');
   }
-  if (finished.error || finished.data?.success !== true || finished.data?.complete !== true) {
-    return failure('Account setup is pending. Retry the same details to finish it.');
+  if (finished.error || finished.data?.success !== true || finished.data?.complete !== true
+    || finished.data?.command_key !== key || finished.data?.auth_user_id !== job.auth_user_id
+    || finished.data?.provision_id !== job.provision_id || finished.data?.email !== job.email) {
+    const errors: Record<string, string> = {
+      APPLICATION_CHANGED: 'The business application changed after setup began. Review the reserved application before continuing; this attempt did not grant business access.',
+      BUSINESS_OWNER_REQUIRED: 'The business owner is no longer eligible. Review the reserved application before continuing.',
+      PROVISION_IDENTITY_MISMATCH: 'The reserved identity requires review before setup can finish.',
+      ACTIVE_ADMIN_SESSION_REQUIRED: 'Sign in again with an active staff session, then retry the same setup details.',
+      ADMIN_PERMISSION_DENIED: 'Your current staff role cannot finish this account setup.',
+    };
+    return failure(errors[finished.error?.message || ''] || 'Account setup is pending. Retry the same details to finish it.');
   }
   return { success: true as const };
 }

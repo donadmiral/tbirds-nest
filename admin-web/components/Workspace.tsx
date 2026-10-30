@@ -10,7 +10,7 @@ import { usePathname } from 'next/navigation';
 export default function Workspace({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   return (
-    <div key={pathname} className="pc-work pc-workspace" style={{ flex: 1, minWidth: 0 }}>
+    <div id="workspace" tabIndex={-1} key={pathname} className="pc-work pc-workspace" style={{ flex: 1, minWidth: 0 }}>
       {children}
     </div>
   );

@@ -1,0 +1,18 @@
+{
+  "title": "Quiet light",
+  "provenance": "Original procedural instrumental; no third-party samples or named-song imitation.",
+  "generator": "tools/generate-memory-score.py",
+  "seconds": 25.6,
+  "codec": "aac",
+  "sample_rate": 48000,
+  "channels": 2,
+  "container_seconds": 25.6,
+  "peak": 0.4600000000000001,
+  "source_loop_boundary_delta": 0.0,
+  "decoded_peak": 0.4639493525028229,
+  "decoded_loop_boundary_delta": 4.93951520184055e-05,
+  "sha256": "8d86a4aa21575579500a6754598c4b1318d6b1d8cf827c0a24bdd9bd68081607",
+  "bytes": 416691,
+  "native_and_web_identical": true,
+  "listening_acceptance": "Device/browser loop and audio-session listening still required; numeric checks are not an audible-quality rating."
+}

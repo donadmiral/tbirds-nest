@@ -31,6 +31,10 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
     svc.from('profiles').select('id', { count: 'exact', head: true }).gt('restricted_until', new Date().toISOString()),
     canOpen(admin.role, '/support') ? svc.from('support_tickets').select('id, user_id, subject, created_at').eq('kind', 'appeal').eq('status', 'open').order('created_at', { ascending: true }).limit(20) : { data: [] },
   ]);
+  if ([profilesRes, totalRes, verifiedRes, activeRes, restrictedRes, appealsRes].some(result => 'error' in result && result.error)) {
+    throw new Error('The member directory could not be loaded. Refresh before reviewing an account.');
+  }
+  if ([profilesRes, totalRes, verifiedRes, activeRes, restrictedRes].some(result => result.count === null)) throw new Error('Member counts could not be confirmed.');
 
   const rows = (profilesRes.data ?? []).map(withDirectoryCounts);
 
@@ -46,7 +50,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
     <Shell admin={admin} active="/users" title="Users" sub="Every member on Platinum Circles \u2014 verification tier, strikes, restriction state and account standing.">
       {canPerform(admin.role, 'account_delete') && <Link href="/users/deletions" className="mb-4 inline-block text-sm underline">Deletion requests</Link>}
       <form method="get" className="mb-4 flex gap-2">
-        <input name="q" defaultValue={q || ''} placeholder="Search name, username, or email"
+        <input name="q" aria-label="Search all members" defaultValue={q || ''} placeholder="Search name, username, or email"
           className="flex-1 rounded-[12px] border border-[#17181C]/15 bg-white px-4 py-2.5 text-sm text-[#17181C] outline-none transition-colors duration-150 focus:border-[#17181C]/40" />
         <button className="rounded-[12px] bg-[#17181C] px-5 py-2.5 text-sm font-bold text-white transition-opacity duration-150 hover:opacity-90">Search</button>
       </form>

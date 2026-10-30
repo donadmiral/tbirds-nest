@@ -24,6 +24,8 @@ function load(file) {
       URL,
       AbortSignal,
       AbortController,
+      ReadableStream,
+      crypto: require("node:crypto").webcrypto,
       setTimeout,
       clearTimeout,
       encodeURIComponent,
@@ -265,7 +267,7 @@ test("malformed IDs and invalid range requests do not reach storage", async () =
     body: JSON.stringify({ action: "open", messageId: [M], requestId: R }),
   });
   assert.equal((await h.handle(badId)).status, 400);
-  for (const range of ["bytes=-", "bytes=0-1,3-4", "wrong"]) {
+  for (const range of ["bytes=-", "bytes=-0", "bytes=10-9", "bytes=0-1,3-4", "wrong"]) {
     const r = await h.handle(
       new Request(`https://qa.test?messageId=${M}&requestId=${R}`, {
         headers: { Authorization: "Bearer user", Range: range },

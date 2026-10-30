@@ -23,7 +23,7 @@ function boomerang(){
  const camera={recordAsync:options=>{calls.push(['record',options]);return record.promise;},stopRecording:()=>calls.push(['stop'])};
  const native={...nativeBase,Alert:{alert:(...args)=>alerts.push(args)}};
  const mods={react:h.react,'react/jsx-runtime':jsx,'react-native':native,'expo-file-system/legacy':{cacheDirectory:'file:///cache/'},'../../../modules/boomerang':{makeBoomerang:(...args)=>{calls.push(['encode',...args]);return encoded.promise;}},'./BoomerangWeb':{default:'WebEncoder',__esModule:true},'../../hooks/useCameraLife':{useCameraLife:()=>({active,epoch:0})},'../../components/SafeArea':{SafeAreaView:'SafeArea',useSafeAreaInsets:()=>({top:40,bottom:20})},'@expo/vector-icons':{Feather:'Icon'},'expo-haptics':haptics,'react-native-svg':{default:'Svg',Circle:'Circle',__esModule:true},'expo-camera':{CameraView:'Camera',useCameraPermissions:()=>[{granted:true,canAskAgain:true},async()=>({granted:true})]}};
- const Inner=compile('src/screens/stories/StoryBoomerangScreen.tsx',mods,time,'export { BoomerangInner };').BoomerangInner;
+ const Inner=compile('src/screens/stories/StoryBoomerangScreen.tsx',mods,{...time,AbortController},'export { BoomerangInner };').BoomerangInner;
  const nav={navigate:(route,args)=>navigations.push({route,args}),goBack:()=>navigations.push({route:'back'})};
  h.mount(()=>Inner({navigation:nav,extraParams:{circleId:'circle'},insets:{top:40,bottom:20}}),tree=>{const cameraNode=walk(tree).find(n=>n.type==='Camera');if(cameraNode)cameraNode.props.ref.current=camera;});
  const findButton=label=>{const b=h.nodes.find(n=>n.type==='Button'&&(n.props.accessibilityLabel===label||words(n)===label));assert.ok(b,label);return b;};
@@ -44,7 +44,15 @@ test('selected Boomerang effects use their actual engine and failure never silen
 });
 
 test('backgrounding during native Boomerang encoding invalidates its late completion and releases camera/timers',async()=>{
- const h=boomerang();h.ready();h.press('Capture Boomerang');h.ready();h.record.resolve({uri:'file:///input.mp4'});await h.flush();h.active(false);h.encoded.resolve('file:///late.mp4');await h.flush();assert.equal(h.navigations.length,0);assert.equal(h.camera,undefined);assert.equal(h.nodes.some(n=>n.type==='WebEncoder'),false);assert.equal(h.time.pending,0);h.dispose();
+ const h=boomerang();h.ready();h.press('Capture Boomerang');h.ready();h.record.resolve({uri:'file:///input.mp4'});await h.flush();const signal=h.calls.find(c=>c[0]==='encode')[4];assert.equal(signal.aborted,false);h.active(false);assert.equal(signal.aborted,true,'backgrounding requests native cancellation immediately');h.encoded.resolve('file:///late.mp4');await h.flush();assert.equal(h.navigations.length,0);assert.equal(h.camera,undefined);assert.equal(h.nodes.some(n=>n.type==='WebEncoder'),false);assert.equal(h.time.pending,0);h.dispose();
+});
+
+test('the native Boomerang deadline aborts encoding before starting the fallback engine',async()=>{
+ const h=boomerang();h.ready();h.press('Capture Boomerang');h.ready();h.record.resolve({uri:'file:///input.mp4'});await h.flush();const signal=h.calls.find(c=>c[0]==='encode')[4];h.time.run(25000);await h.flush();assert.equal(signal.aborted,true);assert.ok(h.nodes.some(n=>n.type==='WebEncoder'));h.encoded.resolve('file:///too-late.mp4');await h.flush();assert.equal(h.navigations.length,0);h.dispose();assert.equal(h.time.pending,0);
+});
+
+test('closing or unmounting during native encoding cancels its job without handing off a stale result',async()=>{
+ for(const action of ['close','unmount']){const h=boomerang();h.ready();h.press('Capture Boomerang');h.ready();h.record.resolve({uri:'file:///input.mp4'});await h.flush();const signal=h.calls.find(c=>c[0]==='encode')[4];if(action==='close')h.press('Close Boomerang');else h.dispose();assert.equal(signal.aborted,true);h.encoded.resolve('file:///late.mp4');await h.flush();assert.equal(h.navigations.some(n=>n.route==='StoryComposer'),false);if(action==='close')h.dispose();assert.equal(h.time.pending,0);}
 });
 
 test('an unfinished Boomerang recording settles to a retry instead of spinning forever',async()=>{

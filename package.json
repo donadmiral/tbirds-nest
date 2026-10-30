@@ -17,8 +17,8 @@
     "lint": "expo lint"
   },
   "dependencies": {
-    "@config-plugins/react-native-callkeep": "^14.0.1",
-    "@daily-co/react-native-daily-js": "^0.84.1",
+    "@config-plugins/react-native-callkeep": "12.0.0",
+    "@daily-co/react-native-daily-js": "0.86.0",
     "@daily-co/react-native-webrtc": "^124.0.6-daily.1",
     "@expo-google-fonts/archivo-black": "^0.4.1",
     "@expo-google-fonts/caveat": "^0.4.2",
@@ -39,6 +39,8 @@
     "base64-arraybuffer": "^1.0.2",
     "buffer": "^6.0.3",
     "date-fns": "^3.6.0",
+    "decode-uri-component": "file:vendor/decode-uri-component-cjs",
+    "deepmerge": "file:vendor/deepmerge-safe-cjs",
     "expo": "~54.0.36",
     "expo-application": "~7.0.8",
     "expo-asset": "~12.0.14",
@@ -111,5 +113,37 @@
     "eslint": "^9.0.0",
     "eslint-config-expo": "~10.0.0",
     "typescript": "^5.3.3"
+  },
+  "overrides": {
+    "metro@>=0.83.0 <0.84.0": "0.83.8",
+    "metro-babel-transformer@>=0.83.0 <0.84.0": "0.83.8",
+    "metro-cache@>=0.83.0 <0.84.0": "0.83.8",
+    "metro-cache-key@>=0.83.0 <0.84.0": "0.83.8",
+    "metro-config@>=0.83.0 <0.84.0": "0.83.8",
+    "metro-core@>=0.83.0 <0.84.0": "0.83.8",
+    "metro-file-map@>=0.83.0 <0.84.0": "0.83.8",
+    "metro-minify-terser@>=0.83.0 <0.84.0": "0.83.8",
+    "metro-resolver@>=0.83.0 <0.84.0": "0.83.8",
+    "metro-runtime@>=0.83.0 <0.84.0": "0.83.8",
+    "metro-source-map@>=0.83.0 <0.84.0": "0.83.8",
+    "metro-symbolicate@>=0.83.0 <0.84.0": "0.83.8",
+    "metro-transform-plugins@>=0.83.0 <0.84.0": "0.83.8",
+    "metro-transform-worker@>=0.83.0 <0.84.0": "0.83.8",
+    "@expo/metro-config@54.0.17": {
+      "postcss": "8.5.23"
+    },
+    "xcode@3.0.1": {
+      "uuid": "11.1.1"
+    },
+    "@expo/ngrok": {
+      ".": "$@expo/ngrok",
+      "uuid": "11.1.1"
+    },
+    "query-string@7.1.3": {
+      "decode-uri-component": "$decode-uri-component"
+    },
+    "@expo/config@12.0.14": {
+      "deepmerge": "$deepmerge"
+    }
   }
 }

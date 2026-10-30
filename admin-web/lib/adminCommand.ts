@@ -34,6 +34,14 @@ export async function runAdminCommand(operation: string, permission: Permission,
       APPLICATION_PROVISIONING: 'Account creation is in progress. Complete the original approval.',
       DELETION_REVIEW_REQUIRED: 'This account is awaiting deletion review and cannot be restored here.',
       INVALID_COMMAND_FIELD: 'The form has changed. Reload it before submitting.',
+      VERIFICATION_REVIEW_BASIS_REQUIRED: 'Enter a review basis of 20 to 2,000 characters. You cannot approve your own application.',
+      VERIFICATION_STATEMENT_REQUIRED: 'The application needs a statement of 20 to 2,000 characters before it can be approved.',
+      VERIFICATION_EVIDENCE_LINK_REQUIRED: 'The application needs one to eight evidence links before it can be approved.',
+      VERIFICATION_EVIDENCE_URL_INVALID: 'The application contains an invalid evidence link. Request corrected evidence before approving.',
+      VERIFICATION_ACCOUNT_TYPE_MISMATCH: 'The requested verification tier does not match the account type.',
+      VERIFICATION_ACCOUNT_UNAVAILABLE: 'The applicant account is no longer available for verification.',
+      VERIFICATION_DECISION_FINAL: 'This application already has a final decision. Reload the queue.',
+      CONTENT_REMOVED_BY_MODERATOR: 'This content was removed by moderation and cannot be restored through this action.',
     };
     return { success: false as const, error: messages[error?.message || ''] || 'The change was not confirmed. Keep the same details and retry.' };
   }

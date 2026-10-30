@@ -87,13 +87,19 @@ test('native adjustment taps and full-width drags change the rendered value and 
   assert.ok(children.every(child => child.props.pointerEvents === 'none'));
 });
 
-function snapshot({ mediaType = 'text', readiness = [], permissions = async () => ({ granted: true }) } = {}) {
+function snapshot({ mediaType = 'text', readiness = [], available = true, compose, saveToLibrary, permissions = async () => ({ granted: true }) } = {}) {
   const calls = [], ref = { current: { artworkOnly: true } }, lock = { current: false }, owner = { current: 'owner' };
   const context = {
     active: { id: 'draft', mediaType, localUri: mediaType === 'text' ? null : 'file:///source.mp4', uploadState: 'idle' }, snapshotBusy: lock, storySnapshotRef: ref,
     ownerRef: owner, activeDraftRef: { current: 'draft' }, mountedRef: { current: true }, photoReadiness: { current: new Map(readiness.map((state, i) => [String(i), state])) }, previewSize: { w: 390, h: 693.3333 },
     setCapturing: value => calls.push(['capturing', value]), requestAnimationFrame: fn => fn(),
-    MediaLibrary: { requestPermissionsAsync: permissions, saveToLibraryAsync: async uri => calls.push(['save', uri]) },
+    AbortController, exportAbort: { current: null }, exportCommitting: { current: false }, exportArtworkRef: ref,
+    setExportArtwork: value => calls.push(['artwork', value]), setExportStatus: value => calls.push(['status', value]),
+    storyVideoCompositionAvailable: available, storyVideoExportLimit: () => null,
+    storyVideoRecipe: () => ({ width: 1080, height: 1920, trimStart: 0 }), storyVideoLayerWindows: () => [{ clock: 2, start: 0, end: 4 }],
+    vidPlayer: { duration: 4, pause() {} }, FileSystem: { cacheDirectory: 'file:///cache/', deleteAsync: async uri => calls.push(['delete', uri]) },
+    composeStoryVideo: async (request, signal) => { calls.push(['compose', request]); return compose ? compose(request, signal) : { uri: request.outputUri }; },
+    MediaLibrary: { requestPermissionsAsync: permissions, saveToLibraryAsync: async uri => { calls.push(['save', uri]); return saveToLibrary?.(uri); } },
     captureRef: async (target, options) => { assert.equal(target, ref); calls.push(['capture', options]); return 'file:///rendered.png'; }, releaseCapture: uri => calls.push(['release', uri]),
     Haptics: { notificationAsync: async () => {}, NotificationFeedbackType: { Success: 1 } }, Alert: { alert: (...args) => calls.push(['alert', ...args]) },
   };
@@ -120,10 +126,83 @@ test('native Save double taps and permission completion after an account change 
   const first = h.run(); await h.run(); assert.equal(requests, 1); h.context.ownerRef.current = 'another-owner'; grant({ granted: true }); await first;
   assert.equal(h.calls.some(c => c[0] === 'save' || c[0] === 'capture' || c[0] === 'alert'), false); assert.equal(h.context.snapshotBusy.current, false);
 });
-test('native video Save explicitly identifies the original file and does not claim composed video export', async () => {
+test('native video Save composes actual artwork and saves only the verified edited output', async () => {
   const h = snapshot({ mediaType: 'video' }); await h.run();
-  assert.equal(h.calls.some(c => c[0] === 'capture'), false);
-  assert.deepEqual(h.calls.find(c => c[0] === 'save'), ['save', 'file:///source.mp4']);
-  assert.equal(h.calls.find(c => c[0] === 'alert')[1], 'Original video saved');
-  assert.match(h.calls.find(c => c[0] === 'alert')[2], /edited video is not available/);
+  assert.equal(h.calls.filter(c => c[0] === 'capture').length, 2);
+  const request = h.calls.find(c => c[0] === 'compose')[1];
+  assert.equal(request.inputUri, 'file:///source.mp4'); assert.equal(request.layers.length, 1);
+  assert.deepEqual(h.calls.find(c => c[0] === 'save'), ['save', request.outputUri]);
+  assert.equal(h.calls.find(c => c[0] === 'alert')[1], 'Edited video saved');
+  assert.ok(h.calls.some(c => c[0] === 'delete' && c[1] === request.outputUri));
+});
+test('native video export keeps older builds and account changes from saving an unedited or stale file', async () => {
+  const old = snapshot({ mediaType: 'video', available: false }); await old.run();
+  assert.equal(old.calls.some(c => c[0] === 'save' || c[0] === 'compose'), false); assert.match(old.calls.find(c => c[0] === 'alert')[2], /new iPhone build/);
+  const h = snapshot({ mediaType: 'video', compose: async request => { h.context.ownerRef.current = 'other'; return { uri: request.outputUri }; } }); await h.run();
+  assert.equal(h.calls.some(c => c[0] === 'save' || c[0] === 'alert'), false); assert.equal(h.context.snapshotBusy.current, false);
+  assert.ok(h.calls.some(c => c[0] === 'delete'));
+});
+
+function activeExportModal(context) {
+  const component = ast.statements.find(node => ts.isFunctionDeclaration(node) && node.name?.text === 'StoryComposerScreen');
+  // Use the actual active-draft return, not the separate no-drafts branch. The
+  // original misplaced modal cannot pass merely because its JSX exists.
+  const activeReturn = component.body.statements.find(ts.isReturnStatement);
+  let modal;
+  function visit(node) {
+    if (ts.isJsxElement(node) && node.openingElement.tagName.getText(ast) === 'Modal' && node.openingElement.attributes.getText(ast).includes('exportStatus')) modal = node;
+    ts.forEachChild(node, visit);
+  }
+  visit(activeReturn); assert.ok(modal, 'the active draft must render export progress and cancellation');
+  const exports = {};
+  vm.runInNewContext(compile('export const render = () => (' + modal.getText(ast) + ');'), {
+    exports, ...context, Modal: 'Modal', View: 'View', Text: 'Text', ActivityIndicator: 'ActivityIndicator', TouchableOpacity: 'TouchableOpacity',
+    require(name) { assert.equal(name, 'react/jsx-runtime'); return { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) }; },
+  });
+  return exports.render();
+}
+const descendants = node => !node ? [] : Array.isArray(node) ? node.flatMap(descendants) : typeof node === 'object' ? [node, ...descendants(node.props?.children)] : [];
+test('the active native draft renders export progress and its Cancel/Back stops pending output before Photos', async () => {
+  for (const cancelWith of ['button', 'back']) {
+    let complete;
+    const h = snapshot({ mediaType: 'video', compose: request => new Promise(resolve => { complete = () => resolve({ uri: request.outputUri }); }) });
+    const work = h.run();
+    for (let i = 0; i < 20 && !complete; i++) await new Promise(resolve => setImmediate(resolve));
+    assert.ok(complete, 'the composed export is pending');
+    const exportStatus = h.calls.filter(call => call[0] === 'status').at(-1)[1];
+    const modal = activeExportModal({ exportStatus, exportAbort: h.context.exportAbort, exportCommitting: h.context.exportCommitting });
+    assert.equal(modal.props.visible, true);
+    assert.ok(descendants(modal).some(node => node.type === 'Text' && node.props.children === 'Rendering edited video…'));
+    if (cancelWith === 'button') descendants(modal).find(node => node.props?.accessibilityLabel === 'Cancel export').props.onPress();
+    else modal.props.onRequestClose();
+    assert.equal(h.context.exportAbort.current.signal.aborted, true);
+    complete(); await work;
+    assert.equal(h.calls.some(call => call[0] === 'save' || call[0] === 'alert'), false);
+    assert.ok(h.calls.some(call => call[0] === 'delete'));
+    assert.equal(h.context.snapshotBusy.current, false);
+  }
+  assert.equal(activeExportModal({ exportStatus: null, exportAbort: { current: null }, exportCommitting: { current: false } }).props.visible, false);
+});
+test('native export stops offering cancellation once Photos has accepted the final save', async () => {
+  let completeComposition, completeSave;
+  const h = snapshot({ mediaType: 'video', compose: request => new Promise(resolve => { completeComposition = () => resolve({ uri: request.outputUri }); }), saveToLibrary: () => new Promise(resolve => { completeSave = resolve; }) });
+  const work = h.run();
+  for (let i = 0; i < 20 && !completeComposition; i++) await new Promise(resolve => setImmediate(resolve));
+  assert.ok(completeComposition);
+  const previous = activeExportModal({ exportStatus: 'Rendering edited video…', exportAbort: h.context.exportAbort, exportCommitting: h.context.exportCommitting });
+  completeComposition();
+  for (let i = 0; i < 20 && !completeSave; i++) await new Promise(resolve => setImmediate(resolve));
+  assert.ok(completeSave); assert.equal(h.context.exportCommitting.current, true);
+  const saving = activeExportModal({ exportStatus: h.calls.filter(call => call[0] === 'status').at(-1)[1], exportAbort: h.context.exportAbort, exportCommitting: h.context.exportCommitting });
+  assert.equal(descendants(saving).some(node => node.props?.accessibilityLabel === 'Cancel export'), false);
+  assert.ok(descendants(saving).some(node => node.type === 'Text' && /Finishing the save to Photos/.test(String(node.props.children))));
+  // Even a previously rendered Cancel/Back callback must respect the synchronous
+  // commit fence before React presents the final saving state.
+  descendants(previous).find(node => node.props?.accessibilityLabel === 'Cancel export').props.onPress();
+  previous.props.onRequestClose(); saving.props.onRequestClose();
+  assert.equal(h.context.exportAbort.current.signal.aborted, false);
+  completeSave(); await work;
+  assert.equal(h.calls.filter(call => call[0] === 'save').length, 1);
+  assert.equal(h.calls.find(call => call[0] === 'alert')[1], 'Edited video saved');
+  assert.equal(h.context.exportCommitting.current, false); assert.equal(h.context.snapshotBusy.current, false);
 });

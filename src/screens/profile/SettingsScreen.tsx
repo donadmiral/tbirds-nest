@@ -25,6 +25,8 @@ import { useAuthStore } from '../../stores/authStore';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { light, typeSize, fontWeight, radius, space } from '../../constants/tokens';
 import { supabase } from '../../services/supabase';
+import { requestAccountErasure } from '../../services/accountErasureService';
+import { erasureMessage } from '../../../shared/accountErasure';
 
 const MAROON = '#8C1D40';
 const GOLD = '#FFC627';
@@ -486,18 +488,18 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
   };
 
   const handleDeleteAccount = async () => {
-    if (deleteConfirmTxt !== 'DELETE') return;
+    if (deleteConfirmTxt !== 'DELETE' || deleting) return;
     if (!profile?.id) return;
     setDeleting(true);
     try {
-      const { error } = await supabase.rpc('delete_user_account', { p_user_id: profile.id });
-      if (error) { Alert.alert('Error', error.message); setDeleting(false); return; }
+      const { status, accountChanged } = await requestAccountErasure(profile.id);
+      const message = erasureMessage(status);
       setDeleteModal(false);
-      await signOut();
+      Alert.alert(message.title, message.detail);
+      if (!accountChanged) await signOut();
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Could not delete account.');
-      setDeleting(false);
-    }
+      Alert.alert('Deletion request', e?.message || 'Could not confirm your deletion request. Check its saved status.');
+    } finally { setDeleting(false); }
   };
 
   const goToEditProfile = () => {
@@ -707,11 +709,11 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
       </Modal>
 
       {/* Delete Account Modal */}
-      <Modal visible={deleteModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setDeleteModal(false)}>
+      <Modal visible={deleteModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { if (!deleting) setDeleteModal(false); }}>
         <SafeAreaView style={{ flex: 1, backgroundColor: getTheme().surface.canvas, paddingTop: insets.top }} edges={['left', 'right']}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
           <View style={s.modalHeader}>
-            <TouchableOpacity onPress={() => setDeleteModal(false)}><Text style={s.modalCancel}>Cancel</Text></TouchableOpacity>
+            <TouchableOpacity disabled={deleting} onPress={() => setDeleteModal(false)}><Text style={s.modalCancel}>Cancel</Text></TouchableOpacity>
             <Text style={s.modalTitle}>Delete Account</Text>
             <View style={{ minWidth: 60 }} />
           </View>
@@ -720,7 +722,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
               <Feather name="alert-triangle" size={24} color="#FF3B30" />
               <Text style={s.deleteWarningTitle}>This action is permanent</Text>
               <Text style={s.deleteWarningTxt}>
-                Your account and app records will be deleted. This cannot be undone. Uploaded files are not automatically erased by this action. Contact support if you also need those files removed.
+                Your account will be disabled while your stored files and account records are erased. This cannot be undone. Payment records, shared accounts or files with unclear ownership may need a support review. Deletion is complete only when your request status confirms it.
               </Text>
             </View>
             <Text style={s.modalFieldLabel}>Type DELETE to confirm</Text>
@@ -729,7 +731,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
               style={[s.deleteBtn, (deleting || deleteConfirmTxt !== 'DELETE') && s.deleteBtnOff]}
               onPress={handleDeleteAccount} disabled={deleting || deleteConfirmTxt !== 'DELETE'} activeOpacity={0.85}
             >
-              {deleting ? <ActivityIndicator color={getTheme().ink.inverse} /> : <Text style={s.deleteBtnTxt}>Delete My Account</Text>}
+              {deleting ? <ActivityIndicator color={getTheme().ink.inverse} /> : <Text style={s.deleteBtnTxt}>Request Account Deletion</Text>}
             </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>

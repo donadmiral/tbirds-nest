@@ -1,4 +1,4 @@
-import { CONTENT_UUID, contentObject, isContentCapability, type ContentReference } from '../../../shared/contentMedia.ts';
+import { CONTENT_UUID, contentObject, isContentCapability, isMediaDeliveryCapability, type ContentReference } from '../../../shared/contentMedia.ts';
 
 type Dependencies = {
   base: string;
@@ -6,6 +6,7 @@ type Dependencies = {
   manifest(request: Request, references: ContentReference[]): Promise<Array<{ media_url: string }> | null>;
   uploads?(request: Request, urls: string[]): Promise<Array<{ media_url: string }> | null>;
   sign(bucket: string, paths: string[], ttl: number): Promise<Array<{ path: string; signedUrl: string }> | null>;
+  deliver?(request: Request, references: ContentReference[] | null, uploads: string[] | null): Promise<{ urls: Array<{ key: string; url: string }>; expiresAt: number } | null>;
 };
 const TTL = 300;
 export function createContentMediaHandler(deps: Dependencies) {
@@ -38,6 +39,16 @@ export function createContentMediaHandler(deps: Dependencies) {
         if (object) objects.set(object.key, object);
       }
       if (objects.size > 2000) return json(413, { error: 'Too many media references. Request fewer posts.' });
+      if (body.delivery === 'no-store') {
+        if (!deps.deliver) return json(503, { error: 'Private media delivery is not available. Try again.' });
+        const delivered = await deps.deliver(request, body.references ?? null, body.uploads ?? null);
+        if (!delivered || !Number.isFinite(delivered.expiresAt) || delivered.expiresAt <= Date.now()) return json(503, { error: 'Media access is unavailable. Try again.' });
+        const urls = delivered.urls.filter(item => {
+          const object = contentObject(item.url, deps.base);
+          return object && object.key === item.key && objects.has(item.key) && isMediaDeliveryCapability(item.url, deps.base);
+        });
+        return json(200, { urls, expiresAt: delivered.expiresAt });
+      }
       const urls: Array<{ key: string; url: string }> = [];
       for (const bucket of new Set([...objects.values()].map(object => object.bucket))) {
         const paths = [...objects.values()].filter(object => object.bucket === bucket).map(object => object.path);

@@ -6,6 +6,7 @@ import StickerOverlay from '../stories/StickerOverlay';
 import { DrawingLayer } from '../stories/DrawLayer';
 import { FilterLayer } from '../stories/StoryFilters';
 import { StoryPhotoLookContext } from '../stories/StoryPixelImage';
+import { storyVideoCompositionAvailable } from '../../../modules/boomerang/storyComposition';
 import { storyPhotoSpatialAdjust } from '../../../shared/storyColorMatrix';
 import { AdjustLayer, BackgroundLayer } from '../stories/storyPanels';
 
@@ -32,9 +33,9 @@ export default function MemoryStoryFrame({ page, clock = null, children }: {
     onLayout={event => { const { width, height } = event.nativeEvent.layout; setSize(old => old.width === width && old.height === height ? old : { width, height }); }}>
     {Array.isArray(bg?.colors) && bg.colors.length >= 2 && <LinearGradient colors={[bg.colors[0], bg.colors[1]]} start={bg.direction === 'diagonal' ? { x: 0, y: 0 } : { x: .5, y: 0 }} end={bg.direction === 'diagonal' ? { x: 1, y: 1 } : { x: .5, y: 1 }} style={StyleSheet.absoluteFill} pointerEvents="none" />}
     {recipe.bg && (recipe.fit === 'contain' || !page?.media_url) && <BackgroundLayer bg={recipe.bg as any} mediaUrl={page?.media_type === 'image' ? page.media_url : null} />}
-    <StoryPhotoLookContext.Provider value={photo ? { adjust: recipe.adjust, filterId: page?.filter_id, filterAmt: recipe.filterAmt } : null}>{children({ fit: recipe.fit, style: { ...StyleSheet.absoluteFillObject, transform: [{ translateX: recipe.x * size.width }, { translateY: recipe.y * size.height }, { scale: recipe.scale }] } })}</StoryPhotoLookContext.Provider>
-    {!photo && <FilterLayer filterId={page?.filter_id ?? null} amt={recipe.filterAmt} zIndex={1} />}
-    <AdjustLayer adjust={photo ? storyPhotoSpatialAdjust(recipe.adjust) : recipe.adjust} zIndex={2} />
+    <StoryPhotoLookContext.Provider value={photo || storyVideoCompositionAvailable ? { adjust: recipe.adjust, filterId: page?.filter_id, filterAmt: recipe.filterAmt } : null}>{children({ fit: recipe.fit, style: { ...StyleSheet.absoluteFillObject, transform: [{ translateX: recipe.x * size.width }, { translateY: recipe.y * size.height }, { scale: recipe.scale }] } })}</StoryPhotoLookContext.Provider>
+    {!photo && !storyVideoCompositionAvailable && <FilterLayer filterId={page?.filter_id ?? null} amt={recipe.filterAmt} zIndex={1} />}
+    <AdjustLayer adjust={photo || storyVideoCompositionAvailable ? storyPhotoSpatialAdjust(recipe.adjust) : recipe.adjust} zIndex={2} />
     <DrawingLayer strokes={stickers.find(sticker => sticker.kind === 'drawing')?.strokes?.map((stroke: any) => ({ ...stroke, width: stroke.width * scale })) ?? null} width={size.width} height={size.height} zIndex={3} />
     <StickerOverlay stickers={stickers.map(sticker => ({ ...sticker, scale: (sticker.scale ?? 1) * (sticker.kind === 'photo' && sticker.photoShape === 'cell' ? 1 : scale) }))} containerW={size.width} containerH={size.height} interactive={false} storyPaused clockSec={clock} />
   </View>;

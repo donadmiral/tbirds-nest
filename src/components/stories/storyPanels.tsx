@@ -1,3 +1,4 @@
+import { privateImageCachePolicy } from '../../../shared/mediaDelivery';
 /**
  * storyPanels — creative-engine sheets and layers: adjust, background,
  * sound mix, entity picker, and the composer's phone-frame preview.
@@ -223,7 +224,7 @@ export function BackgroundLayer({ bg, mediaUrl }: { bg: StoryBg | null | undefin
     if (!mediaUrl) return <View style={[StyleSheet.absoluteFill, { backgroundColor: '#000' }]} />;
     return (
       <View style={StyleSheet.absoluteFill}>
-        <ExpoImage source={{ uri: mediaUrl }} style={[StyleSheet.absoluteFill, { opacity: 0.22 }]} contentFit="cover" blurRadius={35} transition={0} cachePolicy="memory-disk" />
+        <ExpoImage source={{ uri: mediaUrl }} style={[StyleSheet.absoluteFill, { opacity: 0.22 }]} contentFit="cover" blurRadius={35} transition={0} cachePolicy={privateImageCachePolicy(mediaUrl)} />
       </View>
     );
   }

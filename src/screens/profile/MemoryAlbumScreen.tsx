@@ -2,6 +2,7 @@ import { themedSheet, useTheme } from '../../theme/useTheme';
 import VideoThumb from '../../components/VideoThumb';
 import StoryPixelImage from '../../components/stories/StoryPixelImage';
 import MemoryPageImage from '../../components/memory/MemoryPageImage';
+import MemoryFilm from '../../components/memory/MemoryFilm';
 import MemoryStoryFrame, { type MemoryStoryPage } from '../../components/memory/MemoryStoryFrame';
 import { memoryAlbumStoryLayers, memoryStoryRecipe, memoryStorySeek, memoryStoryStickers } from '../../../shared/memoryStoryPresentation';
 import MemoryPageTurn,{MemoryTurnPreview,type MemoryPageTurnHandle} from '../../components/memory/MemoryPageTurn';
@@ -20,7 +21,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
-import { useVideoPlayer, VideoView } from 'expo-video';
+import { StoryVideoView as VideoView, useStoryVideoPlayer as useVideoPlayer } from '../../../modules/boomerang/storyVideo';
 import { hydrateMemoryAlbumMedia, hydrateStoryMedia } from '../../services/contentMedia';
 import { supabase } from '../../services/supabase';
 import { COVER_COLORS } from '../../components/MemoryAlbumCard';
@@ -50,6 +51,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
   const { callState } = useCallContext();
   const [playMode, setPlayMode] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [filmVisible, setFilmVisible] = useState(false);
   const [playRun, setPlayRun] = useState(0);
   const [foreground, setForeground] = useState(AppState.currentState === 'active');
   const [readyPage, setReadyPage] = useState('');
@@ -160,7 +162,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
     bookGeneration.current++; loadGeneration.current++;
     coverAnim.stopAnimation(); pageTurn.current?.cancel();
     coverAnim.setValue(0); idxRef.current=0;
-    setOpened(false); setGrid(false); setPlayMode(false); setPlaying(false); setIdx(0); setAlbum(null); setBookId(albumIdParam);
+    setOpened(false); setGrid(false); setPlayMode(false); setPlaying(false); setFilmVisible(false); setIdx(0); setAlbum(null); setBookId(albumIdParam);
     setPlayingUrl(null); setPicker(false); setSettings(false); setPageActions(null); pendingPageAction.current=null; setCaptionFor(null);
     setMyStories([]); setChosen(new Set()); setAdding(false); setStoriesLoading(false); setMutationError(''); setLoadError(null); setLoading(true);
     return () => { bookGeneration.current++; coverAnim.stopAnimation(); pageTurn.current?.cancel(); };
@@ -176,7 +178,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
 
   useEffect(() => { setDesign(album?.cover_design || 'keepsake'); }, [album]);
   useEffect(() => { let alive=true; setNextBook(null); if (!viewerId || !bookId) return; void supabase.rpc('get_memory_albums',{p_owner:ownerId}).then(({data,error})=>{if(!alive||error)return;const list=(data?.books??[]).filter((b:any)=>data?.is_owner||b.count>0);const index=list.findIndex((b:any)=>b.id===bookId);if(index>=0&&index+1<list.length)setNextBook(list[index+1].id);});return()=>{alive=false;};},[ownerId,bookId,viewerId]);
-  const music = useSoundtrackPlayer({ selection: album?.soundtrack ?? null, use: 'memory_album', active: focused && foreground && callState === 'idle' && opened && (!playMode || playing) && !grid && !pageActions && !settings && !picker && !captionFor && !playingUrl });
+  const music = useSoundtrackPlayer({ selection: album?.soundtrack ?? null, use: 'memory_album', active: focused && foreground && callState === 'idle' && opened && !filmVisible && (!playMode || playing) && !grid && !pageActions && !settings && !picker && !captionFor && !playingUrl });
 
   const artwork = memoryArtwork(album?.cover_design, album?.cover_color);
   const pages: any[] = useMemo(
@@ -186,7 +188,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
 
   useEffect(() => { if (idx > 0 && idx >= pages.length) setIdx(Math.max(0, pages.length - 1)); }, [pages.length, idx]);
   const playbackPage = pages[idx];
-  const movieActive = focused && foreground && callState === 'idle' && opened && playMode && playing && !turning && !grid && !pageActions && !settings && !picker && !captionFor && !playingUrl;
+  const movieActive = focused && foreground && callState === 'idle' && opened && !filmVisible && playMode && playing && !turning && !grid && !pageActions && !settings && !picker && !captionFor && !playingUrl;
   const finishPage = useCallback(() => { if (idxRef.current >= pages.length - 1) setPlaying(false); else pageTurn.current?.turn(1); }, [pages.length]);
   const photoProgress = useMemoryPlayback(`${bookId}:${playbackPage?.id}:${playRun}`, movieActive && playbackPage?.media_type !== 'video' && (!playbackPage?.media_url || readyPage === playbackPage?.id), memoryPhotoDuration(playbackPage), finishPage);
   useEffect(() => { setReadyPage(''); setVideoProgress(0); }, [playbackPage?.id, playRun]);
@@ -204,7 +206,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
     Animated.timing(coverAnim, { toValue: 0, duration: reduceMotion ? 0 : 220, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
   }, [coverAnim, reduceMotion]);
 
-  const playBook = useCallback(() => { idxRef.current = 0; setIdx(0); setPlayRun(value => value + 1); setPlayMode(true); setPlaying(true); openBook(); }, [openBook]);
+  const playBook = useCallback(() => { setPlaying(false); setPlayMode(false); setFilmVisible(true); }, []);
 
   const flipTo = useCallback((dir:1|-1)=>{pageTurn.current?.turn(dir);},[]);
 
@@ -349,7 +351,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
             </TouchableOpacity>
           </Animated.View>
           <Text style={{fontFamily:Platform.OS==='ios'?'Georgia':'serif',fontSize:21,color:t.ink.primary,marginTop:22}}>{ownerName?'By '+ownerName:album.subtitle||album.title}</Text><Text style={{color:t.ink.secondary,fontSize:13,marginTop:7}}>{pages.length} {pages.length===1?'memory':'memories'}</Text><TouchableOpacity accessibilityRole="button" onPress={openBook} style={{width:bookW,marginTop:22,backgroundColor:'#142642',borderRadius:18,alignItems:'center',padding:15}}><Text style={{color:'#FFF',fontFamily:Platform.OS==='ios'?'Georgia':'serif',fontSize:20}}>Open book</Text></TouchableOpacity>
-          {pages.length > 0 && <TouchableOpacity accessibilityRole="button" accessibilityLabel="Play book automatically" onPress={playBook} style={{width:bookW,marginTop:10,borderWidth:1,borderColor:t.surface.hairline,borderRadius:18,alignItems:'center',padding:15,flexDirection:'row',justifyContent:'center',gap:8}}><Feather name="play" size={18} color={t.ink.primary}/><Text style={{color:t.ink.primary,fontWeight:'700'}}>Play book</Text></TouchableOpacity>}
+          {pages.length > 0 && <TouchableOpacity accessibilityRole="button" accessibilityLabel="Play continuous memory film with original music" onPress={playBook} style={{width:bookW,marginTop:10,borderWidth:1,borderColor:t.surface.hairline,borderRadius:18,alignItems:'center',padding:15,flexDirection:'row',justifyContent:'center',gap:8}}><Feather name="play" size={18} color={t.ink.primary}/><Text style={{color:t.ink.primary,fontWeight:'700'}}>Play memories</Text></TouchableOpacity>}
           {album.is_owner ? (
             <TouchableOpacity onPress={openPicker} activeOpacity={0.9} style={[st.fab, { position: 'relative', bottom: 0, marginTop: 10, width:bookW, borderRadius:18, justifyContent:'center' }]}>
               <Feather name="plus" size={18} color={t.ink.inverse} />
@@ -359,7 +361,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
         </View>
       ) : grid ? <ScrollView contentContainerStyle={{padding:18,paddingBottom:40}}><Text style={{fontSize:13,color:t.ink.secondary,textAlign:'center',marginBottom:20}}>{pages.length} pages · Select a page to read or edit</Text><View style={{flexDirection:'row',flexWrap:'wrap',gap:14}}>{pages.map((pg:any,i:number)=><TouchableOpacity key={pg.id} accessibilityLabel={'Open memory '+(i+1)} onPress={()=>{idxRef.current=i;setIdx(i);setGrid(false);}} style={{width:(screenWidth-50)/2,backgroundColor:PAGE_CREAM,borderLeftWidth:6,borderColor:artwork.spine,padding:10,shadowColor:'#000',shadowOpacity:.1,shadowRadius:5,shadowOffset:{width:0,height:3}}}><Text style={{fontFamily:Platform.OS==='ios'?'Georgia':'serif',color:'#142642',textAlign:'center',fontSize:10,marginBottom:10}}>{String(i+1).padStart(2,'0')}</Text><View style={{height:(screenWidth-50)/2*1.15,overflow:'hidden'}}><MemoryStoryTile story={pg}/></View><Text numberOfLines={2} style={{fontFamily:Platform.OS==='ios'?'Georgia':'serif',fontSize:13,color:'#142642',marginTop:10}}>{pg.caption||fmtDate(pg.taken_at)}</Text></TouchableOpacity>)}</View>{album.is_owner&&<TouchableOpacity onPress={openPicker} style={{padding:16,alignItems:'center',marginTop:20,borderWidth:1,borderStyle:'dashed',borderRadius:14,borderColor:t.surface.hairline}}><Text style={{color:t.ink.primary}}>+ Add memories</Text></TouchableOpacity>}</ScrollView> : (
         <View style={{ flex: 1, alignItems: 'center',overflow:'hidden' }}>
-          <MemoryPageTurn ref={pageTurn} key={bookId} pageIds={pages.map(p=>p.id)} index={idx} width={pageWidth} height={pageHeight} active={focused&&!pageActions&&!settings&&!picker&&!captionFor&&!playingUrl} reduceMotion={reduceMotion} spine={artwork.spine} title={album.title} onCommit={i=>{idxRef.current=i;setIdx(i);}} onTurningChange={setTurning} renderPreview={i=><MemoryTurnPreview page={pages[i]??{}} index={i}/>}>
+          <MemoryPageTurn ref={pageTurn} key={bookId} pageIds={pages.map(p=>p.id)} index={idx} width={pageWidth} height={pageHeight} active={focused&&!filmVisible&&!pageActions&&!settings&&!picker&&!captionFor&&!playingUrl} reduceMotion={reduceMotion} spine={artwork.spine} title={album.title} onCommit={i=>{idxRef.current=i;setIdx(i);}} onTurningChange={setTurning} renderPreview={i=><MemoryTurnPreview page={pages[i]??{}} index={i}/>}>
               <Text style={{textAlign:'center',fontFamily:Platform.OS==='ios'?'Georgia':'serif',fontSize:10,color:'#6F614A',marginBottom:12}}>{String(idx+1).padStart(2,'0')} ─</Text>
               {pages.length === 0 ? (
                 <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 26 }}>
@@ -385,7 +387,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
                           )) : null}
                           <TouchableOpacity disabled={!pk.postId} onPress={()=>navigation.push('PostTop',{postId:pk.postId})}><Text style={{ color: '#D8E2F0', fontSize: 12, marginTop: 8 }}>View full post →</Text></TouchableOpacity>
                         </View>}</MemoryStoryFrame>
-                      ); if (page?.media_type === 'video') return (<View style={{ flex: 1 }}><PageVideo key={[page.id,page.media_url,mediaAttempt,playRun].join(':')} url={page.media_url} page={page} active={focused&&foreground&&(!playMode||playing)&&!turning&&!pageActions&&!settings&&!picker&&!captionFor&&!playingUrl} onRetry={retryMedia} onEnd={playMode ? finishPage : undefined} onProgress={setVideoProgress} /><TouchableOpacity accessibilityRole="button" accessibilityLabel="Open memory video full screen" hitSlop={6} disabled={!page.media_url} onPress={() => setPlayingUrl(page.media_url)} style={{ position: 'absolute', right: 8, bottom: 8, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }}><Feather name="maximize-2" size={15} color="#FFFFFF" /></TouchableOpacity></View>); if (page?.media_type === 'image' || page?.media_url || page?.thumbnail_url) return (
+                      ); if (page?.media_type === 'video') return (<View style={{ flex: 1 }}><PageVideo key={[page.id,page.media_url,mediaAttempt,playRun].join(':')} url={page.media_url} page={page} active={focused&&foreground&&!filmVisible&&(!playMode||playing)&&!turning&&!pageActions&&!settings&&!picker&&!captionFor&&!playingUrl} onRetry={retryMedia} onEnd={playMode ? finishPage : undefined} onProgress={setVideoProgress} /><TouchableOpacity accessibilityRole="button" accessibilityLabel="Open memory video full screen" hitSlop={6} disabled={!page.media_url} onPress={() => setPlayingUrl(page.media_url)} style={{ position: 'absolute', right: 8, bottom: 8, width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center' }}><Feather name="maximize-2" size={15} color="#FFFFFF" /></TouchableOpacity></View>); if (page?.media_type === 'image' || page?.media_url || page?.thumbnail_url) return (
                         <MemoryStoryFrame key={[page.id,page.media_url,page.thumbnail_url,mediaAttempt,playRun].join(':')} page={page}>{({fit,style})=><Animated.View style={[style,{transform:[...(Array.isArray(style.transform)?style.transform:[]),{scale:motionScale}]}]}><MemoryPageImage uri={page.media_url} thumbnail={page.thumbnail_url} fit={fit} onRetry={retryMedia} onReady={()=>setReadyPage(page.id)} /></Animated.View>}</MemoryStoryFrame>
                       ); return (
                         <MemoryStoryFrame page={page}>{()=> <View style={{ flex: 1, borderRadius: 6, alignItems: 'center', justifyContent: 'center', padding: 14 }}>
@@ -410,7 +412,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
               <TouchableOpacity accessibilityRole="button" accessibilityLabel="Previous memory" onPress={() => flipTo(-1)} disabled={turning||idx === 0} style={[st.pagerBtn, idx === 0 && { opacity: 0.35 }]}>
                 <Feather name="chevron-left" size={17} color={t.ink.primary} />
               </TouchableOpacity>
-              <TouchableOpacity accessibilityRole="button" accessibilityLabel={playMode&&playing?'Pause book':'Play book'} onPress={()=>{if(!playMode){setPlayMode(true);setPlaying(true);}else if(!playing&&idx>=pages.length-1&&(photoProgress>=1||videoProgress>=.99)){idxRef.current=0;setIdx(0);setPlayRun(n=>n+1);setPlaying(true);}else setPlaying(value=>!value);}} style={st.pagerBtn}><Feather name={playMode&&playing?'pause':'play'} size={17} color={t.ink.primary}/></TouchableOpacity>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Play continuous memory film" onPress={playBook} style={st.pagerBtn}><Feather name={playMode&&playing?'pause':'play'} size={17} color={t.ink.primary}/></TouchableOpacity>
               <View style={st.pagerPill}><Text accessibilityLiveRegion="polite" accessibilityLabel={`Page ${idx+1} of ${pages.length}`} style={st.pagerTxt}>{idx + 1} / {pages.length}</Text></View>
               <TouchableOpacity accessibilityRole="button" accessibilityLabel="Next memory" onPress={() => flipTo(1)} disabled={turning||idx >= pages.length - 1} style={[st.pagerBtn, idx >= pages.length - 1 && { opacity: 0.35 }]}>
                 <Feather name="chevron-right" size={17} color={t.ink.primary} />
@@ -419,6 +421,8 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
           ) : null}
         </View>
       )}
+
+      {filmVisible && pages.length > 0 && <MemoryFilm key={`${bookId}:${viewerId}`} title={album.title} pages={pages} active={focused} reduceMotion={reduceMotion} onClose={() => setFilmVisible(false)} onReadBook={() => { setFilmVisible(false); openBook(); }} onRetry={retryMedia} onPost={postId => { setFilmVisible(false); navigation.push('PostTop', { postId }); }} />}
 
       <Modal visible={picker} animationType="slide" onRequestClose={() => setPicker(false)}>
         <View style={[st.safe, { paddingTop: Math.max(insets.top, 12) }]}>

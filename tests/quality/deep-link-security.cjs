@@ -42,7 +42,7 @@ test('malformed escapes and invalid UTF-8 never reach the tolerant navigation de
     'feed?x=%C3', 'feed?x=%E0%80%AF', 'feed?x=%ED%A0%80', 'feed?x=%F4%90%80%80', 'feed?x=%FF'.repeat(20)]) {
     assert.equal(h.parse(value), undefined);
   }
-  assert.equal(h.calls.length, 0, 'invalid input must be rejected before calling the vulnerable package');
+  assert.equal(h.calls.length, 0, 'invalid input must be rejected before calling the tolerant dependency parser');
 });
 
 test('the published advisory-shaped oversized input is rejected without invoking dependency parsing', () => {

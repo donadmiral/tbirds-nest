@@ -1,3 +1,4 @@
+import { privateImageCachePolicy } from '../../../shared/mediaDelivery';
 // src/components/feed/DiscoverTile.tsx
 // The phone Discover tile, twin of web/components/DiscoverTile.tsx. A discovery
 // surface wants density: many things visible at once, media leading, text only
@@ -44,7 +45,7 @@ export default function DiscoverTile({ post, author, width, onPress }: { post: T
       <TouchableOpacity style={[s.tile, { width }]} activeOpacity={0.85} onPress={onPress}>
         <View style={[s.frame, { height: width }]}>
           {first.is_sensitive || first.edit?.sensitive ? <View style={[StyleSheet.absoluteFill, s.frameEmpty]}><Feather name="eye-off" size={24} color={getTheme().ink.muted} /><Text style={{color:getTheme().ink.secondary}}>Sensitive content</Text></View> : cover
-            ? <ExpoImage source={{ uri: cover }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy="memory-disk" />
+            ? <ExpoImage source={{ uri: cover }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy={privateImageCachePolicy(cover)} />
             : isVideo
               ? <VideoThumb uri={first.url} fill chip={false} />
               : <View style={[StyleSheet.absoluteFill, s.frameEmpty]}><Feather name="image" size={22} color={getTheme().ink.muted} /></View>}

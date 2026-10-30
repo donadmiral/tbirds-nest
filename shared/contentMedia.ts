@@ -8,7 +8,7 @@ export function contentObject(value: string, base: string): { bucket: string; pa
   try {
     const url = new URL(value), expected = new URL(base);
     if (url.origin !== expected.origin || url.username || url.password || url.hash) return null;
-    const match = url.pathname.match(/^\/storage\/v1\/(?:object\/(?:public|sign|authenticated)|render\/image\/(?:public|sign|authenticated))\/(post-media|story-media|media)\/(.+)$/);
+    const match = url.pathname.match(/^\/(?:storage\/v1\/(?:object\/(?:public|sign|authenticated)|render\/image\/(?:public|sign|authenticated))|functions\/v1\/media-content)\/(post-media|story-media|media)\/(.+)$/);
     if (!match) return null;
     const path = decodeURIComponent(match[2]);
     if (path.length > 1024 || path.includes('%') || path.includes('\\') || path.split('/').some(part => !part || part === '.' || part === '..')) return null;
@@ -17,7 +17,13 @@ export function contentObject(value: string, base: string): { bucket: string; pa
 }
 
 /** Only storage-issued capabilities can replace canonical object references. */
+export function isMediaDeliveryCapability(value: string, base: string): boolean {
+  if (!contentObject(value, base)) return false;
+  const url = new URL(value);
+  return url.pathname.startsWith('/functions/v1/media-content/') && /^[0-9a-f]{64}$/.test(url.searchParams.get('token') || '');
+}
 export function isContentCapability(value: string, base: string): boolean {
+  if (isMediaDeliveryCapability(value, base)) return !!contentObject(value, base);
   if (!contentObject(value, base)) return false;
   try {
     const url = new URL(value);
@@ -118,16 +124,16 @@ export async function hydrateContentMedia<T>(client: ContentMediaClient, base: s
   if (!rows.length || !hasContentMedia(rows, base)) return rows;
   const refs = contentReferences(rows, kind);
   const batches = [];
-  for (let i = 0; i < refs.length; i += 50) batches.push({ references: refs.slice(i, i + 50) });
+  for (let i = 0; i < refs.length; i += 50) batches.push({ references: refs.slice(i, i + 50), delivery: 'no-store' });
   return hydrateMediaBatches(client, base, rows, batches);
 }
 
 /** Unpublished uploads are previewed only for the verified storage owner. */
 export async function hydrateOwnerUploadMedia<T>(client: ContentMediaClient, base: string, rows: T[]): Promise<T[]> {
-  const urls = [...new Set(contentMediaUrls(rows, base))];
+  const urls = [...new Set(contentMediaUrls(canonicalContentMedia(rows, base), base))];
   if (!urls.length) return rows;
   const batches = [];
-  for (let i = 0; i < urls.length; i += 40) batches.push({ uploads: urls.slice(i, i + 40) });
+  for (let i = 0; i < urls.length; i += 40) batches.push({ uploads: urls.slice(i, i + 40), delivery: 'no-store' });
   return hydrateMediaBatches(client, base, rows, batches);
 }
 

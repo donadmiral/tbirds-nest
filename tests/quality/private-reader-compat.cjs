@@ -5,12 +5,12 @@ function compile(file, imports, extra={}) {
  vm.runInNewContext(source,{exports,URL,console,Date,process:{env:{NEXT_PUBLIC_SUPABASE_URL:base}},require:name=>{assert.ok(name in imports,`Unexpected import ${name}`);return imports[name];},...extra});return exports;
 }
 for (const file of ['web/lib/chatMedia.ts','src/services/chatMediaService.ts']) {
- test(file+' signs legacy group avatars as the reader and rejects late account responses',async()=>{
+ test(file+' delivers group avatars without persistent signed URLs and rejects late account responses',async()=>{
   let listener,user='one',pending;const calls=[];
-  const client={auth:{getSession:async()=>({data:{session:{user:{id:user}}}}),onAuthStateChange:fn=>{listener=fn;return{data:{subscription:{unsubscribe(){}}}};}},storage:{from:bucket=>({createSignedUrls:async paths=>{calls.push({bucket,paths:Array.from(paths)});if(pending)await pending;return{data:paths.map(p=>({signedUrl:`signed:${user}:${p}`}))};}})}};
-  const m=compile(file,{'@/lib/supabase/client':{createClient:()=>client},'./supabase':{supabase:client,SUPABASE_URL:base}});
+  const client={auth:{getSession:async()=>({data:{session:{user:{id:user}}}}),onAuthStateChange:fn=>{listener=fn;return{data:{subscription:{unsubscribe(){}}}};}},rpc:async(name,args)=>{calls.push({name,urls:Array.from(args.p_urls)});if(pending)await pending;return{data:args.p_urls.map(u=>({bucket_id:'chat-media',object_path:u.split('/public/chat-media/')[1],token:'a'.repeat(64),expires_at:new Date(Date.now()+300000).toISOString()}))};}};
+  const m=compile(file,{'@/lib/supabase/client':{createClient:()=>client},'./supabase':{supabase:client,SUPABASE_URL:base},'../../shared/mediaDelivery':compile('shared/mediaDelivery.ts',{})});
   const rows=[{id:'legacy',group_avatar_url:`${base}/storage/v1/object/public/chat-media/${owner}/avatar.jpg?t=1`},{id:'public',group_avatar_url:'https://images.test/avatar.png'}];
-  const signed=await m.signGroupAvatars(rows);assert.match(signed[0].group_avatar_url,/^signed:one:/);assert.equal(signed[1].group_avatar_url,rows[1].group_avatar_url);assert.deepEqual(calls[0],{bucket:'chat-media',paths:[`${owner}/avatar.jpg`]});
+  const signed=await m.signGroupAvatars(rows);assert.match(signed[0].group_avatar_url,/\/functions\/v1\/media-content\/chat-media\//);assert.equal(signed[1].group_avatar_url,rows[1].group_avatar_url);assert.deepEqual(calls[0],{name:'issue_chat_object_delivery',urls:[`${base}/storage/v1/object/public/chat-media/${owner}/avatar.jpg`]});
   let done;pending=new Promise(resolve=>done=resolve);const request=m.signGroupAvatars(rows);await new Promise(resolve=>setImmediate(resolve));user='two';listener('SIGNED_IN',{user:{id:user}});done();assert.equal((await request)[0].group_avatar_url,null);
  });
 }

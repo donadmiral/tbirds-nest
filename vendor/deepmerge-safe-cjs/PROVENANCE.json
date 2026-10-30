@@ -1,0 +1,47 @@
+{
+  "upstream": {
+    "package": "deepmerge",
+    "version": "4.3.1",
+    "repository": "https://github.com/TehShrike/deepmerge",
+    "commit": "5b87756a5671635679001cbac72aa42f23472c81",
+    "tarball": "https://registry.npmjs.org/deepmerge/-/deepmerge-4.3.1.tgz",
+    "integrity": "sha512-3sUqbMEc77XqpdNO7FRyRog+eW3ph+GYCbj+rK+uYyRMuwsVy0rMiVtPn+QJlKFvWP/1PYpapqYn0Me2knFn+A==",
+    "tarballSha256": "4003a0a348276a95543fa969f561f6b5968629acbbb59d66018dd23e7b8f1d5c",
+    "filesSha256": {
+      "dist/cjs.js": "2e5160f84a1141bd927264afe4d15766f1e6cf07daef182b37ff53fea121de7d",
+      "license.txt": "6cfc4687cb2f2d86f4a77e6b526290d3878e5e512f3fec2f4cb36a9cb36f798b",
+      "is-mergeable-object/index.js": "29449d50d8b7b7b45b1104ad5a21c92f34de22cc0aa55d0296197ecf5303e2fe",
+      "is-mergeable-object/readme.md": "0bfa1f6512f467b72d7edb2fdd283889e8fcc9b1fc9627ce997616ecf5e47262",
+      "package.metadata.json": "f56978e7a6da1a3c6edee41abb54f98584a2fa2680458c48db820ae772fef0c9",
+      "is-mergeable-object/package.metadata.json": "e8b4126b398f22247c9b8177f492dc9e75b1c4506807ccc0263624a91dda7c2b"
+    },
+    "bundledComponent": {
+      "package": "is-mergeable-object",
+      "version": "1.1.0",
+      "commit": "0d3d3c837e74b03191850544abd1abf23e94ae89",
+      "tarball": "https://registry.npmjs.org/is-mergeable-object/-/is-mergeable-object-1.1.0.tgz",
+      "integrity": "sha512-JfyDDwUdtS4yHCgUpxOyKB9dnfZ0gecufxB0eytX6BmSXSE+8dbxDGt+V7CNRIRJ9sYFV/WQt2KJG6hNob2sBw==",
+      "tarballSha256": "a6158ee33c03f765ebfb2d863784a3fbcd6874cecb758eede903b8a7edec05ba",
+      "license": "MIT",
+      "notice": "The upstream deepmerge CJS distribution already bundles this helper. Its npm archive provides package/readme MIT declarations but no separate license file; both declarations are retained here with its exact source."
+    },
+    "originalPathByFile": {
+      "package.metadata.json": "package.json",
+      "is-mergeable-object/package.metadata.json": "is-mergeable-object/package.json"
+    }
+  },
+  "local": {
+    "package": "@platinumcircles/deepmerge-safe-cjs",
+    "version": "4.3.1-pc.1",
+    "runtimeSha256": "07da2fe622bdb3781eddce30b2d89d6c3bd55c1da66a9ce613cac7018b96e92d",
+    "patchSha256": "ee1ba00842e7a45f3d78a0d34620246d1d0f4c95e33e11beb6a336f46c5abc7f",
+    "changes": [
+      "Discard __proto__ before reading or assigning it in both target and source loops, independent of the target shape.",
+      "Define own enumerable writable configurable data properties for all three merge writes; preserve array/customMerge/clone/symbol behavior and ordinary constructor/prototype data semantics."
+    ]
+  },
+  "advisories": [
+    "https://github.com/advisories/GHSA-gcqx-w48m-w2h4"
+  ],
+  "registryAuditCoverage": "The private local adaptation is not indexed in npm advisory metadata. Do not treat its absence from npm audit as independent security assurance."
+}

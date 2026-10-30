@@ -1,3 +1,4 @@
+import { privateImageCachePolicy } from '../../../shared/mediaDelivery';
 /**
  * MediaViewer.tsx
  * Edge-to-edge fullscreen viewer for images, gifs, and videos.
@@ -141,7 +142,7 @@ export default function MediaViewer({ visible, items, initialIndex, onClose }: P
                   source={{ uri: item.url }}
                   style={styles.media}
                   contentFit="contain"
-                  cachePolicy="memory-disk"
+                  cachePolicy={privateImageCachePolicy(item.url)}
                   transition={120}
                 />
               )}

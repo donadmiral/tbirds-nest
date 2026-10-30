@@ -65,6 +65,7 @@ function scenario(options = {}) {
     if(name==='./storyFilterAppearance')return load(compile('../shared/storyFilterAppearance.ts'));
     if(name==='@/lib/storyPostShare')return{loadPostStorySticker:async(_client,id,check)=>{const result=await options.loadPost(id,owner);check();return result;}};
     if(name==='react')return hooks;if(name==='react/jsx-runtime')return runtime;
+    if(name==='./memory/useMemoryDialog')return load(compile('components/memory/useMemoryDialog.ts'));
     if(name==='next/navigation')return{useRouter:()=>router,useSearchParams:()=>params};
     if(name==='next/link')return{__esModule:true,default:'Link'};
     if(name==='@/lib/supabase/client')return{createClient:()=>client};

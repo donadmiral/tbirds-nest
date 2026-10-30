@@ -2,7 +2,8 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import type { MemoryPage } from '@/lib/memoryAlbum';
 import { memoryStoryLayerVisible, memoryStoryRecipe, memoryStoryStickers } from '../../../shared/memoryStoryPresentation';
-import { STORY_FILTERS, filterCss } from '../../../shared/storyFilterAppearance';
+import { StoryPixelGrade } from '../StoryPixelGrade';
+import { storyPhotoSpatialAdjust } from '../../../shared/storyColorMatrix';
 import { AdjustOverlay, BgLayer, DrawSvg, EngineSticker, STICKER_ANIM_CSS } from '../StoryEngine';
 import { StoryStickerPreview } from '../StoryStickerPreview';
 
@@ -22,15 +23,13 @@ export function MemoryStoryFrame({ page, clock = null, children }: {
   }, []);
   const recipe = memoryStoryRecipe(page.media_transform);
   const stickers = memoryStoryStickers(page.stickers).filter(sticker => sticker.kind !== 'post' && memoryStoryLayerVisible(sticker, clock));
-  const filter = STORY_FILTERS.find(item => item.id === page.filter_id), intensity = recipe.filterAmt / 100;
   const bg: any = page.text_background;
   const background = bg && typeof bg === 'object' ? bg.colors?.length > 1 ? `linear-gradient(${bg.direction === 'diagonal' ? '135deg' : '180deg'},${bg.colors.join(',')})` : bg.color || bg.colors?.[0] : typeof bg === 'string' && bg.startsWith('#') ? bg : null;
   return <div ref={root} className="relative h-full w-full overflow-hidden" style={{ background: background || '#0B1E3D' }}>
     <style>{STICKER_ANIM_CSS}</style>
     {recipe.bg && recipe.fit === 'contain' && <BgLayer bg={recipe.bg as any} mediaUrl={page.media_type === 'image' ? page.media_url : null} />}
-    {children({ objectFit: recipe.fit, transform: `translate(${recipe.x * 100}%, ${recipe.y * 100}%) scale(${recipe.scale})` })}
-    {filter && <div className="pointer-events-none absolute inset-0 z-[1]" style={{ backdropFilter: filterCss(filter.id, intensity), WebkitBackdropFilter: filterCss(filter.id, intensity) }}>{filter.layers.map((layer, index) => <div key={index} className="absolute inset-0" style={{ backgroundColor: layer.color, opacity: layer.opacity * intensity }} />)}</div>}
-    <AdjustOverlay adjust={recipe.adjust} />
+    <StoryPixelGrade className="relative h-full w-full" look={{ filterId: page.filter_id, filterAmt: recipe.filterAmt, adjust: recipe.adjust }}>{children({ objectFit: recipe.fit, transform: `translate(${recipe.x * 100}%, ${recipe.y * 100}%) scale(${recipe.scale})` })}</StoryPixelGrade>
+    <AdjustOverlay adjust={storyPhotoSpatialAdjust(recipe.adjust)} />
     <DrawSvg stickers={stickers} />
     <div className="pointer-events-none absolute inset-0 z-[4]">{stickers.filter(sticker => sticker.kind !== 'drawing').map(sticker => {
       const cell = sticker.kind === 'photo' && sticker.photoShape === 'cell';

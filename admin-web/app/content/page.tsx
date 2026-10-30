@@ -12,10 +12,10 @@ import type { MediaPreviewEdit, ReviewMedia } from '@/components/MediaPreview';
 
 export const dynamic = 'force-dynamic';
 
-const PANEL: React.CSSProperties = { borderRadius: 13, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', overflow: 'hidden' };
+const PANEL: React.CSSProperties = { borderRadius: 12, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', overflow: 'hidden' };
 const HEAD: React.CSSProperties = { padding: '14px 16px 12px', borderBottom: '1px solid rgba(var(--on),0.10)' };
-const H_TITLE: React.CSSProperties = { fontSize: 13.5, fontWeight: 700, color: 'var(--txt)' };
-const H_SUB: React.CSSProperties = { fontSize: 11.3, color: 'var(--txt-muted)', marginTop: 3 };
+const H_TITLE: React.CSSProperties = { fontSize: 14, fontWeight: 700, color: 'var(--txt)' };
+const H_SUB: React.CSSProperties = { fontSize: 12, color: 'var(--txt-muted)', marginTop: 3 };
 
 const IC = {
   post: 'M4 4h16v12H5.2L4 17.2V4zm2 3h12v2H6V7zm0 4h8v2H6v-2z',
@@ -281,8 +281,8 @@ export default async function ContentPage() {
             </div>
             {removed.length === 0 ? <Empty note="No post has been removed by this desk." /> : removed.slice(0, 6).map(r => (
               <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10.5px 16px', borderBottom: '1px solid rgba(var(--on),0.10)' }}>
-                <span className="pc-num" style={{ flex: 1, minWidth: 0, fontSize: 11.4, color: 'rgba(var(--on),0.55)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{String(r.target_id).slice(0, 18)}</span>
-                <span className="pc-num" style={{ fontSize: 10.5, color: 'rgba(var(--on),0.3)' }}>{ago(r.created_at)}</span>
+                <span className="pc-num" style={{ flex: 1, minWidth: 0, fontSize: 12, color: 'var(--txt-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{String(r.target_id).slice(0, 18)}</span>
+                <span className="pc-num" style={{ fontSize: 11, color: 'var(--txt-muted)' }}>{ago(r.created_at)}</span>
               </div>
             ))}
           </div>

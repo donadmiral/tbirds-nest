@@ -1,11 +1,12 @@
 import { SharedPostStory } from "./SharedPostStory";
 import { stickerCss } from "./storyTextAppearance";
-import { animStyle, extraFontCss } from "./StoryEngine";
+import { animStyle, extraFontCss, EngineSticker } from "./StoryEngine";
 import type { StoryTextSticker } from '@/lib/stories';
 
 /** Decorative preview only: the enclosing canvas owns drag and selection. */
 export function StoryStickerPreview({ sticker: s }: { sticker: StoryTextSticker }) {
   if (s.kind === "post") return <SharedPostStory sticker={s} paused preview />;
+  if (['photo','gif','time','date','weather','entity'].includes(s.kind || '')) return <span inert className="pointer-events-none block h-full w-full"><EngineSticker st={s} /></span>;
   const card = 'block w-[240px] max-w-full overflow-hidden rounded-[22px] border border-black/5 bg-[#FFFEFC] p-4 text-center text-[#0B1E3D] shadow-xl';
   const title = <span className="block text-base font-extrabold leading-snug">{s.questionPrompt || s.quizQuestion || s.sliderLabel || s.countdownTitle || s.addYoursPrompt || s.text}</span>;
   if (s.kind === 'question') return <span className={card} style={{ background: '#F5B09A' }}><span className="mb-2 block text-[10px] font-bold uppercase tracking-[.2em] text-[#817364]">Let's talk</span>{title}<span className="mt-4 block rounded-xl bg-[#F1EDE7] p-3 text-xs font-semibold text-[#817364]">Type something…</span></span>;

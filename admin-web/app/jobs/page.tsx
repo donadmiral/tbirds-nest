@@ -8,10 +8,10 @@ import { fmt, ago } from '@/lib/fmt';
 
 export const dynamic = 'force-dynamic';
 
-const PANEL: React.CSSProperties = { borderRadius: 13, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', overflow: 'hidden' };
+const PANEL: React.CSSProperties = { borderRadius: 12, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', overflow: 'hidden' };
 const HEAD: React.CSSProperties = { padding: '14px 16px 12px', borderBottom: '1px solid rgba(var(--on),0.10)' };
-const H_TITLE: React.CSSProperties = { fontSize: 13.5, fontWeight: 700, color: 'var(--txt)' };
-const H_SUB: React.CSSProperties = { fontSize: 11.3, color: 'rgba(var(--on),0.36)', marginTop: 3 };
+const H_TITLE: React.CSSProperties = { fontSize: 14, fontWeight: 700, color: 'var(--txt)' };
+const H_SUB: React.CSSProperties = { fontSize: 12, color: 'var(--txt-muted)', marginTop: 3 };
 
 const IC = {
   case: 'M9 4h6a2 2 0 012 2v1h3a1 1 0 011 1v10a2 2 0 01-2 2H5a2 2 0 01-2-2V8a1 1 0 011-1h3V6a2 2 0 012-2zm1 3h4V6h-4v1z',
@@ -183,7 +183,7 @@ export default async function JobsPage() {
                 <div key={name} style={{ marginBottom: 10 }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, marginBottom: 5 }}>
                     <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</span>
-                    <span className="pc-num" style={{ fontSize: 11.4, fontWeight: 600, color: 'var(--txt)' }}>{n}</span>
+                    <span className="pc-num" style={{ fontSize: 12, fontWeight: 600, color: 'var(--txt)' }}>{n}</span>
                   </div>
                   <div style={{ height: 6, borderRadius: 4, background: 'rgba(var(--on),0.06)', overflow: 'hidden' }}>
                     <div style={{ height: '100%', width: Math.max(2, (n / companyMax) * 100) + '%', borderRadius: 4, background: 'var(--c2)' }} />
@@ -203,8 +203,8 @@ export default async function JobsPage() {
                 <div key={name} style={{ marginBottom: 10 }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, marginBottom: 5 }}>
                     <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</span>
-                    <span className="pc-num" style={{ fontSize: 11.4, fontWeight: 600, color: 'var(--txt)' }}>{n}</span>
-                    <span className="pc-num" style={{ fontSize: 10.5, color: 'rgba(var(--on),0.34)', width: 44, textAlign: 'right' }}>{jobs.length ? ((n / jobs.length) * 100).toFixed(1) + '%' : '-'}</span>
+                    <span className="pc-num" style={{ fontSize: 12, fontWeight: 600, color: 'var(--txt)' }}>{n}</span>
+                    <span className="pc-num" style={{ fontSize: 11, color: 'var(--txt-muted)', width: 44, textAlign: 'right' }}>{jobs.length ? ((n / jobs.length) * 100).toFixed(1) + '%' : '-'}</span>
                   </div>
                   <div style={{ height: 6, borderRadius: 4, background: 'rgba(var(--on),0.06)', overflow: 'hidden' }}>
                     <div style={{ height: '100%', width: Math.max(2, (n / locMax) * 100) + '%', borderRadius: 4, background: 'var(--c1)' }} />

@@ -1,6 +1,8 @@
 // Private attachment grants are account-scoped and short-lived. Never fall back to a public locator.
 import { createClient } from "@/lib/supabase/client";
 
+import { mediaDeliveryUrl } from '../../shared/mediaDelivery';
+
 const CHAT_URL = /\/storage\/v1\/object\/(?:public\/|sign\/)?(?:chat-media|chat-files)\//;
 const CACHE_MS = 60 * 1000;
 
@@ -68,7 +70,7 @@ export async function signChatMediaMap(pairs: Pair[]): Promise<Record<string, st
     for (let i = 0; i < need.length; i += 100) {
       const batch = need.slice(i, i + 100);
       if (!isCurrent()) return {};
-      const { data, error } = await supabase.functions.invoke("chat-media-sign", { body: { messageIds: batch.map((p) => p.id) } });
+      const { data, error } = await supabase.functions.invoke("chat-media-sign", { body: { messageIds: batch.map((p) => p.id), delivery: 'no-store' } });
       if (!isCurrent()) return {};
       if (error || !data?.urls) continue;
       for (const p of batch) {
@@ -99,7 +101,7 @@ export async function signChatMedia<T extends Pair>(rows: T[]): Promise<T[]> {
 }
 
 
-/** Group photos use the reader's Storage RLS, bound to the conversation row. */
+/** Group photos use current membership proofs and noncached private delivery. */
 export async function signGroupAvatars<T extends { group_avatar_url?: string | null }>(rows: T[]): Promise<T[]> {
   const result: T[] = rows.map(row => ({ ...row, ...(isChatMediaUrl(row.group_avatar_url) ? { group_avatar_url: null } : {}) }));
   const privateRows = rows.map((row, index) => ({ row, index })).filter(({ row }) => isChatMediaUrl(row.group_avatar_url));
@@ -120,17 +122,22 @@ export async function signGroupAvatars<T extends { group_avatar_url?: string | n
         const match = url.pathname.match(/^\/storage\/v1\/object\/(?:public|sign|authenticated)\/chat-media\/(.+)$/);
         if (url.origin !== base.origin || url.username || url.password || !match) return [];
         const path = decodeURIComponent(match[1]);
-        if (path.includes('\\') || path.split('/').some(part => !part || part === '.' || part === '..')) return [];
+        if (path.length > 1024 || path.includes('%') || path.includes('\\') || path.split('/').some(part => !part || part === '.' || part === '..')) return [];
         return [{ index, path }];
       } catch { return []; }
     });
     for (let i = 0; i < paths.length; i += 100) {
       if (authVersion !== version || cachedUserId !== userId) return rows.map(row => ({ ...row, ...(isChatMediaUrl(row.group_avatar_url) ? { group_avatar_url: null } : {}) }));
       const batch = paths.slice(i, i + 100);
-      const signed = await supabase.storage.from('chat-media').createSignedUrls(batch.map(item => item.path), 120);
+      const signed = await supabase.rpc('issue_chat_object_delivery', { p_urls: batch.map(item => `${base.origin}/storage/v1/object/public/chat-media/${item.path}`) });
       if (authVersion !== version || cachedUserId !== userId) return rows.map(row => ({ ...row, ...(isChatMediaUrl(row.group_avatar_url) ? { group_avatar_url: null } : {}) }));
       if (signed.error) continue;
-      signed.data?.forEach((item, at) => { if (item.signedUrl && batch[at]) result[batch[at].index].group_avatar_url = item.signedUrl; });
+      for (const item of signed.data || []) {
+        const reference = batch.find(value => value.path === item.object_path);
+        if (reference && item.bucket_id === 'chat-media' && /^[0-9a-f]{64}$/.test(item.token) && Date.parse(item.expires_at) > Date.now()) {
+          result[reference.index].group_avatar_url = mediaDeliveryUrl(base.origin, item.bucket_id, item.object_path, item.token);
+        }
+      }
     }
   } catch { /* The safe result hides ungranted photos. */ }
   return result;

@@ -1,6 +1,7 @@
 // Exchange authorized message IDs, never caller-supplied object paths, for
 // short-lived private storage capabilities. This is access control, not E2EE.
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2.112.3';
+import { mediaDeliveryUrl } from '../../../shared/mediaDelivery.ts';
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -65,6 +66,10 @@ Deno.serve(async req => {
       ttl = Math.min(TTL, Math.floor((expires - Date.now()) / 1000));
       if (ttl < 1) return json(410, { error: 'This viewing grant has ended.' });
       remaining = grant.remaining; expiresAt = new Date(Date.now() + ttl * 1000).toISOString(); mediaType = grant.mediaType;
+      if (body.delivery === 'no-store') {
+        const url = `${base}/functions/v1/limited-media-file?messageId=${encodeURIComponent(ids[0])}&requestId=${encodeURIComponent(body.requestId)}`;
+        return json(200, { urls: { [ids[0]]: url }, thumbnails: {}, expiresIn: ttl, remaining, expiresAt, mediaType, requestId: body.requestId });
+      }
       items.push({ id: ids[0], url: grant.url, thumbnail: false });
     } else {
       for (const message of manifest || []) {
@@ -75,6 +80,16 @@ Deno.serve(async req => {
     }
     const svc = createClient(base, serviceKey);
     const urls: Record<string, string> = {}, thumbnails: Record<string, string> = {};
+    if (body.delivery === 'no-store') {
+      const { data: tickets, error } = await anon.rpc('issue_chat_media_delivery', { p_message_ids: ids });
+      if (error || !Array.isArray(tickets)) return json(503, { error: 'Private media delivery unavailable' });
+      for (const item of items) {
+        const loc = objectLocation(item.url, base);
+        const ticket = loc && tickets.find(row => row.message_id === item.id && row.bucket_id === loc.bucket && row.object_path === loc.path && row.media_url === item.url);
+        if (ticket) (item.thumbnail ? thumbnails : urls)[item.id] = mediaDeliveryUrl(base, ticket.bucket_id, ticket.object_path, ticket.token);
+      }
+      return json(200, { urls, thumbnails, expiresIn: TTL });
+    }
     for (const bucket of ['chat-media', 'chat-files']) {
       const batch = items.map(item => ({ ...item, location: objectLocation(item.url, base) })).filter(item => item.location?.bucket === bucket);
       if (!batch.length) continue;

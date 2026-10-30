@@ -1,0 +1,34 @@
+{
+  "upstream": {
+    "package": "decode-uri-component",
+    "version": "0.5.1",
+    "repository": "https://github.com/SamVerschueren/decode-uri-component",
+    "commit": "58ed85f5adc7cfaee5e49e4d52b067f172d0bcb6",
+    "tarball": "https://registry.npmjs.org/decode-uri-component/-/decode-uri-component-0.5.1.tgz",
+    "integrity": "sha512-vWHQkXgg2cE3BB4rR0c+PYw9BCQzLoNIRMI7AunIkZst74tw/vpPp7VLoYtsR/cy1f55g3XDWUslfeCZjiZJyA==",
+    "tarballSha256": "68747a955bbb6a700d758155cf5ff15595c0dfa38504d385abdb249c688bfb15",
+    "filesSha256": {
+      "index.js": "6a86ac891edf15c5efa0841ebb31935e3669d58b98318b57d7b08a4530317cb0",
+      "license": "ed7a9a0f74e43951b2520efe1a4349cb9ed5f3dff0b0f268e2e51a4d38df7ea4",
+      "test.js": "acb81f2173ef208c173465fa98f054923c1ca78b7aa09e1493ee5936b963acba",
+      "package.metadata.json": "8822236f8ec0fc7c8f540812dda32b81797bec92e51bd567fbb196fda04a7f13"
+    },
+    "originalPathByFile": {
+      "package.metadata.json": "package.json"
+    }
+  },
+  "local": {
+    "package": "@platinumcircles/decode-uri-component-cjs",
+    "version": "0.5.1-pc.1",
+    "runtimeSha256": "e82696ecdf0ee2c25bd90169cc7915e552d2ccb82a5006c55bc17aecdb55b919",
+    "patchSha256": "b1a29230e5db5a2b7cdc9ac2a99703dcbdd6eed5be44f9dc6bb333a5ddc025a5",
+    "changes": [
+      "One export declaration is adapted from ESM default export to callable CommonJS module.exports; the 0.5.1 decoding algorithm is unchanged."
+    ]
+  },
+  "advisories": [
+    "https://github.com/advisories/GHSA-qr28-fpjm-wq7f",
+    "https://github.com/advisories/GHSA-vcc3-ghjq-m6fr"
+  ],
+  "registryAuditCoverage": "The private local adaptation is not indexed in npm advisory metadata. Do not treat its absence from npm audit as independent security assurance."
+}

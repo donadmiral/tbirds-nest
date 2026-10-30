@@ -11,6 +11,10 @@ const { execFileSync } = require('node:child_process');
 const ts = require('typescript');
 
 const root = path.resolve(__dirname, '..');
+const mediaDelivery = {};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(root, 'shared/mediaDelivery.ts'), 'utf8'), {
+  compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS },
+}).outputText, { exports: mediaDelivery, URL }, { filename: 'shared/mediaDelivery.ts' });
 // Sealed original blobs also exist in published parent 309c750c; no local-only commit is required.
 const baseline = {
   'src/services/chatMediaService.ts': 'eabe22330246947d37017994a94fe991d4f4657c',
@@ -78,6 +82,7 @@ function harness(file) {
   const imports = {
     '@/lib/supabase/client': { createClient: () => current.api },
     './supabase': { get supabase() { return current.api; } },
+    '../../shared/mediaDelivery': mediaDelivery,
   };
   const source = process.argv.includes('--baseline')
     ? execFileSync('git', ['show', baseline[file]], { cwd: root, encoding: 'utf8' })
@@ -113,7 +118,7 @@ for (const file of ['web/lib/chatMedia.ts', 'src/services/chatMediaService.ts'])
     assert.notEqual(expired['message-1'], first['message-1']);
     assert.equal(h.client.state.calls.length, 2);
     assert.equal(h.client.state.calls[0].name, 'chat-media-sign');
-    assert.deepEqual(h.client.state.calls[0].args, { body: { messageIds: ['message-1'] } });
+    assert.deepEqual(h.client.state.calls[0].args, { body: { messageIds: ['message-1'], delivery: 'no-store' } });
   });
 
   test(`${file}: a changed canonical locator cannot reuse the same message's URL`, async () => {

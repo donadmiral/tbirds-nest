@@ -1,0 +1,65 @@
+name: Browser interaction and video gates
+
+on:
+  pull_request:
+    paths:
+      - 'admin-web/**'
+      - 'web/**'
+      - 'shared/**'
+      - '.github/workflows/browser-quality.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: browser-quality-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  real-browser:
+    name: Admin interactions and encoded video
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PLATINUM_UI_OUTPUT: /tmp/platinum-admin-browser
+      PLATINUM_UI_ARTIFACTS: /tmp/platinum-browser-evidence/admin
+      STORY_QA_OUTPUT: /tmp/platinum-browser-evidence/video
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            web/package-lock.json
+            admin-web/package-lock.json
+      - name: Install locked browser and admin dependencies
+        run: |
+          npm ci --prefix web --no-fund
+          npm ci --prefix admin-web --no-fund
+      - name: Install browser and media verification tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes ffmpeg
+          node web/node_modules/playwright/cli.js install --with-deps chromium
+          node -e 'const p=require("./web/node_modules/playwright").chromium.executablePath(); console.log("PLATINUM_CHROMIUM="+p); console.log("STORY_QA_CHROME="+p)' >> "$GITHUB_ENV"
+      - name: Exercise actual admin components
+        run: |
+          node admin-web/tests/browser/compile.cjs
+          node admin-web/tests/browser/run.cjs
+      - name: Export and decode actual graded story video
+        run: node web/tests/browser/story-video-export.cjs
+      - name: Keep synthetic browser evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: browser-quality-evidence
+          path: |
+            /tmp/platinum-browser-evidence/admin/*.png
+            /tmp/platinum-browser-evidence/admin/*.json
+            /tmp/platinum-browser-evidence/video/*.json
+          if-no-files-found: ignore
+          retention-days: 7

@@ -314,7 +314,7 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
           const bad = await checkUploadableBytes(p.file);
           if (bad) throw new Error(bad);
           await progress.check();
-          const { error: upErr } = await supabase.storage.from("post-media").upload(path, p.file, { contentType: p.file.type, upsert: true });
+          const { error: upErr } = await supabase.storage.from("post-media").upload(path, p.file, { contentType: p.file.type, upsert: false });
           await progress.check();
           if (upErr) {
             throw new Error("Upload failed on \u201C" + p.file.name + "\u201D: " + upErr.message);
@@ -327,7 +327,7 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
             const cover=p.coverFile?await prepareImageCover(p.coverFile):await capturePostCover(p.preview,recipe.coverAt??recipe.trimStart??0);
             const coverPath=uid+"/"+stablePostId+"_"+i+"_cover.jpg";
             await progress.check();
-            const {error:coverError}=await supabase.storage.from("post-media").upload(coverPath,cover,{contentType:"image/jpeg",upsert:true});
+            const {error:coverError}=await supabase.storage.from("post-media").upload(coverPath,cover,{contentType:"image/jpeg",upsert:false});
             await progress.check();
             if(coverError)throw new Error("The video cover could not upload. Retry this post.");
             recipe={...recipe,coverUrl:supabase.storage.from("post-media").getPublicUrl(coverPath).data.publicUrl};

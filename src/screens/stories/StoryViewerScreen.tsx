@@ -15,7 +15,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { VideoView, useVideoPlayer } from 'expo-video';
+import { StoryVideoView as VideoView, useStoryVideoPlayer as useVideoPlayer } from '../../../modules/boomerang/storyVideo';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import {
@@ -50,6 +50,7 @@ import IdentityPresence from '../../components/stories/IdentityPresence';
 import MemoryCaption from '../../components/stories/MemoryCaption';
 import StoryProgressBar from '../../components/stories/StoryProgressBar';
 import { FilterLayer } from '../../components/stories/StoryFilters';
+import { storyVideoCompositionAvailable } from '../../../modules/boomerang/storyComposition';
 import { useCallContext } from '../../contexts/CallContext';
 import { useStoryAudioMix } from '../../hooks/useStoryAudioMix';
 import { DrawingLayer } from '../../components/stories/DrawLayer';
@@ -866,15 +867,15 @@ export default function StoryViewerScreen() {
           <ZoomableMedia onZoomChange={(z) => { if (z) pauseFor('zoom'); else resumeFrom('zoom'); }}>
           <ReAnimated.View style={[StyleSheet.absoluteFill, activeMediaAnimStyle, { zIndex: 1 }]}>
             {isText ? ((() => { if (mediaMt?.bg) return <BackgroundLayer bg={mediaMt.bg} mediaUrl={stickers.find(s => s.kind === 'post' && s.postMediaType !== 'video')?.postMediaUrl || null} />; const sharedPhoto = stickers.find(s => s.kind === 'post' && s.postMediaType !== 'video' && s.postMediaUrl)?.postMediaUrl; if (sharedPhoto) return <View style={s.media}><Image source={{ uri: sharedPhoto }} style={StyleSheet.absoluteFill} resizeMode="cover" blurRadius={32} /><View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,.48)' }]} /></View>; const bg = (currentStory as any)?.text_background; if (bg?.kind === 'gradient' && bg.colors?.length === 2) { return (<LinearGradient colors={bg.colors} start={bg.direction === 'diagonal' ? { x: 0, y: 0 } : { x: 0.5, y: 0 }} end={bg.direction === 'diagonal' ? { x: 1, y: 1 } : { x: 0.5, y: 1 }} style={s.media} />); } const solidColor = bg?.kind === 'solid' && bg.color ? bg.color : '#0B1E3D'; return <View style={[s.media, { backgroundColor: solidColor }]} />; })()
-            ) : isVideo ? (<>{mediaFitMode === 'contain' && (<View key={'vbg-' + currentStory.id} style={[s.media, { position: 'absolute', zIndex: -1 }]} pointerEvents="none"><BackgroundLayer bg={(mediaMt as any)?.bg || null} mediaUrl={null} /></View>)}<VideoView pointerEvents="none" key={'v-' + currentStory.id} style={[s.media, mediaHasTransform && mediaMt ? { transform: [{ translateX: mediaMt.translateNX * mediaSize.w }, { translateY: mediaMt.translateNY * mediaSize.h }, { scale: mediaMt.scale }] } : undefined] as any} player={videoPlayer} contentFit={mediaFitMode} nativeControls={false} onFirstFrameRender={() => setMediaReady(true)} /></>
+            ) : isVideo ? (<>{mediaFitMode === 'contain' && (<View key={'vbg-' + currentStory.id} style={[s.media, { position: 'absolute', zIndex: -1 }]} pointerEvents="none"><BackgroundLayer bg={(mediaMt as any)?.bg || null} mediaUrl={null} /></View>)}<VideoView pointerEvents="none" key={'v-' + currentStory.id} style={[s.media, mediaHasTransform && mediaMt ? { transform: [{ translateX: mediaMt.translateNX * mediaSize.w }, { translateY: mediaMt.translateNY * mediaSize.h }, { scale: mediaMt.scale }] } : undefined] as any} look={{ filterId: (currentStory as any)?.filter_id, filterAmt: (mediaMt as any)?.filterAmt, adjust: (mediaMt as any)?.adjust }} player={videoPlayer} contentFit={mediaFitMode} nativeControls={false} onFirstFrameRender={() => setMediaReady(true)} /></>
             ) : (<>{mediaFitMode === 'contain' && currentStory.media_url && (<View key={'bg-' + currentStory.id} style={[s.media, { position: 'absolute', zIndex: -1 }]} pointerEvents="none"><BackgroundLayer bg={(mediaMt as any)?.bg || null} mediaUrl={currentStory.media_url} /></View>)}<StoryPixelImage key={'m-' + currentStory.id} uri={(hasDual && effectivePrimaryUrl ? effectivePrimaryUrl : currentStory.media_url) || ''} style={[s.media, mediaHasTransform && !hasDual ? { transform: [{ translateX: mediaMt!.translateNX * mediaSize.w }, { translateY: mediaMt!.translateNY * mediaSize.h }, { scale: mediaMt!.scale }] } : undefined]} fit={mediaFitMode} onLoad={() => setMediaReady(true)} onError={() => { setMediaError(true); setMediaReady(true); }} /></>)}
           </ReAnimated.View>
           </ZoomableMedia>
         )}
         </ReAnimated.View>
 
-        <FilterLayer filterId={isVideo || isText ? ((currentStory as any)?.filter_id as string) || null : null} zIndex={2} amt={(mediaMt as any)?.filterAmt} />
-        <AdjustLayer adjust={isVideo || isText ? mediaMt?.adjust || null : storyPhotoSpatialAdjust(mediaMt?.adjust)} zIndex={2} />
+        <FilterLayer filterId={isText || isVideo && !storyVideoCompositionAvailable ? ((currentStory as any)?.filter_id as string) || null : null} zIndex={2} amt={(mediaMt as any)?.filterAmt} />
+        <AdjustLayer adjust={isText || isVideo && !storyVideoCompositionAvailable ? mediaMt?.adjust || null : storyPhotoSpatialAdjust(mediaMt?.adjust)} zIndex={2} />
         <DrawingLayer strokes={(((stickers.find(sx => (sx as any).kind === 'drawing') as any)?.strokes) || null) as any} width={mediaSize.w} height={mediaSize.h} zIndex={3} />
         {renderPipDual()}
         {mediaError && (<View style={{ ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', zIndex: 4 }}><Feather name="image" size={28} color="rgba(245,240,235,0.08)" /><TouchableOpacity accessibilityRole="button" onPress={() => { storyAudio.retry(); void loadForCurrentUser(); }}><Text style={{ color: '#FFFFFF', fontSize: 14, marginTop: 14 }}>Media unavailable. Tap to retry.</Text></TouchableOpacity></View>)}

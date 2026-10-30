@@ -100,6 +100,7 @@ export default function SettingsPage() {
         <NavRow href="/settings/two-factor" icon={<EyeOff size={16} />} label="Two-factor authentication" sub="A code from an authenticator app at every sign-in" />
         <NavRow href="/settings/login-activity" icon={<EyeOff size={16} />} label="Login activity" sub="Devices signed in, and log the others out" />
         <NavRow href="/settings/standing" icon={<ShieldAlert size={16} />} label="Account standing" sub="Your record with Platinum Circles" />
+        <NavRow href="/settings/delete-account" icon={<UserMinus size={16} />} label="Delete account" sub="Request permanent removal and track stored-file erasure" />
         </div>
       </div>
 

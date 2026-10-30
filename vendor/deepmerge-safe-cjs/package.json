@@ -1,0 +1,16 @@
+{
+  "name": "@platinumcircles/deepmerge-safe-cjs",
+  "version": "4.3.1-pc.1",
+  "private": true,
+  "description": "Reviewed local compatibility/security adaptation of deepmerge 4.3.1; see PROVENANCE.json.",
+  "main": "index.cjs",
+  "license": "MIT",
+  "files": [
+    "index.cjs",
+    "LICENSE",
+    "PROVENANCE.json"
+  ],
+  "engines": {
+    "node": ">=14.16"
+  }
+}

@@ -1,4 +1,6 @@
 import StoryPixelImage, { StoryPhotoLookContext, StoryPhotoReadinessContext, type StoryPhotoReadiness } from '../../components/stories/StoryPixelImage';
+import { composeStoryVideo, storyVideoCompositionAvailable } from '../../../modules/boomerang/storyComposition';
+import { storyVideoRecipe, storyVideoLayerWindows, storyVideoExportLimit, storyVideoLayerAtTime } from '../../../shared/storyVideoComposition';
 import { storyPhotoSpatialAdjust } from '../../../shared/storyColorMatrix';
 import { captureRef, releaseCapture } from 'react-native-view-shot';
 import { normalizeStoryCapture, STORY_CLIP_LIMIT } from '../../../shared/storyCapture';
@@ -12,7 +14,7 @@ import { updateDraftStickers, type StickerChange } from '../../controllers/stori
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Image, TextInput, FlatList,
-  ActivityIndicator, Alert, Platform, StatusBar, KeyboardAvoidingView,
+  ActivityIndicator, Alert, AppState, Platform, StatusBar, KeyboardAvoidingView,
   Dimensions, Modal, ScrollView, Animated, Keyboard, AccessibilityInfo, Easing, Switch,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
@@ -136,8 +138,8 @@ function StoryReviewPreview({ draft, width, height, textBackground, strokes }: {
   const frameW = Math.max(1, width), frameH = Math.max(1, height), ratio = 132 / frameW;
   const tx = draft.mediaTransform as any;
   const overlays = <>
-    <FilterLayer filterId={draft.mediaType === "image" ? null : draft.filterId || null} amt={tx?.filterAmt} />
-    <AdjustLayer adjust={draft.mediaType === "image" ? storyPhotoSpatialAdjust(tx?.adjust) : tx?.adjust || null} />
+    <FilterLayer filterId={draft.mediaType === "image" || draft.mediaType === "video" && storyVideoCompositionAvailable ? null : draft.filterId || null} amt={tx?.filterAmt} />
+    <AdjustLayer adjust={draft.mediaType === "image" || draft.mediaType === "video" && storyVideoCompositionAvailable ? storyPhotoSpatialAdjust(tx?.adjust) : tx?.adjust || null} />
     <DrawingLayer strokes={strokes.length ? strokes : null} width={frameW} height={frameH} />
     <StickerOverlay stickers={draft.stickers || []} containerW={frameW} containerH={frameH} interactive={false} storyPaused />
     {draft.pollData ? <PollDragWrap containerW={frameW} containerH={frameH} nx={draft.pollData.nx ?? .5} ny={draft.pollData.ny ?? .4} scale={draft.pollData.scale ?? 1} onChange={() => {}} onTap={() => {}}><PollCard poll={{ poll_id: 'preview', question: draft.pollData.question, options: draft.pollData.options.map((label, i) => ({ id: String(i), label, vote_count: 0 })), total_votes: 0, my_vote: null }} isOwn={false} onVote={() => {}} onOpenVoters={() => {}} /></PollDragWrap> : null}
@@ -548,7 +550,7 @@ export default function StoryComposerScreen() {
   const [filterOpen, setFilterOpen] = useState(false);
   const openMusicSheet = useCallback(() => { if (MUSIC_CATALOG_ENABLED) setMusicOpen(true); }, []);
   const openFilterSheet = useCallback(() => {
-    if (active?.mediaType === 'video') { Alert.alert('Photo filters', 'Color filters are available for photos. Video color editing is not available yet; you can still crop, trim, change speed, draw, and add stickers.'); return; }
+    if (active?.mediaType === 'video' && !storyVideoCompositionAvailable) { Alert.alert('New iPhone build required', 'Video color editing is included in the new native build. Your current draft is kept.'); return; }
     setFilterOpen(true);
   }, [active?.mediaType]);
 
@@ -706,6 +708,13 @@ export default function StoryComposerScreen() {
     });
   }, [active, activeIndex]);
   const storySnapshotRef = useRef<View>(null);
+  const exportArtworkRef = useRef<View>(null);
+  const exportAbort = useRef<AbortController | null>(null);
+  const exportCommitting = useRef(false);
+  const [exportArtwork, setExportArtwork] = useState<{ phase: 'background' | 'layers'; clock: number } | null>(null);
+  const [exportStatus, setExportStatus] = useState<string | null>(null);
+  useEffect(() => () => { exportAbort.current?.abort(); }, [myId, active?.id]);
+  useEffect(() => { const sub = AppState.addEventListener('change', state => { if (state === 'background') exportAbort.current?.abort(); }); return () => sub.remove(); }, []);
   const snapshotBusy = useRef(false);
   const [capturing, setCapturing] = useState(false);
   const photoReadiness = useRef(new Map<string, StoryPhotoReadiness>());
@@ -716,19 +725,53 @@ export default function StoryComposerScreen() {
   const saveMediaToDevice = useCallback(async () => {
     if (!active || snapshotBusy.current || active.uploadState !== 'idle') return;
     snapshotBusy.current = true;
+    exportCommitting.current = false;
     const owner = ownerRef.current, draftId = active.id;
     const current = () => mountedRef.current && ownerRef.current === owner && activeDraftRef.current === draftId;
     const assertCurrent = () => { if (!current()) throw new Error('Return to the story you were saving.'); };
-    let snapshot: string | null = null;
+    let snapshot: string | null = null, output: string | null = null;
+    const artworkFiles: string[] = [];
+    const abort = new AbortController(); exportAbort.current = abort;
+    const ensure = () => { assertCurrent(); if (abort.signal.aborted) throw new Error('Video export was cancelled.'); };
     try {
+      if (active.mediaType === 'video') {
+        if (!storyVideoCompositionAvailable) throw new Error('Edited video export needs the new iPhone build. Your draft is kept.');
+        const limit = storyVideoExportLimit(active.stickers || [], !!active.audio); if (limit) throw new Error(limit);
+      }
       const perm = await MediaLibrary.requestPermissionsAsync();
       assertCurrent();
       if (!perm.granted) { Alert.alert('Allow Photos access', 'Enable photo library access in Settings to save.'); return; }
       if (active.mediaType === 'video') {
         if (!active.localUri) throw new Error('No video was selected.');
-        await MediaLibrary.saveToLibraryAsync(active.localUri);
-        if (!current()) return;
-        Alert.alert('Original video saved', 'Your story edits stay in this draft. Exporting an edited video is not available yet.');
+        if (!storyVideoCompositionAvailable) throw new Error('Edited video export needs the new iPhone build. Your draft is kept.');
+        const limit = storyVideoExportLimit(active.stickers || [], !!active.audio);
+        if (limit) throw new Error(limit);
+        if (active.dualFrontUri) throw new Error('Dual-camera video export is not available yet. Your draft stays available.');
+        const recipe = storyVideoRecipe({ duration: Number(vidPlayer?.duration) || active.durationSec || 0, width: previewSize.w, height: previewSize.h, transform: { ...active.mediaTransform, fit: active.mediaFit }, filterId: active.filterId });
+        setCapturing(true); setExportStatus('Preparing story artwork…'); vidPlayer?.pause?.();
+        const captureArtwork = async (phase: 'background' | 'layers', clock: number) => {
+          ensure(); setExportArtwork({ phase, clock });
+          await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+          const deadline = Date.now() + 12000;
+          while ([...photoReadiness.current.values()].some(state => state === 'loading')) { ensure(); if (Date.now() > deadline) throw new Error('A story photo is still loading. Retry after it appears.'); await new Promise(resolve => setTimeout(resolve, 100)); }
+          ensure(); if ([...photoReadiness.current.values()].some(state => state === 'error')) throw new Error('A story photo could not load. Retry it before exporting.');
+          const uri = await captureRef(exportArtworkRef, { format: 'png', result: 'tmpfile', width: recipe.width, height: recipe.height, handleGLSurfaceViewOnAndroid: true });
+          artworkFiles.push(uri); ensure(); return uri;
+        };
+        const backgroundUri = await captureArtwork('background', recipe.trimStart);
+        const layers = [];
+        for (const window of storyVideoLayerWindows(active.stickers || [], recipe)) {
+          layers.push({ uri: await captureArtwork('layers', window.clock), start: window.start, end: window.end });
+        }
+        ensure(); setExportArtwork(null); setExportStatus('Rendering edited video…');
+        const id = 'story-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+        if (!FileSystem.cacheDirectory) throw new Error('The video export cache is unavailable.');
+        output = FileSystem.cacheDirectory + 'pc-story-export-' + id + '.mp4';
+        const result = await composeStoryVideo({ id, inputUri: active.localUri, outputUri: output, recipe, backgroundUri, layers }, abort.signal);
+        ensure(); exportCommitting.current = true; setExportStatus('Saving to Photos…');
+        await MediaLibrary.saveToLibraryAsync(result.uri);
+        if (!current() || abort.signal.aborted) return;
+        Alert.alert('Edited video saved', 'Your trim, framing, color, original sound and supported story artwork were saved to Photos.');
       } else {
         if (!storySnapshotRef.current) throw new Error('The story preview is not ready.');
         const states = [...photoReadiness.current.values()];
@@ -746,9 +789,9 @@ export default function StoryComposerScreen() {
         Alert.alert('Story saved', 'Your edited story image was saved to Photos.');
       }
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-    } catch (error: any) { if (current()) Alert.alert('Could not save', error?.message || 'The story could not be saved. Try again.'); }
-    finally { if (snapshot) releaseCapture(snapshot); if (mountedRef.current) setCapturing(false); snapshotBusy.current = false; }
-  }, [active, previewSize]);
+    } catch (error: any) { if (current() && !abort.signal.aborted) Alert.alert('Could not save', error?.message || 'The story could not be saved. Try again.'); }
+    finally { if (snapshot) releaseCapture(snapshot); artworkFiles.forEach(releaseCapture); if (output) await FileSystem.deleteAsync(output, { idempotent: true }).catch(() => {}); if (exportAbort.current === abort) exportAbort.current = null; exportCommitting.current = false; if (mountedRef.current) { setCapturing(false); setExportArtwork(null); setExportStatus(null); } snapshotBusy.current = false; }
+  }, [active, previewSize, vidPlayer]);
   // Long videos: pre-set a 60s window once so publish is never over-length
   useEffect(() => {
     if (!active || active.mediaType !== 'video') return;
@@ -1064,7 +1107,7 @@ export default function StoryComposerScreen() {
     { id: 'draw', cat: 'media', tint: '#FB7185', icon: 'draw', label: 'Draw', on: drawStrokes.length > 0, run: () => setDrawMode(true) },
     { id: 'bg', cat: 'media', tint: '#60A5FA', icon: 'bg', label: 'Background', on: !!(getTx() as any).bg, run: () => { if (active?.mediaType !== 'text' && (active?.mediaFit || 'cover') !== 'contain') { Alert.alert('Fit first', 'Backgrounds show around media in fit mode. Tap the fit toggle, then pick a background.'); } setBgOpen(true); } },
     ...(MUSIC_CATALOG_ENABLED || active?.mediaType === 'video' ? [{ id: 'mix', cat: 'media', tint: '#A78BFA', icon: 'mix', label: 'Video sound', on: !!(getTx() as any).mix, run: () => setMixOpen(true) } as StudioTile] : []),
-    { id: 'save', cat: 'media', tint: '#7DD3FC', icon: 'save', label: active?.mediaType === 'video' ? 'Save original video' : 'Save story image', on: false, run: saveMediaToDevice },
+    { id: 'save', cat: 'media', tint: '#7DD3FC', icon: 'save', label: active?.mediaType === 'video' ? 'Save edited video' : 'Save story image', on: false, run: saveMediaToDevice },
     { id: 'preview', cat: 'media', tint: '#FBBF24', icon: 'preview', label: 'Preview', on: false, run: () => setPreviewOn(true) },
     { id: 'entity', cat: 'sharing', tint: '#E8A13A', icon: 'entity', label: 'Tag', on: stickerCounts.entity > 0, run: () => setEntityOpen(true) },
     { id: 'gif', cat: 'fun', tint: '#C4B5FD', icon: 'gif', label: 'GIF', on: stickerCounts.gif > 0, run: () => setGifOpen(true) },
@@ -1077,6 +1120,14 @@ export default function StoryComposerScreen() {
   return (
     <StoryPhotoLookContext.Provider value={compareOriginal ? null : { filterId: active?.filterId, filterAmt: active?.mediaTransform?.filterAmt, adjust: active?.mediaTransform?.adjust }}><TouchableOpacity style={st.root} activeOpacity={1} onPress={() => Keyboard.dismiss()}>
       <StatusBar barStyle="light-content" />
+      <Modal visible={!!exportStatus} transparent animationType="fade" onRequestClose={() => { if (!exportCommitting.current) exportAbort.current?.abort(); }}>
+        <View style={{ flex: 1, backgroundColor: '#11161bf2', alignItems: 'center', justifyContent: 'center', padding: 30 }}>
+          <ActivityIndicator color="#F1DFC5" size="large" />
+          <Text accessibilityRole="text" accessibilityLiveRegion="polite" style={{ color: '#fff', fontSize: 18, marginTop: 22, textAlign: 'center' }}>{exportStatus}</Text>
+          <Text style={{ color: '#c8cbd0', textAlign: 'center', marginTop: 12 }}>{exportStatus === 'Saving to Photos…' ? 'Finishing the save to Photos. Please keep the app open.' : 'Keep the app open while your edited video is prepared.'}</Text>
+          {exportStatus !== 'Saving to Photos…' && <TouchableOpacity accessibilityRole="button" accessibilityLabel="Cancel export" onPress={() => { if (!exportCommitting.current) exportAbort.current?.abort(); }} style={{ padding: 20, marginTop: 24 }}><Text style={{ color: '#F1DFC5', fontSize: 16 }}>Cancel export</Text></TouchableOpacity>}
+        </View>
+      </Modal>
 
       <Animated.View style={[st.canvasFrame, { opacity: mediaOpacity, transform: [{ scale: mediaScale }] }]}>
         <StoryPhotoReadinessContext.Provider value={reportPhotoReadiness}><View ref={storySnapshotRef} collapsable={false} style={StyleSheet.absoluteFill}>
@@ -1100,13 +1151,13 @@ export default function StoryComposerScreen() {
             scaleAnim={canvasScaleRef} opacityAnim={canvasOpacityRef}
             imageW={active?.imageW} imageH={active?.imageH} mediaFit={active?.mediaFit || 'cover'}
             mediaTransform={active?.mediaTransform || { scale: 1, translateNX: 0, translateNY: 0, fit: 'cover' }}
-            bg={((getTx() as any).bg ?? null)} videoPaused={shareOpen || textEditorOpen || musicOpen || publish.publishing} videoMuted={(((getTx() as any).mix?.orig ?? 100) <= 0)} videoVolume={Math.max(0, Math.min(1, ((getTx() as any).mix?.orig ?? 100) / 100))} videoSpeed={Number((getTx() as any).speed) || 1} trimStart={(getTx() as any).trimStart ?? null} trimEnd={(getTx() as any).trimEnd ?? null} onVideoPlayer={setVidPlayer}
+            bg={((getTx() as any).bg ?? null)} videoPaused={shareOpen || textEditorOpen || musicOpen || publish.publishing || capturing} videoMuted={(((getTx() as any).mix?.orig ?? 100) <= 0)} videoVolume={Math.max(0, Math.min(1, ((getTx() as any).mix?.orig ?? 100) / 100))} videoSpeed={Number((getTx() as any).speed) || 1} trimStart={(getTx() as any).trimStart ?? null} trimEnd={(getTx() as any).trimEnd ?? null} onVideoPlayer={setVidPlayer}
             onTransformChange={handleTransformChange} onFitToggle={handleFitToggle}
             bottomInset={Math.max(48, insets.bottom + 14) + (isBusiness ? 150 : 106) + (active?.mediaType === 'video' ? 66 : 0)}
             interactive={arrangement.canvasInteractive && active?.uploadState === 'idle'} showControls={!capturing}
           >
-            <FilterLayer filterId={compareOriginal || active?.mediaType === "image" ? null : active?.filterId || null} amt={(getTx() as any).filterAmt} />
-            <AdjustLayer adjust={compareOriginal ? null : active?.mediaType === "image" ? storyPhotoSpatialAdjust((getTx() as any).adjust) : (getTx() as any).adjust || null} />
+            <FilterLayer filterId={compareOriginal || active?.mediaType === "image" || active?.mediaType === "video" && storyVideoCompositionAvailable ? null : active?.filterId || null} amt={(getTx() as any).filterAmt} />
+            <AdjustLayer adjust={compareOriginal ? null : active?.mediaType === "image" || active?.mediaType === "video" && storyVideoCompositionAvailable ? storyPhotoSpatialAdjust((getTx() as any).adjust) : (getTx() as any).adjust || null} />
             <DrawingLayer strokes={drawStrokes.length ? drawStrokes : null} width={previewSize.w} height={previewSize.h} />
             {!arrangement.arrangementOpen && active?.stickers && active.stickers.length > 0 && active.uploadState === 'idle' && (
               <ComposerStickerOverlay stickers={active.stickers.filter(s => !textEditorOpen || s.id !== editingStickerId)} containerW={previewSize.w} containerH={previewSize.h} onDragEnd={handleDragEnd} onTapSticker={handleTapSticker} onScaleEnd={handleScaleEnd} onRotateEnd={handleRotateEnd} onDeleteDrop={handleDeleteDrop} player={vidPlayer} timingPreview={timingOpen || previewOn} />
@@ -1129,6 +1180,14 @@ export default function StoryComposerScreen() {
         )}
 
         </View></StoryPhotoReadinessContext.Provider>
+        {exportArtwork ? <StoryPhotoLookContext.Provider value={{ filterId: active.filterId, filterAmt: active.mediaTransform?.filterAmt, adjust: active.mediaTransform?.adjust }}><StoryPhotoReadinessContext.Provider value={reportPhotoReadiness}><View ref={exportArtworkRef} collapsable={false} pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: 'transparent' }]}>
+          {exportArtwork.phase === 'background' ? <BackgroundLayer bg={active.mediaFit === 'contain' ? active.mediaTransform?.bg || null : null} mediaUrl={null} /> : <>
+            <AdjustLayer adjust={storyPhotoSpatialAdjust(active.mediaTransform?.adjust)} />
+            <DrawingLayer strokes={drawStrokes.length && storyVideoLayerAtTime(active.stickers?.find(layer => layer.kind === 'drawing'), exportArtwork.clock) ? drawStrokes : null} width={previewSize.w} height={previewSize.h} />
+            <StickerOverlay stickers={(active.stickers || []).filter(layer => storyVideoLayerAtTime(layer, exportArtwork.clock))} containerW={previewSize.w} containerH={previewSize.h} interactive={false} storyPaused clockSec={exportArtwork.clock} />
+            {active.pollData ? <PollDragWrap containerW={previewSize.w} containerH={previewSize.h} nx={active.pollData.nx ?? .5} ny={active.pollData.ny ?? .4} scale={active.pollData.scale ?? 1} onChange={() => {}} onTap={() => {}}><PollCard poll={{ poll_id: 'preview', question: active.pollData.question, options: active.pollData.options.map((label, i) => ({ id: String(i), label, vote_count: 0 })), total_votes: 0, my_vote: null }} isOwn={false} onVote={() => {}} onOpenVoters={() => {}} /></PollDragWrap> : null}
+          </>}
+        </View></StoryPhotoReadinessContext.Provider></StoryPhotoLookContext.Provider> : null}
 
         {/* Studio rail: primary tools on the canvas, the rest behind the chevron */}
         {!drawMode && !previewOn && !timingOpen && !adjustOpen && active?.uploadState === 'idle' && (
@@ -1146,7 +1205,7 @@ export default function StoryComposerScreen() {
             { id: 'rbg', label: 'Backdrop', icon: 'bg', on: !!(getTx() as any).bg, run: () => { if (!isTextStory && (active?.mediaFit || 'cover') !== 'contain') handleFitToggle(); setBgOpen(true); } },
             ...(MUSIC_CATALOG_ENABLED || active?.mediaType === 'video' ? [{ id: 'rmix', label: 'Sound', icon: 'mix', on: !!(getTx() as any).mix, run: () => setMixOpen(true) } as RailItem] : []),
             { id: 'rpreview', label: 'Preview', icon: 'preview', run: () => setPreviewOn(true) },
-            { id: 'rsave', label: active?.mediaType === 'video' ? 'Save original video' : 'Save story image', icon: 'save', run: () => saveMediaToDevice() },
+            { id: 'rsave', label: active?.mediaType === 'video' ? 'Save edited video' : 'Save story image', icon: 'save', run: () => saveMediaToDevice() },
           ] as RailItem[])} />
         )}
         {/* Song chip: what plays, tap x to remove */}
@@ -1350,7 +1409,7 @@ export default function StoryComposerScreen() {
       {soundPreview.error || previewAudio.error ? <TouchableOpacity accessibilityRole="button" onPress={() => { soundPreview.retry(); previewAudio.retry(); }} style={{ padding: 12 }}><Text style={{ color: '#FFB4B4' }}>{soundPreview.error || previewAudio.error}</Text></TouchableOpacity> : null}
       <MusicSheet userId={myId} visible={musicOpen} onClose={() => setMusicOpen(false)} current={active?.audio || null} onSelect={(a: StoryAudioDraft) => { updateActive({ audio: a }); setMusicOpen(false); }} onShareTrack={(track) => { addSimpleSticker({ kind: 'link', text: track.title + ' · ' + track.artist, url: track.url }); setMusicOpen(false); }} onRemove={() => { updateActive({ audio: null }); }} disabled={publish.publishing} />
       <FilterPickerSheet visible={filterOpen} onClose={() => setFilterOpen(false)} selected={active?.filterId || null} onSelect={(fid: string | null) => { updateActive({ filterId: fid }); }} previewUri={active?.localUri || null} />
-      <AdjustPanel colorEditingUnavailable={active?.mediaType === 'video' ? 'Video color editing is not available yet. Crop, timing, speed, drawing, and stickers are available.' : undefined} visible={adjustOpen} onClose={() => { setAdjustOpen(false); setCompareOriginal(false); }} onCompare={setCompareOriginal} onCrop={isTextStory ? undefined : () => { setAdjustOpen(false); handleFitToggle(); }} onFilters={() => { setAdjustOpen(false); openFilterSheet(); }} onDraw={() => { setAdjustOpen(false); setDrawMode(true); }} onTiming={active?.mediaType === 'video' ? () => { setAdjustOpen(false); setTimingOpen(true); } : undefined} adjust={((getTx() as any).adjust || {}) as StoryAdjust} onChange={(a: StoryAdjust) => setTx({ adjust: a } as any)} filterOn={!!active?.filterId} filterAmt={typeof (getTx() as any).filterAmt === 'number' ? (getTx() as any).filterAmt : 100} onFilterAmt={(v: number) => setTx({ filterAmt: v } as any)} />
+      <AdjustPanel colorEditingUnavailable={active?.mediaType === 'video' && !storyVideoCompositionAvailable ? 'Video color editing needs the new iPhone build. Your draft stays available.' : undefined} visible={adjustOpen} onClose={() => { setAdjustOpen(false); setCompareOriginal(false); }} onCompare={setCompareOriginal} onCrop={isTextStory ? undefined : () => { setAdjustOpen(false); handleFitToggle(); }} onFilters={() => { setAdjustOpen(false); openFilterSheet(); }} onDraw={() => { setAdjustOpen(false); setDrawMode(true); }} onTiming={active?.mediaType === 'video' ? () => { setAdjustOpen(false); setTimingOpen(true); } : undefined} adjust={((getTx() as any).adjust || {}) as StoryAdjust} onChange={(a: StoryAdjust) => setTx({ adjust: a } as any)} filterOn={!!active?.filterId} filterAmt={typeof (getTx() as any).filterAmt === 'number' ? (getTx() as any).filterAmt : 100} onFilterAmt={(v: number) => setTx({ filterAmt: v } as any)} />
       <BackgroundSheet visible={bgOpen} onClose={() => setBgOpen(false)} bg={((getTx() as any).bg || null) as StoryBg | null} onChange={(b: StoryBg) => setTx({ bg: b } as any)} />
       <AudioMixSheet visible={mixOpen} onClose={() => setMixOpen(false)} isVideo={active?.mediaType === 'video'} hasMusic={MUSIC_CATALOG_ENABLED && !!active?.audio} mix={((getTx() as any).mix || {}) as StoryMix} onChange={(m: StoryMix) => setTx({ mix: m } as any)} />
       <EntitySheet visible={entityOpen} onClose={() => setEntityOpen(false)} onPick={handleEntityPick} />

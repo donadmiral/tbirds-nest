@@ -25,9 +25,8 @@ function waiting(iso: string) {
 export default function VerificationDesk({ apps }: { apps: App[] }) {
   const [tab, setTab] = useState<'all' | 'submitted' | 'under_review'>('all');
   const [selectedId, setSelectedId] = useState<string | null>(apps[0]?.id ?? null);
-  const selected = apps.find(app => app.id === selectedId) ?? apps[0] ?? null;
-
   const filtered = apps.filter(a => tab === 'all' || a.status === tab);
+  const selected = filtered.find(app => app.id === selectedId) ?? filtered[0] ?? null;
   const tabs: { key: typeof tab; label: string; count: number }[] = [
     { key: 'all', label: 'All', count: apps.length },
     { key: 'submitted', label: 'Submitted', count: apps.filter(a => a.status === 'submitted').length },
@@ -42,7 +41,7 @@ export default function VerificationDesk({ apps }: { apps: App[] }) {
       <div className="lg:col-span-2 overflow-hidden rounded-[14px] border border-[#E5E4E0] bg-white">
         <div className="flex gap-1 border-b border-[#F0EFEC] px-3 pt-2">
           {tabs.map(t => (
-            <button key={t.key} onClick={() => setTab(t.key)}
+            <button key={t.key} type="button" aria-pressed={tab === t.key} onClick={() => setTab(t.key)}
               className={'shrink-0 rounded-t-[9px] px-3 py-2 text-[12.5px] font-semibold transition-colors duration-150 ' + (tab === t.key ? 'border-b-2 border-[#17181C] text-[#17181C]' : 'text-[#9A9DA4] hover:text-[#17181C]')}>
               {t.label} <span className="tabular-nums">{t.count}</span>
             </button>

@@ -1,0 +1,348 @@
+{
+  "inspectedAt": "2026-10-29",
+  "project": "uaulhuelcfkjwojtymmw",
+  "source": "Read-only catalog metadata; no account identities, paths, tokens or credentials copied.",
+  "catalog": {
+    "counts": {
+      "auth": 1,
+      "staff": 1,
+      "objects": 15,
+      "profiles": 1
+    },
+    "buckets": [
+      {
+        "id": "chat-files",
+        "public": false
+      },
+      {
+        "id": "chat-media",
+        "public": false
+      },
+      {
+        "id": "media",
+        "public": false
+      },
+      {
+        "id": "post-media",
+        "public": false
+      },
+      {
+        "id": "story-media",
+        "public": false
+      }
+    ],
+    "schemas": [],
+    "policies": [
+      {
+        "cmd": "*",
+        "name": "chat_private_anon_guard",
+        "check": "(bucket_id <> ALL (ARRAY['chat-media'::text, 'chat-files'::text]))",
+        "roles": [
+          "anon"
+        ],
+        "using": "(bucket_id <> ALL (ARRAY['chat-media'::text, 'chat-files'::text]))",
+        "permissive": false
+      },
+      {
+        "cmd": "d",
+        "name": "chat_private_delete_guard",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "using": "(bucket_id <> ALL (ARRAY['chat-media'::text, 'chat-files'::text]))",
+        "permissive": false
+      },
+      {
+        "cmd": "w",
+        "name": "chat_private_immutable_guard",
+        "check": "(bucket_id <> ALL (ARRAY['chat-media'::text, 'chat-files'::text]))",
+        "roles": [
+          "authenticated"
+        ],
+        "using": "(bucket_id <> ALL (ARRAY['chat-media'::text, 'chat-files'::text]))",
+        "permissive": false
+      },
+      {
+        "cmd": "a",
+        "name": "chat_private_insert",
+        "check": "((bucket_id = ANY (ARRAY['chat-media'::text, 'chat-files'::text])) AND can_act_as((split_part(name, '/'::text, 1))::uuid))",
+        "roles": [
+          "authenticated"
+        ],
+        "using": null,
+        "permissive": true
+      },
+      {
+        "cmd": "a",
+        "name": "chat_private_insert_guard",
+        "check": "((bucket_id <> ALL (ARRAY['chat-media'::text, 'chat-files'::text])) OR ((name ~ '^[0-9a-f-]{36}/[A-Za-z0-9_. /-]+$'::text) AND (name !~ '(^|/)[.][.]?(/|$)'::text) AND can_act_as((split_part(name, '/'::text, 1))::uuid)))",
+        "roles": [
+          "authenticated"
+        ],
+        "using": null,
+        "permissive": false
+      },
+      {
+        "cmd": "r",
+        "name": "chat_private_read",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "using": "((bucket_id = ANY (ARRAY['chat-media'::text, 'chat-files'::text])) AND (can_read_chat_object(bucket_id, name) OR can_read_legacy_chat_object(bucket_id, name)))",
+        "permissive": true
+      },
+      {
+        "cmd": "r",
+        "name": "chat_private_read_guard",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "using": "((bucket_id <> ALL (ARRAY['chat-media'::text, 'chat-files'::text])) OR can_read_chat_object(bucket_id, name) OR can_read_legacy_chat_object(bucket_id, name))",
+        "permissive": false
+      },
+      {
+        "cmd": "d",
+        "name": "platinum_assets_anon_delete_guard",
+        "check": null,
+        "roles": [
+          "anon"
+        ],
+        "using": "(bucket_id <> ALL (ARRAY['post-media'::text, 'story-media'::text, 'media'::text, 'avatars'::text, 'market-media'::text]))",
+        "permissive": false
+      },
+      {
+        "cmd": "a",
+        "name": "platinum_assets_anon_insert_guard",
+        "check": "(bucket_id <> ALL (ARRAY['post-media'::text, 'story-media'::text, 'media'::text, 'avatars'::text, 'market-media'::text]))",
+        "roles": [
+          "anon"
+        ],
+        "using": null,
+        "permissive": false
+      },
+      {
+        "cmd": "w",
+        "name": "platinum_assets_anon_update_guard",
+        "check": "(bucket_id <> ALL (ARRAY['post-media'::text, 'story-media'::text, 'media'::text, 'avatars'::text, 'market-media'::text]))",
+        "roles": [
+          "anon"
+        ],
+        "using": "(bucket_id <> ALL (ARRAY['post-media'::text, 'story-media'::text, 'media'::text, 'avatars'::text, 'market-media'::text]))",
+        "permissive": false
+      },
+      {
+        "cmd": "a",
+        "name": "platinum_assets_insert",
+        "check": "((bucket_id = ANY (ARRAY['post-media'::text, 'story-media'::text, 'media'::text, 'avatars'::text, 'market-media'::text])) AND platinum_upload_path_allowed(bucket_id, name) AND (COALESCE(owner_id, (owner)::text) = (( SELECT auth.uid() AS uid))::text))",
+        "roles": [
+          "authenticated"
+        ],
+        "using": null,
+        "permissive": true
+      },
+      {
+        "cmd": "a",
+        "name": "platinum_assets_insert_guard",
+        "check": "((bucket_id <> ALL (ARRAY['post-media'::text, 'story-media'::text, 'media'::text, 'avatars'::text, 'market-media'::text])) OR (platinum_upload_path_allowed(bucket_id, name) AND (COALESCE(owner_id, (owner)::text) = (( SELECT auth.uid() AS uid))::text)))",
+        "roles": [
+          "authenticated"
+        ],
+        "using": null,
+        "permissive": false
+      },
+      {
+        "cmd": "r",
+        "name": "platinum_content_anon_read_guard",
+        "check": null,
+        "roles": [
+          "anon"
+        ],
+        "using": "(bucket_id <> ALL (ARRAY['post-media'::text, 'story-media'::text, 'media'::text]))",
+        "permissive": false
+      },
+      {
+        "cmd": "d",
+        "name": "platinum_content_delete_guard",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "using": "(bucket_id <> ALL (ARRAY['post-media'::text, 'story-media'::text, 'media'::text]))",
+        "permissive": false
+      },
+      {
+        "cmd": "w",
+        "name": "platinum_content_immutable_guard",
+        "check": "(bucket_id <> ALL (ARRAY['post-media'::text, 'story-media'::text, 'media'::text]))",
+        "roles": [
+          "authenticated"
+        ],
+        "using": "(bucket_id <> ALL (ARRAY['post-media'::text, 'story-media'::text, 'media'::text]))",
+        "permissive": false
+      },
+      {
+        "cmd": "r",
+        "name": "platinum_content_owner_read",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "using": "((bucket_id = ANY (ARRAY['post-media'::text, 'story-media'::text, 'media'::text])) AND (COALESCE(owner_id, (owner)::text) = (( SELECT auth.uid() AS uid))::text))",
+        "permissive": true
+      },
+      {
+        "cmd": "r",
+        "name": "platinum_content_owner_read_guard",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "using": "((bucket_id <> ALL (ARRAY['post-media'::text, 'story-media'::text, 'media'::text])) OR (COALESCE(owner_id, (owner)::text) = (( SELECT auth.uid() AS uid))::text))",
+        "permissive": false
+      },
+      {
+        "cmd": "d",
+        "name": "platinum_public_asset_delete",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "using": "((bucket_id = ANY (ARRAY['avatars'::text, 'market-media'::text])) AND (COALESCE(owner_id, (owner)::text) = (( SELECT auth.uid() AS uid))::text))",
+        "permissive": true
+      },
+      {
+        "cmd": "d",
+        "name": "platinum_public_asset_delete_guard",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "using": "((bucket_id <> ALL (ARRAY['avatars'::text, 'market-media'::text])) OR (COALESCE(owner_id, (owner)::text) = (( SELECT auth.uid() AS uid))::text))",
+        "permissive": false
+      },
+      {
+        "cmd": "r",
+        "name": "platinum_public_asset_read",
+        "check": null,
+        "roles": [
+          "anon",
+          "authenticated"
+        ],
+        "using": "(bucket_id = ANY (ARRAY['avatars'::text, 'market-media'::text]))",
+        "permissive": true
+      },
+      {
+        "cmd": "w",
+        "name": "platinum_public_asset_update",
+        "check": "((bucket_id = ANY (ARRAY['avatars'::text, 'market-media'::text])) AND (COALESCE(owner_id, (owner)::text) = (( SELECT auth.uid() AS uid))::text) AND platinum_upload_path_allowed(bucket_id, name))",
+        "roles": [
+          "authenticated"
+        ],
+        "using": "((bucket_id = ANY (ARRAY['avatars'::text, 'market-media'::text])) AND (COALESCE(owner_id, (owner)::text) = (( SELECT auth.uid() AS uid))::text))",
+        "permissive": true
+      },
+      {
+        "cmd": "w",
+        "name": "platinum_public_asset_update_guard",
+        "check": "((bucket_id <> ALL (ARRAY['avatars'::text, 'market-media'::text])) OR ((COALESCE(owner_id, (owner)::text) = (( SELECT auth.uid() AS uid))::text) AND platinum_upload_path_allowed(bucket_id, name)))",
+        "roles": [
+          "authenticated"
+        ],
+        "using": "((bucket_id <> ALL (ARRAY['avatars'::text, 'market-media'::text])) OR (COALESCE(owner_id, (owner)::text) = (( SELECT auth.uid() AS uid))::text))",
+        "permissive": false
+      }
+    ],
+    "triggers": [
+      {
+        "name": "channel_private_reference_guard",
+        "table": "channel_messages",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER channel_private_reference_guard BEFORE INSERT OR UPDATE OF media_url ON public.channel_messages FOR EACH ROW EXECUTE FUNCTION guard_legacy_chat_reference()"
+      },
+      {
+        "name": "group_private_reference_guard",
+        "table": "conversations",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER group_private_reference_guard BEFORE INSERT OR UPDATE OF group_avatar_url ON public.conversations FOR EACH ROW EXECUTE FUNCTION guard_legacy_chat_reference()"
+      },
+      {
+        "name": "application_legacy_reference_guard",
+        "table": "job_applications",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER application_legacy_reference_guard BEFORE INSERT OR UPDATE OF cv_url ON public.job_applications FOR EACH ROW EXECUTE FUNCTION guard_legacy_chat_reference()"
+      }
+    ],
+    "functions": [
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "md5": "64693d475835ba5fbe227d683f9651ac",
+        "signature": "can_read_legacy_chat_object(text,text)",
+        "definition": "CREATE OR REPLACE FUNCTION public.can_read_legacy_chat_object(p_bucket text, p_name text)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\n SELECT auth.uid() IS NOT NULL AND (\n  (p_bucket='chat-media' AND EXISTS (\n    SELECT 1 FROM public.channel_messages m WHERE public.chat_object_path(m.media_url)=p_bucket||'/'||p_name\n      AND split_part(p_name,'/',1)=m.sender_id::text AND public.social_can_read_channel(m.channel_id)))\n  OR (p_bucket='chat-media' AND EXISTS (\n    SELECT 1 FROM public.conversations c WHERE c.is_group AND public.chat_object_path(c.group_avatar_url)=p_bucket||'/'||p_name\n      AND public.can_access_chat_conversation(c.id)))\n  OR (p_bucket='chat-files' AND EXISTS (\n    SELECT 1 FROM public.job_applications a JOIN public.jobs j ON j.id=a.job_id\n    WHERE public.chat_object_path(a.cv_url)=p_bucket||'/'||p_name AND split_part(p_name,'/',1)=a.applicant_id::text\n      AND (a.applicant_id=auth.uid() OR (j.posted_by=auth.uid() AND public.studio_role() IN ('owner','admin','recruiter')))))\n );\n$function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "md5": "0f59e65db37bb54e784787e278bc4306",
+        "signature": "chat_media_manifest(uuid[])",
+        "definition": "CREATE OR REPLACE FUNCTION public.chat_media_manifest(p_message_ids uuid[])\n RETURNS TABLE(id uuid, media_url text, thumbnail_url text, view_limit smallint)\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\n SELECT m.id, CASE WHEN public.chat_object_path(m.media_url) IS NOT NULL THEN m.media_url END, CASE WHEN public.chat_object_path(m.thumbnail_url) IS NOT NULL THEN m.thumbnail_url END, m.view_limit FROM public.messages m\n WHERE cardinality(p_message_ids) BETWEEN 1 AND 100 AND m.id = ANY(p_message_ids)\n   AND m.deleted_at IS NULL AND public.can_access_chat_conversation(m.conversation_id)\n   AND (m.media_access_verified OR (\n     (public.chat_object_path(m.media_url) IS NULL OR split_part(public.chat_object_path(m.media_url), '/', 2) = m.sender_id::text)\n     AND (public.chat_object_path(m.thumbnail_url) IS NULL OR split_part(public.chat_object_path(m.thumbnail_url), '/', 2) = m.sender_id::text)))\n   AND (public.chat_object_path(m.media_url) IS NOT NULL OR public.chat_object_path(m.thumbnail_url) IS NOT NULL);\n$function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "md5": "c47a9441784d6c13fd2f3b1d0363837b",
+        "signature": "claim_chat_media_view(uuid,uuid)",
+        "definition": "CREATE OR REPLACE FUNCTION public.claim_chat_media_view(p_message_id uuid, p_request_id uuid)\n RETURNS TABLE(url text, remaining integer)\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nDECLARE m public.messages%ROWTYPE; g public.chat_media_view_grants%ROWTYPE; v integer;\nBEGIN\n IF auth.uid() IS NULL OR p_request_id IS NULL THEN RAISE EXCEPTION 'Authentication required' USING ERRCODE = '42501'; END IF;\n -- Serialize grants for this message; no two devices can consume the last view.\n SELECT * INTO m FROM public.messages WHERE id = p_message_id FOR UPDATE;\n IF m.id IS NULL OR m.deleted_at IS NOT NULL OR m.view_limit IS NULL OR public.can_act_as(m.sender_id)\n   OR NOT public.can_access_chat_conversation(m.conversation_id)\n   OR public.chat_object_path(m.media_url) IS NULL\n   OR split_part(public.chat_object_path(m.media_url), '/', 2) <> m.sender_id::text THEN\n   RETURN QUERY SELECT NULL::text, 0; RETURN;\n END IF;\n SELECT * INTO g FROM public.chat_media_view_grants WHERE user_id = auth.uid() AND request_id = p_request_id;\n IF FOUND THEN\n   IF g.message_id = p_message_id AND g.expires_at > now() THEN RETURN QUERY SELECT m.media_url, g.remaining;\n   ELSE RETURN QUERY SELECT NULL::text, 0; END IF;\n   RETURN;\n END IF;\n INSERT INTO public.message_views(message_id,user_id,views,first_viewed_at)\n VALUES(m.id,auth.uid(),0,now()) ON CONFLICT DO NOTHING;\n SELECT views INTO v FROM public.message_views WHERE message_id=m.id AND user_id=auth.uid() FOR UPDATE;\n IF v >= m.view_limit THEN RETURN QUERY SELECT NULL::text,0; RETURN; END IF;\n UPDATE public.message_views SET views=views+1, first_viewed_at=coalesce(first_viewed_at,now()) WHERE message_id=m.id AND user_id=auth.uid();\n INSERT INTO public.chat_media_view_grants(request_id,user_id,message_id,remaining) VALUES(p_request_id,auth.uid(),m.id,m.view_limit-v-1);\n RETURN QUERY SELECT m.media_url, m.view_limit-v-1;\nEND;\n$function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "md5": "8e3e17e74717f3454b5c0deef3f62566",
+        "signature": "consume_media_view(uuid)",
+        "definition": "CREATE OR REPLACE FUNCTION public.consume_media_view(p_message_id uuid)\n RETURNS TABLE(url text, remaining integer)\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nBEGIN\n  IF to_regnamespace('private_media') IS NOT NULL THEN\n    RAISE EXCEPTION 'Update Platinum Circles to open limited-view attachments'\n      USING ERRCODE = '42501';\n  END IF;\n\n  -- Installed clients retain their original TABLE(url, remaining) response.\n  -- Each legacy call is one consumption, using the same serialized counters as\n  -- modern idempotent requests; this does not bypass or reset a view limit.\n  RETURN QUERY\n    SELECT c.url, c.remaining\n      FROM public.claim_chat_media_view(p_message_id, gen_random_uuid()) c;\nEND;\n$function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "70773b480e9de2bd9857ad42c04146f9",
+        "signature": "content_media_document(text,uuid)",
+        "definition": "CREATE OR REPLACE FUNCTION public.content_media_document(p_kind text, p_id uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare v_document jsonb; v_article public.articles; v_blocks jsonb;\nbegin\n  if p_kind = 'post' then\n    select jsonb_build_object('media_url', p.media_url, 'image_url', p.image_url,\n      'media', coalesce((select jsonb_agg(jsonb_build_object('url', m.url, 'edit', m.edit)) from public.post_media m where m.post_id = p.id), '[]'::jsonb),\n      'products', coalesce((select jsonb_agg(jsonb_build_object('image_url', pp.image_url)) from public.post_products pp where pp.post_id = p.id), '[]'::jsonb))\n      into v_document from public.posts p where p.id = p_id;\n    select * into v_article from public.articles a where a.linked_post_id = p_id limit 1;\n    if found then\n      select coalesce(jsonb_agg(b.content), '[]'::jsonb) into v_blocks from public.article_blocks b where b.revision_id = v_article.current_revision_id;\n      v_document := v_document || jsonb_build_object('article', v_blocks, 'assets', (\n        select coalesce(jsonb_agg(jsonb_build_object('url', a.url, 'thumbnail_url', a.thumbnail_url)), '[]'::jsonb)\n        from public.media_assets a where a.id = v_article.cover_asset_id or a.id::text in (select public.content_media_strings(v_blocks))\n      ));\n    end if;\n  elsif p_kind = 'story' then\n    select jsonb_build_object('media_url', s.media_url, 'thumbnail_url', s.thumbnail_url, 'dual_front_url', s.dual_front_url,\n      'audio_url', s.audio_url, 'media_transform', s.media_transform,\n      'stickers', coalesce((select jsonb_agg(jsonb_build_object('photoUrl', sticker->>'photoUrl'))\n        from jsonb_array_elements(case when jsonb_typeof(s.stickers_json) = 'array' then s.stickers_json else '[]'::jsonb end) sticker), '[]'::jsonb))\n      into v_document from public.stories s where s.id = p_id;\n    -- postMediaUrl/entityImage are deliberately excluded. Their source content\n    -- needs its own current authorization; a public outer story is insufficient.\n  elsif p_kind = 'story_draft' then\n    select jsonb_build_object('media_url', d.media_url, 'media_transform', d.media_transform,\n      'stickers', coalesce((select jsonb_agg(jsonb_build_object('photoUrl', sticker->>'photoUrl'))\n        from jsonb_array_elements(case when jsonb_typeof(d.stickers_json) = 'array' then d.stickers_json else '[]'::jsonb end) sticker), '[]'::jsonb))\n      into v_document from public.story_drafts d where d.id = p_id;\n  elsif p_kind = 'memory_album' then\n    select jsonb_agg(jsonb_build_object('story', public.content_media_document('story', s.id), 'media_url', mp.media_url, 'thumbnail_url', mp.thumbnail_url))\n      into v_document from public.memory_albums a join public.memory_pages mp on mp.album_id=a.id\n      join public.stories s on s.id=mp.story_id and s.user_id=a.user_id where a.id=p_id;\n  elsif p_kind = 'highlight' then\n    select jsonb_build_object('cover_url', h.cover_url, 'stories', (\n      select jsonb_agg(public.content_media_document('story', s.id)) from public.story_highlight_items hi\n      join public.stories s on s.id=hi.story_id and s.user_id=h.user_id\n      where hi.highlight_id=h.id and public.content_story_audience_visible(s.id)\n    )) into v_document from public.story_highlights h where h.id=p_id;\n  elsif p_kind = 'sound' then\n    select jsonb_build_object('url', s.url) into v_document from public.story_sounds s where s.id = p_id;\n  end if;\n  return coalesce(v_document, '{}'::jsonb);\nend $function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "c7dfc27056fafc6a902d629222a1eeb8",
+        "signature": "content_media_legacy.allows_read(text,uuid,uuid,text,text,text)",
+        "definition": "CREATE OR REPLACE FUNCTION content_media_legacy.allows_read(requested_kind text, requested_id uuid, expected_author uuid, current_url text, current_bucket text, current_path text)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n  SELECT auth.uid() IS NOT NULL\n    AND NOT coalesce((auth.jwt()->>'is_anonymous')::boolean, false)\n    AND EXISTS (\n      SELECT 1\n      FROM content_media_legacy.snapshots l\n      JOIN storage.objects o ON o.id = l.object_id\n        AND o.bucket_id = l.bucket_id AND o.name = l.object_path\n        AND o.version = l.object_version\n        AND (coalesce(o.owner_id, o.owner::text) IS NULL\n          OR coalesce(o.owner_id, o.owner::text) = l.author_id::text)\n      JOIN storage.buckets b ON b.id = o.bucket_id AND b.public\n      WHERE l.revoked_at IS NULL\n        AND l.author_id = expected_author\n        AND l.bucket_id = current_bucket AND l.object_path = current_path\n        AND l.canonical_url = current_url\n        AND (\n          (l.entity_kind = 'post' AND EXISTS (\n            SELECT 1 FROM public.posts p WHERE p.id = l.entity_id\n              AND p.user_id = l.author_id AND p.created_at = l.publication_created_at\n          )) OR\n          (l.entity_kind = 'story' AND EXISTS (\n            SELECT 1 FROM public.stories s WHERE s.id = l.entity_id\n              AND s.user_id = l.author_id AND s.created_at = l.publication_created_at\n          ))\n        )\n        AND EXISTS (\n          SELECT 1 FROM public.content_media_strings(\n            public.content_media_document(l.entity_kind, l.entity_id)\n          ) AS live_url WHERE live_url = l.canonical_url\n        )\n        AND (\n          (requested_kind = l.entity_kind AND requested_id = l.entity_id)\n          OR (requested_kind = 'memory_album' AND l.entity_kind = 'story'\n            AND public.can_view_memory_book(requested_id)\n            AND EXISTS (\n              SELECT 1 FROM public.memory_pages mp\n              JOIN public.memory_albums a ON a.id = mp.album_id\n              WHERE mp.album_id = requested_id AND mp.story_id = l.entity_id\n                AND mp.user_id = l.author_id AND a.user_id = l.author_id\n            ))\n          OR (requested_kind = 'highlight' AND l.entity_kind = 'story'\n            AND public.content_story_audience_visible(l.entity_id)\n            AND EXISTS (\n              SELECT 1 FROM public.story_highlight_items hi\n              JOIN public.story_highlights h ON h.id = hi.highlight_id\n              WHERE hi.highlight_id = requested_id AND hi.story_id = l.entity_id\n                AND h.user_id = l.author_id\n            ))\n        )\n    );\n$function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "md5": "47b5dff186018f351aa0e188d1e805d2",
+        "signature": "content_media_manifest(jsonb)",
+        "definition": "CREATE OR REPLACE FUNCTION public.content_media_manifest(p_references jsonb)\n RETURNS TABLE(entity_kind text, entity_id uuid, media_url text)\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare r record; use_kind text;\nbegin\n for r in select * from public.content_media_manifest_before_sound_rights(p_references) loop\n  use_kind:=case r.entity_kind when 'post' then 'post' when 'memory_album' then 'memory_album' else 'story' end;\n  if exists(select 1 from public.story_sounds s where s.url=r.media_url and not (\n   public.sound_rights_allow(s.id,use_kind) or (r.entity_kind='sound' and (public.sound_rights_allow(s.id,'post') or public.sound_rights_allow(s.id,'memory_album')))\n  )) then continue; end if;\n  entity_kind:=r.entity_kind;entity_id:=r.entity_id;media_url:=r.media_url;return next;\n end loop;\nend $function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "md5": "2216cc828cb339debeeed40865d72d78",
+        "signature": "delete_user_account(uuid)",
+        "definition": "CREATE OR REPLACE FUNCTION public.delete_user_account(p_user_id uuid)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\r\nbegin\r\n  if p_user_id is distinct from auth.uid()\r\n     and coalesce(auth.jwt()->>'role','') <> 'service_role' then\r\n    raise exception 'You can only delete your own account';\r\n  end if;\r\n  delete from message_deletions where user_id = p_user_id;\r\n  delete from saved_messages where user_id = p_user_id;\r\n  delete from starred_messages where starred_by = p_user_id;\r\n  delete from message_reactions where user_id = p_user_id;\r\n  delete from message_reads where user_id = p_user_id;\r\n  delete from messages where sender_id = p_user_id;\r\n  delete from conversation_typing where user_id = p_user_id;\r\n  delete from conversation_settings where user_id = p_user_id;\r\n  delete from conversation_members where user_id = p_user_id;\r\n  delete from chat_payments where sender_id = p_user_id or recipient_id = p_user_id;\r\n  delete from call_participants where user_id = p_user_id;\r\n  delete from story_views where user_id = p_user_id;\r\n  delete from story_reactions where user_id = p_user_id;\r\n  delete from stories where user_id = p_user_id;\r\n  delete from post_seen where user_id = p_user_id;\r\n  delete from post_bookmarks where user_id = p_user_id;\r\n  delete from post_reposts where user_id = p_user_id;\r\n  delete from post_likes where user_id = p_user_id;\r\n  delete from comment_reactions where user_id = p_user_id;\r\n  delete from post_comments where user_id = p_user_id;\r\n  delete from post_products where post_id in (select id from posts where user_id = p_user_id);\r\n  delete from posts where user_id = p_user_id;\r\n  -- offers made by the person, and offers on the person's own listings\r\n  delete from listing_offers where proposer_id = p_user_id;\r\n  if exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'listing_offers' and column_name = 'listing_id') then\r\n    execute 'delete from listing_offers where listing_id in (select id from marketplace_listings where seller_id = $1)' using p_user_id;\r\n  end if;\r\n  delete from marketplace_listings where seller_id = p_user_id;\r\n  delete from saved_listings where user_id = p_user_id;\r\n  delete from seller_reviews where seller_id = p_user_id or reviewer_id = p_user_id;\r\n  -- jobs the person posted, applications they sent, and applications to their jobs\r\n  delete from job_saves where user_id = p_user_id or job_id in (select id from jobs where posted_by = p_user_id);\r\n  delete from job_applications where applicant_id = p_user_id or job_id in (select id from jobs where posted_by = p_user_id);\r\n  delete from jobs where posted_by = p_user_id;\r\n  delete from follows where follower_id = p_user_id or following_id = p_user_id;\r\n  delete from follow_requests where requester_id = p_user_id or target_id = p_user_id;\r\n  delete from close_friends where owner_id = p_user_id or friend_id = p_user_id;\r\n  delete from blocked_users where blocker_id = p_user_id or blocked_id = p_user_id;\r\n  delete from user_reports where reporter_id = p_user_id or reported_id = p_user_id;\r\n  delete from notifications where recipient_id = p_user_id;\r\n  delete from club_members where user_id = p_user_id;\r\n  delete from community_members where user_id = p_user_id;\r\n  delete from business_members where member_id = p_user_id or business_id = p_user_id;\r\n  delete from business_reviews where user_id = p_user_id;\r\n  delete from business_posts where owner_id = p_user_id;\r\n  delete from business_profiles where owner_id = p_user_id or profile_id = p_user_id;\r\n  delete from support_tickets where user_id = p_user_id;\r\n  delete from user_app_settings where user_id = p_user_id;\r\n  delete from user_presence where user_id = p_user_id;\r\n  delete from user_push_tokens where user_id = p_user_id;\r\n  delete from profiles where id = p_user_id;\r\n  delete from auth.users where id = p_user_id;\r\nend;\r\n$function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "3b5ec08cd4d8b08a09a3e1960a7d336c",
+        "signature": "guard_legacy_chat_reference()",
+        "definition": "CREATE OR REPLACE FUNCTION public.guard_legacy_chat_reference()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public', 'pg_temp'\nAS $function$\nDECLARE value text; old_value text; loc text; bucket text; object_name text;\nBEGIN\n IF TG_TABLE_NAME='channel_messages' THEN\n  value:=NEW.media_url;\n  IF TG_OP='UPDATE' THEN old_value:=OLD.media_url; END IF;\n ELSIF TG_TABLE_NAME='conversations' THEN\n  value:=NEW.group_avatar_url;\n  IF TG_OP='UPDATE' THEN old_value:=OLD.group_avatar_url; END IF;\n ELSE\n  value:=NEW.cv_url;\n  IF TG_OP='UPDATE' THEN old_value:=OLD.cv_url; END IF;\n END IF;\n IF value IS NULL OR (TG_OP='UPDATE' AND value IS NOT DISTINCT FROM old_value) THEN RETURN NEW; END IF;\n loc:=public.chat_object_path(value);\n IF TG_TABLE_NAME='channel_messages' AND value ~ '/storage/v1/object/public/channel-media/' THEN\n   IF value !~ '^https://[^/?#]+/storage/v1/object/public/channel-media/[0-9a-f-]{36}/[0-9a-f-]{36}/[A-Za-z0-9_.-]+$' THEN RAISE EXCEPTION 'Invalid channel attachment'; END IF;\n   bucket:='channel-media'; object_name:=substring(value FROM '/storage/v1/object/public/channel-media/(.*)$');\n   IF split_part(object_name,'/',1)<>NEW.channel_id::text OR split_part(object_name,'/',2)<>NEW.sender_id::text OR NOT public.can_act_as(NEW.sender_id) THEN\n     RAISE EXCEPTION 'Channel attachment must belong to this channel and author' USING ERRCODE='42501';\n   END IF;\n ELSIF loc IS NOT NULL THEN\n   bucket:=split_part(loc,'/',1); object_name:=substring(loc FROM position('/' IN loc)+1);\n   IF TG_TABLE_NAME='channel_messages' THEN\n     IF bucket<>'chat-media' OR split_part(object_name,'/',1)<>NEW.sender_id::text OR NOT public.can_act_as(NEW.sender_id) THEN RAISE EXCEPTION 'Invalid channel attachment owner' USING ERRCODE='42501'; END IF;\n   ELSIF TG_TABLE_NAME='job_applications' THEN\n     IF bucket<>'chat-files' OR split_part(object_name,'/',1)<>NEW.applicant_id::text OR NOT public.can_act_as(NEW.applicant_id) THEN RAISE EXCEPTION 'Invalid CV attachment owner' USING ERRCODE='42501'; END IF;\n   ELSIF bucket<>'chat-media' OR NOT public.can_act_as(split_part(object_name,'/',1)::uuid) THEN\n     RAISE EXCEPTION 'Group photo must belong to the editor' USING ERRCODE='42501';\n   END IF;\n ELSIF value ~ '/storage/v1/object/(public/|sign/|authenticated/)?(chat-media|chat-files|channel-media)/' THEN\n   RAISE EXCEPTION 'Invalid private attachment locator' USING ERRCODE='42501';\n ELSE RETURN NEW;\n END IF;\n IF NOT EXISTS(SELECT 1 FROM storage.objects o WHERE o.bucket_id=bucket AND o.name=object_name) THEN\n   RAISE EXCEPTION 'Upload the attachment before sharing it' USING ERRCODE='42501';\n END IF;\n RETURN NEW;\nEND;\n$function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "md5": "7e77610be112c7b1e69dcb2db082758e",
+        "signature": "open_legacy_chat_media(uuid,uuid)",
+        "definition": "CREATE OR REPLACE FUNCTION public.open_legacy_chat_media(p_message_id uuid, p_request_id uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE\n  viewer uuid := auth.uid();\n  attachment_type text;\n  claimed_url text;\n  claimed_remaining integer;\n  grant_row public.chat_media_view_grants%ROWTYPE;\nBEGIN\n  IF to_regnamespace('private_media') IS NOT NULL\n     OR viewer IS NULL\n     OR p_message_id IS NULL\n     OR p_request_id IS NULL THEN\n    RETURN NULL;\n  END IF;\n\n  -- Reject unsupported attachments before consuming a view. This row lock is\n  -- also held by claim_chat_media_view and prevents a delete racing the result.\n  SELECT m.media_type\n    INTO attachment_type\n    FROM public.messages m\n   WHERE m.id = p_message_id\n     AND m.deleted_at IS NULL\n   FOR UPDATE;\n\n  IF attachment_type IS NULL OR attachment_type NOT IN ('image', 'video') THEN\n    RETURN NULL;\n  END IF;\n\n  -- This existing RPC owns conversation authorization, uploader binding,\n  -- sender exclusion, request idempotency, and the shared message_views count.\n  SELECT c.url, c.remaining\n    INTO claimed_url, claimed_remaining\n    FROM public.claim_chat_media_view(p_message_id, p_request_id) c;\n\n  IF claimed_url IS NULL THEN\n    RETURN NULL;\n  END IF;\n\n  SELECT g.*\n    INTO grant_row\n    FROM public.chat_media_view_grants g\n   WHERE g.user_id = viewer\n     AND g.request_id = p_request_id\n     AND g.message_id = p_message_id\n     AND g.remaining = claimed_remaining\n     AND g.expires_at > clock_timestamp();\n\n  IF NOT FOUND THEN\n    RETURN NULL;\n  END IF;\n\n  -- Return the original grant deadline: retrying must never renew a capability.\n  -- The Edge signer authenticates again, matches the authorized manifest, and\n  -- signs only the seconds still remaining before this timestamp.\n  RETURN jsonb_build_object(\n    'url', claimed_url,\n    'remaining', grant_row.remaining,\n    'expiresAt', grant_row.expires_at,\n    'mediaType', attachment_type,\n    'requestId', grant_row.request_id\n  );\nEND;\n$function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "md5": "2b8d2ac5f6935d98566bfa299b5509ff",
+        "signature": "platinum_upload_path_allowed(text,text)",
+        "definition": "CREATE OR REPLACE FUNCTION public.platinum_upload_path_allowed(p_bucket text, p_name text)\n RETURNS boolean\n LANGUAGE plpgsql\n STABLE\n SET search_path TO ''\nAS $function$\ndeclare actor text;\nbegin\n if auth.uid() is null or coalesce((auth.jwt()->>'is_anonymous')::boolean,false) then return false; end if;\n if p_bucket not in ('post-media','story-media','media','avatars','market-media') then return false; end if;\n if p_name is null or length(p_name)>1024 or p_name !~ '^[A-Za-z0-9_. /-]+$'\n   or p_name ~ '(^|/)\\.\\.?(/|$)|//' then return false; end if;\n actor:=case when p_bucket='market-media' and split_part(p_name,'/',1)='listings'\n   then split_part(p_name,'/',2) else split_part(p_name,'/',1) end;\n if actor !~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'\n   or position('/' in p_name)=0 then return false; end if;\n return public.can_act_as(actor::uuid);\nend $function$\n"
+      }
+    ]
+  }
+}
+

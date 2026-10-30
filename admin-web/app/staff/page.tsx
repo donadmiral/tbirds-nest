@@ -14,11 +14,11 @@ import { fmt, ago } from '@/lib/fmt';
 
 export const dynamic = 'force-dynamic';
 
-const PANEL: React.CSSProperties = { borderRadius: 13, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', overflow: 'hidden' };
+const PANEL: React.CSSProperties = { borderRadius: 12, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', overflow: 'hidden' };
 const HEAD: React.CSSProperties = { padding: '14px 16px 12px', borderBottom: '1px solid rgba(var(--on),0.10)' };
-const H_TITLE: React.CSSProperties = { fontSize: 13.5, fontWeight: 700, color: 'var(--txt)' };
-const H_SUB: React.CSSProperties = { fontSize: 11.3, color: 'var(--txt-muted)', marginTop: 3 };
-const FIELD: React.CSSProperties = { padding: '9px 11px', borderRadius: 9, background: 'rgba(var(--on),0.035)', border: '1px solid rgba(var(--on),0.12)', fontSize: 12.3, color: 'var(--txt)', outline: 'none' };
+const H_TITLE: React.CSSProperties = { fontSize: 14, fontWeight: 700, color: 'var(--txt)' };
+const H_SUB: React.CSSProperties = { fontSize: 12, color: 'var(--txt-muted)', marginTop: 3 };
+const FIELD: React.CSSProperties = { padding: '9px 11px', borderRadius: 9, background: 'rgba(var(--on),0.035)', border: '1px solid rgba(var(--on),0.12)', fontSize: 13, color: 'var(--txt)', outline: 'none' };
 
 const ROLES = ['super_admin', 'platform_admin', 'trust_safety', 'support_agent', 'ops_engineer', 'market_reviewer', 'jobs_reviewer', 'verification_reviewer', 'finance_admin', 'analyst', 'auditor_readonly'];
 
@@ -73,11 +73,11 @@ export default async function StaffPage() {
   const roleSlices: Slice[] = Object.keys(roleCount).map((k, i) => ({ label: title(k), value: roleCount[k], color: SERIES[i % SERIES.length] }));
 
   const cards = [
-    { label: 'Staff on the desk', value: fmt(rowsRaw.length), note: 'rows in admin_users', icon: IC.staff, color: 'var(--c1)' },
-    { label: 'Active', value: fmt(active.length), note: 'holding keys right now', icon: IC.check, color: 'var(--c2)' },
+    { label: 'Staff on the desk', value: fmt(rowsRaw.length), note: 'accounts with operations access', icon: IC.staff, color: 'var(--c1)' },
+    { label: 'Active', value: fmt(active.length), note: 'staff access enabled', icon: IC.check, color: 'var(--c2)' },
     { label: 'Administrators', value: fmt(admins.length), note: 'super admin and platform admin', icon: IC.shield, color: 'var(--c4)' },
     { label: 'Reviewers', value: fmt(reviewers.length), note: 'trust, market, jobs, verification', icon: IC.gear, color: 'var(--c3)' },
-    { label: 'Deactivated', value: fmt(rowsRaw.length - active.length), note: 'keys withdrawn', icon: IC.x, color: 'var(--c5)' },
+    { label: 'Deactivated', value: fmt(rowsRaw.length - active.length), note: 'staff access disabled', icon: IC.x, color: 'var(--c5)' },
   ];
 
   const rows: DeskRow[] = rowsRaw.map(s => {
@@ -147,7 +147,7 @@ export default async function StaffPage() {
           <select name="role" aria-label="Staff role" style={{ ...FIELD, cursor: 'pointer' }}>
             {ROLES.map(r => <option key={r} value={r}>{title(r)}</option>)}
           </select>
-          <button type="submit" style={{ padding: '9px 16px', borderRadius: 9, cursor: 'pointer', fontSize: 12.3, fontWeight: 600, background: 'var(--accent)', color: 'var(--accent-ink)', border: 'none' }}>Invite</button>
+          <button type="submit" style={{ padding: '9px 16px', borderRadius: 9, cursor: 'pointer', fontSize: 13, fontWeight: 600, background: 'var(--accent)', color: 'var(--accent-ink)', border: 'none' }}>Invite</button>
         </CommandForm></PermissionGate>
       </div>
 
@@ -190,9 +190,9 @@ export default async function StaffPage() {
               <div key={s.user_id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10.5px 16px', borderBottom: '1px solid rgba(var(--on),0.10)' }}>
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ display: 'block', fontSize: 12, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{emails[s.user_id] || s.user_id.slice(0, 8)}</span>
-                  <span style={{ display: 'block', fontSize: 10.4, color: 'var(--txt-muted)', marginTop: 2 }}>{title(s.role)}</span>
+                  <span style={{ display: 'block', fontSize: 11, color: 'var(--txt-muted)', marginTop: 2 }}>{title(s.role)}</span>
                 </span>
-                <span className="pc-num" style={{ fontSize: 11.6, fontWeight: 600, color: 'var(--txt)' }}>{actionCount[s.user_id]}</span>
+                <span className="pc-num" style={{ fontSize: 12, fontWeight: 600, color: 'var(--txt)' }}>{actionCount[s.user_id]}</span>
               </div>
             ))}
             {rowsRaw.every(s => !actionCount[s.user_id]) ? <Empty note="No action has been logged yet." /> : null}

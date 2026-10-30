@@ -29,7 +29,10 @@ export type StoryTextSticker = {
   gifUrl?: string;
   photoUri?: string | null;
   photoUrl?: string | null;
-  photoShape?: "square" | "rounded" | "circle";
+  photoShape?: "square" | "rounded" | "circle" | "cell";
+  /** Layout-cell width and height, normalized to the story canvas. */
+  photoFw?: number;
+  photoFh?: number;
   infoStyle?: number;
   weatherTemp?: number;
   weatherCode?: number;

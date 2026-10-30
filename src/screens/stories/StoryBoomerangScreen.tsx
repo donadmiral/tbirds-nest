@@ -45,11 +45,13 @@ function BoomerangInner({ navigation, extraParams, insets }: { navigation: any; 
   const [bounce, setBounce] = useState<{ input: string; effect: BoomerangEffect; generation: number; attempt: number } | null>(null);
   const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
   const progressTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const encoding = useRef<AbortController | null>(null);
   const current = (run: number) => mounted.current && activeRef.current && generation.current === run;
   const clearTimers = () => { timers.current.forEach(clearTimeout); timers.current.clear(); if (progressTimer.current) clearInterval(progressTimer.current); progressTimer.current = null; };
   const later = (fn: () => void, ms: number) => { const timer = setTimeout(() => { timers.current.delete(timer); fn(); }, ms); timers.current.add(timer); };
   const cancel = useCallback((update = true) => {
     generation.current++; lock.current = false; pending.current = false; recordingRef.current = false; clearTimers();
+    encoding.current?.abort(); encoding.current = null;
     try { cameraRef.current?.stopRecording(); } catch {}
     if (update && mounted.current) { setPhase('idle'); setProgress(0); setBounce(null); setCamMode('picture'); }
   }, []);
@@ -79,12 +81,16 @@ function BoomerangInner({ navigation, extraParams, insets }: { navigation: any; 
       // The native encoder implements Classic only. The other real effects
       // must go through the frame engine instead of silently becoming Classic.
       if (effect !== 'classic') { setBounce({ input: video.uri, effect, generation: run, attempt: 0 }); return; }
+      let controller: AbortController | undefined;
       try {
         if (!FileSystem.cacheDirectory) throw new Error('Temporary storage unavailable');
+        controller = new AbortController(); encoding.current = controller;
         const out = FileSystem.cacheDirectory + 'boom-' + Date.now() + '-' + run + '.mp4';
-        const uri = await bounded(makeBoomerang(video.uri, out, 1), 25000, 'Boomerang encoding took too long.');
+        const uri = await bounded(makeBoomerang(video.uri, out, 1, controller.signal), 25000, 'Boomerang encoding took too long.');
+        if (encoding.current === controller) encoding.current = null;
         if (current(run)) finish(uri || out, BOOM_SEC * 2, run);
       } catch { if (current(run)) setBounce({ input: video.uri, effect, generation: run, attempt: 0 }); }
+      finally { if (encoding.current === controller) encoding.current = null; controller?.abort(); }
     } catch (e: any) {
       if (!current(run)) return;
       clearTimers(); recordingRef.current = false;

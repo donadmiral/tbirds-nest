@@ -1,0 +1,225 @@
+{
+  "date": "2026-10-29",
+  "status": "Source and isolated contract gates passed; hosted rollout and device acceptance are separate.",
+  "liveMutationsByThisLane": false,
+  "testFlightActions": false,
+  "candidateFrozen": true,
+  "qaApplyOrder": [
+    "supabase/ops/qa/20261029233915_qa_media_completion_forward.sql",
+    "supabase/migrations/20261029224812_account_storage_erasure.sql",
+    "supabase/migrations/20261029231321_account_erasure_admin_review_queue.sql"
+  ],
+  "qaPrerequisite": "Already-reviewed QA admin forward; apply this media adapter before later database-hardening projections.",
+  "doNotApply": "No creator-entitlement hotfix; the intermediate missing-helper finding was false. Existing QA helper and sound-rights wrapper are preserved.",
+  "focusedTestsPassed": 146,
+  "focusedTestsFailed": 0,
+  "tests": [
+    {
+      "name": "account-erasure-db",
+      "command": "node supabase/tests/rpc-authorization/test-account-storage-erasure-chain.mjs",
+      "passed": 11,
+      "failed": 0,
+      "scope": "local isolated PostgreSQL or mocked HTTP/client contracts",
+      "output": "\u2714 migration applies over the exact 25 deployed units and four repairs; only API worker may erase Storage (4630.126034ms)\n\u2714 app roles cannot access private receipts or worker contracts, and old deletion is explicitly refused (16.186401ms)\n\u2714 requires a real current session, nonanonymous user and live worker before accepting work (17.324683ms)\n\u2714 acceptance is idempotent, receipt-scoped, bans login and fences stale JWT writes without deleting data (164.575766ms)\n\u2714 metadata remains until API deletion; a false success never permits Auth deletion (64.670741ms)\n\u2714 lease takeover fences stale workers; byte deletion and Auth deletion are acknowledged independently (102.119245ms)\n\u2714 reserved paths cannot be replaced after deletion, including by a background writer (39.269783ms)\n\u2714 unknown ownership and shared accounts are review cases, never inferred deletion rights (12.06949ms)\n\u2714 staff accounts require review without deleting authority or Auth records (5.553041ms)\n\u2714 financial balances force review and the original payment preservation trigger stays intact (7.715572ms)\n\u2714 completed technical receipts expire after 30 days; active review records do not (72.568748ms)\n\u2139 tests 11\n\u2139 suites 0\n\u2139 pass 11\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 5154.938633\n",
+      "outputSha256": "85d20fc5054798c1add9d597d4105be86997d745b4d4bae0333f039d17e02de7"
+    },
+    {
+      "name": "private-cutover-db",
+      "command": "node supabase/tests/rpc-authorization/test-private-media-cutover-chain.mjs",
+      "passed": 14,
+      "failed": 0,
+      "scope": "local isolated PostgreSQL or mocked HTTP/client contracts",
+      "output": "\u2714 compatibility changes only the legacy public-bucket prerequisite and leaves the activation separate (3541.328937ms)\n\u2714 private objects cannot be read by anonymous or unrelated users despite broad legacy policies (52.314683ms)\n\u2714 public avatars and catalog images remain intentionally public (8.388534ms)\n\u2714 private bucket transition preserves authorized content and still enforces followers and blocks (50.298091ms)\n\u2714 reviewed ownerless legacy reads survive private cutover without manufacturing ownership (23.441537ms)\n\u2714 legacy object replacement, author changes or removed provenance fail closed (12.488209ms)\n\u2714 unreviewed ownerless files remain inaccessible and show an explicit cutover blocker (17.394244ms)\n\u2714 new uploads require real ownership and an allowed actor path; published bytes are immutable (25.041614ms)\n\u2714 ordinary chat participants can read their attachment; unrelated people cannot (21.497905ms)\n\u2714 limited-view recipients cannot bypass consumption by signing the object directly (16.119569ms)\n\u2714 a new limited-view upload cannot reuse an existing ordinary attachment (12.663461ms)\n\u2714 a limited file cannot later become an ordinary message or group photo (31.571663ms)\n\u2714 preexisting limited/unlimited reuse is denied by both RLS and the ordinary signer manifest (23.204568ms)\n\u2714 cutover report is service-only and leaks no object paths or account identifiers (10.435962ms)\n\u2139 tests 14\n\u2139 suites 0\n\u2139 pass 14\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 3868.808726\n",
+      "outputSha256": "8e11a90d4e8167f3979d311e7e23b3b75242b9a4f25ed71bf4ab1f9d993f051b"
+    },
+    {
+      "name": "production-combined-db",
+      "command": "node supabase/tests/rpc-authorization/test-bounded-media-delivery-chain.mjs",
+      "passed": 18,
+      "failed": 0,
+      "scope": "local isolated PostgreSQL or mocked HTTP/client contracts",
+      "output": "\u2714 all five candidates compose over the deployed baseline without flipping public buckets (3669.246005ms)\n\u2714 service APIs and private proofs cannot be called/read by app roles (16.500478ms)\n\u2714 issuance needs current session and excludes anonymous identities (27.526741ms)\n\u2714 follower media checks current audience at issuance and on every redemption (46.320929ms)\n\u2714 a block revokes a previously issued ticket and service JWT claims are restored (20.47168ms)\n\u2714 tickets are exact path/version capabilities, expire, and cannot revive after a replacement (41.98716ms)\n\u2714 a trusted owner reassignment does not reuse an old content binding (38.118222ms)\n\u2714 revoked sessions and banned accounts invalidate outstanding tickets (21.452886ms)\n\u2714 upload tickets require actual ownership and a current session (13.452803ms)\n\u2714 normal chat delivery requires membership and excludes limited-view messages (66.69997ms)\n\u2714 limited-view reads preserve count, bind real session/version and close immediately (43.439515ms)\n\u2714 replaced limited-view bytes never inherit the original viewing grant (20.247413ms)\n\u2714 admin media requires current canonical reference and owner proof, even when a stale binding exists (16.156741ms)\n\u2714 foreign hosts, query tricks, invalid origins and wrong entity types cannot form admin proofs (42.346441ms)\n\u2714 admin proofs preserve audited ownerless legacy reads and reject changes or revocation (16.000966ms)\n\u2714 literal spaces and Unicode are supported; encoded/traversing paths fail closed (19.924968ms)\n\u2714 admin manifest caps input at 200 and rejects overflow instead of partial results (881.670714ms)\n\u2714 self-service retention holds appear only in the authorized deletion queue, with no receipt token (20.129505ms)\n\u2139 tests 18\n\u2139 suites 0\n\u2139 pass 18\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 5048.198842\n",
+      "outputSha256": "e7754908a0510bc39461071917fc45fabb0b5b8e93d213cedc6ec4be11285cd8"
+    },
+    {
+      "name": "qa-combined-db",
+      "command": "PLATINUM_QA_MEDIA_UPGRADE=1 node supabase/tests/rpc-authorization/test-bounded-media-delivery-chain.mjs",
+      "passed": 18,
+      "failed": 0,
+      "scope": "local isolated PostgreSQL or mocked HTTP/client contracts",
+      "output": "\u2714 all five candidates compose over the deployed baseline without flipping public buckets (4037.546511ms)\n\u2714 service APIs and private proofs cannot be called/read by app roles (15.379995ms)\n\u2714 issuance needs current session and excludes anonymous identities (25.790954ms)\n\u2714 follower media checks current audience at issuance and on every redemption (51.090323ms)\n\u2714 a block revokes a previously issued ticket and service JWT claims are restored (24.751209ms)\n\u2714 tickets are exact path/version capabilities, expire, and cannot revive after a replacement (37.991822ms)\n\u2714 a trusted owner reassignment does not reuse an old content binding (26.96982ms)\n\u2714 revoked sessions and banned accounts invalidate outstanding tickets (27.590064ms)\n\u2714 upload tickets require actual ownership and a current session (10.031122ms)\n\u2714 normal chat delivery requires membership and excludes limited-view messages (68.118009ms)\n\u2714 limited-view reads preserve count, bind real session/version and close immediately (40.266664ms)\n\u2714 replaced limited-view bytes never inherit the original viewing grant (22.008171ms)\n\u2714 admin media requires current canonical reference and owner proof, even when a stale binding exists (18.260686ms)\n\u2714 foreign hosts, query tricks, invalid origins and wrong entity types cannot form admin proofs (35.77544ms)\n\u2714 admin proofs preserve audited ownerless legacy reads and reject changes or revocation (22.115983ms)\n\u2714 literal spaces and Unicode are supported; encoded/traversing paths fail closed (17.549367ms)\n\u2714 admin manifest caps input at 200 and rejects overflow instead of partial results (851.908104ms)\n\u2714 self-service retention holds appear only in the authorized deletion queue, with no receipt token (19.171545ms)\n\u2139 tests 18\n\u2139 suites 0\n\u2139 pass 18\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 5383.255958\n",
+      "outputSha256": "e1f0601ff033d4d0a92102bcadef764537b684dddb1f5876fde65073ffff3515"
+    },
+    {
+      "name": "erasure-worker-client",
+      "command": "node tests/account-storage-erasure.test.cjs",
+      "passed": 10,
+      "failed": 0,
+      "scope": "local isolated PostgreSQL or mocked HTTP/client contracts",
+      "output": "\u2714 worker requires scoped credentials and ignores caller-supplied account IDs (5.863287ms)\n\u2714 Storage API removal precedes metadata acknowledgement, application cleanup and Auth API removal (3.276917ms)\n\u2714 unsafe, unleased or oversized queue results cannot delete objects or accounts (1.55003ms)\n\u2714 Storage errors, stale leases and unacknowledged deletes never advance to Auth deletion (2.474221ms)\n\u2714 a crash after file removal resumes without deleting the same file again (0.506221ms)\n\u2714 more batches and review outcomes do not delete the identity prematurely (1.896001ms)\n\u2714 Auth failures remain pending and final acknowledgement must verify completion (0.722596ms)\n\u2714 client status validates the exact receipt and never treats malformed or partial data as completion (0.74493ms)\n\u2714 a lost request response recovers using the same receipt anonymously after session revocation (0.840143ms)\n\u2714 unconfirmed requests preserve their error and do not fall back to the old destructive RPC (0.795055ms)\n\u2139 tests 10\n\u2139 suites 0\n\u2139 pass 10\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 26.220599\n",
+      "outputSha256": "ea84b984a461e197ee1dbec718eee3a94af7788813299eaf3cf8f3dadf4a3c4d"
+    },
+    {
+      "name": "limited-byte-handler",
+      "command": "node tests/private-media-session.test.cjs",
+      "passed": 10,
+      "failed": 0,
+      "scope": "local isolated PostgreSQL or mocked HTTP/client contracts",
+      "output": "\u2714 open returns only bounded grant metadata and never fetches object bytes (6.280354ms)\n\u2714 media reads reauthorize every request, preserve range, and stream no-store without a capability URL (4.410042ms)\n\u2714 denied, expired and unauthenticated requests never reach storage (1.239204ms)\n\u2714 forged origins, traversal and unsupported content cannot be streamed (1.785495ms)\n\u2714 close uses the request identity and never exposes an internal error (0.547664ms)\n\u2714 closing during a pending open hides synchronously and revokes the late grant under original credentials (1.784774ms)\n\u2714 account switch cannot publish a late private grant (0.580984ms)\n\u2714 expired or mismatched grants are rejected before any content is displayed (1.272704ms)\n\u2714 malformed IDs and invalid range requests do not reach storage (1.636181ms)\n\u2714 close received while storage is preparing bytes prevents the response from being delivered (0.802987ms)\n\u2139 tests 10\n\u2139 suites 0\n\u2139 pass 10\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 42.094787\n",
+      "outputSha256": "2c72684104743fe654b49ebe85bb6e50266f673d603bf6e2a0aed0aca3d7cda4"
+    },
+    {
+      "name": "bounded-byte-handler",
+      "command": "node tests/media-delivery.test.cjs",
+      "passed": 13,
+      "failed": 0,
+      "scope": "local isolated PostgreSQL or mocked HTTP/client contracts",
+      "output": "\u2714 capabilities are pinned to the configured origin, object and opaque token (1.804654ms)\n\u2714 private delivery images do not use persistent disk cache (0.349225ms)\n\u2714 bytes stream only after two current proof checks; secrets and cache headers never escape (5.854945ms)\n\u2714 forged capabilities and denied proofs cannot cause a privileged fetch (1.966397ms)\n\u2714 all single-range forms work and invalid reversed/empty/multi/zero ranges stop before Storage (3.414014ms)\n\u2714 upstream range failures stay 416 and a missing file is 410 (1.296429ms)\n\u2714 revocation, object replacement or proof failure while fetching suppresses all bytes (6.144481ms)\n\u2714 active HTML and SVG payloads cannot be served as private attachments (0.836868ms)\n\u2714 HEAD fetches only headers while preserving no-store and range metadata (0.500523ms)\n\u2714 consumer cancellation aborts the active upstream download (0.666362ms)\n\u2714 request cancellation reaches a pending Storage fetch (1.021296ms)\n\u2714 new clients explicitly opt into no-store delivery, with no signed or public fallback (2.085537ms)\n\u2714 a legacy client retains its reviewed signed-URL contract during staged migration (0.801145ms)\n\u2139 tests 13\n\u2139 suites 0\n\u2139 pass 13\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 33.254589\n",
+      "outputSha256": "0b89f39788f341d68f366c0b159055bdbddf7ca279aeabeb5fbf208372ffb31e"
+    },
+    {
+      "name": "legacy-reader-compatibility",
+      "command": "node tests/quality/private-reader-compat.cjs",
+      "passed": 4,
+      "failed": 0,
+      "scope": "local isolated PostgreSQL or mocked HTTP/client contracts",
+      "output": "\u2714 web/lib/chatMedia.ts delivers group avatars without persistent signed URLs and rejects late account responses (65.358044ms)\n\u2714 src/services/chatMediaService.ts delivers group avatars without persistent signed URLs and rejects late account responses (38.777639ms)\n\u2714 web/lib/applicationCv.ts re-signs legacy CV references instead of opening old public URLs (8.304358ms)\n\u2714 src/services/applicationCvService.ts re-signs legacy CV references instead of opening old public URLs (17.386896ms)\n\u2139 tests 4\n\u2139 suites 0\n\u2139 pass 4\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 214.969451\n",
+      "outputSha256": "67e9eba3d96e33c5037ca23b3f89bf082f3508bf37d91dbe5ba779ac7cf060bb"
+    },
+    {
+      "name": "chat-media-cache",
+      "command": "node tests/chat-media-cache.test.cjs",
+      "passed": 32,
+      "failed": 0,
+      "scope": "real client helper with mocked Auth/Functions; contract regression",
+      "output": "\u2714 web/lib/chatMedia.ts: same account reuses media until the short one-minute cache expiry (48.472275ms)\n\u2714 web/lib/chatMedia.ts: a changed canonical locator cannot reuse the same message's URL (15.037634ms)\n\u2714 web/lib/chatMedia.ts: account switching and sign-out while idle clear old capabilities (14.364732ms)\n\u2714 web/lib/chatMedia.ts: pending account switch discards both cached hits and late results (15.102161ms)\n\u2714 web/lib/chatMedia.ts: signing out and back in during a batch fences the old session (20.669433ms)\n\u2714 web/lib/chatMedia.ts: a switch during the second batch also discards completed first-batch results (17.341439ms)\n\u2714 web/lib/chatMedia.ts: a rejected stale request cannot return earlier cached hits (9.371853ms)\n\u2714 web/lib/chatMedia.ts: an obsolete getSession result cannot restore the previous account (10.129764ms)\n\u2714 web/lib/chatMedia.ts: initial-session delivery during getSession keeps valid first loads working (14.600507ms)\n\u2714 web/lib/chatMedia.ts: getSession also detects a changed account when no event has arrived (9.396271ms)\n\u2714 web/lib/chatMedia.ts: null sessions and Auth failures never expose public-form private locators (8.740014ms)\n\u2714 web/lib/chatMedia.ts: returned signing failure retains partial success without a public fallback (15.853541ms)\n\u2714 web/lib/chatMedia.ts: thrown signing failure retains partial success without a public fallback (10.165047ms)\n\u2714 web/lib/chatMedia.ts: empty and public non-chat media do not create an Auth subscription (10.118847ms)\n\u2714 web/lib/chatMedia.ts: one listener per client; replacement unsubscribes and fences old work (14.361638ms)\n\u2714 web/lib/chatMedia.ts: only requested, string-valued response URLs enter the cache (14.732746ms)\n\u2714 src/services/chatMediaService.ts: same account reuses media until the short one-minute cache expiry (15.735194ms)\n\u2714 src/services/chatMediaService.ts: a changed canonical locator cannot reuse the same message's URL (14.585845ms)\n\u2714 src/services/chatMediaService.ts: account switching and sign-out while idle clear old capabilities (8.841507ms)\n\u2714 src/services/chatMediaService.ts: pending account switch discards both cached hits and late results (12.765497ms)\n\u2714 src/services/chatMediaService.ts: signing out and back in during a batch fences the old session (9.484022ms)\n\u2714 src/services/chatMediaService.ts: a switch during the second batch also discards completed first-batch results (7.83952ms)\n\u2714 src/services/chatMediaService.ts: a rejected stale request cannot return earlier cached hits (6.408327ms)\n\u2714 src/services/chatMediaService.ts: an obsolete getSession result cannot restore the previous account (8.575676ms)\n\u2714 src/services/chatMediaService.ts: initial-session delivery during getSession keeps valid first loads working (10.630567ms)\n\u2714 src/services/chatMediaService.ts: getSession also detects a changed account when no event has arrived (10.590526ms)\n\u2714 src/services/chatMediaService.ts: null sessions and Auth failures never expose public-form private locators (9.25599ms)\n\u2714 src/services/chatMediaService.ts: returned signing failure retains partial success without a public fallback (7.6531ms)\n\u2714 src/services/chatMediaService.ts: thrown signing failure retains partial success without a public fallback (7.508151ms)\n\u2714 src/services/chatMediaService.ts: empty and public non-chat media do not create an Auth subscription (16.584951ms)\n\u2714 src/services/chatMediaService.ts: one listener per client; replacement unsubscribes and fences old work (8.701265ms)\n\u2714 src/services/chatMediaService.ts: only requested, string-valued response URLs enter the cache (11.678242ms)\n\u2139 tests 32\n\u2139 suites 0\n\u2139 pass 32\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 425.217812\n",
+      "outputSha256": "ca61793059369f9f4c785d2192ac7d69d341b6ba1f4418813a0b0a8c1217a6fb"
+    },
+    {
+      "name": "content-media-regressions",
+      "command": "node tests/quality/content-media-regressions.cjs",
+      "passed": 16,
+      "failed": 0,
+      "scope": "real client helper with mocked Auth/Functions; contract regression",
+      "output": "\u2714 content parsing accepts current project only and rejects traversal/encoded alternatives (1.563952ms)\n\u2714 embedded post requests are independent and duplicate IDs are removed (1.082528ms)\n\u2714 authorized URLs are replaced and missing capabilities are cleared in every nested field (0.409737ms)\n\u2714 text-only content does not add authentication or signing round trips (0.479882ms)\n\u2714 account changes discard capabilities rather than applying them to another viewer (2.542784ms)\n\u2714 signer rejects unauthenticated calls and never signs client-supplied paths (3.233563ms)\n\u2714 only verified manifest objects may enter the signing batch (2.082081ms)\n\u2714 missing manifest is a failure, and denied content returns no capability (10.643867ms)\n\u2714 article covers request the linked post and draft references remain a distinct permission (0.313111ms)\n\u2714 unsigned and foreign responses cannot become media capabilities (1.214787ms)\n\u2714 malformed JSON values fail as client errors before manifest or signing (1.781179ms)\n\u2714 expired capabilities never reach a rendered row (0.537698ms)\n\u2714 Markdown images hydrate without changing text or turning ordinary links into media (0.314773ms)\n\u2714 canonical reshares remove signed tokens from nested objects and Markdown before storage (0.363146ms)\n\u2714 owner upload hydration uses the separate server ownership manifest and never persists previews (0.641014ms)\n\u2714 upload requests cannot bypass authenticated owner authorization or mix modes (1.199854ms)\n\u2139 tests 16\n\u2139 suites 0\n\u2139 pass 16\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 40.615159\n",
+      "outputSha256": "63dadde1c15b97083c9f41d78bd109a1fc2e543ee5268526c3c96804cc2710a0"
+    }
+  ],
+  "typechecks": [
+    {
+      "workspace": ".",
+      "command": "npx tsc --noEmit",
+      "exitCode": 0,
+      "log": "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n"
+    },
+    {
+      "workspace": "web",
+      "command": "npx tsc --noEmit",
+      "exitCode": 0,
+      "log": "npm warn Unknown env config \"http-proxy\". This will stop working in the next major version of npm.\n"
+    }
+  ],
+  "diffCheck": "passed",
+  "localPostflightExpectations": {
+    "qaFunctions": 44,
+    "productionFunctions": 41,
+    "policies": 14,
+    "privateTables": 6,
+    "qaRowsPreserved": true,
+    "unfencedApplicationTables": 0
+  },
+  "sourceSha256": {
+    "supabase/migrations/20261029224812_account_storage_erasure.sql": "be2aaa4a1804e35aea4fd0b0543a4a08afa87a3b7e682728f60c12e4ed573bb1",
+    "supabase/migrations/20261029224813_private_media_cutover_compatibility.sql": "e95b6958699507679692dc59106cebafbb6001b25048bcd32ca1d50928e8e5d8",
+    "supabase/migrations/20261029231321_account_erasure_admin_review_queue.sql": "33eccb5845c22caa16aeaeb5a05690667f02abcc4d9ea9ae6253896264e35012",
+    "supabase/migrations/20261029231440_bounded_media_delivery.sql": "44c6f9d4cbcf858fdbc6a4c50a27bbc5f871347e8dfc45dc97825f52e9e82982",
+    "supabase/ops/qa/20261029233915_qa_media_completion_forward.sql": "7cf263362002f01f5db989bf9fa63682de8e05d2460319c30f6cd49b312ebf81",
+    "supabase/config.toml": "fb053baab6d65fdda56f0dc7a3b50bef4d85e22193581564977d463be3e7ef94",
+    "supabase/functions/account-storage-erasure/index.ts": "2d702130678cdd0b6eec1821948f634bb68864b9a5c08fedfff4ca250ca387c6",
+    "supabase/functions/account-storage-erasure/handler.ts": "e7025b576abbfc24fe4e3c950cc2e321f4b418583628cdb8c24c93d978151caa",
+    "supabase/functions/media-content/index.ts": "1f5ab0dd6151589f61d9de231e729e68f65582181acae9bd3853b63dd668ff88",
+    "supabase/functions/media-content/handler.ts": "609f048486dd0a1740ddc588f3ece883ee80ec06771b8b92dbac064ad68158ee",
+    "supabase/functions/limited-media-file/index.ts": "7ff81f4742a4a6501abf9fcf9c12985363134580f551179bdcaa6598d2a4477d",
+    "supabase/functions/private-media-session/handler.ts": "11b53d74da4607c6a89bc5ef11d258694a8d4e6409f3c2f5606c00e133add1ac",
+    "supabase/functions/content-media-sign/index.ts": "99cb4805e16148680ef4c322ce288f84766a72882ccf118ce698d48e85cc7220",
+    "supabase/functions/content-media-sign/handler.ts": "e9c82b800e309d3b98fe085e3806eec8b35999ff1b84adacd29279c7b7f3d9df",
+    "supabase/functions/chat-media-sign/index.ts": "ccc74a28ae1330763e9a0a1bddef8df51503ff28a168ddf0cda7c6e485b9a4e1",
+    "shared/contentMedia.ts": "5ffbff3cb3771058a22a021704acd68820b4161cd0c5dfe1cbed012c530d94ff",
+    "shared/mediaDelivery.ts": "354cc6d04dd8f70b53e6bf96539d679db9884efd00899a0cb191dfe23a2cfdc5",
+    "shared/legacyLimitedMedia.ts": "8c84c16b12888649cada5d5fdde426c9f9d190ae4855a883c536be9a31c98580",
+    "shared/accountErasure.ts": "36c6ba1b5ce5fbae73c9be07d47296599940748113829d6065f0feebf55ad69f",
+    "supabase/ops/check-qa-media-completion-preflight.sql": "00592e96ae7fe04fdff7bb0699c8f5db7c64090e7e053c2eb3cc847965609c12",
+    "supabase/ops/check-media-completion-postflight.sql": "a2f29b261fcc1a71b8437a22ca51bcac3de56d8b202c514f75334cdf48dfce2e",
+    "supabase/ops/check-account-erasure-health.sql": "fea47d0bc6ae1b710daea97780f0eae452c7571d48924d6365bd44a316dc953a",
+    "supabase/ops/setup-account-erasure-credential.sql": "0417fb868f4c28072f070b4570199c453abdae3eeaac952218d72ad0b20d4174",
+    "supabase/ops/install-account-erasure-cron.sql": "91dc5c429775d46084aad28318a4046babb86b0a824417ccb036b602b6ed8513",
+    "supabase/ops/activate-private-media.sql": "137c4ea55b5aba9a4dbecf238d034a34758c011e2450b2acca9b2137c30ab062",
+    "docs/quality/QA_MEDIA_BASELINE_20261029.json": "9151fc27b0cdd7f6bb5f8d8f91e25532e1422ae5e244b7ade4f5369bc37f141e",
+    "docs/quality/QA_MEDIA_DEPENDENCIES_20261029.json": "cc8c23a734e71415ee047dba93babcbf9f9d4d5350291f49fea66fac0c8f43ae",
+    "docs/quality/QA_MEDIA_ENTITLEMENT_DEPENDENCY_20261029.json": "83033e3d2b5244828794fc726e4c580c62d71c2d35886963fd61da1060c5a37d",
+    "docs/quality/QA_MEDIA_COMPLETION_EXPECTED_20261029.json": "8e745aa2af08cce062d2ccd0c1a50248ea7b94e21fad489f9e8d13b16f7bc1c2",
+    "docs/quality/PRODUCTION_MEDIA_COMPLETION_EXPECTED_20261029.json": "0a40d17763dad797bbced6e438a472103f9b64cee57749171b7e37c43ea76bdc",
+    "tests/chat-media-cache.test.cjs": "51d28d939c04964887bfd85d0f837381ca2c2905ded81f07e944dc53c6e4c673",
+    "tests/quality/content-media-regressions.cjs": "55d674c872bf0b26dfb068188a9834442e6b62b9472117a31c5443025e3bad69"
+  },
+  "liveReadOnlyBaseline": {
+    "production": {
+      "project": "prlkikhckbifseosbukl",
+      "storageObjects": 472,
+      "nullOwnerObjects": 21,
+      "approvedLegacyReadSnapshots": 10,
+      "fiveMediaBucketsPublic": true,
+      "accountErasureSchemaPresent": false,
+      "mediaDeliverySchemaPresent": false
+    },
+    "qa": {
+      "project": "uaulhuelcfkjwojtymmw",
+      "authUsers": 1,
+      "staff": 1,
+      "profiles": 1,
+      "storageObjects": 15,
+      "fiveMediaBucketsPublic": false,
+      "accountErasureSchemaPresent": false,
+      "mediaDeliverySchemaPresent": false
+    }
+  },
+  "rolloutAcceptanceStillRequired": [
+    "Compare fresh QA preflight and preserve existing 1/1/1/15 rows.",
+    "Compare hosted postflight catalog against local QA expectation before later DB hardening.",
+    "Deploy exact five Edge function bundles with verify_jwt=false; retrieve deployed source/metadata for integrity.",
+    "Run Storage/Auth erasure against a newly created disposable QA account, including retry and CDN wait, while preserving existing QA rows.",
+    "Run unauthorized known-URL, expired/revoked token, range/seek/cancellation and warmed-cache checks with real Storage provider.",
+    "Verify new web/native/admin clients and staged compatibility with installed legacy native build.",
+    "Keep production bucket visibility cutover held until explicit recorded QA/client evidence.",
+    "Device validation remains; no TestFlight."
+  ],
+  "hostedQaUpdateFromReleaseOwner": {
+    "date": "2026-10-29",
+    "threeMigrationsApplied": true,
+    "fiveEdgeBundlesActive": true,
+    "deployedSourceReadbackByteIdentical": true,
+    "catalogHashesAndAclsMatchBySignature": true,
+    "countsPreserved": {
+      "auth": 1,
+      "staff": 1,
+      "profiles": 1,
+      "objects": 15
+    },
+    "privateBuckets": 5,
+    "unfencedApplicationTables": 0,
+    "queueEmpty": true,
+    "vaultCron": "configured and worker healthy",
+    "acceptance": "Actual erasure, authenticated delivery, warmed-cache invalidation and device checks remain separate.",
+    "workerConfigured": true,
+    "workerHealthy": true,
+    "negativeHttpChecksPassed": 7
+  },
+  "catalogComparison": "Before later database-hardening projections, compare catalog membership and values exactly after ordinal-key sorting: functions by signature, policies by name, privateTables by schema/table, triggers by table/name, schemas by name. PGlite/hosted collation can change array order without catalog drift. Observations include synthetic counts, not hosted data.",
+  "regressionFollowup": {
+    "cause": "Two stale test-harness expectations after the intentional no-store contract change.",
+    "fix": "Load the real shared mediaDelivery module; assert delivery:no-store; use an actual bounded capability in the owner-upload hydration fixture.",
+    "productionFilesChanged": false,
+    "originalSecurityAssertionsPreserved": true,
+    "onlyTargetedSuitesRun": true
+  }
+}

@@ -422,3 +422,18 @@ verify_jwt = false
 
 [functions.private-media-cleanup]
 verify_jwt = false
+
+[functions.account-storage-erasure]
+verify_jwt = false
+
+[functions.media-content]
+verify_jwt = false
+
+[functions.limited-media-file]
+verify_jwt = false
+
+[functions.content-media-sign]
+verify_jwt = false
+
+[functions.chat-media-sign]
+verify_jwt = false

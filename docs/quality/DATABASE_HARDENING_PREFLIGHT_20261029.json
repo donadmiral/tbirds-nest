@@ -1,0 +1,1019 @@
+{
+  "observed_at": "2026-10-29T23:35:00Z",
+  "project_id": "prlkikhckbifseosbukl",
+  "schema": {
+    "roles": [
+      {
+        "role": "anon",
+        "config": [
+          "statement_timeout=3s"
+        ]
+      },
+      {
+        "role": "authenticated",
+        "config": [
+          "statement_timeout=8s"
+        ]
+      },
+      {
+        "role": "authenticator",
+        "config": [
+          "session_preload_libraries=safeupdate",
+          "statement_timeout=8s",
+          "lock_timeout=8s"
+        ]
+      },
+      {
+        "role": "service_role",
+        "config": null
+      }
+    ],
+    "schemas": [
+      {
+        "acl": "{pg_database_owner=UC/pg_database_owner,=U/pg_database_owner,postgres=U/pg_database_owner,anon=U/pg_database_owner,authenticated=U/pg_database_owner,service_role=U/pg_database_owner}",
+        "owner": "pg_database_owner",
+        "schema": "public",
+        "anon_create": false,
+        "authenticated_create": false
+      },
+      {
+        "acl": "{postgres=UC/postgres,anon=U/postgres,authenticated=U/postgres,service_role=U/postgres,dashboard_user=UC/postgres}",
+        "owner": "postgres",
+        "schema": "extensions",
+        "anon_create": false,
+        "authenticated_create": false
+      }
+    ],
+    "extensions": [
+      {
+        "name": "pg_stat_statements",
+        "schema": "extensions",
+        "version": "1.11",
+        "relocatable": true
+      },
+      {
+        "name": "uuid-ossp",
+        "schema": "extensions",
+        "version": "1.1",
+        "relocatable": true
+      },
+      {
+        "name": "pgcrypto",
+        "schema": "extensions",
+        "version": "1.3",
+        "relocatable": true
+      },
+      {
+        "name": "pg_trgm",
+        "schema": "public",
+        "version": "1.6",
+        "relocatable": true
+      },
+      {
+        "name": "pg_net",
+        "schema": "extensions",
+        "version": "0.20.0",
+        "relocatable": false
+      }
+    ]
+  },
+  "functions": [
+    {
+      "identity": "public.bump_ad_counters()",
+      "definition_md5": "f1b708052160025fe70dae9d2db688c4",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.bump_post_views()",
+      "definition_md5": "0372ce5b9ae94ab5ee2bf99146fd0496",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.bump_story_views_count()",
+      "definition_md5": "84608f0f2ce2bd4d53adef4e3324d3b8",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.business_away_reply()",
+      "definition_md5": "d2e48ed28e8fd3428df963c01c220d7c",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.can_view_story(uuid)",
+      "definition_md5": "866b668833f17c8db05b359044b4b9e8",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.channels_member_count_fn()",
+      "definition_md5": "789f7629ee7ff5a6866d51d8d4702367",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.check_email_allowed(text)",
+      "definition_md5": "69496470c8bded250ddd8759e69b5781",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.cleanup_expired_stories()",
+      "definition_md5": "17c42253617f62c95427940cea91d5aa",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.community_member_joins_chat()",
+      "definition_md5": "96c8f8f0ff603566013e490e745874a9",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.content_media_document(text,uuid)",
+      "definition_md5": "e663c86c78634eb16e0871f0007ef5a2",
+      "acl": "{postgres=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.content_media_manifest(jsonb)",
+      "definition_md5": "1bc0a04f263b282b5e785127ab0f0078",
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.email_for_username(text)",
+      "definition_md5": "665ac0b8a323a8811ddcd1b50eb62f26",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.enforce_comment_policy()",
+      "definition_md5": "80c2f412ae6780a9b6b090f5dbccdda8",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.fn_notify_message_reaction()",
+      "definition_md5": "4d5f9f615a314d693038d8d1eefe0471",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.fn_notify_story_reaction()",
+      "definition_md5": "69841a560db0ebf7a6a1cee4a2d7d2b2",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.gen_meeting_room_name()",
+      "definition_md5": "8e7975ff75a0c679a5be8e4ed1ba4bd2",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.get_highlight_stories(uuid)",
+      "definition_md5": "3c68e23cb8b99b57065ee92347e1af2c",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.get_moment_feed(uuid)",
+      "definition_md5": "e6e8b519c16440e9fda3933eb49007cd",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.get_my_account_type()",
+      "definition_md5": "38b60b26348b37b7ec0401371a856e4c",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.get_my_story_reactions(uuid)",
+      "definition_md5": "b1327cd5392c3130f04769830e75566b",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.get_my_verified_status()",
+      "definition_md5": "9a11887488e748861d52750d145626fb",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.get_posts_by_hashtag(text,integer,integer)",
+      "definition_md5": "889a16a6b85fe15f424c6ab290a74947",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.get_profile_reach_28d(uuid)",
+      "definition_md5": "4d9b5781bdbe76d33171a3c5f594290d",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.get_recent_likers(uuid[])",
+      "definition_md5": "368093e40e6b8e403f5851934b8f886a",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.get_startup_interest_counts()",
+      "definition_md5": "4f8ecc99e897ca5ea5a033dbbe9686fe",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.get_story_poll_voters(uuid,uuid)",
+      "definition_md5": "4684edb6559c634f53b5c2e40b65a0b7",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.get_story_poll(uuid)",
+      "definition_md5": "6831f46e206febd6faf89d97b0f5ef0e",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.get_story_reactions(uuid)",
+      "definition_md5": "e9a64ee3e5a92c3bcc81ef950475d75c",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.get_trending_topics(integer,integer)",
+      "definition_md5": "59c187cc79f3d47479ec8668cac4dd01",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.get_unread_counts(uuid)",
+      "definition_md5": "bf401f619d3846bcd0c68a4d1c83c9a6",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.get_user_highlights(uuid)",
+      "definition_md5": "7e2ddbcd7102b8391a1f35ec1065832e",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.get_user_stories(uuid)",
+      "definition_md5": "04d797733ed5979e0ec7dc53871ee826",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.handle_new_user()",
+      "definition_md5": "02467b6f2fcb8a6928cdaebe097e6bbc",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.handle_verified_school_status()",
+      "definition_md5": "37938635cabcfd6933af67a5312eb5ce",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.is_email_blocked(text)",
+      "definition_md5": "ac5a04b732c8c4c8f614733c8cf93d1a",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.is_verified_school_domain(text)",
+      "definition_md5": "bf21fd19a51f03555bb543d416805287",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.jobs_search_tsv_fn()",
+      "definition_md5": "80eb496b7495ff222a926c0199766bdb",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.listings_search_tsv_fn()",
+      "definition_md5": "66ddcfafc627dc13c500b9363bba5289",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.mark_missed_calls()",
+      "definition_md5": "db7bb63368d06211dca63bf9542639bb",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_collab_invite()",
+      "definition_md5": "60e5bcdd95e610cdccd7983a54968a3e",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_connection_request()",
+      "definition_md5": "695d9f1ff74cc114905f0d24b80b3f3e",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_market_alerts()",
+      "definition_md5": "ef1f9178529fcf155d50ed557b257577",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_member_addition()",
+      "definition_md5": "1c729814d0d8cab336a0229a5ee5aef6",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_member_departure()",
+      "definition_md5": "fc684eee692411292bb36229435df99d",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_mentions()",
+      "definition_md5": "69020281e08fb2bd35221f6c9ce04ee2",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_mentorship()",
+      "definition_md5": "c051281deee1faa15e0fbe02d0c36173",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_missed_call()",
+      "definition_md5": "ef88757f1ea780e50acce043d762283a",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_on_business_member()",
+      "definition_md5": "dcce6a501b9917f4c30d25bde4934f58",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_on_comment_like()",
+      "definition_md5": "9244668a59af2766358c727b614d8f85",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_on_comment_mention()",
+      "definition_md5": "65c925da0147b0b2db2ce34f34f1ac72",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_on_follow_request_accepted()",
+      "definition_md5": "ee7f4f2de5288050223fa10e185eba2a",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_on_follow_request()",
+      "definition_md5": "1505e29f5598fe3b5bf9871799376f5c",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_on_follow()",
+      "definition_md5": "9464116f089e4dd91dcbea04c36d03f4",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_on_job_application()",
+      "definition_md5": "c5b11a3e231434c664af97b69ae53568",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_on_like()",
+      "definition_md5": "98b462cca0ab8f72a19e57d42700e405",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_on_new_message()",
+      "definition_md5": "73159d897a67e63e0ff3bfa2f5189eef",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_on_payment()",
+      "definition_md5": "f5be24c60c19473b2f718d044f8d8d9b",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_on_post_comment()",
+      "definition_md5": "1032d5c5dfec733e431113ba923e62aa",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_on_post_mention()",
+      "definition_md5": "6f9b86b16e0aefc97a24b6f56042f0d4",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_on_repost()",
+      "definition_md5": "69d25420b2e4cce25295bfc716f4f99d",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_push_notification()",
+      "definition_md5": "e544b522a324dd768dbc11c864a81bfa",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_referral()",
+      "definition_md5": "663473d6a48e51b2c0a28e0055397fdc",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_story_poll_vote()",
+      "definition_md5": "c826078f37becade915e6ab027437112",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_story_reaction_removed()",
+      "definition_md5": "94c63d4c9f9f4c49171b425093a4697d",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_story_reaction()",
+      "definition_md5": "c85ceaf59ae2f4b66280939ecd5256df",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_story_sticker_response()",
+      "definition_md5": "395a252b20831d3f05c7e5b64d7d1f24",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_voip_ring_1to1()",
+      "definition_md5": "c26b8e7eb12a23ea434b8f92791bd2fb",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_voip_ring_session()",
+      "definition_md5": "f51675cd44da66f53f58bacc1ae6903f",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.notify_voip_ring()",
+      "definition_md5": "134a046fe8f1a9781545712d020c89bc",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.post_campus_moment(uuid,uuid)",
+      "definition_md5": "935e9334cb5dd77d846aa3b729620d43",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.posts_search_tsv_fn()",
+      "definition_md5": "b30805689418237969016a00413dd7f3",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.profiles_search_tsv_fn()",
+      "definition_md5": "c06ad6ecda15130319dc3048d6fdf5e8",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.push_token_reassign()",
+      "definition_md5": "4798ab5acf677175af30e89e7850f460",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.rebuild_daily_stats(date)",
+      "definition_md5": "a6644cc5186d7ea4ea48d230cf2c5889",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.rebuild_trending_snapshot()",
+      "definition_md5": "dc721b4c35fa034158c96b8e95050e7c",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.refresh_user_interests()",
+      "definition_md5": "4d9459483833e5fb670e03380610ba2f",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.refuse_blocked_content()",
+      "definition_md5": "e5e7269baae87b410388883cbd596bb0",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.repair_call_record_resolution()",
+      "definition_md5": "f649fa9e15eb67567d225c50e01766ee",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.search_people_page(text,integer,integer,timestamp with time zone)",
+      "definition_md5": "271f5e1b33385d4cc93de11103dbdb6f",
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.search_people(text,integer)",
+      "definition_md5": "d24d8a35437879b340d242861aba1e23",
+      "acl": "{=X/postgres,postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.stamp_conversation_account_type()",
+      "definition_md5": "068c1055cde4c17f186db15012b81b87",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.stamp_follow_account_type()",
+      "definition_md5": "ce2a32c5375d087cd20c30297724f4f6",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.stamp_notification_account_type()",
+      "definition_md5": "0843b3e7b1c3a2514c8ff3efa193998b",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.stamp_post_account_type()",
+      "definition_md5": "a789fc58561e9d55f102c310ae9f526a",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.studio_stage(text)",
+      "definition_md5": "d8c191c1f6290ae40240fae7895c5812",
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.sync_application_count()",
+      "definition_md5": "6365d0a0316e5a9b12be2ccfc5f1ec58",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.sync_club_to_conversation()",
+      "definition_md5": "d00a23c580097b52bc5b568d715901c0",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.sync_comment_reaction_counts()",
+      "definition_md5": "82f1524b8df7122edcbcf391a323d6e9",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.sync_community_to_conversation()",
+      "definition_md5": "b3afae493a9b6b37f94337ca19ef7c56",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.sync_conversation_preview()",
+      "definition_md5": "ba543cc03c2456f27dc381b51cd9b66f",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.sync_job_application_count()",
+      "definition_md5": "6663e70d439d0ef102c869dd9ee4413f",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.sync_mentee_count()",
+      "definition_md5": "8ad53525acfd44aeaa39359ce188e2e7",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.sync_message_mentions()",
+      "definition_md5": "bbdcc110ae2631851030257c3bae8e34",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.sync_post_bookmark_count()",
+      "definition_md5": "08c345c671b0f75b9b0e3104b68533f0",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.sync_post_bookmarks_count()",
+      "definition_md5": "d6aa0a75908ebacfa8eb7ce92074ea47",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.sync_post_counter_exact()",
+      "definition_md5": "f430f83dc4139f5349f39df58322c20c",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.sync_post_likes_count_exact()",
+      "definition_md5": "0e2fc62cc5b57ceb0308d3d3e0eb7401",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.sync_post_likes_count()",
+      "definition_md5": "0f19048e7b18e03351cbc38022d0f833",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.sync_post_link()",
+      "definition_md5": "018e4df31ad8f870144407916af17cd7",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.sync_post_mentions()",
+      "definition_md5": "67e6b939b64dd32d452e88648479987b",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.sync_post_reposts_count()",
+      "definition_md5": "50697520307d8556275b0dd44bf62647",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.tg_comment_restrict()",
+      "definition_md5": "79b2eaf432dc1b0b0a04150e8f8bab54",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.tg_comment_spam()",
+      "definition_md5": "1c8946f824275db305d369be10691558",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.tg_community_member_count()",
+      "definition_md5": "250a8b9916f55263c98c1e590cdd2078",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.tg_listing_report_count()",
+      "definition_md5": "d5659b3680798e61188dd182a2c01b83",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.tg_message_restrict()",
+      "definition_md5": "5f40f8b134689f6b6318932f44d7fd5e",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.tg_notification_restrict()",
+      "definition_md5": "f3ad8f1ee698f65d2b9fb96ed6ded98c",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.tg_posts_community_guard()",
+      "definition_md5": "0b6f4a1f7daffcc613f0969060a5517c",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.tg_posts_community_touch()",
+      "definition_md5": "c2eccdafb0f89118a79752192520a06a",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.toggle_story_reaction(uuid,text)",
+      "definition_md5": "53dc56abd8f2e96e6ed1588a13e09b61",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.trg_notify_incoming_call()",
+      "definition_md5": "da3ae1e78b07e703a32f80d8214a2d9e",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.update_business_advert_count()",
+      "definition_md5": "91764b38e44aea279c69b1d010e546f4",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.update_business_rating()",
+      "definition_md5": "4924d4b94225483a86988cb46d5f3ce2",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.update_comments_count()",
+      "definition_md5": "bf494178474dcf4de346fa338cf84d54",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.update_community_count()",
+      "definition_md5": "e84fe5f104e9356f5454e0cba18aca05",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.update_event_count()",
+      "definition_md5": "b7a6f5ff7796b5b7019f2e59c6977e5f",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.update_posts_count()",
+      "definition_md5": "af95024753adf76ea7d153852a316e9d",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.upsert_link_preview(text,text,text,text,text)",
+      "definition_md5": "686178f5e0db6e4bf417d153a2bc585f",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    },
+    {
+      "identity": "public.vote_story_poll(uuid,uuid)",
+      "definition_md5": "6f5f653f650a8d0bfd05daf014aa0dd8",
+      "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}"
+    }
+  ],
+  "mutable": [
+    "public.bump_story_views_count()",
+    "public.can_view_story(uuid)",
+    "public.channels_member_count_fn()",
+    "public.check_email_allowed(text)",
+    "public.fn_notify_message_reaction()",
+    "public.fn_notify_story_reaction()",
+    "public.gen_meeting_room_name()",
+    "public.get_highlight_stories(uuid)",
+    "public.get_moment_feed(uuid)",
+    "public.get_my_account_type()",
+    "public.get_my_story_reactions(uuid)",
+    "public.get_my_verified_status()",
+    "public.get_posts_by_hashtag(text,integer,integer)",
+    "public.get_startup_interest_counts()",
+    "public.get_story_poll(uuid)",
+    "public.get_story_poll_voters(uuid,uuid)",
+    "public.get_story_reactions(uuid)",
+    "public.get_trending_topics(integer,integer)",
+    "public.get_user_highlights(uuid)",
+    "public.get_user_stories(uuid)",
+    "public.handle_verified_school_status()",
+    "public.is_email_blocked(text)",
+    "public.is_verified_school_domain(text)",
+    "public.jobs_search_tsv_fn()",
+    "public.listings_search_tsv_fn()",
+    "public.mark_missed_calls()",
+    "public.notify_connection_request()",
+    "public.notify_mentions()",
+    "public.notify_mentorship()",
+    "public.notify_missed_call()",
+    "public.notify_on_comment_mention()",
+    "public.notify_on_follow()",
+    "public.notify_on_like()",
+    "public.notify_on_post_comment()",
+    "public.notify_on_post_mention()",
+    "public.notify_on_repost()",
+    "public.post_campus_moment(uuid,uuid)",
+    "public.posts_search_tsv_fn()",
+    "public.profiles_search_tsv_fn()",
+    "public.repair_call_record_resolution()",
+    "public.stamp_conversation_account_type()",
+    "public.stamp_follow_account_type()",
+    "public.stamp_notification_account_type()",
+    "public.studio_stage(text)",
+    "public.sync_application_count()",
+    "public.sync_club_to_conversation()",
+    "public.sync_community_to_conversation()",
+    "public.sync_mentee_count()",
+    "public.sync_post_bookmark_count()",
+    "public.sync_post_bookmarks_count()",
+    "public.sync_post_reposts_count()",
+    "public.toggle_story_reaction(uuid,text)",
+    "public.trg_notify_incoming_call()",
+    "public.update_comments_count()",
+    "public.update_community_count()",
+    "public.update_event_count()",
+    "public.update_posts_count()",
+    "public.vote_story_poll(uuid,uuid)"
+  ],
+  "triggers": [
+    "public.bump_ad_counters()",
+    "public.bump_post_views()",
+    "public.business_away_reply()",
+    "public.community_member_joins_chat()",
+    "public.enforce_comment_policy()",
+    "public.fn_notify_message_reaction()",
+    "public.fn_notify_story_reaction()",
+    "public.handle_new_user()",
+    "public.handle_verified_school_status()",
+    "public.notify_collab_invite()",
+    "public.notify_connection_request()",
+    "public.notify_market_alerts()",
+    "public.notify_member_addition()",
+    "public.notify_member_departure()",
+    "public.notify_mentions()",
+    "public.notify_on_business_member()",
+    "public.notify_on_comment_like()",
+    "public.notify_on_comment_mention()",
+    "public.notify_on_follow()",
+    "public.notify_on_follow_request()",
+    "public.notify_on_follow_request_accepted()",
+    "public.notify_on_job_application()",
+    "public.notify_on_like()",
+    "public.notify_on_new_message()",
+    "public.notify_on_payment()",
+    "public.notify_on_post_comment()",
+    "public.notify_on_post_mention()",
+    "public.notify_on_repost()",
+    "public.notify_push_notification()",
+    "public.notify_referral()",
+    "public.notify_story_poll_vote()",
+    "public.notify_story_reaction()",
+    "public.notify_story_reaction_removed()",
+    "public.notify_story_sticker_response()",
+    "public.notify_voip_ring()",
+    "public.notify_voip_ring_1to1()",
+    "public.notify_voip_ring_session()",
+    "public.push_token_reassign()",
+    "public.refuse_blocked_content()",
+    "public.stamp_conversation_account_type()",
+    "public.stamp_follow_account_type()",
+    "public.stamp_notification_account_type()",
+    "public.stamp_post_account_type()",
+    "public.sync_application_count()",
+    "public.sync_club_to_conversation()",
+    "public.sync_comment_reaction_counts()",
+    "public.sync_community_to_conversation()",
+    "public.sync_conversation_preview()",
+    "public.sync_job_application_count()",
+    "public.sync_message_mentions()",
+    "public.sync_post_counter_exact()",
+    "public.sync_post_likes_count()",
+    "public.sync_post_likes_count_exact()",
+    "public.sync_post_link()",
+    "public.sync_post_mentions()",
+    "public.tg_comment_restrict()",
+    "public.tg_comment_spam()",
+    "public.tg_community_member_count()",
+    "public.tg_listing_report_count()",
+    "public.tg_message_restrict()",
+    "public.tg_notification_restrict()",
+    "public.tg_posts_community_guard()",
+    "public.tg_posts_community_touch()",
+    "public.trg_notify_incoming_call()",
+    "public.update_business_advert_count()",
+    "public.update_business_rating()"
+  ],
+  "closed_tables": [
+    {
+      "schema_name": "public",
+      "name": "blocked_email_domains",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+      "owner": "postgres",
+      "anon_schema_usage": true,
+      "authenticated_schema_usage": true,
+      "anon_any_dml": true,
+      "authenticated_any_dml": true
+    },
+    {
+      "schema_name": "public",
+      "name": "blocked_words",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+      "owner": "postgres",
+      "anon_schema_usage": true,
+      "authenticated_schema_usage": true,
+      "anon_any_dml": true,
+      "authenticated_any_dml": true
+    },
+    {
+      "schema_name": "public",
+      "name": "channel_members",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+      "owner": "postgres",
+      "anon_schema_usage": true,
+      "authenticated_schema_usage": true,
+      "anon_any_dml": true,
+      "authenticated_any_dml": true
+    },
+    {
+      "schema_name": "public",
+      "name": "channel_message_reactions",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+      "owner": "postgres",
+      "anon_schema_usage": true,
+      "authenticated_schema_usage": true,
+      "anon_any_dml": true,
+      "authenticated_any_dml": true
+    },
+    {
+      "schema_name": "public",
+      "name": "channels",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+      "owner": "postgres",
+      "anon_schema_usage": true,
+      "authenticated_schema_usage": true,
+      "anon_any_dml": true,
+      "authenticated_any_dml": true
+    },
+    {
+      "schema_name": "public",
+      "name": "community_announcements",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+      "owner": "postgres",
+      "anon_schema_usage": true,
+      "authenticated_schema_usage": true,
+      "anon_any_dml": false,
+      "authenticated_any_dml": true
+    },
+    {
+      "schema_name": "public",
+      "name": "community_bans",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+      "owner": "postgres",
+      "anon_schema_usage": true,
+      "authenticated_schema_usage": true,
+      "anon_any_dml": false,
+      "authenticated_any_dml": true
+    },
+    {
+      "schema_name": "public",
+      "name": "community_invite_links",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+      "owner": "postgres",
+      "anon_schema_usage": true,
+      "authenticated_schema_usage": true,
+      "anon_any_dml": false,
+      "authenticated_any_dml": true
+    },
+    {
+      "schema_name": "public",
+      "name": "community_invites",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+      "owner": "postgres",
+      "anon_schema_usage": true,
+      "authenticated_schema_usage": true,
+      "anon_any_dml": false,
+      "authenticated_any_dml": true
+    },
+    {
+      "schema_name": "public",
+      "name": "daily_stats",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+      "owner": "postgres",
+      "anon_schema_usage": true,
+      "authenticated_schema_usage": true,
+      "anon_any_dml": true,
+      "authenticated_any_dml": true
+    },
+    {
+      "schema_name": "public",
+      "name": "health_incidents",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+      "owner": "postgres",
+      "anon_schema_usage": true,
+      "authenticated_schema_usage": true,
+      "anon_any_dml": true,
+      "authenticated_any_dml": true
+    },
+    {
+      "schema_name": "public",
+      "name": "health_runs",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+      "owner": "postgres",
+      "anon_schema_usage": true,
+      "authenticated_schema_usage": true,
+      "anon_any_dml": true,
+      "authenticated_any_dml": true
+    },
+    {
+      "schema_name": "public",
+      "name": "profile_views",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+      "owner": "postgres",
+      "anon_schema_usage": true,
+      "authenticated_schema_usage": true,
+      "anon_any_dml": true,
+      "authenticated_any_dml": true
+    },
+    {
+      "schema_name": "public",
+      "name": "search_events",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+      "owner": "postgres",
+      "anon_schema_usage": true,
+      "authenticated_schema_usage": true,
+      "anon_any_dml": true,
+      "authenticated_any_dml": true
+    },
+    {
+      "schema_name": "public",
+      "name": "users",
+      "rls": true,
+      "force_rls": false,
+      "acl": "{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+      "owner": "postgres",
+      "anon_schema_usage": true,
+      "authenticated_schema_usage": true,
+      "anon_any_dml": true,
+      "authenticated_any_dml": true
+    }
+  ],
+  "advisors": [
+    {
+      "name": "rls_enabled_no_policy",
+      "count": 52,
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy"
+    },
+    {
+      "name": "function_search_path_mutable",
+      "count": 61,
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0011_function_search_path_mutable"
+    },
+    {
+      "name": "extension_in_public",
+      "count": 1,
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0014_extension_in_public"
+    },
+    {
+      "name": "anon_security_definer_function_executable",
+      "count": 216,
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable"
+    },
+    {
+      "name": "authenticated_security_definer_function_executable",
+      "count": 377,
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable"
+    },
+    {
+      "name": "auth_leaked_password_protection",
+      "count": 1,
+      "remediation": "https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection"
+    }
+  ]
+}

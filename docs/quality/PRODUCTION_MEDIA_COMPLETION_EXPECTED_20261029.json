@@ -1,0 +1,482 @@
+{
+  "source": "Expected catalog from an isolated local PostgreSQL reconstruction; this is not a hosted postflight result.",
+  "mode": "production",
+  "compare": "Before later database-hardening projections, compare catalog membership and values exactly after ordinal-key sorting: functions by signature, policies by name, privateTables by schema/table, triggers by table/name, schemas by name. PGlite/hosted collation can change array order without catalog drift. Observations include synthetic counts, not hosted data.",
+  "catalog": {
+    "schemas": [
+      "account_erasure",
+      "media_delivery"
+    ],
+    "policies": [
+      {
+        "cmd": "*",
+        "name": "chat_private_anon_guard",
+        "check": "(bucket_id <> ALL (ARRAY['chat-media'::text, 'chat-files'::text]))",
+        "roles": [
+          "anon"
+        ],
+        "using": "(bucket_id <> ALL (ARRAY['chat-media'::text, 'chat-files'::text]))",
+        "permissive": false
+      },
+      {
+        "cmd": "d",
+        "name": "chat_private_delete_guard",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "using": "(bucket_id <> ALL (ARRAY['chat-media'::text, 'chat-files'::text]))",
+        "permissive": false
+      },
+      {
+        "cmd": "w",
+        "name": "chat_private_immutable_guard",
+        "check": "(bucket_id <> ALL (ARRAY['chat-media'::text, 'chat-files'::text]))",
+        "roles": [
+          "authenticated"
+        ],
+        "using": "(bucket_id <> ALL (ARRAY['chat-media'::text, 'chat-files'::text]))",
+        "permissive": false
+      },
+      {
+        "cmd": "a",
+        "name": "chat_private_insert",
+        "check": "((bucket_id = ANY (ARRAY['chat-media'::text, 'chat-files'::text])) AND can_act_as((split_part(name, '/'::text, 1))::uuid))",
+        "roles": [
+          "authenticated"
+        ],
+        "using": null,
+        "permissive": true
+      },
+      {
+        "cmd": "a",
+        "name": "chat_private_insert_guard",
+        "check": "((bucket_id <> ALL (ARRAY['chat-media'::text, 'chat-files'::text])) OR ((name ~ '^[0-9a-f-]{36}/[A-Za-z0-9_. /-]+$'::text) AND (name !~ '(^|/)[.][.]?(/|$)'::text) AND can_act_as((split_part(name, '/'::text, 1))::uuid) AND (COALESCE(owner_id, (owner)::text) = (( SELECT auth.uid() AS uid))::text)))",
+        "roles": [
+          "authenticated"
+        ],
+        "using": null,
+        "permissive": false
+      },
+      {
+        "cmd": "r",
+        "name": "chat_private_read",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "using": "((bucket_id = ANY (ARRAY['chat-media'::text, 'chat-files'::text])) AND ((COALESCE(owner_id, (owner)::text) = (( SELECT auth.uid() AS uid))::text) OR (chat_locator_unrestricted(((bucket_id || '/'::text) || name)) AND (can_read_chat_object(bucket_id, name) OR can_read_legacy_chat_object(bucket_id, name)))))",
+        "permissive": true
+      },
+      {
+        "cmd": "r",
+        "name": "chat_private_read_guard",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "using": "((bucket_id <> ALL (ARRAY['chat-media'::text, 'chat-files'::text])) OR (COALESCE(owner_id, (owner)::text) = (( SELECT auth.uid() AS uid))::text) OR (chat_locator_unrestricted(((bucket_id || '/'::text) || name)) AND (can_read_chat_object(bucket_id, name) OR can_read_legacy_chat_object(bucket_id, name))))",
+        "permissive": false
+      },
+      {
+        "cmd": "*",
+        "name": "private_content_anon_guard",
+        "check": "(bucket_id <> ALL (ARRAY['post-media'::text, 'story-media'::text, 'media'::text]))",
+        "roles": [
+          "anon"
+        ],
+        "using": "(bucket_id <> ALL (ARRAY['post-media'::text, 'story-media'::text, 'media'::text]))",
+        "permissive": false
+      },
+      {
+        "cmd": "d",
+        "name": "private_content_delete_guard",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "using": "(bucket_id <> ALL (ARRAY['post-media'::text, 'story-media'::text, 'media'::text]))",
+        "permissive": false
+      },
+      {
+        "cmd": "w",
+        "name": "private_content_immutable_guard",
+        "check": "(bucket_id <> ALL (ARRAY['post-media'::text, 'story-media'::text, 'media'::text]))",
+        "roles": [
+          "authenticated"
+        ],
+        "using": "(bucket_id <> ALL (ARRAY['post-media'::text, 'story-media'::text, 'media'::text]))",
+        "permissive": false
+      },
+      {
+        "cmd": "a",
+        "name": "private_content_insert_guard",
+        "check": "((bucket_id <> ALL (ARRAY['post-media'::text, 'story-media'::text, 'media'::text])) OR (private_content_upload_allowed(bucket_id, name) AND (COALESCE(owner_id, (owner)::text) = (( SELECT auth.uid() AS uid))::text)))",
+        "roles": [
+          "authenticated"
+        ],
+        "using": null,
+        "permissive": false
+      },
+      {
+        "cmd": "a",
+        "name": "private_content_owner_insert",
+        "check": "((bucket_id = ANY (ARRAY['post-media'::text, 'story-media'::text, 'media'::text])) AND private_content_upload_allowed(bucket_id, name) AND (COALESCE(owner_id, (owner)::text) = (( SELECT auth.uid() AS uid))::text))",
+        "roles": [
+          "authenticated"
+        ],
+        "using": null,
+        "permissive": true
+      },
+      {
+        "cmd": "r",
+        "name": "private_content_owner_read",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "using": "((bucket_id = ANY (ARRAY['post-media'::text, 'story-media'::text, 'media'::text])) AND (COALESCE(owner_id, (owner)::text) = (( SELECT auth.uid() AS uid))::text))",
+        "permissive": true
+      },
+      {
+        "cmd": "r",
+        "name": "private_content_read_guard",
+        "check": null,
+        "roles": [
+          "authenticated"
+        ],
+        "using": "((bucket_id <> ALL (ARRAY['post-media'::text, 'story-media'::text, 'media'::text])) OR (COALESCE(owner_id, (owner)::text) = (( SELECT auth.uid() AS uid))::text))",
+        "permissive": false
+      }
+    ],
+    "triggers": [
+      {
+        "name": "channel_private_reference_guard",
+        "table": "channel_messages",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER channel_private_reference_guard BEFORE INSERT OR UPDATE OF media_url ON public.channel_messages FOR EACH ROW EXECUTE FUNCTION guard_legacy_chat_reference()"
+      },
+      {
+        "name": "bind_legacy_media_delivery",
+        "table": "chat_media_view_grants",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER bind_legacy_media_delivery AFTER INSERT ON public.chat_media_view_grants FOR EACH ROW EXECUTE FUNCTION media_delivery.bind_legacy_grant()"
+      },
+      {
+        "name": "group_private_reference_guard",
+        "table": "conversations",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER group_private_reference_guard BEFORE INSERT OR UPDATE OF group_avatar_url ON public.conversations FOR EACH ROW EXECUTE FUNCTION guard_legacy_chat_reference()"
+      },
+      {
+        "name": "application_legacy_reference_guard",
+        "table": "job_applications",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER application_legacy_reference_guard BEFORE INSERT OR UPDATE OF cv_url ON public.job_applications FOR EACH ROW EXECUTE FUNCTION guard_legacy_chat_reference()"
+      },
+      {
+        "name": "chat_limited_object_reuse_guard",
+        "table": "messages",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER chat_limited_object_reuse_guard BEFORE INSERT ON public.messages FOR EACH ROW EXECUTE FUNCTION guard_limited_chat_object_reuse()"
+      },
+      {
+        "name": "account_erasure_storage_write",
+        "table": "storage.objects",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER account_erasure_storage_write BEFORE INSERT OR UPDATE ON storage.objects FOR EACH ROW EXECUTE FUNCTION account_erasure.guard_storage_write()"
+      }
+    ],
+    "functions": [
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "4cb940a9d477eb574a8208d048de9cc0",
+        "signature": "account_erasure.assert_writable(uuid)"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "11e28f9cf649a4239e8e453786825c15",
+        "signature": "account_erasure.erase_app_records(uuid)"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "046547d7e04b40a1a9f8a1aca382066d",
+        "signature": "account_erasure.guard_actor_write()"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "38698dbd1ea2f85095fb2a17bdf56eb7",
+        "signature": "account_erasure.guard_storage_write()"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "fddbd0e027e2dbda852e24f6ded81d72",
+        "signature": "account_erasure.referenced_objects(uuid)"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "cf09e2b49af05cbfa42f2889b80dd841",
+        "signature": "account_erasure.review_reason(uuid)"
+      },
+      {
+        "acl": "{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "md5": "140c0dfa8b22a82c0aea049ca2d774a0",
+        "signature": "account_erasure_status(uuid,text)"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "965b1b73dac94e866fe7e3621850ebb0",
+        "signature": "ack_account_erasure_object(uuid,uuid,uuid)"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "56134a88c42a1a1d3c0fe28dc4db0a35",
+        "signature": "admin_bound_content_media_manifest(text,uuid[],text)"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "ca1fcf0c422d54b85e90ec0f0fe06432",
+        "signature": "admin_bound_content_media_object(text,uuid,text,text,text)"
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "md5": "64693d475835ba5fbe227d683f9651ac",
+        "signature": "can_read_legacy_chat_object(text,text)"
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "md5": "c78c37626b1ee8713765c0dc5664f49e",
+        "signature": "chat_locator_unrestricted(text)"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "ac6c0de9b178931fb61a06416647fcfd",
+        "signature": "check_account_erasure_object(uuid,uuid,uuid)"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "00465dfc941e88890ced197456900f65",
+        "signature": "claim_account_erasure(uuid)"
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "md5": "c47a9441784d6c13fd2f3b1d0363837b",
+        "signature": "claim_chat_media_view(uuid,uuid)"
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "md5": "1a30d42a9eb95b4324358d786d35add4",
+        "signature": "close_legacy_chat_media(uuid,uuid)"
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "md5": "8e3e17e74717f3454b5c0deef3f62566",
+        "signature": "consume_media_view(uuid)"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "e663c86c78634eb16e0871f0007ef5a2",
+        "signature": "content_media_document(text,uuid)"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "b3ea66f77353d272c18b35bf0b4cf484",
+        "signature": "content_media_legacy.allows_read(text,uuid,uuid,text,text,text)"
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "md5": "1bc0a04f263b282b5e785127ab0f0078",
+        "signature": "content_media_manifest(jsonb)"
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "md5": "fa737ea2ded13e21f5ac040dc789d613",
+        "signature": "delete_user_account(uuid)"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "c2a6e055c00b6f280c9bc126e20be504",
+        "signature": "finish_account_erasure(uuid,uuid,text)"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "840c6972959bd893b7b6d568036398c2",
+        "signature": "guard_legacy_chat_reference()"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "23f7c0e5a50179c1e4ac408d17783fe8",
+        "signature": "guard_limited_chat_object_reuse()"
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "md5": "cdbc2fbf44b554467df7eb737acdad6a",
+        "signature": "issue_chat_media_delivery(uuid[])"
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "md5": "cd69fb6abe7825017e0572f0717547a4",
+        "signature": "issue_chat_object_delivery(text[])"
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "md5": "583abae82a23f502de760bd2bb7c9784",
+        "signature": "issue_content_media_delivery(jsonb,jsonb)"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "0dafb4cfe9959a2c302791260314f5eb",
+        "signature": "media_delivery.admin_content_references(text,uuid[],text)"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "bf7446619fcd27dc84db3321414bd61d",
+        "signature": "media_delivery.bind_legacy_grant()"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "87d8daadb1a6a4d31df56b50a88f7059",
+        "signature": "media_delivery.content_provenance(text,uuid,text,text,text,text)"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "1e7d3500acab0312bbc4e4a987b0aef0",
+        "signature": "media_delivery.issue(text,text,uuid,uuid)"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "25dcf6c84db4090523cd0207d4f5545b",
+        "signature": "media_delivery.require_session()"
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "md5": "7e77610be112c7b1e69dcb2db082758e",
+        "signature": "open_legacy_chat_media(uuid,uuid)"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "f8cb2e94555cb8bd2590065e89ee55bf",
+        "signature": "prepare_account_erasure_identity(uuid,uuid)"
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "md5": "901d7c8f70bd971025228fa27b19677e",
+        "signature": "private_content_upload_allowed(text,text)"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "ae23499bb8074befb57ceb905a99552a",
+        "signature": "private_media_cutover_readiness()"
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "md5": "105bafd230169f18cf034ef8d73d0d7e",
+        "signature": "read_legacy_chat_media(uuid,uuid)"
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "md5": "0d6f7d4f0e0c0da3401ed1269ffdb349",
+        "signature": "request_account_erasure(uuid,text)"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "c0f3550b138e1e1476a345f7094fbed7",
+        "signature": "resolve_media_delivery(text,text,text)"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "51f6ddc192afd05e47136daef63f69b7",
+        "signature": "triniti_admin_deletion_requests(uuid,uuid,integer)"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "58a8622fc7564d129d6c2ec76ab41162",
+        "signature": "validate_account_erasure_worker(text)"
+      }
+    ],
+    "privateTables": [
+      {
+        "rls": true,
+        "table": "events",
+        "schema": "account_erasure",
+        "appAccess": false,
+        "anonAccess": false,
+        "serviceDirectAccess": false
+      },
+      {
+        "rls": true,
+        "table": "jobs",
+        "schema": "account_erasure",
+        "appAccess": false,
+        "anonAccess": false,
+        "serviceDirectAccess": false
+      },
+      {
+        "rls": true,
+        "table": "objects",
+        "schema": "account_erasure",
+        "appAccess": false,
+        "anonAccess": false,
+        "serviceDirectAccess": false
+      },
+      {
+        "rls": true,
+        "table": "worker",
+        "schema": "account_erasure",
+        "appAccess": false,
+        "anonAccess": false,
+        "serviceDirectAccess": false
+      },
+      {
+        "rls": true,
+        "table": "legacy_grants",
+        "schema": "media_delivery",
+        "appAccess": false,
+        "anonAccess": false,
+        "serviceDirectAccess": false
+      },
+      {
+        "rls": true,
+        "table": "tickets",
+        "schema": "media_delivery",
+        "appAccess": false,
+        "anonAccess": false,
+        "serviceDirectAccess": false
+      }
+    ]
+  },
+  "observations": {
+    "counts": {
+      "auth": 0,
+      "staff": 0,
+      "objects": 0,
+      "profiles": 0
+    },
+    "buckets": [
+      {
+        "id": "chat-files",
+        "public": true
+      },
+      {
+        "id": "chat-media",
+        "public": true
+      },
+      {
+        "id": "media",
+        "public": true
+      },
+      {
+        "id": "post-media",
+        "public": true
+      },
+      {
+        "id": "story-media",
+        "public": true
+      }
+    ],
+    "queueStates": [],
+    "workerHealthy": false,
+    "workerConfigured": false,
+    "unfencedApplicationTables": 0
+  }
+}

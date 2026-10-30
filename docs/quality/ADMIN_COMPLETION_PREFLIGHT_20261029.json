@@ -1,0 +1,1404 @@
+{
+  "date": "2026-10-29",
+  "project": "prlkikhckbifseosbukl",
+  "scope": "Read-only prerequisites for forward admin completion after four applied repairs",
+  "preflight": {
+    "functions": [
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "724b53f1cb512e9ad043cbe52175c9e9",
+        "signature": "admin_ops.require_session(uuid,uuid,text)",
+        "definition": "CREATE OR REPLACE FUNCTION admin_ops.require_session(p_actor_id uuid, p_session_id uuid, p_permission text)\n RETURNS text\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare r text;\nbegin\n -- The same native session used by the verified server token must still exist.\n if p_actor_id is null or p_session_id is null\n    or not public.triniti_admin_session_check(p_actor_id,p_session_id)\n    or not exists(select 1 from auth.sessions where id=p_session_id and user_id=p_actor_id and aal::text in ('aal1','aal2'))\n then raise exception 'ACTIVE_ADMIN_SESSION_REQUIRED' using errcode='42501'; end if;\n perform 1 from auth.sessions s join auth.users u on u.id=s.user_id\n where s.id=p_session_id and s.user_id=p_actor_id and s.aal::text in ('aal1','aal2')\n and (s.not_after is null or s.not_after>now()) and u.deleted_at is null\n and (u.banned_until is null or u.banned_until<=now()) for share of s,u;\n if not found then raise exception 'ACTIVE_ADMIN_SESSION_REQUIRED' using errcode='42501'; end if;\n select role into r from public.admin_users where user_id=p_actor_id and active for share;\n if not coalesce(case p_permission\n when 'support' then r=any(array['super_admin','platform_admin','trust_safety','support_agent'])\n when 'report_listing' then r=any(array['super_admin','platform_admin','trust_safety','market_reviewer'])\n else false end,false) then raise exception 'ADMIN_PERMISSION_DENIED' using errcode='42501'; end if;\n return r;\nend $function$\n"
+      },
+      {
+        "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "md5": "706c0f581043206c3b26145f61b5bf93",
+        "signature": "sync_post_comment_count()",
+        "definition": "CREATE OR REPLACE FUNCTION public.sync_post_comment_count()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\r\nbegin\r\n  if tg_op = 'INSERT' then\r\n    update posts\r\n    set comments_count = (\r\n      select count(*) from post_comments where post_id = new.post_id\r\n    )\r\n    where id = new.post_id;\r\n    return new;\r\n  elsif tg_op = 'DELETE' then\r\n    update posts\r\n    set comments_count = (\r\n      select count(*) from post_comments where post_id = old.post_id\r\n    )\r\n    where id = old.post_id;\r\n    return old;\r\n  end if;\r\n  return null;\r\nend;\r\n$function$\n"
+      },
+      {
+        "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "md5": "00b2a9b71c3294399c0bf5d9127febf8",
+        "signature": "sync_post_comments_count()",
+        "definition": "CREATE OR REPLACE FUNCTION public.sync_post_comments_count()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\r\nbegin\r\n  -- Only count top-level comments (not replies)\r\n  update posts set comments_count = (\r\n    select count(*) from post_comments\r\n    where post_id = coalesce(NEW.post_id, OLD.post_id)\r\n    and parent_comment_id is null\r\n  ) where id = coalesce(NEW.post_id, OLD.post_id);\r\n  return coalesce(NEW, OLD);\r\nend;\r\n$function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "ba2e1c694288129ee94d8b6d06746eef",
+        "signature": "triniti_admin_session_check(uuid,uuid)",
+        "definition": "CREATE OR REPLACE FUNCTION public.triniti_admin_session_check(p_user_id uuid, p_session_id uuid)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\r\n  SELECT EXISTS (\r\n    SELECT 1\r\n    FROM auth.sessions s\r\n    JOIN auth.users u ON u.id = s.user_id\r\n    JOIN public.admin_users a ON a.user_id = s.user_id\r\n    WHERE s.id = p_session_id AND s.user_id = p_user_id\r\n      AND (s.not_after IS NULL OR s.not_after > now())\r\n      AND u.deleted_at IS NULL\r\n      AND (u.banned_until IS NULL OR u.banned_until <= now())\r\n      AND a.active IS TRUE\r\n      AND a.role IN ('super_admin','platform_admin','trust_safety','support_agent','ops_engineer',\r\n                     'market_reviewer','jobs_reviewer','verification_reviewer','finance_admin','analyst','auditor_readonly')\r\n  );\r\n$function$\n"
+      },
+      {
+        "acl": "{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "md5": "9797ae6166b3788b5850a18aeac16f04",
+        "signature": "update_comment_count()",
+        "definition": "CREATE OR REPLACE FUNCTION public.update_comment_count()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\r\nbegin\r\n  if tg_op = 'INSERT' then\r\n    update posts set comments_count = comments_count + 1 where id = new.post_id;\r\n  elsif tg_op = 'DELETE' then\r\n    update posts set comments_count = comments_count - 1 where id = old.post_id;\r\n  end if;\r\n  return null;\r\nend;\r\n$function$\n"
+      }
+    ],
+    "admin_relations": [
+      {
+        "acl": "{postgres=arwdDxtm/postgres}",
+        "rls": true,
+        "name": "commands"
+      },
+      {
+        "acl": "{postgres=arwdDxtm/postgres}",
+        "rls": true,
+        "name": "support_triage"
+      }
+    ],
+    "guard_triggers": [],
+    "columns": [
+      {
+        "name": "id",
+        "type": "uuid",
+        "table": "admin_audit_log",
+        "not_null": true
+      },
+      {
+        "name": "admin_id",
+        "type": "uuid",
+        "table": "admin_audit_log",
+        "not_null": true
+      },
+      {
+        "name": "action",
+        "type": "text",
+        "table": "admin_audit_log",
+        "not_null": true
+      },
+      {
+        "name": "target_kind",
+        "type": "text",
+        "table": "admin_audit_log",
+        "not_null": false
+      },
+      {
+        "name": "target_id",
+        "type": "text",
+        "table": "admin_audit_log",
+        "not_null": false
+      },
+      {
+        "name": "reason",
+        "type": "text",
+        "table": "admin_audit_log",
+        "not_null": false
+      },
+      {
+        "name": "before",
+        "type": "jsonb",
+        "table": "admin_audit_log",
+        "not_null": false
+      },
+      {
+        "name": "after",
+        "type": "jsonb",
+        "table": "admin_audit_log",
+        "not_null": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "table": "admin_audit_log",
+        "not_null": true
+      },
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "table": "admin_users",
+        "not_null": true
+      },
+      {
+        "name": "role",
+        "type": "text",
+        "table": "admin_users",
+        "not_null": true
+      },
+      {
+        "name": "active",
+        "type": "boolean",
+        "table": "admin_users",
+        "not_null": true
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "table": "admin_users",
+        "not_null": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "table": "admin_users",
+        "not_null": true
+      },
+      {
+        "name": "id",
+        "type": "uuid",
+        "table": "announcements",
+        "not_null": true
+      },
+      {
+        "name": "title",
+        "type": "text",
+        "table": "announcements",
+        "not_null": true
+      },
+      {
+        "name": "body",
+        "type": "text",
+        "table": "announcements",
+        "not_null": true
+      },
+      {
+        "name": "active",
+        "type": "boolean",
+        "table": "announcements",
+        "not_null": true
+      },
+      {
+        "name": "created_by",
+        "type": "uuid",
+        "table": "announcements",
+        "not_null": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "table": "announcements",
+        "not_null": true
+      },
+      {
+        "name": "word",
+        "type": "text",
+        "table": "blocked_words",
+        "not_null": true
+      },
+      {
+        "name": "added_by",
+        "type": "uuid",
+        "table": "blocked_words",
+        "not_null": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "table": "blocked_words",
+        "not_null": true
+      },
+      {
+        "name": "id",
+        "type": "uuid",
+        "table": "business_applications",
+        "not_null": true
+      },
+      {
+        "name": "applicant_id",
+        "type": "uuid",
+        "table": "business_applications",
+        "not_null": false
+      },
+      {
+        "name": "company_name",
+        "type": "text",
+        "table": "business_applications",
+        "not_null": true
+      },
+      {
+        "name": "category",
+        "type": "text",
+        "table": "business_applications",
+        "not_null": false
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "table": "business_applications",
+        "not_null": true
+      },
+      {
+        "name": "contact_email",
+        "type": "text",
+        "table": "business_applications",
+        "not_null": true
+      },
+      {
+        "name": "contact_phone",
+        "type": "text",
+        "table": "business_applications",
+        "not_null": false
+      },
+      {
+        "name": "website",
+        "type": "text",
+        "table": "business_applications",
+        "not_null": false
+      },
+      {
+        "name": "registration_info",
+        "type": "text",
+        "table": "business_applications",
+        "not_null": false
+      },
+      {
+        "name": "desired_username",
+        "type": "text",
+        "table": "business_applications",
+        "not_null": true
+      },
+      {
+        "name": "status",
+        "type": "text",
+        "table": "business_applications",
+        "not_null": true
+      },
+      {
+        "name": "decision_reason",
+        "type": "text",
+        "table": "business_applications",
+        "not_null": false
+      },
+      {
+        "name": "decided_by",
+        "type": "uuid",
+        "table": "business_applications",
+        "not_null": false
+      },
+      {
+        "name": "decided_at",
+        "type": "timestamp with time zone",
+        "table": "business_applications",
+        "not_null": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "table": "business_applications",
+        "not_null": true
+      },
+      {
+        "name": "business_id",
+        "type": "uuid",
+        "table": "business_members",
+        "not_null": true
+      },
+      {
+        "name": "member_id",
+        "type": "uuid",
+        "table": "business_members",
+        "not_null": true
+      },
+      {
+        "name": "role",
+        "type": "text",
+        "table": "business_members",
+        "not_null": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "table": "business_members",
+        "not_null": true
+      },
+      {
+        "name": "key",
+        "type": "text",
+        "table": "feature_flags",
+        "not_null": true
+      },
+      {
+        "name": "enabled",
+        "type": "boolean",
+        "table": "feature_flags",
+        "not_null": true
+      },
+      {
+        "name": "note",
+        "type": "text",
+        "table": "feature_flags",
+        "not_null": false
+      },
+      {
+        "name": "updated_by",
+        "type": "uuid",
+        "table": "feature_flags",
+        "not_null": false
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "table": "feature_flags",
+        "not_null": true
+      },
+      {
+        "name": "id",
+        "type": "uuid",
+        "table": "listing_reports",
+        "not_null": true
+      },
+      {
+        "name": "listing_id",
+        "type": "uuid",
+        "table": "listing_reports",
+        "not_null": true
+      },
+      {
+        "name": "reporter_id",
+        "type": "uuid",
+        "table": "listing_reports",
+        "not_null": true
+      },
+      {
+        "name": "reason",
+        "type": "text",
+        "table": "listing_reports",
+        "not_null": true
+      },
+      {
+        "name": "detail",
+        "type": "text",
+        "table": "listing_reports",
+        "not_null": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "table": "listing_reports",
+        "not_null": true
+      },
+      {
+        "name": "status",
+        "type": "text",
+        "table": "listing_reports",
+        "not_null": true
+      },
+      {
+        "name": "resolved_by",
+        "type": "uuid",
+        "table": "listing_reports",
+        "not_null": false
+      },
+      {
+        "name": "resolved_at",
+        "type": "timestamp with time zone",
+        "table": "listing_reports",
+        "not_null": false
+      },
+      {
+        "name": "id",
+        "type": "uuid",
+        "table": "member_strikes",
+        "not_null": true
+      },
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "table": "member_strikes",
+        "not_null": true
+      },
+      {
+        "name": "level",
+        "type": "text",
+        "table": "member_strikes",
+        "not_null": true
+      },
+      {
+        "name": "reason",
+        "type": "text",
+        "table": "member_strikes",
+        "not_null": true
+      },
+      {
+        "name": "issued_by",
+        "type": "uuid",
+        "table": "member_strikes",
+        "not_null": false
+      },
+      {
+        "name": "expires_at",
+        "type": "timestamp with time zone",
+        "table": "member_strikes",
+        "not_null": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "table": "member_strikes",
+        "not_null": true
+      },
+      {
+        "name": "id",
+        "type": "uuid",
+        "table": "org_audit_log",
+        "not_null": true
+      },
+      {
+        "name": "org_id",
+        "type": "uuid",
+        "table": "org_audit_log",
+        "not_null": true
+      },
+      {
+        "name": "actor_id",
+        "type": "uuid",
+        "table": "org_audit_log",
+        "not_null": false
+      },
+      {
+        "name": "action",
+        "type": "text",
+        "table": "org_audit_log",
+        "not_null": true
+      },
+      {
+        "name": "target_type",
+        "type": "text",
+        "table": "org_audit_log",
+        "not_null": false
+      },
+      {
+        "name": "target_id",
+        "type": "text",
+        "table": "org_audit_log",
+        "not_null": false
+      },
+      {
+        "name": "meta",
+        "type": "jsonb",
+        "table": "org_audit_log",
+        "not_null": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "table": "org_audit_log",
+        "not_null": true
+      },
+      {
+        "name": "id",
+        "type": "uuid",
+        "table": "org_delegations",
+        "not_null": true
+      },
+      {
+        "name": "principal_org_id",
+        "type": "uuid",
+        "table": "org_delegations",
+        "not_null": true
+      },
+      {
+        "name": "client_org_id",
+        "type": "uuid",
+        "table": "org_delegations",
+        "not_null": true
+      },
+      {
+        "name": "scopes",
+        "type": "text[]",
+        "table": "org_delegations",
+        "not_null": true
+      },
+      {
+        "name": "expires_at",
+        "type": "timestamp with time zone",
+        "table": "org_delegations",
+        "not_null": false
+      },
+      {
+        "name": "granted_by",
+        "type": "uuid",
+        "table": "org_delegations",
+        "not_null": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "table": "org_delegations",
+        "not_null": true
+      },
+      {
+        "name": "id",
+        "type": "uuid",
+        "table": "org_memberships",
+        "not_null": true
+      },
+      {
+        "name": "org_id",
+        "type": "uuid",
+        "table": "org_memberships",
+        "not_null": true
+      },
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "table": "org_memberships",
+        "not_null": true
+      },
+      {
+        "name": "role",
+        "type": "text",
+        "table": "org_memberships",
+        "not_null": true
+      },
+      {
+        "name": "expires_at",
+        "type": "timestamp with time zone",
+        "table": "org_memberships",
+        "not_null": false
+      },
+      {
+        "name": "invited_by",
+        "type": "uuid",
+        "table": "org_memberships",
+        "not_null": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "table": "org_memberships",
+        "not_null": true
+      },
+      {
+        "name": "id",
+        "type": "uuid",
+        "table": "organizations",
+        "not_null": true
+      },
+      {
+        "name": "parent_id",
+        "type": "uuid",
+        "table": "organizations",
+        "not_null": false
+      },
+      {
+        "name": "kind",
+        "type": "text",
+        "table": "organizations",
+        "not_null": true
+      },
+      {
+        "name": "name",
+        "type": "text",
+        "table": "organizations",
+        "not_null": true
+      },
+      {
+        "name": "slug",
+        "type": "text",
+        "table": "organizations",
+        "not_null": false
+      },
+      {
+        "name": "profile_id",
+        "type": "uuid",
+        "table": "organizations",
+        "not_null": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "table": "organizations",
+        "not_null": true
+      },
+      {
+        "name": "archived_at",
+        "type": "timestamp with time zone",
+        "table": "organizations",
+        "not_null": false
+      },
+      {
+        "name": "sector",
+        "type": "text",
+        "table": "organizations",
+        "not_null": false
+      },
+      {
+        "name": "id",
+        "type": "uuid",
+        "table": "post_reports",
+        "not_null": true
+      },
+      {
+        "name": "reporter_id",
+        "type": "uuid",
+        "table": "post_reports",
+        "not_null": true
+      },
+      {
+        "name": "post_id",
+        "type": "uuid",
+        "table": "post_reports",
+        "not_null": true
+      },
+      {
+        "name": "reason",
+        "type": "text",
+        "table": "post_reports",
+        "not_null": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "table": "post_reports",
+        "not_null": false
+      },
+      {
+        "name": "status",
+        "type": "text",
+        "table": "post_reports",
+        "not_null": true
+      },
+      {
+        "name": "resolved_by",
+        "type": "uuid",
+        "table": "post_reports",
+        "not_null": false
+      },
+      {
+        "name": "resolved_at",
+        "type": "timestamp with time zone",
+        "table": "post_reports",
+        "not_null": false
+      },
+      {
+        "name": "id",
+        "type": "uuid",
+        "table": "profiles",
+        "not_null": true
+      },
+      {
+        "name": "email",
+        "type": "text",
+        "table": "profiles",
+        "not_null": true
+      },
+      {
+        "name": "full_name",
+        "type": "text",
+        "table": "profiles",
+        "not_null": true
+      },
+      {
+        "name": "username",
+        "type": "text",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "avatar_url",
+        "type": "text",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "bio",
+        "type": "text",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "degree_program",
+        "type": "text",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "graduation_year",
+        "type": "integer",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "location",
+        "type": "text",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "interests",
+        "type": "text[]",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "posts_count",
+        "type": "integer",
+        "table": "profiles",
+        "not_null": true
+      },
+      {
+        "name": "connections_count",
+        "type": "integer",
+        "table": "profiles",
+        "not_null": true
+      },
+      {
+        "name": "jobs_posted_count",
+        "type": "integer",
+        "table": "profiles",
+        "not_null": true
+      },
+      {
+        "name": "events_joined_count",
+        "type": "integer",
+        "table": "profiles",
+        "not_null": true
+      },
+      {
+        "name": "is_verified",
+        "type": "boolean",
+        "table": "profiles",
+        "not_null": true
+      },
+      {
+        "name": "last_seen",
+        "type": "timestamp with time zone",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "table": "profiles",
+        "not_null": true
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "table": "profiles",
+        "not_null": true
+      },
+      {
+        "name": "role",
+        "type": "text",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "profile_visibility",
+        "type": "text",
+        "table": "profiles",
+        "not_null": true
+      },
+      {
+        "name": "notif_messages",
+        "type": "boolean",
+        "table": "profiles",
+        "not_null": true
+      },
+      {
+        "name": "notif_connections",
+        "type": "boolean",
+        "table": "profiles",
+        "not_null": true
+      },
+      {
+        "name": "notif_jobs",
+        "type": "boolean",
+        "table": "profiles",
+        "not_null": true
+      },
+      {
+        "name": "push_token",
+        "type": "text",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "cohort_year",
+        "type": "integer",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "cohort",
+        "type": "text",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "workplace",
+        "type": "text",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "school",
+        "type": "text",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "other_schools",
+        "type": "text",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "headline",
+        "type": "text",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "graduation_semester",
+        "type": "text",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "is_verified_school_user",
+        "type": "boolean",
+        "table": "profiles",
+        "not_null": true
+      },
+      {
+        "name": "email_domain",
+        "type": "text",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "deactivated_at",
+        "type": "timestamp with time zone",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "account_type",
+        "type": "text",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "institution",
+        "type": "text",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "is_verified_institution",
+        "type": "boolean",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "banner_url",
+        "type": "text",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "notif_prefs",
+        "type": "jsonb",
+        "table": "profiles",
+        "not_null": true
+      },
+      {
+        "name": "verified_tier",
+        "type": "text",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "verified_category",
+        "type": "text",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "suspended_reason",
+        "type": "text",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "suspended_by",
+        "type": "uuid",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "restricted_until",
+        "type": "timestamp with time zone",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "pinned_post_id",
+        "type": "uuid",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "search_tsv",
+        "type": "tsvector",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "account_class",
+        "type": "text",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "affiliated_org_id",
+        "type": "uuid",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "account_labels",
+        "type": "jsonb",
+        "table": "profiles",
+        "not_null": true
+      },
+      {
+        "name": "links",
+        "type": "jsonb",
+        "table": "profiles",
+        "not_null": true
+      },
+      {
+        "name": "hidden_words",
+        "type": "text[]",
+        "table": "profiles",
+        "not_null": true
+      },
+      {
+        "name": "muted_words",
+        "type": "text[]",
+        "table": "profiles",
+        "not_null": true
+      },
+      {
+        "name": "quiet_from",
+        "type": "smallint",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "quiet_to",
+        "type": "smallint",
+        "table": "profiles",
+        "not_null": false
+      },
+      {
+        "name": "quiet_tz_offset_min",
+        "type": "smallint",
+        "table": "profiles",
+        "not_null": true
+      },
+      {
+        "name": "sensitive_content",
+        "type": "text",
+        "table": "profiles",
+        "not_null": true
+      },
+      {
+        "name": "id",
+        "type": "uuid",
+        "table": "studio_campaigns",
+        "not_null": true
+      },
+      {
+        "name": "owner_id",
+        "type": "uuid",
+        "table": "studio_campaigns",
+        "not_null": true
+      },
+      {
+        "name": "name",
+        "type": "text",
+        "table": "studio_campaigns",
+        "not_null": true
+      },
+      {
+        "name": "objective",
+        "type": "text",
+        "table": "studio_campaigns",
+        "not_null": true
+      },
+      {
+        "name": "budget",
+        "type": "numeric",
+        "table": "studio_campaigns",
+        "not_null": true
+      },
+      {
+        "name": "currency",
+        "type": "text",
+        "table": "studio_campaigns",
+        "not_null": true
+      },
+      {
+        "name": "payment_method",
+        "type": "text",
+        "table": "studio_campaigns",
+        "not_null": false
+      },
+      {
+        "name": "payment_ref",
+        "type": "text",
+        "table": "studio_campaigns",
+        "not_null": false
+      },
+      {
+        "name": "paid_amount",
+        "type": "numeric",
+        "table": "studio_campaigns",
+        "not_null": true
+      },
+      {
+        "name": "starts_at",
+        "type": "timestamp with time zone",
+        "table": "studio_campaigns",
+        "not_null": false
+      },
+      {
+        "name": "ends_at",
+        "type": "timestamp with time zone",
+        "table": "studio_campaigns",
+        "not_null": false
+      },
+      {
+        "name": "status",
+        "type": "text",
+        "table": "studio_campaigns",
+        "not_null": true
+      },
+      {
+        "name": "review_note",
+        "type": "text",
+        "table": "studio_campaigns",
+        "not_null": false
+      },
+      {
+        "name": "reviewed_at",
+        "type": "timestamp with time zone",
+        "table": "studio_campaigns",
+        "not_null": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "table": "studio_campaigns",
+        "not_null": true
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "table": "studio_campaigns",
+        "not_null": true
+      },
+      {
+        "name": "id",
+        "type": "uuid",
+        "table": "support_messages",
+        "not_null": true
+      },
+      {
+        "name": "ticket_id",
+        "type": "uuid",
+        "table": "support_messages",
+        "not_null": true
+      },
+      {
+        "name": "sender",
+        "type": "text",
+        "table": "support_messages",
+        "not_null": true
+      },
+      {
+        "name": "sender_id",
+        "type": "uuid",
+        "table": "support_messages",
+        "not_null": false
+      },
+      {
+        "name": "body",
+        "type": "text",
+        "table": "support_messages",
+        "not_null": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "table": "support_messages",
+        "not_null": true
+      },
+      {
+        "name": "id",
+        "type": "uuid",
+        "table": "support_tickets",
+        "not_null": true
+      },
+      {
+        "name": "user_id",
+        "type": "uuid",
+        "table": "support_tickets",
+        "not_null": true
+      },
+      {
+        "name": "subject",
+        "type": "text",
+        "table": "support_tickets",
+        "not_null": true
+      },
+      {
+        "name": "message",
+        "type": "text",
+        "table": "support_tickets",
+        "not_null": false
+      },
+      {
+        "name": "status",
+        "type": "text",
+        "table": "support_tickets",
+        "not_null": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "table": "support_tickets",
+        "not_null": true
+      },
+      {
+        "name": "updated_at",
+        "type": "timestamp with time zone",
+        "table": "support_tickets",
+        "not_null": true
+      },
+      {
+        "name": "body",
+        "type": "text",
+        "table": "support_tickets",
+        "not_null": false
+      },
+      {
+        "name": "kind",
+        "type": "text",
+        "table": "support_tickets",
+        "not_null": true
+      },
+      {
+        "name": "resolution_note",
+        "type": "text",
+        "table": "support_tickets",
+        "not_null": false
+      },
+      {
+        "name": "resolved_by",
+        "type": "uuid",
+        "table": "support_tickets",
+        "not_null": false
+      },
+      {
+        "name": "resolved_at",
+        "type": "timestamp with time zone",
+        "table": "support_tickets",
+        "not_null": false
+      },
+      {
+        "name": "id",
+        "type": "uuid",
+        "table": "user_reports",
+        "not_null": true
+      },
+      {
+        "name": "reporter_id",
+        "type": "uuid",
+        "table": "user_reports",
+        "not_null": true
+      },
+      {
+        "name": "reported_id",
+        "type": "uuid",
+        "table": "user_reports",
+        "not_null": true
+      },
+      {
+        "name": "reason",
+        "type": "text",
+        "table": "user_reports",
+        "not_null": true
+      },
+      {
+        "name": "details",
+        "type": "text",
+        "table": "user_reports",
+        "not_null": false
+      },
+      {
+        "name": "conversation_id",
+        "type": "uuid",
+        "table": "user_reports",
+        "not_null": false
+      },
+      {
+        "name": "status",
+        "type": "text",
+        "table": "user_reports",
+        "not_null": true
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "table": "user_reports",
+        "not_null": true
+      },
+      {
+        "name": "resolved_by",
+        "type": "uuid",
+        "table": "user_reports",
+        "not_null": false
+      },
+      {
+        "name": "resolved_at",
+        "type": "timestamp with time zone",
+        "table": "user_reports",
+        "not_null": false
+      },
+      {
+        "name": "id",
+        "type": "uuid",
+        "table": "verification_applications",
+        "not_null": true
+      },
+      {
+        "name": "applicant_id",
+        "type": "uuid",
+        "table": "verification_applications",
+        "not_null": true
+      },
+      {
+        "name": "tier",
+        "type": "text",
+        "table": "verification_applications",
+        "not_null": true
+      },
+      {
+        "name": "category",
+        "type": "text",
+        "table": "verification_applications",
+        "not_null": false
+      },
+      {
+        "name": "evidence",
+        "type": "jsonb",
+        "table": "verification_applications",
+        "not_null": true
+      },
+      {
+        "name": "status",
+        "type": "text",
+        "table": "verification_applications",
+        "not_null": true
+      },
+      {
+        "name": "reviewer_id",
+        "type": "uuid",
+        "table": "verification_applications",
+        "not_null": false
+      },
+      {
+        "name": "decision_reason",
+        "type": "text",
+        "table": "verification_applications",
+        "not_null": false
+      },
+      {
+        "name": "created_at",
+        "type": "timestamp with time zone",
+        "table": "verification_applications",
+        "not_null": true
+      },
+      {
+        "name": "decided_at",
+        "type": "timestamp with time zone",
+        "table": "verification_applications",
+        "not_null": false
+      }
+    ],
+    "verification_constraint": [
+      "CHECK ((status = ANY (ARRAY['submitted'::text, 'under_review'::text, 'approved'::text, 'rejected'::text])))",
+      "CHECK ((tier = ANY (ARRAY['public_figure'::text, 'business'::text, 'official'::text])))"
+    ],
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "qual": "is_admin()",
+        "roles": [
+          "authenticated"
+        ],
+        "tablename": "admin_audit_log",
+        "permissive": "PERMISSIVE",
+        "policyname": "audit_select",
+        "schemaname": "public",
+        "with_check": null
+      },
+      {
+        "cmd": "SELECT",
+        "qual": "(user_id = auth.uid())",
+        "roles": [
+          "authenticated"
+        ],
+        "tablename": "admin_users",
+        "permissive": "PERMISSIVE",
+        "policyname": "admin_users_select",
+        "schemaname": "public",
+        "with_check": null
+      },
+      {
+        "cmd": "INSERT",
+        "qual": null,
+        "roles": [
+          "authenticated"
+        ],
+        "tablename": "user_reports",
+        "permissive": "PERMISSIVE",
+        "policyname": "user_reports_insert_own",
+        "schemaname": "public",
+        "with_check": "(reporter_id = auth.uid())"
+      },
+      {
+        "cmd": "SELECT",
+        "qual": "(reporter_id = auth.uid())",
+        "roles": [
+          "authenticated"
+        ],
+        "tablename": "user_reports",
+        "permissive": "PERMISSIVE",
+        "policyname": "user_reports_select_own",
+        "schemaname": "public",
+        "with_check": null
+      },
+      {
+        "cmd": "INSERT",
+        "qual": null,
+        "roles": [
+          "authenticated"
+        ],
+        "tablename": "verification_applications",
+        "permissive": "PERMISSIVE",
+        "policyname": "vapps_insert_own",
+        "schemaname": "public",
+        "with_check": "(applicant_id = auth.uid())"
+      },
+      {
+        "cmd": "SELECT",
+        "qual": "((applicant_id = auth.uid()) OR is_admin())",
+        "roles": [
+          "authenticated"
+        ],
+        "tablename": "verification_applications",
+        "permissive": "PERMISSIVE",
+        "policyname": "vapps_select",
+        "schemaname": "public",
+        "with_check": null
+      }
+    ]
+  }
+}

@@ -15,9 +15,10 @@ type Report = {
 
 export default function ReportsDesk({ reports, role }: { reports: Report[]; role: string }) {
   const [tab, setTab] = useState<'all' | 'Post' | 'Listing' | 'Account'>('all');
-  const [selected, setSelected] = useState<Report | null>(reports[0] ?? null);
+  const [selectedKey, setSelectedKey] = useState<string | null>(reports[0] ? `${reports[0].kind}:${reports[0].id}` : null);
 
   const filtered = reports.filter(r => tab === 'all' || r.kind === tab);
+  const selected = filtered.find(report => `${report.kind}:${report.id}` === selectedKey) ?? filtered[0] ?? null;
   const tabs: { key: typeof tab; label: string; count: number }[] = [
     { key: 'all', label: 'All', count: reports.length },
     { key: 'Post', label: 'Posts', count: reports.filter(r => r.kind === 'Post').length },
@@ -30,7 +31,7 @@ export default function ReportsDesk({ reports, role }: { reports: Report[]; role
       <div className="lg:col-span-2 overflow-hidden rounded-[14px] border border-[#E5E4E0] bg-white">
         <div className="flex gap-1 border-b border-[#F0EFEC] px-3 pt-2">
           {tabs.map(t => (
-            <button key={t.key} onClick={() => setTab(t.key)}
+            <button key={t.key} type="button" aria-pressed={tab === t.key} onClick={() => setTab(t.key)}
               className={'shrink-0 rounded-t-[9px] px-3 py-2 text-[12.5px] font-semibold transition-colors duration-150 ' + (tab === t.key ? 'border-b-2 border-[#17181C] text-[#17181C]' : 'text-[#9A9DA4] hover:text-[#17181C]')}>
               {t.label} <span className="tabular-nums">{t.count}</span>
             </button>
@@ -39,7 +40,7 @@ export default function ReportsDesk({ reports, role }: { reports: Report[]; role
         {filtered.length === 0 ? (
           <p className="px-5 py-14 text-center text-[13px] text-[#9A9DA4]">Nothing here.</p>
         ) : filtered.map(r => (
-          <button key={r.kind + r.id} onClick={() => setSelected(r)}
+          <button key={r.kind + r.id} type="button" aria-pressed={selected?.id === r.id && selected?.kind === r.kind} onClick={() => setSelectedKey(`${r.kind}:${r.id}`)}
             className={'flex w-full items-center gap-3 border-t border-[#F0EFEC] px-4 py-3 text-left transition-colors duration-150 hover:bg-[#FAFAF9] ' + (selected?.id === r.id && selected?.kind === r.kind ? 'bg-[#FAFAF9]' : '')}>
             <span className="shrink-0 rounded-full bg-[#FBF4E4] px-2 py-0.5 text-[10px] font-bold uppercase text-[#B45309]">{r.kind}</span>
             <span className="min-w-0 flex-1 truncate text-[13px] text-[#17181C]">{r.reason}</span>
@@ -48,7 +49,7 @@ export default function ReportsDesk({ reports, role }: { reports: Report[]; role
         ))}
       </div>
 
-      <div className="lg:col-span-3 rounded-[14px] border border-[#E5E4E0] bg-white p-5">
+      <div key={selected ? `${selected.kind}:${selected.id}` : 'empty'} className="lg:col-span-3 rounded-[14px] border border-[#E5E4E0] bg-white p-5" role="region" aria-label="Selected report details">
         {!selected ? (
           <p className="py-14 text-center text-[13px] text-[#9A9DA4]">Select a report</p>
         ) : (

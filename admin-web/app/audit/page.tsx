@@ -8,10 +8,10 @@ import { fmt, ago } from '@/lib/fmt';
 
 export const dynamic = 'force-dynamic';
 
-const PANEL: React.CSSProperties = { borderRadius: 13, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', overflow: 'hidden' };
+const PANEL: React.CSSProperties = { borderRadius: 12, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', overflow: 'hidden' };
 const HEAD: React.CSSProperties = { padding: '14px 16px 12px', borderBottom: '1px solid rgba(var(--on),0.10)' };
-const H_TITLE: React.CSSProperties = { fontSize: 13.5, fontWeight: 700, color: 'var(--txt)' };
-const H_SUB: React.CSSProperties = { fontSize: 11.3, color: 'var(--txt-muted)', marginTop: 3 };
+const H_TITLE: React.CSSProperties = { fontSize: 14, fontWeight: 700, color: 'var(--txt)' };
+const H_SUB: React.CSSProperties = { fontSize: 12, color: 'var(--txt-muted)', marginTop: 3 };
 
 const IC = {
   list: 'M4 5h16v2H4V5zm0 6h16v2H4v-2zm0 6h10v2H4v-2z',
@@ -195,8 +195,8 @@ export default async function AuditPage() {
             </div>
             {Object.keys(kindCount).length === 0 ? <Empty note="No target recorded yet." /> : Object.entries(kindCount).sort((a, b) => b[1] - a[1]).slice(0, 7).map(([k, n]) => (
               <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10.5px 16px', borderBottom: '1px solid rgba(var(--on),0.10)' }}>
-                <span style={{ flex: 1, fontSize: 12, color: 'rgba(var(--on),0.62)' }}>{title(k)}</span>
-                <span className="pc-num" style={{ fontSize: 11.6, fontWeight: 600, color: 'var(--txt)' }}>{n}</span>
+                <span style={{ flex: 1, fontSize: 12, color: 'var(--txt-muted)' }}>{title(k)}</span>
+                <span className="pc-num" style={{ fontSize: 12, fontWeight: 600, color: 'var(--txt)' }}>{n}</span>
               </div>
             ))}
           </div>

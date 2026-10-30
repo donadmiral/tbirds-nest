@@ -91,6 +91,7 @@ export default function LoginPage() {
             <span>New here? <Link href="/signup" className="font-extrabold" style={{ color: "#0B1E3D" }}>Create an account</Link></span>
             <Link href="/business-login" className="text-[12.5px] font-semibold">Business sign-in</Link>
           </div>
+          <Link href="/account-deletion" className="mt-5 self-start text-[12.5px] font-semibold underline" style={{ color: "rgba(11,30,61,0.55)" }}>Check an account deletion request</Link>
         </form>
       </section>
     </main>
