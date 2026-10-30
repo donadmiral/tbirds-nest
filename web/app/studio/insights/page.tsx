@@ -1,235 +1,72 @@
 "use client";
 
-import { StudioRailPortal } from "@/components/StudioRailPortal";
-import { Panel } from "@/components/ui";
-
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowDownRight, ArrowUpRight, BarChart3 } from "lucide-react";
+import { ArrowRight, BarChart3, Download, FileText, RefreshCw } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { pct } from "@/lib/studio";
-import { Sparkline, TrendChart, Metric } from "@/components/Charts";
+import { useUploadPreview } from "@/lib/useUploadPreview";
+import { downloadStudioCsv } from "@/lib/studioPresentation";
+import { StudioReportChart } from "@/components/StudioReportChart";
+import { StudioLoadError } from "../LoadError";
+import styles from "@/components/StudioWorkspace.module.css";
 
-type Day = { day: string; reach: number; impressions: number; engagements: number; followers: number; messages: number; posts: number; market_chats: number; offers: number; payments: number; paid_usd: number; paid_zwg: number; applications: number; ad_impressions: number; ad_clicks: number };
-type Totals = Record<string, number>;
+type MetricKey = "impressions" | "reach" | "engagements" | "followers" | "messages" | "posts" | "market_chats" | "offers" | "payments" | "applications" | "ad_impressions" | "ad_clicks";
+type Day = { day: string } & Record<MetricKey, number> & { paid_usd: number; paid_zwg: number };
 type TopPost = { post_id: string; content: string; created_at: string; likes: number; comments: number; reposts: number; views: number; score: number; thumb: string | null; products: number };
-type Insights = { days: number; series: Day[]; current: Totals; previous: Totals; top_posts: TopPost[]; funnel: { commerce: { chats: number; offers: number; payments: number }; recruiting: { applications: number; interviews: number; hired: number } } };
-
-const METRICS: { key: keyof Day; label: string; cumulative?: boolean }[] = [
-  { key: "impressions", label: "Impressions" }, { key: "reach", label: "Reach" }, { key: "engagements", label: "Engagements" },
-  { key: "followers", label: "Followers", cumulative: true }, { key: "messages", label: "Messages" }, { key: "market_chats", label: "Market chats" },
-  { key: "payments", label: "Payments" }, { key: "applications", label: "Applications" }, { key: "ad_impressions", label: "Ad impressions" }, { key: "ad_clicks", label: "Ad clicks" },
-];
-
-
-// Plain-language comparison, same as the phone: percentages on small counts
-// mislead, so the line always says the actual prior number.
-function compareText(n: number, p: number, prior: string): string {
-  if (n === 0 && p === 0) return "nothing yet";
-  if (n === p) return "same as " + prior;
-  return (n > p ? "up from " : "down from ") + p.toLocaleString() + " in " + prior;
-}
-const HINT: Record<string, string> = {
-  Impressions: "Times your content was shown", Reach: "People who saw your content", Engagements: "Likes, comments, shares and saves",
-  "Followers gained": "New followers in the period", Messages: "Received in your inbox", "Market chats": "Buyer conversations started",
-  Payments: "Payments received in chat", Applications: "Applications to your jobs", "Ad clicks": "Taps on your ads",
+type Insights = { days: number; series: Day[]; current: Record<string, number>; previous: Record<string, number>; top_posts: TopPost[]; funnel: { commerce: { chats: number; offers: number; payments: number }; recruiting: { applications: number; interviews: number; hired: number } } };
+type View = "organic" | "paid" | "business";
+const EMPTY_POSTS: TopPost[] = [];
+const metrics: Record<View, { key: MetricKey; label: string; hint: string }[]> = {
+  organic: [{ key: "impressions", label: "Content impressions", hint: "Recorded content views" }, { key: "reach", label: "Daily reach total", hint: "Daily unique viewers, summed" }, { key: "engagements", label: "Engagements", hint: "Likes, comments, reposts and saves" }, { key: "followers", label: "Follower count", hint: "Latest reported total" }],
+  paid: [{ key: "ad_impressions", label: "Ad impressions", hint: "Recorded campaign delivery" }, { key: "ad_clicks", label: "Ad clicks", hint: "Recorded taps on campaign creative" }],
+  business: [{ key: "messages", label: "Messages", hint: "Received messages" }, { key: "market_chats", label: "Market conversations", hint: "Buyer conversations started" }, { key: "payments", label: "Chat payments", hint: "Recorded completed chat payments" }, { key: "applications", label: "Applications", hint: "Applications received for your jobs" }],
 };
+const comparison = (value: number, previous: number, days: number) => value === previous ? `Unchanged from the previous ${days} days` : `${value > previous ? "Up" : "Down"} from ${previous.toLocaleString()} in the previous ${days} days`;
 
 export default function InsightsPage() {
-  const supabase = useRef(createClient()).current;
-  const [days, setDays] = useState(30);
-  const [ins, setIns] = useState<Insights | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState<string | null>(null);
-
+  const [client] = useState(createClient);
+  const [days, setDays] = useState(30), [view, setView] = useState<View>("organic"), [metric, setMetric] = useState<MetricKey>("impressions");
+  const [report, setReport] = useState<Insights | null>(null), [loading, setLoading] = useState(true), [error, setError] = useState<string | null>(null);
+  const generation = useRef(0), mounted = useRef(false);
+  const media = useUploadPreview(report?.top_posts ?? EMPTY_POSTS);
   const load = useCallback(async () => {
+    const run = ++generation.current;
     setLoading(true);
+    let timer: ReturnType<typeof setTimeout> | undefined;
     try {
-      const { data, error } = await supabase.rpc("studio_insights", { p_days: days });
-      if (error) { setErr(error.message); return; }
-      setIns(data as Insights);
-    } finally { setLoading(false); }
-  }, [supabase, days]);
-  useEffect(() => { void load(); }, [load]);
-
-  if (err) return <p className="py-16 text-center text-sm text-danger">{err}</p>;
-
-  const cur = ins?.current || {}, prev = ins?.previous || {};
-  const tiles: [string, number, number][] = ins ? [
-    ["Impressions", cur.impressions, prev.impressions], ["Reach", cur.reach, prev.reach], ["Engagements", cur.engagements, prev.engagements],
-    ["Followers gained", (cur.followers_end || 0) - (cur.followers_start || 0), 0], ["Messages", cur.messages, prev.messages], ["Market chats", cur.market_chats, prev.market_chats],
-    ["Payments", cur.payments, prev.payments], ["Applications", cur.applications, prev.applications], ["Ad clicks", cur.ad_clicks, prev.ad_clicks],
-  ] : [];
-
-  return (
-    <div className="max-w-[960px]">
-      {ins ? (
-        <StudioRailPortal>
-          <>
-            {/* studio_insights already returns these funnels and the page never
-                showed them. They answer "did any of this turn into money or a
-                hire", which is the question the numbers above only hint at. */}
-            {ins.funnel.commerce.chats + ins.funnel.commerce.offers + ins.funnel.commerce.payments > 0 ? (
-              <Panel title="Selling" action="Commerce" actionHref="/studio/commerce">
-                <div className="flex flex-col gap-1.5">
-                  {[
-                    ["Market chats", ins.funnel.commerce.chats],
-                    ["Offers made", ins.funnel.commerce.offers],
-                    ["Payments", ins.funnel.commerce.payments],
-                  ].map(([label, n]) => (
-                    <div key={String(label)} className="flex items-baseline justify-between text-[13px]">
-                      <span className="text-ink/65">{label}</span>
-                      <span className="tabular-nums font-semibold text-ink">{Number(n).toLocaleString()}</span>
-                    </div>
-                  ))}
-                </div>
-              </Panel>
-            ) : null}
-
-            {ins.funnel.recruiting.applications + ins.funnel.recruiting.interviews + ins.funnel.recruiting.hired > 0 ? (
-              <Panel title="Hiring" action="Recruiter" actionHref="/studio/recruiter">
-                <div className="flex flex-col gap-1.5">
-                  {[
-                    ["Applications", ins.funnel.recruiting.applications],
-                    ["Interviews", ins.funnel.recruiting.interviews],
-                    ["Hired", ins.funnel.recruiting.hired],
-                  ].map(([label, n]) => (
-                    <div key={String(label)} className="flex items-baseline justify-between text-[13px]">
-                      <span className="text-ink/65">{label}</span>
-                      <span className="tabular-nums font-semibold text-ink">{Number(n).toLocaleString()}</span>
-                    </div>
-                  ))}
-                </div>
-              </Panel>
-            ) : null}
-
-            {ins.top_posts.length > 0 ? (
-              <Panel title="Best performing" action="Content" actionHref="/studio/content">
-                <div className="flex flex-col gap-2.5">
-                  {ins.top_posts.slice(0, 3).map((t, i) => (
-                    <div key={t.post_id} className="flex gap-2.5">
-                      <span className="w-3 shrink-0 text-center font-display text-[13px] text-muted">{i + 1}</span>
-                      {t.thumb ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={t.thumb} alt="" className="h-9 w-9 shrink-0 rounded-lg object-cover" />
-                      ) : null}
-                      <span className="min-w-0 flex-1">
-                        <span className="line-clamp-2 block text-[12.5px] leading-snug text-ink">{t.content || "Media post"}</span>
-                        <span className="mt-0.5 block text-[11px] text-muted">
-                          {(Number(t.likes || 0) + Number(t.comments || 0) + Number(t.reposts || 0)).toLocaleString()} engagements
-                          {t.views ? " \u00b7 " + Number(t.views).toLocaleString() + " views" : ""}
-                        </span>
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </Panel>
-            ) : null}
-          </>
-        </StudioRailPortal>
-      ) : null}
-
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-display text-[21px] leading-tight text-porcelain">Insights</h1>
-          <p className="mt-1 text-[13px] text-muted">Rolled up nightly. Today is not included until tomorrow morning.</p>
-        </div>
-        <div className="flex gap-1 rounded-full bg-surface p-1">
-          {[7, 30, 90].map(d => <button key={d} onClick={() => setDays(d)} className={"rounded-full px-3 py-1.5 text-[12.5px] font-semibold transition-colors duration-[140ms] " + (days === d ? "bg-ink text-white" : "text-ink/60")}>{d} days</button>)}
-        </div>
-      </div>
-
-      {loading || !ins ? <p className="py-12 text-center text-sm text-muted">Loading</p> : (
-        <>
-          <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {tiles.map(([label, n, p]) => {
-              const d = label === "Followers gained" ? 0 : pct(n || 0, p || 0);
-              return (
-                <div key={label} className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
-                  <p className="text-[11.5px] text-muted">{label}</p>
-                  <p className="text-[10.5px] text-muted">{HINT[label] || ""}</p>
-                  <div className="mt-0.5"><Metric value={Number(n || 0)} size={24} /></div>
-                  {label !== "Followers gained" ? (
-                    <p className={"mt-0.5 flex items-center gap-1 text-[11.5px] " + (d === 0 ? "text-muted" : d > 0 ? "text-success" : "text-danger")}>
-                      {d === 0 ? null : d > 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}{compareText(Number(n || 0), Number(p || 0), "the " + days + " days before")}
-                    </p>
-                  ) : <p className="mt-0.5 text-[11.5px] text-muted">{Number(cur.followers_end || 0).toLocaleString()} total</p>}
-                </div>
-              );
-            })}
-          </div>
-          {(cur.paid_usd || cur.paid_zwg) ? <p className="mt-3 text-[13px] text-ink/60">Received: {cur.paid_usd ? "USD " + Number(cur.paid_usd).toLocaleString() : ""}{cur.paid_usd && cur.paid_zwg ? " · " : ""}{cur.paid_zwg ? "ZWG " + Number(cur.paid_zwg).toLocaleString() : ""}</p> : null}
-
-          {/* Reach against engagement at full width, because the relationship
-              between the two is the thing worth reading. The per-metric
-              sparklines below answer a different question, one at a time. */}
-          {ins.series.length >= 2 ? (
-            <div className="mt-7 rounded-2xl border border-ink/10 bg-white px-5 py-4">
-              <h2 className="mb-3 text-[15px] font-semibold text-ink">Reach and engagement over time</h2>
-              <TrendChart
-                series={[
-                  { name: "Reach", points: ins.series.map((d) => Number(d.reach || 0)) },
-                  { name: "Engagements", points: ins.series.map((d) => Number(d.engagements || 0)), tone: "ink" },
-                ]}
-                labels={ins.series.map((d) => new Date(d.day).toLocaleDateString(undefined, { month: "short", day: "numeric" }))}
-              />
-            </div>
-          ) : null}
-
-          <h2 className="mb-2 mt-7 text-[12px] font-semibold uppercase tracking-wide text-muted">Every metric</h2>
-          {ins.series.length < 2 ? <p className="rounded-2xl border border-ink/10 bg-white px-4 py-5 text-[13.5px] text-muted">Trends appear after two nightly rollups.</p> : (
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {METRICS.map(m => {
-                const data = ins.series.map(s => Number(s[m.key] || 0));
-                const total = m.cumulative ? data[data.length - 1] : data.reduce((a, b) => a + b, 0);
-                if (!m.cumulative && total === 0) return null;
-                return (
-                  <div key={m.key} className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
-                    <div className="flex items-baseline justify-between"><p className="text-[12.5px] font-semibold text-ink">{m.label}</p><p className="text-[12px] text-muted">{total.toLocaleString()}{m.cumulative ? " now" : " in " + days + " days"}</p></div>
-                    <Sparkline points={data} height={64} />
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          <div className="mt-7 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(240px,300px)]">
-            <div>
-              <h2 className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-muted">Top content, last {days} days</h2>
-              {ins.top_posts.length === 0 ? <p className="rounded-2xl border border-ink/10 bg-white px-4 py-5 text-[13.5px] text-muted">No posts in this period.</p> : ins.top_posts.map((p, i) => (
-                <Link key={p.post_id} href={"/post/" + p.post_id} className="mb-2 flex items-center gap-3.5 rounded-2xl border border-ink/10 bg-white px-3.5 py-3 transition-colors duration-[140ms] hover:bg-surface">
-                  <span className="w-5 text-center font-display text-[15px] text-muted">{i + 1}</span>
-                  {p.thumb ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={p.thumb} alt="" className="h-14 w-14 rounded-lg object-cover" />
-                  ) : <span className="h-14 w-14 rounded-lg bg-surface" />}
-                  <span className="min-w-0 flex-1">
-                    <span className="line-clamp-1 text-[13.5px] text-ink">{p.content || "Media post"}</span>
-                    <span className="block text-[11.5px] text-muted">{new Date(p.created_at).toLocaleDateString()} · {p.views} views · {p.likes} likes · {p.comments} comments · {p.reposts} reposts{p.products ? " · " + p.products + " products" : ""}</span>
-                  </span>
-                </Link>
-              ))}
-            </div>
-            <div>
-              <h2 className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-muted">Funnels</h2>
-              <div className="rounded-2xl border border-ink/10 bg-white px-4 py-3">
-                <p className="flex items-center gap-1.5 text-[12.5px] font-semibold text-ink"><BarChart3 size={13} className="text-accent" /> Commerce</p>
-                {[["Market conversations", ins.funnel.commerce.chats], ["Offers received", ins.funnel.commerce.offers], ["Payments", ins.funnel.commerce.payments]].map(([l, n], i, arr) => {
-                  const base = Number(arr[0][1]) || 1;
-                  return <div key={String(l)} className="mt-2"><div className="flex justify-between text-[12px] text-ink/60"><span>{l}</span><span>{Number(n).toLocaleString()}</span></div><div className="mt-1 h-1.5 rounded-full bg-surface"><div className="h-1.5 rounded-full bg-pearl" style={{ width: Math.max(2, Math.min(100, (Number(n) / base) * 100)) + "%" }} /></div></div>;
-                })}
-              </div>
-              <div className="mt-3 rounded-2xl border border-ink/10 bg-white px-4 py-3">
-                <p className="flex items-center gap-1.5 text-[12.5px] font-semibold text-ink"><BarChart3 size={13} className="text-accent" /> Recruiting</p>
-                {[["Applications", ins.funnel.recruiting.applications], ["Reached interview", ins.funnel.recruiting.interviews], ["Hired", ins.funnel.recruiting.hired]].map(([l, n], i, arr) => {
-                  const base = Number(arr[0][1]) || 1;
-                  return <div key={String(l)} className="mt-2"><div className="flex justify-between text-[12px] text-ink/60"><span>{l}</span><span>{Number(n).toLocaleString()}</span></div><div className="mt-1 h-1.5 rounded-full bg-surface"><div className="h-1.5 rounded-full bg-pearl" style={{ width: Math.max(2, Math.min(100, (Number(n) / base) * 100)) + "%" }} /></div></div>;
-                })}
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-    </div>
-  );
+      const result = await Promise.race([client.rpc("studio_insights", { p_days: days }), new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new Error("Report timed out")), 20000); })]);
+      if (result.error) throw result.error;
+      const next = result.data as Insights;
+      if (!next || next.days !== days || !Array.isArray(next.series) || !Array.isArray(next.top_posts) || !next.current || !next.previous || !next.funnel?.commerce || !next.funnel?.recruiting) throw new Error("Unverified report");
+      if (!mounted.current || run !== generation.current) return;
+      setReport(next); setError(null);
+    } catch {
+      if (mounted.current && run === generation.current) setError(`The ${days}-day report could not be refreshed. Try again to load the selected period.`);
+    } finally { if (timer) clearTimeout(timer); if (mounted.current && run === generation.current) setLoading(false); }
+  }, [client, days]);
+  useEffect(() => { let active=true; mounted.current = true; void Promise.resolve().then(()=>{if(active)void load();}); return () => { active=false; mounted.current = false; generation.current++; }; }, [load]);
+  const switchView = (next: View) => { setView(next); setMetric(metrics[next][0].key); };
+  const shownMetrics = metrics[view];
+  const activeMetric = shownMetrics.find(item => item.key === metric) ?? shownMetrics[0];
+  const hasDays = !!report?.series.length;
+  const latest = report?.series[report.series.length - 1]?.day;
+  const valueFor = (key: MetricKey) => report ? Number(key === "followers" ? report.current.followers_end ?? 0 : report.current[key] ?? 0) : 0;
+  const exportReport = () => {
+    if (!report) return;
+    downloadStudioCsv(`platinum-${view}-daily-${report.days}days.csv`, ["Reported day", ...shownMetrics.map(item => item.label)], report.series.map(day => [day.day, ...shownMetrics.map(item => day[item.key])]));
+  };
+  return <div>
+    <header className={styles.pageHeader}><div><h1>Insights</h1><p>Understand content, campaign delivery and business activity from recorded reports.</p></div><div className={styles.actions}><label className="text-xs text-muted">Reporting period<select aria-label="Reporting period" value={days} onChange={event => setDays(Number(event.target.value))} className="ml-2 rounded-lg border border-ink/15 bg-transparent px-3 py-2 text-ink">{[7, 30, 90].map(value => <option key={value} value={value}>Last {value} days</option>)}</select></label><button className={styles.button} disabled={loading} onClick={() => void load()}><RefreshCw size={15}/>Refresh</button><button className={styles.button} disabled={!hasDays} onClick={exportReport}><Download size={15}/>Export daily report</button></div></header>
+    <div className={styles.tabs}>{[["organic", "Organic content"], ["paid", "Paid campaigns"], ["business", "Business activity"]].map(([key, label]) => <button key={key} className={styles.tab} aria-pressed={view === key} onClick={() => switchView(key as View)}>{label}</button>)}<Link href="/studio/partnerships" className={styles.tab}>Creator partnerships <ArrowRight size={12} className="ml-1 inline"/></Link></div>
+    <StudioLoadError message={error} retry={() => { void load(); }} busy={loading}/>
+    {report && report.days !== days ? <p role="status" className={styles.notice}>Showing the last confirmed {report.days}-day report while the selected {days}-day report is unavailable.</p> : null}
+    {loading && !report ? <p className={styles.empty} role="status">Loading your report…</p> : report ? <>
+      <p className="mt-4 text-xs leading-6 text-muted">Daily activity is summarized overnight in Africa/Harare time. {latest ? `Latest reported day: ${latest}.` : "No daily reports are available for this period yet."} Today’s activity is not included in the daily totals.</p>
+      <dl className={styles.metrics}>{shownMetrics.map(item => <div className={styles.metric} key={item.key}><dt>{item.label}</dt><dd>{hasDays ? valueFor(item.key).toLocaleString() : "—"}</dd><small>{item.hint}</small>{hasDays && item.key !== "followers" ? <small>{comparison(valueFor(item.key), Number(report.previous[item.key] ?? 0), report.days)}</small> : null}</div>)}</dl>
+      {view === "organic" ? <p className={styles.notice}>Daily reach is unique within each day. Its total can include the same person on different days. Follower count is the latest reported total.</p> : view === "paid" ? <p className={styles.notice}>Campaign delivery reports impressions and clicks. These counts do not establish purchases, revenue or return on ad spending. <Link className="underline" href="/studio/ads">Open Ads Manager</Link></p> : null}
+      <section className={styles.card}><div className={styles.cardHeader}><div><h2>Performance over time</h2><p>{hasDays ? `${report.series.length} reported days in the ${report.days}-day period` : "Your first daily report will appear here"}</p></div><label className="text-xs text-muted">Metric<select aria-label="Chart metric" className="ml-2 rounded-lg border border-ink/15 bg-transparent px-2 py-2 text-ink" value={activeMetric.key} onChange={event => setMetric(event.target.value as MetricKey)}>{shownMetrics.map(item => <option value={item.key} key={item.key}>{item.label}</option>)}</select></label></div><div className={styles.cardBody}><StudioReportChart label={activeMetric.label} points={report.series.map(day => ({ day: day.day, value: Number(day[activeMetric.key] ?? 0) }))}/></div></section>
+      {view === "organic" ? <section className={`${styles.card} ${styles.sectionGap}`}><div className={styles.cardHeader}><div><h2>Top content</h2><p>Up to eight posts created in the selected period, ranked by recorded engagement.</p></div><Link className={styles.button} href="/studio/content">Content library <ArrowRight size={14}/></Link></div><StudioLoadError message={media.error} retry={media.retry}/>{report.top_posts.length ? <div className={styles.tableScroll}><table className={styles.table}><thead><tr><th scope="col">Content</th><th scope="col">Views</th><th scope="col">Likes</th><th scope="col">Comments</th><th scope="col">Reposts</th><th scope="col">Action</th></tr></thead><tbody>{report.top_posts.map(post => { const thumb = media.preview.find(item => item.post_id === post.post_id)?.thumb; return <tr key={post.post_id}><td><div className={styles.contentCell}>{thumb ? <img className={styles.thumb} src={thumb} alt=""/> : <span className={styles.thumb}><FileText size={17}/></span>}<div><strong>{post.content || "Media post"}</strong><small>{new Date(post.created_at).toLocaleDateString()}</small></div></div></td><td>{post.views.toLocaleString()}</td><td>{post.likes.toLocaleString()}</td><td>{post.comments.toLocaleString()}</td><td>{post.reposts.toLocaleString()}</td><td><Link className={styles.button} href={`/post/${post.post_id}`}>View post</Link></td></tr>; })}</tbody></table></div> : <div className={styles.empty}><BarChart3 size={26}/><h2>No posts in this period</h2><p>Choose another reporting period or create content in Planner.</p><Link href="/studio/planner?compose=1" className={styles.button}>Create content <ArrowRight size={14}/></Link></div>}</section> : null}
+      {view === "business" ? <div className={`${styles.twoColumn} ${styles.sectionGap}`}><section className={styles.card}><div className={styles.cardHeader}><h2>Commerce activity</h2><Link className={styles.button} href="/studio/commerce">Open commerce</Link></div><dl className={`${styles.definition} ${styles.cardBody}`}><div><dt>Conversations</dt><dd>{report.funnel.commerce.chats.toLocaleString()}</dd></div><div><dt>Offers</dt><dd>{report.funnel.commerce.offers.toLocaleString()}</dd></div><div><dt>Chat payments</dt><dd>{report.funnel.commerce.payments.toLocaleString()}</dd></div></dl><p className="px-5 pb-5 text-xs leading-6 text-muted">These are recorded activity counts, not a linked sales attribution funnel.</p></section><section className={styles.card}><div className={styles.cardHeader}><h2>Recruiting progress</h2><Link className={styles.button} href="/studio/recruiter">Open recruiter</Link></div><dl className={`${styles.definition} ${styles.cardBody}`}><div><dt>Applications</dt><dd>{report.funnel.recruiting.applications.toLocaleString()}</dd></div><div><dt>Reached interview</dt><dd>{report.funnel.recruiting.interviews.toLocaleString()}</dd></div><div><dt>Hired</dt><dd>{report.funnel.recruiting.hired.toLocaleString()}</dd></div></dl></section></div> : null}
+    </> : null}
+  </div>;
 }

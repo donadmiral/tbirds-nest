@@ -3,11 +3,13 @@
 import { StudioLoadError } from "../LoadError";
 
 import { StudioRailPortal } from "@/components/StudioRailPortal";
+import { StudioDialog } from "@/components/StudioDialog";
+import styles from "@/components/StudioWorkspace.module.css";
 import { Panel } from "@/components/ui";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { CalendarClock, Image as ImageIcon, Plus, Send, Tag, Trash2, X, AlertTriangle, CheckCircle2, FileText, Users } from "lucide-react";
+import { CalendarClock, Image as ImageIcon, Plus, Send, Tag, Trash2, X, AlertTriangle, CheckCircle2, FileText, Users, Eye, ArrowLeft, ArrowRight } from "lucide-react";
 import { CATEGORIES } from "@/lib/categories";
 import { createClient } from "@/lib/supabase/client";
 import { can, cancelScheduled, deleteScheduled, listScheduled, myListings, publishNow, savePost, uploadStudioMedia, type ScheduledPost } from "@/lib/studio";
@@ -29,8 +31,14 @@ export default function PlannerPage() {
   const [loading, setLoading] = useState(true);
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [tab, setTab] = useState<"upcoming" | "drafts" | "published">("upcoming");
+  const [tab, setTab] = useState<"upcoming" | "drafts" | "published" | "failed">("upcoming");
   const [open, setOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [discardOpen, setDiscardOpen] = useState(false);
+  const [editorError, setEditorError] = useState<string | null>(null);
+  const [failedUploads, setFailedUploads] = useState<File[]>([]);
+  const deepLink = useRef(false);
+  const initialDraft = useRef(JSON.stringify(empty()));
   const [d, setD] = useState<Draft>(empty());
   const previewSource = useMemo(() => ({ rows, draft: d }), [rows, d]);
   const mediaPreview = useUploadPreview(previewSource);
@@ -102,7 +110,7 @@ export default function PlannerPage() {
   const shown = useMemo(() => rows.filter(r =>
     tab === "upcoming" ? ["scheduled", "publishing", "failed"].includes(r.status)
     : tab === "drafts" ? ["draft", "cancelled"].includes(r.status)
-    : r.status === "published"), [rows, tab]);
+    : tab === "failed" ? r.status === "failed" : r.status === "published"), [rows, tab]);
 
   const week = useMemo(() => Array.from({ length: 7 }, (_, i) => { const x = new Date(weekStart); x.setDate(x.getDate() + i); return x; }), [weekStart]);
 
@@ -132,28 +140,51 @@ export default function PlannerPage() {
     ++editorVersion.current; editingId.current = null;
     const x = empty();
     if (when) { const t = new Date(when); t.setHours(10, 0, 0, 0); x.publishAt = toLocalInput(t.toISOString()); }
-    setD(x); setOpen(true);
+    initialDraft.current = JSON.stringify(x); setD(x); setFailedUploads([]); setEditorError(null); setOpen(true);
   };
   const openEdit = (r: ScheduledPost) => {
     if (working.current) return;
     ++editorVersion.current; editingId.current = r.id;
-    setD({ id: r.id, content: r.content || "", body: r.body || "", category: r.category, community: r.community_id, media: r.media || [], products: r.products || [], publishAt: toLocalInput(r.publish_at) });
-    setOpen(true);
+    const draft = { id: r.id, content: r.content || "", body: r.body || "", category: r.category, community: r.community_id, media: r.media || [], products: r.products || [], publishAt: toLocalInput(r.publish_at) };
+    initialDraft.current = JSON.stringify(draft); setD(draft); setFailedUploads([]); setEditorError(null); setOpen(true);
   };
 
-  const attach = async (files: FileList | null) => {
-    if (!files?.length || working.current) return;
+  useEffect(() => {
+    if (!loaded || deepLink.current || typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    deepLink.current = true;
+    if (params.get("filter") === "failed") setTab("failed");
+    const id = params.get("edit");
+    if (id) {
+      const row = rows.find(item => item.id === id);
+      if (row && editor && !["published", "publishing"].includes(row.status)) openEdit(row);
+      else setLoadError(row ? "This post cannot be edited in its current state or role." : "That draft is not in the latest 100 loaded posts. Refresh or open it from the publishing queue.");
+    } else if (params.get("compose") === "1" && editor) openNew();
+  }, [loaded, editor, rows]); // The requested action is consumed once per visit.
+
+  const closeEditor = () => {
+    if (working.current) return;
+    if (JSON.stringify(d) !== initialDraft.current || failedUploads.length) { setDiscardOpen(true); return; }
+    ++editorVersion.current; setOpen(false);
+  };
+  const attachFiles = async (files: File[]) => {
+    if (!files.length || working.current) return;
     working.current = true;
     const run = editorVersion.current;
     const current = () => mounted.current && run === editorVersion.current;
-    setBusy(true);
+    setBusy(true); setEditorError(null);
+    const failed: File[] = [];
     try {
-      const added: ScheduledPost["media"] = [];
-      for (const f of Array.from(files).slice(0, 4 - d.media.length)) { if (!current()) return; added.push(await uploadStudioMedia(f)); }
-      if (current()) setD(x => ({ ...x, media: [...x.media, ...added].slice(0, 4) }));
-    } catch (e: any) { if (current()) alert(e?.message || "Upload failed."); }
-    finally { working.current = false; if (mounted.current) setBusy(false); }
+      for (const file of files.slice(0, 4 - d.media.length)) {
+        if (!current()) return;
+        try { const media = await uploadStudioMedia(file); if (current()) setD(value => ({ ...value, media: [...value.media, media].slice(0,4) })); }
+        catch { failed.push(file); }
+      }
+      if (current()) { setFailedUploads(failed); if (failed.length) setEditorError(`${failed.length} ${failed.length === 1 ? "file could" : "files could"} not be uploaded. Retry or remove them before publishing.`); }
+    } finally { working.current = false; if (mounted.current) setBusy(false); }
   };
+  const attach = async (files: FileList | null) => { if (files?.length) await attachFiles(Array.from(files)); };
+  const moveMedia = (from: number, to: number) => setD(value => { const media = [...value.media]; const [item] = media.splice(from,1); media.splice(to,0,item); return { ...value, media }; });
 
   const toggleListing = (l: typeof listings[number]) => {
     setD(x => {
@@ -163,10 +194,10 @@ export default function PlannerPage() {
   };
 
   const save = async (mode: "draft" | "schedule" | "now") => {
-    if (working.current || !editor) return;
-    if (!d.content.trim() && !d.body.trim() && d.media.length === 0) { alert("Write something or add media first."); return; }
+    if (working.current || !editor || failedUploads.length) return;
+    if (!d.content.trim() && !d.body.trim() && d.media.length === 0) { setEditorError("Write something or add media first."); return; }
     const publishDate = mode === "schedule" ? parseStudioLocalDate(d.publishAt) : null;
-    if (mode === "schedule" && (!publishDate || publishDate.getTime() <= Date.now())) { alert("Choose a valid future date and time."); return; }
+    if (mode === "schedule" && (!publishDate || publishDate.getTime() <= Date.now())) { setEditorError("Choose a valid future date and time."); return; }
     working.current = true;
     const run = editorVersion.current;
     const current = () => mounted.current && run === editorVersion.current;
@@ -182,7 +213,7 @@ export default function PlannerPage() {
       if (!current()) return;
       setOpen(false); setD(empty()); editingId.current = null;
       await load();
-    } catch (e: any) { if (current()) { alert(e?.message || "The save was not confirmed. Retry to check the same request."); await load(); } }
+    } catch (e: any) { if (current()) { setEditorError(e?.message || "The save was not confirmed. Retry to check the same request."); await load(); } }
     finally { working.current = false; if (mounted.current) setBusy(false); }
   };
 
@@ -263,16 +294,16 @@ export default function PlannerPage() {
         </>
       </StudioRailPortal>
 
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-[21px] leading-tight text-porcelain">Planner</h1>
-          <p className="mt-1 text-[13px] text-muted">Drafts, schedule and publish. Scheduled posts go out on the minute, even with Studio closed.</p>
+          <p className="mt-1 text-[13px] text-muted">Drafts, schedule and publish. Choose a date, preview your content and schedule it for publication.</p>
         </div>
         {editor ? <button onClick={() => openNew()} className="inline-flex items-center gap-1.5 rounded-md bg-ink px-4 py-2.5 text-[13px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90"><Plus size={15} /> New post</button> : null}
       </div>
 
       <div className="mt-5 rounded-2xl border border-ink/10 bg-white p-3">
-        <div className="mb-2 flex items-center justify-between">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
           <button onClick={() => setWeekStart(w => { const x = new Date(w); if (span === "month") x.setMonth(x.getMonth() - 1, 1); else x.setDate(x.getDate() - 7); return x; })} className="rounded-md px-2 py-1 text-[12.5px] text-ink/60 transition-colors duration-[140ms] hover:bg-surface">Previous</button>
           <span className="text-[13px] font-semibold text-ink">
             {span === "month"
@@ -307,7 +338,7 @@ export default function PlannerPage() {
             const k = dayKey(day); const items = byDay[k] || []; const today = k === dayKey(new Date());
             const outside = span === "month" && day.getMonth() !== weekStart.getMonth();
             return (
-              <button key={k} onClick={() => editor && openNew(day)} className={"rounded-lg border p-2 text-left transition-colors duration-[140ms] hover:bg-surface " + (span === "month" ? "min-h-[86px] " : "min-h-[110px] ") + (today ? "border-pearl/60 bg-pearl/6 " : "border-ink/10 ") + (outside ? "opacity-40" : "")}>
+              <button key={k} disabled={!editor} aria-label={`Plan content for ${day.toLocaleDateString()}. ${items.length} scheduled items.`} onClick={() => editor && openNew(day)} className={"rounded-lg border p-2 text-left transition-colors duration-[140ms] hover:bg-surface " + (span === "month" ? "min-h-[86px] " : "min-h-[110px] ") + (today ? "border-pearl/60 bg-pearl/6 " : "border-ink/10 ") + (outside ? "opacity-40" : "")}>
                 <span className={"text-[11px] font-semibold " + (today ? "text-accent" : "text-muted")}>
                   {span === "month" ? day.getDate() : day.toLocaleDateString(undefined, { weekday: "short" }) + " " + day.getDate()}
                 </span>
@@ -324,9 +355,9 @@ export default function PlannerPage() {
       </div>
 
       <div className="mt-6 flex gap-2">
-        {(["upcoming", "drafts", "published"] as const).map(t => (
-          <button key={t} onClick={() => setTab(t)} className={"rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold transition-colors duration-[140ms] " + (tab === t ? "bg-ink text-white" : "bg-surface text-ink/60")}>
-            {t === "upcoming" ? "Upcoming" : t === "drafts" ? "Drafts" : "Published"}
+        {(["upcoming", "drafts", "published", "failed"] as const).map(t => (
+          <button key={t} aria-pressed={tab === t} onClick={() => setTab(t)} className={"rounded-full px-3.5 py-1.5 text-[12.5px] font-semibold transition-colors duration-[140ms] " + (tab === t ? "bg-ink text-white" : "bg-surface text-ink/60")}>
+            {t === "upcoming" ? "Upcoming" : t === "drafts" ? "Drafts" : t === "failed" ? "Failed" : "Published"}
           </button>
         ))}
       </div>
@@ -356,24 +387,19 @@ export default function PlannerPage() {
             <div className="flex shrink-0 flex-col gap-1">
               {r.status !== "published" && r.status !== "publishing" ? <button onClick={() => openEdit(r)} className="rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 transition-colors duration-[140ms] hover:text-ink">Edit</button> : null}
               {r.status === "scheduled" ? <button onClick={() => cancel(r)} className="rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 transition-colors duration-[140ms] hover:text-ink">Unschedule</button> : null}
-              <button onClick={() => remove(r)} className="rounded-md px-2.5 py-1 text-[12px] text-danger transition-colors duration-[140ms] hover:bg-danger/10"><Trash2 size={13} /></button>
+              <button onClick={() => remove(r)} className="rounded-md px-2.5 py-1 text-[12px] text-danger transition-colors duration-[140ms] hover:bg-danger/10" aria-label={`Delete ${r.status} post`}><Trash2 size={13} /></button>
             </div>
           ) : null}
         </div>
       ))}
 
-      {open ? (
-        <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/55 sm:items-center" onClick={() => !busy && setOpen(false)}>
-          <div role="dialog" aria-modal="true" aria-label="Post planner" className="flex max-h-[90dvh] w-full max-w-[600px] flex-col rounded-t-2xl bg-surface sm:rounded-2xl" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-ink/10 px-4 py-3">
-              <p className="text-[15px] font-semibold text-ink">{d.id ? "Edit post" : "New post"}</p>
-              <button disabled={busy} onClick={() => { ++editorVersion.current; setOpen(false); }} className="rounded-full p-2.5 text-muted transition-colors duration-[140ms] hover:bg-ink/5 disabled:opacity-40" aria-label="Close"><X size={16} /></button>
-            </div>
+      <StudioDialog title={d.id ? "Edit planned post" : "Create content"} description="Save a draft, review your media and choose when to publish." open={open} onClose={closeEditor} busy={busy} wide>
+            {editorError ? <p role="alert" className={`${styles.notice} ${styles.error} mx-4`}>{editorError}</p> : null}
             <fieldset disabled={busy} className="min-h-0 min-w-0 flex-1 overflow-y-auto px-4 py-3">
-              <textarea value={d.content} onChange={e => setD(x => ({ ...x, content: e.target.value }))} maxLength={2000} placeholder="What do you want to say?"
-                className="h-28 w-full resize-none rounded-lg border border-ink/15 px-3 py-2 text-[14.5px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
-              <textarea value={d.body} onChange={e => setD(x => ({ ...x, body: e.target.value }))} maxLength={20000} placeholder="Longer text (optional)"
-                className="mt-2 h-20 w-full resize-none rounded-lg border border-ink/15 px-3 py-2 text-[13.5px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
+              <label className={styles.field}>Caption<textarea value={d.content} onChange={e => setD(x => ({ ...x, content: e.target.value }))} maxLength={2000} placeholder="What do you want to say?"
+                className="h-28 w-full resize-none rounded-lg border border-ink/15 px-3 py-2 text-[14.5px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" /><small>{d.content.length.toLocaleString()} / 2,000 characters</small></label>
+              <label className={styles.field}>Article body (optional)<textarea value={d.body} onChange={e => setD(x => ({ ...x, body: e.target.value }))} maxLength={20000} placeholder="Longer text (optional)"
+                className="mt-2 h-20 w-full resize-none rounded-lg border border-ink/15 px-3 py-2 text-[13.5px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" /></label>
               {d.media.length ? (
                 <div className="mt-2 flex flex-wrap gap-2">
                   {d.media.map((m, i) => (
@@ -381,23 +407,25 @@ export default function PlannerPage() {
                       {m.media_type === "video" ? <span className="flex h-16 w-16 items-center justify-center rounded-lg bg-ink text-[10px] text-white">video</span>
                         // eslint-disable-next-line @next/next/no-img-element
                         : <img src={mediaPreview.preview.draft.media[i]?.url || undefined} alt="" className="h-16 w-16 rounded-lg object-cover" />}
-                      <button onClick={() => setD(x => ({ ...x, media: x.media.filter((_, j) => j !== i) }))} className="absolute -right-1 -top-1 rounded-full bg-ink p-0.5 text-white" aria-label="Remove"><X size={11} /></button>
+                      <button onClick={() => setD(x => ({ ...x, media: x.media.filter((_, j) => j !== i) }))} className="absolute -right-1 -top-1 rounded-full bg-ink p-1 text-white" aria-label={`Remove media ${i+1}`}><X size={11} /></button>
+                      <span className="mt-2 flex justify-between gap-1"><button type="button" disabled={i === 0} aria-label={`Move media ${i+1} earlier`} onClick={() => moveMedia(i,i-1)} className="rounded border border-ink/10 p-1 disabled:opacity-30"><ArrowLeft size={13}/></button><span className="text-xs text-muted">{i+1}</span><button type="button" disabled={i === d.media.length-1} aria-label={`Move media ${i+1} later`} onClick={() => moveMedia(i,i+1)} className="rounded border border-ink/10 p-1 disabled:opacity-30"><ArrowRight size={13}/></button></span>
                     </span>
                   ))}
                 </div>
               ) : null}
               <div className="mt-2 flex flex-wrap items-center gap-2">
-                <button onClick={() => fileRef.current?.click()} disabled={d.media.length >= 4 || busy} className="inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-3 py-1.5 text-[12.5px] font-semibold text-ink/70 transition-colors duration-[140ms] hover:bg-ink/10 disabled:opacity-40"><ImageIcon size={14} /> Media</button>
+                <button onClick={() => fileRef.current?.click()} disabled={d.media.length >= 4 || busy || failedUploads.length > 0} className="inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-3 py-1.5 text-[12.5px] font-semibold text-ink/70 transition-colors duration-[140ms] hover:bg-ink/10 disabled:opacity-40"><ImageIcon size={14} /> Media</button>
                 <input ref={fileRef} type="file" accept="image/*,video/*" multiple className="hidden" onChange={e => { void attach(e.target.files); e.target.value = ""; }} />
                 <button onClick={() => setPickOpen(o => !o)} className="inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-3 py-1.5 text-[12.5px] font-semibold text-ink/70 transition-colors duration-[140ms] hover:bg-ink/10"><Tag size={14} /> Products {d.products.length ? "(" + d.products.length + ")" : ""}</button>
                 {communities.length || d.community ? (
-                  <select value={d.community || ""} onChange={e => setD(x => ({ ...x, community: e.target.value || null }))} className="rounded-full bg-ink/5 px-3 py-1.5 text-[12.5px] font-semibold text-ink/70 outline-none">
+                  <select aria-label="Publish destination" value={d.community || ""} onChange={e => setD(x => ({ ...x, community: e.target.value || null }))} className="rounded-full bg-ink/5 px-3 py-1.5 text-[12.5px] font-semibold text-ink/70 outline-none">
                     <option value="">Main feed</option>
                     {d.community && !communities.some(c => c.id === d.community) ? <option value={d.community}>Current community (not in this list)</option> : null}
                     {communities.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 ) : null}
               </div>
+              {failedUploads.length ? <div className="mt-3 rounded-lg border border-danger/25 p-3"><p className="text-sm font-semibold">Uploads need attention</p><ul className="my-2 space-y-1 text-xs text-muted">{failedUploads.map((file,index) => <li key={file.name+index}>{file.name}<button type="button" className="ml-2 underline" onClick={() => setFailedUploads(files => files.filter((_,i) => i !== index))}>Remove</button></li>)}</ul><button type="button" className={styles.button} disabled={busy} onClick={() => void attachFiles(failedUploads)}>Retry uploads</button></div> : null}
               <StudioLoadError message={communitiesError} retry={() => { setCommunitiesLoading(true); void loadCommunities(); }} busy={communitiesLoading} />
               {pickOpen ? (
                 <div className="mt-2 max-h-40 overflow-y-auto rounded-2xl border border-ink/10 bg-surface p-2">
@@ -428,17 +456,19 @@ export default function PlannerPage() {
                 ))}
               </div>
               <p className="mb-1.5 mt-3 text-[11.5px] font-semibold uppercase tracking-wide text-muted">Schedule</p>
-              <input type="datetime-local" value={d.publishAt} onChange={e => setD(x => ({ ...x, publishAt: e.target.value }))}
-                className="rounded-lg border border-ink/15 px-3 py-2 text-[13.5px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
+              <label className={styles.field}>Publication date and time<input type="datetime-local" value={d.publishAt} onChange={e => setD(x => ({ ...x, publishAt: e.target.value }))}
+                className="rounded-lg border border-ink/15 px-3 py-2 text-[13.5px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" /><small>Times use {Intl.DateTimeFormat().resolvedOptions().timeZone}. Scheduling requires a future date.</small></label>
             </fieldset>
-            <div className="flex items-center justify-end gap-2 border-t border-ink/10 px-4 py-3">
-              <button onClick={() => save("draft")} disabled={busy} className="rounded-md bg-ink/5 px-3.5 py-2 text-[13px] font-semibold text-ink/70 transition-opacity duration-[140ms] hover:opacity-80 disabled:opacity-40">Save draft</button>
-              <button onClick={() => save("schedule")} disabled={busy || !d.publishAt} className="inline-flex items-center gap-1.5 rounded-md bg-ink/5 px-3.5 py-2 text-[13px] font-semibold text-ink transition-opacity duration-[140ms] hover:opacity-80 disabled:opacity-40"><CalendarClock size={14} /> Schedule</button>
-              <button onClick={() => save("now")} disabled={busy} className="inline-flex items-center gap-1.5 rounded-md bg-ink px-4 py-2 text-[13px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40"><Send size={14} /> {busy ? "Working" : "Publish now"}</button>
+            <div className="flex flex-wrap items-center justify-end gap-2 border-t border-ink/10 px-4 py-3">
+              <button type="button" className={styles.button} disabled={busy} onClick={closeEditor}>Cancel</button>
+              <button type="button" className={styles.button} disabled={busy || failedUploads.length > 0} onClick={() => setPreviewOpen(true)}><Eye size={15}/>Preview</button>
+              <button onClick={() => save("draft")} disabled={busy || failedUploads.length > 0} className="rounded-md bg-ink/5 px-3.5 py-2 text-[13px] font-semibold text-ink/70 transition-opacity duration-[140ms] hover:opacity-80 disabled:opacity-40">Save draft</button>
+              <button onClick={() => save("schedule")} disabled={busy || !d.publishAt || failedUploads.length > 0} className="inline-flex items-center gap-1.5 rounded-md bg-ink/5 px-3.5 py-2 text-[13px] font-semibold text-ink transition-opacity duration-[140ms] hover:opacity-80 disabled:opacity-40"><CalendarClock size={14} /> Schedule</button>
+              <button onClick={() => save("now")} disabled={busy || failedUploads.length > 0} className="inline-flex items-center gap-1.5 rounded-md bg-ink px-4 py-2 text-[13px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40"><Send size={14} /> {busy ? "Working" : "Publish now"}</button>
             </div>
-          </div>
-        </div>
-      ) : null}
+      </StudioDialog>
+      <StudioDialog title="Post preview" description="Review the content before saving or publishing." open={previewOpen} onClose={() => setPreviewOpen(false)}><div className={styles.dialogBody}><p className="mb-3 font-semibold">{me?.business_name || me?.display_name}</p><p className="whitespace-pre-wrap text-sm leading-6">{d.content}</p>{d.body ? <p className="mt-3 whitespace-pre-wrap text-sm leading-6">{d.body}</p> : null}<div className="mt-4 space-y-3">{mediaPreview.preview.draft.media.map((item,index) => item.media_type === "video" ? <video key={index} src={item.url} controls preload="metadata" playsInline className="max-h-[480px] w-full rounded-lg bg-surface object-contain" /> : <img key={index} src={item.url} alt={`Attached media ${index+1}`} className="max-h-[480px] w-full rounded-lg bg-surface object-contain" />)}</div>{d.products.length ? <p className="mt-4 text-sm text-muted">{d.products.length} attached product cards</p> : null}</div><footer className={styles.dialogFooter}><button className={styles.buttonPrimary} onClick={() => setPreviewOpen(false)}>Back to editing</button></footer></StudioDialog>
+      <StudioDialog title="Discard unsaved changes?" open={discardOpen} onClose={() => setDiscardOpen(false)}><div className={styles.dialogBody}><p className="text-sm leading-6">Your changes have not been saved. Keep editing to save a draft, or discard the changes and return to Planner.</p></div><footer className={styles.dialogFooter}><button className={styles.button} onClick={() => setDiscardOpen(false)}>Keep editing</button><button className={`${styles.button} ${styles.buttonDanger}`} onClick={() => { ++editorVersion.current; setDiscardOpen(false); setOpen(false); setD(empty()); setFailedUploads([]); }}>Discard changes</button></footer></StudioDialog>
     </div>
   );
 }

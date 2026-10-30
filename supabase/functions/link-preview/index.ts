@@ -1,3 +1,4 @@
+import { serveBusinessRequest } from '../_shared/serveBusinessRequest.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2.112.3';
 import { createLinkPreviewHandler } from './handler.ts';
 import { createSafeFetch } from './transport.ts';
@@ -8,7 +9,7 @@ const client=createClient(base,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,{
   auth:{persistSession:false,autoRefreshToken:false},
 });
 const fields='url,title,description,image_url,domain,fetched_at,verified_at,image_origin_url,image_token';
-Deno.serve(createLinkPreviewHandler({
+serveBusinessRequest(createLinkPreviewHandler({
   base,fetch:createSafeFetch({request:createDenoPinnedRequest()}),
   async authenticate(authorization) {
     const {data,error}=await client.auth.getUser(authorization.replace(/^Bearer\s+/i,''));
@@ -37,4 +38,4 @@ Deno.serve(createLinkPreviewHandler({
     const {data,error}=await client.rpc('claim_link_preview_image',{p_token:token});
     if(error)throw new Error('Preview budget unavailable');return data===true;
   },
-}));
+}), request => request.method === 'POST');

@@ -22,7 +22,7 @@ export function MobileTabBar({ userId, username, name, avatarUrl, business = fal
   const path = usePathname() || "";
   const is = (h: string) => path === h || path.startsWith(h + "/");
   return (
-    <nav className={chrome.surface + " fixed inset-x-3 bottom-[max(8px,env(safe-area-inset-bottom))] z-40 flex gap-1 rounded-[32px] border p-1 md:hidden"} aria-label="Primary">
+    <nav data-app-chrome className={chrome.surface + " fixed inset-x-3 bottom-[max(8px,env(safe-area-inset-bottom))] z-40 flex gap-1 rounded-[32px] border p-1 md:hidden"} aria-label="Primary">
       {tabs.map(({ href, label, icon: Icon }) => {
         const active = is(href);
         return (

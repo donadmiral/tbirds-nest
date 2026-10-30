@@ -138,6 +138,7 @@ function pageHarness(file, read, extraMocks = {}) {
   const mod = compile(file, {
     react: hooks, 'react/jsx-runtime': { jsx, jsxs: jsx }, 'react-native': native,
     'next/link': { __esModule: true, default: 'Link' }, 'lucide-react': stub,
+    './JobsWorkspace.module.css': { __esModule: true, default: stub },
     '@/lib/supabase/client': { createClient: () => client }, '@/lib/jobs': compile('web/lib/jobs.ts'), '@/components/JobCard': { JobCard: 'JobCard' },
     '../../theme/useTheme': { themedSheet: fn => fn(theme), getTheme: () => theme, useTheme: () => ({ isDark: false }) },
     '../../components/SafeArea': { SafeAreaView: 'SafeAreaView', useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) },
@@ -170,5 +171,5 @@ test('native detail cannot offer Apply when application history failed to load',
 
 test('web browse renders a retry state instead of claiming an empty jobs catalogue on query failure', async () => {
   const h = pageHarness('web/app/jobs/page.tsx', async table => table === 'jobs' ? { data: null, error: { message: 'offline' } } : { data: table === 'job_saves' ? [] : null, error: null });
-  h.render(); await h.flush(); assert.match(h.text, /Jobs could not be loaded/); assert.match(h.text, /Try again/); assert.doesNotMatch(h.text, /No jobs match/);
+  h.render(); await h.flush(); assert.match(h.text, /We couldn’t load jobs/); assert.match(h.text, /Try again/); assert.doesNotMatch(h.text, /No jobs match/);
 });

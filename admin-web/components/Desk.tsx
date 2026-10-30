@@ -14,6 +14,7 @@ import { fmt } from '@/lib/fmt';
 import { Spark } from '@/components/Viz';
 import { csv, downloadText, slug, stamp, trayAdd } from '@/lib/share';
 import ActionPopover from '@/components/ActionPopover';
+import AdminIcon, { type AdminIconName } from '@/components/AdminIcon';
 
 export type Tone = 'ok' | 'bad' | 'warn' | 'info' | 'neutral' | 'accent';
 
@@ -60,6 +61,8 @@ export type DeskRow = {
   actions?: string[];
   /** value posted as the action's id field, defaults to the row id */
   actionId?: string;
+  /** Values confirmed for this record, used when reviewing an existing setting. */
+  actionDefaults?: Record<string, Record<string, string>>;
 };
 
 export type DeskInput = { name: string; label?: string; placeholder?: string; help?: string; required?: boolean; type?: string; options?: string[]; defaultValue?: string; minLength?: number; maxLength?: number };
@@ -75,7 +78,7 @@ export type DeskAction = {
 };
 
 export type StatCard = {
-  label: string; value: string; delta?: string; deltaTone?: Tone; note?: string; spark?: number[]; color?: string; icon?: string;
+  label: string; value: string; delta?: string; deltaTone?: Tone; note?: string; spark?: number[]; color?: string; icon?: AdminIconName;
 };
 
 const PANEL: React.CSSProperties = { minWidth: 0, borderRadius: 12, background: 'var(--panel)', border: '1px solid var(--line)', boxShadow: '0 1px 2px rgba(11,30,61,0.025)', overflow: 'hidden' };
@@ -94,7 +97,7 @@ export function StatStrip({ cards, page }: { cards: StatCard[]; page?: string })
             <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 600, color: 'var(--txt-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.label}</span>
             {c.icon ? (
               <span style={{ width: 26, height: 26, flex: '0 0 26px', borderRadius: 8, background: 'rgba(var(--on),0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" style={{ fill: c.color || 'var(--accent)' }}><path d={c.icon} /></svg>
+                <AdminIcon name={c.icon} size={18} style={{ color: c.color || 'var(--accent)' }} />
               </span>
             ) : null}
           </div>
@@ -282,7 +285,7 @@ export function Desk({
 
         <div className="pc-desk-toolbar" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 16px', borderBottom: '1px solid rgba(var(--on),0.10)', flexWrap: 'wrap' }}>
           <div className="pc-search" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6.5px 10px', borderRadius: 8, background: 'rgba(var(--on),0.035)', border: '1px solid rgba(var(--on),0.10)', minWidth: 200 }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ stroke: 'var(--txt-muted)', flex: '0 0 12px' }} strokeWidth="2.4"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.6-3.6" /></svg>
+            <AdminIcon name="search" size={17} style={{ color: 'var(--txt-muted)' }} />
             <input aria-label={searchHint || 'Search records'} value={q} onChange={e => { setQ(e.target.value); setPage(0); }} placeholder={searchHint}
               style={{ flex: 1, minWidth: 0, background: 'transparent', border: 'none', outline: 'none', fontSize: 13, color: 'var(--txt)' }} />
           </div>
@@ -310,7 +313,7 @@ export function Desk({
               <button type="button" className="pc-media-review-open" aria-pressed={r.id === selected?.id} onClick={event => { event.stopPropagation(); selectRecord(r.id); }}>
                 <strong>{r.detail.title}</strong>
                 {r.detail.subtitle ? <span>{r.detail.subtitle}</span> : null}
-                <small>{r.id === selected?.id ? 'Selected' : 'Review content'} <span aria-hidden>↗</span></small>
+                <small>{r.id === selected?.id ? 'Selected' : 'Review content'} <AdminIcon name="arrowUpRight" size={15} /></small>
               </button>
             </article>
           ))}
@@ -320,7 +323,7 @@ export function Desk({
               {columns.map((c, i) => (
                 <div role="columnheader" key={c.label + i} aria-sort={sort?.index === i ? sort.direction === 'asc' ? 'ascending' : 'descending' : undefined} style={{ padding: '9px 8px', fontSize: 12, fontWeight: 600, color: 'var(--txt-muted)', justifyContent: c.align === 'right' ? 'flex-end' : 'flex-start', whiteSpace: 'nowrap' }}>
                   {c.sort || (i === 0 && c.sort !== false) ? <button type="button" className="pc-column-sort" onClick={() => { setSort(previous => ({ index: i, direction: previous?.index === i && previous.direction === 'asc' ? 'desc' : 'asc' })); setPage(0); }} aria-label={`Sort ${c.label} ${sort?.index === i && sort.direction === 'asc' ? 'descending' : 'ascending'}`}>
-                    {c.label}<span aria-hidden="true">{sort?.index === i ? sort.direction === 'asc' ? '↑' : '↓' : '↕'}</span>
+                    {c.label}<AdminIcon name={sort?.index === i ? sort.direction === 'asc' ? 'chevronUp' : 'chevronDown' : 'sort'} size={14} />
                   </button> : c.label}
                 </div>
               ))}
@@ -369,9 +372,9 @@ export function Desk({
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px 12px', borderBottom: '1px solid rgba(var(--on),0.10)' }}>
           <span style={{ flex: 1, fontSize: 14, fontWeight: 700, color: 'var(--txt)' }}>{detailTitle}</span>
           {selected ? <div className="pc-detail-navigation">
-            <button type="button" aria-label="Previous record" disabled={selectedIndex <= 0} onClick={() => setSel(shown[selectedIndex - 1].id)}>‹</button>
-            <button type="button" aria-label="Next record" disabled={selectedIndex >= shown.length - 1} onClick={() => setSel(shown[selectedIndex + 1].id)}>›</button>
-            <button type="button" aria-label="Close details" onClick={closeDetails}>×</button>
+            <button type="button" aria-label="Previous record" disabled={selectedIndex <= 0} onClick={() => setSel(shown[selectedIndex - 1].id)}><AdminIcon name="chevronLeft" size={18} /></button>
+            <button type="button" aria-label="Next record" disabled={selectedIndex >= shown.length - 1} onClick={() => setSel(shown[selectedIndex + 1].id)}><AdminIcon name="chevronRight" size={18} /></button>
+            <button type="button" aria-label="Close details" onClick={closeDetails}><AdminIcon name="close" size={18} /></button>
           </div> : null}
         </div>
         {!selected ? (
@@ -435,7 +438,7 @@ export function Desk({
                   <input type="hidden" name={a.idName} value={selected.actionId || selected.id} />
                   {(a.inputs || []).map(inp => {
                     const id = `${deskId}-${a.key}-${inp.name}`;
-                    const props = { id, name: inp.name, required: inp.required, defaultValue: inp.defaultValue, 'aria-describedby': inp.help ? `${id}-help` : undefined, className: 'pc-action-input' };
+                    const props = { id, name: inp.name, required: inp.required, defaultValue: selected.actionDefaults?.[a.key]?.[inp.name] ?? inp.defaultValue, 'aria-describedby': inp.help ? `${id}-help` : undefined, className: 'pc-action-input' };
                     return <div key={inp.name} className="pc-action-field">
                       <label htmlFor={id}>{inp.label || inp.placeholder || inp.name.replace(/_/g, ' ')}{inp.required ? <span aria-hidden="true"> *</span> : null}</label>
                       {inp.options ? <select {...props}>{inp.options.map(option => <option key={option} value={option}>{option.replace(/_/g, ' ')}</option>)}</select>

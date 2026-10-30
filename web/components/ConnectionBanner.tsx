@@ -1,90 +1,53 @@
-"use client";
+'use client';
 
-/**
- * The connection banner.
- *
- * The audit found no offline handling anywhere: losing signal mid-session left
- * every screen looking broken, because a failed query and a dead connection
- * produce the same blank result. This tells the difference.
- *
- * navigator.onLine alone is not trustworthy. It reports the network interface,
- * not whether anything is reachable, so a captive portal or a dead uplink still
- * reads as online. A cheap reachability check confirms it before we claim to be
- * back.
- */
-import { useCallback, useEffect, useRef, useState } from "react";
-import { CloudOff, RotateCcw, Wifi } from "lucide-react";
+import { useEffect, useRef, useState } from 'react';
+import { CloudOff, RotateCcw, Wifi } from 'lucide-react';
 
-type State = "online" | "offline" | "restored";
+type State = 'online' | 'offline' | 'checking' | 'restored';
 
+/** Check our origin without reloading the page or discarding an in-progress draft. */
 export function ConnectionBanner() {
-  const [state, setState] = useState<State>("online");
-  const restoreTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const verify = useCallback(async () => {
-    try {
-      // A HEAD to our own origin: no third party, no cache, tiny payload.
-      await fetch("/favicon.ico", { method: "HEAD", cache: "no-store" });
-      return true;
-    } catch {
-      return false;
-    }
+  const [state, setState] = useState<State>('online');
+  const retry = useRef<() => void>(() => {});
+  useEffect(() => {
+    let active = true, generation = 0, controller: AbortController | null = null;
+    let hadFailure = navigator.onLine === false;
+    const offline = () => {
+      generation++; controller?.abort(); hadFailure = true;
+      if (active) setState('offline');
+    };
+    const verify = async () => {
+      if (!active) return;
+      const request = ++generation;
+      controller?.abort(); controller = new AbortController();
+      const currentController = controller;
+      const timer = window.setTimeout(() => currentController.abort(), 5000);
+      if (hadFailure) setState('checking');
+      try {
+        const response = await fetch('/favicon.ico', { method: 'HEAD', cache: 'no-store', signal: currentController.signal });
+        if (!active || request !== generation) return;
+        if (!response.ok || navigator.onLine === false) { hadFailure = true; setState('offline'); return; }
+        setState(hadFailure ? 'restored' : 'online'); hadFailure = false;
+      } catch { if (active && request === generation) { hadFailure = true; setState('offline'); } }
+      finally { clearTimeout(timer); }
+    };
+    const online = () => { void verify(); };
+    const visible = () => { if (hadFailure && document.visibilityState === 'visible') void verify(); };
+    retry.current = online;
+    window.addEventListener('offline', offline); window.addEventListener('online', online); document.addEventListener('visibilitychange', visible);
+    if (hadFailure) offline();
+    return () => { active = false; generation++; controller?.abort(); retry.current = () => {}; window.removeEventListener('offline', offline); window.removeEventListener('online', online); document.removeEventListener('visibilitychange', visible); };
   }, []);
-
   useEffect(() => {
-    let cancelled = false;
-
-    const goOffline = () => { if (!cancelled) setState("offline"); };
-
-    const goOnline = async () => {
-      const reachable = await verify();
-      if (cancelled || !reachable) return;
-      setState((prev) => (prev === "offline" ? "restored" : "online"));
-    };
-
-    window.addEventListener("offline", goOffline);
-    window.addEventListener("online", goOnline);
-
-    // The events do not fire if the page loads while already offline.
-    if (typeof navigator !== "undefined" && navigator.onLine === false) goOffline();
-
-    return () => {
-      cancelled = true;
-      window.removeEventListener("offline", goOffline);
-      window.removeEventListener("online", goOnline);
-    };
-  }, [verify]);
-
-  useEffect(() => {
-    if (state !== "restored") return;
-    // The restored message is an acknowledgement, not a state to sit in.
-    restoreTimer.current = setTimeout(() => setState("online"), 3200);
-    return () => { if (restoreTimer.current) clearTimeout(restoreTimer.current); };
+    if (state !== 'restored') return;
+    const timer = window.setTimeout(() => setState(value => value === 'restored' ? 'online' : value), 4000);
+    return () => clearTimeout(timer);
   }, [state]);
-
-  if (state === "online") return null;
-
-  const offline = state === "offline";
-
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      className={
-        "fixed inset-x-0 bottom-0 z-50 flex items-center justify-center gap-2.5 px-4 py-2.5 text-[13px] font-medium " +
-        (offline ? "bg-ink text-white" : "bg-success text-white")
-      }
-    >
-      {offline ? <CloudOff size={15} /> : <Wifi size={15} />}
-      <span>{offline ? "You are offline. Changes will not save until the connection returns." : "Back online"}</span>
-      {offline ? (
-        <button
-          onClick={() => window.location.reload()}
-          className="ml-1 flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[12px] font-semibold transition-colors duration-[140ms] hover:bg-white/25"
-        >
-          <RotateCcw size={12} /> Reload
-        </button>
-      ) : null}
-    </div>
-  );
+  if (state === 'online') return null;
+  const lost = state === 'offline' || state === 'checking';
+  return <div role="status" aria-live="polite" className="fixed bottom-[calc(86px+env(safe-area-inset-bottom))] left-3 right-3 z-[55] mx-auto flex max-w-2xl flex-wrap items-center justify-center gap-2.5 rounded-xl border border-white/20 bg-[#10213d] px-4 py-3 text-[12px] font-medium text-[#fff] shadow-xl md:bottom-5">
+    {lost ? <CloudOff size={17} aria-hidden /> : <Wifi size={17} aria-hidden />}
+    <span>{state === 'checking' ? 'Checking your connection…' : lost ? 'Connection unavailable. Keep this page open to preserve your work.' : 'Connection restored. You can retry any unsaved changes.'}</span>
+    {lost ? <button type="button" disabled={state === 'checking'} onClick={() => retry.current()} className="flex min-h-10 items-center gap-2 rounded-lg border border-white/25 px-3 text-xs font-semibold disabled:opacity-50"><RotateCcw size={14} aria-hidden />Check connection</button> : null}
+  </div>;
 }

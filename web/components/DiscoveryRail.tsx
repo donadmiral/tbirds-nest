@@ -9,48 +9,43 @@ import { Panel, RankRow } from "@/components/ui";
 import { createClient } from "@/lib/supabase/client";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { FollowButton } from "@/components/FollowButton";
-import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { useViewerIdentity } from "@/lib/useViewerIdentity";
+import { withTimeout } from "@/lib/withTimeout";
 
 type Topic = { topic: string; post_count: number };
 type Suggestion = { id: string; full_name: string | null; username: string | null; avatar_url: string | null; headline: string | null; is_verified?: boolean };
 
 export function DiscoveryRail() {
   const supabase = useRef(createClient()).current;
-  const [topics, setTopics] = useState<Topic[]>([]);
-  const [people, setPeople] = useState<Suggestion[]>([]);
+  const { viewer, loading, error: identityError, retry: retryIdentity } = useViewerIdentity();
+  const uid = viewer?.id ?? null;
+  const [result, setResult] = useState<{ owner: string | null; topics: Topic[]; people: Suggestion[] } | null>(null);
+  const [error, setError] = useState(''), [attempt, setAttempt] = useState(0);
   const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      const { data: sess } = await supabase.auth.getSession();
-      const uid = sess.session?.user.id;
-      const [{ data: t }, sug] = await Promise.all([
+    let active = true;
+    setResult(null); setError(''); setShowAll(false);
+    if (loading || identityError) return;
+    void (async () => {
+      const [trending, suggestions, following] = await withTimeout(Promise.all([
         supabase.rpc("get_trending_topics", { p_days: 7, p_limit: 15 }),
-        uid
-          ? supabase
-              .from("profiles")
-              .select("id, full_name, username, avatar_url, headline, connections_count, is_verified")
-              .neq("id", uid)
-              .is("deactivated_at", null)
-              .order("connections_count", { ascending: false, nullsFirst: false })
-              .limit(15)
-          : Promise.resolve({ data: [] as Suggestion[] }),
-      ]);
-      setTopics(((t ?? []) as Topic[]).slice(0, 5));
-      let candidates = ((sug.data ?? []) as Suggestion[]);
-      if (uid && candidates.length > 0) {
-        const { data: fRows } = await supabase.from("follows").select("following_id").eq("follower_id", uid);
-        const followed = new Set((fRows ?? []).map((r) => r.following_id as string));
-        candidates = candidates.filter((c) => !followed.has(c.id));
-      }
-      setPeople(candidates.slice(0, 8));
-    })();
-  }, [supabase]);
+        uid ? supabase.from("profiles").select("id, full_name, username, avatar_url, headline, connections_count, is_verified").neq("id", uid).is("deactivated_at", null).order("connections_count", { ascending: false, nullsFirst: false }).limit(15) : Promise.resolve({ data: [], error: null }),
+        uid ? supabase.from("follows").select("following_id").eq("follower_id", uid) : Promise.resolve({ data: [], error: null }),
+      ]));
+      if (trending.error || suggestions.error || following.error) throw new Error('Discovery unavailable');
+      const followed = new Set((following.data ?? []).map((row: { following_id: string }) => row.following_id));
+      if (active) setResult({ owner: uid, topics: ((trending.data ?? []) as Topic[]).slice(0, 5), people: ((suggestions.data ?? []) as Suggestion[]).filter(person => !followed.has(person.id)).slice(0, 8) });
+    })().catch(() => { if (active) setError('Suggestions could not load. Please try again.'); });
+    return () => { active = false; };
+  }, [supabase, uid, loading, identityError, attempt]);
+  if (identityError || error) return <Panel title="Discover your circles"><p className="text-sm text-muted" role="status">{identityError || error}</p><button type="button" className="mt-2 min-h-11 text-sm font-semibold text-ink" onClick={() => { if (identityError) retryIdentity(); else setAttempt(value => value + 1); }}>Try again</button></Panel>;
+  const topics = result?.owner === uid ? result?.topics ?? [] : [], people = result?.owner === uid ? result?.people ?? [] : [];
 
   return (
     <>
       {topics.length > 0 ? (
-        <Panel title="Trending now" icon={<Flame size={15} />} action="View all" actionHref="/discover">
+        <Panel title="Trending in your circles" icon={<Flame size={15} />} action="View all" actionHref="/discover">
           <div className="flex flex-col gap-0.5">
             {topics.map((t, i) => {
               const tag = t.topic.startsWith("#") ? t.topic : "#" + t.topic;
@@ -69,7 +64,7 @@ export function DiscoveryRail() {
       ) : null}
 
       {people.length > 0 ? (
-        <Panel title="Suggested for you" icon={<UserPlus size={15} />} action="Find people" actionHref="/search">
+        <Panel title="People to follow" icon={<UserPlus size={15} />} action="Find people" actionHref="/search">
           <div className="flex flex-col gap-3">
             {(showAll ? people : people.slice(0, 4)).map((p) => (
               <div key={p.id} className="flex items-center gap-3">

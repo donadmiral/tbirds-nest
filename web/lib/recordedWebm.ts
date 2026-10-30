@@ -4,9 +4,9 @@
  * It is not an editor for uploaded/arbitrary Matroska files. Blob slices keep
  * the encoded video out of the JS heap while rewriting the small header.
  */
-export async function finalizeRecordedWebm(blob: Blob, seconds: number): Promise<Blob> {
+export async function finalizeRecordedWebm(blob: Blob, seconds: number, durationLimit = 180): Promise<Blob> {
   if (!blob.type.includes('webm')) return blob;
-  if (!Number.isFinite(seconds) || seconds <= 0 || seconds > 180) throw new Error('The recorded video duration is invalid.');
+  if (!Number.isFinite(durationLimit) || durationLimit < 1 || durationLimit > 360 || !Number.isFinite(seconds) || seconds <= 0 || seconds > durationLimit) throw new Error('The recorded video duration is invalid.');
   const bytes = new Uint8Array(await blob.slice(0, 65536).arrayBuffer());
   const read = (offset: number, id = false) => {
     let length = 1, mask = 128; while (length <= 8 && !(bytes[offset] & mask)) { length++; mask >>= 1; }

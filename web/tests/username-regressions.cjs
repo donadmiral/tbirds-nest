@@ -25,6 +25,8 @@ const nodes = node => !node || typeof node !== 'object' ? []
   : Array.isArray(node) ? node.flatMap(nodes) : [node, ...nodes(node.props?.children)];
 const text = node => typeof node === 'string' || typeof node === 'number' ? String(node)
   : Array.isArray(node) ? node.map(text).join('') : node?.props ? text(node.props.children) : '';
+const navigationModule = { exports: {} };
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(root, 'web/lib/navigation.ts'), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, { module: navigationModule, exports: navigationModule.exports });
 
 function harness(file, name = 'default', props = {}) {
   const values = [], effects = [], queued = [], timers = new Map();
@@ -80,6 +82,10 @@ function harness(file, name = 'default', props = {}) {
     'next/link': { default: 'Link' },
     '@/lib/supabase/client': { createClient: () => client },
     '@/lib/useUnreadNotifications': { useUnreadNotifications: () => 0 },
+    '@/lib/navigation': navigationModule.exports,
+    './NavigationActions': { NAV_ICONS: new Proxy({}, { get: (_, key) => String(key) }), CreateMenu: 'CreateMenu', MoreMenu: 'MoreMenu' },
+    '@/lib/useViewerIdentity': { useViewerIdentity: () => ({ viewer: user(), loading: false, error: '', retry() {} }) },
+    '@/lib/withTimeout': { withTimeout: work => Promise.resolve(work) },
   };
   const source = process.argv.includes('--baseline')
     ? execFileSync('git', ['show', baseline[file]], { cwd: root, encoding: 'utf8' })
@@ -93,8 +99,8 @@ function harness(file, name = 'default', props = {}) {
     require: id => imports[id] ?? new Proxy({}, { get: (_, key) => String(key) }),
     setTimeout(fn) { const id = ++timer; timers.set(id, fn); return id; }, clearTimeout(id) { timers.delete(id); },
     alert: message => calls.alerts.push(message),
-    window: { localStorage: { getItem: () => null }, scrollTo() {} },
-    document: { documentElement: { classList: { toggle() {} } }, addEventListener() {}, removeEventListener() {} },
+    window: { localStorage: { getItem: () => null }, scrollTo() {}, addEventListener() {}, removeEventListener() {}, matchMedia: () => ({ matches: true }) },
+    document: { documentElement: { classList: { toggle() {}, remove() {} } }, addEventListener() {}, removeEventListener() {} },
   }, { filename: file });
   const render = () => {
     slot = 0;
@@ -125,23 +131,26 @@ for (const username of ['', 'known_member']) {
     const links = nodes(tree).filter(n => n.type === 'Link');
     const destination = username ? '/known_member' : '/settings/username';
     assert.equal(links.find(n => text(n) === 'Profile').props.href, destination);
-    assert.equal(links.find(n => n.props.title === 'Musa Test').props.href, destination);
-    assert.match(text(tree), username ? /@known_member/ : /Set username/);
+    assert.equal(links.find(n => n.props['aria-label'] === 'Your profile' || n.props.title === 'Musa Test').props.href, destination);
+    assert.match(text(tree), username ? /@known_member/ : /Set (your )?username/);
   });
   test(`mobile account menu routes ${username || 'a new account'} correctly`, () => {
     const h = harness('components/TopBar.tsx', 'TopBar', { name: 'Musa Test', username });
-    nodes(h.render()).find(n => n.props?.['aria-label'] === 'Account menu').props.onClick();
-    const tree = h.render(), link = nodes(tree).find(n => n.type === 'Link' && text(n).includes('Your profile'));
+    let tree = h.render();
+    const popover = nodes(tree).find(n => n.type === 'NavigationPopover' && n.props.label === 'Account menu');
+    if (popover) tree = popover.props.children(() => {});
+    else { nodes(tree).find(n => n.props?.['aria-label'] === 'Account menu').props.onClick(); tree = h.render(); }
+    const link = nodes(tree).find(n => n.type === 'Link' && text(n).includes('Your profile'));
     assert.equal(link.props.href, username ? '/known_member' : '/settings/username');
-    assert.match(text(tree), username ? /@known_member/ : /Set username/);
+    assert.match(text(tree), username ? /@known_member/ : /Set username|Your Platinum Circles account/);
   });
 }
 
-test('missing photo and headline lead a new account to username setup', async () => {
+test('profile completion links lead to the editor for the missing field', async () => {
   const h = harness('components/AccountStatus.tsx', 'AccountStatus');
   h.render(); await flush();
-  for (const label of ['Username set', 'Profile photo', 'Headline written']) {
-    assert.equal(nodes(h.render()).find(n => n.type === 'Link' && text(n).includes(label)).props.href, '/settings/username');
+  for (const [label, destination] of [['Username set', '/settings/username'], ['Profile photo', '/settings/profile'], ['Headline written', '/settings/profile']]) {
+    assert.equal(nodes(h.render()).find(n => n.type === 'Link' && text(n).includes(label)).props.href, destination);
   }
 });
 

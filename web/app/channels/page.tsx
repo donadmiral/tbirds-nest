@@ -5,8 +5,12 @@ import { useSocialPages } from "@/lib/useSocialPages";
 import { SocialPageFooter } from "@/components/SocialPageFooter";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Radio, Search, Users, X } from "lucide-react";
+import { Check, Plus, Radio, Search, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+
+import { withTimeout } from "@/lib/withTimeout";
+import { ProductDialog } from "@/components/ProductDialog";
+import styles from "@/components/SocialWorkspace.module.css";
 
 type Ch = { id: string; name: string; description: string | null; icon_url: string | null; member_count: number; is_member: boolean; my_role: string | null; owner_username: string | null };
 
@@ -24,6 +28,7 @@ export default function ChannelsPage() {
   const [cDesc, setCDesc] = useState("");
   const [cAud, setCAud] = useState<"everyone" | "followers">("everyone");
   const [busy, setBusy] = useState(false);
+  const [joining, setJoining] = useState<string | null>(null);
   const [me, setMe] = useState<string | null>(null);
   const account = useRef<string | null>(null);
   const mounted = useRef(true), scope = useRef(0);
@@ -33,11 +38,11 @@ export default function ChannelsPage() {
     mounted.current = true;
     const bind = (id: string | null) => {
       if (!alive) return;
-      if (account.current !== id) { ++scope.current; account.current = id; setCreating(false); setCName(""); setCDesc(""); setBusy(false); setActionError(null); }
+      if (account.current !== id) { ++scope.current; account.current = id; setCreating(false); setCName(""); setCDesc(""); setBusy(false); setJoining(null); setActionError(null); }
       setMe(id);
     };
     const { data: auth } = supabase.auth.onAuthStateChange((_event, session) => { known = true; bind(session?.user.id ?? null); });
-    supabase.auth.getSession().then(({ data, error }) => { if (!known && !error) bind(data.session?.user.id ?? null); }, () => { if (alive && !known) setActionError("Your session could not be loaded. Reload to retry."); });
+    withTimeout(supabase.auth.getSession()).then(({ data, error }) => { if(error) throw error; if (!known) bind(data.session?.user.id ?? null); }).catch(() => { if (alive && !known) setActionError("Your session could not be loaded. Reload to retry."); });
     return () => { alive = false; mounted.current = false; ++scope.current; auth.subscription.unsubscribe(); };
   }, [supabase]);
 
@@ -49,15 +54,15 @@ export default function ChannelsPage() {
   const join = async (ch: Ch) => {
     const key = me + ":join:" + ch.id;
     if (!me || account.current !== me || locks.current.has(key)) return;
-    locks.current.add(key); setActionError(null);
+    locks.current.add(key); setJoining(ch.id); setActionError(null);
     const version = page.version();
     try {
-      const { error } = await supabase.rpc("join_channel", { p_channel: ch.id });
+      const { error } = await withTimeout(supabase.rpc("join_channel", { p_channel: ch.id }));
       if (error) throw error;
       if (version !== page.version()) return;
       await page.reload();
     } catch { if (mounted.current && account.current === me && version === page.version()) setActionError("Could not join this channel. Please try again."); }
-    finally { locks.current.delete(key); }
+    finally { locks.current.delete(key); if (mounted.current && account.current === me) setJoining(null); }
   };
 
   const create = async () => {
@@ -68,7 +73,7 @@ export default function ChannelsPage() {
     locks.current.add(key); setActionError(null);
     setBusy(true);
     try {
-      const { data, error } = await supabase.rpc("create_channel", { p_name: nm, p_description: cDesc.trim() || null, p_audience: cAud });
+      const { data, error } = await withTimeout(supabase.rpc("create_channel", { p_name: nm, p_description: cDesc.trim() || null, p_audience: cAud }));
       if (error) throw error;
       if (!current()) return;
       const id = typeof data === "string" ? data : (data as any)?.id;
@@ -80,85 +85,23 @@ export default function ChannelsPage() {
 
   const chLink = (ch: Ch) => "/channels/" + ch.id;
 
-  return (
-    <main className="mx-auto min-h-screen w-full max-w-[640px] px-4 py-6">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="flex items-center gap-2 text-lg font-semibold text-ink"><Radio size={19} /> Channels</h1>
-        {me ? (
-          <button onClick={() => setCreating(true)} className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-[13px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90"><Plus size={14} /> New channel</button>
-        ) : null}
-      </div>
-      <div className="mb-3 flex gap-2">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-[12.5px] font-semibold text-white"><Radio size={13} /> Channels</span>
-        <Link href="/communities" className="inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-3.5 py-1.5 text-[12.5px] font-semibold text-ink/60 transition-colors duration-[140ms] hover:text-ink"><Users size={13} /> Communities</Link>
-      </div>
-      <div className="mb-4 flex items-center gap-2 rounded-lg bg-ink/5 px-3 py-2 transition-colors duration-[140ms] focus-within:bg-ink/[0.07]">
-        <Search size={15} className="text-muted" />
-        <input value={q} onChange={e => setQ(e.target.value)} aria-label="Search channels" placeholder="Search channels"
-          className="w-full bg-transparent text-[14px] text-ink outline-none placeholder:text-muted" />
-        {q ? <button onClick={() => setQ("")} className="rounded-full p-0.5 transition-colors duration-[140ms] hover:bg-ink/10"><X size={15} className="text-muted" /></button> : null}
-      </div>
-      {actionError ? <p role="alert" className="py-2 text-sm text-danger">{actionError}</p> : null}
-      {loading && rows.length === 0 ? (
-        <p className="py-16 text-center text-sm text-muted">Loading…</p>
-      ) : rows.length === 0 && !page.error ? (
-        <p className="py-16 text-center text-sm text-muted">{q ? "No channels match." : "No channels yet. Create the first one."}</p>
-      ) : (
-        <ul>
-          {rows.map(ch => (
-            <li key={ch.id} className="flex items-center gap-3 border-b border-ink/5 py-3">
-              <Link href={chLink(ch)} className="flex min-w-0 flex-1 items-center gap-3">
-                {ch.icon_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={ch.icon_url} alt="" className="h-11 w-11 rounded-full object-cover" />
-                ) : (
-                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-navy text-white"><Radio size={17} /></span>
-                )}
-                <span className="min-w-0">
-                  <span className="block truncate text-[14.5px] font-semibold text-ink">{ch.name}</span>
-                  <span className="block truncate text-[12.5px] text-muted">
-                    {String(ch.member_count || 0)} {ch.member_count === 1 ? "member" : "members"}
-                    {ch.description ? " · " + ch.description : ""}
-                  </span>
-                </span>
-              </Link>
-              {me && !ch.is_member ? (
-                <button onClick={() => join(ch)} className="rounded-full bg-ink px-3.5 py-1.5 text-[12.5px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90">Join</button>
-              ) : ch.is_member ? (
-                <span className="rounded-full bg-ink/5 px-3.5 py-1.5 text-[12.5px] font-semibold text-muted">Joined</span>
-              ) : null}
-            </li>
-          ))}
-        </ul>
-      )}
-      <SocialPageFooter {...page} />
-      {creating ? (
-        <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/45 sm:items-center" onClick={() => { if (!busy) setCreating(false); }}>
-          <div role="dialog" aria-modal="true" aria-label="New channel" className="w-full max-w-[440px] rounded-t-2xl bg-surface p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
-            <div className="mb-3 flex items-center justify-between">
-              <p className="text-[15px] font-semibold text-ink">New channel</p>
-              <button disabled={busy} onClick={() => setCreating(false)} className="rounded-full p-1.5 text-muted transition-colors duration-[140ms] hover:bg-ink/5 disabled:opacity-40" aria-label="Close"><X size={16} /></button>
-            </div>
-            <input disabled={busy} value={cName} onChange={e => setCName(e.target.value)} maxLength={60} placeholder="Channel name"
-              className="mb-2 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
-            <input disabled={busy} value={cDesc} onChange={e => setCDesc(e.target.value)} maxLength={160} placeholder="What is it about? (optional)"
-              className="mb-3 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
-            <div className="mb-4 flex gap-2">
-              {(["everyone", "followers"] as const).map(k => (
-                <button key={k} disabled={busy} onClick={() => setCAud(k)}
-                  className={"flex-1 rounded-lg border px-3 py-2 text-[13px] font-semibold transition-colors duration-[140ms] " + (cAud === k ? "border-ink bg-black/[0.03] text-ink" : "border-ink/10 text-ink/60")}>
-                  {k === "everyone" ? "Everyone can join" : "My followers"}
-                </button>
-              ))}
-            </div>
-            {actionError ? <p role="alert" className="mb-2 text-sm text-danger">{actionError}</p> : null}
-            <button onClick={create} disabled={!cName.trim() || busy}
-              className="w-full rounded-full bg-ink py-2.5 text-sm font-bold text-white transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">
-              {busy ? "Creating…" : "Create channel"}
-            </button>
-          </div>
-        </div>
-      ) : null}
-    </main>
-  );
+  return <main className={styles.directory}>
+    <header className={styles.heading}><div><h1>Channels</h1><p>Stay close to the voices and updates you care about.</p></div>{me ? <button className={styles.primary} onClick={() => { setActionError(null); setCreating(true); }}><Plus size={18} aria-hidden />New channel</button> : <Link href="/login" className={styles.button}>Sign in to join</Link>}</header>
+    <nav className={styles.tabs} aria-label="Circles"><Link href="/communities"><Users size={17} aria-hidden />Communities</Link><Link href="/channels" aria-current="page"><Radio size={17} aria-hidden />Channels</Link></nav>
+    <div className={styles.toolbar}><div className={styles.search}><Search size={18} aria-hidden /><input value={q} onChange={event => setQ(event.target.value)} aria-label="Search channels" placeholder="Search channels by name or topic" />{q ? <button onClick={() => setQ('')} aria-label="Clear channel search"><X size={17} aria-hidden /></button> : null}</div><span className={styles.hint}>Hosts publish. Members stay connected.</span></div>
+    {actionError && !creating ? <p role="alert" className={styles.error}>{actionError}</p> : null}
+    {loading && !rows.length ? <p role="status" className={styles.empty}>Loading channels…</p> : !rows.length && !page.error ? <section className={styles.empty}><Radio size={30} strokeWidth={1.5} aria-hidden /><h2>{q ? 'No channels found' : 'A direct line to your audience'}</h2><p>{q ? 'Try another name or topic, or clear your search to explore.' : 'Create a channel to share announcements and updates.'}</p>{q ? <button className={styles.button} onClick={() => setQ('')}>Clear search</button> : me ? <button className={styles.primary} onClick={() => setCreating(true)}>Create a channel</button> : null}</section> : <ul className={styles.list}>
+      {rows.map(ch => <li key={ch.id} className={styles.card}><Link href={chLink(ch)} className={styles.cardLink}>{ch.icon_url ? <img src={ch.icon_url} alt="" className={styles.icon} /> : <span className={styles.icon}><Radio size={27} strokeWidth={1.5} aria-hidden /></span>}<div><h2>{ch.name}</h2><span className={styles.meta}>{Number.isFinite(ch.member_count) ? ch.member_count.toLocaleString() : '—'} {ch.member_count === 1 ? 'member' : 'members'}{ch.owner_username ? ' · @' + ch.owner_username : ''}</span>{ch.description ? <p>{ch.description}</p> : null}</div></Link>{ch.is_member ? <span className={styles.status}><Check size={14} aria-hidden />Joined</span> : me ? <button className={styles.button} disabled={!!joining} onClick={() => void join(ch)} aria-label={`Join ${ch.name}`}>{joining === ch.id ? 'Joining…' : 'Join channel'}</button> : null}</li>)}
+    </ul>}
+    <SocialPageFooter {...page} />
+    <ProductDialog open={creating} title="New channel" description="Give your audience a place for announcements. Your draft stays here when you close this window." busy={busy} onClose={() => setCreating(false)}>
+      <form className={styles.form} onSubmit={event => { event.preventDefault(); void create(); }}>
+        <label>Channel name<input autoFocus required disabled={busy} value={cName} onChange={event => setCName(event.target.value)} maxLength={60} placeholder="Give your channel a name" /></label>
+        <label>About this channel<textarea disabled={busy} value={cDesc} onChange={event => setCDesc(event.target.value)} maxLength={160} placeholder="What can members expect?" /><small>{cDesc.length}/160 characters · optional</small></label>
+        <fieldset disabled={busy}><legend>Who can join</legend><div className={styles.choices}>{(['everyone', 'followers'] as const).map(audience => <button type="button" key={audience} onClick={() => setCAud(audience)} aria-pressed={cAud === audience}>{audience === 'everyone' ? 'Everyone' : 'My followers'}</button>)}</div><small>Only hosts and approved collaborators can publish updates.</small></fieldset>
+        {actionError ? <p role="alert" className={styles.error}>{actionError}</p> : null}
+        <footer className={styles.footer}><button type="button" className={styles.button} disabled={busy} onClick={() => setCreating(false)}>Cancel</button><button type="submit" disabled={!cName.trim() || busy} className={styles.primary}>{busy ? 'Creating…' : 'Create channel'}</button></footer>
+      </form>
+    </ProductDialog>
+  </main>;
 }

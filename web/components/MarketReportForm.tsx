@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { ProductDialog } from "@/components/ProductDialog";
+import styles from "@/app/market/MarketWorkspace.module.css";
 import {
   LISTING_REASONS,
   REVIEW_REASONS,
@@ -39,8 +41,9 @@ export function MarketReportForm({
   }, [id, userId, kind]);
   const reasons = kind === "review" ? REVIEW_REASONS : LISTING_REASONS;
   return (
+    <ProductDialog open title={`Report ${kind}`} description="Your identity is hidden from the reported person. Staff can review your report." busy={busy} onClose={onClose}>
     <form
-      className="my-3 rounded-xl border border-ink/15 bg-surface p-4"
+      className={styles.form}
       aria-label={`Report ${kind}`}
       onSubmit={async (event) => {
         event.preventDefault();
@@ -69,11 +72,6 @@ export function MarketReportForm({
         }
       }}
     >
-      <h3 className="font-semibold">Report {kind}</h3>
-      <p className="my-2 text-sm text-muted">
-        Your identity is hidden from the reported person. Staff can review your
-        report.
-      </p>
       {sent ? (
         <p role="status">Report received. Our team can now review it.</p>
       ) : (
@@ -81,6 +79,7 @@ export function MarketReportForm({
           <label className="block text-sm">
             Reason
             <select
+              aria-label="Reason"
               className="mt-1 block w-full rounded-lg border border-ink/20 bg-surface p-3"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
@@ -98,6 +97,7 @@ export function MarketReportForm({
           <label className="mt-3 block text-sm">
             Additional details (optional)
             <textarea
+              aria-label="Additional details (optional)"
               className="mt-1 block w-full rounded-lg border border-ink/20 bg-surface p-3"
               value={detail}
               onChange={(e) => setDetail(e.target.value)}
@@ -114,7 +114,7 @@ export function MarketReportForm({
           <button
             type="submit"
             disabled={busy || !reason}
-            className="mt-3 rounded-lg bg-navy px-4 py-2 text-white disabled:opacity-50"
+            className={styles.primary}
           >
             {busy ? "Sending…" : "Send report"}
           </button>
@@ -122,12 +122,13 @@ export function MarketReportForm({
       )}
       <button
         type="button"
-        className="ml-4 mt-3 underline"
+        className={styles.button}
         onClick={onClose}
         disabled={busy}
       >
         {sent ? "Close" : "Cancel"}
       </button>
     </form>
+    </ProductDialog>
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ActionPopover from '@/components/ActionPopover';
+import AdminIcon from '@/components/AdminIcon';
 import { trayAdd, trayRead, TRAY_EVENT } from '@/lib/share';
 
 export default function ShareMenu({ path, label }: { path: string; label?: string }) {
@@ -61,21 +62,21 @@ export default function ShareMenu({ path, label }: { path: string; label?: strin
 
   return <div className="pc-share-control">
     <ActionPopover label="Share this view" align="start" trigger={<>
-      <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M12 15V3M8 7l4-4 4 4" /></svg>
+      <AdminIcon name="share" size={18} />
       <span>Share</span>{count > 0 ? <span className="pc-share-count">{count}</span> : null}
     </>}>
       {close => <>
         <p className="pc-popover-heading">{page}</p>
-        <button type="button" className="pc-popover-action" disabled={copying} onClick={() => void copyLink(close)}>{copying ? 'Copying…' : 'Copy link to this view'}</button>
-        <button type="button" className="pc-popover-action" onClick={() => { close(); window.print(); }}>Print or save this view as PDF</button>
-        <button type="button" className="pc-popover-action" aria-expanded={noting} onClick={() => setNoting(value => !value)}>Add a note to the presentation</button>
+        <button type="button" className="pc-popover-action" disabled={copying} onClick={() => void copyLink(close)}><AdminIcon name="copy" size={18} />{copying ? 'Copying…' : 'Copy link to this view'}</button>
+        <button type="button" className="pc-popover-action" onClick={() => { close(); window.print(); }}><AdminIcon name="print" size={18} />Print or save this view as PDF</button>
+        <button type="button" className="pc-popover-action" aria-expanded={noting} onClick={() => setNoting(value => !value)}><AdminIcon name="content" size={18} />Add a note to the presentation</button>
         {noting ? <div className="pc-popover-note">
           <label>Presentation note<textarea value={note} onChange={event => setNote(event.target.value)} rows={3} maxLength={10000} autoFocus
             placeholder={'What should the reader take away from ' + page + '?'} /></label>
           <button type="button" className="pc-button pc-button-primary" onClick={() => addNote(close)} disabled={!note.trim()}>Add to presentation</button>
         </div> : null}
         <div className="pc-popover-divider" />
-        <button type="button" className="pc-popover-action" onClick={() => { close(); router.push('/present'); }}>Open presentation builder{count ? ` (${count})` : ''}</button>
+        <button type="button" className="pc-popover-action" onClick={() => { close(); router.push('/present'); }}><AdminIcon name="presentation" size={18} />Open presentation builder{count ? ` (${count})` : ''}</button>
       </>}
     </ActionPopover>
     {flash ? <p role={failure ? 'alert' : 'status'} className="pc-share-feedback" data-error={failure}>{flash}</p> : null}

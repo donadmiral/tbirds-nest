@@ -1,0 +1,103 @@
+{
+  "project": "uaulhuelcfkjwojtymmw",
+  "capturedAt": "2026-10-30T04:10:17.826Z",
+  "preflight": {
+    "buckets": [
+      {
+        "id": "chat-files",
+        "public": false
+      },
+      {
+        "id": "chat-media",
+        "public": false
+      },
+      {
+        "id": "media",
+        "public": false
+      },
+      {
+        "id": "post-media",
+        "public": false
+      },
+      {
+        "id": "story-media",
+        "public": false
+      }
+    ],
+    "functions": [
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "hash": "c0f3550b138e1e1476a345f7094fbed7",
+        "signature": "public.resolve_media_delivery(text,text,text)",
+        "search_path": [
+          "search_path=\"\""
+        ]
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "hash": "725e31f7b81626e606a75618c87c969b",
+        "signature": "public.studio_bind_member(text)",
+        "search_path": [
+          "search_path=\"\""
+        ]
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "hash": "955f1c432cc78baa8af374a1b7764c1b",
+        "signature": "public.studio_role()",
+        "search_path": [
+          "search_path=\"\""
+        ]
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "hash": "47239a4b49b3408379d3314fda0a089a",
+        "signature": "public.studio_set_device(uuid,text)",
+        "search_path": [
+          "search_path=\"\""
+        ]
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "hash": "69d07d257bb8a9c59ae27d7a4e8e79cd",
+        "signature": "public.triniti_admin_provision(uuid,uuid,uuid,text,jsonb,text)",
+        "search_path": [
+          "search_path=\"\""
+        ]
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "hash": "88f2b41f172b80b323ad1b20fdf983db",
+        "signature": "studio_workflow.context(uuid)",
+        "search_path": [
+          "search_path=\"\""
+        ]
+      }
+    ],
+    "data_counts": {
+      "staff": 1,
+      "profiles": 1,
+      "auth_users": 1,
+      "auth_sessions": 13,
+      "storage_objects": 15,
+      "studio_bindings": 0,
+      "business_devices": 0,
+      "business_members": 0,
+      "business_profiles": 0,
+      "pending_provisions": 0
+    },
+    "schema_absent": true,
+    "unfenced_tables": 0,
+    "baseline_matches": true,
+    "protected_tables": 193,
+    "extension_functions": {
+      "digest": true,
+      "random_bytes": true
+    },
+    "request_hook_absent": true,
+    "authenticator_exists": true,
+    "auth_session_timestamp": true,
+    "provider_contracts_absent": true,
+    "unbound_business_sessions": 0
+  }
+}

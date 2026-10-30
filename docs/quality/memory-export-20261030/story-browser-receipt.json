@@ -1,0 +1,227 @@
+{
+  "browser": "156.0.8078.80",
+  "cases": [
+    {
+      "mode": "graded_audio",
+      "bytes": 38596,
+      "mime": "video/webm;codecs=vp9,opus",
+      "codec": "vp9",
+      "width": 1080,
+      "height": 1918,
+      "duration": 1.0636,
+      "encodedVideoEnd": 0.93,
+      "trimmedFirstPixel": [
+        125,
+        0,
+        0
+      ],
+      "hasAudio": true,
+      "audioRms": 0.04886459432635681,
+      "red": [
+        125,
+        0,
+        0
+      ],
+      "blue": [
+        0,
+        0,
+        126
+      ],
+      "tagBefore": [
+        5,
+        253,
+        1
+      ],
+      "tagAfter": [
+        16,
+        34,
+        50
+      ],
+      "gradedImageSticker": [
+        1,
+        127,
+        126
+      ]
+    },
+    {
+      "mode": "muted",
+      "bytes": 23406,
+      "mime": "video/webm;codecs=vp9",
+      "codec": "vp9",
+      "width": 1080,
+      "height": 1918,
+      "duration": 1.1267,
+      "encodedVideoEnd": 0.976,
+      "trimmedFirstPixel": [
+        125,
+        0,
+        0
+      ],
+      "hasAudio": false,
+      "audioRms": null,
+      "red": [
+        125,
+        0,
+        0
+      ],
+      "blue": [
+        0,
+        0,
+        127
+      ],
+      "tagBefore": [
+        6,
+        253,
+        1
+      ],
+      "tagAfter": [
+        16,
+        34,
+        50
+      ],
+      "gradedImageSticker": [
+        1,
+        127,
+        126
+      ]
+    },
+    {
+      "mode": "added_audio",
+      "bytes": 41513,
+      "mime": "video/webm;codecs=vp9,opus",
+      "codec": "vp9",
+      "width": 1080,
+      "height": 1918,
+      "duration": 1.079899,
+      "encodedVideoEnd": 0.943,
+      "trimmedFirstPixel": [
+        125,
+        0,
+        0
+      ],
+      "hasAudio": true,
+      "audioRms": 0.09938651909675017,
+      "red": [
+        125,
+        0,
+        0
+      ],
+      "blue": [
+        0,
+        0,
+        127
+      ],
+      "tagBefore": [
+        6,
+        253,
+        1
+      ],
+      "tagAfter": [
+        16,
+        34,
+        50
+      ],
+      "gradedImageSticker": [
+        1,
+        127,
+        126
+      ]
+    },
+    {
+      "mode": "added_only",
+      "bytes": 41617,
+      "mime": "video/webm;codecs=vp9,opus",
+      "codec": "vp9",
+      "width": 1080,
+      "height": 1918,
+      "duration": 1.0497,
+      "encodedVideoEnd": 0.934,
+      "trimmedFirstPixel": [
+        125,
+        0,
+        0
+      ],
+      "hasAudio": true,
+      "audioRms": 0.08636261006781282,
+      "red": [
+        125,
+        0,
+        0
+      ],
+      "blue": [
+        0,
+        0,
+        127
+      ],
+      "tagBefore": [
+        6,
+        253,
+        1
+      ],
+      "tagAfter": [
+        16,
+        34,
+        50
+      ],
+      "gradedImageSticker": [
+        1,
+        127,
+        126
+      ]
+    },
+    {
+      "mode": "bad_added_audio",
+      "rejected": true
+    },
+    {
+      "mode": "delayed_start",
+      "bytes": 41419,
+      "mime": "video/webm;codecs=vp9,opus",
+      "codec": "vp9",
+      "width": 1080,
+      "height": 1918,
+      "duration": 1.0651,
+      "encodedVideoEnd": 0.98,
+      "trimmedFirstPixel": [
+        125,
+        0,
+        0
+      ],
+      "hasAudio": true,
+      "audioRms": 0.048951858452728716,
+      "red": [
+        125,
+        0,
+        0
+      ],
+      "blue": [
+        0,
+        0,
+        127
+      ],
+      "tagBefore": [
+        6,
+        253,
+        1
+      ],
+      "tagAfter": [
+        16,
+        34,
+        50
+      ],
+      "gradedImageSticker": [
+        1,
+        127,
+        126
+      ]
+    },
+    {
+      "mode": "oversized_final_chunk",
+      "rejected": true
+    },
+    {
+      "mode": "cancelled",
+      "cancelled": true
+    }
+  ]
+}

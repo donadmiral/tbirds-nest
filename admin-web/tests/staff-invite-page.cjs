@@ -41,6 +41,7 @@ async function renderStaff() {
     '@/lib/supabaseAdmin': { serviceClient: () => service },
     '@/lib/actions': { inviteStaff: noWrite, setStaffRole: noWrite, deactivateStaff: noWrite },
     '@/components/CommandForm': { default: 'CommandForm' }, '@/components/PermissionGate': { default: 'PermissionGate' },
+    '@/components/AdminIcon': { default: 'AdminIcon' }, '@/components/StaffRoleGuide': { default: 'StaffRoleGuide' }, '@/components/RefreshDesk': { default: 'RefreshDesk' }, 'next/link': { default: 'Link' },
     '@/components/Shell': { default: 'Shell' }, '@/components/Desk': { Desk: 'Desk', StatStrip: 'StatStrip' },
     '@/components/Viz': { Donut: 'Donut', Empty: 'Empty' }, '@/lib/fmt': load('lib/fmt.ts', {}),
     'next/navigation': { redirect: noWrite },
@@ -58,4 +59,14 @@ test('actual invite page defaults to read-only auditor without removing or reord
   const html = renderToStaticMarkup(select);
   assert.match(html, /<option value="auditor_readonly" selected="">Auditor Readonly<\/option>/);
   assert.doesNotMatch(html, /<option value="super_admin" selected/);
+});
+
+
+test('staff role editor begins with the selected record’s confirmed role and an actor-specific audit link', async () => {
+  const { tree } = await renderStaff();
+  const desk = elements(tree, 'Desk')[0];
+  assert.equal(desk.props.rows[0].actionDefaults.role.role, 'super_admin');
+  assert.equal(desk.props.rows[0].detail.links[0].href, '/audit?actor=fixture-owner');
+  const invite = elements(tree, 'CommandForm').find(form => form.props.scope === 'inviteStaff');
+  assert.equal(invite.props.resetOnSuccess, true);
 });

@@ -1,5 +1,7 @@
 import { storyVideoMime, type StoryVideoRecipe } from '../../shared/storyVideoComposition';
 import { finalizeRecordedWebm } from './recordedWebm';
+import { decodeExportAudio, playExportAudio, type LocalExportAudio } from './videoExportAudio';
+import { fetchStaticExportImage } from './exportImage';
 
 const abortError = () => new Error('Video export was cancelled.');
 function check(signal: AbortSignal) { if (signal.aborted) throw abortError(); }
@@ -22,11 +24,15 @@ export async function captureStoryArtwork(element: HTMLElement, width: number, h
   const clone = element.cloneNode(true) as HTMLElement;
   const sources: Element[] = [element, ...element.querySelectorAll('*')], targets: Element[] = [clone, ...clone.querySelectorAll('*')];
   const assets = new Map<string, Promise<string>>();
-  const inline = (url: string) => {
+  const inline = (url: string, image = true) => {
     const absolute = new URL(url, location.href).href;
-    if (absolute.startsWith('data:')) return Promise.resolve(absolute);
-    let pending = assets.get(absolute);
-    if (!pending) { pending = bounded(fetch(absolute, { signal, credentials: 'same-origin' }).then(response => { if (!response.ok) throw new Error('A story image could not be downloaded for export.'); return response.blob(); }).then(dataURL), signal); assets.set(absolute, pending); }
+    if (!image && absolute.startsWith('data:')) return Promise.resolve(absolute);
+    const key = (image ? 'image:' : 'font:') + absolute;
+    let pending = assets.get(key);
+    if (!pending) {
+      const blob = image ? fetchStaticExportImage(absolute, signal) : fetch(absolute, { signal, credentials: 'same-origin' }).then(response => { if (!response.ok) throw new Error('A story font could not be downloaded for export.'); return response.blob(); });
+      pending = bounded(blob.then(dataURL), signal); assets.set(key, pending);
+    }
     return pending;
   };
   for (let i = 0; i < sources.length; i++) {
@@ -46,6 +52,10 @@ export async function captureStoryArtwork(element: HTMLElement, width: number, h
     if (source instanceof HTMLImageElement && target instanceof HTMLImageElement) { target.src = await inline(source.currentSrc || source.src); target.removeAttribute('srcset'); target.removeAttribute('loading'); }
   }
   clone.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml');
+  // Computed styles include both physical and logical insets. Updating `left`
+  // does not move its CSS declaration after `inset-inline-start`, so the latter
+  // can leave an offscreen capture at -20000px inside the exported SVG.
+  for (const property of ['inset', 'inset-inline', 'inset-block', 'inset-inline-start', 'inset-inline-end', 'inset-block-start', 'inset-block-end']) clone.style.removeProperty(property);
   clone.style.position = 'relative'; clone.style.left = '0'; clone.style.top = '0'; clone.style.margin = '0'; clone.style.transform = 'none'; clone.style.opacity = '1';
   const rect = element.getBoundingClientRect();
   clone.style.width = rect.width + 'px'; clone.style.height = rect.height + 'px';
@@ -56,7 +66,7 @@ export async function captureStoryArtwork(element: HTMLElement, width: number, h
       let css = rule.cssText;
       for (const match of [...css.matchAll(/url\(["']?([^"')]+)["']?\)/g)]) {
         const url = new URL(match[1], sheet.href || location.href).href;
-        css = css.replace(match[0], `url("${await inline(url)}")`);
+        css = css.replace(match[0], `url("${await inline(url, false)}")`);
       }
       fonts += css;
     }
@@ -71,7 +81,7 @@ export async function captureStoryArtwork(element: HTMLElement, width: number, h
   return canvas;
 }
 
-function gradeRenderer(video: HTMLVideoElement, recipe: StoryVideoRecipe) {
+export function createStoryVideoRenderer(video: HTMLVideoElement, recipe: StoryVideoRecipe) {
   const canvas = document.createElement('canvas'); canvas.width = recipe.width; canvas.height = recipe.height;
   const gl = canvas.getContext('webgl', { alpha: true, premultipliedAlpha: false, preserveDrawingBuffer: true });
   if (!gl) throw new Error('Video color export needs WebGL in this browser.');
@@ -92,23 +102,26 @@ function gradeRenderer(video: HTMLVideoElement, recipe: StoryVideoRecipe) {
   return { canvas, draw() { gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); if (gl.getError() !== gl.NO_ERROR) throw new Error('The video pixels could not be read. Check that this media is still available.'); }, dispose() { gl.deleteTexture(texture); gl.deleteBuffer(buffer); shaders.forEach(value => gl.deleteShader(value)); gl.deleteProgram(program); gl.getExtension('WEBGL_lose_context')?.loseContext(); } };
 }
 
-export async function exportStoryVideo(options: { url: string; recipe: StoryVideoRecipe; signal: AbortSignal; capture: () => Promise<{ background: CanvasImageSource; layers: { image: CanvasImageSource; start: number; end: number }[] }>; progress: (message: string) => void }): Promise<{ blob: Blob; extension: 'mp4' | 'webm'; duration: number }> {
+export async function exportStoryVideo(options: { url: string; recipe: StoryVideoRecipe; signal: AbortSignal; localAudio?: LocalExportAudio | null; capture: () => Promise<{ background: CanvasImageSource; layers: { image: CanvasImageSource; start: number; end: number }[] }>; progress: (message: string) => void }): Promise<{ blob: Blob; extension: 'mp4' | 'webm'; duration: number }> {
   const { signal, recipe } = options;
   if (typeof MediaRecorder === 'undefined') throw new Error('Video export is unavailable in this browser. Use a current desktop browser or the new iPhone build.');
   const mime = storyVideoMime(type => MediaRecorder.isTypeSupported(type)); if (!mime) throw new Error('This browser has no supported video export codec.');
   check(signal);
+  if (document.hidden || document.documentElement.dataset.platinumCallActive === 'true') throw new Error('Return to this tab and finish the active call before exporting.');
   const video = document.createElement('video'); video.crossOrigin = 'anonymous'; video.playsInline = true; video.preload = 'auto';
   const canvas = document.createElement('canvas'); canvas.width = recipe.width; canvas.height = recipe.height;
   if (!canvas.captureStream) throw new Error('This browser cannot record the story canvas.');
   const context = canvas.getContext('2d'); if (!context) throw new Error('This browser cannot draw the story canvas.');
   let audio: AudioContext | null = null, audioSource: MediaElementAudioSourceNode | null = null, gain: GainNode | null = null;
-  let renderer: ReturnType<typeof gradeRenderer> | null = null, stream: MediaStream | null = null, recorder: MediaRecorder | null = null;
+  let renderer: ReturnType<typeof createStoryVideoRenderer> | null = null, stream: MediaStream | null = null, recorder: MediaRecorder | null = null;
+  let addedAudio: AudioBuffer | null = null, stopAddedAudio = () => {};
   let frame = 0, watchdog: ReturnType<typeof setTimeout> | null = null, recordedSeconds = 0;
   let recordingCleanup = () => {};
   const chunks: Blob[] = []; let recordedBytes = 0;
   try {
     // Starts within the Save button's user gesture, before any asynchronous capture.
-    if (recipe.volume > 0) { audio = new AudioContext(); await bounded(audio.resume(), signal); }
+    if (recipe.volume > 0 || options.localAudio) { audio = new AudioContext(); await bounded(audio.resume(), signal); }
+    if (options.localAudio && audio) { options.progress('Preparing your export audio…'); addedAudio = await decodeExportAudio(audio, options.localAudio, signal); }
     const metadata = new Promise<void>((resolve, reject) => { video.onloadedmetadata = () => resolve(); video.onerror = () => reject(new Error('The video could not load for export. Its private media link may need refreshing.')); });
     video.src = options.url; video.load(); await bounded(metadata, signal);
     if (!Number.isFinite(video.duration) || video.duration < recipe.trimEnd - .1 || !video.videoWidth || !video.videoHeight) throw new Error('The video duration or dimensions changed. Reopen this draft before exporting.');
@@ -123,10 +136,11 @@ export async function exportStoryVideo(options: { url: string; recipe: StoryVide
     }
     else if (video.readyState < 2) await bounded(new Promise<void>(resolve => { video.onloadeddata = () => resolve(); }), signal);
     options.progress('Preparing story artwork…'); const artwork = await options.capture(); check(signal);
-    renderer = gradeRenderer(video, recipe);
+    renderer = createStoryVideoRenderer(video, recipe);
     const draw = () => { renderer!.draw(); context.clearRect(0,0,recipe.width,recipe.height); context.drawImage(artwork.background,0,0,recipe.width,recipe.height); context.drawImage(renderer!.canvas,0,0); const time = Math.max(0,(video.currentTime-recipe.trimStart)/recipe.speed); for (const layer of artwork.layers) if (time >= layer.start && time < layer.end) context.drawImage(layer.image,0,0,recipe.width,recipe.height); };
     draw(); stream = canvas.captureStream(30);
-    if (audio) { audioSource = audio.createMediaElementSource(video); gain = audio.createGain(); gain.gain.value = recipe.volume; const destination = audio.createMediaStreamDestination(); audioSource.connect(gain); gain.connect(destination); destination.stream.getAudioTracks().forEach(track => stream!.addTrack(track)); video.muted = false; video.volume = 1; }
+    let audioDestination: MediaStreamAudioDestinationNode | null = null;
+    if (audio) { audioSource = audio.createMediaElementSource(video); gain = audio.createGain(); gain.gain.value = recipe.volume; audioDestination = audio.createMediaStreamDestination(); audioSource.connect(gain); gain.connect(audioDestination); audioDestination.stream.getAudioTracks().forEach(track => stream!.addTrack(track)); video.muted = false; video.volume = 1; }
     else video.muted = true;
     recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 7_000_000, audioBitsPerSecond: 128_000 });
     const outputDuration = (recipe.trimEnd-recipe.trimStart)/recipe.speed;
@@ -142,6 +156,7 @@ export async function exportStoryVideo(options: { url: string; recipe: StoryVide
         if (error) reject(error);
         if (ended) return;
         ended = true; recordedSeconds = (performance.now()-started)/1000;
+        stopAddedAudio();
         video.pause(); cancelAnimationFrame(frame);
         if (recorder && recorder.state !== 'inactive') recorder.stop();
       };
@@ -149,8 +164,12 @@ export async function exportStoryVideo(options: { url: string; recipe: StoryVide
       recorder!.onerror = () => stop(new Error('The browser video recorder failed.'));
       recorder!.onstop = () => resolve();
       const abort = () => stop(abortError()), hidden = () => { if (document.hidden) stop(new Error('Keep this tab open while exporting. No file was saved.')); }, mediaError = () => stop(new Error('The source video became unavailable during export.'));
+      const interrupted = () => stop(new Error('The export stopped for a call or another media session. Retry when it has finished.'));
+      const call = new MutationObserver(() => { if (document.documentElement.dataset.platinumCallActive === 'true') interrupted(); });
+      call.observe(document.documentElement, { attributes: true, attributeFilter: ['data-platinum-call-active'] });
+      window.addEventListener('platinum:stop-media', interrupted);
       signal.addEventListener('abort', abort, { once: true }); document.addEventListener('visibilitychange', hidden); video.addEventListener('error', mediaError);
-      recordingCleanup = () => { signal.removeEventListener('abort', abort); document.removeEventListener('visibilitychange', hidden); video.removeEventListener('error', mediaError); };
+      recordingCleanup = () => { call.disconnect(); window.removeEventListener('platinum:stop-media', interrupted); signal.removeEventListener('abort', abort); document.removeEventListener('visibilitychange', hidden); video.removeEventListener('error', mediaError); };
       const tick = () => {
         try {
           check(signal); if (document.hidden) throw new Error('Export paused because this tab was hidden. Keep it open and retry.');
@@ -163,6 +182,7 @@ export async function exportStoryVideo(options: { url: string; recipe: StoryVide
       };
       watchdog = setTimeout(() => stop(new Error('The video stalled during export. Try a shorter clip.')), Math.min(180000, (outputDuration+30)*1000));
       recorder!.start(1000);
+      if (audio && audioDestination && addedAudio && options.localAudio) stopAddedAudio = playExportAudio(audio, audioDestination, addedAudio, options.localAudio);
       // Request the selected first frame before the media clock advances.
       draw();
       const canvasTrack = stream!.getVideoTracks()[0] as CanvasCaptureMediaStreamTrack | undefined;
@@ -179,6 +199,7 @@ export async function exportStoryVideo(options: { url: string; recipe: StoryVide
     cancelAnimationFrame(frame); if (watchdog) clearTimeout(watchdog);
     if (recorder && recorder.state !== 'inactive') recorder.stop();
     stream?.getTracks().forEach(track => track.stop()); video.pause(); video.removeAttribute('src'); video.load();
+    stopAddedAudio();
     audioSource?.disconnect(); gain?.disconnect(); if (audio) await audio.close().catch(() => {}); renderer?.dispose();
   }
 }

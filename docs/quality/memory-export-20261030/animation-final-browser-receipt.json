@@ -1,0 +1,109 @@
+{
+  "browser": "156.0.8078.80",
+  "cases": [
+    {
+      "mode": "static_images",
+      "bytes": 155648,
+      "codec": "vp9",
+      "duration": 7.000799,
+      "dimensions": [
+        720,
+        1280
+      ],
+      "trimmed": [
+        126,
+        0,
+        0
+      ],
+      "first": [
+        237,
+        179,
+        67
+      ],
+      "timed": [
+        26,
+        84,
+        163
+      ],
+      "untimed": [
+        237,
+        179,
+        67
+      ],
+      "red": [
+        126,
+        0,
+        0
+      ],
+      "blue": [
+        0,
+        0,
+        125
+      ],
+      "last": [
+        21,
+        68,
+        92
+      ],
+      "sound": {
+        "before": 0,
+        "during": 0.03532269966904772,
+        "after": 0,
+        "voiceBefore": 0,
+        "voiceAfter": 0,
+        "originalDuring": 0.04990297460061083
+      },
+      "audioClosed": true,
+      "tracksEnded": true
+    },
+    {
+      "mode": "animated_primary",
+      "noPartialDownload": true,
+      "resourcesClosed": true,
+      "rejectedBeforeRecording": true
+    },
+    {
+      "mode": "animated_sticker",
+      "noPartialDownload": true,
+      "resourcesClosed": true,
+      "rejectedBeforeRecording": true
+    },
+    {
+      "mode": "animated_background",
+      "noPartialDownload": true,
+      "resourcesClosed": true,
+      "rejectedBeforeRecording": true
+    },
+    {
+      "mode": "animated_data",
+      "noPartialDownload": true,
+      "resourcesClosed": true,
+      "rejectedBeforeRecording": true
+    },
+    {
+      "mode": "image_inspection_cancel",
+      "noPartialDownload": true,
+      "resourcesClosed": true,
+      "imageReadAborted": true
+    },
+    {
+      "mode": "unsupported_composition",
+      "limits": {
+        "gif": "Memory 1: Animated GIF export is not available yet. Remove the GIF to export this edited video.",
+        "animated": "Memory 1: Animated sticker export is not available yet. Set sticker animations to None to export this edited video.",
+        "nested": "Memory 1: a shared-post card layered over another memory cannot be exported yet. The card will not be left out.",
+        "dual": "Memory 1: dual-camera composition cannot be exported yet. The second camera will not be discarded.",
+        "savedAudio": "Memory 1: saved added audio cannot be verified for movie export. Remove that saved track before exporting.",
+        "soundtrack": "This book has a saved soundtrack whose export rights are unavailable. Remove that soundtrack before making a movie, or keep reading this book.",
+        "missing": "Memory 1: the original media is unavailable. Refresh the book and try again.",
+        "tooMany": "A browser movie can contain up to 30 memories. Create a shorter book before exporting."
+      }
+    },
+    {
+      "mode": "film_entry_exit",
+      "keepsPaused": true,
+      "mobileNoOverflow": true
+    }
+  ],
+  "consoleErrors": []
+}

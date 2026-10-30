@@ -18,13 +18,18 @@ concurrency:
 
 jobs:
   real-browser:
-    name: Admin interactions and encoded video
+    name: Connected app, Studio, admin and encoded movies
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
       PLATINUM_UI_OUTPUT: /tmp/platinum-admin-browser
       PLATINUM_UI_ARTIFACTS: /tmp/platinum-browser-evidence/admin
       STORY_QA_OUTPUT: /tmp/platinum-browser-evidence/video
+      MEMORY_QA_OUTPUT: /tmp/platinum-browser-evidence/memory
+      PLATINUM_SOCIAL_ARTIFACTS: /tmp/platinum-browser-evidence/web
+      PLATINUM_COMMERCE_ARTIFACTS: /tmp/platinum-browser-evidence/commerce
+      PLATINUM_STUDIO_UI_OUTPUT: /tmp/platinum-studio-browser
+      PLATINUM_STUDIO_UI_ARTIFACTS: /tmp/platinum-browser-evidence/studio
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -50,8 +55,18 @@ jobs:
         run: |
           node admin-web/tests/browser/compile.cjs
           node admin-web/tests/browser/run.cjs
+      - name: Exercise public-web navigation, account changes and recovery
+        run: node web/tests/browser/social-run.cjs
+      - name: Exercise jobs, application review, market offers and orders
+        run: node web/tests/browser/commerce-run.cjs
+      - name: Exercise Studio approval, campaign and creator journeys
+        run: |
+          node web/tests/browser/studio-compile.cjs
+          node web/tests/browser/studio-run.cjs
       - name: Export and decode actual graded story video
         run: node web/tests/browser/story-video-export.cjs
+      - name: Export and decode full memory movies and audio mixes
+        run: node web/tests/browser/memory-movie-export.cjs
       - name: Keep synthetic browser evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -61,5 +76,13 @@ jobs:
             /tmp/platinum-browser-evidence/admin/*.png
             /tmp/platinum-browser-evidence/admin/*.json
             /tmp/platinum-browser-evidence/video/*.json
+            /tmp/platinum-browser-evidence/memory/*.json
+            /tmp/platinum-browser-evidence/memory/*.png
+            /tmp/platinum-browser-evidence/web/*.png
+            /tmp/platinum-browser-evidence/web/*.json
+            /tmp/platinum-browser-evidence/commerce/*.png
+            /tmp/platinum-browser-evidence/commerce/*.json
+            /tmp/platinum-browser-evidence/studio/*.png
+            /tmp/platinum-browser-evidence/studio/*.json
           if-no-files-found: ignore
           retention-days: 7

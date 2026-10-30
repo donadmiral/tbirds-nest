@@ -1,0 +1,138 @@
+{
+  "status": "independently reviewed and QA-authorized; hosted apply connector stalled twice; not installed at final read; Edge deployment not started",
+  "capturedAt": "2026-10-30T04:43:37.869814+00:00",
+  "qaProject": "uaulhuelcfkjwojtymmw",
+  "productionChanged": false,
+  "files": [
+    {
+      "path": "supabase/migrations/20261030034752_business_bound_auth_sessions.sql",
+      "sha256": "66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996"
+    },
+    {
+      "path": "supabase/config.toml",
+      "sha256": "e66a370303feb47bba5eb375b2fe5b3c8fb35bde3a4a817a6e9ca2eea6201352"
+    },
+    {
+      "path": "supabase/functions/business-session/handler.ts",
+      "sha256": "bb0eb68831fc5213d985d0348781fde9ded16f72a1cbeeb7a006970eb3ae353f"
+    },
+    {
+      "path": "supabase/functions/business-session/runtime.ts",
+      "sha256": "e80f5b829184acc0dc2071a507c298f6418b64d53e75b37996b1c8ac733dacf9"
+    },
+    {
+      "path": "supabase/functions/_shared/businessSessionGuard.ts",
+      "sha256": "eb9272e639582100a5a9111db9a63f0d36ed85968923556960ddfd1047a28c44"
+    },
+    {
+      "path": "supabase/functions/_shared/serveBusinessRequest.ts",
+      "sha256": "3844186f8839915178b129481c649ca975417228e086fe494f53b4ad9facefed"
+    },
+    {
+      "path": "shared/businessSession.ts",
+      "sha256": "f39514f82377eb8eb3b45f66d0af7703a9a9d86d026b79fa64d7c6289741a655"
+    },
+    {
+      "path": "supabase/ops/check-business-bound-auth-preflight.sql",
+      "sha256": "457a50ae329b5211631bc96d9781de364e41a2a518fc389be0b8cdda071ffe9d"
+    },
+    {
+      "path": "supabase/ops/check-business-bound-auth-postflight.sql",
+      "sha256": "2de5234f98b5df9fe2904033d6c9301b7a35be1c4c19641af0a2735ba6ba9cdb"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/business-auth-fixture.mjs",
+      "sha256": "3d8e005af110ee0a5b53742f8b81d67ccc75b8cc75e975346a4fc420b5be35f7"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/test-business-auth-chain.mjs",
+      "sha256": "c5986e532a19a9212456f1e31c49f57bb03a698a8adb869fcd2844cdfec5345e"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/run-all.mjs",
+      "sha256": "918bf603e188fb7cfa0aa8a738c45931b08fb7726c16e743c8073c7ed2628c91"
+    },
+    {
+      "path": "supabase/tests/business-session.test.cjs",
+      "sha256": "c58ea611b1b9ce45426d3e48ae473b003014eeab6137874178556a4a5c9950ac"
+    },
+    {
+      "path": "tests/daily-call-access.test.cjs",
+      "sha256": "8ba71f9032883a619a9554e635893a60e873e5d8840ecc686b15afb9087d3770"
+    },
+    {
+      "path": "supabase/functions/business-signin/index.ts",
+      "sha256": "9ce1cde6b74e99a5f8545bf3af043160943240c3d1c922b3c5eff7321a4174ba"
+    },
+    {
+      "path": "supabase/functions/business-owner-access/index.ts",
+      "sha256": "417ee201d011b8b59314363d72baa577be0ca266ee62d816342344f6c55a49c0"
+    },
+    {
+      "path": "supabase/functions/daily-get-token/index.ts",
+      "sha256": "31e7f5dfb9b6635f96d2a5231c1cab0436c9c4172778ac10fc4d3402ce5bcb8d"
+    },
+    {
+      "path": "supabase/functions/crisp-bridge/index.ts",
+      "sha256": "3ad65fba3f5aa66becbe0ed3d1df0ede623e2c91edee90380393c7da36b08197"
+    },
+    {
+      "path": "supabase/functions/link-preview/index.ts",
+      "sha256": "ba538924c931d806f4e2421667849e6b597f6e21fb82f60aebda94e3c711797f"
+    },
+    {
+      "path": "supabase/functions/apple-music/index.ts",
+      "sha256": "653b8f5b1be36ab226f48b56c7a4e71136093b8f98f6c525dee903ae42eda22c"
+    },
+    {
+      "path": "supabase/functions/replicate-proxy/index.ts",
+      "sha256": "487ddfd78f4eb098465fe3af9538e789b4ed10a11e9221ebabff732d6b56fbdf"
+    },
+    {
+      "path": "supabase/functions/create-business/index.ts",
+      "sha256": "c3453e54f045688887e8781d43999d4b8d75b7d0e512617a3c3c3fbf86f89581"
+    },
+    {
+      "path": "supabase/functions/_shared/boundedFetch.ts",
+      "sha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147"
+    }
+  ],
+  "edgeEntrypoints": [
+    "business-signin",
+    "business-owner-access",
+    "daily-get-token",
+    "crisp-bridge",
+    "link-preview",
+    "apple-music",
+    "replicate-proxy",
+    "create-business"
+  ],
+  "checks": {
+    "sqlQa": {
+      "passed": 27,
+      "failed": 0
+    },
+    "sqlProductionShape": {
+      "passed": 27,
+      "failed": 0
+    },
+    "edgeProviderAndGuard": {
+      "passed": 21,
+      "failed": 0
+    },
+    "dailyActualEntrypoint": {
+      "passed": 24,
+      "failed": 0
+    },
+    "denoEntrypoints": {
+      "passed": 8,
+      "command": "DENO_TLS_CA_STORE=system,mozilla DENO_DIR=/tmp/platinum-deno-deps /tmp/platinum-deno-2.1.4/deno check --node-modules-dir=none --no-lock <eight listed entrypoints>"
+    }
+  },
+  "limits": [
+    "Local SQL/provider stub checks do not prove hosted Auth or physical-device acceptance.",
+    "No production deployment, identity mutation, privacy cutover, or TestFlight release.",
+    "Native/web business-auth clients are owned and tested by the professional UI lane."
+  ],
+  "qaBlockerEvidence": "docs/quality/studio-workflows-20261030/business-auth-qa-connector-blocker.json"
+}

@@ -97,7 +97,7 @@ for (const platform of ['native', 'web']) test(`${platform} Planner serializes s
   const save = async input => { inputs.push(input); return inputs.length === 1 ? saved.promise : 'draft-one'; };
   const publish = async () => confirmed ? 'post-one' : null;
   const globals = platform === 'native' ? { ...common, canPublish: true, meId: 'owner', currentOwner: { current: 'owner' }, saveStudioDraft: (_, input) => save(input), supabase: { rpc: async () => ({ data: await publish(), error: null }) }, AsyncStorage: {}, randomUUID() {}, setEditId() {}, reset() {}, Alert: { alert: (...message) => alerts.push(message) } }
-    : { ...common, accountId: 'owner', editor: true, d: { content: 'Hello', body: '', media: [], products: [], category: null, community: null, publishAt: '' }, savePost: save, publishNow: publish, setD() {}, empty: () => ({}), alert: message => alerts.push(message) };
+    : { ...common, accountId: 'owner', editor: true, failedUploads: [], d: { content: 'Hello', body: '', media: [], products: [], category: null, community: null, publishAt: '' }, savePost: save, publishNow: publish, setD() {}, empty: () => ({}), setEditorError: message => alerts.push(message) };
   const run = platform === 'native' ? handler('src/screens/studio/StudioScreen.tsx', 'PlannerSeg', 'save', globals) : handler('web/app/studio/planner/page.tsx', 'PlannerPage', 'save', globals);
   const first = run('now'); await run('now'); assert.equal(inputs.length, 1);
   saved.resolve('draft-one'); await first;

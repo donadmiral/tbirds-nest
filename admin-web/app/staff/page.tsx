@@ -11,6 +11,10 @@ import Shell from '@/components/Shell';
 import { Desk, StatStrip, type DeskRow, type Tone } from '@/components/Desk';
 import { Donut, Empty, type Slice } from '@/components/Viz';
 import { fmt, ago } from '@/lib/fmt';
+import Link from 'next/link';
+import AdminIcon from '@/components/AdminIcon';
+import StaffRoleGuide from '@/components/StaffRoleGuide';
+import RefreshDesk from '@/components/RefreshDesk';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,12 +28,12 @@ const ROLES = ['super_admin', 'platform_admin', 'trust_safety', 'support_agent',
 
 
 const IC = {
-  staff: 'M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3zm-8 0c1.7 0 3-1.3 3-3S9.7 5 8 5 5 6.3 5 8s1.3 3 3 3zm0 2c-2.3 0-7 1.2-7 3.5V19h14v-2.5C15 14.2 10.3 13 8 13zm8 0c-.3 0-.6 0-1 .1 1.2.8 2 1.9 2 3.4V19h6v-2.5c0-2.3-4.7-3.5-7-3.5z',
-  check: 'M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z',
-  shield: 'M12 2l8 3v7c0 5-3.4 8.7-8 10-4.6-1.3-8-5-8-10V5l8-3z',
-  x: 'M19 6.4L17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z',
-  gear: 'M12 8a4 4 0 100 8 4 4 0 000-8zm8.6 4a6.6 6.6 0 00-.1-1.1l2-1.6-2-3.4-2.4 1a6.9 6.9 0 00-1.9-1.1L15.8 3h-4l-.4 2.8a6.9 6.9 0 00-1.9 1.1l-2.4-1-2 3.4 2 1.6a6.6 6.6 0 000 2.2l-2 1.6 2 3.4 2.4-1a6.9 6.9 0 001.9 1.1l.4 2.8h4l.4-2.8a6.9 6.9 0 001.9-1.1l2.4 1 2-3.4-2-1.6c.1-.4.1-.7.1-1.1z',
-};
+  staff: 'staff',
+  check: 'check',
+  shield: 'security',
+  x: 'close',
+  gear: 'controls',
+} as const;
 
 const SERIES = ['var(--c1)', 'var(--c2)', 'var(--c3)', 'var(--c4)', 'var(--c5)', 'var(--c6)'];
 
@@ -117,10 +121,11 @@ export default async function StaffPage() {
           { label: 'Last sign in', value: seen ? new Date(seen).toLocaleString() : 'never signed in' },
           { label: 'User id', value: s.user_id },
         ],
-        links: [{ label: 'Their audit trail', href: '/audit' }],
+        links: [{ label: 'Their audit trail', href: '/audit?actor=' + encodeURIComponent(s.user_id) }],
       },
       actions: isYou ? ['role'] : (s.active ? ['role', 'deactivate'] : ['role']),
       actionId: s.user_id,
+      actionDefaults: { role: { role: s.role } },
     };
   });
 
@@ -133,23 +138,24 @@ export default async function StaffPage() {
   ];
 
   return (
-    <Shell admin={admin} active="/staff" title="Staff" sub="Manage operations access, role permissions and recorded staff activity.">
+    <Shell admin={admin} active="/staff" title="Staff & access" sub="Manage operations access, role permissions and recorded staff activity." pageActions={<><RefreshDesk /><StaffRoleGuide /><Link href="#staff-invite" className="pc-button pc-button-primary"><AdminIcon name="plus" size={18} />Add staff member</Link></>}>
       <StatStrip cards={cards} />
 
-      <div className="mt-4" style={PANEL}>
+      <section id="staff-invite" tabIndex={-1} className="pc-anchor pc-staff-invite mt-4" style={PANEL}>
         <div style={HEAD}>
-          <div style={H_TITLE}>Invite an administrator</div>
-          <div style={H_SUB}>A deactivated shell profile is created automatically, so staff never appear in the social graph</div>
+          <h2 style={{ ...H_TITLE, margin: 0 }}>Add a staff member</h2>
+          <div style={H_SUB}>Create a staff login and choose the access it needs. New staff profiles stay outside the social graph.</div>
         </div>
-        <PermissionGate role={admin.role} permission="staff_manage"><CommandForm scope="inviteStaff" action={inviteStaff} style={{ display: 'flex', flexWrap: 'wrap', gap: 9, padding: 16 }}>
-          <input name="email" type="email" aria-label="Staff email" required placeholder="Email" style={{ ...FIELD, flex: '1 1 220px', minWidth: 200 }} />
-          <input name="password" type="password" autoComplete="new-password" aria-label="Temporary password, at least 12 characters" required minLength={12} placeholder="Temporary password, 12 characters or more" style={{ ...FIELD, flex: '1 1 240px', minWidth: 220 }} />
-          <select name="role" aria-label="Staff role" defaultValue="auditor_readonly" style={{ ...FIELD, cursor: 'pointer' }}>
+        <PermissionGate role={admin.role} permission="staff_manage"><CommandForm scope="inviteStaff" action={inviteStaff} resetOnSuccess style={{ display: 'flex', flexWrap: 'wrap', gap: 14, padding: 20 }}>
+          <label className="pc-staff-field">Staff email<input name="email" type="email" autoComplete="off" aria-label="Staff email" required placeholder="name@company.com" style={FIELD} /></label>
+          <label className="pc-staff-field">Temporary password<input name="password" type="password" autoComplete="new-password" aria-label="Temporary password, at least 12 characters" required minLength={12} placeholder="12 characters or more" style={FIELD} /></label>
+          <label className="pc-staff-field">Staff role<select name="role" aria-label="Staff role" defaultValue="auditor_readonly" style={{ ...FIELD, cursor: 'pointer' }}>
             {ROLES.map(r => <option key={r} value={r}>{title(r)}</option>)}
-          </select>
-          <button type="submit" style={{ padding: '9px 16px', borderRadius: 9, cursor: 'pointer', fontSize: 13, fontWeight: 600, background: 'var(--accent)', color: 'var(--accent-ink)', border: 'none' }}>Invite</button>
+          </select></label>
+          <button type="submit" className="pc-button pc-button-primary" style={{ alignSelf: 'end' }}>Create staff account</button>
+          <p className="pc-staff-form-help">New accounts start with read-only access unless you choose another role. This creates the login; it does not send an invitation email.</p>
         </CommandForm></PermissionGate>
-      </div>
+      </section>
 
       <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_320px]">
         <div>
@@ -164,8 +170,8 @@ export default async function StaffPage() {
             minWidth={860}
             pageSize={12}
             actions={[
-              { key: 'role', label: 'Set role', tone: 'neutral', action: setStaffRole, idName: 'uid', inputs: [{ name: 'role', options: ROLES }] },
-              { key: 'deactivate', label: 'Deactivate and withdraw the keys', tone: 'bad', action: deactivateStaff, idName: 'uid' },
+              { key: 'role', label: 'Save role', tone: 'neutral', action: setStaffRole, idName: 'uid', inputs: [{ name: 'role', label: 'Staff role', options: ROLES, help: 'The current role is selected. Review access before changing it. Saving a role also enables the staff account.' }] },
+              { key: 'deactivate', label: 'Deactivate staff access', tone: 'bad', action: deactivateStaff, idName: 'uid' },
             ]}
           />
         </div>
@@ -174,7 +180,7 @@ export default async function StaffPage() {
           <div style={PANEL}>
             <div style={HEAD}>
               <div style={H_TITLE}>Roles in use</div>
-              <div style={H_SUB}>admin_users.role</div>
+              <div style={H_SUB}>Assigned access across staff accounts</div>
             </div>
             <div style={{ padding: 16 }}>
               {roleSlices.length === 0 ? <Empty note="No staff on file." /> : <Donut slices={roleSlices} centerLabel="staff" size={148} />}

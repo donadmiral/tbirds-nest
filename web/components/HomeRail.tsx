@@ -12,43 +12,49 @@
  * calm and a rail of zeroes reads as broken.
  */
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { Eye, Heart, PenLine, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { DiscoveryRail } from "@/components/DiscoveryRail";
 import { Panel } from "@/components/ui";
+import { useViewerIdentity } from "@/lib/useViewerIdentity";
+import { withTimeout } from "@/lib/withTimeout";
 
 type Activity = { posts: number; views: number; engagement: number; followers: number };
 
 function YourActivity() {
   const supabase = useRef(createClient()).current;
-  const [a, setA] = useState<Activity | null>(null);
+  const { viewer, loading, error: identityError, retry: retryIdentity } = useViewerIdentity();
+  const uid = viewer?.id ?? null;
+  const [result, setResult] = useState<{ owner: string; activity: Activity } | null>(null);
+  const [error, setError] = useState(''), [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    (async () => {
-      const { data: sess } = await supabase.auth.getSession();
-      const uid = sess.session?.user.id;
-      if (!uid) return;
+    let active = true;
+    setResult(null); setError('');
+    if (!uid || loading) return;
+    void (async () => {
       const since = new Date(Date.now() - 7 * 86400000).toISOString();
-
-      // Counts only, no rows pulled back: head:true makes each of these a
-      // count query rather than a fetch.
-      const [posts, mine, followers] = await Promise.all([
+      const [posts, mine, followers] = await withTimeout(Promise.all([
         supabase.from("posts").select("id", { count: "exact", head: true }).eq("user_id", uid).gte("created_at", since),
         supabase.from("posts").select("likes_count, comments_count, views_count").eq("user_id", uid).gte("created_at", since),
         supabase.from("follows").select("follower_id", { count: "exact", head: true }).eq("following_id", uid).gte("created_at", since),
-      ]);
-
+      ]));
+      if (posts.error || mine.error || followers.error || posts.count === null || followers.count === null) throw new Error('Activity unavailable');
       const rows = (mine.data ?? []) as { likes_count: number | null; comments_count: number | null; views_count: number | null }[];
-      setA({
-        posts: posts.count ?? 0,
+      // A server row cap must not turn a partial total into an apparently exact metric.
+      if (rows.length !== posts.count) throw new Error('Activity total was incomplete');
+      if (active) setResult({ owner: uid, activity: {
+        posts: posts.count,
         views: rows.reduce((n, r) => n + (r.views_count ?? 0), 0),
         engagement: rows.reduce((n, r) => n + (r.likes_count ?? 0) + (r.comments_count ?? 0), 0),
-        followers: followers.count ?? 0,
-      });
-    })();
-  }, [supabase]);
+        followers: followers.count,
+      } });
+    })().catch(() => { if (active) setError('Your activity could not load.'); });
+    return () => { active = false; };
+  }, [supabase, uid, loading, attempt]);
 
+  if (identityError || error) return <Panel title="Your activity"><p className="text-sm text-muted" role="status">{identityError || error}</p><button type="button" className="mt-2 min-h-11 text-sm font-semibold text-ink" onClick={() => { if (identityError) retryIdentity(); else setAttempt(value => value + 1); }}>Try again</button></Panel>;
+  const a = result?.owner === uid ? result?.activity : null;
   if (!a || (a.posts === 0 && a.views === 0 && a.engagement === 0 && a.followers === 0)) return null;
 
   const cells = [

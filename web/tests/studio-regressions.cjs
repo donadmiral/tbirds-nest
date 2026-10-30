@@ -26,6 +26,12 @@ function harness(file, rpc) {
     if (id === '@/lib/supabase/client') return { createClient: () => client };
     if (id === '@/components/StudioShell') return { useStudio: () => ({ me: { role: 'owner' } }) };
     if (id === '@/lib/studio') return { can: () => true };
+    if (id === '@/lib/useUploadPreview') return { useUploadPreview: value => ({ preview: value, error: null, retry() {} }) };
+    if (id === '@/lib/studioPresentation') {
+      const mod={exports:{}};
+      vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../lib/studioPresentation.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,{module:mod,exports:mod.exports,URL});
+      return mod.exports;
+    }
     if (id === '@/lib/profileLookup') {
       const mod={exports:{}};
       vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../lib/profileLookup.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{module:mod,exports:mod.exports});

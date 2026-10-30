@@ -4,8 +4,9 @@ import { useRef, useState, type ComponentProps } from 'react';
 type Props = Omit<ComponentProps<'form'>, 'action' | 'onSubmit'> & {
   action: (data: FormData) => unknown | Promise<unknown>;
   scope: string;
+  resetOnSuccess?: boolean;
 };
-export default function CommandForm({ action, scope, children, ...props }: Props) {
+export default function CommandForm({ action, scope, resetOnSuccess = false, children, ...props }: Props) {
   const pending = useRef(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -19,6 +20,7 @@ export default function CommandForm({ action, scope, children, ...props }: Props
     if (submitter?.name) data.set(submitter.name, submitter.value);
     pending.current = true; setBusy(true); setError(''); setMessage('');
     try {
+      if (navigator.onLine === false) throw new Error('You are offline. Your changes are still here. Reconnect and try again.');
       const pairs = [...data.entries()].filter(([name]) => name !== 'command_key' && !/password|secret|token/i.test(name)).sort(([a], [b]) => a.localeCompare(b));
       if (pairs.some(([, value]) => typeof value !== 'string')) throw new Error('File uploads are not supported by this form.');
       const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify([window.location.pathname, scope, pairs])));
@@ -34,14 +36,18 @@ export default function CommandForm({ action, scope, children, ...props }: Props
       if (result && typeof result === 'object' && 'success' in result && result.success === false) {
         throw new Error('error' in result && typeof result.error === 'string' ? result.error : 'The change was not confirmed. Retry the same details.');
       }
-      if (result && typeof result === 'object' && 'message' in result && typeof result.message === 'string') setMessage(result.message);
+      if (result && typeof result === 'object' && 'success' in result && result.success === true) {
+        setMessage('message' in result && typeof result.message === 'string' ? result.message : 'Changes saved.');
+        if (resetOnSuccess) form.reset();
+      } else if (result && typeof result === 'object' && 'message' in result && typeof result.message === 'string') setMessage(result.message);
       if (localStorage.getItem(storageKey) === key) localStorage.removeItem(storageKey);
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : 'The change was not confirmed. Retry the same details.');
     } finally { pending.current = false; setBusy(false); }
   }}>
     <fieldset disabled={busy} style={{ border: 0, padding: 0, margin: 0, minWidth: 0, display: 'contents' }}>{children}</fieldset>
-    {message && <p role="status" style={{ fontSize: 13 }}>{message}</p>}
-    {error && <p role="alert" style={{ color: 'var(--bad)', fontSize: 13 }}>{error}</p>}
+    {busy && <p role="status" className="pc-command-feedback">Saving changes…</p>}
+    {message && <p role="status" className="pc-command-feedback pc-command-success">{message}</p>}
+    {error && <p role="alert" className="pc-command-feedback pc-command-error">{error}</p>}
   </form>;
 }

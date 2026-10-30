@@ -2,7 +2,7 @@
 
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Search, Send, FileText, Tag, Wallet, Paperclip, Mic, Square, Phone } from "lucide-react";
+import { ArrowLeft, Camera, Info, Mail, MoreHorizontal, Search, Send, FileText, Tag, Wallet, Paperclip, Mic, Square, Phone, SquarePen, UserRound, Video, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { loadConversations, type Conv, type Msg } from "@/lib/messages";
@@ -22,6 +22,10 @@ import { acknowledgeConversationRead, canMarkConversationRead } from "../../shar
 import { GifPicker } from "@/components/GifPicker";
 import { parseStoryMessageReference } from "../../shared/storyMessageReference";
 import { RichText } from "@/components/RichText";
+import { NewMessageDialog } from "@/components/NewMessageDialog";
+import { withTimeout } from "@/lib/withTimeout";
+import { profilePath } from "@/lib/profileLookup";
+import workspace from "./MessagesWorkspace.module.css";
 
 const PRIVATE_MEDIA_SESSIONS_ENABLED = process.env.NEXT_PUBLIC_PRIVATE_MEDIA_SESSIONS_ENABLED === 'true';
 
@@ -33,7 +37,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const [isNarrow, setIsNarrow] = useState(false);
   useEffect(() => { const mq = window.matchMedia("(max-width: 767px)"); const apply = () => setIsNarrow(mq.matches); apply(); mq.addEventListener("change", apply); return () => mq.removeEventListener("change", apply); }, []);
   const compact = compactProp || isNarrow;
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const cameraRef = useRef<HTMLInputElement | null>(null);
   const [shareDetails,setShareDetails] = useState<"contact"|"location"|null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
@@ -85,6 +89,8 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const [attachmentDraft, setAttachmentDraft] = useState<File | null>(null);
   const [draft, setDraft] = useState("");
   const [query, setQuery] = useState("");
+  const [newMessageOpen, setNewMessageOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(true);
   // Chats holds people and plain groups; a community's chat lives under Groups, labelled, the same as on the phone.
   const [tab, setTab] = useState<"chats" | "groups" | "unread">("chats");
   const [offers, setOffers] = useState<Record<string, OfferLive>>({});
@@ -116,12 +122,12 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     if (!compact || !active) return;
     const vv = window.visualViewport; const el = surfaceRef.current; if (!vv || !el) return;
     // iOS ignores overflow hidden; the only lock it honours is pinning the body in place, restored exactly on close.
-    const body = document.body; const y = window.scrollY; const prev = { position: body.style.position, top: body.style.top, width: body.style.width, overflow: body.style.overflow, overscroll: (body.style as any).overscrollBehavior };
-    body.style.position = 'fixed'; body.style.top = (-y) + 'px'; body.style.width = '100%'; body.style.overflow = 'hidden'; (body.style as any).overscrollBehavior = 'none';
+    const body = document.body; const y = window.scrollY; const prev = { position: body.style.position, top: body.style.top, width: body.style.width, overflow: body.style.overflow, overscroll: body.style.overscrollBehavior };
+    body.style.position = 'fixed'; body.style.top = (-y) + 'px'; body.style.width = '100%'; body.style.overflow = 'hidden'; body.style.overscrollBehavior = 'none';
     let raf = 0;
     const apply = () => { debugCounts.current.resize++; el.style.height = vv.height + 'px'; el.style.top = vv.offsetTop + 'px'; cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (pinnedRef.current) scrollToEnd(); }); };
     apply(); vv.addEventListener('resize', apply);
-    return () => { vv.removeEventListener('resize', apply); cancelAnimationFrame(raf); body.style.position = prev.position; body.style.top = prev.top; body.style.width = prev.width; body.style.overflow = prev.overflow; (body.style as any).overscrollBehavior = prev.overscroll; window.scrollTo(0, y); el.style.height = ''; el.style.top = ''; };
+    return () => { vv.removeEventListener('resize', apply); cancelAnimationFrame(raf); body.style.position = prev.position; body.style.top = prev.top; body.style.width = prev.width; body.style.overflow = prev.overflow; body.style.overscrollBehavior = prev.overscroll; window.scrollTo(0, y); el.style.height = ''; el.style.top = ''; };
   }, [compact, active?.id]);
   useEffect(() => {
     const el = listRef.current; if (!el) return;
@@ -143,6 +149,14 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const streamRef = useRef<MediaStream | null>(null);
   const recTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   activeRef.current = active;
+
+  useEffect(() => {
+    if (!compact || !active || typeof document.querySelectorAll !== 'function') return;
+    const chrome = Array.from(document.querySelectorAll<HTMLElement>('[data-app-chrome]'));
+    const previous = chrome.map(element => ({ element, inert: element.inert }));
+    previous.forEach(({ element }) => { element.inert = true; });
+    return () => { previous.forEach(({ element, inert }) => { element.inert = inert; }); };
+  }, [compact, active?.id]);
 
   const markVisibleRead = useCallback(async () => {
     const c = activeRef.current, userId = uidRef.current, account = accountGeneration.current;
@@ -312,6 +326,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       const nextId = session?.user.id ?? null;
       if (_event === 'SIGNED_OUT' && uidRef.current) clearOutbox(uidRef.current);
       if (uidRef.current !== nextId) {
+        setNewMessageOpen(false);
         ++accountGeneration.current;
         ++uploadGeneration.current;
         uploadPending.current = false;
@@ -708,11 +723,11 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const typingLine = otherTyping ? <p className="text-[12px] text-accent">typing…</p> : null;
 
   const convButton = (c: Conv) => (
-    <div key={c.id} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); void openConv(c); } }}
+    <button key={c.id} type="button" aria-pressed={active?.id === c.id} aria-label={`Open conversation with ${c.title}`}
       onClick={() => openConv(c)}
       className={"flex w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-[140ms] " + (active?.id === c.id ? "bg-surface-elevated" : "hover:bg-surface")}
     >
-      <StoryAvatar userId={c.other_id} name={c.title} avatarUrl={c.avatar} size={44} />
+      {c.avatar ? <img src={c.avatar} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" /> : <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-surface text-sm font-semibold">{c.title.slice(0,1).toUpperCase()}</span>}
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline justify-between gap-2">
           <span className="flex min-w-0 items-baseline gap-1.5">
@@ -726,7 +741,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
           {c.unread > 0 ? <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-pearl px-1.5 text-[11px] font-bold text-on-pearl">{c.unread}</span> : null}
         </span>
       </span>
-    </div>
+    </button>
   );
 
   const composer = (
@@ -747,19 +762,19 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       {notice ? <p role="status" className="mb-2 text-sm text-ink">{notice}</p> : null}
       {editing || replyTo ? <div className="mb-2 flex items-center justify-between gap-3 rounded-md bg-surface p-2 text-sm text-ink"><span className="truncate">{editing ? 'Editing message' : 'Replying to: ' + (replyTo?.text || 'Attachment')}</span><button type="button" onClick={() => { if (editing) setDraft(active ? drafts.current.get(active.id) || '' : ''); setEditing(null); setReplyTo(null); }}>Cancel</button></div> : null}
       {forwarding ? <div className="mb-2 rounded-md bg-surface p-3 text-sm text-ink"><div className="flex justify-between"><strong>Forward to</strong><button type="button" disabled={!!busyMessage} onClick={() => setForwarding(null)}>Cancel</button></div><div className="mt-2 max-h-40 overflow-y-auto">{convs.filter(c => c.id !== active?.id && !c.request_pending).map(c => <button type="button" key={c.id} disabled={!!busyMessage} className="block w-full rounded px-2 py-2 text-left hover:bg-surface-elevated" onClick={() => { if (uid) void runMessageAction(forwarding, async () => { await forwardMessage(supabase, forwarding, c, uid); if (activeRef.current?.id === forwarding.conversation_id) { setForwarding(null); setNotice('Forwarded to ' + c.title + '.'); } }); }}>{c.title}</button>)}{convs.filter(c => c.id !== active?.id && !c.request_pending).length === 0 ? <p>No other conversations available.</p> : null}</div></div> : null}
-    <div className="flex items-end gap-2">
-      <button onClick={() => fileRef.current?.click()} disabled={sendingFile || sending || !!editing} title="Attach" aria-label="Attach a file" className="rounded-md p-2.5 text-muted transition-colors duration-[140ms] hover:bg-surface hover:text-accent disabled:opacity-40">
+    <div className={workspace.composer} data-recording={recording}>
+      <button onClick={() => fileRef.current?.click()} disabled={sendingFile || sending || !!editing || recording} title="Attach" aria-label="Attach a file" className="rounded-md p-2.5 text-muted transition-colors duration-[140ms] hover:bg-surface hover:text-accent disabled:opacity-40">
         <Paperclip size={18} />
       </button>
-      <button type="button" title="Take a photo or video" onClick={()=>cameraRef.current?.click()} disabled={sendingFile||sending||!!editing} className="p-2 text-muted" aria-label="Camera">Camera</button>
+      <button type="button" title="Take a photo or video" onClick={()=>cameraRef.current?.click()} disabled={sendingFile||sending||!!editing||recording} className="p-2 text-muted" aria-label="Camera"><Camera size={18} aria-hidden /></button>
       <input ref={cameraRef} type="file" accept="image/*,video/*" capture="environment" hidden onChange={e=>attach(e.target.files)}/>
-      <details className="relative"><summary className="cursor-pointer p-2 text-muted" aria-label="More attachments">More</summary><div className="absolute bottom-full left-0 z-20 min-w-36 rounded-lg bg-surface-elevated p-2 text-ink shadow-lg"><button type="button" disabled={sending || sendingFile || !!editing || recording} onClick={() => setGifMode('gifs')} className="block w-full rounded p-2 text-left disabled:opacity-40">GIFs</button><button type="button" disabled={sending || sendingFile || !!editing || recording} onClick={() => setGifMode('stickers')} className="block w-full rounded p-2 text-left disabled:opacity-40">Stickers</button><button type="button" onClick={()=>setShareDetails('contact')} className="block p-2">Contact</button><button type="button" onClick={()=>setShareDetails('location')} className="block p-2">Location</button></div></details>
+      <details className="relative"><summary className="cursor-pointer p-2 text-muted" aria-label="More attachments"><MoreHorizontal size={20} aria-hidden /></summary><div className="absolute bottom-full left-0 z-20 min-w-36 rounded-lg bg-surface-elevated p-2 text-ink shadow-lg"><button type="button" disabled={sending || sendingFile || !!editing || recording} onClick={() => setGifMode('gifs')} className="block w-full rounded p-2 text-left disabled:opacity-40">GIFs</button><button type="button" disabled={sending || sendingFile || !!editing || recording} onClick={() => setGifMode('stickers')} className="block w-full rounded p-2 text-left disabled:opacity-40">Stickers</button><button type="button" onClick={()=>setShareDetails('contact')} className="block p-2">Contact</button><button type="button" onClick={()=>setShareDetails('location')} className="block p-2">Location</button></div></details>
       <input ref={fileRef} type="file" hidden onChange={(e) => attach(e.target.files)} />
       {recording ? (
-        <span className="flex items-center gap-2">
+        <span className={workspace.recordingControls}>
           <span className="text-[13px] font-semibold text-danger">{Math.floor(recSecs / 60)}:{String(recSecs % 60).padStart(2, "0")}</span>
           <button onClick={() => stopRecording(false)} title="Cancel" className="rounded-md bg-surface px-2.5 py-2 text-[12px] text-ink transition-colors duration-[140ms] hover:bg-surface-elevated">Cancel</button>
-          <button onClick={() => stopRecording(true)} title="Send voice note" className="rounded-md bg-danger p-2.5 text-white transition-opacity duration-[140ms] hover:opacity-90"><Square size={16} /></button>
+          <button onClick={() => stopRecording(true)} title="Send voice note" aria-label="Send voice note" className="rounded-md bg-danger p-2.5 text-white transition-opacity duration-[140ms] hover:opacity-90"><Square size={16} /></button>
         </span>
       ) : (
         <button onClick={startRecording} disabled={sendingFile || sending || !!editing} title="Voice message" aria-label="Record a voice message" className="rounded-md p-2.5 text-muted transition-colors duration-[140ms] hover:bg-surface hover:text-accent disabled:opacity-40"><Mic size={18} /></button>
@@ -772,7 +787,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
         rows={1}
         className="max-h-32 min-w-0 flex-1 resize-none rounded-md bg-surface px-4 py-2.5 text-[16px] sm:text-[14px] text-ink placeholder:text-muted outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
       />
-      <button onClick={send} disabled={!draft.trim() || sending} className="rounded-md bg-pearl p-2.5 text-on-pearl transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-30" title="Send">
+      <button onClick={send} disabled={!draft.trim() || sending} className="rounded-md bg-pearl p-2.5 text-on-pearl transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-30" title="Send" aria-label="Send message">
         <Send size={18} />
       </button>
     </div>
@@ -783,12 +798,31 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const pinnedBanner = pinnedMessage ? <div className="mt-2 flex items-center gap-2 rounded-md bg-surface p-2 text-sm text-ink"><span className="min-w-0 flex-1 truncate">Pinned · {pinnedMessage.text || "Attachment"}</span><button type="button" disabled={!!busyMessage} onClick={() => messageActions.pin(pinnedMessage)}>Unpin</button></div> : null;
   const inboxError = conversationError ? <div role="alert" className="p-4 text-sm text-ink">{conversationError}<button type="button" className="ml-2 underline" onClick={() => void loadInbox()}>Try again</button></div> : null;
 
+  const newConversation = async (id: string) => {
+    const account = accountGeneration.current, owner = uidRef.current;
+    if (!owner) throw new Error('Sign in to start a conversation.');
+    const list = await withTimeout(loadConversations(owner, context));
+    if (!componentLive.current || account !== accountGeneration.current || uidRef.current !== owner) return;
+    const conversation = list.find(item => item.id === id);
+    if (!conversation) throw new Error('The conversation is not available yet. Please try again.');
+    setConvs(list); await openConv(conversation);
+  };
+  const newMessageDialog = uid && context === 'personal' ? <NewMessageDialog open={newMessageOpen} ownerId={uid} onClose={() => setNewMessageOpen(false)} onOpen={newConversation} /> : null;
+  const inboxHeader = <div className={workspace.inboxHeader}>
+    <div className={workspace.title}><h1>{heading}</h1>{context === 'personal' && uid ? <button className={workspace.iconButton} onClick={() => setNewMessageOpen(true)} aria-label="New message"><SquarePen size={19} strokeWidth={1.75} aria-hidden /></button> : null}</div>
+    {context === 'personal' ? <nav className={workspace.inboxLinks} aria-label="Message destinations"><Link href="/messages/requests"><Mail size={14} aria-hidden />Requests</Link><Link href="/calls"><Phone size={14} aria-hidden />Calls</Link></nav> : null}
+    <div className={workspace.search}><Search size={16} aria-hidden /><input value={query} onChange={event => setQuery(event.target.value)} aria-label="Search conversations" placeholder="Search messages" /></div>
+    {context === 'personal' ? <div className={workspace.tabs} aria-label="Filter conversations">{(['chats','groups','unread'] as const).map(kind => <button type="button" key={kind} aria-pressed={tab === kind} onClick={() => setTab(kind)}>{kind === 'chats' ? 'Chats' : kind === 'groups' ? 'Groups' : 'Unread'}</button>)}</div> : null}
+  </div>;
+  const sharedMedia = msgs.filter(message => !message.view_limit && !message.deleted_at && message.media_url && ['image','video','file','document','audio'].includes(message.media_type || '')).slice(-12);
+
   if (compact) {
     return (
-      <div ref={surfaceRef} className={active ? "fixed left-0 top-0 z-[70] flex h-[100dvh] w-full touch-none flex-col overflow-hidden bg-surface-elevated text-ink px-3 pt-[max(env(safe-area-inset-top),8px)]" : "flex h-[calc(100dvh-96px)] min-h-[70vh] flex-col px-1"}>
+      <div ref={surfaceRef} className={active ? workspace.compactConversation + " fixed left-0 top-0 z-[70] flex h-[100dvh] w-full touch-none flex-col overflow-hidden text-ink px-3 pt-[max(env(safe-area-inset-top),8px)] pb-[max(env(safe-area-inset-bottom),8px)]" : workspace.compactInbox}>
+        {newMessageDialog}
         {!active ? (
           <>
-            <h1 className="mb-3 font-display text-xl text-porcelain">{heading}</h1>
+            {inboxHeader}
             {inboxError}
             {loadingConvs ? (
               <p className="py-12 text-center text-sm text-muted">Loading</p>
@@ -802,15 +836,15 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
           <>
             <header className="border-b border-ink/10 pb-3">
               <div className="flex items-center gap-3">
-                <button onClick={() => closeConversation()} className="rounded-md p-1.5 text-secondary transition-colors duration-[140ms] hover:bg-surface hover:text-ink" title="Back" aria-label="Back to conversations">←</button>
+                <button onClick={() => closeConversation()} className="grid min-h-11 min-w-11 place-items-center rounded-md p-1.5 text-secondary transition-colors duration-[140ms] hover:bg-surface hover:text-ink" title="Back" aria-label="Back to conversations"><ArrowLeft size={20} aria-hidden /></button>
                 <StoryAvatar userId={active.other_id} name={active.title} avatarUrl={active.avatar} size={36} />
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="flex items-center gap-1 text-[15px] font-semibold text-ink"><span className="truncate">{active.title}</span>{!active.is_group && active.other_id ? <VerifiedBadge userId={active.other_id} size={13} /> : null}</p>
                   {typingLine}
                   {active.is_group && active.group_type === "community" && active.group_ref_id ? <Link href={"/communities/" + active.group_ref_id} className="text-[12px] text-accent hover:underline">Community chat · open the community</Link> : null}
                 </div>
+                {!active.is_group ? <CallButtons otherId={active.other_id} conversationId={active.id} name={active.title} /> : null}
               </div>
-              {active && !active.is_group ? <CallButtons otherId={active.other_id} conversationId={active.id} name={active.title} /> : null}
               {active && active.is_group ? <GroupCallBar conversationId={active.id} /> : null}
               {refCard}
               {pinnedBanner}
@@ -829,33 +863,10 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   }
 
   return (
-    <div className="flex h-screen">
-      <section className="flex w-[340px] shrink-0 flex-col border-r border-ink/10">
-        <div className="px-4 pb-2 pt-6">
-          <h1 className="font-display text-xl text-porcelain">{heading}</h1>
-          {context === "personal" ? (
-            <p className="mt-1 flex items-center gap-1.5 text-[12px] font-semibold">
-              <Link href="/messages/requests" className="text-accent hover:underline">Message requests</Link>
-              <span className="text-muted">·</span>
-              <Link href="/calls" className="flex items-center gap-1 text-accent hover:underline"><Phone size={11} /> Calls</Link>
-            </p>
-          ) : null}
-          <div className="relative mt-3">
-            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
-            <input value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search"
-              className="w-full rounded-md bg-surface py-2 pl-9 pr-3 text-[13px] text-ink placeholder:text-muted outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
-            />
-          </div>
-          {context === "personal" ? (
-            <div className="mt-3 flex gap-1.5">
-              {(["chats", "groups", "unread"] as const).map((k) => (
-                <button key={k} onClick={() => setTab(k)} className={"rounded-full px-3 py-1 text-[12px] font-semibold transition-colors duration-[140ms] " + (tab === k ? "bg-ink text-white" : "bg-surface text-secondary hover:text-ink")}>{k === "chats" ? "Chats" : k === "groups" ? "Groups" : "Unread"}</button>
-              ))}
-            </div>
-          ) : null}
-        </div>
+    <div className={workspace.workspace}>
+      {newMessageDialog}
+      <section className={workspace.inbox}>
+        {inboxHeader}
         <div className="flex-1 overflow-y-auto">
           {inboxError}
             {loadingConvs ? (
@@ -868,18 +879,13 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
         </div>
       </section>
 
-      <section className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+      <section className={workspace.conversation} aria-label="Conversation">
         {!active ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-3">
-            <span className="flex h-14 w-14 items-center justify-center rounded-full border border-pearl/50" aria-hidden>
-              <span className="h-2.5 w-2.5 rounded-full bg-pearl" />
-            </span>
-            <p className="text-[14px] text-muted">Pick a conversation</p>
-          </div>
+          <div className={workspace.empty}><Mail size={42} strokeWidth={1.4} aria-hidden /><h2>Your conversations, together</h2><p>Choose a conversation to catch up and share something. {context === 'personal' ? 'Or start with someone new.' : ''}</p>{context === 'personal' && uid ? <button className={workspace.newButton} onClick={() => setNewMessageOpen(true)}><SquarePen size={17} aria-hidden />Start a conversation</button> : null}</div>
         ) : (
           <>
-            <header className="border-b border-ink/10 px-5 py-3">
-              <div className="flex items-center gap-3">
+            <header className={workspace.conversationHeader}>
+              <div className={workspace.conversationIdentity}>
                 <StoryAvatar userId={active.other_id} name={active.title} avatarUrl={active.avatar} size={38} />
                 <div className="min-w-0">
                   <p className="flex items-center gap-1 text-[15px] font-semibold text-ink"><span className="truncate">{active.title}</span>{!active.is_group && active.other_id ? <VerifiedBadge userId={active.other_id} size={13} /> : null}</p>
@@ -889,6 +895,8 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
               </div>
               {active && !active.is_group ? <CallButtons otherId={active.other_id} conversationId={active.id} name={active.title} /> : null}
               {active && active.is_group ? <GroupCallBar conversationId={active.id} /> : null}
+              <button type="button" className={`${workspace.iconButton} ${workspace.detailButton}`} aria-label="Conversation details" aria-expanded={detailsOpen} aria-controls="conversation-details" onClick={() => setDetailsOpen(value => !value)}><Info size={19} aria-hidden /></button>
+              <button type="button" className={workspace.iconButton} aria-label="Close conversation" onClick={() => closeConversation()}><X size={19} aria-hidden /></button>
               {refCard}
               {pinnedBanner}
             </header>
@@ -905,6 +913,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
           </>
         )}
       </section>
+      {active && detailsOpen ? <aside id="conversation-details" className={workspace.details} aria-label="Conversation details"><div><h2>{active.title}</h2>{active.username ? <p>@{active.username}</p> : null}<p>{active.is_group ? active.group_type === 'community' ? 'Community conversation' : 'Group conversation' : 'Direct conversation'}</p></div>{active.is_group && active.group_ref_id ? <Link href={'/communities/' + active.group_ref_id}>Open community</Link> : active.other_id ? <Link href={profilePath(active.username,active.other_id)}><UserRound size={16} aria-hidden />View profile</Link> : null}<div><h2>Shared in this conversation</h2><p>Media from loaded messages. Choose an item to find it in the conversation.</p>{sharedMedia.length ? <div className={workspace.mediaGrid}>{sharedMedia.map(message => <button type="button" key={message.id} aria-label={`Find shared ${message.media_type}`} onClick={() => listRef.current?.querySelector(`[data-message-id="${CSS.escape(message.id)}"]`)?.scrollIntoView({block:'center',behavior:'instant'})}>{message.media_type === 'image' ? <img src={message.media_url!} alt="Shared photo" /> : message.media_type === 'video' ? <Video size={20} aria-hidden /> : <FileText size={20} aria-hidden />}</button>)}</div> : <p className="mt-4">No shared files in the loaded messages.</p>}</div><div><h2>Conversation history</h2><p>{loadingMsgs ? 'Loading conversation history…' : historyError ? 'Some messages could not be loaded. Use Try again in the conversation.' : hasOlder ? 'Earlier messages are available. Use Load older messages in the conversation to see more.' : 'You are viewing the available conversation history.'}</p></div></aside> : null}
     </div>
   );
 }
@@ -957,7 +966,7 @@ const BubbleView = memo(function BubbleView({ m, uid, offer, actions, replySourc
     const pending = !!m._delivery || m.id.startsWith('temp-');
     const reactions = [...new Set((m._reactions || []).map(row => row.emoji))];
     return (
-      <div className={"flex " + (mine ? "justify-end" : "justify-start")}>
+      <div data-message-id={m.id} className={"flex " + (mine ? "justify-end" : "justify-start")}>
         <div className={"max-w-[70%] rounded-2xl px-3.5 py-2 " + (mine ? "bg-[#0B1E3D] text-white shadow-sm" : "bg-surface text-ink")}>
           {m.forwarded_from_id ? <p className="mb-1 text-xs opacity-80">Forwarded</p> : null}
           {m.reply_to_id ? <blockquote className="mb-2 border-l-2 border-current pl-2 text-xs opacity-80">{replySource?.deleted_at ? 'Message removed' : replySource?.text || (replySource ? 'Attachment' : 'Reply to an earlier message')}</blockquote> : null}

@@ -1,0 +1,13 @@
+
+/workspace/scratch/d4753960f6a2/tbirds-nest/src/navigation/AppNavigator.tsx
+    6:42  warning  'Text' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+    6:81  warning  '/workspace/scratch/d4753960f6a2/tbirds-nest/node_modules/react-native/index.js' imported multiple times  import/no-duplicates
+    8:27  warning  '/workspace/scratch/d4753960f6a2/tbirds-nest/node_modules/react-native/index.js' imported multiple times  import/no-duplicates
+  320:9   warning  'tabBarHeight' is assigned a value but never used                                                         @typescript-eslint/no-unused-vars
+
+/workspace/scratch/d4753960f6a2/tbirds-nest/src/services/supabase.ts
+  23:7  warning  'devFetch' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+✖ 5 problems (0 errors, 5 warnings)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+

@@ -39,6 +39,7 @@ import type { FeedRow } from "@/lib/feed";
 import { RelativeTime } from "@/components/RelativeTime";
 import { toggleRepost } from "@/lib/interactions";
 import { usePostInteractions } from "@/lib/usePostInteractions";
+import cardStyles from "./PostCard.module.css";
 
 function count(n: number): string {
   if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
@@ -236,7 +237,7 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
   }
 
   return (
-    <article className="relative mb-4 rounded-2xl border border-ink/10 bg-white px-5 py-4 transition-colors duration-[140ms] hover:border-ink/20">
+    <article className={`${cardStyles.card} relative mb-4 rounded-2xl border border-ink/10 bg-white px-5 py-4 transition-colors duration-[140ms] hover:border-ink/20`}>
       {(post as unknown as { is_pinned?: boolean }).is_pinned ? (
         <span className="mb-1.5 flex items-center gap-1.5 pl-10 text-[12px] font-semibold text-muted"><Pin size={13} /> Pinned</span>
       ) : null}
@@ -251,15 +252,15 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
           <Heart size={84} className="animate-ping text-danger" fill="currentColor" />
         </span>
       ) : null}
-      <div className="flex gap-3.5">
+      <div className={`${cardStyles.layout} flex gap-3.5`}>
         <StoryAvatar userId={post.author_id}
           name={post.author_name}
           avatarUrl={post.author_avatar}
           size={46}
           href={profileHref}
         />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start gap-2">
+        <div className={`${cardStyles.body} min-w-0 flex-1`}>
+          <div className={`${cardStyles.header} flex items-start gap-2`}>
             <div className="min-w-0 flex-1">
             <div className="flex min-w-0 flex-wrap items-center gap-x-1.5">
             <Link href={profileHref} className="flex min-w-0 items-center gap-1.5 hover:underline">
@@ -418,14 +419,14 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
             </div>
           ) : null}
 
-          <div className="-ml-2.5 mt-3 flex items-center gap-1">
+          <div className={`${cardStyles.actions} -ml-2.5 mt-3 flex flex-wrap items-center gap-1`}>
             {inlineComments ? (
               <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCommentsOpen((v) => !v); }} aria-expanded={commentsOpen} aria-label={commentsOpen ? "Hide comments" : "Show comments"} className={"flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] transition-colors duration-[140ms] hover:bg-ink/[0.06] hover:text-ink " + (commentsOpen ? "text-ink" : "text-muted")}>
                 <MessageCircle size={18} strokeWidth={1.8} fill={commentsOpen ? "currentColor" : "none"} />
                 {count(commentsCount)}
               </button>
             ) : (
-              <Link href={postHref} className="flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] text-muted transition-colors duration-[140ms] hover:bg-ink/[0.06] hover:text-ink">
+              <Link href={postHref} aria-label={`View post and ${commentsCount} comments`} className="flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] text-muted transition-colors duration-[140ms] hover:bg-ink/[0.06] hover:text-ink">
                 <MessageCircle size={18} strokeWidth={1.8} />
                 {count(commentsCount)}
               </Link>

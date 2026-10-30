@@ -7,6 +7,8 @@ const ts = require('typescript');
 const root = path.join(__dirname, '..');
 const compile = file => ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText;
 const sources = {
+  '@/lib/profileLookup': compile(path.join(root, 'lib/profileLookup.ts')),
+  '@/lib/withTimeout': compile(path.join(root, 'lib/withTimeout.ts')),
   '@/components/MessagesApp': compile(path.join(root, 'components/MessagesApp.tsx')),
   '@/lib/messageOutbox': compile(path.join(root, 'lib/messageOutbox.ts')),
   '../../shared/messageDelivery': compile(path.join(root, '../shared/messageDelivery.ts')),
@@ -88,6 +90,7 @@ function scenario(initial = [row(1)], options = {}) {
   const localStorage = { get length() { return stored.size; }, key: i => [...stored.keys()][i], getItem: key => stored.get(key) ?? null, setItem: (key,value) => stored.set(key,value), removeItem: key => stored.delete(key) }; 
   const load = name => {
     if (cache.has(name)) return cache.get(name).exports;
+    if (name.endsWith('.module.css')) return { __esModule: true, default: new Proxy({}, { get: (_, key) => String(key) }) };
     if (name === 'react') return hooks;
     if (name === 'react/jsx-runtime') return runtime;
     if (name === '@/lib/supabase/client') return { createClient: () => client };
@@ -112,7 +115,7 @@ function scenario(initial = [row(1)], options = {}) {
     find: predicate => nodes(tree).find(predicate), all: predicate => nodes(tree).filter(predicate),
     get text() { return nodes(tree).filter(node => typeof node.type !== 'function').map(text).join(' '); },
     click(label) { const n = nodes(tree).find(node => (node.type==='button' || node.props?.role==='button') && (text(node).trim()===label || node.props?.['aria-label']===label || node.props?.title===label)); assert.ok(n,'missing button '+label); assert.ok(!n.props.disabled,'button disabled '+label); const result=n.props.onClick(); render(); return result; },
-    open(name) { const n=nodes(tree).find(node => node.props?.role==='button' && text(node).includes('Conversation '+name)); assert.ok(n); const result=n.props.onClick(); render(); return result; },
+    open(name) { const n=nodes(tree).find(node => node.type==='button' && node.props?.['aria-label']==='Open conversation with Conversation '+name); assert.ok(n); const result=n.props.onClick(); render(); return result; },
     draft(value) { const n=nodes(tree).find(node => node.type==='textarea'); n.props.onChange({target:{value}}); render(); },
     changeUser(value) { authUser = value; authListener('SIGNED_IN', value ? { user: { id: value } } : null); render(); },
     setRead(fn) { readOverride=fn; }, setWrite(fn) { writeOverride=fn; }, setRpcFailure(value) { rpcFailure=value; },

@@ -216,7 +216,7 @@ export function MemoryAlbumView({ ownerId: albumRef }: { ownerId: string }) {
       </div>
 
       <PostSoundtrack key={album.id} selection={album.soundtrack} use="memory_album" active={view==='book'&&foreground&&!filmVisible&&(!playMode||playing)&&!manage&&!adding} autoPlay={playMode} controls={!playMode} className="mb-3" />
-      {filmVisible && pages.length > 0 && <MemoryFilm key={`${album.id}:${uid}`} title={album.title} pages={pages} reduceMotion={reduceMotion} onClose={() => setFilmVisible(false)} onReadBook={() => { setFilmVisible(false); openBook(); }} onRetry={retryMedia} />}
+      {filmVisible && pages.length > 0 && <MemoryFilm key={`${album.id}:${uid}`} title={album.title} pages={pages} soundtrack={album.soundtrack} reduceMotion={reduceMotion} onClose={() => setFilmVisible(false)} onReadBook={() => { setFilmVisible(false); openBook(); }} onRetry={retryMedia} />}
       {mutationError&&<p role="alert" className="mb-3 text-sm text-danger">{mutationError}</p>}
       {view === "cover" ? (
         <section className="mx-auto flex max-w-[360px] flex-col items-center px-5 pb-8 pt-8 sm:pt-10">

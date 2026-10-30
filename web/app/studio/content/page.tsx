@@ -116,7 +116,7 @@ export default function ContentPage() {
           <p className="mt-1 text-[13px] text-muted">Everything you have written, whatever state it is in.</p>
         </div>
         <Link
-          href="/studio/planner"
+          href="/studio/planner?compose=1"
           className="flex shrink-0 items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-[12.5px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90"
         >
           <Plus size={14} /> Create content
@@ -153,6 +153,7 @@ export default function ContentPage() {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
+            aria-label="Search your content"
             placeholder="Search your content"
             className="min-w-0 flex-1 bg-transparent text-[13.5px] text-ink outline-none placeholder:text-muted"
           />
@@ -221,7 +222,7 @@ export default function ContentPage() {
                 </span>
 
                 <Link
-                  href={r.status === "published" ? "/post/" + (r.published_post_id || r.id) : "/studio/planner"}
+                  href={r.status === "published" ? "/post/" + (r.published_post_id || r.id) : "/studio/planner?edit=" + encodeURIComponent(r.id)}
                   className="shrink-0 rounded-full border border-ink/15 px-3 py-1.5 text-[12px] font-semibold text-ink/65 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"
                 >
                   {r.status === "published" ? "View" : "Edit"}

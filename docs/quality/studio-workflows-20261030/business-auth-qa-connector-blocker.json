@@ -1,0 +1,63 @@
+{
+  "project": "uaulhuelcfkjwojtymmw",
+  "candidate": "supabase/migrations/20261030034752_business_bound_auth_sessions.sql",
+  "sha256": "66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996",
+  "review": "Independent root review accepted exact SQL and QA-only application/deployment; the requested bounded-fetch follow-up passed 21 Edge tests and 8 Deno entrypoint checks.",
+  "status": "reviewed-and-QA-authorized; connector-apply-stalled; not-installed-at-final-read",
+  "attempts": [
+    {
+      "attempt": 1,
+      "outcome": "apply_migration produced no success/error/rejection; interrupted result: aborted by user after 1255.8s"
+    },
+    {
+      "attempt": 2,
+      "outcome": "apply_migration yielded cell 170; wait requested 1000 ms but produced no success/error/rejection; interrupted result: aborted by user after 213.1s"
+    }
+  ],
+  "automaticApprovalRejectionObserved": false,
+  "finalRead": {
+    "counts": {
+      "staff": 1,
+      "profiles": 1,
+      "auth_users": 1,
+      "auth_sessions": 13,
+      "storage_objects": 15,
+      "studio_bindings": 0,
+      "business_devices": 0,
+      "business_members": 0,
+      "business_profiles": 0,
+      "pending_provisions": 0
+    },
+    "captured_at": "2026-10-30T04:42:50.3911+00:00",
+    "owner_contract": null,
+    "latest_migrations": [
+      {
+        "name": "reserve_business_provision_usernames",
+        "version": "20261030033815"
+      },
+      {
+        "name": "reserve_web_route_usernames",
+        "version": "20261030032528"
+      },
+      {
+        "name": "studio_editorial_and_partnership_workflows",
+        "version": "20261030032512"
+      },
+      {
+        "name": "staff_social_shells",
+        "version": "20261030013815"
+      },
+      {
+        "name": "account_erasure_admin_restore_guard",
+        "version": "20261030010956"
+      }
+    ],
+    "business_auth_schema": null,
+    "matching_transactions": []
+  },
+  "edgeDeploymentsStarted": 0,
+  "productionChanged": false,
+  "identitiesCreated": false,
+  "erasureJobsCreated": false,
+  "nextStep": "Resolve hosted migration connector availability, repeat read-only schema/transaction/hash/preflight checks, then resume the already-reviewed QA-only install/deploy plan. Do not duplicate an existing migration, infer success, switch mutation mechanisms, or bypass approval."
+}

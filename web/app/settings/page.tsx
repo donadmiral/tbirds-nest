@@ -2,153 +2,99 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AtSign, Briefcase, ChevronRight, Edit3, EyeOff, FileText, HelpCircle, Info, LifeBuoy, Settings as SettingsIcon, Shield, ShieldAlert, ShieldOff, UserCheck, UserMinus, Bell } from "lucide-react";
+import { Activity, Archive, AtSign, Bell, Briefcase, ChevronRight, Download, EyeOff, FileText, Fingerprint, HelpCircle, Info, KeyRound, LifeBuoy, ListFilter, LockKeyhole, Monitor, Search, Shield, ShieldAlert, ShieldOff, Trash2, UserCheck, UserMinus, UserRound, Users, VolumeX, Wallet, X, type LucideIcon } from "lucide-react";
 import { autoplayEnabled, dataSaverEnabled, setAutoplay, setDataSaver } from "@/lib/mediaPrefs";
 import { PageHeader } from "@/components/ui";
 import { AccountStatus } from "@/components/AccountStatus";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import styles from './SettingsPage.module.css';
+
+type SettingsRow = { href: string; icon: LucideIcon; label: string; description: string };
+type SettingsSection = { id: string; label: string; icon: LucideIcon; description: string; rows: SettingsRow[] };
+const SECTIONS: SettingsSection[] = [
+  { id: 'account', label: 'Account and profile', icon: UserRound, description: 'How people see you and connect with your work.', rows: [
+    { href: '/settings/profile', icon: UserRound, label: 'Edit profile', description: 'Your photo, cover, name, bio, links and profile visibility' },
+    { href: '/settings/username', icon: AtSign, label: 'Username', description: 'Change the @handle people use to find you' },
+    { href: '/settings/account-type', icon: UserCheck, label: 'Account type', description: 'Personal, creator, organization or automated account' },
+    { href: '/settings/verification', icon: Shield, label: 'Verification', description: 'View eligibility and apply for verification' },
+  ] },
+  { id: 'privacy', label: 'Privacy and interactions', icon: LockKeyhole, description: 'Choose who can reach you and what you see.', rows: [
+    { href: '/settings/follow-requests', icon: Users, label: 'Follow requests', description: 'Review who follows your private account' },
+    { href: '/settings/blocked', icon: ShieldOff, label: 'Blocked accounts', description: 'Manage the accounts you have blocked' },
+    { href: '/settings/restricted', icon: UserMinus, label: 'Restricted accounts', description: 'Review their comments and move their messages to requests' },
+    { href: '/settings/muted', icon: VolumeX, label: 'Muted stories', description: 'Choose whose stories appear in your story row' },
+    { href: '/settings/hidden-words', icon: EyeOff, label: 'Hidden words', description: 'Filter comments containing words you choose' },
+    { href: '/settings/muted-words', icon: ListFilter, label: 'Muted words', description: 'Keep posts with certain words out of your feed' },
+  ] },
+  { id: 'security', label: 'Security and access', icon: KeyRound, description: 'Protect your sign-in and review account activity.', rows: [
+    { href: '/settings/two-factor', icon: Fingerprint, label: 'Two-factor authentication', description: 'Set up an authenticator app for added sign-in protection' },
+    { href: '/settings/login-activity', icon: Monitor, label: 'Login activity', description: 'Review signed-in devices and end other sessions' },
+    { href: '/settings/standing', icon: ShieldAlert, label: 'Account standing', description: 'Your account record and any current restrictions' },
+  ] },
+  { id: 'activity', label: 'Activity and your data', icon: Activity, description: 'Revisit your activity and manage your information.', rows: [
+    { href: '/settings/activity', icon: Activity, label: 'Your activity', description: 'Likes, comments, reposts and saved posts' },
+    { href: '/settings/archive', icon: Archive, label: 'Archive', description: 'Posts you hid from your profile without deleting them' },
+    { href: '/settings/notifications', icon: Bell, label: 'Notifications', description: 'Choose which kinds of activity reach your phone' },
+    { href: '/settings/download', icon: Download, label: 'Download your data', description: 'Request a copy of your account information' },
+    { href: '/settings/delete-account', icon: Trash2, label: 'Delete account', description: 'Request permanent removal and track stored-file erasure' },
+  ] },
+  { id: 'professional', label: 'Professional tools', icon: Briefcase, description: 'Manage publishing, your business and your earnings.', rows: [
+    { href: '/studio', icon: Briefcase, label: 'Studio', description: 'Your content, professional workflows and account insights' },
+    { href: '/monetization', icon: Wallet, label: 'Monetization', description: 'Creator eligibility, earnings and payout status' },
+    { href: '/businesses', icon: Users, label: 'Your businesses', description: 'Business accounts and teams you manage' },
+    { href: '/businesses/apply', icon: FileText, label: 'Apply for a business account', description: 'Submit your organization for review' },
+  ] },
+  { id: 'device', label: 'Appearance and media', icon: Monitor, description: 'Preferences for this browser.', rows: [] },
+  { id: 'help', label: 'Help and information', icon: HelpCircle, description: 'Find an answer or get help from the support team.', rows: [
+    { href: '/settings/help', icon: HelpCircle, label: 'Help center', description: 'Answers to common questions and support tickets' },
+    { href: '/settings/support', icon: LifeBuoy, label: 'Contact support', description: 'Describe an issue and follow your conversation' },
+    { href: '/about', icon: Info, label: 'About Platinum Circles', description: 'Learn about the platform' },
+    { href: '/terms', icon: FileText, label: 'Terms of Service', description: 'The terms for using Platinum Circles' },
+    { href: '/privacy', icon: Shield, label: 'Privacy Policy', description: 'How your information is handled' },
+  ] },
+];
+
+function PreferenceSwitch({ label, description, value, onChange }: { label: string; description: string; value: boolean; onChange: (value: boolean) => void }) {
+  return <div className={styles.preference}><div><strong>{label}</strong><p>{description}</p></div><button type="button" role="switch" aria-label={label} aria-checked={value} className={styles.switch} onClick={() => onChange(!value)}><span><i /></span></button></div>;
+}
 
 export default function SettingsPage() {
-  const [auto, setAuto] = useState(true);
-  const [saver, setSaver] = useState(false);
-
+  const [auto, setAuto] = useState(true), [saver, setSaver] = useState(false);
+  const [query, setQuery] = useState(''), [preferenceError, setPreferenceError] = useState('');
   useEffect(() => {
-    setAuto(autoplayEnabled());
-    setSaver(dataSaverEnabled());
+    const sync = () => { setAuto(autoplayEnabled()); setSaver(dataSaverEnabled()); };
+    sync(); window.addEventListener('storage', sync);
+    return () => window.removeEventListener('storage', sync);
   }, []);
-
-  const row = "flex items-center justify-between rounded-lg border border-ink/10 p-4";
-  const Toggle = ({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) => (
-    <button onClick={() => onChange(!on)} role="switch" aria-checked={on}
-      className={"relative h-6 w-11 rounded-full transition-colors duration-[140ms] " + (on ? "bg-pearl" : "bg-ink/20")}
-    >
-      <span className={"absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform duration-[140ms] " + (on ? "translate-x-[22px]" : "translate-x-0.5")} />
-    </button>
-  );
-  const NavRow = ({ href, icon, label, sub }: { href: string; icon: React.ReactNode; label: string; sub?: string }) => (
-    <Link href={href} className="flex items-center gap-3 rounded-lg border border-ink/10 p-4 transition-colors duration-[140ms] hover:bg-surface">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-pearl/15 text-accent">{icon}</span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-[14px] font-semibold text-ink">{label}</span>
-        {sub ? <span className="block text-[12px] text-muted">{sub}</span> : null}
-      </span>
-      <ChevronRight size={16} className="shrink-0 text-muted" />
-    </Link>
-  );
-
-  // The sections were a flat run of rows, so a page with five distinct concerns
-  // read as one long list. They are cards now, with an index that jumps to each.
-  const SECTIONS = [
-    { id: "create", label: "Create", icon: Edit3 },
-    { id: "business", label: "Business", icon: Briefcase },
-    { id: "account", label: "Account", icon: UserCheck },
-    { id: "device", label: "Data and appearance", icon: SettingsIcon },
-    { id: "help", label: "Help", icon: HelpCircle },
-  ];
-
-  return (
-    <div className="mx-auto max-w-[1180px]">
-      <PageHeader title="Settings" subtitle="Your account, privacy, and how this device behaves." />
-
-      <div className="flex gap-6">
-        <nav className="sticky top-[88px] hidden h-fit w-[210px] shrink-0 flex-col gap-0.5 rounded-2xl border border-ink/10 bg-white p-2 lg:flex">
-          {SECTIONS.map((x) => (
-            <a
-              key={x.id}
-              href={"#" + x.id}
-              className="flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-[13.5px] text-ink/70 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"
-            >
-              <x.icon size={15} className="shrink-0 text-muted" />
-              {x.label}
-            </a>
-          ))}
-        </nav>
-
-        <div className="min-w-0 flex-1">
-
-      <div id="create" className="mb-4 scroll-mt-[88px] rounded-2xl border border-ink/10 bg-white p-4">
-        <h2 className="mb-2.5 text-[15px] font-semibold text-ink">Create</h2>
-        <div className="flex flex-col gap-2">
-        <NavRow href="/write" icon={<Edit3 size={16} />} label="Write an article" sub="Long-form publishing with a cover and read time" />
-        <NavRow href="/monetization" icon={<Briefcase size={16} />} label="Monetization" sub="Creator eligibility, earnings and payout status" />
-        </div>
-      </div>
-
-      <div id="business" className="mb-4 scroll-mt-[88px] rounded-2xl border border-ink/10 bg-white p-4">
-        <h2 className="mb-2.5 text-[15px] font-semibold text-ink">Business</h2>
-        <div className="flex flex-col gap-2">
-        <NavRow href="/businesses" icon={<Briefcase size={16} />} label="Businesses" sub="Pages you run, and your team" />
-        <NavRow href="/businesses/apply" icon={<Briefcase size={16} />} label="Apply for a business account" sub="Companies get their own @ and the space-grey seal" />
-        </div>
-      </div>
-
-      <div id="account" className="mb-4 scroll-mt-[88px] rounded-2xl border border-ink/10 bg-white p-4">
-        <h2 className="mb-2.5 text-[15px] font-semibold text-ink">Account</h2>
-        <div className="flex flex-col gap-2">
-        <NavRow href="/settings/username" icon={<AtSign size={16} />} label="Username" sub="Change your @handle" />
-        <NavRow href="/settings/account-type" icon={<UserCheck size={16} />} label="Account type" sub="Personal, Creator, Organization or Automated" />
-        <NavRow href="/settings/follow-requests" icon={<UserCheck size={16} />} label="Follow requests" sub="Approve who follows your private account" />
-        <NavRow href="/settings/blocked" icon={<ShieldOff size={16} />} label="Blocked accounts" sub="Manage who you have blocked" />
-        <NavRow href="/settings/restricted" icon={<UserMinus size={16} />} label="Restricted accounts" sub="Their comments wait for your approval and their messages go to requests" />
-        <NavRow href="/settings/muted" icon={<EyeOff size={16} />} label="Muted stories" sub="Manage who you have muted" />
-        <NavRow href="/settings/hidden-words" icon={<EyeOff size={16} />} label="Hidden words" sub="Hide comments that contain certain words" />
-        <NavRow href="/settings/muted-words" icon={<EyeOff size={16} />} label="Muted words" sub="Keep posts with certain words out of your feed" />
-        <NavRow href="/settings/archive" icon={<EyeOff size={16} />} label="Archive" sub="Posts you hid without deleting" />
-        <NavRow href="/settings/activity" icon={<EyeOff size={16} />} label="Your activity" sub="Likes, comments, reposts and saves" />
-        <NavRow href="/settings/download" icon={<EyeOff size={16} />} label="Download your data" sub="Everything on your account, as one file" />
-        <NavRow href="/settings/notifications" icon={<Bell size={16} />} label="Notifications" sub="Which kinds of activity reach your phone" />
-        <NavRow href="/settings/two-factor" icon={<EyeOff size={16} />} label="Two-factor authentication" sub="A code from an authenticator app at every sign-in" />
-        <NavRow href="/settings/login-activity" icon={<EyeOff size={16} />} label="Login activity" sub="Devices signed in, and log the others out" />
-        <NavRow href="/settings/standing" icon={<ShieldAlert size={16} />} label="Account standing" sub="Your record with Platinum Circles" />
-        <NavRow href="/settings/delete-account" icon={<UserMinus size={16} />} label="Delete account" sub="Request permanent removal and track stored-file erasure" />
-        </div>
-      </div>
-
-      <div id="device" className="mb-4 scroll-mt-[88px] rounded-2xl border border-ink/10 bg-white p-4">
-        <h2 className="mb-2.5 text-[15px] font-semibold text-ink">Data and appearance</h2>
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-3 rounded-lg border border-ink/10 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <span className="min-w-0">
-              <span className="block text-[14px] font-semibold text-ink">Appearance</span>
-              <span className="block text-[12.5px] text-muted">Light, dark, or whatever your device uses.</span>
-            </span>
-            <div className="shrink-0 self-start sm:self-auto"><ThemeToggle /></div>
-          </div>
-        <div className={row}>
-          <span>
-            <span className="block text-[14px] font-semibold text-ink">Autoplay videos</span>
-            <span className="block text-[12px] text-muted">Videos start on their own as you scroll. Off shows a poster with a play button.</span>
-          </span>
-          <Toggle on={auto} onChange={(v) => { setAuto(v); setAutoplay(v); }} />
-        </div>
-        <div className={row}>
-          <span>
-            <span className="block text-[14px] font-semibold text-ink">Data saver</span>
-            <span className="block text-[12px] text-muted">Lower-size images and no video autoplay, for slow or metered connections.</span>
-          </span>
-          <Toggle on={saver} onChange={(v) => { setSaver(v); setDataSaver(v); }} />
-        </div>
-        </div>
-      </div>
-
-      <div id="help" className="mb-4 scroll-mt-[88px] rounded-2xl border border-ink/10 bg-white p-4">
-        <h2 className="mb-2.5 text-[15px] font-semibold text-ink">Help</h2>
-        <div className="flex flex-col gap-2">
-        <NavRow href="/settings/help" icon={<HelpCircle size={16} />} label="Help & Support" sub="FAQs, submit a ticket" />
-        <NavRow href="/settings/support" icon={<LifeBuoy size={16} />} label="Contact support" sub="Write to the operations team" />
-        <NavRow href="/about" icon={<Info size={16} />} label="About Platinum Circles" />
-        <NavRow href="/terms" icon={<FileText size={16} />} label="Terms of Service" />
-        <NavRow href="/privacy" icon={<Shield size={16} />} label="Privacy Policy" />
-        </div>
-      </div>
-        </div>
-
-        <aside className="hidden w-[300px] shrink-0 xl:block">
-          <div className="sticky top-[88px] flex flex-col gap-4">
-            <AccountStatus />
-          </div>
-        </aside>
+  const updatePreference = (kind: 'autoplay' | 'saver', next: boolean) => {
+    if (kind === 'autoplay') { setAutoplay(next); setAuto(autoplayEnabled()); }
+    else { setDataSaver(next); setSaver(dataSaverEnabled()); }
+    const confirmed = (kind === 'autoplay' ? autoplayEnabled() : dataSaverEnabled()) === next;
+    setPreferenceError(confirmed ? '' : 'Your browser could not save this preference. Allow site storage and try again.');
+  };
+  const needle = query.trim().toLocaleLowerCase();
+  const sections = SECTIONS.map(section => ({ ...section, rows: section.rows.filter(row => !needle || (section.label + ' ' + row.label + ' ' + row.description).toLocaleLowerCase().includes(needle)) })).filter(section => section.rows.length || (section.id === 'device' && (!needle || /appearance|theme|light|dim|dark|system|media|video|autoplay|data|saver|browser/.test(needle))));
+  return <div className={styles.page}>
+    <PageHeader title="Settings" subtitle="Your account, your preferences and your peace of mind." />
+    <label className={styles.search}><Search size={19} strokeWidth={1.75} /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Search settings" aria-label="Search settings" />{query ? <button type="button" aria-label="Clear settings search" onClick={() => setQuery('')}><X size={17} /></button> : null}</label>
+    <div className={styles.layout}>
+      <aside className={styles.sidebar}>
+        <nav aria-label="Settings sections" className={styles.index}>{sections.map(section => <a key={section.id} href={'#' + section.id}><section.icon size={18} strokeWidth={1.75} /><span>{section.label}</span><ChevronRight size={14} /></a>)}</nav>
+        <div className={styles.account}><AccountStatus /></div>
+      </aside>
+      <div className={styles.content}>
+        {needle ? <p role="status" className={styles.searchStatus}>{sections.length ? `${sections.reduce((count, section) => count + section.rows.length + (section.id === 'device' ? 3 : 0), 0)} settings match “${query.trim()}”` : `No settings match “${query.trim()}”`}</p> : null}
+        {!sections.length ? <div className={styles.empty}><Search size={28} /><h2>Try a different search</h2><p>Look for a feature such as profile, privacy or notifications.</p><button type="button" onClick={() => setQuery('')}>View all settings</button></div> : null}
+        {sections.map(section => <section key={section.id} id={section.id} className={styles.section} aria-labelledby={'heading-' + section.id}>
+          <header><h2 id={'heading-' + section.id}>{section.label}</h2><p>{section.description}</p></header>
+          {section.id === 'device' ? <div className={styles.preferences}>
+            <div className={styles.appearance}><div><strong>Appearance</strong><p>Light, Dim, Lights out, or your device setting.</p></div><ThemeToggle /></div>
+            <PreferenceSwitch label="Autoplay videos" description={saver ? 'Data saver is on, so videos wait for you to press play.' : 'Start videos as they come into view. Turn off to press play yourself.'} value={auto} onChange={value => updatePreference('autoplay', value)} />
+            <PreferenceSwitch label="Data saver" description="Use smaller images and turn off automatic video playback on slower connections." value={saver} onChange={value => updatePreference('saver', value)} />
+            {preferenceError ? <p role="alert" className={styles.error}>{preferenceError}</p> : null}
+          </div> : <div>{section.rows.map(row => <Link key={row.href} href={row.href} className={styles.row}><span className={styles.icon}><row.icon size={20} strokeWidth={1.75} /></span><span><strong>{row.label}</strong><small>{row.description}</small></span><ChevronRight size={17} strokeWidth={1.75} /></Link>)}</div>}
+        </section>)}
       </div>
     </div>
-  );
+  </div>;
 }

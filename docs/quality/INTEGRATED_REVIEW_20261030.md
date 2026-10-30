@@ -1,5 +1,7 @@
 # Platinum Circles integrated review checkpoint, 30 October 2026
 
+For the subsequent reference-driven web/admin/Studio implementation, whole-book movie export and business-session repair, start with [DESIGN_COMPLETION_20261030.md](DESIGN_COMPLETION_20261030.md). The checkpoint evidence below remains historical.
+
 This checkpoint continues the previous quality branch and recovers its unpublished link-preview, deletion-review and feed-restoration work. It is prepared for review through draft PR #3 in `donadmiral/tbirds-nest`, on `codex/app-quality-20261029`. The final published commit and hosted gate results belong to the PR and deployment records; this document records the source and hosted QA evidence available before publication.
 
 The app is not accepted as universally complete. Physical-device and provider acceptance, the production private-media cutover and the existing TestFlight hold remain explicit release boundaries. No zero-defect guarantee or self-assigned design rating is claimed.

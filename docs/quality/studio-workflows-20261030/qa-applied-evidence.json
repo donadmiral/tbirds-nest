@@ -1,0 +1,761 @@
+{
+  "project": "uaulhuelcfkjwojtymmw",
+  "environment": "isolated QA",
+  "verifiedAt": "2026-10-30T03:26:39.274Z",
+  "scope": "Reviewed source migrations only; no production application or identity/media fixture actions.",
+  "candidates": [
+    {
+      "path": "supabase/migrations/20261030024125_studio_editorial_and_partnership_workflows.sql",
+      "sha256": "74fb83e842c349a49ec28c9b1181ced33e855432b1c1e614c0d2d8d5a278ff4c"
+    },
+    {
+      "path": "supabase/migrations/20261030031124_reserve_web_route_usernames.sql",
+      "sha256": "625fd871ff4a6a83938086d78b47e482ee0a492ec1dee54310cb56eacc14248c"
+    }
+  ],
+  "migrations": [
+    {
+      "version": "20261030032512",
+      "name": "studio_editorial_and_partnership_workflows"
+    },
+    {
+      "version": "20261030032528",
+      "name": "reserve_web_route_usernames"
+    }
+  ],
+  "preflight": {
+    "data_counts": {
+      "staff": 1,
+      "members": 0,
+      "bindings": 0,
+      "profiles": 1,
+      "auth_users": 1,
+      "auth_sessions": 13,
+      "scheduled_posts": 0,
+      "storage_objects": 15
+    },
+    "fresh_target": true,
+    "trusted_schemas": true,
+    "current_baseline": true,
+    "definitions_match": true,
+    "publisher_internal": true,
+    "session_bindings_private": true,
+    "configured_teams_have_owner": true
+  },
+  "routePreflight": {
+    "trigger": null,
+    "profiles": 1,
+    "functions": [
+      {
+        "hash": "dca1048f7c4ce81e552d3992f07e1e11",
+        "owner": "postgres",
+        "signature": "is_username_available(text)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=public"
+        ],
+        "anon_execute": true
+      }
+    ],
+    "collisions": {
+      "ads": 0,
+      "home": 0,
+      "jobs": 0,
+      "post": 0,
+      "about": 0,
+      "album": 0,
+      "calls": 0,
+      "login": 0,
+      "music": 0,
+      "saved": 0,
+      "story": 0,
+      "terms": 0,
+      "topic": 0,
+      "watch": 0,
+      "write": 0,
+      "market": 0,
+      "search": 0,
+      "signup": 0,
+      "studio": 0,
+      "archive": 0,
+      "explore": 0,
+      "privacy": 0,
+      "channels": 0,
+      "discover": 0,
+      "messages": 0,
+      "settings": 0,
+      "businesses": 0,
+      "communities": 0,
+      "monetization": 0,
+      "notifications": 0,
+      "business-login": 0,
+      "reset-password": 0,
+      "forgot-password": 0,
+      "account-deletion": 0
+    },
+    "availability": {
+      "ads": true,
+      "home": true,
+      "jobs": true,
+      "post": true,
+      "about": true,
+      "album": true,
+      "calls": true,
+      "login": true,
+      "music": true,
+      "saved": true,
+      "story": true,
+      "terms": true,
+      "topic": true,
+      "watch": true,
+      "write": true,
+      "market": true,
+      "search": true,
+      "signup": true,
+      "studio": true,
+      "archive": true,
+      "explore": true,
+      "privacy": true,
+      "channels": true,
+      "discover": true,
+      "messages": true,
+      "settings": true,
+      "businesses": true,
+      "communities": true,
+      "monetization": true,
+      "notifications": true,
+      "business-login": false,
+      "reset-password": false,
+      "forgot-password": false,
+      "account-deletion": false
+    }
+  },
+  "postflight": {
+    "tables": [
+      {
+        "rls": true,
+        "owner": "postgres",
+        "table": "access_events",
+        "policies": 0,
+        "app_access": false,
+        "anon_access": false,
+        "service_access": false
+      },
+      {
+        "rls": true,
+        "owner": "postgres",
+        "table": "commands",
+        "policies": 0,
+        "app_access": false,
+        "anon_access": false,
+        "service_access": false
+      },
+      {
+        "rls": true,
+        "owner": "postgres",
+        "table": "deliverables",
+        "policies": 0,
+        "app_access": false,
+        "anon_access": false,
+        "service_access": false
+      },
+      {
+        "rls": true,
+        "owner": "postgres",
+        "table": "events",
+        "policies": 0,
+        "app_access": false,
+        "anon_access": false,
+        "service_access": false
+      },
+      {
+        "rls": true,
+        "owner": "postgres",
+        "table": "newsroom",
+        "policies": 0,
+        "app_access": false,
+        "anon_access": false,
+        "service_access": false
+      },
+      {
+        "rls": true,
+        "owner": "postgres",
+        "table": "partnerships",
+        "policies": 0,
+        "app_access": false,
+        "anon_access": false,
+        "service_access": false
+      }
+    ],
+    "new_rows": {
+      "events": 0,
+      "commands": 0,
+      "newsroom": 0,
+      "deliverables": 0,
+      "partnerships": 0,
+      "access_events": 0
+    },
+    "functions": [
+      {
+        "hash": "33ba99f582ac83c7e2f240645b0af5ca",
+        "owner": "postgres",
+        "private": false,
+        "signature": "create_business_access_member(text)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "725e31f7b81626e606a75618c87c969b",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_bind_member(text)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "5c535910350d365c050e07ce3638035e",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_business_info()",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "673b5f8636ba484d5a1e1d9cc99a27a3",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_create_member(text,text)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "9f6bd4e164e2bc710f4b67c51f14ba57",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_create_member(uuid,text,text)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "75f7558d998e8f5efbd5d11995644c68",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_get_business()",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "4224e927009d510cef0b946284440f1e",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_list_members()",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "ab040af1c6b02d19b17b82d9093ac52a",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_newsroom_get(uuid)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "7681976147e3fd103da679f3e9b93ad6",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_newsroom_list(integer,timestamp with time zone,uuid)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "b5b8ce25239db4647f48d3cbce78098b",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_newsroom_save(uuid,uuid,uuid,integer,jsonb)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "768c1d5f324cf56edde6156351c11bf5",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_newsroom_transition(uuid,uuid,uuid,integer,text,text)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "7139ac0e28cec9ee0056638bee9db1f9",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_partnership_deliver(uuid,uuid,uuid,integer,text,uuid)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "f89e3ecb33ff9741ecd5328e2a8f2eb4",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_partnership_get(uuid)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "f14e8489d8a10fd34e4f8b1e41a46886",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_partnership_permission(uuid,uuid,uuid,integer,text,boolean,timestamp with time zone)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "a59596ab5a0898fed8eb2e7993383b9c",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_partnership_save(uuid,uuid,uuid,integer,jsonb)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "d87e8571d1e59a04dba7484ab604ab90",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_partnership_transition(uuid,uuid,uuid,integer,text,text)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "df3a5ae5d2300199bf411386b241bf52",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_partnerships_list(integer,timestamp with time zone,uuid)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "955f1c432cc78baa8af374a1b7764c1b",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_role()",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "47239a4b49b3408379d3314fda0a089a",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_set_device(uuid,text)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "446a03db2cd53f02d27457e627608bb9",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_set_member_active(uuid,boolean)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "2190662f7eeff9ef161ce7b010bc0ad9",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_set_member_role(uuid,text)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "24cae833a21231d41c346c3790c2727c",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.command_result(studio_workflow.actor,uuid,text,jsonb)",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "88f2b41f172b80b323ad1b20fdf983db",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.context(uuid)",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "6f98b1351374b1ee227bf77696d98163",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.creator_post_hash(uuid,uuid)",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "dda14c37181f9295476839bfd8559abb",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.deliverable_unchanged(uuid,uuid,integer)",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "8d9fb59ac2da595cdef19d27b70189f6",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.event(studio_workflow.actor,text,uuid,text,text)",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "9ba5f140b8e3c0b7fa7d890910e2f4a3",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.guard_editorial_post()",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "67e41a6a0b0d67cb8276dc2c45376bd7",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.input(jsonb,text[])",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "fb25534cedb1e64899578813f3de0ff2",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.newsroom_json(uuid,studio_workflow.actor)",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "8bd4570647e4079d1bbdd67d3a8232c3",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.participants_available(uuid,uuid)",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "d92429b3ed3802264c81c04954dc671b",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.partnership_json(uuid,studio_workflow.actor,boolean)",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "cd7de8aac84e8f86164e9fcc99f3f6ec",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.post_hash(studio_scheduled_posts)",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "6c5176ba1fd6b80c80f5454500157ce3",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.remember(studio_workflow.actor,uuid,text,jsonb,uuid)",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "a2c1b11ac8b43066e271e6aad5548951",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.require_roles(studio_workflow.actor,text[])",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "ab5b7bb1bd8b9a192f21125d00f86397",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.write_context(uuid)",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      }
+    ],
+    "data_counts": {
+      "staff": 1,
+      "members": 0,
+      "bindings": 0,
+      "profiles": 1,
+      "auth_users": 1,
+      "auth_sessions": 13,
+      "scheduled_posts": 0,
+      "storage_objects": 15
+    },
+    "publishing_guard": {
+      "enabled": "O",
+      "definition": "CREATE TRIGGER studio_editorial_post_guard BEFORE DELETE OR UPDATE ON public.studio_scheduled_posts FOR EACH ROW EXECUTE FUNCTION studio_workflow.guard_editorial_post()"
+    },
+    "business_tables_private": true
+  },
+  "routePostflight": {
+    "trigger": {
+      "enabled": "O",
+      "definition": "CREATE TRIGGER guard_reserved_web_username BEFORE INSERT OR UPDATE OF username ON public.profiles FOR EACH ROW EXECUTE FUNCTION app_routes.guard_profile_username()"
+    },
+    "profiles": 1,
+    "functions": [
+      {
+        "hash": "26fa977d54cc9408dc41c48ca68bde51",
+        "owner": "postgres",
+        "signature": "app_routes.guard_profile_username()",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false
+      },
+      {
+        "hash": "7131f4adec0b5325d873d73cb0623707",
+        "owner": "postgres",
+        "signature": "app_routes.is_reserved_username(text)",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false
+      },
+      {
+        "hash": "43171ea8822eeb21f764e0f3f494b298",
+        "owner": "postgres",
+        "signature": "is_username_available(text)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": true
+      }
+    ],
+    "collisions": {
+      "ads": 0,
+      "home": 0,
+      "jobs": 0,
+      "post": 0,
+      "about": 0,
+      "album": 0,
+      "calls": 0,
+      "login": 0,
+      "music": 0,
+      "saved": 0,
+      "story": 0,
+      "terms": 0,
+      "topic": 0,
+      "watch": 0,
+      "write": 0,
+      "market": 0,
+      "search": 0,
+      "signup": 0,
+      "studio": 0,
+      "archive": 0,
+      "explore": 0,
+      "privacy": 0,
+      "channels": 0,
+      "discover": 0,
+      "messages": 0,
+      "settings": 0,
+      "businesses": 0,
+      "communities": 0,
+      "monetization": 0,
+      "notifications": 0,
+      "business-login": 0,
+      "reset-password": 0,
+      "forgot-password": 0,
+      "account-deletion": 0
+    },
+    "availability": {
+      "ads": false,
+      "home": false,
+      "jobs": false,
+      "post": false,
+      "about": false,
+      "album": false,
+      "calls": false,
+      "login": false,
+      "music": false,
+      "saved": false,
+      "story": false,
+      "terms": false,
+      "topic": false,
+      "watch": false,
+      "write": false,
+      "market": false,
+      "search": false,
+      "signup": false,
+      "studio": false,
+      "archive": false,
+      "explore": false,
+      "privacy": false,
+      "channels": false,
+      "discover": false,
+      "messages": false,
+      "settings": false,
+      "businesses": false,
+      "communities": false,
+      "monetization": false,
+      "notifications": false,
+      "business-login": false,
+      "reset-password": false,
+      "forgot-password": false,
+      "account-deletion": false
+    }
+  },
+  "invariants": {
+    "unchanged_existing_counts": true,
+    "new_tables_empty": true,
+    "private_tables": true,
+    "function_owners_paths": true,
+    "function_grants": true,
+    "business_tables_private": true,
+    "publishing_guard_enabled": true,
+    "routes_unavailable": true,
+    "routes_no_collisions": true,
+    "route_guard_enabled": true,
+    "all_35_function_definitions_match_tested_qa_fixture": true
+  },
+  "provider_workflows_exercised": false
+}

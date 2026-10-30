@@ -12,6 +12,8 @@ import Link from "next/link";
 import { BadgeCheck, Check, ShieldAlert } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Panel } from "@/components/ui";
+import { useViewerIdentity } from "@/lib/useViewerIdentity";
+import { withTimeout } from "@/lib/withTimeout";
 
 type Me = {
   created_at: string | null;
@@ -25,27 +27,25 @@ type Me = {
 
 export function AccountStatus() {
   const [supabase] = useState(createClient);
-  const [me, setMe] = useState<Me | null>(null);
-  const [email, setEmail] = useState<string | null>(null);
-  const [confirmed, setConfirmed] = useState(false);
-
+  const { viewer, loading, error: identityError, retry: retryIdentity } = useViewerIdentity();
+  const uid = viewer?.id ?? null;
+  const [result, setResult] = useState<{ owner: string; profile: Me } | null>(null);
+  const [error, setError] = useState(''), [attempt, setAttempt] = useState(0);
   useEffect(() => {
-    (async () => {
-      const { data: sess } = await supabase.auth.getSession();
-      const u = sess.session?.user;
-      if (!u) return;
-      setEmail(u.email ?? null);
-      setConfirmed(!!u.email_confirmed_at);
-      const { data } = await supabase
-        .from("profiles")
-        .select("created_at, is_verified, verified_tier, account_type, username, avatar_url, headline")
-        .eq("id", u.id)
-        .maybeSingle();
-      setMe((data ?? null) as Me | null);
-    })();
-  }, [supabase]);
-
+    let active = true;
+    setResult(null); setError('');
+    if (!uid || loading || identityError) return;
+    void withTimeout(supabase.from("profiles").select("created_at, is_verified, verified_tier, account_type, username, avatar_url, headline").eq("id", uid).maybeSingle()).then(({ data, error: cause }) => {
+      if (!active) return;
+      if (cause || !data) throw new Error('Profile unavailable');
+      setResult({ owner: uid, profile: data as Me });
+    }).catch(() => { if (active) setError('Your account details could not load.'); });
+    return () => { active = false; };
+  }, [supabase, uid, loading, identityError, attempt]);
+  if (identityError || error) return <Panel title="Account status"><p role="status" className="text-sm text-muted">{identityError || error}</p><button type="button" className="mt-2 min-h-11 text-sm font-semibold text-ink" onClick={() => { if (identityError) retryIdentity(); else setAttempt(value => value + 1); }}>Try again</button></Panel>;
+  const me = result?.owner === uid ? result?.profile : null;
   if (!me) return null;
+  const email = viewer?.email ?? null, confirmed = Boolean(viewer?.email_confirmed_at);
 
   const since = me.created_at ? new Date(me.created_at) : null;
 
@@ -55,8 +55,8 @@ export function AccountStatus() {
   const checks = [
     { label: "Email confirmed", ok: confirmed, href: "/settings" },
     { label: "Username set", ok: !!me.username, href: "/settings/username" },
-    { label: "Profile photo", ok: !!me.avatar_url, href: me.username ? "/" + encodeURIComponent(me.username) : "/settings/username" },
-    { label: "Headline written", ok: !!me.headline, href: me.username ? "/" + encodeURIComponent(me.username) : "/settings/username" },
+    { label: "Profile photo", ok: !!me.avatar_url, href: '/settings/profile' },
+    { label: "Headline written", ok: !!me.headline, href: '/settings/profile' },
   ];
 
   return (

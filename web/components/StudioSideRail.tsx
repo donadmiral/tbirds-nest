@@ -25,12 +25,12 @@ import { studioHome, type StudioHome } from "@/lib/studio";
 import { Panel } from "@/components/ui";
 
 const ACTIONS = [
-  { label: "Write a post", href: "/studio/planner", icon: PenSquare },
+  { label: "Write a post", href: "/studio/planner?compose=1", icon: PenSquare },
   { label: "Schedule content", href: "/studio/planner", icon: CalendarClock },
   { label: "Review applicants", href: "/studio/recruiter", icon: Briefcase },
   { label: "Check the inbox", href: "/studio/inbox", icon: Inbox },
   { label: "See insights", href: "/studio/insights", icon: BarChart3 },
-  { label: "Add a listing", href: "/studio/commerce", icon: ShoppingBag },
+  { label: "Add a listing", href: "/market/new", icon: ShoppingBag },
 ];
 
 export function StudioSideRail({ role, username }: { role: string | null; username: string | null }) {
@@ -40,19 +40,22 @@ export function StudioSideRail({ role, username }: { role: string | null; userna
 
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const generation = useRef(0);
   const load = useCallback(async () => {
+    const run = ++generation.current;
     setLoading(true);
     try {
       const [summary, result] = await Promise.all([studioHome(), supabase.rpc("studio_reviews")]);
+      if (run !== generation.current) return;
       if (result.error) throw result.error;
       setHome(summary);
       const d = result.data as { average?: number; count?: number } | null;
       setReviews(d && (d.count ?? 0) > 0 ? { n: d.count ?? 0, avg: d.average ?? 0 } : null);
       setLoadError(null);
-    } catch { setLoadError("Studio summaries could not be refreshed."); }
-    finally { setLoading(false); }
+    } catch { if (run === generation.current) setLoadError("Studio summaries could not be refreshed."); }
+    finally { if (run === generation.current) setLoading(false); }
   }, [supabase]);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { void load(); return () => { generation.current++; }; }, [load]);
 
   const todos = home
     ? [
@@ -61,7 +64,7 @@ export function StudioSideRail({ role, username }: { role: string | null; userna
         { n: home.todos.applicants, label: "applicants to review", href: "/studio/recruiter" },
         { n: home.todos.ads_ending, label: "ads ending soon", href: "/studio/ads" },
         { n: home.todos.scheduled_today, label: "posts scheduled today", href: "/studio/planner" },
-        { n: home.todos.failed_posts, label: "posts failed to publish", href: "/studio/planner" },
+        { n: home.todos.failed_posts, label: "posts failed to publish", href: "/studio/planner?filter=failed" },
       ].filter((t) => t.n > 0)
     : [];
 

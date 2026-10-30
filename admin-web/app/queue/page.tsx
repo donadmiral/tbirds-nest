@@ -18,12 +18,12 @@ const TIER_LABEL: Record<string, string> = { public_figure: 'Green seal', busine
 const TIER_TONE: Record<string, Tone> = { public_figure: 'ok', business: 'neutral', official: 'warn' };
 
 const IC = {
-  seal: 'M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4L4.2 7.7l5.4-.8L12 2z',
-  clock: 'M12 2a10 10 0 100 20 10 10 0 000-20zm1 10.6V6h-2v7.4l5.2 3.1 1-1.7-4.2-2.2z',
-  check: 'M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z',
-  x: 'M19 6.4L17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z',
-  users: 'M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z',
-};
+  seal: 'verification',
+  clock: 'clock',
+  check: 'check',
+  x: 'close',
+  users: 'users',
+} as const;
 
 function medianHours(pairs: { created_at: string; decided_at: string }[]): number | null {
   if (pairs.length === 0) return null;

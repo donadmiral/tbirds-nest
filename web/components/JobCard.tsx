@@ -1,71 +1,92 @@
 "use client";
 
 import Link from "next/link";
-import { StoryAvatar } from "@/components/StoryAvatar";
-import { useState } from "react";
-import { Briefcase, Bookmark, Share2, Check } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { Briefcase, Bookmark, Share2, Check, MapPin, Clock } from "lucide-react";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { createClient } from "@/lib/supabase/client";
-import { jobMeta, type JobRow, type PosterLite } from "@/lib/jobs";
+import { type JobRow, type PosterLite } from "@/lib/jobs";
 import { RelativeTime } from "@/components/RelativeTime";
+import styles from "@/app/jobs/JobsWorkspace.module.css";
 
-export function JobCard({ job, initiallySaved, viewerId }: {
+type JobCardProps = {
   job: JobRow & { profile?: PosterLite | null };
   initiallySaved: boolean;
   viewerId: string | null;
-}) {
-  const supabase = createClient();
-  const [saved, setSaved] = useState(initiallySaved);
+  onSavedChange?: (saved: boolean) => void;
+};
+export function JobCard(props: JobCardProps) {
+  return <JobCardContent key={`${props.viewerId ?? "guest"}:${props.job.id}`} {...props} />;
+}
+function JobCardContent({ job, initiallySaved, viewerId, onSavedChange }: JobCardProps) {
+  const [supabase] = useState(createClient);
+  const router = useRouter();
+  const [optimistic, setOptimistic] = useState<boolean | null>(null);
+  const saved = optimistic ?? initiallySaved;
+  const [pending, setPending] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [error, setError] = useState("");
+  const saving = useRef(false);
+  const generation = useRef(0);
+  const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    generation.current++;
+    return () => { generation.current++; if (copyTimer.current) clearTimeout(copyTimer.current); };
+  }, []);
 
-  async function toggleSave(e: React.MouseEvent) {
-    e.preventDefault();
-    if (!viewerId) return;
-    const next = !saved;
-    setSaved(next);
-    const { error } = next
-      ? await supabase.from("job_saves").insert({ user_id: viewerId, job_id: job.id })
-      : await supabase.from("job_saves").delete().eq("user_id", viewerId).eq("job_id", job.id);
-    if (error && !String(error.message || "").toLowerCase().includes("duplicate")) setSaved(!next);
+  async function toggleSave() {
+    if (!viewerId) { router.push("/login"); return; }
+    if (saving.current) return;
+    const token = generation.current;
+    saving.current = true; setPending(true); setError("");
+    const next = !saved; setOptimistic(next);
+    try {
+      const { error: failure } = next
+        ? await supabase.from("job_saves").insert({ user_id: viewerId, job_id: job.id })
+        : await supabase.from("job_saves").delete().eq("user_id", viewerId).eq("job_id", job.id);
+      if (failure && failure.code !== "23505") throw failure;
+      if (token === generation.current) { onSavedChange?.(next); if (onSavedChange) setOptimistic(null); }
+    } catch {
+      if (token === generation.current) { setOptimistic(saved); setError("We couldn’t save that change. Try again."); }
+    } finally { if (token === generation.current) { saving.current = false; setPending(false); } }
   }
 
-  async function share(e: React.MouseEvent) {
-    e.preventDefault();
+  async function share() {
+    const token = generation.current;
     const url = window.location.origin + "/jobs/" + job.id;
-    const text = job.title + " at " + job.company;
-    if (navigator.share) {
-      try { await navigator.share({ title: text, url }); return; } catch { /* cancelled */ }
-    }
-    await navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+    setError("");
+    try {
+      if (navigator.share) {
+        try { await navigator.share({ title: job.title + " at " + job.company, url }); return; }
+        catch (reason) { if (reason instanceof Error && reason.name === "AbortError") return; }
+      }
+      await navigator.clipboard.writeText(url);
+      if (token !== generation.current) return;
+      setCopied(true);
+      if (copyTimer.current) clearTimeout(copyTimer.current);
+      copyTimer.current = setTimeout(() => setCopied(false), 2500);
+    } catch { if (token === generation.current) setError("The link couldn’t be copied. Open the role and copy its address to share it."); }
   }
-
+  const location = job.remote_type === "remote" ? "Remote" : [job.location, job.remote_type === "hybrid" ? "Hybrid" : null].filter(Boolean).join(" · ");
   return (
-    <Link href={"/jobs/" + job.id} className="flex gap-4 border-b border-ink/10 px-1 py-5 transition-colors duration-[140ms] hover:bg-surface">
-      <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-navy text-white">
-        <Briefcase size={22} strokeWidth={1.8} />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="flex items-center gap-2">
-          <span className="truncate text-[16px] font-semibold text-ink">{job.title}</span>
-          {job.urgent ? <span className="rounded-sm bg-danger/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-danger">Urgent</span> : null}
-          {job.visa_sponsorship ? <span className="rounded-sm bg-surface px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink/60">Visa</span> : null}
-        </span>
-        <span className="flex items-center gap-1.5 truncate text-[14px] text-ink/70">{job.profile?.id ? <StoryAvatar userId={job.profile.id} name={job.profile.full_name} avatarUrl={job.profile.avatar_url} size={38} /> : null}<span className="flex items-center gap-[3px] truncate">{job.company}{job.verified ? <VerifiedBadge tier="business" size={13} /> : null}</span></span>
-        {jobMeta(job) ? <span className="block truncate text-[13px] text-muted">{jobMeta(job)}</span> : null}
-        <span className="mt-1 block text-[12px] text-muted">
-          <RelativeTime dateTime={job.created_at} />{job.applications_count > 0 ? " · " + job.applications_count + " applicants" : ""}
-        </span>
-      </span>
-      <span className="flex shrink-0 flex-col items-end gap-1">
-        <button onClick={toggleSave} title={saved ? "Unsave" : "Save"} className={"rounded-full p-2 transition-colors duration-[140ms] " + (saved ? "text-accent hover:bg-pearl/10" : "text-muted hover:bg-ink/[0.06] hover:text-ink")}>
-          <Bookmark size={18} fill={saved ? "currentColor" : "none"} />
-        </button>
-        <button onClick={share} title="Share" className="rounded-full p-2 text-muted transition-colors duration-[140ms] hover:bg-ink/[0.06] hover:text-ink">
-          {copied ? <Check size={18} className="text-success" /> : <Share2 size={18} />}
-        </button>
-      </span>
-    </Link>
+    <article className={styles.jobCard}>
+      <span className={styles.companyIcon} aria-hidden><Briefcase size={23} strokeWidth={1.7} /></span>
+      <div className={styles.jobCopy}>
+        <h2><Link href={"/jobs/" + job.id}>{job.title}</Link></h2>
+        <p className={styles.company}>{job.company}{job.verified ? <VerifiedBadge tier="business" size={14} /> : null}</p>
+        <div className={styles.meta}>
+          {location ? <span><MapPin size={13} aria-hidden />{location}</span> : null}
+          {job.category ? <span><Briefcase size={13} aria-hidden />{job.category.replaceAll("_", " ")}</span> : null}
+        </div>
+        {job.salary_range ? <span className={styles.salary}>{job.salary_range}</span> : null}
+        <div className={styles.meta}><span><Clock size={13} aria-hidden /><RelativeTime dateTime={job.created_at} /></span>{job.applications_count > 0 ? <span>{job.applications_count} applicants</span> : null}{job.urgent ? <span className={styles.badge}>Urgent hiring</span> : null}{job.visa_sponsorship ? <span className={styles.badge}>Visa sponsorship</span> : null}</div>
+      </div>
+      <div className={styles.cardActions}>
+        <button type="button" onClick={() => void toggleSave()} disabled={pending} aria-pressed={saved} aria-label={(saved ? "Unsave " : "Save ") + job.title} title={saved ? "Unsave job" : "Save job"} className={styles.iconButton}><Bookmark size={19} strokeWidth={1.7} fill={saved ? "currentColor" : "none"} aria-hidden /></button>
+        <button type="button" onClick={() => void share()} aria-label={"Share " + job.title} title="Share job" className={styles.iconButton}>{copied ? <Check size={19} aria-hidden /> : <Share2 size={19} strokeWidth={1.7} aria-hidden />}</button>
+      </div>
+      {error ? <p role="alert" className={styles.status + " " + styles.error}>{error}</p> : copied ? <p role="status" className={styles.status}>Job link copied.</p> : null}
+    </article>
   );
 }

@@ -17,12 +17,12 @@ const H_TITLE: React.CSSProperties = { fontSize: 14, fontWeight: 700, color: 'va
 const H_SUB: React.CSSProperties = { fontSize: 12, color: 'var(--txt-muted)', marginTop: 3 };
 
 const IC = {
-  bag: 'M4 7l2-4h12l2 4v2a3 3 0 01-1 2.2V20H5v-8.8A3 3 0 014 9V7zm3 6h4v5H7v-5z',
-  money: 'M12 2a10 10 0 100 20 10 10 0 000-20zm1 15.9V19h-2v-1.1c-1.6-.3-2.8-1.3-2.9-2.9h2c.1.7.8 1.2 1.9 1.2 1.2 0 1.8-.5 1.8-1.2 0-.6-.5-1-1.8-1.3-2.2-.5-3.7-1.2-3.7-3 0-1.5 1.2-2.5 2.7-2.8V7h2v1c1.5.3 2.6 1.2 2.7 2.7h-2c-.1-.7-.6-1.1-1.6-1.1-1.1 0-1.7.4-1.7 1.1 0 .6.6.9 2 1.2 2.2.5 3.5 1.2 3.5 3.1 0 1.6-1.2 2.6-2.9 2.9z',
-  check: 'M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z',
-  users: 'M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z',
-  flag: 'M12 2L1 21h22L12 2zm1 14h-2v2h2v-2zm0-6h-2v4h2v-4z',
-};
+  bag: 'market',
+  money: 'payment',
+  check: 'check',
+  users: 'users',
+  flag: 'reports',
+} as const;
 
 const SERIES = ['var(--c2)', 'var(--c1)', 'var(--c3)', 'var(--c4)', 'var(--c6)', 'var(--c5)'];
 const STATUS_TONE: Record<string, Tone> = { available: 'ok', active: 'ok', sold: 'neutral', pending: 'warn', reserved: 'warn', removed: 'bad', draft: 'neutral' };

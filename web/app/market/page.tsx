@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MarketAlerts } from "@/components/MarketAlerts";
-import { BellPlus } from "lucide-react";
+import { BellPlus, Package, Bookmark, ShoppingBag, LayoutGrid, Laptop, Car, Building2, Shirt, Armchair, Sprout, Wrench, Briefcase, Sparkles, SearchX, X, type LucideIcon } from "lucide-react";
+import { ProductDialog } from "@/components/ProductDialog";
+import styles from "./MarketWorkspace.module.css";
 import Link from "next/link";
 import { Search, MessageCircle, SlidersHorizontal, Plus } from "lucide-react";
 import { MarketUnreadDot } from "@/components/MarketUnreadDot";
@@ -15,6 +17,8 @@ const TABS = [
   { id: "saved", label: "Saved" },
   { id: "selling", label: "Selling" },
 ] as const;
+
+const CATEGORY_ICONS: Record<string, LucideIcon> = { All: LayoutGrid, Electronics: Laptop, Vehicles: Car, Property: Building2, Fashion: Shirt, Home: Armchair, Agriculture: Sprout, Services: Wrench, "Jobs Gear": Briefcase, Beauty: Sparkles, Other: Package };
 
 const EMPTY: MarketFilters = { minPrice: null, maxPrice: null, condition: null, city: null, sort: "recent" };
 
@@ -35,8 +39,11 @@ export default function MarketPage() {
 
   const [error, setError] = useState<string | null>(null);
   const request = useRef(0);
+  const account = useRef<string | null | undefined>(undefined);
+  const [filterError, setFilterError] = useState("");
   const load = useCallback(async () => {
     const token = ++request.current;
+    setLoading(true); setError(null);
     try {
       const [{ data: session, error: sessionError }, ids] = await Promise.all([
         supabase.auth.getSession(), getSavedListingIds(),
@@ -45,6 +52,7 @@ export default function MarketPage() {
       setLoading(true); setError(null);
       if (sessionError) throw sessionError;
       const viewerId = session.session?.user.id ?? null;
+      account.current = viewerId;
       let rows: Listing[];
       if (tab === "selling") {
         rows = viewerId ? await myListings(viewerId) : [];
@@ -80,118 +88,54 @@ export default function MarketPage() {
     return () => { cancelled = true; request.current += 1; };
   }, [load]);
 
+  useEffect(() => {
+    let active = true;
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      const next = session?.user.id ?? null;
+      if (next === account.current) return;
+      account.current = next; request.current++; setUid(next); setListings([]); setSavedIds(new Set());
+      setFiltersOpen(false); setAlertsOpen(false);
+      queueMicrotask(() => { if (active) void load(); });
+    });
+    return () => { active = false; listener.subscription.unsubscribe(); };
+  }, [supabase, load]);
+
   const cats = useMemo(() => ["All", ...MARKET_CATEGORIES], []);
   const filtersActive = filters.minPrice != null || filters.maxPrice != null || !!filters.condition || !!filters.city || (filters.sort && filters.sort !== "recent");
   const num = (v: string) => { const n = Number(v.replace(/,/g, "")); return v.trim() !== "" && Number.isFinite(n) && n >= 0 ? n : null; };
-  const inputCls = "rounded-lg bg-surface px-3 py-2 text-[13px] text-ink placeholder:text-muted outline-none transition-colors duration-[140ms] focus:bg-surface-elevated";
-
-  return (
-    <div>
-      <div className="flex items-center justify-between px-1 pb-3">
-        <h1 className="font-display text-2xl text-porcelain">Market</h1>
-        <Link href="/market/orders" className="rounded-full px-3 py-2 text-sm font-semibold hover:bg-surface">Orders</Link>
-            <Link href="/market/messages" title="Market messages" className="relative rounded-full p-2 text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><MessageCircle size={19} /><MarketUnreadDot /></Link>
-          <Link href="/market/new" className="ml-1 flex items-center gap-1.5 rounded-full bg-pearl px-3.5 py-2 text-[13px] font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90"><Plus size={16} /> Sell</Link>
-      </div>
-
-      <div className="flex gap-2 px-1 pb-3">
-        {TABS.map((t) => (
-          <button key={t.id}
-            onClick={() => { if (tab !== t.id) setLoading(true); setTab(t.id); }}
-            className={"rounded-full px-3.5 py-1.5 text-[13px] transition-colors duration-[140ms] " + (tab === t.id ? "bg-pearl font-semibold text-on-pearl" : "bg-surface text-ink/70 hover:text-ink")}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {tab === "browse" ? (
-        <>
-          {alertsOpen ? <MarketAlerts initialQuery={applied || search} onClose={() => setAlertsOpen(false)} /> : null}
-          <div className="flex gap-2 px-1">
-            <div className="relative flex-1">
-              <Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
-              <input value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") { if (applied !== search.trim()) setLoading(true); setApplied(search.trim()); } }}
-                placeholder="Search the market"
-                aria-label="Search the market"
-                className="w-full rounded-lg bg-surface py-3 pl-10 pr-4 text-[14px] text-ink placeholder:text-muted outline-none transition-colors duration-[140ms] focus:bg-surface-elevated"
-              />
-            </div>
-            <button onClick={() => setAlertsOpen(true)} title="Market alerts" className="flex items-center rounded-full bg-surface px-3 text-ink/70 transition-colors duration-[140ms] hover:text-ink">
-              <BellPlus size={16} />
-            </button>
-            <button onClick={() => { setDraft(filters); setFiltersOpen((v) => !v); }}
-              className={"flex items-center gap-1.5 rounded-full px-3.5 text-[13px] transition-colors duration-[140ms] " + (filtersActive ? "bg-pearl font-semibold text-on-pearl" : "bg-surface text-ink/70 hover:text-ink")}
-            >
-              <SlidersHorizontal size={15} /> Filters
-            </button>
-          </div>
-
-          {filtersOpen ? (
-            <div className="mx-1 mt-3 flex flex-col gap-3 rounded-lg border border-ink/10 p-4">
-              <div className="flex gap-2">
-                <input className={inputCls + " w-28"} inputMode="numeric" placeholder="Min price" aria-label="Minimum price" defaultValue={draft.minPrice ?? ""} onChange={(e) => setDraft((d) => ({ ...d, minPrice: num(e.target.value) }))} />
-                <input className={inputCls + " w-28"} inputMode="numeric" placeholder="Max price" aria-label="Maximum price" defaultValue={draft.maxPrice ?? ""} onChange={(e) => setDraft((d) => ({ ...d, maxPrice: num(e.target.value) }))} />
-                <input className={inputCls + " flex-1"} placeholder="City" aria-label="City" defaultValue={draft.city ?? ""} onChange={(e) => setDraft((d) => ({ ...d, city: e.target.value || null }))} />
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                {MARKET_CONDITIONS.map((c) => (
-                  <button key={c}
-                    onClick={() => setDraft((d) => ({ ...d, condition: d.condition === c ? null : c }))}
-                    className={"rounded-full px-3 py-1.5 text-[13px] transition-colors duration-[140ms] " + (draft.condition === c ? "bg-surface-elevated font-semibold text-ink" : "bg-surface text-ink/60 hover:text-ink")}
-                  >
-                    {c}
-                  </button>
-                ))}
-                <select value={draft.sort ?? "recent"}
-                  aria-label="Sort listings"
-                  onChange={(e) => setDraft((d) => ({ ...d, sort: e.target.value as MarketFilters["sort"] }))}
-                  className="ml-auto rounded-full bg-surface px-3 py-1.5 text-[13px] text-ink/80 outline-none"
-                >
-                  <option value="recent" className="bg-navy">Newest first</option>
-                  <option value="price_low" className="bg-navy">Price low to high</option>
-                  <option value="price_high" className="bg-navy">Price high to low</option>
-                </select>
-              </div>
-              <div className="flex gap-2">
-                <button onClick={() => { if (filters !== draft) setLoading(true); setFilters(draft); setFiltersOpen(false); }} className="rounded-full bg-pearl px-4 py-2 text-[13px] font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90">Apply</button>
-                <button onClick={() => { if (filters !== EMPTY) setLoading(true); setDraft(EMPTY); setFilters(EMPTY); setFiltersOpen(false); }} className="rounded-full bg-surface px-4 py-2 text-[13px] text-ink transition-colors duration-[140ms] hover:bg-surface-elevated">Clear all</button>
-              </div>
-            </div>
-          ) : null}
-
-          <div className="mt-3 flex gap-2 overflow-x-auto px-1 pb-2">
-            {cats.map((c) => (
-              <button key={c}
-                onClick={() => { if (category !== c) setLoading(true); setCategory(c); }}
-                className={"shrink-0 rounded-full px-3.5 py-1.5 text-[13px] transition-colors duration-[140ms] " + (category === c ? "bg-pearl font-semibold text-on-pearl" : "bg-surface text-ink/60 hover:text-ink")}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-        </>
-      ) : null}
-
-      {error ? <p role="alert" className="px-1 py-3 text-sm text-danger">{error} <button onClick={() => { setLoading(true); void load(); }} className="underline">Retry</button></p> : null}
-      {loading ? (
-        <p className="py-16 text-center text-sm text-muted">Loading</p>
-      ) : listings.length === 0 && !error ? (
-        <p className="py-16 text-center text-sm text-muted">
-          {tab === "saved" ? "Listings you save will appear here." : tab === "selling" ? "Your listings will appear here." : "Nothing listed here yet."}
-        </p>
-      ) : (
-        <div className="grid grid-cols-2 gap-3 px-1 pt-2 sm:grid-cols-3">
-          {listings.map((l) => (
-            <ListingCard key={(uid ?? "guest") + l.id} l={l} saved={savedIds.has(l.id)} viewerId={uid} onSavedChange={(on) => {
-              setSavedIds((previous) => { const next = new Set(previous); if (on) next.add(l.id); else next.delete(l.id); return next; });
-              if (!on && tab === "saved") setListings((rows) => rows.filter((row) => row.id !== l.id));
-            }} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
+  const clearAll = () => { setSearch(""); setApplied(""); setCategory("All"); setFilters(EMPTY); };
+  return <div className={styles.workspace}>
+    <header className={styles.header}><div><h1>Market</h1><p>Find something you love, connect with sellers, and keep orders in one place.</p></div><div className={styles.actions}>
+      <Link href="/market/orders" className={styles.button}><Package size={17} aria-hidden />Orders</Link>
+      <Link href="/market/messages" className={styles.button + " relative"}><MessageCircle size={17} aria-hidden />Messages<MarketUnreadDot /></Link>
+      <Link href="/market/new" className={styles.primary}><Plus size={17} aria-hidden />Sell an item</Link>
+    </div></header>
+    <div className={styles.tabs} role="group" aria-label="Market views">{TABS.map(option => <button type="button" key={option.id} aria-pressed={tab === option.id} onClick={() => { if (tab !== option.id) setLoading(true); setTab(option.id); }}>{option.id === "saved" ? <Bookmark size={16} aria-hidden /> : option.id === "selling" ? <ShoppingBag size={16} aria-hidden /> : null}{option.label}</button>)}</div>
+    {tab === "browse" ? <>
+      <form className={styles.toolbar} role="search" onSubmit={event => { event.preventDefault(); setApplied(search.trim()); }}>
+        <div className={styles.search}><Search size={18} aria-hidden /><input type="search" value={search} onChange={event => setSearch(event.target.value)} placeholder="Search the market" aria-label="Search the market" />{search ? <button type="button" aria-label="Clear market search" className={styles.iconButton} onClick={() => { setSearch(""); setApplied(""); }}><X size={16} aria-hidden /></button> : null}</div>
+        <button type="submit" className={styles.primary}>Search</button>
+        <button type="button" className={styles.button} onClick={() => setAlertsOpen(true)}><BellPlus size={17} aria-hidden />Alerts</button>
+        <button type="button" aria-expanded={filtersOpen} className={styles.button} onClick={() => { setDraft(filters); setFilterError(""); setFiltersOpen(true); }}><SlidersHorizontal size={17} aria-hidden />Filters{filtersActive ? " · Active" : ""}</button>
+      </form>
+      <div className={styles.categories} role="group" aria-label="Market category">{cats.map(categoryName => { const Icon = CATEGORY_ICONS[categoryName] ?? Package; return <button type="button" key={categoryName} aria-pressed={category === categoryName} onClick={() => setCategory(categoryName)}><Icon size={16} strokeWidth={1.7} aria-hidden />{categoryName}</button>; })}</div>
+    </> : null}
+    <div className={styles.results}><span role="status">{loading ? "Finding listings…" : error ? "Listings unavailable" : listings.length + (listings.length === 1 ? " listing shown" : " listings shown")}</span>{tab === "browse" && (filtersActive || category !== "All" || applied) ? <button type="button" onClick={clearAll}>Clear search and filters</button> : null}</div>
+    {loading ? <div className={styles.state} role="status"><ShoppingBag size={28} aria-hidden /><p>Loading listings…</p></div>
+      : error ? <div className={styles.state} role="alert"><SearchX size={28} aria-hidden /><h2>We couldn’t load listings</h2><p>{error}</p><button onClick={() => void load()} className={styles.primary}>Try again</button></div>
+      : !uid && tab !== "browse" ? <div className={styles.state}><ShoppingBag size={28} aria-hidden /><h2>{tab === "saved" ? "Keep your favourites together" : "Your shop starts here"}</h2><p>Sign in to {tab === "saved" ? "view your saved listings." : "publish and manage your listings."}</p><Link href="/login" className={styles.primary}>Sign in</Link></div>
+      : listings.length === 0 ? <div className={styles.state}><ShoppingBag size={28} aria-hidden /><h2>{tab === "saved" ? "No saved listings yet" : tab === "selling" ? "Ready for a new home?" : "No matching listings"}</h2><p>{tab === "saved" ? "Save an item to keep it here for later." : tab === "selling" ? "Give your item a clear description and photos to help buyers find it." : "Try another search or category to see more from the market."}</p>{tab === "selling" ? <Link href="/market/new" className={styles.primary}>Create a listing</Link> : <button type="button" className={styles.button} onClick={() => { setTab("browse"); clearAll(); }}>Browse all listings</button>}</div>
+      : <div className={styles.grid}>{listings.map(listing => <ListingCard key={(uid ?? "guest") + listing.id} l={listing} saved={savedIds.has(listing.id)} viewerId={uid} onSavedChange={on => { setSavedIds(previous => { const next = new Set(previous); if (on) next.add(listing.id); else next.delete(listing.id); return next; }); if (!on && tab === "saved") setListings(rows => rows.filter(row => row.id !== listing.id)); }} />)}</div>}
+    {alertsOpen ? <MarketAlerts initialQuery={applied || search} onClose={() => setAlertsOpen(false)} /> : null}
+    <ProductDialog open={filtersOpen} title="Market filters" description="Narrow your search by price, location and condition." onClose={() => setFiltersOpen(false)}>
+      <form className={styles.form} onSubmit={event => { event.preventDefault(); if (draft.minPrice != null && draft.maxPrice != null && draft.minPrice > draft.maxPrice) { setFilterError("The maximum price must be at least the minimum price."); return; } setFilters(draft); setFiltersOpen(false); }}>
+        <div className={styles.fields}><label>Minimum price<input type="number" min="0" step="0.01" inputMode="decimal" value={draft.minPrice ?? ""} onChange={event => setDraft(value => ({ ...value, minPrice: num(event.target.value) }))} /></label><label>Maximum price<input type="number" min="0" step="0.01" inputMode="decimal" value={draft.maxPrice ?? ""} onChange={event => setDraft(value => ({ ...value, maxPrice: num(event.target.value) }))} /></label></div>
+        <label>City<input value={draft.city ?? ""} onChange={event => setDraft(value => ({ ...value, city: event.target.value || null }))} placeholder="Any city" maxLength={120} /></label>
+        <label>Condition<select value={draft.condition ?? ""} onChange={event => setDraft(value => ({ ...value, condition: event.target.value || null }))}><option value="">Any condition</option>{MARKET_CONDITIONS.map(condition => <option key={condition}>{condition}</option>)}</select></label>
+        <label>Sort listings<select value={draft.sort ?? "recent"} onChange={event => setDraft(value => ({ ...value, sort: event.target.value as MarketFilters["sort"] }))}><option value="recent">Newest first</option><option value="price_low">Price low to high</option><option value="price_high">Price high to low</option></select></label>
+        {filterError ? <p role="alert" className={styles.error}>{filterError}</p> : null}
+        <div className={styles.actions}><button type="button" className={styles.button} onClick={() => { setDraft(EMPTY); setFilterError(""); }}>Reset</button><button type="button" className={styles.button} onClick={() => setFiltersOpen(false)}>Cancel</button><button type="submit" className={styles.primary}>Apply filters</button></div>
+      </form>
+    </ProductDialog>
+  </div>;
 }

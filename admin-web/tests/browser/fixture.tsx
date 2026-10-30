@@ -9,15 +9,23 @@ import PresentTray from '@/components/PresentTray';
 import PresentBuilder from '@/components/PresentBuilder';
 import { Desk, StatStrip, type DeskRow } from '@/components/Desk';
 import { SeriesChart } from '@/components/Viz';
-import { GROUPS, ACTIONS } from '@/lib/navigation';
+import { navigationForRole, toolsForRole, actionsForRole, matchingDestination } from '@/lib/navigation';
+import AdminIcon from '@/components/AdminIcon';
+import WorkspaceLauncher from '@/components/WorkspaceLauncher';
+import StaffAccountMenu from '@/components/StaffAccountMenu';
+import StaffRoleGuide from '@/components/StaffRoleGuide';
+import WorkspaceConnection from '@/components/WorkspaceConnection';
+import { WorkspaceBreadcrumbs, WorkspaceContext } from '@/components/WorkspaceNavigation';
 import { allowedDesks } from '@/lib/permissions';
 import { usePathname } from './router-adapter';
 
 const role = new URLSearchParams(window.location.search).get('role') || 'super_admin';
 const allowed = allowedDesks(role);
-const groups = GROUPS.map(group => ({ ...group, items: group.items.filter(item => allowed.has(item.href)) })).filter(group => group.items.length);
-const items = groups.flatMap(group => group.items.map(item => ({ ...item, group: group.label })));
-const actions = ACTIONS.filter(action => allowed.has(action.href));
+const groups = navigationForRole(role);
+const workspaceTools = toolsForRole(role);
+const destinations = groups.flatMap(group => group.items);
+const items = [...groups.flatMap(group => group.items.map(item => ({ ...item, group: group.label }))), ...workspaceTools.map(item => ({ ...item, group: 'Your workspace' }))];
+const actions = actionsForRole(role);
 const names = ['Avery Chen','Blake Williams','Casey Rivera','Drew Patel','Emery Johnson','Finley Brooks','Harper Scott','Jordan Lee','Kai Martin','Logan Taylor','Morgan James','Noah Kim','Oakley Adams','Parker Wilson','Quinn Davis','Riley Moore','Sage Clark','Taylor Hall','Winter Lewis','Zion Allen','Alex Carter','Charlie Evans','Dakota Green','Elliot Young','Frankie King','Hayden Wright'];
 const rows: DeskRow[] = names.map((name,index) => ({
   id: 'fixture-' + index,
@@ -32,6 +40,7 @@ const rows: DeskRow[] = names.map((name,index) => ({
     body:[{label:'Review context',text:'Synthetic account used to verify layout, filters, pagination and form identity. This is not live member data.'}],
     links:[{label:'Open profile',href:'/users/fixture-'+index}] },
   actions:['review'],
+  actionDefaults: { review: { role: index % 2 === 0 ? 'support_agent' : 'market_reviewer' } },
 }));
 const days = Array.from({length:30}, (_,i) => ({day:`2026-10-${String(i+1).padStart(2,'0')}`,members:40+i*3+Math.round(Math.sin(i/3)*12),posts:14+i+Math.round(Math.cos(i/2)*7)}));
 async function recordAction(data: FormData) {
@@ -42,17 +51,19 @@ async function recordAction(data: FormData) {
 function Fixture() {
   const path = usePathname();
   const staff = `fixture-reviewer:${role}`;
+  const selected = destinations.find(item => item.href === matchingDestination(path, destinations));
+  const active = selected?.parent || selected?.href || '/dashboard';
   if (path === '/present') return <div data-pc-staff={staff}><PresentBuilder by="reviewer@example.test" role={role} env="QA fixture" /></div>;
   return <div data-pc-staff={staff} style={{ display:'flex',minHeight:'100vh' }}>
-    <SideRail groups={groups} counts={{'/reports':7,'/queue':null,'/support':12}} active={path} email="reviewer@example.test" roleLabel={role.replaceAll('_',' ')} />
+    <SideRail groups={groups} counts={{'/reports':7,'/queue':null,'/support':12}} active={path} email="reviewer@example.test" roleLabel={role.replaceAll('_',' ')} tools={workspaceTools} />
     <main style={{flex:1,minWidth:0}}>
       <header className="pc-topbar" style={{background:'var(--topbar)',borderBottom:'1px solid var(--line)',position:'sticky',top:0,zIndex:30}}>
-        <div className="pc-breadcrumb">Operations <span style={{color:'var(--txt-muted)'}}> / Overview</span></div>
+        <WorkspaceBreadcrumbs items={destinations} active={active} label={selected?.label || 'Overview'} />
         <CommandPalette items={items} actions={actions} />
-        <div className="pc-topbar-actions"><ShareMenu path={path} label="Overview" /><ThemeControls /><span style={{fontSize:11,color:'var(--txt-muted)'}}>QA fixture</span></div>
+        <div className="pc-topbar-actions"><WorkspaceLauncher groups={groups} tools={workspaceTools} /><ShareMenu path={path} label="Overview" /><ThemeControls /><span className="pc-fixture-environment" style={{fontSize:11,color:'var(--txt-muted)'}}>QA fixture</span><StaffAccountMenu email="reviewer@example.test" role={role} signOut={async () => { document.getElementById('fixture-receipt')!.textContent = 'signed out'; }} /></div>
       </header>
-      <div id="workspace" tabIndex={-1} className="pc-workspace">
-        <div className="pc-page-heading"><div><p className="pc-page-kicker">Overview</p><h1 className="pc-page-title">Workspace overview</h1><p className="pc-page-subtitle">Community activity and the work that needs your attention.</p></div><div className="pc-page-actions"><RefreshDesk /><button type="button" className="pc-button pc-button-primary" onClick={()=>document.getElementById('fixture-records')?.scrollIntoView({block:'start'})}>Review records ↗</button></div></div>
+      <div id="workspace" tabIndex={-1} className="pc-workspace"><WorkspaceConnection /><WorkspaceContext items={destinations} active={active} />
+        <div className="pc-page-heading"><div><p className="pc-page-kicker">Overview</p><h1 className="pc-page-title">Workspace overview</h1><p className="pc-page-subtitle">Community activity and the work that needs your attention.</p></div><div className="pc-page-actions"><RefreshDesk />{role === 'super_admin' ? <StaffRoleGuide /> : null}<button type="button" className="pc-button pc-button-primary" onClick={()=>document.getElementById('fixture-records')?.scrollIntoView({block:'start'})}>Review records <AdminIcon name="arrowUpRight" size={16} /></button></div></div>
         <p className="pc-service-notice">Synthetic layout and interaction fixture · no live accounts or production data</p>
         <StatStrip cards={[{label:'Members',value:'1,284',delta:'+12.4%',deltaTone:'ok',note:'synthetic comparison',spark:[5,8,4,7,10,9,14]},{label:'Active today',value:'324',delta:'+8.2%',deltaTone:'ok',note:'synthetic activity',spark:[8,6,10,7,12,14,17]},{label:'Open reports',value:'7',note:'synthetic review queue'},{label:'Pending verification',value:'—',note:'count unavailable in this fixture'}]} />
         <div className="fixture-chart-grid"><section className="fixture-panel"><h2>Platform activity</h2><p>Daily activity in the synthetic dataset</p><SeriesChart rows={days} height={220} series={[{key:'members',label:'Active members',color:'var(--c1)'},{key:'posts',label:'Posts',color:'var(--c2)'}]} /></section><section className="fixture-panel"><h2>Needs attention</h2><p>Review the context before taking action</p>{[['Open reports','7'],['Support requests','12'],['Verification','Unavailable']].map(([label,value])=><div key={label} className="fixture-attention"><span>{label}</span><strong>{value}</strong></div>)}<p style={{marginTop:18}}>The fixture intentionally includes an unavailable count to check that an error is never presented as an empty queue.</p></section></div>
@@ -60,7 +71,7 @@ function Fixture() {
           <Desk tabs={[{key:'all',label:'All accounts',count:rows.length},{key:'active',label:'Active',count:rows.filter(row=>row.tabs.includes('active')).length},{key:'review',label:'Needs review',count:rows.filter(row=>row.tabs.includes('review')).length}]}
             columns={[{label:'Member'},{label:'Type',sort:'text'},{label:'Status',sort:'text'},{label:'Followers',align:'right',sort:'number'},{label:'Updated'}]}
             grid="minmax(160px,2fr) 100px 120px 80px 110px" minWidth={630} rows={rows} searchHint="Search this review page" filters={[{key:'type',label:'Account type',options:['Business','Creator']}]} detailTitle="Account details"
-            actions={[{key:'review',label:'Save review note',action:recordAction,idName:'id',tone:'info',inputs:[{name:'reason',label:'Review basis',type:'textarea',required:true,minLength:20,maxLength:2000,help:'Use 20–2,000 characters. This fixture records locally and never writes to a backend.'}]}]} />
+            actions={[{key:'review',label:'Save review note',action:recordAction,idName:'id',tone:'info',inputs:[{name:'role',label:'Review assignment role',options:['support_agent','market_reviewer']},{name:'reason',label:'Review basis',type:'textarea',required:true,minLength:20,maxLength:2000,help:'Use 20–2,000 characters. This fixture records locally and never writes to a backend.'}]}]} />
         </section><output id="fixture-receipt" hidden />
       </div>
     </main><PresentTray />

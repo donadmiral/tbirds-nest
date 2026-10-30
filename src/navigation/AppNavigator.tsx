@@ -323,7 +323,7 @@ function MainTabs() {
   return (
     <Tab.Navigator
       tabBar={(p) => <AdaptiveTabBar {...p} keepVisible={accessibility.reduceMotion || accessibility.screenReader} />}
-      initialRouteName="Feed"
+      initialRouteName={isBusiness ? 'Studio' : 'Feed'}
       screenOptions={({ route }) => ({
         headerShown: false, tabBarHideOnKeyboard: true,
         tabBarActiveTintColor: t.ink.primary, tabBarInactiveTintColor: accessibility.highContrast ? t.ink.primary : t.ink.secondary,

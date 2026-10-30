@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
+import { cache } from "react";
 import Link from "next/link";
-import { ArrowLeft, BriefcaseBusiness, CalendarDays, MapPin, Link as LinkIcon } from "lucide-react";
-import styles from "@/components/ProfileSurface.module.css";
+import { ArrowLeft, Bookmark, BriefcaseBusiness, CalendarDays, ChevronRight, FileText, LockKeyhole, MapPin, PenLine, Link as LinkIcon } from "lucide-react";
+import styles from "@/components/ProfilePage.module.css";
 import { createClient } from "@/lib/supabase/server";
+import { getServerViewer } from "@/lib/serverViewer";
+import { FollowButton } from "@/components/FollowButton";
+import { safeProfileLinks } from "@/lib/profileForm";
 import { ProfilePosts } from "@/components/ProfilePosts";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
-import { getTierColor } from "@/lib/tier";
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { BusinessProfile } from "@/components/BusinessProfile";
 import { MemoryAlbumBook } from "@/components/MemoryAlbumBook";
@@ -16,15 +19,16 @@ import { isProfileId, matchesUsername, profilePath, usernameLookupPattern } from
 
 type Params = { params: Promise<{ username: string }> };
 
-async function loadProfile(username: string) {
+const loadProfile = cache(async (username: string) => {
   const supabase = await createClient();
   const query = supabase
     .from("profiles")
     .select("id, full_name, username, avatar_url, banner_url, bio, headline, workplace, location, created_at, links, is_verified, verified_tier, account_type, account_class, account_labels");
   const byId = isProfileId(username);
-  const { data } = await (byId ? query.eq("id", username) : query.ilike("username", usernameLookupPattern(username))).limit(1).maybeSingle();
+  const { data, error } = await (byId ? query.eq("id", username) : query.ilike("username", usernameLookupPattern(username))).limit(1).maybeSingle();
+  if (error) throw new Error("This profile could not load. Please try again.");
   return (byId ? data?.id === username.toLowerCase() : matchesUsername(data, username)) ? data : null;
-}
+});
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { username } = await params;
@@ -58,7 +62,13 @@ export default async function ProfilePage({ params }: Params) {
     );
   }
 
+  const { user } = await getServerViewer();
+  const isOwner = user?.id === p.id;
   const isBusiness = p.account_type === "business";
+  const isCreator = p.account_class === "creator";
+  const links = safeProfileLinks(p.links);
+  const labels = (p.account_labels ?? {}) as Record<string, boolean>;
+  const chips = [isBusiness ? "Business" : isCreator ? "Creator" : p.account_class === "organization" ? "Organization" : p.account_class === "automated" ? "Automated" : null, labels.parody ? "Parody" : null, labels.fan ? "Fan account" : null, labels.commentary ? "Commentary" : null, labels.memorialized ? "Remembering" : null].filter(Boolean);
   const [followers, following, postCount] = await Promise.all([
     supabase.from("follows").select("follower_id", { count: "exact", head: true }).eq("following_id", p.id),
     supabase.from("follows").select("following_id", { count: "exact", head: true }).eq("follower_id", p.id),
@@ -77,109 +87,68 @@ export default async function ProfilePage({ params }: Params) {
   return (
     <section className={styles.profile}>
       <div className={styles.topline}>
-      <Link href="/home" aria-label="Back to Platinum Circles" className={styles.back}>
-        <ArrowLeft size={19} />
-      </Link>
-      <span className={styles.eyebrow}>Platinum Circles / Profile</span>
+        <Link href="/home" className={styles.back}><ArrowLeft size={18} aria-hidden /><span>Back to Home</span></Link>
+        <span className={styles.eyebrow}>{isBusiness ? "Business profile" : isCreator ? "Creator profile" : "Profile"}</span>
       </div>
       <header className={styles.header}>
         <div className={styles.banner}>
-          {p.banner_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={p.banner_url} alt="" className="h-full w-full object-cover" />
-          ) : null}
+          {p.banner_url ? <img src={p.banner_url} alt="" className={styles.bannerImage} /> : <span className={styles.coverMark} aria-hidden>Platinum Circles</span>}
         </div>
-
-        <div className={styles.body}>
-          <div className={styles.avatar}>
-            <span className={styles.avatarRing}>
-              <span className="rounded-full bg-surface">
-                <StoryAvatar userId={p.id} name={p.full_name} avatarUrl={p.avatar_url} size={92} />
-              </span>
-            </span>
-          </div>
-
-          <div className="flex items-center justify-center gap-[3px]">
-            <h1
-              className={styles.name}
-              style={p.is_verified ? { color: getTierColor(p.verified_tier) ?? undefined } : undefined}
-            >
-              {p.full_name}
-            </h1>
-            {p.is_verified ? <VerifiedBadge userId={p.id} tier={p.verified_tier} size={17} /> : null}
-          </div>
-          {p.username ? <p className="text-center text-[13.5px] text-muted">@{p.username}</p> : null}
-          {(() => {
-            const c = (p as any).account_class as string | null; const lb = ((p as any).account_labels || {}) as Record<string, boolean>;
-            const chips: string[] = [];
-            if (c === "creator") chips.push("Creator"); if (c === "organization") chips.push("Organization"); if (c === "automated") chips.push("Automated");
-            if (lb.parody) chips.push("Parody"); if (lb.fan) chips.push("Fan account"); if (lb.commentary) chips.push("Commentary"); if (lb.memorialized) chips.push("Remembering");
-            return chips.length ? (
-              <div className="mt-2 flex flex-wrap justify-center gap-1.5">
-                {chips.map((ch) => <span key={ch} className="rounded-full border border-ink/15 bg-[#C9BFB0]/30 px-2.5 py-0.5 text-[11px] font-bold tracking-wide text-ink">{ch}</span>)}
-              </div>
-            ) : null;
-          })()}
-          {p.bio ? (
-            <p className="mx-auto mt-2.5 max-w-[420px] whitespace-pre-wrap text-center text-[14.5px] leading-relaxed text-ink/80">{p.bio}</p>
-          ) : null}
-          {p.headline ? <p className="mt-2 text-center text-sm font-semibold text-ink">{p.headline}</p> : null}
-          <div className={styles.metadata}>
-            {p.workplace ? <span><BriefcaseBusiness size={14} />{p.workplace}</span> : null}
-            {p.location ? <span><MapPin size={14} />{p.location}</span> : null}
-            {p.created_at ? <span><CalendarDays size={14} />Joined {new Date(p.created_at).toLocaleDateString('en-US', {month:'long', year:'numeric', timeZone:'UTC'})}</span> : null}
-          </div>
-          {Array.isArray((p as { links?: unknown }).links) && ((p as { links: { title?: string; url?: string }[] }).links).some((l) => l?.url) ? (
-            <div className="mx-auto mt-3 flex max-w-[420px] flex-wrap justify-center gap-2">
-              {((p as { links: { title?: string; url?: string }[] }).links).filter((l) => l?.url).slice(0, 5).map((l, i) => (
-                <a key={i} href={l.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-3 py-1 text-[12.5px] font-semibold text-ink/80 transition-colors duration-[140ms] hover:border-pearl hover:bg-pearl/10">
-                  <LinkIcon size={12} />{l.title || String(l.url).replace(/^https?:\/\//i, "").replace(/^www\./i, "").split("/")[0]}
-                </a>
-              ))}
+        <div className={styles.identity}>
+          <div className={styles.avatar}><StoryAvatar userId={p.id} name={p.full_name} avatarUrl={p.avatar_url} size={128} /></div>
+          <div className={styles.heading}>
+            <div className={styles.nameRow}><h1 className={styles.name}>{p.full_name || p.username || 'Member'}</h1>{p.is_verified ? <VerifiedBadge userId={p.id} tier={p.verified_tier} size={21} /> : null}</div>
+            <p className={styles.username}>{p.username ? '@' + p.username : 'Platinum Circles member'}{chips.length ? ' · ' + chips.join(' · ') : ''}</p>
+            {p.bio ? <p className={styles.bio}>{p.bio}</p> : null}
+            {p.headline ? <p className={styles.headline}>{p.headline}</p> : null}
+            <div className={styles.metadata}>
+              {p.location ? <span><MapPin size={15} aria-hidden />{p.location}</span> : null}
+              {p.workplace ? <span><BriefcaseBusiness size={15} aria-hidden />{p.workplace}</span> : null}
+              {links.slice(0, 1).map(link => <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer"><LinkIcon size={15} aria-hidden />{link.title || new URL(link.url).hostname}</a>)}
             </div>
-          ) : null}
-
-          {/* One segmented capsule, as on the phone: followers, following and
-              posts read as a single control rather than three loose links. */}
-          <div>
             <div className={styles.stats}>
-              <Link
-                href={profilePath(p.username, p.id) + "/follows?tab=followers"}
-                className={styles.stat}
-              >
-                <span className="text-[16px] font-bold text-ink">{fmtCount(followers.count ?? 0)}</span>
-                <span className="text-[11.5px] text-muted">Followers</span>
-              </Link>
-              {!isBusiness ? (
-                <Link
-                  href={profilePath(p.username, p.id) + "/follows?tab=following"}
-                  className={styles.stat}
-                >
-                  <span className="text-[16px] font-bold text-ink">{fmtCount(following.count ?? 0)}</span>
-                  <span className="text-[11.5px] text-muted">Following</span>
-                </Link>
-              ) : null}
-              <div className={styles.stat}>
-                <span className="text-[16px] font-bold text-ink">{fmtCount(postCount.count ?? 0)}</span>
-                <span className="text-[11.5px] text-muted">Posts</span>
-              </div>
+              <Link href={profilePath(p.username, p.id) + '/follows?tab=followers'}><strong>{followers.error ? '—' : fmtCount(followers.count ?? 0)}</strong><span>followers</span></Link>
+              {!isBusiness ? <Link href={profilePath(p.username, p.id) + '/follows?tab=following'}><strong>{following.error ? '—' : fmtCount(following.count ?? 0)}</strong><span>following</span></Link> : null}
+              <a href="#profile-posts"><strong>{postCount.error ? '—' : fmtCount(postCount.count ?? 0)}</strong><span>posts</span></a>
             </div>
+          </div>
+          <div className={styles.actions}>
+            {isOwner ? <Link href="/settings/profile" className={styles.primaryAction}><PenLine size={16} aria-hidden />Edit profile</Link> : <><FollowButton authorId={p.id} /><MessageButton profileId={p.id} /></>}
+            <ProfileContext key={p.id} profileId={p.id} username={p.username ?? ''} compact />
+            {!isOwner ? <ProfileMoreMenu key={p.id} profileId={p.id} name={p.full_name ?? null} /> : null}
           </div>
         </div>
       </header>
-      <div className={styles.actions}>
-        <div className="flex items-center gap-2">
-          <MessageButton profileId={p.id} />
-          <ProfileMoreMenu key={p.id} profileId={p.id} name={p.full_name ?? null} />
+      <div className={styles.columns}>
+        <div className={styles.main}>
+          <MemoryAlbumBook profileId={p.id} />
+          <div id="profile-posts" className={styles.posts}>
+            {isBusiness ? <BusinessProfile profileId={p.id} postsSlot={posts} /> : posts}
+          </div>
         </div>
-        <ProfileContext profileId={p.id} username={p.username ?? ""} />
+        <aside className={styles.rail} aria-label="Profile details">
+          {isOwner ? <section className={styles.panel}>
+            <h2><LockKeyhole size={19} aria-hidden />Your private space</h2>
+            <p>Keep your ideas, links and drafts close.</p>
+            <Link href="/saved" className={styles.railLink}><Bookmark size={19} aria-hidden /><span><strong>Saved collections</strong><small>Posts and ideas you saved</small></span><ChevronRight size={17} aria-hidden /></Link>
+            <Link href="/home?compose=post" className={styles.railLink}><FileText size={19} aria-hidden /><span><strong>Continue a post</strong><small>Open your draft on this browser</small></span><ChevronRight size={17} aria-hidden /></Link>
+            {isBusiness || isCreator ? <Link href="/studio" className={styles.railLink}><BriefcaseBusiness size={19} aria-hidden /><span><strong>Open Studio</strong><small>Content, insights and professional work</small></span><ChevronRight size={17} aria-hidden /></Link> : null}
+          </section> : null}
+          <section className={styles.panel}>
+            <div className={styles.panelHeading}><h2>Profile details</h2>{isOwner ? <Link href="/settings/profile" aria-label="Edit profile details"><PenLine size={17} /></Link> : null}</div>
+            <dl className={styles.details}>
+              <div><dt>Name</dt><dd>{p.full_name || p.username || 'Member'}</dd></div>
+              {p.username ? <div><dt>Username</dt><dd>@{p.username}</dd></div> : null}
+              {p.headline ? <div><dt>Headline</dt><dd>{p.headline}</dd></div> : null}
+              {p.location ? <div><dt><MapPin size={14} aria-hidden />Location</dt><dd>{p.location}</dd></div> : null}
+              {p.workplace ? <div><dt>Work</dt><dd>{p.workplace}</dd></div> : null}
+              {links.map(link => <div key={link.url}><dt><LinkIcon size={14} aria-hidden />Website</dt><dd><a href={link.url} target="_blank" rel="noopener noreferrer">{link.title || new URL(link.url).hostname}</a></dd></div>)}
+              {p.created_at ? <div><dt><CalendarDays size={14} aria-hidden />Joined</dt><dd>{new Date(p.created_at).toLocaleDateString('en-US', {month:'long', year:'numeric', timeZone:'UTC'})}</dd></div> : null}
+            </dl>
+          </section>
+          {isCreator && !isOwner ? <section className={styles.panel}><h2><BriefcaseBusiness size={19} aria-hidden />Connect with {p.full_name?.split(' ')[0] || 'this creator'}</h2><p>Explore their work and start a conversation about a collaboration.</p><MessageButton profileId={p.id} />{links.length ? <a className={styles.railLink} href={links[0].url} target="_blank" rel="noopener noreferrer"><LinkIcon size={18} aria-hidden /><span>{links[0].title || 'Creator website'}</span><ChevronRight size={17} aria-hidden /></a> : null}</section> : null}
+        </aside>
       </div>
-      <MemoryAlbumBook profileId={p.id} />
-      {isBusiness ? (
-        <BusinessProfile profileId={p.id} postsSlot={posts} />
-      ) : (
-        <div className={styles.posts}>{posts}</div>
-      )}
     </section>
   );
 }

@@ -10,7 +10,8 @@ import { renewFeedMedia } from "../../shared/feedMedia";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { ArrowUp } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import type { FeedRow } from "@/lib/feed";
 import { PostCard } from "@/components/PostCard";
 import { StoryRings } from "@/components/StoryRings";
@@ -63,17 +64,31 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
   const [quote, setQuote] = useState<{ id: string; author: string; text: string } | null>(null);
   const [composerGeneration, setComposerGeneration] = useState(0);
   const router = useRouter();
+  const searchParams = useSearchParams();
   // The ads wizard's format tiles land here: open the composer set to the
   // chosen kind, and after posting go back to the wizard with the post picked.
-  const [composeKind, setComposeKind] = useState<"media" | "video" | undefined>(undefined);
+  const [composeKind, setComposeKind] = useState<"post" | "media" | "video" | "poll" | undefined>(undefined);
+  const [composeRequest, setComposeRequest] = useState(0);
   const thenPromote = useRef(false);
+  const requestedCompose = searchParams.get("compose");
+  const requestedNext = searchParams.get("then");
   useEffect(() => {
-    try {
-      const sp = new URLSearchParams(window.location.search);
-      const ck = sp.get("compose");
-      if (ck === "video") setComposeKind("video"); else if (ck === "photo" || ck === "carousel") setComposeKind("media");
-      thenPromote.current = sp.get("then") === "promote";
-    } catch { /* fine */ }
+    const ck = requestedCompose;
+    if (!ck || !['post', 'photo', 'carousel', 'video', 'poll'].includes(ck)) return;
+    setComposeKind(ck === 'photo' || ck === 'carousel' ? 'media' : ck as 'post' | 'video' | 'poll');
+    setComposeRequest(value => value + 1);
+    thenPromote.current = requestedNext === "promote";
+  }, [requestedCompose, requestedNext]);
+  useEffect(() => {
+    const open = (event: Event) => {
+      const intent = (event as CustomEvent<{ intent?: string }>).detail?.intent;
+      if (!intent || !['post', 'photo', 'video', 'poll'].includes(intent)) return;
+      thenPromote.current = false;
+      setComposeKind(intent === 'photo' ? 'media' : intent as 'post' | 'video' | 'poll');
+      setComposeRequest(value => value + 1);
+    };
+    window.addEventListener('pc-compose', open);
+    return () => window.removeEventListener('pc-compose', open);
   }, []);
   const [promos, setPromos] = useState<PromoRow[]>([]);
   const [marketplace, setMarketplace] = useState<{ owner: string; items: MarketplaceRecommendation[] } | null>(null);
@@ -233,22 +248,21 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
   }, []);
 
   function showNewPosts() {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
     load(false);
   }
 
   return (
     <div ref={feedRef} data-feed-owner={state.owner ?? ''} data-feed-mode={mode}>
       <AnnouncementBanner />
-      <StoryRings />
-      {state.owner ? <Composer key={state.owner + ':' + composerGeneration} ownerId={state.owner} initialKind={composeKind} onPosted={(id) => { load(false); if (id && thenPromote.current) router.push("/ads/new?post=" + id); }} quote={quote} onQuoteDone={() => setQuote(null)} /> : null}
+      <header className="mb-3 flex items-center justify-between gap-4"><h1 className="font-display text-[30px] font-bold tracking-[-0.04em] text-ink">Home</h1><Link href="/discover" className="text-xs font-semibold text-muted hover:text-ink">Find your circles</Link></header>
 
       {/* Mode tabs: the active indicator is a pearl set in a ring, echoing the
           mark itself, instead of a plain underline. */}
       {/* The tab row is its own card and sticks under the top bar, so switching
           feeds never scrolls out of reach. The gold underline marks the active
           feed; the dot-in-a-ring read as decoration at this size. */}
-      <div className="sticky top-[72px] z-10 mb-4 rounded-2xl border border-ink/10 bg-white/95 px-2 backdrop-blur">
+      <div className="pc-feed-tabs sticky top-[112px] z-10 mb-4 border-b border-ink/10 bg-[var(--canvas)] md:top-[68px]">
         <div className="flex items-center gap-1 overflow-x-auto overflow-y-hidden">
           {MODES.map((m) => {
             const active = mode === m.key;
@@ -274,6 +288,9 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
           })}
         </div>
       </div>
+
+      <StoryRings />
+      {state.owner ? <Composer key={state.owner + ':' + composerGeneration} ownerId={state.owner} initialKind={composeKind} openRequest={composeRequest} onPosted={(id) => { load(false); if (id && thenPromote.current) router.push("/ads/new?post=" + id); }} quote={quote} onQuoteDone={() => setQuote(null)} /> : null}
 
       {mode === "trending" ? <div className="pt-3"><StoryRings mode="global" /></div> : null}
       {pendingNew > 0 && !loading ? (

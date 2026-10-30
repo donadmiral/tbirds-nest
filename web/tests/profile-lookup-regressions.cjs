@@ -68,6 +68,7 @@ function harness(username) {
   });
   client.auth.getSession = async () => ({ data: { session: null }, error: null });
   const react = {
+    cache(fn) { return fn; },
     useState(initial) { const key = slot++; state[key] = typeof initial === 'function' ? initial() : initial; return [state[key], value => { state[key] = typeof value === 'function' ? value(state[key]) : value; }]; },
     useEffect(fn) { effects.push(fn); }, useCallback(fn) { return fn; }, useMemo(fn) { return fn(); }, useRef(value) { return {current:value}; },
   };

@@ -1,7 +1,8 @@
+import { serveBusinessRequest } from '../_shared/serveBusinessRequest.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2.112.3';
 import { createAppleMusicHandler } from './handler.ts';
 
-Deno.serve(createAppleMusicHandler({
+serveBusinessRequest(createAppleMusicHandler({
   env: name => Deno.env.get(name),
   authenticate: async request => {
     const authorization = request.headers.get('authorization');

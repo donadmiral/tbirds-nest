@@ -18,12 +18,12 @@ const H_TITLE: React.CSSProperties = { fontSize: 14, fontWeight: 700, color: 'va
 const H_SUB: React.CSSProperties = { fontSize: 12, color: 'var(--txt-muted)', marginTop: 3 };
 
 const IC = {
-  post: 'M4 4h16v12H5.2L4 17.2V4zm2 3h12v2H6V7zm0 4h8v2H6v-2z',
-  flag: 'M12 2L1 21h22L12 2zm1 14h-2v2h2v-2zm0-6h-2v4h2v-4z',
-  heart: 'M12 21S3 14.5 3 8.9A5 5 0 0112 6a5 5 0 019 2.9C21 14.5 12 21 12 21z',
-  eye: 'M12 5c5 0 9 4.5 9 7s-4 7-9 7-9-4.5-9-7 4-7 9-7zm0 3.5A3.5 3.5 0 1012 15a3.5 3.5 0 000-6.5z',
-  media: 'M4 5h16v14H4V5zm2 10l3.5-4.5 2.5 3 3-4L18 17H6z',
-};
+  post: 'content',
+  flag: 'reports',
+  heart: 'heart',
+  eye: 'eye',
+  media: 'image',
+} as const;
 
 const isVideo = isVideoUrl;
 

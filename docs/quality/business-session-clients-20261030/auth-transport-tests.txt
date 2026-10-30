@@ -1,0 +1,41 @@
+✔ Auth response retains original status, headers, URL metadata and readable bytes (86.010403ms)
+✔ Storage, REST, Edge and unrelated-origin streams bypass the Auth deadline unchanged (55.601678ms)
+✔ pre-aborted Request and init signals never start Auth network work (9.408408ms)
+✔ Auth headers waiting for caller cannot return a late response (13.588143ms)
+✔ Auth headers waiting for deadline cannot return a late response (14.174564ms)
+✔ the Auth caller also aborts a body stalled after headers (10.727851ms)
+✔ the Auth deadline also aborts a body stalled after headers (8.199119ms)
+✔ native buffered-response fallback is bounded through arrayBuffer completion (6.612784ms)
+✔ Auth body buffering is bounded for both declared and actual bytes (21.67286ms)
+✔ caller abort listeners are removed after Auth success and failure (13.554031ms)
+✔ refresh grants preserve their 60-second budget through the body while login keeps 15 seconds (13.139528ms)
+Error [TimeoutError]: Authentication request timed out.
+    at requestError (shared/authFetch.ts:10:19)
+    at stop (shared/authFetch.ts:50:78)
+    at Object.fn (shared/authFetch.ts:53:59)
+    at Object.deadline (/workspace/scratch/d4753960f6a2/tbirds-nest/tests/quality/auth-transport-deadline.cjs:23:175)
+    at TestContext.<anonymous> (/workspace/scratch/d4753960f6a2/tbirds-nest/tests/quality/auth-transport-deadline.cjs:144:55)
+    at async Test.run (node:internal/test_runner/test:1409:7)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+✔ node_modules/@supabase/supabase-js setSession rejects a stalled headers without a late session write, then retries (37.580009ms)
+Error [TimeoutError]: Authentication request timed out.
+    at requestError (shared/authFetch.ts:10:19)
+    at stop (shared/authFetch.ts:50:78)
+    at Object.fn (shared/authFetch.ts:53:59)
+    at Object.deadline (/workspace/scratch/d4753960f6a2/tbirds-nest/tests/quality/auth-transport-deadline.cjs:23:175)
+    at TestContext.<anonymous> (/workspace/scratch/d4753960f6a2/tbirds-nest/tests/quality/auth-transport-deadline.cjs:144:55)
+    at async Test.run (node:internal/test_runner/test:1409:7)
+    at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+✔ node_modules/@supabase/supabase-js setSession rejects a stalled body without a late session write, then retries (7.759088ms)
+✔ web/node_modules/@supabase/supabase-js setSession rejects a stalled headers without a late session write, then retries (29.65433ms)
+✔ web/node_modules/@supabase/supabase-js setSession rejects a stalled body without a late session write, then retries (6.998583ms)
+✔ the web singleton factory installs the same Auth-only transport (17.847888ms)
+✔ actual native tab tree lands business accounts in Studio and personal accounts in Feed (30.327963ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 389.582712

@@ -1,0 +1,704 @@
+{
+  "candidate": "supabase/migrations/20261030024125_studio_editorial_and_partnership_workflows.sql",
+  "sha256": "74fb83e842c349a49ec28c9b1181ced33e855432b1c1e614c0d2d8d5a278ff4c",
+  "routeCandidate": "supabase/migrations/20261030031124_reserve_web_route_usernames.sql",
+  "routeSha256": "625fd871ff4a6a83938086d78b47e482ee0a492ec1dee54310cb56eacc14248c",
+  "provisionRouteCandidate": "supabase/migrations/20261030033214_reserve_business_provision_usernames.sql",
+  "provisionRouteSha256": "57313ea2c22c90d28f62933c757e178b93cae31958b557ada792429e4a690260",
+  "provisionRouteEvidence": {
+    "acl": "{postgres=X/postgres,service_role=X/postgres}",
+    "hash": "69d07d257bb8a9c59ae27d7a4e8e79cd",
+    "owner": "postgres",
+    "profiles": 5,
+    "authUsers": 5,
+    "routeGuard": true,
+    "searchPath": [
+      "search_path=\"\""
+    ],
+    "reservations": 0,
+    "reservedPending": 0
+  },
+  "qaMode": false,
+  "allPassed": true,
+  "testsPassed": 41,
+  "tests": [
+    "forward install preserves existing Auth/profile/Storage/staff and business-access rows and buckets",
+    "reviewable preflight/postflight metadata enforces private helpers and authenticated RPC grants",
+    "all workflow records and access hashes deny direct app and service reads",
+    "anonymous, stale, expired and substituted sessions cannot read or write workflows",
+    "session-bound roles reject support access and do not accept a claimed role",
+    "expected owner checks reject account switching before a command is recorded",
+    "assignment create/update is tenant scoped, versioned and idempotent",
+    "foreign assignees, foreign drafts and unknown fields cannot become an assignment",
+    "submission requires actual draft, confirmed rights and visible sponsored disclosure",
+    "editor submission requires an independent owner/admin review and locks the approved creative",
+    "review feedback and submitter withdrawal restore editable state without losing history",
+    "approved scheduling updates the actual publishing queue and blocks early direct publication",
+    "expired rights and pre-embargo schedules cannot enter the publishing queue",
+    "direct Planner scheduling and deletion cannot bypass a pending approval",
+    "a rejected source cannot escape approval by being unlinked from its assignment",
+    "cursor pages are bounded and stable and never repeat the prior cursor row",
+    "partnership drafts remain private until an authorized owner/admin proposes them",
+    "only the named creator can accept and submit a deliverable",
+    "a business cannot grant creator publishing or paid-promotion permission to itself",
+    "publishing and paid-promotion consents are separate, bounded, version-specific and revocable",
+    "creator feedback creates a new deliverable version and clears prior review state",
+    "approval does not activate an ad, publish a post, or create financial transactions",
+    "team roles cannot be changed through direct Data API updates or code creation bypasses",
+    "same-name member creation changes only the new identity and never returns stored code hashes",
+    "a business must bootstrap its first owner explicitly and binds the creating session",
+    "last-owner protection prevents demotion, deactivation and empty-team privilege fallback",
+    "revocation removes session membership and prevents successful command receipt replay",
+    "device management requires a live administrative member and preserves a removed registration",
+    "newsroom detail returns the exact linked creative independently of latest Planner pagination",
+    "partnership lists are bounded while participant detail retains revision and review history",
+    "a blocked creator can withdraw or revoke consent but new consent and deliverables stop",
+    "new team clients fence the expected business atomically before code creation",
+    "the actual due publisher creates the approved post once and rejects duplicate worker delivery",
+    "creator consent applies to the submitted source and becomes ineffective after that post changes or disappears",
+    "creator review covers media edits, alternate text and legacy media while engagement counters stay outside the creative",
+    "member binding updates the selected identity without a share-to-update lock upgrade",
+    "every actual static web root is unavailable as a new username and guarded on direct profile writes",
+    "route reservations cover mixed case and whitespace, keep null Auth onboarding intact and do not rename unchanged handles",
+    "route reservation helpers are not callable and anonymous availability is pinned to a safe search path",
+    "business provisioning rejects reserved route usernames before reserving or creating any identity",
+    "a pending legacy reservation for a web route aborts the provision guard migration for review"
+  ],
+  "preflight": {
+    "data_counts": {
+      "staff": 0,
+      "members": 5,
+      "bindings": 5,
+      "profiles": 5,
+      "auth_users": 5,
+      "auth_sessions": 8,
+      "scheduled_posts": 0,
+      "storage_objects": 0
+    },
+    "fresh_target": true,
+    "trusted_schemas": true,
+    "current_baseline": true,
+    "definitions_match": true,
+    "publisher_internal": true,
+    "session_bindings_private": true,
+    "configured_teams_have_owner": true
+  },
+  "postflight": {
+    "tables": [
+      {
+        "rls": true,
+        "owner": "postgres",
+        "table": "access_events",
+        "policies": 0,
+        "app_access": false,
+        "anon_access": false,
+        "service_access": false
+      },
+      {
+        "rls": true,
+        "owner": "postgres",
+        "table": "commands",
+        "policies": 0,
+        "app_access": false,
+        "anon_access": false,
+        "service_access": false
+      },
+      {
+        "rls": true,
+        "owner": "postgres",
+        "table": "deliverables",
+        "policies": 0,
+        "app_access": false,
+        "anon_access": false,
+        "service_access": false
+      },
+      {
+        "rls": true,
+        "owner": "postgres",
+        "table": "events",
+        "policies": 0,
+        "app_access": false,
+        "anon_access": false,
+        "service_access": false
+      },
+      {
+        "rls": true,
+        "owner": "postgres",
+        "table": "newsroom",
+        "policies": 0,
+        "app_access": false,
+        "anon_access": false,
+        "service_access": false
+      },
+      {
+        "rls": true,
+        "owner": "postgres",
+        "table": "partnerships",
+        "policies": 0,
+        "app_access": false,
+        "anon_access": false,
+        "service_access": false
+      }
+    ],
+    "new_rows": {
+      "events": 0,
+      "commands": 0,
+      "newsroom": 0,
+      "deliverables": 0,
+      "partnerships": 0,
+      "access_events": 0
+    },
+    "functions": [
+      {
+        "hash": "33ba99f582ac83c7e2f240645b0af5ca",
+        "owner": "postgres",
+        "private": false,
+        "signature": "create_business_access_member(text)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "725e31f7b81626e606a75618c87c969b",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_bind_member(text)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "5c535910350d365c050e07ce3638035e",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_business_info()",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "673b5f8636ba484d5a1e1d9cc99a27a3",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_create_member(text,text)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "9f6bd4e164e2bc710f4b67c51f14ba57",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_create_member(uuid,text,text)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "75f7558d998e8f5efbd5d11995644c68",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_get_business()",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "4224e927009d510cef0b946284440f1e",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_list_members()",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "ab040af1c6b02d19b17b82d9093ac52a",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_newsroom_get(uuid)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "7681976147e3fd103da679f3e9b93ad6",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_newsroom_list(integer,timestamp with time zone,uuid)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "b5b8ce25239db4647f48d3cbce78098b",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_newsroom_save(uuid,uuid,uuid,integer,jsonb)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "768c1d5f324cf56edde6156351c11bf5",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_newsroom_transition(uuid,uuid,uuid,integer,text,text)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "7139ac0e28cec9ee0056638bee9db1f9",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_partnership_deliver(uuid,uuid,uuid,integer,text,uuid)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "f89e3ecb33ff9741ecd5328e2a8f2eb4",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_partnership_get(uuid)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "f14e8489d8a10fd34e4f8b1e41a46886",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_partnership_permission(uuid,uuid,uuid,integer,text,boolean,timestamp with time zone)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "a59596ab5a0898fed8eb2e7993383b9c",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_partnership_save(uuid,uuid,uuid,integer,jsonb)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "d87e8571d1e59a04dba7484ab604ab90",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_partnership_transition(uuid,uuid,uuid,integer,text,text)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "df3a5ae5d2300199bf411386b241bf52",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_partnerships_list(integer,timestamp with time zone,uuid)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "955f1c432cc78baa8af374a1b7764c1b",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_role()",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "47239a4b49b3408379d3314fda0a089a",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_set_device(uuid,text)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "446a03db2cd53f02d27457e627608bb9",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_set_member_active(uuid,boolean)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "2190662f7eeff9ef161ce7b010bc0ad9",
+        "owner": "postgres",
+        "private": false,
+        "signature": "studio_set_member_role(uuid,text)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "24cae833a21231d41c346c3790c2727c",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.command_result(studio_workflow.actor,uuid,text,jsonb)",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "88f2b41f172b80b323ad1b20fdf983db",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.context(uuid)",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "6f98b1351374b1ee227bf77696d98163",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.creator_post_hash(uuid,uuid)",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "dda14c37181f9295476839bfd8559abb",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.deliverable_unchanged(uuid,uuid,integer)",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "8d9fb59ac2da595cdef19d27b70189f6",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.event(studio_workflow.actor,text,uuid,text,text)",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "9ba5f140b8e3c0b7fa7d890910e2f4a3",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.guard_editorial_post()",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "67e41a6a0b0d67cb8276dc2c45376bd7",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.input(jsonb,text[])",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "fb25534cedb1e64899578813f3de0ff2",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.newsroom_json(uuid,studio_workflow.actor)",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "8bd4570647e4079d1bbdd67d3a8232c3",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.participants_available(uuid,uuid)",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "d92429b3ed3802264c81c04954dc671b",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.partnership_json(uuid,studio_workflow.actor,boolean)",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "cd7de8aac84e8f86164e9fcc99f3f6ec",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.post_hash(studio_scheduled_posts)",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "6c5176ba1fd6b80c80f5454500157ce3",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.remember(studio_workflow.actor,uuid,text,jsonb,uuid)",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "a2c1b11ac8b43066e271e6aad5548951",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.require_roles(studio_workflow.actor,text[])",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      },
+      {
+        "hash": "ab5b7bb1bd8b9a192f21125d00f86397",
+        "owner": "postgres",
+        "private": true,
+        "signature": "studio_workflow.write_context(uuid)",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false,
+        "service_execute": false
+      }
+    ],
+    "data_counts": {
+      "staff": 0,
+      "members": 5,
+      "bindings": 5,
+      "profiles": 5,
+      "auth_users": 5,
+      "auth_sessions": 8,
+      "scheduled_posts": 0,
+      "storage_objects": 0
+    },
+    "publishing_guard": {
+      "enabled": "O",
+      "definition": "CREATE TRIGGER studio_editorial_post_guard BEFORE DELETE OR UPDATE ON public.studio_scheduled_posts FOR EACH ROW EXECUTE FUNCTION studio_workflow.guard_editorial_post()"
+    },
+    "business_tables_private": true
+  },
+  "routeEvidence": {
+    "trigger": {
+      "enabled": "O",
+      "definition": "CREATE TRIGGER guard_reserved_web_username BEFORE INSERT OR UPDATE OF username ON public.profiles FOR EACH ROW EXECUTE FUNCTION app_routes.guard_profile_username()"
+    },
+    "profiles": 5,
+    "functions": [
+      {
+        "hash": "26fa977d54cc9408dc41c48ca68bde51",
+        "owner": "postgres",
+        "signature": "app_routes.guard_profile_username()",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false
+      },
+      {
+        "hash": "7131f4adec0b5325d873d73cb0623707",
+        "owner": "postgres",
+        "signature": "app_routes.is_reserved_username(text)",
+        "app_execute": false,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": false
+      },
+      {
+        "hash": "43171ea8822eeb21f764e0f3f494b298",
+        "owner": "postgres",
+        "signature": "is_username_available(text)",
+        "app_execute": true,
+        "search_path": [
+          "search_path=\"\""
+        ],
+        "anon_execute": true
+      }
+    ],
+    "collisions": {
+      "ads": 0,
+      "home": 0,
+      "jobs": 0,
+      "post": 0,
+      "about": 0,
+      "album": 0,
+      "calls": 0,
+      "login": 0,
+      "music": 0,
+      "saved": 0,
+      "story": 0,
+      "terms": 0,
+      "topic": 0,
+      "watch": 0,
+      "write": 0,
+      "market": 0,
+      "search": 0,
+      "signup": 0,
+      "studio": 0,
+      "archive": 0,
+      "explore": 0,
+      "privacy": 0,
+      "channels": 0,
+      "discover": 0,
+      "messages": 0,
+      "settings": 0,
+      "businesses": 0,
+      "communities": 0,
+      "monetization": 0,
+      "notifications": 0,
+      "business-login": 0,
+      "reset-password": 0,
+      "forgot-password": 0,
+      "account-deletion": 0
+    },
+    "availability": {
+      "ads": false,
+      "home": false,
+      "jobs": false,
+      "post": false,
+      "about": false,
+      "album": false,
+      "calls": false,
+      "login": false,
+      "music": false,
+      "saved": false,
+      "story": false,
+      "terms": false,
+      "topic": false,
+      "watch": false,
+      "write": false,
+      "market": false,
+      "search": false,
+      "signup": false,
+      "studio": false,
+      "archive": false,
+      "explore": false,
+      "privacy": false,
+      "channels": false,
+      "discover": false,
+      "messages": false,
+      "settings": false,
+      "businesses": false,
+      "communities": false,
+      "monetization": false,
+      "notifications": false,
+      "business-login": false,
+      "reset-password": false,
+      "forgot-password": false,
+      "account-deletion": false
+    }
+  },
+  "collisionGuardProved": true,
+  "existingRowsPreserved": true,
+  "verifiedAt": "2026-10-30T03:33:40.604Z",
+  "fixture": "production and parity forward chain with current media, erasure and staff isolation"
+}

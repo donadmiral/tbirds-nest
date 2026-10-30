@@ -57,7 +57,7 @@ const AUDIENCES = [
   { key: "verified", label: "Verified only", icon: BadgeCheck },
 ] as const;
 
-export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }: { ownerId: string; onPosted: (postId?: string) => void; quote?: QuoteTarget | null; onQuoteDone?: () => void; initialKind?: PostKind }) {
+export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind, openRequest = 0 }: { ownerId: string; onPosted: (postId?: string) => void; quote?: QuoteTarget | null; onQuoteDone?: () => void; initialKind?: PostKind; openRequest?: number }) {
   const [supabase] = useState(() => createClient());
   const mounted = useRef(true), authenticatedOwner = useRef<string | undefined>(ownerId), renderedOwner = useRef(ownerId), ownerGeneration = useRef(0);
   renderedOwner.current = ownerId;
@@ -65,6 +65,10 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
   const [draftLoaded, setDraftLoaded] = useState(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const taRef = useRef<HTMLTextAreaElement | null>(null);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
+  const collapsedRef = useRef<HTMLButtonElement | null>(null);
+  const [captionSaved, setCaptionSaved] = useState(false);
   const [pending, setPending] = useState(false);
   const [postConfirmed,setPostConfirmed]=useState(false);
   const publishing = useRef(false);
@@ -203,15 +207,16 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
     try {
       if (text.trim()) localStorage.setItem(draftKey, JSON.stringify({ text }));
       else localStorage.removeItem(draftKey);
-    } catch { /* quota */ }
+      setCaptionSaved(Boolean(text.trim()));
+    } catch { setCaptionSaved(false); }
   }, [text, draftLoaded, draftKey, ownerId]);
 
   useEffect(() => {
     if (!open) return;
-    function onKey(e: KeyboardEvent) { if (e.key === "Escape" && !cameraOpen && editIdx===null && tagIdx===null && !publishing.current) { setOpen(false); if (!publication.current) setError(null); onQuoteDone?.(); } }
+    function onKey(e: KeyboardEvent) { if (e.defaultPrevented) return; if (e.key === "Escape" && tagIdx !== null) { e.preventDefault(); setTagIdx(null); setTagAt(null); return; } if (e.key === "Escape" && !cameraOpen && !musicOpen && editIdx===null && !publishing.current) { e.preventDefault(); setOpen(false); if (!publication.current) setError(null); onQuoteDone?.(); } }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, onQuoteDone, editIdx, tagIdx, cameraOpen]);
+  }, [open, onQuoteDone, editIdx, tagIdx, cameraOpen, musicOpen]);
 
   function onTextChange(v: string) {
     const next = v.slice(0, MAX_CHARS);
@@ -449,11 +454,67 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
   useEffect(() => {
     if (!initialKind) return;
     setOpen(true);
-    setKind(initialKind);
+    if (!publishing.current && !publication.current) {
+      setKind(initialKind);
+      setPollOn(initialKind === 'poll');
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialKind]);
+  }, [initialKind, openRequest]);
 
-  useEffect(()=>{if(!open)return;const before=document.body.style.overflow;document.body.style.overflow="hidden";return()=>{document.body.style.overflow=before;};},[open]);
+  useEffect(() => {
+    if (!open) return;
+    openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const frame = requestAnimationFrame(() => taRef.current?.focus({ preventScroll: true }));
+    const surface = () => {
+      const nested = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('[role="dialog"][aria-modal="true"]') ?? []).filter(node => node.getClientRects().length > 0);
+      return nested.at(-1) ?? dialogRef.current;
+    };
+    const controls = (node: HTMLElement) => Array.from(node.querySelectorAll<HTMLElement>('button:not(:disabled),a[href],input:not(:disabled):not([type="hidden"]),textarea:not(:disabled),select:not(:disabled),summary,[tabindex="0"]')).filter(element => element.getClientRects().length > 0 && !element.closest('[inert]'));
+    const contain = (event: FocusEvent) => {
+      const node = surface();
+      if (node && event.target instanceof Node && !node.contains(event.target)) (controls(node)[0] ?? node).focus({ preventScroll: true });
+    };
+    const key = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab' || event.defaultPrevented) return;
+      const node = surface(); if (!node) return;
+      const elements = controls(node), first = elements[0], last = elements.at(-1);
+      if (!first) { event.preventDefault(); node.focus(); return; }
+      if (event.shiftKey && (!node.contains(document.activeElement) || document.activeElement === first)) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && (!node.contains(document.activeElement) || document.activeElement === last)) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('focusin', contain);
+    document.addEventListener('keydown', key);
+    return () => {
+      cancelAnimationFrame(frame); document.removeEventListener('focusin', contain); document.removeEventListener('keydown', key);
+      document.body.style.overflow = overflow;
+      (openerRef.current?.isConnected ? openerRef.current : collapsedRef.current)?.focus({ preventScroll: true });
+    };
+  }, [open]);
+
+  // File attachments remain in this open feed. Warn before a route or reload can discard them.
+  useEffect(() => {
+    const hasUnsaved = items.length > 0 || pollOn || products.length > 0 || Boolean(soundtrack) || (Boolean(text.trim()) && !captionSaved) || publicationLocked;
+    if (!hasUnsaved) return;
+    const confirmLeave = () => window.confirm(publicationLocked
+      ? 'This post is not fully confirmed. Leaving can interrupt it. Stay here to finish or check its status. Leave this page?'
+      : 'Your attached media and post settings are kept in this feed. Leaving will discard those changes.' + (captionSaved ? ' Your caption is saved on this device.' : '') + ' Leave this page?');
+    const unload = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; };
+    const click = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const link = (event.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null;
+      if (!link || link.target === '_blank' || link.hasAttribute('download')) return;
+      const url = new URL(link.href, location.href);
+      if (url.origin === location.origin && url.pathname === location.pathname) return;
+      if (!confirmLeave()) { event.preventDefault(); event.stopPropagation(); }
+    };
+    const submit = (event: SubmitEvent) => {
+      if (!event.defaultPrevented && event.target instanceof HTMLFormElement && !dialogRef.current?.contains(event.target) && !confirmLeave()) { event.preventDefault(); event.stopPropagation(); }
+    };
+    window.addEventListener('beforeunload', unload); document.addEventListener('click', click, true); document.addEventListener('submit', submit, true);
+    return () => { window.removeEventListener('beforeunload', unload); document.removeEventListener('click', click, true); document.removeEventListener('submit', submit, true); };
+  }, [items.length, pollOn, products.length, soundtrack, text, captionSaved, publicationLocked]);
   const selected=items[Math.min(selectedMedia,Math.max(0,items.length-1))];
   const moveMedia=(direction:number)=>{const from=Math.min(selectedMedia,items.length-1),to=from+direction;if(to<0||to>=items.length)return;setItems(prev=>{const next=[...prev];[next[from],next[to]]=[next[to],next[from]];return next;});setSelectedMedia(to);};
   const removeMedia=()=>{const at=Math.min(selectedMedia,items.length-1);const item=items[at];if(item){URL.revokeObjectURL(item.preview);if(item.coverPreview)URL.revokeObjectURL(item.coverPreview);}setItems(prev=>prev.filter((_,i)=>i!==at));setSelectedMedia(Math.max(0,at-1));};
@@ -476,16 +537,16 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
     return (
       <div className="mb-4 rounded-2xl border border-ink/10 bg-white px-5 pb-3 pt-4">
         {postConfirmed?<div className={compose.posted} role="status"><span>Your post has been shared.</span><button type="button" aria-label="Dismiss post confirmation" onClick={()=>setPostConfirmed(false)}><X size={18}/></button></div>:null}
-        <button onClick={start()} className="flex w-full items-center gap-3 text-left">
+        <button ref={collapsedRef} onClick={start()} className="flex w-full items-center gap-3 text-left">
           {myAvatar ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={myAvatar} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" />
           ) : <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-navy text-white"><span className="h-2 w-2 rounded-full bg-pearl" /></span>}
-          <span className="text-[16px] text-muted">What&apos;s on your mind?</span>
+          <span className="flex min-h-11 flex-1 items-center rounded-xl border border-ink/10 px-3 text-[14px] text-muted">What would you like to share?</span>
         </button>
-        <div className="mt-3 grid grid-cols-5 items-center gap-1 border-t border-ink/8 pt-2.5">
+        <div className="mt-3 grid grid-cols-5 items-center gap-1 pt-1">
           <button onClick={start("media")} className={action}><ImageIcon size={16} className="text-pearl-muted" /> Photo</button>
-          <button onClick={()=>{setPostConfirmed(false);setOpen(true);setPollOn(false);setCameraOpen(true);}} className={action} aria-label="Open post camera and lenses"><Camera size={16} className="text-pearl-muted"/>Camera</button>
+          <button onClick={start("video")} className={action}><Video size={17} className="text-pearl-muted"/>Video</button>
           <button onClick={start("article")} className={action}><FileText size={16} className="text-pearl-muted" /> Article</button>
           <button onClick={start("poll")} className={action}><BarChart3 size={16} className="text-pearl-muted" /> Poll</button>
           <button onClick={start()} className="min-h-11 min-w-0 rounded-full bg-pearl px-2 py-1.5 text-[13px] font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90">Post</button>
@@ -496,7 +557,7 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
 
   return (
     <div className={compose.backdrop} onClick={(e) => { if (e.target === e.currentTarget && !publishing.current) { setOpen(false); if (!publication.current) setError(null); onQuoteDone?.(); } }}>
-      <div onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+      <div ref={dialogRef} tabIndex={-1} onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
         onDrop={onDrop}
         role="dialog" aria-modal="true" aria-label={review?"Review post":"New post"} className={compose.dialog}
@@ -518,7 +579,7 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
               (gold
                 ? (on ? "border-pearl bg-pearl text-on-pearl" : "border-pearl bg-pearl/15 text-accent hover:bg-pearl/20")
                 : (on ? "border-navy bg-navy text-white" : "border-ink/10 bg-surface text-ink/70 hover:text-ink"));
-            if (k.href) return <a key={k.key} href={k.href} className={cls}><k.icon size={14} />{k.label}</a>;
+            if (k.href) return <Link key={k.key} href={k.href} className={cls}><k.icon size={14} />{k.label}</Link>;
             return (
               <button key={k.key} onClick={() => setKind(k.key)} className={cls}>
                 <k.icon size={14} />
@@ -550,8 +611,9 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
         </div>
       ) : null}
       <div className={compose.author}>{myAvatar?<img src={myAvatar} alt=""/>:<span className={compose.avatar}/>}<div><div className={compose.authorName}>{myName}</div><div className={compose.audience}><Globe size={12}/><select aria-label="Post audience" value={audience} onChange={e=>setAudience(e.target.value as typeof audience)}>{AUDIENCES.map(a=><option key={a.key} value={a.key}>{a.label}</option>)}</select></div></div></div>
-      {kind==="article"||inno?<input value={articleTitle} onChange={e=>setArticleTitle(e.target.value)} placeholder="Article title (optional)" className="mb-2 w-full rounded-xl bg-surface px-3 py-3 text-base font-semibold text-ink outline-none"/>:null}
-      <textarea ref={taRef} readOnly={review} value={text} onChange={e=>onTextChange(e.target.value)} onPaste={onPaste} placeholder={inno?"Share your innovation":"Write a caption…"} rows={3} autoFocus className={compose.caption}/>
+      {kind==="article"||inno?<input aria-label="Article title" value={articleTitle} onChange={e=>setArticleTitle(e.target.value)} placeholder="Article title (optional)" className="mb-2 w-full rounded-xl bg-surface px-3 py-3 text-base font-semibold text-ink outline-none"/>:null}
+      <textarea ref={taRef} aria-label="Post caption" readOnly={review} value={text} onChange={e=>onTextChange(e.target.value)} onPaste={onPaste} placeholder={inno?"Share your innovation":"Write a caption…"} rows={3} className={compose.caption}/>
+      <div className={compose.captionMeta}><span>{text.trim() ? (captionSaved ? 'Caption saved on this device' : 'Keep this draft open') : 'Make room for a moment worth sharing.'}</span><span aria-label="Caption character count">{text.length.toLocaleString()}/{MAX_CHARS.toLocaleString()}</span></div>
       {mentions.length > 0 ? (
         <div className="absolute z-20 w-64 overflow-hidden rounded-lg border border-ink/10 bg-navy shadow-2xl">
           {mentions.map((u) => (
@@ -586,7 +648,7 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
       {items.length?<button type="button" className={compose.soundtrack} onClick={()=>setMusicOpen(true)}><Music size={18}/><span>Music</span><span>{soundtrack?`${soundtrack.durationSec.toFixed(1)}s excerpt`:'Add a soundtrack'}</span><ChevronRight size={17}/></button>:null}
       {editIdx!==null&&items[editIdx]?<PostMediaEditor key={items[editIdx].preview} item={items[editIdx]} index={editIdx} total={items.length} onClose={()=>setEditIdx(null)} onSave={(edit,coverFile,coverPreview,applyAll)=>{setItems(prev=>prev.map((item,i)=>i===editIdx?{...item,edit,coverFile,coverPreview}:applyAll?{...item,edit:{...item.edit,...postLookRecipe(edit)}}:item));setEditIdx(null);}}/>:null}
       {tagIdx !== null && items[tagIdx] ? (
-        <div role="dialog" aria-modal="true" className="fixed inset-0 z-[70] flex items-center justify-center bg-black/85 p-4" onClick={() => { setTagIdx(null); setTagAt(null); }}>
+        <div role="dialog" aria-modal="true" aria-label="Tag people in this photo" tabIndex={-1} className="fixed inset-0 z-[70] flex items-center justify-center bg-black/85 p-4" onClick={() => { setTagIdx(null); setTagAt(null); }}>
           <div className="relative max-h-[92vh] max-w-[92vw]" onClick={(e) => e.stopPropagation()}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={items[tagIdx].preview} alt="" className="max-h-[80vh] max-w-[92vw] select-none rounded-xl object-contain" draggable={false}
@@ -602,7 +664,7 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
             ))}
             {tagAt ? (
               <div className="absolute inset-x-0 bottom-0 max-h-[55%] overflow-auto rounded-b-xl bg-white p-3 shadow-2xl">
-                <input autoFocus value={tagQ} onChange={(e) => setTagQ(e.target.value)} placeholder="Search by name or handle" className="w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] outline-none focus:border-ink/40" />
+                <input aria-label="Search people to tag" autoFocus value={tagQ} onChange={(e) => setTagQ(e.target.value)} placeholder="Search by name or handle" className="w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] outline-none focus:border-ink/40" />
                 <div className="mt-1">
                   {tagHits.map((p) => (
                     <button key={p.id} type="button" onClick={() => addTag(p)} className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-ink/5">
@@ -613,7 +675,8 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
                 </div>
               </div>
             ) : null}
-            <button type="button" onClick={() => { setTagIdx(null); setTagAt(null); }} className="absolute -right-2 -top-2 rounded-full bg-white p-1.5 text-ink shadow"><X size={16} /></button>
+            {!tagAt ? <button type="button" className="absolute bottom-3 left-1/2 min-h-11 -translate-x-1/2 rounded-xl bg-white px-4 text-sm text-ink shadow" onClick={() => setTagAt({ nx: .5, ny: .5 })}>Choose a person</button> : null}
+            <button type="button" aria-label="Close photo tagging" onClick={() => { setTagIdx(null); setTagAt(null); }} className="absolute -right-2 -top-2 grid h-11 w-11 place-items-center rounded-full bg-white text-ink shadow"><X size={18} /></button>
           </div>
         </div>
       ) : null}
@@ -623,7 +686,7 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
             <span key={m.preview} className="flex items-center gap-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={m.preview} alt="" className="h-9 w-9 shrink-0 rounded-md object-cover" />
-              <input value={m.alt}
+              <input aria-label={`Description for image ${i + 1}`} value={m.alt}
                 onChange={(e) => setItems((list) => list.map((x, j) => (j === i ? { ...x, alt: e.target.value } : x)))}
                 placeholder="Describe this image, helps people using screen readers"
                 maxLength={500}
@@ -636,7 +699,7 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
       {pollOn ? (
         <div className="ml-14 mt-3 flex flex-col gap-1.5 rounded-lg border border-ink/10 p-3">
           {pollOpts.map((o, i) => (
-            <input key={i} value={o}
+            <input key={i} aria-label={`Poll option ${i + 1}`} value={o}
               onChange={(e) => setPollOpts((l) => l.map((x, j) => (j === i ? e.target.value : x)))}
               placeholder={"Option " + (i + 1) + (i > 1 ? ", optional" : "")}
               maxLength={60}
@@ -647,7 +710,7 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
             {pollOpts.length < 4 ? (
               <button onClick={() => setPollOpts((l) => [...l, ""])} className="text-[12px] font-semibold text-pearl-muted hover:underline">Add option</button>
             ) : null}
-            <select value={pollDays} onChange={(e) => setPollDays(Number(e.target.value))} className="ml-auto rounded-md bg-surface px-2 py-1 text-[12px] text-ink outline-none">
+            <select aria-label="Poll duration" value={pollDays} onChange={(e) => setPollDays(Number(e.target.value))} className="ml-auto rounded-md bg-surface px-2 py-1 text-[12px] text-ink outline-none">
               <option value={1} className="bg-navy">1 day</option>
               <option value={3} className="bg-navy">3 days</option>
               <option value={7} className="bg-navy">7 days</option>
@@ -694,13 +757,13 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
       {cameraOpen?<StoryCapture purpose="post" onCapture={async file=>{await addFiles([file]);}} onClose={()=>setCameraOpen(false)} onGallery={()=>{setCameraOpen(false);fileRef.current?.click();}}/>:null}
       {musicOpen?<SoundtrackPicker value={soundtrack} use="post" ownerId={ownerId} originalAudio={selected?.isVideo} onChange={setSoundtrack} onClose={()=>setMusicOpen(false)} renderPreview={(selection,active)=>selected?<PostDraftPreview item={selected} soundtrack={selection} active={active} autoPlay/>:null}/>:null}
       <div className={compose.settings}>
-        <select disabled={publicationLocked||review} value={postCategory} onChange={(e) => setPostCategory(e.target.value)} title="Category" className="max-w-[120px] rounded-full bg-surface px-3 py-1.5 text-[12.5px] text-ink/80 outline-none">
+        <select disabled={publicationLocked||review} value={postCategory} onChange={(e) => setPostCategory(e.target.value)} aria-label="Post category" className="max-w-[120px] rounded-full bg-surface px-3 py-1.5 text-[12.5px] text-ink/80 outline-none">
           <option value="" className="bg-navy">Category</option>
           {CATEGORIES.filter((c) => c.key !== "innovation").map((c) => (
             <option key={c.key} value={c.key} className="bg-navy">{c.label}</option>
           ))}
         </select>
-        <select disabled={publicationLocked||review} value={audience}
+        <select aria-label="Audience" disabled={publicationLocked||review} value={audience}
           onChange={(e) => setAudience(e.target.value as typeof audience)}
           className="rounded-full bg-surface px-3 py-1.5 text-[12.5px] text-ink/80 outline-none"
         >
@@ -708,7 +771,7 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
             <option key={a.key} value={a.key} className="bg-navy">{a.label}</option>
           ))}
         </select>
-        <select disabled={publicationLocked||review} value={commentPolicy} onChange={(e) => setCommentPolicy(e.target.value as typeof commentPolicy)} title="Who can comment" className="rounded-full bg-surface px-3 py-1.5 text-[12.5px] text-ink/80 outline-none">
+        <select disabled={publicationLocked||review} value={commentPolicy} onChange={(e) => setCommentPolicy(e.target.value as typeof commentPolicy)} aria-label="Who can comment" className="rounded-full bg-surface px-3 py-1.5 text-[12.5px] text-ink/80 outline-none">
           <option value="everyone" className="bg-navy">Comments: everyone</option>
           <option value="following" className="bg-navy">Comments: people I follow</option>
           <option value="followers" className="bg-navy">Comments: my followers</option>

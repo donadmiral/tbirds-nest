@@ -1,8 +1,9 @@
+import { serveBusinessRequest } from '../_shared/serveBusinessRequest.ts';
 // Keep credentials on the server. User identity is verified in the handler.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.103.0";
+import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { createBridgeHandler } from "./handler.ts";
 
-Deno.serve(createBridgeHandler({
+serveBusinessRequest(createBridgeHandler({
   db: createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, {
     auth: { persistSession: false, autoRefreshToken: false },
   }),

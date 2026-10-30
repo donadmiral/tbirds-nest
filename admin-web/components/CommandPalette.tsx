@@ -4,12 +4,14 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation';
 import { readPreferenceList, savePreference } from '@/lib/browserPreferences';
 import { trapDialogTab } from '@/lib/dialogFocus';
+import AdminIcon, { type AdminIconName } from '@/components/AdminIcon';
+import { matchingDestination, routePath } from '@/lib/navigation';
 
-export type PaletteItem = { href: string; label: string; group: string; key: string };
-type Row = { href: string; label: string; hint: string; kind: 'recent' | 'desk' | 'action' | 'search'; shortcut?: string };
+export type PaletteItem = { href: string; label: string; group: string; key: string; icon?: AdminIconName; description?: string };
+type Row = { href: string; label: string; hint: string; kind: 'recent' | 'desk' | 'action' | 'search'; shortcut?: string; icon?: AdminIconName };
 const K_RECENT = 'pc-recent-pages';
 
-export default function CommandPalette({ items, actions }: { items: PaletteItem[]; actions: { href: string; label: string }[] }) {
+export default function CommandPalette({ items, actions }: { items: PaletteItem[]; actions: { href: string; label: string; desk?: string; icon?: AdminIconName }[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const id = useId();
@@ -27,28 +29,28 @@ export default function CommandPalette({ items, actions }: { items: PaletteItem[
 
   useEffect(() => {
     setMac(/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent));
-    const root = '/' + (pathname?.split('/')[1] || '');
+    const root = matchingDestination(pathname, items);
     const previous = readPreferenceList(K_RECENT, new Set(byHref.keys()));
-    const next = (byHref.has(root) ? [root, ...previous.filter(href => href !== root)] : previous).slice(0, 6);
+    const next = (root ? [root, ...previous.filter(href => href !== root)] : previous).slice(0, 6);
     setRecent(next);
     savePreference(K_RECENT, next);
     setOpen(false);
-  }, [pathname, byHref]);
+  }, [pathname, byHref, items]);
 
   const rows: Row[] = useMemo(() => {
     const term = q.trim().toLowerCase();
     const result: Row[] = [];
     if (!term) for (const href of recent) {
       const item = byHref.get(href);
-      if (item && href !== '/' + (pathname?.split('/')[1] || '')) result.push({ ...item, hint: 'Recent', kind: 'recent', shortcut: item.key });
+      if (item && href !== matchingDestination(pathname, items)) result.push({ ...item, hint: 'Recent', kind: 'recent', shortcut: item.key });
     }
     for (const item of items) {
-      if (term && !`${item.label} ${item.group}`.toLowerCase().includes(term)) continue;
+      if (term && !`${item.label} ${item.group} ${item.description || ''}`.toLowerCase().includes(term)) continue;
       if (!term && result.some(row => row.href === item.href)) continue;
       result.push({ ...item, hint: item.group, kind: 'desk', shortcut: item.key });
     }
     for (const action of actions) {
-      if (!byHref.has(action.href) || (term && !action.label.toLowerCase().includes(term))) continue;
+      if (!byHref.has(action.desk || routePath(action.href)) || (term && !action.label.toLowerCase().includes(term))) continue;
       result.push({ ...action, hint: 'Quick action', kind: 'action' });
     }
     if (term && memberSearchAllowed) result.push({ href: '/users?q=' + encodeURIComponent(q.trim()), label: `Search members for “${q.trim()}”`, hint: 'Members', kind: 'search' });
@@ -96,13 +98,13 @@ export default function CommandPalette({ items, actions }: { items: PaletteItem[
 
   return <>
     <button ref={triggerRef} type="button" onClick={() => setOpen(true)} className="pc-search pc-command-trigger" aria-haspopup="dialog">
-      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
+      <AdminIcon name="search" size={18} />
       <span>{memberSearchAllowed ? 'Search desks, members, actions' : 'Search desks and actions'}</span><kbd>{mac ? '⌘ K' : 'Ctrl K'}</kbd>
     </button>
     <dialog ref={dialogRef} className="pc-command-dialog" aria-label="Search operations" onKeyDown={trapDialogTab} onClose={() => setOpen(false)} onClick={event => { if (event.target === event.currentTarget) setOpen(false); }}>
       <div className="pc-command-panel">
         <div className="pc-command-input">
-          <svg aria-hidden="true" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
+          <AdminIcon name="search" size={21} />
           <input ref={inputRef} role="combobox" aria-label="Find a desk or action" aria-expanded="true" aria-autocomplete="list" aria-controls={`${id}-results`} aria-activedescendant={rows[selectedIndex] ? `${id}-result-${selectedIndex}` : undefined} value={q}
             onChange={event => { setQ(event.target.value); setCursor(0); }} placeholder="Where would you like to go?"
             onKeyDown={event => {
@@ -114,7 +116,7 @@ export default function CommandPalette({ items, actions }: { items: PaletteItem[
         </div>
         <div ref={listRef} id={`${id}-results`} role="listbox" aria-label="Matching destinations" className="pc-command-results">
           {rows.length ? rows.map((row, index) => <div key={`${row.kind}:${row.href}`} id={`${id}-result-${index}`} role="option" aria-selected={index === selectedIndex} className="pc-command-result" onMouseEnter={() => setCursor(index)} onMouseDown={event => event.preventDefault()} onClick={() => go(row.href)}>
-            <span className="pc-command-result-icon" aria-hidden="true">{row.kind === 'recent' ? '↶' : row.kind === 'search' ? '⌕' : '↗'}</span>
+            <span className="pc-command-result-icon"><AdminIcon name={row.kind === 'recent' ? 'history' : row.kind === 'search' ? 'search' : row.icon || 'arrowUpRight'} size={18} /></span>
             <span><strong>{row.label}</strong><small>{row.hint}</small></span>
             {row.shortcut ? <kbd>G {row.shortcut}</kbd> : null}
           </div>) : <div className="pc-command-empty" role="status"><strong>No matching destinations</strong><p>Try a desk name or another action.</p></div>}

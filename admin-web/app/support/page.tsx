@@ -16,12 +16,12 @@ const H_TITLE: React.CSSProperties = { fontSize: 14, fontWeight: 700, color: 'va
 const H_SUB: React.CSSProperties = { fontSize: 12, color: 'var(--txt-muted)', marginTop: 3 };
 
 const IC = {
-  life: 'M12 2a10 10 0 100 20 10 10 0 000-20zm0 4a6 6 0 016 6h-3a3 3 0 00-6 0H6a6 6 0 016-6zm-3 8h6a3 3 0 01-6 0z',
-  clock: 'M12 2a10 10 0 100 20 10 10 0 000-20zm1 10.6V6h-2v7.4l5.2 3.1 1-1.7-4.2-2.2z',
-  check: 'M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z',
-  shield: 'M12 2l8 3v7c0 5-3.4 8.7-8 10-4.6-1.3-8-5-8-10V5l8-3z',
-  chat: 'M4 4h16v12H5.2L4 17.2V4zm2 3h12v2H6V7zm0 4h8v2H6v-2z',
-};
+  life: 'support',
+  clock: 'clock',
+  check: 'check',
+  shield: 'security',
+  chat: 'support',
+} as const;
 
 const STATUS_TONE: Record<string, Tone> = { open: 'bad', pending: 'warn', solved: 'ok', closed: 'neutral' };
 const SERIES = ['var(--c1)', 'var(--c2)', 'var(--c3)', 'var(--c4)', 'var(--c5)', 'var(--c6)'];

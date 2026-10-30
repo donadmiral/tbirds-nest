@@ -1,217 +1,127 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, CheckCircle2, Clock, Megaphone, Pause, Play, Plus, Send, Square, Trash2, X } from "lucide-react";
+import { ArrowRight, Copy, Download, Eye, FileText, Megaphone, MousePointerClick, Pause, Pencil, Play, Plus, RefreshCw, Search, Send, Square, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { can } from "@/lib/studio";
 import { useStudio } from "@/components/StudioShell";
+import { StudioDialog } from "@/components/StudioDialog";
 import { StudioLoadError } from "../LoadError";
+import { useUploadPreview } from "@/lib/useUploadPreview";
+import { campaignMatches, downloadStudioCsv } from "@/lib/studioPresentation";
 import { parseImpressionCap, validateCampaignInput } from "../../../../shared/studioValidation";
+import styles from "@/components/StudioWorkspace.module.css";
 
 type Ad = { id: string; post_id: string; label: string; status: string; total_cap: number | null; impressions: number; clicks: number; starts_at: string | null; ends_at: string | null; content: string; thumb: string | null; products: number };
 type Campaign = { id: string; name: string; objective: string; budget: number; currency: string; payment_method: string | null; payment_ref: string | null; paid_amount: number; starts_at: string | null; ends_at: string | null; status: string; review_note: string | null; created_at: string; impressions: number; clicks: number; ads: Ad[] };
 type MyPost = { id: string; content: string; created_at: string; thumb: string | null; products: number; likes: number };
 type Form = { id: string | null; name: string; objective: string; budget: string; currency: string; payment_method: string; starts_at: string; ends_at: string };
-
 const OBJECTIVES = [["reach", "Reach"], ["traffic", "Website visits"], ["messages", "Messages"], ["storefront", "Storefront visits"], ["applications", "Job applications"]] as const;
 const toLocalInput = (iso: string | null) => { if (!iso) return ""; const date = new Date(iso); return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16); };
 const emptyForm = (): Form => ({ id: null, name: "", objective: "reach", budget: "", currency: "USD", payment_method: "", starts_at: "", ends_at: "" });
+const titleFor = (objective: string) => OBJECTIVES.find(item => item[0] === objective)?.[1] || objective;
+const ctr = (impressions: number, clicks: number) => impressions > 0 ? `${((clicks / impressions) * 100).toFixed(2)}%` : "—";
 
 export default function AdsManagerPage() {
-  const { me } = useStudio();
+  const { me, accountId } = useStudio();
   const supabase = useRef(createClient()).current;
-  const spender = can(me?.role ?? null, "spend");
-  const editor = can(me?.role ?? null, "publish");
-  const [rows, setRows] = useState<Campaign[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [open, setOpen] = useState(false);
-  const [f, setF] = useState<Form>(emptyForm());
-  const [busy, setBusy] = useState(false);
-  const [addFor, setAddFor] = useState<Campaign | null>(null);
-  const [posts, setPosts] = useState<MyPost[]>([]);
-  const [label, setLabel] = useState("Sponsored");
-  const [cap, setCap] = useState("");
-  const [err, setErr] = useState<string | null>(null);
-  const [loaded, setLoaded] = useState(false);
-  const [postsLoading, setPostsLoading] = useState(false);
-  const [postsError, setPostsError] = useState<string | null>(null);
-  const loadVersion = useRef(0);
-  const postsVersion = useRef(0);
-  const acting = useRef(false);
-
+  const spender = can(me?.role ?? null, "spend"), editor = can(me?.role ?? null, "publish");
+  const [rows, setRows] = useState<Campaign[]>([]), [loading, setLoading] = useState(true), [loaded, setLoaded] = useState(false);
+  const [err, setErr] = useState<string | null>(null), [actionError, setActionError] = useState<string | null>(null), [notice, setNotice] = useState<string | null>(null);
+  const [query, setQuery] = useState(""), [status, setStatus] = useState("all"), [objective, setObjective] = useState("all");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [open, setOpen] = useState(false), [step, setStep] = useState(0), [f, setF] = useState<Form>(emptyForm());
+  const [discardOpen, setDiscardOpen] = useState(false); const formBaseline = useRef(JSON.stringify(emptyForm()));
+  const [busy, setBusy] = useState(false), [addFor, setAddFor] = useState<Campaign | null>(null), [review, setReview] = useState<Campaign | null>(null);
+  const [confirmation, setConfirmation] = useState<{ title: string; description: string; rpc: string; args: Record<string, unknown> } | null>(null);
+  const [posts, setPosts] = useState<MyPost[]>([]), [label, setLabel] = useState("Sponsored"), [cap, setCap] = useState("");
+  const [postsLoading, setPostsLoading] = useState(false), [postsError, setPostsError] = useState<string | null>(null);
+  const previewSource = useMemo(() => ({ rows, posts }), [rows, posts]);
+  const media = useUploadPreview(previewSource);
+  const loadVersion = useRef(0), postsVersion = useRef(0), acting = useRef(false), initialAction = useRef(false), mounted = useRef(true);
   const load = useCallback(async () => {
-    const version = ++loadVersion.current;
-    setLoading(true);
+    const version = ++loadVersion.current; setLoading(true);
     try {
       const { data, error } = await supabase.rpc("studio_campaigns");
       if (error) throw error;
-      if (version !== loadVersion.current) return;
-      setRows((data as Campaign[]) ?? []); setLoaded(true); setErr(null);
-    } catch {
-      if (version === loadVersion.current) setErr("Campaigns could not be refreshed. Please try again.");
-    } finally { if (version === loadVersion.current) setLoading(false); }
+      if (!mounted.current || version !== loadVersion.current) return;
+      const next = (data as Campaign[]) ?? []; setRows(next); setLoaded(true); setErr(null);
+      setSelectedId(value => next.some(row => row.id === value) ? value : next[0]?.id ?? null);
+    } catch { if (mounted.current && version === loadVersion.current) setErr("Campaigns could not be refreshed. Please try again."); }
+    finally { if (mounted.current && version === loadVersion.current) setLoading(false); }
   }, [supabase]);
-  useEffect(() => { void load(); return () => { loadVersion.current += 1; postsVersion.current += 1; }; }, [load]);
+  useEffect(() => { let active=true; mounted.current = true; void Promise.resolve().then(()=>{if(active)void load();}); return () => { active=false; mounted.current = false; loadVersion.current++; postsVersion.current++; }; }, [load]);
+  useEffect(() => { let active=true; void Promise.resolve().then(()=>{if (!active || initialAction.current || !spender || typeof window === "undefined") return; initialAction.current = true; if (new URLSearchParams(window.location.search).get("create") === "1") { const next=emptyForm(); formBaseline.current=JSON.stringify(next); setF(next); setStep(0); setOpen(true); }}); return()=>{active=false;}; }, [spender]);
 
-  const act = async (fn: () => PromiseLike<{ error: any }>, after?: () => void) => {
+  const act = async (fn: () => PromiseLike<{ error: unknown; data?: unknown }>, after?: (data: unknown) => void, message = "Changes saved.") => {
     if (acting.current) return;
-    acting.current = true;
-    setBusy(true);
-    try { const { error } = await fn(); if (error) throw error; after?.(); await load(); }
-    catch (e: any) { alert(e?.message || "Action failed."); }
-    finally { acting.current = false; setBusy(false); }
+    acting.current = true; setBusy(true); setActionError(null); setNotice(null);
+    try {
+      // The server independently checks the bound member role. This check also
+      // stops a stale tab from starting a write after the browser account changes.
+      if (accountId) { const current = await supabase.auth.getSession(); if (current.error || current.data.session?.user.id !== accountId) throw new Error("Your account changed. Reopen Ads Manager before making changes."); }
+      const { error, data } = await fn(); if (error) throw error;
+      if (!mounted.current) return;
+      after?.(data); setNotice(message); await load();
+    } catch (error) { if (mounted.current) setActionError(error && typeof error === "object" && "message" in error ? String(error.message) : "This action was not confirmed. Refresh to check its status before trying again."); }
+    finally { acting.current = false; if (mounted.current) setBusy(false); }
   };
-
-  const openNew = () => { setF(emptyForm()); setOpen(true); };
-  const openEdit = (c: Campaign) => { setF({ id: c.id, name: c.name, objective: c.objective, budget: String(c.budget || ""), currency: c.currency, payment_method: c.payment_method || "", starts_at: toLocalInput(c.starts_at), ends_at: toLocalInput(c.ends_at) }); setOpen(true); };
+  const openNew = () => { const next=emptyForm(); formBaseline.current=JSON.stringify(next); setF(next); setStep(0); setActionError(null); setOpen(true); };
+  const openEdit = (campaign: Campaign, duplicate = false) => { const next:Form={ id: duplicate ? null : campaign.id, name: duplicate ? `${campaign.name} copy`.slice(0,80) : campaign.name, objective: campaign.objective, budget: String(campaign.budget || ""), currency: campaign.currency, payment_method: campaign.payment_method || "", starts_at: duplicate ? "" : toLocalInput(campaign.starts_at), ends_at: duplicate ? "" : toLocalInput(campaign.ends_at) }; formBaseline.current=JSON.stringify(next); setF(next); setStep(0); setActionError(null); setOpen(true); };
+  const closeForm = () => { if(busy)return; if(JSON.stringify(f)!==formBaseline.current)setDiscardOpen(true);else setOpen(false); };
+  const validate = () => { try { validateCampaignInput(f); setActionError(null); return true; } catch (error) { setActionError(error instanceof Error ? error.message : "Check the campaign budget and dates."); return false; } };
   const save = () => {
-    if (!spender) return;
-    try {
-      const value = validateCampaignInput(f);
-      void act(() => supabase.rpc("studio_save_campaign", {
-        p_id: f.id, p_name: value.name, p_objective: f.objective, p_budget: value.budget, p_currency: f.currency, p_payment_method: f.payment_method || null,
-        p_starts_at: value.startsAt, p_ends_at: value.endsAt,
-      }), () => setOpen(false));
-    } catch (error: any) { alert(error?.message || "Check the campaign budget and dates."); }
+    if (!spender || !validate()) return;
+    const value = validateCampaignInput(f);
+    void act(() => supabase.rpc("studio_save_campaign", { p_id: f.id, p_name: value.name, p_objective: f.objective, p_budget: value.budget, p_currency: f.currency, p_payment_method: f.payment_method || null, p_starts_at: value.startsAt, p_ends_at: value.endsAt }), data => { setOpen(false); if (typeof data === "string") setSelectedId(data); }, f.id ? "Campaign details saved." : "Campaign draft created. Add your creative before submitting it for platform review.");
   };
-  const openAdd = async (c: Campaign) => {
-    const version = ++postsVersion.current;
-    setAddFor(c); setLabel("Sponsored"); setCap(""); setPosts([]); setPostsLoading(true); setPostsError(null);
-    try {
-      const { data, error } = await supabase.rpc("studio_my_posts_for_ads", { p_limit: 40 });
-      if (error) throw error;
-      if (version === postsVersion.current) setPosts((data as MyPost[]) ?? []);
-    } catch {
-      if (version === postsVersion.current) setPostsError("Your posts could not be loaded. Please try again.");
-    } finally { if (version === postsVersion.current) setPostsLoading(false); }
+  const openAdd = async (campaign: Campaign) => {
+    const version = ++postsVersion.current; setAddFor(campaign); setLabel("Sponsored"); setCap(""); setPosts([]); setPostsLoading(true); setPostsError(null); setActionError(null);
+    try { const { data, error } = await supabase.rpc("studio_my_posts_for_ads", { p_limit: 40 }); if (error) throw error; if (mounted.current && version === postsVersion.current) setPosts((data as MyPost[]) ?? []); }
+    catch { if (mounted.current && version === postsVersion.current) setPostsError("Your posts could not be loaded. Please try again."); }
+    finally { if (mounted.current && version === postsVersion.current) setPostsLoading(false); }
   };
   const addAd = (postId: string) => {
     if (!addFor || !editor) return;
-    try {
-      const totalCap = parseImpressionCap(cap);
-      void act(() => supabase.rpc("studio_add_ad", { p_campaign: addFor.id, p_post_id: postId, p_label: label.trim() || "Sponsored", p_total_cap: totalCap }), () => setAddFor(null));
-    } catch (error: any) { alert(error?.message || "Check the impression limit."); }
+    try { const totalCap = parseImpressionCap(cap); void act(() => supabase.rpc("studio_add_ad", { p_campaign: addFor.id, p_post_id: postId, p_label: label.trim() || "Sponsored", p_total_cap: totalCap }), () => setAddFor(null), "Ad creative added to the campaign."); }
+    catch (error) { setActionError(error instanceof Error ? error.message : "Check the impression limit."); }
   };
+  const shown = rows.filter(row => campaignMatches(row, query, status, objective));
+  const selected = shown.find(row => row.id === selectedId) ?? shown[0] ?? null;
+  const selectedMedia = media.preview.rows.find(row => row.id === selected?.id)?.ads?.[0];
+  const canEdit = selected && ["draft","rejected","paused","approved"].includes(selected.status);
+  const canAdd = selected && ["draft","rejected","paused","approved"].includes(selected.status);
+  const creativeSection = selected ? <section className={`${styles.card} ${styles.sectionGap}`}><div className={styles.cardHeader}><div><h2>Ad creative · {selected.name}</h2><p>{selected.ads.length} {selected.ads.length===1?"ad":"ads"} · Existing Platinum Circles posts</p></div>{editor&&canAdd?<button className={styles.button} onClick={()=>void openAdd(selected)}><Plus size={15}/>Add ad</button>:null}</div>{selected.ads.length?<div className={styles.tableScroll}><table className={styles.table}><thead><tr><th scope="col">Creative</th><th scope="col">Status</th><th scope="col">Impressions</th><th scope="col">Clicks</th><th scope="col">Action</th></tr></thead><tbody>{selected.ads.map(ad=><tr key={ad.id}><td><Link href={`/post/${ad.post_id}`}><strong>{ad.content||"Media post"}</strong><small>{ad.label}{ad.products?` · ${ad.products} products`:""}</small></Link></td><td><span className={styles.status} data-state={ad.status}>{ad.status}</span></td><td>{Number(ad.impressions).toLocaleString()}<small>{ad.total_cap?`Limit ${ad.total_cap.toLocaleString()}`:"No impression limit"}</small></td><td>{ad.clicks}<small>CTR {ctr(ad.impressions,ad.clicks)}</small></td><td>{editor&&canAdd?<button className={`${styles.button} ${styles.buttonDanger}`} disabled={busy} onClick={()=>ask("Remove ad", "Remove this creative from the campaign? The original post remains available.","studio_remove_ad",{p_promo:ad.id})}><Trash2 size={14}/>Remove</button>:<Link className={styles.button} href={`/post/${ad.post_id}`}>View post</Link>}</td></tr>)}</tbody></table></div>:<div className={styles.empty}><p>No ads in this campaign yet. Add a published post as your creative.</p><Link href="/studio/planner?compose=1" className={styles.button}>Create a post <ArrowRight size={14}/></Link></div>}</section>:null;
+  const ask = (title: string, description: string, rpc: string, args: Record<string, unknown>) => { setActionError(null); setConfirmation({title,description,rpc,args}); };
+  return <div>
+    <header className={styles.pageHeader}><div><h1>Ads Manager</h1><p>Create campaigns, review your creative and track delivery on Platinum Circles.</p></div><div className={styles.actions}><Link href="/ads" className={styles.button}>Quick promotions</Link>{spender ? <button className={styles.buttonPrimary} onClick={openNew}><Plus size={17} /> Create campaign</button> : null}</div></header>
+    <div className={styles.tabs}><button className={styles.tab} aria-pressed="true">Campaigns</button><Link href="/studio/insights" className={styles.tab}>Reporting</Link></div>
+    <dl className={styles.metrics}>{[{label:"Active campaigns",value:rows.filter(row=>row.status==="live").length,icon:Megaphone},{label:"Draft campaigns",value:rows.filter(row=>row.status==="draft").length,icon:FileText},{label:"Impressions",value:rows.reduce((sum,row)=>sum+Number(row.impressions||0),0),icon:Eye},{label:"Clicks",value:rows.reduce((sum,row)=>sum+Number(row.clicks||0),0),icon:MousePointerClick}].map(metric=><div className={styles.metric} key={metric.label}><dt><metric.icon size={18}/>{metric.label}</dt><dd>{loaded ? metric.value.toLocaleString() : "—"}</dd><small>Across loaded campaigns</small></div>)}</dl>
+    <div className={styles.toolbar}><label><Search size={17}/><input aria-label="Search campaigns" placeholder="Search campaigns" value={query} onChange={event=>setQuery(event.target.value)}/></label><select aria-label="Filter campaign status" value={status} onChange={event=>setStatus(event.target.value)}><option value="all">All statuses</option>{["draft","submitted","approved","live","paused","rejected","ended"].map(value=><option key={value} value={value}>{value[0].toUpperCase()+value.slice(1)}</option>)}</select><select aria-label="Filter campaign objective" value={objective} onChange={event=>setObjective(event.target.value)}><option value="all">All objectives</option>{OBJECTIVES.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select><button className={styles.button} disabled={loading} onClick={()=>void load()}><RefreshCw size={15}/>Refresh</button><button className={styles.button} disabled={!shown.length} onClick={()=>downloadStudioCsv("platinum-campaigns.csv",["Campaign","Status","Objective","Currency","Campaign budget","Recorded payment","Impressions","Clicks","CTR","Start","End"],shown.map(row=>[row.name,row.status,row.objective,row.currency,row.budget,row.paid_amount,row.impressions,row.clicks,ctr(row.impressions,row.clicks),row.starts_at,row.ends_at]))}><Download size={15}/>Export ({shown.length})</button></div>
+    <StudioLoadError message={err} retry={()=>{void load();}} busy={loading}/>{media.error ? <StudioLoadError message={media.error} retry={media.retry}/> : null}
+    {notice ? <p role="status" className={styles.notice}>{notice}</p> : null}{actionError && !open && !addFor && !review && !confirmation ? <p role="alert" className={`${styles.notice} ${styles.error}`}>{actionError}</p> : null}
+    {loading && !loaded ? <p role="status" className={styles.empty}>Loading campaigns…</p> : !loaded ? null : !rows.length ? <section className={styles.card}><div className={styles.empty}><Megaphone size={30}/><h2>No campaigns yet</h2><p>Create a draft, choose your existing post as creative, review the budget and submit it for platform advertising review.</p>{spender ? <button className={styles.buttonPrimary} onClick={openNew}><Plus size={16}/>Create campaign</button> : null}</div></section> : <div className={`${styles.twoColumn} items-start`}><div>
+      <section className={styles.card}><div className={styles.cardHeader}><div><h2>Your campaigns</h2><p>{shown.length} of {rows.length} loaded campaigns match these filters.</p></div></div>{shown.length ? <div className={styles.tableScroll}><table className={styles.table}><thead><tr><th scope="col">Campaign</th><th scope="col">Status</th><th scope="col">Budget</th><th scope="col">Results</th><th scope="col">Action</th></tr></thead><tbody>{shown.map(row=><tr key={row.id} data-selected={row.id===selected?.id}><td><button className="text-left" onClick={()=>setSelectedId(row.id)} aria-label={`View ${row.name}`}><strong>{row.name}</strong><small>{titleFor(row.objective)}</small></button></td><td><span className={styles.status} data-state={row.status}>{row.status}</span></td><td>{row.currency} {Number(row.budget).toLocaleString()}<small>Campaign budget</small></td><td>{Number(row.impressions).toLocaleString()}<small>Impressions · {row.clicks} clicks</small></td><td><button className={styles.button} onClick={()=>setSelectedId(row.id)} aria-pressed={row.id===selected?.id}>View</button></td></tr>)}</tbody></table></div> : <div className={styles.empty}><h2>No matching campaigns</h2><p>Clear a filter or search for another campaign name.</p><button className={styles.button} onClick={()=>{setQuery("");setStatus("all");setObjective("all");}}>Clear filters</button></div>}</section>
+      {creativeSection}</div>
+      {selected ? <section className={styles.card} aria-label="Selected campaign"><div className={styles.cardHeader}><h2>{selected.name}</h2><span className={styles.status} data-state={selected.status}>{selected.status}</span></div><div className={styles.cardBody}>{selectedMedia?.thumb ? <img src={selectedMedia.thumb} alt="Selected campaign creative" className="mb-4 aspect-[4/3] w-full rounded-lg object-contain bg-surface"/> : null}<dl className="space-y-3 text-[13px]"><div className="flex justify-between gap-3"><dt className="text-muted">Objective</dt><dd>{titleFor(selected.objective)}</dd></div><div className="flex justify-between gap-3"><dt className="text-muted">Campaign budget</dt><dd className="font-semibold">{selected.currency} {Number(selected.budget).toLocaleString()}</dd></div><div className="flex justify-between gap-3"><dt className="text-muted">Recorded payment</dt><dd>{selected.currency} {Number(selected.paid_amount||0).toLocaleString()}</dd></div><div className="flex justify-between gap-3"><dt className="text-muted">Click-through rate</dt><dd>{ctr(selected.impressions,selected.clicks)}</dd></div><div className="flex justify-between gap-3"><dt className="text-muted">Schedule</dt><dd className="text-right">{selected.starts_at ? new Date(selected.starts_at).toLocaleString() : "No start date"}<br/>{selected.ends_at ? `Until ${new Date(selected.ends_at).toLocaleString()}` : "No end date"}</dd></div></dl>{selected.review_note ? <p className={`${styles.notice} ${selected.status==="rejected"?styles.error:""}`}>{selected.review_note}</p> : null}{selected.status==="submitted"?<p className={styles.notice}>Awaiting platform advertising review. This is separate from your team’s content approval.</p>:null}<div className={`${styles.actions} mt-5`}>{spender&&canEdit?<button className={styles.button} disabled={busy} onClick={()=>openEdit(selected)}><Pencil size={14}/>Edit</button>:null}{spender?<button className={styles.button} disabled={busy} onClick={()=>openEdit(selected,true)}><Copy size={14}/>Duplicate draft</button>:null}{editor&&canAdd?<button className={styles.button} disabled={busy} onClick={()=>void openAdd(selected)}><Plus size={14}/>Add ad</button>:null}{spender&&["draft","rejected"].includes(selected.status)?<button className={styles.buttonPrimary} disabled={busy} onClick={()=>{setReview(selected);setActionError(null);}}><Send size={14}/>Review campaign</button>:null}{spender&&["approved","paused"].includes(selected.status)?<button className={styles.buttonPrimary} disabled={busy} onClick={()=>ask("Set campaign live",`Start delivery for ${selected.name}? The server rechecks approval and funding before activation.`,"studio_set_campaign_status",{p_id:selected.id,p_status:"live"})}><Play size={14}/>Set live</button>:null}{spender&&selected.status==="live"?<button className={styles.button} disabled={busy} onClick={()=>void act(()=>supabase.rpc("studio_set_campaign_status",{p_id:selected.id,p_status:"paused"}),undefined,"Campaign paused.")}><Pause size={14}/>Pause</button>:null}{spender&&["live","paused","approved"].includes(selected.status)?<button className={styles.button} disabled={busy} onClick={()=>ask("End campaign",`End ${selected.name}? Its ads will stop serving.`,"studio_set_campaign_status",{p_id:selected.id,p_status:"ended"})}><Square size={14}/>End</button>:null}{spender&&["draft","rejected"].includes(selected.status)?<button className={`${styles.button} ${styles.buttonDanger}`} disabled={busy} onClick={()=>ask("Delete campaign draft",`Delete ${selected.name} and its attached ads? This cannot be undone.`,"studio_delete_campaign",{p_id:selected.id})}><Trash2 size={14}/>Delete</button>:null}</div><p className="mt-4 text-[11px] leading-5 text-muted">Recorded payment is funding received, not a measure of campaign spending. Delivery counts do not establish purchases or revenue.</p></div></section>:null}
+    </div>}
 
-  const statusChip = (s: string) => s === "live" ? "bg-success/15 text-success" : s === "approved" ? "bg-pearl/15 text-accent" : s === "submitted" ? "bg-navy/20 text-ink" : s === "rejected" ? "bg-danger/15 text-danger" : s === "paused" ? "bg-surface text-ink/70" : "bg-surface text-muted";
-  const ctr = (i: number, c: number) => i > 0 ? ((c / i) * 100).toFixed(1) + "%" : "0%";
+    <StudioDialog title={f.id?"Edit campaign":"Create campaign"} description="Prepare the campaign details, then review before saving." open={open} onClose={closeForm} busy={busy}>
+      <div className={`${styles.tabs} px-5`}>{["Campaign","Funding & schedule","Review"].map((name,index)=><button key={name} className={styles.tab} aria-pressed={step===index} disabled={busy||index>step} onClick={()=>setStep(index)}>{index+1}. {name}</button>)}</div>
+      <fieldset disabled={busy} className={styles.dialogBody}>
+        {actionError?<p role="alert" className={`${styles.notice} ${styles.error}`}>{actionError}</p>:null}
+        {step===0?<><label className={styles.field}>Campaign name<input maxLength={80} value={f.name} onChange={event=>setF({...f,name:event.target.value})} placeholder="Give this campaign a clear name" required/></label><label className={styles.field}>Objective<select value={f.objective} onChange={event=>setF({...f,objective:event.target.value})}>{OBJECTIVES.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select><small>Choose the outcome you want to measure. Delivery runs on Platinum Circles.</small></label></>:null}
+        {step===1?<><div className={styles.fieldGrid}><label className={styles.field}>Currency<select value={f.currency} onChange={event=>setF({...f,currency:event.target.value})}><option>USD</option><option>ZWG</option></select></label><label className={styles.field}>Campaign budget<input value={f.budget} inputMode="decimal" onChange={event=>setF({...f,budget:event.target.value})} placeholder="0.00"/></label></div><label className={styles.field}>Funding provider<select value={f.payment_method} onChange={event=>setF({...f,payment_method:event.target.value})}><option value="">Choose before submission</option><option value="intobank">IntoBank</option><option value="crisp">Crisp</option></select><small>Selecting a provider does not link an account or process a payment. Funding is verified before activation.</small></label><div className={styles.fieldGrid}><label className={styles.field}>Start date and time<input type="datetime-local" value={f.starts_at} onChange={event=>setF({...f,starts_at:event.target.value})}/></label><label className={styles.field}>End date and time<input type="datetime-local" value={f.ends_at} onChange={event=>setF({...f,ends_at:event.target.value})}/></label></div><p className={styles.notice}>Times use your browser’s local time zone. Leave the end date empty to end the campaign manually.</p></>:null}
+        {step===2?<><h3 className="mb-4 font-semibold">Review your campaign</h3><dl className="space-y-3 text-sm"><div><dt className="text-muted">Name</dt><dd>{f.name}</dd></div><div><dt className="text-muted">Objective</dt><dd>{titleFor(f.objective)}</dd></div><div><dt className="text-muted">Budget</dt><dd>{f.currency} {f.budget||"0"}</dd></div><div><dt className="text-muted">Funding provider</dt><dd>{f.payment_method==="intobank"?"IntoBank":f.payment_method==="crisp"?"Crisp":"Not selected"}</dd></div><div><dt className="text-muted">Schedule</dt><dd>{f.starts_at?new Date(f.starts_at).toLocaleString():"No start date"} → {f.ends_at?new Date(f.ends_at).toLocaleString():"No end date"}</dd></div></dl><p className={styles.notice}>Saving creates or updates campaign details. Add your creative and submit for platform advertising review from Ads Manager.</p></>:null}
+      </fieldset><footer className={styles.dialogFooter}><button className={styles.button} disabled={busy} onClick={()=>step?setStep(step-1):closeForm()}>{step?"Back":"Cancel"}</button>{step<2?<button className={styles.buttonPrimary} disabled={busy||!f.name.trim()} onClick={()=>{if(step===0||validate())setStep(step+1);}}>Continue <ArrowRight size={14}/></button>:<button className={styles.buttonPrimary} disabled={busy} onClick={save}>{busy?"Saving…":f.id?"Save changes":"Save campaign draft"}</button>}</footer>
+    </StudioDialog>
 
+    <StudioDialog title="Discard campaign changes?" description="Your unsaved campaign details will be lost." open={discardOpen} onClose={()=>setDiscardOpen(false)}><footer className={styles.dialogFooter}><button className={styles.button} onClick={()=>setDiscardOpen(false)}>Keep editing</button><button className={`${styles.button} ${styles.buttonDanger}`} onClick={()=>{setDiscardOpen(false);setOpen(false);}}>Discard changes</button></footer></StudioDialog>
 
-  return (
-    <div className="max-w-[960px]">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-display text-[21px] leading-tight text-porcelain">Ads Manager</h1>
-          <p className="mt-1 text-[13px] text-muted">Campaigns with an objective, budget and schedule. Ads inside them run as Sponsored posts once the campaign is approved and live.</p>
-        </div>
-        <div className="flex gap-2">
-          <Link href="/ads" className="rounded-md bg-surface px-3.5 py-2 text-[13px] font-semibold text-ink/70 transition-colors duration-[140ms] hover:text-ink">Quick promotions</Link>
-          {spender ? <button onClick={openNew} className="inline-flex items-center gap-1.5 rounded-md bg-ink px-3.5 py-2 text-[13px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90"><Plus size={14} /> New campaign</button> : null}
-        </div>
-      </div>
+    <StudioDialog title={addFor?`Add an ad to ${addFor.name}`:"Add an ad"} description="Select a published post. Its audience and media permissions still apply." open={!!addFor} onClose={()=>{postsVersion.current++;setAddFor(null);}} busy={busy}><fieldset disabled={busy} className={styles.dialogBody}><div className={styles.fieldGrid}><label className={styles.field}>Disclosure label<input value={label} maxLength={24} onChange={event=>setLabel(event.target.value)}/></label><label className={styles.field}>Impression limit (optional)<input value={cap} inputMode="numeric" onChange={event=>setCap(event.target.value)}/></label></div>{actionError?<p role="alert" className={`${styles.notice} ${styles.error}`}>{actionError}</p>:null}<StudioLoadError message={postsError} retry={()=>{if(addFor)void openAdd(addFor);}} busy={postsLoading}/>{postsLoading?<p role="status" className={styles.empty}>Loading posts…</p>:postsError?null:posts.length===0?<div className={styles.empty}><p>No posts yet. Publish one from Planner first.</p><Link className={styles.button} href="/studio/planner?compose=1">Create a post</Link></div>:posts.map(post=>{const thumb=media.preview.posts.find(item=>item.id===post.id)?.thumb;return <button key={post.id} className="mb-2 flex min-h-20 w-full items-center gap-3 rounded-lg border border-ink/10 p-3 text-left hover:bg-surface" onClick={()=>addAd(post.id)}>{thumb?<img className={styles.thumb} src={thumb} alt=""/>:<span className={styles.thumb}><FileText size={18}/></span>}<span><strong className="line-clamp-2 text-sm">{post.content||"Media post"}</strong><small className="mt-1 block text-xs text-muted">{new Date(post.created_at).toLocaleDateString()} · {post.likes} likes</small></span><Plus size={16} className="ml-auto shrink-0"/></button>;})}</fieldset><footer className={styles.dialogFooter}><button className={styles.button} disabled={busy} onClick={()=>setAddFor(null)}>Cancel</button></footer></StudioDialog>
 
-      <StudioLoadError message={err} retry={() => { void load(); }} busy={loading} />
-      {loading && !loaded ? <p className="py-12 text-center text-sm text-muted">Loading</p>
-      : !loaded ? null : rows.length === 0 ? <p className="py-12 text-center text-sm text-muted">No campaigns yet. Create one, add ads from your posts, submit it for review, then set it live.</p>
-      : rows.map(c => (
-        <div key={c.id} className="mt-3 rounded-2xl border border-ink/10 bg-white p-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <Megaphone size={16} className="text-accent" />
-            <span className="text-[15px] font-semibold text-ink">{c.name}</span>
-            <span className={"rounded px-1.5 py-0.5 text-[10.5px] font-semibold uppercase " + statusChip(c.status)}>{c.status}</span>
-            <span className="text-[12px] text-muted">{OBJECTIVES.find(o => o[0] === c.objective)?.[1] || c.objective} · {c.currency} {Number(c.budget).toLocaleString()}{c.payment_method ? " via " + (c.payment_method === "crisp" ? "Crisp" : "IntoBank") : ""}</span>
-            <span className="ml-auto text-[12px] text-muted">{c.starts_at ? new Date(c.starts_at).toLocaleDateString() : "no start"} to {c.ends_at ? new Date(c.ends_at).toLocaleDateString() : "open end"}</span>
-          </div>
-          <p className="mt-1.5 text-[13px] text-ink/60">{Number(c.impressions).toLocaleString()} impressions · {Number(c.clicks).toLocaleString()} clicks · CTR {ctr(c.impressions, c.clicks)}{c.paid_amount ? " · paid " + c.currency + " " + Number(c.paid_amount).toLocaleString() : ""}</p>
-          {c.status === "rejected" && c.review_note ? <p className="mt-1.5 flex items-center gap-1 text-[12.5px] text-danger"><AlertTriangle size={12} /> {c.review_note}</p> : null}
-          {c.status === "submitted" ? <p className="mt-1.5 flex items-center gap-1 text-[12.5px] text-muted"><Clock size={12} /> Awaiting review. You are notified when it is approved.</p> : null}
-          {c.status === "approved" ? <p className="mt-1.5 flex items-center gap-1 text-[12.5px] text-success"><CheckCircle2 size={12} /> Approved. Set it live when ready.</p> : null}
-
-          <div className="mt-3 flex flex-wrap items-center gap-1.5">
-            {spender && ["draft", "rejected", "paused", "approved"].includes(c.status) ? <button onClick={() => openEdit(c)} className="rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 transition-colors duration-[140ms] hover:text-ink">Edit</button> : null}
-            {editor && c.status !== "ended" ? <button onClick={() => openAdd(c)} className="inline-flex items-center gap-1 rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 transition-colors duration-[140ms] hover:text-ink"><Plus size={12} /> Add ad</button> : null}
-            {spender && ["draft", "rejected"].includes(c.status) ? <button disabled={busy} onClick={() => act(() => supabase.rpc("studio_submit_campaign", { p_id: c.id }))} className="inline-flex items-center gap-1 rounded-md bg-ink px-2.5 py-1 text-[12px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90"><Send size={12} /> Submit for review</button> : null}
-            {spender && ["approved", "paused"].includes(c.status) ? <button disabled={busy} onClick={() => act(() => supabase.rpc("studio_set_campaign_status", { p_id: c.id, p_status: "live" }))} className="inline-flex items-center gap-1 rounded-md bg-success/15 px-2.5 py-1 text-[12px] font-semibold text-success transition-opacity duration-[140ms] hover:opacity-80"><Play size={12} /> Set live</button> : null}
-            {spender && c.status === "live" ? <button disabled={busy} onClick={() => act(() => supabase.rpc("studio_set_campaign_status", { p_id: c.id, p_status: "paused" }))} className="inline-flex items-center gap-1 rounded-md bg-surface px-2.5 py-1 text-[12px] text-ink/70 transition-colors duration-[140ms] hover:text-ink"><Pause size={12} /> Pause</button> : null}
-            {spender && ["live", "paused", "approved"].includes(c.status) ? <button disabled={busy} onClick={() => confirm("End this campaign? Its ads stop serving.") && act(() => supabase.rpc("studio_set_campaign_status", { p_id: c.id, p_status: "ended" }))} className="inline-flex items-center gap-1 rounded-md bg-danger/10 px-2.5 py-1 text-[12px] text-danger transition-colors duration-[140ms] hover:bg-danger/15"><Square size={12} /> End</button> : null}
-            {spender && ["draft", "rejected"].includes(c.status) ? <button disabled={busy} onClick={() => confirm("Delete this draft? Its ads are removed with it.") && act(() => supabase.rpc("studio_delete_campaign", { p_id: c.id }))} className="inline-flex items-center gap-1 rounded-md bg-danger/10 px-2.5 py-1 text-[12px] text-danger transition-colors duration-[140ms] hover:bg-danger/15"><Trash2 size={12} /> Delete</button> : null}
-          </div>
-
-          {c.ads.length === 0 ? <p className="mt-3 text-[12.5px] text-muted">No ads in this campaign yet.</p> : c.ads.map(a => (
-            <div key={a.id} className="mt-2 flex items-center gap-3.5 rounded-lg bg-surface p-3">
-              {a.thumb ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={a.thumb} alt="" className="h-14 w-14 rounded-md object-cover" />
-              ) : <span className="h-14 w-14 rounded-md bg-ink/10" />}
-              <div className="min-w-0 flex-1">
-                <Link href={"/post/" + a.post_id} className="line-clamp-1 text-[13.5px] text-ink hover:underline">{a.content || "Media post"}</Link>
-                <p className="text-[11.5px] text-muted">{a.label} · {a.status} · {a.impressions.toLocaleString()} / {a.total_cap ? a.total_cap.toLocaleString() : "∞"} impressions · {a.clicks} clicks · CTR {ctr(a.impressions, a.clicks)}{a.products ? " · " + a.products + " product cards" : ""}</p>
-              </div>
-              {editor && c.status !== "ended" ? <button disabled={busy} onClick={() => confirm("Remove this ad from the campaign?") && act(() => supabase.rpc("studio_remove_ad", { p_promo: a.id }))} className="rounded-md p-1.5 text-danger transition-colors duration-[140ms] hover:bg-danger/10" aria-label="Remove"><Trash2 size={13} /></button> : null}
-            </div>
-          ))}
-        </div>
-      ))}
-
-      {open ? (
-        <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/55 sm:items-center" onClick={() => !busy && setOpen(false)}>
-          <div className="w-full max-w-[520px] rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
-            <div className="mb-3 flex items-center justify-between">
-              <p className="text-[15px] font-semibold text-ink">{f.id ? "Edit campaign" : "New campaign"}</p>
-              <button onClick={() => setOpen(false)} className="rounded-full p-1.5 text-muted transition-colors duration-[140ms] hover:bg-black/5" aria-label="Close"><X size={16} /></button>
-            </div>
-            <input value={f.name} onChange={e => setF({ ...f, name: e.target.value })} maxLength={80} placeholder="Campaign name, for example Spring counter kit" className="mb-2 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
-            <p className="mb-1.5 text-[11.5px] font-semibold uppercase tracking-wide text-muted">Objective</p>
-            <div className="mb-3 flex flex-wrap gap-1.5">
-              {OBJECTIVES.map(([k, l]) => <button key={k} onClick={() => setF({ ...f, objective: k })} className={"rounded-full border px-2.5 py-1 text-[12px] font-semibold transition-colors duration-[140ms] " + (f.objective === k ? "border-ink bg-ink text-white" : "border-ink/10 text-ink/60")}>{l}</button>)}
-            </div>
-            <p className="mb-1.5 text-[11.5px] font-semibold uppercase tracking-wide text-muted">Budget and payment</p>
-            <div className="mb-3 flex gap-2">
-              <select value={f.currency} onChange={e => setF({ ...f, currency: e.target.value })} className="rounded-lg border border-ink/15 px-2 py-2 text-[13.5px] text-ink outline-none"><option>USD</option><option>ZWG</option></select>
-              <input value={f.budget} onChange={e => setF({ ...f, budget: e.target.value })} inputMode="decimal" placeholder="Budget" className="w-32 rounded-lg border border-ink/15 px-3 py-2 text-[13.5px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
-              <div className="flex flex-1 gap-1.5">
-                {[["crisp", "Crisp"], ["intobank", "IntoBank"]].map(([k, l]) => <button key={k} onClick={() => setF({ ...f, payment_method: k })} className={"flex-1 rounded-lg border px-2 py-2 text-[12.5px] font-semibold transition-colors duration-[140ms] " + (f.payment_method === k ? "border-ink bg-black/[0.03] text-ink" : "border-ink/10 text-ink/60")}>{l}</button>)}
-              </div>
-            </div>
-            <p className="mb-1.5 text-[11.5px] font-semibold uppercase tracking-wide text-muted">Schedule</p>
-            <div className="mb-4 flex gap-2">
-              <input type="datetime-local" value={f.starts_at} onChange={e => setF({ ...f, starts_at: e.target.value })} className="flex-1 rounded-lg border border-ink/15 px-3 py-2 text-[13px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
-              <input type="datetime-local" value={f.ends_at} onChange={e => setF({ ...f, ends_at: e.target.value })} className="flex-1 rounded-lg border border-ink/15 px-3 py-2 text-[13px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
-            </div>
-            <p className="mb-3 text-[12px] text-muted">Leave the end empty for a campaign that runs until you end it. Payment is settled with the review team on Crisp or IntoBank before the campaign goes live.</p>
-            <button onClick={save} disabled={busy || !f.name.trim()} className="w-full rounded-md bg-ink py-2.5 text-sm font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">{busy ? "Saving" : f.id ? "Save changes" : "Create campaign"}</button>
-          </div>
-        </div>
-      ) : null}
-
-      {addFor ? (
-        <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/55 sm:items-center" onClick={() => !busy && setAddFor(null)}>
-          <div className="flex max-h-[85vh] w-full max-w-[560px] flex-col rounded-t-2xl bg-white sm:rounded-2xl" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-ink/10 px-4 py-3">
-              <p className="text-[15px] font-semibold text-ink">Add an ad to {addFor.name}</p>
-              <button onClick={() => setAddFor(null)} className="rounded-full p-1.5 text-muted transition-colors duration-[140ms] hover:bg-black/5" aria-label="Close"><X size={16} /></button>
-            </div>
-            <div className="flex gap-2 px-4 pt-3">
-              <input value={label} onChange={e => setLabel(e.target.value)} maxLength={24} placeholder="Label" className="w-36 rounded-lg border border-ink/15 px-3 py-1.5 text-[13px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
-              <input value={cap} onChange={e => setCap(e.target.value)} inputMode="numeric" placeholder="Impression cap (optional)" className="flex-1 rounded-lg border border-ink/15 px-3 py-1.5 text-[13px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
-            </div>
-            <p className="px-4 pt-2 text-[12px] text-muted">Pick one of your posts. Posts with product cards become carousel ads automatically.</p>
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
-              <StudioLoadError message={postsError} retry={() => { void openAdd(addFor); }} busy={postsLoading} />
-              {postsLoading ? <p className="py-8 text-center text-[13px] text-muted">Loading posts…</p> : postsError ? null : posts.length === 0 ? <p className="py-8 text-center text-[13px] text-muted">No posts yet. Publish one from the Planner first.</p> : posts.map(p => (
-                <button key={p.id} disabled={busy} onClick={() => addAd(p.id)} className="mb-1.5 flex w-full items-center gap-3 rounded-2xl border border-ink/10 bg-white p-2 text-left transition-colors duration-[140ms] hover:bg-black/[0.03]">
-                  {p.thumb ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={p.thumb} alt="" className="h-10 w-10 rounded-md object-cover" />
-                  ) : <span className="h-10 w-10 rounded-md bg-ink/10" />}
-                  <span className="min-w-0 flex-1"><span className="line-clamp-1 text-[13px] text-ink">{p.content || "Media post"}</span><span className="text-[11px] text-muted">{new Date(p.created_at).toLocaleDateString()} · {p.likes} likes{p.products ? " · " + p.products + " products" : ""}</span></span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      ) : null}
-    </div>
-  );
+    <StudioDialog title="Review campaign" description="Check the creative and funding details before requesting platform review." open={!!review} onClose={()=>setReview(null)} busy={busy} wide>{review?<><div className={styles.dialogBody}><div className={styles.twoColumn}><dl className="space-y-5 text-sm"><div><dt className="text-muted">Campaign</dt><dd className="mt-1 text-lg font-semibold">{review.name}</dd></div><div><dt className="text-muted">Objective</dt><dd>{titleFor(review.objective)}</dd></div><div><dt className="text-muted">Budget</dt><dd>{review.currency} {Number(review.budget).toLocaleString()}</dd></div><div><dt className="text-muted">Funding</dt><dd>{review.payment_method==="intobank"?"IntoBank":review.payment_method==="crisp"?"Crisp":"Not selected"}</dd><dd className="mt-1 text-xs text-muted">{review.currency} {Number(review.paid_amount||0).toLocaleString()} recorded. Funding must be verified before delivery.</dd></div><div><dt className="text-muted">Platform advertising review</dt><dd className="mt-1"><span className={styles.status} data-state={review.status}>{review.status}</span></dd></div></dl><section className={styles.card}><div className={styles.cardHeader}><h2>Creative preview</h2></div><div className={styles.cardBody}>{review.ads.length?review.ads.map(ad=><div key={ad.id} className="mb-4 last:mb-0"><p className="text-xs text-muted">{ad.label}</p><p className="my-2 text-sm">{ad.content||"Media post"}</p>{media.preview.rows.find(row=>row.id===review.id)?.ads.find(item=>item.id===ad.id)?.thumb?<img src={media.preview.rows.find(row=>row.id===review.id)?.ads.find(item=>item.id===ad.id)?.thumb||undefined} alt="Ad creative preview" className="mb-4 max-h-80 w-full rounded-lg bg-surface object-contain"/>:null}<Link href={`/post/${ad.post_id}`} className={styles.button}>View original post <ArrowRight size={14}/></Link></div>):<p className="text-sm text-muted">Add at least one ad before submission.</p>}</div></section></div>{actionError?<p role="alert" className={`${styles.notice} ${styles.error}`}>{actionError}</p>:null}<p className={styles.notice}>Team content approval, a creator’s paid-use permission and platform advertising review are separate steps. Submitting does not set the campaign live or charge a payment.</p></div><footer className={styles.dialogFooter}><button className={styles.button} disabled={busy} onClick={()=>setReview(null)}>Back to Ads Manager</button><button className={styles.buttonPrimary} disabled={busy||!review.ads.length||!review.payment_method||Number(review.budget)<=0} onClick={()=>void act(()=>supabase.rpc("studio_submit_campaign",{p_id:review.id}),()=>setReview(null),"Campaign submitted for platform advertising review.")}><Send size={15}/>{busy?"Submitting…":"Submit for review"}</button></footer></>:null}</StudioDialog>
+    <StudioDialog title={confirmation?.title||"Confirm action"} open={!!confirmation} onClose={()=>setConfirmation(null)} busy={busy}><div className={styles.dialogBody}><p className="text-sm leading-6">{confirmation?.description}</p>{actionError?<p role="alert" className={`${styles.notice} ${styles.error}`}>{actionError}</p>:null}</div><footer className={styles.dialogFooter}><button className={styles.button} disabled={busy} onClick={()=>setConfirmation(null)}>Cancel</button><button className={styles.buttonPrimary} disabled={busy} onClick={()=>confirmation&&void act(()=>supabase.rpc(confirmation.rpc,confirmation.args),()=>setConfirmation(null))}>{busy?"Working…":"Confirm"}</button></footer></StudioDialog>
+  </div>;
 }

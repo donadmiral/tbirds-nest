@@ -4,56 +4,93 @@
  * registered company device. The session that opens IS the business.
  */
 import { themedSheet } from '../../theme/useTheme';
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, StatusBar, TextInput, Alert, ActivityIndicator, Platform, KeyboardAvoidingView } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, TouchableOpacity, StatusBar, TextInput, ActivityIndicator, Platform, KeyboardAvoidingView, ScrollView } from 'react-native';
 import { SafeAreaView } from '../../components/SafeArea';
 import { useNavigation } from '@react-navigation/native';
-import * as Application from 'expo-application';
 import { supabase } from '../../services/supabase';
+import { businessSessionMessage, businessSessionStep, installBusinessSession, isBusinessSessionHandoff, prepareBusinessSession, type BusinessSessionHandoff } from '../../services/businessSessionService';
 
 const NAVY = '#0B1E3D';
-
-async function getDeviceId(): Promise<string> {
-  try {
-    if (Platform.OS === 'ios') {
-      const id = await Application.getIosIdForVendorAsync();
-      if (id) return 'ios-' + id;
-    } else {
-      const id = Application.getAndroidId();
-      if (id) return 'android-' + id;
-    }
-  } catch {}
-  return 'app-' + (typeof Application.getInstallationTimeAsync === 'function' ? 'inst' : 'x');
-}
 
 export default function BusinessSignInScreen() {
   const navigation = useNavigation<any>();
   const [handle, setHandle] = useState('');
   const [code, setCode] = useState('');
-  const [busy, setBusy] = useState(false);
+  const [phase, setPhase] = useState<'idle' | 'preparing' | 'opening'>('idle');
+  const [ready, setReady] = useState(false), [authAttempt, setAuthAttempt] = useState(0);
+  const [error, setError] = useState<string | null>(null), [notice, setNotice] = useState<string | null>(null);
+  const live = useRef(false), account = useRef<string | null | undefined>(undefined), generation = useRef(0);
+  const pending = useRef<AbortController | null>(null), handoff = useRef<BusinessSessionHandoff | null>(null);
+
+  useEffect(() => {
+    live.current = true;
+    let active = true, authVersion = 0;
+    const initial = new AbortController();
+    const apply = (next: string | null) => {
+      if (!active || !live.current) return;
+      if (account.current !== next) {
+        const changed = account.current !== undefined;
+        generation.current++; pending.current?.abort(); pending.current = null; handoff.current = null;
+        account.current = next; setCode(''); setPhase('idle'); setError(null);
+        setNotice(changed ? 'Your account changed. Review your business sign-in details before continuing.' : null);
+      }
+      setReady(true);
+    };
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!active || !live.current || isBusinessSessionHandoff(handoff.current, session)) return;
+      authVersion++; apply(session?.user.id ?? null);
+    });
+    const version = authVersion;
+    void businessSessionStep(supabase.auth.getSession(), initial.signal).then(({ data, error: failure }) => {
+      if (!active || !live.current || version !== authVersion) return;
+      if (failure) throw failure;
+      apply(data.session?.user.id ?? null);
+    }).catch(() => {
+      if (active && live.current && version === authVersion) { setReady(false); setError('Your current account could not be checked. Try again before signing in to a business.'); }
+    });
+    return () => {
+      active = false; live.current = false; generation.current++;
+      initial.abort(); pending.current?.abort(); pending.current = null; handoff.current = null; subscription.unsubscribe();
+    };
+  }, [authAttempt]);
+
+  const cancel = () => {
+    if (handoff.current || !pending.current) return;
+    generation.current++; pending.current.abort(); pending.current = null;
+    setPhase('idle'); setError(null); setNotice('Business sign-in cancelled. Your selected account is unchanged.');
+  };
 
   const signIn = async () => {
-    if (busy) return;
-    if (!handle.trim() || !code.trim()) { Alert.alert('Both fields', 'The business @ and your access code are required.'); return; }
-    setBusy(true);
+    if (!ready || pending.current || !live.current || account.current === undefined) return;
+    const business = handle.trim().replace(/^@/, '').toLowerCase();
+    if (!/^[a-z0-9_]{3,30}$/.test(business) || !code.trim()) { setError('Enter a valid business handle and your personal access code.'); return; }
+    const owner = account.current, version = generation.current, abort = new AbortController(); pending.current = abort;
+    const current = () => live.current && version === generation.current && pending.current === abort && !abort.signal.aborted;
+    setPhase('preparing'); setError(null); setNotice(null);
     try {
-      const device_id = await getDeviceId();
-      const { data, error } = await supabase.functions.invoke('business-signin', {
-        body: { handle: handle.trim(), code: code.trim(), device_id, device_label: Platform.OS + ' device' },
-      });
-      if (error) {
-        let msg = 'Sign-in failed.';
-        try { const body = await (error as any).context?.json?.(); if (body?.error) msg = body.error; } catch {}
-        throw new Error((data as any)?.error || msg);
+      const destination = await prepareBusinessSession(supabase, { kind: 'team', handle: business, code: code.trim() }, owner, current, abort.signal, `${Platform.OS} app`);
+      if (!current()) return;
+      handoff.current = { businessId: destination.business_id, accessToken: destination.session.access_token };
+      setPhase('opening');
+      await installBusinessSession(supabase, destination, current, abort.signal);
+      // The global Auth observer opens the business account. No stale route is
+      // dispatched from this screen after the account switch.
+      if (current()) { account.current = destination.business_id; setCode(''); setNotice('Business access confirmed. Opening your account…'); }
+    } catch (failure) { if (current()) setError(businessSessionMessage(failure)); }
+    finally {
+      if (pending.current === abort) {
+        pending.current = null; handoff.current = null; abort.abort();
+        if (live.current && version === generation.current) setPhase('idle');
       }
-      if ((data as any)?.error) throw new Error((data as any).error);
-      const { token_hash, email } = data as any;
-      const { error: vErr } = await supabase.auth.verifyOtp({ type: 'magiclink', token_hash });
-      if (vErr) throw vErr;
-      // Session is now the business - the app boots into its world.
-    } catch (e: any) {
-      Alert.alert('Business sign-in', e?.message || 'Could not sign in.');
-    } finally { setBusy(false); }
+    }
+  };
+
+  const busy = phase !== 'idle';
+  const leave = (apply = false) => {
+    if (handoff.current) return;
+    cancel();
+    if (apply) navigation.navigate('BusinessApply'); else navigation.goBack();
   };
 
   return (
@@ -61,23 +98,30 @@ export default function BusinessSignInScreen() {
       <StatusBar barStyle="light-content" />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <View style={s.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.7}>
+          <TouchableOpacity onPress={() => leave()} disabled={phase === 'opening'} accessibilityRole="button" accessibilityLabel="Back" style={s.backBtn} activeOpacity={0.7}>
             <Text style={s.backChev}>{'\u2039'}</Text><Text style={s.backLbl}>Back</Text>
           </TouchableOpacity>
         </View>
-        <View style={{ paddingHorizontal: 22, paddingTop: 8 }}>
+        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 22, paddingTop: 8, paddingBottom: 30 }}>
           <Text style={s.title}>Business sign-in</Text>
-          <Text style={s.lede}>For company representatives. Enter your business handle and your personal access code. This works only on devices your company has registered - the first device a business uses is trusted automatically.</Text>
-          <TextInput value={handle} onChangeText={setHandle} autoCapitalize="none" autoCorrect={false} placeholder="@business" placeholderTextColor="rgba(255,255,255,0.35)" style={s.input} />
-          <TextInput value={code} onChangeText={setCode} autoCapitalize="characters" autoCorrect={false} placeholder="Access code" placeholderTextColor="rgba(255,255,255,0.35)" style={s.input} />
-          <TouchableOpacity style={[s.submit, busy && { opacity: 0.5 }]} onPress={signIn} disabled={busy} activeOpacity={0.85}>
-            {busy ? <ActivityIndicator color={NAVY} size={16} /> : <Text style={s.submitTxt}>Enter as the business</Text>}
+          <Text style={s.lede}>Use your business handle and your personal team access code. A business owner must approve this device before you can open the account.</Text>
+          <Text style={s.label}>Business handle</Text>
+          <TextInput value={handle} onChangeText={setHandle} editable={ready && !busy} accessibilityLabel="Business handle" autoCapitalize="none" autoCorrect={false} autoComplete="username" maxLength={31} placeholder="@business" placeholderTextColor="rgba(255,255,255,0.55)" style={s.input} />
+          <Text style={s.label}>Personal access code</Text>
+          <TextInput value={code} onChangeText={setCode} editable={ready && !busy} accessibilityLabel="Personal access code" secureTextEntry autoCapitalize="none" autoCorrect={false} autoComplete="password" maxLength={256} returnKeyType="go" onSubmitEditing={signIn} placeholder="Access code" placeholderTextColor="rgba(255,255,255,0.55)" style={s.input} />
+          <TouchableOpacity style={[s.submit, (busy || !ready) && { opacity: 0.5 }]} onPress={signIn} disabled={busy || !ready} accessibilityRole="button" accessibilityLabel="Enter as the business" accessibilityState={{ disabled: busy || !ready, busy }} activeOpacity={0.85}>
+            {busy ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}><ActivityIndicator color={NAVY} size={16} /><Text style={s.submitTxt}>{phase === 'opening' ? 'Opening business…' : 'Checking access…'}</Text></View> : <Text style={s.submitTxt}>Enter as the business</Text>}
           </TouchableOpacity>
-          <Text style={s.foot}>Every sign-in is recorded with the member and device. Access is revocable by the company at any moment.</Text>
-          <TouchableOpacity onPress={() => (navigation as any).navigate('BusinessApply')} activeOpacity={0.7} style={{ marginTop: 18, alignItems: 'center' }}>
-            <Text style={{ color: '#E8E2D6', fontSize: 13.5, fontWeight: '700' }}>New business? Apply for an account</Text>
+          {error && <Text accessibilityRole="alert" accessibilityLiveRegion="assertive" style={s.feedback}>{error}</Text>}
+          {notice && <Text accessibilityLiveRegion="polite" style={s.feedback}>{notice}</Text>}
+          {!ready && !error && <Text accessibilityLiveRegion="polite" style={s.feedback}>Checking your current account…</Text>}
+          {!ready && error && <TouchableOpacity accessibilityRole="button" accessibilityLabel="Retry account check" onPress={() => { setError(null); setAuthAttempt(value => value + 1); }} style={s.secondary}><Text style={s.label}>Retry account check</Text></TouchableOpacity>}
+          {busy && phase !== 'opening' && <TouchableOpacity accessibilityRole="button" accessibilityLabel="Cancel sign-in" onPress={cancel} style={s.secondary}><Text style={s.label}>Cancel sign-in</Text></TouchableOpacity>}
+          <Text style={s.foot}>Your access uses your active team role and this device’s registration. Your business can revoke both.</Text>
+          <TouchableOpacity onPress={() => leave(true)} disabled={phase === 'opening'} accessibilityRole="button" activeOpacity={0.7} style={s.secondary}>
+            <Text style={{ color: '#E8E2D6', fontSize: 13.5, fontWeight: '700', textAlign: 'center' }}>Business owner? Open or apply from your personal account</Text>
           </TouchableOpacity>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -91,6 +135,9 @@ const s = themedSheet((t) => ({
   backLbl: { fontSize: 15, color: t.ink.inverse, fontWeight: '600' },
   title: { fontSize: 24, fontWeight: '800', color: t.ink.inverse, marginBottom: 8 },
   lede: { fontSize: 13, lineHeight: 19, color: 'rgba(255,255,255,0.6)', marginBottom: 18 },
+  label: { color: t.ink.inverse, fontSize: 13, fontWeight: '600', marginBottom: 7 },
+  feedback: { color: '#E8E2D6', fontSize: 13, lineHeight: 19, marginTop: 14 },
+  secondary: { minHeight: 44, alignItems: 'center', justifyContent: 'center', marginTop: 12, paddingHorizontal: 8 },
   input: { borderWidth: 1.2, borderColor: 'rgba(255,255,255,0.22)', borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: t.ink.inverse, marginBottom: 10, backgroundColor: 'rgba(255,255,255,0.06)' },
   submit: { backgroundColor: '#E8E2D6', borderRadius: 14, paddingVertical: 14, alignItems: 'center', marginTop: 6 },
   submitTxt: { color: NAVY, fontSize: 15, fontWeight: '800' },

@@ -1,3 +1,4 @@
+import { serveBusinessRequest } from '../_shared/serveBusinessRequest.ts';
 // supabase/functions/replicate-proxy/index.ts
 //
 // The Replicate token used to be compiled into the app bundle as
@@ -10,8 +11,7 @@
 // allowlist of model versions.
 //
 // deno-lint-ignore-file no-explicit-any
-import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -34,7 +34,7 @@ const DEFAULT_ALLOWED = [
   "78f2bab438ab0ffc85a68cdfd316a2ecd3994b5dd26aa6b3d203357b45e5eb1b",
 ];
 
-serve(async (req) => {
+serveBusinessRequest(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json(405, { error: "Use POST" });
 

@@ -48,7 +48,7 @@ export default async function SystemPage() {
       </div>
       <p className="mt-2 text-[12px] text-[var(--txt-muted)]">Changes apply to app surfaces connected to each feature flag. Check the relevant app version after changing availability.</p>
 
-      <p className="mb-2 mt-8 text-[12px] font-semibold uppercase tracking-wider text-[#9A9DA4]">Announcements</p>
+      <h2 id="announcements" tabIndex={-1} className="pc-anchor mb-2 mt-8 text-[12px] font-semibold uppercase tracking-wider text-[#9A9DA4]">Announcements</h2>
       <div className="rounded-[12px] border border-[#E5E4E0] bg-white p-5">
         <PermissionGate role={admin.role} permission="system"><CommandForm scope="publishAnnouncement" action={publishAnnouncement} className="space-y-2">
           <label className="block text-[12px] font-semibold text-[var(--txt-muted)]">Announcement title

@@ -1,7 +1,9 @@
+import { businessSessionAllowed } from '../_shared/businessSessionGuard.ts';
+import { serveBusinessRequest } from '../_shared/serveBusinessRequest.ts';
 // daily-get-token: create-or-get the Daily room for a call session and mint
 // a meeting token. Room name IS the call session id, so every participant
 // of a session lands in the same room — 1:1 and group alike.
-import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2.112.3';
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -13,7 +15,7 @@ const json = (s: number, b: unknown) =>
 
 const providerFetch = (url: string, init: RequestInit = {}) => fetch(url, { ...init, signal: AbortSignal.timeout(8000) });
 
-Deno.serve(async (req) => {
+serveBusinessRequest(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
   if (req.method !== 'POST') return json(405, { error: 'method not allowed' });
   try {
@@ -70,13 +72,14 @@ Deno.serve(async (req) => {
           .select('user_id').eq('conversation_id', sess.conversation_id).eq('user_id', uid).maybeSingle();
         if (partError || memberError) return json(503, { error: 'call access unavailable' });
         allowed = part?.status === 'joined' && !!member && !!part.provider_identity;
-        if (allowed && expectedIdentity !== undefined && part.provider_identity !== expectedIdentity.toLowerCase()) {
+        if (allowed && expectedIdentity !== undefined && part?.provider_identity !== expectedIdentity.toLowerCase()) {
           return json(409, { error: 'call membership changed' });
         }
-        if (allowed) providerUserId = part.provider_identity;
+        if (allowed && part) providerUserId = part.provider_identity;
       }
       if (!allowed) return json(403, { error: 'not a participant' });
       finalAccessCheck = async () => {
+        if (!await businessSessionAllowed(anon)) return false;
         const { data: fresh, error } = await svc.from('call_sessions').select('status, expires_at, created_at').eq('id', sessionId).maybeSingle();
         const deadline = fresh?.expires_at ? Date.parse(fresh.expires_at) : Date.parse(fresh?.created_at) + 90000;
         if (error || !fresh || !['ringing', 'active'].includes(fresh.status) || (fresh.status === 'ringing' && !(deadline > Date.now()))) return false;

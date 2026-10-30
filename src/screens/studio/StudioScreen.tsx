@@ -600,7 +600,8 @@ function SettingsSeg({ me, reload }: { me: Me; reload: () => Promise<void> }) {
   const [bio, setBio] = useState('');
   const [busy, setBusy] = useState(false);
   const [newName, setNewName] = useState('');
-  const [issued, setIssued] = useState<{ name: string; code: string } | null>(null);
+  const [issued, setIssued] = useState<{ ownerId: string; name: string; code: string } | null>(null);
+  useEffect(() => { setIssued(null); setNewName(''); }, [ownerId]);
   const fetchSettings = useCallback(async () => {
     const { data, error } = await supabase.rpc('studio_get_business');
     if (error || !data?.business || !data?.profile || !data?.role) throw new Error('Business settings unavailable');
@@ -631,14 +632,14 @@ function SettingsSeg({ me, reload }: { me: Me; reload: () => Promise<void> }) {
     ]);
   };
   const addMember = async () => {
-    if (!newName.trim() || acting.current || !isOwner || !current()) return;
+    if (!newName.trim() || acting.current || !isOwner || !current() || !Array.isArray(info?.members)) return;
     acting.current = true; setBusy(true);
     try {
-      const { data, error } = await supabase.rpc('studio_create_member', { p_name: newName.trim(), p_role: 'admin' });
+      const { data, error } = await supabase.rpc('studio_create_member', { p_expected_user: ownerId, p_name: newName.trim(), p_role: info.members.length === 0 ? 'owner' : 'editor' });
       if (error) throw error;
       if (!current()) return;
       if (typeof data !== 'string' || !data.trim()) throw new Error('The code was not confirmed. Refresh Team before trying again.');
-      setIssued({ name: newName.trim(), code: String(data) }); setNewName(''); await load();
+      setIssued({ ownerId, name: newName.trim(), code: String(data) }); setNewName(''); await load(); if (current()) await reload();
     } catch (e: any) { if (current()) Alert.alert('Code not confirmed', e?.message || 'Refresh Team before trying again.'); } finally { acting.current = false; if (current()) setBusy(false); }
   };
   if (!info && loadError) return <StudioLoadError message={loadError} onRetry={load} busy={loading} />;
@@ -656,6 +657,7 @@ function SettingsSeg({ me, reload }: { me: Me; reload: () => Promise<void> }) {
         {isAdmin ? <TouchableOpacity style={[s.primaryBtn, busy && { opacity: 0.4 }]} onPress={save} disabled={busy}><Text style={s.primaryTxt}>Save details</Text></TouchableOpacity> : null}
 
         <Text style={s.section}>Team</Text>
+        {isOwner && info.members.length === 0 ? <Text style={s.cardMeta}>Create your own owner code first. It binds this session to the owner; later codes begin with the editor role.</Text> : null}
         {(info.members || []).map((m: any) => (
           <TouchableOpacity key={m.id} style={[s.card, { flexDirection: 'row', alignItems: 'center', gap: 10 }]} disabled={busy} onPress={() => isOwner && roleMenu(m)} activeOpacity={isOwner ? 0.8 : 1}>
             <View style={{ flex: 1 }}>
@@ -671,7 +673,7 @@ function SettingsSeg({ me, reload }: { me: Me; reload: () => Promise<void> }) {
             <TouchableOpacity style={[s.primaryBtn, { marginTop: 0, paddingHorizontal: 14 }, (!newName.trim() || busy) && { opacity: 0.4 }]} onPress={addMember} disabled={!newName.trim() || busy}><Text style={s.primaryTxt}>Issue code</Text></TouchableOpacity>
           </View>
         ) : null}
-        {issued ? (
+        {issued?.ownerId === ownerId ? (
           <View style={[s.card, { borderWidth: 1, borderColor: getTheme().ink.primary }]}>
             <Text style={s.cardTxt}>Access code for {issued.name}. Shown once, write it down.</Text>
             <Text selectable style={{ fontSize: 22, fontWeight: '800', letterSpacing: 4, color: getTheme().ink.primary, marginTop: 6 }}>{issued.code}</Text>

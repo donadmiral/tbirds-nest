@@ -1,3 +1,4 @@
+import AdminIcon from '@/components/AdminIcon';
 import { completeRead } from '@/lib/completeRead';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
@@ -24,17 +25,17 @@ const ROW: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 1
 const LINK_SM: React.CSSProperties = { fontSize: 12, fontWeight: 600, color: 'var(--txt-muted)', textDecoration: 'none', whiteSpace: 'nowrap' };
 
 const IC = {
-  users: 'M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z',
-  pulse: 'M3 12h3.2l2.1-6 3.4 12 2.6-8 1.6 2h5.1v2h-6.1l-1.1-1.4-3.1 9.4L7.4 10 6.6 14H3v-2z',
-  flag: 'M12 2L1 21h22L12 2zm1 14h-2v2h2v-2zm0-6h-2v4h2v-4z',
-  seal: 'M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4L4.2 7.7l5.4-.8L12 2z',
-  ticket: 'M12 2a10 10 0 100 20 10 10 0 000-20zm0 4a6 6 0 016 6h-3a3 3 0 00-6 0H6a6 6 0 016-6zm-3 8h6a3 3 0 01-6 0z',
-  build: 'M4 21V5a2 2 0 012-2h7a2 2 0 012 2v16h-4v-4H8v4H4zm13-9h3a1 1 0 011 1v8h-4v-9z',
-  mega: 'M3 10a2 2 0 012-2h2l7-4v16l-7-4H5a2 2 0 01-2-2v-4zm14-4.8a7 7 0 010 9.6V5.2z',
-  list: 'M4 5h16v2H4V5zm0 6h16v2H4v-2zm0 6h10v2H4v-2z',
-  gear: 'M12 8a4 4 0 100 8 4 4 0 000-8zm8.6 4a6.6 6.6 0 00-.1-1.1l2-1.6-2-3.4-2.4 1a6.9 6.9 0 00-1.9-1.1L15.8 3h-4l-.4 2.8a6.9 6.9 0 00-1.9 1.1l-2.4-1-2 3.4 2 1.6a6.6 6.6 0 000 2.2l-2 1.6 2 3.4 2.4-1a6.9 6.9 0 001.9 1.1l.4 2.8h4l.4-2.8a6.9 6.9 0 001.9-1.1l2.4 1 2-3.4-2-1.6c.1-.4.1-.7.1-1.1z',
-  staff: 'M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3zm-8 0c1.7 0 3-1.3 3-3S9.7 5 8 5 5 6.3 5 8s1.3 3 3 3zm0 2c-2.3 0-7 1.2-7 3.5V19h14v-2.5C15 14.2 10.3 13 8 13zm8 0c-.3 0-.6 0-1 .1 1.2.8 2 1.9 2 3.4V19h6v-2.5c0-2.3-4.7-3.5-7-3.5z',
-};
+  users: 'users',
+  pulse: 'pulse',
+  flag: 'reports',
+  seal: 'verification',
+  ticket: 'support',
+  build: 'business',
+  mega: 'ads',
+  list: 'audit',
+  gear: 'controls',
+  staff: 'staff',
+} as const;
 
 function dayKey(d: Date) { return d.toISOString().slice(0, 10); }
 
@@ -227,7 +228,7 @@ export default async function DashboardPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span style={{ flex: 1, fontSize: 12, fontWeight: 600, color: 'var(--txt-muted)' }}>{c.label}</span>
               <span style={{ width: 26, height: 26, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(var(--on),0.05)' }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" style={{ fill: c.color }}><path d={c.icon} /></svg>
+                <AdminIcon name={c.icon} size={19} style={{ color: c.color }} />
               </span>
             </div>
             <div className="pc-num" style={{ marginTop: 9, fontSize: 27, lineHeight: 1, color: 'var(--txt-strong)' }}>{fmt(c.value)}</div>
@@ -269,7 +270,7 @@ export default async function DashboardPage() {
           {needs.length === 0 ? <Empty note="Nothing is waiting. Every queue is clear." /> : needs.map(n => (
             <Link key={n.label} href={n.href} className="pc-nav" style={ROW}>
               <span style={{ width: 32, height: 32, flex: '0 0 32px', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(var(--on),0.05)' }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" style={{ fill: n.color }}><path d={n.icon} /></svg>
+                <AdminIcon name={n.icon} size={19} style={{ color: n.color }} />
               </span>
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--txt)' }}>{n.label}</span>
@@ -407,7 +408,7 @@ export default async function DashboardPage() {
                 { label: 'Controls', href: '/system', icon: IC.gear },
               ].map(q => (
                 <Link key={q.label} href={q.href} className="pc-nav" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 10px', borderRadius: 9, textDecoration: 'none', fontSize: 13, color: 'var(--txt)' }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" style={{ flex: '0 0 14px', fill: 'rgba(var(--on),0.4)' }}><path d={q.icon} /></svg>
+                  <AdminIcon name={q.icon} size={18} style={{ color: 'var(--txt-muted)' }} />
                   {q.label}
                 </Link>
               ))}

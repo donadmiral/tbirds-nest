@@ -100,7 +100,7 @@ for (const platform of ['native', 'web']) test(`${platform} channel creation pre
   const wait = deferred(), locks = { current: new Set() }, routes = []; let valid = true, calls = 0, cleared = 0;
   const common = { cName: 'Updates', cDesc: 'News', cAud: 'everyone', locks, supabase: { rpc: () => { calls++; return wait.promise; } }, setCName: () => { cleared++; }, setCDesc() {}, setCAud() {} };
   const globals = platform === 'native' ? { ...common, uid: 'owner', currentAccount: () => valid, setCreating() {}, setCreateOpen() {}, load: async () => {}, query: '', navigation: { navigate: (...args) => routes.push(args) }, Alert: { alert() {} } }
-    : { ...common, me: 'owner', mounted: { current: true }, scope: { current: 1 }, account: { current: 'owner' }, setCreating() {}, setBusy() {}, setActionError() {}, router: { push: url => routes.push(url) } };
+    : { ...common, withTimeout: value => Promise.resolve(value), me: 'owner', mounted: { current: true }, scope: { current: 1 }, account: { current: 'owner' }, setCreating() {}, setBusy() {}, setActionError() {}, router: { push: url => routes.push(url) } };
   const run = platform === 'native' ? handler('src/screens/channels/ChannelsScreen.tsx', 'ChannelsScreen', 'createChannel', globals) : handler('web/app/channels/page.tsx', 'ChannelsPage', 'create', globals);
   const pending = run(); await run(); assert.equal(calls, 1);
   valid = false; if (platform === 'web') globals.account.current = 'new-owner';
@@ -129,9 +129,21 @@ test('web member roles report network failure and do not apply a successful resp
 
 test('native business code creation cannot duplicate a tap or reveal a previous account code', async () => {
   let valid = true, issued = 0, calls = 0; const wait = deferred();
-  const globals = { newName: 'Teammate', acting: { current: false }, isOwner: true, current: () => valid, setBusy() {}, setIssued: () => { issued++; }, setNewName() {}, load: async () => {}, Alert: { alert() {} }, supabase: { rpc: () => { calls++; return wait.promise; } } };
+  const globals = { newName: 'Teammate', ownerId: 'business', info: { members: [] }, acting: { current: false }, isOwner: true, current: () => valid, setBusy() {}, setIssued: () => { issued++; }, setNewName() {}, load: async () => {}, reload: async () => {}, Alert: { alert() {} }, supabase: { rpc: () => { calls++; return wait.promise; } } };
   const create = handler('src/screens/studio/StudioScreen.tsx', 'SettingsSeg', 'addMember', globals);
   const pending = create(); await create(); assert.equal(calls, 1); valid = false; wait.resolve({ data: 'PRIVATE-CODE', error: null }); await pending; assert.equal(issued, 0);
+});
+
+test('native Studio creates and binds the first owner and limits later default codes to editor', async () => {
+  for (const existing of [[], [{ id: 'owner', role: 'owner' }]]) {
+    const calls = [], issued = []; let refreshed = 0;
+    const globals = { newName: 'Teammate', ownerId: 'business', info: { members: existing }, acting: { current: false }, isOwner: true, current: () => true, setBusy() {}, setIssued: value => issued.push(value), setNewName() {}, load: async () => {}, reload: async () => { refreshed++; }, Alert: { alert() {} }, supabase: { rpc: async (name, args) => { calls.push({ name, args }); return { data: 'SYNTHETIC-CODE', error: null }; } } };
+    await handler('src/screens/studio/StudioScreen.tsx', 'SettingsSeg', 'addMember', globals)();
+    assert.equal(calls[0].name, 'studio_create_member');
+    assert.equal(calls[0].args.p_expected_user, 'business');
+    assert.equal(calls[0].args.p_role, existing.length ? 'editor' : 'owner');
+    assert.equal(issued[0].ownerId, 'business'); assert.equal(refreshed, 1);
+  }
 });
 
 test('native channel media chooser stops after an account switch during permission', async () => {

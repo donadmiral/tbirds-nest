@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Briefcase } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { BusinessAccessError, businessAccessMessage, businessAccessStep, isBusinessSessionHandoff, prepareBusinessOwnerSession, type BusinessSessionHandoff } from '@/lib/businessAccess';
 
 type App = { id: string; company_name: string; status: string; decision_reason: string | null };
 type Avail = "idle" | "checking" | "free" | "taken" | "invalid" | "error";
@@ -27,6 +28,8 @@ export default function BusinessApplyPage() {
   const [handleState, setHandleState] = useState<Avail>("idle");
   const [busy, setBusy] = useState<string | null>(null);
   const [apps, setApps] = useState<App[]>([]);
+  const [bootstrap, setBootstrap] = useState<{ applicationId: string; owner: string } | null>(null);
+  const [openingSession, setOpeningSession] = useState(false);
   const live = useRef(false);
   const account = useRef<string | null | undefined>(undefined);
   const accountVersion = useRef(0);
@@ -35,6 +38,9 @@ export default function BusinessApplyPage() {
   const actionVersion = useRef(0);
   const pending = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const accessRequest = useRef<AbortController | null>(null);
+  const sessionHandoff = useRef<BusinessSessionHandoff | null>(null);
+  const bootstrapRef = useRef<typeof bootstrap>(null);
 
   const resetForm = useCallback(() => {
     handleVersion.current++;
@@ -48,8 +54,9 @@ export default function BusinessApplyPage() {
     account.current = next;
     accountVersion.current++;
     actionVersion.current++;
+    accessRequest.current?.abort(); accessRequest.current = null; sessionHandoff.current = null; bootstrapRef.current = null;
     pending.current = false;
-    setUid(next); setApps([]); setBusy(null); setActionError(null); setNotice(null);
+    setUid(next); setApps([]); setBusy(null); setActionError(null); setNotice(null); setBootstrap(null); setOpeningSession(false);
     resetForm();
   }, [resetForm]);
 
@@ -85,8 +92,12 @@ export default function BusinessApplyPage() {
 
   useEffect(() => {
     live.current = true;
+    let active = true;
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!live.current) return;
+      if (!active || !live.current) return;
+      // Only the exact server-bound session being deliberately installed may
+      // complete this action without being mistaken for another account switch.
+      if (isBusinessSessionHandoff(sessionHandoff.current, session)) return;
       const next = session?.user.id ?? null;
       if (next === account.current) return;
       readVersion.current++;
@@ -96,42 +107,57 @@ export default function BusinessApplyPage() {
       const version = accountVersion.current;
       queueMicrotask(() => { if (live.current && version === accountVersion.current && next) void load(); });
     });
-    void load();
+    queueMicrotask(() => { if (active && live.current) void load(); });
     return () => {
+      active = false;
       live.current = false;
+      accessRequest.current?.abort(); accessRequest.current = null; sessionHandoff.current = null; bootstrapRef.current = null;
       readVersion.current++; handleVersion.current++; actionVersion.current++;
       if (timer.current) clearTimeout(timer.current);
       subscription.unsubscribe();
     };
   }, [supabase, load, updateAccount]);
 
-  const openBusiness = async (applicationId: string) => {
+  const openBusiness = async (applicationId: string, bootstrapOwner = false) => {
     const owner = account.current;
     if (pending.current || !owner || !live.current) return;
+    if (bootstrapOwner && (bootstrapRef.current !== bootstrap || bootstrap?.applicationId !== applicationId || bootstrap.owner !== owner)) return;
     const request = ++actionVersion.current;
     const version = accountVersion.current;
-    const current = () => live.current && request === actionVersion.current && version === accountVersion.current;
-    pending.current = true; setBusy(applicationId); setActionError(null); setNotice(null);
+    const abort = new AbortController(); accessRequest.current = abort;
+    const current = () => live.current && request === actionVersion.current && version === accountVersion.current && accessRequest.current === abort && !abort.signal.aborted;
+    pending.current = true; bootstrapRef.current = null; setBusy(applicationId); setActionError(null); setNotice(null); setBootstrap(null);
     try {
-      const { data: auth, error: authError } = await supabase.auth.getUser();
+      const destination = await prepareBusinessOwnerSession(supabase, { applicationId }, owner, current, abort.signal, bootstrapOwner);
       if (!current()) return;
-      if (authError || auth.user?.id !== owner) throw new Error("Personal account changed");
-      const result = await supabase.functions.invoke("business-owner-access", { body: { application_id: applicationId } });
+      // Supabase cannot cancel setSession once it starts. All cancellable work
+      // and identity checks finish before this deliberate, final handoff.
+      sessionHandoff.current = { businessId: destination.business_id, accessToken: destination.session.access_token };
+      setOpeningSession(true);
+      const installed = await supabase.auth.setSession(destination.session);
       if (!current()) return;
-      if (result.error || !result.data?.token_hash) throw new Error("Business owner access could not be confirmed");
-      const { data: latest, error: latestError } = await supabase.auth.getUser();
+      if (installed.error || installed.data.session?.user.id !== destination.business_id || installed.data.user?.id !== destination.business_id) throw new BusinessAccessError('SESSION_MISMATCH');
+      const selected = await businessAccessStep(supabase.auth.getSession(), abort.signal);
       if (!current()) return;
-      if (latestError || latest.user?.id !== owner) throw new Error("Personal account changed");
-      // This call intentionally switches to the approved business account.
-      const verified = await supabase.auth.verifyOtp({ type: "magiclink", token_hash: result.data.token_hash });
-      if (!live.current) return;
-      if (verified.error) throw verified.error;
-      window.location.assign("/home");
-    } catch {
-      if (current()) setActionError("Business access could not be confirmed. Refresh this page and try again.");
+      if (selected.error || selected.data.session?.user.id !== destination.business_id) throw new BusinessAccessError('SESSION_MISMATCH');
+      window.location.assign("/studio");
+    } catch (error) {
+      if (current()) {
+        if (error instanceof BusinessAccessError && error.code === 'OWNER_BOOTSTRAP_REQUIRED') { const next = { applicationId, owner }; bootstrapRef.current = next; setBootstrap(next); }
+        else setActionError(businessAccessMessage(error));
+      }
     } finally {
-      if (current()) { pending.current = false; setBusy(null); }
+      if (accessRequest.current === abort) {
+        accessRequest.current = null; sessionHandoff.current = null; abort.abort();
+        if (live.current && request === actionVersion.current && version === accountVersion.current) { pending.current = false; setBusy(null); setOpeningSession(false); }
+      }
     }
+  };
+
+  const cancelBusinessAccess = () => {
+    if (sessionHandoff.current || !accessRequest.current) return;
+    actionVersion.current++; accessRequest.current.abort(); accessRequest.current = null; bootstrapRef.current = null;
+    pending.current = false; setBusy(null); setBootstrap(null); setActionError(null); setNotice('Business sign-in cancelled. Your personal account is unchanged.');
   };
 
   const checkHandle = (value: string) => {
@@ -210,7 +236,7 @@ export default function BusinessApplyPage() {
   return (
     <div className="mx-auto max-w-[560px] px-1">
       <Link href="/settings" className="mb-4 inline-flex items-center gap-1.5 text-[13px] text-ink/60 hover:text-ink"><ArrowLeft size={14} aria-hidden="true" /> Settings</Link>
-      <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><Briefcase size={19} aria-hidden="true" className="text-accent" /> Business account</h1>
+      <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-ink"><Briefcase size={19} aria-hidden="true" className="text-accent" /> Business account</h1>
       <p className="pb-5 text-[13px] leading-relaxed text-muted">A business gets its own separate account with its own @ and the space-grey seal. Tell us who you are. A person on the operations team reviews every application. You will be the first owner and can add your team after approval.</p>
       {!uid && !readError ? <p className="mb-4 text-sm text-muted"><Link href="/login" className="underline">Sign in to your personal account</Link> before applying. It will become the verified owner of your business.</p> : null}
 
@@ -240,6 +266,8 @@ export default function BusinessApplyPage() {
       </form>
       {actionError ? <p role="alert" className="mt-3 text-sm text-danger">{actionError}</p> : null}
       {notice ? <p role="status" className="mt-3 text-sm text-success">{notice}</p> : null}
+      {busy && busy !== 'submit' && !openingSession ? <button type="button" onClick={cancelBusinessAccess} className="mt-3 min-h-11 rounded-lg border border-ink/20 px-4 text-sm text-ink">Cancel business sign-in</button> : null}
+      {openingSession ? <p role="status" className="mt-3 text-sm text-muted">Opening your approved business session…</p> : null}
 
       {uid || readError ? <section className="mt-7" aria-labelledby="business-applications-heading" aria-busy={loading}>
         <div className="mb-3 flex items-center justify-between gap-3">
@@ -256,6 +284,11 @@ export default function BusinessApplyPage() {
               <span className={"shrink-0 rounded-full px-2 py-0.5 text-[10.5px] font-bold " + pillCls(a.status)}>{pillLabel(a.status)}</span>
             </span>
             {a.status === "approved" ? <button type="button" disabled={busy !== null} onClick={() => { void openBusiness(a.id); }} className="mt-2 text-sm font-semibold text-ink underline disabled:opacity-40">{busy === a.id ? "Opening business..." : "Open business"}</button> : null}
+            {bootstrap?.applicationId === a.id && bootstrap.owner === uid ? <section aria-label="Set up business owner access" className="mt-3 rounded-lg border border-ink/15 bg-ink/5 p-4 text-sm text-ink">
+              <h3 className="font-semibold">Set up your owner access</h3>
+              <p className="mt-2 leading-relaxed">This creates your owner seat for {a.company_name} and registers this browser as its first approved device. Your personal account will switch to the business when setup succeeds.</p>
+              <div className="mt-3 flex flex-wrap gap-2"><button type="button" disabled={busy !== null} className="min-h-11 rounded-lg bg-ink px-4 font-semibold text-white disabled:opacity-40" onClick={() => { void openBusiness(a.id, true); }}>Create my owner access</button><button type="button" disabled={busy !== null} className="min-h-11 rounded-lg border border-ink/20 px-4" onClick={() => { bootstrapRef.current = null; setBootstrap(null); }}>Cancel setup</button></div>
+            </section> : null}
             {a.decision_reason ? <p className="mt-2 text-[12.5px] leading-relaxed text-ink/70">{a.status === "approved" ? "Approved. Open your business to manage access." : a.decision_reason}</p> : null}
           </div>
         ))}

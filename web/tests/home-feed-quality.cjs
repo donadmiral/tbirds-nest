@@ -76,7 +76,7 @@ test('the actual HomeFeed server rendering includes post content before JavaScri
   const h=harness();const empty=()=>null;
   const overrides={
     '@/lib/homeFeedController':{createHomeFeedController}, '@/lib/homeFeedScroll':load('lib/homeFeedScroll.ts'), '@/lib/contentMedia':{hydratePostMedia:async rows=>rows}, '@/lib/feedCache':{getFeedCache:()=>h.cache}, '../../shared/feedSnapshot':shared, '../../shared/feedMedia':load('../shared/feedMedia.ts'),
-    '@/lib/supabase/client':{createClient:()=>h.client}, 'next/navigation':{useRouter:()=>({push(){},refresh(){},replace(){}})},
+    '@/lib/supabase/client':{createClient:()=>h.client}, 'next/navigation':{useRouter:()=>({push(){},refresh(){},replace(){}}),useSearchParams:()=>new URLSearchParams()},
     '@/components/PostCard':{PostCard:({post})=>React.createElement('article',null,post.content)},
     '@/components/StoryRings':{StoryRings:empty}, '@/components/Composer':{Composer:empty},
     '@/components/AnnouncementBanner':{AnnouncementBanner:empty}, '@/components/SponsoredCard':{SponsoredCard:empty}, '@/lib/ads':{getActivePromos:async()=>[]},

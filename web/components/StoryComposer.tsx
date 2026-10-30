@@ -31,6 +31,8 @@ import { useMemoryDialog } from './memory/useMemoryDialog';
 import { captureStoryArtwork, exportStoryVideo } from '../lib/storyVideoExport';
 import { storyVideoRecipe, storyVideoLayerWindows, storyVideoExportLimit, storyVideoLayerAtTime } from '../../shared/storyVideoComposition';
 import { storyPhotoSpatialAdjust } from '../../shared/storyColorMatrix';
+import { ExportAudioPicker } from './ExportAudioPicker';
+import type { LocalExportAudio } from '../lib/videoExportAudio';
 
 type Draft = {
   id: string; user_id: string; media_url: string | null; media_type: string; caption: string | null;
@@ -78,11 +80,13 @@ function ComposerInner() {
   const [exportArtwork, setExportArtwork] = useState<{ phase: 'background' | 'layers'; clock: number; width: number; height: number } | null>(null);
   const exportArtworkRef = useRef<HTMLDivElement | null>(null);
   const [exportStatus, setExportStatus] = useState<string | null>(null);
-  const [exportReady, setExportReady] = useState<{ url: string; name: string } | null>(null);
+  const [exportReady, setExportReady] = useState<{ url: string; name: string; localAudio: boolean } | null>(null);
+  const [exportOptions, setExportOptions] = useState<HTMLElement | null>(null);
+  const [exportAudio, setExportAudio] = useState<LocalExportAudio | null>(null), [exportAudioBusy, setExportAudioBusy] = useState(false), [exportError, setExportError] = useState('');
   const exportFile = useRef<string | null>(null);
   const exportAbort = useRef<AbortController | null>(null);
-  const discardExport = () => { if (exportFile.current) { URL.revokeObjectURL(exportFile.current); exportFile.current = null; } setExportReady(null); };
-  const exportDialog = useMemoryDialog(!!exportStatus || !!exportReady, () => { if (exportStatus) exportAbort.current?.abort(); else discardExport(); });
+  const discardExport = () => { if (exportFile.current) { URL.revokeObjectURL(exportFile.current); exportFile.current = null; } setExportReady(null); setExportOptions(null); setExportAudio(null); setExportAudioBusy(false); setExportError(''); };
+  const exportDialog = useMemoryDialog(!!exportOptions || !!exportStatus || !!exportReady, () => { if (exportStatus) exportAbort.current?.abort(); else discardExport(); });
   const [previewPlaying, setPreviewPlaying] = useState(false);
   const draftSaveIds = useRef(new Map<string, string>());
   const [allowReplies, setAllowReplies] = useState(true);
@@ -161,7 +165,7 @@ function ComposerInner() {
   const cancellations = useRef(new Set<() => void>());
   const metadataCleanup = useRef<(() => void) | null>(null);
   useEffect(() => () => { exportAbort.current?.abort(); if (exportFile.current) { URL.revokeObjectURL(exportFile.current); exportFile.current = null; } }, [uid, activeClipId]);
-  useEffect(() => { setExportReady(null); setExportStatus(null); setExportArtwork(null); }, [uid, activeClipId]);
+  useEffect(() => { setExportReady(null); setExportStatus(null); setExportArtwork(null); setExportOptions(null); setExportAudio(null); setExportAudioBusy(false); setExportError(''); }, [uid, activeClipId]);
 
   useEffect(() => { if (videoPreview.current) videoPreview.current.volume = Math.max(0, Math.min(1, (transform.mix?.orig ?? 100) / 100)); }, [transform.mix?.orig, previewUrl]);
 
@@ -529,7 +533,7 @@ function ComposerInner() {
   }
 
   const saveEditedVideo = (stage: HTMLElement) => {
-    if (!uid || !previewUrl || mediaType !== 'video' || busyRef.current || publication.current) return;
+    if (!uid || !previewUrl || mediaType !== 'video' || busyRef.current || publication.current || exportAudioBusy) return;
     const owner = uid, version = ownerVersion.current, clip = activeClip.current.id;
     const abort = new AbortController(); exportAbort.current = abort;
     const cancel = () => abort.abort(); cancellations.current.add(cancel);
@@ -539,8 +543,8 @@ function ComposerInner() {
     try {
       const limit = storyVideoExportLimit(stickers, !!audioDraft); if (limit) throw new Error(limit);
       recipe = storyVideoRecipe({ duration: durationSec || 0, width: box.width, height: box.height, transform, filterId });
-    } catch (failure) { cancellations.current.delete(cancel); exportAbort.current = null; setError(publicationError(failure)); return; }
-    busyRef.current = true; setBusy('video-export'); setError(null); setExportStatus('Preparing edited video…'); videoPreview.current?.pause();
+    } catch (failure) { cancellations.current.delete(cancel); exportAbort.current = null; setExportError(publicationError(failure)); return; }
+    busyRef.current = true; setBusy('video-export'); setError(null); setExportError(''); setExportStatus('Preparing edited video…'); videoPreview.current?.pause();
     if (exportFile.current) { URL.revokeObjectURL(exportFile.current); exportFile.current = null; } setExportReady(null);
     const capture = async (phase: 'background' | 'layers', clock: number) => {
       ensure(); setExportArtwork({ phase, clock, width: box.width, height: box.height });
@@ -548,14 +552,14 @@ function ComposerInner() {
       ensure(); if (!exportArtworkRef.current) throw new Error('The story artwork is not ready.');
       const image = await captureStoryArtwork(exportArtworkRef.current, recipe.width, recipe.height, abort.signal); ensure(); return image;
     };
-    void exportStoryVideo({ url: previewUrl, recipe, signal: abort.signal, progress: message => { if (isCurrent(owner, version)) setExportStatus(message); }, capture: async () => {
+    void exportStoryVideo({ url: previewUrl, recipe, signal: abort.signal, localAudio: exportAudio, progress: message => { if (isCurrent(owner, version)) setExportStatus(message); }, capture: async () => {
       const background = await capture('background', recipe.trimStart), layers = [];
       for (const window of storyVideoLayerWindows(stickers, recipe)) layers.push({ image: await capture('layers', window.clock), start: window.start, end: window.end });
       setExportArtwork(null); return { background, layers };
     } }).then(result => {
       ensure(); const url = URL.createObjectURL(result.blob); exportFile.current = url;
-      setExportReady({ url, name: 'platinum-story-' + Date.now() + '.' + result.extension });
-    }).catch(failure => { if (isCurrent(owner, version) && !abort.signal.aborted) setError(publicationError(failure)); }).finally(() => {
+      setExportOptions(null); setExportReady({ url, name: 'platinum-story-' + Date.now() + '.' + result.extension, localAudio: !!exportAudio });
+    }).catch(failure => { if (isCurrent(owner, version)) setExportError(abort.signal.aborted ? 'Export cancelled. No file was saved. Your export choices are ready to try again.' : publicationError(failure)); }).finally(() => {
       cancellations.current.delete(cancel); if (exportAbort.current === abort) exportAbort.current = null;
       if (isCurrent(owner, version)) { busyRef.current = false; setBusy(null); setExportStatus(null); setExportArtwork(null); }
     });
@@ -604,7 +608,7 @@ function ComposerInner() {
         <div className="absolute inset-0 z-[4]">{stickers.filter(s => s.kind !== 'drawing' && storyVideoLayerAtTime(s, exportArtwork.clock)).map(s => <div key={s.id} className="absolute max-w-[80%] select-none whitespace-pre-wrap rounded-xl px-3 py-2 text-center text-base font-bold" style={{ width: s.kind === 'photo' && s.photoShape === 'cell' ? `${(s.photoFw || .4)*100}%` : undefined, height: s.kind === 'photo' && s.photoShape === 'cell' ? `${(s.photoFh || .3)*100}%` : undefined, maxWidth: s.kind === 'post' ? '100%' : s.kind === 'photo' && s.photoShape === 'cell' ? 'none' : undefined, padding: s.kind === 'post' || s.kind === 'photo' && s.photoShape === 'cell' ? 0 : undefined, left: `${s.nx*100}%`, top: `${s.ny*100}%`, transform: `translate(-50%,-50%) rotate(${s.rotation}rad) scale(${s.scale})`, color: s.color, background: 'transparent' }}><StoryStickerPreview sticker={s} /></div>)}</div>
       </>}
     </div></StoryPhotoLookContext.Provider> : null}
-    {exportStatus || exportReady ? <div ref={exportDialog} tabIndex={-1} className={studio.overlay}>{exportStatus ? <section role="dialog" aria-modal="true" aria-label="Export edited video" className={studio.sheet}><h2 className={studio.sheetTitle}>Save edited video</h2><p role="status" className={studio.note}>{exportStatus}</p><p className={studio.note}>Keep this tab open while your video renders.</p><button type="button" className={studio.button} onClick={() => exportAbort.current?.abort()}>Cancel export</button></section> : exportReady ? <section role="dialog" aria-modal="true" aria-label="Edited video ready" className={studio.sheet}><h2 className={studio.sheetTitle}>Your edited video is ready</h2><p className={studio.note}>The file includes the supported artwork, trim, color, framing and original sound. {exportReady.name.endsWith('.webm') ? 'This browser exports WebM. The iPhone app exports MP4.' : 'Your file is MP4.'}</p><a className={studio.primary} data-autofocus ref={node => { if (node) node.focus({ preventScroll: true }); }} href={exportReady.url} download={exportReady.name}>Download edited video</a><button type="button" className={studio.button} onClick={discardExport}>Back to story</button></section> : null}</div> : null}
+    {exportOptions || exportStatus || exportReady ? <div ref={exportDialog} tabIndex={-1} className={studio.overlay}>{exportStatus ? <section role="dialog" aria-modal="true" aria-label="Export edited video" className={studio.sheet}><h2 className={studio.sheetTitle}>Save edited video</h2><p role="status" className={studio.note}>{exportStatus}</p><p className={studio.note}>Keep this tab open while your video renders.</p><button type="button" className={studio.button} onClick={() => exportAbort.current?.abort()}>Cancel export</button></section> : exportReady ? <section role="dialog" aria-modal="true" aria-label="Edited video ready" className={studio.sheet}><h2 className={studio.sheetTitle}>Your edited video is ready</h2><p className={studio.note}>The file includes the supported artwork, trim, color, framing and your original sound setting{exportReady.localAudio ? ', plus your selected audio or voiceover' : ''}. {exportReady.name.endsWith('.webm') ? 'This browser exports WebM.' : 'Your file is MP4.'}</p><a className={studio.primary} data-autofocus ref={node => { if (node) node.focus({ preventScroll: true }); }} href={exportReady.url} download={exportReady.name}>Download edited video</a><button type="button" className={studio.button} onClick={discardExport}>Back to story</button></section> : exportOptions ? <section role="dialog" aria-modal="true" aria-label="Video download options" className={studio.sheet}><h2 className={studio.sheetTitle}>Download edited video</h2><p className={studio.note}>Save the current clip with its trim, color, supported artwork and original sound setting.</p><ExportAudioPicker value={exportAudio} onChange={setExportAudio} onBusyChange={setExportAudioBusy} /><p className={studio.note}>Added audio is included only in the downloaded file. Publishing and saved story drafts keep their current sound.</p>{exportError && <p role="alert" className={studio.error}>{exportError}</p>}<div className={`${studio.row} mt-5`}><button type="button" className={studio.button} onClick={discardExport}>Back to story</button><button type="button" className={studio.primary} disabled={exportAudioBusy} onClick={() => saveEditedVideo(exportOptions)}>{exportError ? 'Retry export' : 'Create video'}</button></div></section> : null}</div> : null}
     {cameraOpen ? <StoryCapture onClose={() => setCameraOpen(false)} onGallery={() => fileRef.current?.click()} onCapture={pickFile} /> : null}
     <header className={studio.composerHeader}>
       {composeStep === "share" && !publicationStatus.published ? <button type="button" onClick={() => setComposeStep("edit")} className={studio.icon} aria-label="Back to story editing"><ArrowLeft size={20} /></button> : <Link href="/home" className={studio.icon} aria-label="Back to home"><ArrowLeft size={20} /></Link>}
@@ -622,7 +626,7 @@ function ComposerInner() {
             <img src={draft.preview_media_url} alt="" /> : "Aa"}</button><button type="button" onClick={() => void deleteDraft(draft)} className={studio.draftRemove} aria-label="Delete draft"><X size={15} /></button></div>)}</div></section> : null}
           <section className={studio.capture}><span className="mb-1 flex h-20 w-20 items-center justify-center rounded-full border border-white/20 bg-white/5"><ImagePlus size={32} strokeWidth={1.3} /></span><h2 className={studio.captureTitle}>A moment worth sharing.</h2><p className={studio.captureHint}>Choose a photo or video, then make it your own.</p><button type="button" onClick={() => setCameraOpen(true)} className={studio.primary}><Camera size={20} />Open camera</button><button type="button" onClick={() => fileRef.current?.click()} disabled={busy === "upload"} className={studio.button}><ImagePlus size={18} />{busy === "upload" ? "Uploading…" : "Add photo or video"}</button><button type="button" onClick={() => { setMediaType("text"); setComposeStep("edit"); }} className={studio.button}><Type size={18} />Create with text</button></section>
         </> : <>
-          <div hidden={composeStep !== "edit"}><StoryEditor key={editorKey} onSaveVideo={mediaType === "video" ? saveEditedVideo : undefined} onOpenDraw={openDraw} onTogglePreview={mediaType === "video" ? togglePreview : undefined} previewPlaying={previewPlaying} clips={allClips.map(clip => ({ id: clip.id, selected: clip.id === activeClipId, thumbnail: clip.mediaType === "text" ? "Aa" : clip.mediaType === "video" ? <video src={clip.previewUrl ?? undefined} playsInline muted preload="metadata" /> : <img src={clip.previewUrl ?? undefined} alt="" /> }))} onSelectClip={chooseClip} onRemoveClip={removeClip} onAddClip={allClips.length + (clipQueue.current?.clips.filter(c => c.storyId).length || 0) < 10 ? () => fileRef.current?.click() : undefined} onOpenMusic={MUSIC_CATALOG_ENABLED || mediaType === "video" ? () => { videoPreview.current?.pause(); setMusicOpen(true); } : undefined} onOpenTiming={mediaType === "video" ? () => setTimingOpen(true) : undefined} duration={durationSec || 15} clock={mediaType === "video" ? clock : undefined} value={stickers} onChange={setStickers} onNext={review} onOpenEdit={() => { videoPreview.current?.pause(); editSnapshot.current = { transform, filterId, background }; setEditTab("adjust"); setEditToolsOpen(true); }} onClose={removeMedia} audience={audienceLabel} onAudience={() => setAudienceOpen(true)} thumbnail={mediaType === "text" ? "Aa" : mediaType === "video" ? <video src={previewUrl ?? undefined} playsInline muted preload="metadata" /> :
+          <div hidden={composeStep !== "edit"}><StoryEditor key={editorKey} onSaveVideo={mediaType === "video" ? stage => { videoPreview.current?.pause(); setExportError(''); setExportOptions(stage); } : undefined} onOpenDraw={openDraw} onTogglePreview={mediaType === "video" ? togglePreview : undefined} previewPlaying={previewPlaying} clips={allClips.map(clip => ({ id: clip.id, selected: clip.id === activeClipId, thumbnail: clip.mediaType === "text" ? "Aa" : clip.mediaType === "video" ? <video src={clip.previewUrl ?? undefined} playsInline muted preload="metadata" /> : <img src={clip.previewUrl ?? undefined} alt="" /> }))} onSelectClip={chooseClip} onRemoveClip={removeClip} onAddClip={allClips.length + (clipQueue.current?.clips.filter(c => c.storyId).length || 0) < 10 ? () => fileRef.current?.click() : undefined} onOpenMusic={MUSIC_CATALOG_ENABLED || mediaType === "video" ? () => { videoPreview.current?.pause(); setMusicOpen(true); } : undefined} onOpenTiming={mediaType === "video" ? () => setTimingOpen(true) : undefined} duration={durationSec || 15} clock={mediaType === "video" ? clock : undefined} value={stickers} onChange={setStickers} onNext={review} onOpenEdit={() => { videoPreview.current?.pause(); editSnapshot.current = { transform, filterId, background }; setEditTab("adjust"); setEditToolsOpen(true); }} onClose={removeMedia} audience={audienceLabel} onAudience={() => setAudienceOpen(true)} thumbnail={mediaType === "text" ? "Aa" : mediaType === "video" ? <video src={previewUrl ?? undefined} playsInline muted preload="metadata" /> :
             // eslint-disable-next-line @next/next/no-img-element
             <img src={previewUrl ?? undefined} alt="" />}>{mediaPreview()}</StoryEditor></div>
           {composeStep === "share" ? <section className={studio.share}>

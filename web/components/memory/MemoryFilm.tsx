@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { BookOpen, Music2, Pause, Play, SkipBack, SkipForward, Volume2, VolumeX, X } from 'lucide-react';
+import { BookOpen, Download, Music2, Pause, Play, SkipBack, SkipForward, Volume2, VolumeX, X } from 'lucide-react';
 import type { MemoryPage } from '@/lib/memoryAlbum';
 import { useMemoryPlayback } from '@/lib/useMemoryPlayback';
 import { MEMORY_SCORE_DESCRIPTION, MEMORY_SCORE_DUCK, MEMORY_SCORE_TITLE, MEMORY_SCORE_VOLUME, createMemoryFilmProgressGuard, memoryFilmItems, memoryFilmPhotoDuration, memoryFilmProgress, memoryFilmStep, memoryFilmVideoWindow, type MemoryFilmItem } from '../../../shared/memoryFilm';
@@ -10,9 +10,10 @@ import { privateImageCachePolicy } from '../../../shared/mediaDelivery';
 import { MemoryPageImage } from './MemoryPageImage';
 import { MemoryStoryFrame } from './MemoryStoryFrame';
 import { useMemoryDialog } from './useMemoryDialog';
+import { MemoryMovieExport } from './MemoryMovieExport';
 import s from './MemoryFilm.module.css';
 
-export function MemoryFilm({ title, pages, reduceMotion, onClose, onReadBook, onRetry }: { title: string; pages: MemoryPage[]; reduceMotion: boolean; onClose: () => void; onReadBook: () => void; onRetry: () => void }) {
+export function MemoryFilm({ title, pages, soundtrack, reduceMotion, onClose, onReadBook, onRetry }: { title: string; pages: MemoryPage[]; soundtrack?: unknown; reduceMotion: boolean; onClose: () => void; onReadBook: () => void; onRetry: () => void }) {
   const items = useMemo(() => memoryFilmItems(pages), [pages]);
   const [selection, setSelection] = useState({ id: pages[0]?.id ?? '', run: 0 });
   const [playing, setPlaying] = useState(true), [foreground, setForeground] = useState(true), [callActive, setCallActive] = useState(false);
@@ -20,12 +21,13 @@ export function MemoryFilm({ title, pages, reduceMotion, onClose, onReadBook, on
   const [readyKey, setReadyKey] = useState(''), [attempt, setAttempt] = useState(0);
   const [failure, setFailure] = useState({ key: '', message: '' }), [videoState, setVideoState] = useState({ key: '', progress: 0 });
   const [audioBlocked, setAudioBlocked] = useState(false), [audioError, setAudioError] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
   const audio = useRef<HTMLAudioElement>(null);
-  const dialog = useMemoryDialog(true, onClose);
+  const dialog = useMemoryDialog(!exportOpen, onClose);
   const index = Math.max(0, items.findIndex(item => item.id === selection.id)), item = items[index];
   const key = `${item?.id}:${item?.uri}:${selection.run}:${attempt}`;
   const ready = item?.kind === 'text' || readyKey === key, error = failure.key === key ? failure.message : '';
-  const active = playing && foreground && !callActive && !error;
+  const active = playing && foreground && !callActive && !error && !exportOpen;
   const current = useRef({ items, index, key, active, music }); current.current = { items, index, key, active, music };
   const mediaReady = (eventKey: string) => { if (current.current.key === eventKey) setReadyKey(eventKey); };
   const mediaFailed = (eventKey: string, message: string) => { if (current.current.key === eventKey) setFailure({ key: eventKey, message }); };
@@ -74,7 +76,7 @@ export function MemoryFilm({ title, pages, reduceMotion, onClose, onReadBook, on
     if (event.key === ' ') { event.preventDefault(); setPlaying(value => !value); }
   }}>
     <audio ref={audio} src="/audio/platinum-memory-score.m4a" preload="auto" loop onError={() => setAudioError(true)} />
-    <header className={s.header}><button type="button" data-autofocus aria-label="Close memory film" onClick={onClose}><X size={23} /></button><div><span>MEMORIES</span><h2>{title}</h2></div><button type="button" aria-label="Read memory book" onClick={onReadBook}><BookOpen size={22} /></button></header>
+    <header className={s.header}><button type="button" data-autofocus aria-label="Close memory film" onClick={onClose}><X size={23} /></button><div><span>MEMORIES</span><h2>{title}</h2></div><button type="button" aria-label="Download memory movie" onClick={() => { setPlaying(false); audio.current?.pause(); setExportOpen(true); }}><Download size={21} /></button><button type="button" aria-label="Read memory book" onClick={onReadBook}><BookOpen size={22} /></button></header>
     <div className={s.timeline} role="progressbar" aria-label={`Memory ${index + 1} of ${items.length}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)}>{items.map((entry, i) => <span key={entry.id}><i style={{ width: `${i < index ? 100 : i === index ? progress * 100 : 0}%` }} /></span>)}</div>
     <div className={s.stage}>
       {(item.kind === 'image' ? item.uri : item.poster) && <img className={s.backdrop} alt="" aria-hidden src={(item.kind === 'image' ? item.uri : item.poster)!} />}
@@ -91,6 +93,7 @@ export function MemoryFilm({ title, pages, reduceMotion, onClose, onReadBook, on
       {music && <div className={s.music}><div><strong>{MEMORY_SCORE_TITLE}</strong><small>{MEMORY_SCORE_DESCRIPTION}</small></div><input aria-label="Background music volume" type="range" min="0" max="1" step="0.01" value={volume} onChange={event => setVolume(Number(event.target.value))} /></div>}
       {music && (audioBlocked || audioError) && <button type="button" className={s.audioRetry} onClick={() => { audio.current?.load(); playAudio(); }}>{audioBlocked ? 'Play background music' : 'Music could not play · Retry'}</button>}
     </footer>
+    {exportOpen && <MemoryMovieExport title={title} pages={pages} soundtrack={soundtrack} initialScore={music} initialOriginalAudio={!originalMuted} scoreVolume={volume} onRefresh={onRetry} onClose={() => setExportOpen(false)} />}
   </div>;
 }
 

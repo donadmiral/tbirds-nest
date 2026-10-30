@@ -104,6 +104,8 @@ function app(kind, api) {
       console,
       require(id) {
         if (id === "react") return hooks;
+        if (id === "@/components/ProductDialog") return { ProductDialog: "Dialog" };
+        if (id.endsWith(".module.css")) return { default: new Proxy({}, { get: (_target, key) => String(key) }) };
         if (id === "react/jsx-runtime")
           return {
             jsx: (type, props) => ({ type, props }),

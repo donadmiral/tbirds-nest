@@ -1,5 +1,7 @@
 # Platinum Circles — user-request acceptance inventory
 
+For the subsequent reference-driven web/admin/Studio implementation, whole-book movie export and business-session repair, start with [DESIGN_COMPLETION_20261030.md](DESIGN_COMPLETION_20261030.md). The checkpoint evidence below remains historical.
+
 For the later integrated repairs, hosted QA upgrades and remaining release gates, read `INTEGRATED_REVIEW_20261030.md` and `COMPLETION_GATES_20261030.md`. The timestamped inventory below remains a historical checkpoint.
 
 **Reviewed 30 October 2026, 00:46 UTC.** This report reconciles Don's reported problems and completion requests with the current implementation and recorded evidence. It supersedes older status paragraphs where those paragraphs still say that continuous memory films, video grading/export, the three admin contracts, or the decoder dependency repair have not been implemented.

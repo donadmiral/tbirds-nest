@@ -11,7 +11,12 @@ import Workspace from '@/components/Workspace';
 import ShareMenu from '@/components/ShareMenu';
 import PresentTray from '@/components/PresentTray';
 import { deploymentEnvironment } from '@/lib/operationsReporting';
-import { GROUPS, ACTIONS } from '@/lib/navigation';
+import { navigationForRole, toolsForRole, actionsForRole } from '@/lib/navigation';
+import AdminIcon from '@/components/AdminIcon';
+import WorkspaceLauncher from '@/components/WorkspaceLauncher';
+import StaffAccountMenu from '@/components/StaffAccountMenu';
+import { WorkspaceBreadcrumbs, WorkspaceContext } from '@/components/WorkspaceNavigation';
+import WorkspaceConnection from '@/components/WorkspaceConnection';
 
 export default async function Shell({ admin, active, title, crumb, sub, children, pageActions }: {
   admin: { id: string; email: string; role: string }; active: string; title: React.ReactNode; crumb?: string; sub?: string; children: React.ReactNode; pageActions?: React.ReactNode;
@@ -34,33 +39,30 @@ export default async function Shell({ admin, active, title, crumb, sub, children
   const alerts = countError ? null : (queueCount ?? 0) + (reportCount ?? 0) + (supportCount ?? 0);
   const counts: Record<string, number | null> = { '/queue': queueCount, '/reports': reportCount, '/support': supportCount };
 
-  const groups = GROUPS.map(g => ({ ...g, items: g.items.filter(d => allow.has(d.href)) })).filter(g => g.items.length > 0);
-  const paletteItems = groups.flatMap(g => g.items.map(d => ({ href: d.href, label: d.label, group: g.label, key: d.key })));
-  const actions = ACTIONS.filter(a => allow.has(a.href));
-  const local = (admin.email || '').split('@')[0] || 'desk';
-  const initial = (admin.email || '?').slice(0, 1).toUpperCase();
+  const groups = navigationForRole(admin.role);
+  const workspaceTools = toolsForRole(admin.role);
+  const destinations = groups.flatMap(group => group.items);
+  const paletteItems = [...groups.flatMap(g => g.items.map(d => ({ ...d, group: g.label }))), ...workspaceTools.map(d => ({ ...d, group: 'Your workspace' }))];
+  const actions = actionsForRole(admin.role);
   const roleLabel = admin.role.replace(/_/g, ' ');
-  const roleShort = admin.role.split('_').map(w => w[0]).join('').toUpperCase();
   const environment = deploymentEnvironment(process.env.VERCEL_ENV, process.env.NODE_ENV);
 
   return (
     <div data-pc-staff={`${admin.id}:${admin.role}`} style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)', color: 'var(--txt)' }}>
 
-      <SideRail groups={groups} counts={counts} active={active} email={admin.email} roleLabel={roleLabel} />
+      <SideRail groups={groups} counts={counts} active={active} email={admin.email} roleLabel={roleLabel} tools={workspaceTools} />
 
       <main style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
 
         <header className="pc-topbar" style={{ position: 'sticky', top: 0, zIndex: 30, background: 'var(--topbar)', borderBottom: '1px solid var(--line)' }}>
 
-          <div className="pc-breadcrumb" style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12 }}>
-            <Link href="/dashboard" className="pc-crumb" style={{ color: 'var(--txt-muted)', fontWeight: 500, textDecoration: 'none' }}>Operations</Link>
-            <span style={{ color: 'var(--txt-muted)' }}>/</span>
-            <span style={{ fontWeight: 600, color: 'var(--txt)' }}>{crumb ?? title}</span>
-          </div>
+          <WorkspaceBreadcrumbs items={destinations} active={active} label={crumb ?? (typeof title === 'string' ? title : 'Workspace')} />
 
           <CommandPalette items={paletteItems} actions={actions} />
 
           <div className="pc-topbar-actions">
+
+            <WorkspaceLauncher groups={groups} tools={workspaceTools} />
 
             <ShareMenu path={active} label={crumb ?? (typeof title === 'string' ? title : '')} />
 
@@ -72,24 +74,19 @@ export default async function Shell({ admin, active, title, crumb, sub, children
             </div>
 
             <Link href={['/queue', '/reports', '/support'].find(d => allow.has(d)) || '/dashboard'} aria-label={alerts === null ? 'Work queues; counts unavailable' : `${alerts} items waiting for review`} title="Work waiting" className="pc-icon-btn" style={{ position: 'relative', width: 38, height: 38, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--line)' }}>
-              <svg width="15" height="15" viewBox="0 0 24 24" style={{ fill: 'rgba(var(--on),0.6)' }}><path d="M12 22a2.5 2.5 0 002.4-2h-4.8a2.5 2.5 0 002.4 2zm7-5v-1l-1.5-1.7V10a5.5 5.5 0 00-4-5.3V4a1.5 1.5 0 00-3 0v.7a5.5 5.5 0 00-4 5.3v4.3L5 16v1h14z" /></svg>
+              <AdminIcon name="bell" size={19} />
               {alerts !== null && alerts > 0 ? (
                 <span className="pc-num" style={{ position: 'absolute', top: -2, right: -2, minWidth: 16, height: 16, padding: '0 3.5px', borderRadius: 999, background: 'var(--alert)', color: 'var(--alert-ink)', fontSize: 9.5, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--bg)' }}>{alerts}</span>
               ) : null}
             </Link>
 
-            <div className="pc-staff-chip" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 10px 4px 4px', borderRadius: 9, border: '1px solid rgba(var(--on),0.10)' }}>
-              <span style={{ width: 25, height: 25, borderRadius: 6, background: 'var(--chip-bg)', color: 'var(--chip-fg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10.5, fontWeight: 700 }}>{initial}</span>
-              <span className="pc-staff-name" style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--txt)' }}>{local}</span>
-              <span style={{ fontSize: 9.5, fontWeight: 600, padding: '1.5px 5px', borderRadius: 4, background: 'rgba(var(--accent-rgb),0.13)', color: 'var(--accent)', letterSpacing: '0.02em' }}>{roleShort}</span>
-              <form action={signOut}>
-                <button className="pc-seg" title="Sign out" style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: 10.5, fontWeight: 600, color: 'var(--txt-muted)', padding: 0 }}>Exit</button>
-              </form>
-            </div>
+            <StaffAccountMenu email={admin.email} role={admin.role} signOut={signOut} />
           </div>
         </header>
 
         <Workspace>
+          <WorkspaceConnection />
+          <WorkspaceContext items={destinations} active={active} />
           <div className="pc-page-heading">
             <div style={{ flex: 1, minWidth: 0 }}>
               <p className="pc-page-kicker">{groups.find(group => group.items.some(item => item.href === active))?.label || 'Operations'}</p>

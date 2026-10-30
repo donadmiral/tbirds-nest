@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createScopedMutation } from "../../../../shared/scopedMutation";
 import { withTimeout } from "@/lib/withTimeout";
-import { displayImageUrl } from "@/lib/media";
+import { checkUploadableBytes, displayImageUrl } from "@/lib/media";
 import type { ChangeEvent } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -16,6 +16,8 @@ import { createClient } from "@/lib/supabase/client";
 import { PostCard } from "@/components/PostCard";
 import { CATEGORIES } from "@/lib/categories";
 import { COMM_COLORS } from "@/lib/communities";
+import { ProductDialog } from "@/components/ProductDialog";
+import styles from "@/components/SocialWorkspace.module.css";
 
 type Info = {
   id: string; name: string; description: string | null; icon_url: string | null;
@@ -37,7 +39,6 @@ export default function CommunityPage() {
   const actions=useRef(createScopedMutation());const mutationEpoch=useRef(0);
   const [infoError, setInfoError] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [rulesOpen, setRulesOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [posting, setPosting] = useState(false);
@@ -317,38 +318,26 @@ export default function CommunityPage() {
   const catLabel = info?.category ? (CATEGORIES.find(c => c.key === info.category)?.label || info.category) : null;
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-[640px] px-4 pb-10">
-      <div className="-mx-4 px-4 pb-4 pt-3" style={{ background: band }}>
-        <div className="flex items-center gap-1">
-          <Link href="/communities" className="rounded-full p-1.5 text-[#1F2937] hover:bg-black/10" aria-label="Back"><ArrowLeft size={18} /></Link>
-          <span className="flex-1" />
-          {isMember && info?.join_mode === "approval" && isMod ? (
-            <button onClick={openRequests} className="rounded-full p-2 text-[#1F2937] hover:bg-black/10" title="Join requests"><Inbox size={17} /></button>
-          ) : null}
-          {isMember ? (
-            <button onClick={openChat} className="rounded-full p-2 text-[#1F2937] hover:bg-black/10" title="Community chat"><MessageCircle size={17} /></button>
-          ) : null}
-          {isMember && isMod ? (
-            <button onClick={openInvite} className="rounded-full p-2 text-[#1F2937] hover:bg-black/10" title="Invite people"><UserPlus size={17} /></button>
-          ) : null}
-          {isMember ? (
-            <button onClick={openMembers} className="rounded-full p-2 text-[#1F2937] hover:bg-black/10" title="Members"><Users size={17} /></button>
-          ) : null}
-          {myRole === "owner" ? (
-            <button onClick={() => setSettingsOpen(true)} className="rounded-full p-2 text-[#1F2937] hover:bg-black/10" title="Settings"><Settings2 size={17} /></button>
-          ) : isMember ? (
-            <button onClick={leave} className="rounded-full p-2 text-[#1F2937] hover:bg-black/10" title="Leave"><LogOut size={16} /></button>
-          ) : null}
+    <main className={styles.detail}>
+      <div className={styles.communityHero} style={{ background: band }}>
+        <div className={styles.heroTop}>
+          <Link href="/communities"><ArrowLeft size={16} aria-hidden />Communities</Link>
+          <nav aria-label="Community actions">
+            {isMember && info?.join_mode === 'approval' && isMod ? <button onClick={openRequests}><Inbox size={16} aria-hidden />Requests</button> : null}
+            {isMember ? <button onClick={openChat}><MessageCircle size={16} aria-hidden />Open chat</button> : null}
+            {isMember && isMod ? <button onClick={openInvite}><UserPlus size={16} aria-hidden />Invite</button> : null}
+            {myRole === 'owner' ? <button onClick={() => setSettingsOpen(true)}><Settings2 size={16} aria-hidden />Settings</button> : isMember ? <button onClick={leave}><LogOut size={16} aria-hidden />Leave</button> : null}
+          </nav>
         </div>
-        <div className="mt-1 flex items-center gap-3">
+        <div className={styles.heroIdentity}>
           {info?.icon_url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={info.icon_url} alt="" className="h-[52px] w-[52px] rounded-2xl object-cover" />
+            <img src={info.icon_url} alt="" className={styles.heroAvatar} />
           ) : (
-            <span className="flex h-[52px] w-[52px] items-center justify-center rounded-2xl bg-[#FFFFFF]/60 text-[#1F2937]"><Users size={22} /></span>
+            <span className={styles.heroAvatar}><Users size={22} /></span>
           )}
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-[18px] font-extrabold text-[#1F2937]">{info?.name || "Community"}</h1>
+            <h1>{info?.name || "Community"}</h1>
             <p className="text-[12.5px] text-[#1F2937]/70">
               {String(info?.member_count || 0)} {info?.member_count === 1 ? "member" : "members"}{catLabel ? " · " + catLabel : ""}
             </p>
@@ -371,16 +360,11 @@ export default function CommunityPage() {
             ) : null
           ) : null}
         </div>
-        {info?.description ? <p className="mt-2 line-clamp-2 text-[13px] text-[#1F2937]/80">{info.description}</p> : null}
+        {info?.description ? <p className={styles.heroDescription}>{info.description}</p> : null}
       </div>
 
-      {info?.rules ? (
-        <button onClick={() => setRulesOpen(o => !o)} className="mt-3 w-full rounded-xl border border-ink/10 p-3 text-left">
-          <span className="flex items-center gap-1.5 text-[12.5px] font-extrabold text-ink"><Shield size={13} /> Community rules</span>
-          <span className={"mt-1 block whitespace-pre-wrap text-[12.5px] text-ink/60" + (rulesOpen ? "" : " line-clamp-2")}>{info.rules}</span>
-        </button>
-      ) : null}
-
+      <nav className={styles.tabs} aria-label="Community sections"><a href="#community-discussion" aria-current="page">Discussions</a>{isMember ? <button onClick={openMembers}><Users size={16} aria-hidden />Members</button> : null}<a href="#community-about">About</a></nav>
+      <div className={styles.discussion}><section id="community-discussion" aria-label="Community discussions">
       {infoError ? <ErrorState title="Could not load this community" onRetry={() => void loadInfo()} /> : null}
       {!loading && !info && !infoError ? <p className="py-8 text-center text-sm text-muted">This community is unavailable.</p> : null}
       {loading ? (
@@ -398,7 +382,7 @@ export default function CommunityPage() {
               </div>
               {annOpen ? (
                 <div className="mt-2 flex gap-2">
-                  <input value={annDraft} onChange={e => setAnnDraft(e.target.value)} maxLength={2000} placeholder="What should everyone know?" onKeyDown={e => { if (e.key === "Enter") void postAnnouncement(); }}
+                  <input value={annDraft} onChange={e => setAnnDraft(e.target.value)} maxLength={2000} aria-label="Announcement" placeholder="What should everyone know?" onKeyDown={e => { if (e.key === "Enter") void postAnnouncement(); }}
                     className="w-full rounded-full bg-white px-4 py-2 text-[13.5px] text-ink outline-none placeholder:text-muted" />
                   <button onClick={postAnnouncement} disabled={!annDraft.trim()} className="rounded-full bg-ink px-4 text-[13px] font-semibold text-white disabled:opacity-30">Post</button>
                 </div>
@@ -454,7 +438,7 @@ export default function CommunityPage() {
               <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => { setFile(e.target.files?.[0] || null); e.target.value = ""; }} />
               <input value={draft} onChange={e => setDraft(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter") void submitPost(); }}
-                placeholder="Share with the community"
+                aria-label="Community post" placeholder="Share with the community"
                 className="w-full rounded-full bg-ink/5 px-4 py-2.5 text-[14px] text-ink outline-none placeholder:text-muted" />
               <button onClick={submitPost} disabled={(!draft.trim() && !file) || posting} className="rounded-full bg-ink p-2.5 text-white disabled:opacity-30" aria-label="Post"><Send size={15} /></button>
             </div>
@@ -490,14 +474,12 @@ export default function CommunityPage() {
         </div>
       )}
 
+      </section><aside id="community-about" className={styles.aside} aria-label="About this community"><section><h2>About this community</h2><p>{info?.description || 'A space for members to share and connect.'}</p><div className={styles.meta}><Users size={15} aria-hidden />{info ? `${info.member_count.toLocaleString()} members` : 'Community information unavailable'}</div>{info ? <div className={styles.meta}><Shield size={15} aria-hidden />{info.join_mode === 'invite' ? 'Invitation required' : info.join_mode === 'approval' ? 'Membership requires approval' : 'Open membership'}</div> : null}{catLabel ? <div className={styles.meta}>{catLabel}</div> : null}</section>{info?.rules ? <section><h2>Community rules</h2><p>{info.rules}</p></section> : null}{isMod ? <section><h2>Moderation</h2><p>Review membership and keep conversations welcoming. Actions are checked against your current community role.</p><button className={styles.button} onClick={openMembers} style={{ marginTop: 14 }}>Manage members</button></section> : null}</aside></div>
+
       {membersOpen ? (
-        <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/45 sm:items-center" onClick={() => setMembersOpen(false)}>
-          <div className="max-h-[82vh] w-full max-w-[440px] overflow-y-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
-            <div className="mb-2 flex items-center justify-between">
-              <p className="text-[15px] font-semibold text-ink">Members{isMod ? <button onClick={openBans} className="ml-3 text-[12.5px] font-semibold text-ink hover:underline">Blocked</button> : null}</p>
-              <button onClick={() => setMembersOpen(false)} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={16} /></button>
-            </div>
-            {members.map(m => (
+        <ProductDialog open title="Members" onClose={() => setMembersOpen(false)}>
+          {isMod ? <button onClick={openBans} className={styles.button} style={{ marginBottom: 16 }}>Blocked members</button> : null}
+{members.map(m => (
               <div key={m.user_id} className="flex items-center gap-2 py-1.5">
                 {m.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -522,18 +504,12 @@ export default function CommunityPage() {
               </div>
             ))}
             <SocialPageFooter {...membersPage} />
-          </div>
-        </div>
+        </ProductDialog>
       ) : null}
 
       {requestsOpen ? (
-        <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/45 sm:items-center" onClick={() => setRequestsOpen(false)}>
-          <div className="max-h-[82vh] w-full max-w-[440px] overflow-y-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
-            <div className="mb-2 flex items-center justify-between">
-              <p className="text-[15px] font-semibold text-ink">Join requests</p>
-              <button onClick={() => setRequestsOpen(false)} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={16} /></button>
-            </div>
-            {requests.length === 0 ? <p className="py-8 text-center text-sm text-muted">No pending requests.</p> : requests.map(r => (
+        <ProductDialog open title="Join requests" onClose={() => setRequestsOpen(false)}>
+          {requests.length === 0 ? <p className="py-8 text-center text-sm text-muted">No pending requests.</p> : requests.map(r => (
               <div key={r.user_id} className="flex items-center gap-2 py-1.5">
                 {r.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -548,24 +524,18 @@ export default function CommunityPage() {
               </div>
             ))}
             <SocialPageFooter {...requestsPage} />
-          </div>
-        </div>
+        </ProductDialog>
       ) : null}
 
       {inviteOpen ? (
-        <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/45 sm:items-center" onClick={() => setInviteOpen(false)}>
-          <div className="max-h-[82vh] w-full max-w-[440px] overflow-y-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
-            <div className="mb-2 flex items-center justify-between">
-              <p className="text-[15px] font-semibold text-ink">Invite people</p>
-              <button onClick={() => setInviteOpen(false)} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={16} /></button>
-            </div>
-            <p className="mb-2 text-[12.5px] text-ink/60">An invitation always admits, even when the community is invite only.</p>
+        <ProductDialog open title="Invite people" onClose={() => setInviteOpen(false)}>
+          <p className="mb-2 text-[12.5px] text-ink/60">An invitation always admits, even when the community is invite only.</p>
             <div className="mb-3 flex gap-2">
               <button onClick={() => copyInviteLink(false)} className="flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-[12.5px] font-semibold text-white"><Link2 size={13} /> Copy invite link</button>
               <button onClick={() => copyInviteLink(true)} className="rounded-full bg-ink/5 px-3.5 py-1.5 text-[12.5px] font-semibold text-ink/70 hover:text-ink">New link</button>
             </div>
             {linkNote ? <p className="mb-3 break-all rounded-lg bg-ink/5 px-3 py-2 text-[12px] text-ink/70">{linkNote}</p> : null}
-            <input value={inviteQ} onChange={e => setInviteQ(e.target.value)} placeholder="Search people" autoFocus
+            <input value={inviteQ} onChange={e => setInviteQ(e.target.value)} aria-label="Search people to invite" placeholder="Search people" autoFocus
               className="mb-2 w-full rounded-full bg-ink/5 px-4 py-2 text-[13.5px] text-ink outline-none placeholder:text-muted" />
             {inviteHits.filter(h => h.id !== me && !invites.some(i => i.user_id === h.id)).map(h => (
               <div key={h.id} className="flex items-center gap-2 py-1.5">
@@ -595,18 +565,12 @@ export default function CommunityPage() {
               </div>
             ))}
             <SocialPageFooter {...invitesPage} />
-          </div>
-        </div>
+        </ProductDialog>
       ) : null}
 
       {bansOpen ? (
-        <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/45 sm:items-center" onClick={() => setBansOpen(false)}>
-          <div className="max-h-[82vh] w-full max-w-[440px] overflow-y-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
-            <div className="mb-2 flex items-center justify-between">
-              <p className="text-[15px] font-semibold text-ink">Blocked from rejoining</p>
-              <button onClick={() => setBansOpen(false)} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={16} /></button>
-            </div>
-            {bans.length === 0 ? <p className="py-8 text-center text-sm text-muted">No one is blocked.</p> : bans.map(b => (
+        <ProductDialog open title="Blocked from rejoining" onClose={() => setBansOpen(false)}>
+          {bans.length === 0 ? <p className="py-8 text-center text-sm text-muted">No one is blocked.</p> : bans.map(b => (
               <div key={b.user_id} className="flex items-center gap-2 py-1.5">
                 {b.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -620,8 +584,7 @@ export default function CommunityPage() {
               </div>
             ))}
             <SocialPageFooter {...bansPage} />
-          </div>
-        </div>
+        </ProductDialog>
       ) : null}
 
       {settingsOpen && info ? (
@@ -634,109 +597,81 @@ export default function CommunityPage() {
 
 function CommunitySettings({ info, meId, onClose, onSaved }: { info: Info; meId: string | null; onClose: () => void; onSaved: () => void }) {
   const [supabase] = useState(createClient);
-  const [eName, setEName] = useState(info.name || "");
-  const [eDesc, setEDesc] = useState(info.description || "");
-  const [eRules, setERules] = useState(info.rules || "");
-  const [eMode, setEMode] = useState<string>(info.join_mode || "open");
-  const [eColor, setEColor] = useState(info.cover_color || "sky");
+  const [eName, setEName] = useState(info.name || '');
+  const [eDesc, setEDesc] = useState(info.description || '');
+  const [eRules, setERules] = useState(info.rules || '');
+  const [eMode, setEMode] = useState(info.join_mode || 'open');
+  const [eColor, setEColor] = useState(info.cover_color || 'sky');
   const [eCat, setECat] = useState<string | null>(info.category || null);
-  const [iconUrl, setIconUrl] = useState<string | null>(info.icon_url || null);
-  const [iconBusy, setIconBusy] = useState(false);
+  const [photo, setPhoto] = useState<{ file: File; path: string; url: string } | null>(null);
+  const [checking, setChecking] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
   const iconRef = useRef<HTMLInputElement | null>(null);
-
-  const onPickIcon = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file || !meId || iconBusy) return;
-    setIconBusy(true);
-    try {
-      const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace("jpeg", "jpg");
-      const path = meId + "/community_" + info.id + "_" + Date.now() + "." + ext;
-      const up = await supabase.storage.from("avatars").upload(path, file, { contentType: file.type || "image/jpeg" });
-      if (up.error) throw up.error;
-      const url = supabase.storage.from("avatars").getPublicUrl(path).data.publicUrl;
-      const { error } = await supabase.rpc("update_community_settings", { p_community: info.id, p_icon_url: url });
-      if (error) throw error;
-      setIconUrl(url);
-    } catch (err: any) { alert(err?.message || "Could not update the icon."); }
-    finally { setIconBusy(false); }
+  const live = useRef(false), locked = useRef(false), imageGeneration = useRef(0);
+  useEffect(() => { live.current = true; return () => { live.current = false; imageGeneration.current++; }; }, []);
+  useEffect(() => () => { if (photo) URL.revokeObjectURL(photo.url); }, [photo]);
+  const dirty = !!photo || eName !== (info.name || '') || eDesc !== (info.description || '') || eRules !== (info.rules || '') || eMode !== (info.join_mode || 'open') || eColor !== (info.cover_color || 'sky') || eCat !== (info.category || null);
+  const close = () => { if (!saving && !checking && (!dirty || window.confirm('Discard these unsaved community changes?'))) onClose(); };
+  const verifyOwner = async () => {
+    const { data, error: cause } = await withTimeout(supabase.auth.getUser());
+    if (!live.current || cause || !meId || data.user?.id !== meId) throw new Error('Your account changed. Reopen community settings before saving.');
   };
-
+  const onPickIcon = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]; event.target.value = '';
+    if (!file || !meId || locked.current) return;
+    const generation = ++imageGeneration.current; setChecking(true); setError('');
+    try {
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || !file.size || file.size > 10 * 1024 * 1024) throw new Error('Choose a JPG, PNG or WebP photo under 10 MB.');
+      const issue = await checkUploadableBytes(file); if (issue) throw new Error(issue);
+      if (!live.current || generation !== imageGeneration.current) return;
+      const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
+      setPhoto({ file, path: `${meId}/community_${info.id}_${crypto.randomUUID()}.${ext}`, url: URL.createObjectURL(file) });
+    } catch (cause) { if (live.current && generation === imageGeneration.current) setError(cause instanceof Error ? cause.message : 'This photo could not be opened.'); }
+    finally { if (live.current && generation === imageGeneration.current) setChecking(false); }
+  };
   const save = async () => {
-    if (saving || !eName.trim()) return;
-    setSaving(true);
+    if (locked.current || checking || !eName.trim() || !dirty) return;
+    locked.current = true; setSaving(true); setError('');
     try {
-      const { error } = await supabase.rpc("update_community_settings", {
-        p_community: info.id, p_name: eName.trim(), p_description: eDesc.trim() || null,
-        p_category: eCat, p_join_mode: eMode, p_cover_color: eColor, p_rules: eRules.trim() || null,
-      });
-      if (error) throw error;
-      onSaved();
-    } catch (err: any) { alert(err?.message || "Could not save."); }
-    finally { setSaving(false); }
+      await verifyOwner();
+      let iconUrl = info.icon_url;
+      if (photo) {
+        const result = await withTimeout(supabase.storage.from('avatars').upload(photo.path, photo.file, { contentType: photo.file.type, upsert: true }), 45000);
+        if (!live.current) return;
+        if (result.error) throw new Error('The community photo could not upload. Your changes are still here; try again.');
+        iconUrl = supabase.storage.from('avatars').getPublicUrl(photo.path).data.publicUrl;
+      }
+      await verifyOwner();
+      const { error: cause } = await withTimeout(supabase.rpc('update_community_settings', { p_community: info.id, p_name: eName.trim(), p_description: eDesc.trim() || null, p_category: eCat, p_join_mode: eMode, p_cover_color: eColor, p_rules: eRules.trim() || null, ...(photo ? { p_icon_url: iconUrl } : {}) }));
+      if (cause) throw new Error('Your changes could not be confirmed. Keep this window open and retry.');
+      if (live.current) onSaved();
+    } catch (cause) { if (live.current) setError(cause instanceof Error ? cause.message : 'Your changes could not be confirmed.'); }
+    finally { locked.current = false; if (live.current) setSaving(false); }
   };
-
-  return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/45 sm:items-center" onClick={onClose}>
-      <div className="max-h-[88vh] w-full max-w-[460px] overflow-y-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
-        <div className="mb-3 flex items-center justify-between">
-          <p className="text-[15px] font-semibold text-ink">Community settings</p>
-          <button onClick={onClose} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={16} /></button>
-        </div>
-        <div className="mb-4 flex flex-col items-center">
-          <button onClick={() => iconRef.current?.click()} className="relative" aria-label="Change the community icon">
-            {iconUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={iconUrl} alt="" className="h-[72px] w-[72px] rounded-2xl object-cover" />
-            ) : (
-              <span className="flex h-[72px] w-[72px] items-center justify-center rounded-2xl text-[#1F2937]" style={{ background: COMM_COLORS[eColor] || COMM_COLORS.sky }}><Users size={24} /></span>
-            )}
-            <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-ink text-white">
-              {iconBusy ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" /> : <Camera size={12} />}
-            </span>
-          </button>
-          <input ref={iconRef} type="file" accept="image/*" className="hidden" onChange={onPickIcon} />
-        </div>
-        <input value={eName} onChange={e => setEName(e.target.value)} maxLength={60}
-          className="mb-2 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none focus:border-ink/40" />
-        <input value={eDesc} onChange={e => setEDesc(e.target.value)} maxLength={200} placeholder="Description"
-          className="mb-3 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none focus:border-ink/40" />
-        <div className="mb-3 flex gap-2">
-          {(["open", "approval", "invite"] as const).map(k => (
-            <button key={k} onClick={() => setEMode(k)}
-              className={"flex-1 rounded-lg border px-2 py-2 text-[12.5px] font-semibold " + (eMode === k ? "border-ink bg-black/[0.03] text-ink" : "border-ink/10 text-ink/60")}>
-              {k === "open" ? "Open" : k === "approval" ? "Approval" : "Invite only"}
-            </button>
-          ))}
-        </div>
-        <div className="mb-3 flex flex-wrap gap-1.5">
-          {CATEGORIES.map(c => (
-            <button key={c.key} onClick={() => setECat(eCat === c.key ? null : c.key)}
-              className={"rounded-full border px-2.5 py-1 text-[12px] font-semibold " + (eCat === c.key ? "border-ink bg-ink text-white" : "border-ink/10 text-ink/60")}>
-              {c.label}
-            </button>
-          ))}
-        </div>
-        <div className="mb-3 flex flex-wrap gap-2">
-          {Object.entries(COMM_COLORS).map(([k, v]) => (
-            <button key={k} onClick={() => setEColor(k)} aria-label={k}
-              className={"h-8 w-8 rounded-full border-2 " + (eColor === k ? "border-ink" : "border-transparent")} style={{ background: v }} />
-          ))}
-        </div>
-        <textarea value={eRules} onChange={e => setERules(e.target.value)} maxLength={600} placeholder="Rules shown to people when they join"
-          className="mb-4 h-20 w-full rounded-lg border border-ink/15 px-3 py-2 text-[13.5px] text-ink outline-none focus:border-ink/40" />
-        <button onClick={save} disabled={!eName.trim() || saving}
-          className="w-full rounded-md bg-ink py-2.5 text-sm font-semibold text-white disabled:opacity-40">
-          {saving ? "Saving\u2026" : "Save changes"}
-        </button>
-        <button onClick={async () => {
-          if (!confirm("Delete this community? Members lose access, the posts stop showing and the chat closes. This cannot be undone.")) return;
-          const { error } = await supabase.rpc("delete_community", { p_community: info.id });
-          if (error) { alert(error.message); return; }
-          window.location.href = "/communities";
-        }} className="mt-3 w-full rounded-md border border-red-600 py-2.5 text-sm font-semibold text-danger hover:bg-red-50">Delete community</button>
-      </div>
-    </div>
-  );
+  const remove = async () => {
+    if (locked.current || checking || !window.confirm('Delete this community? Members lose access, the posts stop showing and the chat closes. This cannot be undone.')) return;
+    locked.current = true; setSaving(true); setError('');
+    try {
+      await verifyOwner();
+      const { error: cause } = await withTimeout(supabase.rpc('delete_community', { p_community: info.id }));
+      if (cause) throw new Error('Community deletion was not confirmed. Refresh before trying again.');
+      if (live.current) window.location.assign('/communities');
+    } catch (cause) { if (live.current) setError(cause instanceof Error ? cause.message : 'Community deletion was not confirmed.'); }
+    finally { locked.current = false; if (live.current) setSaving(false); }
+  };
+  return <ProductDialog open title="Community settings" description="Manage your community identity and membership. Changes are applied when you save." busy={saving || checking} onClose={close}>
+    <form className={styles.form} onSubmit={event => { event.preventDefault(); void save(); }}>
+      <div className="flex items-center gap-4"><button type="button" disabled={saving || checking} onClick={() => iconRef.current?.click()} className={styles.heroAvatar} aria-label="Change community photo">{photo?.url || info.icon_url ? <img src={photo?.url || info.icon_url!} alt="Community photo preview" className="h-full w-full rounded-2xl object-cover" /> : <Camera size={26} aria-hidden />}</button><div><strong className="text-sm">Community photo</strong><p className={styles.hint}>JPG, PNG or WebP · up to 10 MB.<br />Preview first, then save your changes.</p></div><input ref={iconRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={onPickIcon} className="sr-only" tabIndex={-1} aria-label="Community photo file" /></div>
+      <label>Community name<input autoFocus required disabled={saving || checking} value={eName} maxLength={60} onChange={event => setEName(event.target.value)} /></label>
+      <label>Description<textarea disabled={saving || checking} value={eDesc} maxLength={200} onChange={event => setEDesc(event.target.value)} /></label>
+      <label>Who can join<select disabled={saving || checking} value={eMode} onChange={event => setEMode(event.target.value)}><option value="open">Open to everyone</option><option value="approval">Approval required</option><option value="invite">Invite only</option></select></label>
+      <label>Category<select disabled={saving || checking} value={eCat ?? ''} onChange={event => setECat(event.target.value || null)}><option value="">No category</option>{CATEGORIES.map(category => <option key={category.key} value={category.key}>{category.label}</option>)}</select></label>
+      <fieldset disabled={saving || checking}><legend>Cover color</legend><div className={styles.colors}>{Object.entries(COMM_COLORS).map(([key, color]) => <button type="button" key={key} onClick={() => setEColor(key)} aria-label={`${key} cover`} aria-pressed={eColor === key} style={{ background: color }}>{eColor === key ? <Check size={18} aria-hidden /> : null}</button>)}</div></fieldset>
+      <label>Community rules<textarea disabled={saving || checking} value={eRules} onChange={event => setERules(event.target.value)} maxLength={600} /></label>
+      {error ? <p role="alert" className={styles.error}>{error}</p> : null}
+      <footer className={styles.footer}><button type="button" className={styles.button} disabled={saving || checking} onClick={close}>Cancel</button><button type="submit" className={styles.primary} disabled={saving || checking || !eName.trim() || !dirty}>{saving ? 'Saving…' : checking ? 'Checking photo…' : 'Save changes'}</button></footer>
+      <button type="button" disabled={saving || checking} className="min-h-11 rounded-lg border border-danger/40 px-4 text-sm text-danger disabled:opacity-50" onClick={() => void remove()}>Delete community</button>
+    </form>
+  </ProductDialog>;
 }

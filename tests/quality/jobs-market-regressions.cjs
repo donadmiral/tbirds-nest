@@ -251,7 +251,7 @@ function listingCardHarness(toggleSaved) {
   const code = ts.transpileModule(source, { compilerOptions: {
     target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX,
   } }).outputText;
-  const hooks = [];
+  const hooks = [], effects = [];
   let cursor = 0;
   const react = {
     useState(initial) {
@@ -264,12 +264,21 @@ function listingCardHarness(toggleSaved) {
       if (!(index in hooks)) hooks[index] = { current: initial };
       return hooks[index];
     },
+    useEffect(effect, deps) {
+      const index = cursor++;
+      if (!(index in hooks) || deps.some((value, i) => value !== hooks[index].deps[i])) {
+        hooks[index]?.cleanup?.(); hooks[index] = { deps };
+        effects.push(() => { hooks[index].cleanup = effect(); });
+      }
+    },
   };
   const imports = {
     react,
-    'react/jsx-runtime': { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) },
+    'react/jsx-runtime': { jsx: (type, props) => typeof type === 'function' ? type(props) : ({ type, props }), jsxs: (type, props) => typeof type === 'function' ? type(props) : ({ type, props }) },
     'next/link': { default: 'link' },
-    'lucide-react': { Heart: 'heart' },
+    'next/navigation': { useRouter: () => ({ push() {} }) },
+    'lucide-react': { Heart: 'heart', ImageIcon: 'image', MapPin: 'location', Truck: 'delivery' },
+    '@/app/market/MarketWorkspace.module.css': { default: new Proxy({}, { get: (_, key) => String(key) }) },
     '@/lib/market': { toggleSaved, priceLabel: () => '$10' },
     '@/components/RelativeTime': { RelativeTime: 'time' },
     '@/lib/media': { displayImageUrl: (url) => url },
@@ -288,10 +297,12 @@ function listingCardHarness(toggleSaved) {
   }
   return () => {
     cursor = 0;
-    return findButton(module.exports.ListingCard({
-      l: { id: 'listing', status: 'available', images: [], created_at: '2026-10-17', price: 10, currency: 'USD' },
+    const rendered = module.exports.ListingCard({
+      l: { id: 'listing', title: 'Fixture lamp', status: 'available', images: [], created_at: '2026-10-17', price: 10, currency: 'USD' },
       saved: false, viewerId: 'viewer',
-    }));
+    });
+    effects.splice(0).forEach(effect => effect());
+    return findButton(rendered);
   };
 }
 
@@ -300,9 +311,11 @@ test('listing card: failed unsave restores a previous successful save without a 
   const render = listingCardHarness(async () => { if (++calls === 2) throw new Error('offline'); });
   const click = { preventDefault() {}, stopPropagation() {} };
   await render().props.onClick(click);
-  assert.equal(render().props.title, 'Unsave');
+  assert.equal(render().props['aria-label'], 'Unsave Fixture lamp');
+  assert.equal(render().props['aria-pressed'], true);
   await render().props.onClick(click);
-  assert.equal(render().props.title, 'Unsave');
+  assert.equal(render().props['aria-label'], 'Unsave Fixture lamp');
+  assert.equal(render().props['aria-pressed'], true);
 });
 
 test('listing card: rapid repeated clicks send only one pending save', async () => {
@@ -315,5 +328,6 @@ test('listing card: rapid repeated clicks send only one pending save', async () 
   assert.equal(calls, 1);
   resolve();
   await Promise.all([first, second]);
-  assert.equal(render().props.title, 'Unsave');
+  assert.equal(render().props['aria-label'], 'Unsave Fixture lamp');
+  assert.equal(render().props['aria-pressed'], true);
 });

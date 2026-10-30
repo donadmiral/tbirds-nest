@@ -1,0 +1,854 @@
+{
+  "gate": "supabase-node",
+  "started_at": "2026-10-30T04:11:28.355586+00:00",
+  "completed_at": "2026-10-30T04:12:47.056095+00:00",
+  "strategy": "Exact CI glob inventory, one isolated Node process per test file, maximum concurrency 2; direct invocation preserves underlying test case and skip summaries hidden by local Node aggregate --test output",
+  "node_version": "v24.22.1",
+  "head": "32ee0a5373dd5ebcddae92ca5145f9bf7293c9c9",
+  "branch": "codex/app-quality-20261029",
+  "explicit_environment": {
+    "PGLITE_MODULE": "/workspace/scratch/d4753960f6a2/tbirds-nest/supabase/tests/rpc-authorization/node_modules/@electric-sql/pglite/dist/index.cjs",
+    "TRINITI_PGLITE_MODULE": "/workspace/scratch/d4753960f6a2/tbirds-nest/supabase/tests/rpc-authorization/node_modules/@electric-sql/pglite/dist/index.js"
+  },
+  "processes": {
+    "total": 28,
+    "passed": 28,
+    "failed": 0
+  },
+  "reported_case_totals": {
+    "tests": 296,
+    "pass": 293,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 3,
+    "todo": 0
+  },
+  "processes_without_case_summary": [],
+  "before_source_sha256": "319596a1b892015e32b1e80a6214fa3e5d250da36ea5b621a8730241edfdfca3",
+  "after_source_sha256": "319596a1b892015e32b1e80a6214fa3e5d250da36ea5b621a8730241edfdfca3",
+  "source_file_count": 621,
+  "source_changed_during_run": [],
+  "before_manifest": "/tmp/platinum-final-verification/supabase-node.before-source.json",
+  "after_manifest": "/tmp/platinum-final-verification/supabase-node.after-source.json",
+  "results": [
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/account-export-db.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:11:28.356958+00:00",
+      "completed_at": "2026-10-30T04:11:31.966015+00:00",
+      "duration_seconds": 3.609,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__account-export-db.test.cjs.log",
+      "log_sha256": "2ee7b2ec8c224c0a6f7b272f06455bcd6278bdc97d7b6f88a13ba96a659ab685",
+      "node_test_summaries": [
+        {
+          "tests": 6,
+          "suites": 0,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 3470.126574
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/admin-payment-reporting-db.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:11:28.357308+00:00",
+      "completed_at": "2026-10-30T04:11:30.951378+00:00",
+      "duration_seconds": 2.594,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__admin-payment-reporting-db.test.cjs.log",
+      "log_sha256": "f7c16d9a138115cba46c29d697214aea734961eeb01e29ca890c047193a4d3e7",
+      "node_test_summaries": [
+        {
+          "tests": 3,
+          "suites": 0,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 2422.569183
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/business-commerce-db.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:11:30.952440+00:00",
+      "completed_at": "2026-10-30T04:11:42.852367+00:00",
+      "duration_seconds": 11.9,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__business-commerce-db.test.cjs.log",
+      "log_sha256": "3896fae9db379f3019b463ea1002fd9183b1e4110ee8ead351d09b7627009303",
+      "node_test_summaries": [
+        {
+          "tests": 7,
+          "suites": 0,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 11760.371855
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/business-session.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:11:31.966448+00:00",
+      "completed_at": "2026-10-30T04:11:32.434167+00:00",
+      "duration_seconds": 0.468,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__business-session.test.cjs.log",
+      "log_sha256": "e7d7efe11b4eb75b82c90097323e7239d91ced30d48bbd0a9b18e6741e099012",
+      "node_test_summaries": [
+        {
+          "tests": 18,
+          "suites": 0,
+          "pass": 18,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 54.413095
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/chat-payment-recovery-db.test.mjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:11:32.434922+00:00",
+      "completed_at": "2026-10-30T04:11:34.681905+00:00",
+      "duration_seconds": 2.247,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__chat-payment-recovery-db.test.mjs.log",
+      "log_sha256": "91a98ecf562b0231adcfeb7b9d1e28048a5c6c4ad1a6ac745863536ccb5353ae",
+      "node_test_summaries": [
+        {
+          "tests": 11,
+          "suites": 0,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 2113.151017
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/chat-payment-recovery.test.ts"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:11:34.682301+00:00",
+      "completed_at": "2026-10-30T04:11:34.947759+00:00",
+      "duration_seconds": 0.265,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__chat-payment-recovery.test.ts.log",
+      "log_sha256": "328ed689e7ad77aa047cdf2d53aba40a5166560bff38c1eadd1ba031553fc479",
+      "node_test_summaries": [
+        {
+          "tests": 29,
+          "suites": 0,
+          "pass": 29,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 99.855925
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/client-diagnostics-db.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:11:34.948371+00:00",
+      "completed_at": "2026-10-30T04:11:37.240574+00:00",
+      "duration_seconds": 2.292,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__client-diagnostics-db.test.cjs.log",
+      "log_sha256": "0d8286596ee0d7a567761abc121f840923a4a7de861496528293edbc9fb35815",
+      "node_test_summaries": [
+        {
+          "tests": 5,
+          "suites": 0,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 2178.11698
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/content-media-db.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:11:37.240961+00:00",
+      "completed_at": "2026-10-30T04:11:39.972951+00:00",
+      "duration_seconds": 2.732,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__content-media-db.test.cjs.log",
+      "log_sha256": "55bc7d11410f6f01c16c6d6745fb54b40dec26181b1355e03aa34b5b043568b3",
+      "node_test_summaries": [
+        {
+          "tests": 17,
+          "suites": 0,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 2,
+          "todo": 0,
+          "duration_ms": 2614.055405
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": [
+        "\ufe63 book signing uses the reader permission for explicit custom access and inactive accounts (0.147231ms) # SKIP",
+        "\ufe63 visual-only manifests do not bind or sign separate audio, and install no soundtrack authorization (0.132099ms) # SKIP"
+      ]
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/creator-commerce.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:11:39.973616+00:00",
+      "completed_at": "2026-10-30T04:11:55.935338+00:00",
+      "duration_seconds": 15.962,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__creator-commerce.test.cjs.log",
+      "log_sha256": "67db6ebbb435f4b9e011f286e0d75206e38493e64f119db57db55e13bdb0b41c",
+      "node_test_summaries": [
+        {
+          "tests": 9,
+          "suites": 0,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 15768.600892
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/creator-finance-operations.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:11:42.852792+00:00",
+      "completed_at": "2026-10-30T04:12:02.405141+00:00",
+      "duration_seconds": 19.552,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__creator-finance-operations.test.cjs.log",
+      "log_sha256": "1f1a08df34ddd170c94b241b94d24c2e87a19f00e15a7e090b10a8c448fcd637",
+      "node_test_summaries": [
+        {
+          "tests": 11,
+          "suites": 0,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 19406.501991
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/creator-monetization-db.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:11:55.935950+00:00",
+      "completed_at": "2026-10-30T04:12:12.751874+00:00",
+      "duration_seconds": 16.816,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__creator-monetization-db.test.cjs.log",
+      "log_sha256": "7dde032101798947a02ff35108b159c3b5d946d6c412fe10806100f219573846",
+      "node_test_summaries": [
+        {
+          "tests": 10,
+          "suites": 0,
+          "pass": 10,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 16653.092286
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/discover-media-projections.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:12:02.405510+00:00",
+      "completed_at": "2026-10-30T04:12:06.856099+00:00",
+      "duration_seconds": 4.451,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__discover-media-projections.test.cjs.log",
+      "log_sha256": "487771ef2976eb388edb3b13c3e445d181fa3c36f3ff694d1a6b8b1fa0224114",
+      "node_test_summaries": [
+        {
+          "tests": 6,
+          "suites": 0,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 4305.695074
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/faststart-provenance-db.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:12:06.856471+00:00",
+      "completed_at": "2026-10-30T04:12:09.495597+00:00",
+      "duration_seconds": 2.639,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__faststart-provenance-db.test.cjs.log",
+      "log_sha256": "9a97a4bd97847f8c2938bc45d12f92942e092c5d32b1966e22036fc8996a2e58",
+      "node_test_summaries": [
+        {
+          "tests": 11,
+          "suites": 0,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 2468.327688
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/feed-visibility-db.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:12:09.496039+00:00",
+      "completed_at": "2026-10-30T04:12:11.732127+00:00",
+      "duration_seconds": 2.236,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__feed-visibility-db.test.cjs.log",
+      "log_sha256": "e0136952550c5d9d96cd0d1c73204c5bbeb6c3a52d6f826c7813052cb3aa9c65",
+      "node_test_summaries": [
+        {
+          "tests": 9,
+          "suites": 0,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 2083.156569
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/marketplace-orders-db.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:12:11.732457+00:00",
+      "completed_at": "2026-10-30T04:12:24.339115+00:00",
+      "duration_seconds": 12.607,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__marketplace-orders-db.test.cjs.log",
+      "log_sha256": "35c5d7952f1ba1f6c2d5190708815325278627e00ecb4a7422be798b10e49526",
+      "node_test_summaries": [
+        {
+          "tests": 7,
+          "suites": 0,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 12418.754659
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/marketplace-reviews-db.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:12:12.752218+00:00",
+      "completed_at": "2026-10-30T04:12:31.118101+00:00",
+      "duration_seconds": 18.366,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__marketplace-reviews-db.test.cjs.log",
+      "log_sha256": "7a56447cc4e161c18c62dac303f943e3218c83c972d9ea4a15f851097ea404ae",
+      "node_test_summaries": [
+        {
+          "tests": 10,
+          "suites": 0,
+          "pass": 10,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 18190.182629
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/memory-book-quality-db.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:12:24.339446+00:00",
+      "completed_at": "2026-10-30T04:12:27.285800+00:00",
+      "duration_seconds": 2.946,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__memory-book-quality-db.test.cjs.log",
+      "log_sha256": "927da9708f6aed523437ca6a028e2c0aef52ff9a2fd3920e109f040362ff595d",
+      "node_test_summaries": [
+        {
+          "tests": 17,
+          "suites": 0,
+          "pass": 17,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 2787.598716
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/private-media-credential-db.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:12:27.286235+00:00",
+      "completed_at": "2026-10-30T04:12:30.111994+00:00",
+      "duration_seconds": 2.826,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__private-media-credential-db.test.cjs.log",
+      "log_sha256": "482d64e74a13640f08b4abe5c96ae98df83914363f618392fdb1933ea03b3bf2",
+      "node_test_summaries": [
+        {
+          "tests": 1,
+          "suites": 0,
+          "pass": 1,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 2672.798572
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/private-media-session-db.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:12:30.112294+00:00",
+      "completed_at": "2026-10-30T04:12:33.557843+00:00",
+      "duration_seconds": 3.446,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__private-media-session-db.test.cjs.log",
+      "log_sha256": "9ec46bece9dee31e709272fd13cfd88e13935ef80284906ec0923f8114ffb632",
+      "node_test_summaries": [
+        {
+          "tests": 16,
+          "suites": 0,
+          "pass": 16,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 3305.006787
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/single-owner-admin-db.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:12:31.118586+00:00",
+      "completed_at": "2026-10-30T04:12:35.879806+00:00",
+      "duration_seconds": 4.761,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__single-owner-admin-db.test.cjs.log",
+      "log_sha256": "6bc17020f5f03f01990fba7b02240de4c0f5057bf5f1305386fe7daedffec825",
+      "node_test_summaries": [
+        {
+          "tests": 9,
+          "suites": 0,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 4594.048925
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/social-read-pages.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:12:33.558177+00:00",
+      "completed_at": "2026-10-30T04:12:36.414608+00:00",
+      "duration_seconds": 2.856,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__social-read-pages.test.cjs.log",
+      "log_sha256": "d04f6bbae772d4cb5c71a8a7d9783effef8205b12a11e2e075771a91ff057916",
+      "node_test_summaries": [
+        {
+          "tests": 9,
+          "suites": 0,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 2728.736833
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/soundtrack-rights-db.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:12:35.880117+00:00",
+      "completed_at": "2026-10-30T04:12:38.630008+00:00",
+      "duration_seconds": 2.75,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__soundtrack-rights-db.test.cjs.log",
+      "log_sha256": "cd6e778aee0a0bdd250e77042e8c0ae7e1ceeff1fd8717e87f50ad124aac524d",
+      "node_test_summaries": [
+        {
+          "tests": 17,
+          "suites": 0,
+          "pass": 17,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 2577.853096
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/storage-bootstrap-db.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:12:36.414921+00:00",
+      "completed_at": "2026-10-30T04:12:39.050110+00:00",
+      "duration_seconds": 2.635,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__storage-bootstrap-db.test.cjs.log",
+      "log_sha256": "176e304e8ca806dc833e6339bc9ca71b1ab87479a7e70eb83811e0b852747bae",
+      "node_test_summaries": [
+        {
+          "tests": 6,
+          "suites": 0,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 2436.409999
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/story-mention-reshare-db.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:12:38.630367+00:00",
+      "completed_at": "2026-10-30T04:12:41.925787+00:00",
+      "duration_seconds": 3.295,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__story-mention-reshare-db.test.cjs.log",
+      "log_sha256": "905f9509b0971e9cf629ffa660d5d9962b00349c743b8b7677077c7f7fd56106",
+      "node_test_summaries": [
+        {
+          "tests": 33,
+          "suites": 0,
+          "pass": 32,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 1,
+          "todo": 0,
+          "duration_ms": 3111.00074
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": [
+        "\ufe63 visual-only publisher works without audio infrastructure, rejects added sound, and preserves recorded video controls (0.098739ms) # SKIP"
+      ]
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/story-publication-db.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:12:39.050484+00:00",
+      "completed_at": "2026-10-30T04:12:41.465618+00:00",
+      "duration_seconds": 2.415,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__story-publication-db.test.cjs.log",
+      "log_sha256": "fa9a952ef9257edf84b25c3fdf32bf53379d8e6f875429670b36acf8e7c6025d",
+      "node_test_summaries": [
+        {
+          "tests": 4,
+          "suites": 0,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 2281.307574
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/story-soundtrack-db.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:12:41.465921+00:00",
+      "completed_at": "2026-10-30T04:12:44.520686+00:00",
+      "duration_seconds": 3.055,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__story-soundtrack-db.test.cjs.log",
+      "log_sha256": "bebf42a089222e527a75752ce9037cc63084220c1c1dfbd03c671abaa105dbcc",
+      "node_test_summaries": [
+        {
+          "tests": 6,
+          "suites": 0,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 2875.154997
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/support-triage-db.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:12:41.926313+00:00",
+      "completed_at": "2026-10-30T04:12:44.731855+00:00",
+      "duration_seconds": 2.806,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__support-triage-db.test.cjs.log",
+      "log_sha256": "df6b7dfee19e3c3b9d7eb251fc1049dced9d2dfb76148ee43aec0c154ade720f",
+      "node_test_summaries": [
+        {
+          "tests": 3,
+          "suites": 0,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 2639.921366
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "--experimental-strip-types",
+        "supabase/tests/trending-story-visibility-db.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:12:44.520977+00:00",
+      "completed_at": "2026-10-30T04:12:47.003237+00:00",
+      "duration_seconds": 2.482,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/supabase-node__supabase__tests__trending-story-visibility-db.test.cjs.log",
+      "log_sha256": "b78454a69e72b061582470849751d58c19eea40f8fe0cf2f340167307ab14a82",
+      "node_test_summaries": [
+        {
+          "tests": 6,
+          "suites": 0,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 2293.301435
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    }
+  ],
+  "saved_before_manifest": "manifests/source-319596a1b892015e32b1e80a6214fa3e5d250da36ea5b621a8730241edfdfca3.json",
+  "saved_after_manifest": "manifests/source-319596a1b892015e32b1e80a6214fa3e5d250da36ea5b621a8730241edfdfca3.json"
+}

@@ -442,3 +442,8 @@ verify_jwt = false
 # service-created preview-image token and never accepts an arbitrary image URL.
 [functions.link-preview]
 verify_jwt = false
+[functions.business-signin]
+verify_jwt = false
+
+[functions.business-owner-access]
+verify_jwt = false
