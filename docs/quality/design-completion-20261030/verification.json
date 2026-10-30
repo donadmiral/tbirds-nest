@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "recorded_at": "2026-10-30T04:37:56.860837+00:00",
+  "recorded_at": "2026-10-30T04:51:23.012679+00:00",
   "status": "passed_final_local_gates_with_explicit_feature_variant_skips",
   "repository": "/workspace/scratch/d4753960f6a2/tbirds-nest",
   "branch": "codex/app-quality-20261029",
@@ -195,7 +195,7 @@
     {
       "gate": "supabase-node",
       "receipt": "gates/supabase-node.json",
-      "receipt_sha256": "0a0500fbf64a5fbc1358c8ca1a3f3cc8480a92485ee485e2288ad9990a3d85df",
+      "receipt_sha256": "3360a550c7ec3aca79b1a5d74d9ecf92227048a4206281bce49ac538f03fea83",
       "started_at": "2026-10-30T04:11:28.355586+00:00",
       "completed_at": "2026-10-30T04:12:47.056095+00:00",
       "processes": {
@@ -215,7 +215,8 @@
       "source_file_count": 621,
       "before_source_sha256": "319596a1b892015e32b1e80a6214fa3e5d250da36ea5b621a8730241edfdfca3",
       "after_source_sha256": "319596a1b892015e32b1e80a6214fa3e5d250da36ea5b621a8730241edfdfca3",
-      "source_changed_during_run": []
+      "source_changed_during_run": [],
+      "later_source_delta_receipt": "docs/quality/studio-workflows-20261030/business-auth-edge-delta.json"
     }
   ],
   "skipped_cases": [
@@ -312,6 +313,10 @@
     {
       "path": "docs/quality/business-session-clients-20261030/receipt.json",
       "sha256": "b02ad617f9e6159577615935ec2e877fc8475c011e54373d6839c06bebc417c8"
+    },
+    {
+      "path": "docs/quality/studio-workflows-20261030/business-auth-edge-delta.json",
+      "sha256": "0bc60a8b18a1a7a2c4c51c50d5f095c9be9f9de9a4a34f8aa1ef5982ee64b8e4"
     }
   ],
   "whitespace_check": {
@@ -330,7 +335,8 @@
     "The full RPC npm test is unmodified. Its667 executions comprise550 Node test cases and117 explicitly reported custom checks. Migration unit counts and the successful uncounted postflight program are not inflated into case counts.",
     "The full web inventory has54 successful programs:52 report 607 total test cases;2 legacy Studio programs pass without reporting an individual case count.",
     "Strict ESLint is not included as a clean gate. Scoped lint findings and baseline comparisons are documented in each lane report.",
-    "The admin inventory has 20 successful programs:19 report 155 registered Node cases; the remaining payment-reporting program explicitly reports 13 passed assertions, recorded separately."
+    "The admin inventory has 20 successful programs:19 report 155 registered Node cases; the remaining payment-reporting program explicitly reports 13 passed assertions, recorded separately.",
+    "The 296-case full Supabase Node run is preserved at its earlier source snapshot. Final Edge changes have a separate 21-case targeted run and 8-entrypoint Deno check; the 21 overlap earlier cases and are not added to 296 as distinct tests."
   ],
   "limits": [
     "All automated execution here is local with synthetic fixtures. These receipts do not establish real hosted/provider/production or physical-device acceptance.",
@@ -356,5 +362,56 @@
     "database_gate_retest_required": false,
     "database_reason": "These client transport/navigation modules and client tests are not imported or executed by the frozen SQL/Edge regression suites."
   },
-  "baseline_before_transport_receipt": "verification-before-auth-transport.json"
+  "baseline_before_transport_receipt": "verification-before-auth-transport.json",
+  "final_edge_delta_validation": {
+    "receipt": "docs/quality/studio-workflows-20261030/business-auth-edge-delta.json",
+    "receipt_sha256": "0bc60a8b18a1a7a2c4c51c50d5f095c9be9f9de9a4a34f8aa1ef5982ee64b8e4",
+    "source_commit": "b7a37a7a1e271e1ec037798a39772e151fbcc318",
+    "full_node_gate": "gates/supabase-node.json",
+    "full_node_gate_cases": {
+      "registered": 296,
+      "passed": 293,
+      "skipped": 3,
+      "failed": 0
+    },
+    "full_node_gate_business_session_cases": 18,
+    "targeted_final_node": {
+      "command": "node supabase/tests/business-session.test.cjs",
+      "exit_code": 0,
+      "registered": 21,
+      "passed": 21,
+      "failed": 0,
+      "skipped": 0,
+      "log": "docs/quality/studio-workflows-20261030/business-auth-edge-delta-tests.txt",
+      "log_sha256": "9682c2cb43788f5e026808ba4d83b59471a770617f2d1cfd3129a09c1afcc0c9",
+      "original_log_path": "/tmp/business-session-edge-tests.log"
+    },
+    "deno_typecheck": {
+      "entrypoints": 8,
+      "exit_code": 0,
+      "provenance": "Observed completed exec_command tool result (chunk 258c86, exit_code 0, wall_time_seconds 0.508805468) after the bounded-fetch initSignal type fix. The output was retained in the conversation and is transcribed here; no standalone original Deno log was saved. No typecheck was rerun for this documentation update."
+    },
+    "delta_source_sha256": {
+      "supabase/functions/_shared/serveBusinessRequest.ts": "3844186f8839915178b129481c649ca975417228e086fe494f53b4ad9facefed",
+      "supabase/functions/business-session/runtime.ts": "e80f5b829184acc0dc2071a507c298f6418b64d53e75b37996b1c8ac733dacf9",
+      "supabase/tests/business-session.test.cjs": "c58ea611b1b9ce45426d3e48ae473b003014eeab6137874178556a4a5c9950ac",
+      "supabase/functions/_shared/boundedFetch.ts": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147"
+    },
+    "interpretation": "The earlier full Node gate predates these four source paths. The final 21-case targeted run overlaps the earlier 18 business-session cases and adds 3 deadline/cancellation cases; do not sum 296 and 21 as unique cases or describe the earlier full run as covering the later source. SQL is unchanged. No unrelated local gate was repeated for this documentation correction."
+  },
+  "published_evidence_follow_up": {
+    "source_commit": "b7a37a7a1e271e1ec037798a39772e151fbcc318",
+    "source_tree": "82d5e6c1fc437746459703f9578b72cf1627d098",
+    "scope": "Reports and receipts only; original local timing, counts, manifests and limits remain unchanged.",
+    "evidence": [
+      {
+        "path": "docs/quality/design-completion-20261030/hosted-ci-b7a37a7.json",
+        "sha256": "b42d8f9d9f876cd99c8e7087a8b8b331196f57282cada86f3337096acca32231"
+      },
+      {
+        "path": "docs/quality/design-completion-20261030/live-qa-walkthrough.json",
+        "sha256": "cb7a4cb4bdbbea2e5232482e4f52d000f3d7a8f0d06dbb1978cbda1ba705f68e"
+      }
+    ]
+  }
 }

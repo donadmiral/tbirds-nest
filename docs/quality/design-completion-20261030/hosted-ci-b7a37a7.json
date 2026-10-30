@@ -1,0 +1,91 @@
+{
+  "observed_at": "2026-10-30 05:04:07 UTC",
+  "repository": "donadmiral/tbirds-nest",
+  "head_sha": "b7a37a7a1e271e1ec037798a39772e151fbcc318",
+  "workflows": [
+    {
+      "id": 41004627684,
+      "name": "Browser interaction and video gates",
+      "head_sha": "b7a37a7a1e271e1ec037798a39772e151fbcc318",
+      "status": "completed",
+      "conclusion": "success",
+      "event": "pull_request",
+      "html_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41004627684",
+      "created_at": "2026-10-30T04:45:11Z",
+      "updated_at": "2026-10-30T04:49:19Z",
+      "jobs": [
+        {
+          "id": 123896608945,
+          "name": "Connected app, Studio, admin and encoded movies",
+          "status": "completed",
+          "conclusion": "success",
+          "current_steps": []
+        }
+      ]
+    },
+    {
+      "id": 41004627752,
+      "name": "Type and quality gates",
+      "head_sha": "b7a37a7a1e271e1ec037798a39772e151fbcc318",
+      "status": "completed",
+      "conclusion": "success",
+      "event": "pull_request",
+      "html_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41004627752",
+      "created_at": "2026-10-30T04:45:11Z",
+      "updated_at": "2026-10-30T04:51:55Z",
+      "jobs": [
+        {
+          "id": 123896608814,
+          "name": "Operations app",
+          "status": "completed",
+          "conclusion": "success",
+          "current_steps": []
+        },
+        {
+          "id": 123896608908,
+          "name": "Phone app",
+          "status": "completed",
+          "conclusion": "success",
+          "current_steps": []
+        },
+        {
+          "id": 123896608991,
+          "name": "Link preview Edge TLS",
+          "status": "completed",
+          "conclusion": "success",
+          "current_steps": []
+        },
+        {
+          "id": 123896608995,
+          "name": "Web app",
+          "status": "completed",
+          "conclusion": "success",
+          "current_steps": []
+        }
+      ]
+    },
+    {
+      "id": 41004627751,
+      "name": "iOS native compile",
+      "head_sha": "b7a37a7a1e271e1ec037798a39772e151fbcc318",
+      "status": "completed",
+      "conclusion": "success",
+      "event": "pull_request",
+      "html_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41004627751",
+      "created_at": "2026-10-30T04:45:11Z",
+      "updated_at": "2026-10-30T05:02:56Z",
+      "jobs": [
+        {
+          "id": 123896608851,
+          "name": "Compile Swift and native integration",
+          "status": "completed",
+          "conclusion": "success",
+          "current_steps": []
+        }
+      ]
+    }
+  ],
+  "all_passed": true,
+  "scope": "GitHub Actions results on the published source commit. The iOS job compiles an unsigned Simulator target; this does not establish installed-device or TestFlight acceptance."
+}
+

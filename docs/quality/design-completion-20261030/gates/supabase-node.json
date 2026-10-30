@@ -850,5 +850,41 @@
     }
   ],
   "saved_before_manifest": "manifests/source-319596a1b892015e32b1e80a6214fa3e5d250da36ea5b621a8730241edfdfca3.json",
-  "saved_after_manifest": "manifests/source-319596a1b892015e32b1e80a6214fa3e5d250da36ea5b621a8730241edfdfca3.json"
+  "saved_after_manifest": "manifests/source-319596a1b892015e32b1e80a6214fa3e5d250da36ea5b621a8730241edfdfca3.json",
+  "later_validated_edge_delta": {
+    "receipt": "docs/quality/studio-workflows-20261030/business-auth-edge-delta.json",
+    "receipt_sha256": "0bc60a8b18a1a7a2c4c51c50d5f095c9be9f9de9a4a34f8aa1ef5982ee64b8e4",
+    "source_commit": "b7a37a7a1e271e1ec037798a39772e151fbcc318",
+    "full_node_gate": "gates/supabase-node.json",
+    "full_node_gate_cases": {
+      "registered": 296,
+      "passed": 293,
+      "skipped": 3,
+      "failed": 0
+    },
+    "full_node_gate_business_session_cases": 18,
+    "targeted_final_node": {
+      "command": "node supabase/tests/business-session.test.cjs",
+      "exit_code": 0,
+      "registered": 21,
+      "passed": 21,
+      "failed": 0,
+      "skipped": 0,
+      "log": "docs/quality/studio-workflows-20261030/business-auth-edge-delta-tests.txt",
+      "log_sha256": "9682c2cb43788f5e026808ba4d83b59471a770617f2d1cfd3129a09c1afcc0c9",
+      "original_log_path": "/tmp/business-session-edge-tests.log"
+    },
+    "deno_typecheck": {
+      "entrypoints": 8,
+      "exit_code": 0,
+      "provenance": "Observed completed exec_command tool result (chunk 258c86, exit_code 0, wall_time_seconds 0.508805468) after the bounded-fetch initSignal type fix. The output was retained in the conversation and is transcribed here; no standalone original Deno log was saved. No typecheck was rerun for this documentation update."
+    },
+    "delta_source_sha256": {
+      "supabase/functions/_shared/serveBusinessRequest.ts": "3844186f8839915178b129481c649ca975417228e086fe494f53b4ad9facefed",
+      "supabase/functions/business-session/runtime.ts": "e80f5b829184acc0dc2071a507c298f6418b64d53e75b37996b1c8ac733dacf9",
+      "supabase/tests/business-session.test.cjs": "c58ea611b1b9ce45426d3e48ae473b003014eeab6137874178556a4a5c9950ac",
+      "supabase/functions/_shared/boundedFetch.ts": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147"
+    },
+    "interpretation": "The earlier full Node gate predates these four source paths. The final 21-case targeted run overlaps the earlier 18 business-session cases and adds 3 deadline/cancellation cases; do not sum 296 and 21 as unique cases or describe the earlier full run as covering the later source. SQL is unchanged. No unrelated local gate was repeated for this documentation correction."
+  }
 }

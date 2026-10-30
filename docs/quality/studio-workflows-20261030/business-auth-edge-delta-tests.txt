@@ -1,0 +1,29 @@
+✔ code sign-in exchanges on the server and only returns a refresh-capable bound session (6.408817ms)
+✔ owner launch uses provider-verified personal user and session, never supplied identity claims (1.163179ms)
+✔ owner bootstrap is a reviewable 409 and does not create or exchange an Auth token (0.868235ms)
+✔ owner launch requires exactly one application or business and a verified personal JWT (1.545974ms)
+✔ device approval, blocked device, inactive credentials and rate limits stop before provider issuance (1.738213ms)
+✔ missing or forged device storage is rejected before server access (0.661605ms)
+✔ provider identity mismatch cannot exchange a different account (0.418669ms)
+✔ grant, provider and network errors return a generic failure without credentials or database details (1.196049ms)
+✔ finish failure revokes the issued session using independent SQL and Auth cleanup (0.629917ms)
+✔ an ambiguous finish response cannot return another seat and is cleaned up (0.587434ms)
+✔ unverifiable issued claims are revoked and never sent to the client (0.501233ms)
+✔ abort after exchange revokes the issued session and prevents installation (0.755335ms)
+✔ abort during finish still revokes a possibly committed business session (0.493472ms)
+✔ Auth revocation is attempted when SQL cleanup fails (0.608385ms)
+✔ preflight and unsupported HTTP methods never touch provider state (0.416977ms)
+✔ a revoked business JWT cannot reach a privileged service/provider handler even when getUser would accept it (0.625421ms)
+✔ the Edge guard preserves authorized personal/member requests and explicit public image/OPTIONS paths (0.567092ms)
+✔ every direct user-to-provider/service entrypoint installs the guard, while worker credentials stay separate (0.476366ms)
+✔ business network operations have a deadline even if the browser stays connected (5.984028ms)
+✔ network deadline preserves SDK, Request and outer cancellation signals (0.507303ms)
+✔ compensating Auth revocation keeps its own bounded fetch after request cancellation (0.339311ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 42.301467
