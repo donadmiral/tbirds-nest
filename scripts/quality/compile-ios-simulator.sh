@@ -15,8 +15,11 @@ if [[ "${EXPO_PUBLIC_APP_ENV:-}" != qa ]]; then
   printf '%s\n' 'This compile gate requires the isolated QA app configuration.' >&2
   exit 2
 fi
-native_arch="$(uname -m)"
-case "$native_arch" in arm64|x86_64) ;; *) exit 2 ;; esac
+# The locked face-detection/MLKit pods exclude arm64 for the simulator. Xcode
+# can cross-compile x86_64 on an Apple Silicon runner without running Rosetta.
+# Do not use the host architecture: that leaves the app target with no valid
+# architectures while other source pods still compile, weakening this gate.
+native_arch=x86_64
 
 mkdir -p native-compile-logs
 {
@@ -47,7 +50,7 @@ xcodebuild \
 
 python3 - <<'PY'
 from pathlib import Path
-import hashlib, json, os
+import hashlib, json, os, subprocess
 sources = [Path('modules/boomerang/ios') / name for name in (
     'BoomerangModule.swift', 'StoryVideoView.swift', 'StoryVideoComposition.swift')]
 objects = {}
@@ -59,11 +62,17 @@ for source in sources:
         'sha256': hashlib.sha256(source.read_bytes()).hexdigest(),
         'compiled_objects': [str(path) for path in matches],
     }
+executable = Path('native-compile-derived/Build/Products/Debug-iphonesimulator/PlatinumQA.app/PlatinumQA')
+if not executable.is_file() or executable.stat().st_size == 0:
+    raise SystemExit('The required unsigned simulator app executable was not linked.')
+subprocess.run(['xcrun', 'lipo', '-verify_arch', 'x86_64', str(executable)], check=True)
 receipt = {
     'commit': os.environ.get('GITHUB_SHA'),
     'workflow_run': os.environ.get('GITHUB_RUN_ID'),
     'result': 'unsigned iOS Simulator compile passed',
     'native_sources': objects,
+    'simulator_architecture': 'x86_64',
+    'app_executable_linked': True,
     'device_or_provider_acceptance': False,
     'archive_or_ipa_created': False,
     'app_uploaded_or_submitted': False,

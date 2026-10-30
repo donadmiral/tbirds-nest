@@ -83,7 +83,7 @@ enum StoryVideoComposition {
     if volume > 0, let audio = try await asset.loadTracks(withMediaType: .audio).first,
        let audioTrack = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid) {
       // Intersect with the actual audio track; silent lead/trail remains silent.
-      let audioRange = CMTimeRangeGetIntersection(timeRange, try await audio.load(.timeRange))
+      let audioRange = CMTimeRangeGetIntersection(timeRange, otherRange: try await audio.load(.timeRange))
       if !audioRange.isEmpty && audioRange.duration.seconds > 0 {
         let offset = CMTimeSubtract(audioRange.start, timeRange.start)
         try audioTrack.insertTimeRange(audioRange, of: audio, at: offset)
@@ -113,10 +113,12 @@ enum StoryVideoComposition {
       let source = request.sourceImage
       let w = source.extent.width, h = source.extent.height
       guard w > 0, h > 0 else { request.finish(with: StoryVideoError.invalid("The video frame is empty.")); return }
-      let ratio = (fit ? max(rect.width/w, rect.height/h) : min(rect.width/w, rect.height/h)) * scale
+      let ratio: CGFloat = (fit ? max(rect.width/w, rect.height/h) : min(rect.width/w, rect.height/h)) * CGFloat(scale)
+      let translationX: CGFloat = (rect.width - w * ratio) / 2 + CGFloat(x) * rect.width
+      let translationY: CGFloat = (rect.height - h * ratio) / 2 - CGFloat(y) * rect.height
       var frame = StoryVideoPixels.matrix(source, matrix).transformed(by: CGAffineTransform(translationX: -source.extent.minX, y: -source.extent.minY))
         .transformed(by: CGAffineTransform(scaleX: ratio, y: ratio))
-        .transformed(by: CGAffineTransform(translationX: (rect.width-w*ratio)/2+x*rect.width, y: (rect.height-h*ratio)/2-y*rect.height))
+        .transformed(by: CGAffineTransform(translationX: translationX, y: translationY))
       frame = frame.composited(over: background).cropped(to: rect)
       let time = request.compositionTime.seconds
       for layer in layers where time >= layer.start && time < layer.end { frame = layer.image.composited(over: frame) }
