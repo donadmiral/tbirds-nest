@@ -18,7 +18,55 @@
     "newFinding": {
       "name": "Escape from full-screen media closed its parent record and lost focus",
       "sourceFix": "Preserve inline preview/trigger, stop dialog Escape propagation and ignore nested-dialog Escape in parent desk",
-      "status": "Source and component regression passed; final hosted browser verification pending"
+      "status": "Fixed; component regression, hosted browser gate and authenticated live QA passed"
+    },
+    "latestVerifiedRuntimeCommit": "b4af1f5f7f66c98437474cf8354638eaec6adb2d",
+    "stableOrigin": "https://admin-web-git-codex-app-quality-20261029-intobank.vercel.app",
+    "protectedPreview": true,
+    "finalPhotoWalkthrough": {
+      "recordedAt": "2026-10-30T19:24:14.904541+00:00",
+      "result": "passed",
+      "postId": "dd607e75-0383-4f75-9301-c2f96aa8ae7d",
+      "verifiedUrl": "https://admin-web-git-codex-app-quality-20261029-intobank.vercel.app/content/dd607e75-0383-4f75-9301-c2f96aa8ae7d",
+      "checks": [
+        "Signed-in staff Content desk loaded actual QA data",
+        "Open photo in full screen decoded 1080x1920 source",
+        "Escape closed only the media dialog and retained Post details",
+        "Keyboard focus returned to the Open photo in full screen trigger",
+        "Open post reached protected Post review with original everyone audience and institution scope",
+        "Image decoded on protected Post review; author, caption, conversation and reports loaded",
+        "Back to Content returned to Posts with selected record present"
+      ],
+      "sideEffects": "Read-only data review; no public access, moderation mutation or publication"
+    },
+    "latestRuntimeOtherChecks": [
+      {
+        "name": "Original music admin",
+        "result": "controlled_unavailable",
+        "observations": [
+          "Missing QA music backend reported explicitly",
+          "Retry preserved unavailable state rather than fabricated library data"
+        ]
+      },
+      {
+        "name": "Creator finance",
+        "result": "passed",
+        "observations": [
+          "Actual stored snapshot showed 1 enrollment, 0 payouts and closed enrollment",
+          "Live-record status does not claim external-provider readiness",
+          "Account, refresh and return controls rendered"
+        ]
+      }
+    ],
+    "finalGalleryWalkthrough": {
+      "result": "passed",
+      "postId": "b531613a-9f36-4f86-82e7-f00e54b55f34",
+      "checks": [
+        "Gallery exposed both Photo and Video attachment controls",
+        "Selecting attachment 2 loaded protected 720x1280 video with 4 second source duration",
+        "Saved trim showed a 3 second playback interval",
+        "Actual Play changed paused to false with advancing media time and no MediaError"
+      ]
     }
   },
   "web": {
@@ -86,14 +134,117 @@
         "name": "Jobs list and Saved jobs",
         "result": "passed",
         "limit": "No job records or saved jobs in this QA account"
+      },
+      {
+        "name": "Application tracker filter, refresh and clear",
+        "result": "passed",
+        "limit": "No application records in this QA account"
+      },
+      {
+        "name": "Market actual listing and price/location filter",
+        "result": "passed",
+        "observations": [
+          "Existing House for rent listing",
+          "Minimum 500, maximum 1500 and Phoenix retained the matching record",
+          "Clear filters restored list"
+        ]
+      },
+      {
+        "name": "Market alerts validation and Cancel",
+        "result": "passed",
+        "sideEffects": "No alert created"
+      },
+      {
+        "name": "Saved and Selling actual listing",
+        "result": "passed"
+      },
+      {
+        "name": "Listing detail, photo, seller reviews and orders empty states",
+        "result": "passed"
+      },
+      {
+        "name": "Listing Share copies current listing URL",
+        "result": "passed"
+      },
+      {
+        "name": "Market orders empty state and Messages navigation",
+        "result": "passed",
+        "sideEffects": "No order or message submitted"
       }
-    ]
+    ],
+    "currentRuntimeWalkthrough": {
+      "commit": "b39c7dacf8ed18ad6ccc4786c402362e63c298a0",
+      "stableOrigin": "https://platinum-web-git-codex-app-quality-20261029-intobank.vercel.app",
+      "homeUrl": "https://platinum-web-git-codex-app-quality-20261029-intobank.vercel.app/home",
+      "deploymentId": "dpl_Ft7uXM6SNpYEC4efrK6LSJPjNjZK",
+      "authentication": "Secure browser sign-in submitted; fresh target page showed the signed-in QA profile and actual feed records",
+      "evidence": "web-authenticated-home.jpg",
+      "checks": [
+        {
+          "name": "Actual Home data and navigation",
+          "result": "passed"
+        },
+        {
+          "name": "Photo viewer opens original 1080x1920, zoom150/reset100/Escape/focus return",
+          "result": "passed"
+        },
+        {
+          "name": "More menu to Settings hub and Back to Home",
+          "result": "passed"
+        },
+        {
+          "name": "Create text story, edit text, Cancel discards unsaved text",
+          "result": "passed",
+          "sideEffects": "No story published"
+        },
+        {
+          "name": "Story music picker to Manage audio",
+          "result": "controlled_unavailable",
+          "observations": [
+            "Original-upload controls remain disabled while capability is absent",
+            "Unavailable explanation and Retry availability shown",
+            "No legacy catalogue is offered"
+          ]
+        },
+        {
+          "name": "Audio library Retry availability and Exit settings to Home",
+          "result": "passed",
+          "backendLimit": "Music backend is not installed; this verifies the unavailable path, not actual hosted audio upload"
+        },
+        {
+          "name": "Studio overview, Earnings, Payouts, Payout account and return Home",
+          "result": "passed",
+          "observations": [
+            "Creator program interest recorded; enrollment closed",
+            "No earnings or payout records fabricated",
+            "IntoBank connection remains unconfirmed",
+            "Actual provider payout unavailable"
+          ]
+        }
+      ],
+      "sideEffects": "Read-only provider/account views and local cancellation; no post, message, payment, provisioning, moderation or account erasure submitted"
+    },
+    "finalSettingsLinkVerification": {
+      "source": "8591b1a36f0a47d6493af6f8fa0a336d7421ec92",
+      "deployment": "dpl_2twDx1R3CdmRHTv4KdbGioPsVUjT",
+      "result": "passed",
+      "checks": [
+        "Fresh reload preserved the signed-in QA session",
+        "Home More \u2192 Settings reached the published hub",
+        "Audio library appeared in Professional tools",
+        "Search voiceover found exactly the Audio library settings destination",
+        "Click opened /settings/audio and its actual library heading",
+        "Exit settings returned to /home"
+      ],
+      "sourceScope": "The added Settings row is the only web UI change after the prior authenticated b39 walkthrough; later music runtime change only refines the retained-capacity error message."
+    }
   },
   "releaseStatus": "held",
   "limitations": [
-    "Final public-web snapshot not yet deployed at time of these observations",
+    "Public-web checks in web.checks are historical observations on b7a37a7. web.currentRuntimeWalkthrough records the signed-in b39c7da pass; web.finalSettingsLinkVerification records the final 8591b1a Settings-to-audio-library change. Each observation retains its own source identity; do not infer every historical manual check was repeated at the final SHA. Exact final automated results are in docs/quality/interaction-acceptance-20261030/final-hosted-verification.json.",
     "This walkthrough does not prove every mutation or role journey",
     "No physical iPhone or Android device was attached",
     "Production media cutover and actual Storage/CDN/Auth account erasure are not established by local fixtures"
-  ]
+  ],
+  "updatedAt": "2026-10-30T20:05:46.113453+00:00"
 }

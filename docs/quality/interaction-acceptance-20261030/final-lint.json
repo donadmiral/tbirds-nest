@@ -1,0 +1,43 @@
+{
+  "recordedAt": "2026-10-30T20:03:13.898620+00:00",
+  "publishedSource": "8591b1a36f0a47d6493af6f8fa0a336d7421ec92",
+  "scopes": [
+    {
+      "scope": "native",
+      "command": "node node_modules/eslint/bin/eslint.js . --format json",
+      "files": 582,
+      "filesWithFindings": 117,
+      "errors": 0,
+      "warnings": 462,
+      "warningRules": {
+        "@typescript-eslint/no-unused-vars": 222,
+        "react-hooks/exhaustive-deps": 223,
+        "@typescript-eslint/array-type": 2,
+        "import/no-named-as-default-member": 1,
+        "no-unused-expressions": 7,
+        "import/no-duplicates": 6,
+        "eslint-directive": 1
+      }
+    },
+    {
+      "scope": "admin",
+      "command": "node node_modules/eslint/bin/eslint.js . --format json",
+      "files": 154,
+      "filesWithFindings": 0,
+      "errors": 0,
+      "warnings": 0,
+      "warningRules": {}
+    },
+    {
+      "scope": "web",
+      "command": "node node_modules/eslint/bin/eslint.js . --format json",
+      "files": 438,
+      "filesWithFindings": 0,
+      "errors": 0,
+      "warnings": 0,
+      "warningRules": {}
+    }
+  ],
+  "nativeGloballyWarningFree": false,
+  "note": "Existing lint rules preserved. Full raw lint JSON is reproducible using the recorded commands."
+}

@@ -54,6 +54,8 @@ The existing erasure worker and review allowlist include `music-audio`. The migr
 
 The preparation form records provider, rights holder, contract reference, territories, permitted uses, rights window, requested export permission and review evidence. Later licensing work must supply and verify the actual agreements, provider ingestion/delivery contract, territory determination, reporting obligations and activation authorization. No commercial catalogue was fetched, scraped, embedded or represented as licensed by this change.
 
+Provider-specific catalogue ingestion, delivery and usage/rights reporting are not implemented by these preparation forms. They remain technical work against the selected provider contracts, separate from signing a licence. This report does not claim that the entire catalogue service is finished with only licensing left.
+
 Existing unverified legacy sounds are not silently promoted into the new library. They require verified re-upload or a separately reviewed import. The independent QA compatibility preflight on 30 October at 17:06 UTC found zero legacy sound rows or story/post/book audio references in that isolated environment. Production compatibility still needs its own inventory.
 
 ## Installation and rollout
@@ -81,7 +83,13 @@ Owned music runtime paths pass strict lint with zero errors and warnings. Native
 
 `web/tests/browser/music-library-export.cjs` compiles actual upload, player and movie components with synthetic account transport. It generates a test tone, runs the actual Edge finalizer, records microphone PCM through the browser, encodes book and retained-story audio, decodes the resulting media with FFmpeg, checks audibility across a page boundary, revokes rights during export, verifies no download is offered, and checks recording-resource teardown and a narrow viewport.
 
-It is wired into `.github/workflows/browser-quality.yml`, with JSON/PNG evidence retained as workflow artifacts. Fixture compilation succeeds locally. Chromium is absent in the current execution environment, so this document does **not** claim a completed local browser run. The workflow must produce a successful execution receipt before that gate is accepted. Its account transport is synthetic even when the browser and encoder are real; it does not verify hosted Auth or Storage.
+The final hosted Chromium run passed at source `8591b1a36f0a47d6493af6f8fa0a336d7421ec92`: [workflow 41120017245](https://github.com/donadmiral/tbirds-nest/actions/runs/41120017245), job `124284059637`, browser `153.0.8010.12`. CI checked the PR merge `af66ad4914cb039e9058292607509389afc43103`. All seven substantive gates passed: admin 37, public web 38, commerce 24, Studio 25, graded-story export 8 cases, full-memory movies 19 cases and original music 5 named cases with the upload, preview and narrow-viewport assertions. The workflow retained 56 JSON/PNG evidence files in artifact `13007777993`.
+
+The actual 720 × 1280 book movie lasted 6.006500 seconds. Its decoded 440 Hz amplitude was 0.087070 in the first memory and 0.088294 after the page boundary. The retained-story movie lasted 6.013700 seconds; its amplitude was 0.087071 in the first memory and exactly zero after that memory ended. Both exports also produced a real frame at 5.2 seconds with the second memory's expected champagne background. Each audio measurement covers exactly 19,200 samples at 48 kHz; the original audible and silent thresholds remain unchanged. These are frequency amplitudes, not RMS values.
+
+Revoking rights during rendering prevented a download link. Browser microphone capture produced a verified 2.321995-second recording. Cancelling another recording closed its audio contexts and tracks without another upload. The music run had no browser errors and no horizontal overflow at 390 pixels. Exact source identities, workflow steps, artifact digest, decoded media results and the fixture boundary are preserved in [final-browser-export.json](final-browser-export.json).
+
+This is a completed **hosted browser** gate. Chromium is absent in the local execution environment, so no local browser run is claimed. The actual components, finalizer handler and encoder run with synthetic account transport; this success does not verify hosted Supabase Auth/Storage, install the music migration, or establish real-device behavior.
 
 ## Remaining operating-environment checks
 

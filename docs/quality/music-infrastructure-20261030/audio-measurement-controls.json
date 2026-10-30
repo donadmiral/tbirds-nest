@@ -1,0 +1,40 @@
+{
+  "transport": "local FFmpeg generated controls",
+  "timeBase": "1/1000",
+  "sampleRate": 48000,
+  "addedTimestampOffsetSeconds": 0.001,
+  "cases": [
+    {
+      "kind": "ended",
+      "start": 0.7,
+      "samples": 19200,
+      "amplitude": 0.12494306060391779
+    },
+    {
+      "kind": "ended",
+      "start": 4.2,
+      "samples": 19200,
+      "amplitude": 0
+    },
+    {
+      "kind": "continuous",
+      "start": 0.7,
+      "samples": 19200,
+      "amplitude": 0.12494306060391779
+    },
+    {
+      "kind": "continuous",
+      "start": 4.2,
+      "samples": 19200,
+      "amplitude": 0.1250488299558602
+    }
+  ],
+  "lateFrame": {
+    "seconds": 5.2,
+    "pixel": [
+      210,
+      177,
+      111
+    ]
+  }
+}

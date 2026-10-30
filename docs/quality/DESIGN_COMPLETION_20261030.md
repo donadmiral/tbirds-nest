@@ -1,5 +1,7 @@
 # Platinum Circles design and connected-workflow delivery
 
+> **Later delivery:** See [INTERACTION_MUSIC_DELIVERY_20261030.md](INTERACTION_MUSIC_DELIVERY_20261030.md) for the subsequent Content photo repair, current authenticated walkthrough, original-audio infrastructure, native reliability fixes, strict-lint results and precise remaining deployment gates. The source identities and evidence below remain historical.
+
 Date: 2026-10-30. Branch: `codex/app-quality-20261029`. Review: [draft PR #3](https://github.com/donadmiral/tbirds-nest/pull/3). The tested implementation is source commit **`b7a37a7a1e271e1ec037798a39772e151fbcc318`**, continuing the verified `32ee0a5373dd5ebcddae92ca5145f9bf7293c9c9` checkpoint. The later evidence-only update changes reports and receipts, not the tested implementation.
 
 ## Release decision

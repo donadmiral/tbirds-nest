@@ -1,0 +1,1045 @@
+{
+  "recordedAt": "2026-10-30T20:10:49Z",
+  "source": {
+    "repository": "donadmiral/tbirds-nest",
+    "branch": "codex/app-quality-20261029",
+    "headSha": "8591b1a36f0a47d6493af6f8fa0a336d7421ec92",
+    "headTreeSha": "873614d8f4ac64815417e06208008a070274b658",
+    "pullRequest": 3,
+    "baseSha": "ce4f2f2ebbd7f7669b630caf650fd97cd59297b0",
+    "checkedOutMergeSha": "af66ad4914cb039e9058292607509389afc43103"
+  },
+  "workflow": {
+    "runId": 41120017245,
+    "jobId": 124284059637,
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41120017245",
+    "job": {
+      "id": 124284059637,
+      "name": "Connected app, Studio, admin and encoded movies",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41120017245,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Install locked browser and admin dependencies",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Install browser and media verification tools",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Exercise actual admin components",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Exercise public-web navigation, account changes and recovery",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Exercise jobs, application review, market offers and orders",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "Exercise Studio approval, campaign and creator journeys",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "Export and decode actual graded story video",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Export and decode full memory movies and audio mixes",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Verify private original uploads, microphone capture and retained music exports",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Keep synthetic browser evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        },
+        {
+          "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 25
+        },
+        {
+          "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 26
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 27
+        }
+      ]
+    }
+  },
+  "artifacts": {
+    "id": 13007777993,
+    "name": "browser-quality-evidence",
+    "size_in_bytes": 7650977,
+    "url": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/artifacts/13007777993",
+    "archive_download_url": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/artifacts/13007777993/zip",
+    "expired": false,
+    "created_at": "2026-10-30T20:06:38Z",
+    "expires_at": "2026-11-06T20:06:36Z",
+    "updated_at": "2026-10-30T20:06:38Z",
+    "digest": "sha256:a4e12a0e08165a995e859880d98b0b6a6b6ecf52f473b5bb23157066f0fb3198",
+    "workflow_run": {
+      "id": 41120017245,
+      "repository_id": 1314826575,
+      "head_repository_id": 1314826575,
+      "head_branch": "codex/app-quality-20261029",
+      "head_sha": "8591b1a36f0a47d6493af6f8fa0a336d7421ec92"
+    },
+    "fileCountFromUploadLog": 56,
+    "humanUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41120017245/artifacts/13007777993",
+    "inspection": "Artifact metadata inspected. Exact JSON results below were parsed from decoded successful job logs; no assertion that the ZIP archive was separately downloaded."
+  },
+  "evidenceScope": {
+    "browser": "153.0.8010.12",
+    "actualComponents": true,
+    "actualMediaEncoding": true,
+    "ffmpegDecodesActualExports": true,
+    "syntheticAccountAndTransport": true,
+    "hostedSupabaseAcceptance": false,
+    "physicalDeviceAcceptance": false
+  },
+  "connectedUiGates": [
+    {
+      "name": "Admin",
+      "passed": 37,
+      "browserErrors": 0
+    },
+    {
+      "name": "Public web",
+      "passed": 38,
+      "browserErrors": 0
+    },
+    {
+      "name": "Commerce",
+      "passed": 24,
+      "browserErrors": 0
+    },
+    {
+      "name": "Studio",
+      "passed": 25,
+      "browserErrors": 0
+    }
+  ],
+  "gradedStory": {
+    "browser": "153.0.8010.12",
+    "cases": [
+      {
+        "mode": "graded_audio",
+        "bytes": 36292,
+        "mime": "video/webm;codecs=vp9,opus",
+        "codec": "vp9",
+        "width": 1080,
+        "height": 1918,
+        "duration": 1.088099,
+        "encodedVideoEnd": 0.939,
+        "trimmedFirstPixel": [
+          125,
+          0,
+          0
+        ],
+        "hasAudio": true,
+        "audioRms": 0.048187150311100296,
+        "red": [
+          125,
+          0,
+          0
+        ],
+        "blue": [
+          0,
+          0,
+          126
+        ],
+        "tagBefore": [
+          1,
+          255,
+          0
+        ],
+        "tagAfter": [
+          17,
+          33,
+          52
+        ],
+        "gradedImageSticker": [
+          1,
+          127,
+          126
+        ]
+      },
+      {
+        "mode": "muted",
+        "bytes": 22504,
+        "mime": "video/webm;codecs=vp9",
+        "codec": "vp9",
+        "width": 1080,
+        "height": 1918,
+        "duration": 1.1045,
+        "encodedVideoEnd": 0.95,
+        "trimmedFirstPixel": [
+          125,
+          0,
+          0
+        ],
+        "hasAudio": false,
+        "audioRms": null,
+        "red": [
+          125,
+          0,
+          0
+        ],
+        "blue": [
+          0,
+          0,
+          126
+        ],
+        "tagBefore": [
+          1,
+          255,
+          0
+        ],
+        "tagAfter": [
+          16,
+          34,
+          50
+        ],
+        "gradedImageSticker": [
+          1,
+          127,
+          126
+        ]
+      },
+      {
+        "mode": "added_audio",
+        "bytes": 36261,
+        "mime": "video/webm;codecs=vp9,opus",
+        "codec": "vp9",
+        "width": 1080,
+        "height": 1918,
+        "duration": 1.0793,
+        "encodedVideoEnd": 0.92,
+        "trimmedFirstPixel": [
+          125,
+          0,
+          0
+        ],
+        "hasAudio": true,
+        "audioRms": 0.0992389109403772,
+        "red": [
+          125,
+          0,
+          0
+        ],
+        "blue": [
+          0,
+          0,
+          126
+        ],
+        "tagBefore": [
+          1,
+          255,
+          0
+        ],
+        "tagAfter": [
+          17,
+          33,
+          52
+        ],
+        "gradedImageSticker": [
+          1,
+          127,
+          126
+        ]
+      },
+      {
+        "mode": "added_only",
+        "bytes": 38267,
+        "mime": "video/webm;codecs=vp9,opus",
+        "codec": "vp9",
+        "width": 1080,
+        "height": 1918,
+        "duration": 1.0911,
+        "encodedVideoEnd": 0.967,
+        "trimmedFirstPixel": [
+          125,
+          0,
+          0
+        ],
+        "hasAudio": true,
+        "audioRms": 0.08638099597472702,
+        "red": [
+          125,
+          0,
+          0
+        ],
+        "blue": [
+          0,
+          0,
+          126
+        ],
+        "tagBefore": [
+          1,
+          255,
+          0
+        ],
+        "tagAfter": [
+          17,
+          33,
+          52
+        ],
+        "gradedImageSticker": [
+          1,
+          127,
+          126
+        ]
+      },
+      {
+        "mode": "bad_added_audio",
+        "rejected": true
+      },
+      {
+        "mode": "delayed_start",
+        "bytes": 37635,
+        "mime": "video/webm;codecs=vp9,opus",
+        "codec": "vp9",
+        "width": 1080,
+        "height": 1918,
+        "duration": 1.067,
+        "encodedVideoEnd": 0.948,
+        "trimmedFirstPixel": [
+          125,
+          0,
+          0
+        ],
+        "hasAudio": true,
+        "audioRms": 0.048715493935610386,
+        "red": [
+          125,
+          0,
+          0
+        ],
+        "blue": [
+          0,
+          0,
+          126
+        ],
+        "tagBefore": [
+          1,
+          255,
+          0
+        ],
+        "tagAfter": [
+          16,
+          34,
+          50
+        ],
+        "gradedImageSticker": [
+          1,
+          127,
+          126
+        ]
+      },
+      {
+        "mode": "oversized_final_chunk",
+        "rejected": true
+      },
+      {
+        "mode": "cancelled",
+        "cancelled": true
+      }
+    ]
+  },
+  "memoryMovies": {
+    "browser": "153.0.8010.12",
+    "cases": [
+      {
+        "mode": "original",
+        "bytes": 137516,
+        "codec": "vp9",
+        "duration": 7.005099,
+        "dimensions": [
+          720,
+          1280
+        ],
+        "trimmed": [
+          126,
+          0,
+          0
+        ],
+        "first": [
+          237,
+          179,
+          67
+        ],
+        "timed": [
+          0,
+          254,
+          0
+        ],
+        "untimed": [
+          237,
+          179,
+          67
+        ],
+        "red": [
+          126,
+          0,
+          0
+        ],
+        "blue": [
+          0,
+          0,
+          125
+        ],
+        "last": [
+          21,
+          68,
+          92
+        ],
+        "sound": {
+          "before": 0,
+          "during": 0.03531144493484131,
+          "after": 0,
+          "voiceBefore": 0,
+          "voiceAfter": 0,
+          "originalDuring": 0.0498888593179282
+        },
+        "audioClosed": true,
+        "tracksEnded": true
+      },
+      {
+        "mode": "silent",
+        "bytes": 120086,
+        "codec": "vp9",
+        "duration": 7.001199,
+        "dimensions": [
+          720,
+          1280
+        ],
+        "trimmed": [
+          126,
+          0,
+          0
+        ],
+        "first": [
+          237,
+          179,
+          67
+        ],
+        "timed": [
+          0,
+          254,
+          0
+        ],
+        "untimed": [
+          237,
+          179,
+          67
+        ],
+        "red": [
+          126,
+          0,
+          0
+        ],
+        "blue": [
+          0,
+          0,
+          125
+        ],
+        "last": [
+          21,
+          68,
+          92
+        ],
+        "sound": null,
+        "audioClosed": true,
+        "tracksEnded": true
+      },
+      {
+        "mode": "score",
+        "bytes": 257036,
+        "codec": "vp9",
+        "duration": 7.016399,
+        "dimensions": [
+          720,
+          1280
+        ],
+        "trimmed": [
+          126,
+          0,
+          0
+        ],
+        "first": [
+          237,
+          179,
+          67
+        ],
+        "timed": [
+          0,
+          254,
+          0
+        ],
+        "untimed": [
+          237,
+          179,
+          67
+        ],
+        "red": [
+          126,
+          0,
+          0
+        ],
+        "blue": [
+          0,
+          0,
+          125
+        ],
+        "last": [
+          21,
+          68,
+          92
+        ],
+        "sound": {
+          "before": 0.038760113055408725,
+          "during": 0.03552590567730764,
+          "after": 0.025413897834074908,
+          "voiceBefore": 0.0011708661725320533,
+          "voiceAfter": 0.009276958007644928,
+          "originalDuring": 0.049845271105129964
+        },
+        "audioClosed": true,
+        "tracksEnded": true
+      },
+      {
+        "mode": "local_once",
+        "bytes": 181719,
+        "codec": "vp9",
+        "duration": 7.0163,
+        "dimensions": [
+          720,
+          1280
+        ],
+        "trimmed": [
+          126,
+          0,
+          0
+        ],
+        "first": [
+          237,
+          179,
+          67
+        ],
+        "timed": [
+          0,
+          254,
+          0
+        ],
+        "untimed": [
+          237,
+          179,
+          67
+        ],
+        "red": [
+          126,
+          0,
+          0
+        ],
+        "blue": [
+          0,
+          0,
+          125
+        ],
+        "last": [
+          21,
+          68,
+          92
+        ],
+        "sound": {
+          "before": 0.06189654076377307,
+          "during": 0.0352808686150128,
+          "after": 1.401298464324817e-45,
+          "voiceBefore": 0.08755674824919368,
+          "voiceAfter": 1.1092618751087618e-61,
+          "originalDuring": 0.04983878863382796
+        },
+        "audioClosed": true,
+        "tracksEnded": true
+      },
+      {
+        "mode": "local_loop",
+        "bytes": 256258,
+        "codec": "vp9",
+        "duration": 7.003799,
+        "dimensions": [
+          720,
+          1280
+        ],
+        "trimmed": [
+          126,
+          0,
+          0
+        ],
+        "first": [
+          237,
+          179,
+          67
+        ],
+        "timed": [
+          0,
+          254,
+          0
+        ],
+        "untimed": [
+          237,
+          179,
+          67
+        ],
+        "red": [
+          126,
+          0,
+          0
+        ],
+        "blue": [
+          0,
+          0,
+          125
+        ],
+        "last": [
+          21,
+          68,
+          92
+        ],
+        "sound": {
+          "before": 0.06191341465337716,
+          "during": 0.07115307959789992,
+          "after": 0.061930828015002444,
+          "voiceBefore": 0.08752652803587438,
+          "voiceAfter": 0.0875812383837713,
+          "originalDuring": 0.049971689250886485
+        },
+        "audioClosed": true,
+        "tracksEnded": true
+      },
+      {
+        "mode": "static_images",
+        "bytes": 140442,
+        "codec": "vp9",
+        "duration": 7.0016,
+        "dimensions": [
+          720,
+          1280
+        ],
+        "trimmed": [
+          126,
+          0,
+          0
+        ],
+        "first": [
+          237,
+          179,
+          67
+        ],
+        "timed": [
+          26,
+          84,
+          163
+        ],
+        "untimed": [
+          237,
+          179,
+          67
+        ],
+        "red": [
+          126,
+          0,
+          0
+        ],
+        "blue": [
+          0,
+          0,
+          125
+        ],
+        "last": [
+          21,
+          68,
+          92
+        ],
+        "sound": {
+          "before": 0,
+          "during": 0.03531951485484299,
+          "after": 0,
+          "voiceBefore": 0,
+          "voiceAfter": 0,
+          "originalDuring": 0.04989133389779976
+        },
+        "audioClosed": true,
+        "tracksEnded": true
+      },
+      {
+        "mode": "cancel",
+        "noPartialDownload": true,
+        "resourcesClosed": true
+      },
+      {
+        "mode": "call",
+        "noPartialDownload": true,
+        "resourcesClosed": true
+      },
+      {
+        "mode": "hidden",
+        "noPartialDownload": true,
+        "resourcesClosed": true
+      },
+      {
+        "mode": "unmount",
+        "noPartialDownload": true,
+        "resourcesClosed": true
+      },
+      {
+        "mode": "missing",
+        "noPartialDownload": true,
+        "resourcesClosed": true
+      },
+      {
+        "mode": "overflow",
+        "noPartialDownload": true,
+        "resourcesClosed": true
+      },
+      {
+        "mode": "animated_primary",
+        "noPartialDownload": true,
+        "resourcesClosed": true,
+        "rejectedBeforeRecording": true
+      },
+      {
+        "mode": "animated_sticker",
+        "noPartialDownload": true,
+        "resourcesClosed": true,
+        "rejectedBeforeRecording": true
+      },
+      {
+        "mode": "animated_background",
+        "noPartialDownload": true,
+        "resourcesClosed": true,
+        "rejectedBeforeRecording": true
+      },
+      {
+        "mode": "animated_data",
+        "noPartialDownload": true,
+        "resourcesClosed": true,
+        "rejectedBeforeRecording": true
+      },
+      {
+        "mode": "image_inspection_cancel",
+        "noPartialDownload": true,
+        "resourcesClosed": true,
+        "imageReadAborted": true
+      },
+      {
+        "mode": "unsupported_composition",
+        "limits": {
+          "gif": "Memory 1: Animated GIF export is not available yet. Remove the GIF to export this edited video.",
+          "animated": "Memory 1: Animated sticker export is not available yet. Set sticker animations to None to export this edited video.",
+          "nested": "Memory 1: a shared-post card layered over another memory cannot be exported yet. The card will not be left out.",
+          "dual": "Memory 1: dual-camera composition cannot be exported yet. The second camera will not be discarded.",
+          "savedAudio": "Memory 1: this older added audio needs verification. Upload the original and select it again before exporting.",
+          "soundtrack": "Choose the book soundtrack again before exporting.",
+          "missing": "Memory 1: the original media is unavailable. Refresh the book and try again.",
+          "tooMany": "A browser movie can contain up to 30 memories. Create a shorter book before exporting."
+        }
+      },
+      {
+        "mode": "film_entry_exit",
+        "keepsPaused": true,
+        "mobileNoOverflow": true
+      }
+    ],
+    "consoleErrors": []
+  },
+  "originalMusic": {
+    "browser": "153.0.8010.12",
+    "syntheticTransport": true,
+    "cases": [
+      {
+        "mode": "book",
+        "bytes": 164822,
+        "duration": "6.006500",
+        "lateFrame": [
+          209,
+          177,
+          108
+        ],
+        "before": 0.0870700034357454,
+        "after": 0.08829429309994952,
+        "passed": true
+      },
+      {
+        "mode": "retained",
+        "bytes": 104172,
+        "duration": "6.013700",
+        "lateFrame": [
+          209,
+          177,
+          108
+        ],
+        "before": 0.08707148895707717,
+        "after": 0,
+        "passed": true
+      },
+      {
+        "mode": "revoked_during_export",
+        "noDownload": true
+      },
+      {
+        "mode": "microphone_verified",
+        "duration": 2.3219954648526078
+      },
+      {
+        "mode": "recording_cancel",
+        "tracksEnded": true,
+        "noUpload": true
+      }
+    ],
+    "consoleErrors": [],
+    "calls": [
+      {
+        "operation": "get_original_audio_capabilities"
+      },
+      {
+        "operation": "reserve_original_audio",
+        "args": {
+          "p_request_id": "4f687964-7e3a-41da-bec0-dda0d9505da0",
+          "p_expected_user": "10000000-0000-4000-8000-000000000001",
+          "p_title": "synthetic-original",
+          "p_mime": "audio/wav",
+          "p_bytes": 192078,
+          "p_sha256": "b28b91f2eee541a30f5b6c244ebfa0334ebe3ff50a314a3e8284030504f37114",
+          "p_reuse": false,
+          "p_rights_attested": true
+        }
+      },
+      {
+        "operation": "verified",
+        "bytes": 192078,
+        "duration": 2
+      },
+      {
+        "operation": "get_original_audio_capabilities"
+      },
+      {
+        "operation": "get_playable_sound",
+        "args": {
+          "p_sound_id": "3412730e-b389-4888-be02-d240015eda7a",
+          "p_use": "story"
+        }
+      },
+      {
+        "operation": "get_original_audio_capabilities"
+      },
+      {
+        "operation": "get_playable_sound",
+        "args": {
+          "p_sound_id": "3412730e-b389-4888-be02-d240015eda7a",
+          "p_use": "post"
+        }
+      },
+      {
+        "operation": "authorize_original_audio_export",
+        "args": {
+          "p_sound_id": "3412730e-b389-4888-be02-d240015eda7a",
+          "p_use": "memory_album"
+        }
+      },
+      {
+        "operation": "authorize_original_audio_export",
+        "args": {
+          "p_sound_id": "3412730e-b389-4888-be02-d240015eda7a",
+          "p_use": "memory_album"
+        }
+      },
+      {
+        "operation": "authorize_original_audio_export",
+        "args": {
+          "p_sound_id": "3412730e-b389-4888-be02-d240015eda7a",
+          "p_use": "memory_album"
+        }
+      },
+      {
+        "operation": "authorize_original_audio_export",
+        "args": {
+          "p_sound_id": "3412730e-b389-4888-be02-d240015eda7a",
+          "p_use": "memory_album"
+        }
+      },
+      {
+        "operation": "authorize_original_audio_export",
+        "args": {
+          "p_sound_id": "3412730e-b389-4888-be02-d240015eda7a",
+          "p_use": "memory_album"
+        }
+      },
+      {
+        "operation": "authorize_original_audio_export",
+        "args": {
+          "p_sound_id": "3412730e-b389-4888-be02-d240015eda7a",
+          "p_use": "memory_album"
+        }
+      },
+      {
+        "operation": "reserve_original_audio",
+        "args": {
+          "p_request_id": "cc391159-7097-4ff8-8323-91df9f378ccf",
+          "p_expected_user": "10000000-0000-4000-8000-000000000001",
+          "p_title": "Voiceover",
+          "p_mime": "audio/wav",
+          "p_bytes": 204844,
+          "p_sha256": "0b36389b90faf9be7b9192bbcdb1be74f388cf43bbc9dadd2e875b7fb052fe92",
+          "p_reuse": false,
+          "p_rights_attested": true
+        }
+      },
+      {
+        "operation": "verified",
+        "bytes": 204844,
+        "duration": 2.3219954648526078
+      },
+      {
+        "operation": "get_original_audio_capabilities"
+      },
+      {
+        "operation": "get_playable_sound",
+        "args": {
+          "p_sound_id": "a09c52a2-577c-4834-9e23-3ce103d9c789",
+          "p_use": "story"
+        }
+      },
+      {
+        "operation": "get_original_audio_capabilities"
+      }
+    ]
+  },
+  "originalMusicAssertionsFromTestSource": {
+    "sourcePath": "web/tests/browser/music-library-export.cjs",
+    "sha256": "f31951c960980b15e8fb36c9d822f853234589e3f617aeb029b06d07d09b72c9",
+    "verifiedUpload": {
+      "countBeforeRecording": 1,
+      "format": "audio/wav",
+      "durationSeconds": 2,
+      "bytes": 192078,
+      "reusePermission": false,
+      "actualFinalizerHandlerExecuted": true
+    },
+    "movieDimensions": [
+      720,
+      1280
+    ],
+    "movieDurationSeconds": {
+      "target": 6,
+      "tolerance": 0.5
+    },
+    "lateVideoFrame": {
+      "timeSeconds": 5.2,
+      "pixelRgb": [
+        209,
+        177,
+        108
+      ],
+      "expectedRgb": [
+        209,
+        177,
+        110
+      ],
+      "perChannelToleranceExclusive": 10
+    },
+    "toneMeasurement": {
+      "type": "440 Hz sinusoidal amplitude (not RMS)",
+      "sampleRate": 48000,
+      "samplesPerWindow": 19200,
+      "windowDurationSeconds": 0.4,
+      "firstWindowStartSeconds": 0.7,
+      "secondWindowStartSeconds": 4.2,
+      "audibleThresholdExclusive": 0.03,
+      "silentThresholdExclusive": 0.002,
+      "finiteAmplitudeRequired": true,
+      "zeroPaddingAfterAudioEOF": true,
+      "sampleIndexTrimming": true
+    },
+    "revocation": {
+      "occursDuringRendering": true,
+      "errorDisplayed": true,
+      "downloadLinkCount": 0
+    },
+    "microphone": {
+      "verifiedUploadCountAfterRecording": 2,
+      "captureDurationSeconds": 2.3219954648526078
+    },
+    "cancellation": {
+      "allTrackedAudioContextsClosed": true,
+      "allTrackedMediaTracksEnded": true,
+      "noAdditionalUpload": true
+    },
+    "narrowViewport": {
+      "width": 390,
+      "height": 844,
+      "noHorizontalPageOverflow": true
+    },
+    "browserErrors": []
+  },
+  "interpretation": [
+    "All seven substantive browser gates completed successfully on this run.",
+    "The book soundtrack remained audible across the memory boundary. Retained story music was audible in its own memory and silent after that memory ended, while the second memory's video frame still existed.",
+    "Finalizer, player, upload and encoder implementations execute with synthetic Auth/Storage/RPC transport. This is not evidence of a hosted migration, real provider account, or production Storage delivery.",
+    "Hosted QA music revision 3 remains uninstalled. No readiness activation, commercial catalogue activation, production media cutover or TestFlight release is claimed."
+  ]
+}

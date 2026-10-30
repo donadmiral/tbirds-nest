@@ -1,0 +1,44 @@
+{
+  "artifactId": 13009071555,
+  "artifactSha256": "c6e2928320392d7398e66edfea40836e77df67d021a3354e9edda343f2c41a6a",
+  "receipt": {
+    "commit": "af66ad4914cb039e9058292607509389afc43103",
+    "workflow_run": "41120017251",
+    "result": "unsigned iOS Simulator compile passed",
+    "native_sources": {
+      "modules/boomerang/ios/BoomerangModule.swift": {
+        "sha256": "b0cc13884136e1645aa0baef5b31b738d9aff09dea84061ac748e2d3fc865ea4",
+        "compiled_objects": [
+          "native-compile-derived/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/Boomerang.build/Objects-normal/x86_64/BoomerangModule.o"
+        ]
+      },
+      "modules/boomerang/ios/StoryVideoView.swift": {
+        "sha256": "1601cd03287a4c42e395a1c7f7163cf3465daaab6f0f6957a1264569725749ac",
+        "compiled_objects": [
+          "native-compile-derived/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/Boomerang.build/Objects-normal/x86_64/StoryVideoView.o"
+        ]
+      },
+      "modules/boomerang/ios/StoryVideoComposition.swift": {
+        "sha256": "76f80cde26bf0feab2b16b2877da5bb9ad91ce9ddb1da32b92cde96bd83b9e8b",
+        "compiled_objects": [
+          "native-compile-derived/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/Boomerang.build/Objects-normal/x86_64/StoryVideoComposition.o"
+        ]
+      }
+    },
+    "simulator_architecture": "x86_64",
+    "app_executable_linked": true,
+    "device_or_provider_acceptance": false,
+    "archive_or_ipa_created": false,
+    "app_uploaded_or_submitted": false
+  },
+  "linkedNativeSourcesMatchWorkspace": true,
+  "buildSucceededInCompilerLog": true,
+  "toolchain": [
+    "Xcode 16.4",
+    "Build version 16F6",
+    "18.5",
+    "v22.23.4",
+    "10.9.9",
+    "1.16.2"
+  ]
+}
