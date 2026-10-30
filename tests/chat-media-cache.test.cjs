@@ -1,7 +1,6 @@
 // node --test tests/chat-media-cache.test.cjs
 // Baseline comparison: node tests/chat-media-cache.test.cjs --baseline
 // Executes both real helpers with synthetic Auth/Functions and a controlled clock.
-/* global __dirname */
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
 const fs = require('node:fs');

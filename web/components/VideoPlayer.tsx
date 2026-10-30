@@ -60,7 +60,7 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(() => readPrefs().muted);
   const [speed, setSpeed] = useState(() => readPrefs().speed);
-  useEffect(()=>{if(ref.current)applyPostPlayback(ref.current,edit,speed);},[speed,edit?.speed,edit?.voiceEffect]);
+  useEffect(()=>{if(ref.current)applyPostPlayback(ref.current,edit,speed);},[speed,edit]);
   const [duration, setDuration] = useState(0);
   const [time, setTime] = useState(0);
   const [fs, setFs] = useState(false);
@@ -90,7 +90,7 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
   }, [postId]);
 
   const stop = useCallback(function stopVideo() {
-    playRequest.current++;
+    playRequest.current += 1;
     wantsPlayback.current = false;
     const v = ref.current;
     if (v) { remember(src, v.currentTime); v.pause(); }
@@ -105,7 +105,7 @@ function VideoPlayback({ src, postId, viewsCount, width, height, onDims, immersi
     if (activeStop && activeStop !== stop) activeStop();
     activeStop = stop;
     wantsPlayback.current = true;
-    const request = ++playRequest.current;
+    const request = playRequest.current += 1;
     const bounds = playbackWindow(v.duration, trimStart, trimEnd);
     if (bounds.duration) {
       const resume = v.ended ? bounds.start : positions.get(src) ?? v.currentTime;

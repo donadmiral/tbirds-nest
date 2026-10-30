@@ -1,0 +1,81 @@
+{
+  "scope": "Authorized read-only Creator Finance report, independently of fixed-off money-moving operations",
+  "qa": {
+    "guard": {
+      "acl": "{postgres=X/postgres}",
+      "owner": "postgres",
+      "signature": "creator_finance.require_staff(uuid,uuid)",
+      "search_path": [
+        "search_path=\"\""
+      ],
+      "definition_md5": "a4865b492eb0e0870a5d8ad256ae5251"
+    },
+    "payouts": 0,
+    "captured_at": "2026-10-30T16:25:37.655868+00:00",
+    "enrollments": 1,
+    "environment": "live",
+    "enrollment_open": false,
+    "program_columns": [
+      "singleton",
+      "enrollment_open",
+      "terms_version",
+      "terms_url",
+      "primary_provider",
+      "environment"
+    ],
+    "staff_session_assurance": [
+      {
+        "aal": "aal1",
+        "count": 18
+      }
+    ]
+  },
+  "sourceFiles": [
+    {
+      "path": "admin-web/app/payments/creators/page.tsx",
+      "sha256": "cf6bc78b8bafe3fe936f8bc20134131da9eee08e659984bf8194d2d98cead369"
+    },
+    {
+      "path": "admin-web/lib/creatorFinanceReport.ts",
+      "sha256": "66f4bbf6fc801b2786fa96637b842bb07d0f56fad3f8f3f348689be681b75bbb"
+    },
+    {
+      "path": "admin-web/tests/creator-finance-report.cjs",
+      "sha256": "a0a7f8a13face7ba06aebc3e6f2857d4b351f8263425ba2b062144d36caa51c1"
+    },
+    {
+      "path": "tests/quality/finance-unavailable-release.cjs",
+      "sha256": "242c674ee46c47764e1ef306e7bdb64f21800b44ecff962931e9b5550f440752"
+    }
+  ],
+  "verified": [
+    "10 Creator Finance report behavior tests pass",
+    "5 finance/commerce release-gate tests pass",
+    "Existing supabase/tests/creator-finance-operations.test.cjs exits 0",
+    "Admin TypeScript --noEmit --incremental false exits 0",
+    "Focused ESLint for page and report helper exits 0",
+    "git diff --check exits 0"
+  ],
+  "rpc": {
+    "signature": "public.creator_finance_admin_snapshot(uuid,uuid,timestamptz,uuid)",
+    "definitionMD5": "d9c53949915d9317521d3195066289fd",
+    "owner": "postgres",
+    "searchPath": "",
+    "grants": [
+      "postgres",
+      "service_role"
+    ],
+    "identity": "Server-resolved staff actor and actual Auth session. Existing database guard and single-owner exception preserved."
+  },
+  "behavior": [
+    "Read-only enrollment and payout history available to super_admin, platform_admin and finance_admin after requireDesk authorization",
+    "No source flag enables creator approval, payment, payout or finalized statements",
+    "Malformed or incomplete financial results fail closed instead of appearing empty",
+    "Decimal strings preserved without float conversion",
+    "Database timestamp microseconds preserved for pagination",
+    "Expired/MFA sessions and request failures have meaningful recovery routes",
+    "Unknown provider outcomes and raw provider errors do not become success claims"
+  ],
+  "hostedBrowserVerified": false,
+  "remoteMutations": 0
+}

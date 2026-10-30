@@ -7,7 +7,7 @@ import KeyboardSafe from '../../components/KeyboardSafe';
  * checks availability live against the case-insensitive unique index.
  */
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, StatusBar, TextInput, Alert, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StatusBar, TextInput, Alert, ActivityIndicator, ScrollView } from 'react-native';
 import { SafeAreaView } from '../../components/SafeArea';
 import { useNavigation } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';

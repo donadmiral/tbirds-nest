@@ -1,3 +1,4 @@
+import NextImage from "next/image";
 import type { Metadata } from "next";
 import { cache } from "react";
 import Link from "next/link";
@@ -92,7 +93,7 @@ export default async function ProfilePage({ params }: Params) {
       </div>
       <header className={styles.header}>
         <div className={styles.banner}>
-          {p.banner_url ? <img src={p.banner_url} alt="" className={styles.bannerImage} /> : <span className={styles.coverMark} aria-hidden>Platinum Circles</span>}
+          {p.banner_url ? <NextImage unoptimized fill sizes="100vw" src={p.banner_url} alt="" className={styles.bannerImage} /> : <span className={styles.coverMark} aria-hidden>Platinum Circles</span>}
         </div>
         <div className={styles.identity}>
           <div className={styles.avatar}><StoryAvatar userId={p.id} name={p.full_name} avatarUrl={p.avatar_url} size={128} /></div>

@@ -21,7 +21,7 @@ export default function AppleMusicPicker({ onSelect }: { onSelect: (track: Apple
   const reset = () => { generation.current += 1; busy.current = false; setLoading(false); setTracks([]); setOffset(null); setSearched(false); setError(''); };
   async function search(more = false) {
     if (busy.current || (!parsed && (query.trim().length < 2 || country.length !== 2))) return;
-    const mine = ++generation.current;
+    const mine = generation.current += 1;
     busy.current = true; setLoading(true); setError('');
     try {
       const result = parsed ? await appleMusic.track(parsed.id, parsed.storefront) : await appleMusic.search(query.trim(), country, more ? offset ?? 0 : 0);

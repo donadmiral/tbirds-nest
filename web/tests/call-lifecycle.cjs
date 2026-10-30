@@ -12,10 +12,11 @@ function harness(options = {}) {
   const same = (a, b) => a && b && a.length === b.length && a.every((v, i) => Object.is(v, b[i]));
   const hooks = {
     useRef: v => { const i = cursor++; return slots[i] ??= { current: v }; },
-    useState: v => { const i = cursor++; if (!(i in slots)) slots[i] = v; return [slots[i], v => { slots[i] = typeof v === 'function' ? v(slots[i]) : v; dirty = true; }]; },
+    useState: v => { const i = cursor++; if (!(i in slots)) slots[i] = typeof v === 'function' ? v() : v; return [slots[i], v => { slots[i] = typeof v === 'function' ? v(slots[i]) : v; dirty = true; }]; },
     useCallback: (f, d) => { const i = cursor++; if (!slots[i] || !same(slots[i].deps, d)) slots[i] = { fn: f, deps: d }; return slots[i].fn; },
     useEffect: (f, d) => { const i = cursor++; if (!slots[i] || !same(slots[i].deps, d)) { const previous = slots[i]; slots[i] = { deps: d }; effects.push(() => { previous?.cleanup?.(); slots[i].cleanup = f(); }); } },
   };
+  hooks.useLayoutEffect = hooks.useEffect;
   const browser = {
     dispatchEvent(event) { for (const cb of handlers.get(event.type) ?? []) cb(event); return true; },
     addEventListener: (name, cb) => { if (!handlers.has(name)) handlers.set(name, new Set()); handlers.get(name).add(cb); },

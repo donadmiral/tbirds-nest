@@ -11,6 +11,7 @@ function runtime(native=false){
  const theme={ink:{primary:'#fff',secondary:'#ddd',inverse:'#000'},surface:{canvas:'#111'},brand:{base:'#ddd'}};
  function load(id){
   if(id==='react')return react;if(id==='react/jsx-runtime')return {jsx,jsxs:jsx,Fragment:'Fragment'};if(id==='react-dom')return {createPortal:n=>n};
+  if(id==='next/image')return {__esModule:true,default:'img'};
   if(id==='next/link')return {__esModule:true,default:'Link'};
   if(id==='react-native')return new Proxy({AppState:{currentState:'active',addEventListener:(key,fn)=>{listeners.set('app',fn);return {remove(){}};}},PanResponder:{create:handlers=>({panHandlers:handlers})},useWindowDimensions:()=>dims},{get:(o,k)=>k in o?o[k]:String(k)});
   if(id.endsWith('/theme/useTheme'))return {useTheme(){},getTheme:()=>theme,themedSheet:factory=>factory(theme)};
@@ -34,6 +35,7 @@ function runtime(native=false){
   const dom={clientHeight:700,clientWidth:390,scrollTop:0,scrollTo({top}){this.scrollTop=top;},focus(){document.activeElement=this;},querySelectorAll:()=>[]};
   const same=(a,b)=>a&&b&&a.length===b.length&&a.every((v,i)=>Object.is(v,b[i]));
   const h={useState(initial){const i=cursor++;if(!(i in slots))slots[i]=typeof initial==='function'?initial():initial;return [slots[i],v=>{const value=typeof v==='function'?v(slots[i]):v;if(!Object.is(value,slots[i])){slots[i]=value;dirty=true;}}];},useRef(value){const i=cursor++;return slots[i]??={current:value};},useEffect(fn,deps){const i=cursor++;if(!slots[i]||!same(slots[i].deps,deps)){const prior=slots[i];slots[i]={deps};pending.push(()=>{prior?.cleanup?.();slots[i].cleanup=fn();});}},useCallback(fn,deps){const i=cursor++;if(!slots[i]||!same(slots[i].deps,deps))slots[i]={value:fn,deps};return slots[i].value;},useMemo(fn,deps){const i=cursor++;if(!slots[i]||!same(slots[i].deps,deps))slots[i]={value:fn(),deps};return slots[i].value;}};
+  h.useLayoutEffect=h.useEffect;
   const result={get tree(){return tree;},dom,flush(){let count=0;while(dirty){assert.ok(count++<30,'render settles');dirty=false;cursor=0;hooks=h;tree=Component(props);for(const n of allNodes(tree))if(n.props?.ref&&n.props.ref.current===null)n.props.ref.current=dom;const work=pending;pending=[];work.forEach(fn=>fn());}return result;},set(p){props={...props,...p};dirty=true;return this.flush();},find(fn){return allNodes(tree).find(fn);},all(fn){return allNodes(tree).filter(fn);},label(label){return this.find(n=>n.props?.['aria-label']===label||n.props?.accessibilityLabel===label);},unmount(){slots.forEach(s=>s?.cleanup?.());}};
   return result.flush();
  }

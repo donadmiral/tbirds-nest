@@ -49,6 +49,11 @@ export function createContentMediaHandler(deps: Dependencies) {
         });
         return json(200, { urls, expiresAt: delivered.expiresAt });
       }
+      // Original audio is revocable. Never turn it into a Storage bearer URL
+      // whose lifetime outlasts the live rights and account checks in delivery.
+      if ([...objects.values()].some(object => object.bucket === 'music-audio')) {
+        return json(400, { error: 'Original audio requires private no-store delivery. Update the client and try again.' });
+      }
       const urls: Array<{ key: string; url: string }> = [];
       for (const bucket of new Set([...objects.values()].map(object => object.bucket))) {
         const paths = [...objects.values()].filter(object => object.bucket === bucket).map(object => object.path);

@@ -1,13 +1,13 @@
 "use client";
 // Muted words: comments on your posts containing any of these are hidden the
 // moment they're written. Same rows the phone edits.
-import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, X } from "lucide-react";
+import { useEffect, useState } from "react";
+
+import { X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function MutedWordsPage() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [uid, setUid] = useState<string | null>(null);
   const [words, setWords] = useState<string[]>([]);
   const [draft, setDraft] = useState("");

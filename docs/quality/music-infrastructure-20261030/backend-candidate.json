@@ -1,0 +1,49 @@
+{
+  "createdAt": "2026-10-30T17:03:38.734919+00:00",
+  "hostedInstalled": false,
+  "uploadsEnabledByMigration": false,
+  "catalogEnabled": false,
+  "databaseTests": {
+    "bootstrapWithInstalledPrivacyErasurePrerequisites": "22 passed",
+    "existingMusicContracts": "22 passed"
+  },
+  "edgeTests": "18 passed: existing14 Edge/parser cases plus MP3 truncation and3 client-upload lifecycle cases",
+  "files": [
+    {
+      "path": "supabase/migrations/20261030153811_original_music_library_and_delivery.sql",
+      "sha256": "7d7449a59c4678c91985cada1d8b20ec035ce7fd8cb02c1dfbb0fc0cd94e04b8"
+    },
+    {
+      "path": "supabase/functions/music-asset-finalize/index.ts",
+      "sha256": "8baaa840b234476713a7b7f7f240762635ad1d2c92c885bd25b775a7c933299a"
+    },
+    {
+      "path": "supabase/functions/music-asset-finalize/handler.ts",
+      "sha256": "9377de1a11b0a67c02ff36aa6013513a49272b407cf4305c713f1bca9bd06c62"
+    },
+    {
+      "path": "shared/originalAudio.ts",
+      "sha256": "527377ecfb0f17c1805e8db06803bf7ecc4f9599e4239060f19c3c66bde8ea4a"
+    },
+    {
+      "path": "supabase/functions/content-media-sign/handler.ts",
+      "sha256": "9fc8a12d93641046a06ec122062e5817e9473f281a7c521e51e9b314781a7d3f"
+    },
+    {
+      "path": "supabase/functions/media-content/handler.ts",
+      "sha256": "3ebe70908160a5ded596284d43eb9ffa47f24bb7be277710d89bee95275c672a"
+    },
+    {
+      "path": "supabase/functions/account-storage-erasure/handler.ts",
+      "sha256": "1bc4d4e88886441d70cdb6671077e68166a51e861e0a41af68dfa7371333fee8"
+    }
+  ],
+  "revision": 2,
+  "reviewFixes": [
+    "Recreated story_sounds SELECT policy bound to guarded current-identity metadata helper",
+    "Explicit service-only ACL for internal resolve_story_soundtrack",
+    "Admin session NULL rejected with IS DISTINCT FROM TRUE",
+    "Read and cancel cannot extend finalizer deadline",
+    "Finalization denied once account erasure has been accepted"
+  ]
+}

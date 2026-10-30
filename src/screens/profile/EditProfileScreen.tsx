@@ -23,7 +23,7 @@ import { supabase } from '../../services/supabase';
 import { profileRead } from '../../utils/profileRead';
 import { uploadMedia } from '../../services/mediaService';
 import { useAuthStore } from '../../stores/authStore';
-import { light, typeSize, fontWeight, radius, space } from '../../constants/tokens';
+import { typeSize, fontWeight, radius, space } from '../../constants/tokens';
 
 type Draft = {
   full_name: string;

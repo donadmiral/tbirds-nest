@@ -1,4 +1,5 @@
 "use client";
+import { useRouter } from "next/navigation";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -10,6 +11,7 @@ type App = { id: string; company_name: string; status: string; decision_reason: 
 type Avail = "idle" | "checking" | "free" | "taken" | "invalid" | "error";
 
 export default function BusinessApplyPage() {
+  const router = useRouter();
   const [supabase] = useState(createClient);
   const [uid, setUid] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
@@ -43,7 +45,7 @@ export default function BusinessApplyPage() {
   const bootstrapRef = useRef<typeof bootstrap>(null);
 
   const resetForm = useCallback(() => {
-    handleVersion.current++;
+    handleVersion.current += 1;
     if (timer.current) clearTimeout(timer.current);
     setCompanyName(""); setCategory(""); setDescription(""); setEmail("");
     setPhone(""); setWebsite(""); setRegInfo(""); setHandle(""); setHandleState("idle");
@@ -52,8 +54,8 @@ export default function BusinessApplyPage() {
   const updateAccount = useCallback((next: string | null) => {
     if (next === account.current) return;
     account.current = next;
-    accountVersion.current++;
-    actionVersion.current++;
+    accountVersion.current += 1;
+    actionVersion.current += 1;
     accessRequest.current?.abort(); accessRequest.current = null; sessionHandoff.current = null; bootstrapRef.current = null;
     pending.current = false;
     setUid(next); setApps([]); setBusy(null); setActionError(null); setNotice(null); setBootstrap(null); setOpeningSession(false);
@@ -62,7 +64,7 @@ export default function BusinessApplyPage() {
 
   const load = useCallback(async () => {
     if (!live.current) return;
-    const request = ++readVersion.current;
+    const request = readVersion.current += 1;
     const current = () => live.current && request === readVersion.current;
     setLoading(true); setReadError(null);
     let confirmingAccount = true;
@@ -100,7 +102,7 @@ export default function BusinessApplyPage() {
       if (isBusinessSessionHandoff(sessionHandoff.current, session)) return;
       const next = session?.user.id ?? null;
       if (next === account.current) return;
-      readVersion.current++;
+      readVersion.current += 1;
       updateAccount(next);
       setReadError(null); setReady(true); setLoading(!!next);
       // Leave the auth callback before starting another Supabase request.
@@ -112,7 +114,7 @@ export default function BusinessApplyPage() {
       active = false;
       live.current = false;
       accessRequest.current?.abort(); accessRequest.current = null; sessionHandoff.current = null; bootstrapRef.current = null;
-      readVersion.current++; handleVersion.current++; actionVersion.current++;
+      readVersion.current += 1; handleVersion.current += 1; actionVersion.current += 1;
       if (timer.current) clearTimeout(timer.current);
       subscription.unsubscribe();
     };
@@ -122,7 +124,7 @@ export default function BusinessApplyPage() {
     const owner = account.current;
     if (pending.current || !owner || !live.current) return;
     if (bootstrapOwner && (bootstrapRef.current !== bootstrap || bootstrap?.applicationId !== applicationId || bootstrap.owner !== owner)) return;
-    const request = ++actionVersion.current;
+    const request = actionVersion.current += 1;
     const version = accountVersion.current;
     const abort = new AbortController(); accessRequest.current = abort;
     const current = () => live.current && request === actionVersion.current && version === accountVersion.current && accessRequest.current === abort && !abort.signal.aborted;
@@ -140,7 +142,7 @@ export default function BusinessApplyPage() {
       const selected = await businessAccessStep(supabase.auth.getSession(), abort.signal);
       if (!current()) return;
       if (selected.error || selected.data.session?.user.id !== destination.business_id) throw new BusinessAccessError('SESSION_MISMATCH');
-      window.location.assign("/studio");
+      router.replace("/studio"); router.refresh();
     } catch (error) {
       if (current()) {
         if (error instanceof BusinessAccessError && error.code === 'OWNER_BOOTSTRAP_REQUIRED') { const next = { applicationId, owner }; bootstrapRef.current = next; setBootstrap(next); }
@@ -156,13 +158,13 @@ export default function BusinessApplyPage() {
 
   const cancelBusinessAccess = () => {
     if (sessionHandoff.current || !accessRequest.current) return;
-    actionVersion.current++; accessRequest.current.abort(); accessRequest.current = null; bootstrapRef.current = null;
+    actionVersion.current += 1; accessRequest.current.abort(); accessRequest.current = null; bootstrapRef.current = null;
     pending.current = false; setBusy(null); setBootstrap(null); setActionError(null); setNotice('Business sign-in cancelled. Your personal account is unchanged.');
   };
 
   const checkHandle = (value: string) => {
     if (pending.current || !live.current) return;
-    const request = ++handleVersion.current;
+    const request = handleVersion.current += 1;
     const version = accountVersion.current;
     const clean = value.trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
     setHandle(clean);
@@ -195,7 +197,7 @@ export default function BusinessApplyPage() {
     if (!/^[a-z0-9_]{3,30}$/.test(handle) || handleState === "taken") {
       setActionError("Pick an available handle: 3 to 30 characters, letters, numbers and underscores."); return;
     }
-    const request = ++actionVersion.current;
+    const request = actionVersion.current += 1;
     const version = accountVersion.current;
     const current = () => live.current && request === actionVersion.current && version === accountVersion.current;
     pending.current = true; setBusy("submit");

@@ -2,10 +2,7 @@ import { ListRowSkeleton } from '../../components/skeletons';
 import { themedSheet } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
 import React, { useCallback, useState } from 'react';
-import {
-  View, Text, StyleSheet, TouchableOpacity, FlatList,
-  Image, ActivityIndicator, StatusBar, RefreshControl,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, Image, StatusBar, RefreshControl } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';

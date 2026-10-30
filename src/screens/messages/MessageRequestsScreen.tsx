@@ -2,7 +2,7 @@ import { themedSheet } from '../../theme/useTheme';
 import EmptyState from '../../components/EmptyState';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, FlatList, Image,
   ActivityIndicator, StatusBar, Alert,

@@ -29,7 +29,7 @@ function publicationFixture({failTable,loseTable,failUpload=0,switchOnTable,musi
  const start=text.indexOf('  const createPost = async () => {'),end=text.indexOf('  const loadMore =',start);
  const rows={},calls=[],alerts=[],uploads=[];let id=0,failed=false,owner='owner',author='owner';
  const context={
-   uniqueCollaborators:collaborators.exports.uniqueCollaborators,MUSIC_CATALOG_ENABLED:musicAvailable,publicationBusy:{current:false},publicationAttempt:{current:null},userId:'owner',composerText:'Hello',
+   uniqueCollaborators:collaborators.exports.uniqueCollaborators,ORIGINAL_AUDIO_ENABLED:musicAvailable,publicationBusy:{current:false},publicationAttempt:{current:null},userId:'owner',composerText:'Hello',
    composerMedia:[{uri:'file://photo.jpg',type:'image',ext:'jpg',width:100,height:100,edit:{rotation:90,flipX:true,tags:[{user_id:'friend',nx:.3,ny:.7}]}}],
    composerSoundtrack:selection,exclusivePost:false,innovationPost:false,innoField:null,innoStage:null,
    postAudience:'everyone',commentPolicy:'everyone',postCategory:null,articleTitle:'',quotingPost:null,threadingPost:null,
@@ -81,6 +81,6 @@ test('a cover upload failure cannot publish a video with a broken preview, and r
  await h.context.publish();assert.equal(h.rows.posts.size,1);assert.equal([...h.rows.posts.values()][0].id,originalId);assert.equal(h.rows.post_media.size,1);assert.ok([...h.rows.post_media.values()][0].edit.coverUrl);
 });
 
-test('the non-music release omits selected and saved soundtrack metadata without changing original video edits',async()=>{
+test('an emergency original-audio capability shutdown omits selected and saved soundtrack metadata without changing original video edits',async()=>{
  const h=publicationFixture();h.context.pollOpts=null;h.context.composerMedia=[{uri:'file://video.mp4',type:'video',ext:'mp4',edit:{soundtrack:selection,muted:false,trimStart:2,trimEnd:8,speed:1.25,coverAt:2}}];await h.context.publish();assert.equal(h.alerts.length,0);const row=[...h.rows.post_media.values()][0];assert.equal(row.edit.soundtrack,undefined);assert.equal(row.edit.muted,false);assert.equal(row.edit.trimStart,2);assert.equal(row.edit.trimEnd,8);assert.equal(row.edit.speed,1.25);
 });

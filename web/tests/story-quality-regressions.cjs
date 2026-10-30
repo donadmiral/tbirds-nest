@@ -11,13 +11,14 @@ const defer = () => { let resolve; const promise = new Promise(r => { resolve = 
 function execute(source, globals) {
   const js = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS } }).outputText;
   globals.MUSIC_CATALOG_ENABLED ??= false;
+  globals.ORIGINAL_AUDIO_ENABLED ??= true;
+  globals.queueMicrotask ??= queueMicrotask;
   vm.runInNewContext(js, globals);
 }
 function effect(source, marker, end) {
-  const location = source.indexOf(marker), start = source.lastIndexOf('  useEffect(() => {', location);
-  const finish = source.indexOf(end, location) + end.length;
-  assert.ok(start >= 0 && finish > start, marker);
-  return source.slice(start, finish);
+  const ast=ts.createSourceFile('fixture.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);let match;
+  function visit(node){if(ts.isCallExpression(node)&&node.expression.getText(ast)==='useEffect'&&node.getText(ast).includes(marker.trim()))match??=node;ts.forEachChild(node,visit);}
+  visit(ast);assert.ok(match,marker+' '+end);return match.getText(ast)+';';
 }
 test('viewer arrow keys edit replies and only navigate outside editing controls', () => {
   const handlers = {}; let advance = 0, back = 0, close = 0, prevented = 0;
@@ -161,29 +162,32 @@ test('Back on the first story does not stop its playback timer', () => {
     stopTimer: () => stopped++, setItemIdx: () => changed = true, setUserIdx: () => changed = true });
   assert.equal(stopped, 0); assert.equal(changed, false);
 });
-test('advancing a story clears its private reply and viewer sheet', () => {
+test('advancing a story clears its private reply and viewer sheet', async () => {
   let reply = 'Reply intended for A', sheet = true, toast = true;
   execute(effect(viewer, '    readyStoryRef.current = null;', '  }, [story?.id]);'), {
-    useEffect: fn => fn(), playbackPausedRef: { current: true }, manualPauseRef: { current: true }, holdPausedRef: { current: true }, holdConsumedClickRef: { current: false }, setPlaybackPaused() {}, story: { id: 'story-b' }, readyStoryRef: { current: 'story-a' }, heldRef: { current: true },
+    useEffect: fn => fn(), playbackPausedRef: { current: true }, manualPauseRef: { current: true }, holdPausedRef: { current: true }, holdConsumedClickRef: { current: false }, setPlaybackPaused() {}, storyId: 'story-b', story: { id: 'story-b' }, readyStoryRef: { current: 'story-a' }, heldRef: { current: true },
     holdRef: { current: null }, resumeDelayRef: { current: null }, setLoadedStoryId() {}, setFailedStoryId() {}, setActionError() {},
     setReplyText: value => reply = value, setReplyToast: value => toast = value, setViewersOpen: value => sheet = value, setMoreOpen() {}, setMemoryOpen() {}, setHeartBurst() {},
   });
+  await flush();
   assert.equal(reply, ''); assert.equal(sheet, false); assert.equal(toast, null);
 });
 
 function draftHarness(rows) {
   let people = [{ id: 'old' }], error = null, busy = null;
   const request = { current: 0 }, lock = { current: false };
-  const start = composer.indexOf('  async function applyDraft('), end = composer.indexOf('\n  async function pickFile', start);
+  const ast=ts.createSourceFile('StoryComposer.tsx',composer,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);let declaration;
+  function visit(node){if(ts.isVariableDeclaration(node)&&node.name.getText(ast)==='applyDraft')declaration=node;ts.forEachChild(node,visit);}
+  visit(ast);assert.ok(declaration,'The actual draft-restoration callback must be exercised.');
   const globals = {
-    uid: 'viewer', ownerVersion: { current: 0 }, isCurrent: () => true, assertOwner() {}, runBounded: value => value, busyRef: lock, publication: { current: null }, draftRequest: request,
+    uid: 'viewer', ownerVersion: { current: 0 }, isCurrent: () => true, assertOwner() {}, checkOwner: async () => {}, resetExport() {}, useCallback: fn => fn, runBounded: value => value, busyRef: lock, publication: { current: null }, draftRequest: request,
     setBusy: value => busy = value, setError: value => error = value, setPeople: value => people = value,
     hydrateStoryDraftMedia: async rows => rows, replacePreview() {}, setAudioDraft() {},
     setClips() {}, setActiveClipId() {}, setAllowReplies() {}, setComposeStep() {}, setStickers() {}, setTransform() {}, setBackground() {}, setEditorKey() {}, setFilterId() {}, setDraftId() {}, setMediaUrl() {}, setMediaType() {}, setDurationSec() {}, setCaption() {}, setAudience() {},
     publicationError: failure => failure.message,
     supabase: { from: () => ({ select: () => ({ in: async () => ({ data: rows, error: null }) }) }) },
   };
-  execute(composer.slice(start, end) + '\nthis.apply = applyDraft;', globals);
+  execute('const '+declaration.getText(ast)+';\nthis.apply = applyDraft;', globals);
   return { apply: globals.apply, people: () => people, error: () => error, busy: () => busy, lock };
 }
 test('a saved private story never silently drops unavailable selected recipients', async () => {

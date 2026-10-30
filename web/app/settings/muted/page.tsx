@@ -1,43 +1,55 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import { useAccountResource } from "@/lib/useAccountResource";
+import { errorMessage } from "@/lib/errors";
+import { withTimeout } from "@/lib/withTimeout";
+import { ErrorState } from "@/components/ErrorState";
 import { displayImageUrl } from "@/lib/media";
-import Link from "next/link";
-import { ArrowLeft, EyeOff } from "lucide-react";
+
+import { EyeOff } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 
 type Row = { muted_id: string; full_name: string | null; username: string | null; avatar_url: string | null };
 
+async function fetchRows(supabase: ReturnType<typeof createClient>, uid: string): Promise<Row[]> {
+  const { data: mutes, error } = await supabase.from("muted_stories").select("muted_id").eq("user_id", uid).order("created_at", { ascending: false });
+  if (error) throw error;
+  const ids = (mutes ?? []).map(row => row.muted_id);
+  if (!ids.length) return [];
+  const { data: people, error: profileError } = await supabase.from("profiles").select("id, full_name, username, avatar_url").in("id", ids);
+  if (profileError) throw profileError;
+  const byId = new Map((people ?? []).map(person => [person.id, person]));
+  return ids.map(id => ({ muted_id: id, full_name: byId.get(id)?.full_name ?? "Member", username: byId.get(id)?.username ?? null, avatar_url: byId.get(id)?.avatar_url ?? null }));
+}
+
 export default function MutedStoriesPage() {
-  const supabase = useRef(createClient()).current;
-  const [rows, setRows] = useState<Row[] | null>(null);
+  const { client: supabase, data: rows, setData: setRows, error: loadError, loading, retry, assertOwner } = useAccountResource<Row[]>(fetchRows, []);
 
-  const load = useCallback(async () => {
-    const { data: auth } = await supabase.auth.getUser();
-    const uid = auth.user?.id;
-    if (!uid) { setRows([]); return; }
-    const { data: mutes } = await supabase.from("muted_stories").select("muted_id").eq("user_id", uid).order("created_at", { ascending: false });
-    const ids = (mutes ?? []).map(m => m.muted_id);
-    if (!ids.length) { setRows([]); return; }
-    const { data: people } = await supabase.from("profiles").select("id, full_name, username, avatar_url").in("id", ids);
-    const byId = new Map((people ?? []).map(p => [p.id, p]));
-    setRows(ids.map(id => ({ muted_id: id, full_name: byId.get(id)?.full_name ?? "Member", username: byId.get(id)?.username ?? null, avatar_url: byId.get(id)?.avatar_url ?? null })));
-  }, [supabase]);
-  useEffect(() => { void load(); }, [load]);
 
+  const [actionError, setActionError] = useState("");
+  const [busy, setBusy] = useState<string | null>(null);
   const unmute = async (mutedId: string) => {
-    setRows(r => (r ?? []).filter(x => x.muted_id !== mutedId));
-    const { data: auth } = await supabase.auth.getUser();
-    await supabase.from("muted_stories").delete().eq("user_id", auth.user?.id).eq("muted_id", mutedId);
+    if (busy) return;
+    setBusy(mutedId); setActionError("");
+    try {
+      const owner = await assertOwner();
+      const { error } = await withTimeout(supabase.from("muted_stories").delete().eq("user_id", owner).eq("muted_id", mutedId));
+      if (error) throw error;
+      setRows(previous => previous.filter(item => item.muted_id !== mutedId));
+    } catch (cause) { setActionError(errorMessage(cause, "This person could not be unmuted. Please try again.")); }
+    finally { setBusy(null); }
   };
 
   return (
     <div className="mx-auto max-w-[560px] px-1">
       <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><EyeOff size={19} className="text-accent" /> Muted stories</h1>
       <p className="pb-5 text-[13px] text-muted">Muted people stay in your feed but their stories stay hidden.</p>
-      {rows === null ? <p className="py-10 text-center text-sm text-muted">Loading</p>
-      : rows.length === 0 ? (
+      {actionError ? <p role="alert" className="text-sm text-danger">{actionError}</p> : null}
+      {loadError ? <ErrorState title={loadError} onRetry={retry} /> : null}
+      {loading ? <p className="py-10 text-center text-sm text-muted">Loading</p>
+      : loadError ? null : rows.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-ink/15 py-14 text-center">
           <EyeOff size={28} className="text-muted" />
           <p className="text-[14px] font-semibold text-ink">Nobody is muted</p>
@@ -52,7 +64,7 @@ export default function MutedStoriesPage() {
             <p className="truncate text-[14.5px] font-semibold text-ink">{r.full_name} <VerifiedBadge userId={r.muted_id} size={13} /></p>
             {r.username ? <p className="text-[12px] text-muted">@{r.username}</p> : null}
           </div>
-          <button onClick={() => unmute(r.muted_id)} className="rounded-full border border-ink/15 px-3.5 py-1.5 text-[12.5px] font-semibold text-ink transition-colors duration-[140ms] hover:bg-surface">Unmute</button>
+          <button onClick={() => unmute(r.muted_id)} disabled={!!busy} className="rounded-full border border-ink/15 px-3.5 py-1.5 text-[12.5px] font-semibold text-ink transition-colors duration-[140ms] hover:bg-surface">Unmute</button>
         </div>
       ))}
     </div>

@@ -16,7 +16,7 @@ export async function finalizeRecordedWebm(blob: Blob, seconds: number, duration
     return { value, length, unknown };
   };
   const element = (offset: number) => { const id = read(offset, true), size = read(offset + id.length); const start = offset + id.length + size.length; return { id: id.value, size: size.value, unknown: size.unknown, sizeOffset: offset + id.length, sizeLength: size.length, start, end: start + size.value }; };
-  let root = element(0); if (root.id !== 0x1a45dfa3 || root.unknown) throw new Error('The browser video header is not WebM.');
+  const root = element(0); if (root.id !== 0x1a45dfa3 || root.unknown) throw new Error('The browser video header is not WebM.');
   const segment = element(root.end);
   if (segment.id !== 0x18538067 || !segment.unknown) return blob; // A finalized file owns its existing indexes/duration.
   let info: ReturnType<typeof element> | null = null;

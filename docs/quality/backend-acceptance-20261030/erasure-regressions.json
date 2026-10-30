@@ -1,0 +1,53 @@
+{
+  "verifiedAt": "2026-10-30T17:02:04.010206+00:00",
+  "execution": "Local synthetic records only; no hosted object, account, worker, or provider was mutated",
+  "gates": [
+    {
+      "command": "node tests/account-storage-erasure.test.cjs",
+      "passed": 10,
+      "failed": 0,
+      "exitCode": 0
+    },
+    {
+      "command": "node supabase/tests/rpc-authorization/test-account-storage-erasure-chain.mjs",
+      "passed": 11,
+      "failed": 0,
+      "exitCode": 0
+    },
+    {
+      "command": "node supabase/tests/rpc-authorization/test-erasure-operator-chain.mjs",
+      "passed": 20,
+      "failed": 0,
+      "exitCode": 0
+    }
+  ],
+  "coverage": [
+    "Storage API deletion before metadata acknowledgement, application cleanup and Auth deletion",
+    "Unsafe, stale-lease, oversized and false-success outcomes fail closed",
+    "Idempotent acceptance, receipt recovery and suspended sessions with stale JWT write fences",
+    "Private operator contracts and current role/session checks",
+    "Financial, managed staff and ambiguous ownership holds",
+    "Version conflicts, cache deadline preservation, worker health, partial retries and restore prevention"
+  ],
+  "limits": [
+    "These local regression gates do not establish a real disposable-account Storage/CDN/Auth erasure or installed-client cache behavior."
+  ],
+  "files": [
+    {
+      "path": "tests/account-storage-erasure.test.cjs",
+      "sha256": "e02389147932a9e688dca1525126e079943f2cceb1ff658803bcd1d2e1d73bbb"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/test-account-storage-erasure-chain.mjs",
+      "sha256": "9dcb09aa8187322b76c3d0590eec005f790ae70744c85421d09ba508fc1428d9"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/test-erasure-operator-chain.mjs",
+      "sha256": "55e7a4aeb77649da46f2a444fc84029c599e6d6e0958f5f3eb194c845f175a3a"
+    },
+    {
+      "path": "supabase/functions/account-storage-erasure/handler.ts",
+      "sha256": "1bc4d4e88886441d70cdb6671077e68166a51e861e0a41af68dfa7371333fee8"
+    }
+  ]
+}

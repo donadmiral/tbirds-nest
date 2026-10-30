@@ -1,4 +1,6 @@
-import { MEMORY_SCORE_DUCK, memoryFilmItems, memoryFilmPhotoDuration, memoryFilmVideoWindow, type MemoryFilmItem, type MemoryFilmPage } from '../../shared/memoryFilm';
+import { readSoundtrack, type SoundtrackSelection } from '../../shared/soundtrack';
+import { libraryExportAudio, assertOriginalExportRights } from './libraryExportAudio';
+import { MEMORY_SCORE_DUCK, memoryFilmItems, memoryPageSoundtrack, memoryFilmPhotoDuration, memoryFilmVideoWindow, type MemoryFilmItem, type MemoryFilmPage } from '../../shared/memoryFilm';
 import { memoryStoryStickers } from '../../shared/memoryStoryPresentation';
 import { storyPhotoColorMatrix } from '../../shared/storyColorMatrix';
 import { storyVideoExportLimit, storyVideoLayerWindows, storyVideoMime, type StoryVideoRecipe } from '../../shared/storyVideoComposition';
@@ -12,19 +14,19 @@ type ExportPage = MemoryFilmPage & { dual_front_url?: string | null; audio_url?:
 export type MemoryMovieProgress = { phase: 'preparing' | 'rendering' | 'finishing'; message: string; percent: number };
 export type MemoryMovieCapture = { item: MemoryFilmItem; layer: 'background' | 'overlay'; clock: number };
 type Raster = { image: Blob; start: number; end: number };
-type Scene = { item: MemoryFilmItem; duration: number; start: number; recipe: StoryVideoRecipe | null; background: Blob; layers: Raster[] };
-type ReadyScene = { scene: Scene; video: HTMLVideoElement | null; renderer: ReturnType<typeof createStoryVideoRenderer> | null; background: ImageBitmap; layers: { image: ImageBitmap; start: number; end: number }[]; gain: GainNode | null; source: MediaElementAudioSourceNode | null; dispose: () => void };
+type Scene = { item: MemoryFilmItem; pageSound: SoundtrackSelection | null; duration: number; start: number; recipe: StoryVideoRecipe | null; background: Blob; layers: Raster[] };
+type ReadyScene = { scene: Scene; pageAudio: {buffer:AudioBuffer;selection:LocalExportAudio}|null; video: HTMLVideoElement | null; renderer: ReturnType<typeof createStoryVideoRenderer> | null; background: ImageBitmap; layers: { image: ImageBitmap; start: number; end: number }[]; gain: GainNode | null; source: MediaElementAudioSourceNode | null; dispose: () => void };
 
 /** Whole movies are all-or-nothing. An unavailable layer is never replaced by its poster. */
 export function memoryMovieLimit(pages: readonly ExportPage[], soundtrack?: unknown): string | null {
   if (!pages.length) return 'Add a memory before downloading a movie.';
   if (pages.length > MEMORY_MOVIE_MAX_PAGES) return `A browser movie can contain up to ${MEMORY_MOVIE_MAX_PAGES} memories. Create a shorter book before exporting.`;
-  if (soundtrack) return 'This book has a saved soundtrack whose export rights are unavailable. Remove that soundtrack before making a movie, or keep reading this book.';
+  if (soundtrack&&!readSoundtrack(soundtrack)) return 'Choose the book soundtrack again before exporting.';
   const items = memoryFilmItems(pages);
   for (let index = 0; index < pages.length; index++) {
     const page = pages[index], item = items[index], prefix = `Memory ${index + 1}: `;
     if (page.dual_front_url) return prefix + 'dual-camera composition cannot be exported yet. The second camera will not be discarded.';
-    if (page.audio_url || page.audio_title) return prefix + 'saved added audio cannot be verified for movie export. Remove that saved track before exporting.';
+    if ((page.audio_url || page.audio_title) && !memoryPageSoundtrack(page)) return prefix + 'this older added audio needs verification. Upload the original and select it again before exporting.';
     if ((page.media_type === 'image' || page.media_type === 'video') && !item.uri) return prefix + 'the original media is unavailable. Refresh the book and try again.';
     if (item.uri && /\.gif(?:[?#]|$)|^data:image\/gif/i.test(item.uri)) return prefix + 'animated GIF media cannot be exported yet.';
     const stickers = memoryStoryStickers(page.stickers);
@@ -78,6 +80,9 @@ export async function exportMemoryMovie(options: {
   progress: (progress: MemoryMovieProgress) => void;
 }): Promise<{ blob: Blob; extension: 'mp4' | 'webm'; duration: number; memories: number }> {
   const problem = memoryMovieLimit(options.pages, options.soundtrack); if (problem) throw new Error(problem);
+  const savedMusic=readSoundtrack(options.soundtrack),pageSounds=options.pages.map(memoryPageSoundtrack).filter((value):value is SoundtrackSelection=>!!value);
+  if(savedMusic&&options.localAudio)throw new Error('Remove the extra export audio to use your saved book soundtrack, or remove the book soundtrack first.');
+  if(savedMusic)options={...options,score:null};
   if (typeof MediaRecorder === 'undefined' || typeof createImageBitmap === 'undefined') throw new Error('Movie export needs a current desktop browser with canvas recording.');
   const mime = storyVideoMime(type => MediaRecorder.isTypeSupported(type)); if (!mime) throw new Error('This browser has no supported movie export codec.');
   const controller = new AbortController(), signal = controller.signal;
@@ -90,6 +95,7 @@ export async function exportMemoryMovie(options: {
   document.addEventListener('visibilitychange', visibility); window.addEventListener('platinum:stop-media', interrupted);
   const observer = new MutationObserver(call); observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-platinum-call-active'] });
   let audio: AudioContext | null = null, audioDestination: MediaStreamAudioDestinationNode | null = null, mix: WaveShaperNode | null = null;
+  let continuousAudio: ReturnType<typeof playExportAudio> | null=null;const pageAudioHandle:{stop:(()=>void)|null}={stop:null};
   let scoreBuffer: AudioBuffer | null = null, localBuffer: AudioBuffer | null = null, scoreGain: GainNode | null = null;
   const stopAudio: (() => void)[] = [], ready = new Map<number, ReadyScene>(), pending = new Map<number, Promise<ReadyScene>>();
   let stream: MediaStream | null = null, recorder: MediaRecorder | null = null, frame = 0, watchdog: ReturnType<typeof setTimeout> | undefined, cleanupRecording = () => {};
@@ -97,13 +103,14 @@ export async function exportMemoryMovie(options: {
   try {
     visibility(); call(); exportCancelled(signal);
     // Resume in the deliberate Download button gesture, before any fetch/capture.
-    if (options.score || options.localAudio || options.originalAudio && memoryFilmItems(options.pages).some(item => item.kind === 'video')) {
+    if (savedMusic || options.score || options.localAudio || pageSounds.length || options.originalAudio && memoryFilmItems(options.pages).some(item => item.kind === 'video')) {
       audio = new AudioContext(); await exportStep(audio.resume(), signal, 'The browser could not start movie audio. Click Create movie again.');
       audioDestination = audio.createMediaStreamDestination(); mix = audio.createWaveShaper();
       // A unity-gain ceiling keeps overlapping tracks in range without a
       // compressor's automatic makeup gain changing the author's saved level.
       mix.curve = Float32Array.from({ length: 2049 }, (_, index) => Math.max(-.98, Math.min(.98, index / 1024 - 1))); mix.connect(audioDestination);
     }
+    if(savedMusic)options={...options,localAudio:await libraryExportAudio(savedMusic,'memory_album',signal)};
     if (options.localAudio && audio) localBuffer = await decodeExportAudio(audio, options.localAudio, signal);
     if (options.score && audio) {
       if (!Number.isFinite(options.score.volume) || options.score.volume < 0 || options.score.volume > 1) throw new Error('Choose a background music level between 0 and 100%.');
@@ -131,7 +138,7 @@ export async function exportMemoryMovie(options: {
       captures += 1 + windows.length; if (captures > 120) throw new Error('This book has too many timed artwork changes for a browser movie. Simplify its layers before exporting.');
       const background = await raster(await options.capture({ item, layer: 'background', clock: recipe?.trimStart || 0 }, signal), signal, true), layers: Raster[] = [];
       for (const window of windows) layers.push({ image: await raster(await options.capture({ item, layer: 'overlay', clock: window.clock }, signal), signal), start: window.start, end: window.end });
-      scenes.push({ item, duration: seconds, start: duration, recipe, background, layers }); duration += seconds;
+      scenes.push({ item, pageSound:memoryPageSoundtrack(item.page), duration: seconds, start: duration, recipe, background, layers }); duration += seconds;
     }
     const prepare = (index: number): Promise<ReadyScene> => {
       const existing = pending.get(index); if (existing) return existing;
@@ -139,7 +146,7 @@ export async function exportMemoryMovie(options: {
         const scene = scenes[index], bitmaps: ImageBitmap[] = [];
         let video: HTMLVideoElement | null = null, renderer: ReturnType<typeof createStoryVideoRenderer> | null = null, source: MediaElementAudioSourceNode | null = null, gain: GainNode | null = null;
         let disposed = false;
-        const dispose = () => { if (disposed) return; disposed = true; bitmaps.forEach(bitmap => bitmap.close()); source?.disconnect(); gain?.disconnect(); renderer?.dispose(); if (video) { video.pause(); video.removeAttribute('src'); video.load(); } ready.delete(index); };
+        const dispose = () => { if (disposed) return; disposed = true; bitmaps.forEach(bitmap => bitmap.close()); source?.disconnect(); gain?.disconnect(); renderer?.dispose(); if (video) { video.pause(); video.removeAttribute('src'); video.load(); } ready.delete(index);pending.delete(index); };
         try {
           const decode = async (blob: Blob) => { const bitmap = await createImageBitmap(blob); bitmaps.push(bitmap); exportCancelled(signal); return bitmap; };
           const background = await decode(scene.background), layers = [];
@@ -150,8 +157,10 @@ export async function exportMemoryMovie(options: {
             video.playbackRate = scene.recipe.speed; video.preservesPitch = true; renderer = createStoryVideoRenderer(video, scene.recipe); renderer.draw();
             if (audio && mix && scene.recipe.volume > 0) { source = audio.createMediaElementSource(video); gain = audio.createGain(); gain.gain.value = 0; source.connect(gain); gain.connect(mix); video.muted = false; video.volume = 1; }
           }
+          let pageAudio:{buffer:AudioBuffer;selection:LocalExportAudio}|null=null;
+          if(scene.pageSound&&audio){const selection=await libraryExportAudio(scene.pageSound,'memory_album',signal);pageAudio={selection,buffer:await decodeExportAudio(audio,selection,signal)};}
           exportCancelled(signal);
-          const result = { scene, background, layers, video, renderer, source, gain, dispose }; ready.set(index, result); return result;
+          const result = { scene, pageAudio, background, layers, video, renderer, source, gain, dispose }; ready.set(index, result); return result;
         } catch (error) { dispose(); throw error; }
       })();
       // A future page failure aborts the entire movie; never skip that memory.
@@ -184,9 +193,12 @@ export async function exportMemoryMovie(options: {
       const activate = (index: number) => {
         if (index === activeIndex) return;
         const next = ready.get(index); if (!next) throw new Error('The next memory is not ready. No partial movie was saved; retry on a faster connection.');
-        if (activeIndex >= 0) ready.get(activeIndex)?.dispose(); activeIndex = index;
+        if (activeIndex >= 0) ready.get(activeIndex)?.dispose(); pageAudioHandle.stop?.();pageAudioHandle.stop=null;activeIndex = index;
         if (next.gain && next.scene.recipe) next.gain.gain.value = next.scene.recipe.volume;
-        if (scoreGain && options.score) scoreGain.gain.value = options.score.volume * (next.scene.recipe && next.scene.recipe.volume > 0 ? MEMORY_SCORE_DUCK : 1);
+        const duck=next.scene.recipe&&next.scene.recipe.volume>0||next.pageAudio?MEMORY_SCORE_DUCK:1;
+        if (scoreGain && options.score) scoreGain.gain.value = options.score.volume * duck;
+        if(savedMusic)continuousAudio?.setVolume(savedMusic.volume*duck);
+        if(next.pageAudio&&audio&&mix)pageAudioHandle.stop=playExportAudio(audio,mix,next.pageAudio.buffer,next.pageAudio.selection);
         if (next.video) void next.video.play().catch(() => stop(new Error('A memory video could not start. Click Create movie again.')));
         if (index + 1 < scenes.length) void prepare(index + 1);
       };
@@ -210,18 +222,20 @@ export async function exportMemoryMovie(options: {
         scoreGain = audio.createGain(); scoreGain.connect(mix); const source = audio.createBufferSource(); source.buffer = scoreBuffer; source.loop = true; source.connect(scoreGain); source.start();
         stopAudio.push(() => { try { source.stop(); } catch { /* Already finished. */ } source.disconnect(); scoreGain?.disconnect(); });
       }
-      if (localBuffer && audio && mix && options.localAudio) stopAudio.push(playExportAudio(audio, mix, localBuffer, options.localAudio));
+      if (localBuffer && audio && mix && options.localAudio) {continuousAudio=playExportAudio(audio,mix,localBuffer,options.localAudio);stopAudio.push(continuousAudio);}
       activate(0); (stream!.getVideoTracks()[0] as CanvasCaptureMediaStreamTrack)?.requestFrame?.();
       watchdog = setTimeout(() => stop(new Error('The movie took too long to finish. No incomplete movie was saved.')), (duration + 20) * 1000); frame = requestAnimationFrame(tick);
     });
     exportCancelled(signal); options.progress({ phase: 'finishing', message: 'Preparing your download…', percent: 100 });
     const blob = await finalizeRecordedWebm(new Blob(chunks, { type: recorder.mimeType || mime }), recordedSeconds, MEMORY_MOVIE_MAX_SECONDS + 30); exportCancelled(signal);
     if (blob.size < 1024) throw new Error('The movie file is empty. No file was saved.');
+    if(savedMusic)await assertOriginalExportRights(savedMusic,'memory_album',signal);
+    for(const selection of new Map(pageSounds.map(sound=>[sound.soundId,sound])).values())await assertOriginalExportRights(selection,'memory_album',signal);
     return { blob, extension: blob.type.includes('mp4') ? 'mp4' : 'webm', duration, memories: scenes.length };
   } finally {
     if (!signal.aborted) controller.abort(new Error('Movie export finished.'));
     options.signal.removeEventListener('abort', cancel); document.removeEventListener('visibilitychange', visibility); window.removeEventListener('platinum:stop-media', interrupted); observer.disconnect();
-    cleanupRecording(); cancelAnimationFrame(frame); clearTimeout(watchdog); stopAudio.forEach(stop => stop());
+    cleanupRecording(); cancelAnimationFrame(frame); clearTimeout(watchdog);pageAudioHandle.stop?.(); stopAudio.forEach(stop => stop());
     if (recorder && recorder.state !== 'inactive') recorder.stop(); stream?.getTracks().forEach(track => track.stop());
     ready.forEach(item => item.dispose()); mix?.disconnect(); if (audio) await audio.close().catch(() => {});
     // Pending decodes observe the abort before publishing a ready scene and dispose themselves.

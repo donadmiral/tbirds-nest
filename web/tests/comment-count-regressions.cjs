@@ -86,10 +86,12 @@ function scenario(initialCount = 0) {
         slots[i]?.cleanup?.(); slots[i] = { deps }; effects.push(() => { slots[i].cleanup = fn(); });
       } },
     };
+    hooks.useLayoutEffect=hooks.useEffect;
+    hooks.useMemo=(fn,deps)=>{const i=cursor++;if(!slots[i]||!same(slots[i].deps,deps))slots[i]={value:fn(),deps};return slots[i].value;};
     const runtime = { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }), Fragment: 'Fragment' };
     const module = { exports: {} };
     vm.runInNewContext(kind === 'comments' ? commentSource : cardSource, {
-      module, exports: module.exports, window, CustomEvent, alert: message => alerts.push(message), setTimeout, clearTimeout,
+      module, exports: module.exports, window, CustomEvent, alert: message => alerts.push(message), setTimeout, clearTimeout, queueMicrotask,
       require(id) {
         if (sharedModules[id]) return sharedModules[id];
         if (id === 'react') return hooks;
@@ -105,7 +107,7 @@ function scenario(initialCount = 0) {
         return new Proxy({}, { get: (_, key) => String(key) });
       },
     });
-    const render = () => { cursor = 0; tree = module.exports[kind === 'comments' ? 'Comments' : 'PostCard'](props); const pending = effects; effects = []; pending.forEach(fn => fn()); };
+    const render = () => { cursor = 0; tree = module.exports[kind === 'comments' ? 'Comments' : 'PostCard'](props); while(typeof tree?.type==='function')tree=tree.type(tree.props); const pending = effects; effects = []; pending.forEach(fn => fn()); };
     const nodes = () => {
       const found = [];
       const walk = n => { if (!n || typeof n !== 'object') return; if (Array.isArray(n)) return n.forEach(walk);

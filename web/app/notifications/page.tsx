@@ -135,7 +135,7 @@ export default function NotificationsPage() {
     if (more) setLoadingMore(true);
     setPageError(null);
     const asOf = more ? cursor.current.asOf : new Date().toISOString();
-    const version = ++request.current;
+    const version = request.current += 1;
     setFailed(false);
     try {
       const { data: session, error: sessionError } = await supabase.auth.getSession();
@@ -210,7 +210,7 @@ export default function NotificationsPage() {
     const bind = (next: string | null) => {
       if (!alive || next === uid) return;
       uid = next;
-      request.current++; identity.current++;
+      request.current += 1; identity.current += 1;
       cursor.current = { offset: 0, asOf: new Date().toISOString() }; setHasMore(true);
       setRows([]); setUnreadTotal(null); setSThumbs({}); setLoading(true); setActionError(null);
       if (channel) { void supabase.removeChannel(channel); channel = null; }
@@ -224,8 +224,7 @@ export default function NotificationsPage() {
       if (error) { setFailed(true); setLoading(false); return; }
       bind(data.session?.user.id ?? null);
     }, () => { if (alive) { setFailed(true); setLoading(false); } });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Cleanup deliberately invalidates the latest request and identity counters.
-    return () => { alive = false; refreshPending.current = false; request.current++; identity.current++; auth.subscription.unsubscribe(); if (timer) clearTimeout(timer); if (channel) void supabase.removeChannel(channel); };
+    return () => { alive = false; refreshPending.current = false; request.current += 1; identity.current += 1; auth.subscription.unsubscribe(); if (timer) clearTimeout(timer); if (channel) void supabase.removeChannel(channel); };
   }, [supabase, load]);
 
   useEffect(() => {

@@ -447,3 +447,7 @@ verify_jwt = false
 
 [functions.business-owner-access]
 verify_jwt = false
+
+# The upload verifier checks the real owner and active session in its handler.
+[functions.music-asset-finalize]
+verify_jwt = false

@@ -1,4 +1,7 @@
 "use client";
+import NextImage from "next/image";
+
+import { errorMessage } from "@/lib/errors";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createScopedMutation } from "../../../../shared/scopedMutation";
@@ -17,6 +20,7 @@ import { PostCard } from "@/components/PostCard";
 import { CATEGORIES } from "@/lib/categories";
 import { COMM_COLORS } from "@/lib/communities";
 import { ProductDialog } from "@/components/ProductDialog";
+import type { CommunityPost, CommunityMember, CommunityRequest, CommunityInvite, CommunityAnnouncement, SubCommunity, CommunityBan, DirectoryPerson } from "@/lib/socialTypes";
 import styles from "@/components/SocialWorkspace.module.css";
 
 type Info = {
@@ -27,12 +31,16 @@ type Info = {
 };
 
 export default function CommunityPage() {
-  const [supabase] = useState(createClient);
   const params = useParams<{ id: string }>();
   const communityId = String(params.id || "");
+  return <CommunityWorkspace key={communityId} communityId={communityId} />;
+}
+
+function CommunityWorkspace({ communityId }: { communityId: string }) {
+  const [supabase] = useState(createClient);
   const [me, setMe] = useState<string | null>(null);
   const [info, setInfo] = useState<Info | null>(null);
-  const postsPage = useSocialPages<any>("get_community_posts_page", { p_community: communityId }, { key: "post_id", enabled: !!info?.is_member });
+  const postsPage = useSocialPages<CommunityPost>("get_community_posts_page", { p_community: communityId }, { key: "post_id", enabled: !!info?.is_member });
   const { items: posts, setItems: setPosts } = postsPage;
   const infoRequest = useRef(0);
   const postLock = useRef(false);
@@ -45,31 +53,31 @@ export default function CommunityPage() {
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [menuFor, setMenuFor] = useState<string | null>(null);
   const [membersOpen, setMembersOpen] = useState(false);
-  const membersPage = useSocialPages<any>("get_community_members_page", { p_community: communityId }, { key: "user_id", enabled: membersOpen && !!info?.is_member });
+  const membersPage = useSocialPages<CommunityMember>("get_community_members_page", { p_community: communityId }, { key: "user_id", enabled: membersOpen && !!info?.is_member });
   const { items: members, setItems: setMembers } = membersPage;
   const [requestsOpen, setRequestsOpen] = useState(false);
-  const requestsPage = useSocialPages<any>("get_join_requests_page", { p_community: communityId }, { key: "user_id", enabled: requestsOpen && !!info?.is_member });
+  const requestsPage = useSocialPages<CommunityRequest>("get_join_requests_page", { p_community: communityId }, { key: "user_id", enabled: requestsOpen && !!info?.is_member });
   const { items: requests, setItems: setRequests } = requestsPage;
   const [settingsOpen, setSettingsOpen] = useState(false);
   // Membership machine: invitations, announcements, sub-groups, limited and removed members.
   const router = useRouter();
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteQ, setInviteQ] = useState("");
-  const [inviteHits, setInviteHits] = useState<any[]>([]);
-  const invitesPage = useSocialPages<any>("get_community_invites_page", { p_community: communityId }, { key: "user_id", enabled: inviteOpen && !!info?.is_member });
+  const [inviteHits, setInviteHits] = useState<DirectoryPerson[]>([]);
+  const invitesPage = useSocialPages<CommunityInvite>("get_community_invites_page", { p_community: communityId }, { key: "user_id", enabled: inviteOpen && !!info?.is_member });
   const { items: invites, setItems: setInvites } = invitesPage;
-  const announcementsPage = useSocialPages<any>("get_community_announcements_page", { p_community: communityId }, { key: "id", enabled: !!info?.is_member });
+  const announcementsPage = useSocialPages<CommunityAnnouncement>("get_community_announcements_page", { p_community: communityId }, { key: "id", enabled: !!info?.is_member });
   const { items: announcements, setItems: setAnnouncements } = announcementsPage;
   const [annDraft, setAnnDraft] = useState("");
   const [annOpen, setAnnOpen] = useState(false);
-  const subsPage = useSocialPages<any>("get_sub_communities_page", { p_community: communityId }, { key: "id", enabled: !!info?.is_member });
-  const { items: subs, setItems: setSubs } = subsPage;
+  const subsPage = useSocialPages<SubCommunity>("get_sub_communities_page", { p_community: communityId }, { key: "id", enabled: !!info?.is_member });
+  const { items: subs } = subsPage;
   const [subOpen, setSubOpen] = useState(false);
   const [subName, setSubName] = useState("");
   const [subDesc, setSubDesc] = useState("");
   const [subMode, setSubMode] = useState<"open" | "approval" | "invite">("open");
   const [bansOpen, setBansOpen] = useState(false);
-  const bansPage = useSocialPages<any>("get_community_bans_page", { p_community: communityId }, { key: "user_id", enabled: bansOpen && !!info?.is_member });
+  const bansPage = useSocialPages<CommunityBan>("get_community_bans_page", { p_community: communityId }, { key: "user_id", enabled: bansOpen && !!info?.is_member });
   const { items: bans, setItems: setBans } = bansPage;
   const [linkNote, setLinkNote] = useState<string | null>(null);
 
@@ -79,7 +87,7 @@ export default function CommunityPage() {
   const band = COMM_COLORS[info?.cover_color || "sky"] || COMM_COLORS.sky;
 
   const loadInfo = useCallback(async () => {
-    const version = ++infoRequest.current;
+    const version = infoRequest.current += 1;
     setInfoError(false);
     try {
       const { data, error } = await withTimeout(supabase.rpc("get_community", { p_community: communityId }));
@@ -97,13 +105,13 @@ export default function CommunityPage() {
   const loadExtras = useCallback(async () => { await Promise.all([reloadAnnouncements(), reloadSubs()]); }, [reloadAnnouncements, reloadSubs]);
 
   useEffect(() => {
-    setInfo(null); setLoading(true); setMembersOpen(false); setRequestsOpen(false); setInviteOpen(false); setBansOpen(false);
     let alive = true;
     let uid: string | null | undefined;
-    const bind = (next: string | null) => { if (alive && uid !== next) { uid = next; mutationEpoch.current++;actions.current.reset();postLock.current=false;setPosting(false);setAnnDraft("");setSubName("");setSubDesc("");setLinkNote(null);setSettingsOpen(false);setInviteOpen(false);setAnnOpen(false);setSubOpen(false);setMe(next); setInfo(null); setDraft(""); setFile(null); setInviteQ(""); setInviteHits([]); void loadInfo(); } };
+    const bind = (next: string | null) => { if (alive && uid !== next) { uid = next; setLoading(true); setMembersOpen(false); setRequestsOpen(false); setBansOpen(false); mutationEpoch.current += 1;actions.current.reset();postLock.current=false;setPosting(false);setAnnDraft("");setSubName("");setSubDesc("");setLinkNote(null);setSettingsOpen(false);setInviteOpen(false);setAnnOpen(false);setSubOpen(false);setMe(next); setInfo(null); setDraft(""); setFile(null); setInviteQ(""); setInviteHits([]); void loadInfo(); } };
+    const scopeActions=actions.current;
     const { data: auth } = supabase.auth.onAuthStateChange((_event, session) => bind(session?.user.id ?? null));
     withTimeout(supabase.auth.getSession()).then(({data,error})=>{if(error)throw error;if(uid===undefined)bind(data.session?.user.id??null);}).catch(()=>{if(alive&&uid===undefined){setLoading(false);setInfoError(true);}});
-    return () => { alive = false; infoRequest.current++;mutationEpoch.current++;actions.current.reset(); auth.subscription.unsubscribe(); };
+    return () => { alive = false; infoRequest.current += 1;mutationEpoch.current += 1;scopeActions.reset(); auth.subscription.unsubscribe(); };
   }, [supabase, loadInfo]);
 
   useEffect(() => {
@@ -128,21 +136,21 @@ export default function CommunityPage() {
     return await withTimeout(supabase.rpc(name,args));
   });
   const respondInvite = async (accept: boolean) => {
-    const { data, error, stale } = await actionRpc("respond_community_invite", { p_community: communityId, p_accept: accept });
+    const { error, stale } = await actionRpc("respond_community_invite", { p_community: communityId, p_accept: accept });
     if (stale) return;
     if (error) { alert(error.message); return; }
     await loadInfo();
   };
   const openInvite = async () => { setInviteOpen(true); setLinkNote(null); };
 
-  const invitePerson = async (p: any) => {
+  const invitePerson = async (p: DirectoryPerson) => {
     const { error, stale } = await actionRpc("invite_to_community", { p_community: communityId, p_user: p.id });
     if (stale) return;
     if (error) { alert(error.message); return; }
-    setInvites(prev => [{ user_id: p.id, full_name: p.full_name, username: p.username, avatar_url: p.avatar_url, created_at: new Date().toISOString() }, ...prev.filter(x => x.user_id !== p.id)]);
+    setInvites(prev => [{ user_id: p.id, full_name: p.full_name, username: p.username, avatar_url: p.avatar_url, invited_by: me, created_at: new Date().toISOString() }, ...prev.filter(x => x.user_id !== p.id)]);
     setInviteQ("");
   };
-  const revokeInvite = async (r: any) => {
+  const revokeInvite = async (r: CommunityInvite) => {
     const { error, stale } = await actionRpc("revoke_community_invite", { p_community: communityId, p_user: r.user_id });
     if (stale) return;
     if (error) { alert(error.message); return; }
@@ -155,7 +163,7 @@ export default function CommunityPage() {
       if (stale) return;
     if (error) { setLinkNote("Could not read the invite link. Please try again."); return; }
       const row = Array.isArray(data) ? data[0] : data;
-      token = (row as any)?.token || null;
+      token = row && typeof row === "object" && "token" in row && typeof row.token === "string" ? row.token : null;
     }
     if (!token) {
       const { data, error, stale } = await actionRpc("create_community_invite_link", { p_community: communityId, p_expires_days: 7, p_max_uses: null });
@@ -180,7 +188,7 @@ export default function CommunityPage() {
     if (error) { alert(error.message); return; }
     setAnnDraft(""); setAnnOpen(false); void loadExtras();
   };
-  const deleteAnnouncement = async (a: any) => {
+  const deleteAnnouncement = async (a: CommunityAnnouncement) => {
     if (!confirm("Remove this announcement?")) return;
     const { error, stale } = await actionRpc("delete_community_announcement", { p_id: a.id });
     if (stale) return;
@@ -195,13 +203,13 @@ export default function CommunityPage() {
     setSubOpen(false); setSubName(""); setSubDesc(""); setSubMode("open");
     router.push("/communities/" + data);
   };
-  const applyStatus = async (m: any, status: "active" | "limited") => {
+  const applyStatus = async (m: CommunityMember, status: "active" | "limited") => {
     const { error, stale } = await actionRpc("set_community_member_status", { p_community: communityId, p_user: m.user_id, p_status: status });
     if (stale) return;
     if (error) { alert(error.message); return; }
     setMembers(prev => prev.map(x => x.user_id === m.user_id ? { ...x, status } : x));
   };
-  const removeMember = async (m: any, ban: boolean) => {
+  const removeMember = async (m: CommunityMember, ban: boolean) => {
     if (!confirm(ban ? "Remove and block from rejoining?" : "Remove from the community?")) return;
     const { error, stale } = await actionRpc("remove_community_member", { p_community: communityId, p_user: m.user_id, p_ban: ban, p_reason: null });
     if (stale) return;
@@ -209,7 +217,7 @@ export default function CommunityPage() {
     setMembers(prev => prev.filter(x => x.user_id !== m.user_id));
     await loadInfo();
   };
-  const memberAction = (m: any, v: string) => {
+  const memberAction = (m: CommunityMember, v: string) => {
     if (v === "moderator" || v === "member") void applyRole(m, v);
     else if (v === "limit") void applyStatus(m, "limited");
     else if (v === "unlimit") void applyStatus(m, "active");
@@ -218,7 +226,7 @@ export default function CommunityPage() {
   };
   const openBans = async () => { setBansOpen(true); };
 
-  const unban = async (b: any) => {
+  const unban = async (b: CommunityBan) => {
     const { error, stale } = await actionRpc("unban_community_member", { p_community: communityId, p_user: b.user_id });
     if (stale) return;
     if (error) { alert(error.message); return; }
@@ -226,7 +234,7 @@ export default function CommunityPage() {
   };
 
   const join = async () => {
-    const { data, error, stale } = await actionRpc("join_community", { p_community: communityId });
+    const { error, stale } = await actionRpc("join_community", { p_community: communityId });
     if (stale) return;
     if (error) { alert(error.message); return; }
     await loadInfo();
@@ -271,11 +279,11 @@ export default function CommunityPage() {
       if (version !== mutationEpoch.current) return;
       setDraft(""); setFile(null);
       await loadPosts();
-    } catch (err: any) { if(version===mutationEpoch.current)alert(err?.message || "Could not post."); }
+    } catch (err: unknown) { if(version===mutationEpoch.current)alert(errorMessage(err, "Could not post.")); }
     finally { if(version===mutationEpoch.current){postLock.current = false; setPosting(false);} }
   };
 
-  const pin = async (p: any) => {
+  const pin = async (p: CommunityPost) => {
     const { error, stale } = await actionRpc("pin_community_post", { p_post: p.post_id, p_pin: !p.is_pinned });
     if (stale) return;
     if (error) { alert(error.message); return; }
@@ -283,7 +291,7 @@ export default function CommunityPage() {
     await loadPosts();
   };
 
-  const removePost = async (p: any) => {
+  const removePost = async (p: CommunityPost) => {
     const own = p.author_id === me;
     if (!confirm(own ? "Delete this post?" : "Remove this post from the community?")) return;
     const r = await actions.current.run('remove:'+p.post_id,()=>withTimeout(own
@@ -297,7 +305,7 @@ export default function CommunityPage() {
 
   const openMembers = async () => { setMembersOpen(true); };
 
-  const applyRole = async (m: any, role: string) => {
+  const applyRole = async (m: CommunityMember, role: string) => {
     const { error, stale } = await actionRpc("set_community_role", { p_community: communityId, p_user: m.user_id, p_role: role });
     if (stale) return;
     if (error) { alert(error.message); return; }
@@ -307,7 +315,7 @@ export default function CommunityPage() {
 
   const openRequests = async () => { setRequestsOpen(true); };
 
-  const resolveReq = async (r: any, approve: boolean) => {
+  const resolveReq = async (r: CommunityRequest, approve: boolean) => {
     const { error, stale } = await actionRpc("resolve_join_request", { p_community: communityId, p_user: r.user_id, p_approve: approve });
     if (stale) return;
     if (error) { alert(error.message); return; }
@@ -318,7 +326,7 @@ export default function CommunityPage() {
   const catLabel = info?.category ? (CATEGORIES.find(c => c.key === info.category)?.label || info.category) : null;
 
   return (
-    <main className={styles.detail}>
+    <section className={styles.detail}>
       <div className={styles.communityHero} style={{ background: band }}>
         <div className={styles.heroTop}>
           <Link href="/communities"><ArrowLeft size={16} aria-hidden />Communities</Link>
@@ -331,8 +339,8 @@ export default function CommunityPage() {
         </div>
         <div className={styles.heroIdentity}>
           {info?.icon_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={info.icon_url} alt="" className={styles.heroAvatar} />
+
+            <NextImage unoptimized width={80} height={80} src={info.icon_url} alt="" className={styles.heroAvatar} />
           ) : (
             <span className={styles.heroAvatar}><Users size={22} /></span>
           )}
@@ -387,7 +395,7 @@ export default function CommunityPage() {
                   <button onClick={postAnnouncement} disabled={!annDraft.trim()} className="rounded-full bg-ink px-4 text-[13px] font-semibold text-white disabled:opacity-30">Post</button>
                 </div>
               ) : null}
-              {announcements.length === 0 ? <p className="mt-1 text-[12.5px] text-ink/60">Nothing announced yet. Only moderators post here; every member sees it.</p> : announcements.map((a: any) => (
+              {announcements.length === 0 ? <p className="mt-1 text-[12.5px] text-ink/60">Nothing announced yet. Only moderators post here; every member sees it.</p> : announcements.map((a) => (
                 <div key={a.id} className="group mt-2">
                   <p className="whitespace-pre-wrap text-[13px] text-ink">{a.body}</p>
                   <p className="text-[11.5px] text-muted">{(a.full_name || a.username || "Moderator")}{isMod ? <button onClick={() => deleteAnnouncement(a)} className="ml-2 hidden text-danger group-hover:inline">Remove</button> : null}</p>
@@ -399,7 +407,7 @@ export default function CommunityPage() {
           {announcementsPage.error && announcements.length === 0 && !isMod ? <SocialPageFooter {...announcementsPage} /> : null}
           {(subs.length > 0 || isMod) ? (
             <div className="mb-3 flex flex-wrap gap-2">
-              {subs.map((s: any) => (
+              {subs.map((s) => (
                 <Link key={s.id} href={"/communities/" + s.id} className="flex items-center gap-1 rounded-full border border-ink/20 bg-white px-3 py-1.5 text-[13px] font-semibold text-ink hover:bg-black/[0.03]">
                   <Hash size={12} /> {s.name}{s.join_mode === "invite" && !s.is_member ? <span className="text-muted"> · invite only</span> : null}
                 </Link>
@@ -482,8 +490,8 @@ export default function CommunityPage() {
 {members.map(m => (
               <div key={m.user_id} className="flex items-center gap-2 py-1.5">
                 {m.avatar_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={displayImageUrl(m.avatar_url, 200) ?? m.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
+
+                  <NextImage unoptimized width={32} height={32} src={displayImageUrl(m.avatar_url, 200) ?? m.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
                 ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-[12px] font-bold text-white">{(m.full_name || "?").charAt(0)}</span>}
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13.5px] font-semibold text-ink"><PersonName name={m.full_name || "Member"} userId={m.user_id} badgeSize={12} />{m.user_id === me ? " (you)" : ""}</span>
@@ -512,8 +520,8 @@ export default function CommunityPage() {
           {requests.length === 0 ? <p className="py-8 text-center text-sm text-muted">No pending requests.</p> : requests.map(r => (
               <div key={r.user_id} className="flex items-center gap-2 py-1.5">
                 {r.avatar_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={displayImageUrl(r.avatar_url, 200) ?? r.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
+
+                  <NextImage unoptimized width={32} height={32} src={displayImageUrl(r.avatar_url, 200) ?? r.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
                 ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-[12px] font-bold text-white">{(r.full_name || "?").charAt(0)}</span>}
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13.5px] font-semibold text-ink"><PersonName name={r.full_name || "Member"} userId={r.user_id} badgeSize={12} /></span>
@@ -540,8 +548,8 @@ export default function CommunityPage() {
             {inviteHits.filter(h => h.id !== me && !invites.some(i => i.user_id === h.id)).map(h => (
               <div key={h.id} className="flex items-center gap-2 py-1.5">
                 {h.avatar_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={displayImageUrl(h.avatar_url, 200) ?? h.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
+
+                  <NextImage unoptimized width={32} height={32} src={displayImageUrl(h.avatar_url, 200) ?? h.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
                 ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-[12px] font-bold text-white">{(h.full_name || "?").charAt(0)}</span>}
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13.5px] font-semibold text-ink"><PersonName name={h.full_name || "Member"} userId={h.id} badgeSize={12} /></span>
@@ -554,8 +562,8 @@ export default function CommunityPage() {
             {invites.map(r => (
               <div key={r.user_id} className="flex items-center gap-2 py-1.5">
                 {r.avatar_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={displayImageUrl(r.avatar_url, 200) ?? r.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
+
+                  <NextImage unoptimized width={32} height={32} src={displayImageUrl(r.avatar_url, 200) ?? r.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
                 ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-[12px] font-bold text-white">{(r.full_name || "?").charAt(0)}</span>}
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13.5px] font-semibold text-ink"><PersonName name={r.full_name || "Member"} userId={r.user_id} badgeSize={12} /></span>
@@ -573,8 +581,8 @@ export default function CommunityPage() {
           {bans.length === 0 ? <p className="py-8 text-center text-sm text-muted">No one is blocked.</p> : bans.map(b => (
               <div key={b.user_id} className="flex items-center gap-2 py-1.5">
                 {b.avatar_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={displayImageUrl(b.avatar_url, 200) ?? b.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
+
+                  <NextImage unoptimized width={32} height={32} src={displayImageUrl(b.avatar_url, 200) ?? b.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
                 ) : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink text-[12px] font-bold text-white">{(b.full_name || "?").charAt(0)}</span>}
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[13.5px] font-semibold text-ink"><PersonName name={b.full_name || "Member"} userId={b.user_id} badgeSize={12} /></span>
@@ -591,11 +599,12 @@ export default function CommunityPage() {
         <CommunitySettings info={info} meId={me} onClose={() => setSettingsOpen(false)}
           onSaved={async () => { setSettingsOpen(false); await loadInfo(); }} />
       ) : null}
-    </main>
+    </section>
   );
 }
 
 function CommunitySettings({ info, meId, onClose, onSaved }: { info: Info; meId: string | null; onClose: () => void; onSaved: () => void }) {
+  const router = useRouter();
   const [supabase] = useState(createClient);
   const [eName, setEName] = useState(info.name || '');
   const [eDesc, setEDesc] = useState(info.description || '');
@@ -609,7 +618,7 @@ function CommunitySettings({ info, meId, onClose, onSaved }: { info: Info; meId:
   const [error, setError] = useState('');
   const iconRef = useRef<HTMLInputElement | null>(null);
   const live = useRef(false), locked = useRef(false), imageGeneration = useRef(0);
-  useEffect(() => { live.current = true; return () => { live.current = false; imageGeneration.current++; }; }, []);
+  useEffect(() => { live.current = true; return () => { live.current = false; imageGeneration.current += 1; }; }, []);
   useEffect(() => () => { if (photo) URL.revokeObjectURL(photo.url); }, [photo]);
   const dirty = !!photo || eName !== (info.name || '') || eDesc !== (info.description || '') || eRules !== (info.rules || '') || eMode !== (info.join_mode || 'open') || eColor !== (info.cover_color || 'sky') || eCat !== (info.category || null);
   const close = () => { if (!saving && !checking && (!dirty || window.confirm('Discard these unsaved community changes?'))) onClose(); };
@@ -620,7 +629,7 @@ function CommunitySettings({ info, meId, onClose, onSaved }: { info: Info; meId:
   const onPickIcon = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]; event.target.value = '';
     if (!file || !meId || locked.current) return;
-    const generation = ++imageGeneration.current; setChecking(true); setError('');
+    const generation = imageGeneration.current += 1; setChecking(true); setError('');
     try {
       if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || !file.size || file.size > 10 * 1024 * 1024) throw new Error('Choose a JPG, PNG or WebP photo under 10 MB.');
       const issue = await checkUploadableBytes(file); if (issue) throw new Error(issue);
@@ -656,13 +665,13 @@ function CommunitySettings({ info, meId, onClose, onSaved }: { info: Info; meId:
       await verifyOwner();
       const { error: cause } = await withTimeout(supabase.rpc('delete_community', { p_community: info.id }));
       if (cause) throw new Error('Community deletion was not confirmed. Refresh before trying again.');
-      if (live.current) window.location.assign('/communities');
+      if (live.current) router.replace('/communities');
     } catch (cause) { if (live.current) setError(cause instanceof Error ? cause.message : 'Community deletion was not confirmed.'); }
     finally { locked.current = false; if (live.current) setSaving(false); }
   };
   return <ProductDialog open title="Community settings" description="Manage your community identity and membership. Changes are applied when you save." busy={saving || checking} onClose={close}>
     <form className={styles.form} onSubmit={event => { event.preventDefault(); void save(); }}>
-      <div className="flex items-center gap-4"><button type="button" disabled={saving || checking} onClick={() => iconRef.current?.click()} className={styles.heroAvatar} aria-label="Change community photo">{photo?.url || info.icon_url ? <img src={photo?.url || info.icon_url!} alt="Community photo preview" className="h-full w-full rounded-2xl object-cover" /> : <Camera size={26} aria-hidden />}</button><div><strong className="text-sm">Community photo</strong><p className={styles.hint}>JPG, PNG or WebP · up to 10 MB.<br />Preview first, then save your changes.</p></div><input ref={iconRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={onPickIcon} className="sr-only" tabIndex={-1} aria-label="Community photo file" /></div>
+      <div className="flex items-center gap-4"><button type="button" disabled={saving || checking} onClick={() => iconRef.current?.click()} className={styles.heroAvatar} aria-label="Change community photo">{photo?.url || info.icon_url ? <NextImage unoptimized width={320} height={320} src={photo?.url || info.icon_url!} alt="Community photo preview" className="h-full w-full rounded-2xl object-cover" /> : <Camera size={26} aria-hidden />}</button><div><strong className="text-sm">Community photo</strong><p className={styles.hint}>JPG, PNG or WebP · up to 10 MB.<br />Preview first, then save your changes.</p></div><input ref={iconRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={onPickIcon} className="sr-only" tabIndex={-1} aria-label="Community photo file" /></div>
       <label>Community name<input autoFocus required disabled={saving || checking} value={eName} maxLength={60} onChange={event => setEName(event.target.value)} /></label>
       <label>Description<textarea disabled={saving || checking} value={eDesc} maxLength={200} onChange={event => setEDesc(event.target.value)} /></label>
       <label>Who can join<select disabled={saving || checking} value={eMode} onChange={event => setEMode(event.target.value)}><option value="open">Open to everyone</option><option value="approval">Approval required</option><option value="invite">Invite only</option></select></label>

@@ -1,5 +1,6 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import NextImage from "next/image";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
   createPrivateViewSession,
@@ -63,7 +64,7 @@ function PrivateMediaSession({
   onClose,
   onConsumed,
 }: Props) {
-  const client = useRef(createClient()).current;
+  const [client] = useState(createClient);
   const live = useRef(true),
     terminal = useRef(false),
     busy = useRef(false),
@@ -73,7 +74,7 @@ function PrivateMediaSession({
     fetchAbort = useRef<AbortController | null>(null),
     session = useRef<ReturnType<typeof createPrivateViewSession> | null>(null);
   const callbacks = useRef({ onClose, onConsumed });
-  callbacks.current = { onClose, onConsumed };
+  useLayoutEffect(() => { callbacks.current = { onClose, onConsumed }; }, [onClose, onConsumed]);
   const [phase, setPhase] = useState<
       "notice" | "opening" | "viewing" | "closed"
     >("notice"),
@@ -321,7 +322,7 @@ function PrivateMediaSession({
           {grant.mediaType === "video" ? (
             <PrivateVideo url={url} onError={() => close("error")} />
           ) : (
-            <img
+            <NextImage unoptimized width={1200} height={1200}
               src={url}
               alt="Private attachment"
               draggable={false}

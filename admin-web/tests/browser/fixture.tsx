@@ -16,11 +16,9 @@ import StaffAccountMenu from '@/components/StaffAccountMenu';
 import StaffRoleGuide from '@/components/StaffRoleGuide';
 import WorkspaceConnection from '@/components/WorkspaceConnection';
 import { WorkspaceBreadcrumbs, WorkspaceContext } from '@/components/WorkspaceNavigation';
-import { allowedDesks } from '@/lib/permissions';
 import { usePathname } from './router-adapter';
 
 const role = new URLSearchParams(window.location.search).get('role') || 'super_admin';
-const allowed = allowedDesks(role);
 const groups = navigationForRole(role);
 const workspaceTools = toolsForRole(role);
 const destinations = groups.flatMap(group => group.items);
@@ -35,6 +33,7 @@ const rows: DeskRow[] = names.map((name,index) => ({
   cells: [{ t:'user',v:name,sub:'@'+name.split(' ')[0].toLowerCase() }, {t:'pill',v:index%3===0?'Business':'Creator',tone:'neutral'},
     {t:'pill',v:index%4===0?'Needs review':'Active',tone:index%4===0?'warn':'ok'}, {t:'mono',v:String(12+index*17)}, {t:'dim',v:'Oct 29, 2026'}],
   detail: { title:name,subtitle:'@'+name.split(' ')[0].toLowerCase(),pills:[{v:index%4===0?'Needs review':'Active',tone:index%4===0?'warn':'ok'}],
+    gallery:[{url:'/logo.png',width:512,height:512},{url:'/pearl.png',width:512,height:512}],
     stats:[{label:'Followers',value:String(12+index*17)},{label:'Posts',value:String(4+index)}],
     fields:[{label:'Account type',value:index%3===0?'Business':'Creator'},{label:'Member since',value:'October 1, 2026'},{label:'Review ID',value:'fixture-'+index}],
     body:[{label:'Review context',text:'Synthetic account used to verify layout, filters, pagination and form identity. This is not live member data.'}],

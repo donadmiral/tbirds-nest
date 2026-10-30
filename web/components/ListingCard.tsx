@@ -1,4 +1,5 @@
 "use client";
+import NextImage from "next/image";
 import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -21,7 +22,7 @@ function ListingCardContent({ l, saved: initiallySaved = false, viewerId = null,
   const generation = useRef(0);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
-  useEffect(() => { generation.current++; return () => { generation.current++; }; }, []);
+  useEffect(() => { generation.current += 1; return () => { generation.current += 1; }; }, []);
   async function onHeart() {
     if (!viewerId) { router.push("/login"); return; }
     if (saving.current) return;
@@ -34,7 +35,7 @@ function ListingCardContent({ l, saved: initiallySaved = false, viewerId = null,
   }
   return <article className={styles.listing}>
     <Link href={"/market/" + l.id} aria-label={"View " + l.title}>
-      <span className={styles.listingImage}>{l.images?.[0] ? <img src={displayImageUrl(l.images[0])!} onError={event => { if (event.currentTarget.src !== l.images[0]) event.currentTarget.src = l.images[0]; }} alt={l.title} loading="lazy" /> : <ImageIcon size={32} aria-hidden />}{l.condition ? <span className={styles.condition}>{l.condition}</span> : null}{sold ? <span className={styles.sold}>{l.status === "sold" ? "SOLD" : "UNAVAILABLE"}</span> : null}</span>
+      <span className={styles.listingImage}>{l.images?.[0] ? <NextImage unoptimized width={600} height={600} src={displayImageUrl(l.images[0])!} onError={event => { if (event.currentTarget.src !== l.images[0]) event.currentTarget.src = l.images[0]; }} alt={l.title} loading="lazy" /> : <ImageIcon size={32} aria-hidden />}{l.condition ? <span className={styles.condition}>{l.condition}</span> : null}{sold ? <span className={styles.sold}>{l.status === "sold" ? "SOLD" : "UNAVAILABLE"}</span> : null}</span>
       <span className={styles.listingCopy}><strong>{priceLabel(l)}</strong><span className="text-sm font-semibold leading-relaxed">{l.title}</span><small>{l.location_city ? <><MapPin size={12} aria-hidden />{l.location_city}</> : null}{l.delivery_available ? <><Truck size={12} aria-hidden />Delivery available</> : null}</small><small><RelativeTime dateTime={l.created_at} /></small></span>
     </Link>
     <button type="button" onClick={() => void onHeart()} disabled={pending} aria-pressed={saved} aria-label={(saved ? "Unsave " : "Save ") + l.title} className={styles.save}><Heart size={18} strokeWidth={1.7} fill={saved ? "currentColor" : "none"} aria-hidden /></button>

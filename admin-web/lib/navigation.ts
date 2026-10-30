@@ -25,6 +25,7 @@ export const GROUPS: NavigationGroup[] = [
   { label: 'Content', items: [
     { href: '/content', label: 'Posts', key: 'P', icon: 'content', description: 'Inspect published posts, media and conversations.' },
     { href: '/stories', label: 'Stories', key: 'O', icon: 'stories', description: 'Review stories and their media in context.' },
+    { href: '/music', label: 'Music', key: 'Z', icon: 'music', description: 'Review original audio, library availability and catalogue rights.' },
   ] },
   { label: 'Moderation', items: [
     { href: '/reports', label: 'Reports', key: 'R', icon: 'reports', description: 'Review reports with evidence and recorded decisions.' },

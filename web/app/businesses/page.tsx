@@ -1,4 +1,5 @@
 "use client";
+import { useRouter } from "next/navigation";
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -12,6 +13,7 @@ type Row = { business_id: string; full_name: string | null; username: string | n
 type Confirmation = { businessId: string; owner: string; version: number };
 
 export default function BusinessesPage() {
+  const router = useRouter();
   const [supabase] = useState(createClient);
   const [rows, setRows] = useState<Row[]>([]), [uid, setUid] = useState<string | null>(null);
   const [ready, setReady] = useState(false), [loading, setLoading] = useState(false);
@@ -23,7 +25,7 @@ export default function BusinessesPage() {
 
   const applyAccount = useCallback((next: string | null) => {
     if (next === account.current) return;
-    account.current = next; generation.current++; pending.current?.abort(); pending.current = null; handoff.current = null; confirmationRef.current = null;
+    account.current = next; generation.current += 1; pending.current?.abort(); pending.current = null; handoff.current = null; confirmationRef.current = null;
     setUid(next); setRows([]); setOpening(null); setInstalling(false); setConfirmation(null); setActionError(null); setNotice(null);
   }, []);
 
@@ -59,14 +61,14 @@ export default function BusinessesPage() {
       if (!active || !live.current || isBusinessSessionHandoff(handoff.current, session)) return;
       const next = session?.user.id ?? null;
       if (next === account.current) return;
-      reads.current++; readRequest.current?.abort(); readRequest.current = null;
+      reads.current += 1; readRequest.current?.abort(); readRequest.current = null;
       applyAccount(next); setReady(true); setReadError(null); setLoading(!!next);
       const version = generation.current;
       queueMicrotask(() => { if (active && live.current && version === generation.current && next) void load(); });
     });
     queueMicrotask(() => { if (active && live.current) void load(); });
     return () => {
-      active = false; live.current = false; generation.current++; reads.current++;
+      active = false; live.current = false; generation.current += 1; reads.current += 1;
       pending.current?.abort(); pending.current = null; readRequest.current?.abort(); readRequest.current = null; handoff.current = null; confirmationRef.current = null;
       subscription.unsubscribe();
     };
@@ -89,7 +91,7 @@ export default function BusinessesPage() {
       const selected = await businessAccessStep(supabase.auth.getSession(), abort.signal);
       if (!current()) return;
       if (selected.error || selected.data.session?.user.id !== businessId) throw new BusinessAccessError('SESSION_MISMATCH');
-      window.location.assign('/studio');
+      router.replace('/studio'); router.refresh();
     } catch (error) {
       if (!current()) return;
       if (error instanceof BusinessAccessError && error.code === 'OWNER_BOOTSTRAP_REQUIRED') { const next = { businessId, owner, version }; confirmationRef.current = next; setConfirmation(next); }
@@ -104,7 +106,7 @@ export default function BusinessesPage() {
 
   const cancel = () => {
     if (handoff.current || !pending.current) return;
-    generation.current++; pending.current.abort(); pending.current = null; confirmationRef.current = null;
+    generation.current += 1; pending.current.abort(); pending.current = null; confirmationRef.current = null;
     setOpening(null); setInstalling(false); setConfirmation(null); setActionError(null); setNotice('Business sign-in cancelled. Your personal account is unchanged.');
   };
 

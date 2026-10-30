@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { BookHeart, X } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { getMemoryBooks, type MemoryBookInfo } from '@/lib/memoryAlbum';
@@ -8,16 +8,20 @@ import {useMemoryDialog} from './memory/useMemoryDialog';
 import { MemoryBookCover } from './memory/MemoryBookCover';
 import { memoryCoverMedia, memoryAudienceLabel, MEMORY_FEATURED_DESIGNS as MEMORY_DESIGNS } from '../../shared/memoryBookDesign';
 import { notifyMemoryBookShelfChanged, onMemoryBookShelfChanged } from '@/lib/memoryBookEvents';
-export function SaveToMemory({story,storyId,ownerId,inline=false,onClose,triggerClassName,triggerLabel,onOpenChange}:{story?:StoryRow;storyId?:string;ownerId?:string;inline?:boolean;onClose?:()=>void;triggerClassName?:string;triggerLabel?:string;onOpenChange?:(open:boolean)=>void}) {
+export function SaveToMemory(props: Parameters<typeof MemorySaveDialog>[0]) {
+  return <MemorySaveDialog key={`${props.storyId ?? props.story?.id}:${props.ownerId ?? props.story?.user_id}:${props.inline ?? false}`} {...props} />;
+}
+
+function MemorySaveDialog({story,storyId,ownerId,inline=false,onClose,triggerClassName,triggerLabel,onOpenChange}:{story?:StoryRow;storyId?:string;ownerId?:string;inline?:boolean;onClose?:()=>void;triggerClassName?:string;triggerLabel?:string;onOpenChange?:(open:boolean)=>void}) {
  const id=storyId??story?.id,owner=ownerId??story?.user_id;
  const [uid,setUid]=useState<string|null>(null),[open,setOpen]=useState(inline),[books,setBooks]=useState<MemoryBookInfo[]>([]),[error,setError]=useState(''),[busy,setBusy]=useState(false),[saved,setSaved]=useState<Set<string>>(new Set()),[title,setTitle]=useState(''),[design,setDesign]=useState('postcard'),[attempt,setAttempt]=useState(0);
  const dialog=useMemoryDialog(open&&!inline&&uid===owner,()=>setOpen(false));
- const openHandler=useRef(onOpenChange);openHandler.current=onOpenChange;
+ const openHandler=useRef(onOpenChange);useLayoutEffect(()=>{openHandler.current=onOpenChange;},[onOpenChange]);
  useEffect(()=>{openHandler.current?.(open);},[open]);
  useEffect(()=>()=>{openHandler.current?.(false);},[]);
- const epoch=useRef(0),lock=useRef(false),client=useRef(createClient()).current;
- useEffect(()=>{let live=true,last:string|null|undefined=undefined;const apply=(value:string|null)=>{if(!live||last===value)return;last=value;epoch.current++;setUid(value);setBooks([]);setSaved(new Set());setBusy(false);lock.current=false;};let version=0;const {data:{subscription}}=client.auth.onAuthStateChange((_e,s)=>{version++;apply(s?.user.id??null);});const initial=version;void client.auth.getSession().then(({data})=>{if(initial===version)apply(data.session?.user.id??null);});return()=>{live=false;epoch.current++;subscription.unsubscribe();};},[client]);
- useEffect(()=>{epoch.current++;setSaved(new Set());setError('');setOpen(inline);},[id,owner,inline]);
+ const epoch=useRef(0),lock=useRef(false);
+ const [client]=useState(createClient);
+ useEffect(()=>{let live=true,last:string|null|undefined=undefined;const apply=(value:string|null)=>{if(!live||last===value)return;last=value;epoch.current += 1;setUid(value);setBooks([]);setSaved(new Set());setBusy(false);lock.current=false;};let version=0;const {data:{subscription}}=client.auth.onAuthStateChange((_e,s)=>{version++;apply(s?.user.id??null);});const initial=version;void client.auth.getSession().then(({data})=>{if(initial===version)apply(data.session?.user.id??null);});return()=>{live=false;epoch.current += 1;subscription.unsubscribe();};},[client]);
  useEffect(()=>{let live=true;if(!open||!uid||uid!==owner)return;void getMemoryBooks(uid).then(s=>{if(live)setBooks(s.books);}).catch(()=>{if(live)setError('Could not load books. Retry.');});return()=>{live=false;};},[open,uid,owner,attempt]);
  useEffect(()=>{if(!open||!uid||uid!==owner)return;return onMemoryBookShelfChanged(uid,()=>setAttempt(value=>value+1));},[open,uid,owner]);
  const save=async(book:string)=>{if(lock.current||!id||saved.has(book))return;lock.current=true;setBusy(true);setError('');const g=epoch.current;try{const {data}=await client.auth.getSession();if(data.session?.user.id!==owner)throw Error();const {error:e}=await client.rpc('add_memory_page',{p_story_id:id,p_album_id:book});if(e)throw e;if(g===epoch.current)setSaved(v=>new Set(v).add(book));}catch{if(g===epoch.current)setError('Memory could not be added. Retry; saved pages will not duplicate.');}finally{if(g===epoch.current){lock.current=false;setBusy(false);}}};

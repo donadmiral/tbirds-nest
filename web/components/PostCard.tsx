@@ -22,11 +22,11 @@ function money(price: number | string | null | undefined, currency?: string | nu
   return (currency || "USD") === "USD" ? "$" + body : "ZWG " + body;
 }
 import { createClient } from "@/lib/supabase/client";
-import { VerifiedBadge, getTierColor } from "@/components/VerifiedBadge";
+
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { FollowButton } from "@/components/FollowButton";
 import { PostMenu } from "@/components/PostMenu";
-import { RichText } from "@/components/RichText";
+
 import { PollCard } from "@/components/PollCard";
 import { MediaGallery } from "@/components/MediaGallery";
 import { ArticleBody } from "@/components/ArticleBody";
@@ -73,8 +73,9 @@ function useToggle(initialOn: boolean, initialCount: number, action: (id: string
   return { on, n, flip, set };
 }
 
-function QuoteCard({ quotedId }: { quotedId: string }) {
-  const supabase = useRef(createClient()).current;
+function QuoteCard({quotedId}:{quotedId:string}) {return <QuoteContent key={quotedId} quotedId={quotedId}/>;}
+function QuoteContent({ quotedId }: { quotedId: string }) {
+  const [supabase] = useState(createClient);
   const [q, setQ] = useState<{ content: string | null; body: string | null; created_at: string; author: { full_name: string | null; username: string | null } | null; first: { url: string; media_type: string; edit?: { coverUrl?: string | null } | null } | null } | null>(null);
 
   useEffect(() => {
@@ -95,7 +96,7 @@ function QuoteCard({ quotedId }: { quotedId: string }) {
         setQ({content:data.content,body:data.body,created_at:data.created_at,author:author??null,first:media[0]??null});
       }catch{if(live&&run===version)setQ(null);}
     };
-    setQ(null);void load();
+    void load();
     const timer=setInterval(()=>void load(),240000);
     const {data}=supabase.auth.onAuthStateChange(()=>{version++;setQ(null);queueMicrotask(()=>{if(live)void load();});});
     return()=>{live=false;version++;clearInterval(timer);data.subscription.unsubscribe();};
@@ -131,7 +132,8 @@ function QuoteCard({ quotedId }: { quotedId: string }) {
   );
 }
 
-export function PostCard({ post, hideMedia, inlineComments = true }: { post: FeedRow; hideMedia?: boolean; inlineComments?: boolean }) {
+export function PostCard(props: Parameters<typeof PostContent>[0]) {return <PostContent key={props.post.post_id} {...props}/>;}
+function PostContent({ post, hideMedia, inlineComments = true }: { post: FeedRow; hideMedia?: boolean; inlineComments?: boolean }) {
   const router = useRouter();
   const [supabase] = useState(createClient);
   const [hidden, setHidden] = useState(false);
@@ -141,9 +143,11 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
   const [likesOpen, setLikesOpen] = useState(false);
   const [collabNames, setCollabNames] = useState<{ id: string; name: string; username: string; verified: boolean; tier: string | null }[]>([]);
   const [collabsOpen, setCollabsOpen] = useState(false);
+  const scope = post.author_id + ":" + post.author_name + ":" + post.article_title;
+  const [previousScope,setPreviousScope]=useState(scope);
+  if(previousScope!==scope){setPreviousScope(scope);setCollabNames([]);setCollabsOpen(false);setGalleryImages([]);}
   useEffect(() => {
     let dead = false;
-    setCollabNames([]); setCollabsOpen(false);
     supabase.from("post_collaborators").select("user_id, status, profile:profiles!post_collaborators_user_id_fkey(username, full_name, is_verified, verified_tier)").eq("post_id", post.post_id).eq("status", "accepted").then(({ data }) => {
       if (dead) return;
       type Pr = { username?: string | null; full_name?: string | null; is_verified?: boolean | null; verified_tier?: string | null };
@@ -192,7 +196,6 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
   // Only the writer's own gallery block is fetched here - articles are a
   // small extra lookup, not part of get_feed's normal columns.
   useEffect(() => {
-    setGalleryImages([]);
     if (!post.article_title) return;
     let live=true,version=0;
     const load=async()=>{

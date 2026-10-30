@@ -43,17 +43,25 @@ function harness({ products = async () => [], communities = async () => ({ data:
       }
     },
   };
-  const client = { rpc: (name, args) => { calls.push({ name, args }); return communities(); } };
+  const client = { auth: { getSession: async () => ({data:{session:{user:{id:'synthetic-owner'}}},error:null}) }, rpc: (name, args) => { calls.push({ name, args }); return communities(); } };
   const runtime = { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }), Fragment: 'Fragment' };
   const moduleObject = { exports: {} };
   const stubs = new Proxy({}, { get: (_, key) => String(key) });
   vm.runInNewContext(compiled, {
     exports: moduleObject.exports, module: moduleObject, console, alert() {}, confirm: () => true,
+    window:{location:{search:''}}, URLSearchParams,
     require(id) {
       if (id === 'react') return hooks;
       if (id === 'react/jsx-runtime') return runtime;
       if (id === '@/lib/supabase/client') return { createClient: () => client };
-      if (id === '@/components/StudioShell') return { useStudio: () => ({ me: { role: 'owner' } }) };
+      if (id === '@/components/StudioShell') return { useStudio: () => ({ me: { role: 'owner' },accountId:'synthetic-owner' }) };
+      if (id === '@/lib/useCurrentTime') return {useCurrentTime:()=>Date.parse('2026-10-30T12:00:00Z')};
+      if (id === '@/lib/withTimeout' || id === '@/lib/errors') {
+        const mod={exports:{}};
+        const file=id.endsWith('withTimeout')?'withTimeout.ts':'errors.ts';
+        vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname,'../lib',file),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,{module:mod,exports:mod.exports,setTimeout,clearTimeout,Error});
+        return mod.exports;
+      }
       if (id === '@/lib/categories') return { CATEGORIES: [] };
       // Preview authorization is exercised by upload-preview-regressions; this fixture tests independent planner choice reads.
       if (id === '@/lib/useUploadPreview') return { useUploadPreview: value => ({ preview: value, error: null, retry() {} }) };
@@ -64,6 +72,7 @@ function harness({ products = async () => [], communities = async () => ({ data:
       };
       if (id.endsWith('/LoadError')) return { StudioLoadError: 'StudioLoadError' };
       if (id === 'next/link') return { default: 'Link' };
+      if (id === 'next/image') return 'img';
       return stubs;
     },
   });

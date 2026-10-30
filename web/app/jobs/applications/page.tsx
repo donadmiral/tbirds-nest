@@ -36,7 +36,7 @@ export default function MyApplicationsPage() {
 
   const load = useCallback(async (append = false) => {
     if (append && pending.current) return;
-    const token = ++request.current;
+    const token = request.current += 1;
     retryAppend.current = append;
     pending.current = true;
     setLoading(true); setError(null);
@@ -69,7 +69,7 @@ export default function MyApplicationsPage() {
     try {
       const saved = await withdrawApplication(supabase, application);
       if (!live.current || account.current !== owner) return;
-      request.current++; pending.current = false; setLoading(false);
+      request.current += 1; pending.current = false; setLoading(false);
       setApps(previous => previous.map(row => row.id === saved.id ? saved : row)
         .filter(row => filter === 'all' || row.status === filter));
       setConfirmWithdrawal(null);
@@ -84,18 +84,17 @@ export default function MyApplicationsPage() {
   useEffect(() => {
     let active = true;
     live.current = true; cursor.current = null;
-    setConfirmWithdrawal(null); setWithdrawError(null);
-    queueMicrotask(() => { if (active) void load(); });
+    void supabase.auth.getSession().then(() => {if (active) void load();});
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const uid = session?.user.id ?? null;
       if (uid === account.current) return;
-      request.current++; account.current = uid; cursor.current = null; pending.current = false;
+      request.current += 1; account.current = uid; cursor.current = null; pending.current = false;
       setApps([]); setHasMore(false); setError(null); setSignedOut(!uid);
       setConfirmWithdrawal(null); setWithdrawError(null); setWithdrawing(null);
       // Leave the auth callback before calling another Supabase method.
       queueMicrotask(() => { if (active) void load(); });
     });
-    return () => { active = false; live.current = false; request.current++; pending.current = false; subscription.unsubscribe(); };
+    return () => { active = false; live.current = false; request.current += 1; pending.current = false; subscription.unsubscribe(); };
   }, [load, supabase]);
 
   const withdrawingApplication = apps.find(application => application.id === confirmWithdrawal);
@@ -103,7 +102,7 @@ export default function MyApplicationsPage() {
     <Link href="/jobs" className={styles.back}><ArrowLeft size={17} aria-hidden />Back to Jobs</Link>
     <header className={styles.header}><div><h1>My applications</h1><p>Follow your progress, review interviews, and manage your next steps.</p></div><button onClick={() => void load()} disabled={loading || withdrawing !== null} className={styles.button}><RefreshCw size={16} aria-hidden />Refresh</button></header>
     <nav className={styles.tabs} aria-label="Jobs navigation"><Link href="/jobs">Discover</Link><Link href="/jobs/saved">Saved jobs</Link><Link href="/jobs/applications" aria-current="page">My applications</Link></nav>
-    <div className={styles.toolbar + " mb-5"}><label className={styles.help} htmlFor="application-status">Application status</label><select id="application-status" disabled={withdrawing !== null} value={filter} onChange={event => { request.current++; setApps([]); setHasMore(false); setLoading(true); setFilter(event.target.value); }}><option value="all">All statuses</option>{APPLICATION_STATUS_ORDER.map(status => <option key={status} value={status}>{STATUS_META[status].label}</option>)}</select><span className={styles.help}>{!loading && !signedOut && !error ? apps.length + " applications shown" : ""}</span></div>
+    <div className={styles.toolbar + " mb-5"}><label className={styles.help} htmlFor="application-status">Application status</label><select id="application-status" disabled={withdrawing !== null} value={filter} onChange={event => { request.current += 1; setApps([]); setHasMore(false); setLoading(true); setConfirmWithdrawal(null); setWithdrawError(null); setFilter(event.target.value); }}><option value="all">All statuses</option>{APPLICATION_STATUS_ORDER.map(status => <option key={status} value={status}>{STATUS_META[status].label}</option>)}</select><span className={styles.help}>{!loading && !signedOut && !error ? apps.length + " applications shown" : ""}</span></div>
     {error ? <div role="alert" className={styles.notice + " mb-4"}><p>{error}</p><button disabled={loading} onClick={() => void load(retryAppend.current)} className="underline">Retry</button></div> : null}
     {signedOut ? <div className={styles.state}><Send size={28} aria-hidden /><h2>Keep track of your applications</h2><p>Sign in to view updates from hiring teams.</p><Link href="/login" className={styles.primary}>Sign in</Link></div>
       : loading && apps.length === 0 ? <div className={styles.state} role="status"><p>Loading applications…</p></div>

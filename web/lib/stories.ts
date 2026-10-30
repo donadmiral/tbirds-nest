@@ -55,6 +55,13 @@ export type StoryTextSticker = {
   mentionUsername?: string;
   mentions?: { id: string; username: string }[];
   hashtag?: string;
+  pillVariant?: number;
+  storyId?: string;
+  storyThumbUrl?: string | null;
+  storyMediaUrl?: string | null;
+  storyUsername?: string | null;
+  storyAuthorName?: string | null;
+  storyAuthorAvatar?: string | null;
   postId?: string;
   postAuthorName?: string;
   postText?: string;
@@ -104,6 +111,8 @@ export type StoryMediaTransform = {
   translateNX: number;
   translateNY: number;
   fit?: "cover" | "contain";
+  audioStartSec?: number;
+  audioSoundId?: string | null;
   // Creative engine extras, written by the phone composer and replayed here
   trimStart?: number;
   trimEnd?: number;
@@ -135,6 +144,7 @@ export type StoryRow = {
   media_transform?: StoryMediaTransform | null;
   dual_front_url?: string | null;
   audio_url?: string | null;
+  audio_sound_id?: string | null;
   audio_title?: string | null;
   audio_source?: string | null;
   audio_duration_sec?: number | null;

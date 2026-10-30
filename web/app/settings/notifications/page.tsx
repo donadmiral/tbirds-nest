@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, AtSign, Bell, Briefcase, CreditCard, Heart, MessageCircle, MessageSquare, Phone, Radio, Shield, Smile, UserPlus } from "lucide-react";
+import { useEffect, useState } from "react";
+
+import { AtSign, Bell, Briefcase, CreditCard, Heart, MessageCircle, MessageSquare, Phone, Radio, Shield, Smile, UserPlus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 // Instagram's categories, one switch each. These decide which kinds of activity reach the phone as a push;
@@ -22,7 +22,7 @@ const CATEGORIES: { key: string; icon: React.ReactNode; label: string; sub: stri
 ];
 
 export default function NotificationSettingsPage() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [uid, setUid] = useState<string | null>(null);
   const [prefs, setPrefs] = useState<Record<string, boolean> | null>(null);
   const [err, setErr] = useState<string | null>(null);

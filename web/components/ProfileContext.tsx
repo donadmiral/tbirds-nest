@@ -21,14 +21,14 @@ export function ProfileContext({ profileId, username, compact = false }: { profi
         if (!me) return;
         if (me === profileId) {
           const { data } = await supabase.rpc("get_profile_insights", { p_profile: profileId });
-          if (alive && data && typeof (data as any).views_30d === "number") {
-            setInsights(String((data as any).views_30d) + " profile views in the last 30 days");
+          if (alive && data && typeof data.views_30d === "number") {
+            setInsights(String(data.views_30d) + " profile views in the last 30 days");
           }
         } else {
           const { data } = await supabase.rpc("get_profile_context", { p_profile: profileId });
           if (alive && data) {
-            const names: string[] = Array.isArray((data as any).mutual_names) ? (data as any).mutual_names : [];
-            const extra = Math.max(0, ((data as any).mutual_count || 0) - names.length);
+            const names: string[] = Array.isArray(data.mutual_names) ? data.mutual_names.filter((name: unknown): name is string => typeof name === "string") : [];
+            const extra = Math.max(0, (typeof data.mutual_count === "number" ? data.mutual_count : 0) - names.length);
             if (names.length > 0) setMutual("Followed by " + names.join(", ") + (extra > 0 ? " and " + extra + " more" : ""));
           }
         }

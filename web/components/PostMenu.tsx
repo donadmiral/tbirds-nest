@@ -25,7 +25,7 @@ export function PostMenu({ postId, authorId, text, onHidden, reason }: {
   onHidden: () => void;
   reason?: string;
 }) {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const boxRef = useRef<HTMLDivElement | null>(null);
   const [open, setOpen] = useState(false);
   const [reporting, setReporting] = useState(false);

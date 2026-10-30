@@ -1,4 +1,5 @@
 "use client";
+import { useRouter } from "next/navigation";
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -9,6 +10,7 @@ import { BusinessAccessError, businessAccessMessage, businessAccessStep, confirm
 type Phase = 'idle' | 'checking' | 'connecting' | 'opening';
 
 export default function BusinessLoginPage() {
+  const router = useRouter();
   const [supabase] = useState(createClient);
   const [handle, setHandle] = useState(''), [code, setCode] = useState('');
   const [phase, setPhase] = useState<Phase>('idle'), [ready, setReady] = useState(false), [authAttempt, setAuthAttempt] = useState(0);
@@ -24,7 +26,7 @@ export default function BusinessLoginPage() {
       if (!active || !live.current) return;
       if (account.current !== next) {
         const changed = account.current !== undefined;
-        generation.current++; pending.current?.abort(); pending.current = null; handoff.current = null;
+        generation.current += 1; pending.current?.abort(); pending.current = null; handoff.current = null;
         account.current = next; setCode(''); setPhase('idle'); setError(null);
         setNotice(changed ? 'Your account changed. Review your business sign-in details before continuing.' : null);
       }
@@ -42,12 +44,12 @@ export default function BusinessLoginPage() {
     }).catch(() => {
       if (active && live.current && version === authVersion) { setReady(false); setError('Your current account could not be checked. Try again before signing in to a business.'); }
     });
-    return () => { active = false; live.current = false; generation.current++; initial.abort(); pending.current?.abort(); pending.current = null; handoff.current = null; subscription.unsubscribe(); };
+    return () => { active = false; live.current = false; generation.current += 1; initial.abort(); pending.current?.abort(); pending.current = null; handoff.current = null; subscription.unsubscribe(); };
   }, [supabase, authAttempt]);
 
   const cancel = () => {
     if (handoff.current || !pending.current) return;
-    generation.current++; pending.current.abort(); pending.current = null;
+    generation.current += 1; pending.current.abort(); pending.current = null;
     setPhase('idle'); setError(null); setNotice('Business sign-in cancelled. Your selected account is unchanged.');
   };
 
@@ -83,7 +85,7 @@ export default function BusinessLoginPage() {
       const selected = await businessAccessStep(supabase.auth.getSession(), abort.signal);
       if (!current()) return;
       if (selected.error || selected.data.session?.user.id !== destination.business_id) throw new BusinessAccessError('SESSION_MISMATCH');
-      setCode(''); window.location.assign('/studio');
+      setCode(''); router.replace('/studio'); router.refresh();
     } catch (failure) { if (current()) setError(businessAccessMessage(failure)); }
     finally {
       if (pending.current === abort) {

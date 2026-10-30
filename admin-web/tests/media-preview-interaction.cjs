@@ -13,13 +13,16 @@ function harness(file,props){
   let cursor=0;const states=[],deps=[],effects=[],cleanups=[],listeners=new Map();
   const react={useState(initial){const i=cursor++;if(!(i in states))states[i]=typeof initial==='function'?initial():initial;return[states[i],value=>{states[i]=typeof value==='function'?value(states[i]):value;}];},useRef(value){const i=cursor++;return states[i]??={current:value};},useTransition(){return[false,fn=>fn()];},useEffect(fn,next){const i=cursor++;if(!deps[i]||next.some((value,n)=>value!==deps[i][n])){deps[i]=next;effects.push(()=>{cleanups[i]?.();cleanups[i]=fn();});}}};
   const jsx=(type,props,key)=>({type,props,key});
-  const document={hidden:false,addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name)};
-  const window={addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name)};
-  const exports={};vm.runInNewContext(compile(fs.readFileSync(path.join(root,'admin-web/components',file),'utf8')),{exports,document,window,require:name=>({'react':react,'next/image':{default:'img'},'react/jsx-runtime':{jsx,jsxs:jsx},'next/navigation':{useRouter:()=>({refresh(){}})},'../../shared/postMediaEditing':shared.exports,'../../shared/postVoiceEffects':voice.exports,'../../shared/storyFilterAppearance':{STORY_FILTERS:[],filterCss:()=>undefined},'../../shared/StoryAdjustOverlay':{AdjustOverlay:'AdjustOverlay'},'./MediaPreview':{default:'MediaPreview'}}[name]??{})});
+  class Element { constructor(){this.focused=0;} focus(){this.focused++;} }
+  const trigger=new Element();
+  const document={activeElement:trigger,body:{style:{overflow:"auto"}},hidden:false,addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name)};
+  const window={dispatchEvent:event=>listeners.get(event.type)?.(),addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name)};
+  const exports={};vm.runInNewContext(compile(fs.readFileSync(path.join(root,'admin-web/components',file),'utf8')),{exports,document,window,HTMLElement:Element,Event:class Event{constructor(type){this.type=type;}},require:name=>({'react':react,'next/image':{default:'img'},'react/jsx-runtime':{jsx,jsxs:jsx},'next/navigation':{useRouter:()=>({refresh(){}})},'../../shared/postMediaEditing':shared.exports,'../../shared/postVoiceEffects':voice.exports,'../../shared/storyFilterAppearance':{STORY_FILTERS:[],filterCss:()=>undefined},'../../shared/StoryAdjustOverlay':{AdjustOverlay:'AdjustOverlay'},'./MediaPreview':{default:'MediaPreview'}}[name]??{})});
   const player={duration:12,currentTime:0,playbackRate:1,pauses:0,pause(){this.pauses++;},play:async()=>{}};
+  const dialog={open:false,showModal(){this.open=true;},close(){this.open=false;}};
   let current=props;
-  const render=()=>{cursor=0;let tree=exports.default(current);if(typeof tree?.type==='function')tree=tree.type(tree.props);const node=walk(tree).find(n=>n.type==='video');if(node?.props.ref)node.props.ref.current=player;while(effects.length)effects.shift()();return tree;};
-  return{render,player,document,listeners,setProps:value=>{current=value;},find:fn=>walk(render()).find(fn),unmount:()=>cleanups.forEach(fn=>fn?.())};
+  const render=()=>{cursor=0;let tree=exports.default(current);if(typeof tree?.type==='function')tree=tree.type(tree.props);const dialogNode=walk(tree).find(n=>n.type==='dialog');if(dialogNode?.props.ref)dialogNode.props.ref.current=dialog;const node=walk(tree).find(n=>n.type==='video');if(node?.props.ref)node.props.ref.current=player;while(effects.length)effects.shift()();return tree;};
+  return{render,player,document,listeners,dialog,trigger,setProps:value=>{current=value;},find:fn=>walk(render()).find(fn),unmount:()=>cleanups.forEach(fn=>fn?.())};
 }
 test('admin thumbnails show the authorized uploaded cover instead of decoding and replacing it with a video frame',()=>{
   const h=harness('MediaPreview.tsx',{url:'signed:video',video:true,thumbnail:true,edit:{aspectRatio:.8,coverUrl:'signed:cover',coverAt:3}});
@@ -55,4 +58,16 @@ test('admin media review reproduces the authored voice preset without altering t
   const h=harness('MediaPreview.tsx',{url:'signed:video',video:true,edit:{voiceEffect:'deep',trimStart:2,trimEnd:9}});
   h.find(n=>n.type==='video').props.onLoadedMetadata({currentTarget:h.player});
   assert.equal(h.player.playbackRate,.75);assert.equal(h.player.preservesPitch,false);assert.equal(h.player.currentTime,2);h.unmount();
+});
+
+test('expanded admin photos consume Escape without closing the record and restore focus',()=>{
+  const h=harness('ReviewMediaGallery.tsx',{media:[{url:'signed:photo'}]});
+  h.find(n=>n.type==='MediaPreview').props.onExpand();
+  const open=h.render();
+  assert.equal(h.dialog.open,true);assert.equal(h.document.body.style.overflow,'hidden');
+  assert.equal(walk(open).filter(n=>n.type==='MediaPreview').length,2,'The inline trigger stays mounted behind the modal');
+  let prevented=false,stopped=false;
+  walk(open).find(n=>n.type==='dialog').props.onKeyDown({key:'Escape',preventDefault(){prevented=true;},stopPropagation(){stopped=true;}});
+  h.render();assert.equal(prevented,true);assert.equal(stopped,true);assert.equal(h.dialog.open,false);assert.equal(h.document.body.style.overflow,'auto');assert.equal(h.trigger.focused,1);
+  h.unmount();
 });

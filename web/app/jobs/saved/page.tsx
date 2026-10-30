@@ -9,7 +9,7 @@ import { type JobRow } from "@/lib/jobs";
 import { JobCard } from "@/components/JobCard";
 
 export default function SavedJobsPage() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [jobs, setJobs] = useState<JobRow[]>([]);
   const [viewerId, setViewerId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);

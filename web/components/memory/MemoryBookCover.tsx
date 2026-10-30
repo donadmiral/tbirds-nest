@@ -1,4 +1,5 @@
 'use client';
+import NextImage from "next/image";
 import {useEffect,useRef,useState,type CSSProperties} from 'react';
 import {ImageIcon,Plane} from 'lucide-react';
 import {memoryArtwork,memoryDesign,memoryCoverDate,memoryCoverTitleSize} from '../../../shared/memoryBookDesign';
@@ -9,7 +10,7 @@ function CoverPhoto({photoUrl,fallbackPhotoUrl,videoUrl,position='50% 50%',monoc
  const src=[photoUrl,fallbackPhotoUrl].find(url=>url&&!failed.includes(url));
  const fail=(url:string)=>setFailed(old=>[...old.slice(-3),url]);
  const style={objectPosition:position,filter:monochrome?'grayscale(1) contrast(1.08)':undefined};
- if(src)return <img src={src} alt="" draggable={false} style={style} onError={()=>fail(src)}/>;
+ if(src)return <NextImage unoptimized fill sizes="300px" src={src} alt="" draggable={false} style={style} onError={()=>fail(src)}/>;
  if(videoUrl&&!failed.includes(videoUrl))return <video ref={video} src={videoUrl} muted playsInline preload="metadata" style={style} onLoadedMetadata={()=>{if(video.current&&Number.isFinite(video.current.duration))video.current.currentTime=Math.min(.1,video.current.duration/2);}} onError={()=>fail(videoUrl)}/>;
  return <span className={styles.empty}><ImageIcon size="18%"/><span style={{fontSize:'.6em'}}>{photoUrl||videoUrl?'Open to view':'Your memories'}</span></span>;
 }

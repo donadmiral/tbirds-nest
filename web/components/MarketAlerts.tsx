@@ -15,7 +15,7 @@ export function MarketAlerts({ initialQuery, onClose }: { initialQuery: string; 
   const [error, setError] = useState(""), [notice, setNotice] = useState("");
   const generation = useRef(0), lock = useRef(false), account = useRef<string | null | undefined>(undefined);
   const load = useCallback(async () => {
-    const token = ++generation.current;
+    const token = generation.current += 1;
     try {
       const { data: session, error: sessionError } = await supabase.auth.getSession();
       if (sessionError) throw sessionError;
@@ -37,9 +37,9 @@ export function MarketAlerts({ initialQuery, onClose }: { initialQuery: string; 
       queued = true;
       queueMicrotask(() => { queued = false; if (active) void load(); });
     };
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => { const next = session?.user.id ?? null; if (account.current === undefined) { account.current = next; scheduleLoad(); return; } if (next !== account.current) { generation.current++; setAlerts([]); onClose(); } });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => { const next = session?.user.id ?? null; if (account.current === undefined) { account.current = next; scheduleLoad(); return; } if (next !== account.current) { generation.current += 1; setAlerts([]); onClose(); } });
     scheduleLoad();
-    return () => { active = false; generation.current++; listener.subscription.unsubscribe(); };
+    return () => { active = false; generation.current += 1; listener.subscription.unsubscribe(); };
   }, [load, onClose, supabase]);
   async function save() {
     if (lock.current || q.trim().length < 2) return;

@@ -5,7 +5,7 @@
  */
 import { themedSheet } from '../theme/useTheme';
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Image, Animated, StyleSheet } from 'react-native';
+import { Animated, StyleSheet } from 'react-native';
 
 export default function LaunchVeil({ busy }: { busy: boolean }) {
   const fade = useRef(new Animated.Value(1)).current;

@@ -8,6 +8,7 @@
  * summary the desk already loaded, plus the follower rows for the growth line.
  */
 import { useMemo } from "react";
+import { useCurrentTime } from "@/lib/useCurrentTime";
 import { MapPin } from "lucide-react";
 import { Panel } from "@/components/ui";
 import { Sparkline } from "@/components/Charts";
@@ -26,6 +27,7 @@ type Person = { id: string; followed_at: string };
 const SLICE = ["#C8A951", "#2F4157", "#7C8FA3", "#B9C4CE", "#5B6470", "#D9CBA6"];
 
 export function AudienceBreakdown({ sum, people }: { sum: Summary; people: Person[] }) {
+  const now = useCurrentTime();
   const labels = useMemo(() => {
     const entries = Object.entries(sum.labels || {}).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
     const labelled = entries.reduce((n, [, v]) => n + v, 0);
@@ -39,7 +41,8 @@ export function AudienceBreakdown({ sum, people }: { sum: Summary; people: Perso
 
   const growth = useMemo(() => {
     const buckets = new Map<string, number>();
-    for (let i = 29; i >= 0; i--) buckets.set(new Date(Date.now() - i * 86400000).toISOString().slice(0, 10), 0);
+    if (now === null) return [];
+    for (let i = 29; i >= 0; i--) buckets.set(new Date(now - i * 86400000).toISOString().slice(0, 10), 0);
     for (const p of people) {
       const k = (p.followed_at || "").slice(0, 10);
       if (buckets.has(k)) buckets.set(k, (buckets.get(k) ?? 0) + 1);
@@ -47,14 +50,13 @@ export function AudienceBreakdown({ sum, people }: { sum: Summary; people: Perso
     // Cumulative, because a follower count only goes up as the month runs.
     let running = Math.max(0, sum.followers - [...buckets.values()].reduce((a, b) => a + b, 0));
     return [...buckets.values()].map((n) => (running += n));
-  }, [people, sum.followers]);
+  }, [people, sum.followers, now]);
 
   if (sum.followers === 0) return null;
 
   // Donut geometry: one circle, one dash per slice, offset by what came before.
   const R = 42;
   const C = 2 * Math.PI * R;
-  let offset = 0;
 
   return (
     <div className="mb-4 grid grid-cols-1 gap-3 lg:grid-cols-3">
@@ -64,6 +66,7 @@ export function AudienceBreakdown({ sum, people }: { sum: Summary; people: Perso
             <circle cx="56" cy="56" r={R} fill="none" stroke="var(--color-surface-elevated)" strokeWidth="14" />
             {labels.map(([name, n], i) => {
               const len = total > 0 ? (n / total) * C : 0;
+              const offset = total > 0 ? labels.slice(0, i).reduce((sum, [, value]) => sum + value, 0) / total * C : 0;
               const dash = <circle
                 key={name}
                 cx="56" cy="56" r={R} fill="none"
@@ -73,7 +76,6 @@ export function AudienceBreakdown({ sum, people }: { sum: Summary; people: Perso
                 strokeDashoffset={-offset}
                 transform="rotate(-90 56 56)"
               />;
-              offset += len;
               return dash;
             })}
             <text x="56" y="52" textAnchor="middle" className="fill-porcelain font-display" style={{ fontSize: 19 }}>

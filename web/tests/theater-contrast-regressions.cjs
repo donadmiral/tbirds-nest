@@ -1,6 +1,5 @@
 // Compiled declarations and calculated contrast for known media surfaces.
 // This deliberately does not simulate layout, a browser, or the full cascade.
-/* eslint-disable @typescript-eslint/no-require-imports -- Node runs this standalone regression as CommonJS. */
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');

@@ -1,5 +1,7 @@
 "use client";
 
+import { errorMessage } from "@/lib/errors";
+
 import { StudioLoadError } from "../LoadError";
 
 import { StudioRailPortal } from "@/components/StudioRailPortal";
@@ -9,12 +11,15 @@ import { Panel } from "@/components/ui";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { CalendarClock, Image as ImageIcon, Plus, Send, Tag, Trash2, X, AlertTriangle, CheckCircle2, FileText, Users, Eye, ArrowLeft, ArrowRight } from "lucide-react";
 import { CATEGORIES } from "@/lib/categories";
 import { createClient } from "@/lib/supabase/client";
 import { can, cancelScheduled, deleteScheduled, listScheduled, myListings, publishNow, savePost, uploadStudioMedia, type ScheduledPost } from "@/lib/studio";
 import { useUploadPreview } from "@/lib/useUploadPreview";
 import { useStudio } from "@/components/StudioShell";
+import { useCurrentTime } from "@/lib/useCurrentTime";
+import { withTimeout } from "@/lib/withTimeout";
 import { parseStudioLocalDate } from "../../../../shared/studioValidation";
 
 type Draft = { id: string | null; content: string; body: string; category: string | null; community: string | null; media: ScheduledPost["media"]; products: ScheduledPost["products"]; publishAt: string };
@@ -25,7 +30,8 @@ const dayKey = (d: Date) => d.getFullYear() + "-" + String(d.getMonth() + 1).pad
 
 export default function PlannerPage() {
   const { me, accountId } = useStudio();
-  const supabase = useRef(createClient()).current;
+  const now = useCurrentTime();
+  const [supabase] = useState(createClient);
   const editor = can(me?.role ?? null, "publish");
   const [rows, setRows] = useState<ScheduledPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,41 +69,67 @@ export default function PlannerPage() {
   const [span, setSpan] = useState<"week" | "month">("month");
   const [weekStart, setWeekStart] = useState(() => { const t = new Date(); t.setHours(0, 0, 0, 0); t.setDate(t.getDate() - t.getDay()); return t; });
 
-  const load = useCallback(async () => {
-    const request = ++loadVersion.current;
-    setLoading(true);
-    const current = () => mounted.current && request === loadVersion.current;
-    try { const next = await listScheduled(); if (current()) { setRows(next); setLoaded(true); setLoadError(null); } }
-    catch { if (current()) setLoadError("The planner could not be refreshed. Please try again."); }
-    finally { if (current()) setLoading(false); }
+  const openNew = useCallback((when?: Date) => {
+    if (working.current) return;
+    ++editorVersion.current; editingId.current = null;
+    const x = empty();
+    if (when) { const t = new Date(when); t.setHours(10, 0, 0, 0); x.publishAt = toLocalInput(t.toISOString()); }
+    initialDraft.current = JSON.stringify(x); setD(x); setFailedUploads([]); setEditorError(null); setOpen(true);
   }, []);
-  useEffect(() => { mounted.current = true; void load(); return () => { mounted.current = false; ++loadVersion.current; ++editorVersion.current; }; }, [load]);
-  const loadListings = useCallback(async () => {
+  const openEdit = useCallback((r: ScheduledPost) => {
+    if (working.current) return;
+    ++editorVersion.current; editingId.current = r.id;
+    const draft = { id: r.id, content: r.content || "", body: r.body || "", category: r.category, community: r.community_id, media: r.media || [], products: r.products || [], publishAt: toLocalInput(r.publish_at) };
+    initialDraft.current = JSON.stringify(draft); setD(draft); setFailedUploads([]); setEditorError(null); setOpen(true);
+  }, []);
+  const consumeRequestedAction = useCallback((loadedRows: ScheduledPost[]) => {
+    if (deepLink.current) return;
+    const params = new URLSearchParams(window.location.search);
+    deepLink.current = true;
+    if (params.get("filter") === "failed") setTab("failed");
+    const id = params.get("edit");
+    if (id) {
+      const row = loadedRows.find(item => item.id === id);
+      if (row && editor && !["published", "publishing"].includes(row.status)) openEdit(row);
+      else setLoadError(row ? "This post cannot be edited in its current state or role." : "That draft is not in the latest 100 loaded posts. Refresh or open it from the publishing queue.");
+    } else if (params.get("compose") === "1" && editor) openNew();
+  }, [editor, openEdit, openNew]);
+
+  const load = useCallback(() => {
+    const request = ++loadVersion.current;
+    const current = () => mounted.current && request === loadVersion.current;
+    return withTimeout(listScheduled()).then(next => {
+      if (!current()) return;
+      setRows(next); setLoaded(true); setLoadError(null);
+      consumeRequestedAction(next);
+    }).catch(() => { if (current()) setLoadError("The planner could not be refreshed. Please try again."); })
+      .finally(() => { if (current()) setLoading(false); });
+  }, [consumeRequestedAction]);
+  useEffect(() => { const requests = loadVersion, edits = editorVersion; mounted.current = true; void load(); return () => { mounted.current = false; ++requests.current; ++edits.current; }; }, [load]);
+  const loadListings = useCallback(() => {
     const request = ++listingsRequest.current;
-    try {
-      const data = await myListings();
+    return withTimeout(myListings()).then(data => {
       if (request !== listingsRequest.current) return;
       setListings(data); setListingsLoaded(true); setListingsError(null);
-    } catch {
+    }).catch(() => {
       if (request === listingsRequest.current) setListingsError("Products could not be loaded. Please try again.");
-    } finally {
+    }).finally(() => {
       if (request === listingsRequest.current) setListingsLoading(false);
-    }
+    });
   }, []);
-  const loadCommunities = useCallback(async () => {
+  const loadCommunities = useCallback(() => {
     const request = ++communitiesRequest.current;
-    try {
-      const { data, error } = await supabase.rpc("get_communities", { p_query: null, p_limit: 60 });
+    return withTimeout(supabase.rpc("get_communities", { p_query: null, p_limit: 60 })).then(({ data, error }) => {
       if (error) throw error;
       if (request !== communitiesRequest.current) return;
       setCommunities(((data as { id: string; name: string; my_role: string | null }[]) ?? [])
         .filter(c => c.my_role === "owner" || c.my_role === "moderator").map(c => ({ id: c.id, name: c.name })));
       setCommunitiesError(null);
-    } catch {
+    }).catch(() => {
       if (request === communitiesRequest.current) setCommunitiesError("Communities could not be loaded. Please try again.");
-    } finally {
+    }).finally(() => {
       if (request === communitiesRequest.current) setCommunitiesLoading(false);
-    }
+    });
   }, [supabase]);
   useEffect(() => {
     const pendingListings = listingsRequest;
@@ -134,33 +166,6 @@ export default function PlannerPage() {
     rows.filter(r => r.publish_at && r.status !== "cancelled").forEach(r => { const k = dayKey(new Date(r.publish_at!)); (m[k] ||= []).push(r); });
     return m;
   }, [rows]);
-
-  const openNew = (when?: Date) => {
-    if (working.current) return;
-    ++editorVersion.current; editingId.current = null;
-    const x = empty();
-    if (when) { const t = new Date(when); t.setHours(10, 0, 0, 0); x.publishAt = toLocalInput(t.toISOString()); }
-    initialDraft.current = JSON.stringify(x); setD(x); setFailedUploads([]); setEditorError(null); setOpen(true);
-  };
-  const openEdit = (r: ScheduledPost) => {
-    if (working.current) return;
-    ++editorVersion.current; editingId.current = r.id;
-    const draft = { id: r.id, content: r.content || "", body: r.body || "", category: r.category, community: r.community_id, media: r.media || [], products: r.products || [], publishAt: toLocalInput(r.publish_at) };
-    initialDraft.current = JSON.stringify(draft); setD(draft); setFailedUploads([]); setEditorError(null); setOpen(true);
-  };
-
-  useEffect(() => {
-    if (!loaded || deepLink.current || typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
-    deepLink.current = true;
-    if (params.get("filter") === "failed") setTab("failed");
-    const id = params.get("edit");
-    if (id) {
-      const row = rows.find(item => item.id === id);
-      if (row && editor && !["published", "publishing"].includes(row.status)) openEdit(row);
-      else setLoadError(row ? "This post cannot be edited in its current state or role." : "That draft is not in the latest 100 loaded posts. Refresh or open it from the publishing queue.");
-    } else if (params.get("compose") === "1" && editor) openNew();
-  }, [loaded, editor, rows]); // The requested action is consumed once per visit.
 
   const closeEditor = () => {
     if (working.current) return;
@@ -213,7 +218,7 @@ export default function PlannerPage() {
       if (!current()) return;
       setOpen(false); setD(empty()); editingId.current = null;
       await load();
-    } catch (e: any) { if (current()) { setEditorError(e?.message || "The save was not confirmed. Retry to check the same request."); await load(); } }
+    } catch (e: unknown) { if (current()) { setEditorError(errorMessage(e, "The save was not confirmed. Retry to check the same request.")); await load(); } }
     finally { working.current = false; if (mounted.current) setBusy(false); }
   };
 
@@ -221,13 +226,13 @@ export default function PlannerPage() {
     if (pendingRows.current.has(r.id)) return;
     if (!confirm("Delete this " + (r.status === "published" ? "record" : r.status) + "?")) return;
     pendingRows.current.add(r.id);
-    try { await deleteScheduled(r.id); await load(); } catch (e: any) { alert(e?.message || "Could not delete."); }
+    try { await deleteScheduled(r.id); await load(); } catch (e: unknown) { alert(errorMessage(e, "Could not delete.")); }
     finally { pendingRows.current.delete(r.id); }
   };
   const cancel = async (r: ScheduledPost) => {
     if (pendingRows.current.has(r.id)) return;
     pendingRows.current.add(r.id);
-    try { await cancelScheduled(r.id); await load(); } catch (e: any) { alert(e?.message || "Could not cancel."); }
+    try { await cancelScheduled(r.id); await load(); } catch (e: unknown) { alert(errorMessage(e, "Could not cancel.")); }
     finally { pendingRows.current.delete(r.id); }
   };
 
@@ -235,18 +240,17 @@ export default function PlannerPage() {
     s === "scheduled" ? "bg-pearl/15 text-accent" : s === "published" ? "bg-success/15 text-success" : s === "failed" ? "bg-danger/15 text-danger" : "bg-surface text-muted";
 
   const railRows = useMemo(() => {
-    const now = Date.now();
-    const soon = now + 7 * 86400000;
+    const soon = now === null ? null : now + 7 * 86400000;
     const upcoming = rows
-      .filter((r) => r.status === "scheduled" && r.publish_at && new Date(r.publish_at).getTime() >= now)
+      .filter((r) => now !== null && r.status === "scheduled" && r.publish_at && new Date(r.publish_at).getTime() >= now)
       .sort((a, b) => new Date(a.publish_at!).getTime() - new Date(b.publish_at!).getTime());
     return {
       next: upcoming.slice(0, 3),
-      thisWeek: upcoming.filter((r) => new Date(r.publish_at!).getTime() <= soon).length,
+      thisWeek: upcoming.filter((r) => soon !== null && new Date(r.publish_at!).getTime() <= soon).length,
       drafts: rows.filter((r) => r.status === "draft").length,
       failed: rows.filter((r) => r.status === "failed").length,
     };
-  }, [rows]);
+  }, [rows, now]);
 
   return (
     <div className="max-w-[960px]">
@@ -362,15 +366,14 @@ export default function PlannerPage() {
         ))}
       </div>
 
-      <StudioLoadError message={loadError} retry={() => { void load(); }} busy={loading} />
+      <StudioLoadError message={loadError} retry={() => { setLoading(true); void load(); }} busy={loading} />
       {loading && !loaded ? <p className="py-12 text-center text-sm text-muted">Loading</p>
       : !loaded ? null
       : shown.length === 0 ? <p className="py-12 text-center text-sm text-muted">{tab === "upcoming" ? "Nothing scheduled. Tap a day above to plan one." : tab === "drafts" ? "No drafts." : "Nothing published from the Planner yet."}</p>
       : shown.map(r => (
         <div key={r.id} className="mt-2.5 flex items-start gap-3.5 rounded-2xl border border-ink/10 bg-white p-3.5">
-          {r.media?.[0]?.url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={mediaPreview.preview.rows.find(row => row.id === r.id)?.media?.[0]?.url || undefined} alt="" className="h-16 w-16 rounded-lg object-cover" />
+          {r.media?.[0]?.media_type !== "video" && mediaPreview.preview.rows.find(row => row.id === r.id)?.media?.[0]?.url ? (
+            <Image unoptimized width={64} height={64} src={mediaPreview.preview.rows.find(row => row.id === r.id)?.media?.[0]?.url || ""} alt="" className="h-16 w-16 rounded-lg object-cover" />
           ) : <span className="flex h-16 w-16 items-center justify-center rounded-lg bg-surface text-muted"><FileText size={20} /></span>}
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
@@ -405,8 +408,7 @@ export default function PlannerPage() {
                   {d.media.map((m, i) => (
                     <span key={i} className="relative">
                       {m.media_type === "video" ? <span className="flex h-16 w-16 items-center justify-center rounded-lg bg-ink text-[10px] text-white">video</span>
-                        // eslint-disable-next-line @next/next/no-img-element
-                        : <img src={mediaPreview.preview.draft.media[i]?.url || undefined} alt="" className="h-16 w-16 rounded-lg object-cover" />}
+                        : mediaPreview.preview.draft.media[i]?.url ? <Image unoptimized width={64} height={64} src={mediaPreview.preview.draft.media[i].url} alt="" className="h-16 w-16 rounded-lg object-cover" /> : <span className="flex h-16 w-16 items-center justify-center rounded-lg bg-surface text-xs text-muted">Preview</span>}
                       <button onClick={() => setD(x => ({ ...x, media: x.media.filter((_, j) => j !== i) }))} className="absolute -right-1 -top-1 rounded-full bg-ink p-1 text-white" aria-label={`Remove media ${i+1}`}><X size={11} /></button>
                       <span className="mt-2 flex justify-between gap-1"><button type="button" disabled={i === 0} aria-label={`Move media ${i+1} earlier`} onClick={() => moveMedia(i,i-1)} className="rounded border border-ink/10 p-1 disabled:opacity-30"><ArrowLeft size={13}/></button><span className="text-xs text-muted">{i+1}</span><button type="button" disabled={i === d.media.length-1} aria-label={`Move media ${i+1} later`} onClick={() => moveMedia(i,i+1)} className="rounded border border-ink/10 p-1 disabled:opacity-30"><ArrowRight size={13}/></button></span>
                     </span>
@@ -438,8 +440,7 @@ export default function PlannerPage() {
                     return (
                       <button key={l.id} onClick={() => toggleListing(l)} className={"flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] transition-colors duration-[140ms] " + (on ? "bg-ink text-white" : "hover:bg-black/5")}>
                         {l.images?.[0] ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={l.images[0]} alt="" className="h-8 w-8 rounded object-cover" />
+                          <Image unoptimized width={32} height={32} src={l.images[0]} alt="" className="h-8 w-8 rounded object-cover" />
                         ) : <span className="h-8 w-8 rounded bg-ink/10" />}
                         <span className="flex-1 truncate">{l.title}</span>
                         <span className={on ? "text-white/70" : "text-muted"}>{l.currency} {l.price}</span>
@@ -467,7 +468,7 @@ export default function PlannerPage() {
               <button onClick={() => save("now")} disabled={busy || failedUploads.length > 0} className="inline-flex items-center gap-1.5 rounded-md bg-ink px-4 py-2 text-[13px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40"><Send size={14} /> {busy ? "Working" : "Publish now"}</button>
             </div>
       </StudioDialog>
-      <StudioDialog title="Post preview" description="Review the content before saving or publishing." open={previewOpen} onClose={() => setPreviewOpen(false)}><div className={styles.dialogBody}><p className="mb-3 font-semibold">{me?.business_name || me?.display_name}</p><p className="whitespace-pre-wrap text-sm leading-6">{d.content}</p>{d.body ? <p className="mt-3 whitespace-pre-wrap text-sm leading-6">{d.body}</p> : null}<div className="mt-4 space-y-3">{mediaPreview.preview.draft.media.map((item,index) => item.media_type === "video" ? <video key={index} src={item.url} controls preload="metadata" playsInline className="max-h-[480px] w-full rounded-lg bg-surface object-contain" /> : <img key={index} src={item.url} alt={`Attached media ${index+1}`} className="max-h-[480px] w-full rounded-lg bg-surface object-contain" />)}</div>{d.products.length ? <p className="mt-4 text-sm text-muted">{d.products.length} attached product cards</p> : null}</div><footer className={styles.dialogFooter}><button className={styles.buttonPrimary} onClick={() => setPreviewOpen(false)}>Back to editing</button></footer></StudioDialog>
+      <StudioDialog title="Post preview" description="Review the content before saving or publishing." open={previewOpen} onClose={() => setPreviewOpen(false)}><div className={styles.dialogBody}><p className="mb-3 font-semibold">{me?.business_name || me?.display_name}</p><p className="whitespace-pre-wrap text-sm leading-6">{d.content}</p>{d.body ? <p className="mt-3 whitespace-pre-wrap text-sm leading-6">{d.body}</p> : null}<div className="mt-4 space-y-3">{mediaPreview.preview.draft.media.map((item,index) => item.media_type === "video" ? <video key={index} src={item.url} controls preload="metadata" playsInline className="max-h-[480px] w-full rounded-lg bg-surface object-contain" /> : <Image unoptimized width={1200} height={800} style={{ height: "auto" }} key={index} src={item.url} alt={`Attached media ${index+1}`} className="max-h-[480px] w-full rounded-lg bg-surface object-contain" />)}</div>{d.products.length ? <p className="mt-4 text-sm text-muted">{d.products.length} attached product cards</p> : null}</div><footer className={styles.dialogFooter}><button className={styles.buttonPrimary} onClick={() => setPreviewOpen(false)}>Back to editing</button></footer></StudioDialog>
       <StudioDialog title="Discard unsaved changes?" open={discardOpen} onClose={() => setDiscardOpen(false)}><div className={styles.dialogBody}><p className="text-sm leading-6">Your changes have not been saved. Keep editing to save a draft, or discard the changes and return to Planner.</p></div><footer className={styles.dialogFooter}><button className={styles.button} onClick={() => setDiscardOpen(false)}>Keep editing</button><button className={`${styles.button} ${styles.buttonDanger}`} onClick={() => { ++editorVersion.current; setDiscardOpen(false); setOpen(false); setD(empty()); setFailedUploads([]); }}>Discard changes</button></footer></StudioDialog>
     </div>
   );

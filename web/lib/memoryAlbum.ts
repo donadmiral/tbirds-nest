@@ -11,6 +11,7 @@ export type MemoryPage = {
   style?: "polaroid" | "full"; taken_at: string | null; sort_order: number;
   story_id?: string; kind?: string; story_caption?: string | null; text_background?: StoryRow["text_background"]; stickers?: StoryRow["stickers_json"] | string;
   media_transform?: StoryMediaTransform | null; filter_id?: string | null;
+  audio_sound_id?: string | null; audio_duration_sec?: number | null;
   duration_sec?: number | null; dual_front_url?: string | null; audio_url?: string | null; audio_title?: string | null;
 };
 export type MemoryAlbum = {
@@ -41,7 +42,7 @@ export async function getMemoryBooks(ownerId: string): Promise<MemoryShelf> {
   const { data, error } = await supabase.rpc("get_memory_albums", { p_owner: ownerId });
   if (error) throw error;
   if (!data) throw new Error("Memory books unavailable");
-  const env = data as any;
+  const env = data as MemoryShelf | MemoryBookInfo[];
   if (Array.isArray(env)) return { is_owner: false, books: await hydrateMemoryAlbumMedia(env as MemoryBookInfo[], supabase) };
   return { is_owner: !!env.is_owner, books: await hydrateMemoryAlbumMedia((env.books ?? []) as MemoryBookInfo[], supabase) };
 }

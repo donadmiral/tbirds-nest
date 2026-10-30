@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { erasureMessage, parseErasureReceipt, readAccountErasure, sendAccountErasure,
@@ -8,12 +8,23 @@ import { erasureMessage, parseErasureReceipt, readAccountErasure, sendAccountEra
 const KEY = 'pc:account-erasure-receipt:v1';
 const base = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const RECEIPT_EVENT = "pc-account-erasure-receipt";
+const storageSnapshot = () => {try{return localStorage.getItem(KEY);}catch{return "storage-unavailable";}};
+const storageServerSnapshot = () => null;
+const subscribeReceipt = (listener: () => void) => {
+  window.addEventListener("storage",listener);window.addEventListener(RECEIPT_EVENT,listener);
+  return () => {window.removeEventListener("storage",listener);window.removeEventListener(RECEIPT_EVENT,listener);};
+};
+function storeReceipt(receipt: ErasureReceipt) {
+  localStorage.setItem(KEY,JSON.stringify(receipt));window.dispatchEvent(new Event(RECEIPT_EVENT));
+}
 
 export function AccountErasure({ allowRequest = false }: { allowRequest?: boolean }) {
-  const client = useRef(createClient()).current;
+  const [client] = useState(createClient);
   const guard = useRef({ busy: false, generation: 0, owner: null as string | null, alive: true });
   const [owner, setOwner] = useState<string | null>(null);
-  const [receipt, setReceipt] = useState<ErasureReceipt | null>(null);
+  const receiptRaw=useSyncExternalStore(subscribeReceipt,storageSnapshot,storageServerSnapshot);
+  const receipt=useMemo(()=>parseErasureReceipt(receiptRaw),[receiptRaw]);
   const [status, setStatus] = useState<ErasureStatus | null>(null);
   const [confirmation, setConfirmation] = useState('');
   const [busy, setBusy] = useState(false);
@@ -30,17 +41,22 @@ export function AccountErasure({ allowRequest = false }: { allowRequest?: boolea
     finally { guard.current.busy = false; if (guard.current.alive) setBusy(false); }
   }, []);
   useEffect(() => {
-    guard.current.alive = true;
+    const state = guard.current;
+    state.alive = true;
     const watcher = client.auth.onAuthStateChange((_event, session) => {
       const id = session?.user.id ?? null;
       if (guard.current.owner !== id) { guard.current.owner = id; guard.current.generation++; setOwner(id); }
     }).data.subscription;
-    try {
-      const saved = parseErasureReceipt(localStorage.getItem(KEY));
-      if (saved) { setReceipt(saved); void refresh(saved); }
-    } catch { setError('Your browser must allow local storage to save a deletion receipt before requesting deletion.'); }
-    return () => { guard.current.alive = false; guard.current.generation++; watcher.unsubscribe(); };
-  }, [client, refresh]);
+    return () => { state.alive = false; state.generation++; watcher.unsubscribe(); };
+  }, [client]);
+  useEffect(() => {
+    if(!receipt)return;
+    let active=true;
+    void readAccountErasure(base,anon,receipt).then(next=>{
+      if(active){setStatus(next);if(!next)setError("This receipt could not be confirmed. Refresh its status or contact support with the request number.");}
+    }).catch(()=>{if(active)setError("Status is unavailable. Your saved request is still here; refresh when connected.");});
+    return ()=>{active=false;};
+  }, [receipt]);
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (guard.current.busy || confirmation !== 'DELETE' || !owner) return;
@@ -60,7 +76,7 @@ export function AccountErasure({ allowRequest = false }: { allowRequest?: boolea
         localStorage.setItem(`${KEY}:${expectedOwner}`, JSON.stringify(saved));
       }
       localStorage.setItem(KEY, JSON.stringify(saved));
-      setReceipt(saved);
+      storeReceipt(saved);
       if (guard.current.generation !== generation || !guard.current.alive) throw new Error('Your account changed. Reopen settings before requesting deletion.');
       const next = await sendAccountErasure(base, anon, session.access_token, saved);
       // The request uses the captured JWT, so a concurrent switch cannot target
@@ -96,6 +112,7 @@ export function AccountErasure({ allowRequest = false }: { allowRequest?: boolea
       <button type="button" onClick={() => void refresh(receipt)} disabled={busy} className="mt-2 min-h-11 rounded-full border border-ink/20 px-4 text-sm font-semibold disabled:opacity-50">{busy ? 'Checking…' : 'Refresh deletion status'}</button>
       <p className="mt-3 text-xs leading-5 text-secondary">The receipt is saved in this browser. Return from the sign-in page to check it without signing in.</p>
     </div> : !allowRequest ? <p className="mt-4 text-sm leading-6 text-secondary">There is no deletion receipt saved in this browser. Use the device where you requested deletion, or contact support with your request number.</p> : null}
+    {receiptRaw === "storage-unavailable" ? <p role="alert" className="mt-4 text-sm text-red-700">Your browser must allow local storage to save a deletion receipt before requesting deletion.</p> : null}
     {error ? <p role="alert" className="mt-4 text-sm leading-6 text-red-700 dark:text-red-300">{error}</p> : null}
     {!allowRequest || status ? <Link href="/login" className="mt-5 inline-flex min-h-11 items-center text-sm font-semibold underline">Return to sign in</Link> : null}
   </div>;

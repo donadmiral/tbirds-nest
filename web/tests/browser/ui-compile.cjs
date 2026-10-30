@@ -6,7 +6,13 @@ const root=path.resolve(__dirname,'../..');
 async function compile({entry,output,aliases={},title='Platinum Circles synthetic UI verification'}){
   entry=path.resolve(entry);output=path.resolve(output);await fs.mkdir(output,{recursive:true});
   const alias={...aliases,'@':root,'next/link':aliases['next/link']||path.join(__dirname,'ui-router-adapter.tsx'),'next/navigation':aliases['next/navigation']||path.join(__dirname,'ui-router-adapter.tsx'),react:aliases.react||path.join(root,'node_modules/react'),'react-dom':aliases['react-dom']||path.join(root,'node_modules/react-dom')};
-  await new Promise((resolve,reject)=>webpack({mode:'development',devtool:false,context:root,target:'web',entry,plugins:[new webpack.DefinePlugin({'process.env':JSON.stringify({NODE_ENV:'development',NEXT_PUBLIC_SUPABASE_URL:'https://synthetic.invalid',NEXT_PUBLIC_SUPABASE_ANON_KEY:'synthetic-only'})})],output:{path:output,filename:'fixture.js',assetModuleFilename:'assets/[name][ext]'},resolve:{extensions:['.tsx','.ts','.js','.cjs'],alias},module:{rules:[{test:/\.tsx?$/,exclude:/node_modules/,use:path.join(__dirname,'ui-typescript-loader.cjs')},{test:/\.module\.css$/,use:path.join(__dirname,'ui-css-module-loader.cjs')},{test:/\.(png|jpe?g|gif|webp|svg|mp3|aac|m4a|mp4)$/i,type:'asset/resource'}]}},(error,stats)=>{if(error)return reject(error);if(stats.hasErrors())return reject(new Error(stats.toString({all:false,errors:true})));resolve();}));
+  await new Promise((resolve,reject)=>webpack({mode:'development',devtool:false,context:root,target:'web',entry,plugins:[new webpack.DefinePlugin({
+    'process.env':JSON.stringify({NODE_ENV:'development',NEXT_PUBLIC_SUPABASE_URL:'https://synthetic.invalid',NEXT_PUBLIC_SUPABASE_ANON_KEY:'synthetic-only'}),
+    'process.env.__NEXT_IMAGE_OPTS':'undefined',
+    'process.env.NEXT_DEPLOYMENT_ID':'undefined',
+    'process.env.NEXT_SUPPORTS_IMMUTABLE_ASSETS':'false',
+    'process.env.NEXT_RUNTIME':JSON.stringify('browser'),
+  })],output:{path:output,filename:'fixture.js',assetModuleFilename:'assets/[name][ext]'},resolve:{extensions:['.tsx','.ts','.js','.cjs'],alias},module:{rules:[{test:/\.tsx?$/,exclude:/node_modules/,use:path.join(__dirname,'ui-typescript-loader.cjs')},{test:/\.module\.css$/,use:path.join(__dirname,'ui-css-module-loader.cjs')},{test:/\.(png|jpe?g|gif|webp|svg|mp3|aac|m4a|mp4)$/i,type:'asset/resource'}]}},(error,stats)=>{if(error)return reject(error);if(stats.hasErrors())return reject(new Error(stats.toString({all:false,errors:true})));resolve();}));
   const file=path.join(root,'app/globals.css');
   const css=await postcss([tailwind({base:root,optimize:false})]).process(await fs.readFile(file,'utf8'),{from:file});
   await fs.writeFile(path.join(output,'fixture.css'),css.css+'\nbody{margin:0;font-family:Arial,Helvetica,sans-serif}');

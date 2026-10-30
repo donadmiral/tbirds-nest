@@ -1,6 +1,5 @@
-import { useIsFocused } from '@react-navigation/native';
-import { takePrefetched } from '../../lib/screenTransition';
-import { useAfterTransition } from '../../lib/screenTransition';
+import { useIsFocused , useNavigation, useRoute } from '@react-navigation/native';
+import { takePrefetched , useAfterTransition } from '../../lib/screenTransition';
 import { ProfileSkeleton } from '../../components/skeletons';
 import TierName from '../../components/TierName';
 import { themedSheet, useTheme } from '../../theme/useTheme';
@@ -10,13 +9,9 @@ import VideoThumb from '../../components/VideoThumb';
  * Design A — Classic iOS Style contact info, Clean Premium language.
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, Image,
-  ActivityIndicator, StatusBar, Alert, Share, RefreshControl, useWindowDimensions,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, StatusBar, Alert, Share, RefreshControl, useWindowDimensions } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
-import { useNavigation, useRoute } from '@react-navigation/native';
 import ProfileHeader from '../../components/ProfileHeader';
 import { BusinessProducts, BusinessReviews, SellerListings } from '../../components/BusinessTabs';
 import { supabase } from '../../services/supabase';
@@ -26,7 +21,7 @@ import { useProfileMediaRefresh } from '../../hooks/useProfileMediaRefresh';
 import { normalizeProfilePost } from '../../utils/profilePost';
 import MemoryAlbumCard from '../../components/MemoryAlbumCard';
 import { useAuthStore } from '../../stores/authStore';
-import MediaRenderer, { PostMedia } from '../../components/MediaRenderer';
+import { PostMedia } from '../../components/MediaRenderer';
 import { Image as ExpoImage } from 'expo-image';
 import VerifiedBadge from '../../components/VerifiedBadge';
 

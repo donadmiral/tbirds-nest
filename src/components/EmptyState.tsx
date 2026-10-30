@@ -5,7 +5,7 @@
  */
 import { themedSheet, useTheme } from '../theme/useTheme';
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
 

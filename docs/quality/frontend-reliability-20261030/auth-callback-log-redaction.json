@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-30",
+  "finding": "Authentication callbacks logged full URLs and provider/parser errors that could include credentials or personal information.",
+  "change": "Every diagnostic in AuthCallbackScreen now emits one fixed event/outcome label. URLs, token/code/hash/type values and error objects are excluded from all console arguments. Authentication operations and flow are unchanged.",
+  "files": [
+    {
+      "path": "src/screens/auth/AuthCallbackScreen.tsx",
+      "sha256": "27cd3d27805f3cc07172f9342c01bb3dcb609eefa1641b622e1482078dcf95a6"
+    },
+    {
+      "path": "tests/quality/auth-callback-logging.cjs",
+      "sha256": "cbbb48550242da0d122f8edcee8b746cb8870cfe25ae03cebcaea93dffd9fb17"
+    }
+  ],
+  "verification": [
+    {
+      "command": "node tests/quality/auth-callback-logging.cjs",
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "method": "Execute the actual screen module with synthetic Linking/Auth/React adapters; capture every console method and assert that credentials still reach the intended provider operations without appearing in diagnostic output."
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "exitCode": 0
+    },
+    {
+      "command": "npx eslint . --format json",
+      "exitCode": 0,
+      "errors": 0,
+      "warnings": 476,
+      "note": "Integrated repository findings; existing native warnings are recorded separately."
+    }
+  ],
+  "coveredCases": [
+    "Cold PKCE callback including email query parameter",
+    "Stored access/refresh credentials with returned provider errors",
+    "Warm token-hash callback with an untrusted type parameter",
+    "Thrown parser, provider and initial-link errors"
+  ]
+}

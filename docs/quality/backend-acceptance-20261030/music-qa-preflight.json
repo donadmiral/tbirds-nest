@@ -1,0 +1,245 @@
+{
+  "buckets": [
+    {
+      "id": "chat-files",
+      "public": false
+    },
+    {
+      "id": "chat-media",
+      "public": false
+    },
+    {
+      "id": "media",
+      "public": false
+    },
+    {
+      "id": "post-media",
+      "public": false
+    },
+    {
+      "id": "story-media",
+      "public": false
+    }
+  ],
+  "project": "uaulhuelcfkjwojtymmw",
+  "captured_at": "2026-10-30T17:05:03.004503+00:00",
+  "fingerprints": [
+    {
+      "acl": "{postgres=X/postgres}",
+      "owner": "postgres",
+      "matches": true,
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "prosecdef": true,
+      "signature": "media_delivery.content_provenance(text,uuid,text,text,text,text)",
+      "actual_md5": "87d8daadb1a6a4d31df56b50a88f7059",
+      "expected_md5": "87d8daadb1a6a4d31df56b50a88f7059"
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "owner": "postgres",
+      "matches": true,
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "prosecdef": true,
+      "signature": "media_delivery.issue(text,text,uuid,uuid)",
+      "actual_md5": "1e7d3500acab0312bbc4e4a987b0aef0",
+      "expected_md5": "1e7d3500acab0312bbc4e4a987b0aef0"
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "owner": "postgres",
+      "matches": true,
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "prosecdef": true,
+      "signature": "media_delivery.require_session()",
+      "actual_md5": "25dcf6c84db4090523cd0207d4f5545b",
+      "expected_md5": "25dcf6c84db4090523cd0207d4f5545b"
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "matches": true,
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "prosecdef": true,
+      "signature": "public.publish_story_sound(uuid,boolean)",
+      "actual_md5": "5d13cb1dd45585955bb6fb796035251b",
+      "expected_md5": "5d13cb1dd45585955bb6fb796035251b"
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "matches": true,
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "prosecdef": true,
+      "signature": "public.resolve_story_soundtrack(jsonb)",
+      "actual_md5": "764d56fa35f531e2e047dc8cea9879f9",
+      "expected_md5": "764d56fa35f531e2e047dc8cea9879f9"
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "owner": "postgres",
+      "matches": true,
+      "proconfig": [
+        "search_path=\"\""
+      ],
+      "prosecdef": true,
+      "signature": "account_erasure.review_reason(uuid)",
+      "actual_md5": "cf09e2b49af05cbfa42f2889b80dd841",
+      "expected_md5": "cf09e2b49af05cbfa42f2889b80dd841"
+    }
+  ],
+  "music_schema": null,
+  "music_objects": 0,
+  "prerequisites": [
+    {
+      "acl": "{postgres=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "present": true,
+      "signature": "account_erasure.assert_writable(uuid)",
+      "definition_md5": "b4bf8700c07c75a0c6b8dadb7b9051ef"
+    },
+    {
+      "acl": "{postgres=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "present": true,
+      "signature": "account_erasure.guard_actor_write()",
+      "definition_md5": "046547d7e04b40a1a9f8a1aca382066d"
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "present": true,
+      "signature": "public.content_media_manifest(jsonb)",
+      "definition_md5": "47b5dff186018f351aa0e188d1e805d2"
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "present": true,
+      "signature": "public.publish_story_v2(uuid,uuid,jsonb)",
+      "definition_md5": "f915d1249e96ac5d72ba01b7daecca1a"
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "present": true,
+      "signature": "public.get_memory_book(uuid)",
+      "definition_md5": "e7fe26d8442d70810ef29a093c4831ca"
+    },
+    {
+      "acl": "{postgres=X/postgres,=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=pg_catalog, public, extensions, pg_temp"
+      ],
+      "present": true,
+      "signature": "public.get_user_stories(uuid)",
+      "definition_md5": "0f1111f0f3c2788a0807f975e1668578"
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "present": true,
+      "signature": "public.get_highlight_stories(uuid)",
+      "definition_md5": "16b9506412a93e5c3da50be7ac9e526f"
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "present": true,
+      "signature": "public.sound_rights_allow(uuid,text)",
+      "definition_md5": "867af8c89518e963b151c7b6da855eb2"
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "present": true,
+      "signature": "public.validate_soundtrack(jsonb,text)",
+      "definition_md5": "a1d0bb9a44594119253a26e6b3093d0e"
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "config": [
+        "search_path=\"\""
+      ],
+      "present": true,
+      "signature": "public.triniti_admin_session_check(uuid,uuid)",
+      "definition_md5": "ba2e1c694288129ee94d8b6d06746eef"
+    }
+  ],
+  "waiting_locks": 0,
+  "worker_healthy": true,
+  "business_schema": null,
+  "music_readiness": null,
+  "latest_migrations": [
+    {
+      "name": "reserve_business_provision_usernames",
+      "version": "20261030033815"
+    },
+    {
+      "name": "reserve_web_route_usernames",
+      "version": "20261030032528"
+    },
+    {
+      "name": "studio_editorial_and_partnership_workflows",
+      "version": "20261030032512"
+    },
+    {
+      "name": "staff_social_shells",
+      "version": "20261030013815"
+    },
+    {
+      "name": "account_erasure_admin_restore_guard",
+      "version": "20261030010956"
+    }
+  ],
+  "fingerprints_match": true,
+  "active_transactions": [
+    {
+      "pid": 1416108,
+      "state": "active",
+      "candidate": false,
+      "wait_type": null,
+      "query_hash": "1d5e10afdb6fe409d9e45e6319a3c782",
+      "wait_event": null,
+      "age_seconds": 0.006775
+    }
+  ],
+  "matching_migrations": [],
+  "business_session_guard": null,
+  "existing_media_private": true
+}

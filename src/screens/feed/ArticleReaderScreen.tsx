@@ -4,14 +4,13 @@ import { TAB_BAR_CLEARANCE } from '../../constants/layout';
  * ArticleReaderScreen - Twitter long-form reading view.
  */
 import React, { useEffect, useMemo, useState } from 'react';
-import { AppState, View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
+import { AppState, View, Text, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { SafeAreaView } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
-import { supabase } from '../../services/supabase';
+import { supabase , SUPABASE_URL } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { hydratePostMedia } from '../../services/contentMedia';
 import { replaceContentMedia } from '../../../shared/contentMedia';
-import { SUPABASE_URL } from '../../services/supabase';
 import ArticleBody from '../../components/ArticleBody';
 
 const W = Dimensions.get('window').width;

@@ -46,7 +46,7 @@ import { messageStatusService } from '../../services/messageStatusService';
 import { callService } from '../../services/callService';
 import { uploadMedia } from '../../services/mediaService';
 import { signChatMedia, signChatMediaMap, isChatMediaUrl, signGroupAvatars } from '../../services/chatMediaService';
-import { useVoiceRecorder, formatVoiceDuration, MAX_VOICE_SECONDS } from '../../controllers/messages/useVoiceRecorder';
+import { useVoiceRecorder, formatVoiceDuration } from '../../controllers/messages/useVoiceRecorder';
 import VoiceNote from '../../components/VoiceNote';
 import { ShareDetailsSheet } from '../../components/messages/ShareDetailsSheet';
 import { parseChatAttachmentCard, attachmentCardText, attachmentCardLinks } from '../../../shared/chatAttachmentCards';

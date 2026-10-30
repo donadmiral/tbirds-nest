@@ -1,7 +1,7 @@
 "use client";
 
 import { profilePath } from "@/lib/profileLookup";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { ThumbsUp, ThumbsDown, Reply, Trash2, Copy, MoreHorizontal, ChevronDown, ChevronUp, EyeOff, ShieldAlert, UserMinus, Pin, Heart } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -29,12 +29,16 @@ type CommentRow = {
 };
 
 export function Comments({ postId, autoFocus }: { postId: string; autoFocus?: boolean }) {
+  return <CommentThread key={postId} postId={postId} autoFocus={autoFocus} />;
+}
+
+function CommentThread({ postId, autoFocus }: { postId: string; autoFocus?: boolean }) {
   const [off, setOff] = useState(false);
   const [collabInvite, setCollabInvite] = useState(false);
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const [uid, setUid] = useState<string | null>(null);
-  const authUserRef = useRef(uid); authUserRef.current = uid;
+  const authUserRef = useRef(uid);
   const [items, setItems] = useState<CommentRow[]>([]);
   const [reactions, setReactions] = useState<Record<string, number>>({});
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -45,24 +49,24 @@ export function Comments({ postId, autoFocus }: { postId: string; autoFocus?: bo
   const [authorLikes, setAuthorLikes] = useState<Set<string>>(new Set());
   const loadRevision = useRef(0);
   const pendingActions = useRef(new Set<string>());
-  const activeScope = useRef({ key: '', generation: 0 });
   const scopeKey = `${postId}:${uid ?? ''}`;
-  if (activeScope.current.key !== scopeKey) activeScope.current = { key: scopeKey, generation: activeScope.current.generation + 1 };
-  // Native alerts and retained callbacks must belong to the render that opened them.
-  const actionScope = activeScope.current;
+  const actionScope = useMemo(() => ({ key: scopeKey }), [scopeKey]);
+  const activeScope = useRef(actionScope);
+  // Publish a scope only after its render commits. Auth callbacks invalidate it
+  // immediately, so retained confirmations cannot act for a previous account.
+  useLayoutEffect(() => { activeScope.current = actionScope; authUserRef.current = uid; }, [actionScope, uid]);
   const [draft, setDraft] = useState("");
   const [replyTo, setReplyTo] = useState<CommentRow | null>(null);
   const [busy, setBusy] = useState(false);
   const [postAuthor, setPostAuthor] = useState<string | null>(null);
   const [showSpam, setShowSpam] = useState(false);
 
-  const load = useCallback(async () => {
-    const revision = ++loadRevision.current;
+  const load = useCallback(async (identity?: string | null) => {
+    const revision = loadRevision.current += 1;
     const current = () => revision === loadRevision.current;
     try {
-    const { data: sess } = await supabase.auth.getSession();
+    const userId = identity === undefined ? (await supabase.auth.getSession()).data.session?.user.id ?? null : identity;
     if (!current()) return;
-    const userId = sess.session?.user.id ?? null;
     setUid(userId);
     if (userId) { const { data: ci } = await supabase.from("post_collaborators").select("status").eq("post_id", postId).eq("user_id", userId).maybeSingle(); if (!current()) return; setCollabInvite((ci as { status?: string } | null)?.status === "invited"); }
     else setCollabInvite(false);
@@ -115,18 +119,23 @@ export function Comments({ postId, autoFocus }: { postId: string; autoFocus?: bo
       setCollabInvite(false); setPostAuthor(null); setOff(false); setExpanded(new Set()); setShowSpam(false);
       setLoaded(false); setItems([]); setLoadError(null); setPinnedId(null); setAuthorLikes(new Set()); setReactions({}); setReplyTo(null); setDraft('');
     };
-    reset(); void load();
+    const initialRevision = loadRevision.current;
+    void supabase.auth.getSession().then(({ data, error }) => {
+      if (!alive || initialRevision !== loadRevision.current) return;
+      if (error) { setLoadError('Comments could not load. Please try again.'); setLoaded(true); return; }
+      void load(data.session?.user.id ?? null);
+    });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const next = session?.user.id ?? null;
       if (!alive || next === authUserRef.current) return;
       authUserRef.current = next;
       // Fence old confirmations immediately, even before the account render commits.
-      const scope = { key: `${postId}:${next ?? ''}`, generation: activeScope.current.generation + 1 };
-      activeScope.current = scope; ++loadRevision.current;
+      const scope = { key: `${postId}:${next ?? ''}` };
+      activeScope.current = scope; loadRevision.current += 1;
       setUid(next); reset();
-      queueMicrotask(() => { if (alive && scope === activeScope.current) void load(); });
+      queueMicrotask(() => { if (alive && next === authUserRef.current) void load(next); });
     });
-    return () => { alive = false; subscription.unsubscribe(); ++loadRevision.current; activeScope.current = { ...activeScope.current, generation: activeScope.current.generation + 1 }; };
+    return () => { alive = false; subscription.unsubscribe(); loadRevision.current += 1; activeScope.current = { key: "unmounted" }; };
   }, [load, postId, supabase]);
   useEffect(() => { if (autoFocus) { const t = setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 80); return () => clearTimeout(t); } }, [autoFocus]);
 

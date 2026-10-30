@@ -12,7 +12,7 @@ import { ArrowUp } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import type { FeedRow } from "@/lib/feed";
+
 import { PostCard } from "@/components/PostCard";
 import { StoryRings } from "@/components/StoryRings";
 import { Composer } from "@/components/Composer";
@@ -69,28 +69,32 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
   // chosen kind, and after posting go back to the wizard with the post picked.
   const [composeKind, setComposeKind] = useState<"post" | "media" | "video" | "poll" | undefined>(undefined);
   const [composeRequest, setComposeRequest] = useState(0);
-  const thenPromote = useRef(false);
+  const [thenPromote,setThenPromote] = useState(false);
   const requestedCompose = searchParams.get("compose");
   const requestedNext = searchParams.get("then");
-  useEffect(() => {
-    const ck = requestedCompose;
-    if (!ck || !['post', 'photo', 'carousel', 'video', 'poll'].includes(ck)) return;
-    setComposeKind(ck === 'photo' || ck === 'carousel' ? 'media' : ck as 'post' | 'video' | 'poll');
-    setComposeRequest(value => value + 1);
-    thenPromote.current = requestedNext === "promote";
-  }, [requestedCompose, requestedNext]);
+  const composeUrl = requestedCompose + ":" + requestedNext;
+  const [previousComposeUrl,setPreviousComposeUrl]=useState<string|null>(null);
+  if(previousComposeUrl!==composeUrl){
+    setPreviousComposeUrl(composeUrl);
+    const ck=requestedCompose;
+    if(ck&&['post','photo','carousel','video','poll'].includes(ck)){
+      setComposeKind(ck==='photo'||ck==='carousel'?'media':ck as 'post'|'video'|'poll');
+      setComposeRequest(value=>value+1);setThenPromote(requestedNext==='promote');
+    }
+  }
   useEffect(() => {
     const open = (event: Event) => {
       const intent = (event as CustomEvent<{ intent?: string }>).detail?.intent;
       if (!intent || !['post', 'photo', 'video', 'poll'].includes(intent)) return;
-      thenPromote.current = false;
+      setThenPromote(false);
       setComposeKind(intent === 'photo' ? 'media' : intent as 'post' | 'video' | 'poll');
       setComposeRequest(value => value + 1);
     };
     window.addEventListener('pc-compose', open);
     return () => window.removeEventListener('pc-compose', open);
   }, []);
-  const [promos, setPromos] = useState<PromoRow[]>([]);
+  const [promoResult, setPromos] = useState<{owner:string;items:PromoRow[]}|null>(null);
+  const promos=mode==="for_you"&&promoResult?.owner===state.owner?promoResult.items:[];
   const [marketplace, setMarketplace] = useState<{ owner: string; items: MarketplaceRecommendation[] } | null>(null);
   const [marketplaceRefresh, setMarketplaceRefresh] = useState(0);
   const marketplaceRequest = useRef<AbortController | null>(null);
@@ -99,7 +103,7 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
     if (sellerId) setMarketplace(current => current ? { ...current, items: current.items.filter(item => item.seller_id !== sellerId) } : current);
     setMarketplaceRefresh(value => value + 1);
   }, []);
-  const marketplaceItems = marketplace?.owner === state.owner ? marketplace.items : [];
+  const marketplaceItems = mode === 'for_you' && marketplace?.owner === state.owner ? marketplace.items : [];
   const seenPendingRef = useRef<Set<string>>(new Set());
   const seenSentRef = useRef<Set<string>>(new Set());
   const seenObserverRef = useRef<IntersectionObserver | null>(null);
@@ -123,7 +127,7 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
       const next = session?.user.id ?? null;
       if (next !== uidRef.current) {
         uidRef.current = next; seenPendingRef.current.clear(); seenSentRef.current.clear();
-        setComposerGeneration(value => value + 1); setQuote(null); setComposeKind(undefined); thenPromote.current = false;
+        setComposerGeneration(value => value + 1); setQuote(null); setComposeKind(undefined); setThenPromote(false);
         controller.setOwner(next);
         queueMicrotask(() => { if (next) router.refresh(); else router.replace('/login'); });
       }
@@ -153,16 +157,16 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
 
   useEffect(() => {
     let active = true;
-    setPromos([]);
-    if (mode === "for_you" && state.owner) void getActivePromos(3).then(value => {
-      if (active) setPromos(value.filter(post => !isMarketplacePost(post)));
-    }).catch(() => { if (active) setPromos([]); });
+    const owner=state.owner;
+    if (mode === "for_you" && owner) void getActivePromos(3).then(value => {
+      if (active) setPromos({owner,items:value.filter(post => !isMarketplacePost(post))});
+    }).catch(() => { if (active) setPromos(null); });
     return () => { active = false; };
   }, [mode, state.owner]);
 
   useEffect(() => {
     const owner = state.owner;
-    if (!owner || mode !== 'for_you') { setMarketplace(null); return; }
+    if (!owner || mode !== 'for_you') return;
     let active = true;
     const request = new AbortController();
     marketplaceRequest.current = request;
@@ -187,6 +191,7 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
 
   // Seen reporting: the phone's exact batch semantics - 6s flush, retry on failure.
   useEffect(() => {
+    const pendingSeen=seenPendingRef.current;
     seenObserverRef.current = new IntersectionObserver((entries) => {
       entries.forEach((e) => {
         const pid2 = (e.target as HTMLElement).dataset.pid;
@@ -211,7 +216,7 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
       } finally { sending = false; }
     };
     const timer = setInterval(flushSeen, 6000);
-    return () => { active = false; clearInterval(timer); seenPendingRef.current.clear(); seenObserverRef.current?.disconnect(); };
+    return () => { active = false; clearInterval(timer); pendingSeen.clear(); seenObserverRef.current?.disconnect(); };
   }, [supabase]);
 
   const observeSeen = useCallback((el: HTMLDivElement | null) => {
@@ -290,7 +295,7 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
       </div>
 
       <StoryRings />
-      {state.owner ? <Composer key={state.owner + ':' + composerGeneration} ownerId={state.owner} initialKind={composeKind} openRequest={composeRequest} onPosted={(id) => { load(false); if (id && thenPromote.current) router.push("/ads/new?post=" + id); }} quote={quote} onQuoteDone={() => setQuote(null)} /> : null}
+      {state.owner ? <Composer key={state.owner + ':' + composerGeneration} ownerId={state.owner} initialKind={composeKind} openRequest={composeRequest} onPosted={(id) => { load(false); if (id && thenPromote) router.push("/ads/new?post=" + id); }} quote={quote} onQuoteDone={() => setQuote(null)} /> : null}
 
       {mode === "trending" ? <div className="pt-3"><StoryRings mode="global" /></div> : null}
       {pendingNew > 0 && !loading ? (

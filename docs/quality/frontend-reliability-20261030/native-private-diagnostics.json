@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-30",
+  "scope": "Diagnostic redaction only; existing Auth, image-fallback and push registration/rotation flows are preserved.",
+  "changes": [
+    "Image failure callbacks log only fixed events, excluding signed capability URLs and raw native provider error strings.",
+    "Push registration, token rotation and channel errors log fixed events/outcomes, excluding token suffixes, account prefixes, project fragments and raw provider error objects.",
+    "The independently recorded Auth callback redaction remains unchanged."
+  ],
+  "files": [
+    {
+      "path": "src/components/MediaRenderer.tsx",
+      "sha256": "45f1b95ef7df050429b0a09fc729e34b3e6365cd8b113d358f9793d2189c4089"
+    },
+    {
+      "path": "src/services/notificationBootstrap.ts",
+      "sha256": "e43869f90e98bba4cf91b09de2b02a35c8568bd7332af255dd490729287883b9"
+    },
+    {
+      "path": "src/screens/auth/AuthCallbackScreen.tsx",
+      "sha256": "27cd3d27805f3cc07172f9342c01bb3dcb609eefa1641b622e1482078dcf95a6"
+    },
+    {
+      "path": "tests/quality/native-private-diagnostics.cjs",
+      "sha256": "f1eb3050a9b5536e8472fa92f119a9c6e9659937b6e8ba7cf8124109e99a1aaf"
+    },
+    {
+      "path": "tests/quality/auth-callback-logging.cjs",
+      "sha256": "cbbb48550242da0d122f8edcee8b746cb8870cfe25ae03cebcaea93dffd9fb17"
+    }
+  ],
+  "checks": [
+    {
+      "command": "node tests/quality/native-private-diagnostics.cjs",
+      "exitCode": 0,
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "method": "Execute actual image onError callbacks and the complete notificationBootstrap module against synthetic native/Expo/provider adapters. Verify unchanged error state and full token persistence/rotation/VoIP payloads while observing all console sinks."
+    },
+    {
+      "command": "node tests/quality/auth-callback-logging.cjs",
+      "exitCode": 0,
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "exitCode": 0
+    },
+    {
+      "command": "npx eslint src/components/MediaRenderer.tsx src/services/notificationBootstrap.ts src/screens/auth/AuthCallbackScreen.tsx tests/quality/auth-callback-logging.cjs tests/quality/native-private-diagnostics.cjs --format json",
+      "exitCode": 0,
+      "errors": 0,
+      "warnings": 8,
+      "note": "The eight pre-existing unused/hook findings in MediaRenderer and AuthCallbackScreen are unchanged. Notification service and both new test programs have zero findings."
+    }
+  ],
+  "limits": [
+    "Synthetic provider behavior does not establish real push delivery or installed-device acceptance.",
+    "The latest full native lint receipt still records 476 open warnings; these redactions do not claim global native cleanup."
+  ]
+}

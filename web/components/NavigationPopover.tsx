@@ -12,14 +12,14 @@ export function NavigationPopover({ label, trigger, className = '', side = 'bott
   label: string; trigger: ReactNode; className?: string; side?: 'bottom' | 'right';
   children: (close: () => void) => ReactNode;
 }) {
-  const [open, setOpen] = useState(false);
+  const [openedOn, setOpenedOn] = useState<string | null>(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const id = useId();
   const path = usePathname();
-  const close = useCallback(() => setOpen(false), []);
-  useEffect(() => { setOpen(false); }, [path]);
+  const open = openedOn === path;
+  const close = useCallback(() => setOpenedOn(null), []);
 
   useLayoutEffect(() => {
     if (!open) return;
@@ -45,9 +45,9 @@ export function NavigationPopover({ label, trigger, className = '', side = 'bott
   useEffect(() => {
     if (!open) return;
     const inside = (target: EventTarget | null) => target instanceof Node && (panelRef.current?.contains(target) || triggerRef.current?.contains(target));
-    const outside = (event: Event) => { if (!inside(event.target)) setOpen(false); };
+    const outside = (event: Event) => { if (!inside(event.target)) setOpenedOn(null); };
     const key = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') { event.preventDefault(); setOpen(false); triggerRef.current?.focus(); return; }
+      if (event.key === 'Escape') { event.preventDefault(); setOpenedOn(null); triggerRef.current?.focus(); return; }
       if (!panelRef.current?.contains(document.activeElement)) return;
       if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key) || document.activeElement?.matches('input, textarea, select')) return;
       const items = [...panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(node => node.getClientRects().length > 0);
@@ -65,7 +65,7 @@ export function NavigationPopover({ label, trigger, className = '', side = 'bott
 
   return <>
     <button ref={triggerRef} type="button" className={className} aria-label={label} aria-haspopup="dialog" aria-expanded={open} aria-controls={open ? id : undefined}
-      onClick={() => setOpen(value => !value)}>{trigger}</button>
+      onClick={() => setOpenedOn(open ? null : path)}>{trigger}</button>
     {open ? createPortal(<div ref={panelRef} id={id} role="dialog" aria-label={label} className={chrome.popover} style={position}>
       {children(close)}
     </div>, document.body) : null}

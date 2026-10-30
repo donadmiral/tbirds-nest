@@ -1,4 +1,7 @@
-import { MUSIC_CATALOG_ENABLED, MUSIC_UNAVAILABLE_MESSAGE } from '../../shared/musicAvailability';
+import { addOriginalAudio } from './originalAudioService';
+import { ORIGINAL_AUDIO_ENABLED, MUSIC_UNAVAILABLE_MESSAGE } from '../../shared/musicAvailability';
+import { originalAudioSupported } from '../../shared/originalAudioAvailability';
+import { soundtrackRead } from '../../shared/soundtrackPicker';
 import { canonicalContentMedia } from '../../shared/contentMedia';
 import { supabase } from './supabase';
 import { hydrateStoryMedia, hydrateSoundMedia, hydrateHighlightMedia } from './contentMedia';
@@ -125,10 +128,13 @@ export type MediaTransform = {
   bg?: { kind: 'blur' | 'color' | 'gradient' | 'none'; a?: string; b?: string } | null;
   adjust?: { bri?: number; con?: number; warm?: number; tint?: number; sat?: number; hi?: number; sh?: number; fade?: number; grain?: number; vig?: number } | null;
   mix?: { orig?: number; music?: number } | null;
+  audioStartSec?: number;
+  audioSoundId?: string | null;
 };
 
 export type StoryAudioDraft = {
   kind: 'voiceover' | 'sound';
+  startSec?: number;
   localUri?: string | null;
   url?: string | null;
   soundId?: string | null;
@@ -151,6 +157,7 @@ export type StorySound = {
   use_count: number;
   created_at: string;
   rights_status?: 'unverified' | 'creator_attested' | 'licensed' | 'blocked';
+  max_excerpt_sec?: number;
 };
 
 export const STORY_CATEGORIES = [
@@ -193,6 +200,7 @@ export type StoryRow = {
   dual_front_url?: string | null;
   dual_layout?: any | null;
   audio_url?: string | null;
+  audio_sound_id?: string | null;
   audio_title?: string | null;
   audio_source?: string | null;
   audio_duration_sec?: number | null;
@@ -371,9 +379,8 @@ export async function uploadAndCreateStory(params: {
     audio: requestedAudio,
     filterId,
   } = params;
-  // Restored drafts keep their visual edits and the original audio in the video.
-  // Catalog/voiceover uploads and sound publication are outside this release.
-  const audio = MUSIC_CATALOG_ENABLED ? requestedAudio : null;
+  // Original recordings are verified in the private music library before publication.
+  const audio = ORIGINAL_AUDIO_ENABLED ? requestedAudio : null;
   const preUploadedUrl = (params as any).preUploadedUrl ?? null;
   const preUploadedThumb = (params as any).preUploadedThumb ?? null;
 
@@ -397,7 +404,7 @@ export async function uploadAndCreateStory(params: {
   const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL as string;
   const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY as string;
   const cache = params.uploadCache ?? new Map();
-  const jobs: Array<() => Promise<void>> = [];
+  const jobs: (() => Promise<void>)[] = [];
   // Never mutate the draft. Local URIs remain available for preview/retry, but
   // only remote URLs are written to the published story.
   const publishedStickers = (stickersJson ?? [])
@@ -472,18 +479,25 @@ export async function uploadAndCreateStory(params: {
   if (dualFrontLocalUri) {
     jobs.push(async () => { dualFrontPublicUrl = (await uploadAsset('front_photo', dualFrontLocalUri, 'image')).url; });
   }
+  if (audio && !await originalAudioSupported(supabase)) throw new Error('The original audio library is not available in this app environment yet.');
   if (audio?.kind === 'voiceover' && audio.localUri) {
     if (!audio.rightsAttested) throw new Error('Confirm that you own and can publish this voiceover before sharing.');
     if (!audio.durationSec || !Number.isFinite(audio.durationSec) || audio.durationSec < 1 || audio.durationSec > 30) throw new Error('Record a voiceover between 1 and 30 seconds.');
     audioMeta = { title: audio.title || 'Voiceover', source: 'voiceover', durationSec: audio.durationSec ?? null };
-    jobs.push(async () => { audioFinalUrl = (await uploadAsset('voiceover', audio.localUri!, 'audio')).url; });
+    jobs.push(async () => {
+      const sound = await addOriginalAudio(audio.localUri!, userId, { title: audio.title || 'Voiceover', rightsAttested: true, reuseAllowed: !!audio.addToSounds, use: 'story' });
+      const { data: row, error } = await soundtrackRead(supabase.rpc('get_playable_sound', { p_sound_id: sound.id, p_use: 'story' }));
+      if (error || !row?.[0] || row[0].source !== 'original') throw new Error('The verified recording could not be attached. Retry.');
+      audioFinalUrl = row[0].url;
+      audioMeta = { title: sound.title, source: 'original', durationSec: Math.min(30, sound.duration_sec) };
+    });
   } else if (audio?.kind === 'sound') {
     if (!audio.soundId) throw new Error('Choose an available sound from the sound library.');
-    const { data: sounds, error } = await supabase.rpc('get_playable_sound', { p_sound_id: audio.soundId, p_use: 'story' });
+    const { data: sounds, error } = await soundtrackRead(supabase.rpc('get_playable_sound', { p_sound_id: audio.soundId, p_use: 'story' }));
     const sound = sounds?.[0];
-    if (error || !sound) throw new Error('This sound is no longer available for reuse. Choose another sound.');
+    if (error || !sound || sound.source !== 'original') throw new Error('This sound is no longer available for reuse. Choose another sound.');
     audioFinalUrl = sound.url;
-    audioMeta = { title: sound.title, source: sound.source, durationSec: sound.duration_sec };
+    audioMeta = { title: sound.title, source: sound.source, durationSec: Math.min(30,audio.durationSec||sound.duration_sec) };
   }
   for (const sticker of publishedStickers) {
     if (sticker.photoUri && !sticker.photoUrl) {
@@ -543,6 +557,7 @@ export async function uploadAndCreateStory(params: {
   }
 
   if (audioFinalUrl) {
+    insertPayload.media_transform={...(insertPayload.media_transform||{}),audioStartSec:audio?.startSec||0};
     insertPayload.audio_url = audioFinalUrl;
     insertPayload.audio_title = audioMeta?.title ?? null;
     insertPayload.audio_source = audioMeta?.source ?? null;
@@ -594,14 +609,10 @@ async function finishStoryPromptJoins(storyId: string, stickers: StoryTextSticke
   }
 }
 
-async function finishStorySound(storyId: string, audio: StoryAudioDraft | null | undefined, publication: PublicationAttempt) {
-  if (!MUSIC_CATALOG_ENABLED || audio?.kind !== 'voiceover' || !audio.addToSounds) return;
-  if (!audio.rightsAttested) throw new Error('Confirm the rights to your original sound before making it reusable.');
-  await publication.check();
-  // This RPC is idempotent per story, so a lost response is safe to retry.
-  const { data, error } = await supabase.rpc('publish_story_sound', { p_story_id: storyId, p_rights_attested: true });
-  if (error || !data) throw new Error('Your story was saved, but its reusable sound could not be confirmed. Retry to finish sharing the sound.');
+async function finishStorySound(_storyId: string, _audio: StoryAudioDraft | null | undefined, _publication: PublicationAttempt) {
+  // The private audio verifier commits the sound and reuse consent before publishing.
 }
+
 
 async function finishStoryRecipients(storyId: string, audience: string | null | undefined, sharedWith: string[] | null | undefined, publication: PublicationAttempt) {
   if (audience === 'only_with') {
@@ -615,20 +626,22 @@ export const storiesService = {
   uploadAndCreateStory,
 
   async getStorySound(id: string): Promise<StorySound> {
-    if (!MUSIC_CATALOG_ENABLED) throw new Error(MUSIC_UNAVAILABLE_MESSAGE);
-    const { data: sounds, error } = await supabase.rpc('get_playable_sound', { p_sound_id: id, p_use: 'story' });
+    if (!ORIGINAL_AUDIO_ENABLED) throw new Error(MUSIC_UNAVAILABLE_MESSAGE);
+    if (!await originalAudioSupported(supabase)) throw new Error('The original audio library is not available in this app environment yet.');
+    const { data: sounds, error } = await soundtrackRead(supabase.rpc('get_playable_sound', { p_sound_id: id, p_use: 'story' }));
     const data = sounds?.[0];
-    if (error || !data) throw new Error('This sound is no longer available. Choose another sound.');
-    const [sound] = await hydrateSoundMedia([data as StorySound]);
+    if (error || !data || data.source !== 'original') throw new Error('This sound is no longer available. Choose another sound.');
+    const [sound] = await soundtrackRead(hydrateSoundMedia([data as StorySound]));
     if (!sound.url) throw new Error('This sound could not load. Please retry.');
     return { ...sound, duration_sec: Math.min(sound.duration_sec || 30, (data as any).max_excerpt_sec || 30, 30) };
   },
 
   async listStorySounds(source: 'original' | 'library', limit = 50): Promise<StorySound[]> {
-    if (!MUSIC_CATALOG_ENABLED) return [];
-    const { data, error } = await supabase.rpc('list_playable_sounds', { p_use: 'story', p_limit: Math.min(100, Math.max(1, Math.trunc(limit) || 50)), p_query: '' });
+    if (!ORIGINAL_AUDIO_ENABLED || source !== 'original') return [];
+    if (!await originalAudioSupported(supabase)) return [];
+    const { data, error } = await soundtrackRead(supabase.rpc('list_playable_sounds', { p_use: 'story', p_limit: Math.min(100, Math.max(1, Math.trunc(limit) || 50)), p_query: '' }));
     if (error) throw new Error('Sounds could not be loaded. Please try again.');
-    return hydrateSoundMedia(((data || []) as (StorySound & { max_excerpt_sec?: number })[]).filter(sound => sound.source === source).map(sound => ({...sound, duration_sec: Math.min(sound.duration_sec || 30, sound.max_excerpt_sec || 30, 30)})));
+    return soundtrackRead(hydrateSoundMedia(((data || []) as (StorySound & { max_excerpt_sec?: number })[]).filter(sound => sound.source === source).map(sound => ({...sound, duration_sec: Math.min(sound.duration_sec || 30, sound.max_excerpt_sec || 30, 30)}))));
   },
 
   async getCatchupFeed(mode: CatchupMode = 'all', limit = 30): Promise<CatchupUser[]> {

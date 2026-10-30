@@ -183,7 +183,7 @@ function incoming(options = {}) {
     '../contexts/CallContext': { useCallContext: () => ({ callState: options.active ? 'active' : 'idle', activeCall: options.active ? { callId: 'current' } : null, startCall() {}, endCall: () => { ended++; } }) },
     '../services/callService': { callService: { getCall: async () => record, listRingingCalls: async () => options.recoverIncoming ? [record] : [], declineCall: async () => {},
       subscribeToIncomingCalls: (_id, cb) => { onIncoming = cb; return { unsubscribe() {} }; } } },
-    '../services/supabase': { supabase: { from: () => query, removeChannel() {}, channel: name => ({ on(_type, filter, cb) { channelCallbacks.set(filter.table + ':' + (filter.filter ?? ''), cb); return this; }, subscribe() { return this; }, unsubscribe() {} }) } },
+    '../services/supabase': { supabase: { from: () => query, removeChannel() {}, channel: () => ({ on(_type, filter, cb) { channelCallbacks.set(filter.table + ':' + (filter.filter ?? ''), cb); return this; }, subscribe() { return this; }, unsubscribe() {} }) } },
     'react-native': { AppState: { addEventListener: () => ({ remove() {} }) }, Platform: { OS: 'ios' }, Vibration: { vibrate() {}, cancel() {} } },
     '@expo/vector-icons': {}, './SafeArea': { useSafeAreaInsets: () => ({ top: 0 }) },
     '../services/audioService': { audioService: { stopAll: async () => {} } },

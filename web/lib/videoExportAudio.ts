@@ -1,5 +1,5 @@
 /** Audio chosen here stays in this browser and is used only in a downloaded movie. */
-export type LocalExportAudio = { file: File; duration: number; volume: number; startSec: number; loop: boolean };
+export type LocalExportAudio = { file: File; duration: number; volume: number; startSec: number; endSec?: number; offsetSec?: number; loop: boolean };
 
 export function exportCancelled(signal: AbortSignal) {
   if (signal.aborted) throw signal.reason instanceof Error ? signal.reason : new Error('Video export was cancelled.');
@@ -20,7 +20,7 @@ export async function exportStep<T>(work: Promise<T>, signal: AbortSignal, messa
 function validateAudioFile(file: File) {
   const type = file.type.split(';')[0].toLowerCase();
   if (!['audio/mpeg', 'audio/mp4', 'audio/x-m4a', 'audio/aac', 'audio/wav', 'audio/x-wav', 'audio/ogg', 'audio/webm', 'audio/flac'].includes(type)) throw new Error('Choose an MP3, M4A, AAC, WAV, Ogg, WebM or FLAC audio file.');
-  if (!file.size || file.size > 30 * 1024 * 1024) throw new Error('Choose a non-empty audio file under 30 MB.');
+  if (!file.size || file.size > 50 * 1024 * 1024) throw new Error('Choose a non-empty audio file under 50 MB.');
 }
 
 export async function inspectExportAudio(file: File, signal: AbortSignal): Promise<LocalExportAudio> {
@@ -43,16 +43,16 @@ export async function decodeExportAudio(context: AudioContext, selection: LocalE
   let buffer: AudioBuffer;
   try { buffer = await exportStep(context.decodeAudioData(data), signal, 'The selected audio could not be decoded. Try an MP3 or M4A recording.'); }
   catch { exportCancelled(signal); throw new Error('The selected audio could not be decoded. Try an MP3 or M4A recording.'); }
-  if (!Number.isFinite(buffer.duration) || buffer.duration < .1 || buffer.duration > 180 || buffer.numberOfChannels > 2) throw new Error('Use a mono or stereo audio excerpt of three minutes or less.');
+  if (!Number.isFinite(buffer.duration) || buffer.duration < .1 || buffer.duration > 600 || buffer.numberOfChannels > 2) throw new Error('Use a mono or stereo audio excerpt of ten minutes or less.');
   if (!Number.isFinite(selection.startSec) || selection.startSec < 0 || selection.startSec > buffer.duration - .05) throw new Error('Choose an audio start point before the end of the recording.');
   if (!Number.isFinite(selection.volume) || selection.volume < 0 || selection.volume > 1) throw new Error('Choose an audio level between 0 and 100%.');
   exportCancelled(signal);
   return buffer;
 }
 
-export function playExportAudio(context: AudioContext, destination: AudioNode, buffer: AudioBuffer, selection: Pick<LocalExportAudio, 'volume' | 'startSec' | 'loop'>) {
+export function playExportAudio(context: AudioContext, destination: AudioNode, buffer: AudioBuffer, selection: Pick<LocalExportAudio, 'volume' | 'startSec' | 'endSec' | 'offsetSec' | 'loop'>) {
   const source = context.createBufferSource(), gain = context.createGain();
-  source.buffer = buffer; source.loop = selection.loop; source.loopStart = selection.startSec; source.loopEnd = buffer.duration;
-  gain.gain.value = selection.volume; source.connect(gain); gain.connect(destination); source.start(0, selection.startSec);
-  return () => { try { source.stop(); } catch { /* It may have reached its end. */ } source.disconnect(); gain.disconnect(); };
+  source.buffer = buffer; source.loop = selection.loop; source.loopStart = selection.startSec; source.loopEnd = Math.min(buffer.duration,selection.endSec??buffer.duration);
+  gain.gain.value = selection.volume; source.connect(gain); gain.connect(destination); source.start(context.currentTime+(selection.offsetSec||0), selection.startSec, selection.loop?undefined:Math.max(.05,(selection.endSec??buffer.duration)-selection.startSec));
+  return Object.assign(() => { try { source.stop(); } catch { /* It may have reached its end. */ } source.disconnect(); source.buffer=null; gain.disconnect(); }, {setVolume(value:number){gain.gain.value=Math.max(0,Math.min(1,value));}});
 }

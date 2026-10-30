@@ -2,7 +2,7 @@
 
 import { profilePath } from "@/lib/profileLookup";
 import { PersonName } from "@/components/PersonName";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Flame, UserPlus } from "lucide-react";
 import { Panel, RankRow } from "@/components/ui";
@@ -16,16 +16,18 @@ type Topic = { topic: string; post_count: number };
 type Suggestion = { id: string; full_name: string | null; username: string | null; avatar_url: string | null; headline: string | null; is_verified?: boolean };
 
 export function DiscoveryRail() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const { viewer, loading, error: identityError, retry: retryIdentity } = useViewerIdentity();
   const uid = viewer?.id ?? null;
   const [result, setResult] = useState<{ owner: string | null; topics: Topic[]; people: Suggestion[] } | null>(null);
   const [error, setError] = useState(''), [attempt, setAttempt] = useState(0);
   const [showAll, setShowAll] = useState(false);
 
+  const scope = `${uid}:${attempt}`;
+  const [previousScope,setPreviousScope]=useState(scope);
+  if(previousScope!==scope){setPreviousScope(scope);setResult(null);setError('');setShowAll(false);}
   useEffect(() => {
     let active = true;
-    setResult(null); setError(''); setShowAll(false);
     if (loading || identityError) return;
     void (async () => {
       const [trending, suggestions, following] = await withTimeout(Promise.all([

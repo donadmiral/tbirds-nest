@@ -13,6 +13,7 @@ function compile(source, globals = {}) {
 }
 const { saveStudioDraft } = compile(read('shared/studioDraftRetry.ts'));
 const validation = compile(read('shared/studioValidation.ts'));
+const { errorMessage } = compile(read('web/lib/errors.ts'));
 function store() {
   const rows = new Map();
   return { rows, getItem: async key => rows.get(key) ?? null, setItem: async (key, value) => { rows.set(key, value); }, removeItem: async key => { rows.delete(key); } };
@@ -93,7 +94,7 @@ for (const platform of ['native', 'web']) test(`${platform} Planner serializes s
   const saved = deferred(); const inputs = []; const alerts = []; let confirmed = false; let closed = 0;
   const editingId = { current: null };
   const working = { current: false };
-  const common = { working, editingId, mounted: { current: true }, editorVersion: { current: 2 }, setBusy() {}, setOpen: () => { closed++; }, load: async () => {}, content: 'Hello', media: [], products: [], category: null, when: '', parseLocal: validation.parseStudioLocalDate, parseStudioLocalDate: validation.parseStudioLocalDate };
+  const common = { working, editingId, mounted: { current: true }, editorVersion: { current: 2 }, setBusy() {}, setOpen: () => { closed++; }, load: async () => {}, content: 'Hello', media: [], products: [], category: null, when: '', parseLocal: validation.parseStudioLocalDate, parseStudioLocalDate: validation.parseStudioLocalDate, errorMessage };
   const save = async input => { inputs.push(input); return inputs.length === 1 ? saved.promise : 'draft-one'; };
   const publish = async () => confirmed ? 'post-one' : null;
   const globals = platform === 'native' ? { ...common, canPublish: true, meId: 'owner', currentOwner: { current: 'owner' }, saveStudioDraft: (_, input) => save(input), supabase: { rpc: async () => ({ data: await publish(), error: null }) }, AsyncStorage: {}, randomUUID() {}, setEditId() {}, reset() {}, Alert: { alert: (...message) => alerts.push(message) } }

@@ -1,3 +1,4 @@
+import { readSoundtrack, type SoundtrackSelection } from './soundtrack';
 import { memoryPhotoDuration } from './memoryPlayback';
 import { memoryStoryRecipe, memoryStoryStickers } from './memoryStoryPresentation';
 
@@ -5,6 +6,7 @@ export type MemoryFilmPage = {
   id: string; media_type?: string; media_url?: string | null; thumbnail_url?: string | null;
   caption?: string | null; story_caption?: string | null; duration_sec?: number | null; media_transform?: unknown;
   filter_id?: string | null; stickers?: unknown; text_background?: unknown;
+  audio_sound_id?: string | null; audio_duration_sec?: number | null; audio_url?: string | null; audio_title?: string | null;
 };
 export type MemoryFilmItem = {
   id: string; kind: 'image' | 'video' | 'text'; uri: string | null; poster: string | null;
@@ -68,3 +70,13 @@ export const MEMORY_SCORE_TITLE = 'Quiet light';
 export const MEMORY_SCORE_DESCRIPTION = 'Original instrumental for Platinum Circles';
 export const MEMORY_SCORE_VOLUME = .32;
 export const MEMORY_SCORE_DUCK = .12;
+
+/** Retained story audio carries a verified ID, never a playback URL in the recipe. */
+export function memoryPageSoundtrack(page?: MemoryFilmPage | null): SoundtrackSelection | null {
+  if (!page?.audio_sound_id || !page.audio_duration_sec) return null;
+  const recipe = page.media_transform && typeof page.media_transform === 'object' ? page.media_transform as Record<string, unknown> : {};
+  const mix = recipe.mix && typeof recipe.mix === 'object' ? recipe.mix as Record<string, unknown> : {};
+  return readSoundtrack({ soundId: page.audio_sound_id, startSec: Number(recipe.audioStartSec) || 0,
+    durationSec: Math.min(30, page.audio_duration_sec), volume: Math.max(0, Math.min(1, (typeof mix.music === 'number' ? mix.music : 100) / 100)),
+    originalVolume: Math.max(0, Math.min(1, (typeof mix.orig === 'number' ? mix.orig : 100) / 100)) });
+}

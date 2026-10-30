@@ -90,10 +90,11 @@ function harness(username) {
       return compile('app/[username]/page.tsx', requireModule).generateMetadata({ params: Promise.resolve({ username }) });
     },
     async followsTarget() {
-      compile('app/[username]/follows/page.tsx', requireModule).default();
+      let tree = compile('app/[username]/follows/page.tsx', requireModule).default();
+      while (typeof tree?.type === 'function') tree = tree.type(tree.props);
       effects[0]();
       await flush(); await pending; await flush();
-      return state[0];
+      return state.find(value => value && typeof value === 'object' && 'id' in value) ?? null;
     },
   };
 }

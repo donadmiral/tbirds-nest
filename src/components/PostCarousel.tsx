@@ -23,10 +23,7 @@ import PostCaption from './PostCaption';
  */
 import { themedSheet } from '../theme/useTheme';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  View, Text, StyleSheet, FlatList, TouchableOpacity,
-  ActivityIndicator, ViewToken, Animated,
-} from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, ViewToken, Animated } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { VideoView } from 'expo-video';
 import { useSharedVideo } from '../lib/videoEngine';

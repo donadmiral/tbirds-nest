@@ -12,16 +12,13 @@ import VerifiedBadge from '../../components/VerifiedBadge';
  * so applicants can follow their progress in My applications.
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  View, Text, FlatList, TouchableOpacity, StyleSheet, Image,
-  Alert, ActivityIndicator, StatusBar, Linking, Modal, ScrollView, TextInput,
-} from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Image, Alert, StatusBar, Linking, Modal, ScrollView, TextInput } from 'react-native';
 import { SafeAreaView } from '../../components/SafeArea';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
-import { jobsService, JobApplication, ApplicationStatus, STATUS_META, APPLICATION_STATUS_ORDER } from '../../services/jobsService';
+import { JobApplication, ApplicationStatus, STATUS_META, APPLICATION_STATUS_ORDER } from '../../services/jobsService';
 
 import { loadApplicantPage, mergeApplicants, saveApplicationStatus, saveInterview, type ApplicantCursor } from '../../../shared/hiring';
 

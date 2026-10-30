@@ -50,6 +50,9 @@ function harness(file, name = 'default', props = {}) {
       }
     },
   };
+  react.useLayoutEffect=react.useEffect;
+  react.useMemo=(fn,deps)=>{const i=slot++;const old=values[i];if(!old||deps.some((value,j)=>!Object.is(value,old.deps[j])))values[i]={value:fn(),deps};return values[i].value;};
+  react.useCallback=(fn,deps)=>react.useMemo(()=>fn,deps);
   const user = () => viewer ? { id: viewer, email_confirmed_at: 'confirmed' } : null;
   const client = {
     auth: {
@@ -87,6 +90,15 @@ function harness(file, name = 'default', props = {}) {
     '@/lib/useViewerIdentity': { useViewerIdentity: () => ({ viewer: user(), loading: false, error: '', retry() {} }) },
     '@/lib/withTimeout': { withTimeout: work => Promise.resolve(work) },
   };
+  const resourceModules=new Map();
+  function resource(file){
+    if(resourceModules.has(file))return resourceModules.get(file);
+    const exports={};resourceModules.set(file,exports);
+    const code=ts.transpileModule(fs.readFileSync(path.join(root,'web',file),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+    vm.runInNewContext(code,{exports,require:id=>{const target=path.posix.join(path.posix.dirname(file),id);return imports[id]??imports['@/'+target]??resource(target+'.ts');}});
+    return exports;
+  }
+  imports['@/lib/useAccountResource']=resource('lib/useAccountResource.ts');
   const source = process.argv.includes('--baseline')
     ? execFileSync('git', ['show', baseline[file]], { cwd: root, encoding: 'utf8' })
     : fs.readFileSync(path.join(root, 'web', file), 'utf8');

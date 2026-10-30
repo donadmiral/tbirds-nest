@@ -15,6 +15,7 @@ function createFilmHarness(ts,platform,{pages=[{id:'one',media_type:'image',medi
   useCallback(fn,deps){const i=cursor++;if(!slots[i]||!equal(slots[i].deps,deps))slots[i]={deps,value:fn};return slots[i].value;},
   useMemo(fn,deps){const i=cursor++;if(!slots[i]||!equal(slots[i].deps,deps))slots[i]={deps,value:fn()};return slots[i].value;},
  };
+ hooks.useLayoutEffect=hooks.useEffect;
  const createMedia=()=>({isConnected:true,paused:true,muted:true,volume:1,duration:10,currentTime:0,playbackRate:1,status:'readyToPlay',playCalls:0,pauseCalls:0,playReject:null,playPending:null,
   play(){this.playCalls++;if(this.playReject)return Promise.reject(this.playReject);this.paused=false;return this.playPending??Promise.resolve();},pause(){this.pauseCalls++;this.paused=true;},load(){},
  });
@@ -24,7 +25,7 @@ function createFilmHarness(ts,platform,{pages=[{id:'one',media_type:'image',medi
  const document={hidden:false,documentElement:{dataset:{}},addEventListener(name,fn){if(!documentListeners.has(name))documentListeners.set(name,new Set());documentListeners.get(name).add(fn);},removeEventListener(name,fn){documentListeners.get(name)?.delete(fn);}};
  const window={addEventListener(name,fn){if(!windowListeners.has(name))windowListeners.set(name,new Set());windowListeners.get(name).add(fn);},removeEventListener(name,fn){windowListeners.get(name)?.delete(fn);}};
  let observer;
- const globals={console,Promise,Map,Set,Math,Date:{now:()=>now},setTimeout:(fn,delay)=>{const id=++nextTimer;timers.set(id,{fn,delay,at:now+delay,interval:false});return id;},clearTimeout:id=>timers.delete(id),setInterval:(fn,delay)=>{const id=++nextTimer;timers.set(id,{fn,delay,at:now+delay,interval:true});return id;},clearInterval:id=>timers.delete(id),document,window,MutationObserver:class{constructor(fn){observer=fn;}observe(){}disconnect(){observer=null;}},Image:class{set src(value){}},};
+ const globals={console,queueMicrotask,Promise,Map,Set,Math,Date:{now:()=>now},setTimeout:(fn,delay)=>{const id=++nextTimer;timers.set(id,{fn,delay,at:now+delay,interval:false});return id;},clearTimeout:id=>timers.delete(id),setInterval:(fn,delay)=>{const id=++nextTimer;timers.set(id,{fn,delay,at:now+delay,interval:true});return id;},clearInterval:id=>timers.delete(id),document,window,MutationObserver:class{constructor(fn){observer=fn;}observe(){}disconnect(){observer=null;}},Image:class{set src(value){}},};
  const runtime={jsx:(type,props,key)=>({type,props:props??{},key}),jsxs:(type,props,key)=>({type,props:props??{},key})};
  const cache=new Map();
  function load(file){file=path.resolve(root,file);if(cache.has(file))return cache.get(file);const module={exports:{}};cache.set(file,module.exports);let source=fs.readFileSync(file,'utf8');if(file.endsWith('/MemoryFilm.tsx'))source+='\nexport const __TestFilmVideo = FilmVideo;';
@@ -35,6 +36,9 @@ function createFilmHarness(ts,platform,{pages=[{id:'one',media_type:'image',medi
    if(name==='expo-av')return{Audio:audioAPI};
    if(name.endsWith('modules/boomerang/storyVideo')) { const api=localRequire('expo-video'); return {StoryVideoView:api.VideoView,useStoryVideoPlayer:api.useVideoPlayer}; }
    if(name==='expo-video')return{VideoView:'VideoView',useVideoPlayer:(_url,setup)=>{const holder=hooks.useRef(null);if(!holder.current){const listeners=new Map(),p={duration:10,currentTime:0,volume:1,muted:true,status:'readyToPlay',playing:false,play(){p.playing=true;},pause(){p.playing=false;},addListener(event,fn){if(!listeners.has(event))listeners.set(event,new Set());listeners.get(event).add(fn);return{remove:()=>listeners.get(event).delete(fn)};},emit(event,value){for(const fn of listeners.get(event)??[])fn(value);}};setup(p);holder.current=p;players.push(p);}return holder.current;}};
+   if(name.endsWith('useSoundtrackPlayer'))return load('src/hooks/useSoundtrackPlayer.ts');
+   if(name.endsWith('soundtrackService'))return{getSoundtrack:async()=>{throw Error('No fixture selection');}};
+   if(name==='next/image')return{__esModule:true,default:'img'};
    if(name.includes('CallContext'))return{useCallContext:()=>({callState})};
    if(name.includes('SafeArea'))return{useSafeAreaInsets:()=>({top:0,bottom:0})};
    if(name.endsWith('useMemoryPlayback'))return{useMemoryPlayback:load('shared/useMemoryPlayback.ts').createMemoryPlaybackHook(hooks)};

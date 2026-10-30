@@ -7,8 +7,15 @@ const compile=file=>ts.transpileModule(fs.readFileSync(path.resolve(root,file),'
 function harness(file,name,props,imports={}) {
  let cursor=0,dirty=true,tree,effects=[];const slots=[];
  const equal=(a,b)=>a&&b&&a.length===b.length&&a.every((v,i)=>Object.is(v,b[i]));
- const hooks={useRef(v){const i=cursor++;return slots[i]??={current:v};},useState(v){const i=cursor++;if(!(i in slots))slots[i]=v;return[slots[i],next=>{const n=typeof next==='function'?next(slots[i]):next;if(!Object.is(n,slots[i])){slots[i]=n;dirty=true;}}];},useEffect(fn,deps){const i=cursor++;if(!slots[i]||!equal(slots[i].deps,deps)){const old=slots[i];slots[i]={deps};effects.push(()=>{old?.cleanup?.();slots[i].cleanup=fn();});}}};
- const exports={};vm.runInNewContext(compile(file),{exports,require:p=>p==='react'?hooks:p==='react/jsx-runtime'?{jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})}:imports[p]??new Proxy({},{get:(_,key)=>key}),console,Date,Set,Map,URL,setTimeout,clearTimeout,document:{activeElement:null,body:{style:{}},addEventListener(){},removeEventListener(){}},window:{visualViewport:null},requestAnimationFrame:()=>0,cancelAnimationFrame(){},HTMLElement:class HTMLElement{},crypto:{randomUUID:()=> 'new-sticker'}});
+ const hooks={useRef(v){const i=cursor++;return slots[i]??={current:v};},useState(v){const i=cursor++;if(!(i in slots))slots[i]=typeof v==='function'?v():v;return[slots[i],next=>{const n=typeof next==='function'?next(slots[i]):next;if(!Object.is(n,slots[i])){slots[i]=n;dirty=true;}}];},useEffect(fn,deps){const i=cursor++;if(!slots[i]||!equal(slots[i].deps,deps)){const old=slots[i];slots[i]={deps};effects.push(()=>{old?.cleanup?.();slots[i].cleanup=fn();});}}};
+ hooks.useLayoutEffect=hooks.useEffect;
+ hooks.useCallback=(fn,deps)=>{const i=cursor++;if(!slots[i]||!equal(slots[i].deps,deps))slots[i]={fn,deps};return slots[i].fn;};
+ hooks.useSyncExternalStore=(subscribe,snapshot)=>{hooks.useEffect(()=>subscribe(()=>{dirty=true;}),[subscribe]);return snapshot();};
+ const browserEvents=new Map(),stored=new Map(),browserWindow={visualViewport:null,addEventListener:(name,fn)=>browserEvents.set(name,fn),removeEventListener:name=>browserEvents.delete(name),dispatchEvent:event=>browserEvents.get(event.type)?.(event)};
+ const localStorage={getItem:key=>stored.get(key)??null,setItem:(key,value)=>stored.set(key,value),removeItem:key=>stored.delete(key)};
+ const storageExports={};vm.runInNewContext(compile('lib/useBrowserStorage.ts'),{exports:storageExports,require:()=>hooks,window:browserWindow,localStorage,StorageEvent:class StorageEvent{},Event});
+ imports['@/lib/useBrowserStorage']=storageExports;
+ const exports={};vm.runInNewContext(compile(file),{exports,require:p=>p==='react'?hooks:p==='react/jsx-runtime'?{jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})}:imports[p]??new Proxy({},{get:(_,key)=>key}),console,Date,Set,Map,URL,setTimeout,clearTimeout,document:{activeElement:null,body:{style:{}},addEventListener(){},removeEventListener(){}},window:browserWindow,requestAnimationFrame:()=>0,cancelAnimationFrame(){},HTMLElement:class HTMLElement{},crypto:{randomUUID:()=> 'new-sticker'}});
  function render(){let n=0;while(dirty){if(++n>30)throw Error('render loop');dirty=false;cursor=0;tree=exports[name](props);const pending=effects;effects=[];pending.forEach(fn=>fn());}return tree;}
  return{get tree(){return render();},update(next){Object.assign(props,next);dirty=true;},async flush(){for(let i=0;i<15;i++){await Promise.resolve();render();}},unmount(){slots.forEach(s=>s?.cleanup?.());}};
 }

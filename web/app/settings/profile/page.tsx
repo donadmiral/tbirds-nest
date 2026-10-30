@@ -1,4 +1,5 @@
 'use client';
+import NextImage from "next/image";
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -49,11 +50,10 @@ export default function EditProfilePage() {
   useEffect(() => {
     alive.current = true;
     scope.current = { owner: undefined, generation: scope.current.generation + 1 };
-    setError('');
     const bind = (id: string | null) => {
       if (!alive.current || scope.current.owner === id) return;
       scope.current = { owner: id, generation: scope.current.generation + 1 };
-      photoVersion.current++;
+      photoVersion.current += 1;
       if (navigationDraft?.owner !== id) navigationDraft = null;
       lock.current = false; setBusy(false);
       setOwner(id); setDraft(EMPTY_PROFILE); setBaseline(''); setLoaded(false); setUsername(null); setPhotos({}); setSaved(false); setError(''); setCheckingPhoto(false); setRecovery(null);
@@ -67,14 +67,13 @@ export default function EditProfilePage() {
         bind(data.user?.id ?? null);
       }
     }, () => { if (alive.current && scope.current.generation === generation) setError('Your account could not be checked. Reload or sign in again.'); });
-    return () => { alive.current = false; scope.current.generation++; photoVersion.current++; subscription.unsubscribe(); };
+    return () => { alive.current = false; scope.current.generation++; photoVersion.current += 1; subscription.unsubscribe(); };
   }, [client, authAttempt]);
 
   useEffect(() => {
     if (!owner) return;
     let cancelled = false;
     const generation = scope.current.generation;
-    setError('');
     void withTimeout(client.from('profiles').select(FIELDS).eq('id', owner).maybeSingle()).then(({ data, error: cause }) => {
       if (cancelled || generation !== scope.current.generation) return;
       if (cause || data?.id !== owner) { setError('Your profile could not load. Please try again.'); return; }
@@ -139,7 +138,7 @@ export default function EditProfilePage() {
   }
   async function choosePhoto(kind: PhotoKind, file?: File) {
     if (!file || !owner || lock.current) return;
-    const generation = scope.current.generation, version = ++photoVersion.current;
+    const generation = scope.current.generation, version = photoVersion.current += 1;
     setCheckingPhoto(true); setError('');
     const current = () => alive.current && generation === scope.current.generation && version === photoVersion.current;
     try {
@@ -197,7 +196,7 @@ export default function EditProfilePage() {
     if (!dirty || window.confirm('Discard these unsaved profile changes?')) { if (dirty && navigationDraft?.owner === owner) navigationDraft = null; router.push(destination); }
   }
 
-  if (!loaded) return <section className={styles.page}><PageHeader title="Edit profile" subtitle="Make your profile feel like you." />{error ? <ErrorState title={error} onRetry={() => owner ? setAttempt(value => value + 1) : setAuthAttempt(value => value + 1)} /> : <p role="status" className="py-10 text-sm text-muted">Loading your profile…</p>}{!owner && error ? <Link href="/login" className="underline">Sign in</Link> : null}</section>;
+  if (!loaded) return <section className={styles.page}><PageHeader title="Edit profile" subtitle="Make your profile feel like you." />{error ? <ErrorState title={error} onRetry={() => { setError(''); if (owner) setAttempt(value => value + 1); else setAuthAttempt(value => value + 1); }} /> : <p role="status" className="py-10 text-sm text-muted">Loading your profile…</p>}{!owner && error ? <Link href="/login" className="underline">Sign in</Link> : null}</section>;
   const banner = photos.banner?.preview || draft.banner_url, avatar = photos.avatar?.preview || draft.avatar_url;
   return <section className={styles.page} data-profile-editor>
     <PageHeader title="Edit profile" subtitle="Your name, your story and the work you want to share." />
@@ -206,11 +205,11 @@ export default function EditProfilePage() {
       <fieldset disabled={busy || checkingPhoto || !!recovery} className={styles.fields}>
         <legend className="sr-only">Profile information</legend>
         <div className={styles.cover}>
-          {banner ? <img src={banner} alt="Cover photo preview" /> : <span>Make room for your story.</span>}
+          {banner ? <NextImage unoptimized fill sizes="(max-width: 768px) 100vw, 640px" src={banner} alt="Cover photo preview" /> : <span>Make room for your story.</span>}
           <div className={styles.coverTools}><button type="button" onClick={() => bannerInput.current?.click()}><Camera size={16} aria-hidden />{banner ? 'Change cover' : 'Add cover'}</button>{banner ? <button type="button" onClick={() => removePhoto('banner')} aria-label="Remove cover photo"><X size={16} /></button> : null}</div>
         </div>
         <div className={styles.photoRow}>
-          <button type="button" className={styles.avatar} onClick={() => avatarInput.current?.click()} aria-label="Choose profile photo">{avatar ? <img src={avatar} alt="Profile photo preview" /> : <span>{draft.full_name.slice(0, 1).toUpperCase()}</span>}<i><Camera size={17} aria-hidden /></i></button>
+          <button type="button" className={styles.avatar} onClick={() => avatarInput.current?.click()} aria-label="Choose profile photo">{avatar ? <NextImage unoptimized width={112} height={112} src={avatar} alt="Profile photo preview" /> : <span>{draft.full_name.slice(0, 1).toUpperCase()}</span>}<i><Camera size={17} aria-hidden /></i></button>
           <div><strong>Profile photo</strong><p>JPG, PNG or WebP, up to 10 MB.</p>{avatar ? <button type="button" onClick={() => removePhoto('avatar')} className={styles.textButton}>Remove photo</button> : null}</div>
         </div>
         <input ref={avatarInput} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" tabIndex={-1} aria-label="Profile photo file" onChange={event => { void choosePhoto('avatar', event.target.files?.[0]); event.target.value = ''; }} />

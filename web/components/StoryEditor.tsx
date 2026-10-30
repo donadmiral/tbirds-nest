@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useBrowserStorage } from "@/lib/useBrowserStorage";
 import type { StoryTextSticker } from "@/lib/stories";
 import { moveStorySticker, storyStickerLabel } from "../../shared/storyCanvas";
-import { MUSIC_CATALOG_ENABLED } from "../../shared/musicAvailability";
+import { ORIGINAL_AUDIO_ENABLED } from "../../shared/musicAvailability";
 import { ArrowRight, ChevronDown, Globe2, Download, Link2, MapPin, Music, MoreHorizontal, Pause, Pencil, Play, Plus, Redo2, Search, SlidersHorizontal, Smile, Star, Type, Undo2, Volume2, X } from "lucide-react";
 import studio from "./StoryStudio.module.css";
 import { stickerCss } from "./storyTextAppearance";
@@ -18,9 +19,10 @@ const KINDS = ["text", "emoji", "link", "question", "quiz", "slider", "countdown
 const buttonClass = studio.button;
 const inputClass = studio.input;
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
+function readKinds(raw:string|null):string[] {try{const value:unknown=raw?JSON.parse(raw):[];return Array.isArray(value)?value.filter((item):item is string=>typeof item==='string'&&KINDS.includes(item as typeof KINDS[number])).slice(0,20):[];}catch{return [];}}
 
 /** Editing metadata uses the same coordinate system and sticker shapes as mobile. */
-export function StoryEditor({ children, value, onChange, onNext, onOpenEdit, onSaveVideo, onClose, audience = "Everyone", onAudience, thumbnail, clips, onSelectClip, onRemoveClip, onAddClip, onOpenMusic, onOpenTiming, onOpenDraw, duration = 15, clock, onTogglePreview, previewPlaying = false }: {
+export function StoryEditor({ children, value, onChange, onNext, onOpenEdit, onSaveVideo, onClose, audience = "Everyone", onAudience, thumbnail, clips, onSelectClip, onRemoveClip, onAddClip, onOpenMusic, onOpenTiming, onOpenDraw,  clock, onTogglePreview, previewPlaying = false }: {
   children: ReactNode; value: StoryTextSticker[]; onChange: (stickers: StoryTextSticker[]) => void;
   onSaveVideo?: (stage: HTMLElement) => void; onNext?: () => void; onOpenEdit?: () => void; onClose?: () => void; audience?: string; onAudience?: () => void; thumbnail?: ReactNode;
   clips?: { id: string; thumbnail: ReactNode; selected: boolean }[]; onSelectClip?: (id: string) => void; onRemoveClip?: (id: string) => void; onAddClip?: () => void;
@@ -30,12 +32,15 @@ export function StoryEditor({ children, value, onChange, onNext, onOpenEdit, onS
   const [panel, setPanel] = useState<"none" | "gallery" | "add" | "selected">("none");
   const [galleryTab, setGalleryTab] = useState<"foryou" | "saved" | "recent">("foryou");
   const [search, setSearch] = useState("");
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [recents, setRecents] = useState<string[]>([]);
+  const [favoriteRaw,writeFavorites]=useBrowserStorage("pc.story.stickers.saved.v1");
+  const [recentRaw,writeRecents]=useBrowserStorage("pc.story.stickers.recent.v1");
+  const favorites=readKinds(favoriteRaw),recents=readKinds(recentRaw);
   const [textTab, setTextTab] = useState<"font" | "color" | "style" | "animate">("font");
   const panelRef = useRef<HTMLDivElement | null>(null);
   const dragged = useRef(false);
   const textSession = useRef<StoryTextSticker[] | null>(null);
+  const latestValue=useRef(value),latestChange=useRef(onChange);
+  useLayoutEffect(()=>{latestValue.current=value;latestChange.current=onChange;},[value,onChange]);
   const [viewport, setViewport] = useState<{ height: number; top: number } | null>(null);
   useEffect(() => {
     if (panel === "none") return;
@@ -44,10 +49,6 @@ export function StoryEditor({ children, value, onChange, onNext, onOpenEdit, onS
     const overflow = document.body.style.overflow; document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = overflow; window.visualViewport?.removeEventListener("resize", sync); window.visualViewport?.removeEventListener("scroll", sync); };
   }, [panel]);
-  useEffect(() => {
-    const read = (key: string) => { try { const v: unknown = JSON.parse(localStorage.getItem(key) || "[]"); return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string" && KINDS.includes(x as typeof KINDS[number])).slice(0, 20) : []; } catch { return []; } };
-    setFavorites(read("pc.story.stickers.saved.v1")); setRecents(read("pc.story.stickers.recent.v1"));
-  }, []);
   useEffect(() => {
     if (panel === "none") return;
     const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -63,16 +64,6 @@ export function StoryEditor({ children, value, onChange, onNext, onOpenEdit, onS
     document.addEventListener("keydown", keys);
     return () => { cancelAnimationFrame(frame); document.removeEventListener("keydown", keys); previous?.focus(); };
   }, [panel]);
-  const persist = (key: string, next: string[]) => { try { localStorage.setItem(key, JSON.stringify(next)); } catch { /* A private browser can still use the current session. */ } };
-  const openKind = (next: typeof KINDS[number]) => {
-    setKind(next); setText(""); setError(null);
-    if (next === "text") {
-      if (value.length >= 30) { setError("Use at most 30 stickers."); return; }
-      const sticker: StoryTextSticker = { id: crypto.randomUUID(), kind: "text", text: "", style: "classic", color: "#FFFFFF", nx: .5, ny: .28, scale: 1, rotation: 0, bgEnabled: false, fontSizeOverride: 28 };
-      textSession.current = value; onChange([...value, sticker]); setSelected(sticker.id); setTextTab("font"); setPanel("selected");
-    } else setPanel("add");
-  };
-  const toggleFavorite = (item: string) => setFavorites(current => { const next = current.includes(item) ? current.filter(x => x !== item) : [...current, item]; persist("pc.story.stickers.saved.v1", next); return next; });
   const [selected, setSelected] = useState<string | null>(null);
   const [kind, setKind] = useState<typeof KINDS[number]>("text");
   const [text, setText] = useState("");
@@ -80,26 +71,25 @@ export function StoryEditor({ children, value, onChange, onNext, onOpenEdit, onS
   const [options, setOptions] = useState("Yes\nNo");
   const [correct, setCorrect] = useState(0);
   const [target, setTarget] = useState("");
-  const [people, setPeople] = useState<{ id: string; username: string; full_name: string | null }[]>([]);
-  const [searching, setSearching] = useState(false);
+  const [peopleResult,setPeopleResult]=useState<{key:string;people:{id:string;username:string;full_name:string|null}[]}|null>(null);
+  const peopleKey=kind+":"+text;
+  const searching=kind==='mention'&&text.trim().length>=2&&peopleResult?.key!==peopleKey;
+  const people=peopleResult?.key===peopleKey?peopleResult.people:[];
   const mentionRequest = useRef(0);
+  const [error, setError] = useState<string | null>(null);
   useEffect(() => {
-    const request = ++mentionRequest.current; setPeople([]);
-    if (kind !== "mention" || text.trim().length < 2) { setSearching(false); return; }
-    setSearching(true);
+    const request = mentionRequest.current += 1;
+    if (kind !== "mention" || text.trim().length < 2) return;
     const timer = setTimeout(() => {
       const q = text.replace(/^@/, "").replace(/[^A-Za-z0-9_. -]/g, "").slice(0, 60);
-      void createClient().from("profiles").select("id,username,full_name").ilike("username", q + "%").limit(10).then(({ data, error }) => { if (request !== mentionRequest.current) return; setPeople(error ? [] : (data || []).filter(p => !!p.username)); setSearching(false); if (error) setError("People could not load. Try again."); });
+      void createClient().from("profiles").select("id,username,full_name").ilike("username", q + "%").limit(10).then(({ data, error }) => { if (request !== mentionRequest.current) return; setPeopleResult({key:peopleKey,people:error?[]:(data||[]).filter((person):person is {id:string;username:string;full_name:string|null}=>typeof person.username==='string')}); if (error) setError("People could not load. Try again."); });
     }, 250);
-    return () => { clearTimeout(timer); ++mentionRequest.current; };
-  }, [kind, text]);
-  const [error, setError] = useState<string | null>(null);
+    return () => { clearTimeout(timer); mentionRequest.current += 1; };
+  }, [kind, text, peopleKey]);
   const [history, setHistory] = useState<StoryTextSticker[][]>([]);
   const [future, setFuture] = useState<StoryTextSticker[][]>([]);
   const drag = useRef<{ id: string; start: StoryTextSticker[]; box: DOMRect; x: number; y: number; moved: boolean } | null>(null);
   const [guides, setGuides] = useState({ vertical: false, horizontal: false });
-  const latestValue = useRef(value); latestValue.current = value;
-  const latestChange = useRef(onChange); latestChange.current = onChange;
   const textSignature = value.filter(s => !s.kind || s.kind === "text").map(s => `${s.id}:${s.text}`).join("\n");
   useEffect(() => {
     let cancelled = false;
@@ -117,11 +107,20 @@ export function StoryEditor({ children, value, onChange, onNext, onOpenEdit, onS
     }, 250);
     return () => { cancelled = true; clearTimeout(timer); };
   }, [textSignature]);
+  const openKind = (next: typeof KINDS[number]) => {
+    setKind(next); setText(""); setError(null);
+    if (next === "text") {
+      if (value.length >= 30) { setError("Use at most 30 stickers."); return; }
+      const sticker: StoryTextSticker = { id: crypto.randomUUID(), kind: "text", text: "", style: "classic", color: "#FFFFFF", nx: .5, ny: .28, scale: 1, rotation: 0, bgEnabled: false, fontSizeOverride: 28 };
+      textSession.current = value; onChange([...value, sticker]); setSelected(sticker.id); setTextTab("font"); setPanel("selected");
+    } else setPanel("add");
+  };
+  const toggleFavorite = (item:string) => writeFavorites(JSON.stringify(favorites.includes(item)?favorites.filter(value=>value!==item):[...favorites,item]));
   const active = value.find(s => s.id === selected);
   const editableText = !active?.kind || active.kind === "text" || active.kind === "emoji";
-  const commit = (next: StoryTextSticker[]) => { if (!(panel === "selected" && editableText && textSession.current)) { setHistory(h => [...h.slice(-29), value]); setFuture([]); } onChange(next); };
+  const commit = useCallback((next: StoryTextSticker[]) => { if (!(panel === "selected" && editableText && textSession.current)) { setHistory(h => [...h.slice(-29), value]); setFuture([]); } onChange(next); },[panel,editableText,onChange,value]);
   const update = (patch: Partial<StoryTextSticker>) => { if (selected && ('nx' in patch || 'ny' in patch || 'scale' in patch || 'rotation' in patch)) keepOwnerPlacement(selected); commit(value.map(s => s.id === selected ? { ...s, ...patch } : s)); };
-  async function add(extra?: Partial<StoryTextSticker>) {
+  const add=useCallback(async (extra?: Partial<StoryTextSticker>) => {
     const request = mentionRequest.current;
     const label = extra?.text ?? text.trim();
     const stickerKind = extra?.kind ?? kind;
@@ -157,8 +156,8 @@ export function StoryEditor({ children, value, onChange, onNext, onOpenEdit, onS
       }
     }
     const next = { ...sticker, ...extra }; commit([...value, next]); setSelected(next.id); setText(""); setError(null); setPanel("selected");
-    setRecents(current => { const items = [stickerKind, ...current.filter(x => x !== stickerKind)].slice(0, 20); persist("pc.story.stickers.recent.v1", items); return items; });
-  }
+    writeRecents(JSON.stringify([stickerKind,...recents.filter(item=>item!==stickerKind)].slice(0,20)));
+  },[text,kind,value,url,options,correct,target,commit,recents,writeRecents]);
   const finishText = (save: boolean) => { const start = textSession.current; if (!save && start) onChange(start); else { const next = value.filter(s => s.id !== selected || !!s.kind && s.kind !== "text" && s.kind !== "emoji" || s.text.trim()); if (start && JSON.stringify(start) !== JSON.stringify(next)) { setHistory(h => [...h.slice(-29), start]); setFuture([]); } onChange(next); } textSession.current = null; setPanel("none"); };
   const label = (item: string) => item === "luxury" ? "Editorial" : item === "typewriter" ? "Mono" : item === "addyours" ? "Add yours" : item[0].toUpperCase() + item.slice(1);
   const galleryKinds = (galleryTab === "saved" ? KINDS.filter(k => favorites.includes(k)) : galleryTab === "recent" ? recents.filter(k => KINDS.includes(k as typeof KINDS[number])) as (typeof KINDS[number])[] : ["location", "mention", "question", "quiz", "link", "slider", "countdown", "addyours", "hashtag", "emoji", "text"] as const).filter(k => label(k).toLowerCase().includes(search.toLowerCase()));
@@ -189,7 +188,7 @@ export function StoryEditor({ children, value, onChange, onNext, onOpenEdit, onS
         <span className={studio.topbarSpacer} />
         <button type="button" className={studio.icon} aria-label="Add story text" onClick={() => openKind("text")}><Type size={22} /></button>
         <button type="button" className={studio.icon} aria-label="Open story stickers" onClick={() => { setPanel("gallery"); setError(null); }}><Smile size={22} /></button>
-        {onOpenMusic ? <button type="button" className={studio.icon} aria-label={MUSIC_CATALOG_ENABLED ? "Choose story music or original audio" : "Adjust original video sound"} onClick={onOpenMusic}>{MUSIC_CATALOG_ENABLED ? <Music size={21} /> : <Volume2 size={21} />}</button> : null}
+        {onOpenMusic ? <button type="button" className={studio.icon} aria-label={ORIGINAL_AUDIO_ENABLED ? "Choose story music or original audio" : "Adjust original video sound"} onClick={onOpenMusic}>{ORIGINAL_AUDIO_ENABLED ? <Music size={21} /> : <Volume2 size={21} />}</button> : null}
         {onOpenEdit ? <button type="button" className={studio.icon} aria-label="Edit story media" onClick={onOpenEdit}><MoreHorizontal size={23} /></button> : null}
       </div>
       {onTogglePreview ? <button type="button" className={`${studio.icon} ${studio.previewPlay}`} aria-label={previewPlaying ? "Pause story preview" : "Play story preview"} onClick={onTogglePreview}>{previewPlaying ? <Pause size={19} /> : <Play size={19} />}</button> : null}
@@ -199,7 +198,7 @@ export function StoryEditor({ children, value, onChange, onNext, onOpenEdit, onS
         <div className={studio.dockTools} style={{ overflowX: "auto", paddingBottom: 2 }}>
           <button type="button" className={studio.dockTool} onClick={() => openKind("text")}><Type size={24} />Text</button>
           <button type="button" className={studio.dockTool} onClick={() => { setPanel("gallery"); setError(null); }}><Smile size={24} />Stickers</button>
-          {onOpenMusic ? <button type="button" className={studio.dockTool} onClick={onOpenMusic}>{MUSIC_CATALOG_ENABLED ? <><Music size={23} />Music</> : <><Volume2 size={23} />Sound</>}</button> : null}
+          {onOpenMusic ? <button type="button" className={studio.dockTool} onClick={onOpenMusic}>{ORIGINAL_AUDIO_ENABLED ? <><Music size={23} />Music</> : <><Volume2 size={23} />Sound</>}</button> : null}
           {onOpenDraw ? <button type="button" className={studio.dockTool} aria-label="Draw on story" onClick={onOpenDraw}><Pencil size={22} />Draw</button> : null}
           {onOpenEdit ? <button type="button" className={studio.dockTool} onClick={onOpenEdit}><SlidersHorizontal size={22} />Edit</button> : null}
           {onSaveVideo ? <button type="button" className={studio.dockTool} aria-label="Save edited video" onClick={() => { if (stageRef.current) onSaveVideo(stageRef.current); }}><Download size={22} />Save</button> : null}

@@ -13,7 +13,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal, Pressable, Image } fro
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from './SafeArea';
 import { useActorStore, type Actor } from '../stores/actorStore';
-import { light, typeSize, fontWeight, radius, space } from '../constants/tokens';
+import { typeSize, fontWeight, radius, space } from '../constants/tokens';
 
 function initials(name?: string | null) {
   if (!name) return 'U';

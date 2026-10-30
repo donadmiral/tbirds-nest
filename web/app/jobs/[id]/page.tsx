@@ -1,3 +1,4 @@
+import NextImage from "next/image";
 import { profilePath } from "@/lib/profileLookup";
 import { cache } from "react";
 import { isJobId } from "../../../../shared/hiring";
@@ -56,11 +57,11 @@ export default async function JobPage({ params }: Params) {
 
   if (!j) {
     return (
-      <main className="flex flex-col items-center justify-center gap-3 px-6 py-24 text-center">
+      <section className="flex flex-col items-center justify-center gap-3 px-6 py-24 text-center">
         <h1 className="font-display text-2xl text-porcelain">This job is not available</h1>
         <p className="text-sm text-muted">It may have been closed or removed.</p>
         <Link href="/jobs" className="mt-2 rounded-full bg-pearl px-5 py-2.5 text-sm font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90">Browse jobs</Link>
-      </main>
+      </section>
     );
   }
 
@@ -97,7 +98,7 @@ export default async function JobPage({ params }: Params) {
           <section className={styles.panel}><h2>Role overview</h2><article className={styles.body}>{j.description}</article></section>
           {(j as JobRow & { benefits?: string | null }).benefits ? <section className={styles.panel}><h2>Benefits</h2><p className={styles.body}>{(j as JobRow & { benefits?: string | null }).benefits}</p></section> : null}
           {poster ? <section className={styles.panel}><h2>Posted by</h2><Link href={profilePath(poster.username, j.posted_by)} className={styles.person}>
-            {poster.avatar_url ? <img src={displayImageUrl(poster.avatar_url, 200) ?? poster.avatar_url} alt="" /> : <span aria-hidden>{(poster.full_name ?? "?").charAt(0).toUpperCase()}</span>}
+            {poster.avatar_url ? <NextImage unoptimized width={64} height={64} src={displayImageUrl(poster.avatar_url, 200) ?? poster.avatar_url} alt="" /> : <span aria-hidden>{(poster.full_name ?? "?").charAt(0).toUpperCase()}</span>}
             <span className="min-w-0 flex-1"><strong>{poster.full_name}{poster.is_verified ? <VerifiedBadge tier={poster.verified_tier} size={14} /> : null}</strong><small>{poster.username ? "@" + poster.username : "View profile"}</small></span><ArrowRight size={17} aria-hidden />
           </Link></section> : null}
         </div>

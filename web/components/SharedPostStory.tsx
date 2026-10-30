@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUpRight, Layers, Volume2, VolumeX } from "lucide-react";
 import { normalizePostPlayback, applyPostPlayback } from '../../shared/postVoiceEffects';
 import { postTrimWindow } from '../../shared/postMediaEditing';
@@ -16,8 +16,8 @@ export function SharedPostStory({ sticker, paused, preview = false }: { sticker:
   const [size, setSize] = useState({ width: sticker.postMediaWidth, height: sticker.postMediaHeight });
   const [muted, setMuted] = useState(true);
   const isVideo = sticker.postMediaType === "video";
-  const playback = normalizePostPlayback(sticker.postMediaPlayback);
-  useEffect(()=>{if(video.current)applyPostPlayback(video.current,playback);},[playback.speed,playback.voiceEffect,sticker.postMediaUrl]);
+  const playback = useMemo(()=>normalizePostPlayback(sticker.postMediaPlayback),[sticker.postMediaPlayback]);
+  useEffect(()=>{if(video.current)applyPostPlayback(video.current,playback);},[playback,sticker.postMediaUrl]);
   useEffect(() => {
     const parent = preview ? ref.current?.closest('[data-story-stage]') : ref.current?.parentElement;
     if (!parent) return;

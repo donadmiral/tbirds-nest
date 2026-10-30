@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { deliverMessage, makeMessageId, type MessageIntent, type MessageDelivery } from '../../shared/messageDelivery';
 
 export type OutboxMessage = MessageIntent & { created_at: string; _delivery: 'pending' | 'rejected' | 'conflict' };
@@ -43,14 +44,14 @@ export function clearOutbox(account: string) {
   for (const row of readOutbox(account)) forgetOutboxMessage(account, row.id);
 }
 
-export function sendOutboxMessage(client: Parameters<typeof deliverMessage>[0] & { auth: { getSession(): Promise<any> } }, row: OutboxMessage): Promise<MessageDelivery> {
+export function sendOutboxMessage(client: Parameters<typeof deliverMessage>[0] & Pick<SupabaseClient, "auth">, row: OutboxMessage): Promise<MessageDelivery> {
   const name = key(row.sender_id, row.id);
   const existing = inFlight.get(name);
   if (existing) return existing;
   const attempt = (async (): Promise<MessageDelivery> => {
     const { data, error } = await client.auth.getSession();
     if (error || data?.session?.user?.id !== row.sender_id) return { status: 'pending' };
-    const { created_at: _createdAt, _delivery: _delivery, ...intent } = row;
+    const intent: MessageIntent = { id:row.id,conversation_id:row.conversation_id,sender_id:row.sender_id,receiver_id:row.receiver_id,text:row.text,media_url:row.media_url,media_type:row.media_type,thumbnail_url:row.thumbnail_url,reply_to_id:row.reply_to_id,view_limit:row.view_limit,...(row.shared_post_id!==undefined?{shared_post_id:row.shared_post_id}:{}) };
     // Reconcile even the first attempt: another tab may already have sent it.
     const result = await deliverMessage(client, intent, true);
     if (result.status === 'confirmed') forgetOutboxMessage(row.sender_id, row.id);

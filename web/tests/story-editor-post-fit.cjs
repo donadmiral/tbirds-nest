@@ -55,6 +55,9 @@ function editor({ value = [sticker()], autoCommit = true, ...layoutOverrides } =
     useState(v) { const i = cursor++; if (!(i in slots)) slots[i] = typeof v === 'function' ? v() : v; return [slots[i], next => { const nextValue = typeof next === 'function' ? next(slots[i]) : next; if (!Object.is(nextValue, slots[i])) { slots[i] = nextValue; dirty = true; } }]; },
     useEffect(fn, deps) { const i = cursor++; if (!slots[i] || !equal(slots[i].deps, deps)) { const prior = slots[i]; slots[i] = { deps }; effects.push(() => { prior?.cleanup?.(); slots[i].cleanup = fn(); }); } },
   };
+  hooks.useLayoutEffect=hooks.useEffect;hooks.useCallback=(fn,deps)=>{const i=cursor++;if(!slots[i]||!equal(slots[i].deps,deps))slots[i]={deps,fn};return slots[i].fn;};hooks.useSyncExternalStore=(subscribe,snapshot)=>{hooks.useEffect(()=>subscribe(()=>{dirty=true;}),[subscribe]);return snapshot();};
+  const storage=new Map(),browser={Event,StorageEvent:class StorageEvent extends Event{},localStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},window:{addEventListener(){},removeEventListener(){},dispatchEvent(){}}};
+  const storageHook=moduleFrom('web/lib/useBrowserStorage.ts',{...browser,require:name=>{assert.equal(name,'react');return hooks;}});
   const stage = { get clientWidth() { return layout.width; }, get clientHeight() { return layout.height; }, getBoundingClientRect: () => rect(layout.width, layout.height, layout.pageTop), querySelectorAll: () => [...cards.values()] };
   const topbar = { getBoundingClientRect: () => rect(layout.width, 44, layout.pageTop + layout.topbarBottom - 44) };
   const dock = { getBoundingClientRect: () => rect(layout.width, layout.height - layout.dockTop, layout.pageTop + layout.dockTop) };
@@ -62,9 +65,9 @@ function editor({ value = [sticker()], autoCommit = true, ...layoutOverrides } =
   const fit = moduleFrom('web/components/useStoryPostEditorFit.ts', { require: p => p === 'react' ? hooks : geometry, ResizeObserver });
   const canvas = moduleFrom('shared/storyCanvas.ts');
   const imports = {
-    react: hooks, 'react/jsx-runtime': { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) },
+    react: hooks, '@/lib/useBrowserStorage':storageHook, 'react/jsx-runtime': { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) },
     './useStoryPostEditorFit': fit, './StoryStudio.module.css': { default: new Proxy({}, { get: (_, key) => key }) },
-    '../../shared/storyCanvas': canvas, '../../shared/musicAvailability': { MUSIC_CATALOG_ENABLED: false },
+    '../../shared/storyCanvas': canvas, '../../shared/musicAvailability': { ORIGINAL_AUDIO_ENABLED: true, MUSIC_CATALOG_ENABLED: false },
     './storyTextAppearance': { stickerCss: () => ({}) }, './StoryEngine': { DrawSvg: 'DrawSvg', extraFontCss: () => ({}), STICKER_ANIM_CSS: '' },
     '@/components/StoryStickerPreview': { StoryStickerPreview: 'StoryStickerPreview' },
     '../../shared/storyMentions': { storyHandles: () => [], currentTextMentions: () => [] },
@@ -144,7 +147,7 @@ test('a hidden editor waits for visible measurements before fitting', () => {
   h.resize({ width: 470, height: 836 }); assert.equal(h.writes.length, 1); h.unmount();
 });
 test('multiline preview captions include their real footer height in fitting', () => {
-  const hooks = { useRef: () => ({ current: null }), useState: v => [v, () => {}], useEffect() {} };
+  const hooks = { useRef: () => ({ current: null }), useState: v => [v, () => {}], useEffect() {}, useMemo: fn => fn() };
   const { SharedPostStory } = moduleFrom('web/components/SharedPostStory.tsx', { require: p => p === 'react' ? hooks : p === 'react/jsx-runtime' ? { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) } : p.endsWith('postVoiceEffects') ? moduleFrom('shared/postVoiceEffects.ts') : p.endsWith('storyPresentation') ? { sharedPostFrame } : new Proxy({}, { get: (_, key) => key }) });
   const s = sticker({ postText: 'A\nB\nC' });
   const preview = SharedPostStory({ sticker: s, paused: true, preview: true });

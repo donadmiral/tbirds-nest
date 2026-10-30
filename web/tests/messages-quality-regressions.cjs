@@ -29,7 +29,7 @@ const text = node => typeof node === 'string' || typeof node === 'number' ? Stri
 function nodes(tree) { const out = []; const walk = node => { if (Array.isArray(node)) return node.forEach(walk); if (!node || typeof node !== 'object') return; out.push(node); if (typeof node.type === 'function') walk(node.type(node.props)); else walk(node.props?.children); }; walk(tree); return out; }
 
 function scenario(initial = [row(1)], options = {}) {
-  let rows = [...initial], reactions = [], pins = {}, tree, dirty = true, effects = [], cursor = 0;
+  let rows = [...initial], reactions = [], pins = {}, tree, dirty = true, effects = [], layoutEffects = [], cursor = 0;
   const slots = [], writes = [], reads = [], rpcs = [], listeners = [], timers = new Set(), browserEvents = new Map(), domEvents = new Map();
   const convs = ['a', 'b'].map(value => ({ id: value, title: 'Conversation ' + value, other_id: 'other', context: 'personal', is_group: !!options.group, unread: 0, last_message: '', last_message_time: null }));
   let readOverride, writeOverride, rpcFailure = false;
@@ -79,7 +79,10 @@ function scenario(initial = [row(1)], options = {}) {
     useCallback(fn,deps) { const i = cursor++; if (!slots[i] || !same(slots[i].deps,deps)) slots[i] = { value: fn, deps }; return slots[i].value; },
     useMemo(fn,deps) { return hooks.useCallback(fn,deps)(); },
     useEffect(fn,deps) { const i = cursor++; if (!slots[i] || !same(slots[i].deps,deps)) { const previous = slots[i]; slots[i] = { deps }; effects.push(() => { previous?.cleanup?.(); slots[i].cleanup = fn(); }); } },
+    useLayoutEffect(fn,deps) { const i = cursor++; if (!slots[i] || !same(slots[i].deps,deps)) { const previous = slots[i]; slots[i] = { deps }; layoutEffects.push(() => { previous?.cleanup?.(); slots[i].cleanup = fn(); }); } },
+    useSyncExternalStore(subscribe, snapshot) { const [value, setValue] = hooks.useState(snapshot); hooks.useLayoutEffect(() => { const update = () => setValue(snapshot()); const unsubscribe = subscribe(update); update(); return unsubscribe; }, [subscribe, snapshot]); return value; },
   };
+  hooks.useEffectEvent = callback => { const ref = hooks.useRef(callback); hooks.useLayoutEffect(() => { ref.current = callback; }); return hooks.useCallback((...args) => ref.current(...args), []); };
   const runtime = { jsx: (type,props,key) => ({ type,props,key }), jsxs: (type,props,key) => ({ type,props,key }), Fragment: 'Fragment' };
   const cache = new Map();
   const stored = new Map();
@@ -98,6 +101,7 @@ function scenario(initial = [row(1)], options = {}) {
     if (name === '@/lib/chatMedia') return { signChatMedia: async rows => rows, isChatMediaUrl: () => false };
     if (name === '@/lib/feed') return { timeAgo: () => 'now' };
     if (name === 'next/link') return { __esModule: true, default: 'Link' };
+    if (name === 'next/image') return { __esModule: true, default: 'img' };
     if (!sources[name]) return new Proxy({}, { get: (_,key) => String(key) });
     const module = { exports: {} }; cache.set(name,module);
     vm.runInNewContext(sources[name], { module, exports: module.exports, require: load, process:{env:options.env||{}}, Error, URLSearchParams, AbortController, crypto: require('node:crypto').webcrypto,
@@ -109,7 +113,7 @@ function scenario(initial = [row(1)], options = {}) {
   };
   const Component = load('@/components/MessagesApp').MessagesApp;
   const dom = { children: [], style: {}, scrollTop: 0, scrollHeight: 100, clientHeight: 50, value: 'selected-file', addEventListener(name, fn) { domEvents.set(name, fn); }, removeEventListener(name) { domEvents.delete(name); } };
-  function render() { for (let i=0; dirty && i<25; i++) { dirty=false; cursor=0; tree=Component({}); nodes(tree).forEach(node => { if (node.props?.ref) node.props.ref.current=dom; }); const pending=effects; effects=[]; pending.forEach(effect => effect()); } assert.equal(dirty,false,'render settles'); }
+  function render() { for (let i=0; dirty && i<25; i++) { dirty=false; cursor=0; tree=Component({}); nodes(tree).forEach(node => { if (node.props?.ref) node.props.ref.current=dom; }); const committed=layoutEffects; layoutEffects=[]; committed.forEach(effect => effect()); const pending=effects; effects=[]; pending.forEach(effect => effect()); } assert.equal(dirty,false,'render settles'); }
   render();
   return { client, rows: () => rows, writes, reads, rpcs, dom, listeners, location,
     find: predicate => nodes(tree).find(predicate), all: predicate => nodes(tree).filter(predicate),

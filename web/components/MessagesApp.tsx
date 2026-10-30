@@ -1,6 +1,7 @@
 "use client";
+import NextImage from "next/image";
 
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { ArrowLeft, Camera, Info, Mail, MoreHorizontal, Search, Send, FileText, Tag, Wallet, Paperclip, Mic, Square, Phone, SquarePen, UserRound, Video, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -29,6 +30,10 @@ import workspace from "./MessagesWorkspace.module.css";
 
 const PRIVATE_MEDIA_SESSIONS_ENABLED = process.env.NEXT_PUBLIC_PRIVATE_MEDIA_SESSIONS_ENABLED === 'true';
 
+const subscribeLocation = (listener: () => void) => { window.addEventListener("popstate", listener); return () => window.removeEventListener("popstate", listener); };
+const debugSnapshot = () => new URLSearchParams(window.location.search).get("debug") === "1";
+const noDebugSnapshot = () => false;
+
 type OfferLive = { id: string; status: string; proposer_id: string; amount: number; currency: string };
 type MiniListing = { id: string; title: string; price: number; currency: string; images: string[]; status: string };
 
@@ -51,7 +56,6 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const [conversationError, setConversationError] = useState<string | null>(null);
   const [privateMedia, setPrivateMedia] = useState<{ id: string; userId: string; conversationId: string; account: number } | null>(null);
   const [viewedPrivateIds, setViewedPrivateIds] = useState<Set<string>>(new Set());
-  useEffect(() => { setPrivateMedia(null); setShareDetails(null); setViewedPrivateIds(new Set()); }, [uid, active?.id]);
   const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [hasOlder, setHasOlder] = useState(false);
@@ -68,6 +72,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const uploadPending = useRef(false);
   const uploadGeneration = useRef(0);
   const accountGeneration = useRef(0);
+  const [accountVersion, setAccountVersion] = useState(0);
   const recorderPending = useRef(false);
   const recordingGeneration = useRef(0);
   const inboxGeneration = useRef(0);
@@ -76,14 +81,14 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const historyGeneration = useRef(0);
   const olderPending = useRef(false);
   const msgsRef = useRef<Msg[]>([]);
-  msgsRef.current = msgs;
+  useLayoutEffect(() => { msgsRef.current = msgs; }, [msgs]);
   const historyReady = useRef(false);
   const readPending = useRef(new Set<string>());
   const readRequested = useRef(new Set<string>());
   const lastRead = useRef('');
   const markReadRef = useRef<() => Promise<void>>(async () => {});
   const uidRef = useRef(uid);
-  uidRef.current = uid;
+  useLayoutEffect(() => { uidRef.current = uid; }, [uid]);
   const drafts = useRef(new Map<string, string>());
   const dismissedTarget = useRef<string | null>(null);
   const [attachmentDraft, setAttachmentDraft] = useState<File | null>(null);
@@ -111,15 +116,15 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   // ?debug=1 draws a live readout of everything that can move the chat, for measuring on a real phone.
   const debugRef = useRef<HTMLPreElement | null>(null);
   const debugCounts = useRef({ resize: 0, ro: 0, mo: 0, scroll: 0, msgs: 0 });
-  const [debugOn, setDebugOn] = useState(false);
-  useEffect(() => { setDebugOn(window.location.search.includes('debug=1')); }, []);
+  const debugOn = useSyncExternalStore(subscribeLocation, debugSnapshot, noDebugSnapshot);
   useEffect(() => {
     if (!debugOn) return;
     const vv = window.visualViewport; const t = setInterval(() => { const el = listRef.current; const d = debugCounts.current; if (debugRef.current) debugRef.current.textContent = ['vv h ' + (vv ? Math.round(vv.height) : '-') + ' top ' + (vv ? Math.round(vv.offsetTop) : '-') + ' inner ' + window.innerHeight, 'pageY ' + Math.round(window.scrollY) + ' body ' + document.body.style.position + ' ' + document.body.style.top, 'list top ' + (el ? Math.round(el.scrollTop) : '-') + ' / ' + (el ? el.scrollHeight : '-') + ' client ' + (el ? el.clientHeight : '-') + ' pinned ' + pinnedRef.current, 'events resize ' + d.resize + ' ro ' + d.ro + ' mo ' + d.mo + ' scroll ' + d.scroll + ' msgs ' + d.msgs].join('\n'); }, 250);
     return () => clearInterval(t);
   }, [debugOn]);
+  const activeId=active?.id??null;
   useEffect(() => {
-    if (!compact || !active) return;
+    if (!compact || !activeId) return;
     const vv = window.visualViewport; const el = surfaceRef.current; if (!vv || !el) return;
     // iOS ignores overflow hidden; the only lock it honours is pinning the body in place, restored exactly on close.
     const body = document.body; const y = window.scrollY; const prev = { position: body.style.position, top: body.style.top, width: body.style.width, overflow: body.style.overflow, overscroll: body.style.overscrollBehavior };
@@ -128,7 +133,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     const apply = () => { debugCounts.current.resize++; el.style.height = vv.height + 'px'; el.style.top = vv.offsetTop + 'px'; cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (pinnedRef.current) scrollToEnd(); }); };
     apply(); vv.addEventListener('resize', apply);
     return () => { vv.removeEventListener('resize', apply); cancelAnimationFrame(raf); body.style.position = prev.position; body.style.top = prev.top; body.style.width = prev.width; body.style.overflow = prev.overflow; body.style.overscrollBehavior = prev.overscroll; window.scrollTo(0, y); el.style.height = ''; el.style.top = ''; };
-  }, [compact, active?.id]);
+  }, [compact, activeId]);
   useEffect(() => {
     const el = listRef.current; if (!el) return;
     const onScroll = () => { debugCounts.current.scroll++; pinnedRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80; if (pinnedRef.current) void markReadRef.current(); };
@@ -148,15 +153,15 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const recTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  activeRef.current = active;
+  useLayoutEffect(() => { activeRef.current = active; }, [active]);
 
   useEffect(() => {
-    if (!compact || !active || typeof document.querySelectorAll !== 'function') return;
+    if (!compact || !activeId || typeof document.querySelectorAll !== 'function') return;
     const chrome = Array.from(document.querySelectorAll<HTMLElement>('[data-app-chrome]'));
     const previous = chrome.map(element => ({ element, inert: element.inert }));
     previous.forEach(({ element }) => { element.inert = true; });
     return () => { previous.forEach(({ element, inert }) => { element.inert = inert; }); };
-  }, [compact, active?.id]);
+  }, [compact, activeId]);
 
   const markVisibleRead = useCallback(async () => {
     const c = activeRef.current, userId = uidRef.current, account = accountGeneration.current;
@@ -183,7 +188,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     } catch { /* A failed receipt remains unread until the next visible retry. */ }
     finally { readPending.current.delete(key); }
   }, [supabase]);
-  markReadRef.current = markVisibleRead;
+  useLayoutEffect(() => { markReadRef.current = markVisibleRead; }, [markVisibleRead]);
 
   useEffect(() => {
     const retryRead = () => { void markVisibleRead(); };
@@ -239,9 +244,9 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
         window.history.pushState({ ...window.history.state, pcConversation: true }, '', `${window.location.pathname}?${search}`);
       }
     }
-    const generation = ++historyGeneration.current;
+    const generation = historyGeneration.current += 1;
     activeRef.current = c;
-    setActive(c);
+    setActive(c); setPrivateMedia(null); setShareDetails(null); setViewedPrivateIds(new Set());
     historyReady.current = false; lastRead.current = ''; setGifMode(null);
     setLoadingMsgs(true); setHistoryError(null); setActionError(null); setNotice(null);
     setMsgs(uidRef.current ? readOutbox(uidRef.current, c.id).map(row => ({ ...row, media_url: isChatMediaUrl(row.media_url) ? null : row.media_url })) : []); setDraft(drafts.current.get(c.id) || ''); setAttachmentDraft(null); setReplyTo(null); setEditing(null); setForwarding(null); setPinnedMessage(null);
@@ -297,14 +302,15 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   }, [supabase, hasOlder, hydrateOffers, loadReactions]);
 
   const loadInbox = useCallback(async (quiet = false) => {
-    const generation = ++inboxGeneration.current;
+    const generation = inboxGeneration.current += 1;
     const current = () => componentLive.current && inboxGeneration.current === generation;
-    if (!quiet) setLoadingConvs(true);
-    setConversationError(null);
+
     try {
       const { data, error } = await supabase.auth.getSession();
       if (error) throw error;
       if (!current()) return;
+      if (!quiet) setLoadingConvs(true);
+      setConversationError(null);
       const id = data.session?.user.id ?? null;
       uidRef.current = id; setUid(id);
       if (!id) { setConvs([]); return; }
@@ -321,25 +327,26 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   useEffect(() => {
     componentLive.current = true;
     let authReload: ReturnType<typeof setTimeout> | undefined;
-    void loadInbox();
+    void supabase.auth.getSession().then(() => { if (componentLive.current) void loadInbox(); });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const nextId = session?.user.id ?? null;
       if (_event === 'SIGNED_OUT' && uidRef.current) clearOutbox(uidRef.current);
       if (uidRef.current !== nextId) {
         setNewMessageOpen(false);
-        ++accountGeneration.current;
-        ++uploadGeneration.current;
+        accountGeneration.current += 1; setAccountVersion(accountGeneration.current);
+        setPrivateMedia(null); setShareDetails(null); setViewedPrivateIds(new Set());
+        uploadGeneration.current += 1;
         uploadPending.current = false;
         drafts.current.clear();
-        uidRef.current = nextId; setUid(nextId); activeRef.current = null; ++historyGeneration.current;
+        uidRef.current = nextId; setUid(nextId); activeRef.current = null; historyGeneration.current += 1;
         setActive(null); setMsgs([]); setConvs([]); setDraft(''); setGifMode(null); historyReady.current = false; lastRead.current = '';
         setAttachmentDraft(null); setSendingFile(false); setReplyTo(null); setEditing(null); setForwarding(null); setPinnedMessage(null); setOffers({});
         setActionError(null); setNotice(null);
-        ++inboxGeneration.current;
+        inboxGeneration.current += 1;
         if (nextId) authReload = setTimeout(() => { if (componentLive.current) void loadInbox(); }, 0);
       }
     });
-    return () => { componentLive.current = false; clearTimeout(authReload); subscription.unsubscribe(); ++inboxGeneration.current; ++historyGeneration.current; activeRef.current = null; };
+    return () => { componentLive.current = false; clearTimeout(authReload); subscription.unsubscribe(); inboxGeneration.current += 1; historyGeneration.current += 1; activeRef.current = null; };
   }, [supabase, loadInbox]);
 
   useEffect(() => {
@@ -548,7 +555,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     const f = list[0];
     if (!f || !target || !senderId) return;
     const generation = accountGeneration.current;
-    const uploadId = ++uploadGeneration.current;
+    const uploadId = uploadGeneration.current += 1;
     uploadPending.current = true; setAttachmentDraft(f);
     setSendingFile(true); setActionError(null);
     try {
@@ -569,7 +576,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
 
   useEffect(() => {
     return () => {
-      ++recordingGeneration.current;
+      recordingGeneration.current += 1;
       const rec = recRef.current;
       if (rec?.state === 'recording') { try { rec.stop(); } catch { /* already stopped */ } }
       streamRef.current?.getTracks().forEach(track => track.stop());
@@ -631,7 +638,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       teardownRecording();
       if (!sendIt || !blob.size || !target || !senderId || generation !== recordingGeneration.current || uidRef.current !== senderId) return;
       uploadPending.current = true; setSendingFile(true);
-      uploadId = ++uploadGeneration.current;
+      uploadId = uploadGeneration.current += 1;
       const ext = mime.includes('mp4') ? 'm4a' : mime.includes('ogg') ? 'ogg' : 'webm';
       const path = senderId + '/' + crypto.randomUUID() + '_voice.' + ext;
       const { error } = await supabase.storage.from('chat-media').upload(path, blob, { contentType: mime });
@@ -668,8 +675,8 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const refCard = refListing ? (
     <Link href={"/market/" + refListing.id} className="mt-2 flex items-center gap-3 rounded-lg border border-ink/10 p-2.5 transition-colors duration-[140ms] hover:bg-surface">
       {refListing.images?.[0] ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={refListing.images[0]} alt="" className="h-12 w-12 shrink-0 rounded-md object-cover" />
+
+        <NextImage unoptimized width={48} height={48} src={refListing.images[0]} alt="" className="h-12 w-12 shrink-0 rounded-md object-cover" />
       ) : null}
       <span className="min-w-0 flex-1">
         <span className="block truncate text-[13px] font-semibold text-ink">{refListing.title}</span>
@@ -684,7 +691,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   function closeConversation(updateUrl = true) {
     dismissedTarget.current = activeRef.current?.id || null;
     activeRef.current = null;
-    historyGeneration.current++;
+    historyGeneration.current += 1;
     historyReady.current = false;
     setActive(null); setMsgs([]); setDraft(''); setLoadingMsgs(false); setHistoryError(null);
     setEditing(null); setReplyTo(null); setForwarding(null); setGifMode(null); setShareDetails(null); setPrivateMedia(null);
@@ -695,14 +702,13 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       window.history.replaceState(window.history.state, '', window.location.pathname + (search.size ? '?' + search.toString() : ''));
     }
   }
-  useEffect(() => {
-    const onPopState = () => {
+  const handleHistory=useEffectEvent(() => {
       const id = new URLSearchParams(window.location.search).get('c');
       const target = id ? convs.find(conversation => conversation.id === id) : null;
       if (target && activeRef.current?.id !== id) void openConv(target, false);
       else if (!target && activeRef.current) closeConversation(false);
-    };
-    const onKey = (event: KeyboardEvent) => {
+  });
+  const handleNavigationKey=useEffectEvent((event: KeyboardEvent) => {
       if (event.key !== 'Escape' || !activeRef.current) return;
       event.preventDefault();
       if (privateMedia) setPrivateMedia(null);
@@ -714,11 +720,14 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       else if (countering) setCountering(null);
       else if (recording || recorderPending.current) stopRecording(false);
       else closeConversation();
-    };
+  });
+  useEffect(() => {
+    const onPopState=()=>handleHistory();
+    const onKey=(event: KeyboardEvent)=>handleNavigationKey(event);
     window.addEventListener('popstate', onPopState);
     document.addEventListener('keydown', onKey);
     return () => { window.removeEventListener('popstate', onPopState); document.removeEventListener('keydown', onKey); };
-  }, [convs, openConv, privateMedia, shareDetails, gifMode, forwarding, editing, replyTo, countering, recording]);
+  }, []);
 
   const typingLine = otherTyping ? <p className="text-[12px] text-accent">typing…</p> : null;
 
@@ -727,7 +736,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       onClick={() => openConv(c)}
       className={"flex w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-[140ms] " + (active?.id === c.id ? "bg-surface-elevated" : "hover:bg-surface")}
     >
-      {c.avatar ? <img src={c.avatar} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" /> : <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-surface text-sm font-semibold">{c.title.slice(0,1).toUpperCase()}</span>}
+      {c.avatar ? <NextImage unoptimized width={44} height={44} src={c.avatar} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" /> : <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-surface text-sm font-semibold">{c.title.slice(0,1).toUpperCase()}</span>}
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline justify-between gap-2">
           <span className="flex min-w-0 items-baseline gap-1.5">
@@ -756,7 +765,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
         if(uidRef.current!==uid || activeRef.current?.id!==active?.id)return false;
         return insertMessage(attachmentCardText(card),JSON.stringify(card),'link');
       }}/>}
-      {PRIVATE_MEDIA_SESSIONS_ENABLED && privateMedia && privateMedia.userId === uid && privateMedia.conversationId === active?.id && privateMedia.account === accountGeneration.current && <PrivateMediaViewer key={privateMedia.userId+":"+privateMedia.id} messageId={privateMedia.id} userId={privateMedia.userId}
+      {PRIVATE_MEDIA_SESSIONS_ENABLED && privateMedia && privateMedia.userId === uid && privateMedia.conversationId === active?.id && privateMedia.account === accountVersion && <PrivateMediaViewer key={privateMedia.userId+":"+privateMedia.id} messageId={privateMedia.id} userId={privateMedia.userId}
         onClose={() => setPrivateMedia(current => current?.id === privateMedia.id && current?.userId === privateMedia.userId && current?.account === privateMedia.account ? null : current)} onConsumed={remaining => { if (remaining <= 0 && privateMedia.account === accountGeneration.current && privateMedia.conversationId === activeRef.current?.id) setViewedPrivateIds(prev => new Set(prev).add(privateMedia.id)); }} />}
       {actionError ? <div role="alert" className="mb-2 text-sm text-danger"><p>{actionError}</p>{attachmentDraft ? <button type="button" disabled={sendingFile} className="mt-1 underline" onClick={() => void attach([attachmentDraft])}>Retry attachment</button> : null}</div> : null}
       {notice ? <p role="status" className="mb-2 text-sm text-ink">{notice}</p> : null}
@@ -913,7 +922,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
           </>
         )}
       </section>
-      {active && detailsOpen ? <aside id="conversation-details" className={workspace.details} aria-label="Conversation details"><div><h2>{active.title}</h2>{active.username ? <p>@{active.username}</p> : null}<p>{active.is_group ? active.group_type === 'community' ? 'Community conversation' : 'Group conversation' : 'Direct conversation'}</p></div>{active.is_group && active.group_ref_id ? <Link href={'/communities/' + active.group_ref_id}>Open community</Link> : active.other_id ? <Link href={profilePath(active.username,active.other_id)}><UserRound size={16} aria-hidden />View profile</Link> : null}<div><h2>Shared in this conversation</h2><p>Media from loaded messages. Choose an item to find it in the conversation.</p>{sharedMedia.length ? <div className={workspace.mediaGrid}>{sharedMedia.map(message => <button type="button" key={message.id} aria-label={`Find shared ${message.media_type}`} onClick={() => listRef.current?.querySelector(`[data-message-id="${CSS.escape(message.id)}"]`)?.scrollIntoView({block:'center',behavior:'instant'})}>{message.media_type === 'image' ? <img src={message.media_url!} alt="Shared photo" /> : message.media_type === 'video' ? <Video size={20} aria-hidden /> : <FileText size={20} aria-hidden />}</button>)}</div> : <p className="mt-4">No shared files in the loaded messages.</p>}</div><div><h2>Conversation history</h2><p>{loadingMsgs ? 'Loading conversation history…' : historyError ? 'Some messages could not be loaded. Use Try again in the conversation.' : hasOlder ? 'Earlier messages are available. Use Load older messages in the conversation to see more.' : 'You are viewing the available conversation history.'}</p></div></aside> : null}
+      {active && detailsOpen ? <aside id="conversation-details" className={workspace.details} aria-label="Conversation details"><div><h2>{active.title}</h2>{active.username ? <p>@{active.username}</p> : null}<p>{active.is_group ? active.group_type === 'community' ? 'Community conversation' : 'Group conversation' : 'Direct conversation'}</p></div>{active.is_group && active.group_ref_id ? <Link href={'/communities/' + active.group_ref_id}>Open community</Link> : active.other_id ? <Link href={profilePath(active.username,active.other_id)}><UserRound size={16} aria-hidden />View profile</Link> : null}<div><h2>Shared in this conversation</h2><p>Media from loaded messages. Choose an item to find it in the conversation.</p>{sharedMedia.length ? <div className={workspace.mediaGrid}>{sharedMedia.map(message => <button type="button" key={message.id} aria-label={`Find shared ${message.media_type}`} onClick={() => listRef.current?.querySelector(`[data-message-id="${CSS.escape(message.id)}"]`)?.scrollIntoView({block:'center',behavior:'instant'})}>{message.media_type === 'image' ? <NextImage unoptimized width={160} height={160} src={message.media_url!} alt="Shared photo" /> : message.media_type === 'video' ? <Video size={20} aria-hidden /> : <FileText size={20} aria-hidden />}</button>)}</div> : <p className="mt-4">No shared files in the loaded messages.</p>}</div><div><h2>Conversation history</h2><p>{loadingMsgs ? 'Loading conversation history…' : historyError ? 'Some messages could not be loaded. Use Try again in the conversation.' : hasOlder ? 'Earlier messages are available. Use Load older messages in the conversation to see more.' : 'You are viewing the available conversation history.'}</p></div></aside> : null}
     </div>
   );
 }
@@ -979,8 +988,8 @@ const BubbleView = memo(function BubbleView({ m, uid, offer, actions, replySourc
           {!m.view_limit && parseStoryMessageReference(m.media_url) ? <Link href={'/story/' + parseStoryMessageReference(m.media_url)} className="mb-2 block rounded-lg border border-current/30 p-3 text-sm underline">View story</Link> : null}
           {m.media_type === "offer" && m.media_url ? <OfferCardView m={m} {...offer} /> : null}
           {!m.view_limit && (m.media_type === "image" || m.media_type === "gif" || m.media_type === "sticker") && m.media_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={m.media_url} onError={renewMedia} alt="Shared image" role="button" tabIndex={0} onClick={() => window.dispatchEvent(new CustomEvent("pc-view-media", { detail: { url: m.media_url } }))} onKeyDown={(e) => { if (e.key === "Enter") window.dispatchEvent(new CustomEvent("pc-view-media", { detail: { url: m.media_url } })); }} className="mb-1 max-h-72 cursor-zoom-in rounded-lg object-contain" />
+
+            <NextImage unoptimized width={768} height={768} src={m.media_url} onError={renewMedia} alt="Shared image" role="button" tabIndex={0} onClick={() => window.dispatchEvent(new CustomEvent("pc-view-media", { detail: { url: m.media_url } }))} onKeyDown={(e) => { if (e.key === "Enter") window.dispatchEvent(new CustomEvent("pc-view-media", { detail: { url: m.media_url } })); }} className="mb-1 max-h-72 cursor-zoom-in rounded-lg object-contain" />
           ) : null}
           {!m.view_limit && m.media_type === "video" && m.media_url ? (
             <video src={m.media_url} onError={renewMedia} controls preload="metadata" className="mb-1 max-h-72 rounded-lg" />

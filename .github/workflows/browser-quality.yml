@@ -26,6 +26,7 @@ jobs:
       PLATINUM_UI_ARTIFACTS: /tmp/platinum-browser-evidence/admin
       STORY_QA_OUTPUT: /tmp/platinum-browser-evidence/video
       MEMORY_QA_OUTPUT: /tmp/platinum-browser-evidence/memory
+      MUSIC_QA_OUTPUT: /tmp/platinum-browser-evidence/music
       PLATINUM_SOCIAL_ARTIFACTS: /tmp/platinum-browser-evidence/web
       PLATINUM_COMMERCE_ARTIFACTS: /tmp/platinum-browser-evidence/commerce
       PLATINUM_STUDIO_UI_OUTPUT: /tmp/platinum-studio-browser
@@ -67,6 +68,8 @@ jobs:
         run: node web/tests/browser/story-video-export.cjs
       - name: Export and decode full memory movies and audio mixes
         run: node web/tests/browser/memory-movie-export.cjs
+      - name: Verify private original uploads, microphone capture and retained music exports
+        run: node web/tests/browser/music-library-export.cjs
       - name: Keep synthetic browser evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -78,6 +81,8 @@ jobs:
             /tmp/platinum-browser-evidence/video/*.json
             /tmp/platinum-browser-evidence/memory/*.json
             /tmp/platinum-browser-evidence/memory/*.png
+            /tmp/platinum-browser-evidence/music/*.json
+            /tmp/platinum-browser-evidence/music/*.png
             /tmp/platinum-browser-evidence/web/*.png
             /tmp/platinum-browser-evidence/web/*.json
             /tmp/platinum-browser-evidence/commerce/*.png

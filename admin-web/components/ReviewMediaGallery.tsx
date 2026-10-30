@@ -33,9 +33,11 @@ export default function ReviewMediaGallery({ media }: { media: ReviewMedia[] }) 
     </div>
   </> : null;
   return <div className="pc-review-gallery">
-    {!expanded ? <><MediaPreview key={`${current}:${media[current].url}`} {...media[current]} onExpand={() => setExpanded(true)} />{navigation}</> : null}
+    <div hidden={expanded}><MediaPreview key={`${current}:${media[current].url}`} {...media[current]} onExpand={() => setExpanded(true)} />{navigation}</div>
     <button type="button" className="pc-button pc-gallery-expand" onClick={() => setExpanded(true)}><AdminIcon name="expand" size={17} /> Full screen</button>
-    <dialog ref={dialog} className="pc-media-dialog" aria-label="Full screen media review" onKeyDown={trapDialogTab} onClose={() => setExpanded(false)}>
+    <dialog ref={dialog} className="pc-media-dialog" aria-label="Full screen media review"
+      onKeyDown={event => { if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); setExpanded(false); } else trapDialogTab(event); }}
+      onCancel={event => { event.preventDefault(); event.stopPropagation(); setExpanded(false); }} onClose={() => setExpanded(false)}>
       <header><h2>Attachment {current + 1} of {media.length}</h2><button type="button" className="pc-button pc-button-square" aria-label="Close full screen media" onClick={() => setExpanded(false)}><AdminIcon name="close" size={20} /></button></header>
       {expanded ? <><MediaPreview key={`${current}:${media[current].url}`} {...media[current]} expanded />{navigation}</> : null}
     </dialog>

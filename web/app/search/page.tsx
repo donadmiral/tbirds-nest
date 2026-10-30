@@ -92,21 +92,19 @@ function SearchResults({ initialQuery }: { initialQuery: string }) {
     let uid: string | null | undefined;
     const bind = (next: string | null) => {
       if (!alive || uid === next) return;
-      uid = next; authVersion.current++;
-      setResult(null); setPaging(new Set()); setRecent([]); setRecentKey(RECENT_KEY + ":" + (next ?? "anonymous"));
+      uid = next; authVersion.current += 1;
+      setResult(null); setPaging(new Set());
+      const key = RECENT_KEY + ":" + (next ?? "anonymous"); setRecentKey(key);
+      try {
+        const values: unknown = JSON.parse(window.localStorage.getItem(key) ?? "[]");
+        setRecent(Array.isArray(values) ? values.filter((value): value is string => typeof value === "string").slice(0, MAX_RECENT) : []);
+      } catch { setRecent([]); }
       setRetry((value) => value + 1);
     };
     const { data: auth } = supabase.auth.onAuthStateChange((_event, session) => bind(session?.user.id ?? null));
     supabase.auth.getSession().then(({ data }) => { if (uid === undefined) bind(data.session?.user.id ?? null); });
-    return () => { alive = false; authVersion.current++; auth.subscription.unsubscribe(); };
+    return () => { alive = false; authVersion.current += 1; auth.subscription.unsubscribe(); };
   }, [supabase]);
-
-  useEffect(() => {
-    try {
-      const values: unknown = JSON.parse(window.localStorage.getItem(recentKey) ?? "[]");
-      setRecent(Array.isArray(values) ? values.filter((value): value is string => typeof value === "string").slice(0, MAX_RECENT) : []);
-    } catch { setRecent([]); }
-  }, [recentKey]);
 
   const saveRecent = useCallback((term: string) => {
     const t = term.trim();

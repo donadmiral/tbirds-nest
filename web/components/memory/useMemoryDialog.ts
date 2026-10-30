@@ -1,10 +1,10 @@
 'use client';
-import {useEffect,useRef} from 'react';
+import {useEffect, useLayoutEffect,useRef} from 'react';
 
 /** Keep a book dialog still and keyboard focus inside it, then restore its opener. */
 export function useMemoryDialog(active:boolean,onClose:()=>void) {
  const ref=useRef<HTMLDivElement>(null),close=useRef(onClose);
- close.current=onClose;
+ useLayoutEffect(()=>{close.current=onClose;},[onClose]);
  useEffect(()=>{
   const node=ref.current;if(!active||!node)return;
   const opener=document.activeElement instanceof HTMLElement?document.activeElement:null;

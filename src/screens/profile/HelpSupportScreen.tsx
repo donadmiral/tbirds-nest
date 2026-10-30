@@ -5,7 +5,7 @@ import { settingsBack } from '../../navigation/settingsNavigation';
  */
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';

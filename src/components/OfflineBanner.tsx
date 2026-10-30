@@ -5,7 +5,7 @@
  */
 import { themedSheet } from '../theme/useTheme';
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { useSafeAreaInsets } from './SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { useNetStore, initNet } from '../stores/netStore';

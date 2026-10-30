@@ -20,7 +20,7 @@ import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
-import { light, typeSize, fontWeight, radius, space } from '../../constants/tokens';
+import { typeSize, fontWeight, radius, space } from '../../constants/tokens';
 
 type Blocked = {
   blocked_id: string;

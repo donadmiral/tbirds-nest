@@ -24,7 +24,7 @@ function sendCloseKeepalive(call: CallSession, token: string | null) {
 }
 
 export function WebCallLayer() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const frameRef = useRef<{ destroy: () => Promise<void>; iframe?: () => HTMLIFrameElement | null } | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [uid, setUid] = useState<string | null>(null);
@@ -86,7 +86,7 @@ export function WebCallLayer() {
   }, [flushCloses, releaseSession]);
 
   const hangup = useCallback(async (record: boolean) => {
-    const operation = ++generation.current;
+    const operation = generation.current += 1;
     const release = mediaRelease.current; mediaRelease.current = null;
     const session = activeCallRef.current;
     const account = uidRef.current;
@@ -111,7 +111,7 @@ export function WebCallLayer() {
           queueCallClose(uidRef.current, activeCallRef.current);
           sendCloseKeepalive(activeCallRef.current, tokenRef.current);
         }
-        ++generation.current; ++incomingGeneration.current;
+        generation.current += 1; incomingGeneration.current += 1;
         busy.current = false; activeCallRef.current = null; incomingRef.current = null; unlockIncomingMedia();
         setActiveCall(null); setIncoming(null); setConnecting(false); setReconnecting(false); setCallError(null);
         const release = mediaRelease.current; mediaRelease.current = null;
@@ -127,7 +127,7 @@ export function WebCallLayer() {
         queueCallClose(uidRef.current, activeCallRef.current);
         sendCloseKeepalive(activeCallRef.current, tokenRef.current);
       }
-      live.current = false; unlockIncomingMedia(); ++generation.current; ++incomingGeneration.current; subscription.unsubscribe(); const release = mediaRelease.current; mediaRelease.current = null; void teardownFrame().finally(() => unlockMedia(release));
+      live.current = false; unlockIncomingMedia(); generation.current += 1; incomingGeneration.current += 1; subscription.unsubscribe(); const release = mediaRelease.current; mediaRelease.current = null; void teardownFrame().finally(() => unlockMedia(release));
     };
   }, [supabase, teardownFrame, unlockMedia, unlockIncomingMedia]);
 
@@ -284,7 +284,7 @@ export function WebCallLayer() {
     const receive = async (session: CallSession) => {
       if (!valid || uidRef.current !== uid || !ringing(session) || busy.current || activeCallRef.current || incomingRef.current) return;
       if (!session.is_group_call && session.receiver_id !== uid) return;
-      const operation = ++incomingGeneration.current;
+      const operation = incomingGeneration.current += 1;
       const initial = { ...session, caller_name: 'Someone' + (session.is_group_call ? ' · group call' : '') };
       lockIncomingMedia(); incomingRef.current = initial; setIncoming(initial);
       try {
@@ -326,7 +326,7 @@ export function WebCallLayer() {
         .eq('call_session_id', invite.id).eq('user_id', uid).maybeSingle() : null;
       if (valid && uidRef.current === uid && incomingRef.current?.id === invite.id && (!ringing(invite)
         || (!error && (!data || !ringing(data as CallSession))) || (participant && !participant.error && participant.data?.status !== 'invited'))) {
-        ++incomingGeneration.current; incomingRef.current = null; setIncoming(null); unlockIncomingMedia();
+        incomingGeneration.current += 1; incomingRef.current = null; setIncoming(null); unlockIncomingMedia();
       }
       } catch { /* Retry status without hiding a still-valid invitation on a network failure. */ }
       finally { checking = false; }
@@ -339,7 +339,7 @@ export function WebCallLayer() {
     if (!session || busy.current || !ringing(session)) return;
     void begin(async () => {
       if (incomingRef.current?.id !== session.id || !ringing(session)) throw new Error('unavailable');
-      incomingRef.current = null; ++incomingGeneration.current; setIncoming(null); unlockIncomingMedia();
+      incomingRef.current = null; incomingGeneration.current += 1; setIncoming(null); unlockIncomingMedia();
       if (session.is_group_call) return { ...session, status: 'active', provider_identity: await joinGroupCall(session.id) };
       await setCallStatus(session.id, 'active');
       return { ...session, status: 'active' };
@@ -348,7 +348,7 @@ export function WebCallLayer() {
   async function decline() {
     const session = incomingRef.current;
     if (!session || busy.current) return;
-    incomingRef.current = null; const operation = ++incomingGeneration.current; const account = uidRef.current; setIncoming(null); unlockIncomingMedia();
+    incomingRef.current = null; const operation = incomingGeneration.current += 1; const account = uidRef.current; setIncoming(null); unlockIncomingMedia();
     try { if (session.is_group_call) await declineGroupCall(session.id); else await setCallStatus(session.id, 'declined'); }
     catch { if (live.current && uidRef.current === account && incomingGeneration.current === operation && !activeCallRef.current && !busy.current) setCallError('The invitation is no longer available.'); }
   }

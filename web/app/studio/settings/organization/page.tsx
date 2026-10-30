@@ -20,6 +20,8 @@ import { createClient } from "@/lib/supabase/client";
 import { Panel, PillTabs } from "@/components/ui";
 import { ErrorState } from "@/components/ErrorState";
 import { useStudio } from "@/components/StudioShell";
+import { useCurrentTime } from "@/lib/useCurrentTime";
+import { withTimeout } from "@/lib/withTimeout";
 import {
   ORG_ROLES, SURFACES, type OrgRole, type Surface, type OrgNode,
   createChild, addMember, removeMember, transferOwnership, setSurface, grantDelegation, revokeDelegation,
@@ -55,7 +57,8 @@ function when(s: string | null) {
 
 export default function OrganizationPage() {
   const { accountId } = useStudio();
-  const supabase = useRef(createClient()).current;
+  const now = useCurrentTime();
+  const [supabase] = useState(createClient);
   const [tab, setTab] = useState("team");
   const [uid, setUid] = useState<string | null>(null);
   const [org, setOrg] = useState<Org | null>(null);
@@ -83,15 +86,13 @@ export default function OrganizationPage() {
   const [agencyScopes, setAgencyScopes] = useState<Surface[]>(["content"]);
   const [agencyExpiry, setAgencyExpiry] = useState("");
 
-  const load = useCallback(async () => {
+  const load = useCallback(() => {
     const version = ++generation.current;
-    setLoading(true);
-    setFailed(false);
-    try {
+    const read = async () => {
       const { data: sess, error: sessionError } = await supabase.auth.getSession();
       const me = sess.session?.user.id ?? null;
       if (sessionError || me !== accountId) throw new Error("Your account changed. Reopen Team and access.");
-      if (!mounted.current || version !== generation.current) return;
+      if (!mounted.current || version !== generation.current) return null;
 
       const { data: o, error } = await supabase.from("organizations").select("id, kind, name, slug, profile_id, parent_id").eq("profile_id", me).maybeSingle();
       if (error) throw new Error(error.message + (error.code ? " (" + error.code + ")" : ""));
@@ -103,8 +104,12 @@ export default function OrganizationPage() {
         supabase.from("org_delegations").select("id, principal_org_id, client_org_id, scopes, expires_at, principal:organizations!org_delegations_principal_org_id_fkey(name, slug), client:organizations!org_delegations_client_org_id_fkey(name, slug)").or("client_org_id.eq." + o.id + ",principal_org_id.eq." + o.id),
         supabase.from("org_audit_log").select("id, action, target_type, target_id, meta, created_at, actor:profiles!org_audit_log_actor_id_fkey(full_name, username)").eq("org_id", o.id).order("created_at", { ascending: false }).limit(60),
       ]);
-      if (!mounted.current || version !== generation.current) return;
       for (const result of [m, t, s, d, a]) if (result.error) throw new Error("Organization data could not be loaded. Please try again.");
+      return { me, o, m, t, s, d, a };
+    };
+    return withTimeout(read()).then(result => {
+      if (!result || !mounted.current || version !== generation.current) return;
+      const { me, o, m, t, s, d, a } = result;
       setUid(me);
       setOrg(o as Org);
       setMembers(((m.data ?? []) as unknown) as Member[]);
@@ -112,14 +117,15 @@ export default function OrganizationPage() {
       setSurfaces(Object.fromEntries(((s.data ?? []) as { surface: string; enabled: boolean }[]).map((r) => [r.surface, r.enabled])));
       setDelegations(((d.data ?? []) as unknown) as Delegation[]);
       setAudit(((a.data ?? []) as unknown) as Audit[]);
-    } catch (e) {
+      setFailed(false);
+    }).catch((e: unknown) => {
       if (mounted.current && version === generation.current) setFailed(e instanceof Error ? e.message : "Organization could not be loaded.");
-    } finally {
+    }).finally(() => {
       if (mounted.current && version === generation.current) setLoading(false);
-    }
+    });
   }, [supabase, accountId]);
 
-  useEffect(() => { mounted.current = true; void load(); return () => { mounted.current = false; generation.current++; if (noticeTimer.current) clearTimeout(noticeTimer.current); }; }, [load]);
+  useEffect(() => { const requests = generation; mounted.current = true; void load(); return () => { mounted.current = false; requests.current++; if (noticeTimer.current) clearTimeout(noticeTimer.current); }; }, [load]);
 
   const myRole = useMemo(() => members.find((m) => m.user_id === uid)?.role ?? null, [members, uid]);
   const canManage = myRole === "owner" || myRole === "admin";
@@ -148,7 +154,7 @@ export default function OrganizationPage() {
   }
 
   if (loading) return <p className="py-14 text-center text-sm text-muted">Loading</p>;
-  if (failed || !org) return <ErrorState title="Could not load your organization" line={failed || "No organization found for this account."} onRetry={() => void load()} />;
+  if (failed || !org) return <ErrorState title="Could not load your organization" line={failed || "No organization found for this account."} onRetry={() => { setLoading(true); void load(); }} />;
 
   return (
     <div>
@@ -172,7 +178,7 @@ export default function OrganizationPage() {
           <Panel title="People" icon={<Users size={15} />}>
             <div className="flex flex-col">
               {members.map((m) => {
-                const expired = m.expires_at ? new Date(m.expires_at).getTime() < Date.now() : false;
+                const expired = m.expires_at && now !== null ? new Date(m.expires_at).getTime() < now : false;
                 return (
                   <div key={m.id} className="flex items-center gap-3 border-b border-ink/8 py-2.5 last:border-0">
                     {m.profile?.avatar_url ? (
@@ -275,7 +281,7 @@ export default function OrganizationPage() {
               );
             })}
           </div>
-          <p className="mt-3 text-[12px] text-muted">A desk switched off disappears from Studio's tabs for everyone in this organization. Settings cannot be switched off.</p>
+          <p className="mt-3 text-[12px] text-muted">A desk switched off disappears from Studio tabs for everyone in this organization. Settings cannot be switched off.</p>
         </Panel>
       ) : null}
 

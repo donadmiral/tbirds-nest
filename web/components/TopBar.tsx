@@ -1,4 +1,5 @@
 "use client";
+import NextImage from "next/image";
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -64,7 +65,7 @@ export function TopBar({ name, username, avatarUrl }: { name: string; username: 
       <Link href="/notifications" className={`${chrome.control} ${chrome.headerNotifications}`} aria-label={unread ? `${unread} unread notifications` : "Notifications"} title="Notifications">
         <Bell size={21} strokeWidth={1.75} aria-hidden />{unread ? <span className={chrome.notificationBadge}>{unread > 99 ? "99+" : unread}</span> : null}
       </Link>
-      <NavigationPopover label="Account menu" className={chrome.control} trigger={avatarUrl && failedAvatar !== avatarUrl ? <img src={avatarUrl} alt="" className={chrome.avatar} onError={() => setFailedAvatar(avatarUrl)} /> : <span className={chrome.avatar}>{name.trim().split(/\s+/).slice(0,2).map(value => value[0]).join("").toUpperCase() || "?"}</span>}>
+      <NavigationPopover label="Account menu" className={chrome.control} trigger={avatarUrl && failedAvatar !== avatarUrl ? <NextImage unoptimized width={36} height={36} src={avatarUrl} alt="" className={chrome.avatar} onError={() => setFailedAvatar(avatarUrl)} /> : <span className={chrome.avatar}>{name.trim().split(/\s+/).slice(0,2).map(value => value[0]).join("").toUpperCase() || "?"}</span>}>
         {close => <>
           <div className={chrome.menuHeading}><strong>{name}</strong><span>{username ? "@" + username : "Your Platinum Circles account"}</span></div>
           <Link href={profileHref} className={chrome.menuLink} onClick={close}><User size={20} aria-hidden /><span><strong>Your profile</strong></span></Link>

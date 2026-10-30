@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import type { StoryTextSticker } from '@/lib/stories';
 import { fitStoryEditorPost, samePostGeometry } from '../lib/storyEditorPostFit';
 
@@ -12,7 +12,7 @@ export function useStoryPostEditorFit(value: StoryTextSticker[], onChange: (valu
   const topbarRef = useRef<HTMLDivElement | null>(null);
   const dockRef = useRef<HTMLDivElement | null>(null);
   const candidates = useRef(new Map<string, Candidate | null>());
-  const latest = useRef({ value, onChange }); latest.current = { value, onChange };
+  const latest = useRef({ value, onChange }); useLayoutEffect(() => { latest.current = { value, onChange }; }, [value, onChange]);
   const postIds = value.filter(sticker => sticker.kind === 'post').map(sticker => sticker.id).join('\n');
 
   useEffect(() => {

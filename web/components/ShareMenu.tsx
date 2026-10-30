@@ -13,8 +13,12 @@ function recordShare(postId: string) {
   supabase.rpc("increment_share_count", { p_post_id: postId }).then(() => {}, () => {});
 }
 
-export function ShareMenu({ postId, sharesCount }: { postId: string; sharesCount?: number }) {
-  const supabase = useRef(createClient()).current;
+export function ShareMenu(props: Parameters<typeof PostShareMenu>[0]) {
+  return <PostShareMenu key={props.postId} {...props} />;
+}
+
+function PostShareMenu({ postId, sharesCount }: { postId: string; sharesCount?: number }) {
+  const [supabase] = useState(createClient);
   const boxRef = useRef<HTMLDivElement | null>(null);
   const [open, setOpen] = useState(false);
   const [sendMode, setSendMode] = useState(false);
@@ -30,14 +34,15 @@ export function ShareMenu({ postId, sharesCount }: { postId: string; sharesCount
   const generation = useRef(0);
   const alive = useRef(true);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => { alive.current = true; return () => { alive.current = false; generation.current++; if (timer.current) clearTimeout(timer.current); }; }, []);
-  const [n, setN] = useState(sharesCount ?? 0);
-  useEffect(() => { setN(sharesCount ?? 0); }, [sharesCount, postId]);
-  useEffect(() => { generation.current++; setError(null); setSent(null); setConvs([]); setGroups([]); setCommunities([]); setOpen(false); setSendMode(false); setCopied(false); }, [postId]);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; generation.current += 1; if (timer.current) clearTimeout(timer.current); }; }, []);
+  const [count, setCount] = useState({ source: sharesCount, value: sharesCount ?? 0 });
+  if (count.source !== sharesCount) setCount({ source: sharesCount, value: sharesCount ?? 0 });
+  const n = count.value;
+  const setN = (next: (value: number) => number) => setCount(previous => ({ ...previous, value: next(previous.value) }));
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event) => {
       if (event !== 'SIGNED_IN' && event !== 'SIGNED_OUT') return;
-      generation.current++; setConvs([]); setGroups([]); setCommunities([]); setSendMode(false); setOpen(false);
+      generation.current += 1; setConvs([]); setGroups([]); setCommunities([]); setSendMode(false); setOpen(false);
     });
     return () => data.subscription.unsubscribe();
   }, [supabase]);
@@ -54,11 +59,11 @@ export function ShareMenu({ postId, sharesCount }: { postId: string; sharesCount
   }, [open]);
 
   function closeMenu() {
-    generation.current++;
+    generation.current += 1;
     setOpen(false); setSendMode(false); setLoading(false); setError(null);
   }
   function backToShare() {
-    generation.current++;
+    generation.current += 1;
     setSendMode(false); setLoading(false); setError(null);
   }
 
@@ -84,7 +89,7 @@ export function ShareMenu({ postId, sharesCount }: { postId: string; sharesCount
   }
 
   async function openSend() {
-    const attempt = ++generation.current;
+    const attempt = generation.current += 1;
     const current = () => alive.current && attempt === generation.current;
     setSendMode(true); setLoading(true); setError(null); setSent(null);
     setConvs([]); setGroups([]); setCommunities([]);

@@ -34,6 +34,7 @@ function harness(options = {}) {
   const slots = [], effects = [], timers = new Map();
   let cursor = 0, tree, timerId = 0, stateWrites = 0, callback, viewer = options.viewer === undefined ? 'owner-a' : options.viewer, accessToken = 'synthetic-personal-session';
   const calls = { reads: [], inserts: [], checks: [], invokes: [], verifies: [], sessions: [], routes: [], unsubscribes: 0 };
+  const router = { replace: route => calls.routes.push(route), refresh() {} };
   const storage = new Map([['pc:business-device:v2', JSON.stringify(device)]]);
   const localStorage = { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value) };
   const session = () => viewer ? { user: { id: viewer }, access_token: accessToken } : null;
@@ -92,6 +93,7 @@ function harness(options = {}) {
       if (id === '@/lib/businessAccess') return access;
       if (id === '@/lib/media') return { displayImageUrl: value => value };
       if (id === '@/components/VerifiedBadge') return { VerifiedBadge: 'VerifiedBadge' };
+      if (id === 'next/navigation') return { useRouter: () => router };
       if (id === 'next/link') return { __esModule: true, default: 'Link' };
       if (id === 'lucide-react') return { ArrowLeft: 'ArrowLeft', ArrowRight: 'ArrowRight', Briefcase: 'Briefcase', Building2: 'Building2', ShieldCheck: 'ShieldCheck', Plus: 'Plus' };
       throw new Error(`Unexpected import ${id}`);

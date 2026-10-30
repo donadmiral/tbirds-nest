@@ -369,7 +369,7 @@ export function Desk({
         </div>
       </div>
 
-      <div ref={detailRef} role="region" aria-label={detailTitle} tabIndex={-1} className="pc-review-detail" data-empty={!selected} style={PANEL} onKeyDown={event => { if (event.key === 'Escape') { event.preventDefault(); closeDetails(); } }}>
+      <div ref={detailRef} role="region" aria-label={detailTitle} tabIndex={-1} className="pc-review-detail" data-empty={!selected} style={PANEL} onKeyDown={event => { if (event.key === 'Escape' && !event.defaultPrevented && !(event.target as HTMLElement).closest('dialog, [role="dialog"]')) { event.preventDefault(); closeDetails(); } }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px 12px', borderBottom: '1px solid rgba(var(--on),0.10)' }}>
           <span style={{ flex: 1, fontSize: 14, fontWeight: 700, color: 'var(--txt)' }}>{detailTitle}</span>
           {selected ? <div className="pc-detail-navigation">

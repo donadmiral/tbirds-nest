@@ -7,13 +7,13 @@
  * for the sake of a number: each line is a fact the app already knows, and the
  * ones that are not yet true read as an action rather than a failure.
  */
-import { useEffect, useState } from "react";
+import { useAccountResource } from "@/lib/useAccountResource";
 import Link from "next/link";
 import { BadgeCheck, Check, ShieldAlert } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Panel } from "@/components/ui";
-import { useViewerIdentity } from "@/lib/useViewerIdentity";
-import { withTimeout } from "@/lib/withTimeout";
+
+
 
 type Me = {
   created_at: string | null;
@@ -25,25 +25,16 @@ type Me = {
   headline: string | null;
 };
 
+async function loadAccountStatus(client: ReturnType<typeof createClient>, owner: string): Promise<Me> {
+  const {data,error} = await client.from("profiles").select("created_at, is_verified, verified_tier, account_type, username, avatar_url, headline").eq("id",owner).maybeSingle();
+  if(error || !data) throw new Error("Your account details could not load.");
+  return data as Me;
+}
 export function AccountStatus() {
-  const [supabase] = useState(createClient);
-  const { viewer, loading, error: identityError, retry: retryIdentity } = useViewerIdentity();
-  const uid = viewer?.id ?? null;
-  const [result, setResult] = useState<{ owner: string; profile: Me } | null>(null);
-  const [error, setError] = useState(''), [attempt, setAttempt] = useState(0);
-  useEffect(() => {
-    let active = true;
-    setResult(null); setError('');
-    if (!uid || loading || identityError) return;
-    void withTimeout(supabase.from("profiles").select("created_at, is_verified, verified_tier, account_type, username, avatar_url, headline").eq("id", uid).maybeSingle()).then(({ data, error: cause }) => {
-      if (!active) return;
-      if (cause || !data) throw new Error('Profile unavailable');
-      setResult({ owner: uid, profile: data as Me });
-    }).catch(() => { if (active) setError('Your account details could not load.'); });
-    return () => { active = false; };
-  }, [supabase, uid, loading, identityError, attempt]);
-  if (identityError || error) return <Panel title="Account status"><p role="status" className="text-sm text-muted">{identityError || error}</p><button type="button" className="mt-2 min-h-11 text-sm font-semibold text-ink" onClick={() => { if (identityError) retryIdentity(); else setAttempt(value => value + 1); }}>Try again</button></Panel>;
-  const me = result?.owner === uid ? result?.profile : null;
+  const resource = useAccountResource<Me|null>(loadAccountStatus, null);
+  const viewer=resource.viewer;
+  if (resource.error) return <Panel title="Account status"><p role="status" className="text-sm text-muted">{resource.error}</p><button type="button" className="mt-2 min-h-11 text-sm font-semibold text-ink" onClick={resource.retry}>Try again</button></Panel>;
+  const me = resource.data;
   if (!me) return null;
   const email = viewer?.email ?? null, confirmed = Boolean(viewer?.email_confirmed_at);
 

@@ -1,14 +1,13 @@
 import { ListRowSkeleton } from '../../components/skeletons';
 import { themedSheet, useTheme } from '../../theme/useTheme';
-import { KeyboardAvoidingView } from 'react-native';
+import { KeyboardAvoidingView ,
+  View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity,
+  Image, ActivityIndicator, RefreshControl, StatusBar, ScrollView, Alert, Modal, Platform,
+} from 'react-native';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity,
-  Image, ActivityIndicator, RefreshControl, StatusBar, ScrollView, Alert, Modal, Platform,
-} from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';

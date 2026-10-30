@@ -1,5 +1,7 @@
 "use client";
 
+import { errorMessage } from "@/lib/errors";
+
 import Link from "next/link";
 import { displayImageUrl } from "@/lib/media";
 
@@ -7,25 +9,28 @@ import { StudioRailPortal } from "@/components/StudioRailPortal";
 import { Panel } from "@/components/ui";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Copy, KeyRound, Smartphone, Users, Check, AlertCircle } from "lucide-react";
+import { Copy, KeyRound, Smartphone, Users, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { useStudio } from "@/components/StudioShell";
 import { StudioLoadError } from "../LoadError";
 import styles from "@/components/StudioWorkspace.module.css";
+import { withTimeout } from "@/lib/withTimeout";
 
 type Member = { id: string; display_name: string; role: string; active: boolean; last_sign_in_at: string | null; created_at: string };
 type Device = { id: string; device_id: string; label: string | null; status: string; created_at: string; approved_at: string | null };
-type Info = { profile: { full_name: string; username: string; bio: string | null; avatar_url: string | null; is_verified: boolean } | null; business: any; members: Member[]; devices: Device[]; signins: { member_name: string | null; device_id: string | null; created_at: string }[]; role: string | null };
+type Business = { category?: string | null; location?: string | null; address?: string | null; phone?: string | null; email?: string | null; website?: string | null; social_links?: Record<string, string> | null; hours?: Record<string, [string, string][]> | null; review_count?: number; avg_rating?: number | string | null; is_verified?: boolean };
+type BusinessDraft = { category: string; location: string; address: string; phone: string; email: string; website: string; social: Record<string, string> };
+type Info = { profile: { full_name: string; username: string; bio: string | null; avatar_url: string | null; is_verified: boolean } | null; business: Business | null; members: Member[]; devices: Device[]; signins: { member_name: string | null; device_id: string | null; created_at: string }[]; role: string | null };
 const DAYS = [["mon", "Mon"], ["tue", "Tue"], ["wed", "Wed"], ["thu", "Thu"], ["fri", "Fri"], ["sat", "Sat"], ["sun", "Sun"]] as const;
 const ROLES = ["owner", "admin", "editor", "recruiter", "support"];
 const CATS = ["Retail", "Food & Drink", "Services", "Technology", "Health", "Beauty", "Education", "Finance", "Construction", "Transport", "Agriculture", "Fashion", "Media", "Other"];
 
 export default function SettingsPage() {
-  const { me, accountId, refresh } = useStudio();
-  const supabase = useRef(createClient()).current;
+  const { accountId, refresh } = useStudio();
+  const [supabase] = useState(createClient);
   const [info, setInfo] = useState<Info | null>(null);
-  const [b, setB] = useState<any>({});
+  const [b, setB] = useState<BusinessDraft>({ category: "", location: "", address: "", phone: "", email: "", website: "", social: {} });
   const [bio, setBio] = useState("");
   const [hours, setHours] = useState<Record<string, [string, string][]>>({});
   const [busy, setBusy] = useState(false);
@@ -42,27 +47,30 @@ export default function SettingsPage() {
   const working = useRef(false);
   const mounted = useRef(false);
 
-  const load = useCallback(async () => {
-    const run = ++loadVersion.current; setLoading(true);
-    try {
+  const load = useCallback(() => {
+    const run = ++loadVersion.current;
+    const read = async () => {
       const { data: authData, error: authError } = await supabase.auth.getSession();
       if (authError || authData.session?.user.id !== accountId) throw new Error("Your session changed. Reopen Studio settings.");
       const { data, error } = await supabase.rpc("studio_get_business");
       if (error || !data) throw error || new Error("Business settings are unavailable.");
+      return { authData, data };
+    };
+    return withTimeout(read()).then(({ authData, data }) => {
       if (!mounted.current || run !== loadVersion.current) return;
       const i = data as Info; setUid(authData.session?.user.id ?? null); setInfo(i); setLoadError(null);
       setB({ category: i.business?.category || "", location: i.business?.location || "", address: i.business?.address || "", phone: i.business?.phone || "", email: i.business?.email || "", website: i.business?.website || "", social: i.business?.social_links || {} });
       setBio(i.profile?.bio || ""); setHours(i.business?.hours && typeof i.business.hours === "object" ? i.business.hours : {});
       setNewRole(role => i.members.length === 0 ? "owner" : role === "owner" ? "editor" : role);
-    } catch (error) { if (mounted.current && run === loadVersion.current) setLoadError(error instanceof Error ? error.message : "Business settings could not be refreshed."); }
-    finally { if (mounted.current && run === loadVersion.current) setLoading(false); }
+    }).catch((error: unknown) => { if (mounted.current && run === loadVersion.current) setLoadError(error instanceof Error ? error.message : "Business settings could not be refreshed."); })
+      .finally(() => { if (mounted.current && run === loadVersion.current) setLoading(false); });
   }, [supabase, accountId]);
-  useEffect(() => { mounted.current = true; void load(); return () => { mounted.current = false; loadVersion.current++; }; }, [load]);
+  useEffect(() => { const requests = loadVersion; mounted.current = true; void load(); return () => { mounted.current = false; requests.current++; }; }, [load]);
 
   const isOwner = info?.role === "owner";
   const isAdmin = isOwner || info?.role === "admin";
 
-  const act = async (fn: () => PromiseLike<{ error: any }>) => {
+  const act = async (fn: () => PromiseLike<{ error: unknown }>) => {
     if (working.current) return;
     working.current = true; setBusy(true); setActionError(null); setNotice(null);
     try { const current = await supabase.auth.getSession(); if (current.error || current.data.session?.user.id !== accountId) throw new Error("Your account changed. Reopen settings."); const { error } = await fn(); if (error) throw error; if (!mounted.current) return; setNotice("Changes saved."); await load(); await refresh(); }
@@ -86,15 +94,15 @@ export default function SettingsPage() {
       if (error) throw error;
       if (!mounted.current) return;
       setIssued({ name: newName.trim(), code: String(data) }); setNewName(""); await load(); await refresh();
-    } catch (e: any) { if (mounted.current) setActionError(e?.message || "Could not create the member."); } finally { working.current = false; if (mounted.current) setBusy(false); }
+    } catch (e: unknown) { if (mounted.current) setActionError(errorMessage(e, "Could not create the member.")); } finally { working.current = false; if (mounted.current) setBusy(false); }
   };
   const copyCode = async () => { if (!issued) return; try { await navigator.clipboard.writeText(issued.code); if (mounted.current) { setCopied(true); setActionError(null); } } catch { if (mounted.current) setActionError("The access code could not be copied. Select the code and copy it manually."); } };
 
-  if (!info) return <div><StudioLoadError message={loadError} retry={() => { void load(); }} busy={loading} />{loading ? <p className="py-12 text-center text-sm text-muted" role="status">Loading settings…</p> : null}</div>;
+  if (!info) return <div><StudioLoadError message={loadError} retry={() => { setLoading(true); void load(); }} busy={loading} />{loading ? <p className="py-12 text-center text-sm text-muted" role="status">Loading settings…</p> : null}</div>;
 
   return (
     <div>
-      <StudioLoadError message={loadError} retry={() => { void load(); }} busy={loading} />
+      <StudioLoadError message={loadError} retry={() => { setLoading(true); void load(); }} busy={loading} />
       {actionError ? <p role="alert" className={`${styles.notice} ${styles.error}`}>{actionError}</p> : null}
       {notice ? <p role="status" className={styles.notice}>{notice}</p> : null}
       {info ? (

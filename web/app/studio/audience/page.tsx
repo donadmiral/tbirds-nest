@@ -1,5 +1,7 @@
 "use client";
 
+import { errorMessage } from "@/lib/errors";
+
 import { StudioLoadError } from "../LoadError";
 
 import { StudioRailPortal } from "@/components/StudioRailPortal";
@@ -23,7 +25,7 @@ const LABELS = ["customer", "lead", "vip", "supplier", "partner"];
 const STATUSES = ["new", "contacted", "converted", "lost"];
 
 export default function AudiencePage() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [view, setView] = useState<"followers" | "leads">("followers");
   const [people, setPeople] = useState<Person[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -73,7 +75,7 @@ export default function AudiencePage() {
       const { error } = await supabase.rpc("studio_upsert_lead", { p_id: form.id, p_name: form.name, p_phone: form.phone || null, p_email: form.email || null, p_source: form.source || null, p_note: form.note || null, p_status: form.status, p_contact: form.contact_id });
       if (error) throw error;
       setForm(null); await load();
-    } catch (e: any) { alert(e?.message || "Could not save."); }
+    } catch (e: unknown) { alert(errorMessage(e, "Could not save.")); }
     finally { setBusy(false); }
   };
   const deleteLead = async (l: Lead) => {
@@ -217,8 +219,8 @@ export default function AudiencePage() {
         <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/55 sm:items-center" onClick={() => !busy && setForm(null)}>
           <div className="w-full max-w-[460px] rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
             <div className="mb-3 flex items-center justify-between"><p className="text-[15px] font-semibold text-ink">{form.id ? "Edit lead" : "New lead"}</p><button onClick={() => setForm(null)} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={16} /></button></div>
-            {[["name", "Name"], ["phone", "Phone"], ["email", "Email"], ["source", "Source, for example walk-in, referral, ad"], ["note", "Note"]].map(([k, ph]) => (
-              <input key={k} value={(form as any)[k]} onChange={e => setForm({ ...form, [k]: e.target.value })} placeholder={ph} className="mb-2 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none focus:border-ink/40" />
+            {([["name", "Name"], ["phone", "Phone"], ["email", "Email"], ["source", "Source, for example walk-in, referral, ad"], ["note", "Note"]] as const).map(([k, ph]) => (
+              <input key={k} aria-label={ph} value={form[k]} onChange={e => setForm({ ...form, [k]: e.target.value })} placeholder={ph} className="mb-2 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none focus:border-ink/40" />
             ))}
             <div className="mb-4 flex gap-1.5">{STATUSES.map(s => <button key={s} onClick={() => setForm({ ...form, status: s })} className={"flex-1 rounded-lg border px-2 py-1.5 text-[12.5px] font-semibold " + (form.status === s ? "border-ink bg-ink text-white" : "border-ink/10 text-ink/60")}>{s}</button>)}</div>
             <button onClick={saveLead} disabled={busy || !form.name.trim()} className="w-full rounded-md bg-ink py-2.5 text-sm font-semibold text-white disabled:opacity-40">{busy ? "Saving" : "Save lead"}</button>

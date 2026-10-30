@@ -1,0 +1,99 @@
+{
+  "recordedAt": "2026-10-30T17:05:24.530095+00:00",
+  "scope": "Authenticated cloud-browser QA walkthrough. These are observed UI checks, not physical-device or production acceptance.",
+  "admin": {
+    "commit": "f9f4c3f3d6b6f24ca9f648cb88f3bba599ba4d60",
+    "origin": "https://admin-l6f182omz-intobank.vercel.app",
+    "photoReview": {
+      "path": "/content/dd607e75-0383-4f75-9301-c2f96aa8ae7d",
+      "result": "passed",
+      "evidence": "admin-authenticated-post-review.jpg",
+      "observations": [
+        "Staff-only post review loaded with required moderation permission",
+        "Actual protected 1080x1920 photo decoded",
+        "Institution-scoped source retained its original audience and scope",
+        "Author, reports, comments and deterministic return links rendered"
+      ]
+    },
+    "newFinding": {
+      "name": "Escape from full-screen media closed its parent record and lost focus",
+      "sourceFix": "Preserve inline preview/trigger, stop dialog Escape propagation and ignore nested-dialog Escape in parent desk",
+      "status": "Source and component regression passed; final hosted browser verification pending"
+    }
+  },
+  "web": {
+    "commit": "b7a37a7a1e271e1ec037798a39772e151fbcc318",
+    "origin": "https://platinum-o4c94mgb4-intobank.vercel.app",
+    "checks": [
+      {
+        "name": "Home photo zoom, reset and fit controls",
+        "result": "passed"
+      },
+      {
+        "name": "Home comments panel hide/show",
+        "result": "passed"
+      },
+      {
+        "name": "Open full post and Back to Platinum Circles",
+        "result": "passed"
+      },
+      {
+        "name": "Discover and Watch actual content loading",
+        "result": "passed"
+      },
+      {
+        "name": "Messages empty state and New message dialog",
+        "result": "passed"
+      },
+      {
+        "name": "New message Cancel returns focus to its trigger",
+        "result": "passed"
+      },
+      {
+        "name": "Requests load and return to Messages",
+        "result": "passed"
+      },
+      {
+        "name": "Call history load and Back to Messages",
+        "result": "passed",
+        "limit": "No calls or second device in this QA account"
+      },
+      {
+        "name": "Channels list and existing channel details",
+        "result": "passed"
+      },
+      {
+        "name": "New channel Escape, focus return and unsent draft retention",
+        "result": "passed",
+        "sideEffects": "No channel submitted. Test text cleared."
+      },
+      {
+        "name": "Channel settings load member owner and close",
+        "result": "passed",
+        "sideEffects": "No settings, invitations or roles changed"
+      },
+      {
+        "name": "Channel poll opens, adds third option and cancels",
+        "result": "passed",
+        "sideEffects": "No poll published"
+      },
+      {
+        "name": "Communities list and creation dialog cancellation",
+        "result": "passed",
+        "limit": "No community records in this QA account"
+      },
+      {
+        "name": "Jobs list and Saved jobs",
+        "result": "passed",
+        "limit": "No job records or saved jobs in this QA account"
+      }
+    ]
+  },
+  "releaseStatus": "held",
+  "limitations": [
+    "Final public-web snapshot not yet deployed at time of these observations",
+    "This walkthrough does not prove every mutation or role journey",
+    "No physical iPhone or Android device was attached",
+    "Production media cutover and actual Storage/CDN/Auth account erasure are not established by local fixtures"
+  ]
+}

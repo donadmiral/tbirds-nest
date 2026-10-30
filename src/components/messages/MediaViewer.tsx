@@ -6,10 +6,7 @@ import { privateImageCachePolicy } from '../../../shared/mediaDelivery';
  */
 import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  View, Text, Modal, StyleSheet, Pressable, FlatList,
-  Dimensions, ActivityIndicator, StatusBar, Alert, Share, BackHandler,
-} from 'react-native';
+import { View, Text, Modal, Pressable, FlatList, Dimensions, ActivityIndicator, StatusBar, Alert, Share, BackHandler } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import * as MediaLibrary from 'expo-media-library';

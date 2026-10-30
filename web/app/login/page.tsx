@@ -1,4 +1,5 @@
 "use client";
+import NextImage from "next/image";
 
 import Link from "next/link";
 import { useState } from "react";
@@ -51,12 +52,12 @@ export default function LoginPage() {
       <section className="relative flex items-center justify-center px-8 py-10 md:w-1/2 md:py-0" style={{ background: "radial-gradient(120% 90% at 30% 20%, #1A3466 0%, #0B1E3D 60%, #081633 100%)" }} aria-hidden>
         <div className="relative w-[240px] md:w-[420px]">
           <div className="absolute left-1/2 -bottom-8 h-16 w-3/4 -translate-x-1/2 rounded-full" style={{ background: "rgba(0,0,0,0.55)", filter: "blur(22px)" }} />
-          <img src="/brand/mark-navy.png" alt="" className="relative block w-full" style={{ filter: "drop-shadow(0 30px 40px rgba(0,0,0,0.45))" }} />
+          <NextImage unoptimized width={849} height={582} src="/brand/mark-navy.png" alt="" className="relative block w-full" style={{ filter: "drop-shadow(0 30px 40px rgba(0,0,0,0.45))" }} />
         </div>
       </section>
       <section className="flex flex-1 items-center justify-center px-6 py-12 md:py-0">
         <form onSubmit={signIn} className="flex w-full max-w-[380px] flex-col">
-          <img src="/brand/wordmark-light.png" alt="Platinum Circles" className="mb-10 h-[34px] w-auto self-start" />
+          <NextImage unoptimized width={1895} height={200} src="/brand/wordmark-light.png" alt="Platinum Circles" className="mb-10 h-[34px] w-auto self-start" />
           <div className="flex flex-col gap-3">
             <input
               value={identifier}

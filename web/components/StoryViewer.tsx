@@ -1,9 +1,11 @@
 "use client";
+import {getSoundtrack} from "@/lib/soundtrack";
 
-import { MUSIC_CATALOG_ENABLED } from '../../shared/musicAvailability';
-import { useCallback, useEffect, useRef, useState } from "react";
+import { ORIGINAL_AUDIO_ENABLED } from '../../shared/musicAvailability';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import NextImage from 'next/image';
 import { displayImageUrl } from "@/lib/media";
-import { X, ChevronLeft, ChevronRight, Volume2, VolumeX, Eye, Trash2, Music, Heart, Smile, Send, BadgeCheck, AtSign, MessageCircle, Repeat2, Bookmark, Play, Pause, MoreHorizontal, Settings2, Globe2 } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Volume2, VolumeX, Eye, Trash2, Music, Heart, Smile, Send, BadgeCheck, AtSign, Play, Pause, MoreHorizontal, Settings2, Globe2 } from "lucide-react";
 import { getUserStories, markStoryViewed, toggleStoryReaction, getMyStoryReactions, getStoryPoll, STORY_FILTERS, filterCss, REACTION_EMOJIS, type CatchupUser, type StoryRow, type StoryMediaTransform, type StoryTextSticker, type StoryPoll } from "@/lib/stories";
 import { StoryPollCard } from "@/components/StoryPollCard";
 import { hydrateStoryMedia } from "@/lib/contentMedia";
@@ -24,12 +26,6 @@ import { prepareStoryReply } from "../../shared/storyMessageReference";
 import { enqueueMessage, sendOutboxMessage } from "@/lib/messageOutbox";
 
 const callActive = () => typeof document !== "undefined" && document.documentElement?.dataset?.platinumCallActive === "true";
-
-function SharedStoryVideo({ src, paused }: { src: string; paused: boolean }) {
-  const ref = useRef<HTMLVideoElement | null>(null);
-  useEffect(() => { const video = ref.current; if (!video) return; if (paused || callActive() || document.hidden) video.pause(); else void video.play().catch(() => {}); }, [src, paused]);
-  return <video ref={ref} src={src} muted loop playsInline preload="metadata" className="h-full w-full object-contain" />;
-}
 
 const IMAGE_DURATION_MS = 5000;
 const MAX_AUDIO_MS = 30000;
@@ -80,11 +76,11 @@ function StickerLayer({ stickers, clock, storyId, isOwn, paused }: { stickers: S
           return <div key={st.id} style={pos}><div style={{ ...stickerCss(st), ...extraFontCss(st.style), ...animStyle(st.anim) }}>{body}</div></div>;
         }
         if (kind === "gif" || kind === "photo" || kind === "time" || kind === "date" || kind === "weather" || kind === "entity") {
-          const cell = kind === "photo" && (st as any).photoShape === "cell" && typeof (st as any).photoFw === "number" ? { width: ((st as any).photoFw * 100) + "%", height: ((st as any).photoFh * 100) + "%" } : null;
+          const cell = kind === "photo" && st.photoShape === "cell" && typeof st.photoFw === "number" && typeof st.photoFh === "number" ? { width: (st.photoFw * 100) + "%", height: (st.photoFh * 100) + "%" } : null;
           return <div key={st.id} style={{ ...pos, ...(cell || {}) }}><div style={{ ...animStyle(st.anim), ...(cell ? { width: "100%", height: "100%" } : {}) }}><EngineSticker st={st} /></div></div>;
         }
         // Pill looks mirror the phone StickerPill: 0 white, 1 ink, 2 gradient, 3 glass.
-        const pv = (((st as any).pillVariant || 0) % 4 + 4) % 4;
+        const pv = ((st.pillVariant || 0) % 4 + 4) % 4;
         const pillBase = "pointer-events-auto inline-flex max-w-full items-center gap-1.5 truncate rounded-[18px] border border-black/5 px-4 py-2.5 text-[15px] font-extrabold tracking-[-0.3px] shadow-lg";
         const pillGrad: Record<string, string> = { link: "linear-gradient(135deg,#3C7DFF,#00C2FF)", location: "linear-gradient(135deg,#FF6B4A,#FFB03A)", mention: "linear-gradient(135deg,#7C5CFF,#B96BFF)", hashtag: "linear-gradient(135deg,#0EA5E9,#22D3EE)" };
         const pillStyle: React.CSSProperties = pv === 0 ? { background: "#FFFFFF", color: "#0A0A0A" }
@@ -102,16 +98,16 @@ function StickerLayer({ stickers, clock, storyId, isOwn, paused }: { stickers: S
           return <a key={st.id} href={"/topic/" + encodeURIComponent(st.hashtag)} style={{ ...pos, ...pillStyle }} className={pillCls}>#{st.hashtag}</a>;
         }
         if (kind === "location") {
-          return <a key={st.id} href={"https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(st.locationDisplayName || st.locationName || st.text)} target="_blank" rel="noopener noreferrer" style={{ ...pos, ...pillStyle }} className={pillCls}>{"\uD83D\uDCCD "}{st.locationDisplayName || st.locationName || st.text}</a>;
+          return <a key={st.id} href={"https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(st.locationDisplayName || st.locationName || st.text || "")} target="_blank" rel="noopener noreferrer" style={{ ...pos, ...pillStyle }} className={pillCls}>{"\uD83D\uDCCD "}{st.locationDisplayName || st.locationName || st.text}</a>;
         }
-        if (kind === "story" && (st as any).storyId) {
-          const rs: any = st;
+        if (kind === "story" && st.storyId) {
+          const rs = st;
           const thumb = rs.storyThumbUrl || rs.storyMediaUrl;
-          const href = "/story/" + encodeURIComponent(rs.storyId);
+          const href = "/story/" + encodeURIComponent(st.storyId);
           return (
             <a key={st.id} href={href} style={{ ...pos, width: 200, height: 356 }} className="pointer-events-auto block overflow-hidden rounded-[18px] border-2 border-white bg-black">
-              {thumb ? <img src={thumb} alt="" className="h-full w-full object-contain" /> : null}
-              <span className="absolute left-2.5 top-2.5 flex items-center gap-2 text-[12px] font-extrabold text-white drop-shadow">{rs.storyAuthorAvatar ? <img src={rs.storyAuthorAvatar} alt="" className="h-6 w-6 rounded-full border border-white object-cover" /> : null}{rs.storyAuthorName || "Story"}</span>
+              {thumb ? <NextImage unoptimized width={200} height={356} src={thumb} alt="" className="h-full w-full object-contain" /> : null}
+              <span className="absolute left-2.5 top-2.5 flex items-center gap-2 text-[12px] font-extrabold text-white drop-shadow">{rs.storyAuthorAvatar ? <NextImage unoptimized width={24} height={24} src={rs.storyAuthorAvatar} alt="" className="h-6 w-6 rounded-full border border-white object-cover" /> : null}{rs.storyAuthorName || "Story"}</span>
               <span className="absolute bottom-2.5 left-2.5 rounded-full bg-black/45 px-2 py-1 text-[11px] font-bold text-white">@ Mentioned you</span>
             </a>
           );
@@ -207,20 +203,24 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   const [sendingReply, setSendingReply] = useState(false);
   const sendingReplyRef = useRef(false);
   const [replyToast, setReplyToast] = useState<string | null>(null);
-  const replyOwner = useRef(uid); replyOwner.current = uid;
+  const replyOwner = useRef(uid); useLayoutEffect(()=>{replyOwner.current = uid;},[uid]);
   const user = users[userIdx];
   const story = stories[itemIdx];
+  const storyId=story?.id,storyUserId=story?.user_id;
   const currentStoryRef = useRef(story?.id);
-  currentStoryRef.current = story?.id;
+  useLayoutEffect(()=>{currentStoryRef.current = story?.id;},[story?.id]);
   const inputFocusedRef = useRef(false);
   const overlayPausedRef = useRef(false);
-  overlayPausedRef.current = viewersOpen || moreOpen || memoryOpen || emojiOpen || !!replyText.trim();
+  useLayoutEffect(()=>{overlayPausedRef.current = viewersOpen || moreOpen || memoryOpen || emojiOpen || !!replyText.trim();},[viewersOpen,moreOpen,memoryOpen,emojiOpen,replyText]);
   const mediaReady = !story?.media_url || loadedStoryId === story.id;
 
   // Reset on every advance, otherwise the previous story's ready flag hides the
   // shimmer for the next one and it flashes black again.
   useEffect(() => {
+    let live = true;
     readyStoryRef.current = null;
+    queueMicrotask(() => {
+    if (!live) return;
     setLoadedStoryId(null);
     setFailedStoryId(null);
     setActionError(null);
@@ -234,11 +234,13 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
     holdPausedRef.current = false;
     holdConsumedClickRef.current = false;
     setPlaybackPaused(false);
+    });
     if (holdRef.current) clearTimeout(holdRef.current);
     return () => {
+      live = false;
       if (holdRef.current) clearTimeout(holdRef.current);
     };
-  }, [story?.id]);
+  }, [storyId]);
   const onMediaReady = () => {
     if (currentStoryRef.current !== story?.id) return;
     readyStoryRef.current = story?.id ?? null;
@@ -261,17 +263,27 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
     });
     return () => { videos.forEach(video => { video.removeAttribute("src"); video.load(); }); };
   }, [stories, itemIdx]);
-  const storyAudioUrl = MUSIC_CATALOG_ENABLED ? story?.audio_url ?? null : null;
+  const [revokedAudioStory,setRevokedAudioStory]=useState<string|null>(null);
+  const storySoundId = story?.audio_sound_id || story?.media_transform?.audioSoundId;
+  const storyAudioUrl = ORIGINAL_AUDIO_ENABLED && story?.id !== revokedAudioStory ? story?.audio_url ?? null : null;
+  useEffect(()=>{
+    if(!storyId||!storySoundId||!storyAudioUrl)return;
+    let alive=true;const id=storyId,soundId=storySoundId;
+    const check=()=>void getSoundtrack(soundId,'story').catch(()=>{if(alive){audioRef.current?.pause();setRevokedAudioStory(id);setActionError('This audio is no longer available.');}});
+    const timer=setInterval(check,30000);const visible=()=>{if(!document.hidden)check();};
+    document.addEventListener('visibilitychange',visible);
+    return()=>{alive=false;clearInterval(timer);document.removeEventListener('visibilitychange',visible);};
+  },[storyId,storySoundId,storyAudioUrl]);
   const isOwn = !!(uid && story && uid === story.user_id);
-  useEffect(() => { setPoll(null); if (!story) return; let dead = false; getStoryPoll(story.id).then((p) => { if (!dead) setPoll(p); }).catch(() => {}); return () => { dead = true; }; }, [story?.id]);
+  useEffect(() => { let dead = false; queueMicrotask(()=>{if(!dead)setPoll(null);}); if (!storyId) return()=>{dead=true;}; getStoryPoll(storyId).then((p) => { if (!dead) setPoll(p); }).catch(() => {}); return () => { dead = true; }; }, [storyId]);
   // Only the author and mentioned people get rows back (RLS), so a normal
   // viewer sees no chip and pays one cheap empty query.
   useEffect(() => {
-    setStoryMentions([]);
-    if (!story) return;
     let dead = false;
+    queueMicrotask(()=>{if(!dead)setStoryMentions([]);});
+    if (!storyId) return()=>{dead=true;};
     const sb = createClient();
-    sb.from("story_mentions").select("id, mentioned_user_id, visible").eq("story_id", story.id).then(async ({ data }) => {
+    sb.from("story_mentions").select("id, mentioned_user_id, visible").eq("story_id", storyId).then(async ({ data }) => {
       const rows = (data ?? []) as { id: string; mentioned_user_id: string; visible: boolean }[];
       if (rows.length === 0) return;
       const { data: profs } = await sb.from("profiles").select("id, username").in("id", rows.map((r) => r.mentioned_user_id));
@@ -279,7 +291,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
       if (!dead) setStoryMentions(rows.map((r) => ({ ...r, username: names.get(r.mentioned_user_id) ?? null })));
     });
     return () => { dead = true; };
-  }, [story?.id]);
+  }, [storyId]);
   const canReact = !!(story && !isOwn && story.allow_reactions !== false);
   const canReply = !!(story && !isOwn && story.allow_replies !== false);
 
@@ -464,9 +476,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   useEffect(() => {
     if (!user || !uid) return;
     let off = false;
-    setStories([]);
-    setStoryLoadFinished(false);
-    setStoryLoadError(false);
+    queueMicrotask(()=>{if(!off){setStories([]);setStoryLoadFinished(false);setStoryLoadError(false);}});
     getUserStories(user.user_id).then((rows) => {
       if (off) return;
       const target = userIdx === startIndex && initialStoryId ? rows.findIndex((row) => row.id === initialStoryId) : 0;
@@ -479,22 +489,21 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   }, [user, userIdx, startIndex, initialStoryId, uid, storyLoadAttempt]);
 
   useEffect(() => {
-    setEmojiOpen(false);
-    setMyReactions(new Set());
     const version = ++reactionVersion.current;
-    if (!story || !uid || uid === story.user_id) return;
     let off = false;
-    getMyStoryReactions(story.id).then((emojis) => { if (!off && reactionVersion.current === version) setMyReactions(new Set(emojis)); }).catch(() => {});
+    queueMicrotask(()=>{if(!off){setEmojiOpen(false);setMyReactions(new Set());}});
+    if (!storyId || !uid || uid === storyUserId) return()=>{off=true;};
+    getMyStoryReactions(storyId).then((emojis) => { if (!off && reactionVersion.current === version) setMyReactions(new Set(emojis)); }).catch(() => {});
     return () => { off = true; };
-  }, [story?.id, uid]);
+  }, [storyId, storyUserId, uid]);
 
   useEffect(() => {
     if (!story) return;
-    setProgress(0);
+    let live = true;
     stopTimer();
     const mtx = (story.media_transform || {}) as StoryMediaTransform;
     const hasTrim = typeof mtx.trimStart === "number" && typeof mtx.trimEnd === "number" && mtx.trimEnd > mtx.trimStart;
-    setClock(story.media_type === "video" ? (Number(mtx.trimStart) || 0) : null);
+    queueMicrotask(()=>{if(live){setProgress(0);setClock(story.media_type === "video" ? (Number(mtx.trimStart) || 0) : null);}});
     if (videoRef.current) { try { videoRef.current.volume = Math.max(0, Math.min(1, (mtx.mix?.orig ?? 100) / 100)); } catch {} }
     if (audioRef.current) { try { audioRef.current.volume = Math.max(0, Math.min(1, (mtx.mix?.music ?? 100) / 100)); } catch {} }
     const isVideo = story.media_type === "video";
@@ -502,12 +511,12 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
       ? Math.max(1000, (story.duration_sec ?? 10) * 1000)
       : IMAGE_DURATION_MS;
     if (isVideo && hasTrim) dur = Math.max(800, ((mtx.trimEnd as number) - (mtx.trimStart as number)) * 1000);
-    if (MUSIC_CATALOG_ENABLED && !isVideo && story.audio_url && story.audio_duration_sec && story.audio_duration_sec > 0) {
+    if (ORIGINAL_AUDIO_ENABLED && !isVideo && story.audio_url && story.audio_duration_sec && story.audio_duration_sec > 0) {
       dur = Math.min(Math.max(dur, story.audio_duration_sec * 1000), MAX_AUDIO_MS);
     }
     durRef.current = dur;
     startedAt.current = Date.now();
-    if (document.hidden || callActive() || playbackPausedRef.current) { pauseNow(); return stopTimer; }
+    if (document.hidden || callActive() || playbackPausedRef.current) { pauseNow(); return()=>{live=false;stopTimer();}; }
     timerRef.current = setInterval(() => {
       if (story.media_url && readyStoryRef.current !== story.id) { startedAt.current = Date.now(); return; }
       if (isVideo && videoRef.current) {
@@ -521,8 +530,8 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
       if (p >= 1) advance();
       else setProgress(p);
     }, 50);
-    return stopTimer;
-  }, [story, advance, stopTimer]);
+    return()=>{live=false;stopTimer();};
+  }, [story, advance, stopTimer, pauseNow]);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -546,8 +555,8 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
   }, [story?.id, storyAudioUrl, mediaReady, playbackPaused, muted, story?.media_transform?.mix?.music]);
 
   useEffect(() => {
-    if (story && mediaReady) void markStoryViewed(story.id);
-  }, [story?.id, mediaReady]);
+    if (storyId && mediaReady) void markStoryViewed(storyId);
+  }, [storyId, mediaReady]);
 
   useEffect(() => {
     let pausedByVisibility = false;
@@ -658,8 +667,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
 
         <div className="absolute inset-x-0 top-5 z-10 flex items-center gap-2 px-3">
           {user.avatar_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={displayImageUrl(user.avatar_url, 100) ?? user.avatar_url} alt="" className="h-10 w-10 shrink-0 rounded-full border border-[#E8D3B6]/60 p-0.5 object-cover" />
+            <NextImage unoptimized width={40} height={40} src={displayImageUrl(user.avatar_url, 100) ?? user.avatar_url} alt="" className="h-10 w-10 shrink-0 rounded-full border border-[#E8D3B6]/60 p-0.5 object-cover" />
           ) : (
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-navy text-xs font-semibold text-white">
               {(user.full_name ?? "?").charAt(0).toUpperCase()}
@@ -679,7 +687,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
             {!mediaReady && story.media_url ? (
               <span className="absolute inset-0 z-[1] animate-pulse bg-white/[0.06]" aria-hidden />
             ) : null}
-            {story.media_type === "text" ? (() => { if (story.media_transform?.bg) return <BgLayer bg={story.media_transform.bg} mediaUrl={story.stickers_json?.find(s => s.kind === 'post' && s.postMediaType !== 'video')?.postMediaUrl || null} />; const sharedPhoto = story.stickers_json?.find(s => s.kind === "post" && s.postMediaType !== "video" && s.postMediaUrl)?.postMediaUrl; return sharedPhoto ? <div className="pointer-events-none absolute inset-0"><img src={sharedPhoto} alt="" className="h-full w-full scale-110 object-cover blur-2xl" /><div className="absolute inset-0 bg-black/50" /></div> : null; })() : null}
+            {story.media_type === "text" ? (() => { if (story.media_transform?.bg) return <BgLayer bg={story.media_transform.bg} mediaUrl={story.stickers_json?.find(s => s.kind === 'post' && s.postMediaType !== 'video')?.postMediaUrl || null} />; const sharedPhoto = story.stickers_json?.find(s => s.kind === "post" && s.postMediaType !== "video" && s.postMediaUrl)?.postMediaUrl; return sharedPhoto ? <div className="pointer-events-none absolute inset-0"><NextImage unoptimized width={1080} height={1920} src={sharedPhoto} alt="" className="h-full w-full scale-110 object-cover blur-2xl" /><div className="absolute inset-0 bg-black/50" /></div> : null; })() : null}
             {story.media_transform?.bg && story.media_transform?.fit === "contain" ? (
               <div className="pointer-events-none absolute inset-0 z-0"><BgLayer bg={story.media_transform.bg} mediaUrl={story.media_type === "image" ? story.media_url : null} /></div>
             ) : null}
@@ -701,8 +709,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
                 style={mediaStyle(story.media_transform)}
               /></StoryPixelGrade>
             ) : story.media_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <StoryPixelGrade className="h-full w-full"><img
+              <StoryPixelGrade className="h-full w-full"><NextImage unoptimized width={1080} height={1920}
                 key={story.id + "-" + mediaRetry}
                 src={story.media_url}
                 alt=""
@@ -723,9 +730,9 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
             <DrawSvg stickers={story.stickers_json} />
             <style dangerouslySetInnerHTML={{ __html: STICKER_ANIM_CSS }} />
             {storyAudioUrl ? (
-              <audio onPlay={() => { if (playbackPausedRef.current || document.hidden || callActive()) audioRef.current?.pause(); }}
-                onTimeUpdate={event => { const limit = Number(story.audio_duration_sec); if (limit > 0 && event.currentTarget.currentTime >= limit) event.currentTarget.currentTime = 0; }}
-                onSeeking={event => { const limit = Number(story.audio_duration_sec); if (limit > 0 && event.currentTarget.currentTime >= limit) event.currentTarget.currentTime = 0; }}
+              <audio onPlay={() => { if(audioRef.current&&audioRef.current.currentTime<(Number(story.media_transform?.audioStartSec)||0))audioRef.current.currentTime=Number(story.media_transform?.audioStartSec)||0;if (playbackPausedRef.current || document.hidden || callActive()) audioRef.current?.pause(); }}
+                onTimeUpdate={event => { const limit = Number(story.audio_duration_sec); if (limit > 0 && event.currentTarget.currentTime >= (Number(story.media_transform?.audioStartSec)||0)+limit) event.currentTarget.currentTime = Number(story.media_transform?.audioStartSec)||0; }}
+                onSeeking={event => { const limit = Number(story.audio_duration_sec); if (limit > 0 && event.currentTarget.currentTime >= (Number(story.media_transform?.audioStartSec)||0)+limit) event.currentTarget.currentTime = Number(story.media_transform?.audioStartSec)||0; }}
                 ref={audioRef} key={story.id + "-audio"} src={storyAudioUrl} loop muted={muted} onError={() => setFailedStoryId(story.id)} />
             ) : null}
             {storyAudioUrl && story.audio_title ? (
@@ -734,8 +741,7 @@ export function StoryViewer({ users, startIndex, initialStoryId, onClose }: {
               </span>
             ) : null}
             {story.dual_front_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={story.dual_front_url} alt="" className="absolute bottom-20 left-3 z-[2] h-32 w-24 rounded-xl border-2 border-white/70 object-cover shadow-lg" />
+              <NextImage unoptimized width={96} height={128} src={story.dual_front_url} alt="" className="absolute bottom-20 left-3 z-[2] h-32 w-24 rounded-xl border-2 border-white/70 object-cover shadow-lg" />
             ) : null}
             {!isOwn && uid && storyMentions.some((m) => m.mentioned_user_id === uid && !m.visible) ? (
               <span className="absolute right-3 top-14 z-10 flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 text-[11px] font-medium text-white"><AtSign size={11} /> Mentioned you</span>
@@ -843,7 +849,7 @@ function ViewersSheet({ storyId, viewsCount, audience, onClose, onSettings }: { 
   useEffect(() => {
     let cancelled = false;
     const client = createClient();
-    setPeople([]); setReactions([]); setLoading(true); setError(false);
+    queueMicrotask(()=>{if(!cancelled){setPeople([]);setReactions([]);setLoading(true);setError(false);}});
     void Promise.all([client.rpc("get_story_viewers", { p_story_id: storyId }), client.rpc("get_story_reactions", { p_story_id: storyId }), client.from("stories").select("audience").eq("id", storyId).maybeSingle()]).then(([views, reacted, settings]) => {
       if (cancelled) return;
       if (views.error || reacted.error) throw views.error || reacted.error;
@@ -862,8 +868,7 @@ function ViewersSheet({ storyId, viewsCount, audience, onClose, onSettings }: { 
       <div role="tablist" aria-label="Story activity" className="mb-3 flex border-b border-[#dedbd6]">{([['viewers','Viewers'],['reactions','Reactions']] as const).map(([key,label]) => <button type="button" role="tab" aria-selected={tab === key} key={key} onClick={() => setTab(key)} className={"min-h-11 flex-1 border-b-2 text-sm font-semibold " + (tab === key ? "border-[#0B1E3D] text-[#0B1E3D]" : "border-transparent text-[#8c929a]")}>{label}</button>)}</div>
       {loading ? <p role="status" className="py-8 text-center text-sm text-[#78808a]">Loading activity…</p> : error ? <div role="alert" className="py-6 text-center text-sm text-[#78808a]">Activity could not load.<button type="button" className="mx-auto mt-3 block min-h-11 rounded-full bg-[#0B1E3D] px-5 text-xs font-semibold text-white" onClick={() => setAttempt(n => n + 1)}>Try again</button></div> : !rows.length ? <p className="py-8 text-center text-sm text-[#78808a]">{tab === "viewers" ? "No views yet." : "No reactions yet."}</p> : rows.map(person => <div key={person.user_id} className="flex min-h-16 items-center gap-3 border-b border-black/5 py-2">
         {person.avatar_url ?
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={displayImageUrl(person.avatar_url, 100) ?? person.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover" /> : <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E8DDCA] text-sm font-semibold">{(person.full_name || person.username || "?").charAt(0)}</span>}
+          <NextImage unoptimized width={40} height={40} src={displayImageUrl(person.avatar_url, 100) ?? person.avatar_url} alt="" className="h-10 w-10 rounded-full object-cover" /> : <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E8DDCA] text-sm font-semibold">{(person.full_name || person.username || "?").charAt(0)}</span>}
         <div className="min-w-0 flex-1"><p className="flex items-center gap-1 text-sm font-semibold">{person.username ? <a href={"/" + person.username} className="truncate">{person.full_name || person.username}</a> : person.full_name || "Member"}<VerifiedBadge userId={person.user_id} size={12} /></p>{person.username ? <p className="truncate text-xs text-[#8b9199]">@{person.username}</p> : null}</div><span className="text-lg">{reactionMap.get(person.user_id)?.emojis.join("")}</span>
       </div>)}
       <button type="button" onClick={onSettings} className="mt-5 flex min-h-12 w-full items-center gap-3 text-sm font-semibold"><Settings2 size={21} />Story settings<ChevronRight size={20} className="ml-auto" /></button>

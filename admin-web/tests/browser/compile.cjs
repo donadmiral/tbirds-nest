@@ -7,6 +7,9 @@ async function main() {
   await fs.mkdir(output,{recursive:true});
   await new Promise((resolve,reject)=>webpack({
     mode:'development',devtool:false,context:root,target:'web',entry:path.join(__dirname,'fixture.tsx'),output:{path:output,filename:'fixture.js'},
+    // Next normally injects these constants. Keep its real Image component in
+    // the fixture without relying on a Node process global in the browser.
+    plugins:[new webpack.DefinePlugin({'process.env.__NEXT_IMAGE_OPTS':'undefined','process.env.NEXT_DEPLOYMENT_ID':'undefined','process.env.NEXT_SUPPORTS_IMMUTABLE_ASSETS':'false','process.env.NEXT_RUNTIME':JSON.stringify('browser')})],
     resolve:{extensions:['.tsx','.ts','.js'],alias:{'@':root,'next/link':path.join(__dirname,'router-adapter.tsx'),'next/navigation':path.join(__dirname,'router-adapter.tsx'),react:path.join(root,'node_modules/react'),'react-dom':path.join(root,'node_modules/react-dom')}},
     module:{rules:[{test:/\.tsx?$/,exclude:/node_modules/,use:path.join(__dirname,'typescript-loader.cjs')}]},
   },(error,stats)=>{if(error)return reject(error);if(stats.hasErrors())return reject(new Error(stats.toString({all:false,errors:true})));resolve();}));

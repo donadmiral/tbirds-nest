@@ -23,7 +23,7 @@ export function MarketOrders({ listing }: { listing?: OrderListing & { title?: s
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const load = useCallback(async (user: string, next?: OrderCursor | null) => {
     if(reading.current||owner.current!==user)return;reading.current=true;
-    const run = ++generation.current; setLoading(true);
+    const run = generation.current += 1; setLoading(true);
     try {
       const { data, error: err } = await orderTimeout(db.rpc('get_market_orders', { p_listing_id: listingId || null, p_before: next?.created_at || null, p_before_id: next?.id || null, p_limit: 20 }));
       if (err) throw err;
@@ -38,7 +38,7 @@ export function MarketOrders({ listing }: { listing?: OrderListing & { title?: s
     let active = true; let identity: string | undefined;
     const apply = (id: string) => {
       if (!active || identity === id) return;
-      identity = id; owner.current = id; scope.current++; generation.current++; lock.current = false;reading.current=false;
+      identity = id; owner.current = id; scope.current += 1; generation.current += 1; lock.current = false;reading.current=false;
       request.current.clear(); setPendingRequest(false); setBusy(false); setUid(id); setRows([]); setCursor(null); setMore(false); setError('');
       setQuantity('1'); setFulfilment('pickup'); setInstructions('');
       setReviewOrder(false); setReviewAction(null); setActionNote(''); setExpanded(new Set());
@@ -46,7 +46,7 @@ export function MarketOrders({ listing }: { listing?: OrderListing & { title?: s
     };
     const { data: subscription } = db.auth.onAuthStateChange((_event, session) => { apply(session?.user.id || ''); });
     void orderTimeout(db.auth.getSession()).then(({ data, error: err }) => { if (err) throw err; if (identity === undefined) apply(data.session?.user.id || ''); }).catch(() => { if (active && identity === undefined) { setLoading(false); setError('Your session could not be checked. Reload to try again.'); } });
-    return () => { active = false; owner.current = ''; scope.current++; generation.current++; subscription.subscription.unsubscribe(); };
+    return () => { active = false; owner.current = ''; scope.current += 1; generation.current += 1; subscription.subscription.unsubscribe(); };
   }, [db, load, sessionAttempt]);
   async function mutate(order?: MarketOrder, action?: string, note = '') {
     if (lock.current || !uid || owner.current !== uid) return;

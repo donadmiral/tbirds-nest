@@ -31,8 +31,8 @@ function JobCardContent({ job, initiallySaved, viewerId, onSavedChange }: JobCar
   const generation = useRef(0);
   const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    generation.current++;
-    return () => { generation.current++; if (copyTimer.current) clearTimeout(copyTimer.current); };
+    generation.current += 1;
+    return () => { generation.current += 1; if (copyTimer.current) clearTimeout(copyTimer.current); };
   }, []);
 
   async function toggleSave() {

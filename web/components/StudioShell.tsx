@@ -11,6 +11,7 @@ import { STUDIO_RAIL_SLOT } from "@/components/StudioRailPortal";
 import { StudioLoadError } from "@/app/studio/LoadError";
 import { StudioDialog } from "@/components/StudioDialog";
 import { createClient } from "@/lib/supabase/client";
+import { withTimeout } from "@/lib/withTimeout";
 import styles from "./StudioWorkspace.module.css";
 
 const StudioCtx = createContext<{ me: StudioMe | null; accountId: string; refresh: () => Promise<void> }>({ me: null, accountId: "", refresh: async () => {} });
@@ -31,6 +32,7 @@ const CREATOR_PATHS = ["/studio", "/studio/partnerships", "/studio/earnings"];
 
 export function StudioShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [supabase] = useState(createClient);
   const [accountId, setAccountId] = useState("");
   const account = useRef<string | undefined>(undefined);
   const generation = useRef(0);
@@ -48,20 +50,23 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
   const [showRail, setShowRail] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const binding = useRef(false);
+  const [navigationPath, setNavigationPath] = useState(pathname);
+  if (navigationPath !== pathname) {
+    setNavigationPath(pathname); setSearchOpen(false); setMenuOpen(false); setQuery("");
+  }
 
   const refresh = useCallback(async () => {
-    const run = ++generation.current;
-    const supabase = createClient();
+    const run = generation.current += 1;
     try {
-      const { data: session, error: sessionError } = await supabase.auth.getSession();
+      const { data: session, error: sessionError } = await withTimeout(supabase.auth.getSession());
       if (sessionError) throw sessionError;
       if (run !== generation.current) return;
       const uid = session.session?.user.id || "";
       account.current = uid; setAccountId(uid);
       if (!uid) { setMe(null); setTier(null); setSurfaces(null); setLoadError(null); return; }
-      const [studio, profile] = await Promise.all([
+      const [studio, profile] = await withTimeout(Promise.all([
         studioMe(), supabase.from("profiles").select("full_name, username, avatar_url, is_verified, verified_tier").eq("id", uid).maybeSingle(),
-      ]);
+      ]));
       if (run !== generation.current || account.current !== uid) return;
       if (profile.error) throw profile.error;
       const viewer = profile.data;
@@ -69,28 +74,26 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
       setMe(next); setLoadError(null);
       setTier(viewer?.verified_tier ?? (viewer?.is_verified ? "verified" : null));
       if (next.is_business && !next.needs_code) {
-        const result = await supabase.rpc("studio_surfaces");
+        const result = await withTimeout(supabase.rpc("studio_surfaces"));
         if (run !== generation.current || account.current !== uid) return;
         if (result.error) { setSurfaces(null); setLoadError("Your desk preferences could not be refreshed. Access is still checked when you open a tool."); }
-        else setSurfaces(Array.isArray(result.data) ? result.data as string[] : null);
+        else setSurfaces(Array.isArray(result.data) ? result.data.filter((surface): surface is string => typeof surface === "string") : null);
       } else setSurfaces(null);
-    } catch { if (run === generation.current) { setMe(null); setLoadError("Studio could not verify this session. Please try again."); } }
+    } catch { if (run === generation.current) { setMe(null); setTier(null); setSurfaces(null); setLoadError("Studio could not verify this session. Please try again."); } }
     finally { if (run === generation.current) setLoading(false); }
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
     let live = true;
-    const supabase = createClient();
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       const uid = session?.user.id || "";
       if (uid === account.current) return;
-      account.current = uid; generation.current++; setAccountId(uid); setMe(null); setTier(null); setSurfaces(null); setCode(""); setErr(null); setLoading(true); setSearchOpen(false); setMenuOpen(false); binding.current = false; setBusy(false);
+      account.current = uid; generation.current += 1; setAccountId(uid); setMe(null); setTier(null); setSurfaces(null); setCode(""); setErr(null); setLoading(true); setSearchOpen(false); setMenuOpen(false); binding.current = false; setBusy(false);
       queueMicrotask(() => { if (live) void refresh(); });
     });
     void refresh();
-    return () => { live = false; generation.current++; data.subscription.unsubscribe(); };
-  }, [refresh]);
-  useEffect(() => { setSearchOpen(false); setMenuOpen(false); setQuery(""); }, [pathname]);
+    return () => { live = false; generation.current += 1; data.subscription.unsubscribe(); };
+  }, [refresh, supabase]);
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); setSearchOpen(value => !value); }
@@ -106,10 +109,18 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
   const bind = async () => {
     if (!code.trim() || binding.current) return;
     binding.current = true; setBusy(true); setErr(null);
-    const owner = account.current;
-    try { await bindMember(code.trim()); if (owner !== account.current) return; setCode(""); await refresh(); }
-    catch (error) { if (owner === account.current) setErr(error instanceof Error ? error.message : "Code not recognised."); }
-    finally { if (owner === account.current) { binding.current = false; setBusy(false); } }
+    const owner = account.current, run = generation.current;
+    const current = () => owner === account.current && run === generation.current;
+    try {
+      const identity = await withTimeout(supabase.auth.getUser());
+      if (!current()) return;
+      if (identity.error || !owner || identity.data.user?.id !== owner) throw new Error("Sign in again before entering your access code.");
+      await withTimeout(bindMember(code.trim()));
+      if (!current()) return;
+      setCode(""); binding.current = false; setBusy(false);
+      await refresh();
+    } catch (error) { if (current()) setErr(error instanceof Error ? error.message : "Code not recognised."); }
+    finally { if (current()) { binding.current = false; setBusy(false); } }
   };
 
   if (loading) return <div className={styles.empty} role="status"><p>Opening your workspace…</p></div>;

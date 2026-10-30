@@ -115,7 +115,7 @@ export function createHomeFeedController(client: Client, seed: FeedSeed, snapsho
       publish({ rows, pending, loading: false, loadingMore: false, hasMore: keepCursor ? state.hasMore : raw.length >= PAGE_SIZE });
       if (!more) void persist(raw, token, owner, mode, allowed ?? undefined);
       measure({ operation: more ? 'page' : 'refresh', durationMs: performance.now() - started, outcome: 'ok', rows: rows.length });
-    } catch (error) {
+    } catch {
       if (!valid()) return;
       publish({ error: 'The feed could not load. Please try again.' });
       measure({ operation: more ? 'page' : 'refresh', durationMs: performance.now() - started, outcome: 'error', rows: state.rows.length });

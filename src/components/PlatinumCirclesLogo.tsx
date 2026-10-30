@@ -5,10 +5,7 @@
  * Use size prop to scale. Works on any background.
  */
 import React from 'react';
-import Svg, {
-  Defs, LinearGradient, Stop, ClipPath,
-  Circle, Ellipse, G,
-} from 'react-native-svg';
+import Svg, { Defs, LinearGradient, Stop, ClipPath, Circle, Ellipse } from 'react-native-svg';
 
 type Props = {
   size?: number;

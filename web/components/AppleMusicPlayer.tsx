@@ -20,7 +20,7 @@ export default function AppleMusicPlayer({ track }: { track: AppleMusicTrack }) 
   const [error, setError] = useState('');
 
   const prepare = useCallback(async () => {
-    const mine = ++generation.current;
+    const mine = generation.current += 1;
     setReady(false); setError('');
     try {
       const credentials = await appleMusic.developerToken();

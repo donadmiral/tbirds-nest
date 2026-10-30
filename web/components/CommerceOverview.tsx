@@ -11,6 +11,7 @@
 import { decimalMinor } from "../../shared/commerceMoney";
 import { orderMoney } from "../../shared/marketOrders";
 import { useMemo } from "react";
+import { useCurrentTime } from "@/lib/useCurrentTime";
 import Link from "next/link";
 import { TrendingUp, Package, Clock } from "lucide-react";
 import { TrendChart, Metric } from "@/components/Charts";
@@ -41,8 +42,9 @@ type Listing = {
 const DAYS = 30;
 
 export function CommerceOverview({ orders, listings }: { orders: Order[]; listings: Listing[] }) {
+  const now = useCurrentTime();
   const stats = useMemo(() => {
-    const since = Date.now() - DAYS * 86400000;
+    const since = now === null ? Infinity : now - DAYS * 86400000;
     const paid = orders.filter((o) => o.status === "completed");
     const recent = paid.filter((o) => new Date(o.completed_at || o.created_at).getTime() >= since);
 
@@ -57,8 +59,8 @@ export function CommerceOverview({ orders, listings }: { orders: Order[]; listin
     }
 
     const buckets = new Map<string, bigint>();
-    for (let i = DAYS - 1; i >= 0; i--) {
-      buckets.set(new Date(Date.now() - i * 86400000).toISOString().slice(0, 10), BigInt(0));
+    for (let i = DAYS - 1; now !== null && i >= 0; i--) {
+      buckets.set(new Date(now! - i * 86400000).toISOString().slice(0, 10), BigInt(0));
     }
     const currencies = [...byCurrency.entries()].sort(([a], [b]) => a.localeCompare(b));
     const primary = currencies[0]?.[0] ?? null;
@@ -76,7 +78,7 @@ export function CommerceOverview({ orders, listings }: { orders: Order[]; listin
       awaiting: listings.reduce((n, l) => n + (l.pending_offers || 0), 0),
       live: listings.filter((l) => l.status === "available").length,
     };
-  }, [orders, listings]);
+  }, [orders, listings, now]);
 
   const bestSellers = useMemo(
     () => listings.filter((l) => (l.sold_count || 0) > 0).sort((a, b) => b.sold_count - a.sold_count).slice(0, 4),

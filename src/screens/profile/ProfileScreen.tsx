@@ -1,18 +1,12 @@
 import { ListRowSkeleton } from '../../components/skeletons';
 import { themedSheet, useTheme } from '../../theme/useTheme';
-import { useRef } from 'react';
-import { Pressable } from 'react-native';
+import React, { useRef , useCallback, useEffect, useState } from 'react';
+import { Pressable , View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl, StatusBar, Alert, Share, FlatList, Modal, useWindowDimensions } from 'react-native';
 import VideoThumb from '../../components/VideoThumb';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import TierName from '../../components/TierName';
 import EmptyState from '../../components/EmptyState';
 import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
-import React, { useCallback, useEffect, useState } from 'react';
-import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, Image,
-  TextInput, ActivityIndicator, RefreshControl, StatusBar, Alert, Share,
-  KeyboardAvoidingView, Platform, FlatList, Modal, useWindowDimensions,
-} from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import ProfileHeader from '../../components/ProfileHeader';
@@ -28,7 +22,7 @@ import { normalizeProfilePost } from '../../utils/profilePost';
 import MemoryAlbumCard from '../../components/MemoryAlbumCard';
 import { useAuthStore } from '../../stores/authStore';
 import { uploadMedia } from '../../services/mediaService';
-import MediaRenderer, { PostMedia } from '../../components/MediaRenderer';
+import { PostMedia } from '../../components/MediaRenderer';
 import { Image as ExpoImage } from 'expo-image';
 import { storiesService, type StoryHighlight } from '../../services/storiesService';
 import HighlightRow from '../../components/stories/HighlightRow';

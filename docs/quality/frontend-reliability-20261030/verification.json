@@ -1,0 +1,136 @@
+{
+  "date": "2026-10-30",
+  "scope": "Public web source and regression fixtures; includes integrated Studio and music web checks from the shared review snapshot",
+  "baseLocalCommit": "0f2c52692b8276a04c2131a0f1e42cb8dceca9a8",
+  "checks": [
+    {
+      "cwd": "web",
+      "command": "npx eslint . --format json",
+      "exitCode": 0,
+      "errors": 0,
+      "warnings": 0,
+      "rulesPreserved": true
+    },
+    {
+      "cwd": "web",
+      "command": "npx tsc --noEmit",
+      "exitCode": 0
+    },
+    {
+      "cwd": "web",
+      "command": "node --test tests/*.cjs tests/quality/*.cjs",
+      "exitCode": 0,
+      "testPrograms": 56,
+      "passed": 56,
+      "failed": 0,
+      "skipped": 0,
+      "programs": [
+        "tests/account-resource-regressions.cjs",
+        "tests/ads-quality-regressions.cjs",
+        "tests/application-cv-regressions.cjs",
+        "tests/applications-tracker-regressions.cjs",
+        "tests/business-application-regressions.cjs",
+        "tests/call-lifecycle.cjs",
+        "tests/call-recovery.cjs",
+        "tests/comment-author-highlights.cjs",
+        "tests/comment-count-regressions.cjs",
+        "tests/discover-viewer-quality.cjs",
+        "tests/export-image.cjs",
+        "tests/follows-quality-regressions.cjs",
+        "tests/hiring-applicants.cjs",
+        "tests/home-feed-quality.cjs",
+        "tests/home-feed-scroll.cjs",
+        "tests/intobank-connection.cjs",
+        "tests/market-orders-ui.test.cjs",
+        "tests/market-reviews-ui.test.cjs",
+        "tests/media-social-components.cjs",
+        "tests/media-social-regressions.cjs",
+        "tests/memory-book-shelf-refresh.cjs",
+        "tests/memory-film-lifecycle.cjs",
+        "tests/memory-film.cjs",
+        "tests/memory-hook-boundary.cjs",
+        "tests/messages-quality-regressions.cjs",
+        "tests/monetization-quality.cjs",
+        "tests/navigation-profile-quality.cjs",
+        "tests/parity-navigation.cjs",
+        "tests/planner-choice-regressions.cjs",
+        "tests/post-media-editor.cjs",
+        "tests/profile-lookup-regressions.cjs",
+        "tests/publication-regressions.cjs",
+        "tests/quality/social-regressions.cjs",
+        "tests/recorded-webm.cjs",
+        "tests/recruiter-workflow-regressions.cjs",
+        "tests/relative-time-hydration.cjs",
+        "tests/scroll-memory-regressions.cjs",
+        "tests/signup-regressions.cjs",
+        "tests/social-page-quality.test.cjs",
+        "tests/story-capture-controls.cjs",
+        "tests/story-capture-media.cjs",
+        "tests/story-controls-regressions.cjs",
+        "tests/story-drawing-controls.cjs",
+        "tests/story-editor-post-fit.cjs",
+        "tests/story-lenses-capture.cjs",
+        "tests/story-owner-regressions.cjs",
+        "tests/story-post-share.cjs",
+        "tests/story-quality-regressions.cjs",
+        "tests/story-restoration-regressions.cjs",
+        "tests/studio-presentation.cjs",
+        "tests/studio-regressions.cjs",
+        "tests/theater-contrast-regressions.cjs",
+        "tests/theme-preference.cjs",
+        "tests/two-factor-regressions.cjs",
+        "tests/username-regressions.cjs",
+        "tests/video-player-regressions.cjs"
+      ]
+    }
+  ],
+  "focusedRootRegressions": [
+    {
+      "path": "tests/private-media-reader-regressions.test.cjs",
+      "passed": 6,
+      "failed": 0
+    },
+    {
+      "path": "tests/quality/jobs-market-regressions.cjs",
+      "passed": 50,
+      "failed": 0
+    },
+    {
+      "path": "tests/quality/memory-page-turn.cjs",
+      "passed": 14,
+      "failed": 0
+    },
+    {
+      "path": "tests/quality/memory-picker-accessibility.cjs",
+      "passed": 4,
+      "failed": 0
+    },
+    {
+      "path": "tests/quality/story-studio-interaction.cjs",
+      "passed": 9,
+      "failed": 0
+    },
+    {
+      "path": "tests/quality/story-publication-regressions.cjs",
+      "passed": 27,
+      "failed": 0
+    }
+  ],
+  "implemented": [
+    "Stable browser client initialization, account-scoped loads, current-session checks before writes, and stale account response rejection.",
+    "Retryable settings reads and checked privacy/MFA writes, preserving values on failure.",
+    "Identity-scoped post/comment/gallery readers and draft restoration; explicit pending story restoration before editing.",
+    "Error normalization and validated RPC IDs without weakening types or substituting fabricated backend success.",
+    "Signed/private/blob media stays unoptimized in NextImage; public media uses its existing Supabase image transform path.",
+    "Nested page main landmarks removed under the existing AppShell main landmark.",
+    "Manual component adapters updated for committed effects, lazy initializers, keyed children and images while retaining behavior assertions."
+  ],
+  "limits": [
+    "These are local source and synthetic regression checks. Browser/provider acceptance is recorded separately by the parent workflow.",
+    "The local environment cannot bind browser fixture servers (EPERM); actual browser assertions require hosted CI or a permitted browser environment.",
+    "No physical iPhone or Android acceptance is established by these checks.",
+    "Production media bucket cutover, cache invalidation, provider settings, and disposable-account erasure are not established by this receipt.",
+    "Commercial catalogue licensing remains disabled; original audio infrastructure is a separate verified path.",
+    "Native lint cleanup has a separate manifest and residual findings; this receipt does not claim globally clean native lint."
+  ]
+}

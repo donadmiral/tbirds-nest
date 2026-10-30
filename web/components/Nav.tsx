@@ -1,4 +1,5 @@
 "use client";
+import NextImage from "next/image";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -47,7 +48,7 @@ export function Nav({ name, username, business = false, avatarUrl = null, verifi
   return <aside data-app-chrome className={chrome.sidebar + (collapsed ? " " + chrome.collapsed : "")}>
     <div className={chrome.brandRow}>
       <Link href="/home" aria-label="Platinum Circles home" className={chrome.brand}>
-        {collapsed ? <img src="/logo.png" alt="" width={36} height={36} /> : <Wordmark size={21} />}
+        {collapsed ? <NextImage unoptimized  src="/logo.png" alt="" width={36} height={36} /> : <Wordmark size={21} />}
       </Link>
       <button type="button" onClick={toggle} className={chrome.collapseButton} aria-expanded={!collapsed} aria-controls="desktop-navigation" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Expand sidebar" : "Collapse sidebar"}>
         {collapsed ? <PanelLeftOpen size={17} strokeWidth={1.8} aria-hidden /> : <PanelLeftClose size={17} strokeWidth={1.8} aria-hidden />}
@@ -73,7 +74,7 @@ export function Nav({ name, username, business = false, avatarUrl = null, verifi
       </Link>
     </nav>
     <Link href={profileHref} className={chrome.sidebarAccount} aria-label="Your profile" title={collapsed ? name : undefined}>
-      {avatarUrl && avatarFailed !== avatarUrl ? <img src={avatarUrl} alt="" onError={() => setAvatarFailed(avatarUrl)} /> : <span className={chrome.avatar}>{name.trim().split(/\s+/).slice(0,2).map(value => value[0]).join("").toUpperCase() || "?"}</span>}
+      {avatarUrl && avatarFailed !== avatarUrl ? <NextImage unoptimized width={36} height={36} src={avatarUrl} alt="" onError={() => setAvatarFailed(avatarUrl)} /> : <span className={chrome.avatar}>{name.trim().split(/\s+/).slice(0,2).map(value => value[0]).join("").toUpperCase() || "?"}</span>}
       {collapsed ? null : <span className={chrome.accountCopy}><PersonName name={name} verified={verified} tier={tier} className="text-sm font-semibold text-ink" badgeSize={13} /><small>{username ? "@" + username : "Set your username"}</small></span>}
     </Link>
   </aside>;

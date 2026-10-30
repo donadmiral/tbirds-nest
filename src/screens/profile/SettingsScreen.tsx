@@ -4,7 +4,10 @@ import TierName from '../../components/TierName';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { showMessage } from 'react-native-flash-message';
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
-import { AppState, KeyboardAvoidingView, Platform } from 'react-native';
+import { AppState, KeyboardAvoidingView, Platform ,
+  View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Alert,
+  StatusBar, Linking, Modal, TextInput, ActivityIndicator, Image,
+} from 'react-native';
 import { paymentsService } from '../../services/paymentsService';
 import { createIntoBankLinkState } from '../../services/intoBankLinkState';
 import LinkIntoBankSheet from '../../components/LinkIntoBankSheet';
@@ -13,17 +16,13 @@ import { useAccountsStore } from '../../stores/accountsStore';
 import { useThemeStore } from '../../stores/themeStore';
 import { useLockStore } from '../../stores/lockStore';
 import React, { useCallback, useState } from 'react';
-import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Alert,
-  StatusBar, Linking, Modal, TextInput, ActivityIndicator, Image,
-} from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '../../stores/authStore';
 import { useSettingsStore } from '../../stores/settingsStore';
-import { light, typeSize, fontWeight, radius, space } from '../../constants/tokens';
+import { typeSize, fontWeight, radius, space } from '../../constants/tokens';
 import { supabase } from '../../services/supabase';
 import { requestAccountErasure } from '../../services/accountErasureService';
 import { erasureMessage } from '../../../shared/accountErasure';

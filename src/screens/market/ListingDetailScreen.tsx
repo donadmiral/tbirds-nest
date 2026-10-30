@@ -1,5 +1,4 @@
-import { takePrefetched } from '../../lib/screenTransition';
-import { useAfterTransition } from '../../lib/screenTransition';
+import { takePrefetched , useAfterTransition } from '../../lib/screenTransition';
 import { ListingSkeleton } from '../../components/skeletons';
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import TierName from '../../components/TierName';
@@ -13,10 +12,9 @@ import SellerReviews from '../../components/market/SellerReviews';
 import React, { useCallback, useState, useEffect, useRef } from 'react';
 import {
   ActivityIndicator, Alert, Dimensions, ScrollView, StyleSheet,
-  Text, TouchableOpacity, View, Modal, TextInput , KeyboardAvoidingView, Platform } from 'react-native';
+  Text, TouchableOpacity, View, Modal, TextInput , KeyboardAvoidingView, Platform , Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
-import { Share } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { useFocusEffect } from '@react-navigation/native';
 

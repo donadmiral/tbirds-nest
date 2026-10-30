@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { X, Megaphone } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -8,7 +8,7 @@ type Announcement = { id: string; title: string | null; body: string | null };
 const DISMISS_KEY = "pc_dismissed_announcements";
 
 export function AnnouncementBanner() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [a, setA] = useState<Announcement | null>(null);
 
   useEffect(() => {

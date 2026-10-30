@@ -1,6 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useAccountResource } from "@/lib/useAccountResource";
+import { useCurrentTime } from "@/lib/useCurrentTime";
+import { ErrorState } from "@/components/ErrorState";
 import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { ArrowLeft, Phone, PhoneIncoming, PhoneMissed, PhoneOff, PhoneOutgoing, Video } from "lucide-react";
@@ -19,8 +21,9 @@ function fmtDuration(secs?: number | null) {
   const m = Math.floor(secs / 60), s = secs % 60;
   return m === 0 ? s + "s" : m + "m " + s + "s";
 }
-function fmtTime(d: string) {
-  const date = new Date(d), diff = Date.now() - date.getTime();
+function fmtTime(d: string, now: number | null) {
+  const date = new Date(d); if(now === null) return date.toLocaleDateString();
+  const diff = now - date.getTime();
   const hours = diff / 3600000, days = diff / 86400000;
   if (hours < 1) return "Just now";
   if (hours < 24) return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
@@ -28,31 +31,22 @@ function fmtTime(d: string) {
   return date.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
+async function loadCalls(supabase: ReturnType<typeof createClient>, me: string): Promise<Row[]> {
+  const {data,error} = await supabase.from("call_sessions").select("id, initiator_id, receiver_id, conversation_id, status, is_video, duration_sec, created_at")
+    .or("initiator_id.eq."+me+",receiver_id.eq."+me).order("created_at",{ascending:false}).limit(100);
+  if(error) throw error;
+  const list=(data??[]) as Row[];
+  const otherIds=Array.from(new Set(list.map(row=>row.initiator_id===me?row.receiver_id:row.initiator_id).filter((id):id is string=>!!id)));
+  if(!otherIds.length) return list;
+  const people=await supabase.from("profiles").select("id, full_name, username, avatar_url").in("id",otherIds);
+  if(people.error) throw people.error;
+  const byId=new Map((people.data??[]).map(person=>[person.id,person]));
+  return list.map(row=>({...row,other:byId.get(row.initiator_id===me?row.receiver_id??"":row.initiator_id)}));
+}
 export default function CallsPage() {
-  const supabase = useRef(createClient()).current;
-  const [rows, setRows] = useState<Row[] | null>(null);
-  const [uid, setUid] = useState<string | null>(null);
-
-  const load = useCallback(async () => {
-    const { data: auth } = await supabase.auth.getUser();
-    const me = auth.user?.id ?? null;
-    setUid(me);
-    if (!me) { setRows([]); return; }
-    const { data } = await supabase.from("call_sessions").select("id, initiator_id, receiver_id, conversation_id, status, is_video, duration_sec, created_at")
-      .or("initiator_id.eq." + me + ",receiver_id.eq." + me)
-      .order("created_at", { ascending: false }).limit(100);
-    const list = (data as Row[]) ?? [];
-    if (!list.length) { setRows([]); return; }
-    const otherIds = Array.from(new Set(list.map(c => (c.initiator_id === me ? c.receiver_id : c.initiator_id)).filter(Boolean))) as string[];
-    const byId: Record<string, Row["other"]> = {};
-    if (otherIds.length) {
-      const { data: people } = await supabase.from("profiles").select("id, full_name, username, avatar_url").in("id", otherIds);
-      (people ?? []).forEach(p => { byId[p.id] = p; });
-    }
-    setRows(list.map(c => ({ ...c, other: byId[c.initiator_id === me ? (c.receiver_id || "") : c.initiator_id] })));
-  }, [supabase]);
-  useEffect(() => { void load(); }, [load]);
-
+  const resource=useAccountResource(loadCalls, []);
+  const uid=resource.owner, rows=resource.data;
+  const now=useCurrentTime();
   const redial = (row: Row, isVideo: boolean) => {
     if (!row.other) return;
     requestWebCall({ receiverId: row.other.id, conversationId: row.conversation_id, isVideo, name: row.other.full_name || row.other.username || "User" });
@@ -78,7 +72,7 @@ export default function CallsPage() {
       <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><Phone size={19} className="text-accent" /> Calls</h1>
       <p className="pb-5 text-[13px] text-muted">Your call history.</p>
 
-      {rows === null ? <p className="py-10 text-center text-sm text-muted">Loading</p>
+      {resource.error ? <ErrorState title="Call history could not load" line={resource.error} onRetry={resource.retry}/> : resource.loading ? <p className="py-10 text-center text-sm text-muted">Loading</p>
       : rows.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-ink/15 py-16 text-center">
           <Phone size={28} className="text-muted" />
@@ -98,7 +92,7 @@ export default function CallsPage() {
               <p className={"flex items-center gap-1.5 text-[12.5px] " + (missed ? "text-danger" : "text-muted")}>
                 {icon(r)} {label(r)}{r.is_video ? " · Video" : " · Audio"}{r.duration_sec ? " · " + fmtDuration(r.duration_sec) : ""}
               </p>
-              <p className="text-[11px] text-muted">{fmtTime(r.created_at)}</p>
+              <p className="text-[11px] text-muted">{fmtTime(r.created_at, now)}</p>
             </div>
             <div className="flex shrink-0 gap-1.5">
               <button onClick={() => redial(r, false)} className="flex h-9 w-9 items-center justify-center rounded-full bg-ink/5 text-ink transition-colors duration-[140ms] hover:bg-ink/10" aria-label="Voice call"><Phone size={15} /></button>

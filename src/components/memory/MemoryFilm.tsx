@@ -1,3 +1,5 @@
+import { readSoundtrack } from '../../../shared/soundtrack';
+import { useSoundtrackPlayer } from '../../hooks/useSoundtrackPlayer';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AccessibilityInfo, ActivityIndicator, Animated, AppState, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
@@ -9,21 +11,22 @@ import { useCallContext } from '../../contexts/CallContext';
 import { useMemoryPlayback } from '../../hooks/useMemoryPlayback';
 import MemoryPageImage from './MemoryPageImage';
 import MemoryStoryFrame from './MemoryStoryFrame';
-import { MEMORY_SCORE_DESCRIPTION, MEMORY_SCORE_DUCK, MEMORY_SCORE_TITLE, MEMORY_SCORE_VOLUME, createMemoryFilmProgressGuard, memoryFilmItems, memoryFilmPhotoDuration, memoryFilmProgress, memoryFilmStep, memoryFilmVideoWindow, type MemoryFilmItem, type MemoryFilmPage } from '../../../shared/memoryFilm';
+import { MEMORY_SCORE_DESCRIPTION, MEMORY_SCORE_DUCK, MEMORY_SCORE_TITLE, MEMORY_SCORE_VOLUME, createMemoryFilmProgressGuard, memoryFilmItems, memoryPageSoundtrack, memoryFilmPhotoDuration, memoryFilmProgress, memoryFilmStep, memoryFilmVideoWindow, type MemoryFilmItem, type MemoryFilmPage } from '../../../shared/memoryFilm';
 import { privateImageCachePolicy } from '../../../shared/mediaDelivery';
 
 /** A dedicated continuous film. The editable book remains a separate reading surface. */
-export default function MemoryFilm({ title, pages, active, reduceMotion, onClose, onReadBook, onRetry, onPost }: {
-  title: string; pages: MemoryFilmPage[]; active: boolean; reduceMotion: boolean;
+export default function MemoryFilm({ title, pages, soundtrack, active, reduceMotion, onClose, onReadBook, onRetry, onPost }: {
+  title: string; pages: MemoryFilmPage[]; soundtrack?: unknown; active: boolean; reduceMotion: boolean;
   onClose: () => void; onReadBook: () => void; onRetry: () => void; onPost: (id: string) => void;
 }) {
+  const savedMusic=readSoundtrack(soundtrack);
   const insets = useSafeAreaInsets();
   const { callState } = useCallContext();
   const items = useMemo(() => memoryFilmItems(pages), [pages]);
   const [selection, setSelection] = useState({ id: pages[0]?.id ?? '', run: 0 });
   const [playing, setPlaying] = useState(true);
   const [foreground, setForeground] = useState(AppState.currentState === 'active');
-  const [music, setMusic] = useState(true), [volume, setVolume] = useState(MEMORY_SCORE_VOLUME);
+  const [music, setMusic] = useState(true), [volume, setVolume] = useState(savedMusic?.volume??MEMORY_SCORE_VOLUME);
   const [originalMuted, setOriginalMuted] = useState(true);
   const [readyKey, setReadyKey] = useState('');
   const [failure, setFailure] = useState({ key: '', message: '' });
@@ -31,6 +34,7 @@ export default function MemoryFilm({ title, pages, active, reduceMotion, onClose
   const [attempt, setAttempt] = useState(0);
   const index = Math.max(0, items.findIndex(item => item.id === selection.id));
   const item = items[index];
+  const pageMusic=memoryPageSoundtrack(item?.page);
   const key = `${item?.id}:${item?.uri}:${selection.run}:${attempt}`;
   const error = failure.key === key ? failure.message : '';
   const ready = item?.kind === 'text' || readyKey === key;
@@ -49,7 +53,9 @@ export default function MemoryFilm({ title, pages, active, reduceMotion, onClose
   const displayedProgress = item?.kind === 'video' ? videoState.key === key ? videoState.progress : 0 : progress;
   const scale = useRef(new Animated.Value(.965)).current;
   const fade = useRef(new Animated.Value(1)).current;
-  const score = useMemoryScore(allowed && music, volume * (item?.kind === 'video' && !originalMuted ? MEMORY_SCORE_DUCK : 1));
+  const bookAudio=useSoundtrackPlayer({selection:savedMusic?{...savedMusic,volume:volume*(item?.kind==='video'&&!originalMuted||pageMusic?MEMORY_SCORE_DUCK:1)}:null,use:'memory_album',active:allowed&&music});
+  const pageAudio=useSoundtrackPlayer({selection:pageMusic,use:'memory_album',active:allowed&&ready,playbackKey:key});
+  const score = useMemoryScore(allowed && music && !savedMusic, volume * (item?.kind === 'video' && !originalMuted || pageMusic ? MEMORY_SCORE_DUCK : 1));
   useEffect(() => {
     const sub = AppState.addEventListener('change', state => setForeground(state === 'active'));
     let live = true;
@@ -111,8 +117,8 @@ export default function MemoryFilm({ title, pages, active, reduceMotion, onClose
           {item.kind === 'video' && <TouchableOpacity accessibilityRole="button" accessibilityLabel={originalMuted ? 'Unmute original video sound' : 'Mute original video sound'} accessibilityState={{ selected: !originalMuted }} onPress={() => setOriginalMuted(value => !value)} style={s.icon}><Feather name={originalMuted ? 'volume-x' : 'volume-2'} size={20} color="#fff" /></TouchableOpacity>}
           <TouchableOpacity accessibilityRole="button" accessibilityLabel={music ? 'Turn off background music' : 'Play background music'} accessibilityState={{ selected: music }} onPress={() => { score.retry(); setMusic(value => !value); }} style={[s.icon, music && s.selected]}><Feather name="music" size={19} color="#fff" /></TouchableOpacity>
         </View>
-        {music && <View style={s.musicRow}><View style={{ flex: 1 }}><Text style={s.track}>{MEMORY_SCORE_TITLE}</Text><Text style={s.credit}>{MEMORY_SCORE_DESCRIPTION}</Text></View><FilmVolume value={volume} onChange={setVolume} /></View>}
-        {!!score.error && <TouchableOpacity accessibilityRole="button" onPress={score.retry}><Text style={s.notice}>Music could not play. Tap to retry.</Text></TouchableOpacity>}
+        {music && <View style={s.musicRow}><View style={{ flex: 1 }}><Text style={s.track}>{savedMusic?'Book soundtrack':MEMORY_SCORE_TITLE}</Text><Text style={s.credit}>{savedMusic?'Your saved excerpt and mix':MEMORY_SCORE_DESCRIPTION}</Text></View><FilmVolume value={volume} onChange={setVolume} /></View>}
+        {!!(bookAudio.error||pageAudio.error||score.error) && <TouchableOpacity accessibilityRole="button" onPress={()=>{bookAudio.retry();pageAudio.retry();score.retry();}}><Text style={s.notice}>Music could not play. Tap to retry.</Text></TouchableOpacity>}
       </View>
     </View>
   </Modal>;

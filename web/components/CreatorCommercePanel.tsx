@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { readCreatorCommerce, saveCreatorProduct, type CreatorCommerce, type CreatorProduct } from '../../shared/monetization/commerce';
 import { formatMinor, usdToMinor } from '../../shared/monetization/domain';
@@ -17,13 +17,13 @@ export default function CreatorCommercePanel({ owner, approved }: { owner: strin
   const [kind, setKind] = useState<CreatorProduct['kind']>('subscription');
   const [days, setDays] = useState('30');
   const live = useRef(false), lock = useRef(false), generation = useRef(0), draftId = useRef<string | null>(null);
-  async function load() {
-    const run = ++generation.current; setLoading(true); setError('');
-    try { const result = await readCreatorCommerce(client, owner); if (live.current && run === generation.current) setData(result); }
-    catch (e) { if (live.current && run === generation.current) { setData(null); setError(e instanceof Error ? e.message : 'Could not load creator products.'); } }
-    finally { if (live.current && run === generation.current) setLoading(false); }
-  }
-  useEffect(() => { if (!CREATOR_COMMERCE_ENABLED) return; live.current = true; void load(); return () => { live.current = false; generation.current++; }; }, [owner, client]); // eslint-disable-line react-hooks/exhaustive-deps
+  const load = useCallback(() => {
+    const run = ++generation.current;
+    return readCreatorCommerce(client, owner).then(result => { if (live.current && run === generation.current) { setData(result); setError(''); } })
+      .catch((e: unknown) => { if (live.current && run === generation.current) { setData(null); setError(e instanceof Error ? e.message : 'Could not load creator products.'); } })
+      .finally(() => { if (live.current && run === generation.current) setLoading(false); });
+  }, [client, owner]);
+  useEffect(() => { if (!CREATOR_COMMERCE_ENABLED) return; const requests = generation; live.current = true; void load(); return () => { live.current = false; requests.current++; }; }, [load]);
   async function save(existing?: CreatorProduct) {
     if (lock.current) return; lock.current = true; setBusy(true); setError('');
     try {
@@ -40,7 +40,7 @@ export default function CreatorCommercePanel({ owner, approved }: { owner: strin
   const input = 'min-h-11 w-full rounded-lg border border-ink/20 bg-surface px-3';
   if (!CREATOR_COMMERCE_ENABLED) return <section className="rounded-xl border border-ink/15 bg-surface p-5" aria-labelledby="creator-products-title"><h2 id="creator-products-title" className="text-lg font-bold">Products and purchases</h2><p className="mt-2 text-sm text-muted">{CREATOR_COMMERCE_UNAVAILABLE}</p></section>;
   return <section className="rounded-xl border border-ink/15 bg-surface p-5" aria-labelledby="creator-products-title">
-    <div className="flex items-center justify-between gap-3"><h2 id="creator-products-title" className="text-lg font-bold">Products and purchases</h2><button className="min-h-11 px-2 underline" disabled={loading || busy} onClick={() => void load()}>Refresh</button></div>
+    <div className="flex items-center justify-between gap-3"><h2 id="creator-products-title" className="text-lg font-bold">Products and purchases</h2><button className="min-h-11 px-2 underline" disabled={loading || busy} onClick={() => { setLoading(true); void load(); }}>Refresh</button></div>
     {error && <p role="alert" className="my-3 text-danger">{error}</p>}
     {loading && !data && <p role="status">Loading products and purchases…</p>}
     {data && <>

@@ -6,14 +6,10 @@ import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  View, Text, StyleSheet, TouchableOpacity, FlatList,
-  TextInput, Image, ActivityIndicator, StatusBar,
-  ActionSheetIOS, Alert, Platform, Animated,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Image, StatusBar, ActionSheetIOS, Alert, Platform } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
-import { Feather } from '@expo/vector-icons';
+import { Feather , Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useUnreadStore } from '../../stores/unreadStore';
 import { storiesService } from '../../services/storiesService';
@@ -21,7 +17,6 @@ import { signGroupAvatars } from '../../services/chatMediaService';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { useDraftStore } from '../../stores/draftStore';
-import { Ionicons } from '@expo/vector-icons';
 import { Swipeable } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
 import { ConversationsSkeleton } from '../../components/Skeleton';

@@ -42,7 +42,7 @@ export default function MarketPage() {
   const account = useRef<string | null | undefined>(undefined);
   const [filterError, setFilterError] = useState("");
   const load = useCallback(async () => {
-    const token = ++request.current;
+    const token = request.current += 1;
     setLoading(true); setError(null);
     try {
       const [{ data: session, error: sessionError }, ids] = await Promise.all([
@@ -93,7 +93,7 @@ export default function MarketPage() {
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       const next = session?.user.id ?? null;
       if (next === account.current) return;
-      account.current = next; request.current++; setUid(next); setListings([]); setSavedIds(new Set());
+      account.current = next; request.current += 1; setUid(next); setListings([]); setSavedIds(new Set());
       setFiltersOpen(false); setAlertsOpen(false);
       queueMicrotask(() => { if (active) void load(); });
     });

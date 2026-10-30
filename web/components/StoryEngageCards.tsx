@@ -20,9 +20,11 @@ function useMine(storyId: string, st: StoryTextSticker, isOwn: boolean) {
   const [error, setError] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [version, setVersion] = useState(0);
+  const scope=[storyId,st.id,isOwn,st.kind,version].join(":");
+  const [previousScope,setPreviousScope]=useState(scope);
+  if(previousScope!==scope){setPreviousScope(scope);setMine(null);setAll([]);setSummary(null);setReady(false);setError(null);}
   useEffect(() => {
     let dead = false;
-    setMine(null); setAll([]); setSummary(null); setReady(false); setError(null);
     const work = async () => {
       const [answers, ownAnswer, stats] = await Promise.all([
         isOwn ? getStickerResponses(storyId, st.id) : Promise.resolve([]),
@@ -133,7 +135,7 @@ export function CountdownCard({ st }: { st: StoryTextSticker }) {
   return (
     <div className="pointer-events-auto" style={{ ...CARD, width: 236, background: "#C5CEB4", color: "#263522" }}>
       <div style={{ ...TITLE, marginBottom: 6 }}>{st.countdownTitle || st.text || "Countdown"}</div>
-      {!Number.isFinite(target) ? <div style={HINT}>No date set</div> : left <= 0 ? <div style={{ ...HINT, color: "#0B1E3D", fontWeight: 800 }}>It's here</div> : (
+      {!Number.isFinite(target) ? <div style={HINT}>No date set</div> : left <= 0 ? <div style={{ ...HINT, color: "#0B1E3D", fontWeight: 800 }}>It’s here</div> : (
         <div style={{ display: "flex", justifyContent: "center", gap: 8 }}>{[cell(d, "DAYS"), cell(h, "HRS"), cell(m, "MIN"), cell(s, "SEC")]}</div>
       )}
     </div>

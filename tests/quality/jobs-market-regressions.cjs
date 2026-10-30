@@ -256,7 +256,7 @@ function listingCardHarness(toggleSaved) {
   const react = {
     useState(initial) {
       const index = cursor++;
-      if (!(index in hooks)) hooks[index] = initial;
+      if (!(index in hooks)) hooks[index] = typeof initial === 'function' ? initial() : initial;
       return [hooks[index], (value) => { hooks[index] = typeof value === 'function' ? value(hooks[index]) : value; }];
     },
     useRef(initial) {
@@ -276,6 +276,7 @@ function listingCardHarness(toggleSaved) {
     react,
     'react/jsx-runtime': { jsx: (type, props) => typeof type === 'function' ? type(props) : ({ type, props }), jsxs: (type, props) => typeof type === 'function' ? type(props) : ({ type, props }) },
     'next/link': { default: 'link' },
+    'next/image': { default: 'img' },
     'next/navigation': { useRouter: () => ({ push() {} }) },
     'lucide-react': { Heart: 'heart', ImageIcon: 'image', MapPin: 'location', Truck: 'delivery' },
     '@/app/market/MarketWorkspace.module.css': { default: new Proxy({}, { get: (_, key) => String(key) }) },

@@ -1,5 +1,5 @@
 /** First-party media references remain stable in the database. Capabilities are ephemeral. */
-export const CONTENT_BUCKETS = ['post-media', 'story-media', 'media'] as const;
+export const CONTENT_BUCKETS = ['post-media', 'story-media', 'media', 'music-audio'] as const;
 export type ContentKind = 'post' | 'story' | 'sound' | 'story_draft' | 'memory_album' | 'highlight';
 export type ContentReference = { kind: ContentKind; id: string };
 export const CONTENT_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -8,7 +8,7 @@ export function contentObject(value: string, base: string): { bucket: string; pa
   try {
     const url = new URL(value), expected = new URL(base);
     if (url.origin !== expected.origin || url.username || url.password || url.hash) return null;
-    const match = url.pathname.match(/^\/(?:storage\/v1\/(?:object\/(?:public|sign|authenticated)|render\/image\/(?:public|sign|authenticated))|functions\/v1\/media-content)\/(post-media|story-media|media)\/(.+)$/);
+    const match = url.pathname.match(/^\/(?:storage\/v1\/(?:object\/(?:public|sign|authenticated)|render\/image\/(?:public|sign|authenticated))|functions\/v1\/media-content)\/(post-media|story-media|media|music-audio)\/(.+)$/);
     if (!match) return null;
     const path = decodeURIComponent(match[2]);
     if (path.length > 1024 || path.includes('%') || path.includes('\\') || path.split('/').some(part => !part || part === '.' || part === '..')) return null;

@@ -1,7 +1,7 @@
 "use client";
 
 import { profilePath } from "@/lib/profileLookup";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { X, Heart } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -14,7 +14,7 @@ type Liker = { id: string; full_name: string | null; username: string | null; av
 export function LikesModal({ postId, onClose, kind = "likes" }: { postId: string; onClose: () => void; kind?: "likes" | "reposts" | "bookmarks" }) {
   const table = kind === "reposts" ? "post_reposts" : kind === "bookmarks" ? "post_bookmarks" : "post_likes";
   const title = kind === "reposts" ? "Reposts" : kind === "bookmarks" ? "Bookmarks" : "Likes";
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [likers, setLikers] = useState<Liker[] | null>(null);
 
   useEffect(() => {

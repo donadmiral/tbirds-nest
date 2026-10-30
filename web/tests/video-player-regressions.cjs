@@ -40,19 +40,21 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
     exitPictureInPicture: async () => { document.pictureInPictureElement = null; }, exitFullscreen: async () => { document.fullscreenElement = null; } };
   document.body.focus = () => { document.activeElement = document.body; };
   const storage = new Map([['pc:video-prefs', JSON.stringify(prefs)]]);
-  const window = { document, innerWidth: 1200, innerHeight: 900, matchMedia: () => ({ matches: false }), addEventListener: add, removeEventListener: remove,
+  const window = { document, innerWidth: 1200, innerHeight: 900, matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }), addEventListener: add, removeEventListener: remove,
     localStorage: { getItem: key => storage.get(key), setItem: (key, value) => storage.set(key, value) } };
   const client = { auth: { getSession: async () => ({ data: { session: null } }) }, from: () => ({ select() { return this; }, in() { return this; }, then: fn => Promise.resolve(fn({ data: [] })) }) };
   const runtime = { jsx: (type, props, key) => ({ type, props, key }), jsxs: (type, props, key) => ({ type, props, key }), Fragment: 'Fragment' };
   const requireModule = name => {
     if (name === 'react') return new Proxy({}, { get: (_, key) => (...args) => currentHooks[key](...args) });
     if (name === 'react/jsx-runtime') return runtime;
+    if (name === 'next/image') return {__esModule:true,default:'img'};
     if (name === '@/lib/videoPlayback') return helper;
     if (name.includes('shared/soundtrack')) return soundtrackHelpers;
     if (name.includes('shared/discover')) return discoverHelpers;
     if (name.includes('shared/carouselNavigation')) return sharedModule('carouselNavigation.ts');
     if (name.includes('shared/postVoiceEffects')) return sharedModule('postVoiceEffects.ts');
     if (name.includes('shared/postMediaEditing')) return postEditingHelpers;
+    if (name === '@/lib/useBrowserMediaQuery') return moduleFor(compile('lib/useBrowserMediaQuery.ts'));
     if (name === '@/lib/mediaPrefs') return { dataSaverEnabled: () => saver, autoplayEnabled: () => autoplay };
     if (name === '@/lib/usePostInteractions') return { usePostInteractions: (_id, seed) => ({ ...seed, pending: false, error: null, uncertain: false }) };
     if (name === '@/lib/supabase/client') return { createClient: () => client };
@@ -97,10 +99,13 @@ function scenario({ prefs = {}, saver = false, autoplay = true, pip = false, dur
       useEffect(fn, deps) { const i = cursor++; if (!slots[i] || !same(slots[i].deps, deps)) {
         const previous = slots[i]; slots[i] = { deps }; effects.push(() => { previous?.cleanup?.(); slots[i].cleanup = fn(); }); } },
     };
+    hooks.useLayoutEffect=hooks.useEffect;
+    hooks.useMemo=(fn,deps)=>{const i=cursor++;if(!slots[i]||!same(slots[i].deps,deps))slots[i]={value:fn(),deps};return slots[i].value;};
+    hooks.useSyncExternalStore=(subscribe,snapshot)=>{hooks.useEffect(()=>subscribe(()=>screen.render()),[subscribe]);return snapshot();};
     const screen = { element, wrapper, modal, closeButton, navigation, get inlineOpener() { return inlineOpener; },
       render() {
         currentHooks = hooks; cursor = 0;
-        if (kind === 'gallery') tree = gallery.MediaGallery(props);
+        if (kind === 'gallery') { tree = gallery.MediaGallery(props); while (typeof tree?.type === 'function') tree = tree.type(tree.props); }
         else { const outer = module.VideoPlayer(props); tree = typeof outer.type === 'function' ? outer.type(outer.props) : outer; }
         const nodes = allNodes(tree);
         if (kind === 'gallery') {

@@ -30,7 +30,7 @@ export function createMediaContentHandler(deps: Dependencies) {
     let activeUpstream: Response | undefined;
     try {
       const url = new URL(request.url);
-      const match = url.pathname.match(/\/(?:functions\/v1\/)?media-content\/(post-media|story-media|media|chat-media|chat-files)\/(.+)$/);
+      const match = url.pathname.match(/\/(?:functions\/v1\/)?media-content\/(post-media|story-media|media|chat-media|chat-files|music-audio)\/(.+)$/);
       const token = url.searchParams.get('token') || '';
       if (!match || !/^[0-9a-f]{64}$/.test(token)) return error(403);
       const bucket = match[1], path = decodeURIComponent(match[2]);

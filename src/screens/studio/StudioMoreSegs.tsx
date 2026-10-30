@@ -4,7 +4,7 @@
 // (studio_reviews / studio_reply_review, studio_audience / studio_audience_summary /
 // studio_set_contact_label, studio_orders / studio_catalog / studio_set_listing).
 // Every screen is keyboard-safe, safe-area-aware and clears the tab bar.
-import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
+import { themedSheet, getTheme } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ScrollView, ActivityIndicator, Modal, Alert, KeyboardAvoidingView, Platform, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from '../../components/SafeArea';

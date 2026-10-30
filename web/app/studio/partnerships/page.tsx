@@ -67,9 +67,9 @@ export default function PartnershipsPage() {
   }, []);
 
   useEffect(() => {
-    let active = true; mounted.current = true;
+    const pending = [generation, detailGeneration]; let active = true; mounted.current = true;
     void Promise.resolve().then(() => { if (active) void load(); });
-    return () => { active = false; mounted.current = false; generation.current++; detailGeneration.current++; };
+    return () => { active = false; mounted.current = false; pending.forEach(version => version.current++); };
   }, [load]);
   useEffect(() => { const update=()=>setCurrentTime(Date.now()); const timer=setInterval(update,30000); window.addEventListener("focus",update); return()=>{clearInterval(timer);window.removeEventListener("focus",update);}; }, []);
 
@@ -87,9 +87,9 @@ export default function PartnershipsPage() {
   }, []);
   const detailId = selected?.id;
   useEffect(() => {
-    let active=true;
+    const pending = detailGeneration; let active=true;
     void Promise.resolve().then(()=>{if(!active)return;setDetail(null);if(detailId)void openDetail(detailId);else{setDetailLoading(false);setDetailError(null);}});
-    return()=>{active=false;detailGeneration.current++;};
+    return()=>{active=false;pending.current++;};
   }, [detailId, selected?.version, refreshVersion, openDetail]);
   const visible = detail && selected?.id === detail.id && selected.version === detail.version && !detailLoading ? detail : null;
   const mutation = useStudioMutation<PartnershipItem>({ owner: accountId, member: me?.member_id ?? null, kind: "partnerships", onConfirmed: row => {

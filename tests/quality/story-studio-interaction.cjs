@@ -9,11 +9,12 @@ const compile = source => ts.transpileModule(source, { compilerOptions: { jsx: t
 const runtime = { jsx: (type, props) => typeof type === 'function' ? type(props) : { type, props }, jsxs: (type, props) => typeof type === 'function' ? type(props) : { type, props }, Fragment: 'Fragment' };
 function walk(node, out = []) { if (Array.isArray(node)) node.forEach(n => walk(n, out)); else if (node && typeof node === 'object') { out.push(node); walk(node.props?.children, out); } return out; }
 const flat = value => Object.assign({}, ...[value].flat(Infinity).filter(Boolean));
-function load(file, { ios = true, height = 812, musicAvailable = true } = {}) {
+function load(file, { ios = true, height = 812 } = {}) {
   let cursor = 0, mounting = true, timerId = 0;
-  const state = [], effects = [], cleanups = [], timers = new Map(), keyboard = {};
+  const state = [], effects = [], cleanups = [], timers = new Map(), keyboard = {}, soundSources = [];
+  let microphoneRequests = 0;
   const hooks = {
-    useState(value) { const i = cursor++; if (!(i in state)) state[i] = value; return [state[i], next => { state[i] = typeof next === 'function' ? next(state[i]) : next; }]; },
+    useState(value) { const i = cursor++; if (!(i in state)) state[i] = typeof value === 'function' ? value() : value; return [state[i], next => { state[i] = typeof next === 'function' ? next(state[i]) : next; }]; },
     useRef(value) { const i = cursor++; return state[i] ??= { current: value }; },
     useMemo(fn) { return fn(); },
     useCallback(fn) { return fn; },
@@ -23,10 +24,10 @@ function load(file, { ios = true, height = 812, musicAvailable = true } = {}) {
   Object.assign(native, { AppState: { addEventListener() { return { remove() {} }; } }, StyleSheet: { create: x => x, hairlineWidth: 1, absoluteFill: { position: 'absolute' } }, Platform: { OS: ios ? 'ios' : 'android' }, useWindowDimensions: () => ({ height, width: 320 }), Keyboard: { dismiss() {}, addListener(name, fn) { keyboard[name] = fn; return { remove() { delete keyboard[name]; } }; } } });
   const module = { exports: {} };
   vm.runInNewContext(compile(fs.readFileSync(path.join(root, file), 'utf8')), { module, exports: module.exports,
-    require(name) { if (name.endsWith('/musicAvailability')) { if (musicAvailable) return { MUSIC_CATALOG_ENABLED: true }; const exported = {}; vm.runInNewContext(compile(fs.readFileSync(path.join(root, 'shared/musicAvailability.ts'), 'utf8')), { exports: exported }); return exported; } if (name === 'react') return hooks; if (name === 'react/jsx-runtime') return runtime; if (name === 'react-native') return native; if (name === '@expo/vector-icons') return { Feather: 'Feather' }; if (name === './StickerIcons') return { default: 'StickerIcon' }; if (name === './StickerGalleryPreview') return { default: 'StickerGalleryPreview' }; if (name.endsWith('/SafeArea')) return { useSafeAreaInsets: () => ({ top: 20, bottom: 0 }) }; if (name.endsWith('/CallContext')) return { useCallContext: () => ({ callState: 'idle' }) }; if (name === 'expo-av') return { Audio: { setAudioModeAsync: async () => {} } }; if (name.endsWith('/storiesService')) return { storiesService: { listStorySounds: async () => [] } }; if (name.endsWith('/AppleMusicSheet')) return { AppleMusicPicker: 'AppleMusicPicker' }; throw Error(name); },
+    require(name) { if (name.endsWith('/musicAvailability')) { const exported = {}; vm.runInNewContext(compile(fs.readFileSync(path.join(root, 'shared/musicAvailability.ts'), 'utf8')), { exports: exported }); return exported; } if (name.endsWith('/originalAudioAvailability')) return { ORIGINAL_AUDIO_PREPARING: 'Preparing original audio' }; if (name.endsWith('/originalAudioService')) return { originalAudioReady: async () => true, soundFavorites: async () => [], saveSoundFavorite: async () => {} }; if (name === './storyPanels') return { MiniSlider: 'MiniSlider' }; if (name === '../OriginalAudioUpload') return { OriginalAudioUpload: 'OriginalAudioUpload' }; if (name === 'react') return hooks; if (name === 'react/jsx-runtime') return runtime; if (name === 'react-native') return native; if (name === '@expo/vector-icons') return { Feather: 'Feather' }; if (name === './StickerIcons') return { default: 'StickerIcon' }; if (name === './StickerGalleryPreview') return { default: 'StickerGalleryPreview' }; if (name.endsWith('/SafeArea')) return { useSafeAreaInsets: () => ({ top: 20, bottom: 0 }) }; if (name.endsWith('/CallContext')) return { useCallContext: () => ({ callState: 'idle' }) }; if (name === 'expo-av') return { Audio: { setAudioModeAsync: async () => {}, requestPermissionsAsync: async () => { microphoneRequests++; return { granted: true }; } } }; if (name.endsWith('/storiesService')) return { storiesService: { listStorySounds: async source => { soundSources.push(source); return []; } } }; if (name.endsWith('/AppleMusicSheet')) return { AppleMusicPicker: 'AppleMusicPicker' }; throw Error(name); },
     setTimeout(fn) { const id = ++timerId; timers.set(id, () => { timers.delete(id); fn(); }); return id; }, clearTimeout(id) { timers.delete(id); },
   });
-  return { ...module.exports, keyboard, timers, render(props) { cursor = 0; const tree = module.exports.default(props); mounting = false; while (effects.length) { const cleanup = effects.shift()(); if (cleanup) cleanups.push(cleanup); } return tree; }, unmount() { cleanups.forEach(fn => fn()); } };
+  return { ...module.exports, keyboard, timers, soundSources, get microphoneRequests() { return microphoneRequests; }, render(props) { cursor = 0; const tree = module.exports.default(props); mounting = false; while (effects.length) { const cleanup = effects.shift()(); if (cleanup) cleanups.push(cleanup); } return tree; }, unmount() { cleanups.forEach(fn => fn()); } };
 }
 const sheetFile = 'src/components/stories/StudioSheet.tsx';
 test('corrupt stored sticker favorites cannot replace lists with objects or invalid entries', () => {
@@ -119,8 +120,19 @@ test('short iPhone music search stays above the keyboard with a pinned close act
   music.unmount();
 });
 
-test('shipping music-disabled native sheet mounts no recorder, catalog list, keyboard listener or modal', () => {
- const music=load('src/components/stories/MusicSheet.tsx',{musicAvailable:false});
- assert.equal(music.render({visible:true,current:null,onClose(){},onSelect(){},onRemove(){}}),null);
- assert.equal(Object.keys(music.keyboard).length,0);assert.equal(music.timers.size,0);music.unmount();
+test('shipping native sound sheet exposes original upload and recording without starting a microphone or claiming catalogue access', async () => {
+ const music=load('src/components/stories/MusicSheet.tsx');
+ const props={visible:true,userId:'owner',current:null,onClose(){},onSelect(){},onRemove(){}};
+ music.render(props);for(let i=0;i<8;i++)await Promise.resolve();
+ let nodes=walk(music.render(props));
+ assert.equal(nodes.filter(n=>n.type==='Modal').length,1);
+ assert.equal(nodes.find(n=>n.type==='OriginalAudioUpload').props.owner,'owner');
+ assert.ok(nodes.some(n=>n.props.children==='Record original audio'));
+ assert.equal(music.microphoneRequests,0);
+ nodes.find(n=>n.props.accessibilityRole==='tab'&&walk(n).some(c=>c.props.children==='Browse')).props.onPress();
+ nodes=walk(music.render(props));
+ assert.ok(nodes.some(n=>typeof n.props.children==='string'&&n.props.children.startsWith('No licensed soundtracks are available yet.')));
+ assert.equal(nodes.filter(n=>n.props.accessibilityLabel?.startsWith('Use ')).length,0);
+ assert.equal(music.microphoneRequests,0);
+ music.unmount();assert.equal(Object.keys(music.keyboard).length,0);
 });

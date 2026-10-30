@@ -1,7 +1,7 @@
 "use client";
 
 import { profilePath } from "@/lib/profileLookup";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { X, BarChart3 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -29,7 +29,7 @@ function fmt(n: number): string {
 }
 
 export function InsightsModal({ postId, onClose }: { postId: string; onClose: () => void }) {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [data, setData] = useState<Insights | null>(null);
   const [error, setError] = useState<string | null>(null);
 

@@ -18,7 +18,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Switch, Alert, Image } from '
 import { Feather } from '@expo/vector-icons';
 import { signGroupAvatars } from '../services/chatMediaService';
 import { supabase } from '../services/supabase';
-import { light, typeSize, fontWeight, radius, space } from '../constants/tokens';
+import { typeSize, fontWeight, radius, space } from '../constants/tokens';
 
 const HAIR = StyleSheet.hairlineWidth;
 

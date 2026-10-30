@@ -32,7 +32,7 @@ export default function StudioEarningsPage() {
     ]);
     clearTimeout(timer); if (current()) setLoading(false);
   }, [client, accountId]);
-  useEffect(() => { let active=true; live.current = true; void Promise.resolve().then(()=>{if(!active)return;setSnapshot(null);setLinked(null);void reload();}); return () => { active=false; live.current = false; request.current++; linkRequest.current?.abort(); }; }, [reload]);
+  useEffect(() => { const pending = request; let active=true; live.current = true; void Promise.resolve().then(()=>{if(!active)return;setSnapshot(null);setLinked(null);void reload();}); return () => { active=false; live.current = false; pending.current++; linkRequest.current?.abort(); }; }, [reload]);
   async function enroll(apply: boolean) {
     if (mutation.current || !accountId || !snapshot || (apply && (!accepted || !snapshot.program.terms_version))) return;
     mutation.current = true; setBusy(true); setError(null); const run = request.current;

@@ -80,7 +80,7 @@ function StrokeEl({ st }: { st: DrawStroke }) {
   return <path d={d} stroke={st.color} strokeWidth={st.width} {...common} />;
 }
 export function DrawSvg({ stickers }: { stickers: StoryTextSticker[] | null | undefined }) {
-  const strokes: DrawStroke[] = (((stickers || []).find((s: any) => s?.kind === "drawing") as any)?.strokes) || [];
+  const strokes: DrawStroke[] = (stickers || []).find(s => s.kind === "drawing")?.strokes || [];
   if (!strokes.length) return null;
   return (
     <div className="pointer-events-none absolute inset-0 z-[3]">
@@ -142,7 +142,7 @@ const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "
 const WEEKDAYS = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
 
 export function EngineSticker({ st }: { st: StoryTextSticker }) {
-  const s: any = st;
+  const s = st;
   const kind = s.kind;
   if (kind === "gif" && s.gifUrl) {
     // eslint-disable-next-line @next/next/no-img-element

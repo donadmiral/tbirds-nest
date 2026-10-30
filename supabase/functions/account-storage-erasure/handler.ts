@@ -10,7 +10,7 @@ type Dependencies = {
   uuid(): string;
 };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const BUCKETS = new Set(['post-media', 'story-media', 'media', 'chat-media', 'chat-files', 'avatars', 'market-media', 'mingle-images', 'mingle-media', 'business-media', 'startup-media', 'identity-training-photos', 'application-cvs', 'channel-media']);
+const BUCKETS = new Set(['music-audio', 'post-media', 'story-media', 'media', 'chat-media', 'chat-files', 'avatars', 'market-media', 'mingle-images', 'mingle-media', 'business-media', 'startup-media', 'identity-training-photos', 'application-cvs', 'channel-media']);
 const reply = (status: number, value: unknown) => new Response(JSON.stringify(value), {
   status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
 });

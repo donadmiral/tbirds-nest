@@ -9,7 +9,11 @@ import { createClient } from "@/lib/supabase/client";
 import { isJobDeadlinePassed, STATUS_META, type ApplicationStatus } from "@/lib/jobs";
 import { APPLICATION_CV_BUCKET, applicationCvFile } from "../../shared/applicationCv";
 
-export function ApplyPanel({ jobId, applyUrl, deadline, jobTitle, company }: { jobId: string; applyUrl: string | null; deadline: string | null; jobTitle?: string; company?: string }) {
+export function ApplyPanel(props: Parameters<typeof ApplyPanelContent>[0]) {
+  return <ApplyPanelContent key={props.jobId} {...props} />;
+}
+
+function ApplyPanelContent({ jobId, applyUrl, deadline, jobTitle, company }: { jobId: string; applyUrl: string | null; deadline: string | null; jobTitle?: string; company?: string }) {
   const [supabase] = useState(createClient);
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const [applied, setApplied] = useState<ApplicationStatus | null>(null);
@@ -28,14 +32,11 @@ export function ApplyPanel({ jobId, applyUrl, deadline, jobTitle, company }: { j
   const generation = useRef(0);
   const account = useRef<string | null>(null);
 
-  useEffect(() => {
-    uploaded.current = null;
-    setCv(null); setOpen(false); setReview(false); setCoverNote(""); setPhone(""); setPortfolio("");
-  }, [jobId]);
+
 
   useEffect(() => {
     let cancelled = false;
-    const requestGeneration = ++generation.current;
+    const requestGeneration = generation.current += 1;
     const current = () => !cancelled && requestGeneration === generation.current;
     async function checkApplication() {
       setChecking(true);

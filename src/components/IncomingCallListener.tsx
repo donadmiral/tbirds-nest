@@ -16,7 +16,7 @@ import { nativeCallService } from '../services/nativeCallService';
 import { useAuthStore } from '../stores/authStore';
 import { callService, CallRecord } from '../services/callService';
 import { supabase } from '../services/supabase';
-import { AppState, View, Text, TouchableOpacity, Image, Vibration, StyleSheet, Platform } from 'react-native';
+import { AppState, View, Text, TouchableOpacity, Image, Vibration, Platform } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from './SafeArea';
 import { useCallContext } from '../contexts/CallContext';

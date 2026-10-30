@@ -1,4 +1,5 @@
 "use client";
+import NextImage from "next/image";
 
 import { profilePath } from "@/lib/profileLookup";
 import { PersonName } from "@/components/PersonName";
@@ -48,7 +49,7 @@ function ListingDetails({ id }: { id: string }) {
 
   useEffect(() => {
     let active = true;
-    const token = ++generation.current;
+    const token = generation.current += 1;
     saving.current = false; messaging.current = false; mutating.current = false;
     (async () => {
       try {
@@ -65,13 +66,13 @@ function ListingDetails({ id }: { id: string }) {
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       const next = session?.user.id ?? null;
       if (account.current === next) return;
-      account.current = next; generation.current++; setUid(next); setListing(undefined); setLoadedId(null);
+      account.current = next; generation.current += 1; setUid(next); setListing(undefined); setLoadedId(null);
       setLoadError(false); setImg(0); setSaved(false); setCopied(false);
       setOfferOpen(false); setOfferReview(false); setOfferAmt(""); setReportOpen(false); setConfirmation(null);
       setBusy(false); setMessagePending(false); setSavePending(false); setActionError(""); setStatus("");
       queueMicrotask(() => { if (active) setRetry(value => value + 1); });
     });
-    return () => { active = false; generation.current++; listener.subscription.unsubscribe(); if (copyTimer.current) clearTimeout(copyTimer.current); };
+    return () => { active = false; generation.current += 1; listener.subscription.unsubscribe(); if (copyTimer.current) clearTimeout(copyTimer.current); };
   }, [supabase, id, retry]);
 
   async function currentAccount() {
@@ -163,10 +164,10 @@ function ListingDetails({ id }: { id: string }) {
     <Link href="/market" className={styles.back}><ArrowLeft size={17} aria-hidden />Back to Market</Link>
     <div className={styles.detail}>
       <div className={styles.detailMain}>
-        <div className={styles.gallery}>{listing.images?.[img] ? <img src={listing.images[img]} alt={listing.title + ", photo " + (img + 1)} /> : <div className={styles.help}><ImageIcon size={32} aria-hidden /><p>No photos available</p></div>}{sold ? <span className={styles.sold}>{listing.status === "sold" ? "SOLD" : "UNAVAILABLE"}</span> : null}</div>
-        {listing.images?.length > 1 ? <div className={styles.thumbnails} role="group" aria-label="Listing photos">{listing.images.map((url, index) => <button type="button" key={index} aria-label={"Show photo " + (index + 1) + " of " + listing.images.length} aria-pressed={img === index} onClick={() => setImg(index)}><img src={url} alt="" /></button>)}</div> : null}
+        <div className={styles.gallery}>{listing.images?.[img] ? <NextImage unoptimized fill sizes="(max-width: 768px) 100vw, 50vw" src={listing.images[img]} alt={listing.title + ", photo " + (img + 1)} /> : <div className={styles.help}><ImageIcon size={32} aria-hidden /><p>No photos available</p></div>}{sold ? <span className={styles.sold}>{listing.status === "sold" ? "SOLD" : "UNAVAILABLE"}</span> : null}</div>
+        {listing.images?.length > 1 ? <div className={styles.thumbnails} role="group" aria-label="Listing photos">{listing.images.map((url, index) => <button type="button" key={index} aria-label={"Show photo " + (index + 1) + " of " + listing.images.length} aria-pressed={img === index} onClick={() => setImg(index)}><NextImage unoptimized width={82} height={72} src={url} alt="" /></button>)}</div> : null}
         {listing.description ? <section className={styles.panel}><h2>About this item</h2><p className={styles.description}>{listing.description}</p></section> : null}
-        {listing.seller ? <section className={styles.panel}><h2>Meet the seller</h2><div className={styles.seller}>{listing.seller.avatar_url ? <img className={styles.avatar} src={listing.seller.avatar_url} alt="" /> : <span className={styles.avatar} aria-hidden>{(listing.seller.full_name ?? "?").charAt(0).toUpperCase()}</span>}<div><PersonName name={listing.seller.full_name ?? ""} userId={listing.seller_id} className="text-sm font-semibold" badgeSize={14} /><SellerTrust sellerId={listing.seller_id} /></div><Link href={profilePath(listing.seller.username, listing.seller_id)} className={styles.button}>View profile <ArrowRight size={15} aria-hidden /></Link></div></section> : null}
+        {listing.seller ? <section className={styles.panel}><h2>Meet the seller</h2><div className={styles.seller}>{listing.seller.avatar_url ? <NextImage unoptimized width={48} height={48} className={styles.avatar} src={listing.seller.avatar_url} alt="" /> : <span className={styles.avatar} aria-hidden>{(listing.seller.full_name ?? "?").charAt(0).toUpperCase()}</span>}<div><PersonName name={listing.seller.full_name ?? ""} userId={listing.seller_id} className="text-sm font-semibold" badgeSize={14} /><SellerTrust sellerId={listing.seller_id} /></div><Link href={profilePath(listing.seller.username, listing.seller_id)} className={styles.button}>View profile <ArrowRight size={15} aria-hidden /></Link></div></section> : null}
         <section className={styles.panel + " " + styles.reviews}><SellerReviews sellerId={listing.seller_id} listingId={listing.id} viewerId={uid} /></section>
       </div>
       <aside className={styles.detailSide} aria-label="Item details and orders">

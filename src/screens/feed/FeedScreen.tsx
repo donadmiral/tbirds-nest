@@ -58,7 +58,7 @@ import * as VideoThumbnails from 'expo-video-thumbnails';
 import * as Crypto from 'expo-crypto';
 
 import type { SoundtrackSelection } from '../../../shared/soundtrack';
-import { MUSIC_CATALOG_ENABLED } from '../../../shared/musicAvailability';
+import { ORIGINAL_AUDIO_ENABLED } from '../../../shared/musicAvailability';
 import SoundtrackPicker from '../../components/SoundtrackPicker';
 import { normalizePostPlayback } from '../../../shared/postVoiceEffects';
 import { postLookRecipe } from '../../../shared/postMediaEditing';
@@ -1696,7 +1696,7 @@ export default function FeedScreen({ navigation }: any) {
               const url = await upload(safe.uri, safe.mime, `${owner}/${postId}_${i}.${safe.ext}`);
               const { tags: _tags, coverLocalUri, soundtrack: previousSoundtrack, ...recipe } = m.edit ?? {};
               const chosenSoundtrack = i === 0 && composerSoundtrack ? composerSoundtrack : previousSoundtrack;
-              const edit: any = { ...recipe, ...(MUSIC_CATALOG_ENABLED && chosenSoundtrack ? { soundtrack: chosenSoundtrack } : {}) };
+              const edit: any = { ...recipe, ...(ORIGINAL_AUDIO_ENABLED && chosenSoundtrack ? { soundtrack: chosenSoundtrack } : {}) };
               if (video) {
                 const at = Math.max(0, Number(m.edit?.coverAt ?? m.edit?.trimStart ?? 0));
                 const thumb = coverLocalUri ? {uri:coverLocalUri} : await VideoThumbnails.getThumbnailAsync(m.uri, { time: Math.round(at * 1000), quality: 0.9 });

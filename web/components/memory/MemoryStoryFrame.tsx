@@ -4,7 +4,7 @@ import type { MemoryPage } from '@/lib/memoryAlbum';
 import { memoryStoryLayerVisible, memoryStoryRecipe, memoryStoryStickers } from '../../../shared/memoryStoryPresentation';
 import { StoryPixelGrade } from '../StoryPixelGrade';
 import { storyPhotoSpatialAdjust } from '../../../shared/storyColorMatrix';
-import { AdjustOverlay, BgLayer, DrawSvg, EngineSticker, STICKER_ANIM_CSS } from '../StoryEngine';
+import { AdjustOverlay, BgLayer, DrawSvg, EngineSticker, STICKER_ANIM_CSS, type StoryBgSpec } from '../StoryEngine';
 import { StoryStickerPreview } from '../StoryStickerPreview';
 
 /** Replays the same saved layers as the story studio, with no interactive polls or media duplication. */
@@ -23,11 +23,13 @@ export function MemoryStoryFrame({ page, clock = null, layer = 'all', children }
   }, []);
   const recipe = memoryStoryRecipe(page.media_transform);
   const stickers = memoryStoryStickers(page.stickers).filter(sticker => sticker.kind !== 'post' && memoryStoryLayerVisible(sticker, clock));
-  const bg: any = page.text_background;
-  const background = bg && typeof bg === 'object' ? bg.colors?.length > 1 ? `linear-gradient(${bg.direction === 'diagonal' ? '135deg' : '180deg'},${bg.colors.join(',')})` : bg.color || bg.colors?.[0] : typeof bg === 'string' && bg.startsWith('#') ? bg : null;
+  const bg = page.text_background;
+  const colors = bg && typeof bg === 'object' && 'colors' in bg ? bg.colors : undefined;
+  const direction = bg && typeof bg === 'object' && 'direction' in bg && bg.direction === 'diagonal' ? 135 : 180;
+  const background = colors && colors.length > 1 ? `linear-gradient(${direction}deg,${colors.join(',')})` : bg && typeof bg === 'object' && 'color' in bg ? bg.color : colors?.[0] ?? (typeof bg === 'string' && bg.startsWith('#') ? bg : null);
   return <div ref={root} className="relative h-full w-full overflow-hidden" style={{ background: layer === 'overlay' ? 'transparent' : background || '#0B1E3D' }}>
     <style>{STICKER_ANIM_CSS}</style>
-    {layer !== 'overlay' && recipe.bg && recipe.fit === 'contain' && <BgLayer bg={recipe.bg as any} mediaUrl={page.media_type === 'image' ? page.media_url : null} />}
+    {layer !== 'overlay' && recipe.bg && recipe.fit === 'contain' && <BgLayer bg={recipe.bg as StoryBgSpec} mediaUrl={page.media_type === 'image' ? page.media_url : null} />}
     {layer !== 'overlay' && <StoryPixelGrade className="relative h-full w-full" look={{ filterId: page.filter_id, filterAmt: recipe.filterAmt, adjust: recipe.adjust }}>{children({ objectFit: recipe.fit, transform: `translate(${recipe.x * 100}%, ${recipe.y * 100}%) scale(${recipe.scale})` })}</StoryPixelGrade>}
     {layer !== 'background' && <><AdjustOverlay adjust={storyPhotoSpatialAdjust(recipe.adjust)} />
     <DrawSvg stickers={stickers} />

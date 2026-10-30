@@ -1,15 +1,17 @@
 /** Original recording/reuse and Apple Music sharing use separate rights paths. */
-import { MUSIC_CATALOG_ENABLED } from '../../../shared/musicAvailability';
+import { ORIGINAL_AUDIO_ENABLED } from '../../../shared/musicAvailability';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, FlatList, ActivityIndicator, StyleSheet, AppState, TextInput, Keyboard, Platform, ScrollView, useWindowDimensions } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, ActivityIndicator, StyleSheet, AppState, TextInput, Keyboard, Platform, ScrollView, useWindowDimensions } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import { useCallContext } from '../../contexts/CallContext';
 import { storiesService, StoryAudioDraft, StorySound } from '../../services/storiesService';
 import { AppleMusicPicker } from '../AppleMusicSheet';
 import { useSafeAreaInsets } from '../SafeArea';
-let AsyncStorage: any = null;
-try { AsyncStorage = require('@react-native-async-storage/async-storage').default; } catch {}
+import { MiniSlider } from './storyPanels';
+import { OriginalAudioUpload } from '../OriginalAudioUpload';
+import { ORIGINAL_AUDIO_PREPARING } from '../../../shared/originalAudioAvailability';
+import { soundFavorites, saveSoundFavorite, originalAudioReady } from '../../services/originalAudioService';
 import type { AppleMusicTrack } from '../../../shared/appleMusic';
 
 const MAX_RECORD_SEC = 30;
@@ -19,22 +21,25 @@ type Props = {
   onShareTrack?: (track: AppleMusicTrack) => void;
 };
 type Tab = 'record' | 'sounds' | 'saved' | 'library';
+type ExcerptSound = Pick<StorySound,'id'|'title'|'url'|'duration_sec'|'source'|'max_excerpt_sec'>;
+type Excerpt = {sound:ExcerptSound;startSec:number;durationSec:number};
 const fmtSec = (seconds: number | null | undefined) => `0:${String(Math.max(0, Math.round(seconds || 0))).padStart(2, '0')}`;
 
 export default function MusicSheet(props: Props) {
-  return MUSIC_CATALOG_ENABLED ? <EnabledMusicSheet {...props} /> : null;
+  return ORIGINAL_AUDIO_ENABLED ? <EnabledMusicSheet key={props.userId||'signed-out'} {...props} /> : null;
 }
 
 function EnabledMusicSheet({ visible, onClose, current, onSelect, onRemove, disabled, onShareTrack, userId }: Props) {
   const { callState } = useCallContext();
   const callActive = useRef(callState !== 'idle'); callActive.current = callState !== 'idle';
   const [tab, setTab] = useState<Tab>('sounds');
+  const [recordingAvailable,setRecordingAvailable]=useState(false),[availabilityError,setAvailabilityError]=useState('');
+  useEffect(()=>{if(!visible)return;let live=true;void originalAudioReady().then(ready=>{if(live){setRecordingAvailable(ready);setAvailabilityError(ready?'':ORIGINAL_AUDIO_PREPARING);}}).catch(failure=>{if(live){setRecordingAvailable(false);setAvailabilityError(failure instanceof Error?failure.message:'Audio availability could not be checked. Retry.');}});return()=>{live=false;};},[visible,userId]);
   const [query, setQuery] = useState(''), [saved, setSaved] = useState<string[]>([]), [keyboardHeight, setKeyboardHeight] = useState(0);
-  const { height: windowHeight } = useWindowDimensions(); const insets = useSafeAreaInsets();
-  const savedKey = 'pc.story.sounds.saved.v1:' + (userId || 'local');
-  useEffect(() => { let current = true; setSaved([]); AsyncStorage?.getItem(savedKey).then((raw: string | null) => { if (!current) return; try { const ids = JSON.parse(raw || '[]'); if (Array.isArray(ids)) setSaved(ids.filter(id => typeof id === 'string').slice(0, 200)); } catch {} }).catch(() => {}); return () => { current = false; }; }, [savedKey]);
+  const { height: windowHeight, width: windowWidth } = useWindowDimensions(); const insets = useSafeAreaInsets();
+  useEffect(() => { let current=true;setSaved([]);if(userId)void soundFavorites().then(ids=>{if(current)setSaved(ids);}).catch(()=>{if(current)setError('Saved sounds could not load. Retry.');});return()=>{current=false;}; },[userId]);
   useEffect(() => { const show = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', event => setKeyboardHeight(event.endCoordinates.height)); const hide = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () => setKeyboardHeight(0)); return () => { show.remove(); hide.remove(); }; }, []);
-  const toggleSaved = (id: string) => setSaved(current => { const next = current.includes(id) ? current.filter(item => item !== id) : [...current, id].slice(-200); void AsyncStorage?.setItem(savedKey, JSON.stringify(next)).catch(() => {}); return next; });
+  const toggleSaved = async(id:string) => { const mine=session.current;try{const next=!saved.includes(id);await saveSoundFavorite(id,next);if(active.current&&mine===session.current)setSaved(previous=>next?[...previous.filter(item=>item!==id),id]:previous.filter(item=>item!==id));}catch{if(active.current&&mine===session.current)setError('This sound could not be saved. Retry.');} };
   const [phase, setPhase] = useState<'idle' | 'starting' | 'recording' | 'stopping' | 'selecting'>('idle');
   const [recordedUri, setRecordedUri] = useState<string | null>(null);
   const [recordedSec, setRecordedSec] = useState(0);
@@ -47,6 +52,8 @@ function EnabledMusicSheet({ visible, onClose, current, onSelect, onRemove, disa
   const [previewingId, setPreviewingId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [appleOpen, setAppleOpen] = useState(false);
+  const [excerpt,setExcerpt]=useState<Excerpt|null>(null),[dragging,setDragging]=useState(false);
+  const editExcerpt=(sound:ExcerptSound)=>{const total=Math.max(1,sound.duration_sec||1),duration=Math.min(30,sound.max_excerpt_sec||30,total,current?.soundId===sound.id?current.durationSec||30:30),start=Math.max(0,Math.min(total-duration,current?.soundId===sound.id?current.startSec||0:0));setExcerpt({sound,startSec:start,durationSec:duration});};
   const session = useRef(0);
   const active = useRef(false);
   const operation = useRef(false);
@@ -77,12 +84,12 @@ function EnabledMusicSheet({ visible, onClose, current, onSelect, onRemove, disa
 
   useEffect(() => {
     active.current = visible;
-    if (!visible) { void cleanup(); setAppleOpen(false); }
+    if (!visible) { void cleanup(); setAppleOpen(false); setExcerpt(null); setDragging(false); }
     const subscription = AppState.addEventListener('change', state => {
       if (state !== 'active' && active.current) { void stopRecordingRef.current(); void stopPreview(); }
     });
     return () => { active.current = false; subscription.remove(); void cleanup(); };
-  }, [visible, userId, cleanup]);
+  }, [visible, userId, cleanup, stopPreview]);
 
   useEffect(() => {
     if (!visible || tab === 'record') return;
@@ -114,7 +121,7 @@ function EnabledMusicSheet({ visible, onClose, current, onSelect, onRemove, disa
   stopRecordingRef.current = stopRecording;
 
   const startRecording = async () => {
-    if (operation.current || disabled || callActive.current) return;
+    if (operation.current || disabled || !recordingAvailable || callActive.current) return;
     operation.current = true; starting.current = true; setPhase('starting'); setError('');
     const mine = session.current;
     try {
@@ -142,7 +149,7 @@ function EnabledMusicSheet({ visible, onClose, current, onSelect, onRemove, disa
     }
   };
 
-  const previewUri = async (id: string, uri: string) => {
+  const previewUri = async (id: string, uri: string, clip?:{startSec:number;durationSec:number}) => {
     if (phase !== 'idle' || disabled || callActive.current) return;
     const stopping = previewingId === id;
     await stopPreview();
@@ -151,12 +158,13 @@ function EnabledMusicSheet({ visible, onClose, current, onSelect, onRemove, disa
     try {
       await Audio.setAudioModeAsync({ allowsRecordingIOS: false, playsInSilentModeIOS: true });
       const source = id === 'voiceover' ? { url: uri, duration_sec: recordedSec || 30 } : await storiesService.getStorySound(id);
-      const playable = source.url;
+      const playable = source.url, start=clip?.startSec||0, duration=Math.min(clip?.durationSec||30,source.duration_sec||30);
+      if(start+duration>(source.duration_sec||30))throw new Error('The selected excerpt is unavailable.');
       if (!active.current || mine !== previewGeneration.current || callActive.current) return;
-      const { sound } = await Audio.Sound.createAsync({ uri: playable }, { shouldPlay: false, progressUpdateIntervalMillis: 100 });
+      const { sound } = await Audio.Sound.createAsync({ uri: playable }, { shouldPlay: false, positionMillis:start*1000, progressUpdateIntervalMillis: 100 });
       if (!active.current || mine !== previewGeneration.current || callActive.current) { await sound.unloadAsync(); return; }
       previewRef.current = sound; setPreviewingId(id);
-      sound.setOnPlaybackStatusUpdate(status => { if (status.isLoaded && (status.didJustFinish || status.positionMillis >= (source.duration_sec || 30) * 1000)) void stopPreview(); });
+      sound.setOnPlaybackStatusUpdate(status => { if (status.isLoaded && (status.didJustFinish || status.positionMillis >= (start+duration) * 1000)) void stopPreview(); });
       await sound.playAsync();
       if (callActive.current) await stopPreview();
     } catch { if (active.current && mine === previewGeneration.current) { setError('Could not play this sound. Try again.'); void stopPreview(); } }
@@ -169,9 +177,18 @@ function EnabledMusicSheet({ visible, onClose, current, onSelect, onRemove, disa
       await stopPreview();
       const sound = await storiesService.getStorySound(id);
       if (!active.current || mine !== session.current) return;
-      onSelect({ kind: 'sound', soundId: sound.id, title: sound.title, durationSec: sound.duration_sec, source: sound.source });
+      editExcerpt(sound);
     } catch (e) { if (active.current && mine === session.current) setError(e instanceof Error ? e.message : 'Sound is unavailable. Please retry.'); }
     finally { if (active.current && mine === session.current) { operation.current = false; setPhase('idle'); } }
+  };
+  const commitExcerpt=async()=>{
+    if(!excerpt||operation.current||disabled)return;
+    operation.current=true;setPhase('selecting');setError('');const mine=session.current,choice=excerpt;
+    try{await stopPreview();const sound=await storiesService.getStorySound(choice.sound.id);if(!active.current||mine!==session.current)return;
+      if(choice.startSec<0||choice.durationSec<1||choice.durationSec>Math.min(30,sound.max_excerpt_sec||30)||choice.startSec+choice.durationSec>(sound.duration_sec||0))throw new Error('This excerpt is no longer available. Choose another section.');
+      onSelect({kind:'sound',soundId:sound.id,title:sound.title,startSec:choice.startSec,durationSec:choice.durationSec,source:sound.source});
+    }catch(failure){if(active.current&&mine===session.current)setError(failure instanceof Error?failure.message:'This excerpt could not be selected. Retry.');}
+    finally{if(active.current&&mine===session.current){operation.current=false;setPhase('idle');}}
   };
   const useVoiceover = () => {
     if (!recordedUri || !rightsAttested || disabled || phase !== 'idle') return;
@@ -187,14 +204,22 @@ function EnabledMusicSheet({ visible, onClose, current, onSelect, onRemove, disa
         <TouchableOpacity accessibilityLabel="Close sound picker" style={{ flex: 1 }} onPress={onClose} />
         <View style={[ms.sheet, { maxHeight: maxSheetHeight, marginBottom: Platform.OS === 'ios' ? keyboardHeight : 0, paddingBottom: keyboardHeight ? 12 : Math.max(insets.bottom, 22) }, appleOpen && { backgroundColor: '#FBF9F5' }]} accessibilityViewIsModal>
           <View style={ms.handle} /><View style={ms.header}><TouchableOpacity accessibilityRole="button" accessibilityLabel={appleOpen ? "Back to music" : "Close sound picker"} style={ms.headerButton} onPress={() => { Keyboard.dismiss(); if (appleOpen) setAppleOpen(false); else onClose(); }}><Feather name={appleOpen ? "arrow-left" : "x"} size={23} color={appleOpen ? "#0B1E3D" : "#F8F4EC"} /></TouchableOpacity><Text style={[ms.title, appleOpen && { color: '#0B1E3D' }]}>{appleOpen ? 'Share song link' : 'Music'}</Text><View style={ms.headerButton} /></View>
-          {appleOpen ? <ScrollView keyboardShouldPersistTaps="handled" style={{ flexShrink: 1 }}><AppleMusicPicker onSelect={track => { setAppleOpen(false); onShareTrack?.(track); }} /></ScrollView> : <ScrollView keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" style={{ flexShrink: 1 }}>
-          {current ? <View style={ms.currentRow}><Feather name="music" size={15} color="#FFF" /><Text style={ms.currentTxt} numberOfLines={1}>{current.title || 'Attached sound'}</Text><TouchableOpacity accessibilityRole="button" disabled={disabled} style={{ minHeight: 44, justifyContent: 'center' }} onPress={() => { void stopPreview(); onRemove(); }}><Text style={ms.removeTxt}>Remove</Text></TouchableOpacity></View> : null}
+          {appleOpen ? <ScrollView keyboardShouldPersistTaps="handled" style={{ flexShrink: 1 }}><AppleMusicPicker onSelect={track => { setAppleOpen(false); onShareTrack?.(track); }} /></ScrollView> : <ScrollView scrollEnabled={!dragging} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" style={{ flexShrink: 1 }}>
+          {current ? <View style={ms.currentRow}><Feather name="music" size={15} color="#FFF" /><Text style={ms.currentTxt} numberOfLines={1}>{current.title || 'Attached sound'}</Text>{current.soundId?<TouchableOpacity accessibilityRole="button" disabled={disabled||busy} style={{minHeight:44,justifyContent:'center'}} onPress={()=>void selectSound(current.soundId!)}><Text style={ms.secondaryTxt}>Edit</Text></TouchableOpacity>:null}<TouchableOpacity accessibilityRole="button" disabled={disabled} style={{ minHeight: 44, justifyContent: 'center' }} onPress={() => { void stopPreview(); onRemove(); }}><Text style={ms.removeTxt}>Remove</Text></TouchableOpacity></View> : null}
+          {excerpt?<View style={{gap:12,padding:16,borderRadius:16,backgroundColor:'#FFFFFF0C',marginBottom:16}}>
+            <Text style={ms.soundTitle}>Choose your excerpt</Text><Text style={ms.soundMeta}>{excerpt.sound.title} · {excerpt.startSec.toFixed(1)}s – {(excerpt.startSec+excerpt.durationSec).toFixed(1)}s</Text>
+            <Text style={ms.soundMeta}>Start</Text><MiniSlider label="Music excerpt start" width={Math.max(150,Math.min(420,windowWidth-72))} value={excerpt.startSec*10} min={0} max={Math.max(0,((excerpt.sound.duration_sec||0)-excerpt.durationSec)*10)} onDragStateChange={setDragging} onChange={value=>{void stopPreview();setExcerpt(previous=>previous?{...previous,startSec:value/10}:null);}}/>
+            <Text style={ms.soundMeta}>Length · {excerpt.durationSec.toFixed(1)} seconds</Text><MiniSlider label="Music excerpt length" width={Math.max(150,Math.min(420,windowWidth-72))} value={excerpt.durationSec*10} min={10} max={Math.max(10,Math.min(30,excerpt.sound.max_excerpt_sec||30,(excerpt.sound.duration_sec||1)-excerpt.startSec)*10)} onDragStateChange={setDragging} onChange={value=>{void stopPreview();setExcerpt(previous=>previous?{...previous,durationSec:value/10}:null);}}/>
+            <View style={{flexDirection:'row',gap:10,flexWrap:'wrap'}}><TouchableOpacity accessibilityRole="button" disabled={busy||disabled} style={[ms.secondaryBtn,{minHeight:44}]} onPress={()=>void previewUri(excerpt.sound.id,excerpt.sound.url,excerpt)}><Text style={ms.secondaryTxt}>{previewingId===excerpt.sound.id?'Stop preview':'Preview excerpt'}</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" disabled={busy||disabled||dragging} style={[ms.primaryBtn,{minHeight:44}]} onPress={()=>void commitExcerpt()}><Text style={ms.primaryTxt}>Use excerpt</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" disabled={busy} style={[ms.secondaryBtn,{minHeight:44}]} onPress={()=>{void stopPreview();setExcerpt(null);}}><Text style={ms.secondaryTxt}>Cancel</Text></TouchableOpacity></View>
+          </View>:null}
           {onShareTrack ? <TouchableOpacity accessibilityRole="button" style={[ms.secondaryBtn, { marginBottom: 12, justifyContent: 'center', minHeight: 44 }]} disabled={busy || disabled} onPress={() => { void stopPreview(); setAppleOpen(true); }}><Text style={ms.secondaryTxt}>Share a song link</Text></TouchableOpacity> : null}
           <View style={ms.search}><Feather name="search" size={18} color="#A8ACAE" /><TextInput accessibilityLabel="Search story sounds" value={query} onChangeText={setQuery} placeholder="Search music and original audio" placeholderTextColor="#A8ACAE" keyboardAppearance="dark" autoCorrect={false} returnKeyType="search" onSubmitEditing={() => Keyboard.dismiss()} style={ms.searchInput} /></View>
           <View style={ms.tabsRow}>{([['sounds', 'For you'], ['saved', 'Saved'], ['library', 'Browse']] as [Tab, string][]).map(([key, label]) => <TouchableOpacity accessibilityRole="tab" accessibilityState={{ selected: tab === key, disabled: busy }} disabled={busy} key={key} style={[ms.tabBtn, { minHeight: 44, justifyContent: 'center' }, tab === key && ms.tabBtnOn]} onPress={() => { void stopPreview(); setError(''); setTab(key); }}><Text style={[ms.tabTxt, tab === key && ms.tabTxtOn]}>{label}</Text></TouchableOpacity>)}</View>
           {error ? <Text accessibilityRole="alert" style={[ms.recHint, { color: '#FFB4B4', marginBottom: 10 }]}>{error}</Text> : null}
+          {userId&&tab!=='record'?<OriginalAudioUpload owner={userId} disabled={disabled||busy} use="story" onAdded={track=>{editExcerpt({...track,source:'original'});setReload(value=>value+1);}}/>:null}
           {tab === 'record' ? <View style={ms.recordPane}>
-            <TouchableOpacity accessibilityRole="button" accessibilityLabel={phase === 'recording' ? 'Stop recording' : 'Record voiceover'} style={[ms.recBtn, phase === 'recording' && ms.recBtnOn]} disabled={disabled || phase === 'starting' || phase === 'stopping'} onPress={() => { if (phase === 'recording') void stopRecording(); else void startRecording(); }}>{phase === 'starting' || phase === 'stopping' ? <ActivityIndicator color="#FFF" /> : <Feather name={phase === 'recording' ? 'square' : 'mic'} size={26} color={phase === 'recording' ? '#020408' : '#FFF'} />}</TouchableOpacity>
+            {availabilityError?<Text accessibilityRole="alert" style={ms.recHint}>{availabilityError}</Text>:null}
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel={phase === 'recording' ? 'Stop recording' : 'Record voiceover'} style={[ms.recBtn, phase === 'recording' && ms.recBtnOn]} disabled={disabled || !recordingAvailable || phase === 'starting' || phase === 'stopping'} onPress={() => { if (phase === 'recording') void stopRecording(); else void startRecording(); }}>{phase === 'starting' || phase === 'stopping' ? <ActivityIndicator color="#FFF" /> : <Feather name={phase === 'recording' ? 'square' : 'mic'} size={26} color={phase === 'recording' ? '#020408' : '#FFF'} />}</TouchableOpacity>
             <Text style={ms.recHint}>{phase === 'recording' ? `Recording ${fmtSec(elapsed)} / 0:30` : phase === 'starting' ? 'Starting microphone…' : phase === 'stopping' ? 'Saving recording…' : recordedUri ? `Voiceover ready · ${fmtSec(recordedSec)}` : 'Record your own voice or original audio, up to 30 seconds.'}</Text>
             {recordedUri && !busy ? <View style={{ gap: 12, width: '100%' }}>
               <TouchableOpacity accessibilityRole="checkbox" accessibilityState={{ checked: rightsAttested }} style={[ms.shareRow, { minHeight: 44 }]} onPress={() => setRightsAttested(value => !value)}><View style={[ms.checkbox, rightsAttested && ms.checkboxOn]}>{rightsAttested ? <Feather name="check" size={12} color="#020408" /> : null}</View><Text style={[ms.shareTxt, { flex: 1 }]}>I own this recording and have permission from everyone featured to publish it.</Text></TouchableOpacity>

@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useRef, useState } from "react";
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -22,7 +22,7 @@ type TopicPost = {
 export default function TopicPage({ params }: { params: Promise<{ tag: string }> }) {
   const { tag } = use(params);
   const clean = decodeURIComponent(tag);
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [posts, setPosts] = useState<TopicPost[] | null>(null);
 
   useEffect(() => {

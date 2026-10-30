@@ -4,16 +4,16 @@ import {Audio} from 'expo-av';
 import {useCallContext} from '../contexts/CallContext';
 import {getSoundtrack} from '../services/soundtrackService';
 import {readSoundtrack,soundtrackTime,type SoundtrackSelection,type SoundtrackUse,type SoundtrackClock} from '../../shared/soundtrack';
-import {MUSIC_CATALOG_ENABLED} from '../../shared/musicAvailability';
+import {ORIGINAL_AUDIO_ENABLED} from '../../shared/musicAvailability';
 
 /** One bounded excerpt. A supplied media clock remains authoritative after seeks/stalls. */
-export function useSoundtrackPlayer({selection,use,active,clock}:{selection:SoundtrackSelection|null|undefined;use:SoundtrackUse;active:boolean;clock?:SoundtrackClock}) {
+export function useSoundtrackPlayer({selection,use,active,clock,playbackKey}:{selection:SoundtrackSelection|null|undefined;use:SoundtrackUse;active:boolean;clock?:SoundtrackClock;playbackKey?:string}) {
  const {callState}=useCallContext();
  const [error,setError]=useState<string|null>(null),[loading,setLoading]=useState(false),[attempt,setAttempt]=useState(0);
- const selectedValue=MUSIC_CATALOG_ENABLED?readSoundtrack(selection):null;
+ const selectedValue=ORIGINAL_AUDIO_ENABLED?readSoundtrack(selection):null;
  const input=useRef({active,clock,callState,selection:selectedValue}); input.current={active,clock,callState,selection:selectedValue};
  const sound=useRef<Audio.Sound|null>(null),generation=useRef(0),busy=useRef(false);
- const key=selectedValue?.soundId??'';
+ const key=selectedValue?(playbackKey==null?selectedValue.soundId:`${selectedValue.soundId}:${playbackKey}`):'';
  const [requestedKey,setRequestedKey]=useState(active?key:null);
  useEffect(()=>{if(active&&callState==='idle')setRequestedKey(key);},[active,key,callState]);
  useEffect(()=>{
@@ -49,7 +49,7 @@ export function useSoundtrackPlayer({selection,use,active,clock}:{selection:Soun
    }catch{if(current()){setLoading(false);fail('Music could not load. Tap to retry.');}}
   })();
   const app=AppState.addEventListener('change',state=>{foreground=state==='active';void sync();});
-  return()=>{generation.current++;app.remove();clearInterval(timer);clearInterval(rightsTimer);if(sound.current===owned)sound.current=null;if(owned)void owned.unloadAsync().catch(()=>{});};
+  return()=>{generation.current += 1;app.remove();clearInterval(timer);clearInterval(rightsTimer);if(sound.current===owned)sound.current=null;if(owned)void owned.unloadAsync().catch(()=>{});};
  },[key,use,attempt,requestedKey]);
  useEffect(()=>{if(!active||callState!=='idle'||clock?.playing===false)void sound.current?.pauseAsync().catch(()=>{});},[active,callState,clock?.playing]);
  return {error,loading,retry:()=>setAttempt(n=>n+1)};

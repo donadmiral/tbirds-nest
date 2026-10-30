@@ -9,7 +9,7 @@ import { ACCOUNT_REPORT_REASONS, reportAccount } from "../../shared/accountRepor
 
 // The profile's "more" menu: Restrict (quiet, the person is not told) and Block.
 export function ProfileMoreMenu({ profileId, name }: { profileId: string; name: string | null }) {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const router = useRouter();
   const [uid, setUid] = useState<string | null>(null);
   const [open, setOpen] = useState(false);

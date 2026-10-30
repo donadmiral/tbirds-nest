@@ -21,6 +21,7 @@ import { listScheduled, studioHome, type ScheduledPost, type StudioHome } from "
 import { useUploadPreview } from "@/lib/useUploadPreview";
 import { EmptyState, PillTabs } from "@/components/ui";
 import { Metric } from "@/components/Charts";
+import { withTimeout } from "@/lib/withTimeout";
 
 type Tab = "all" | "published" | "scheduled" | "draft" | "failed";
 
@@ -52,27 +53,26 @@ export default function ContentPage() {
   const mounted = useRef(true);
   const requestVersion = useRef(0);
 
-  const load = useCallback(async () => {
+  const load = useCallback(() => {
     const version = ++requestVersion.current;
     const current = () => mounted.current && version === requestVersion.current;
-    setLoading(true);
-    try {
-      const [posts, h] = await Promise.all([listScheduled(), studioHome()]);
+    return withTimeout(Promise.all([listScheduled(), studioHome()])).then(([posts, h]) => {
       if (!current()) return;
       if (!h) throw new Error("Content metrics unavailable");
       setRows(posts);
       setHome(h); setLoaded(true); setLoadError(null);
-    } catch {
+    }).catch(() => {
       if (current()) setLoadError("Content could not be refreshed. Please try again.");
-    } finally {
+    }).finally(() => {
       if (current()) setLoading(false);
-    }
+    });
   }, []);
 
   useEffect(() => {
+    const requests = requestVersion;
     mounted.current = true;
     void load();
-    return () => { mounted.current = false; ++requestVersion.current; };
+    return () => { mounted.current = false; ++requests.current; };
   }, [load]);
 
   const engagement = useMemo(() => {
@@ -160,7 +160,7 @@ export default function ContentPage() {
         </label>
       </div>
 
-      <StudioLoadError message={loadError} retry={() => { void load(); }} busy={loading} />
+      <StudioLoadError message={loadError} retry={() => { setLoading(true); void load(); }} busy={loading} />
       {loading && !loaded ? (
         <p className="py-14 text-center text-sm text-muted">Loading</p>
       ) : !loaded ? null : shown.length === 0 ? (

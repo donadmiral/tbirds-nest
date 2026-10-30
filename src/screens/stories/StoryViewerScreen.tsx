@@ -6,7 +6,7 @@ import * as ImagePicker from 'expo-image-picker';
 import AddYoursThreadSheet from '../../components/stories/AddYoursThreadSheet';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
-import { MUSIC_CATALOG_ENABLED } from '../../../shared/musicAvailability';
+import { ORIGINAL_AUDIO_ENABLED } from '../../../shared/musicAvailability';
 import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import {
   AppState, View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, Animated,
@@ -455,7 +455,7 @@ export default function StoryViewerScreen() {
   }, [currentStory?.id, myId, engagementRetry]);
 
   useEffect(() => { if (!currentStory) return; if (myId && currentStory.user_id !== myId) { storiesService.markViewed(currentStory.id); } }, [currentStory?.id, myId]);
-  const storyAudioUrl = MUSIC_CATALOG_ENABLED && currentStory ? ((currentStory as any).audio_url as string | null) || null : null;
+  const storyAudioUrl = ORIGINAL_AUDIO_ENABLED && currentStory ? ((currentStory as any).audio_url as string | null) || null : null;
   const musicVol = (() => { try { const m: any = (currentStory as any)?.media_transform?.mix; const v = typeof m?.music === 'number' ? m.music : 100; return Math.max(0, Math.min(1, v / 100)); } catch { return 1; } })();
   useEffect(() => {
     if (!appActive || !['idle', 'ended'].includes(callState)) pauseFor('system');
@@ -472,7 +472,7 @@ export default function StoryViewerScreen() {
   }, [currentStory?.id, currentStory?.expires_at, params?.highlightId, pauseFor]);
 
   useEffect(() => { try { videoPlayer.muted = viewerMuted || (((currentStory as any)?.media_transform?.mix?.orig ?? 100) <= 0); } catch {} }, [viewerMuted, videoPlayer, currentStory?.id]);
-  const storyAudio = useStoryAudioMix(storyAudioUrl, !!storyAudioUrl && !!mediaReady && !paused, viewerMuted ? 0 : musicVol, currentStory?.audio_duration_sec);
+  const storyAudio = useStoryAudioMix(storyAudioUrl, !!storyAudioUrl && !!mediaReady && !paused, viewerMuted ? 0 : musicVol, currentStory?.audio_duration_sec, Number(currentStory?.media_transform?.audioStartSec)||0, currentStory?.audio_sound_id || currentStory?.media_transform?.audioSoundId);
   useEffect(() => { if (storyAudio.error) setMediaError(true); }, [storyAudio.error]);
   // Creative engine: playback clock for timed stickers + trim-end guard
   useEffect(() => {
@@ -490,7 +490,7 @@ export default function StoryViewerScreen() {
   }, [isVideo, mediaReady, paused, currentStory?.id, videoPlayer]);
   useEffect(() => { const stickerList = (currentStory?.stickers_json || []) as StoryTextSticker[]; const ox = mediaOriginRef.current.x; const oy = mediaOriginRef.current.y; const rects = stickerList.filter(s => s.kind === 'link' || s.kind === 'location' || s.kind === 'mention' || s.kind === 'hashtag' || s.kind === 'post' || s.kind === 'countdown' || (s as any).kind === 'entity' || (Array.isArray((s as any).mentions) && (s as any).mentions.length > 0)).map(s => { const w = s.kind === 'post' ? POST_CARD_W : ((s as any).kind === 'entity' ? 260 : (s.kind === 'countdown' ? 236 : ((s.kind === 'mention' || s.kind === 'link') ? 170 : (Array.isArray((s as any).mentions) ? 240 : 150)))); const hEst = s.kind === 'post' ? POST_CARD_EST_H : ((s as any).kind === 'entity' ? 84 : (s.kind === 'countdown' ? 150 : (Array.isArray((s as any).mentions) ? 48 : 36))); const cx = ox + s.nx * mediaSize.w; const cy = oy + s.ny * mediaSize.h; const hw = (w * s.scale) / 2 + 10; const hh = (hEst * s.scale) / 2 + 10; return { left: cx - hw, right: cx + hw, top: cy - hh, bottom: cy + hh }; }); tappableStickerRectsRef.current = rects; }, [currentStory?.stickers_json, mediaSize]);
 
-  useEffect(() => { if (!currentStory) return; if (!mediaReady) return; if (mediaReadyTimeoutRef.current) { clearTimeout(mediaReadyTimeoutRef.current); mediaReadyTimeoutRef.current = null; } const isFirstStory = isFirstStoryRef.current; if (isFirstStoryRef.current) { isFirstStoryRef.current = false; mediaOpacitySV.value = 1; setHoldoverMedia(null); } else { executeCrossfade(); } if (paused) { stopProgress(); if (isVideo && videoPlayer) { try { videoPlayer.pause(); } catch {} } return; } let durationMs: number; if (isVideo) { const mtx: any = (currentStory as any)?.media_transform; const tS = typeof mtx?.trimStart === 'number' ? mtx.trimStart : null; const tE = typeof mtx?.trimEnd === 'number' ? mtx.trimEnd : null; const d = tE != null ? Math.max(1, (tE - (tS || 0))) * 1000 : (currentStory.duration_sec ? currentStory.duration_sec * 1000 : VIDEO_MAX_MS); durationMs = Math.min(d, VIDEO_MAX_MS); if (videoPlayer) { try { videoPlayer.play(); } catch {} } } else { const postVid = ((currentStory.stickers_json || []) as any[]).some((sx: any) => sx?.kind === 'post' && sx?.postMediaType === 'video'); durationMs = postVid ? 15000 : IMAGE_DURATION_MS; if (currentStory.caption) { const readingMs = Math.ceil(currentStory.caption.length / 20) * 1000; durationMs = Math.min(durationMs + readingMs, 8000); } const audioSec = (currentStory as any).audio_duration_sec as number | null; if (MUSIC_CATALOG_ENABLED && audioSec && audioSec > 0) { durationMs = Math.min(Math.max(durationMs, audioSec * 1000), 30000); } } if (isVideo && videoPlayer) {
+  useEffect(() => { if (!currentStory) return; if (!mediaReady) return; if (mediaReadyTimeoutRef.current) { clearTimeout(mediaReadyTimeoutRef.current); mediaReadyTimeoutRef.current = null; } const isFirstStory = isFirstStoryRef.current; if (isFirstStoryRef.current) { isFirstStoryRef.current = false; mediaOpacitySV.value = 1; setHoldoverMedia(null); } else { executeCrossfade(); } if (paused) { stopProgress(); if (isVideo && videoPlayer) { try { videoPlayer.pause(); } catch {} } return; } let durationMs: number; if (isVideo) { const mtx: any = (currentStory as any)?.media_transform; const tS = typeof mtx?.trimStart === 'number' ? mtx.trimStart : null; const tE = typeof mtx?.trimEnd === 'number' ? mtx.trimEnd : null; const d = tE != null ? Math.max(1, (tE - (tS || 0))) * 1000 : (currentStory.duration_sec ? currentStory.duration_sec * 1000 : VIDEO_MAX_MS); durationMs = Math.min(d, VIDEO_MAX_MS); if (videoPlayer) { try { videoPlayer.play(); } catch {} } } else { const postVid = ((currentStory.stickers_json || []) as any[]).some((sx: any) => sx?.kind === 'post' && sx?.postMediaType === 'video'); durationMs = postVid ? 15000 : IMAGE_DURATION_MS; if (currentStory.caption) { const readingMs = Math.ceil(currentStory.caption.length / 20) * 1000; durationMs = Math.min(durationMs + readingMs, 8000); } const audioSec = (currentStory as any).audio_duration_sec as number | null; if (ORIGINAL_AUDIO_ENABLED && audioSec && audioSec > 0) { durationMs = Math.min(Math.max(durationMs, audioSec * 1000), 30000); } } if (isVideo && videoPlayer) {
       // Video stories: the bar follows the player's own clock. If the video
       // buffers or stalls, the bar stalls with it and the story never advances
       // ahead of the picture. End of the trim window (or playToEnd) advances.

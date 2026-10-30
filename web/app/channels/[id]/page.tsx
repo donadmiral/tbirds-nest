@@ -1,10 +1,12 @@
 "use client";
 
+import { errorMessage } from "@/lib/errors";
+
 import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { checkUploadableBytes, displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, BarChart2, Camera, Check, ChevronDown, ChevronUp, HelpCircle, Image as ImageIcon, Plus, Radio, Send, Settings2, X } from "lucide-react";
+import { ArrowLeft, BarChart2, Camera, ChevronDown, ChevronUp, HelpCircle, Image as ImageIcon, Plus, Radio, Send, Settings2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { channelMediaObject } from "@/lib/channelMedia";
 import { useSocialPages } from "@/lib/useSocialPages";
@@ -13,6 +15,7 @@ import { withTimeout } from "@/lib/withTimeout";
 import { ErrorState } from "@/components/ErrorState";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { ProductDialog } from "@/components/ProductDialog";
+import type { DirectoryPerson } from "@/lib/socialTypes";
 import styles from "@/components/SocialWorkspace.module.css";
 
 const EMOJIS = ["\u2764\uFE0F", "\uD83D\uDD25", "\uD83D\uDC4F", "\uD83D\uDE02", "\uD83D\uDE2E"];
@@ -72,7 +75,9 @@ function ChannelInner() {
   const [mediaUrls, setMediaUrls] = useState<Record<string, string>>({});
   const scrollOnce = useRef(true);
   const [repliesEnabled, setRepliesEnabled] = useState(true);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsScope, setSettingsScope] = useState<number | null>(null);
+  const settingsOpen = settingsScope !== null;
+  const setSettingsOpen = (open: boolean) => setSettingsScope(open ? epoch.current : null);
   const [me, setMe] = useState<string | null>(null);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [loading, setLoading] = useState(true);
@@ -95,9 +100,9 @@ function ChannelInner() {
   const endRef = useRef<HTMLDivElement | null>(null);
   const readPending = useRef(false), lastRead = useRef('');
   const readState = useRef({ message: '', ready: false });
-  readState.current = { message: messages[0]?.id || '', ready: !!me && isMember && !loading && !settingsOpen && !pollOpen && !openThread };
+  useLayoutEffect(() => { readState.current = { message: messages[0]?.id || '', ready: !!me && isMember && !loading && !settingsOpen && !pollOpen && !openThread }; }, [messages, me, isMember, loading, settingsOpen, pollOpen, openThread]);
 
-  const markRead = useCallback(async (): Promise<void> => {
+  const markRead = useCallback(async function markVisibleChannelRead(): Promise<void> {
     const version = epoch.current, message = readState.current.message;
     const marker = `${version}:${message}`;
     const rect = endRef.current?.getBoundingClientRect();
@@ -111,7 +116,7 @@ function ChannelInner() {
     finally {
       if (version === epoch.current) {
         readPending.current = false;
-        if (readState.current.message !== message) void markRead();
+        if (readState.current.message !== message) void markVisibleChannelRead();
       }
     }
   }, [channelId, supabase]);
@@ -194,7 +199,7 @@ function ChannelInner() {
     const refresh = () => { if (timer) clearTimeout(timer); timer = setTimeout(() => { if (alive) void load(); }, 180); };
     const bind = (next: string | null) => {
       if (!alive || uid === next) return;
-      uid = next; epoch.current++; activeLoads.current=false;pendingRefresh.current=false;locks.current.clear();setSending(false);setAttaching(false);setPollBusy(false);setReplySending(false);setReplyLoading(null);setReplyMore({});cursor.current = null; scrollOnce.current = true;
+      uid = next; epoch.current += 1; activeLoads.current=false;pendingRefresh.current=false;locks.current.clear();setSending(false);setAttaching(false);setPollBusy(false);setReplySending(false);setReplyLoading(null);setReplyMore({});cursor.current = null; scrollOnce.current = true;
       readPending.current = false; lastRead.current = '';
       setMe(next); setOpenThread(null); setDraft(""); setReplyDraft(""); setSettingsOpen(false); setPollOpen(false); setName("Channel"); setMyRole(""); setIsMember(false); setMessages([]); setReplies({}); setMediaUrls({}); setLoading(true); setHasMore(true);
       if (realtime) void supabase.removeChannel(realtime);
@@ -212,7 +217,7 @@ function ChannelInner() {
     document.addEventListener("visibilitychange", focus);
     // Reconcile missed events and renew expiring attachment URLs while the page is open.
     const renewal = setInterval(() => { if (document.visibilityState === "visible") refresh(); }, 4 * 60 * 1000);
-    return () => { alive = false; epoch.current++; pendingRefresh.current = false; auth.subscription.unsubscribe(); if (timer) clearTimeout(timer); if (realtime) void supabase.removeChannel(realtime); document.removeEventListener("visibilitychange", focus); clearInterval(renewal); };
+    return () => { alive = false; epoch.current += 1; pendingRefresh.current = false; auth.subscription.unsubscribe(); if (timer) clearTimeout(timer); if (realtime) void supabase.removeChannel(realtime); document.removeEventListener("visibilitychange", focus); clearInterval(renewal); };
   }, [channelId, supabase, load]);
   useEffect(() => {
     if (!loading && scrollOnce.current) { scrollOnce.current = false; endRef.current?.scrollIntoView({ block: "end" }); }
@@ -292,7 +297,7 @@ function ChannelInner() {
       if(version!==epoch.current)return;setPollOpen(false); setPollQ(""); setPollOpts(["", ""]); setPollDays(3);
       setLoading(true);
       await load();
-    } catch (err: any) { if(version===epoch.current)setError(err?.message || "Could not create the poll."); }
+    } catch (err: unknown) { if(version===epoch.current)setError(errorMessage(err, "Could not create the poll.")); }
     finally { if(version===epoch.current){locks.current.delete("poll"); setPollBusy(false);} }
   };
 
@@ -409,7 +414,7 @@ function ChannelInner() {
   const ordered = [...messages].reverse();
 
   return (
-    <main className={styles.channel}>
+    <section className={styles.channel}>
       <header className={styles.channelHeader}>
         <Link href="/channels" className="rounded-full p-1.5 text-ink/60 hover:bg-black/5" aria-label="Back to channels"><ArrowLeft size={18} /></Link>
         {iconUrl ? (
@@ -567,14 +572,14 @@ function ChannelInner() {
       </ProductDialog>
 
       {settingsOpen && isMember ? (
-        <ChannelSettings channelId={channelId} myRole={myRole} meId={me} isCurrent={(() => { const version = epoch.current; return () => version === epoch.current; })()} onClose={() => setSettingsOpen(false)}
+        <ChannelSettings key={channelId + ":" + me} channelId={channelId} myRole={myRole} meId={me} isCurrent={() => settingsScope === epoch.current} onClose={() => setSettingsOpen(false)}
           onUpdated={p => {
             if (p.name) setName(p.name);
             if (p.icon_url) setIconUrl(p.icon_url);
             if (typeof p.replies_enabled === "boolean") setRepliesEnabled(p.replies_enabled);
           }} />
       ) : null}
-    </main>
+    </section>
   );
 }
 
@@ -603,19 +608,21 @@ function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated, isCurren
   const actionLocks = useRef(new Set<string>());
   const [myLevel, setMyLevel] = useState("all");
   const [q, setQ] = useState("");
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<DirectoryPerson[]>([]);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [inviting, setInviting] = useState<string | null>(null);
   const iconRef = useRef<HTMLInputElement | null>(null);
   const live = useRef(true);
   const identity = channelId + ':' + meId;
-  const currentIdentity = useRef(identity); currentIdentity.current = identity;
-  const current = () => live.current && currentIdentity.current === identity && isCurrent();
+  const currentIdentity = useRef(identity);
+  useLayoutEffect(() => { currentIdentity.current = identity; }, [identity]);
+  const checkOwner=useRef(isCurrent);
+  useLayoutEffect(()=>{checkOwner.current=isCurrent;},[isCurrent]);
+  const current = useCallback(() => live.current && currentIdentity.current === identity && checkOwner.current(),[identity]);
   useEffect(() => { live.current = true; return () => { live.current = false; }; }, [identity]);
 
   useEffect(() => {
     let alive = true;
-    setLoading(true); setSettingsError(false);
     withTimeout(supabase.rpc("get_channel_detail", { p_channel: channelId })).then(({ data, error }) => {
       if (!alive || !current()) return;
       const row = Array.isArray(data) ? data[0] : data;
@@ -627,11 +634,10 @@ function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated, isCurren
       setLoading(false);
     }, () => { if (alive && current()) { setSettingsError(true); setLoading(false); } });
     return () => { alive = false; };
-  }, [channelId, meId, supabase, retry]);
+  }, [channelId, meId, supabase, retry, current]);
 
   useEffect(() => {
-    setSearchError(null); setResults([]);
-    if (q.trim().length < 2) { setResults([]); return; }
+    if (q.trim().length < 2) return;
     let alive = true;
     const timer = setTimeout(async () => {
       try {
@@ -643,7 +649,7 @@ function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated, isCurren
       } catch { if (alive && current()) { setResults([]); setSearchError("People could not be loaded. Edit your search to retry."); } }
     }, 250);
     return () => { alive = false; clearTimeout(timer); };
-  }, [q, members, supabase]);
+  }, [q, members, supabase, current]);
 
   const close = () => {
     if (saving || iconBusy) return;
@@ -713,7 +719,7 @@ function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated, isCurren
     finally { if (current()) actionLocks.current.delete(key); }
   };
 
-  const invite = async (r: any) => {
+  const invite = async (r: DirectoryPerson) => {
     if (!isOwner || !current() || actionLocks.current.has("invite")) return;
     actionLocks.current.add("invite");
     setInviting(r.id);
@@ -723,7 +729,7 @@ function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated, isCurren
       if (!current()) return;
       setMembers(prev => [...prev.filter(member => member.user_id !== r.id), { user_id: r.id, full_name: r.full_name, username: r.username, avatar_url: r.avatar_url, role: "collaborator", notification_level: "all" }]);
       setQ(""); setResults([]);
-    } catch (err: any) { if (current()) alert(err?.message || "Could not invite."); }
+    } catch (err: unknown) { if (current()) alert(errorMessage(err, "Could not invite.")); }
     finally { if (current()) { actionLocks.current.delete("invite"); setInviting(null); } }
   };
 
@@ -732,7 +738,7 @@ function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated, isCurren
   return <ProductDialog open title="Channel settings" description="Profile changes are applied when you save. Notification and member actions apply individually." busy={saving || iconBusy} onClose={close}>
       {writeError ? <p role="alert" className={styles.error}>{writeError}</p> : null}
       <fieldset disabled={saving || iconBusy} className="min-w-0 border-0 p-0">
-        {settingsError ? <ErrorState title="Could not load channel settings" onRetry={() => setRetry((value) => value + 1)} /> : loading ? (
+        {settingsError ? <ErrorState title="Could not load channel settings" onRetry={() => { setLoading(true); setSettingsError(false); setRetry((value) => value + 1); }} /> : loading ? (
           <p className="py-10 text-center text-sm text-muted">Loading&hellip;</p>
         ) : (
           <div>
@@ -797,7 +803,7 @@ function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated, isCurren
             {isOwner ? (
               <div className="mb-4">
                 <p className="mb-2 text-[13px] font-semibold text-ink">Invite a collaborator</p>
-                <input aria-label="Search collaborators" value={q} onChange={e => setQ(e.target.value)} placeholder="Search people"
+                <input aria-label="Search collaborators" value={q} onChange={e => { setQ(e.target.value); setResults([]); setSearchError(null); }} placeholder="Search people"
                   className="mb-2 w-full rounded-lg border border-ink/15 px-3 py-2 text-[13px] text-ink outline-none focus:border-ink/40" />
                 {searchError ? <p role="alert" className="text-sm text-danger">{searchError}</p> : null}
             {results.map(r => (

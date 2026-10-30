@@ -1,3 +1,5 @@
+import {memoryPageSoundtrack} from '../../../shared/memoryFilm';
+import SoundtrackPicker from '../../components/SoundtrackPicker';
 import { themedSheet, useTheme } from '../../theme/useTheme';
 import VideoThumb from '../../components/VideoThumb';
 import StoryPixelImage from '../../components/stories/StoryPixelImage';
@@ -114,6 +116,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
   const [chosen, setChosen] = useState<Set<string>>(new Set());
   const [adding, setAdding] = useState(false);
   const [settings, setSettings] = useState(false);
+  const [musicOpen,setMusicOpen]=useState(false);
   const [title, setTitle] = useState('');
   const [color, setColor] = useState('blush');
   const [aud, setAud] = useState('profile');
@@ -178,7 +181,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
 
   useEffect(() => { setDesign(album?.cover_design || 'keepsake'); }, [album]);
   useEffect(() => { let alive=true; setNextBook(null); if (!viewerId || !bookId) return; void supabase.rpc('get_memory_albums',{p_owner:ownerId}).then(({data,error})=>{if(!alive||error)return;const list=(data?.books??[]).filter((b:any)=>data?.is_owner||b.count>0);const index=list.findIndex((b:any)=>b.id===bookId);if(index>=0&&index+1<list.length)setNextBook(list[index+1].id);});return()=>{alive=false;};},[ownerId,bookId,viewerId]);
-  const music = useSoundtrackPlayer({ selection: album?.soundtrack ?? null, use: 'memory_album', active: focused && foreground && callState === 'idle' && opened && !filmVisible && (!playMode || playing) && !grid && !pageActions && !settings && !picker && !captionFor && !playingUrl });
+  const music = useSoundtrackPlayer({ selection: album?.soundtrack ?? null, use: 'memory_album', active: focused && foreground && callState === 'idle' && opened && !filmVisible && (!playMode || playing) && !grid && !pageActions && !settings && !musicOpen && !picker && !captionFor && !playingUrl });
 
   const artwork = memoryArtwork(album?.cover_design, album?.cover_color);
   const pages: any[] = useMemo(
@@ -187,8 +190,9 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
   );
 
   useEffect(() => { if (idx > 0 && idx >= pages.length) setIdx(Math.max(0, pages.length - 1)); }, [pages.length, idx]);
+  const pageAudio = useSoundtrackPlayer({selection:memoryPageSoundtrack(pages[idx]),use:'memory_album',playbackKey:pages[idx]?.id,active:focused && foreground && callState === 'idle' && opened && !filmVisible && (!playMode || playing) && !grid && !pageActions && !settings && !musicOpen && !picker && !captionFor && !playingUrl});
   const playbackPage = pages[idx];
-  const movieActive = focused && foreground && callState === 'idle' && opened && !filmVisible && playMode && playing && !turning && !grid && !pageActions && !settings && !picker && !captionFor && !playingUrl;
+  const movieActive = focused && foreground && callState === 'idle' && opened && !filmVisible && playMode && playing && !turning && !grid && !pageActions && !settings && !musicOpen && !picker && !captionFor && !playingUrl;
   const finishPage = useCallback(() => { if (idxRef.current >= pages.length - 1) setPlaying(false); else pageTurn.current?.turn(1); }, [pages.length]);
   const photoProgress = useMemoryPlayback(`${bookId}:${playbackPage?.id}:${playRun}`, movieActive && playbackPage?.media_type !== 'video' && (!playbackPage?.media_url || readyPage === playbackPage?.id), memoryPhotoDuration(playbackPage), finishPage);
   useEffect(() => { setReadyPage(''); setVideoProgress(0); }, [playbackPage?.id, playRun]);
@@ -341,8 +345,9 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
         ) : <View style={{ width: 22 }} />}
       </View>
 
+      {album.is_owner&&viewerId&&<><TouchableOpacity accessibilityRole="button" accessibilityLabel="Book soundtrack" onPress={()=>setMusicOpen(true)} style={{minHeight:44,alignSelf:'center',justifyContent:'center',paddingHorizontal:20}}><Text style={{color:t.ink.primary,fontWeight:'600'}}>Music</Text></TouchableOpacity><SoundtrackPicker visible={musicOpen} value={album.soundtrack??null} use="memory_album" ownerId={viewerId} originalAudio={false} onClose={()=>setMusicOpen(false)} onChange={selection=>{setMutationError('');void supabase.rpc('save_memory_book_soundtrack',{p_album:album.id,p_soundtrack:selection}).then(({error})=>{if(error)setMutationError('The book soundtrack could not save. Retry from Music.');else void load();});}}/></>}
       {!!mutationError&&!settings&&<Text style={{color:t.ink.secondary,paddingHorizontal:16}}>{mutationError}</Text>}
-      {!!music.error&&opened&&<TouchableOpacity onPress={music.retry}><Text style={{color:t.ink.secondary,paddingHorizontal:16}}>Soundtrack could not play. Tap to retry.</Text></TouchableOpacity>}
+      {!!(music.error||pageAudio.error)&&opened&&<TouchableOpacity onPress={()=>{music.retry();pageAudio.retry();}}><Text style={{color:t.ink.secondary,paddingHorizontal:16}}>Soundtrack could not play. Tap to retry.</Text></TouchableOpacity>}
       {!opened ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <Animated.View style={{ transform: [{ scale: coverScale }], opacity: coverFade }}>
@@ -422,7 +427,7 @@ export default function MemoryAlbumScreen({ route, navigation }: any) {
         </View>
       )}
 
-      {filmVisible && pages.length > 0 && <MemoryFilm key={`${bookId}:${viewerId}`} title={album.title} pages={pages} active={focused} reduceMotion={reduceMotion} onClose={() => setFilmVisible(false)} onReadBook={() => { setFilmVisible(false); openBook(); }} onRetry={retryMedia} onPost={postId => { setFilmVisible(false); navigation.push('PostTop', { postId }); }} />}
+      {filmVisible && pages.length > 0 && <MemoryFilm key={`${bookId}:${viewerId}`} title={album.title} pages={pages} soundtrack={album.soundtrack} active={focused} reduceMotion={reduceMotion} onClose={() => setFilmVisible(false)} onReadBook={() => { setFilmVisible(false); openBook(); }} onRetry={retryMedia} onPost={postId => { setFilmVisible(false); navigation.push('PostTop', { postId }); }} />}
 
       <Modal visible={picker} animationType="slide" onRequestClose={() => setPicker(false)}>
         <View style={[st.safe, { paddingTop: Math.max(insets.top, 12) }]}>

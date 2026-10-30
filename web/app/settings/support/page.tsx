@@ -1,14 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ChevronRight, LifeBuoy } from "lucide-react";
+import { ChevronRight, LifeBuoy } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 type Ticket = { id: string; kind: string; subject: string; status: string; created_at: string; updated_at: string | null };
 
 export default function SupportPage() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [uid, setUid] = useState<string | null>(null);
   const [isAppeal, setIsAppeal] = useState(false);
   const [subject, setSubject] = useState("");

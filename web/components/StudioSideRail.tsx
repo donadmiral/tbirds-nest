@@ -23,6 +23,7 @@ import { createClient } from "@/lib/supabase/client";
 import { StudioLoadError } from "@/app/studio/LoadError";
 import { studioHome, type StudioHome } from "@/lib/studio";
 import { Panel } from "@/components/ui";
+import { withTimeout } from "@/lib/withTimeout";
 
 const ACTIONS = [
   { label: "Write a post", href: "/studio/planner?compose=1", icon: PenSquare },
@@ -34,28 +35,26 @@ const ACTIONS = [
 ];
 
 export function StudioSideRail({ role, username }: { role: string | null; username: string | null }) {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [home, setHome] = useState<StudioHome | null>(null);
   const [reviews, setReviews] = useState<{ n: number; avg: number } | null>(null);
 
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const generation = useRef(0);
-  const load = useCallback(async () => {
+  const load = useCallback(() => {
     const run = ++generation.current;
-    setLoading(true);
-    try {
-      const [summary, result] = await Promise.all([studioHome(), supabase.rpc("studio_reviews")]);
+    return withTimeout(Promise.all([studioHome(), supabase.rpc("studio_reviews")])).then(([summary, result]) => {
       if (run !== generation.current) return;
       if (result.error) throw result.error;
       setHome(summary);
       const d = result.data as { average?: number; count?: number } | null;
       setReviews(d && (d.count ?? 0) > 0 ? { n: d.count ?? 0, avg: d.average ?? 0 } : null);
       setLoadError(null);
-    } catch { if (run === generation.current) setLoadError("Studio summaries could not be refreshed."); }
-    finally { if (run === generation.current) setLoading(false); }
+    }).catch(() => { if (run === generation.current) setLoadError("Studio summaries could not be refreshed."); })
+      .finally(() => { if (run === generation.current) setLoading(false); });
   }, [supabase]);
-  useEffect(() => { void load(); return () => { generation.current++; }; }, [load]);
+  useEffect(() => { const requests = generation; void load(); return () => { requests.current++; }; }, [load]);
 
   const todos = home
     ? [
@@ -70,7 +69,7 @@ export function StudioSideRail({ role, username }: { role: string | null; userna
 
   return (
     <>
-      <StudioLoadError message={loadError} retry={() => { void load(); }} busy={loading} />
+      <StudioLoadError message={loadError} retry={() => { setLoading(true); void load(); }} busy={loading} />
       {todos.length > 0 ? (
         <Panel title="Needs you">
           <div className="flex flex-col gap-2">

@@ -1,10 +1,9 @@
 import { themedSheet, useTheme } from '../../theme/useTheme';
-import { KeyboardAvoidingView, Platform } from 'react-native';
+import { KeyboardAvoidingView, Platform , View, Text, Modal, TouchableOpacity, TextInput, ScrollView } from 'react-native';
 /**
  * MarketFilterSheet - Facebook Marketplace filter panel.
  */
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ScrollView } from 'react-native';
 import { MARKET_CONDITIONS } from '../../services/marketService';
 
 export type MarketFilters = {

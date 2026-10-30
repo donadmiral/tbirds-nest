@@ -7,10 +7,7 @@
  */
 import { themedSheet } from '../../theme/useTheme';
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  View, Text, TouchableOpacity, StyleSheet, Animated,
-  StatusBar, Image, Easing, Vibration, Platform,
-} from 'react-native';
+import { View, Text, TouchableOpacity, Animated, StatusBar, Image, Easing, Vibration, Platform } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';

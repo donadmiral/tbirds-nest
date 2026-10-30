@@ -7,10 +7,7 @@
  */
 import { themedSheet } from '../theme/useTheme';
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  View, Text, StyleSheet, Modal, TouchableOpacity, TextInput,
-  ActivityIndicator, Image, Keyboard, KeyboardAvoidingView, Platform,
-} from 'react-native';
+import { View, Text, Modal, TouchableOpacity, TextInput, ActivityIndicator, Image, Keyboard, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from './SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { fetchLinkPreview, normalizeUrl, deriveDomain, type LinkPreview } from '../services/linkPreview';

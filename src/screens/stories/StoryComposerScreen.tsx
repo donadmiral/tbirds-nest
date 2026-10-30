@@ -46,7 +46,7 @@ import DraggableSticker from '../../components/stories/DraggableSticker';
 import type { SmartGuideEntry } from '../../components/stories/DraggableSticker';
 import MediaCanvas from '../../components/stories/MediaCanvas';
 import CategoryPicker from '../../components/stories/CategoryPicker';
-import { MUSIC_CATALOG_ENABLED } from '../../../shared/musicAvailability';
+import { ORIGINAL_AUDIO_ENABLED } from '../../../shared/musicAvailability';
 import MusicSheet from '../../components/stories/MusicSheet';
 import { FilterLayer, FilterPickerSheet } from '../../components/stories/StoryFilters';
 import type { StoryAudioDraft } from '../../services/storiesService';
@@ -548,7 +548,7 @@ export default function StoryComposerScreen() {
   const [cdTarget, setCdTarget] = useState<Date>(new Date(Date.now() + 24 * 3600 * 1000));
   const [musicOpen, setMusicOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
-  const openMusicSheet = useCallback(() => { if (MUSIC_CATALOG_ENABLED) setMusicOpen(true); }, []);
+  const openMusicSheet = useCallback(() => { if (ORIGINAL_AUDIO_ENABLED) setMusicOpen(true); }, []);
   const openFilterSheet = useCallback(() => {
     if (active?.mediaType === 'video' && !storyVideoCompositionAvailable) { Alert.alert('New iPhone build required', 'Video color editing is included in the new native build. Your current draft is kept.'); return; }
     setFilterOpen(true);
@@ -567,7 +567,7 @@ export default function StoryComposerScreen() {
   const [previewOn, setPreviewOn] = useState(false);
   const [vidPlayer, setVidPlayer] = useState<any>(null);
   // Music preview in the editor at the mixed volume, exactly as the viewer will play it.
-  const soundPreview = useStorySoundPreview(MUSIC_CATALOG_ENABLED ? active?.audio : null, myId);
+  const soundPreview = useStorySoundPreview(ORIGINAL_AUDIO_ENABLED ? active?.audio : null, myId);
   const previewAudioUrl = soundPreview.url;
   const previewMusicVol = Math.max(0, Math.min(1, (((active?.mediaTransform as any)?.mix?.music) ?? 100) / 100));
   const previewAudio = useStoryAudioMix(previewAudioUrl, !!previewAudioUrl && !publish.publishing && !textEditorOpen && !drawMode && !musicOpen && !shareOpen, previewMusicVol, active?.audio?.durationSec);
@@ -1100,13 +1100,13 @@ export default function StoryComposerScreen() {
     { id: 'location', cat: 'sharing', tint: '#F472B6', icon: 'map-pin', label: 'Location', on: stickerCounts.location > 0, run: openLocationModal },
     { id: 'link', cat: 'sharing', tint: '#7DD3FC', icon: 'link', label: 'Link', on: stickerCounts.link > 0, run: openLinkModal },
     { id: 'emoji', cat: 'fun', tint: '#FBBF24', icon: 'smile', label: 'Emoji', on: stickerCounts.emoji > 0, run: () => openEmojiTray() },
-    ...(MUSIC_CATALOG_ENABLED ? [{ id: 'music', cat: 'media', tint: '#F472B6', icon: 'music', label: 'Music', on: !!active?.audio, run: openMusicSheet } as StudioTile] : []),
+    ...(ORIGINAL_AUDIO_ENABLED ? [{ id: 'music', cat: 'media', tint: '#F472B6', icon: 'music', label: 'Music', on: !!active?.audio, run: openMusicSheet } as StudioTile] : []),
     { id: 'filter', cat: 'media', tint: '#818CF8', icon: 'droplet', label: 'Filter', on: !!active?.filterId, run: openFilterSheet },
     { id: 'trim', cat: 'media', tint: '#F59E0B', icon: 'trim', label: 'Trim', on: (getTx() as any).trimEnd != null, run: () => { if (active?.mediaType !== 'video') { Alert.alert('Video only', 'Choose a video clip to trim.'); return; } setTrimOpen(true); } },
     { id: 'adjust', cat: 'media', tint: '#34D399', icon: 'adjust', label: 'Adjust', on: !!(getTx() as any).adjust || (getTx() as any).filterAmt != null, run: () => setAdjustOpen(true) },
     { id: 'draw', cat: 'media', tint: '#FB7185', icon: 'draw', label: 'Draw', on: drawStrokes.length > 0, run: () => setDrawMode(true) },
     { id: 'bg', cat: 'media', tint: '#60A5FA', icon: 'bg', label: 'Background', on: !!(getTx() as any).bg, run: () => { if (active?.mediaType !== 'text' && (active?.mediaFit || 'cover') !== 'contain') { Alert.alert('Fit first', 'Backgrounds show around media in fit mode. Tap the fit toggle, then pick a background.'); } setBgOpen(true); } },
-    ...(MUSIC_CATALOG_ENABLED || active?.mediaType === 'video' ? [{ id: 'mix', cat: 'media', tint: '#A78BFA', icon: 'mix', label: 'Video sound', on: !!(getTx() as any).mix, run: () => setMixOpen(true) } as StudioTile] : []),
+    ...(ORIGINAL_AUDIO_ENABLED || active?.mediaType === 'video' ? [{ id: 'mix', cat: 'media', tint: '#A78BFA', icon: 'mix', label: 'Video sound', on: !!(getTx() as any).mix, run: () => setMixOpen(true) } as StudioTile] : []),
     { id: 'save', cat: 'media', tint: '#7DD3FC', icon: 'save', label: active?.mediaType === 'video' ? 'Save edited video' : 'Save story image', on: false, run: saveMediaToDevice },
     { id: 'preview', cat: 'media', tint: '#FBBF24', icon: 'preview', label: 'Preview', on: false, run: () => setPreviewOn(true) },
     { id: 'entity', cat: 'sharing', tint: '#E8A13A', icon: 'entity', label: 'Tag', on: stickerCounts.entity > 0, run: () => setEntityOpen(true) },
@@ -1195,7 +1195,7 @@ export default function StoryComposerScreen() {
             { id: 'rtext', label: 'Text', feather: 'type', primary: true, run: () => openTextEditor() },
             { id: 'rsticker', label: 'Sticker', feather: 'smile', primary: true, on: (active?.stickers || []).length > 0, run: () => setOverflowOpen(true) },
             ...(!isTextStory ? [{ id: 'rcrop', label: (active?.mediaFit || 'cover') === 'contain' ? 'Fill' : 'Fit', feather: 'crop', on: (active?.mediaFit || 'cover') === 'contain', run: () => handleFitToggle() } as RailItem] : []),
-            ...(MUSIC_CATALOG_ENABLED ? [{ id: 'rsound', label: 'Sound', feather: 'music', primary: true, on: !!active?.audio, run: openMusicSheet } as RailItem] : []),
+            ...(ORIGINAL_AUDIO_ENABLED ? [{ id: 'rsound', label: 'Sound', feather: 'music', primary: true, on: !!active?.audio, run: openMusicSheet } as RailItem] : []),
             ...(active?.mediaType === 'video' ? [{ id: 'rtiming', label: 'Timing & layers', icon: 'trim', on: false, run: () => setTimingOpen(true) } as RailItem, { id: 'rtrim', label: 'Split video', icon: 'trim', on: false, run: () => setTrimOpen(true) } as RailItem] : []),
             ...(active?.mediaType === 'video' ? [{ id: 'rmute', label: (((getTx() as any).mix?.orig ?? 100) <= 0) ? 'Unmute' : 'Mute', feather: (((getTx() as any).mix?.orig ?? 100) <= 0) ? 'volume-x' : 'volume-2', primary: true, on: (((getTx() as any).mix?.orig ?? 100) <= 0), run: () => { const mix = (getTx() as any).mix || {}; const wasMuted = (mix.orig ?? 100) <= 0; setTx({ mix: { ...mix, orig: wasMuted ? 100 : 0 } } as any); } } as RailItem] : []),
             ...(active?.mediaType === 'video' ? [{ id: 'rspeed', label: ((getTx() as any).speed && (getTx() as any).speed !== 1) ? (getTx() as any).speed + 'x' : 'Speed', feather: 'fast-forward', primary: true, on: !!((getTx() as any).speed && (getTx() as any).speed !== 1), run: () => { const cur = (getTx() as any).speed || 1; const opts = [0.5, 1, 1.5, 2, 3]; const i = opts.indexOf(cur); const next = opts[(i + 1) % opts.length]; setTx({ speed: next === 1 ? undefined : next } as any); } } as RailItem] : []),
@@ -1203,13 +1203,13 @@ export default function StoryComposerScreen() {
             { id: 'radjust', label: 'Adjust', icon: 'adjust', on: !!(getTx() as any).adjust, run: () => setAdjustOpen(true) },
             { id: 'rdraw', label: 'Draw', icon: 'draw', on: drawStrokes.length > 0, run: () => setDrawMode(true) },
             { id: 'rbg', label: 'Backdrop', icon: 'bg', on: !!(getTx() as any).bg, run: () => { if (!isTextStory && (active?.mediaFit || 'cover') !== 'contain') handleFitToggle(); setBgOpen(true); } },
-            ...(MUSIC_CATALOG_ENABLED || active?.mediaType === 'video' ? [{ id: 'rmix', label: 'Sound', icon: 'mix', on: !!(getTx() as any).mix, run: () => setMixOpen(true) } as RailItem] : []),
+            ...(ORIGINAL_AUDIO_ENABLED || active?.mediaType === 'video' ? [{ id: 'rmix', label: 'Sound', icon: 'mix', on: !!(getTx() as any).mix, run: () => setMixOpen(true) } as RailItem] : []),
             { id: 'rpreview', label: 'Preview', icon: 'preview', run: () => setPreviewOn(true) },
             { id: 'rsave', label: active?.mediaType === 'video' ? 'Save edited video' : 'Save story image', icon: 'save', run: () => saveMediaToDevice() },
           ] as RailItem[])} />
         )}
         {/* Song chip: what plays, tap x to remove */}
-        {!drawMode && !previewOn && !timingOpen && !adjustOpen && MUSIC_CATALOG_ENABLED && !!active?.audio && (
+        {!drawMode && !previewOn && !timingOpen && !adjustOpen && ORIGINAL_AUDIO_ENABLED && !!active?.audio && (
           <View style={{ position: 'absolute', left: 14, top: insets.top + 60, zIndex: 30, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(12,16,26,0.62)', borderRadius: 16, paddingLeft: 10, paddingRight: 6, paddingVertical: 6, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.18)', maxWidth: 210 }}>
             <Feather name="music" size={13} color="#C9BFB0" />
             <Text style={{ color: '#FFFFFF', fontSize: 12.5, fontWeight: '700', flexShrink: 1 }} numberOfLines={1}>{active.audio.title || (active.audio.kind === 'voiceover' ? 'Voiceover' : 'Sound')}</Text>
@@ -1269,14 +1269,14 @@ export default function StoryComposerScreen() {
           <View style={st.dockActions}>
             <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add story text" style={st.dockTool} onPress={() => openTextEditor()}><Feather name="type" size={24} color="#FFFFFF" /><Text style={st.dockToolText}>Text</Text></TouchableOpacity>
             <TouchableOpacity accessibilityRole="button" accessibilityLabel="Open story stickers" style={st.dockTool} onPress={() => setOverflowOpen(true)}><Feather name="smile" size={24} color="#FFFFFF" /><Text style={st.dockToolText}>Stickers</Text></TouchableOpacity>
-            {MUSIC_CATALOG_ENABLED ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Choose story music or original audio" style={st.dockTool} onPress={openMusicSheet}><Feather name="music" size={24} color="#FFFFFF" /><Text style={st.dockToolText}>Music</Text></TouchableOpacity> : active?.mediaType === 'video' ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Adjust original video sound" style={st.dockTool} onPress={() => setMixOpen(true)}><Feather name="volume-2" size={24} color="#FFFFFF" /><Text style={st.dockToolText}>Sound</Text></TouchableOpacity> : null}
+            {ORIGINAL_AUDIO_ENABLED ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Choose story music or original audio" style={st.dockTool} onPress={openMusicSheet}><Feather name="music" size={24} color="#FFFFFF" /><Text style={st.dockToolText}>Music</Text></TouchableOpacity> : active?.mediaType === 'video' ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Adjust original video sound" style={st.dockTool} onPress={() => setMixOpen(true)}><Feather name="volume-2" size={24} color="#FFFFFF" /><Text style={st.dockToolText}>Sound</Text></TouchableOpacity> : null}
             <TouchableOpacity accessibilityRole="button" accessibilityLabel="Edit story media" style={st.dockTool} onPress={() => setAdjustOpen(true)}><Feather name="sliders" size={24} color="#FFFFFF" /><Text style={st.dockToolText}>Edit</Text></TouchableOpacity>
             <TouchableOpacity accessibilityRole="button" accessibilityLabel="Review story before sharing" style={st.nextPill} onPress={() => { Keyboard.dismiss(); setShareOpen(true); }} disabled={publish.publishing}><Text style={st.nextText}>Next</Text><Feather name="arrow-right" size={18} color="#181B1E" /></TouchableOpacity>
           </View>
         </View> : null}
       </Animated.View>
 
-      <StoryTimingPanel visible={timingOpen} uri={active?.mediaType === 'video' ? active.localUri : null} duration={active?.durationSec || 15} trimStart={(getTx() as any).trimStart || 0} trimEnd={(getTx() as any).trimEnd ?? Math.min(active?.durationSec || 15, 60)} player={vidPlayer} width={previewSize.w} topInset={insets.top} bottomInset={insets.bottom} stickers={active?.stickers || []} audioTitle={MUSIC_CATALOG_ENABLED ? active?.audio?.title : undefined} onClose={() => setTimingOpen(false)} onTrim={(start, end) => setTx({ trimStart: start, trimEnd: end } as any)} onDuration={duration => updateActive({ durationSec: duration })} onLayerChange={(id, start, end) => updateStickers((active?.stickers || []).map(s => s.id === id ? { ...s, startSec: start, endSec: end } : s))} />
+      <StoryTimingPanel visible={timingOpen} uri={active?.mediaType === 'video' ? active.localUri : null} duration={active?.durationSec || 15} trimStart={(getTx() as any).trimStart || 0} trimEnd={(getTx() as any).trimEnd ?? Math.min(active?.durationSec || 15, 60)} player={vidPlayer} width={previewSize.w} topInset={insets.top} bottomInset={insets.bottom} stickers={active?.stickers || []} audioTitle={ORIGINAL_AUDIO_ENABLED ? active?.audio?.title : undefined} onClose={() => setTimingOpen(false)} onTrim={(start, end) => setTx({ trimStart: start, trimEnd: end } as any)} onDuration={duration => updateActive({ durationSec: duration })} onLayerChange={(id, start, end) => updateStickers((active?.stickers || []).map(s => s.id === id ? { ...s, startSec: start, endSec: end } : s))} />
       {shareOpen ? <View accessibilityViewIsModal style={[st.shareScreen, { paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, 16) }]}>
         <View style={st.shareHeader}><TouchableOpacity accessibilityRole="button" accessibilityLabel="Back to story editing" style={st.shareBack} onPress={() => setShareOpen(false)} disabled={publish.publishing}><Feather name="chevron-left" size={25} color="#FFFFFF" /></TouchableOpacity><Text style={st.shareTitle}>Share story</Text><View style={{ width: 44 }} /></View>
         <ScrollView contentContainerStyle={{ padding: 22, paddingBottom: 32 }} keyboardShouldPersistTaps="handled">
@@ -1411,7 +1411,7 @@ export default function StoryComposerScreen() {
       <FilterPickerSheet visible={filterOpen} onClose={() => setFilterOpen(false)} selected={active?.filterId || null} onSelect={(fid: string | null) => { updateActive({ filterId: fid }); }} previewUri={active?.localUri || null} />
       <AdjustPanel colorEditingUnavailable={active?.mediaType === 'video' && !storyVideoCompositionAvailable ? 'Video color editing needs the new iPhone build. Your draft stays available.' : undefined} visible={adjustOpen} onClose={() => { setAdjustOpen(false); setCompareOriginal(false); }} onCompare={setCompareOriginal} onCrop={isTextStory ? undefined : () => { setAdjustOpen(false); handleFitToggle(); }} onFilters={() => { setAdjustOpen(false); openFilterSheet(); }} onDraw={() => { setAdjustOpen(false); setDrawMode(true); }} onTiming={active?.mediaType === 'video' ? () => { setAdjustOpen(false); setTimingOpen(true); } : undefined} adjust={((getTx() as any).adjust || {}) as StoryAdjust} onChange={(a: StoryAdjust) => setTx({ adjust: a } as any)} filterOn={!!active?.filterId} filterAmt={typeof (getTx() as any).filterAmt === 'number' ? (getTx() as any).filterAmt : 100} onFilterAmt={(v: number) => setTx({ filterAmt: v } as any)} />
       <BackgroundSheet visible={bgOpen} onClose={() => setBgOpen(false)} bg={((getTx() as any).bg || null) as StoryBg | null} onChange={(b: StoryBg) => setTx({ bg: b } as any)} />
-      <AudioMixSheet visible={mixOpen} onClose={() => setMixOpen(false)} isVideo={active?.mediaType === 'video'} hasMusic={MUSIC_CATALOG_ENABLED && !!active?.audio} mix={((getTx() as any).mix || {}) as StoryMix} onChange={(m: StoryMix) => setTx({ mix: m } as any)} />
+      <AudioMixSheet visible={mixOpen} onClose={() => setMixOpen(false)} isVideo={active?.mediaType === 'video'} hasMusic={ORIGINAL_AUDIO_ENABLED && !!active?.audio} mix={((getTx() as any).mix || {}) as StoryMix} onChange={(m: StoryMix) => setTx({ mix: m } as any)} />
       <EntitySheet visible={entityOpen} onClose={() => setEntityOpen(false)} onPick={handleEntityPick} />
       <GifPickerLite visible={gifOpen} onClose={() => setGifOpen(false)} onSelect={handleGifPick} />
       {trimOpen && active?.mediaType === 'video' && !!active?.localUri && (

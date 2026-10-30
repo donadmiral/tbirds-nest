@@ -5,7 +5,7 @@
  */
 import { themedSheet } from '../theme/useTheme';
 import React, { useEffect, useRef } from 'react';
-import { View, Image, Animated, StyleSheet } from 'react-native';
+import { View, Image, Animated } from 'react-native';
 
 export default function SplashLoader() {
   const pulse = useRef(new Animated.Value(1)).current;

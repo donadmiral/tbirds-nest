@@ -9,13 +9,14 @@ import {memoryCoverMedia,memoryAudienceLabel} from '../../shared/memoryBookDesig
 import {ResponsiveMemoryBookCover} from './memory/MemoryBookCover';
 import {MemoryBookDesigner} from './memory/MemoryBookDesigner';
 import {useMemoryDialog} from './memory/useMemoryDialog';
-export function MemoryAlbumBook({profileId}:{profileId:string}) {
- const router=useRouter(),client=useRef(createClient()).current;
- const [books,setBooks]=useState<MemoryBookInfo[]>([]),[isOwner,setIsOwner]=useState(false),[error,setError]=useState(''),[attempt,setAttempt]=useState(0),[creating,setCreating]=useState(false),[collection,setCollection]=useState(false),[query,setQuery]=useState(''),[filter,setFilter]=useState('All');const epoch=useRef(0),viewer=useRef<string|null|undefined>(undefined),loadedProfile=useRef<string|null>(null);
+export function MemoryAlbumBook(props:{profileId:string}) { return <MemoryAlbumShelf key={props.profileId} {...props}/>; }
+function MemoryAlbumShelf({profileId}:{profileId:string}) {
+ const router=useRouter(),[client]=useState(createClient);
+ const [books,setBooks]=useState<MemoryBookInfo[]>([]),[isOwner,setIsOwner]=useState(false),[error,setError]=useState(''),[attempt,setAttempt]=useState(0),[creating,setCreating]=useState(false),[collection,setCollection]=useState(false),[query,setQuery]=useState(''),[filter,setFilter]=useState('All');const epoch=useRef(0),viewer=useRef<string|null|undefined>(undefined);
  const dialog=useMemoryDialog(collection,()=>setCollection(false));
  const [loading,setLoading]=useState(true),[loaded,setLoaded]=useState(false);
- useEffect(()=>{const g=++epoch.current;if(loadedProfile.current!==profileId){loadedProfile.current=profileId;setBooks([]);setIsOwner(false);setLoaded(false);}setLoading(true);setError('');void getMemoryBooks(profileId).then(s=>{if(g!==epoch.current)return;setIsOwner(s.is_owner);setBooks(s.books.filter(b=>s.is_owner||b.count>0));setLoaded(true);}).catch(()=>{if(g===epoch.current)setError('Memory books could not load. Retry.');}).finally(()=>{if(g===epoch.current)setLoading(false);});return()=>{epoch.current++;};},[profileId,attempt]);
- useEffect(()=>{const {data:{subscription}}=client.auth.onAuthStateChange((_event,session)=>{const next=session?.user.id??null;if(viewer.current===next)return;viewer.current=next;epoch.current++;setCreating(false);setCollection(false);setBooks([]);setIsOwner(false);setLoaded(false);setAttempt(x=>x+1);});return()=>subscription.unsubscribe();},[client]);
+ useEffect(()=>{const g=++epoch.current;queueMicrotask(()=>{if(g===epoch.current){setLoading(true);setError('');}});void getMemoryBooks(profileId).then(s=>{if(g!==epoch.current)return;setIsOwner(s.is_owner);setBooks(s.books.filter(b=>s.is_owner||b.count>0));setLoaded(true);}).catch(()=>{if(g===epoch.current)setError('Memory books could not load. Retry.');}).finally(()=>{if(g===epoch.current)setLoading(false);});return()=>{epoch.current += 1;};},[profileId,attempt]);
+ useEffect(()=>{const {data:{subscription}}=client.auth.onAuthStateChange((_event,session)=>{const next=session?.user.id??null;if(viewer.current===next)return;viewer.current=next;epoch.current += 1;setCreating(false);setCollection(false);setBooks([]);setIsOwner(false);setLoaded(false);setAttempt(x=>x+1);});return()=>subscription.unsubscribe();},[client]);
  useEffect(()=>{const refresh=()=>{if(!document.hidden)setAttempt(x=>x+1);};const timer=setInterval(refresh,240000);window.addEventListener('focus',refresh);document.addEventListener('visibilitychange',refresh);return()=>{clearInterval(timer);window.removeEventListener('focus',refresh);document.removeEventListener('visibilitychange',refresh);};},[]);
  if(loaded&&!books.length&&!isOwner&&!error)return null;
  const filtered=books.filter(b=>(b.title+' '+(b.subtitle??'')).toLowerCase().includes(query.toLowerCase())&&(filter==='All'||(filter==='Public'?b.audience==='profile':b.audience!=='profile')));

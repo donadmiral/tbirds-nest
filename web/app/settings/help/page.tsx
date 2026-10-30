@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { AlertCircle, ArrowLeft, Briefcase, ChevronDown, ChevronUp, Edit3, MessageCircle, Shield, ShoppingBag, TrendingUp, Zap } from "lucide-react";
+
+import { AlertCircle, Briefcase, ChevronDown, ChevronUp, Edit3, MessageCircle, Shield, ShoppingBag, TrendingUp, Zap } from "lucide-react";
 
 const TOPICS: { icon: React.ElementType; q: string; a: string }[] = [
   { icon: Edit3, q: "Posting and who sees it", a: "Tap the pen to compose. The audience chip beside your name controls who can see the post: everyone, followers, people you mention, or verified accounts. The lightning bolt sends a post to the Innovation channel, where you can add a field and a stage to what you are building." },

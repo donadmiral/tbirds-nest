@@ -6,7 +6,7 @@ import VerifiedBadge from '../VerifiedBadge';
  * The cheapest fraud deterrent: a new account with no history looks like one.
  */
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { supabase } from '../../services/supabase';
 import { profileRead } from '../../utils/profileRead';

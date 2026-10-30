@@ -32,6 +32,7 @@ function fixture({ failCreate = false } = {}) {
         if (!same(slots[n]?.deps, deps)) { const old = slots[n]; slots[n] = { deps, cleanup: old?.cleanup }; effects.push(() => { slots[n].cleanup?.(); slots[n].cleanup = fn(); }); }
       },
     };
+    react.useLayoutEffect = react.useEffect;
     const client = {
       auth: {
         getSession: async () => ({ data: { session: { user: { id: currentOwner } } } }),
@@ -49,7 +50,7 @@ function fixture({ failCreate = false } = {}) {
       },
     };
     const module = { exports: {} };
-    vm.runInNewContext(compile('web/components/SaveToMemory.tsx'), { exports: module.exports, require(name) {
+    vm.runInNewContext(compile('web/components/SaveToMemory.tsx'), { exports: module.exports, queueMicrotask, require(name) {
       if (name === 'react') return react;
       if (name === 'react/jsx-runtime') return { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }), Fragment: 'Fragment' };
       if (name === 'lucide-react') return { BookHeart: 'BookHeart', X: 'X' };
@@ -63,7 +64,7 @@ function fixture({ failCreate = false } = {}) {
     } });
     const props = { storyId, ownerId, inline: true };
     function render() {
-      for (let n = 0; n < 10; n++) { changed = false; cursor = 0; tree = module.exports.SaveToMemory(props); while (effects.length) effects.shift()(); if (!changed) break; }
+      for (let n = 0; n < 10; n++) { changed = false; cursor = 0; const node=module.exports.SaveToMemory(props);tree = typeof node?.type==='function'?node.type(node.props):node; while (effects.length) effects.shift()(); if (!changed) break; }
       return tree;
     }
     render();

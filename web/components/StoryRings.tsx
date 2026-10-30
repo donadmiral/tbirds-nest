@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { displayImageUrl } from "@/lib/media";
 import { getCatchupFeed, type CatchupUser } from "@/lib/stories";
@@ -8,18 +9,13 @@ import { StoryViewer } from "@/components/StoryViewer";
 import { hydrateStoryMedia } from "@/lib/contentMedia";
 import { loadTrendingStories } from "../../shared/trendingStories";
 
-// Port of the phone's PlatinumRing: platinum gradient base circle plus a
-// rotating pale-glow arc (19% of the circumference) while unseen stories
-// exist; a still platinum hairline once everything is seen.
-const PLATINUM_GLOW = "#F5F0E8";
+// Match the phone's platinum gradient ring, subdued after stories are seen.
 const PLATINUM_START = "#C9BFB0";
 const PLATINUM_END = "#A89F91";
 
 function PlatinumRingWeb({ userId, size, active }: { userId: string; size: number; active: boolean }) {
   const center = size / 2;
   const radius = center - 2;
-  const circumference = 2 * Math.PI * radius;
-  const arcDash = circumference * 0.19;
   const gid = "platg_" + userId.replace(/[^a-zA-Z0-9_]/g, "_");
   return (
     <svg width={size} height={size} viewBox={"0 0 " + size + " " + size} className="absolute inset-0" aria-hidden="true">
@@ -48,7 +44,6 @@ export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
     let alive = true;
     let generation = 0;
     let owner: string | null | undefined;
-    setUsers([]); setSpot([]); setReady(false); setViewer(null);
     const refresh = async () => {
       const request = ++generation;
       const current = () => alive && generation === request;
@@ -129,11 +124,11 @@ export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
           {mine ? <button type="button" onClick={() => openAt(mineIdx)} aria-label="View your story" className="flex w-full flex-col items-center gap-1.5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current">
             {ownAvatar}
             <span className="w-full truncate text-center text-[11px] text-muted">Your story</span>
-          </button> : <a href="/story/new" aria-label="Add to your story" className="flex w-full flex-col items-center gap-1.5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current">
+          </button> : <Link href="/story/new" aria-label="Add to your story" className="flex w-full flex-col items-center gap-1.5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current">
             {ownAvatar}
             <span className="w-full truncate text-center text-[11px] text-muted">Your story</span>
-          </a>}
-          <a href="/story/new" aria-label="Create a story" className="absolute -right-3 top-[31px] flex h-11 w-11 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"><span className="flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-white bg-pearl text-[15px] leading-none text-on-pearl" aria-hidden="true">+</span></a>
+          </Link>}
+          <Link href="/story/new" aria-label="Create a story" className="absolute -right-3 top-[31px] flex h-11 w-11 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"><span className="flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-white bg-pearl text-[15px] leading-none text-on-pearl" aria-hidden="true">+</span></Link>
         </div>
         {[...users, ...spot].map((u, i) => (u.user_id === myId ? null : (
           <Fragment key={u.user_id}>

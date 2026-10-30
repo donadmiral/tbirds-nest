@@ -9,7 +9,11 @@ import {
   reportMarketContent,
   reviewError,
 } from "../../shared/marketReviews";
-export function MarketReportForm({
+export function MarketReportForm(props: Parameters<typeof MarketReportContent>[0]) {
+  return <MarketReportContent key={`${props.kind}:${props.id}:${props.userId}`} {...props} />;
+}
+
+function MarketReportContent({
   kind,
   id,
   userId,
@@ -27,18 +31,7 @@ export function MarketReportForm({
   const [sent, setSent] = useState(false);
   const generation = useRef(0);
   const pending = useRef(false);
-  useEffect(() => {
-    generation.current++;
-    pending.current = false;
-    setBusy(false);
-    setReason("");
-    setDetail("");
-    setError("");
-    setSent(false);
-    return () => {
-      generation.current++;
-    };
-  }, [id, userId, kind]);
+  useEffect(() => () => { generation.current += 1; }, []);
   const reasons = kind === "review" ? REVIEW_REASONS : LISTING_REASONS;
   return (
     <ProductDialog open title={`Report ${kind}`} description="Your identity is hidden from the reported person. Staff can review your report." busy={busy} onClose={onClose}>

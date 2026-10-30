@@ -42,7 +42,7 @@ function salaryNum(s: string | null): number {
 }
 
 export default function JobsPage() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [jobs, setJobs] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewerId, setViewerId] = useState<string | null>(null);
@@ -56,12 +56,12 @@ export default function JobsPage() {
   const generation = useRef(0);
   const account = useRef<string | null>(null);
 
-  const load = useCallback(async () => {
-    const token = ++generation.current;
+  const load = useCallback(async (initial?: Awaited<ReturnType<typeof supabase.auth.getSession>>) => {
+    const token = generation.current += 1;
     setLoading(true);
     setError(null);
     try {
-    const { data: sess, error: sessionError } = await supabase.auth.getSession();
+    const { data: sess, error: sessionError } = initial ?? await supabase.auth.getSession();
     if (sessionError) throw sessionError;
     if (token !== generation.current) return;
     const uid = sess.session?.user.id ?? null;
@@ -95,17 +95,18 @@ export default function JobsPage() {
   }, [supabase]);
 
   useEffect(() => {
-    void load();
+    let live = true;
+    void supabase.auth.getSession().then(session => { if(live) void load(session); });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       const next = session?.user.id ?? null;
       if (next !== account.current) {
         account.current = next;
         generation.current += 1;
         setJobs([]); setSavedIds(new Set()); setMyCity(""); setViewerId(next);
-        void load();
+        queueMicrotask(() => {if(live) void load();});
       }
     });
-    return () => { ++generation.current; listener.subscription.unsubscribe(); };
+    return () => { live = false; generation.current += 1; listener.subscription.unsubscribe(); };
   }, [load, supabase]);
 
   const shown = useMemo(() => {

@@ -13,7 +13,7 @@ const inputCls = "rounded-md bg-surface px-4 py-3 text-[14px] text-ink placehold
 type Photo = { file: File; preview: string };
 
 export default function CreateListingPage() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement | null>(null);
   const [marketOn, setMarketOn] = useState(true);

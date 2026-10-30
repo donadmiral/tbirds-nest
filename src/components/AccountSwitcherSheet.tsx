@@ -6,7 +6,7 @@
 import VerifiedBadge from './VerifiedBadge';
 import TierName from './TierName';
 import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, Modal, StyleSheet, Image, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, Image, ActivityIndicator, Alert } from 'react-native';
 import { useSafeAreaInsets } from './SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { useAccountsStore, MAX_ACCOUNTS } from '../stores/accountsStore';

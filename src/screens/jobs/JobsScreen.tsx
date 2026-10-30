@@ -3,12 +3,8 @@ import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import { Image as ExpoImage } from 'expo-image';
 import { TapTopFlatList } from '../../components/TapTopList';
 import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  View, Text, StyleSheet, FlatList, TouchableOpacity, Image,
-  TextInput, ScrollView, ActivityIndicator, RefreshControl,
-  StatusBar, Alert, Modal, KeyboardAvoidingView, Platform, Keyboard,
-} from 'react-native';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, ScrollView, ActivityIndicator, RefreshControl, StatusBar, Alert, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { useFocusEffect } from '@react-navigation/native';

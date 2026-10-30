@@ -17,11 +17,11 @@ export function MessageButton({ profileId }: { profileId: string }) {
   useEffect(() => {
     let alive = true, version = 0;
     currentOwner.current = undefined;
-    const accept = (id: string | null) => { if (alive && currentOwner.current !== id) { currentOwner.current = id; generation.current++; setUid(id); setError(''); setBusy(false); } };
+    const accept = (id: string | null) => { if (alive && currentOwner.current !== id) { currentOwner.current = id; generation.current += 1; setUid(id); setError(''); setBusy(false); } };
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { version++; accept(session?.user.id ?? null); });
     const initial = version;
     void supabase.auth.getSession().then(({ data }) => { if (version === initial) accept(data.session?.user.id ?? null); }).catch(() => { if (version === initial) accept(null); });
-    return () => { alive = false; generation.current++; subscription.unsubscribe(); };
+    return () => { alive = false; generation.current += 1; subscription.unsubscribe(); };
   }, [supabase, profileId]);
 
   if (!uid || uid === profileId) return null;

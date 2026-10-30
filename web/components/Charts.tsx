@@ -1,4 +1,5 @@
 "use client";
+import NextImage from "next/image";
 
 /**
  * Chart primitives for Studio.
@@ -14,7 +15,6 @@
  */
 
 const PEARL = "var(--color-pearl)";
-const PEARL_MUTED = "var(--color-pearl-muted)";
 const INK = "var(--color-ink)";
 
 function path(points: number[], w: number, h: number, pad = 2) {
@@ -158,7 +158,6 @@ export function DonutChart({ slices, size = 132 }: { slices: { label: string; va
   const r = size / 2 - 9;
   const c = 2 * Math.PI * r;
   const opacities = [1, 0.72, 0.52, 0.36, 0.24, 0.14];
-  let offset = 0;
 
   return (
     <div className="flex items-center gap-5">
@@ -166,6 +165,7 @@ export function DonutChart({ slices, size = 132 }: { slices: { label: string; va
         <g transform={`rotate(-90 ${size / 2} ${size / 2})`}>
           {parts.map((s, i) => {
             const len = (s.value / total) * c;
+            const offset = parts.slice(0, i).reduce((sum, part) => sum + part.value, 0) / total * c;
             const el = (
               <circle
                 key={s.label}
@@ -180,7 +180,6 @@ export function DonutChart({ slices, size = 132 }: { slices: { label: string; va
                 strokeDashoffset={-offset}
               />
             );
-            offset += len;
             return el;
           })}
         </g>
@@ -203,7 +202,7 @@ export function ContentThumb({ url, kind, label, size = 44 }: { url?: string | n
   const box = { width: size, height: size };
   if (url && kind !== "video") {
     return (
-      <img
+      <NextImage unoptimized width={size} height={size}
         src={url}
         alt=""
         loading="lazy"

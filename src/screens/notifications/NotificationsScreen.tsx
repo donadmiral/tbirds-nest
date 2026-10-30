@@ -1,7 +1,7 @@
 import { ListRowSkeleton } from '../../components/skeletons';
 import { showMessage } from 'react-native-flash-message';
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
-import { Alert, ScrollView } from 'react-native';
+import { Alert, ScrollView , View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Image, RefreshControl, StatusBar } from 'react-native';
 import { TapTopSectionList } from '../../components/TapTopList';
 import EmptyState from '../../components/EmptyState';
 import TierName from '../../components/TierName';
@@ -21,10 +21,6 @@ import VerifiedBadge from '../../components/VerifiedBadge';
  * chronologically and tabs hide the thing you are looking for.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  View, Text, StyleSheet, SectionList, TouchableOpacity, ActivityIndicator,
-  Image, RefreshControl, StatusBar,
-} from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
@@ -32,7 +28,7 @@ import { hydratePostMedia, hydrateStoryMedia } from '../../services/contentMedia
 import { orderTimeout } from '../../../shared/orderRequest';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
-import { light, typeSize, fontWeight, radius, space } from '../../constants/tokens';
+import { typeSize, fontWeight, radius, space } from '../../constants/tokens';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 
 const deadline = <T,>(work: PromiseLike<T>) => orderTimeout(work, 15000, 'The connection timed out. Refresh to check the result before trying again.');

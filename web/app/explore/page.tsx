@@ -1,7 +1,7 @@
 "use client";
 
 import { profilePath } from "@/lib/profileLookup";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { TrendingUp, Briefcase } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -18,7 +18,7 @@ type Person = { id: string; full_name: string | null; username: string | null; a
 type JobHit = { id: string; title: string; company: string | null; location: string | null; salary_range: string | null };
 
 export default function ExplorePage() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [topics, setTopics] = useState<Topic[]>([]);
   const [people, setPeople] = useState<Person[]>([]);
   const [posts, setPosts] = useState<FeedRow[]>([]);
@@ -50,11 +50,11 @@ export default function ExplorePage() {
         let ordered = merged;
         try {
           const { data: ranked } = await supabase.rpc("rank_discover", { p_ids: merged.map((r) => r.post_id) });
-          const score = new Map<string, number>(); ((ranked ?? []) as any[]).forEach((x) => score.set(x.id, Number(x.score) || 0));
+          const score = new Map<string, number>(); ((ranked ?? []) as {id:string;score:number|string}[]).forEach((x) => score.set(x.id, Number(x.score) || 0));
           if (score.size) {
             merged.sort((a, b) => (score.get(b.post_id) ?? 0) - (score.get(a.post_id) ?? 0));
             const spaced: FeedRow[] = []; const deferred: FeedRow[] = []; let last: string | null = null; let run = 0;
-            for (const r of merged) { const au = (r as any).author_id ?? null; if (au && au === last && run >= 2) { deferred.push(r); continue; } if (au === last) run += 1; else { last = au; run = 1; } spaced.push(r); }
+            for (const r of merged) { const au = r.author_id ?? null; if (au && au === last && run >= 2) { deferred.push(r); continue; } if (au === last) run += 1; else { last = au; run = 1; } spaced.push(r); }
             ordered = [...spaced, ...deferred];
           }
         } catch { /* fall back to fetch order */ }

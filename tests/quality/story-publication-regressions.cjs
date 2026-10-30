@@ -9,6 +9,8 @@ const ts = require('typescript');
 const root = path.resolve(__dirname, '../..');
 const deferred = () => { let resolve; const promise = new Promise((r) => { resolve = r; }); return { promise, resolve }; };
 const flush = async () => { for (let i = 0; i < 40; i++) await Promise.resolve(); };
+const originalSound = { id: 'verified-original', title: 'Voiceover', source: 'original', duration_sec: 12, max_excerpt_sec: 30 };
+const originalUrl = 'https://example.invalid/storage/v1/object/public/music-audio/user-a/verified-original.m4a';
 function load(file, imports, globals = {}) {
   const exports = {};
   const code = ts.transpileModule(fs.readFileSync(path.join(root, file), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
@@ -27,6 +29,8 @@ function harness(options = {}) {
   const values = [], calls = [], alerts = [], success = [], navigations = [];
   const queues = options.responses ?? {};
   const publication = load('src/utils/publication.ts', {});
+  const soundtrackPicker = load('shared/soundtrackPicker.ts', {}, { setTimeout, clearTimeout });
+  const originalAvailability = load('shared/originalAudioAvailability.ts', { './soundtrackPicker': soundtrackPicker });
   const client = {
     auth: { getSession: async () => ({ data: { session: { user: { id: userId }, access_token: 'synthetic' } }, error: null }) },
     from(table) {
@@ -45,16 +49,23 @@ function harness(options = {}) {
     },
     rpc: async (name, args) => {
       calls.push({ rpc: name, args });
+      if (name === 'get_original_audio_capabilities') return options.capabilities ?? { data: { version: 1, uploadsEnabled: true }, error: null };
       if (options.rpc) return options.rpc(name, args);
-      return { data: name === 'get_story_poll' ? { id: 'poll-1', options: [] } : null, error: null };
+      return { data: name === 'get_story_poll' ? { id: 'poll-1', options: [] } : name === 'get_playable_sound' ? [{ ...originalSound, id: args.p_sound_id, url: originalUrl }] : null, error: null };
     },
   };
   const actors = { authorId: () => actorId };
   const service = load('src/services/storiesService.ts', {
-    '../../shared/musicAvailability': options.musicAvailable === false ? load('shared/musicAvailability.ts', {}) : { MUSIC_CATALOG_ENABLED: true, MUSIC_UNAVAILABLE_MESSAGE: 'Unavailable fixture' },
+    '../../shared/musicAvailability': load('shared/musicAvailability.ts', {}),
+    '../../shared/originalAudioAvailability': originalAvailability,
+    '../../shared/soundtrackPicker': soundtrackPicker,
     '../../shared/contentMedia': { canonicalContentMedia: value => value },
     './supabase': { supabase: client }, '../utils/publication': publication, '../stores/actorStore': actors,
     './contentMedia': { hydrateStoryMedia: async rows => rows, hydrateSoundMedia: async rows => rows },
+    './originalAudioService': { addOriginalAudio: async (uri, owner, audioOptions) => {
+      calls.push({ originalUpload: true, uri, owner, options: audioOptions });
+      return options.originalAudio ? options.originalAudio(uri, owner, audioOptions) : originalSound;
+    } },
     '../utils/sniffMedia': { resolveTrueMeta: async () => ({ ext: 'jpg', mime: 'image/jpeg', kind: 'image' }) },
     '../utils/uploadSafe': { ensureUploadSafe: async (uri) => ({ uri, ext: 'jpg', mime: 'image/jpeg' }) },
   }, {
@@ -64,7 +75,7 @@ function harness(options = {}) {
     fetch: async (url, request) => { calls.push({ upload: true, url, request }); return options.upload ? options.upload(url, request) : { ok: true }; },
   });
   const react = {
-    useState(initial) { const key = slot++; if (!(key in values)) values[key] = initial; return [values[key], (value) => { values[key] = typeof value === 'function' ? value(values[key]) : value; }]; },
+    useState(initial) { const key = slot++; if (!(key in values)) values[key] = typeof initial === 'function' ? initial() : initial; return [values[key], (value) => { values[key] = typeof value === 'function' ? value(values[key]) : value; }]; },
     useRef(initial) { const key = slot++; if (!(key in values)) values[key] = { current: initial }; return values[key]; },
     useEffect() {}, useCallback: (fn) => fn,
   };
@@ -89,7 +100,7 @@ function harness(options = {}) {
   };
   render();
   return {
-    calls, alerts, success, navigations, render,
+    calls, alerts, success, navigations, render, service: service.storiesService,
     get drafts() { return drafts; },
     changeDrafts(update) { drafts = update(drafts); render(); },
     setActor(id) { actorId = id; }, setUser(id) { userId = id; render(); },
@@ -160,6 +171,7 @@ test('native voiceover publication requires rights attestation before any upload
   await h.render().publishAll();
   assert.equal(h.success.length, 0); assert.equal(tableCalls(h, 'stories').length, 0);
   assert.equal(h.calls.filter(call => call.upload).length, 0);
+  assert.equal(h.calls.filter(call => call.originalUpload).length, 0);
 });
 for (const [role, extra] of [
   ['photo_sticker', { stickers: [{ id: 'photo', kind: 'photo', photoUri: 'file:///sticker.jpg' }] }],
@@ -168,7 +180,10 @@ for (const [role, extra] of [
 ]) {
   test(`native failed ${role} keeps the draft and retry reuses the confirmed main upload`, async () => {
     let rejectAsset = true;
-    const h = harness({ drafts: [draft('draft-a', { mediaType: 'image', localUri: 'file:///main.jpg', ...extra })], upload: async (url) => {
+    const h = harness({ drafts: [draft('draft-a', { mediaType: 'image', localUri: 'file:///main.jpg', ...extra })], originalAudio: async () => {
+      if (role === 'voiceover' && rejectAsset) throw new Error('Verified audio upload temporarily unavailable');
+      return originalSound;
+    }, upload: async (url) => {
       if (url.includes(`_${role}.`) && rejectAsset) return { ok: false, status: 503 };
       return { ok: true };
     }});
@@ -265,15 +280,75 @@ test('native reply controls are stored in the original story insert for each cli
 });
 
 
-test('shipping music-disabled native publisher ignores restored soundtrack metadata and preserves original video mix', async () => {
-  for (const audio of [{ kind: 'sound', soundId: 'old-sound' }, { kind: 'voiceover', localUri: 'file:old-audio.m4a', rightsAttested: true, addToSounds: true, durationSec: 10 }]) {
-    const h = harness({ musicAvailable: false, drafts: [draft('retained', { mediaType: 'video', localUri: 'file:video.mp4', audio, mediaTransform: { scale: 1, translateNX: 0, translateNY: 0, fit: 'contain', trimStart: 2, trimEnd: 8, mix: { orig: 65, music: 45 } } })] });
+test('shipping native publisher attaches verified originals with their excerpt and video mix while catalogue licensing is disabled', async () => {
+  const availability = load('shared/musicAvailability.ts', {});
+  assert.equal(availability.MUSIC_CATALOG_ENABLED, false);
+  assert.equal(availability.ORIGINAL_AUDIO_ENABLED, true);
+  for (const audio of [{ kind: 'sound', soundId: 'original-library-sound', startSec: 3, durationSec: 6 }, { kind: 'voiceover', localUri: 'file:original-audio.m4a', rightsAttested: true, addToSounds: true, durationSec: 10 }]) {
+    const h = harness({ drafts: [draft('retained', { mediaType: 'video', localUri: 'file:video.mp4', audio, mediaTransform: { scale: 1, translateNX: 0, translateNY: 0, fit: 'contain', trimStart: 2, trimEnd: 8, mix: { orig: 65, music: 45 } } })] });
     await h.render().publishAll();
     const written = tableCalls(h, 'stories')[0]?.row;
-    assert.ok(written); assert.equal(written.audio_url, undefined); assert.equal(written.media_transform.mix.orig, 65); assert.equal(written.media_transform.trimStart, 2);
+    assert.ok(written); assert.equal(written.audio_url, originalUrl); assert.equal(written.audio_source, 'original');
+    assert.equal(written.media_transform.mix.orig, 65); assert.equal(written.media_transform.mix.music, 45); assert.equal(written.media_transform.trimStart, 2);
+    assert.equal(written.media_transform.audioStartSec, audio.startSec || 0);
     assert.equal(h.calls.filter(c => c.upload).length, 1);
-    assert.equal(h.calls.filter(c => c.rpc && /sound/.test(c.rpc)).length, 0);
+    const resolution = h.calls.find(c => c.rpc === 'get_playable_sound');
+    assert.equal(resolution.args.p_use, 'story'); assert.equal(resolution.args.p_sound_id, audio.soundId || originalSound.id);
+    assert.equal(tableCalls(h, 'story_sounds').length, 0, 'the verified library service owns sound creation');
+    const upload = h.calls.find(c => c.originalUpload);
+    if (audio.kind === 'voiceover') {
+      assert.equal(upload.owner, 'user-a'); assert.equal(upload.uri, audio.localUri);
+      assert.equal(upload.options.rightsAttested, true); assert.equal(upload.options.reuseAllowed, true); assert.equal(upload.options.use, 'story');
+    } else assert.equal(upload, undefined);
   }
+});
+
+test('native verified audio denial preserves the draft and never inserts a story with an unapproved sound', async () => {
+  for (const audio of [
+    { kind: 'sound', soundId: 'revoked-sound', startSec: 2, durationSec: 4 },
+    { kind: 'voiceover', localUri: 'file:///owned.m4a', rightsAttested: true, durationSec: 5 },
+  ]) {
+    const h = harness({ drafts: [draft('denied-audio', { audio })], rpc: async name => ({ data: null, error: name === 'get_playable_sound' ? { code: '42501', message: 'Sound access denied' } : null }) });
+    await h.render().publishAll();
+    assert.equal(tableCalls(h, 'stories').length, 0);
+    assert.equal(h.success.length, 0);
+    assert.equal(h.drafts[0].uploadState, 'error');
+    assert.equal(h.drafts[0].audio, audio);
+  }
+});
+
+test('native audio publication and reads fail closed when the server capability is absent', async () => {
+  const audio = { kind: 'sound', soundId: 'legacy-sound', startSec: 0, durationSec: 4 };
+  const h = harness({ drafts: [draft('unready-audio', { audio })], capabilities: { data: null, error: { code: 'PGRST202', message: 'Could not find function' } } });
+  await h.render().publishAll();
+  assert.equal(tableCalls(h, 'stories').length, 0);
+  assert.equal(h.calls.some(call => call.rpc === 'get_playable_sound' || call.originalUpload), false);
+  assert.equal(h.drafts[0].uploadState, 'error'); assert.equal(h.drafts[0].audio, audio);
+  assert.equal((await h.service.listStorySounds('original')).length, 0);
+  await assert.rejects(h.service.getStorySound('legacy-sound'), /not available/);
+  assert.equal(h.calls.some(call => call.rpc === 'get_playable_sound' || call.rpc === 'list_playable_sounds'), false);
+});
+
+test('native audio readers and publication reject catalogue and unverified legacy sources', async () => {
+  for (const source of ['library', 'licensed', null]) {
+    const legacy = { ...originalSound, source, url: originalUrl };
+    const h = harness({ drafts: [draft('legacy-audio', { audio: { kind: 'sound', soundId: legacy.id, startSec: 0, durationSec: 4 } })], rpc: async () => ({ data: [legacy], error: null }) });
+    assert.equal((await h.service.listStorySounds('original')).length, 0);
+    assert.equal((await h.service.listStorySounds('library')).length, 0);
+    await assert.rejects(h.service.getStorySound(legacy.id), /no longer available/);
+    await h.render().publishAll();
+    assert.equal(tableCalls(h, 'stories').length, 0);
+    assert.equal(h.drafts[0].uploadState, 'error');
+  }
+});
+
+test('native account changes while verified original audio finishes prevent story publication', async () => {
+  const audio = deferred();
+  const h = harness({ drafts: [draft('pending-audio', { audio: { kind: 'voiceover', localUri: 'file:///owned.m4a', rightsAttested: true, durationSec: 5 } })], originalAudio: () => audio.promise });
+  const publishing = h.render().publishAll(); await flush();
+  assert.equal(h.calls.filter(call => call.originalUpload).length, 1);
+  h.setUser('user-b'); audio.resolve(originalSound); await publishing;
+  assert.equal(tableCalls(h, 'stories').length, 0); assert.equal(h.success.length, 0);
 });
 
 

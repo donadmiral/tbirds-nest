@@ -16,7 +16,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity, Image,
   StatusBar, Alert, ScrollView, ActivityIndicator, Modal, Vibration,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
+import { useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { DailyMediaView } from '@daily-co/react-native-daily-js';

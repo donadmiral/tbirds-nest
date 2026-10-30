@@ -36,13 +36,13 @@ export function DiscoverFeed({ videosOnly = false }: { videosOnly?: boolean }) {
     p_category: chip === "for_you" || chip === "videos" ? null : chip,
     p_video: videosOnly || chip === "videos",
   }, { key: "post_id", size: 24 });
-  const { items: rows, loading, error: failed } = page;
+  const { items: rows, loading, error: failed, hasMore, loadMore } = page;
   const hidePost = (id: string) => page.setItems((cur) => cur.filter((r) => r.post_id !== id));
   useEffect(()=>{
-    const node=sentinel.current;if(!node||!page.hasMore||page.loading||page.error)return;
-    const observer=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting))void page.loadMore();},{rootMargin:'700px'});
+    const node=sentinel.current;if(!node||!hasMore||loading||failed)return;
+    const observer=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting))void loadMore();},{rootMargin:'700px'});
     observer.observe(node);return()=>observer.disconnect();
-  },[page.hasMore,page.loading,page.error,page.loadMore,rows.length]);
+  },[hasMore,loading,failed,loadMore,rows.length]);
   const chips = videosOnly ? CHIPS.filter(c => c.key !== 'videos') : CHIPS;
   const active = chips.find((c) => c.key === chip) ?? chips[0];
   const heroIdx = videosOnly || chip === "videos" ? -1 : rows.findIndex((r) => (r.media ?? []).length > 0);

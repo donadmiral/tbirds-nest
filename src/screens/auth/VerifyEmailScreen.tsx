@@ -1,16 +1,7 @@
 import { themedSheet } from '../../theme/useTheme';
 import { useSafeAreaInsets } from '../../components/SafeArea';
 import { useEffect, useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-  AppState,
-  Animated,
-  Easing,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, AppState, Animated, Easing } from 'react-native';
 import * as Linking from 'expo-linking';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Feather } from '@expo/vector-icons';
