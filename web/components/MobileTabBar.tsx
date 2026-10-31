@@ -1,6 +1,6 @@
 "use client";
 // The phone app's five tabs, for the browser on a phone. Hidden from md up where the sidebar lives.
-import Link from "next/link";
+import { NavigationLink as Link } from './NavigationLink';
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Home, MessageCircle, Store, Briefcase, LayoutDashboard } from "lucide-react";

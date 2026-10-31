@@ -1,11 +1,9 @@
-import { ListRowSkeleton } from '../../components/skeletons';
 import { themedSheet, useTheme } from '../../theme/useTheme';
 import React, { useRef , useCallback, useEffect, useState } from 'react';
-import { Pressable , View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl, StatusBar, Alert, Share, FlatList, Modal, useWindowDimensions } from 'react-native';
+import { Pressable , View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl, StatusBar, Alert, Share, useWindowDimensions } from 'react-native';
 import VideoThumb from '../../components/VideoThumb';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import TierName from '../../components/TierName';
-import EmptyState from '../../components/EmptyState';
 import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
@@ -21,15 +19,13 @@ import { useProfileMediaRefresh } from '../../hooks/useProfileMediaRefresh';
 import { normalizeProfilePost } from '../../utils/profilePost';
 import MemoryAlbumCard from '../../components/MemoryAlbumCard';
 import { useAuthStore } from '../../stores/authStore';
+import { takePrefetched, awaitPrefetched } from '../../lib/screenTransition';
 import { uploadMedia } from '../../services/mediaService';
 import { PostMedia } from '../../components/MediaRenderer';
 import { Image as ExpoImage } from 'expo-image';
-import { storiesService, type StoryHighlight } from '../../services/storiesService';
-import HighlightRow from '../../components/stories/HighlightRow';
 import { ProfileSkeleton } from '../../components/Skeleton';
 
 
-const ROLES = ['student','alumni','faculty','staff'];
 
 type Profile = {
   id: string; full_name: string; username: string; bio: string;
@@ -55,7 +51,6 @@ type Post = {
   _originalAuthor?: { full_name: string; avatar_url: string | null } | null;
 };
 type Stats = { posts: number; connections: number; followers: number; following: number };
-type Person = { id: string; full_name: string; username: string | null; avatar_url: string | null };
 type ProfileTab = 'posts' | 'reposts' | 'saved' | 'tagged';
 
 function initials(n?: string | null) {
@@ -71,16 +66,7 @@ function relTime(d?: string | null) {
   if (h<24) return h+'h'; if (dy<7) return dy+'d';
   return new Date(d).toLocaleDateString([],{month:'short',day:'numeric'});
 }
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return <View style={st.field}><Text style={st.fieldLabel}>{label}</Text>{children}</View>;
-}
-
-const COMMUNITY = [
-  { label: 'Jobs',        sub: 'Roles & referrals',   ring: '#0B1E3D', bg: '#F0EEFF', emoji: null, featherIcon: 'briefcase',  featherColor: '#0B1E3D', route: 'Jobs' },
-  { label: 'Support',     sub: 'FAQs & tickets',      ring: '#059669', bg: '#EDFBF0', emoji: null, featherIcon: 'help-circle', featherColor: '#059669', route: 'HelpSupport' },
-] as const;
-
-type StatsModalKey = 'followers' | 'following' | null;
+const normalizePost = normalizeProfilePost;
 
 export default function ProfileScreen() {
   const navigation = useNavigation<any>();
@@ -96,15 +82,16 @@ export default function ProfileScreen() {
   authProfileRef.current = authProfile;
   const scope = useRef({ userId });
   if (scope.current.userId !== userId) scope.current = { userId };
-  const profileRequest = useRef(0), tabRequest = useRef(0), moreRequest = useRef(0), highlightsRequest = useRef(0);
+  const profileRequest = useRef(0), tabRequest = useRef(0), moreRequest = useRef(0);
   const mounted = useRef(true);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   const [contentRevision, setContentRevision] = useState(0);
+  const contentRevisionRef = useRef(contentRevision); contentRevisionRef.current = contentRevision;
   const [tabError, setTabError] = useState<string | null>(null);
 
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(() => authProfile as Profile | null);
   const [stats, setStats] = useState<Stats>({ posts: 0, connections: 0, followers: 0, following: 0 });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!authProfile);
   const [refreshing, setRefreshing] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
@@ -116,25 +103,19 @@ export default function ProfileScreen() {
   const [tabReposts, setTabReposts] = useState<Post[]>([]);
   const [tabSaved, setTabSaved] = useState<Post[]>([]);
   const [tabTagged, setTabTagged] = useState<Post[]>([]);
-  const [tabCounts, setTabCounts] = useState({ posts: 0, reposts: 0, saved: 0, tagged: 0 });
   const [tabLoading, setTabLoading] = useState(false);
   const tabLoadedRef = useRef<Record<string, boolean>>({});
 
 
-  const [statsModal, setStatsModal] = useState<StatsModalKey>(null);
-  const [statsPeople, setStatsPeople] = useState<Person[]>([]);
-  const [statsLoading, setStatsLoading] = useState(false);
-
-  const [highlights, setHighlights] = useState<StoryHighlight[]>([]);
-
-  const normalizePost = normalizeProfilePost;
-
+  const prefetchedOwner = useRef<string | null>(null);
   const load = useCallback(async () => {
     const owner = scope.current, request = ++profileRequest.current;
     const current = () => mounted.current && scope.current === owner && request === profileRequest.current;
     if (!userId) { setLoading(false); return; }
     try {
-      const { data: pj, error: pErr } = await profileRead(supabase.rpc('get_profile', { p_profile_id: userId }));
+      const usePrefetch = prefetchedOwner.current !== userId; prefetchedOwner.current = userId;
+      const prefetched = usePrefetch ? takePrefetched<Record<string, unknown>>('profile:' + userId) ?? await awaitPrefetched<Record<string, unknown>>('profile:' + userId) : null;
+      const { data: pj, error: pErr } = prefetched ? { data: prefetched, error: null } : await profileRead(supabase.rpc('get_profile', { p_profile_id: userId }));
       if (!current()) return;
       if (pErr) throw pErr;
       if (!pj || (pj as any).id !== userId) throw new Error('Profile is unavailable. Please retry.');
@@ -151,22 +132,13 @@ export default function ProfileScreen() {
       } as any);
       if (setAuthProfile) setAuthProfile({ ...(authProfileRef.current as any), ...pd });
       const c = pd.counts || {};
-      setTabCounts({ posts: c.posts ?? 0, reposts: c.reposts ?? 0, saved: c.saved ?? 0, tagged: c.media ?? 0 });
+
       // Reach comes from the 28-day function a moment later; keep the number already shown until it lands, so it never flips.
       setStats(prev => ({ posts: c.posts ?? 0, connections: 0, followers: c.followers ?? 0, following: c.following ?? 0, reach: (prev as any)?.reach ?? c.reach ?? null } as any));
       supabase.rpc('get_profile_reach_28d', { p_profile_id: pd.id }).then(({ data }) => { if (current() && data != null) setStats(prev => ({ ...(prev as any), reach: data })); }, () => {});
     } catch(e: any){ if (current()) setLoadError(e?.message || 'Could not load your profile. Please retry.'); }
     finally { if (current()) { setLoading(false); setRefreshing(false); } }
-  }, [userId]);
-
-  const loadHighlights = useCallback(async () => {
-    const owner = scope.current, request = ++highlightsRequest.current;
-    if (!userId) return;
-    try {
-      const list = await storiesService.getUserHighlights(userId);
-      if (mounted.current && scope.current === owner && request === highlightsRequest.current) setHighlights(list);
-    } catch (e) { console.log('[loadHighlights]', e); }
-  }, [userId]);
+  }, [userId, setAuthProfile]);
 
   const profileFocused = useIsFocused();
   useProfileMediaRefresh(tabPosts, setTabPosts, userId || '', profileFocused && activeTab === 'posts', setTabError);
@@ -174,9 +146,9 @@ export default function ProfileScreen() {
   useProfileMediaRefresh(tabSaved, setTabSaved, userId || '', profileFocused && activeTab === 'saved', setTabError);
   useProfileMediaRefresh(tabTagged, setTabTagged, userId || '', profileFocused && activeTab === 'tagged', setTabError);
 
-  const loadTabContent = useCallback(async (tab: ProfileTab) => {
+  const loadTabContent = useCallback(async (tab: ProfileTab, revision = contentRevisionRef.current) => {
     const owner = scope.current, request = ++tabRequest.current;
-    const current = () => mounted.current && scope.current === owner && request === tabRequest.current;
+    const current = () => mounted.current && scope.current === owner && request === tabRequest.current && revision === contentRevisionRef.current;
     if (!userId) { setTabLoading(false); return; }
     setTabLoading(!tabLoadedRef.current[tab]);
     setTabError(null);
@@ -225,7 +197,7 @@ export default function ProfileScreen() {
         }
       }
       if (!current()) return;
-      setTabCounts(previous => ({ ...previous, [tab]: rows.length }));
+
       // The database has authorized these rows. Show their metadata immediately,
       // with private references removed, while the separate media request runs.
       // A signing outage must not hide every post behind a global spinner.
@@ -268,7 +240,7 @@ export default function ProfileScreen() {
           if (tab === 'posts') setTabPosts(decorate);
           else if (tab === 'reposts') setTabReposts(decorate);
           else if (tab === 'saved') setTabSaved(decorate);
-        } catch (error: any) {
+        } catch {
           if (current()) setTabError(tab === 'posts' ? 'Some collaborations could not load. Your own posts are shown. Retry posts to try again.' : 'Some author details could not load. Retry posts to try again.');
         }
       })();
@@ -281,15 +253,16 @@ export default function ProfileScreen() {
 
   useEffect(() => {
     tabLoadedRef.current = {};
-    setProfile(null); setTabPosts([]); setTabReposts([]); setTabSaved([]); setTabTagged([]);
-    setHighlights([]); setTabError(null); setLoadError(null); setLoading(!!userId);
+    const known = authProfileRef.current?.id === userId ? authProfileRef.current as unknown as Profile : null;
+    setProfile(known); setTabPosts([]); setTabReposts([]); setTabSaved([]); setTabTagged([]);
+    setTabError(null); setLoadError(null); setLoading(!!userId && !known);
     setPostsHasMore(false); setLoadingMorePosts(false); setTabLoading(false);
   }, [userId]);
   useFocusEffect(useCallback(() => {
     setLoadingMorePosts(false);
-    void load(); void loadHighlights();
-    return () => { profileRequest.current++; highlightsRequest.current++; };
-  }, [load, loadHighlights]));
+    void load();
+    return () => { profileRequest.current++; };
+  }, [load]));
   const [hasStory, setHasStory] = useState(false);
   useFocusEffect(useCallback(() => {
     let alive = true;
@@ -301,13 +274,13 @@ export default function ProfileScreen() {
   }, [userId]));
 
   useFocusEffect(useCallback(() => {
-    if (userId) void loadTabContent(activeTab);
+    if (userId) void loadTabContent(activeTab, contentRevision);
     return () => { tabRequest.current++; moreRequest.current++; };
   }, [activeTab, userId, contentRevision, loadTabContent]));
 
   useEffect(() => {
-    if (route.params?.edit && profile) { openEdit(); navigation.setParams({ edit: undefined } as any); }
-  }, [route.params?.edit, profile]);
+    if (route.params?.edit && profile) { navigation.navigate('EditProfile'); navigation.setParams({ edit: undefined } as any); }
+  }, [route.params?.edit, profile, navigation]);
 
   const changePhoto = async () => {
     if (!userId) return;
@@ -330,64 +303,10 @@ export default function ProfileScreen() {
     finally { setUploadingPhoto(false); }
   };
 
-  const openStats = async (type: 'followers'|'following') => {
-    setStatsModal(type); setStatsLoading(true); setStatsPeople([]);
-    try {
-      let ids:string[]=[];
-      if (type==='followers') {
-        const { data } = await supabase.from('follows').select('follower_id').eq('following_id',userId).neq('follower_id',userId);
-        ids=(data||[]).map((r:any)=>r.follower_id);
-      } else {
-        const { data } = await supabase.from('follows').select('following_id').eq('follower_id',userId).neq('following_id',userId);
-        ids=(data||[]).map((r:any)=>r.following_id);
-      }
-      if (ids.length>0) { const { data: people } = await supabase.from('profiles').select('id,full_name,username,avatar_url').in('id',ids); setStatsPeople((people||[]) as Person[]); }
-    } catch(e){ console.log('STATS',e); }
-    finally { setStatsLoading(false); }
-  };
-
   const openEdit = () => {
     if (!profile) return;
     navigation.navigate('EditProfile');
   };
-
-  const handleHighlightTap = useCallback((h: StoryHighlight) => {
-    if (!userId) return;
-    navigation.navigate('StoryViewer', {
-      userIds: [userId],
-      startUserId: userId,
-      highlightId: h.id,
-      highlightTitle: h.title,
-    });
-  }, [userId, navigation]);
-
-  const handleHighlightCreate = useCallback(() => {
-    Alert.prompt(
-      'New Highlight',
-      'Enter a name for your highlight',
-      async (title) => {
-        const trimmed = (title || '').trim();
-        if (!trimmed) return;
-        try {
-          await storiesService.createHighlight(trimmed);
-          loadHighlights();
-        } catch (e: any) { Alert.alert('Error', e?.message || 'Could not create highlight'); }
-      },
-      'plain-text',
-      '',
-      'default'
-    );
-  }, [loadHighlights]);
-
-  const handleHighlightLongPress = useCallback((h: StoryHighlight) => {
-    Alert.alert(h.title, undefined, [
-      { text: 'Delete', style: 'destructive', onPress: async () => {
-        try { await storiesService.deleteHighlight(h.id); loadHighlights(); }
-        catch (e: any) { Alert.alert('Error', e?.message || 'Could not delete'); }
-      }},
-      { text: 'Cancel', style: 'cancel' },
-    ]);
-  }, [loadHighlights]);
 
   const renderPostCard = (post: Post) => {
     const isOwnPost = post.user_id === userId;
@@ -482,14 +401,12 @@ const loadMorePosts = useCallback(async () => {
   if (loading || (profile && profile.id !== userId)) return <SafeAreaView style={st.safe}><ProfileSkeleton /></SafeAreaView>;
   if (!profile) return <SafeAreaView style={st.safe}><View style={st.center}><Text style={{color:t.ink.muted}}>{loadError || 'Profile not found.'}</Text><TouchableOpacity accessibilityRole="button" onPress={() => { setLoading(true); void load(); }}><Text style={{color:t.brand.base,padding:16}}>Retry profile</Text></TouchableOpacity></View></SafeAreaView>;
 
-  const statsModalTitle = statsModal === 'followers' ? 'Followers' : statsModal === 'following' ? 'Following' : '';
-  const statsEmptyMsg = statsModal === 'followers' ? 'When someone follows you they appear here.' : 'Follow people to see their updates.';
   const tabData = getTabData();
 
   return (
     <SafeAreaView style={st.safe} edges={['top','left','right']}>
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'}/>
-      <ScrollView contentInsetAdjustmentBehavior="never" automaticallyAdjustContentInsets={false} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={()=>{setRefreshing(true);void load();void loadHighlights();setContentRevision(value=>value+1);}} tintColor={t.brand.base}/>} onScroll={handleTabBarScroll} scrollEventThrottle={16} contentContainerStyle={{paddingBottom:insets.bottom+TAB_BAR_CLEARANCE}}>
+      <ScrollView contentInsetAdjustmentBehavior="never" automaticallyAdjustContentInsets={false} showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={()=>{setRefreshing(true);void load();setContentRevision(value=>value+1);}} tintColor={t.brand.base}/>} onScroll={handleTabBarScroll} scrollEventThrottle={16} contentContainerStyle={{paddingBottom:insets.bottom+TAB_BAR_CLEARANCE}}>
         <ProfileHeader
           profile={profile}
           stats={stats}
@@ -518,12 +435,7 @@ const loadMorePosts = useCallback(async () => {
         )}
       </ScrollView>
 
-      <Modal visible={!!statsModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={()=>setStatsModal(null)}>
-        <SafeAreaView style={{flex:1,backgroundColor:t.surface.raised,paddingTop:insets.top}} edges={['left','right','bottom']}>
-          <View style={st.modalHeader}><View style={{width:60}}/><Text style={st.modalTitle}>{statsModalTitle}</Text><TouchableOpacity onPress={()=>setStatsModal(null)} style={{width:60,alignItems:'flex-end'}}><Feather name="x" size={22} color={t.ink.primary}/></TouchableOpacity></View>
-          {statsLoading?<ListRowSkeleton />:statsPeople.length===0?<View style={st.empty}><Feather name="users" size={40} color={t.ink.faint}/><Text style={st.emptyTitle}>Nobody here yet</Text><Text style={st.emptyTxt}>{statsEmptyMsg}</Text></View>:<FlatList  ListEmptyComponent={<EmptyState icon="grid" title="No posts yet" line="What you share appears here." />}data={statsPeople} keyExtractor={p=>p.id} contentContainerStyle={{padding:16}} renderItem={({item:person})=>(<TouchableOpacity style={st.personRow} activeOpacity={0.85} onPress={()=>{setStatsModal(null);navigation.navigate('UserProfile',{userId:person.id});}}>{person.avatar_url?<ExpoImage source={{uri:person.avatar_url}} style={st.personAvatar} contentFit="cover" cachePolicy="memory-disk" transition={150} />:<View style={[st.personAvatar,st.personAvatarFb]}><Text style={st.personAvatarTxt}>{initials(person.full_name)}</Text></View>}<View style={{flex:1}}><View style={{flexDirection:'row',alignItems:'center'}}><TierName userId={person.id} baseStyle={st.personName} text={person.full_name||'Member'} /><VerifiedBadge userId={person.id} size={12} /></View>{person.username?<Text style={st.personHandle}>@{person.username}</Text>:null}</View><Feather name="chevron-right" size={16} color={t.ink.faint}/></TouchableOpacity>)}/>}
-        </SafeAreaView>
-      </Modal>
+
 
     </SafeAreaView>
   );

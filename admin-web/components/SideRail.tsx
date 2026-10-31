@@ -8,6 +8,7 @@ import { readPreferenceFlag, readPreferenceList, savePreference } from '@/lib/br
 import { preferenceList, usePreference } from '@/lib/browserPreferenceHooks';
 import { trapDialogTab } from '@/lib/dialogFocus';
 import AdminIcon from '@/components/AdminIcon';
+import { QueueBadge } from '@/components/QueueCounts';
 import { matchingDestination, type NavigationItem, type NavigationGroup } from '@/lib/navigation';
 
 export type RailItem = NavigationItem;
@@ -30,7 +31,7 @@ function RailIcon({ item }: { item: RailItem }) {
 }
 
 export default function SideRail({ groups, counts, active, email, roleLabel, tools = NO_TOOLS }: {
-  groups: RailGroup[]; counts: Record<string, number | null>; active: string; email: string; roleLabel: string; tools?: NavigationItem[];
+  groups: RailGroup[]; counts?: Record<string, number | null>; active: string; email: string; roleLabel: string; tools?: NavigationItem[];
 }) {
   const pathname = usePathname();
   const collapsed = usePreference(K_COLLAPSED) === 'true';
@@ -77,7 +78,6 @@ export default function SideRail({ groups, counts, active, email, roleLabel, too
 
   function navigation(compact: boolean, mobile: boolean) {
     function itemRow(item: RailItem, isPinned = false) {
-      const count = counts[item.href];
       const selected = item.href === selectedHref;
       return <div key={item.href} className="pc-rail-row" data-active={selected} data-nested={!!item.parent && !isPinned}>
         <Link href={item.href} aria-current={selected ? 'page' : undefined} title={compact ? item.label : undefined} className="pc-rail-link"
@@ -88,7 +88,7 @@ export default function SideRail({ groups, counts, active, email, roleLabel, too
           }}>
           <RailIcon item={item} />
           <span className={compact ? 'sr-only' : 'pc-rail-label'}>{item.label}</span>
-          {!compact && count !== undefined && (count === null || count > 0) ? <span className="pc-rail-count" aria-label={count === null ? 'Count unavailable' : `${count} waiting`}>{count === null ? '—' : count > 999 ? '999+' : count}</span> : null}
+          {!compact ? <QueueBadge href={item.href} fallback={counts?.[item.href]} /> : null}
         </Link>
         {!compact ? <button type="button" className="pc-rail-pin" aria-label={`${isPinned || pins.includes(item.href) ? 'Unpin' : 'Pin'} ${item.label}`} aria-pressed={pins.includes(item.href)} onClick={() => togglePin(item.href)}>
           <AdminIcon name="pin" size={14} />

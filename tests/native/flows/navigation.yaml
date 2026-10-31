@@ -1,0 +1,62 @@
+appId: app.platinumcircles.mobile.qa
+name: Full native app navigation
+---
+- launchApp:
+    clearState: true
+    permissions:
+      notifications: deny
+- extendedWaitUntil:
+    visible: Sign in
+    timeout: 30000
+- tapOn: Username or email
+- inputText: qa.alex@example.invalid
+- tapOn: Password
+- inputText: FixtureOnly-2026!
+- hideKeyboard
+- tapOn: Sign in
+- extendedWaitUntil:
+    visible: A quiet morning in the desert. Small moments worth keeping.
+    timeout: 30000
+- takeScreenshot: native-ui-logs/screenshots/home
+- tapOn: Latest
+- assertVisible: A quiet morning in the desert. Small moments worth keeping.
+- tapOn: For You
+- assertVisible: A quiet morning in the desert. Small moments worth keeping.
+- tapOn: Market
+- extendedWaitUntil:
+    visible: Travel journal
+    timeout: 15000
+- takeScreenshot: native-ui-logs/screenshots/market
+- tapOn: Home
+- assertVisible: A quiet morning in the desert. Small moments worth keeping.
+- tapOn: Jobs
+- extendedWaitUntil:
+    visible: Product designer
+    timeout: 15000
+- takeScreenshot: native-ui-logs/screenshots/jobs
+- tapOn: Messages
+- extendedWaitUntil:
+    visible: Ready for our next adventure?
+    timeout: 15000
+- takeScreenshot: native-ui-logs/screenshots/messages
+- tapOn: Profile
+- extendedWaitUntil:
+    visible: Alex Rivera
+    timeout: 15000
+- assertVisible: Edit profile
+- takeScreenshot: native-ui-logs/screenshots/profile
+- tapOn: Settings
+- extendedWaitUntil:
+    visible: Settings
+    timeout: 15000
+- takeScreenshot: native-ui-logs/screenshots/settings
+- tapOn: Home
+- assertVisible: A quiet morning in the desert. Small moments worth keeping.
+- repeat:
+    times: 3
+    commands:
+      - tapOn: Messages
+      - assertVisible: Ready for our next adventure?
+      - tapOn: Home
+      - assertVisible: A quiet morning in the desert. Small moments worth keeping.
+- takeScreenshot: native-ui-logs/screenshots/returned-home

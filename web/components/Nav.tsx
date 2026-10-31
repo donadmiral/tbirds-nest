@@ -2,7 +2,7 @@
 import NextImage from "next/image";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { NavigationLink as Link } from './NavigationLink';
 import { usePathname } from "next/navigation";
 import { BarChart3, PanelLeftClose, PanelLeftOpen, User } from "lucide-react";
 import { Wordmark } from "@/components/Wordmark";

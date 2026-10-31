@@ -15,6 +15,10 @@ export type HomeFeedState = {
   owner: string | null; mode: FeedMode; rows: FeedRow[]; loading: boolean; loadingMore: boolean;
   hasMore: boolean; pending: number; error: string | null; scrollRestore: FeedScrollRestore | null;
 };
+type FeedTabMemory = { rows: FeedRow[]; cursor: FeedRow | null; hasMore: boolean; pending: number; scrollTop: number };
+export type HomeFeedMemory = {
+  owner: string; mode: FeedMode; tab: FeedTabMemory; tabs: [string, FeedTabMemory][]; hidden: string[]; mutedWords: string[];
+};
 const PAGE_SIZE = 20;
 const cacheMode = (mode: FeedMode) => mode === 'for_you' ? 'forYou' : mode;
 const uniqueRows = (rows: FeedRow[]) => [...new Map(rows.map(row => [row.post_id, row])).values()];
@@ -27,14 +31,18 @@ export const filterMutedFeedRows = (rows: FeedRow[], words: string[]) => rows.fi
 
 /** One controller per mounted feed. No server-side or cross-account shared state. */
 export function createHomeFeedController(client: Client, seed: FeedSeed, snapshots: Snapshots,
-  measure: (value: Measurement) => void = () => {}, hydrate: (rows: FeedRow[]) => Promise<FeedRow[]> = async rows => rows) {
-  let state: HomeFeedState = { owner: seed.owner, mode: 'for_you', rows: filterMutedFeedRows(seed.rows, seed.mutedWords),
-    loading: false, loadingMore: false, hasMore: seed.rows.length >= PAGE_SIZE, pending: 0, error: seed.error, scrollRestore: null };
-  let cursor = seed.rows.length ? seed.rows[seed.rows.length - 1] : null;
-  let words = seed.mutedWords;
-  const tabs = createFeedTabCache<{ rows: FeedRow[]; cursor: FeedRow | null; hasMore: boolean; pending: number; scrollTop: number }>();
-  let revision = 0, pageRevision = 0, scrollRevision = 0, disposed = false, liveResolved = !seed.error, refreshing = false;
-  const hidden = new Set<string>(), listeners = new Set<() => void>(), active = new Set<AbortController>();
+  measure: (value: Measurement) => void = () => {}, hydrate: (rows: FeedRow[]) => Promise<FeedRow[]> = async rows => rows,
+  memory?: HomeFeedMemory | null) {
+  const restored = memory?.owner === seed.owner ? memory : null;
+  let words = restored && seed.error ? restored.mutedWords : seed.mutedWords;
+  let state: HomeFeedState = { owner: seed.owner, mode: restored?.mode ?? 'for_you', rows: filterMutedFeedRows(restored?.tab.rows ?? seed.rows, words),
+    loading: false, loadingMore: false, hasMore: restored?.tab.hasMore ?? seed.rows.length >= PAGE_SIZE,
+    pending: restored?.tab.pending ?? 0, error: seed.error, scrollRestore: restored ? { id: 1, owner: seed.owner, mode: restored.mode, top: restored.tab.scrollTop } : null };
+  let cursor = restored ? restored.tab.cursor : seed.rows.length ? seed.rows[seed.rows.length - 1] : null;
+  const tabs = createFeedTabCache<FeedTabMemory>();
+  restored?.tabs.forEach(([key, tab]) => tabs.save(key, tab));
+  let revision = 0, pageRevision = 0, scrollRevision = restored ? 1 : 0, disposed = false, liveResolved = !!restored || !seed.error, refreshing = false;
+  const hidden = new Set<string>(restored?.hidden), listeners = new Set<() => void>(), active = new Set<AbortController>();
   const publish = (patch: Partial<HomeFeedState>) => { state = { ...state, ...patch }; listeners.forEach(fn => fn()); };
   const current = (token: number, owner: string | null, mode: FeedMode) => !disposed && revision === token && state.owner === owner && state.mode === mode;
   const cancel = () => { active.forEach(controller => controller.abort()); active.clear(); };
@@ -128,24 +136,25 @@ export function createHomeFeedController(client: Client, seed: FeedSeed, snapsho
       disposed = false; snapshots.setAccount(state.owner);
       const owner = state.owner, mode = state.mode, token = revision;
       if (!owner) return;
+      if (restored) { await load(false, true); return; }
       if (!seed.error) { void persist(seed.rows, token, owner, mode); return; }
       const fresh = load(false);
       const readToken = revision;
-      const restored = snapshots.read(owner, cacheMode(mode)).then(snapshot => {
+      const diskRestore = snapshots.read(owner, cacheMode(mode)).then(snapshot => {
         if (!snapshot || !current(readToken, owner, mode) || liveResolved || state.rows.length) return;
         const rows = snapshot.rows.map(row => ({ ...row, body: null, read_minutes: null, quoted_post_id: null, thread_parent_id: null,
           created_at: row.created_at ?? '', sort_key: 0, author_kind: null, viewer_follows: false, link: null,
           innovation_field: null, innovation_stage: null })) as FeedRow[];
         publish({ rows: filterMutedFeedRows(rows, words), loading: false });
       });
-      await Promise.all([restored, fresh]);
+      await Promise.all([diskRestore, fresh]);
     },
     load: (more = false, background = false) => load(more, background),
     setMode(mode: FeedMode, currentScrollTop = 0) {
       if (disposed || mode === state.mode) return;
       // Save only an established result. A request interrupted by another tab
       // must not turn that tab's next visit into a cached empty state.
-      if (!state.loading && !state.error) tabs.save(state.mode, { rows: state.rows, cursor, hasMore: state.hasMore, pending: state.pending,
+      if (!state.loading && (state.rows.length > 0 || !state.error)) tabs.save(state.mode, { rows: state.rows, cursor, hasMore: state.hasMore, pending: state.pending,
         // Rapid tab changes must not replace an unapplied destination offset
         // with the previous tab's temporarily clamped window position.
         scrollTop: state.rows.length ? state.scrollRestore?.top ?? scrollOffset(currentScrollTop) : 0 });
@@ -169,6 +178,13 @@ export function createHomeFeedController(client: Client, seed: FeedSeed, snapsho
     hide(postId: string) {
       hidden.add(postId); if (state.owner) void snapshots.clear(state.owner);
       publish({ rows: state.rows.filter(row => row.post_id !== postId) });
+    },
+    remember(currentScrollTop = 0): HomeFeedMemory | null {
+      if (!state.owner || (state.loading && !state.rows.length)) return null;
+      return { owner: state.owner, mode: state.mode,
+        tab: { rows: state.rows, cursor, hasMore: state.hasMore, pending: state.pending,
+          scrollTop: state.scrollRestore?.top ?? scrollOffset(currentScrollTop) },
+        tabs: tabs.snapshot(), hidden: [...hidden], mutedWords: words };
     },
     dispose() { disposed = true; revision++; pageRevision++; cancel(); tabs.clear(); state = { ...state, scrollRestore: null }; listeners.clear(); },
   };

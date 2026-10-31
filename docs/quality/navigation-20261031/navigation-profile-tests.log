@@ -1,0 +1,24 @@
+✔ profile posts publishes authorized metadata while private previews resolve (73.986023ms)
+✔ profile reposts publishes authorized metadata while private previews resolve (60.347226ms)
+✔ profile saved publishes authorized metadata while private previews resolve (63.03042ms)
+✔ profile tagged publishes authorized metadata while private previews resolve (46.275752ms)
+✔ account ABA and superseded loads cannot replace the current profile feed (98.548916ms)
+✔ query and signing failures expose retry without stranding the profile spinner (60.192428ms)
+✔ legacy video metadata stays video and normalizing does not reorder cached source arrays (0.518775ms)
+✔ visitor profile honors server content visibility before requesting posts (15.992239ms)
+✔ visitor profile signs post previews and drops old account/target responses (47.937038ms)
+✔ profile focus starts and restarts content without waiting for a header refresh (12.374306ms)
+✔ reselecting a loaded tab keeps its content visible while media access refreshes (15.100978ms)
+✔ a hanging optional collaboration query cannot hold own posts or first-page loading (21.280902ms)
+✔ a read that never reaches transport settles with retry, and a late response cannot replace it (20.244773ms)
+✔ a media outage leaves the authorized post content usable and a retry replaces its stripped previews (21.881142ms)
+✔ pending media is a loading state, not an unavailable photo; text-only posts never display a media spinner (0.234035ms)
+✔ a consumed profile prefetch cannot hide updated follow or visibility state on refresh (11.987326ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 578.59492

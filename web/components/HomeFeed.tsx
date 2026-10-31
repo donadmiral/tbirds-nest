@@ -1,6 +1,7 @@
 "use client";
 
-import { createHomeFeedController, type FeedSeed, type FeedMode } from "@/lib/homeFeedController";
+import { createHomeFeedController, type FeedSeed, type FeedMode, type HomeFeedMemory } from "@/lib/homeFeedController";
+import { getNavigationStore } from "@/lib/navigationCache";
 import { restoreHomeFeedScroll } from "@/lib/homeFeedScroll";
 import { hydratePostMedia } from "@/lib/contentMedia";
 import { getFeedCache } from "@/lib/feedCache";
@@ -53,9 +54,12 @@ function Skeleton() {
 
 export default function HomeFeed({ seed }: { seed: FeedSeed }) {
   const [supabase] = useState(createClient);
+  const [navigationStore] = useState(getNavigationStore);
   const [controller] = useState(() => createHomeFeedController(supabase, seed, getFeedCache(), value => {
     window.dispatchEvent(new CustomEvent('pc-performance', { detail: { event: 'feed', ...value } }));
-  }, rows => renewFeedMedia(rows, value => hydratePostMedia(value))));
+  }, rows => renewFeedMedia(rows, value => hydratePostMedia(value)),
+    navigationStore.getSnapshot().owner === seed.owner
+      ? navigationStore.cache.read<HomeFeedMemory>(navigationStore.getSnapshot().scope, 'home:personal') : null));
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot, controller.getSnapshot);
   const { mode, rows: posts, loading, loadingMore, hasMore, error, pending: pendingNew } = state;
   const uidRef = useRef<string | null>(seed.owner);
@@ -115,6 +119,7 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
   // causing the page to jump underneath a normal wheel/touch gesture.
   // Infinite paging and lazy media still bound network and decoding work.
   const newDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastFeedScroll = useRef(0);
 
   useEffect(() => {
     if (!state.scrollRestore) return;
@@ -122,6 +127,10 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
   }, [controller, state.scrollRestore]);
 
   useEffect(() => {
+    const cacheScope = navigationStore.getSnapshot().owner === seed.owner ? navigationStore.getSnapshot().scope : null;
+    lastFeedScroll.current = controller.getSnapshot().scrollRestore?.top ?? window.scrollY;
+    const rememberScroll = () => { if (window.location.pathname === '/home') lastFeedScroll.current = window.scrollY; };
+    window.addEventListener('scroll', rememberScroll, { passive: true });
     void controller.start();
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const next = session?.user.id ?? null;
@@ -148,12 +157,17 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
     document.addEventListener('visibilitychange', onVisibility);
     const mediaRefresh = setInterval(onVisibility, 240_000);
     return () => {
+      const memory = controller.remember(lastFeedScroll.current);
+      const session = navigationStore.getSnapshot();
+      const initialScope = !session.changed && session.owner === seed.owner ? session.scope : null;
+      if (memory) navigationStore.cache.save(cacheScope ?? initialScope, 'home:personal', memory);
+      window.removeEventListener('scroll', rememberScroll);
       clearInterval(mediaRefresh); subscription.unsubscribe(); controller.dispose();
       window.removeEventListener('pc-refresh-feed', onRefresh); window.removeEventListener('pc-feed-hidden', onHidden);
       window.removeEventListener('pc-feed-author-hidden', onAuthorHidden);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [controller, load, router, supabase, refreshMarketplace]);
+  }, [controller, load, router, supabase, refreshMarketplace, navigationStore, seed.owner]);
 
   useEffect(() => {
     let active = true;

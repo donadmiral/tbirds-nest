@@ -9,6 +9,7 @@ import AppNavigator from './src/navigation/AppNavigator';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { useAuthStore } from './src/stores/authStore';
 import { feedSnapshots } from './src/services/feedSnapshot';
+import { subscribeNavigationScope } from './src/lib/navigationCache';
 import { useFonts } from 'expo-font';
 import { SpaceGrotesk_500Medium, SpaceGrotesk_700Bold } from '@expo-google-fonts/space-grotesk';
 import { Caveat_600SemiBold } from '@expo-google-fonts/caveat';
@@ -40,9 +41,19 @@ const queryClient = new QueryClient({
   },
 });
 
+// The client outlives individual screens (and can outlive an App render). Clear
+// it synchronously on every real session boundary, including A→B→A changes.
+// Cancelling first prevents an old query from publishing after the clear.
+subscribeNavigationScope(() => {
+  void queryClient.cancelQueries().catch(() => {});
+  queryClient.clear();
+  feedSnapshots.setAccount(null);
+  feedSnapshots.setAccount(useAuthStore.getState().session?.user.id ?? null);
+});
+
 export default function App() {
   const initialize = useAuthStore((state) => state.initialize);
-  const [fontsLoaded] = useFonts({
+  useFonts({
     SpaceGrotesk_500Medium, SpaceGrotesk_700Bold, Caveat_600SemiBold,
     ArchivoBlack_400Regular, SpaceMono_400Regular,
   });

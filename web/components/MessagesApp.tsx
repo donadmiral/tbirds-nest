@@ -25,6 +25,8 @@ import { parseStoryMessageReference } from "../../shared/storyMessageReference";
 import { RichText } from "@/components/RichText";
 import { NewMessageDialog } from "@/components/NewMessageDialog";
 import { withTimeout } from "@/lib/withTimeout";
+import { getNavigationStore } from '@/lib/navigationCache';
+import { navigationMessages, revalidateMessageWindow, type MessageNavigationMemory } from '@/lib/messageNavigationMemory';
 import { profilePath } from "@/lib/profileLookup";
 import workspace from "./MessagesWorkspace.module.css";
 
@@ -43,22 +45,31 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   useEffect(() => { const mq = window.matchMedia("(max-width: 767px)"); const apply = () => setIsNarrow(mq.matches); apply(); mq.addEventListener("change", apply); return () => mq.removeEventListener("change", apply); }, []);
   const compact = compactProp || isNarrow;
   const [supabase] = useState(createClient);
+  const [navigationStore] = useState(getNavigationStore);
+  const [navigationMemory] = useState(() => {
+    const session = navigationStore.getSnapshot();
+    const saved = navigationStore.cache.read<MessageNavigationMemory>(session.scope, `messages:${context}`);
+    if (!saved || saved.owner !== session.owner || saved.context !== context) return null;
+    const requested = typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('c');
+    return requested && requested !== saved.active?.id ? { ...saved, active: null, messages: [], draft: '', cursor: null, hasOlder: false, top: 0, pinned: true } : saved;
+  });
   const cameraRef = useRef<HTMLInputElement | null>(null);
   const [shareDetails,setShareDetails] = useState<"contact"|"location"|null>(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
-  const [uid, setUid] = useState<string | null>(null);
-  const [convs, setConvs] = useState<Conv[]>([]);
-  const [loadingConvs, setLoadingConvs] = useState(true);
-  const [active, setActive] = useState<Conv | null>(null);
-  const [msgs, setMsgs] = useState<Msg[]>([]);
+  const [uid, setUid] = useState<string | null>(navigationMemory?.owner ?? null);
+  const [convs, setConvs] = useState<Conv[]>(navigationMemory?.conversations ?? []);
+  const [loadingConvs, setLoadingConvs] = useState(navigationMemory === null);
+  const [active, setActive] = useState<Conv | null>(navigationMemory?.active ?? null);
+  const [msgs, setMsgs] = useState<Msg[]>(navigationMemory?.messages ?? []);
   const [loadingMsgs, setLoadingMsgs] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
+  const historyErrorOperation = useRef<'refresh' | 'older'>('refresh');
   const [conversationError, setConversationError] = useState<string | null>(null);
   const [privateMedia, setPrivateMedia] = useState<{ id: string; userId: string; conversationId: string; account: number } | null>(null);
   const [viewedPrivateIds, setViewedPrivateIds] = useState<Set<string>>(new Set());
   const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [hasOlder, setHasOlder] = useState(false);
+  const [hasOlder, setHasOlder] = useState(navigationMemory?.hasOlder ?? false);
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [sending, setSending] = useState(false);
   const [gifMode, setGifMode] = useState<'gifs' | 'stickers' | null>(null);
@@ -77,10 +88,13 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const recordingGeneration = useRef(0);
   const inboxGeneration = useRef(0);
   const componentLive = useRef(true);
-  const historyCursor = useRef<MessageCursor | null>(null);
+  const historyCursor = useRef<MessageCursor | null>(navigationMemory?.cursor ?? null);
+  const historyAbort = useRef<AbortController | null>(null);
+  const inboxAbort = useRef<AbortController | null>(null);
+  const restoreThread = useRef(!!navigationMemory?.active);
   const historyGeneration = useRef(0);
   const olderPending = useRef(false);
-  const msgsRef = useRef<Msg[]>([]);
+  const msgsRef = useRef<Msg[]>(msgs);
   useLayoutEffect(() => { msgsRef.current = msgs; }, [msgs]);
   const historyReady = useRef(false);
   const readPending = useRef(new Set<string>());
@@ -89,15 +103,15 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const markReadRef = useRef<() => Promise<void>>(async () => {});
   const uidRef = useRef(uid);
   useLayoutEffect(() => { uidRef.current = uid; }, [uid]);
-  const drafts = useRef(new Map<string, string>());
+  const drafts = useRef(new Map<string, string>(navigationMemory?.drafts));
   const dismissedTarget = useRef<string | null>(null);
   const [attachmentDraft, setAttachmentDraft] = useState<File | null>(null);
-  const [draft, setDraft] = useState("");
-  const [query, setQuery] = useState("");
+  const [draft, setDraft] = useState(navigationMemory?.draft ?? '');
+  const [query, setQuery] = useState(navigationMemory?.query ?? '');
   const [newMessageOpen, setNewMessageOpen] = useState(false);
-  const [detailsOpen, setDetailsOpen] = useState(true);
+  const [detailsOpen, setDetailsOpen] = useState(navigationMemory?.detailsOpen ?? true);
   // Chats holds people and plain groups; a community's chat lives under Groups, labelled, the same as on the phone.
-  const [tab, setTab] = useState<"chats" | "groups" | "unread">("chats");
+  const [tab, setTab] = useState<"chats" | "groups" | "unread">(navigationMemory?.tab ?? 'chats');
   const [offers, setOffers] = useState<Record<string, OfferLive>>({});
   const [refListing, setRefListing] = useState<MiniListing | null>(null);
   const [countering, setCountering] = useState<string | null>(null);
@@ -110,7 +124,8 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   // The list stays at its end while you're there, through every height change; scrolling up releases it.
   const listRef = useRef<HTMLDivElement | null>(null);
   const scrollToEnd = () => { const el = listRef.current; if (el) el.scrollTop = el.scrollHeight; };
-  const pinnedRef = useRef(true);
+  const pinnedRef = useRef(navigationMemory?.pinned ?? true);
+  const threadPosition = useRef({ conversationId: navigationMemory?.active?.id ?? null, top: navigationMemory?.top ?? 0 });
   // iOS keyboard: Safari scrolls the layout instead of shrinking a fixed surface, so the surface tracks the visual viewport itself and the page stays locked.
   const surfaceRef = useRef<HTMLDivElement | null>(null);
   // ?debug=1 draws a live readout of everything that can move the chat, for measuring on a real phone.
@@ -136,7 +151,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   }, [compact, activeId]);
   useEffect(() => {
     const el = listRef.current; if (!el) return;
-    const onScroll = () => { debugCounts.current.scroll++; pinnedRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80; if (pinnedRef.current) void markReadRef.current(); };
+    const onScroll = () => { debugCounts.current.scroll++; threadPosition.current = { conversationId: activeId, top: el.scrollTop }; pinnedRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80; if (pinnedRef.current) void markReadRef.current(); };
     el.addEventListener('scroll', onScroll, { passive: true });
     let settle: ReturnType<typeof setTimeout> | null = null;
     const settleThenScroll = () => { if (settle) clearTimeout(settle); settle = setTimeout(() => { settle = null; if (pinnedRef.current) requestAnimationFrame(scrollToEnd); }, 80); };
@@ -145,8 +160,8 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     const mo = new MutationObserver(() => { debugCounts.current.mo++; Array.from(el.children).forEach((ch) => ro.observe(ch)); settleThenScroll(); });
     mo.observe(el, { childList: true });
     return () => { el.removeEventListener('scroll', onScroll); ro.disconnect(); mo.disconnect(); if (settle) clearTimeout(settle); };
-  }, [active?.id]);
-  const activeRef = useRef<Conv | null>(null);
+  }, [active?.id, activeId]);
+  const activeRef = useRef<Conv | null>(active);
   const typingSentAt = useRef(0);
   const typingIdle = useRef<ReturnType<typeof setTimeout> | null>(null);
   const recRef = useRef<MediaRecorder | null>(null);
@@ -154,6 +169,53 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
   const streamRef = useRef<MediaStream | null>(null);
   const recTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   useLayoutEffect(() => { activeRef.current = active; }, [active]);
+  const remembered = useRef<MessageNavigationMemory | null>(navigationMemory);
+  const [contentContext, setContentContext] = useState(context);
+  useLayoutEffect(() => {
+    if (contentContext === context) return;
+    const session = navigationStore.getSnapshot();
+    const saved = navigationStore.cache.read<MessageNavigationMemory>(session.scope, `messages:${context}`);
+    const memory = saved?.owner === session.owner && saved.context === context ? saved : null;
+    historyAbort.current?.abort(); inboxAbort.current?.abort();
+    accountGeneration.current += 1; setAccountVersion(accountGeneration.current);
+    historyGeneration.current += 1; inboxGeneration.current += 1;
+    uploadGeneration.current += 1; uploadPending.current = false;
+    historyReady.current = false; lastRead.current = '';
+    drafts.current = new Map(memory?.drafts);
+    remembered.current = memory; restoreThread.current = !!memory?.active;
+    activeRef.current = memory?.active ?? null;
+    historyCursor.current = memory?.cursor ?? null;
+    pinnedRef.current = memory?.pinned ?? true;
+    setUid(session.owner); setConvs(memory?.conversations ?? []); setLoadingConvs(!memory);
+    setActive(memory?.active ?? null); setMsgs(memory?.messages ?? []); setDraft(memory?.draft ?? '');
+    setQuery(memory?.query ?? ''); setTab(memory?.tab ?? 'chats'); setDetailsOpen(memory?.detailsOpen ?? true);
+    setHasOlder(memory?.hasOlder ?? false); setLoadingMsgs(false); setLoadingOlder(false);
+    setPrivateMedia(null); setViewedPrivateIds(new Set()); setShareDetails(null); setNewMessageOpen(false);
+    setAttachmentDraft(null); setSendingFile(false); setReplyTo(null); setEditing(null); setForwarding(null); setPinnedMessage(null);
+    setOffers({}); setRefListing(null); setOtherTyping(false); setGifMode(null);
+    setActionError(null); setHistoryError(null); setConversationError(null); setNotice(null);
+    setContentContext(context);
+  }, [context, contentContext, navigationStore]);
+  useLayoutEffect(() => {
+    if (!uid || loadingConvs || contentContext !== context) return;
+    remembered.current = { owner: uid, context, conversations: convs, active, messages: navigationMessages(msgs),
+      drafts: [...drafts.current], draft, query, tab, detailsOpen, cursor: historyCursor.current, hasOlder,
+      top: listRef.current?.scrollTop ?? 0, pinned: pinnedRef.current };
+  });
+  useLayoutEffect(() => {
+    const session = navigationStore.getSnapshot();
+    const initialScope = session.owner === uid ? session.scope : null;
+    const position = threadPosition;
+    if (navigationMemory?.active && listRef.current) listRef.current.scrollTop = navigationMemory.top;
+    return () => {
+      const saved = remembered.current, current = navigationStore.getSnapshot();
+      const scope = initialScope ?? (!current.changed && current.owner === saved?.owner ? current.scope : null);
+      if (saved && saved.context === context) navigationStore.cache.save(scope, `messages:${context}`, {
+        ...saved, top: position.current.conversationId === saved.active?.id ? position.current.top : saved.top, pinned: pinnedRef.current,
+      });
+    };
+  }, [context, navigationStore, uid, navigationMemory]);
+
 
   useEffect(() => {
     if (!compact || !activeId || typeof document.querySelectorAll !== 'function') return;
@@ -235,7 +297,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     if (componentLive.current && generation === accountGeneration.current && activeRef.current?.id === conversationId) setPinnedMessage(row && !row.deleted_at ? row as Msg : null);
   }, [supabase]);
 
-  const openConv = useCallback(async (c: Conv, updateUrl = true) => {
+  const openConv = useCallback(async (c: Conv, updateUrl = true, preserveLoaded = false) => {
     dismissedTarget.current = null;
     if (updateUrl && window.history) {
       const search = new URLSearchParams(window.location.search);
@@ -244,36 +306,58 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
         window.history.pushState({ ...window.history.state, pcConversation: true }, '', `${window.location.pathname}?${search}`);
       }
     }
-    const generation = historyGeneration.current += 1;
+    const keep = preserveLoaded && activeRef.current?.id === c.id;
+    const retained = keep ? msgsRef.current : [];
+    const oldCursor = historyCursor.current;
+    const generation = historyGeneration.current += 1, account = accountGeneration.current;
+    historyAbort.current?.abort();
+    const request = new AbortController(); historyAbort.current = request;
+    const current = () => componentLive.current && accountGeneration.current === account && historyGeneration.current === generation && activeRef.current?.id === c.id;
     activeRef.current = c;
     setActive(c); setPrivateMedia(null); setShareDetails(null); setViewedPrivateIds(new Set());
     historyReady.current = false; lastRead.current = ''; setGifMode(null);
-    setLoadingMsgs(true); setHistoryError(null); setActionError(null); setNotice(null);
-    setMsgs(uidRef.current ? readOutbox(uidRef.current, c.id).map(row => ({ ...row, media_url: isChatMediaUrl(row.media_url) ? null : row.media_url })) : []); setDraft(drafts.current.get(c.id) || ''); setAttachmentDraft(null); setReplyTo(null); setEditing(null); setForwarding(null); setPinnedMessage(null);
-    historyCursor.current = null; olderPending.current = false; setHasOlder(false); setLoadingOlder(false);
+    setLoadingMsgs(retained.length === 0); setHistoryError(null); setActionError(null); setNotice(null);
+    if (!keep) {
+      setMsgs(uidRef.current ? readOutbox(uidRef.current, c.id).map(row => ({ ...row, media_url: isChatMediaUrl(row.media_url) ? null : row.media_url })) : []);
+      setDraft(drafts.current.get(c.id) || '');
+      historyCursor.current = null; setHasOlder(false);
+    }
+    setAttachmentDraft(null); setReplyTo(null); setEditing(null); setForwarding(null); setPinnedMessage(null);
+    olderPending.current = false; setLoadingOlder(false);
     setRefListing(null); setOtherTyping(false);
-    const current = () => historyGeneration.current === generation && activeRef.current?.id === c.id;
     try {
-      const { data, error } = await supabase.from('messages').select('*').eq('conversation_id', c.id)
-        .order('created_at', { ascending: false }).order('id', { ascending: false }).limit(MESSAGE_PAGE_SIZE);
-      if (error) throw error;
-      const raw = (data || []) as Msg[];
-      const rows = await signChatMedia(raw);
-      if (!current()) return;
-      historyCursor.current = raw[raw.length - 1] || null;
-      setHasOlder(raw.length === MESSAGE_PAGE_SIZE);
+      const { raw, rows } = await withTimeout((async () => {
+        const { data, error } = await supabase.from('messages').select('*').eq('conversation_id', c.id)
+          .order('created_at', { ascending: false }).order('id', { ascending: false }).limit(MESSAGE_PAGE_SIZE).abortSignal(request.signal);
+        if (error) throw error;
+        const raw = (data || []) as Msg[];
+        const authorized = retained.length ? await revalidateMessageWindow(supabase, c.id, retained, raw, request.signal) : raw;
+        return { raw, rows: await signChatMedia(authorized) };
+      })(), 12000);
+      if (!current() || request.signal.aborted) return;
+      historyCursor.current = keep && oldCursor ? oldCursor : raw[raw.length - 1] || null;
+      if (!keep || !oldCursor) setHasOlder(raw.length === MESSAGE_PAGE_SIZE);
       for (const row of raw) if (row.sender_id === uidRef.current) forgetOutboxMessage(row.sender_id, row.id);
-      setMsgs(prev => mergeMessagePage(prev, rows.map(row => ({ ...row, _delivery: undefined })), true));
+      const priorIds = new Set(retained.map(row => row.id)), allowed = new Set(rows.map(row => row.id));
+      setMsgs(prev => mergeMessagePage(prev.filter(row => !priorIds.has(row.id) || row._delivery || allowed.has(row.id)), rows.map(row => ({ ...row, _delivery: undefined })), true));
       historyReady.current = true;
       void hydrateOffers(rows); void loadReactions(rows, c.id); void loadPin(c.id);
       if (c.context === 'market' && c.context_ref_id) {
-        const { data: listing } = await supabase.from('marketplace_listings').select('id, title, price, currency, images, status').eq('id', c.context_ref_id).maybeSingle();
+        const listingRequest = supabase.from('marketplace_listings').select('id, title, price, currency, images, status').eq('id', c.context_ref_id).abortSignal(request.signal).maybeSingle();
+        const { data: listing } = await withTimeout(Promise.resolve(listingRequest), 12000);
         if (current() && listing) setRefListing(listing as MiniListing);
       }
-      if (current()) { pinnedRef.current = true; requestAnimationFrame(() => { if (current()) { scrollToEnd(); void markVisibleRead(); } }); }
+      if (current()) {
+        if (!keep) pinnedRef.current = true;
+        requestAnimationFrame(() => { if (current()) { if (!keep || pinnedRef.current) scrollToEnd(); void markVisibleRead(); } });
+      }
     } catch {
-      if (current()) setHistoryError('Messages could not be loaded. Please try again.');
-    } finally { if (current()) setLoadingMsgs(false); }
+      if (current()) { historyErrorOperation.current = 'refresh'; setHistoryError('Messages could not be loaded. Please try again.'); }
+    } finally {
+      request.abort();
+      if (historyAbort.current === request) historyAbort.current = null;
+      if (current()) setLoadingMsgs(false);
+    }
   }, [supabase, hydrateOffers, loadReactions, loadPin, markVisibleRead]);
 
   const loadOlder = useCallback(async () => {
@@ -281,7 +365,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     const cursor = historyCursor.current;
     if (!c || !cursor || !hasOlder || olderPending.current) return;
     const generation = historyGeneration.current;
-    const current = () => historyGeneration.current === generation && activeRef.current?.id === c.id;
+    const current = () => componentLive.current && historyGeneration.current === generation && activeRef.current?.id === c.id;
     olderPending.current = true; setLoadingOlder(true); setHistoryError(null);
     try {
       const { data, error } = await supabase.from('messages').select('*').eq('conversation_id', c.id)
@@ -297,41 +381,52 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
       setHasOlder(raw.length === MESSAGE_PAGE_SIZE);
       void hydrateOffers(rows); void loadReactions(rows, c.id);
       requestAnimationFrame(() => { if (current() && el) el.scrollTop = oldTop + el.scrollHeight - oldHeight; });
-    } catch { if (current()) setHistoryError('Older messages could not be loaded. Please try again.'); }
+    } catch { if (current()) { historyErrorOperation.current = 'older'; setHistoryError('Older messages could not be loaded. Please try again.'); } }
     finally { if (current()) { olderPending.current = false; setLoadingOlder(false); } }
   }, [supabase, hasOlder, hydrateOffers, loadReactions]);
 
   const loadInbox = useCallback(async (quiet = false) => {
     const generation = inboxGeneration.current += 1;
     const current = () => componentLive.current && inboxGeneration.current === generation;
+    inboxAbort.current?.abort();
+    const request = new AbortController(); inboxAbort.current = request;
 
     try {
-      const { data, error } = await supabase.auth.getSession();
+      const { data, error } = await withTimeout(supabase.auth.getSession(), 12000);
       if (error) throw error;
       if (!current()) return;
-      if (!quiet) setLoadingConvs(true);
+      if (!quiet && !remembered.current) setLoadingConvs(true);
       setConversationError(null);
       const id = data.session?.user.id ?? null;
       uidRef.current = id; setUid(id);
       if (!id) { setConvs([]); return; }
-      const list = await loadConversations(id, context);
+      const list = await withTimeout(loadConversations(id, context, request.signal, data.session?.access_token), 12000);
       if (!current() || uidRef.current !== id) return;
       setConvs(list);
       const target = new URLSearchParams(window.location.search).get('c');
       const selected = target && target !== dismissedTarget.current ? list.find(item => item.id === target) : null;
-      if (selected && !activeRef.current) void openConv(selected, false);
+      if (restoreThread.current && activeRef.current) {
+        restoreThread.current = false;
+        const confirmed = list.find(item => item.id === activeRef.current?.id);
+        if (confirmed) void openConv(confirmed, false, true);
+        else { activeRef.current = null; setActive(null); setMsgs([]); setDraft(''); historyReady.current = false; }
+      } else if (selected && !activeRef.current) void openConv(selected, false);
     } catch { if (current()) setConversationError('Conversations could not be loaded. Please try again.'); }
-    finally { if (current()) setLoadingConvs(false); }
+    finally { request.abort(); if (inboxAbort.current === request) inboxAbort.current = null; if (current()) setLoadingConvs(false); }
   }, [supabase, context, openConv]);
 
   useEffect(() => {
     componentLive.current = true;
     let authReload: ReturnType<typeof setTimeout> | undefined;
-    void supabase.auth.getSession().then(() => { if (componentLive.current) void loadInbox(); });
+    let live = true;
+    // Subscribe before starting the asynchronous bootstrap; an auth change must
+    // invalidate it even when it occurs in the same event turn.
+    queueMicrotask(() => { if (live) void loadInbox(!!navigationMemory); });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const nextId = session?.user.id ?? null;
       if (_event === 'SIGNED_OUT' && uidRef.current) clearOutbox(uidRef.current);
       if (uidRef.current !== nextId) {
+        historyAbort.current?.abort(); inboxAbort.current?.abort(); remembered.current = null; restoreThread.current = false;
         setNewMessageOpen(false);
         accountGeneration.current += 1; setAccountVersion(accountGeneration.current);
         setPrivateMedia(null); setShareDetails(null); setViewedPrivateIds(new Set());
@@ -346,8 +441,8 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
         if (nextId) authReload = setTimeout(() => { if (componentLive.current) void loadInbox(); }, 0);
       }
     });
-    return () => { componentLive.current = false; clearTimeout(authReload); subscription.unsubscribe(); inboxGeneration.current += 1; historyGeneration.current += 1; activeRef.current = null; };
-  }, [supabase, loadInbox]);
+    return () => { live = false; componentLive.current = false; historyAbort.current?.abort(); inboxAbort.current?.abort(); clearTimeout(authReload); subscription.unsubscribe(); inboxGeneration.current += 1; historyGeneration.current += 1; };
+  }, [supabase, loadInbox, navigationMemory]);
 
   useEffect(() => {
     if (!uid) return;
@@ -803,7 +898,7 @@ export function MessagesApp({ context = "personal", heading = "Messages", compac
     </div>
   );
 
-  const historyControl = historyError || hasOlder ? <div className="py-2 text-center text-sm text-ink">{historyError ? <p role="alert">{historyError}</p> : null}<button type="button" disabled={loadingOlder || loadingMsgs} className="rounded-md bg-surface px-3 py-2" onClick={() => { if (historyCursor.current) void loadOlder(); else if (active) void openConv(active); }}>{loadingOlder ? "Loading older messages…" : historyError ? "Try again" : "Load older messages"}</button></div> : null;
+  const historyControl = historyError || hasOlder ? <div className="py-2 text-center text-sm text-ink">{historyError ? <p role="alert">{historyError}</p> : null}<button type="button" disabled={loadingOlder || loadingMsgs} className="rounded-md bg-surface px-3 py-2" onClick={() => { if (historyCursor.current && (!historyError || historyErrorOperation.current === 'older')) void loadOlder(); else if (active) void openConv(active, false, true); }}>{loadingOlder ? "Loading older messages…" : historyError ? "Try again" : "Load older messages"}</button></div> : null;
   const pinnedBanner = pinnedMessage ? <div className="mt-2 flex items-center gap-2 rounded-md bg-surface p-2 text-sm text-ink"><span className="min-w-0 flex-1 truncate">Pinned · {pinnedMessage.text || "Attachment"}</span><button type="button" disabled={!!busyMessage} onClick={() => messageActions.pin(pinnedMessage)}>Unpin</button></div> : null;
   const inboxError = conversationError ? <div role="alert" className="p-4 text-sm text-ink">{conversationError}<button type="button" className="ml-2 underline" onClick={() => void loadInbox()}>Try again</button></div> : null;
 

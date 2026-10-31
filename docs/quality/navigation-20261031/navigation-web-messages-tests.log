@@ -1,0 +1,38 @@
+✔ cursor is stable at timestamp ties and retains microsecond ordering (2.318701ms)
+✔ web loads only latest page then older equal-timestamp rows without duplicates (37.459555ms)
+✔ out-of-order history response cannot overwrite the newly opened conversation (9.887127ms)
+✔ history failure is visible and can be retried (7.875559ms)
+✔ reply and confirmed edit execute through real composer handlers (13.544723ms)
+✔ failed edits retain the draft and reaction removal clears its visible count (9.116499ms)
+✔ pin failure reports error without success; confirmed pin is visible and removable (8.43837ms)
+✔ forwarding fetches canonical media reference and rejects limited-view/payment rows (6.016776ms)
+✔ failed attachment preserves selection and shows recoverable error (7.586282ms)
+✔ limited-view attachments never render a direct media URL on web (7.224969ms)
+✔ draft is preserved per conversation and delayed send remains in original conversation (9.904332ms)
+✔ account changes discard private drafts and ignore a previous account send completion (9.626922ms)
+✔ voice upload finishing after a chat switch releases the upload lock (10.495886ms)
+✔ late microphone permission after leaving chat releases tracks without starting recorder (7.996627ms)
+✔ received private videos open only the authorized viewer and never a direct media element (12.997716ms)
+✔ old realtime callbacks cannot insert a former account message into the same reopened chat (8.775888ms)
+✔ sent message bubble preserves its dark navy and white text pair in either theme (6.809386ms)
+✔ private sessions remain disabled by default during the phone and server cutover (7.004404ms)
+✔ hidden or unfocused web chat does not acknowledge read until it becomes visible and focused (8.663011ms)
+✔ new messages received while reading history stay unread until returning to latest (59.198377ms)
+✔ GIF and sticker actions use durable message delivery and preserve the chosen media kind (17.045738ms)
+✔ story replies expose the authorized story route without copying story media (7.55737ms)
+✔ compact chat Back preserves the draft and cannot reopen itself from an old deep link (8.369007ms)
+✔ Escape cancels an edit first, restores the unsent draft, then returns to the inbox (15.301805ms)
+✔ browser Back closes a compact conversation without a stale history response restoring it (6.57463ms)
+✔ returning to Messages restores loaded inbox, selected thread, draft and scroll before its background read (14.463839ms)
+✔ restored thread refresh removes revoked older messages without losing authorized pages or a typed draft (21.843807ms)
+✔ navigation memory never persists limited-view media capabilities or reuses a different business context (13.17748ms)
+✔ an account change after navigation restore drops the selected thread and late retained-page result (12.792483ms)
+✔ changing message business context on a mounted screen restores only that context and preserves the departing draft (7.8214ms)
+ℹ tests 30
+ℹ suites 0
+ℹ pass 30
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 385.455102

@@ -1,5 +1,5 @@
 import { useIsFocused , useNavigation, useRoute } from '@react-navigation/native';
-import { takePrefetched , useAfterTransition } from '../../lib/screenTransition';
+import { takePrefetched, awaitPrefetched } from '../../lib/screenTransition';
 import { ProfileSkeleton } from '../../components/skeletons';
 import TierName from '../../components/TierName';
 import { themedSheet, useTheme } from '../../theme/useTheme';
@@ -51,11 +51,7 @@ type Post = {
   mediaPending?: boolean;
 };
 
-function initials(n?: string | null) {
-  if (!n) return 'U';
-  const p = n.trim().split(' ').filter(Boolean);
-  return p.length === 1 ? p[0][0].toUpperCase() : `${p[0][0]}${p[1][0]}`.toUpperCase();
-}
+
 function relTime(d?: string | null) {
   if (!d) return '';
   const diff = Date.now() - new Date(d).getTime();
@@ -84,16 +80,16 @@ export default function UserProfileScreen() {
   const [contentError, setContentError] = useState<string | null>(null);
   const [contentLoading, setContentLoading] = useState(false);
 
-  const [profile, setProfile] = useState<UserProfile | null>(route.params?.user ?? null);
+  const [profile, setProfile] = useState<UserProfile | null>(() => takePrefetched<UserProfile>('profile:' + targetId) ?? route.params?.user ?? null);
+  const knownProfile = useRef(profile); knownProfile.current = profile;
   const [stats, setStats] = useState<Stats>({ posts: 0, followers: 0 });
   const [posts, setPosts] = useState<Post[]>([]);
   const [following, setFollowing] = useState(false);
   const [followRequested, setFollowRequested] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [bizTab, setBizTab] = useState('posts');
-  const [listingCount, setListingCount] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const afterSlide = useAfterTransition();
+  const [listingCount] = useState(0);
+  const [loading, setLoading] = useState(!profile);
   const [refreshing, setRefreshing] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
   // Restrict (Instagram's model): quieter than a block, and the person is not told.
@@ -141,6 +137,7 @@ export default function UserProfileScreen() {
   const profileFocused = useIsFocused();
   useProfileMediaRefresh(posts, setPosts, `${myId}:${targetId}`, profileFocused, setContentError);
 
+  const prefetchedTarget = useRef<string | null>(null);
   const load = useCallback(async () => {
     const owner = scope.current, request = ++loadRequest.current;
     const current = () => mounted.current && scope.current === owner && request === loadRequest.current;
@@ -149,8 +146,9 @@ export default function UserProfileScreen() {
     let headerLoaded = false;
     try {
       // The tap that brought us here may have started this call already; use its result when it has landed.
-    const pre = takePrefetched<any>('profile:' + targetId);
-    const { data: pj, error: pErr } = pre ? { data: pre, error: null as any } : await profileRead(supabase.rpc('get_profile', { p_profile_id: targetId }));
+      const usePrefetch = prefetchedTarget.current !== targetId; prefetchedTarget.current = targetId;
+      const pre = usePrefetch ? takePrefetched<any>('profile:' + targetId) ?? await awaitPrefetched<any>('profile:' + targetId) : null;
+      const { data: pj, error: pErr } = pre ? { data: pre, error: null as any } : await profileRead(supabase.rpc('get_profile', { p_profile_id: targetId }));
       if (!current()) return;
       if (pErr) throw pErr;
       if (!pj || (pj as any).id !== targetId) throw new Error('Profile is unavailable. Please retry.');
@@ -199,11 +197,13 @@ export default function UserProfileScreen() {
   }, [targetId, myId]);
 
   useEffect(() => {
-    setProfile(null); setPosts([]); setFollowing(false); setFollowRequested(false);
-    setLoadError(null); setContentError(null); setLoading(!!targetId);
+    const retained = knownProfile.current?.id === targetId ? knownProfile.current : takePrefetched<UserProfile>('profile:' + targetId);
+    setProfile(retained); setPosts([]); setFollowing(false); setFollowRequested(false);
+    setLoadError(null); setContentError(null); setLoading(!!targetId && !retained);
     void load();
-    return () => { loadRequest.current++; };
-  }, [load]);
+    const requests = loadRequest;
+    return () => { requests.current++; };
+  }, [load, targetId]);
   const [hasStory, setHasStory] = useState(false);
   useEffect(() => {
     let alive = true;
@@ -267,10 +267,9 @@ export default function UserProfileScreen() {
   };
 
   const isOwnProfile = myId === targetId;
-  const isPrivate = profile?.profile_visibility === 'private';
   const canViewContent = isOwnProfile || profile?.can_view_content === true;
 
-  if (loading || !afterSlide || (profile && profile.id !== targetId)) return (
+  if (loading || (profile && profile.id !== targetId)) return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right', 'bottom']}>
       <ProfileSkeleton />
     </SafeAreaView>

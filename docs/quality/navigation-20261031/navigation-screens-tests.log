@@ -1,0 +1,12 @@
+✔ topic reads pin the owner token and never mask a network error with a compatibility query (70.561061ms)
+✔ missing topic RPC fallback counts scanned rows so a false-positive page does not trap pagination (18.230656ms)
+✔ topic background refresh keeps loaded rows, cursor and scroll while deleting revoked retained rows (19.810236ms)
+✔ failed or departed-account topic refresh cannot erase or replace a resolved list (50.361099ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 170.32116

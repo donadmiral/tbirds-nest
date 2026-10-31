@@ -2,8 +2,12 @@ import LaunchVeil from '../components/LaunchVeil';
 import ProfileRestore from '../components/ProfileRestore';
 import MutedStoriesScreen from '../screens/profile/MutedStoriesScreen';
 import ArticleReaderScreen from '../screens/feed/ArticleReaderScreen';
-import React, { useEffect, useRef, useState } from 'react';
-import { AppState, Platform, StyleSheet, View, Animated, Pressable , StatusBar } from 'react-native';
+import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { navigationRevision, subscribeNavigationScope } from '../lib/navigationCache';
+import { AppState, InteractionManager, Platform, StyleSheet, View, Animated, Pressable , StatusBar } from 'react-native';
+import { refreshNavigationInbox } from '../services/navigationInbox';
+import { prefetch } from '../lib/screenTransition';
+import { useSettingsStore } from '../stores/settingsStore';
 import { NavigationContainer, DefaultTheme, DarkTheme as NavDarkTheme } from '@react-navigation/native';
 import { useTheme, themedSheet } from '../theme/useTheme';
 import { useThemeStore } from '../stores/themeStore';
@@ -233,7 +237,7 @@ function getTabIcon(name: string, focused: boolean): IoniconName {
 }
 
 // Phase 8B: Physical tab bar button with micro-compression + haptic
-function TabBarButton({ children, onPress, onLongPress, accessibilityState, style, reduceMotion, ...rest }: BottomTabBarButtonProps & { reduceMotion: boolean }) {
+function TabBarButton({ children, onPress, onLongPress, accessibilityState, style, reduceMotion, onWarm, ...rest }: BottomTabBarButtonProps & { reduceMotion: boolean; onWarm: () => void }) {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
   const lastActiveRef = React.useRef(accessibilityState?.selected);
 
@@ -246,9 +250,10 @@ function TabBarButton({ children, onPress, onLongPress, accessibilityState, styl
   }, [accessibilityState?.selected]);
 
   const handlePressIn = React.useCallback(() => {
+    onWarm();
     if (reduceMotion) return;
     Animated.timing(scaleAnim, { toValue: 0.95, duration: 100, useNativeDriver: true }).start();
-  }, [scaleAnim, reduceMotion]);
+  }, [scaleAnim, reduceMotion, onWarm]);
 
   const handlePressOut = React.useCallback(() => {
     if (reduceMotion) { scaleAnim.setValue(1); return; }
@@ -285,21 +290,44 @@ function MainTabs() {
   const isBusiness = profile?.account_type === 'business';
   const insets = useSafeAreaInsets();
 
+  const warmTab = React.useCallback((name: string) => {
+    const session = useAuthStore.getState().session;
+    if (!userId || session?.user.id !== userId) return;
+    if (name === 'Profile') prefetch('profile:' + userId, async signal => {
+      const { data, error } = await supabase.rpc('get_profile', { p_profile_id: userId }).setHeader('Authorization', `Bearer ${session.access_token}`).abortSignal(signal);
+      if (error) throw error;
+      return data;
+    });
+    if (name === 'Messages') void refreshNavigationInbox(userId).catch(() => {});
+  }, [userId]);
+  useEffect(() => {
+    if (!userId || useSettingsStore.getState().uploadQuality === 'data-saver') return;
+    const task = InteractionManager.runAfterInteractions(() => {
+      if (AppState.currentState !== 'active') return;
+      warmTab('Profile'); warmTab('Messages');
+    });
+    return () => task.cancel();
+  }, [userId, warmTab]);
+
   useEffect(() => {
     if (!userId) { setUnreadNotifs(0); return; }
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    let alive = true;
+    const current = () => alive && useAuthStore.getState().session?.user.id === userId;
     const loadUnread = async () => {
       const { count } = await supabase
         .from('notifications').select('id', { count: 'exact', head: true })
         .eq('recipient_id', userId).is('read_at', null);
+      if (!current()) return;
       const c = count || 0;
       setUnreadNotifs(c);
       // Icon badge policy: the number means unread MESSAGES only.
       try {
         const { data: cu } = await supabase.rpc('get_context_unread');
+        if (!current()) return;
         const msgCount = (((cu as any)?.personal ?? 0) + ((cu as any)?.groups ?? 0));
         Notifications.setBadgeCountAsync(msgCount).catch(() => {});
-      } catch { Notifications.setBadgeCountAsync(0).catch(() => {}); }
+      } catch { if (current()) Notifications.setBadgeCountAsync(0).catch(() => {}); }
     };
     const debouncedLoad = () => {
       if (debounceTimer) clearTimeout(debounceTimer);
@@ -311,23 +339,24 @@ function MainTabs() {
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'notifications', filter: `recipient_id=eq.${userId}` }, debouncedLoad)
       .subscribe();
     return () => {
+      alive = false;
       if (debounceTimer) clearTimeout(debounceTimer);
       supabase.removeChannel(ch);
     };
   }, [userId]);
 
-  const tabBarHeight = 56 + Math.max(insets.bottom, Platform.OS === 'android' ? 16 : 0);
   const tabBarPaddingBottom = Math.max(insets.bottom, Platform.OS === 'android' ? 16 : 0);
 
   return (
     <Tab.Navigator
+      detachInactiveScreens={false}
       tabBar={(p) => <AdaptiveTabBar {...p} keepVisible={accessibility.reduceMotion || accessibility.screenReader} />}
       initialRouteName={isBusiness ? 'Studio' : 'Feed'}
       screenOptions={({ route }) => ({
-        headerShown: false, tabBarHideOnKeyboard: true,
+        headerShown: false, tabBarHideOnKeyboard: true, unmountOnBlur: false,
         tabBarActiveTintColor: t.ink.primary, tabBarInactiveTintColor: accessibility.highContrast ? t.ink.primary : t.ink.secondary,
         tabBarAccessibilityLabel: route.name === 'Feed' ? 'Home' : route.name,
-        tabBarButton: (props) => <TabBarButton {...props} reduceMotion={accessibility.reduceMotion} />,
+        tabBarButton: (props) => <TabBarButton {...props} reduceMotion={accessibility.reduceMotion} onWarm={() => warmTab(route.name)} />,
         tabBarIcon: ({ focused, color, size }) => {
           if (route.name === 'Profile') return <ProfileTabAvatar userId={userId} uri={profile?.avatar_url}
             name={profile?.full_name || profile?.username} focused={focused} size={size + 2} />;
@@ -512,6 +541,7 @@ export default function AppNavigator() {
   const profile = useAuthStore(s => s.profile);
   const loading = useAuthStore(s => s.loading);
   const isPasswordRecovery = useAuthStore(s => s.isPasswordRecovery);
+  const navigationSession = useSyncExternalStore(subscribeNavigationScope, navigationRevision, navigationRevision);
 
   useNotificationTapHandler();
   useBadgeClearOnForeground();
@@ -553,7 +583,7 @@ export default function AppNavigator() {
           <AddAccountSheet />
           <MfaGate />
           <OfflineBanner />
-        <RootStack.Navigator screenOptions={{ headerShown: false }}>
+        <RootStack.Navigator key={`session:${navigationSession}`} screenOptions={{ headerShown: false }}>
           {isReady ? (
             <>
               <RootStack.Screen name="Main" component={MainTabsWithListener} />

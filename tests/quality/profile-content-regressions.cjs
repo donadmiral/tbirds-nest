@@ -41,7 +41,7 @@ function own(hydrate, failures, held = {}, timeoutMs = 15000) {
   const row={id:'post',user_id:'owner',post_media:[{id:'photo',url:raw,media_type:'image'}]};
   const client=db({posts:[row],post_reposts:[{post_id:'post',created_at:'2026-10-01'}],post_bookmarks:[{post_id:'post',created_at:'2026-10-01'}]},failures,held);
   const set = key => value => state[key]=typeof value==='function'?value(state[key]):value;
-  const globals={ userId:'owner',scope,tabRequest,mounted,tabLoadedRef:loaded,authProfileRef:{current:{id:'owner'}},normalizePost:normalize,
+  const globals={ contentRevisionRef:{current:0}, userId:'owner',scope,tabRequest,mounted,tabLoadedRef:loaded,authProfileRef:{current:{id:'owner'}},normalizePost:normalize,
     hydratePostMedia:hydrate,withoutPrivateMedia,profileRead:request=>profileRead(request,timeoutMs),supabase:client,setTabError:set('error'),setTabLoading:set('loading'),setTabPosts:set('posts'),setTabCounts:set('counts'),setPostsHasMore:set('more'),setTabReposts:set('reposts'),setTabSaved:set('saved'),setTabTagged:set('tagged') };
   return {state,scope,loaded,client,run:callback(source,'loadTabContent',globals)};
 }
@@ -79,11 +79,11 @@ test('legacy video metadata stays video and normalizing does not reorder cached 
   const source=[{id:'later',sort_order:2,url:'later.jpg'},{id:'first',sort_order:0,url:'first.jpg'},{id:'denied',sort_order:1,url:null}];
   const result=normalize({id:'one',post_media:source});assert.equal(result.media[0].id,'first');assert.equal(source[0].id,'later');assert.equal(result.mediaUnavailable,true);
 });
-function visitor(profileResult,hydrate) {
+function visitor(profileResult,hydrate,prefetched=null) {
   const state={profile:null,posts:[],error:null,loading:true};const scope={current:{targetId:'target',myId:'viewer'}}, client=db({posts:[{id:'post',post_media:[{url:raw,media_type:'video'}]}]});
   client.rpc=async()=>profileResult;
   const noop=()=>{},set=key=>value=>state[key]=typeof value==='function'?value(state[key]):value;
-  const globals={targetId:'target',myId:'viewer',scope,loadRequest:{current:0},mounted:{current:true},takePrefetched:()=>null,
+  const globals={prefetchedTarget:{current:null},targetId:'target',myId:'viewer',scope,loadRequest:{current:0},mounted:{current:true},takePrefetched:()=>prefetched,awaitPrefetched:async()=>null,
     supabase:client,hydratePostMedia:hydrate,withoutPrivateMedia,profileRead,normalizeProfilePost:normalize,setProfile:set('profile'),setPosts:set('posts'),setLoadError:set('error'),setContentError:noop,setContentLoading:noop,setStats:noop,setFollowing:noop,setFollowRequested:noop,setLoading:set('loading'),setRefreshing:noop};
   return {state,scope,client,run:callback('src/screens/profile/UserProfileScreen.tsx','load',globals)};
 }
@@ -101,7 +101,7 @@ test('visitor profile signs post previews and drops old account/target responses
 test('profile focus starts and restarts content without waiting for a header refresh',()=>{
   const source=read('src/screens/profile/ProfileScreen.tsx'),ast=ts.createSourceFile('profile.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
   let focused;
-  function visit(node){if(ts.isCallExpression(node)&&node.expression.getText(ast)==='useFocusEffect'&&node.arguments[0]?.getText(ast).includes('loadTabContent(activeTab)'))focused=node.arguments[0];ts.forEachChild(node,visit);}visit(ast);
+  function visit(node){if(ts.isCallExpression(node)&&node.expression.getText(ast)==='useFocusEffect'&&node.arguments[0]?.getText(ast).includes('loadTabContent(activeTab, contentRevision)'))focused=node.arguments[0];ts.forEachChild(node,visit);}visit(ast);
   assert.ok(focused,'content reads must have their own focus lifecycle');
   const calls=[],tabRequest={current:2},moreRequest={current:3};
   const run=compile('export const run = '+focused.getText(ast),{useCallback:fn=>fn,userId:'owner',activeTab:'posts',contentRevision:0,loadTabContent:tab=>calls.push(tab),tabRequest,moreRequest}).run;
@@ -145,4 +145,11 @@ test('pending media is a loading state, not an unavailable photo; text-only post
  const text=normalize({id:'text',content:'A text post',_mediaPending:true,post_media:[]});assert.equal(text.mediaPending,false);
  const legacy=normalize({id:'old',_mediaPending:true,_mediaExpected:true,media_url:null});assert.equal(legacy.mediaPending,true);
  assert.equal(normalize({...legacy,_mediaPending:false}).mediaUnavailable,true);
+});
+
+test('a consumed profile prefetch cannot hide updated follow or visibility state on refresh',async()=>{
+ const h=visitor({data:{id:'target',can_view_content:false},error:null},async rows=>rows,{id:'target',can_view_content:true});let liveReads=0;
+ h.client.rpc=async()=>{liveReads++;return{data:{id:'target',can_view_content:false},error:null};};
+ await h.run();assert.equal(liveReads,0);assert.equal(h.state.posts[0].id,'post');
+ await h.run();assert.equal(liveReads,1);assert.equal(h.state.posts.length,0);
 });

@@ -1,0 +1,14 @@
+✔ collaboration identity removes self/duplicate accounts while preserving two people with the same name (2.216039ms)
+✔ feed memory expires capabilities and clearing an account removes every tab (0.482251ms)
+✔ native tab effect restores For You immediately and distinguishes a first visit from a resolved empty feed (207.619767ms)
+✔ native cached disk snapshot keeps its pending cursor refresh across tab changes (95.826414ms)
+✔ author highlights read only positive reactions from the actual post author and preserve chronological order below a pin (1.084661ms)
+✔ an unavailable pin feature cannot erase author likes or a readable thread (0.285671ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 334.254654

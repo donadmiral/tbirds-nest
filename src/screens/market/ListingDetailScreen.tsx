@@ -1,4 +1,5 @@
-import { takePrefetched , useAfterTransition } from '../../lib/screenTransition';
+import { takePrefetched, awaitPrefetched } from '../../lib/screenTransition';
+import { navigationCache, navigationScope } from '../../lib/navigationCache';
 import { ListingSkeleton } from '../../components/skeletons';
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import TierName from '../../components/TierName';
@@ -18,18 +19,12 @@ import { Feather, Ionicons } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import { useFocusEffect } from '@react-navigation/native';
 
+import { profileRead } from '../../utils/profileRead';
 import { marketService, Listing } from '../../services/marketService';
 import { useAuthStore } from '../../stores/authStore';
 import { supabase } from '../../services/supabase';
 import Avatar from '../../components/common/Avatar';
 
-const NAVY = '#0B1E3D';
-const BG = '#FFFFFF';
-const GRAY_100 = '#F3F4F6';
-const GRAY_400 = '#9CA3AF';
-const GRAY_500 = '#6B7280';
-const GRAY_900 = '#111827';
-const PLATINUM = '#8E9BAE';
 const RED = '#DC2626';
 
 const { width: SCREEN_W } = Dimensions.get('window');
@@ -46,9 +41,9 @@ export default function ListingDetailScreen({ navigation, route }: any) {
   const { profile } = useAuthStore();
   const userId: string | undefined = profile?.id;
 
-  const [listing, setListing] = useState<Listing | null>(null);
-  const [loading, setLoading] = useState(true);
-  const afterSlide = useAfterTransition();
+  const [listing, setListing] = useState<Listing | null>(() => takePrefetched<Listing>('listing:' + listingId));
+  const listingRef = useRef(listing); listingRef.current = listing;
+  const [loading, setLoading] = useState(!listing);
   const [imgIndex, setImgIndex] = useState(0);
   const [busy, setBusy] = useState(false);
   const saving = useRef(false);
@@ -57,13 +52,23 @@ export default function ListingDetailScreen({ navigation, route }: any) {
 
   useFocusEffect(useCallback(() => {
     let cancelled = false;
-    setLoading(true); setLoadError(false);
+    const scope = navigationScope();
+    const current = () => !cancelled && scope === navigationScope();
+    const cached = retry === 0 ? takePrefetched<Listing>('listing:' + listingId) : null;
+    if (cached) setListing(cached);
+    setLoading(!cached && listingRef.current?.id !== listingId); setLoadError(false);
     (async () => {
       try {
-        const row = await (takePrefetched<any>('listing:' + listingId) ?? marketService.getListing(listingId));
-        if (!cancelled) setListing(row);
-      } catch { if (!cancelled) setLoadError(true); }
-      finally { if (!cancelled) setLoading(false); }
+        const prefetched = cached ?? (retry === 0 ? await awaitPrefetched<Listing>('listing:' + listingId) : null);
+        if (!current()) return;
+        if (prefetched) { setListing(prefetched); setLoading(false); }
+        const row = await profileRead(marketService.getListing(listingId));
+        if (current()) {
+          setListing(row);
+          navigationCache.save(scope, 'prefetch:listing:' + listingId, { value: row, at: Date.now() });
+        }
+      } catch { if (current()) setLoadError(true); }
+      finally { if (current()) setLoading(false); }
     })();
     return () => { cancelled = true; };
   }, [listingId, retry]));
@@ -170,9 +175,9 @@ export default function ListingDetailScreen({ navigation, route }: any) {
     ]);
   };
 
-  if (loadError && !loading) return <SafeAreaView style={s.safe}><View style={s.center}><Text>Could not load listing.</Text><TouchableOpacity onPress={() => setRetry(n => n + 1)}><Text>Try again</Text></TouchableOpacity></View></SafeAreaView>;
+  if (loadError && !loading && !listing) return <SafeAreaView style={s.safe}><View style={s.center}><Text>Could not load listing.</Text><TouchableOpacity onPress={() => setRetry(n => n + 1)}><Text>Try again</Text></TouchableOpacity></View></SafeAreaView>;
 
-  if (loading || !afterSlide) {
+  if (loading || (listing && listing.id !== listingId)) {
     return <SafeAreaView style={s.safe} edges={['top']}><ListingSkeleton /></SafeAreaView>;
   }
   if (!listing) {
@@ -190,6 +195,7 @@ export default function ListingDetailScreen({ navigation, route }: any) {
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
+      {loadError ? <TouchableOpacity accessibilityRole="button" onPress={() => setRetry(n => n + 1)} style={{ padding: 16 }}><Text accessibilityRole="alert">This listing could not be refreshed. Tap to retry.</Text></TouchableOpacity> : null}
       <ScrollView automaticallyAdjustKeyboardInsets={true} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + 100 }} keyboardShouldPersistTaps="handled">
         <View>
           <ScrollView

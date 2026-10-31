@@ -2,6 +2,7 @@ import { ClientDiagnostics } from "@/components/ClientDiagnostics";
 import type { Metadata } from "next";
 import { ConnectionBanner } from "@/components/ConnectionBanner";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { NavigationSessionBoundary } from "@/components/NavigationSessionBoundary";
 import { Manrope, Inter } from "next/font/google";
 import "./globals.css";
 
@@ -43,7 +44,7 @@ export default function RootLayout({
         />
       </head>
       <body suppressHydrationWarning>
-        <ThemeProvider>{children}</ThemeProvider><ClientDiagnostics />
+        <ThemeProvider><NavigationSessionBoundary>{children}</NavigationSessionBoundary></ThemeProvider><ClientDiagnostics />
         {/* Global, so a dropped connection is reported on every route. */}
         <ConnectionBanner />
       </body>

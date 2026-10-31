@@ -1,4 +1,5 @@
-import { conversationUnreadCounts } from '../../../shared/messageReceipts';
+import { navigationCache, navigationScope } from '../../lib/navigationCache';
+import { refreshNavigationInbox, type Conversation } from '../../services/navigationInbox';
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import { TapTopFlatList } from '../../components/TapTopList';
 import EmptyState from '../../components/EmptyState';
@@ -13,7 +14,6 @@ import { Feather , Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useUnreadStore } from '../../stores/unreadStore';
 import { storiesService } from '../../services/storiesService';
-import { signGroupAvatars } from '../../services/chatMediaService';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { useDraftStore } from '../../stores/draftStore';
@@ -21,25 +21,6 @@ import { Swipeable } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
 import { ConversationsSkeleton } from '../../components/Skeleton';
 
-type Conversation = {
-  id: string;
-  other_user_id: string;
-  other_name: string;
-  other_username: string | null;
-  other_avatar: string | null;
-  last_message: string;
-  last_message_time: string | null;
-  unread_count: number;
-  is_group: boolean;
-  group_emoji?: string | null;
-  group_avatar_url?: string | null;
-  group_type?: string | null;
-  group_ref_id?: string | null;
-  request_pending?: boolean;
-  is_pinned: boolean;
-  is_muted: boolean;
-  is_archived: boolean;
-};
 
 function initials(n?: string | null) {
   if (!n) return 'U';
@@ -71,7 +52,8 @@ export default function ConversationsScreen({ navigation }: any) {
   const { profile } = useAuthStore();
   const userId = profile?.id ?? null;
 
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [initialInbox] = useState(() => navigationCache.read<Conversation[]>(navigationScope(), 'inbox:personal'));
+  const [conversations, setConversations] = useState<Conversation[]>(initialInbox ?? []);
   const [typingConvIds, setTypingConvIds] = useState<Set<string>>(new Set());
   const [showArchived, setShowArchived] = useState(false);
   const [mentionTimes, setMentionTimes] = useState<Record<string, number>>({});
@@ -81,7 +63,7 @@ export default function ConversationsScreen({ navigation }: any) {
       setShowArchived(false);
     }
   }, [showArchived, conversations]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(initialInbox === null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const loadGeneration = useRef(0);
   const [search, setSearch]  = useState('');
@@ -102,9 +84,20 @@ export default function ConversationsScreen({ navigation }: any) {
   useFocusEffect(useCallback(() => { useUnreadStore.getState().refresh(); }, []));
 
   const mountedRef = useRef(true);
-  const initialLoadDoneRef = useRef(false);
+  const initialLoadDoneRef = useRef(initialInbox !== null);
   const accountRef = useRef(userId); accountRef.current = userId;
-  useEffect(() => { setConversations([]); setLoadError(null); initialLoadDoneRef.current = false; loadGeneration.current++; }, [userId]);
+  const inboxScope = useRef(navigationScope());
+  useEffect(() => {
+    const next = navigationScope();
+    if (inboxScope.current === next) return;
+    inboxScope.current = next;
+    const cached = navigationCache.read<Conversation[]>(next, 'inbox:personal');
+    setConversations(cached ?? []); setLoadError(null); setLoading(cached === null);
+    initialLoadDoneRef.current = cached !== null; loadGeneration.current++;
+  }, [userId]);
+  useEffect(() => {
+    if (initialLoadDoneRef.current) navigationCache.save(inboxScope.current, 'inbox:personal', conversations);
+  }, [conversations]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -144,114 +137,11 @@ useEffect(() => {
   const load = useCallback(async () => {
     if (!userId) { setLoading(false); return; }
     const generation = ++loadGeneration.current;
-    const current = () => mountedRef.current && accountRef.current === userId && generation === loadGeneration.current;
+    const current = () => mountedRef.current && accountRef.current === userId && generation === loadGeneration.current && navigationScope() === inboxScope.current;
     setLoadError(null);
     if (!initialLoadDoneRef.current) setLoading(true);
     try {
-      // Load DMs
-      const { data: dmConvs, error: dmError } = await supabase
-        .from('conversations')
-        .select('*')
-        .or(`user_1.eq.${userId},user_2.eq.${userId}`)
-        .eq('is_group', false)
-        .order('last_message_time', { ascending: false });
-
-      if (dmError) throw dmError;
-
-      // Load group convs via conversation_members
-      const { data: memberRows, error: memberError } = await supabase
-        .from('conversation_members')
-        .select('conversation_id')
-        .eq('user_id', userId);
-
-      if (memberError) throw memberError;
-      const groupIds = (memberRows || []).map((r: any) => r.conversation_id);
-      let groupConvs: any[] = [];
-      if (groupIds.length > 0) {
-        const { data: gc, error: groupError } = await supabase
-          .from('conversations')
-          .select('*')
-          .in('id', groupIds)
-          .eq('is_group', true)
-          .order('last_message_time', { ascending: false });
-        if (groupError) throw groupError;
-        groupConvs = gc || [];
-      }
-
-      const allConvs = [...(dmConvs || []), ...await signGroupAvatars(groupConvs)];
-      if (allConvs.length === 0) {
-        if (current()) setConversations([]);
-        return;
-      }
-
-      const convIds = allConvs.map((c: any) => c.id);
-
-      // Load conversation settings — non-fatal
-      let settingsMap: Record<string, any> = {};
-      try {
-        const { data: settings } = await supabase
-          .from('conversation_settings')
-          .select('conversation_id, is_pinned, is_muted, is_archived, is_deleted, manually_unread')
-          .eq('user_id', userId)
-          .in('conversation_id', convIds);
-        (settings || []).forEach((s: any) => { settingsMap[s.conversation_id] = s; });
-      } catch (_) { /* table may not exist yet */ }
-
-      // Load DM partner profiles
-      const dmOtherIds = (dmConvs || [])
-        .map((c: any) => c.user_1 === userId ? c.user_2 : c.user_1)
-        .filter(Boolean);
-      const profileMap: Record<string, any> = {};
-      if (dmOtherIds.length > 0) {
-        const { data: profs, error: profileError } = await supabase
-          .from('profiles').select('id, full_name, username, avatar_url, is_verified, verified_tier').in('id', dmOtherIds);
-        if (profileError) throw profileError;
-        (profs || []).forEach((p: any) => { profileMap[p.id] = p; });
-      }
-
-      // Unread counts
-      const { data: unreadData } = await supabase.rpc('get_unread_counts');
-      const unreadMap = conversationUnreadCounts(unreadData);
-
-      const list: Conversation[] = allConvs
-        .filter((c: any) => !(settingsMap[c.id]?.is_deleted))
-        .map((c: any) => {
-          const s = settingsMap[c.id] || {};
-          if (c.is_group) {
-            return {
-              id: c.id, other_user_id: '',
-              other_name: c.group_name || 'Group',
-              other_username: null, other_avatar: c.group_avatar_url || null,
-              last_message: c.last_message || '', last_message_time: c.last_message_time,
-              unread_count: unreadMap[c.id] || 0,
-              context: c.context || 'personal', is_group: true, group_emoji: c.group_emoji || '💬',
-              group_avatar_url: c.group_avatar_url,
-              group_type: c.group_type || null, group_ref_id: c.group_ref_id || null,
-              is_pinned: !!s.is_pinned, is_muted: !!s.is_muted, is_archived: !!s.is_archived, manually_unread: !!(s as any).manually_unread,
-            };
-          }
-          const otherId = c.user_1 === userId ? c.user_2 : c.user_1;
-          const p = profileMap[otherId] || {};
-          return {
-            id: c.id, other_user_id: otherId,
-            other_name: p.full_name || 'Member',
-            other_is_verified: !!(p as any).is_verified, other_verified_tier: (p as any).verified_tier ?? null,
-            other_username: p.username || null, other_avatar: p.avatar_url || null,
-            last_message: c.last_message || '', last_message_time: c.last_message_time,
-            unread_count: unreadMap[c.id] || 0,
-            context: c.context || 'personal', is_group: false, group_emoji: null, group_avatar_url: null,
-            request_pending: c.request_status === 'pending' && !!c.request_sender_id && c.request_sender_id === otherId,
-            is_pinned: !!s.is_pinned, is_muted: !!s.is_muted, is_archived: !!s.is_archived, manually_unread: !!(s as any).manually_unread,
-          };
-        });
-
-      list.sort((a, b) => {
-        if (a.is_pinned !== b.is_pinned) return a.is_pinned ? -1 : 1;
-        const ta = a.last_message_time ? new Date(a.last_message_time).getTime() : 0;
-        const tb = b.last_message_time ? new Date(b.last_message_time).getTime() : 0;
-        return tb - ta;
-      });
-
+      const list = await refreshNavigationInbox(userId);
       if (current()) setConversations(list);
     } catch { if (current()) setLoadError('Your conversations could not be refreshed. Please try again.'); }
     finally {
@@ -260,12 +150,7 @@ useEffect(() => {
   }, [userId]);
 
   useFocusEffect(useCallback(() => {
-    if (initialLoadDoneRef.current) {
-      const timer = setTimeout(load, 500);
-      return () => clearTimeout(timer);
-    } else {
-      load();
-    }
+    void load();
   }, [load]));
 
   useEffect(() => {
@@ -702,7 +587,7 @@ const swipeActions = (item: Conversation) => (
 
       {/* List */}
       {loadError ? <View style={{ paddingHorizontal: 16, paddingVertical: 10 }}><Text accessibilityRole="alert" style={{ color: t.ink.secondary }}>{loadError}</Text><TouchableOpacity accessibilityRole="button" onPress={() => void load()} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={{ color: t.status.link }}>Retry conversations</Text></TouchableOpacity></View> : null}
-      {loading ? (
+      {loading && conversations.length === 0 ? (
         <View style={s.center}><ConversationsSkeleton /></View>
       ) : loadError && conversations.length === 0 ? <View style={s.center} /> : filtered.length === 0 ? (
         <View style={s.empty}>

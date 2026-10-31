@@ -1,0 +1,24 @@
+✔ resolved navigation content is synchronously available and isolated by session and business key (1.753787ms)
+✔ account A→B→A cancels work immediately and its late result cannot refill the cache (6.020212ms)
+✔ a navigation tap shares the prefetch already in flight, including empty results (0.58991ms)
+✔ failed and timed-out refreshes preserve the established content and abort transport (6.034413ms)
+✔ navigation memory has a finite LRU budget and rejects expired or future-dated entries (0.27743ms)
+✔ JWT refresh keeps a session namespace while reauthentication and account changes invalidate it (0.654285ms)
+✔ native cache is cleared while screens are unmounted and a same-account token refresh retains it (43.269828ms)
+✔ native transition prefetch deduplicates and never waits for an artificial transition timer (30.362599ms)
+✔ a native prefetch cancelled by signout cannot return another session result (19.399862ms)
+✔ browser Auth observation precedes lookup and stale getSession cannot undo a rapid account round trip (26.858254ms)
+✔ normal browser JWT rotation does not reset navigation or declare an account change (14.166129ms)
+✔ server renders never share a navigation cache between requests (12.792484ms)
+✔ the actual App session callback clears React Query and cancels an old ignored-signal request across A→B→A (50.713783ms)
+✔ native inbox intent and screen share four parallel first-stage reads with a pinned owner token (74.393571ms)
+✔ failed native inbox refresh preserves loaded conversations and never converts denied settings into success (37.725923ms)
+✔ native inbox aborts first-stage transport and never starts another-account detail reads (38.310455ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 373.570402

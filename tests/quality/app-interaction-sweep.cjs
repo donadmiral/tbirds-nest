@@ -37,7 +37,7 @@ test('native tab effect restores For You immediately and distinguishes a first v
  const source=fs.readFileSync(path.join(root,'src/screens/feed/FeedScreen.tsx'),'utf8');
  const ast=ts.createSourceFile('FeedScreen.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
  let callback;
- function visit(node){if(ts.isCallExpression(node)&&node.expression.getText(ast)==='useEffect'&&node.arguments[1]?.getText(ast)==='[feedMode, discoverCat]')callback=node.arguments[0].getText(ast);ts.forEachChild(node,visit);}visit(ast);assert.ok(callback);
+ function visit(node){if(ts.isCallExpression(node)&&node.expression.getText(ast)==='useLayoutEffect'&&node.arguments[0]?.getText(ast).includes('feedTabs.read'))callback=node.arguments[0].getText(ast);ts.forEachChild(node,visit);}visit(ast);assert.ok(callback);
  const cache=createFeedTabCache(),calls=[],state={},frames=[],scrolls=[];
  const context={module:{exports:{}},exports:{},feedTabs:cache,feedMode:'trending',discoverCat:'all',userId:'alice',loading:false,feedError:null,
    visibleFeedScope:'alice:forYou:all',posts:[{id:'first',user_id:'author'}],profilesMap:{author:{id:'author'}},likedPosts:{first:true},bookmarkedPosts:{},repostedPosts:{},
@@ -64,7 +64,7 @@ test('native cached disk snapshot keeps its pending cursor refresh across tab ch
  const source=fs.readFileSync(path.join(root,'src/screens/feed/FeedScreen.tsx'),'utf8');
  const ast=ts.createSourceFile('FeedScreen.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
  let callback;
- function visit(node){if(ts.isCallExpression(node)&&node.expression.getText(ast)==='useEffect'&&node.arguments[1]?.getText(ast)==='[feedMode, discoverCat]')callback=node.arguments[0].getText(ast);ts.forEachChild(node,visit);}visit(ast);assert.ok(callback);
+ function visit(node){if(ts.isCallExpression(node)&&node.expression.getText(ast)==='useLayoutEffect'&&node.arguments[0]?.getText(ast).includes('feedTabs.read'))callback=node.arguments[0].getText(ast);ts.forEachChild(node,visit);}visit(ast);assert.ok(callback);
  const cache=createFeedTabCache(),calls=[],state={};
  const context={module:{exports:{}},exports:{},feedTabs:cache,feedMode:'trending',discoverCat:'all',userId:'alice',loading:false,feedError:null,
    visibleFeedScope:'alice:forYou:all',posts:[{id:'first',user_id:'author'}],profilesMap:{author:{id:'author'}},likedPosts:{first:true},bookmarkedPosts:{},repostedPosts:{},

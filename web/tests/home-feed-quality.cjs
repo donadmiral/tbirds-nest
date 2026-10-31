@@ -75,6 +75,7 @@ test('muted words apply to server rows and hidden posts cannot return after refr
 test('the actual HomeFeed server rendering includes post content before JavaScript hydration', () => {
   const h=harness();const empty=()=>null;
   const overrides={
+    '@/lib/navigationCache':{getNavigationStore:()=>({getSnapshot:()=>({owner:null,scope:null}),cache:{read:()=>null}})},
     '@/lib/homeFeedController':{createHomeFeedController}, '@/lib/homeFeedScroll':load('lib/homeFeedScroll.ts'), '@/lib/contentMedia':{hydratePostMedia:async rows=>rows}, '@/lib/feedCache':{getFeedCache:()=>h.cache}, '../../shared/feedSnapshot':shared, '../../shared/feedMedia':load('../shared/feedMedia.ts'),
     '@/lib/supabase/client':{createClient:()=>h.client}, 'next/navigation':{useRouter:()=>({push(){},refresh(){},replace(){}}),useSearchParams:()=>new URLSearchParams()},
     '@/components/PostCard':{PostCard:({post})=>React.createElement('article',null,post.content)},
@@ -163,4 +164,29 @@ test('a disk snapshot cached before the first response acquires a real cursor af
   original.resolve({ data: [row('obsolete')], error: null }); await initial;
   assert.ok(!h.controller.getSnapshot().rows.some(item => item.post_id === 'obsolete'));
   h.controller.dispose();
+});
+
+test('a new Home route restores its selected mode, rows, cursor and scroll synchronously while refreshing', async()=>{
+  const h=harness(Array.from({length:20},(_,i)=>row('home-'+i)));
+  h.setReply(async(name,args)=>({data:args.p_ids?args.p_ids.map(post_id=>({post_id,snapshot_eligible:true})):Array.from({length:20},(_,i)=>row('trend-'+i)),error:null}));
+  h.controller.setMode('trending',420);await tick();
+  h.controller.finishScrollRestore(h.controller.getSnapshot().scrollRestore.id);
+  const memory=h.controller.remember(875);h.controller.dispose();
+  const gate=deferred(),requests=[],client={rpc(name,args){requests.push({name,args});return name==='get_feed'?gate.promise:Promise.resolve({data:args.p_ids.map(post_id=>({post_id,snapshot_eligible:true})),error:null});}};
+  const now=performance.now(),resumed=createHomeFeedController(client,h.seed,h.cache,()=>{},async rows=>rows,memory),elapsed=performance.now()-now;
+  assert.equal(resumed.getSnapshot().mode,'trending');assert.equal(resumed.getSnapshot().rows[0].post_id,'trend-0');assert.equal(resumed.getSnapshot().scrollRestore.top,875);
+  assert.equal(resumed.getSnapshot().loading,false);assert.ok(elapsed<100,'resolved state is synchronous without a timer or network wait');
+  const states=[];resumed.subscribe(()=>states.push(resumed.getSnapshot()));const pending=resumed.start();await tick();assert.ok(states.every(state=>state.rows.length===20&&!state.loading));
+  gate.resolve({data:memory.tab.rows,error:null});await pending;await tick();await resumed.load(true);
+  assert.equal(requests.find(call=>call.args.p_cursor_id)?.args.p_cursor_id,'trend-19');
+  resumed.setMode('for_you');assert.equal(resumed.getSnapshot().rows[0].post_id,'home-0');assert.equal(resumed.getSnapshot().scrollRestore.top,420);resumed.dispose();
+});
+
+test('restored feed refresh failure keeps cached content and an old owner memory cannot seed a new account', async()=>{
+  const h=harness([row('known')]),memory=h.controller.remember(450);h.controller.dispose();
+  const offline={rpc:async()=>({data:null,error:{message:'offline'}})};
+  const restored=createHomeFeedController(offline,h.seed,h.cache,()=>{},async rows=>rows,memory);await restored.start();await tick();
+  assert.equal(restored.getSnapshot().rows[0].post_id,'known');assert.equal(restored.getSnapshot().loading,false);assert.ok(restored.getSnapshot().error);restored.dispose();
+  const next=createHomeFeedController(offline,{...h.seed,owner:'bob',rows:[row('bob')]},h.cache,()=>{},async rows=>rows,memory);
+  assert.deepEqual(Array.from(next.getSnapshot().rows,r=>r.post_id),['bob']);assert.equal(next.getSnapshot().scrollRestore,null);next.dispose();
 });
