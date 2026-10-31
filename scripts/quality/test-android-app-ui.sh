@@ -79,7 +79,10 @@ with zipfile.ZipFile(sys.argv[1]) as z:
     if not any(p.startswith('lib/x86_64/') for p in z.namelist()): raise SystemExit('Emulator ABI is missing.')
 PY
 printf 'no\n' | "$avd_manager" create avd --force --name platinum_app_ui --package 'system-images;android-35;default;x86_64' --path "$ANDROID_AVD_HOME/platinum_app_ui.avd"
-"$android_sdk/emulator/emulator" -avd platinum_app_ui -port 5556 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -memory 3072 > native-ui-logs/emulator.log 2>&1 &
+# Use the supported software backend selector on this headless runner. The
+# previous swiftshader_indirect mode was deprecated in Emulator 36.4.9.
+# https://developer.android.com/studio/run/emulator-acceleration
+"$android_sdk/emulator/emulator" -avd platinum_app_ui -port 5556 -no-window -no-audio -no-boot-anim -no-snapshot -gpu software -memory 3072 > native-ui-logs/emulator.log 2>&1 &
 emulator_pid=$!
 timeout 180 "$adb_bin" wait-for-device
 for ((attempt=0; attempt<120; attempt++)); do

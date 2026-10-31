@@ -1,0 +1,303 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31T06:04:52Z",
+  "reviewer": "hosted_backend independent read-only host-crash investigation",
+  "scope": "Android full-app e173 emulator disappearance and review of the parent-owned one-option software-rendering candidate. No rerun, provider/database action, ref change or production source edit.",
+  "outcome": {
+    "confirmedFailureMode": "The host Android Emulator process (PID 7041) terminated with SIGSEGV. The authenticated shell log proves more than an ADB transport disconnection.",
+    "rootCause": "Unresolved: no faulting-component stack, minidump, retained core, or kernel/OOM journal is available in the uploaded evidence.",
+    "candidateReview": "Accepted as a narrowly supported configuration correction for one follow-up run, not a proven remedy for the unknown crashing component.",
+    "androidFullAppAcceptance": "Failed and still pending a complete successful runtime rerun.",
+    "additionalInstrumentationRequiredBeforeOneFollowUpRun": false
+  },
+  "runBinding": {
+    "repository": "donadmiral/tbirds-nest",
+    "workflowRunId": 41173170193,
+    "jobId": 124455217307,
+    "jobName": "Tap through the full Android Emulator app",
+    "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41173170193/job/124455217307",
+    "jobStartedAtUtc": "2026-10-31T05:34:59Z",
+    "jobCompletedAtUtc": "2026-10-31T05:54:56Z",
+    "jobConclusion": "failure",
+    "jobDurationSeconds": 1197,
+    "publishedHead": "e173b2dbcf253342be5683fa85f102aa38065411",
+    "testedMerge": "e6ca24e27b00207344eb7989ed53d2305cb04cf3",
+    "tree": "37ca8db90469d32a2a2d7b3069db54b522926530",
+    "artifactSourceCommit": "e6ca24e27b00207344eb7989ed53d2305cb04cf3",
+    "artifactSourceWorkflowRun": "41173170193",
+    "artifactMode": "Complete production App and screens with isolated synthetic transports and a CI-only capture route",
+    "artifactCapabilityMode": "qa-capability-overlay",
+    "artifactSourceMemoryCapability": 0,
+    "artifact": {
+      "name": "android-full-app-ui",
+      "id": 13031788334,
+      "zipBytes": 361732,
+      "zipSha256": "956045dfff3b2e9043d817aefa91b16aefd99bc3d8279966d5fcffb3ac7626b2",
+      "archiveVerification": "Verified and reported by native_acceptance; the unpacked logs and script/source binding were independently inspected here."
+    },
+    "uiAndFullSourceReview": {
+      "path": "docs/quality/native-full-app-20261031/android-full-app-e173b2db-failure.json",
+      "sha256": "87d139da41423ce86eaf2ffb3d03342f307e45332e63bdf1b2d9d41114d456a8",
+      "independentReviewer": "native_acceptance",
+      "verification": "495 manifest entries and six retained overlays match published merge e6ca24e2; see the bound UI receipt for full details."
+    }
+  },
+  "retainedLogEvidence": {
+    "artifactDirectory": "/tmp/android-full-app-e173b2db-41173170193",
+    "files": {
+      "source.json": {
+        "bytes": 59170,
+        "sha256": "0fec6c3859c429596d19932c87fd2c2472be9bd69e860f873ab8b1f5e64eeb48"
+      },
+      "emulator.log": {
+        "bytes": 8497,
+        "sha256": "7c0c4f8190bb392ec858a7a032e4c0d82bd263a165f9190873b926b6c7a647b0"
+      },
+      "build.log": {
+        "bytes": 189864,
+        "sha256": "4f40c5fce9d14bd63ff2d8289f9caaaab981f4ff4b99b9b6ac9436e023942955"
+      },
+      "app.log": {
+        "bytes": 1466251,
+        "sha256": "da6fff291699c448ab5f0bb0d737ed78e9e3bf2969e6f53ba751c4b5d8ce3dbf"
+      },
+      "recording.log": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "maestro-navigation.xml": {
+        "bytes": 4385,
+        "sha256": "16b116fac22538e4db62c3c1168d55ea7428cbb19aa21dd6c9ea9d2f7c5a3f0e"
+      },
+      "maestro-navigation.log": {
+        "bytes": 1441,
+        "sha256": "db236a97ec415255942cb4bf3e200aad163be72df462b5825c9d1d0c184ccec1"
+      },
+      "maestro-memory-capture.log": {
+        "bytes": 62,
+        "sha256": "3e66cf2392dc12b00ab6dc4d9bf20c92711996aa761111a61d8abf079b296b02"
+      },
+      "phase-results.json": {
+        "bytes": 63,
+        "sha256": "9488f7548883aadb3421cbedd6aa243cfc4a05c4fc03aad3b3792b1a871e4f1e"
+      },
+      "flow-results.json": {
+        "bytes": 351,
+        "sha256": "ad60595633d62c1ad75e4e0a972fe90e11c6bbd66bd9396b2c5e24b812de4e85"
+      },
+      "flow-verification.json": {
+        "bytes": 89,
+        "sha256": "563b1fc2263772fab105ed01de4ef3fbadccc02cec744309682a392fb1cc83f6"
+      }
+    },
+    "authenticatedJobLog": {
+      "localPath": "/tmp/android-full-app-e173b2db-job-124455217307.log",
+      "bytes": 366189,
+      "sha256": "71a01c7306dc52901ccf913f5dc9f6b5acb21faa705235f20c3f0e1db5f31b7b",
+      "format": "Authenticated workflow job log with timestamps retained and ANSI/BOM normalization; no signed download URL is retained in this report."
+    },
+    "decisiveShellLine": {
+      "line": 3407,
+      "text": "2026-10-31T05:54:52.4460591Z scripts/quality/test-android-app-ui.sh: line 102:  7041 Segmentation fault      (core dumped) \"$android_sdk/emulator/emulator\" -avd platinum_app_ui -port 5556 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -memory 3072 > native-ui-logs/emulator.log 2>&1"
+    },
+    "notificationTimestampLimit": "2026-10-31T05:54:52.4460591Z is when Bash reported the background process signal after its foreground command returned. It does not identify the exact crash instant.",
+    "selectedJobLines": [
+      {
+        "line": 1062,
+        "text": "2026-10-31T05:36:56.4812202Z Daemon will be stopped at the end of the build "
+      },
+      {
+        "line": 3369,
+        "text": "2026-10-31T05:52:33.8840301Z BUILD SUCCESSFUL in 15m 41s"
+      },
+      {
+        "line": 3379,
+        "text": "2026-10-31T05:53:16.2068619Z Success"
+      },
+      {
+        "line": 3382,
+        "text": "2026-10-31T05:54:47.7474556Z [Failed] Full native app navigation (1m 22s)"
+      },
+      {
+        "line": 3406,
+        "text": "2026-10-31T05:54:52.3751945Z Device emulator-5556 was requested, but it is not connected."
+      },
+      {
+        "line": 3408,
+        "text": "2026-10-31T05:54:52.4482624Z error: device 'emulator-5556' not found"
+      },
+      {
+        "line": 3421,
+        "text": "2026-10-31T05:54:52.5465560Z FileNotFoundError: [Errno 2] No such file or directory: 'native-ui-logs/memory-capture/receipt.json'"
+      }
+    ],
+    "selectedEmulatorLines": [
+      {
+        "line": 1,
+        "text": "INFO         | Android emulator version 37.2.13.0 (build_id 16740729) (CL:N/A)"
+      },
+      {
+        "line": 2,
+        "text": "INFO         | Graphics backend: gfxstream"
+      },
+      {
+        "line": 6,
+        "text": "INFO         | emuglConfig_init: vulkan_mode_selected:swiftshader gles_mode_selected:swiftshader"
+      },
+      {
+        "line": 15,
+        "text": "INFO         | Storing crashdata in: /tmp/android-runner/emu-crash-37.2.13.db, detection is enabled for process: 7041"
+      },
+      {
+        "line": 25,
+        "text": "INFO         | Selecting Vulkan device: SwiftShader Device (Subzero), Version: 1.3.0"
+      },
+      {
+        "line": 35,
+        "text": "INFO         |     glInteropSupported: false"
+      },
+      {
+        "line": 38,
+        "text": "INFO         |     useVulkanComposition: false"
+      },
+      {
+        "line": 39,
+        "text": "INFO         |     useVulkanNativeSwapchain: false"
+      },
+      {
+        "line": 49,
+        "text": "INFO         | Graphics Adapter Android Emulator OpenGL ES Translator (Google SwiftShader)"
+      },
+      {
+        "line": 50,
+        "text": "INFO         | Graphics API Version OpenGL ES 3.0 (OpenGL ES 3.0 SwiftShader 4.0.0.1)"
+      }
+    ],
+    "processIdentity": "Emulator crash reporting identifies PID 7041, matching the shell SIGSEGV notification.",
+    "missingCrashEvidence": "The emulator advertised /tmp/android-runner/emu-crash-37.2.13.db, but the artifact contains no crashpad database/core/minidump/backtrace. The path alone does not reveal the faulting component."
+  },
+  "causalLimits": {
+    "oom": "No retained OOM/SIGKILL or kernel memory-pressure evidence establishes OOM. No host process/RSS census or kernel journal was retained. SIGSEGV alone must not be relabeled OOM.",
+    "application": "The retained app log ends without an observed Android app fatal exception/signal. This does not exclude an application action triggering an emulator/graphics defect.",
+    "graphics": "The observed emulator selected SwiftShader for GLES and Vulkan under gfxstream. A startup warning or renderer identity is not a crashing-component stack.",
+    "gradle": "The build used --no-daemon and logged a single-use daemon that would stop at build completion; the build succeeded. There is no retained evidence proving a lingering Gradle/Kotlin daemon caused memory pressure.",
+    "explicitCleanup": "The tested script defines emulator termination only in the EXIT cleanup. Original source line 102 runs the required flows; evidence pulls, decoders, verifier and phase status follow. The SIGSEGV notification precedes those evidence attempts and EXIT cleanup, so the explicit cleanup kill is not the observed prior termination.",
+    "exitCode": "The raw emulator wait status was not retained. No numeric exit code is inferred from the signal text.",
+    "clockAlignment": "Guest app timestamps, Maestro local timestamps and host workflow notification timestamps are not treated as an exactly synchronized crash clock."
+  },
+  "acceptanceRemainsStrict": {
+    "navigationProgress": "Parent and native_acceptance verified Home, Market, Jobs, Messages and Profile/Edit profile before the device disappeared during the first memory-navigation scroll. See the bound UI receipt for retained screenshots and command evidence.",
+    "flowResults": {
+      "schemaVersion": 1,
+      "mode": "same-app-required-flows",
+      "flows": [
+        {
+          "name": "navigation",
+          "flow": "tests/native/flows/navigation.yaml",
+          "attempts": 1,
+          "exitCode": 1,
+          "junit": "maestro-navigation.xml"
+        },
+        {
+          "name": "memory-capture",
+          "flow": "tests/native/flows/memory-capture.yaml",
+          "attempts": 1,
+          "exitCode": 1,
+          "junit": "maestro-memory-capture.xml"
+        }
+      ]
+    },
+    "phaseResults": {
+      "flows": 1,
+      "evidence": 1,
+      "memoryDecoder": 1,
+      "fullAppVerifier": 1
+    },
+    "captureOutcome": "Device emulator-5556 was requested, but it is not connected.",
+    "captureEvidence": "The capture flow was attempted once but could not connect; no capture JUnit or media directory exists. Required evidence and verifiers correctly kept the gate failed."
+  },
+  "officialDocumentation": [
+    {
+      "url": "https://developer.android.com/studio/run/emulator-acceleration",
+      "reviewedAtUtc": "2026-10-31",
+      "relevantFacts": [
+        "swiftshader_indirect is listed as deprecated starting Emulator 36.4.9.",
+        "The supported software selector chooses the most suitable software renderer for the AVD, features and quality."
+      ],
+      "inference": "Changing only this mode removes an officially deprecated configuration without choosing a new hardware GPU or weakening the test."
+    },
+    {
+      "url": "https://developer.android.com/studio/releases/emulator?hl=en",
+      "reviewedAtUtc": "2026-10-31",
+      "relevantFacts": [
+        "36.4.9 Stable (2026-02-10) introduced -gpu software selection for software GLES/Vulkan backends and made Lavapipe the default software Vulkan renderer.",
+        "37.2.13 Patch (2026-10-28), already used by this run, documents a GLES resource-leak fix on application/process exit."
+      ],
+      "limits": [
+        "These release notes do not identify this SIGSEGV.",
+        "Historical 28.x headless-binary notes do not establish that -no-window is invalid on 37.2.13.",
+        "API 37-specific preview engine and minimum-RAM notes do not apply to this API 35 system image."
+      ]
+    },
+    {
+      "url": "https://developer.android.com/studio/run/emulator-troubleshooting",
+      "reviewedAtUtc": "2026-10-31",
+      "relevantFacts": [
+        "Documented Vulkan-disable workarounds address specific cases such as missing Windows DLLs, snapshots or Chrome compatibility; Apple Silicon MoltenVK limitations are platform-specific."
+      ],
+      "limits": [
+        "This Linux x86_64 run uses -no-snapshot and does not show those failures. No Vulkan-disable or headless-binary change is supported by the retained evidence."
+      ]
+    }
+  ],
+  "candidate": {
+    "path": "scripts/quality/test-android-app-ui.sh",
+    "owner": "root",
+    "baseCommit": "e173b2dbcf253342be5683fa85f102aa38065411",
+    "baseSha256": "b4b061b08be076c02d162dcf9db8f888afdab757b7bd694b3b76c4bf742de9dc",
+    "candidateSha256": "6d9ea96189108721634a31bd0650b0e068a8403d64bf9cbeb108836aef795fe6",
+    "change": {
+      "from": "-gpu swiftshader_indirect",
+      "to": "-gpu software",
+      "addedCommentLines": [
+        "# Use the supported software backend selector on this headless runner. The",
+        "# previous swiftshader_indirect mode was deprecated in Emulator 36.4.9.",
+        "# https://developer.android.com/studio/run/emulator-acceleration"
+      ]
+    },
+    "independentExactByteVerification": "PASS: candidate equals the published script with exactly this single mode substitution and the three specified comment lines. The tested artifact records the base script hash.",
+    "onlyNonDocumentationTrackedDiff": [
+      "scripts/quality/test-android-app-ui.sh"
+    ],
+    "workflowSha256Unchanged": "893ef1c3c6ae5976337ab7ecb12d6f8080ad51ddfa3e80995745f409540cddca",
+    "invariantsUnchanged": [
+      "ubuntu-24.04 runner tier and 75-minute job timeout",
+      "Node 22, Java 17, KVM and API 35 default x86_64 image",
+      "3072 MB emulator memory; Gradle --no-daemon, --max-workers 2 and existing JVM memory settings",
+      "-no-window, -no-audio, -no-boot-anim, -no-snapshot and port 5556",
+      "Existing boot waits, recording limit, workflow capabilities and overlays",
+      "Both required Maestro flows, one attempt each, all page/content assertions and both existing verification gates",
+      "All production sources, native capabilities, dependency locks, CI concurrency and non-Android scripts"
+    ],
+    "staticChecks": {
+      "bashSyntax": "Parent reports bash -n passed for this candidate.",
+      "whitespace": "Parent reports git diff --check passed.",
+      "independentReview": "Exact bytes and source scope verified; no mirrored or broad test added or rerun."
+    },
+    "runtimeConfirmation": "Pending. software is a selector: it does not guarantee a different backend. The next emulator.log must establish the selected GLES/Vulkan renderer and emulator version."
+  },
+  "recommendedNextStep": {
+    "action": "After the current iPhone job finishes and root publishes the reviewed candidate, one normal Android full-app follow-up is justified with existing evidence capture and all acceptance gates unchanged.",
+    "whyNoExtraInstrumentationNow": "The current authenticated shell and emulator logs already distinguish host SIGSEGV from transport loss and expose selected renderers. One supported-mode run can test stability while preserving a minimal configuration change; lack of a stack prevents a root-cause claim but does not block this bounded follow-up.",
+    "successCriterion": "The complete required navigation and memory-capture flows, media validation and final app verification pass; inspect the new emulator log rather than assuming software chose a different renderer.",
+    "ifSigsegvRecurs": "Retain the already-generated crashpad/minidump/core evidence and a bounded process/host result before selecting another corrective change. Reassess the concrete recurrence; do not preemptively increase memory, tier, timeouts, disable Vulkan or weaken assertions.",
+    "guarantee": "None: this review accepts the supported configuration correction, not a claim that it fixes the unresolved crashing component."
+  },
+  "actionsNotTaken": [
+    "No new native run or workflow retry",
+    "No production/source/configuration edit by this reviewer",
+    "No branch/ref/push operation",
+    "No database/provider mutation",
+    "No interruption of the current iPhone job"
+  ]
+}

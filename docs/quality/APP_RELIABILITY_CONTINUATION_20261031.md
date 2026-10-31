@@ -14,6 +14,9 @@ This is a milestone count, not a whole-product completion percentage. The
 [native workflow](https://github.com/donadmiral/tbirds-nest/actions/runs/41173170193)
 remain available independently of the chat connection.
 
+Status snapshot: **2026-10-31 06:02 UTC**. The Android complete-app run has
+finished with an emulator-process crash; the iPhone run remains active.
+
 The published source is `e173b2dbcf253342be5683fa85f102aa38065411`. Its tested PR
 merge is `e6ca24e27b00207344eb7989ed53d2305cb04cf3`. Both have tree
 `37ca8db90469d32a2a2d7b3069db54b522926530`. These identities were checked against
@@ -29,7 +32,7 @@ the fetched repository and the CI artifacts.
 | Browser media and layouts | CI reported 18 encoded outputs and 288 cover layouts; the artifact retains reports rather than movie binaries |
 | Standalone native encoders | 58 cases passed; artifact/source hashes and 57 media hashes and lengths verified |
 | Swift and Kotlin integration | Both compilation jobs passed |
-| Complete installed native apps | Both required app-flow jobs were still running at the latest status check |
+| Complete installed native apps | iPhone still running; Android main screens passed before the host emulator terminated with SIGSEGV during memory-book navigation |
 
 The final local root gate passed all 166 selected files: 1,712 formal cases plus
 the separate successful 33-check auth program. CI counts that program as one
@@ -54,6 +57,42 @@ journeys below remain attached to those unchanged deployed builds.
 [Current deployment binding](live-app-20261031/deployment-review-e173b2db.json) ·
 [Current native compile status](native-full-app-20261031/native-compile-e173b2db-status.json) ·
 [Current native encoder evidence](native-full-app-20261031/native-encoders-e173b2db-source-equivalence.json)
+
+### Android complete-app result and emulator follow-up
+
+The current Android app built successfully in 15 minutes 41 seconds. Home,
+Latest/For You, Market, the return to Home, Jobs, Messages and Profile/Edit
+profile all passed their required assertions. Five retained screenshots record
+the loaded main screens. The new stable tab IDs selected the application tabs,
+and the exact grouped-content selectors passed.
+
+The first memory-book scroll began at 05:54:12 UTC. The emulator then became
+unavailable, and the authenticated job log reports PID 7041 terminating with
+`Segmentation fault (core dumped)` for the emulator command. That establishes a
+host emulator-process crash. No retained stack identifies the internal fault,
+and no out-of-memory cause is established. Capture was attempted once but could
+not start on the disconnected device. Both flows and both existing verifiers
+remain failed; saved-account readback and native movie capture are unverified.
+
+All 495 source-manifest entries and all six overlays match the published source.
+The four attempted auth/fixture exports are empty after device loss. The retained
+application log contains no match for the earlier auth-lock warning, but the
+missing diagnostic events cannot establish stable timer IDs or lock durations.
+Its skipped-frame notices also prohibit a native speed-pass claim.
+
+The follow-up prepared locally changes one emulator argument from the deprecated
+`swiftshader_indirect` mode to the supported `software` selector. Android's
+[current graphics documentation](https://developer.android.com/studio/run/emulator-acceleration)
+identifies that deprecation and the supported modes. This is a bounded
+configuration correction and a discriminating next run, not a proven cure for
+the specific crash. Application code, acceptance assertions, device profile,
+memory, timeouts and runner tier are unchanged. Publication waits for the active
+iPhone job to finish so that its useful execution is preserved.
+
+[Android flow/source failure receipt](native-full-app-20261031/android-full-app-e173b2db-failure.json) ·
+[Independent Android auth-log review](native-full-app-20261031/android-e173b2db-auth-independent-review.json) ·
+[Emulator crash and one-flag follow-up review](native-full-app-20261031/android-full-app-e173b2db-emulator-disappearance.json) ·
+[Memory-flow source preflight](native-full-app-20261031/native-memory-flows-source-review-e173b2db.json)
 
 ## Preceding checkpoints
 
@@ -379,9 +418,10 @@ The current `e173b2db` standalone encoder jobs passed all 58 cases, and both
 Swift/Kotlin integration compilation jobs passed. Source and fixture hashes,
 archive digests, and 57 retained media hashes and lengths are verified in the
 current receipts linked at the top of this report. Those source-equal outputs
-were not independently decoded again. The complete installed-app workflow is
-still running. The history below explains the defects found and repaired before
-that run; earlier successes and failures remain bound to their named source.
+were not independently decoded again. The complete iPhone job is still running;
+the current Android result is recorded at the top of this report. The history
+below explains earlier defects and repairs; each result remains bound to its
+named source.
 
 The preceding `26e80ae9` standalone encoder jobs passed 58 CI cases: 11 iOS memory, 8 iOS
 story and 39 Android cases. ZIP digests, 57 retained media hashes and sizes, and

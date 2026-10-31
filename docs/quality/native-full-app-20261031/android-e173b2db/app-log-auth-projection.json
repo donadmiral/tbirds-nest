@@ -1,0 +1,93 @@
+{
+  "origin": {
+    "path": "/tmp/android-full-app-e173b2db-41173170193/app.log",
+    "bytes": 1466251,
+    "sha256": "da6fff291699c448ab5f0bb0d737ed78e9e3bf2969e6f53ba751c4b5d8ce3dbf"
+  },
+  "selection": "All ReactNativeJS lines, all app-PID error-level and skipped-frame notices, plus first/last app-PID lines. Line numbers are 1-based in the original artifact app.log; this is a bounded projection, not the complete log.",
+  "appPid": 2543,
+  "originalLineCount": 4187,
+  "selectedLineCount": 20,
+  "lines": [
+    {
+      "line": 1263,
+      "text": "10-31 05:53:26.260  2543  2543 I rcles.mobile.qa: Using CollectorTypeCMC GC."
+    },
+    {
+      "line": 1266,
+      "text": "10-31 05:53:26.263  2543  2543 E rcles.mobile.qa: Not starting debugger since process cannot load the jdwp agent."
+    },
+    {
+      "line": 1577,
+      "text": "10-31 05:53:27.670  2543  2591 E AVManager: Cannot install JSI bindings for AV module because JS context is not available"
+    },
+    {
+      "line": 1588,
+      "text": "10-31 05:53:27.714  2543  2591 I ReactNativeJS: MediaDevices _registerEvents invoked"
+    },
+    {
+      "line": 1591,
+      "text": "10-31 05:53:27.722  2543  2591 W ReactNativeJS: `new NativeEventEmitter()` was called with a non-null argument without the required `addListener` method."
+    },
+    {
+      "line": 1592,
+      "text": "10-31 05:53:27.722  2543  2591 W ReactNativeJS: `new NativeEventEmitter()` was called with a non-null argument without the required `removeListeners` method."
+    },
+    {
+      "line": 1593,
+      "text": "10-31 05:53:27.722  2543  2591 W ReactNativeJS: `new NativeEventEmitter()` was called with a non-null argument without the required `addListener` method."
+    },
+    {
+      "line": 1594,
+      "text": "10-31 05:53:27.722  2543  2591 W ReactNativeJS: `new NativeEventEmitter()` was called with a non-null argument without the required `removeListeners` method."
+    },
+    {
+      "line": 1600,
+      "text": "10-31 05:53:27.805  2543  2591 I ReactNativeJS: '[NativeCalls] gate', '{\"build\":0,\"expoGo\":false,\"enabled\":true}'"
+    },
+    {
+      "line": 1610,
+      "text": "10-31 05:53:27.890  2543  2591 W ReactNativeJS: [expo-av]: Expo AV has been deprecated and will be removed in SDK 54. Use the `expo-audio` and `expo-video` packages to replace the required functionality."
+    },
+    {
+      "line": 1611,
+      "text": "10-31 05:53:27.922  2543  2591 I ReactNativeJS: Running \"main\""
+    },
+    {
+      "line": 1612,
+      "text": "10-31 05:53:27.922  2543  2591 I ReactNativeJS: MediaDevices => mediaDevicesOnDeviceChange"
+    },
+    {
+      "line": 2479,
+      "text": "10-31 05:53:45.525  2543  2591 I ReactNativeJS: Must use physical device for push notifications"
+    },
+    {
+      "line": 2493,
+      "text": "10-31 05:53:45.641  2543  2591 I ReactNativeJS: '[accounts] index', 1"
+    },
+    {
+      "line": 2497,
+      "text": "10-31 05:53:45.685  2543  2591 I ReactNativeJS: '[accounts] index', 1"
+    },
+    {
+      "line": 2580,
+      "text": "10-31 05:53:46.404  2543  2543 I Choreographer: Skipped 30 frames!  The application may be doing too much work on its main thread."
+    },
+    {
+      "line": 2603,
+      "text": "10-31 05:53:46.950  2543  2543 E FrameTracker: force finish cuj, time out: J<IME_INSETS_HIDE_ANIMATION::1@0@app.platinumcircles.mobile.qa>"
+    },
+    {
+      "line": 2947,
+      "text": "10-31 05:53:53.556  2543  2543 E FrameTracker: force finish cuj, time out: J<IME_INSETS_HIDE_ANIMATION::1@0@app.platinumcircles.mobile.qa>"
+    },
+    {
+      "line": 4186,
+      "text": "10-31 05:54:13.774  2543  2543 I Choreographer: Skipped 54 frames!  The application may be doing too much work on its main thread."
+    },
+    {
+      "line": 4187,
+      "text": "10-31 05:54:13.784  2543  2552 I HWUI    : Davey! duration=927ms; Flags=0, FrameTimelineVsyncId=30471, IntendedVsync=95308808600, Vsync=95308808600, InputEventId=-616202845, HandleInputStart=95309047343, AnimationStart=95309468139, PerformTraversalsStart=95309683060, DrawStart=95309746509, FrameDeadline=95358808598, FrameInterval=95309046191, FrameStartTime=16666666, SyncQueued=95309779851, SyncStart=95315670972, IssueDrawCommandsStart=95316129077, SwapBuffers=96136412404, FrameCompleted=96241734718, DequeueBufferDuration=2504, QueueBufferDuration=149009, GpuCompleted=96241644259, SwapBuffersCompleted=96241734718, DisplayPresentTime=0, CommandSubmissionCompleted=96136412404, "
+    }
+  ]
+}
