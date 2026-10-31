@@ -1,0 +1,36 @@
+name: Diagnose iPhone Simulator setup
+
+on:
+  push:
+    branches: [codex/ios-setup-diagnosis-20261031]
+    paths:
+      - .github/workflows/native-ios-setup-diagnosis.yml
+      - scripts/quality/native-ui-ios-setup-probe.py
+
+permissions:
+  contents: read
+
+jobs:
+  setup-probe:
+    runs-on: macos-15-intel
+    timeout-minutes: 15
+    env:
+      CI: 'true'
+      LC_ALL: C
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+    steps:
+      - name: Check out the reviewed setup probe
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Observe the original setup order once
+        run: python3 scripts/quality/native-ui-ios-setup-probe.py
+      - name: Retain original verdict and bounded setup observations
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ios-simulator-setup-diagnosis
+          path: ios-setup-diagnostics/
+          if-no-files-found: error
+          retention-days: 7

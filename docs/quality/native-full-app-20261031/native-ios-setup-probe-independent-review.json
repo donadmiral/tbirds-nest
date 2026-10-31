@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "root",
+  "status": "PREPARATION_REVIEW_PASSED",
+  "scope": "One setup-only diagnostic on the selected disposable Intel macOS host; no application acceptance.",
+  "baseCommit": "39913314f866c6446e5a8bbfdd86f4e35cb27ed1",
+  "baseTree": "8a1fd51e93829475ea4463f22981fbb3e3599c48",
+  "reviewedPaths": [
+    {
+      "path": "scripts/quality/native-ui-ios-setup-probe.py",
+      "sha256": "cd65e2f199ed2433a44321e0074344fa24e1234e372049c3305898379ef9e7a6"
+    },
+    {
+      "path": ".github/workflows/native-ios-setup-diagnosis.yml",
+      "sha256": "c9adef3a2549a07cdb09b41122a5fc9a5cf7900f9d927232ff51af3315595fd9"
+    },
+    {
+      "path": "tests/quality/native-ios-setup-probe.cjs",
+      "sha256": "61c34ccba5965398da99cf2e8be16ad1700ca2812a5b68379de6940d824e22e1"
+    }
+  ],
+  "verification": {
+    "formalPassed": 2,
+    "formalFailed": 0,
+    "formalSkipped": 0,
+    "nestedPythonChecks": 12,
+    "countRule": "Independent rerun of the same two formal cases; nested checks and independent reruns are not additional application cases.",
+    "threeFrozenSourceHashesMatched": true,
+    "twoHelperHashesMatchedLiteralBaseGitTree": true
+  },
+  "resolvedReviewFindings": [
+    "Creation, boot and boot-readiness timeouts now trigger the same one-shot diagnostic as metadata timeouts. The earlier114-second creation observation is close enough to its120-second cap that omitting this path could have lost the next useful failure.",
+    "Both support-helper digests are checked before any helper import executes.",
+    "Runner provenance is restricted to ImageOS, ImageVersion and RUNNER_ARCH; command arguments and environment contents are not retained.",
+    "Snapshot and sampling overhead is explicit, and successful setup in this probe cannot by itself establish a cure or native application acceptance."
+  ],
+  "reviewedBehavior": {
+    "originalCommandOrderPreserved": true,
+    "prebootCoreSimulatorWarmupAdded": false,
+    "originalStageBudgetsSeconds": [30, 30, 30, 120, 120, 300, 30],
+    "originalFailedVerdictPersistedBeforeObservation": true,
+    "diagnosticWindowsPerRun": 1,
+    "diagnosticWallBudgetSeconds": 25,
+    "maximumRetainedProcessRowsPerSnapshot": 40,
+    "sampleTargets": "Exact still-live owned command and at most one same-UID, exact-identifier, Apple-signature-verified CoreSimulatorService",
+    "serviceIdentityRechecked": true,
+    "observerFailurePreservesOriginalError": true,
+    "ownedCommandGroupReapedAfterFailure": true,
+    "serviceRestartOrCacheMutation": false,
+    "applicationBuildDownloadOrTest": false
+  },
+  "runtimeHostCauseEstablished": false,
+  "applicationCasesAccepted": 0
+}

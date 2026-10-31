@@ -1,0 +1,22 @@
+TAP version 13
+# Subtest: actual setup probe preserves original failures and bounds private-free observations
+ok 1 - actual setup probe preserves original failures and bounds private-free observations
+  ---
+  duration_ms: 626.241864
+  type: 'test'
+  ...
+# Subtest: setup-only workflow has no app, Maestro, build, download or service-mutation steps
+ok 2 - setup-only workflow has no app, Maestro, build, download or service-mutation steps
+  ---
+  duration_ms: 11.262163
+  type: 'test'
+  ...
+1..2
+# tests 2
+# suites 0
+# pass 2
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 680.499042

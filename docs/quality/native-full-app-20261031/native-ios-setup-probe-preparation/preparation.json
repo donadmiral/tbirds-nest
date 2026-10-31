@@ -1,0 +1,77 @@
+{
+  "preparedAt": "2026-10-31T20:15:08.650971+00:00",
+  "kind": "Setup-only observation; not application acceptance or a host repair",
+  "frozenFiles": {
+    "scripts/quality/native-ui-ios-setup-probe.py": "cd65e2f199ed2433a44321e0074344fa24e1234e372049c3305898379ef9e7a6",
+    ".github/workflows/native-ios-setup-diagnosis.yml": "c9adef3a2549a07cdb09b41122a5fc9a5cf7900f9d927232ff51af3315595fd9",
+    "tests/quality/native-ios-setup-probe.cjs": "61c34ccba5965398da99cf2e8be16ad1700ca2812a5b68379de6940d824e22e1"
+  },
+  "requiredUnchangedSupport": {
+    "scripts/quality/native-ui-ios-audit-recovery.py": "428cdb8734e41c6a3a25ec1f6088a627ce6e26f911fe5496e1082e7c742592a2",
+    "scripts/quality/native-ui-ios-compatibility.py": "0a6e65d5dbfbf883cc0d4b765011d1941dcd64c0972140e28d9d3d6564159ce9"
+  },
+  "sourceGuard": "Both support hashes are verified before any imported helper code executes.",
+  "host": {
+    "runner": "macos-15-intel",
+    "xcode": "16.4 / 16F6",
+    "sdk": "18.5",
+    "deviceType": "iPhone 16",
+    "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-18-5"
+  },
+  "sequence": [
+    "host/Xcode/SDK immutable reads",
+    "bounded host statistics",
+    "create",
+    "bounded host statistics",
+    "boot",
+    "bootstatus",
+    "bounded host statistics",
+    "list runtimes"
+  ],
+  "budgetsSeconds": {
+    "metadataRead": 30,
+    "create": 120,
+    "boot": 120,
+    "bootstatus": 300,
+    "runtimeList": 30,
+    "singlePostFailureObservationWindow": 25,
+    "eachSampleDuration": 3,
+    "eachSampleProcessLimit": 8
+  },
+  "observations": {
+    "runnerImageFields": [
+      "ImageOS",
+      "ImageVersion",
+      "RUNNER_ARCH"
+    ],
+    "host": "Numeric CPU/memory counters and bounded PID/UID/CPU/RSS/executable-name projections; no argument or environment dump.",
+    "timeout": "Persist failed verdict and bounded command output before a single diagnostic window. Applies to Xcode/SDK/create/boot/bootstatus/runtime-list timeouts.",
+    "sampleTargets": [
+      "Exact live owned setup command, verified by process identity and group",
+      "One same-user exact CoreSimulatorService with stable identity, Apple signature and exact code identifier"
+    ]
+  },
+  "verification": {
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-ios-setup-probe.cjs",
+    "formalPassed": 2,
+    "nestedPythonPassed": 12,
+    "failed": 0,
+    "skipped": 0,
+    "sourceBeforeAfterUnchanged": true,
+    "scopedEslintExit": 0,
+    "pythonAstParsePassed": true,
+    "tap": "docs/quality/native-full-app-20261031/native-ios-setup-probe-preparation/focused.tap",
+    "tapSha256": "41adbafe3bb161ff2d8c8372f5ee746cb8cb79b9c6b5ab4396519b2aab0e0709"
+  },
+  "priorFailure": {
+    "receipt": "docs/quality/native-full-app-20261031/native-audit-ios-recovery/run-41236355546/setup-failure.json",
+    "sha256": "16738958064964b4aff18297db18d8286ff506f5ec610cd6744abfc82f73cb46"
+  },
+  "primarySource": "https://developer.apple.com/documentation/technotes/tn3127-inside-code-signing-requirements",
+  "limits": [
+    "No app download/build/install, Maestro, reader or account test.",
+    "No preboot CoreSimulator list warm-up, cache purge, service restart, unrelated-process signal or deadline increase.",
+    "Host snapshots add bounded work/time before and after boot; samples occur after an already-failed verdict and can affect observed state. A successful probe alone cannot prove a cure of the previous host delay.",
+    "Linux controlled tests do not prove macOS libproc/sample/service behavior; the one-shot CI observation remains required."
+  ]
+}

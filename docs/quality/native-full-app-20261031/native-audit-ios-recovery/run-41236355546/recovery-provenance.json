@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "kind": "original-binary-ios-audit-diagnostic-recovery",
+  "applicationSourceCommit": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+  "applicationSourceTree": "24c1a151d852ced19f2198980412922ec4c7a4ed",
+  "producerRunId": 41229206389,
+  "binarySha256": "61aa632c9499117c7d0f7cc7901e58eb6470d7aeffb6d6eb41aad87119f79b65",
+  "sourceReceiptSha256": "35d710d00324f3a2eb815f38b87bf95b24b3225a1aaad2e7985083cf3cba11fe",
+  "auditManifestSha256": "f0b37826ed8709e0772e5d9ea4d73d9e7ef48ab7d2894440608ab2e59848b1fe",
+  "originalRunnerSha256": "b77ada1570ab2c78d27518c7b109eb06b802e8b6e86f737459beeb9b9bdf60f8",
+  "recoverySourceCommit": "39913314f866c6446e5a8bbfdd86f4e35cb27ed1",
+  "recoveryRunId": "41236355546",
+  "recoveryRunAttempt": "1",
+  "helperSha256": "428cdb8734e41c6a3a25ec1f6088a627ce6e26f911fe5496e1082e7c742592a2",
+  "compatibilityHelperSha256": "0a6e65d5dbfbf883cc0d4b765011d1941dcd64c0972140e28d9d3d6564159ce9",
+  "workflowSha256": "4e2fdec570152c12f3f2cd3da7502c4126510cb5dc0bded0919104bc1171c134",
+  "selectedGroups": [
+    "memory"
+  ],
+  "selectedCaseCount": 5,
+  "rebuild": false,
+  "rebundle": false,
+  "resign": false,
+  "originalCasesUnchanged": true,
+  "diagnosticLimits": {
+    "snapshotIntervalSeconds": 5,
+    "maxTraceBytesPerFile": 2097152,
+    "samplePairsPerShard": 1,
+    "sampleSecondsPerProcess": 3,
+    "sampleIntervalMilliseconds": 10,
+    "sampleWallBudgetSeconds": 8,
+    "sampleBytesPerProcess": 2097152,
+    "nativeBodiesReadAgain": false,
+    "coreEnvironmentArgvOrHeapCaptured": false
+  },
+  "coverageLimit": "Original memory cases enter the reader directly. One separately reported diagnostic uses three existing warm-tab cycles followed by Profile/shelf/book. It is a related path, not the identical original single-cycle full journey; isolated success cannot establish its cure.",
+  "observationOverhead": "Snapshots add bounded file/command work; sample briefly suspends threads at each sampling interval. Original test deadlines and outcomes are not adjusted.",
+  "immutableCompatibilityVerification": {
+    "hostArchitecture": "x86_64",
+    "actualExecutableArchitecture": "x86_64",
+    "xcode": "Xcode 16.4\nBuild version 16F6",
+    "sdkVersion": "18.5",
+    "codeSignatureVerified": true,
+    "guestUnameInvoked": false,
+    "scope": "Actual host, producer toolchain, Simulator bundle metadata, Mach-O and signature. Runtime/device checks remain required."
+  }
+}

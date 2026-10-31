@@ -1,0 +1,96 @@
+{
+  "reviewedAt": "2026-10-31T20:13:09.188217+00:00",
+  "runId": 41236355546,
+  "jobId": 124640857650,
+  "completedAt": "2026-10-31T20:02:45Z",
+  "recoverySource": "39913314f866c6446e5a8bbfdd86f4e35cb27ed1",
+  "applicationSource": "b568bd7b75bd25ad919afd8eac8d52300a5c3fcc",
+  "attemptedOriginalCases": 0,
+  "selectedOriginalCases": 5,
+  "separateDiagnosticAttempted": false,
+  "unselectedOriginalCases": 80,
+  "immutableCompatibility": {
+    "hostArchitecture": "x86_64",
+    "actualExecutableArchitecture": "x86_64",
+    "xcode": "Xcode 16.4\nBuild version 16F6",
+    "sdkVersion": "18.5",
+    "codeSignatureVerified": true,
+    "guestUnameInvoked": false,
+    "scope": "Actual host, producer toolchain, Simulator bundle metadata, Mach-O and signature. Runtime/device checks remain required."
+  },
+  "completedStages": [
+    {
+      "stage": "compatibility-host-architecture",
+      "elapsedSeconds": 0.003523674000007304,
+      "exitCode": 0
+    },
+    {
+      "stage": "compatibility-xcode-version",
+      "elapsedSeconds": 0.2170260560000088,
+      "exitCode": 0
+    },
+    {
+      "stage": "compatibility-simulator-sdk",
+      "elapsedSeconds": 4.569122829999969,
+      "exitCode": 0
+    },
+    {
+      "stage": "compatibility-actual-mach-o",
+      "elapsedSeconds": 1.5350005599999577,
+      "exitCode": 0
+    },
+    {
+      "stage": "compatibility-app-signature",
+      "elapsedSeconds": 0.8636107830000128,
+      "exitCode": 0
+    },
+    {
+      "stage": "create",
+      "elapsedSeconds": 114.25945186199999,
+      "exitCode": 0
+    },
+    {
+      "stage": "boot",
+      "elapsedSeconds": 8.569663203999994,
+      "exitCode": 0
+    },
+    {
+      "stage": "bootstatus",
+      "elapsedSeconds": 155.35020378599995,
+      "exitCode": 0
+    }
+  ],
+  "failure": {
+    "stage": "compatibility-available-runtimes",
+    "command": [
+      "xcrun",
+      "simctl",
+      "list",
+      "runtimes",
+      "--json"
+    ],
+    "timeoutSeconds": 30,
+    "elapsedSeconds": 30.026544703000013,
+    "leaderRunningAtTimeout": true,
+    "stdoutBytes": 0,
+    "stderrBytes": 0,
+    "beforeAppInstall": true
+  },
+  "artifact": {
+    "id": 13055962546,
+    "bytes": 10841,
+    "sha256": "08befcd8f1ee9b0262ef1f973a0bcd686ba6ecc04ccd875f8b131b7df44337dd",
+    "downloadedOnce": true
+  },
+  "retainedFiles": {
+    "docs/quality/native-full-app-20261031/native-audit-ios-recovery/run-41236355546/setup-commands.json": "5a346e67a5f9a6d5fe0f9542b4745855d17ec70356c8c9b47ccaba415d3651a1",
+    "docs/quality/native-full-app-20261031/native-audit-ios-recovery/run-41236355546/recovery-provenance.json": "1b1c52d3b706cd2ca00eadb75498cb7e378aca7155f779fc73eeb11502b1bb3a",
+    "docs/quality/native-full-app-20261031/native-audit-ios-recovery/run-41236355546/job-failure-projection.json": "f2b4b6315c095870c6b7f903e2b90840bc86b697e4c747ebfab9d31ef3376904"
+  },
+  "limits": [
+    "Preboot verification succeeded in this run; no underlying service/CPU/lock cause is established.",
+    "No reader, auth/account readback, capture, decoder or native UI acceptance.",
+    "Bootstatus retained only its exact final4096 stdout bytes out of21990, with truncation explicit.",
+    "No d46 outcome is inferred; that candidate has separate build and audit owners."
+  ]
+}

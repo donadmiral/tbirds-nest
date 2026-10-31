@@ -1,0 +1,101 @@
+{
+  "jobId": 124640857650,
+  "lines": [
+    {
+      "line": 508,
+      "text": "2026-10-31T20:01:25.9237390Z Traceback (most recent call last):"
+    },
+    {
+      "line": 509,
+      "text": "2026-10-31T20:01:25.9263110Z   File \"/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py\", line 676, in <module>"
+    },
+    {
+      "line": 510,
+      "text": "2026-10-31T20:01:26.0270230Z     sys.exit(main())"
+    },
+    {
+      "line": 511,
+      "text": "2026-10-31T20:01:26.1276780Z              ~~~~^^"
+    },
+    {
+      "line": 512,
+      "text": "2026-10-31T20:01:26.2256470Z   File \"/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py\", line 568, in main"
+    },
+    {
+      "line": 513,
+      "text": "2026-10-31T20:01:26.3250860Z     provenance['bootedRuntimeVerification'] = verify_setup_booted_runtime("
+    },
+    {
+      "line": 514,
+      "text": "2026-10-31T20:01:26.4286560Z                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~^"
+    },
+    {
+      "line": 515,
+      "text": "2026-10-31T20:01:26.5446560Z         app, manifest, device, setup_records, output / 'setup-commands.json')"
+    },
+    {
+      "line": 516,
+      "text": "2026-10-31T20:01:26.6720890Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+    },
+    {
+      "line": 517,
+      "text": "2026-10-31T20:01:26.7785850Z   File \"/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py\", line 233, in verify_setup_booted_runtime"
+    },
+    {
+      "line": 518,
+      "text": "2026-10-31T20:01:26.9126910Z     return compatibility_module.verify_booted_runtime("
+    },
+    {
+      "line": 519,
+      "text": "2026-10-31T20:01:27.0133030Z            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^"
+    },
+    {
+      "line": 520,
+      "text": "2026-10-31T20:01:27.1221080Z         manifest, device, setup_compatibility_reader(app, records, output))"
+    },
+    {
+      "line": 521,
+      "text": "2026-10-31T20:01:27.2224550Z         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+    },
+    {
+      "line": 522,
+      "text": "2026-10-31T20:01:27.3611190Z   File \"/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-compatibility.py\", line 47, in verify_booted_runtime"
+    },
+    {
+      "line": 523,
+      "text": "2026-10-31T20:01:27.4613220Z     runtimes = json.loads(read(['xcrun', 'simctl', 'list', 'runtimes', '--json']))['runtimes']"
+    },
+    {
+      "line": 524,
+      "text": "2026-10-31T20:01:27.5621170Z                           ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"
+    },
+    {
+      "line": 525,
+      "text": "2026-10-31T20:01:27.6624690Z   File \"/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py\", line 223, in read"
+    },
+    {
+      "line": 526,
+      "text": "2026-10-31T20:01:27.7622550Z     return setup_read(args, 'compatibility-' + stage, 30, records, output)"
+    },
+    {
+      "line": 527,
+      "text": "2026-10-31T20:01:27.9232950Z   File \"/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py\", line 154, in setup_read"
+    },
+    {
+      "line": 528,
+      "text": "2026-10-31T20:01:28.0240650Z     result = bounded_command(args, timeout)"
+    },
+    {
+      "line": 529,
+      "text": "2026-10-31T20:01:28.1267800Z   File \"/Users/runner/work/tbirds-nest/tbirds-nest/recovery-tools/scripts/quality/native-ui-ios-audit-recovery.py\", line 105, in bounded_command"
+    },
+    {
+      "line": 530,
+      "text": "2026-10-31T20:01:28.2267390Z     raise error"
+    },
+    {
+      "line": 531,
+      "text": "2026-10-31T20:01:28.3273550Z subprocess.TimeoutExpired: Command '['xcrun', 'simctl', 'list', 'runtimes', '--json']' timed out after 30 seconds"
+    }
+  ]
+}

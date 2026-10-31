@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "investigation": "Postboot Simulator setup responsiveness before app installation",
+  "observedRun": 41236355546,
+  "observedSource": "39913314f866c6446e5a8bbfdd86f4e35cb27ed1",
+  "independentArtifactRead": "/tmp/native-audit-ios-memory-recovery-41236355546/extracted/native-audit-results/setup-commands.json",
+  "observedSeconds": {
+    "prebootHostArchitecture": 0.003523674000007304,
+    "prebootXcodeVersion": 0.2170260560000088,
+    "prebootSimulatorSdk": 4.569122829999969,
+    "prebootMachO": 1.5350005599999577,
+    "prebootSignature": 0.8636107830000128,
+    "simulatorCreate": 114.25945186199999,
+    "simulatorBoot": 8.569663203999994,
+    "simulatorBootStatus": 155.35020378599995,
+    "postbootRuntimeListTimeout": 30.026544703000013
+  },
+  "observedLimits": {
+    "runtimeListLeaderStillAliveAtTimeout": true,
+    "runtimeListStdoutBytes": 0,
+    "runtimeListStderrBytes": 0,
+    "bootStatusStdoutTotalBytes": 21990,
+    "bootStatusRetainedTailBytes": 4096,
+    "bootStatusFullOutputRetained": false,
+    "applicationInstalled": false,
+    "applicationCasesAttempted": 0,
+    "cpuMemoryOrThreadCauseAlreadyProven": false
+  },
+  "primaryReferences": [
+    {
+      "url": "https://github.com/actions/runner-images/issues/12862",
+      "source": "GitHub runner-images maintainer investigation, August-September 2025",
+      "finding": "The maintainer attributed a Simulator connection failure after selecting Xcode to CoreSimulator cache rebuilding and recommended initializing the simulator list before direct access for non-default Xcode versions.",
+      "applicabilityLimit": "That report involved platform-download connectivity on older image versions. It does not establish the cause of this run's postboot runtime-list timeout, and no cache deletion or workaround has been applied on its authority alone."
+    },
+    {
+      "url": "https://github.com/actions/runner-images/issues/13358",
+      "source": "GitHub runner-images CPU investigation, November-December 2025",
+      "finding": "The reporter and maintainer documented PerfPowerServices consuming a CPU core. The maintainer later recorded that the image fix had completed rollout on December 15, 2025.",
+      "applicabilityLimit": "This is a candidate process to observe, not evidence of a current regression. No service preference change or process termination is justified without current measurements."
+    }
+  ],
+  "nextEvidence": "A setup-only probe on the same Intel runner/Xcode/runtime, with bounded CPU, memory and process-name statistics before and after boot, plus a one-shot sample of the still-live owned command and a verified same-user CoreSimulatorService if the unchanged setup deadline is reached.",
+  "prohibitedInference": "A pre-install infrastructure timeout is not an application reader failure, and moving a metadata check does not by itself prove the simulator is healthy.",
+  "sourceChangesFromThisResearch": false,
+  "deadlineIncreasesFromThisResearch": false,
+  "cacheOrServiceChangesFromThisResearch": false
+}
