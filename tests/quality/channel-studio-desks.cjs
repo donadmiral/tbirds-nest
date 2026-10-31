@@ -88,18 +88,23 @@ test('native channel settings reject partial loads instead of exposing blank edi
 });
 
 test('native directory failures are visible, and old search results cannot replace a newer query', async () => {
-  const wait = deferred(); let rows = [], error = null; const scope = { current: 'owner:channels:old' };
-  const globals = { uid: 'owner', mounted: { current: true }, searchScope: scope, request: { current: 0 }, setLoading() {}, setLoadError: value => { error = value; }, setRows: value => { rows = value; }, supabase: { rpc: () => wait.promise } };
-  const load = handler('src/screens/channels/ChannelsScreen.tsx', 'ChannelsScreen', 'load', globals);
-  const pending = load('old', 'channels'); scope.current = 'owner:channels:new'; wait.resolve({ data: [{ id: 'old' }], error: null }); await pending; assert.equal(rows.length, 0);
-  globals.supabase.rpc = async () => ({ data: null, error: Error('offline') });
-  await load('new', 'channels'); assert.match(error, /could not be loaded/); assert.equal(rows.length, 0);
+  const wait = deferred(); let rows = [], error = null; const contextRef = { current: null }, activeRead = { current: null };
+  const makeLoad = (q, readDirectory) => {
+    const context = {}; contextRef.current = context;
+    const globals = { scope:'owner-session',controlsOwner:'owner-session',context,contextRef,cacheKey:q,mounted:{current:true},activeRead,viewRef:{current:{ready:false,rows:[],top:0}},AbortController,navigationScope:()=> 'owner-session',channelDirectoryKey:(_tab,query)=>query,
+      setLoading(){},setRefreshing(){},setLoadError:value=>{error=value;},commit:value=>{rows=value.rows;},readChannelDirectory:readDirectory };
+    return handler('src/screens/channels/ChannelsScreen.tsx','ChannelsScreen','load',globals);
+  };
+  const pending = makeLoad('old', () => wait.promise)('old', 'channels');
+  const nextLoad = makeLoad('new', async () => { throw Error('offline'); });
+  wait.resolve([{id:'old'}]); await pending; assert.equal(rows.length,0);
+  await nextLoad('new','channels');assert.match(error,/could not be loaded/);assert.equal(rows.length,0);
 });
 
 for (const platform of ['native', 'web']) test(`${platform} channel creation prevents double taps and ignores old-account completion`, async () => {
   const wait = deferred(), locks = { current: new Set() }, routes = []; let valid = true, calls = 0, cleared = 0;
   const common = { cName: 'Updates', cDesc: 'News', cAud: 'everyone', locks, supabase: { rpc: () => { calls++; return wait.promise; } }, setCName: () => { cleared++; }, setCDesc() {}, setCAud() {} };
-  const globals = platform === 'native' ? { ...common, uid: 'owner', currentAccount: () => valid, setCreating() {}, setCreateOpen() {}, load: async () => {}, query: '', navigation: { navigate: (...args) => routes.push(args) }, Alert: { alert() {} } }
+  const globals = platform === 'native' ? { ...common, uid: 'owner', scope:'owner-session',mutateDirectory:async(_scope,work)=>{const result=await work(value=>value,'owner');if(result.error)throw result.error;return result.data;}, currentAccount: () => valid, setCreating() {}, setCreateOpen() {}, load: async () => {}, query: '', navigation: { navigate: (...args) => routes.push(args) }, Alert: { alert() {} } }
     : { ...common, withTimeout: value => Promise.resolve(value), me: 'owner', mounted: { current: true }, scope: { current: 1 }, account: { current: 'owner' }, setCreating() {}, setBusy() {}, setActionError() {}, router: { push: url => routes.push(url) } };
   const run = platform === 'native' ? handler('src/screens/channels/ChannelsScreen.tsx', 'ChannelsScreen', 'createChannel', globals) : handler('web/app/channels/page.tsx', 'ChannelsPage', 'create', globals);
   const pending = run(); await run(); assert.equal(calls, 1);

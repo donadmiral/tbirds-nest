@@ -69,6 +69,23 @@ test('an unimplemented endpoint or external provider is a recorded failure, neve
   assert.equal(fixture.receipt.unhandled.length, 2);
 });
 
+test('the full app connectivity probe has an explicit local health response and retains abort/offline failures', async () => {
+  const fixture = createFixture();
+  const health = await fixture.fetch(origin + '/auth/v1/health');
+  assert.equal(health.status, 200);
+  assert.equal((await health.json()).name, 'Synthetic native UI Auth health');
+  assert.equal(fixture.receipt.requests[0].owner, null);
+  assert.equal(fixture.receipt.networkForwarded, false);
+  assert.equal(fixture.receipt.unhandled.length, 0);
+  const controller = new AbortController(); controller.abort();
+  await assert.rejects(fixture.fetch(origin + '/auth/v1/health', { signal: controller.signal }), { name: 'AbortError' });
+  fixture.configure({ offline: true });
+  await assert.rejects(fixture.fetch(origin + '/auth/v1/health'), /Synthetic offline/);
+  fixture.configure({ offline: false });
+  assert.equal((await fixture.fetch(origin + '/auth/v1/health', { method: 'POST' })).status, 501);
+  assert.equal(fixture.receipt.unhandled.length, 1, 'only the actual GET health operation is implemented');
+});
+
 test('the isolated socket completes actual Phoenix join/heartbeat messages without opening a network socket', async () => {
   const socket = new FixtureWebSocket();
   await new Promise(resolve => { socket.onopen = resolve; });

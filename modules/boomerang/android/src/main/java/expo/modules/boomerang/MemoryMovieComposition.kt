@@ -14,7 +14,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.effect.DefaultVideoFrameProcessor
-import androidx.media3.effect.FrameDropEffect
 import androidx.media3.effect.SpeedChangeEffect
 import androidx.media3.transformer.Composition
 import androidx.media3.transformer.DefaultEncoderFactory
@@ -204,13 +203,17 @@ object MemoryMovieComposition {
     } else emptyList()
     val target = output(context,raw["outputUri"],"pc-memory-export-","mp4"); job.output = target
     var sceneOffsetUs = 0L
+    // Media3's default drop effect retains a lookahead frame and discards it on
+    // every item end. A shared, non-buffering limiter keeps each page's tail and
+    // applies the 30 fps ceiling across the complete concatenated timeline.
+    val frameRate = MemoryFrameRateEffect(job::check)
     val videoItems = scenes.map { scene ->
       val r = scene.recipe
       val item = if (scene.still) MediaItem.Builder().setUri(Uri.fromFile(scene.source)).setImageDurationMs((r.duration*1000).roundToLong()).build()
         else StoryVideoComposition.clipped(scene.source,r.start,r.end)
       val effects = mutableListOf<Effect>()
       if (r.speed != 1f) effects.add(SpeedChangeEffect(r.speed))
-      effects.add(FrameDropEffect.createDefaultFrameDropEffect(30f))
+      effects.add(frameRate)
       // Media3 presents effects with the concatenated movie clock, even for
       // bitmap scenes. Authored artwork, fades and motion use page-local time.
       val sceneStart = sceneOffsetUs / 1_000_000.0

@@ -301,7 +301,12 @@ enum MemoryMovieComposition {
       for (index,gain) in gains.enumerated() {
         let from = try number(gain["start"],0,300,"soundtrack window"), to = try number(gain["end"],0,300.001,"soundtrack window"), value = try number(gain["volume"],0,1,"soundtrack gain")
         guard abs(from-gainCursor) < 0.002, abs(to-from-lengths[index]) < 0.002 else { throw invalid("The book soundtrack windows do not match its scenes.") }
-        mix.setVolume(Float(volume*value),at: CMTime(seconds: from,preferredTimescale: 60000)); gainCursor = to
+        // A sequence of point volumes can interpolate toward the next page's
+        // gain. Hold each page's exact level over its complete time range.
+        let level = Float(volume*value)
+        mix.setVolumeRamp(fromStartVolume: level, toEndVolume: level,
+          timeRange: CMTimeRange(start: CMTime(seconds: from,preferredTimescale: 60000), duration: CMTime(seconds: to-from,preferredTimescale: 60000)))
+        gainCursor = to
       }
       parameters.append(mix); expectedAudio = true
     }

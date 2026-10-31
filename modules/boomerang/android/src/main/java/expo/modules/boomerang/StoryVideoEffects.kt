@@ -8,6 +8,8 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 import android.opengl.GLES20
+import androidx.media3.common.GlObjectsProvider
+import androidx.media3.common.GlTextureInfo
 import androidx.media3.common.VideoFrameProcessingException
 import androidx.media3.common.util.GlProgram
 import androidx.media3.common.util.GlUtil
@@ -15,9 +17,56 @@ import androidx.media3.common.util.Size
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.effect.BaseGlShaderProgram
 import androidx.media3.effect.GlEffect
+import androidx.media3.effect.GlShaderProgram
+import androidx.media3.effect.PassthroughShaderProgram
 import java.io.File
 
 internal data class StoryArtwork(val file: File, val start: Double, val end: Double)
+
+/**
+ * One movie-owned clock caps actual output frames without holding a final frame
+ * that could be discarded when Media3 replaces a page's effect pipeline.
+ *
+ * VideoGraphInput adds the cumulative, effect-adjusted item duration before the
+ * effects run. Placing this after SpeedChangeEffect therefore receives the
+ * concatenated output clock, including across different per-page programs.
+ */
+@UnstableApi
+internal class MemoryFrameRateEffect(private val checkCurrent: () -> Unit) : GlEffect {
+  private var lastInputUs: Long? = null
+  private var lastAcceptedUs: Long? = null
+
+  @Synchronized
+  private fun accept(presentationTimeUs: Long): Boolean {
+    require(presentationTimeUs >= 0 && (lastInputUs == null || presentationTimeUs >= lastInputUs!!)) {
+      "The memory movie frame clock restarted."
+    }
+    lastInputUs = presentationTimeUs
+    val previous = lastAcceptedUs
+    if (previous != null && presentationTimeUs - previous < 33_333L) return false
+    lastAcceptedUs = presentationTimeUs
+    return true
+  }
+
+  override fun toGlShaderProgram(context: Context, useHdr: Boolean): GlShaderProgram {
+    require(!useHdr) { "Memory movie export requires SDR output." }
+    return object : PassthroughShaderProgram() {
+      override fun queueInputFrame(glObjectsProvider: GlObjectsProvider, inputTexture: GlTextureInfo, presentationTimeUs: Long) {
+        try {
+          checkCurrent()
+          if (accept(presentationTimeUs)) {
+            super.queueInputFrame(glObjectsProvider, inputTexture, presentationTimeUs)
+          } else {
+            // This frame never leaves the program, so return its input texture
+            // immediately. Accepted textures follow the normal release path.
+            inputListener.onInputFrameProcessed(inputTexture)
+            inputListener.onReadyToAcceptInputFrame()
+          }
+        } catch (error: Exception) { onError(error) }
+      }
+    }
+  }
+}
 
 /** One exact canvas pass, including the 4x5 matrix used by the shared editor. */
 @UnstableApi

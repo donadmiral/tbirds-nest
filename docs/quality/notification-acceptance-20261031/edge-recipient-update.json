@@ -1,0 +1,47 @@
+{
+  "recordedAt": "2026-10-31T01:34:00Z",
+  "environment": "QA",
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "change": "Include the authoritative recipient UUID in ordinary, Expo call and APNs call payloads. Native notification actions reject a different current account.",
+  "deployments": [
+    {
+      "name": "send-push-notification",
+      "version": 34,
+      "status": "ACTIVE",
+      "allFiveReadbackFilesIdentical": true,
+      "sourceSha256": {
+        "shared/notificationPreferences.ts": "c1cce2e3e4e8de3d16a10def3b7d9783507dad753150f776b0343d8b98424abf",
+        "supabase/functions/_shared/pushDelivery.ts": "184cfbc43490c00dd267c0c4079ba6e1478996769d9307a454d9c39f50afbafb",
+        "supabase/functions/_shared/boundedFetch.ts": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+        "supabase/functions/send-push-notification/index.ts": "f16ae9c6f912eb3779bee8b77a8fdc104986c31d798f1cdc7059c35eebb00f3a",
+        "supabase/functions/send-push-notification/handler.ts": "20efa926fa16bc269576a1764ac311b690e991509f3e8b6fb043858a6082753a"
+      },
+      "liveAnonymousStatus": 401,
+      "liveForgedBearerStatus": 401
+    },
+    {
+      "name": "send-voip-push",
+      "version": 23,
+      "status": "ACTIVE",
+      "allFiveReadbackFilesIdentical": true,
+      "sourceSha256": {
+        "shared/notificationPreferences.ts": "c1cce2e3e4e8de3d16a10def3b7d9783507dad753150f776b0343d8b98424abf",
+        "supabase/functions/_shared/pushDelivery.ts": "184cfbc43490c00dd267c0c4079ba6e1478996769d9307a454d9c39f50afbafb",
+        "supabase/functions/_shared/boundedFetch.ts": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+        "supabase/functions/send-voip-push/index.ts": "6219e2462771be75c6deb144b24784e7b8ca51d684d76e170f8f89454387e5d8",
+        "supabase/functions/send-voip-push/handler.ts": "61141252dcba332b36d66f634432063475c2e75d3217efe3c1a3fec0a7fffab2"
+      },
+      "liveAnonymousStatus": 401,
+      "liveForgedBearerStatus": 401
+    }
+  ],
+  "verification": {
+    "providerBehavioralCases": 18,
+    "failed": 0,
+    "realDenoTypecheck": "passed with certificate validation and system CA store"
+  },
+  "limits": [
+    "A provider ticket is not proof of device delivery.",
+    "This receipt does not establish physical-device call or push acceptance."
+  ]
+}

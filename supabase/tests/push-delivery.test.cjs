@@ -96,12 +96,13 @@ test('ordinary push refuses anonymous, anon-key and user JWT callers before any 
 });
 
 test('a service webhook can deliver only the stored notification, ignoring forged recipient, type, text and routing', async () => {
-  const h = harness({ notice: { data: { conversation_id: CONVERSATION, type: 'incoming_call', category: 'calls', notificationId: 'forged', unsafe: 'x'.repeat(8000) } } });
+  const h = harness({ notice: { data: { conversation_id: CONVERSATION, type: 'incoming_call', category: 'calls', notificationId: 'forged', recipient_id: THIRD, unsafe: 'x'.repeat(8000) } } });
   const response = await h.push(request({ record: { id: NOTICE, recipient_id: THIRD, type: 'system', message: 'Forged text' } }));
   assert.equal(response.status, 200); const result = await response.json(); assert.equal(result.accepted, 1);
   const message = h.external[0].payload[0];
   assert.equal(message.body, 'Stored preview'); assert.equal(message.data.type, 'message'); assert.equal(message.data.category, 'messages');
   assert.equal(message.data.notificationId, NOTICE); assert.equal(message.data.unsafe, undefined); assert.equal(message.badge, 7);
+  assert.equal(message.data.recipient_id, PEER);
   assert.ok(h.queries.filter(q => q.table === 'user_push_tokens').every(q => q.filters.some(([key, value]) => key === 'user_id' && value === PEER)));
 });
 
@@ -198,12 +199,14 @@ test('APNs uses the QA topic, explicit environment, original CallKit UUID and im
   assert.equal(h.external[0].init.headers['apns-topic'], 'app.platinumcircles.mobile.qa.voip');
   assert.equal(h.external[0].init.headers['apns-expiration'], '0'); assert.equal(h.external[0].payload.uuid, CALL);
   assert.equal(h.external[0].payload.hasVideo, true);
+  assert.equal(h.external[0].payload.recipient_id, PEER);
 });
 
 test('missing APNs credentials cannot prevent an eligible Android receiver from ringing', async () => {
   const h = harness({ noApns: true, tokens: [iosToken, { id: id(21), user_id: PEER, platform: 'android', expo_push_token: token(21), updated_at: 'now' }] });
   const result = await (await h.voip(request({ callId: CALL }, 'synthetic-user-jwt'))).json();
   assert.equal(result.accepted, 1); assert.equal(result.unknown, 1); assert.equal(h.external.length, 1); assert.ok(h.external[0].url.includes('exp.host'));
+  assert.equal(h.external[0].payload[0].data.recipient_id, PEER);
 });
 
 test('APNs rejection is reported and does not retry a token against a different environment', async () => {

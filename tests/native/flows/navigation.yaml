@@ -10,6 +10,8 @@ name: Full native app navigation
     timeout: 30000
 - tapOn: Username or email
 - inputText: qa.alex@example.invalid
+# On compact Android displays the open email keyboard covers the next field.
+- hideKeyboard
 - tapOn: Password
 - inputText: FixtureOnly-2026!
 - hideKeyboard

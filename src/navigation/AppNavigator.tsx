@@ -2,8 +2,9 @@ import LaunchVeil from '../components/LaunchVeil';
 import ProfileRestore from '../components/ProfileRestore';
 import MutedStoriesScreen from '../screens/profile/MutedStoriesScreen';
 import ArticleReaderScreen from '../screens/feed/ArticleReaderScreen';
-import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { navigationRevision, navigationScope, subscribeNavigationScope } from '../lib/navigationCache';
+import React, { useEffect, useState, useSyncExternalStore } from 'react';
+import { navigationCache, navigationRevision, navigationScope, subscribeNavigationScope } from '../lib/navigationCache';
+import { createNotificationTapController, type NotificationTapContext, type NotificationTapData } from '../../shared/notificationTap';
 import { AppState, InteractionManager, Platform, StyleSheet, View, Animated, Pressable , StatusBar } from 'react-native';
 import { refreshNavigationInbox } from '../services/navigationInbox';
 import { prefetch } from '../lib/screenTransition';
@@ -33,7 +34,7 @@ import type { ComponentProps } from 'react';
 import { useAuthStore } from '../stores/authStore';
 import { useUnreadStore } from '../stores/unreadStore';
 import { supabase } from '../services/supabase';
-import { callService } from '../services/callService';
+import { callService, type CallRecord } from '../services/callService';
 import { setActiveCallNavId, clearCallNavGuard, isCallNavActive } from '../services/notificationBootstrap';
 import { linking } from './linking';
 import { CallProvider } from '../contexts/CallContext';
@@ -319,16 +320,20 @@ function MainTabs() {
     const current = () => alive && scope === navigationScope() && useAuthStore.getState().session?.user.id === userId;
     const loadUnread = async () => {
       try {
-        if (!current() || !session) return;
+        if (!current() || !session || !scope) return;
         // The shared store deduplicates all tab requests and owns icon badges.
         // Failed reads preserve the last known count on both surfaces.
-        const [{ count, error }] = await Promise.all([
-          supabase.from('notifications').select('id', { count: 'exact', head: true })
-            .eq('recipient_id', userId).is('read_at', null)
-            .setHeader('Authorization', `Bearer ${session.access_token}`),
+        const [count] = await Promise.all([
+          navigationCache.load<number>(scope, 'unread:notifications', async signal => {
+            const result = await supabase.from('notifications').select('id', { count: 'exact', head: true })
+              .eq('recipient_id', userId).is('read_at', null)
+              .setHeader('Authorization', `Bearer ${session.access_token}`).abortSignal(signal);
+            if (result.error || !Number.isSafeInteger(result.count) || result.count! < 0) throw new Error('Notifications could not be refreshed.');
+            return result.count!;
+          }),
           useUnreadStore.getState().refresh(),
         ]);
-        if (current() && !error && Number.isSafeInteger(count) && count! >= 0) setUnreadNotifs(count!);
+        if (current()) setUnreadNotifs(count);
       } catch { /* Preserve the last known count until a successful refresh. */ }
     };
     const debouncedLoad = () => {
@@ -416,58 +421,71 @@ function MainTabsWithListener() {
 }
 
 function useNotificationTapHandler() {
-  const responseListener = useRef<any>(null);
-
   useEffect(() => {
-    responseListener.current = Notifications.addNotificationResponseReceivedListener(async (response) => {
-      const data = response.notification.request.content.data;
-      if (!data) return;
-      // Decline from the notification must work without the app coming forward,
-      // so it is handled before the navigation guard below.
-      if (response.actionIdentifier === 'decline') {
-        const declineId = (data.call_id || data.callId) as string | undefined;
-        if (declineId) {
-          console.log('[PUSH_ACTION] decline', declineId);
-          try { await callService.declineCall(declineId); } catch {}
-          try { await supabase.rpc('decline_group_call', { p_session_id: declineId }); } catch {}
+    let latestResponse = '';
+    const controller = createNotificationTapController({
+      session: () => {
+        const session = useAuthStore.getState().session, scope = navigationScope();
+        return session && scope ? { scope, userId: session.user.id, accessToken: session.access_token } : null;
+      },
+      ready: () => {
+        const auth = useAuthStore.getState();
+        return !!navigationRef.current?.isReady() && !!auth.profile?.username && !auth.loading && !auth.isPasswordRecovery;
+      },
+      subscribeScope: subscribeNavigationScope,
+      handle: async (data, action, context) => {
+        if (action === 'decline') {
+          if (!data.call_id || !context.current()) return;
+          const request = { ...context, throwOnError: true };
+          const call = await callService.getCall(data.call_id, request);
+          if (!context.current() || !call || call.status !== 'ringing') return;
+          if (call.is_group_call) await callService.declineGroupCall(call.id, context.userId, request);
+          else if (call.receiver_id === context.userId) {
+            const declined = await callService.declineCall(call.id, request);
+            if (!declined && context.current()) {
+              const fresh = await callService.getCall(call.id, request);
+              if (context.current() && fresh?.status === 'ringing') throw new Error('Call decline was not confirmed.');
+            }
+          }
+          return;
         }
-        return;
-      }
-      if (!navigationRef.current) return;
-      console.log('[PUSH_TAP] type:', data.type, 'action:', response.actionIdentifier);
-      try { await handleNotificationTap(data); } catch (e) { console.log('[PUSH_TAP] error:', e); }
+        await handleNotificationTap(data, context);
+      },
+      consumed: async (identifier, action) => {
+        const key = `${identifier}:${action}`;
+        if (latestResponse !== key) return;
+        const last = await Notifications.getLastNotificationResponseAsync();
+        if (latestResponse === key && last?.notification.request.identifier === identifier && last.actionIdentifier === action) {
+          await Notifications.clearLastNotificationResponseAsync();
+        }
+      },
     });
-
-    Notifications.getLastNotificationResponseAsync().then(async (response) => {
-      if (!response) return;
-      const data = response.notification.request.content.data;
-      if (!data || !data.type) return;
-      console.log('[PUSH_TAP] cold start, type:', data.type);
-      const waitForNav = () => new Promise<void>((resolve) => {
-        const check = () => { if (navigationRef.current) { resolve(); return; } setTimeout(check, 200); };
-        check(); setTimeout(resolve, 5000);
-      });
-      await waitForNav();
-      if (!navigationRef.current) return;
-      try { await handleNotificationTap(data); } catch (e) { console.log('[PUSH_TAP] cold start error:', e); }
-    });
-
-    return () => { if (responseListener.current) responseListener.current?.remove(); };
+    const receive = (response: Notifications.NotificationResponse) => {
+      latestResponse = `${response.notification.request.identifier}:${response.actionIdentifier}`;
+      void controller.receive(response);
+    };
+    const listener = Notifications.addNotificationResponseReceivedListener(receive);
+    // The same response can arrive through both sources. The controller joins
+    // them and waits only while this account and its navigation remain valid.
+    void Notifications.getLastNotificationResponseAsync().then(response => {
+      if (response && !latestResponse) receive(response);
+    }).catch(() => {});
+    return () => { listener.remove(); controller.dispose(); };
   }, []);
 }
 
-async function handleNotificationTap(data: any) {
-  if (!navigationRef.current) return;
+async function handleNotificationTap(data: NotificationTapData, context: NotificationTapContext) {
+  if (!context.current() || !navigationRef.current?.isReady()) return;
   switch (data.type) {
-    case 'incoming_call': await handleIncomingCallTap(data); break;
+    case 'incoming_call': await handleIncomingCallTap(data, context); break;
     case 'story_mention': case 'story_reaction': case 'story_reply':
-      if (typeof data.story_id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.story_id)) navigationRef.current.navigate('StoryViewer', { storyId: data.story_id });
+      if (data.story_id) navigationRef.current.navigate('StoryViewer', { storyId: data.story_id });
       break;
     case 'message':
       if (data.conversation_id) navigationRef.current.navigate('Chat', { conversationId: data.conversation_id });
       break;
     case 'like': case 'comment': case 'reply': case 'repost': case 'mention':
-      if (data.post_id) navigationRef.current.navigate('Post', { postId: data.post_id, commentId: data.comment_id || undefined });
+      if (data.post_id) navigationRef.current.navigate('Post', { postId: data.post_id, commentId: data.comment_id });
       break;
     case 'connection_request': case 'connection_accepted': case 'follow':
       navigationRef.current.navigate('Main', { screen: 'Feed', params: { screen: 'Notifications' } });
@@ -484,41 +502,58 @@ async function handleNotificationTap(data: any) {
   }
 }
 
-async function handleIncomingCallTap(data: any) {
-  const callId = data.call_id || data.callId;
-  if (!callId) return;
-  if (isCallNavActive()) { console.log('[PUSH_TAP] call nav already active, ignoring'); return; }
-  let call: any = null;
-  for (let i = 0; i < 3; i++) {
-    try { call = await callService.getCall(callId); } catch {}
-    if (call) break;
-    await new Promise((r) => setTimeout(r, 500));
+async function handleIncomingCallTap(data: NotificationTapData, context: NotificationTapContext) {
+  const callId = data.call_id;
+  if (!callId || !context.current() || isCallNavActive()) return;
+  let call: CallRecord | null = null;
+  let readError: unknown;
+  const request = { ...context, throwOnError: true };
+  for (let i = 0; i < 3 && context.current(); i++) {
+    try { call = await callService.getCall(callId, request); readError = undefined; } catch (error) { readError = error; }
+    if (call || !context.current()) break;
+    await new Promise<void>(resolve => {
+      const finish = () => { clearTimeout(timer); context.signal.removeEventListener('abort', finish); resolve(); };
+      const timer = setTimeout(finish, 500);
+      context.signal.addEventListener('abort', finish, { once: true });
+      if (context.signal.aborted) finish();
+    });
   }
-  if (!call) { console.log('[PUSH_TAP] call not found after retries:', callId); return; }
-  if (call.status !== 'ringing') { console.log('[PUSH_TAP] call not ringing, status:', call.status); return; }
+  if (context.current() && readError) throw readError;
+  if (!context.current() || !call || call.status !== 'ringing' || isCallNavActive()) return;
+  // Reserve before profile reads so the realtime listener cannot also open it.
   setActiveCallNavId(callId);
+  let opened = false;
+  const release = () => { if (!opened && isCallNavActive(callId)) clearCallNavGuard(); };
+  context.signal.addEventListener('abort', release, { once: true });
   try {
-    const callerId = call.caller_id || call.initiator_id;
-    const { data: caller } = await supabase.from('profiles').select('id, full_name, username, avatar_url').eq('id', callerId).single();
-    const recheck = await callService.getCall(callId);
-    if (!recheck || recheck.status !== 'ringing') { console.log('[PUSH_TAP] call ended during fetch'); clearCallNavGuard(); return; }
+    const callerId = call.caller_id;
+    const { data: caller } = await supabase.from('profiles').select('id, full_name, username, avatar_url')
+      .eq('id', callerId).setHeader('Authorization', `Bearer ${context.accessToken}`).abortSignal(context.signal).maybeSingle();
+    if (!context.current()) return;
     let groupName = 'Group Call';
     if (call.is_group_call && call.conversation_id) {
-      const { data: conv } = await supabase.from('conversations').select('group_name').eq('id', call.conversation_id).maybeSingle();
+      const { data: conv } = await supabase.from('conversations').select('group_name')
+        .eq('id', call.conversation_id).setHeader('Authorization', `Bearer ${context.accessToken}`).abortSignal(context.signal).maybeSingle();
       if (conv?.group_name) groupName = conv.group_name;
     }
-    console.log('[PUSH_TAP] navigating to IncomingCall:', callId);
+    if (!context.current()) return;
+    const recheck = await callService.getCall(callId, request);
+    if (!context.current() || !recheck || recheck.status !== 'ringing') return;
+    if (!context.current() || !navigationRef.current?.isReady()) return;
     navigationRef.current.navigate('IncomingCall', {
-      callId: call.id, channelId: call.channel_id || data.channel_id,
-      callerName: caller?.full_name || data.caller_name || 'Unknown',
+      callId: recheck.id, channelId: recheck.channel_id,
+      callerName: caller?.full_name || 'Unknown',
       callerAvatar: caller?.avatar_url || null, callerUsername: caller?.username || null,
       otherUser: caller || { id: callerId, full_name: 'Unknown', avatar_url: null },
-      isVideo: call.is_video ?? data.is_video ?? false,
-      isGroupCall: call.is_group_call ?? data.is_group_call ?? false,
-      groupName: call.is_group_call ? groupName : undefined,
-      conversationId: call.conversation_id || data.conversation_id || null,
+      isVideo: recheck.is_video, isGroupCall: recheck.is_group_call,
+      groupName: recheck.is_group_call ? groupName : undefined,
+      conversationId: recheck.conversation_id,
     });
-  } catch (e: any) { console.log('[PUSH_TAP] error:', e?.message); clearCallNavGuard(); }
+    opened = true;
+  } finally {
+    context.signal.removeEventListener('abort', release);
+    release();
+  }
 }
 
 function useBadgeClearOnForeground() {

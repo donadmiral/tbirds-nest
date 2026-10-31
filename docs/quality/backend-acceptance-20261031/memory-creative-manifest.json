@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "scope": "Frozen installed QA creative-book backend candidate",
+  "files": [
+    {
+      "path": "supabase/migrations/20261031001826_memory_book_creative_presentation.sql",
+      "bytes": 9338,
+      "sha256": "bdd9d58a950e85ed1c0a7d085001e1b5fafbab922e30d3963eb8afc97f381854"
+    },
+    {
+      "path": "supabase/migrations/20261031012445_memory_book_creative_mutations.sql",
+      "bytes": 6300,
+      "sha256": "5aec957cdf50b5133f7c6bb9be37954aa4cad15a826e7cfc055aeeef250e74c7"
+    },
+    {
+      "path": "supabase/migrations/20261031012805_memory_book_creative_public_contracts.sql",
+      "bytes": 6888,
+      "sha256": "859fc5cb0b020d06f2321ce0bc9108cd8cfaf68b8a497fe5453b83b8cdd13469"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/test-memory-book-creative.mjs",
+      "bytes": 28526,
+      "sha256": "d46e8454733ad216d19dd767edde87bb13a76ea336a3a7ef289217d3271e324c"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/memory-creative-reader-baseline-20261031.json",
+      "bytes": 7456,
+      "sha256": "d3ccbcdc27cc3b20f4fbe6134bbb418485c518b1a4d7b2b716109a1ae571efe0"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/run-all.mjs",
+      "bytes": 4147,
+      "sha256": "bc191546ef55910cd22fd27d0e5bc41431bca74693e4471bf7db623386ae7eea"
+    },
+    {
+      "path": "supabase/ops/memory-creative-20261031/README.md",
+      "bytes": 6618,
+      "sha256": "77afe3e56b3b526cdd068ca3b809ac30d32d98ac3e636c086b70d83b06d439af"
+    },
+    {
+      "path": "supabase/ops/memory-creative-20261031/postflight.sql",
+      "bytes": 3825,
+      "sha256": "9fe3090cb081530ed045c0a0e1dffaec0653547d666910d2e98e4c10fe0cbca3"
+    },
+    {
+      "path": "docs/quality/backend-acceptance-20261031/memory-creative-installation.json",
+      "bytes": 26561,
+      "sha256": "303cc880f41d786b02d8dd17b1d5b39f532ef93ab73e325d2c497bc58ea70ffb"
+    }
+  ]
+}

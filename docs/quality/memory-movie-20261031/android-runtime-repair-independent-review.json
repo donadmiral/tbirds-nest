@@ -1,0 +1,554 @@
+{
+  "recorded_at": "2026-10-31T01:46:31.880051+00:00",
+  "scope": "Independent retained-file inspection of the first Android memory run and read-only review of the bounded endpoint-frame, display-rotation and watchdog-fixture repair.",
+  "reviewer": "music_completion",
+  "workflow_run": 41155341696,
+  "artifact_sha256": "d70cb71e8abb05cf31b7ba6753540605b08cb4f13dd3436bc70f4bf35f68ad70",
+  "tested_production_sources": {
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": "fae09b8a1f02f9fbf4cf550e0a0553a60ec929a33308ee4d72272d1f388d0a23",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt": "cdeed895ec4b1d7e163098794391a4772c1e869f2d493b9bcf8329392de9a5c4"
+  },
+  "actual_initial_result": {
+    "executed": 39,
+    "passed": 31,
+    "failed": 8,
+    "skipped": 0,
+    "failures": [
+      {
+        "name": "stillScenesKeepOrderAndContinuousDuckedSoundtrack",
+        "first_error": "java.lang.AssertionError: expected:<720> but was:<1280>"
+      },
+      {
+        "name": "sceneArtworkFadeAndMotionUseLocalTime",
+        "first_error": "java.lang.AssertionError: expected:<720> but was:<1280>"
+      },
+      {
+        "name": "outputByteCeilingCancelsAndRemovesTheOwnedFile",
+        "first_error": "java.lang.AssertionError"
+      },
+      {
+        "name": "videoPageAndBookAudioPreserveIndependentClocks",
+        "first_error": "java.lang.AssertionError: expected:<720> but was:<1280>"
+      },
+      {
+        "name": "cancellationReleasesWriterBeforeRetryAndBlocksStory",
+        "first_error": "java.lang.AssertionError: expected:<720> but was:<1280>"
+      },
+      {
+        "name": "onePassBookMusicDoesNotShortenSilentTail",
+        "first_error": "java.lang.AssertionError: expected:<720> but was:<1280>"
+      },
+      {
+        "name": "mutedVideoKeepsPageVoiceoverAndSilentCards",
+        "first_error": "java.lang.AssertionError: expected:<720> but was:<1280>"
+      },
+      {
+        "name": "zeroGainBookSelectionEncodesSilence",
+        "first_error": "java.lang.AssertionError: expected:<720> but was:<1280>"
+      }
+    ]
+  },
+  "retained_file_measurements": [
+    {
+      "movie": "memory-continuous-music.mp4",
+      "sha256": "2200322f1c2b9df1a08020e5fb1b7d1200a3cf04d5cbfbe1f8f0136cafe3a0d3",
+      "encodedSize": [
+        1280,
+        720
+      ],
+      "rotation": -90,
+      "displaySize": [
+        720,
+        1280
+      ],
+      "videoSeconds": 4.966667,
+      "audioSeconds": 5.08517,
+      "decodedAudioSeconds": 5.0851875,
+      "frames": 148,
+      "firstPts": 0.0,
+      "lastPts": 4.933333,
+      "minStepUs": 33333,
+      "maxStepUs": 50000,
+      "pixels": [
+        {
+          "time": 0.5,
+          "point": [
+            360,
+            640
+          ],
+          "rgb": [
+            251,
+            0,
+            0
+          ]
+        },
+        {
+          "time": 2,
+          "point": [
+            360,
+            640
+          ],
+          "rgb": [
+            0,
+            0,
+            251
+          ]
+        },
+        {
+          "time": 4,
+          "point": [
+            360,
+            640
+          ],
+          "rgb": [
+            0,
+            253,
+            0
+          ]
+        }
+      ],
+      "windows": [
+        {
+          "from": 0.2,
+          "to": 0.8,
+          "rms": 0.11275439968060878,
+          "165": 1.0638810125567529e-06,
+          "330": 1.7185215843450435e-05,
+          "440": 0.15945456992033394,
+          "660": 2.9034980963606375e-06,
+          "880": 1.5578330903030467e-06,
+          "1100": 1.0260685417226086e-06,
+          "1760": 6.734632361118609e-07
+        },
+        {
+          "from": 4.3,
+          "to": 4.8,
+          "rms": 0.08447101220136152,
+          "165": 0.0001268881474944827,
+          "330": 0.00034356925213350326,
+          "440": 0.036750159548956315,
+          "660": 0.000325683077718028,
+          "880": 0.0827049633168711,
+          "1100": 0.0002083808890081107,
+          "1760": 2.697033402299816e-05
+        }
+      ]
+    },
+    {
+      "movie": "memory-independent-audio.mp4",
+      "sha256": "346f366a4e2c36bfda50558ae7bb1e5e00b85ead2fba2f9e4808aad55d4f21b0",
+      "encodedSize": [
+        1280,
+        720
+      ],
+      "rotation": -90,
+      "displaySize": [
+        720,
+        1280
+      ],
+      "videoSeconds": 4.966667,
+      "audioSeconds": 4.99229,
+      "decodedAudioSeconds": 4.992291666666667,
+      "frames": 117,
+      "firstPts": 0.0,
+      "lastPts": 4.933333,
+      "minStepUs": 33333,
+      "maxStepUs": 133333,
+      "pixels": [],
+      "windows": [
+        {
+          "from": 0.2,
+          "to": 0.8,
+          "rms": 0.07034698867199608,
+          "165": 2.1063863100397398e-07,
+          "330": 3.951120238453203e-07,
+          "440": 4.360152863251628e-07,
+          "660": 6.942326489905555e-07,
+          "880": 3.971643473046127e-06,
+          "1100": 0.09948109970182621,
+          "1760": 4.923603850277669e-07
+        },
+        {
+          "from": 1.2,
+          "to": 1.8,
+          "rms": 0.08033286039180207,
+          "165": 0.00033957566754953746,
+          "330": 0.08579896456274874,
+          "440": 0.04915652610059312,
+          "660": 0.00011333243254313551,
+          "880": 7.26541312603719e-05,
+          "1100": 0.02465946397037074,
+          "1760": 2.542825471139066e-05
+        },
+        {
+          "from": 2.2,
+          "to": 2.8,
+          "rms": 0.08611833438645525,
+          "165": 0.00013906579235824847,
+          "330": 0.047553873990466115,
+          "440": 0.00010580126374456276,
+          "660": 3.8454573142006384e-05,
+          "880": 0.09965225102366958,
+          "1100": 0.0496535344221513,
+          "1760": 5.672960588901339e-06
+        },
+        {
+          "from": 3.2,
+          "to": 3.8,
+          "rms": 0.04965005920508585,
+          "165": 9.437298632124356e-05,
+          "330": 0.047575667949808755,
+          "440": 0.0001247375504858854,
+          "660": 4.6047079436416315e-05,
+          "880": 2.9033490233777273e-05,
+          "1100": 0.04967224888059679,
+          "1760": 1.2649569811556775e-05
+        },
+        {
+          "from": 4.2,
+          "to": 4.8,
+          "rms": 0.07035171397220934,
+          "165": 6.465194329573645e-06,
+          "330": 6.641931788859494e-06,
+          "440": 9.228816077052418e-06,
+          "660": 1.8888184986199935e-05,
+          "880": 3.0226358177757437e-05,
+          "1100": 0.09918832549987862,
+          "1760": 9.76192039655589e-06
+        }
+      ]
+    },
+    {
+      "movie": "memory-local-effects.mp4",
+      "sha256": "1c4e8aa8d9af4362c8b9868f5c065c0a9953e8cbda656dfb275de9bdf42e9e85",
+      "encodedSize": [
+        1280,
+        720
+      ],
+      "rotation": -90,
+      "displaySize": [
+        720,
+        1280
+      ],
+      "videoSeconds": 3.966667,
+      "audioSeconds": 3.993832,
+      "decodedAudioSeconds": 3.9938333333333333,
+      "frames": 118,
+      "firstPts": 0.0,
+      "lastPts": 3.933333,
+      "minStepUs": 33333,
+      "maxStepUs": 66667,
+      "pixels": [
+        {
+          "time": 0.7,
+          "point": [
+            110,
+            160
+          ],
+          "rgb": [
+            251,
+            0,
+            0
+          ]
+        },
+        {
+          "time": 2.7,
+          "point": [
+            110,
+            160
+          ],
+          "rgb": [
+            0,
+            253,
+            252
+          ]
+        },
+        {
+          "time": 3.4,
+          "point": [
+            110,
+            160
+          ],
+          "rgb": [
+            251,
+            0,
+            0
+          ]
+        },
+        {
+          "time": 2,
+          "point": [
+            100,
+            300
+          ],
+          "rgb": [
+            1,
+            0,
+            0
+          ]
+        }
+      ],
+      "windows": [
+        {
+          "from": 0.2,
+          "to": 0.8,
+          "rms": 0.0,
+          "165": 0.0,
+          "330": 0.0,
+          "440": 0.0,
+          "660": 0.0,
+          "880": 0.0,
+          "1100": 0.0,
+          "1760": 0.0
+        },
+        {
+          "from": 3.3,
+          "to": 3.8,
+          "rms": 0.0,
+          "165": 0.0,
+          "330": 0.0,
+          "440": 0.0,
+          "660": 0.0,
+          "880": 0.0,
+          "1100": 0.0,
+          "1760": 0.0
+        }
+      ]
+    },
+    {
+      "movie": "memory-one-pass.mp4",
+      "sha256": "d146160f7648f70f164217749afc3ea50ec8b30b5be1a0ba4171c2d89adbb613",
+      "encodedSize": [
+        1280,
+        720
+      ],
+      "rotation": -90,
+      "displaySize": [
+        720,
+        1280
+      ],
+      "videoSeconds": 2.966667,
+      "audioSeconds": 2.995374,
+      "decodedAudioSeconds": 2.995375,
+      "frames": 87,
+      "firstPts": 0.0,
+      "lastPts": 2.933333,
+      "minStepUs": 33333,
+      "maxStepUs": 66667,
+      "pixels": [],
+      "windows": [
+        {
+          "from": 0.2,
+          "to": 0.8,
+          "rms": 0.14105933360873502,
+          "165": 1.1217406116380407e-06,
+          "330": 3.482892234682193e-05,
+          "440": 0.1994840305910059,
+          "660": 3.3582065346468453e-06,
+          "880": 1.2869336694123091e-06,
+          "1100": 1.3525268481868067e-06,
+          "1760": 6.462721480945113e-07
+        },
+        {
+          "from": 2.3,
+          "to": 2.8,
+          "rms": 0.0,
+          "165": 0.0,
+          "330": 0.0,
+          "440": 0.0,
+          "660": 0.0,
+          "880": 0.0,
+          "1100": 0.0,
+          "1760": 0.0
+        }
+      ]
+    },
+    {
+      "movie": "memory-zero-volume.mp4",
+      "sha256": "1834afcdbfc0f5e98261e7941b90e15cdc41784a10f38c25d2cf6a1489a8e705",
+      "encodedSize": [
+        1280,
+        720
+      ],
+      "rotation": -90,
+      "displaySize": [
+        720,
+        1280
+      ],
+      "videoSeconds": 1.966667,
+      "audioSeconds": 1.996916,
+      "decodedAudioSeconds": 1.9969166666666667,
+      "frames": 58,
+      "firstPts": 0.0,
+      "lastPts": 1.933333,
+      "minStepUs": 33333,
+      "maxStepUs": 66667,
+      "pixels": [],
+      "windows": [
+        {
+          "from": 0.2,
+          "to": 0.8,
+          "rms": 0.0,
+          "165": 0.0,
+          "330": 0.0,
+          "440": 0.0,
+          "660": 0.0,
+          "880": 0.0,
+          "1100": 0.0,
+          "1760": 0.0
+        },
+        {
+          "from": 1.3,
+          "to": 1.8,
+          "rms": 0.0,
+          "165": 0.0,
+          "330": 0.0,
+          "440": 0.0,
+          "660": 0.0,
+          "880": 0.0,
+          "1100": 0.0,
+          "1760": 0.0
+        }
+      ]
+    },
+    {
+      "movie": "memory-cancel-retry.mp4",
+      "sha256": "f8b2cc64ffc7b38408fd55ccd38e0327affa123373b45fb92fd78353c87fae19",
+      "encodedSize": [
+        1280,
+        720
+      ],
+      "rotation": -90,
+      "displaySize": [
+        720,
+        1280
+      ],
+      "videoSeconds": 0.966667,
+      "audioSeconds": 0.998458,
+      "decodedAudioSeconds": 0.9984583333333333,
+      "frames": 29,
+      "firstPts": 0.0,
+      "lastPts": 0.933333,
+      "minStepUs": 33333,
+      "maxStepUs": 33334,
+      "pixels": [
+        {
+          "time": 0.5,
+          "point": [
+            360,
+            640
+          ],
+          "rgb": [
+            0,
+            253,
+            0
+          ]
+        }
+      ],
+      "windows": [
+        {
+          "from": 0.2,
+          "to": 0.8,
+          "rms": 0.0,
+          "165": 0.0,
+          "330": 0.0,
+          "440": 0.0,
+          "660": 0.0,
+          "880": 0.0,
+          "1100": 0.0,
+          "1760": 0.0
+        },
+        {
+          "from": 0.30000000000000004,
+          "to": 0.8,
+          "rms": 0.0,
+          "165": 0.0,
+          "330": 0.0,
+          "440": 0.0,
+          "660": 0.0,
+          "880": 0.0,
+          "1100": 0.0,
+          "1760": 0.0
+        }
+      ]
+    },
+    {
+      "movie": "memory-muted-original.mp4",
+      "sha256": "eea72509a6196be42c377d92bd1cc869a5615ffcc68854c5dcf670e7024b1c50",
+      "encodedSize": [
+        1280,
+        720
+      ],
+      "rotation": -90,
+      "displaySize": [
+        720,
+        1280
+      ],
+      "videoSeconds": 3.966667,
+      "audioSeconds": 3.993832,
+      "decodedAudioSeconds": 3.9938333333333333,
+      "frames": 117,
+      "firstPts": 0.0,
+      "lastPts": 3.933333,
+      "minStepUs": 33333,
+      "maxStepUs": 66667,
+      "pixels": [],
+      "windows": [
+        {
+          "from": 0.2,
+          "to": 0.8,
+          "rms": 0.0,
+          "165": 0.0,
+          "330": 0.0,
+          "440": 0.0,
+          "660": 0.0,
+          "880": 0.0,
+          "1100": 0.0,
+          "1760": 0.0
+        },
+        {
+          "from": 3.3,
+          "to": 3.8,
+          "rms": 0.0,
+          "165": 0.0,
+          "330": 0.0,
+          "440": 0.0,
+          "660": 0.0,
+          "880": 0.0,
+          "1100": 0.0,
+          "1760": 0.0
+        }
+      ]
+    }
+  ],
+  "findings": [
+    "All seven retained final memory movies contain 1280 by 720 encoded pixels with a -90-degree display matrix. Independent FFmpeg frames display at the required 720 by 1280, with correct ordered photo, timed artwork, fade and retry pixels. The original raw-dimension-only harness assertion was incorrect.",
+    "After the raw-dimension failure, two existing cadence assertions would also fail: the three-second still movie has 87 frames and the mixed-speed movie has a 133333-microsecond boundary step. Pinned Media3 source confirms the old per-item default frame-drop program discards a retained final lookahead texture at end of each stream.",
+    "The output path is precreated before the muxer starts. Injecting the byte ceiling on existence alone can be undone when the real muxer opens and truncates the file."
+  ],
+  "repair_review": {
+    "result": "No remaining concrete blocker found in the narrow repaired diff; actual rerun is required.",
+    "frame_policy": "A single movie-owned monotonic clock is shared across per-scene pass-through shader instances after speed changes. It forwards the first real frame and later real timestamps at least 33333 microseconds apart, returning dropped textures immediately without a lookahead buffer. A backward clock fails explicitly.",
+    "test_corrections": "Coverage normalizes encoded dimensions with validated rotation metadata and retains decoded portrait pixel assertions. Fault injection waits for more than 1024 actual MP4 bytes including ftyp, then requires byte-watchdog rejection, removal and settlement within five seconds.",
+    "assertions_preserved": "All 16 memory and 23 existing story case names, audio/pixel tolerances, total frame counts, minimum cadence and maximum gap thresholds are unchanged.",
+    "story_renderer_unchanged": true
+  },
+  "candidate_source_sha256": {
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5",
+    "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/MemoryMovieExportTest.kt": "692e0629c6ee7a642ed17cd3b00cba8c64d6b6e56854839deabaf8261573bf51"
+  },
+  "pinned_media3_source_sha256": {
+    "PassthroughShaderProgram.java": "98175590dfa2e44dbc58bbcc89e3774b9f0d18abeec161d647b5458b4f834c4f",
+    "DefaultFrameDroppingShaderProgram.java": "c8e538c8df0ab803589b15e27162474d1af66d2b6316045f3c92448466473e68",
+    "VideoSampleExporter.java": "f4c6fee87c4e078a0cd42043aa46aa3cc05cf5c141c62fc005a955e695140cf7",
+    "SpeedChangeShaderProgram.java": "815aa8fb1e2692d3b6ab2e1b7f1cfc3a3a8234dff81e1c3a3df0c13c1a0b588f"
+  },
+  "limits": [
+    "The repaired sources are reviewed, not yet accepted from emulator output.",
+    "Memory capability remains 0.",
+    "No installed-product, physical-device, Photos or production-provider success is inferred."
+  ]
+}

@@ -132,10 +132,26 @@ class MemoryMovieExportTest {
     assertTrue("Decoded PCM does not cover the complete movie: $audioEnd vs $seconds",audioEnd in seconds-.12..seconds+.12)
     assertTrue(audio.samples.all { it.isFinite() })
     val extractor=MediaExtractor(); val pts=mutableListOf<Long>()
+    var encodedWidth=0;var encodedHeight=0;var rotation=0
     try {
       extractor.setDataSource(file.path)
       val track=(0 until extractor.trackCount).first { extractor.getTrackFormat(it).getString(MediaFormat.KEY_MIME)?.startsWith("video/")==true }
-      val format=extractor.getTrackFormat(track);assertEquals(720,format.getInteger(MediaFormat.KEY_WIDTH));assertEquals(1280,format.getInteger(MediaFormat.KEY_HEIGHT));extractor.selectTrack(track)
+      val format=extractor.getTrackFormat(track)
+      encodedWidth=format.getInteger(MediaFormat.KEY_WIDTH);encodedHeight=format.getInteger(MediaFormat.KEY_HEIGHT)
+      val retriever=MediaMetadataRetriever()
+      try {
+        retriever.setDataSource(file.path)
+        val rawRotation=retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toIntOrNull() ?: 0
+        rotation=(rawRotation%360+360)%360
+      } finally { retriever.release() }
+      assertTrue("Invalid video display rotation",rotation in listOf(0,90,180,270))
+      if(format.containsKey(MediaFormat.KEY_ROTATION)) assertEquals(rotation,(format.getInteger(MediaFormat.KEY_ROTATION)%360+360)%360)
+      // Android may encode landscape pixels with a quarter-turn display matrix.
+      // pixel() separately proves the decoded image is the requested portrait.
+      val swapped=rotation==90 || rotation==270
+      assertEquals(720,if(swapped) encodedHeight else encodedWidth)
+      assertEquals(1280,if(swapped) encodedWidth else encodedHeight)
+      extractor.selectTrack(track)
       while(extractor.sampleTime>=0) { pts.add(extractor.sampleTime);assertTrue("Unbounded encoded frame count",pts.size<=seconds*31+4);if(!extractor.advance())break }
     } finally { extractor.release() }
     assertTrue(pts.size>=2); assertTrue(pts.first() in 0..120_000)
@@ -145,7 +161,8 @@ class MemoryMovieExportTest {
     assertTrue("A page has a video timing gap",steps.max()<=120_000)
     if(exactStillRate) assertTrue("Still pages did not encode at 30 fps",pts.size in (seconds*30-2).toInt()..(seconds*30+2).toInt())
     return mapOf("containerSeconds" to media.duration(file),"decodedAudioSeconds" to audioEnd,"videoFrames" to pts.size,
-      "videoFirstUs" to pts.first(),"videoLastUs" to pts.last(),"minFrameStepUs" to steps.min(),"maxFrameStepUs" to steps.max())
+      "videoFirstUs" to pts.first(),"videoLastUs" to pts.last(),"minFrameStepUs" to steps.min(),"maxFrameStepUs" to steps.max(),
+      "encodedWidth" to encodedWidth,"encodedHeight" to encodedHeight,"rotationDegrees" to rotation,"displayedWidth" to 720,"displayedHeight" to 1280)
   }
   private fun record(name: String, values: Map<String,Any> = emptyMap()) {
     synchronized(records) { records.put(JSONObject(values+mapOf("case" to name,"passed" to true))) }
@@ -226,9 +243,14 @@ class MemoryMovieExportTest {
     return request(name,(1..5).map { scene("$name-$it",picture,20.0) })
   }
   private fun waitForWriter(request: Map<String,Any?>, pending: Pending) {
+    fun muxerHasWritten(): Boolean {
+      val file=output(request)
+      if(file.length()<=1024) return false
+      return RandomAccessFile(file,"r").use { it.seek(4);it.readInt()==0x66747970 } // MP4 ftyp
+    }
     val deadline=System.nanoTime()+TimeUnit.SECONDS.toNanos(30)
-    while(!output(request).exists() && pending.latch.count>0 && System.nanoTime()<deadline) Thread.sleep(10)
-    assertTrue("The writer did not create its owned output",output(request).exists())
+    while(!muxerHasWritten() && pending.latch.count>0 && System.nanoTime()<deadline) Thread.sleep(10)
+    assertTrue("The muxer did not write actual MP4 bytes to its owned output",muxerHasWritten())
     assertEquals("The long fixture unexpectedly finished before cancellation",1L,pending.latch.count)
   }
   private fun writerReleased() {
@@ -272,10 +294,12 @@ class MemoryMovieExportTest {
     val request=longRequest("byte-ceiling");val pending=begin(request);waitForWriter(request,pending)
     // Inject storage growth into this disposable job's own output to exercise
     // the live byte watchdog without encoding hundreds of megabytes of video.
+    val at=System.nanoTime()
     RandomAccessFile(output(request),"rw").use { it.setLength(256L*1024*1024+1) }
+    assertTrue("The byte watchdog did not settle promptly",pending.latch.await(5,TimeUnit.SECONDS))
     val result=pending.await();assertTrue(result.isFailure);assertFalse(output(request).exists());writerReleased()
     assertTrue("Expected the byte limit rejection, got ${result.exceptionOrNull()}",result.exceptionOrNull()?.message.orEmpty().contains("256 MiB"))
-    record("outputByteCeilingCancelsAndRemovesTheOwnedFile",mapOf("injectedOutputBytes" to 256L*1024*1024+1,"partialOutputRemoved" to true))
+    record("outputByteCeilingCancelsAndRemovesTheOwnedFile",mapOf("injectedOutputBytes" to 256L*1024*1024+1,"partialOutputRemoved" to true,"milliseconds" to (System.nanoTime()-at)/1_000_000))
   }
 
   @Test fun normalizedPngIsBoundedAndPreservesTransparency() {

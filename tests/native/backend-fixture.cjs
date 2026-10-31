@@ -158,6 +158,7 @@ function createFixture(onChange = () => {}) {
     record('requests', { method, path, owner });
     const headers = new Headers(init.headers || input.headers || {});
     const body = typeof init.body === 'string' && init.body ? JSON.parse(init.body) : {};
+    if (path === '/auth/v1/health' && method === 'GET') return response({ name: 'Synthetic native UI Auth health' });
     if (path === '/auth/v1/token' && method === 'POST') {
       const match = profiles.find(profile => profile.email === body.email);
       if (url.searchParams.get('grant_type') === 'refresh_token' && body.refresh_token?.startsWith('synthetic-refresh-')) {

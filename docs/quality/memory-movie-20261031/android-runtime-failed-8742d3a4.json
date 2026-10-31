@@ -1,0 +1,337 @@
+{
+  "recordedAt": "2026-10-31T01:46:33.671343+00:00",
+  "status": "Failed real Android emulator acceptance; retained outputs decoded and source hashes verified. Memory capability remains 0.",
+  "source": {
+    "head": "8742d3a43e54e0b8518cec308604289d089364cd",
+    "headTree": "0096dabaf209c6bf2be4e6192028bd0b657b98ca",
+    "testedMerge": "34988df5f3b7e431836f1067aa72cd59c338dc39",
+    "artifactSourceHashesMatchPublishedHead": true,
+    "testedMergeTree": "0096dabaf209c6bf2be4e6192028bd0b657b98ca",
+    "mergeTreeEqualsHeadTree": true
+  },
+  "workflow": {
+    "runId": 41155341696,
+    "jobId": 124400783334,
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41155341696/job/124400783334",
+    "conclusion": "failure"
+  },
+  "artifact": {
+    "id": 13024759840,
+    "name": "android-story-audio-export",
+    "sha256": "d70cb71e8abb05cf31b7ba6753540605b08cb4f13dd3436bc70f4bf35f68ad70",
+    "junitSha256": "ab9c2e38832291cdfa743d0414d26727f9b2ad0e788232c8c5b59fb29b577695",
+    "preflightSha256": "78eda9cf5cdf9398d8023f56a0bef43638c0d466e9106fbcccd91bc847bbbedf",
+    "memoryReceiptSha256": "de85ad1501a4f68344245346f7ec06c6e2d2fd311fac3f1a45a8b7bc25966e7b"
+  },
+  "runtime": {
+    "androidSdk": 35,
+    "abi": "x86_64",
+    "media3": "1.8.1"
+  },
+  "counts": {
+    "total": 39,
+    "passed": 31,
+    "failed": 8,
+    "skipped": 0,
+    "storyPassed": 23,
+    "memoryPassed": 8,
+    "memoryFailed": 8
+  },
+  "memoryCases": [
+    {
+      "name": "imagePreparationRejectsUnsafeInputsAndPreservesExistingFiles",
+      "className": "expo.modules.boomerang.MemoryMovieExportTest",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "name": "aggregateInputBytesAreBoundedWithoutCopyingLargeSources",
+      "className": "expo.modules.boomerang.MemoryMovieExportTest",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "name": "sourcePathsRemainConfinedEvenThroughSymlinks",
+      "className": "expo.modules.boomerang.MemoryMovieExportTest",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "name": "stillScenesKeepOrderAndContinuousDuckedSoundtrack",
+      "className": "expo.modules.boomerang.MemoryMovieExportTest",
+      "passed": false,
+      "failure": [
+        "java.lang.AssertionError: expected:<720> but was:<1280>",
+        "at org.junit.Assert.fail(Assert.java:89)",
+        "at org.junit.Assert.failNotEquals(Assert.java:835)",
+        "at org.junit.Assert.assertEquals(Assert.java:120)",
+        "at org.junit.Assert.assertEquals(Assert.java:146)"
+      ]
+    },
+    {
+      "name": "normalizedJpegHonorsExifOrientation",
+      "className": "expo.modules.boomerang.MemoryMovieExportTest",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "name": "animatedContainersAreRejectedBeforeStaticPreparation",
+      "className": "expo.modules.boomerang.MemoryMovieExportTest",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "name": "sceneArtworkFadeAndMotionUseLocalTime",
+      "className": "expo.modules.boomerang.MemoryMovieExportTest",
+      "passed": false,
+      "failure": [
+        "java.lang.AssertionError: expected:<720> but was:<1280>",
+        "at org.junit.Assert.fail(Assert.java:89)",
+        "at org.junit.Assert.failNotEquals(Assert.java:835)",
+        "at org.junit.Assert.assertEquals(Assert.java:120)",
+        "at org.junit.Assert.assertEquals(Assert.java:146)"
+      ]
+    },
+    {
+      "name": "movieLimitsAndGainContinuityAreEnforcedBeforeWriting",
+      "className": "expo.modules.boomerang.MemoryMovieExportTest",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "name": "outputByteCeilingCancelsAndRemovesTheOwnedFile",
+      "className": "expo.modules.boomerang.MemoryMovieExportTest",
+      "passed": false,
+      "failure": [
+        "java.lang.AssertionError",
+        "at org.junit.Assert.fail(Assert.java:87)",
+        "at org.junit.Assert.assertTrue(Assert.java:42)",
+        "at org.junit.Assert.assertTrue(Assert.java:53)",
+        "at expo.modules.boomerang.MemoryMovieExportTest.outputByteCeilingCancelsAndRemovesTheOwnedFile(MemoryMovieExportTest.kt:276)"
+      ]
+    },
+    {
+      "name": "videoPageAndBookAudioPreserveIndependentClocks",
+      "className": "expo.modules.boomerang.MemoryMovieExportTest",
+      "passed": false,
+      "failure": [
+        "java.lang.AssertionError: expected:<720> but was:<1280>",
+        "at org.junit.Assert.fail(Assert.java:89)",
+        "at org.junit.Assert.failNotEquals(Assert.java:835)",
+        "at org.junit.Assert.assertEquals(Assert.java:120)",
+        "at org.junit.Assert.assertEquals(Assert.java:146)"
+      ]
+    },
+    {
+      "name": "cancellationReleasesWriterBeforeRetryAndBlocksStory",
+      "className": "expo.modules.boomerang.MemoryMovieExportTest",
+      "passed": false,
+      "failure": [
+        "java.lang.AssertionError: expected:<720> but was:<1280>",
+        "at org.junit.Assert.fail(Assert.java:89)",
+        "at org.junit.Assert.failNotEquals(Assert.java:835)",
+        "at org.junit.Assert.assertEquals(Assert.java:120)",
+        "at org.junit.Assert.assertEquals(Assert.java:146)"
+      ]
+    },
+    {
+      "name": "onePassBookMusicDoesNotShortenSilentTail",
+      "className": "expo.modules.boomerang.MemoryMovieExportTest",
+      "passed": false,
+      "failure": [
+        "java.lang.AssertionError: expected:<720> but was:<1280>",
+        "at org.junit.Assert.fail(Assert.java:89)",
+        "at org.junit.Assert.failNotEquals(Assert.java:835)",
+        "at org.junit.Assert.assertEquals(Assert.java:120)",
+        "at org.junit.Assert.assertEquals(Assert.java:146)"
+      ]
+    },
+    {
+      "name": "mutedVideoKeepsPageVoiceoverAndSilentCards",
+      "className": "expo.modules.boomerang.MemoryMovieExportTest",
+      "passed": false,
+      "failure": [
+        "java.lang.AssertionError: expected:<720> but was:<1280>",
+        "at org.junit.Assert.fail(Assert.java:89)",
+        "at org.junit.Assert.failNotEquals(Assert.java:835)",
+        "at org.junit.Assert.assertEquals(Assert.java:120)",
+        "at org.junit.Assert.assertEquals(Assert.java:146)"
+      ]
+    },
+    {
+      "name": "zeroGainBookSelectionEncodesSilence",
+      "className": "expo.modules.boomerang.MemoryMovieExportTest",
+      "passed": false,
+      "failure": [
+        "java.lang.AssertionError: expected:<720> but was:<1280>",
+        "at org.junit.Assert.fail(Assert.java:89)",
+        "at org.junit.Assert.failNotEquals(Assert.java:835)",
+        "at org.junit.Assert.assertEquals(Assert.java:120)",
+        "at org.junit.Assert.assertEquals(Assert.java:146)"
+      ]
+    },
+    {
+      "name": "cancelAllStopsMovieAndImagePreparation",
+      "className": "expo.modules.boomerang.MemoryMovieExportTest",
+      "passed": true,
+      "failure": null
+    },
+    {
+      "name": "normalizedPngIsBoundedAndPreservesTransparency",
+      "className": "expo.modules.boomerang.MemoryMovieExportTest",
+      "passed": true,
+      "failure": null
+    }
+  ],
+  "retainedMovies": [
+    {
+      "file": "memory-cancel-retry.mp4",
+      "bytes": 22681,
+      "sha256": "f8b2cc64ffc7b38408fd55ccd38e0327affa123373b45fb92fd78353c87fae19",
+      "encodedWidth": 1280,
+      "encodedHeight": 720,
+      "displayRotation": -90,
+      "videoFrames": 29,
+      "firstUs": 0,
+      "lastUs": 933333,
+      "minStepUs": 33333,
+      "maxStepUs": 33334,
+      "longSteps": []
+    },
+    {
+      "file": "memory-continuous-music.mp4",
+      "bytes": 148019,
+      "sha256": "2200322f1c2b9df1a08020e5fb1b7d1200a3cf04d5cbfbe1f8f0136cafe3a0d3",
+      "encodedWidth": 1280,
+      "encodedHeight": 720,
+      "displayRotation": -90,
+      "videoFrames": 148,
+      "firstUs": 0,
+      "lastUs": 4933333,
+      "minStepUs": 33333,
+      "maxStepUs": 50000,
+      "longSteps": []
+    },
+    {
+      "file": "memory-independent-audio.mp4",
+      "bytes": 147813,
+      "sha256": "346f366a4e2c36bfda50558ae7bb1e5e00b85ead2fba2f9e4808aad55d4f21b0",
+      "encodedWidth": 1280,
+      "encodedHeight": 720,
+      "displayRotation": -90,
+      "videoFrames": 117,
+      "firstUs": 0,
+      "lastUs": 4933333,
+      "minStepUs": 33333,
+      "maxStepUs": 133333,
+      "longSteps": [
+        {
+          "fromUs": 3866667,
+          "toUs": 4000000,
+          "stepUs": 133333
+        }
+      ]
+    },
+    {
+      "file": "memory-local-effects.mp4",
+      "bytes": 338424,
+      "sha256": "1c4e8aa8d9af4362c8b9868f5c065c0a9953e8cbda656dfb275de9bdf42e9e85",
+      "encodedWidth": 1280,
+      "encodedHeight": 720,
+      "displayRotation": -90,
+      "videoFrames": 118,
+      "firstUs": 0,
+      "lastUs": 3933333,
+      "minStepUs": 33333,
+      "maxStepUs": 66667,
+      "longSteps": []
+    },
+    {
+      "file": "memory-muted-original.mp4",
+      "bytes": 131453,
+      "sha256": "eea72509a6196be42c377d92bd1cc869a5615ffcc68854c5dcf670e7024b1c50",
+      "encodedWidth": 1280,
+      "encodedHeight": 720,
+      "displayRotation": -90,
+      "videoFrames": 117,
+      "firstUs": 0,
+      "lastUs": 3933333,
+      "minStepUs": 33333,
+      "maxStepUs": 66667,
+      "longSteps": []
+    },
+    {
+      "file": "memory-one-pass.mp4",
+      "bytes": 84523,
+      "sha256": "d146160f7648f70f164217749afc3ea50ec8b30b5be1a0ba4171c2d89adbb613",
+      "encodedWidth": 1280,
+      "encodedHeight": 720,
+      "displayRotation": -90,
+      "videoFrames": 87,
+      "firstUs": 0,
+      "lastUs": 2933333,
+      "minStepUs": 33333,
+      "maxStepUs": 66667,
+      "longSteps": []
+    },
+    {
+      "file": "memory-zero-volume.mp4",
+      "bytes": 42131,
+      "sha256": "1834afcdbfc0f5e98261e7941b90e15cdc41784a10f38c25d2cf6a1489a8e705",
+      "encodedWidth": 1280,
+      "encodedHeight": 720,
+      "displayRotation": -90,
+      "videoFrames": 58,
+      "firstUs": 0,
+      "lastUs": 1933333,
+      "minStepUs": 33333,
+      "maxStepUs": 66667,
+      "longSteps": []
+    }
+  ],
+  "findings": [
+    {
+      "type": "harness dimension assumption",
+      "observed": "Seven failures compare raw track width720 against actual1280. Every retained output has1280x720 encoded pixels plus -90-degree display matrix; real decoded portrait frames/pixels were already checked.",
+      "repair": "Validate quarter-turn rotation and displayed720x1280, preserve decoded pixel checks and record encoded dimensions/rotation."
+    },
+    {
+      "type": "harness fault-injection race",
+      "observed": "Output is precreated before Transformer initializes its muxer. Waiting only for existence lets injected sparse growth be truncated by actual writer initialization; the long movie completes successfully instead of observing the intended byte ceiling.",
+      "repair": "Require >1024 actual bytes plus MP4 ftyp before injecting sparse growth. Require the real watchdog to settle within5 seconds, with unchanged256MiB rejection, cleanup and writer-release assertions."
+    },
+    {
+      "type": "production per-page frame loss masked by earlier dimension failure",
+      "observed": "Three one-second still pages have87 frames, below unchanged88..92 acceptance. The slow-video page has133333us gap at3866667->4000000, above unchanged120000us maximum.",
+      "sourceBasis": "Pinned default frame-dropping program keeps the preceding frame, then releases it without forwarding at each end-of-input. VideoGraphInput supplies effect-adjusted cumulative offsets; speed effect scales only delta from each first timestamp.",
+      "repair": "Memory-only pass-through limiter shared across per-page shader programs, after speed. It forwards real frames separated by>=33333us, has no final lookahead texture, and fails if input timestamps run backwards. Story renderer behavior unchanged."
+    }
+  ],
+  "primarySourceBasis": [
+    {
+      "coordinate": "androidx.media3:media3-effect:1.8.1:sources",
+      "sourceUrl": "https://dl.google.com/dl/android/maven2/androidx/media3/media3-effect/1.8.1/media3-effect-1.8.1-sources.jar",
+      "archiveSha256": "1722eda9b1a95227a6bf7aa50baf1032094c47c1f66abb515b2151e7378c69aa",
+      "files": {
+        "androidx/media3/effect/DefaultFrameDroppingShaderProgram.java": "c8e538c8df0ab803589b15e27162474d1af66d2b6316045f3c92448466473e68",
+        "androidx/media3/effect/PassthroughShaderProgram.java": "98175590dfa2e44dbc58bbcc89e3774b9f0d18abeec161d647b5458b4f834c4f",
+        "androidx/media3/effect/SpeedChangeShaderProgram.java": "815aa8fb1e2692d3b6ab2e1b7f1cfc3a3a8234dff81e1c3a3df0c13c1a0b588f",
+        "androidx/media3/effect/SingleInputVideoGraph.java": "b0fc5850a0833cad54c85b87a7ca45ccf79f8237b30f23f1a5c7a2b0a1600962",
+        "androidx/media3/effect/DefaultVideoFrameProcessor.java": "b13180fabadeb46939d8396a53a46912a7840f63c3ac446263a58f5b2b17c877",
+        "androidx/media3/effect/BitmapTextureManager.java": "95530dd3aa5ccd0b9fc66083e3f53cb341ee203b314a4f2c54a8b8840753853e"
+      }
+    },
+    {
+      "coordinate": "androidx.media3:media3-transformer:1.8.1:sources",
+      "sourceUrl": "https://dl.google.com/dl/android/maven2/androidx/media3/media3-transformer/1.8.1/media3-transformer-1.8.1-sources.jar",
+      "archiveSha256": "83dfcc530b5ce62065038368afb1690fd9b68009a8182791e39fd2decf39b466",
+      "files": {
+        "androidx/media3/transformer/VideoSampleExporter.java": "f4c6fee87c4e078a0cd42043aa46aa3cc05cf5c141c62fc005a955e695140cf7"
+      }
+    }
+  ],
+  "limitations": [
+    "The corrected candidate has not yet run on an emulator. No memory capability activation is represented.",
+    "This standalone app exercises actual native engine sources and media files, not the full product UI, Photos permissions, Supabase, external providers or physical devices."
+  ]
+}

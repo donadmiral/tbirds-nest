@@ -1,0 +1,37 @@
+{
+  "recorded_at": "2026-10-31T01:44:04.640432+00:00",
+  "scope": "Independent source review of the account-bound notification tap controller, AppNavigator tap hook/handlers, and optional pinned call-service transport options. Other AppNavigator changes and real push delivery are outside this review.",
+  "reviewer": "music_completion",
+  "source_sha256": {
+    "shared/notificationTap.ts": "6a6fb3ec278bc016ed81924a3334478589b1b77ffaea637a89759e61ad36ea42",
+    "src/navigation/AppNavigator.tsx": "00ec3a045a3ea75bab99c2d343b7de96502df7220f3b87248c34f5a178f92892",
+    "src/services/callService.ts": "bf747d316e404bb6dcc5384bd36c283c148618903c0542f6bc779709fc59a403",
+    "tests/quality/notification-tap.cjs": "2200ca2ebc927d8e0ef4f19e3b7f4c3c83b1d7f8a6e12da0b1730d8f4b2a2bb2"
+  },
+  "result": "No remaining concrete blocker found in the reviewed followup.",
+  "finding_and_repair": {
+    "finding": "Failed direct-call decline and failed call reads were being converted to false/null and could then be acknowledged and cleared as successful taps.",
+    "repair": "Notification requests opt into strict transport errors. An unconfirmed direct decline rereads the call and remains retryable if still ringing. The call-open retry loop preserves a final transport error. Authoritative missing or ended calls can be consumed. Existing callers keep their prior optional return contract.",
+    "verified": true
+  },
+  "reviewed_invariants": [
+    "Cold and live responses share one bounded action and acknowledgement.",
+    "A captured navigation/account scope fences A to B to A switches and late responses; pinned Authorization is used for call reads, declines and profile/group lookups.",
+    "Deadline, disposal and scope invalidation abort requests and clear pending timers; reservations release if an incoming-call navigation never opens.",
+    "Notification parsing admits bounded UUID route data and known actions without trusting unvalidated route strings.",
+    "Transient call transport failures do not clear the notification or prevent a later attempt."
+  ],
+  "verification": {
+    "command": "node --test tests/quality/notification-tap.cjs",
+    "exit_code": 0,
+    "tests": 15,
+    "passed": 15,
+    "failed": 0,
+    "skipped": 0,
+    "log_sha256": "1ba9a6131903ccf1d5f64e512baaaa6ab61ab1df6c602e2fd6873fb1f4bf8bc5"
+  },
+  "limits": [
+    "This is source and deterministic behavior verification, not APNs/FCM or physical-device push/call acceptance.",
+    "Hosted notification provider configuration and broader call lifecycle are not established by this receipt."
+  ]
+}

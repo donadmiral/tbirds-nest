@@ -1,0 +1,130 @@
+{
+  "recordedAt": "2026-10-31T01:51:00Z",
+  "scope": "Actual signed-in hosted QA web book editor and private database roundtrip",
+  "url": "https://platinum-web-git-codex-app-quality-20261029-intobank.vercel.app/album/fc9ebe82-4798-45ca-8de3-8bcb4bedbe6f",
+  "project": "uaulhuelcfkjwojtymmw",
+  "status": "Cover and film settings persistence passed; original data restored through the UI",
+  "before": {
+    "id": "fc9ebe82-4798-45ca-8de3-8bcb4bedbe6f",
+    "title": "Release gallery",
+    "subtitle": "",
+    "cover_color": "cream",
+    "cover_design": "editorial",
+    "audience": "profile",
+    "cover_story_id": "b65c7030-4b75-4e31-a965-7c5d479a6a9d",
+    "cover_artwork": {
+      "photo": {
+        "x": 0.5,
+        "y": 0.5,
+        "scale": 1
+      },
+      "version": 1,
+      "postmark": "",
+      "showDate": true,
+      "inscription": "",
+      "inscriptionStyle": "handwritten",
+      "inscriptionPosition": "bottom"
+    },
+    "film_settings": {
+      "mode": "original",
+      "order": "book",
+      "style": "reflective",
+      "length": "full",
+      "version": 1,
+      "titleCard": false,
+      "originalAudio": true
+    },
+    "presentation_revision": 0
+  },
+  "saved": {
+    "id": "fc9ebe82-4798-45ca-8de3-8bcb4bedbe6f",
+    "title": "Release gallery",
+    "subtitle": "",
+    "cover_color": "sky",
+    "cover_design": "postcard",
+    "audience": "profile",
+    "cover_story_id": "70d7d207-bf8a-4a6c-bb73-7208387bb32a",
+    "cover_artwork": {
+      "photo": {
+        "x": 0.51,
+        "y": 0.49,
+        "scale": 1.01
+      },
+      "version": 1,
+      "postmark": "QA · 31 OCT",
+      "showDate": false,
+      "inscription": "A small collection of moments.\nQA cover check 31 Oct.",
+      "inscriptionStyle": "serif",
+      "inscriptionPosition": "top"
+    },
+    "film_settings": {
+      "mode": "automatic",
+      "order": "chronological",
+      "style": "bright",
+      "length": "short",
+      "version": 1,
+      "titleCard": true,
+      "originalAudio": false
+    },
+    "presentation_revision": 1
+  },
+  "restored": {
+    "id": "fc9ebe82-4798-45ca-8de3-8bcb4bedbe6f",
+    "title": "Release gallery",
+    "subtitle": "",
+    "cover_color": "cream",
+    "cover_design": "editorial",
+    "cover_story_id": "b65c7030-4b75-4e31-a965-7c5d479a6a9d",
+    "audience": "profile",
+    "cover_artwork": {
+      "photo": {
+        "x": 0.5,
+        "y": 0.5,
+        "scale": 1
+      },
+      "version": 1,
+      "postmark": "",
+      "showDate": true,
+      "inscription": "",
+      "inscriptionStyle": "handwritten",
+      "inscriptionPosition": "bottom"
+    },
+    "film_settings": {
+      "mode": "original",
+      "order": "book",
+      "style": "reflective",
+      "length": "full",
+      "version": 1,
+      "titleCard": false,
+      "originalAudio": true
+    },
+    "presentation_revision": 2
+  },
+  "checks": {
+    "revisionSequence": [
+      0,
+      1,
+      2
+    ],
+    "editorReloadRetainedEverySavedControl": true,
+    "saveDisabledPendingAndClosedAfterAcknowledgement": true,
+    "photoFramingResetPassed": true,
+    "originalFieldsRestoredExactly": true,
+    "bookPageCountUnchanged": 4,
+    "automaticFilmSceneCount": 6,
+    "automaticFilmEstimateSeconds": 16,
+    "filmPauseNextPrevious": true
+  },
+  "export": {
+    "attempted": true,
+    "generated": false,
+    "preflight": "Memory 1: Animated sticker export is not available yet. Set sticker animations to None to export this edited video.",
+    "createDisabled": true,
+    "followup": "Animated sticker composition assigned for implementation. No assertion of successful export for this book."
+  },
+  "accessibilityFollowup": "Hosted inputs lacked explicit label association; cover-editor follow-up assigned proper title/subtitle/writing/stamp labels.",
+  "limits": [
+    "Actual hosted web and authenticated Supabase behavior only; not a native-device or full-provider acceptance result.",
+    "Commercial catalogue music and native export capability readiness remain independently gated."
+  ]
+}

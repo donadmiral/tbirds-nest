@@ -1,0 +1,52 @@
+{
+  "recordedAt": "2026-10-31T01:39:00Z",
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "postId": "dd607e75-0383-4f75-9301-c2f96aa8ae7d",
+  "origin": "https://admin-web-git-codex-app-quality-20261029-intobank.vercel.app",
+  "method": "Signed-in admin UI media download, source pixel inspection, fresh page reload, full-screen open and independently inspected screenshot pixels.",
+  "source": {
+    "format": "PNG",
+    "width": 1080,
+    "height": 1920,
+    "bytes": 22940,
+    "sha256": "c1762d913d157ba1d2a566e28882f296b2c3dc0949b68978d198857c6dc2e475",
+    "md5": "74051f08a569fbb5caa1b6b9f32e0329",
+    "storageEtagMatches": true,
+    "storagePublic": false,
+    "description": "Portrait QA graphic with peach circle, grid and release-check lettering."
+  },
+  "freshFullscreen": {
+    "decoded": true,
+    "naturalWidth": 1080,
+    "naturalHeight": 1920,
+    "screenshotFilename": "platinum-admin-source-photo-1793410744236.jpg",
+    "screenshotBytes": 52783,
+    "screenshotSha256": "4dddc63f9954fc7e711f339009905fb0c43c1208f59d23a2f06dedc9decc3046",
+    "centerRGB": [
+      242,
+      201,
+      183
+    ],
+    "backgroundRGB": [
+      33,
+      53,
+      64
+    ],
+    "alignedSourceCrop": [
+      490,
+      106,
+      873,
+      786
+    ],
+    "meanAbsoluteChannelDifferenceFromResizedSource": [
+      2.8077061895254185,
+      1.210927660881585,
+      1.5972700046075872
+    ]
+  },
+  "conclusion": "The stored source is intact and its portrait is rendered in the fresh full-screen screenshot. The earlier inference that the source itself was a dark image is superseded by measured source and screenshot evidence.",
+  "limits": [
+    "The crop comparison allows JPEG and subpixel resampling differences; it is not a claim of byte-identical rendering.",
+    "No stored source file was modified during this investigation."
+  ]
+}

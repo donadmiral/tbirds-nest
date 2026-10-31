@@ -105,7 +105,7 @@ export function createVoipPushHandler(deps: Dependencies) {
               headers: { authorization: `bearer ${jwt}`, 'apns-topic': deps.apnsTopic, 'apns-push-type': 'voip',
                 'apns-priority': '10', 'apns-expiration': '0', 'apns-collapse-id': callId, 'content-type': 'application/json' },
               body: JSON.stringify({ aps: {}, uuid: callId, callerName, handle: 'PlatinumCircles', hasVideo: call.is_video,
-                callId, isVideo: call.is_video }),
+                callId, isVideo: call.is_video, recipient_id: recipient }),
             }), signal);
             if (response.status === 200) accepted++;
             else if (response.status >= 500 || response.status === 429) unknown++;
@@ -122,7 +122,7 @@ export function createVoipPushHandler(deps: Dependencies) {
           const ttl = Math.max(1, Math.min(45, Math.floor((Math.min(Date.parse(call.created_at) + 90_000, call.expires_at ? Date.parse(call.expires_at) : Infinity) - now()) / 1000)));
           const result = await sendExpoPushes(android.map(to => ({ to,
             ...(deps.androidDataOnly ? {} : { title: callerName, body: call.is_video ? 'Incoming video call' : 'Incoming call', sound: 'default' }),
-            data: { type: 'incoming_call', call_id: callId, callId, caller_name: callerName, channel_id: call.agora_channel ?? call.id, is_video: call.is_video },
+            data: { type: 'incoming_call', call_id: callId, callId, caller_name: callerName, channel_id: call.agora_channel ?? call.id, is_video: call.is_video, recipient_id: recipient },
             channelId: 'calls', categoryId: 'incoming_call', priority: 'high', ttl,
           })), { fetch: deps.fetch, signal, accessToken: deps.expoAccessToken, maySend });
           accepted += result.accepted; rejected += result.rejected; unknown += result.unknown;
