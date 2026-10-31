@@ -7,9 +7,9 @@ export function sharedPostFrame(input: {
   const stageHeight = Math.max(320, input.stageHeight || 844);
   const ratio = input.mediaWidth && input.mediaHeight && input.mediaWidth > 0 && input.mediaHeight > 0
     ? Math.max(.2, Math.min(5, input.mediaWidth / input.mediaHeight)) : .8;
-  const captionLines = input.caption ? Math.min(3, Math.max(1, Math.ceil(input.caption.length / 36))) : 0;
+  const captionLines = input.caption ? Math.min(input.hasMedia === false ? 8 : 3, Math.max(1, Math.ceil(input.caption.length / 36))) : 0;
   const titleLines = input.title ? Math.min(2, Math.max(1, Math.ceil(input.title.length / 34))) : 0;
-  const captionHeight = (captionLines + titleLines) * 22 + (captionLines || titleLines ? 14 : 0);
+  const captionHeight = (captionLines + titleLines) * 22 + (captionLines || titleLines ? input.hasMedia === false ? 40 : 14 : 0);
   const footerHeight = 54;
   const maxHeight = Math.max(140, stageHeight - 210 - captionHeight - footerHeight);
   const width = input.hasMedia === false ? Math.min(stageWidth * .9, 440) : Math.min(stageWidth * .9, 440, maxHeight * ratio);

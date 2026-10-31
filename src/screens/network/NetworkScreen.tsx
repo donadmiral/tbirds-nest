@@ -1,20 +1,22 @@
 import { ListRowSkeleton } from '../../components/skeletons';
-import { themedSheet } from '../../theme/useTheme';
-import { KeyboardAvoidingView } from 'react-native';
-import TierName from '../../components/TierName';
-import VerifiedBadge from '../../components/VerifiedBadge';
-import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
+import { themedSheet, useTheme } from '../../theme/useTheme';
+import { KeyboardAvoidingView ,
   View, Text, StyleSheet, TextInput, FlatList, TouchableOpacity,
   Image, ActivityIndicator, RefreshControl, StatusBar, ScrollView, Alert, Modal, Platform,
 } from 'react-native';
+import TierName from '../../components/TierName';
+import VerifiedBadge from '../../components/VerifiedBadge';
+import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import * as Haptics from 'expo-haptics';
+import { profileRead } from '../../utils/profileRead';
+import { readNetworkDirectory } from '../../../shared/networkDirectory';
+import { useFocusEffect } from '@react-navigation/native';
 
 type Profile = {
   id: string;
@@ -35,7 +37,12 @@ type Profile = {
 type Group = {
   id: string;
   name: string;
-  emoji: string;
+  emoji?: string;
+  is_member?: boolean;
+  has_pending?: boolean;
+  my_role?: string | null;
+  cover_color?: string;
+  icon_url?: string | null;
   description?: string | null;
   member_count: number;
 };
@@ -50,12 +57,14 @@ const TABS: { id: TabId; label: string }[] = [
 
 export default function NetworkScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const { t, isDark } = useTheme();
   const { profile } = useAuthStore();
   const currentUserId = profile?.id ?? null;
 
   const [tab, setTab] = useState<TabId>('all');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [visibleUserId, setVisibleUserId] = useState(currentUserId);
   const [refreshing, setRefreshing] = useState(false);
 
   const [users, setUsers] = useState<Profile[]>([]);
@@ -72,6 +81,13 @@ export default function NetworkScreen({ navigation }: any) {
   const [myCommIds, setMyCommIds] = useState<Set<string>>(new Set());
   const [myClubIds, setMyClubIds] = useState<Set<string>>(new Set());
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [loadErrors, setLoadErrors] = useState<Partial<Record<TabId, string>>>({});
+  const [groupError, setGroupError] = useState('');
+  const request = useRef(0), memberRequest = useRef(0), mounted = useRef(true);
+  const locks = useRef(new Set<string>());
+  const identity = useRef({ currentUserId });
+  if (identity.current.currentUserId !== currentUserId) identity.current = { currentUserId };
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; request.current++; memberRequest.current++; }; }, []);
 
   const [createType, setCreateType] = useState<'communities' | 'clubs'>('communities');
   const [newGroupName, setNewGroupName] = useState('');
@@ -91,166 +107,137 @@ export default function NetworkScreen({ navigation }: any) {
   };
 
   const loadAll = useCallback(async (showLoader = true) => {
-    if (!currentUserId) return;
+    const owner = identity.current, version = ++request.current;
+    const current = () => mounted.current && owner === identity.current && version === request.current;
+    if (!currentUserId) { setLoading(false); setRefreshing(false); return; }
+    if (showLoader) setLoading(true);
     try {
-      if (showLoader) setLoading(true);
-
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('id, full_name, username, bio, location, degree_program, graduation_year, avatar_url, email, role, workplace, school, headline')
-        .neq('id', currentUserId)
-        .order('full_name', { ascending: true });
-
-      if (profileError) {
-        const { data: fallbackData } = await supabase
-          .from('profiles')
-          .select('id, full_name, username, bio, location, degree_program, graduation_year, avatar_url, email, workplace, school')
-          .neq('id', currentUserId)
-          .order('full_name', { ascending: true });
-        setUsers((fallbackData || []) as Profile[]);
-      } else {
-        setUsers((profileData || []) as Profile[]);
+      const data = await readNetworkDirectory(supabase, currentUserId, profileRead);
+      if (!current()) return;
+      if (data.people) setUsers(data.people);
+      if (data.follows) setFollowMap(Object.fromEntries(data.follows.map(row => [row.following_id, true])));
+      if (data.requests) setRequestedMap(Object.fromEntries(data.requests.map(row => [row.target_id, true])));
+      if (data.communities) {
+        setCommunities(data.communities);
+        setMyCommIds(new Set(data.communities.filter(row => row.is_member).map(row => row.id)));
       }
-
-      const { data: followData } = await supabase
-        .from('follows')
-        .select('following_id')
-        .eq('follower_id', currentUserId);
-
-      const oMap: Record<string, boolean> = {};
-      (followData || []).forEach((o: any) => { oMap[o.following_id] = true; });
-      setFollowMap(oMap);
-      const { data: reqData } = await supabase.from('follow_requests').select('target_id').eq('requester_id', currentUserId).eq('status', 'pending');
-      const rMap: Record<string, boolean> = {};
-      (reqData || []).forEach((r: any) => { rMap[r.target_id] = true; });
-      setRequestedMap(rMap);
-
-      const [{ data: commData }, { data: clubData }] = await Promise.all([
-        supabase.from('communities').select('id, name, emoji, description, member_count').order('name'),
-        supabase.from('clubs').select('id, name, emoji, description, member_count').order('name'),
-      ]);
-      setCommunities((commData || []) as Group[]);
-      setClubs((clubData || []) as Group[]);
-
-      const [{ data: myComms }, { data: myClubs }] = await Promise.all([
-        supabase.from('community_members').select('community_id').eq('user_id', currentUserId),
-        supabase.from('club_members').select('club_id').eq('user_id', currentUserId),
-      ]);
-      setMyCommIds(new Set((myComms || []).map((m: any) => m.community_id)));
-      setMyClubIds(new Set((myClubs || []).map((m: any) => m.club_id)));
-
-    } catch (e) {
-      console.log('LOAD_NETWORK_ERROR', e);
+      if (data.clubs) setClubs(data.clubs);
+      if (data.clubMembers) setMyClubIds(new Set(data.clubMembers.map(row => row.club_id)));
+      setLoadErrors(data.errors);
+    } catch {
+      if (current()) setLoadErrors({ all: 'Network could not load. Please retry.', communities: 'Communities could not load. Please retry.', clubs: 'Clubs could not load. Please retry.' });
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (current()) { setLoading(false); setRefreshing(false); }
     }
   }, [currentUserId]);
 
   useEffect(() => {
-    loadAll(true);
-
-  }, [loadAll]);
+    request.current++; memberRequest.current++; locks.current.clear();
+    setVisibleUserId(currentUserId); setUsers([]); setFollowMap({}); setRequestedMap({}); setCommunities([]); setClubs([]);
+    setMyCommIds(new Set()); setMyClubIds(new Set()); setSelectedGroup(null); setGroupMembers([]);
+    setBusyMap({}); setShowCreateModal(false); setNewGroupName(''); setNewGroupDesc(''); setCreatingGroup(false);
+    setLoadErrors({}); setLoading(!!currentUserId);
+  }, [currentUserId]);
+  useFocusEffect(useCallback(() => { void loadAll(false); }, [loadAll]));
 
   const openGroup = async (table: 'communities' | 'clubs', group: Group) => {
-    setSelectedGroup({ table, group });
-    setGroupLoading(true);
-    try {
-      const joinTable = table === 'communities' ? 'community_members' : 'club_members';
-      const fkCol = table === 'communities' ? 'community_id' : 'club_id';
-      const { data: memberIds } = await supabase.from(joinTable).select('user_id').eq(fkCol, group.id);
-      const ids = (memberIds || []).map((m: any) => m.user_id);
-      if (ids.length > 0) {
-        const { data: members } = await supabase
-          .from('profiles')
-          .select('id, full_name, username, bio, location, degree_program, avatar_url, role')
-          .in('id', ids);
-        setGroupMembers((members || []) as Profile[]);
-      } else {
-        setGroupMembers([]);
-      }
-    } catch (e) {
-      console.log('OPEN_GROUP_ERROR', e);
-    } finally {
-      setGroupLoading(false);
+    if (table === 'communities') {
+      navigation.navigate('Community', { communityId: group.id, name: group.name,
+        coverColor: group.cover_color, iconUrl: group.icon_url || null, memberCount: group.member_count,
+        myRole: group.my_role || null, isMember: myCommIds.has(group.id) });
+      return;
     }
+    const owner = identity.current, version = ++memberRequest.current;
+    const current = () => mounted.current && owner === identity.current && version === memberRequest.current;
+    setSelectedGroup({ table, group }); setGroupLoading(true); setGroupError(''); setGroupMembers([]);
+    try {
+      const { data: memberIds, error } = await profileRead(supabase.from('club_members').select('user_id').eq('club_id', group.id));
+      if (error) throw error;
+      if (!current()) return;
+      const ids = (memberIds || []).map((row: any) => row.user_id);
+      if (ids.length) {
+        const result = await profileRead(supabase.from('profiles').select('id, full_name, username, bio, location, degree_program, avatar_url').in('id', ids));
+        if (result.error) throw result.error;
+        if (current()) setGroupMembers(result.data || []);
+      }
+    } catch { if (current()) setGroupError('Members could not load. Please retry.'); }
+    finally { if (current()) setGroupLoading(false); }
   };
 
   const toggleGroupMembership = async (table: 'communities' | 'clubs', groupId: string) => {
-    if (!currentUserId || busyMap[`grp-${groupId}`]) return;
-    setBusy(`grp-${groupId}`, true);
-    const joinTable = table === 'communities' ? 'community_members' : 'club_members';
-    const fkCol    = table === 'communities' ? 'community_id' : 'club_id';
-    const isMember = table === 'communities' ? myCommIds.has(groupId) : myClubIds.has(groupId);
-    const setFn    = table === 'communities' ? setMyCommIds : setMyClubIds;
+    const key = `grp-${groupId}`, owner = identity.current;
+    if (!currentUserId || locks.current.has(key)) return;
+    locks.current.add(key); setBusy(key, true);
+    const current = () => mounted.current && owner === identity.current;
+    const isMember = (table === 'communities' ? myCommIds : myClubIds).has(groupId);
     try {
-      if (isMember) {
-        await supabase.from(joinTable).delete().eq(fkCol, groupId).eq('user_id', currentUserId);
-        setFn((s) => { const n = new Set(s); n.delete(groupId); return n; });
+      if (table === 'communities') {
+        const group = communities.find(row => row.id === groupId);
+        const rpc = isMember ? 'leave_community' : group?.has_pending ? 'cancel_join_request' : 'join_community';
+        const { data, error } = await supabase.rpc(rpc, { p_community: groupId });
+        if (error) throw error;
+        if (!current()) return;
+        const joined = rpc === 'join_community' && data === 'joined';
+        setCommunities(rows => rows.map(row => row.id === groupId ? { ...row, is_member: joined,
+          has_pending: rpc === 'join_community' && !joined, member_count: Math.max(0, row.member_count + (isMember ? -1 : joined ? 1 : 0)) } : row));
+        setMyCommIds(ids => { const next = new Set(ids); if (joined) next.add(groupId); else next.delete(groupId); return next; });
       } else {
-        const { error } = await supabase.from(joinTable)
-          .insert({ [fkCol]: groupId, user_id: currentUserId });
-        if (error) { console.log('JOIN_GROUP_ERR', error.message); throw error; }
-        setFn((s) => new Set([...s, groupId]));
-        const groups = table === 'communities' ? communities : clubs;
-        const grp = groups.find(g => g.id === groupId);
-        if (grp) {
-          try {
-            const { error: rpcErr } = await supabase.rpc('get_or_create_group_conversation', {
-              p_group_type:  table === 'communities' ? 'community' : 'club',
-              p_group_id:    groupId,
-              p_group_name:  grp.name,
-              p_group_emoji: grp.emoji || '💬',
-              p_user_id:     currentUserId,
-            });
-            if (rpcErr) console.log('[GRP_CONV_RPC non-fatal]', rpcErr.message);
-          } catch (rpcEx: any) {
-            console.log('[GRP_CONV_RPC non-fatal]', rpcEx?.message);
-          }
-        }
+        const query = isMember ? supabase.from('club_members').delete().eq('club_id', groupId).eq('user_id', currentUserId)
+          : supabase.from('club_members').insert({ club_id: groupId, user_id: currentUserId });
+        const { error } = await query;
+        if (error) throw error;
+        if (!current()) return;
+        setMyClubIds(ids => { const next = new Set(ids); if (isMember) next.delete(groupId); else next.add(groupId); return next; });
+        setClubs(rows => rows.map(row => row.id === groupId ? { ...row, member_count: Math.max(0, row.member_count + (isMember ? -1 : 1)) } : row));
       }
-    } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Could not update membership');
-    } finally {
-      setBusy(`grp-${groupId}`, false);
-    }
+    } catch (error: any) { if (current()) Alert.alert('Could not update membership', error?.message || 'Please try again.'); }
+    finally { if (current()) { locks.current.delete(key); setBusy(key, false); } }
   };
 
   const createGroup = async () => {
-    if (!currentUserId || creatingGroup) return;
-    if (!newGroupName.trim()) { Alert.alert('Required', 'Enter a group name.'); return; }
-    setCreatingGroup(true);
+    if (!currentUserId || locks.current.has('create')) return;
+    const name = newGroupName.trim();
+    if (name.length < 3) { Alert.alert('Group name', 'Enter at least three characters.'); return; }
+    const owner = identity.current, current = () => mounted.current && owner === identity.current;
+    locks.current.add('create'); setCreatingGroup(true);
+    let createdClub: string | null = null;
     try {
-      const table = createType;
-      const { data, error } = await supabase.from(table).insert({
-        name: newGroupName.trim(),
-        emoji: newGroupEmoji,
-        description: newGroupDesc.trim() || null,
-        created_by: currentUserId,
-        member_count: 1,
-      }).select().single();
-
-      if (error) { Alert.alert('Error', error.message); return; }
-
-      const joinTable = createType === 'communities' ? 'community_members' : 'club_members';
-      const fkCol = createType === 'communities' ? 'community_id' : 'club_id';
-      await supabase.from(joinTable).insert({ [fkCol]: data.id, user_id: currentUserId });
-
-      setNewGroupName('');
-      setNewGroupDesc('');
-      setNewGroupEmoji('🌐');
-      setShowCreateModal(false);
-      await loadAll(false);
-      Alert.alert('Created!', `${data.name} is now live.`);
-    } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Could not create group.');
-    } finally {
-      setCreatingGroup(false);
-    }
+      let id: string;
+      if (createType === 'communities') {
+        const { data, error } = await supabase.rpc('create_community', { p_name: name,
+          p_description: newGroupDesc.trim() || null, p_category: null, p_join_mode: 'open', p_cover_color: 'sky', p_rules: null });
+        if (error) throw error;
+        if (typeof data !== 'string' || !data) throw new Error('Creation was not confirmed. Refresh the directory before retrying.');
+        id = data;
+      } else {
+        const { data, error } = await supabase.from('clubs').insert({ name, emoji: newGroupEmoji,
+          description: newGroupDesc.trim() || null, created_by: currentUserId, member_count: 0 }).select('id').single();
+        if (error) throw error;
+        if (!data?.id) throw new Error('Creation was not confirmed. Refresh the directory before retrying.');
+        id = data.id; createdClub = id;
+        if (!current()) return;
+        const joined = await supabase.from('club_members').insert({ club_id: id, user_id: currentUserId });
+        if (joined.error) throw joined.error;
+      }
+      if (!current()) return;
+      setNewGroupName(''); setNewGroupDesc(''); setNewGroupEmoji('🌐'); setShowCreateModal(false);
+      void loadAll(false);
+      if (createType === 'communities') navigation.navigate('Community', { communityId: id, name,
+        coverColor: 'sky', iconUrl: null, memberCount: 1, myRole: 'owner', isMember: true });
+      else Alert.alert('Club created', `${name} is ready.`);
+    } catch (error: any) {
+      if (current()) {
+        if (createdClub) { setShowCreateModal(false); void loadAll(false); Alert.alert('Club created; join still needed', 'The club was created, but your membership could not be added. Find it in Clubs and tap Join.'); }
+        else Alert.alert('Could not create group', error?.message || 'Refresh the directory before retrying.');
+      }
+    } finally { if (current()) { locks.current.delete('create'); setCreatingGroup(false); } }
   };
 
   const toggleFollow = async (userId: string) => {
-    if (!currentUserId || busyMap[`follow-${userId}`]) return;
+    const key = `follow-${userId}`, owner = identity.current;
+    if (!currentUserId || loadErrors.all || locks.current.has(key)) return;
+    const current = () => mounted.current && owner === identity.current;
+    locks.current.add(key);
     const was = !!followMap[userId];
     setBusy(`follow-${userId}`, true);
     try {
@@ -258,6 +245,7 @@ export default function NetworkScreen({ navigation }: any) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       const { data, error } = await supabase.rpc('handle_follow_action', { p_target_id: userId });
       if (error) throw error;
+      if (!current()) return;
       const action = (data as any)?.action;
       if (action === 'followed') {
         setFollowMap((p) => ({ ...p, [userId]: true }));
@@ -269,10 +257,10 @@ export default function NetworkScreen({ navigation }: any) {
         setFollowMap((p) => ({ ...p, [userId]: false }));
         setRequestedMap((p) => ({ ...p, [userId]: false }));
       }
-    } catch (e) {
-      setFollowMap((p) => ({ ...p, [userId]: was }));
+    } catch {
+      if (current()) { setFollowMap((p) => ({ ...p, [userId]: was })); Alert.alert('Could not update follow', 'Please try again.'); }
     } finally {
-      setBusy(`follow-${userId}`, false);
+      if (current()) { locks.current.delete(key); setBusy(`follow-${userId}`, false); }
     }
   };
 
@@ -293,21 +281,21 @@ export default function NetworkScreen({ navigation }: any) {
   }, [users, tab, search]);
 
 
-  const AvatarView = ({ user, size = 52 }: { user: Profile; size?: number }) =>
+  const renderAvatar = (user: Profile, size = 52) =>
     user.avatar_url
       ? <Image source={{ uri: user.avatar_url }} style={{ width: size, height: size, borderRadius: size / 2 }} fadeDuration={200} />
       : <View style={[s.avatarFb, { width: size, height: size, borderRadius: size / 2 }]}>
           <Text style={[s.avatarFbTxt, { fontSize: size * 0.33 }]}>{initials(user.full_name || user.username)}</Text>
         </View>;
 
-  const FollowButton = ({ userId }: { userId: string }) => {
+  const renderFollowButton = (userId: string) => {
     const isFollowing = !!followMap[userId];
     const isRequested = !!requestedMap[userId];
     return (
       <TouchableOpacity
         style={[s.followBtn, (isFollowing || isRequested) && s.followBtnActive]}
         onPress={() => toggleFollow(userId)}
-        disabled={!!busyMap[`follow-${userId}`]}
+        disabled={!!busyMap[`follow-${userId}`] || !!loadErrors.all}
       >
         <Text style={[s.followBtnTxt, (isFollowing || isRequested) && s.followBtnTxtActive]}>
           {isFollowing ? '● Following' : isRequested ? 'Requested' : '+ Follow'}
@@ -324,18 +312,18 @@ export default function NetworkScreen({ navigation }: any) {
         activeOpacity={0.75}
         onPress={() => navigation.push('UserProfile', { userId: item.id, user: item })}
         style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 11,
-                 backgroundColor: '#FFFFFF', borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(11,30,61,0.10)' }}
+                 backgroundColor: t.surface.raised, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline }}
       >
-        <AvatarView user={item} size={46} />
+        {renderAvatar(item, 46)}
         <View style={{ flex: 1, marginLeft: 12, marginRight: 10 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <TierName userId={item.id} baseStyle={{ fontSize: 15.5, fontWeight: '700', color: '#0B1E3D', flexShrink: 1 }} text={item.full_name || 'Member'} /><VerifiedBadge userId={item.id} size={13} />
+            <TierName userId={item.id} baseStyle={{ fontSize: 15.5, fontWeight: '700', color: t.ink.primary, flexShrink: 1 }} text={item.full_name || 'Member'} /><VerifiedBadge userId={item.id} size={13} />
           </View>
           {sub ? (
-            <Text style={{ fontSize: 13, color: '#5C6B82', marginTop: 2 }} numberOfLines={1}>{sub}</Text>
+            <Text style={{ fontSize: 13, color: t.ink.secondary, marginTop: 2 }} numberOfLines={1}>{sub}</Text>
           ) : null}
         </View>
-        <FollowButton userId={item.id} />
+        {renderFollowButton(item.id)}
       </TouchableOpacity>
     );
   };
@@ -351,10 +339,12 @@ export default function NetworkScreen({ navigation }: any) {
         </View>
         <TouchableOpacity
           style={[s.joinBtn, isMember && s.joinBtnActive]}
+          accessibilityRole="button"
+          accessibilityLabel={`${isMember ? 'Leave' : item.has_pending ? 'Cancel request to join' : 'Join'} ${item.name}`}
           onPress={() => toggleGroupMembership(table, item.id)}
           disabled={!!busyMap[`grp-${item.id}`]}
         >
-          <Text style={[s.joinBtnTxt, isMember && s.joinBtnTxtActive]}>{isMember ? 'Joined' : 'Join'}</Text>
+          <Text style={[s.joinBtnTxt, isMember && s.joinBtnTxtActive]}>{isMember ? 'Leave' : item.has_pending ? 'Cancel request' : 'Join'}</Text>
         </TouchableOpacity>
       </TouchableOpacity>
     );
@@ -362,12 +352,13 @@ export default function NetworkScreen({ navigation }: any) {
 
   const showGroupList = (tab === 'communities' || tab === 'clubs') && !selectedGroup;
   const showGroupMembers = (tab === 'communities' || tab === 'clubs') && !!selectedGroup;
+  const filteredGroups = (tab === 'communities' ? communities : clubs).filter(group => !search.trim() || `${group.name} ${group.description || ''}`.toLowerCase().includes(search.trim().toLowerCase()));
   const followingCount = Object.values(followMap).filter(Boolean).length;
 
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F5F5F7" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={t.surface.canvas} />
       <View style={s.container}>
 
         <View style={s.header}>
@@ -375,7 +366,7 @@ export default function NetworkScreen({ navigation }: any) {
             <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
               {navigation.canGoBack() && (
                 <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: 10 }} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                  <Feather name="chevron-left" size={26} color="#0B1E3D" />
+                  <Feather name="chevron-left" size={26} color={t.ink.primary} />
                 </TouchableOpacity>
               )}
               <View>
@@ -391,8 +382,9 @@ export default function NetworkScreen({ navigation }: any) {
           <TextInput
             value={search}
             onChangeText={setSearch}
-            placeholder="Search people"
-            placeholderTextColor="rgba(11,30,61,0.35)"
+            placeholder={tab === 'all' ? 'Search people' : tab === 'communities' ? 'Search communities' : 'Search clubs'}
+            placeholderTextColor={t.ink.muted}
+            keyboardAppearance={isDark ? "dark" : "light"}
             style={s.search}
             autoCapitalize="none"
             returnKeyType="search"
@@ -404,7 +396,7 @@ export default function NetworkScreen({ navigation }: any) {
               <TouchableOpacity
                 key={t.id}
                 style={[s.tab, tab === t.id && s.tabActive]}
-                onPress={() => { setTab(t.id); setSelectedGroup(null); setSearch(''); }}
+                onPress={() => { memberRequest.current++; setTab(t.id); setSelectedGroup(null); setSearch(''); }}
               >
                 <Text style={[s.tabTxt, tab === t.id && s.tabTxtActive]}>{t.label}</Text>
               </TouchableOpacity>
@@ -412,14 +404,15 @@ export default function NetworkScreen({ navigation }: any) {
           </ScrollView>
         </View>
 
-        {loading ? (
+        {!!loadErrors[tab] && <TouchableOpacity accessibilityRole="button" onPress={() => void loadAll(false)} style={s.error}><Text accessibilityRole="alert" style={s.emptyTxt}>{loadErrors[tab]}</Text><Text style={s.retryTxt}>Retry</Text></TouchableOpacity>}
+        {loading || visibleUserId !== currentUserId ? (
           <View style={s.loader}>
             <ListRowSkeleton />
             <Text style={s.loaderTxt}>Loading network...</Text>
           </View>
         ) : showGroupList ? (
           <FlatList automaticallyAdjustKeyboardInsets={true}
-            data={tab === 'communities' ? communities : clubs}
+            data={filteredGroups}
             keyExtractor={(item) => item.id}
             renderItem={({ item }) => renderGroupCard({ item, table: tab as 'communities' | 'clubs' })}
             showsVerticalScrollIndicator={false}
@@ -433,32 +426,32 @@ export default function NetworkScreen({ navigation }: any) {
             ListHeaderComponent={
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, marginTop: 4 }}>
                 <Text style={s.sectionLabel}>
-                  {tab === 'communities' ? `${communities.length} communities` : `${clubs.length} clubs`}
+                  {tab === 'communities' ? `${filteredGroups.length} communities` : `${filteredGroups.length} clubs`}
                 </Text>
                 <View style={{ flexDirection: 'row', gap: 8 }}>
                 <TouchableOpacity
-                  style={{ borderWidth: 1.5, borderColor: '#0B1E3D', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7, flexDirection: 'row', alignItems: 'center', gap: 5 }}
+                  style={{ borderWidth: 1.5, borderColor: t.ink.primary, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7, flexDirection: 'row', alignItems: 'center', gap: 5 }}
                   onPress={() => (navigation as any).navigate('Messages', { screen: 'CreateGroup' })}
                 >
-                  <Text style={{ color: '#0B1E3D', fontSize: 13, fontWeight: '700' }}>Group chat</Text>
+                  <Text style={{ color: t.ink.primary, fontSize: 13, fontWeight: '700' }}>Group chat</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={{ backgroundColor: '#0B1E3D', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7, flexDirection: 'row', alignItems: 'center', gap: 5 }}
+                  style={{ backgroundColor: t.brand.base, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 7, flexDirection: 'row', alignItems: 'center', gap: 5 }}
                   onPress={() => { setCreateType(tab as 'communities' | 'clubs'); setShowCreateModal(true); }}
                 >
-                  <Text style={{ color: '#FFF', fontSize: 18, lineHeight: 20 }}>+</Text>
-                  <Text style={{ color: '#FFF', fontSize: 13, fontWeight: '700' }}>Create</Text>
+                  <Text style={{ color: t.ink.inverse, fontSize: 18, lineHeight: 20 }}>+</Text>
+                  <Text style={{ color: t.ink.inverse, fontSize: 13, fontWeight: '700' }}>Create</Text>
                 </TouchableOpacity>
                 </View>
               </View>
             }
-            ListEmptyComponent={<View style={s.empty}><Text style={s.emptyTxt}>No groups found.</Text></View>}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadAll(false); }} tintColor="#0B1E3D" />}
+            ListEmptyComponent={loadErrors[tab] ? null : <View style={s.empty}><Text style={s.emptyTxt}>No groups found.</Text></View>}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadAll(false); }} tintColor={t.ink.primary} />}
           />
         ) : showGroupMembers && selectedGroup ? (
           <View style={s.flex}>
             <View style={s.groupHeader}>
-              <TouchableOpacity onPress={() => setSelectedGroup(null)} style={s.backBtn}>
+              <TouchableOpacity onPress={() => { memberRequest.current++; setSelectedGroup(null); }} style={s.backBtn}>
                 <Text style={s.backTxt}>← Back</Text>
               </TouchableOpacity>
               <Text style={s.groupHeaderEmoji}>{selectedGroup.group.emoji}</Text>
@@ -471,12 +464,12 @@ export default function NetworkScreen({ navigation }: any) {
                 onPress={() => toggleGroupMembership(selectedGroup.table, selectedGroup.group.id)}
               >
                 <Text style={[s.joinBtnTxt, (selectedGroup.table === 'communities' ? myCommIds : myClubIds).has(selectedGroup.group.id) && s.joinBtnTxtActive]}>
-                  {(selectedGroup.table === 'communities' ? myCommIds : myClubIds).has(selectedGroup.group.id) ? 'Joined' : 'Join'}
+                  {(selectedGroup.table === 'communities' ? myCommIds : myClubIds).has(selectedGroup.group.id) ? 'Leave' : 'Join'}
                 </Text>
               </TouchableOpacity>
             </View>
             {groupLoading ? (
-              <View style={s.loader}><ActivityIndicator color="#0B1E3D" /></View>
+              <View style={s.loader}><ActivityIndicator color={t.ink.primary} /></View>
             ) : (
               <FlatList automaticallyAdjustKeyboardInsets={true}
                 data={groupMembers}
@@ -490,7 +483,7 @@ export default function NetworkScreen({ navigation }: any) {
                 windowSize={7}
                 removeClippedSubviews={Platform.OS === 'android'}
                 onScroll={handleTabBarScroll} scrollEventThrottle={16} contentContainerStyle={[s.list, { paddingBottom: insets.bottom + TAB_BAR_CLEARANCE }]}
-                ListEmptyComponent={<View style={s.empty}><Text style={s.emptyTxt}>No members yet. Join to be the first!</Text></View>}
+                ListEmptyComponent={groupError ? <TouchableOpacity accessibilityRole="button" onPress={() => void openGroup(selectedGroup.table, selectedGroup.group)} style={s.error}><Text accessibilityRole="alert" style={s.emptyTxt}>{groupError}</Text><Text style={s.retryTxt}>Retry</Text></TouchableOpacity> : <View style={s.empty}><Text style={s.emptyTxt}>No members to show.</Text></View>}
               />
             )}
           </View>
@@ -515,72 +508,77 @@ export default function NetworkScreen({ navigation }: any) {
                 </Text>
               </>
             }
-            ListEmptyComponent={
+            ListEmptyComponent={loadErrors.all ? null :
               <View style={s.empty}>
                 <Text style={s.emptyTitle}>
-                  
+                  {search ? 'No people found' : 'No people to show'}
                 </Text>
                 <Text style={s.emptyTxt}>{search ? 'Try a different search term.' : 'Check back later.'}</Text>
               </View>
             }
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadAll(false); }} tintColor="#0B1E3D" />}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadAll(false); }} tintColor={t.ink.primary} />}
           />
         )}
       </View>
 
-      <Modal visible={showCreateModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setShowCreateModal(false)}>
-        <View style={{ flex: 1, backgroundColor: '#FFF' }}>
+      <Modal visible={showCreateModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { if (!creatingGroup) setShowCreateModal(false); }}>
+        <View style={{ flex: 1, backgroundColor: t.surface.canvas }}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(11,30,61,0.1)' }}>
-            <TouchableOpacity onPress={() => setShowCreateModal(false)}>
-              <Text style={{ fontSize: 17, color: 'rgba(11,30,61,0.5)' }}>Cancel</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.hairline }}>
+            <TouchableOpacity disabled={creatingGroup} onPress={() => setShowCreateModal(false)}>
+              <Text style={{ fontSize: 17, color: t.ink.secondary }}>Cancel</Text>
             </TouchableOpacity>
-            <Text style={{ fontSize: 17, fontWeight: '700', color: '#0B1E3D' }}>
+            <Text style={{ fontSize: 17, fontWeight: '700', color: t.ink.primary }}>
               Create {createType === 'communities' ? 'Community' : 'Club'}
             </Text>
             <TouchableOpacity onPress={createGroup} disabled={creatingGroup}>
               {creatingGroup
-                ? <ActivityIndicator color="#0B1E3D" size="small" />
-                : <Text style={{ fontSize: 17, fontWeight: '700', color: '#0B1E3D' }}>Create</Text>}
+                ? <ActivityIndicator color={t.ink.primary} size="small" />
+                : <Text style={{ fontSize: 17, fontWeight: '700', color: t.ink.primary }}>Create</Text>}
             </TouchableOpacity>
           </View>
           <ScrollView contentContainerStyle={{ padding: 20, gap: 20 }} keyboardShouldPersistTaps="handled">
-            <View>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: 'rgba(11,30,61,0.5)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>Icon</Text>
+            {createType === 'clubs' && <View>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: t.ink.secondary, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 }}>Icon</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View style={{ flexDirection: 'row', gap: 10 }}>
                   {['🌐','🎓','💼','🌍','🤝','💡','🚀','🎯','📚','🏆','🌱','❤️','⚡','🎉','🔬','🏛️','🌏','💰','🎨','🏅'].map(e => (
                     <TouchableOpacity
+                      disabled={creatingGroup}
                       key={e}
                       onPress={() => setNewGroupEmoji(e)}
-                      style={{ width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: newGroupEmoji === e ? 'rgba(176,141,63,0.1)' : '#F5F5F7', borderWidth: 2, borderColor: newGroupEmoji === e ? '#0B1E3D' : 'transparent' }}
+                      style={{ width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: newGroupEmoji === e ? t.brand.tintBg : t.surface.sunken, borderWidth: 2, borderColor: newGroupEmoji === e ? t.ink.primary : 'transparent' }}
                     >
                       <Text style={{ fontSize: 24 }}>{e}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
               </ScrollView>
-            </View>
+            </View>}
             <View>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: 'rgba(11,30,61,0.5)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Name *</Text>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: t.ink.secondary, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Name *</Text>
               <TextInput
+                editable={!creatingGroup}
                 value={newGroupName}
                 onChangeText={setNewGroupName}
                 placeholder={createType === 'communities' ? 'e.g. Harare Creatives' : 'e.g. Chess Club'}
-                placeholderTextColor="rgba(11,30,61,0.35)"
-                style={{ backgroundColor: '#F5F5F7', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(11,30,61,0.1)', paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, color: '#0B1E3D' }}
+                placeholderTextColor={t.ink.muted}
+                keyboardAppearance={isDark ? "dark" : "light"}
+                style={{ backgroundColor: t.surface.sunken, borderRadius: 12, borderWidth: 1, borderColor: t.surface.hairline, paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, color: t.ink.primary }}
                 autoCapitalize="words"
                 maxLength={60}
               />
             </View>
             <View>
-              <Text style={{ fontSize: 13, fontWeight: '700', color: 'rgba(11,30,61,0.5)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Description</Text>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: t.ink.secondary, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>Description</Text>
               <TextInput
+                editable={!creatingGroup}
                 value={newGroupDesc}
                 onChangeText={setNewGroupDesc}
                 placeholder="What is this group about?"
-                placeholderTextColor="rgba(11,30,61,0.35)"
-                style={{ backgroundColor: '#F5F5F7', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(11,30,61,0.1)', paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: '#0B1E3D', minHeight: 100, textAlignVertical: 'top' }}
+                placeholderTextColor={t.ink.muted}
+                keyboardAppearance={isDark ? "dark" : "light"}
+                style={{ backgroundColor: t.surface.sunken, borderRadius: 12, borderWidth: 1, borderColor: t.surface.hairline, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: t.ink.primary, minHeight: 100, textAlignVertical: 'top' }}
                 multiline
                 maxLength={300}
               />
@@ -595,100 +593,102 @@ export default function NetworkScreen({ navigation }: any) {
 }
 
 const s = themedSheet((t) => ({
-  safe: { flex: 1, backgroundColor: '#F5F5F7' },
+  error: { padding: 16, marginHorizontal: 14, marginVertical: 8, borderRadius: 12, backgroundColor: t.surface.raised },
+  retryTxt: { color: t.ink.primary, fontWeight: '700', textAlign: 'center', marginTop: 10 },
+  safe: { flex: 1, backgroundColor: t.surface.sunken },
   flex: { flex: 1 },
-  container: { flex: 1, backgroundColor: '#F5F5F7' },
-  header: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 8, backgroundColor: '#F5F5F7' },
+  container: { flex: 1, backgroundColor: t.surface.sunken },
+  header: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 8, backgroundColor: t.surface.sunken },
   headerRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 },
   title: { fontSize: 28, fontWeight: '800', color: t.ink.primary, letterSpacing: -0.5 },
-  subtitle: { marginTop: 3, fontSize: 13, color: 'rgba(11,30,61,0.5)', fontWeight: '500' },
+  subtitle: { marginTop: 3, fontSize: 13, color: t.ink.secondary, fontWeight: '500' },
   badge: { backgroundColor: '#FF3B30', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 4, alignSelf: 'flex-start', marginTop: 4 },
   badgeTxt: { fontSize: 13, fontWeight: '700', color: t.ink.inverse },
   search: {
-    backgroundColor: t.surface.canvas, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(11,30,61,0.1)',
+    backgroundColor: t.surface.canvas, borderRadius: 14, borderWidth: 1, borderColor: t.surface.hairline,
     paddingHorizontal: 14, paddingVertical: 11, fontSize: 14, color: t.ink.primary, marginBottom: 10,
   },
   tabScroll: { marginBottom: 8 },
   tabContent: { paddingRight: 8, gap: 6 },
-  tab: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: 'rgba(11,30,61,0.1)' },
+  tab: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: t.surface.hairline },
   tabActive: { backgroundColor: t.brand.base },
-  tabTxt: { fontSize: 13, fontWeight: '600', color: 'rgba(11,30,61,0.5)' },
+  tabTxt: { fontSize: 13, fontWeight: '600', color: t.ink.secondary },
   tabTxtActive: { color: t.ink.inverse },
   list: { paddingHorizontal: 14 },
   listEmpty: { flexGrow: 1 },
-  sectionLabel: { fontSize: 12, fontWeight: '700', color: 'rgba(11,30,61,0.35)', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, marginTop: 4 },
+  sectionLabel: { fontSize: 12, fontWeight: '700', color: t.ink.muted, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8, marginTop: 4 },
   affCard: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     backgroundColor: t.surface.canvas, borderRadius: 18,
-    borderWidth: 1, borderColor: 'rgba(11,30,61,0.1)',
+    borderWidth: 1, borderColor: t.surface.hairline,
     padding: 14, marginBottom: 10, marginTop: 4,
   },
   affIcon: {
     width: 46, height: 46, borderRadius: 14,
-    backgroundColor: 'rgba(176,141,63,0.1)',
+    backgroundColor: t.brand.tintBg,
     alignItems: 'center', justifyContent: 'center',
   },
   affTitle: { fontSize: 14, fontWeight: '700', color: t.ink.primary },
-  affSub: { fontSize: 12, color: 'rgba(11,30,61,0.5)', marginTop: 2, lineHeight: 16 },
-  affChevron: { fontSize: 20, color: 'rgba(11,30,61,0.35)', fontWeight: '500' },
+  affSub: { fontSize: 12, color: t.ink.secondary, marginTop: 2, lineHeight: 16 },
+  affChevron: { fontSize: 20, color: t.ink.muted, fontWeight: '500' },
   card: {
-    backgroundColor: t.surface.canvas, borderRadius: 18, borderWidth: 1, borderColor: 'rgba(11,30,61,0.1)',
+    backgroundColor: t.surface.canvas, borderRadius: 18, borderWidth: 1, borderColor: t.surface.hairline,
     padding: 14, marginBottom: 10,
   },
   cardTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
-  avatarFb: { backgroundColor: '#DBEAFE', alignItems: 'center', justifyContent: 'center' },
+  avatarFb: { backgroundColor: t.status.linkBg, alignItems: 'center', justifyContent: 'center' },
   avatarFbTxt: { fontWeight: '700', color: t.ink.primary },
   cardInfo: { flex: 1 },
   cardName: { fontSize: 15, fontWeight: '700', color: t.ink.primary },
   cardHandle: { fontSize: 12, color: t.ink.primary, fontWeight: '600', marginTop: 1 },
-  cardMeta: { fontSize: 12, color: 'rgba(11,30,61,0.5)', marginTop: 3 },
-  cardBio: { fontSize: 13, color: 'rgba(11,30,61,0.6)', lineHeight: 18, marginTop: 8 },
+  cardMeta: { fontSize: 12, color: t.ink.secondary, marginTop: 3 },
+  cardBio: { fontSize: 13, color: t.ink.secondary, lineHeight: 18, marginTop: 8 },
   cardActions: { marginTop: 10, flexDirection: 'row', gap: 8 },
   btnRow: { flexDirection: 'row', gap: 6 },
   btnConnect:     { backgroundColor: t.brand.base, borderRadius: 10, paddingHorizontal: 16, paddingVertical: 9, alignItems: 'center', justifyContent: 'center', minWidth: 96 },
   btnConnectTxt:  { color: t.ink.inverse, fontSize: 13, fontWeight: '700', letterSpacing: 0.2 },
-  btnConnected:   { backgroundColor: '#DCFCE7', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, borderWidth: 1, borderColor: '#86EFAC' },
-  btnConnectedTxt:{ color: '#15803D', fontSize: 13, fontWeight: '700' },
-  btnPending:     { backgroundColor: '#FAF6EC', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 9, borderWidth: 1, borderColor: '#E8DFC8' },
-  btnPendingTxt:  { color: '#C2410C', fontSize: 13, fontWeight: '600' },
+  btnConnected:   { backgroundColor: t.brand.tintBg, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, borderWidth: 1, borderColor: t.status.success },
+  btnConnectedTxt:{ color: t.status.success, fontSize: 13, fontWeight: '700' },
+  btnPending:     { backgroundColor: t.status.innovationBg, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 9, borderWidth: 1, borderColor: t.surface.hairline },
+  btnPendingTxt:  { color: t.ink.primary, fontSize: 13, fontWeight: '600' },
   btnAccept:      { backgroundColor: t.brand.base, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9 },
   btnAcceptTxt:   { color: t.ink.inverse, fontSize: 13, fontWeight: '700' },
-  btnDecline:     { backgroundColor: '#F5F5F7', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, borderWidth: 1, borderColor: t.surface.hairline },
-  btnDeclineTxt:  { color: 'rgba(11,30,61,0.6)', fontSize: 13, fontWeight: '600' },
-  btnMessage:     { backgroundColor: 'rgba(176,141,63,0.1)', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 9, borderWidth: 1, borderColor: '#C9D3E2' },
+  btnDecline:     { backgroundColor: t.surface.sunken, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 9, borderWidth: 1, borderColor: t.surface.hairline },
+  btnDeclineTxt:  { color: t.ink.secondary, fontSize: 13, fontWeight: '600' },
+  btnMessage:     { backgroundColor: t.brand.tintBg, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 9, borderWidth: 1, borderColor: t.surface.hairline },
   btnMessageTxt:  { color: t.ink.primary, fontSize: 13, fontWeight: '700' },
-  followBtn: { borderWidth: 1.5, borderColor: t.surface.hairline, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 },
-  followBtnActive: { borderColor: '#B08D3F', backgroundColor: '#F5F3FF' },
-  followBtnTxt: { fontSize: 12, fontWeight: '600', color: 'rgba(11,30,61,0.5)' },
-  followBtnTxtActive: { color: '#B08D3F' },
+  followBtn: { minHeight: 44, justifyContent: 'center', borderWidth: 1.5, borderColor: t.surface.hairline, borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 },
+  followBtnActive: { borderColor: t.brand.warm, backgroundColor: t.brand.tintBg },
+  followBtnTxt: { fontSize: 12, fontWeight: '600', color: t.ink.secondary },
+  followBtnTxtActive: { color: t.ink.primary },
   groupCard: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: t.surface.canvas, borderRadius: 18, borderWidth: 1, borderColor: 'rgba(11,30,61,0.1)',
+    backgroundColor: t.surface.canvas, borderRadius: 18, borderWidth: 1, borderColor: t.surface.hairline,
     padding: 14, marginBottom: 10,
   },
-  groupEmoji: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#F5F5F7', alignItems: 'center', justifyContent: 'center' },
+  groupEmoji: { width: 48, height: 48, borderRadius: 24, backgroundColor: t.surface.sunken, alignItems: 'center', justifyContent: 'center' },
   groupEmojiTxt: { fontSize: 24 },
   groupInfo: { flex: 1 },
   groupName: { fontSize: 14, fontWeight: '700', color: t.ink.primary },
-  groupDesc: { fontSize: 12, color: 'rgba(11,30,61,0.5)', lineHeight: 16, marginTop: 3 },
-  groupCount: { fontSize: 12, color: 'rgba(11,30,61,0.35)', marginTop: 4, fontWeight: '500' },
-  joinBtn: { backgroundColor: 'rgba(176,141,63,0.1)', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1, borderColor: '#C9D3E2' },
+  groupDesc: { fontSize: 12, color: t.ink.secondary, lineHeight: 16, marginTop: 3 },
+  groupCount: { fontSize: 12, color: t.ink.muted, marginTop: 4, fontWeight: '500' },
+  joinBtn: { minHeight: 44, justifyContent: 'center', backgroundColor: t.brand.tintBg, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8, borderWidth: 1, borderColor: t.surface.hairline },
   joinBtnActive: { backgroundColor: t.brand.base, borderColor: t.ink.primary },
   joinBtnTxt: { fontSize: 12, fontWeight: '700', color: t.ink.primary },
   joinBtnTxtActive: { color: t.ink.inverse },
-  groupHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: t.surface.canvas, borderBottomWidth: 1, borderBottomColor: 'rgba(11,30,61,0.1)', marginBottom: 8 },
+  groupHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingVertical: 12, backgroundColor: t.surface.canvas, borderBottomWidth: 1, borderBottomColor: t.surface.hairline, marginBottom: 8 },
   backBtn: { paddingVertical: 4, paddingRight: 6 },
   backTxt: { fontSize: 14, color: t.ink.primary, fontWeight: '600' },
   groupHeaderEmoji: { fontSize: 22 },
   groupHeaderInfo: { flex: 1 },
   groupHeaderName: { fontSize: 14, fontWeight: '700', color: t.ink.primary },
-  groupHeaderCount: { fontSize: 12, color: 'rgba(11,30,61,0.5)' },
+  groupHeaderCount: { fontSize: 12, color: t.ink.secondary },
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 40 },
-  cardWorkplace: { fontSize: 12, color: '#24344D', fontWeight: '500', marginTop: 2 },
-  cardSchool: { fontSize: 12, color: '#5C6B82', marginTop: 1 },
-  cardHeadline: { fontSize: 12, color: '#5C6B82', marginTop: 3, lineHeight: 17 },
-  loaderTxt: { marginTop: 12, fontSize: 14, color: 'rgba(11,30,61,0.5)' },
+  cardWorkplace: { fontSize: 12, color: t.ink.secondary, fontWeight: '500', marginTop: 2 },
+  cardSchool: { fontSize: 12, color: t.ink.secondary, marginTop: 1 },
+  cardHeadline: { fontSize: 12, color: t.ink.secondary, marginTop: 3, lineHeight: 17 },
+  loaderTxt: { marginTop: 12, fontSize: 14, color: t.ink.secondary },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, paddingTop: 60 },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: t.ink.primary, textAlign: 'center' },
-  emptyTxt: { marginTop: 6, fontSize: 14, color: 'rgba(11,30,61,0.5)', textAlign: 'center' },
+  emptyTxt: { marginTop: 6, fontSize: 14, color: t.ink.secondary, textAlign: 'center' },
 }));

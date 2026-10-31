@@ -1,0 +1,241 @@
+{
+  "recordedAt": "2026-10-31T05:05:50.366Z",
+  "scope": "Actual pinned Supabase processLock, actual Daily entry setupGlobals and actual BackgroundTimer callback-map implementation; React Native native modules and timer delivery are isolated simulations. No network, real wait or production mutation.",
+  "versions": {
+    "@supabase/auth-js": "2.103.0",
+    "@daily-co/react-native-daily-js": "0.86.0",
+    "react-native-background-timer": "2.4.1"
+  },
+  "sourceSha256": {
+    "node_modules/@supabase/auth-js/dist/main/lib/locks.js": "9891124da312e1c4ba73296c98dc018ba2532a856ea39248f0e951036892b4e0",
+    "node_modules/@daily-co/react-native-daily-js/dist/index.js": "a460dccea82da780474ae3d011917a5c1d8747ffc5b5fe3f33af7ee526b17c0e",
+    "node_modules/react-native-background-timer/index.js": "8198975ad17b0b9134b96c8f723e589601ed20780447fdc27799775788a8d801",
+    "tests/native/auth-diagnostics.cjs": "e7e62603147fda2f2f29e905876e5bd143e335e6a4a92a5d65063d422dc977a7"
+  },
+  "cases": [
+    {
+      "platform": "android",
+      "dailyFirst": false,
+      "authResult": 7,
+      "callbackRuns": 1,
+      "afterFulfillment": {
+        "nativeTimers": 1,
+        "backgroundCallbacks": 0,
+        "warnings": 0
+      },
+      "warningsAfterSyntheticDeadline": [
+        "@supabase/gotrue-js: Lock [omitted] acquisition timed out after 5000ms. This may be caused by another operation holding the lock. Consider increasing lockAcquireTimeout or checking for stuck operations."
+      ],
+      "phases": [
+        {
+          "phase": "requested",
+          "atMs": 0,
+          "timerApis": {
+            "setTimeout": {
+              "kind": "function",
+              "id": 1
+            },
+            "clearTimeout": {
+              "kind": "function",
+              "id": 2
+            }
+          }
+        },
+        {
+          "phase": "acquired",
+          "atMs": 100,
+          "timerApis": {
+            "setTimeout": {
+              "kind": "function",
+              "id": 3
+            },
+            "clearTimeout": {
+              "kind": "function",
+              "id": 4
+            }
+          }
+        },
+        {
+          "phase": "released",
+          "atMs": 100,
+          "timerApis": {
+            "setTimeout": {
+              "kind": "function",
+              "id": 3
+            },
+            "clearTimeout": {
+              "kind": "function",
+              "id": 4
+            }
+          }
+        },
+        {
+          "phase": "settled",
+          "atMs": 100,
+          "timerApis": {
+            "setTimeout": {
+              "kind": "function",
+              "id": 3
+            },
+            "clearTimeout": {
+              "kind": "function",
+              "id": 4
+            }
+          }
+        }
+      ]
+    },
+    {
+      "platform": "android",
+      "dailyFirst": true,
+      "authResult": 7,
+      "callbackRuns": 1,
+      "afterFulfillment": {
+        "nativeTimers": 0,
+        "backgroundCallbacks": 0,
+        "warnings": 0
+      },
+      "warningsAfterSyntheticDeadline": [],
+      "phases": [
+        {
+          "phase": "requested",
+          "atMs": 0,
+          "timerApis": {
+            "setTimeout": {
+              "kind": "function",
+              "id": 1
+            },
+            "clearTimeout": {
+              "kind": "function",
+              "id": 2
+            }
+          }
+        },
+        {
+          "phase": "acquired",
+          "atMs": 100,
+          "timerApis": {
+            "setTimeout": {
+              "kind": "function",
+              "id": 1
+            },
+            "clearTimeout": {
+              "kind": "function",
+              "id": 2
+            }
+          }
+        },
+        {
+          "phase": "released",
+          "atMs": 100,
+          "timerApis": {
+            "setTimeout": {
+              "kind": "function",
+              "id": 1
+            },
+            "clearTimeout": {
+              "kind": "function",
+              "id": 2
+            }
+          }
+        },
+        {
+          "phase": "settled",
+          "atMs": 100,
+          "timerApis": {
+            "setTimeout": {
+              "kind": "function",
+              "id": 1
+            },
+            "clearTimeout": {
+              "kind": "function",
+              "id": 2
+            }
+          }
+        }
+      ]
+    },
+    {
+      "platform": "ios",
+      "dailyFirst": false,
+      "authResult": 7,
+      "callbackRuns": 1,
+      "afterFulfillment": {
+        "nativeTimers": 0,
+        "backgroundCallbacks": 0,
+        "warnings": 0
+      },
+      "warningsAfterSyntheticDeadline": [],
+      "phases": [
+        {
+          "phase": "requested",
+          "atMs": 0,
+          "timerApis": {
+            "setTimeout": {
+              "kind": "function",
+              "id": 1
+            },
+            "clearTimeout": {
+              "kind": "function",
+              "id": 2
+            }
+          }
+        },
+        {
+          "phase": "acquired",
+          "atMs": 100,
+          "timerApis": {
+            "setTimeout": {
+              "kind": "function",
+              "id": 1
+            },
+            "clearTimeout": {
+              "kind": "function",
+              "id": 2
+            }
+          }
+        },
+        {
+          "phase": "released",
+          "atMs": 100,
+          "timerApis": {
+            "setTimeout": {
+              "kind": "function",
+              "id": 1
+            },
+            "clearTimeout": {
+              "kind": "function",
+              "id": 2
+            }
+          }
+        },
+        {
+          "phase": "settled",
+          "atMs": 100,
+          "timerApis": {
+            "setTimeout": {
+              "kind": "function",
+              "id": 1
+            },
+            "clearTimeout": {
+              "kind": "function",
+              "id": 2
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "conclusion": "Starting the real SDK acquisition before Android Daily timer replacement leaves its old-registry timeout alive after fulfillment. Initializing Daily before the operation prevents this reproduced mismatch without changing the SDK lock, timeout, result or callback count. iOS does not replace these globals.",
+  "limits": [
+    "This reproduces the source-level mechanism and agrees with the emulator function-identity transition; it does not directly observe individual timer handles inside the emulator.",
+    "Stubbed native modules and synthetic deadline delivery cannot establish physical-device calling or background behavior."
+  ],
+  "repeatableRegression": {
+    "path": "tests/quality/native-timer-bootstrap.cjs",
+    "sha256": "9b16fa0ee1f88d93387179ee8df8e87d8a29d81a47c698c523c1438fd64e1337",
+    "command": "env -u NODE_TEST_CONTEXT node tests/quality/native-timer-bootstrap.cjs",
+    "cases": 6,
+    "note": "The committed regression reproduces the same mechanism in an isolated VM, executes both actual entry files, and also verifies the QA guard and a genuine contended SDK deadline. Native timer delivery is simulated."
+  }
+}

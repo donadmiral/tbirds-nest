@@ -21,7 +21,6 @@ const jobId='00000000-0000-4000-8000-000000000010';
 const helperModule={exports:{}};
 vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname,'../../shared/hiring.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module:helperModule,exports:helperModule.exports,Date});
 const hiring=helperModule.exports;
-const application = (id, extra={}) => ({id,job_id: 'job-'+id,status:'applied',applied_at:'2026-01-01T00:00:00Z', ...extra});
 function harness({read = async () => ({data: {id: jobId, posted_by:'owner', title:'Engineer'}, error: null}), rpc = async () => ({data:{applications:[],counts:{all:0},cursor:null,has_more:false}}), sessionError = null, user='owner'} = {}) {
   let authCallback;
   const slots = [], effects = [], calls = [], routes = [];
@@ -112,7 +111,7 @@ test('account changes clear private candidates and ignore previous account respo
  const pending=deferred();const app=harness({rpc:()=>pending.promise});app.render();await app.flush();app.setUser('other');app.render();await app.flush();pending.resolve(page([applicantRow('private')]));await app.flush();assert.ok(!app.text.includes('Candidate private'));assert.ok(app.text.includes('Only the poster'));app.unmount();
 });
 test('interview action uses checked RPC once and passes the displayed version',async()=>{
- const row=applicantRow(1),wait=deferred();const app=harness({rpc:async(name,args)=>name==='studio_applicant_page'?page([row]):wait.promise});app.render();await app.flush();
+ const row=applicantRow(1),wait=deferred();const app=harness({rpc:async(name)=>name==='studio_applicant_page'?page([row]):wait.promise});app.render();await app.flush();
  app.find(n=>n.type==='select').props.onChange({target:{value:'interview'}});app.render();app.find(n=>n.type==='input'&&n.props.type==='datetime-local').props.onChange({target:{value:'2027-01-01T10:00'}});app.render();
  app.click('Schedule interview');app.click('Schedule interview');await app.flush();const calls=app.calls.filter(c=>c.name==='studio_schedule_interview');assert.equal(calls.length,1);assert.equal(calls[0].args.p_expected_updated_at,row.updated_at);assert.equal(calls[0].args.p_expected_status,'applied');wait.resolve({data:{...row,status:'interview'},error:null});await app.flush();app.unmount();
 });

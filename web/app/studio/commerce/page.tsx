@@ -1,5 +1,7 @@
 "use client";
 
+import { errorMessage } from "@/lib/errors";
+
 import { MarketOrders } from "@/components/MarketOrders";
 import { decimalMinor, receiptCsv } from "../../../../shared/commerceMoney";
 import { orderMoney, type OrderCursor } from "../../../../shared/marketOrders";
@@ -14,14 +16,15 @@ import { Check, Download, Package, Plus, ShoppingBag, Star, Tag, Truck } from "l
 import { createClient } from "@/lib/supabase/client";
 import { can } from "@/lib/studio";
 import { useStudio } from "@/components/StudioShell";
+import { withTimeout } from "@/lib/withTimeout";
 
 type Listing = { id: string; title: string; price: number | string; stock_quantity: number; currency: string; category: string; condition: string | null; images: string[]; status: string; hidden: boolean; created_at: string; delivery_available: boolean; delivery_fee: number | null; pending_offers: number; sold_count: number; in_posts: number };
 type Order = { id: string; amount: number | string; currency: string; status: string; note: string | null; tx_id: string | null; created_at: string; completed_at: string | null; conversation_id: string; payer_id: string | null; payer_name: string; payer_username: string | null; payer_avatar: string | null; listing_id: string | null; listing_title: string | null; listing_image: string | null };
 type Storefront = { tagline: string | null; featured_listing_ids: string[]; delivery_default: boolean; delivery_fee_default: number | null; delivery_note_default: string | null };
 
 export default function CommercePage() {
-  const { me } = useStudio();
-  const supabase = useRef(createClient()).current;
+  const { me, accountId } = useStudio();
+  const [supabase] = useState(createClient);
   const editor = can(me?.role ?? null, "publish");
   const [view, setView] = useState<"catalog" | "orders" | "storefront">("catalog");
   const [listings, setListings] = useState<Listing[]>([]);
@@ -35,35 +38,40 @@ export default function CommercePage() {
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const loadVersion = useRef(0);
+  const mounted = useRef(true);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [priceFor, setPriceFor] = useState<string | null>(null);
   const [priceText, setPriceText] = useState("");
   const [saving, setSaving] = useState(false);
   const [statusFilter, setStatusFilter] = useState<"all" | "available" | "sold">("all");
 
-  const load = useCallback(async () => {
+  const load = useCallback(() => {
     const version = ++loadVersion.current;
-    setLoading(true);
-    try {
-      const [c, o, s] = await Promise.all([supabase.rpc("business_catalog", { p_limit: 50 }), supabase.rpc("business_receipts", { p_limit: 50 }), supabase.rpc("studio_get_storefront")]);
+    return withTimeout(Promise.all([supabase.rpc("business_catalog", { p_limit: 50 }), supabase.rpc("business_receipts", { p_limit: 50 }), supabase.rpc("studio_get_storefront")])).then(([c, o, s]) => {
       if (c.error || o.error || s.error) throw c.error || o.error || s.error;
       if (version !== loadVersion.current) return;
       setListings((c.data?.rows as Listing[]) ?? []); setCatalogCursor(c.data?.next_cursor ?? null); setMoreCatalog(!!c.data?.has_more);
       setOrders((o.data?.rows as Order[]) ?? []); setReceiptCursor(o.data?.next_cursor ?? null); setMoreReceipts(!!o.data?.has_more);
-      const raw = s.data as any;
+      const raw = s.data as Partial<Storefront> | null;
       setSf(raw ? { tagline: raw.tagline ?? "", featured_listing_ids: Array.isArray(raw.featured_listing_ids) ? raw.featured_listing_ids : [], delivery_default: !!raw.delivery_default, delivery_fee_default: raw.delivery_fee_default ?? null, delivery_note_default: raw.delivery_note_default ?? "" } : null);
       setLoaded(true); setLoadError(null);
-    } catch {
+    }).catch(() => {
       if (version === loadVersion.current) setLoadError("Commerce could not be refreshed. Your last loaded data is unchanged.");
-    } finally { if (version === loadVersion.current) setLoading(false); }
+    }).finally(() => { if (version === loadVersion.current) setLoading(false); });
   }, [supabase]);
-  useEffect(() => { void load(); return () => { loadVersion.current += 1; }; }, [load]);
+  useEffect(() => { const requests = loadVersion; mounted.current = true; void load(); return () => { mounted.current = false; requests.current += 1; }; }, [load]);
+
+  const assertAccount = async () => {
+    const { data, error } = await withTimeout(supabase.auth.getSession());
+    if (!mounted.current || error || !accountId || data.session?.user.id !== accountId) throw new Error("Your account changed. Reopen Commerce before continuing.");
+    return accountId;
+  };
 
   const loadMore = async (kind: 'catalog' | 'receipts') => {
     if (loading) return; const version = ++loadVersion.current; setLoading(true);
     const cursor = kind === 'catalog' ? catalogCursor : receiptCursor;
     try {
-      const { data, error } = await supabase.rpc(kind === 'catalog' ? 'business_catalog' : 'business_receipts', { p_before: cursor?.created_at, p_before_id: cursor?.id, p_limit: 50 });
+      const { data, error } = await withTimeout(supabase.rpc(kind === 'catalog' ? 'business_catalog' : 'business_receipts', { p_before: cursor?.created_at, p_before_id: cursor?.id, p_limit: 50 }));
       if (error) throw error; if (version !== loadVersion.current) return;
       if (kind === 'catalog') { setListings(old => [...old, ...(data.rows as Listing[]).filter(row => !old.some(x => x.id === row.id))]); setCatalogCursor(data.next_cursor); setMoreCatalog(data.has_more); }
       else { setOrders(old => [...old, ...(data.rows as Order[]).filter(row => !old.some(x => x.id === row.id))]); setReceiptCursor(data.next_cursor); setMoreReceipts(data.has_more); }
@@ -72,15 +80,18 @@ export default function CommercePage() {
   };
 
   const setListing = async (l: Listing, patch: { status?: string; price?: number; delivery_available?: boolean; delivery_fee?: number | null }) => {
-    if (busyId) return false;
+    if (actionLock.current) return false;
+    actionLock.current = true;
     setBusyId(l.id);
     try {
+      await assertAccount();
       const { error } = await supabase.rpc("studio_set_listing", { p_id: l.id, p_status: patch.status ?? null, p_price: patch.price ?? null, p_delivery_available: patch.delivery_available ?? null, p_delivery_fee: patch.delivery_fee ?? null, p_delivery_note: null });
       if (error) throw error;
+      if (!mounted.current) return false;
       setListings(prev => prev.map(x => x.id === l.id ? { ...x, ...patch } as Listing : x));
       return true;
-    } catch (e: any) { alert(e?.message || "Could not update."); return false; }
-    finally { setBusyId(null); }
+    } catch (e: unknown) { if (mounted.current) alert(errorMessage(e, "Could not update.")); return false; }
+    finally { actionLock.current = false; if (mounted.current) setBusyId(null); }
   };
 
   const savePrice = async (l: Listing) => {
@@ -92,15 +103,15 @@ export default function CommercePage() {
   const publishProducts = async (ids: string[], text: string) => {
     if (!me || actionLock.current) return; actionLock.current = true; setBusyId(ids[0] || 'carousel');
     try {
-      const { data: auth } = await supabase.auth.getSession(); const user = auth.session?.user.id;
-      if (!user) throw new Error('Sign in before publishing.');
+      const user = await assertAccount();
       if (!publishRequest.current || JSON.stringify(publishRequest.current.ids) !== JSON.stringify(ids) || publishRequest.current.caption !== text) publishRequest.current = { key: crypto.randomUUID(), ids, caption: text };
       const { data: id, error } = await supabase.rpc('publish_product_carousel', { p_expected_user: user, p_request_key: publishRequest.current.key, p_listing_ids: ids, p_caption: text });
       if (error || !id) throw error || new Error('Publishing did not return a post.');
+      if (!mounted.current) return;
       publishRequest.current = null; setSelectedProducts([]); setCaption('');
       setListings(old => old.map(l => ids.includes(l.id) ? { ...l, in_posts: l.in_posts + 1 } : l)); alert('Published to the feed.');
-    } catch (e: unknown) { alert(e instanceof Error ? e.message : 'Could not publish. Try again with the same products.'); }
-    finally { actionLock.current = false; setBusyId(null); }
+    } catch (e: unknown) { if (mounted.current) alert(e instanceof Error ? e.message : 'Could not publish. Try again with the same products.'); }
+    finally { actionLock.current = false; if (mounted.current) setBusyId(null); }
   };
   const shareToFeed = (l: Listing) => publishProducts([l.id], l.title);
   const setStock = async (l: Listing) => {
@@ -108,11 +119,11 @@ export default function CommercePage() {
     if (value === null || !/^\d+$/.test(value)) return; const stock = Number(value);
     if (stock > 1000000 || actionLock.current) return; actionLock.current = true; setBusyId(l.id);
     try {
-      const { data: auth } = await supabase.auth.getSession();
-      const { error } = await supabase.rpc('set_listing_stock', { p_expected_user: auth.session?.user.id, p_listing_id: l.id, p_available: stock, p_expected_available: l.stock_quantity });
-      if (error) throw error; setListings(old => old.map(x => x.id === l.id ? { ...x, stock_quantity: stock } : x));
-    } catch { alert('Stock changed or could not be saved. Refresh and try again.'); }
-    finally { actionLock.current = false; setBusyId(null); }
+      const user = await assertAccount();
+      const { error } = await supabase.rpc('set_listing_stock', { p_expected_user: user, p_listing_id: l.id, p_available: stock, p_expected_available: l.stock_quantity });
+      if (error) throw error; if (mounted.current) setListings(old => old.map(x => x.id === l.id ? { ...x, stock_quantity: stock } : x));
+    } catch { if (mounted.current) alert('Stock changed or could not be saved. Refresh and try again.'); }
+    finally { actionLock.current = false; if (mounted.current) setBusyId(null); }
   };
 
   const toggleFeatured = (id: string) => {
@@ -122,14 +133,16 @@ export default function CommercePage() {
     setSf({ ...sf, featured_listing_ids: has ? sf.featured_listing_ids.filter(x => x !== id) : [...sf.featured_listing_ids, id] });
   };
   const saveStorefront = async () => {
-    if (!sf || saving) return;
+    if (!sf || actionLock.current) return;
+    actionLock.current = true;
     setSaving(true);
     try {
+      await assertAccount();
       const { error } = await supabase.rpc("studio_set_storefront", { p_tagline: sf.tagline || null, p_featured: sf.featured_listing_ids, p_delivery_default: sf.delivery_default, p_delivery_fee: sf.delivery_fee_default, p_delivery_note: sf.delivery_note_default || null });
       if (error) throw error;
-      alert("Storefront saved.");
-    } catch (e: any) { alert(e?.message || "Could not save."); }
-    finally { setSaving(false); }
+      if (mounted.current) alert("Storefront saved.");
+    } catch (e: unknown) { if (mounted.current) alert(errorMessage(e, "Could not save.")); }
+    finally { actionLock.current = false; if (mounted.current) setSaving(false); }
   };
 
   const exportCsv = () => {
@@ -149,7 +162,7 @@ export default function CommercePage() {
 
   return (
     <div>
-      <StudioLoadError message={loadError} retry={() => { void load(); }} busy={loading} />
+      <StudioLoadError message={loadError} retry={() => { setLoading(true); void load(); }} busy={loading} />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-[21px] leading-tight text-porcelain">Commerce</h1>

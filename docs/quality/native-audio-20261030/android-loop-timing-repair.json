@@ -1,0 +1,362 @@
+{
+  "recordedAt": "2026-10-30T22:19:00Z",
+  "failedRuntimeAttempt": {
+    "candidateCommit": "2a3d584b80d0e28538f84a1cff028df009a797e4",
+    "sourceTree": "88ec8c6c4b92b20d44aeed3d34a8e68efcb7914b",
+    "workflowRun": 41136108612,
+    "jobId": 124339054270,
+    "artifactId": 13015588962,
+    "zipSha256": "e48f2e5e85de8450ad5bf473b9d47570b90fc62a88c3f1274cb154cedb9e8c2f",
+    "artifactDigestVerified": true,
+    "preflightSourceHashesMatchPublishedCandidate": true,
+    "testCount": 22,
+    "passed": 21,
+    "failed": 1,
+    "skipped": 0,
+    "failedMethod": "videoTrimSpeedAndOriginalMixStayAlignedWithIndependentSoundtrack",
+    "outputMeasurements": {
+      "videoFrames": 30,
+      "audioAacFrames": 93,
+      "videoDurationUs": 999999,
+      "audioDurationUs": 1984000
+    },
+    "failure": "Strict output attestation rejected audio extending beyond the accelerated video. The failure path deletes the rejected output; this failing method did not separately assert file absence.",
+    "tests": [
+      {
+        "name": "trimmingPastShortOriginalAudioProducesAValidSilentMovie",
+        "passed": true
+      },
+      {
+        "name": "matrixAlphaAndBiasAreNotDroppedByAFourByFourShortcut",
+        "passed": true
+      },
+      {
+        "name": "videoTrimSpeedAndOriginalMixStayAlignedWithIndependentSoundtrack",
+        "passed": false
+      },
+      {
+        "name": "cancellationAtTheCompletionBoundaryCannotLeaveARejectedOutput",
+        "passed": true
+      },
+      {
+        "name": "onePassVoiceoverEndsInSilenceWithoutShorteningVideo",
+        "passed": true
+      },
+      {
+        "name": "invalidInputsCannotOverwriteOrEscapeTheCache",
+        "passed": true
+      },
+      {
+        "name": "backgroundCancellationSettlesOnceAndPreservesTheDraftInputs",
+        "passed": true
+      },
+      {
+        "name": "soundtrackVolumeAndZeroGainAreEncoded",
+        "passed": true
+      },
+      {
+        "name": "fullColorMatrixScaleAndTranslationMatchPixels",
+        "passed": true
+      },
+      {
+        "name": "selectedExcerptLoopsThroughActualStillMovie",
+        "passed": true
+      },
+      {
+        "name": "originalOnlyAudioIsPreservedAndMeasured",
+        "passed": true
+      },
+      {
+        "name": "mutedOriginalDoesNotLeakIntoTheMovie",
+        "passed": true
+      },
+      {
+        "name": "unknownLengthContentAndReadableExternalVideoAreStagedAndRemoved",
+        "passed": true
+      },
+      {
+        "name": "oversizedUnknownLengthProviderCannotConsumeUnboundedDisk",
+        "passed": true
+      },
+      {
+        "name": "verticalTextureOrientationAndBothTranslationDirectionsMatchTheCanvas",
+        "passed": true
+      },
+      {
+        "name": "canvasBackgroundAndTimedArtworkMatchDecodedPixels",
+        "passed": true
+      },
+      {
+        "name": "cancellationStopsTheWriterCleansThePartialAndAllowsRetry",
+        "passed": true
+      },
+      {
+        "name": "fullPortraitResolutionProducesActualVideoAndSoundtrack",
+        "passed": true
+      },
+      {
+        "name": "knownLengthProviderDoesNotNeedEofAndCannotHideAnEarlyEnd",
+        "passed": true
+      },
+      {
+        "name": "longVoiceoverIsClippedToTheOutputMovie",
+        "passed": true
+      },
+      {
+        "name": "blockedContentProviderCanBeCancelledWithoutWaitingForAnotherChunk",
+        "passed": true
+      },
+      {
+        "name": "trimmedAndAcceleratedVideoUsesOutputTimeForArtwork",
+        "passed": true
+      }
+    ],
+    "measuredPassingCases": {
+      "sdk": 35,
+      "model": "Android SDK built for x86_64",
+      "abis": [
+        "x86_64"
+      ],
+      "renderer": "Actual production StoryVideoComposition.kt and StoryVideoEffects.kt",
+      "media3Version": "1.8.1",
+      "cases": [
+        {
+          "duration": 0.967,
+          "silentTrim": true,
+          "case": "no-overlap original audio",
+          "passed": true
+        },
+        {
+          "left": -226304,
+          "right": -8352385,
+          "case": "matrix alpha and fifth-column bias",
+          "passed": true
+        },
+        {
+          "attempts": 4,
+          "rejectedAndCleaned": 4,
+          "completedBeforeCancellation": 0,
+          "case": "completion cancellation race",
+          "passed": true
+        },
+        {
+          "firstRms": 0.14106004488780305,
+          "tailRms": 0,
+          "case": "one-pass voiceover",
+          "passed": true
+        },
+        {
+          "rejected": 5,
+          "case": "bounded local inputs and no overwrite",
+          "passed": true
+        },
+        {
+          "inputPreserved": true,
+          "partialRemoved": true,
+          "case": "background cancellation",
+          "passed": true
+        },
+        {
+          "quarterAmplitude": 0.049764843579242234,
+          "zeroRms": 0,
+          "case": "soundtrack gain",
+          "passed": true
+        },
+        {
+          "background": -262400,
+          "left": -16711427,
+          "right": -196608,
+          "case": "color matrix and geometry",
+          "passed": true
+        },
+        {
+          "amplitudes440Hz": [
+            0.19943957417656788,
+            0.1996638343570099,
+            0.1995742666875842
+          ],
+          "duration": 2.987,
+          "case": "selected excerpt and repeated loops",
+          "passed": true
+        },
+        {
+          "amplitude330Hz": 0.07954627556150017,
+          "case": "original-only audio",
+          "passed": true
+        },
+        {
+          "original330Hz": 7.928795552606054e-07,
+          "soundtrack440Hz": 0.09972189661023517,
+          "case": "original mute",
+          "passed": true
+        },
+        {
+          "unknownLengthProvider": true,
+          "externalSourcePreserved": true,
+          "temporaryFilesRemoved": true,
+          "case": "bounded source staging",
+          "passed": true
+        },
+        {
+          "peakTemporaryBytes": 536870912,
+          "providerWrittenBytes": 537001984,
+          "limitBytes": 536870912,
+          "case": "unknown-size byte ceiling",
+          "passed": true
+        },
+        {
+          "positiveTop": -196608,
+          "positiveBottom": -16711427,
+          "negativeTop": -196608,
+          "case": "vertical orientation and signed y translation",
+          "passed": true
+        },
+        {
+          "before": -262400,
+          "during": -16711936,
+          "after": -196864,
+          "case": "background framing and timed layers",
+          "passed": true
+        },
+        {
+          "partialRemoved": true,
+          "singleJobEnforced": true,
+          "retryDuration": 0.967,
+          "case": "real cancellation cleanup and retry",
+          "passed": true
+        },
+        {
+          "width": 1080,
+          "height": 1920,
+          "amplitude440Hz": 0.19948664862259247,
+          "case": "full portrait encode",
+          "passed": true
+        },
+        {
+          "succeededWithoutEof": true,
+          "earlyEndRejected": true,
+          "seekableOffsetAccepted": true,
+          "streamedOffsetRejectedMilliseconds": 1,
+          "temporaryFilesRemoved": true,
+          "case": "declared-length provider boundary",
+          "passed": true
+        },
+        {
+          "duration": 1.493,
+          "case": "voiceover cannot extend video",
+          "passed": true
+        },
+        {
+          "milliseconds": 20,
+          "providerStillOpen": true,
+          "temporaryFilesRemoved": true,
+          "retryPassed": true,
+          "case": "blocked provider cancellation",
+          "passed": true
+        },
+        {
+          "before": -16777216,
+          "during": -16711936,
+          "after": -16777216,
+          "case": "output-time artwork after trim and speed",
+          "passed": true
+        }
+      ],
+      "physicalDeviceAcceptance": false
+    }
+  },
+  "cause": "Media3 1.8.1 SequenceAssetLoader passes raw currentAssetDurationUs to TransformerInternal automatic-loop duration accounting. The first sequence speed effect changes actual video/audio duration, but the automatic soundtrack loop is ended using the pre-speed trim duration.",
+  "repair": "Construct a finite soundtrack sequence of explicitly clipped repetitions whose integer-microsecond lengths sum to the known edited output duration. One-pass voiceover remains a single clipped item. No automatic looping sequence is used; no duration or audio verification was weakened.",
+  "repairBounds": {
+    "maximumRepetitions": 136,
+    "freshAudioProcessorsPerItem": true,
+    "positiveIntegerMicrosecondSegments": true,
+    "onePassVoiceoverPreserved": true,
+    "strictOutputAttestationPreserved": true
+  },
+  "regression": "New 23rd method slows a 2.175-second trim to 4.35 seconds, repeats a 1.5-second selected excerpt, and measures both the later 440 Hz section and final fractional 880 Hz tail, original 330 Hz pitch/gain, frame count and total duration.",
+  "currentSourceSha256": {
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": "358bf67324e7228e688050d2e9a53470b433fc38de3942c722f620a30c59e221",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": "754eaa2052a1b48c527eb2a2f9ccfb94cdd88ed269aa1bb4933fdde3e066633e",
+    "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/StoryAudioExportTest.kt": "b044919dde2469f0b466d8eb1341b3414b75cfa522eb89925c5dec25488546a7"
+  },
+  "localBuilds": [
+    {
+      "result": "BUILD SUCCESSFUL",
+      "logSha256": "9f9090d5496ebb38f0d058f202770980a14fea9686e115ffb2b49a681dc1204c",
+      "commands": "verifyStoryMediaDependencies assembleDebug assembleDebugAndroidTest"
+    },
+    {
+      "result": "BUILD SUCCESSFUL",
+      "logSha256": "8fa49305d41ea3064a79d4fc0f5522fa8edf4896d704db829bd6dd23668cda4f",
+      "commands": "verifyStoryMediaDependencies assembleDebug assembleDebugAndroidTest"
+    }
+  ],
+  "productionCopiesMatchCurrentSource": true,
+  "compiledInstrumentationMethodCount": 23,
+  "resolvedHarnessMedia3": {
+    "project": ":",
+    "configuration": "debugRuntimeClasspath",
+    "expectedVersion": "1.8.1",
+    "aligned": true,
+    "components": [
+      {
+        "group": "androidx.media3",
+        "module": "media3-common",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-container",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-database",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-datasource",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-decoder",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-effect",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-exoplayer",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-extractor",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-muxer",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-transformer",
+        "version": "1.8.1"
+      }
+    ],
+    "scope": "Resolved runtime version alignment; separate from security or encoded-media acceptance."
+  },
+  "repairedRuntimeAcceptanceVerified": false,
+  "nativeCapabilitiesEnabled": false,
+  "limits": [
+    "The 21 passing measurements belong to the prior renderer. The repaired renderer and all 23 cases must be rerun before enabling capability.",
+    "No physical-device, installed-product or production-backend acceptance is inferred."
+  ]
+}

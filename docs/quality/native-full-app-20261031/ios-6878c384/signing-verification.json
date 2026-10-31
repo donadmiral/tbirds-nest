@@ -1,0 +1,23 @@
+{
+  "bundleIdentifier": "app.platinumcircles.mobile.qa",
+  "platform": "iOS Simulator",
+  "architecture": "x86_64",
+  "embeddedXMLAndDERHashesUnchangedAfterDeepAdHocSign": true,
+  "simulatedEntitlementsUnchanged": true,
+  "infoPlistHashUnchanged": true,
+  "adHocSignatureBeforeAndAfter": true,
+  "hostSignatureEntitlementsBeforeAndAfter": {},
+  "codesignDeepStrictVerifiedByRunner": true,
+  "simulatedApplicationIdentifier": "FAKETEAMID.app.platinumcircles.mobile.qa",
+  "defaultKeychainAccessGroup": "FAKETEAMID.app.platinumcircles.mobile.qa",
+  "metadataOnly": true,
+  "realAppleTeamOrProvisioningProfileUsed": false,
+  "derSemanticsDecoded": false,
+  "keychainReadbackGateReached": false,
+  "binaryRetainedForIndependentLocalParserRerun": false,
+  "limits": [
+    "The fake Simulator application identity is not a real Apple developer team.",
+    "Metadata and code-sign verification do not prove saved-account reload; the required capture route was not reached.",
+    "The before/after executable hashes differ after signing, while the embedded simulated entitlement sections and Info.plist hash remain identical."
+  ]
+}

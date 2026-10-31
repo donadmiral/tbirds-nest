@@ -1,0 +1,15 @@
+✔ installed SDK reproduces the old lock stall: getUser() blocks unrelated profile queries before fetch (16.762185ms)
+✔ post and album media verification run concurrently without holding session or database reads (11.297468ms)
+✔ failed server verification cannot reach the signer or return raw media (2.834192ms)
+✔ A to B to A account changes during signing invalidate the original capability result (3.972213ms)
+✔ a request cancelled before transport does not start network work (68.70434ms)
+✔ transport removes its caller abort listener after success and failure (54.11069ms)
+✔ a profile read deadline includes the SDK pre-fetch wait and cancels late transport (30.470498ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 208.361845

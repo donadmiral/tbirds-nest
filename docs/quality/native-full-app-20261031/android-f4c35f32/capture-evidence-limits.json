@@ -1,0 +1,42 @@
+{
+  "bothRequiredFlowsAttemptedOnce": true,
+  "navigationExitCode": 1,
+  "captureExitCode": 1,
+  "captureFirstFailure": "Device emulator-5556 was requested, but it is not connected.",
+  "captureTestcaseOrJUnitPresent": false,
+  "captureRouteReached": false,
+  "savedAccountReadbackReached": false,
+  "memoryMovieProduced": false,
+  "movieDecodePossible": false,
+  "screenRecordingRetrieved": false,
+  "emptyExports": [
+    {
+      "artifactMember": "native-ui-receipt.json",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "artifactMember": "native-ui-receipt-final.json",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "artifactMember": "native-ui-auth-diagnostics.json",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "artifactMember": "native-ui-auth-diagnostics-final.json",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "emptyExportMeaning": "These retained outputs are empty after device loss. They do not establish that the corresponding on-device files were empty; tested shell redirection can create an empty destination when adb fails. No auth metrics or cumulative fixture acceptance can be recovered from them.",
+  "phaseExitCodes": {
+    "flows": 1,
+    "evidence": 1,
+    "memoryDecoder": 1,
+    "fullAppVerifier": 1
+  },
+  "allMandatoryVerifiersRemainRequired": true
+}

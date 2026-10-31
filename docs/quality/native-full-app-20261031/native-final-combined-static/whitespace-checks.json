@@ -1,0 +1,128 @@
+{
+  "passed": true,
+  "elapsedMs": 17.055,
+  "modifiedCount": 9,
+  "addedCount": 6,
+  "rule": "Modified files require exit0 and empty output. Added-file --no-index checks require exit0 or1 and empty output; installed Git controls demonstrate clean additions exit1, while whitespace negatives exit3 with warnings.",
+  "checks": [
+    {
+      "scope": "all nine modified files",
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+        "--",
+        ".github/workflows/native-app-ui.yml",
+        "scripts/quality/prepare-native-ui.cjs",
+        "scripts/quality/test-android-app-ui.sh",
+        "scripts/quality/test-ios-app-ui.sh",
+        "src/components/memory/MemoryPageTurn.tsx",
+        "src/screens/profile/MemoryAlbumScreen.tsx",
+        "tests/quality/memory-page-turn.cjs",
+        "tests/quality/native-auth-diagnostics.cjs",
+        "tests/quality/native-memory-album-loading.cjs"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "scope": "scripts/quality/native-ui-emulator-graphics.py",
+      "command": [
+        "git",
+        "diff",
+        "--no-index",
+        "--check",
+        "--",
+        "/dev/null",
+        "scripts/quality/native-ui-emulator-graphics.py"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "scope": "scripts/quality/native-ui-emulator-host-diagnostics.py",
+      "command": [
+        "git",
+        "diff",
+        "--no-index",
+        "--check",
+        "--",
+        "/dev/null",
+        "scripts/quality/native-ui-emulator-host-diagnostics.py"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "scope": "scripts/quality/native-ui-ios-url-trace.py",
+      "command": [
+        "git",
+        "diff",
+        "--no-index",
+        "--check",
+        "--",
+        "/dev/null",
+        "scripts/quality/native-ui-ios-url-trace.py"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "scope": "tests/quality/native-emulator-graphics.cjs",
+      "command": [
+        "git",
+        "diff",
+        "--no-index",
+        "--check",
+        "--",
+        "/dev/null",
+        "tests/quality/native-emulator-graphics.cjs"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "scope": "tests/quality/native-emulator-host-diagnostics.cjs",
+      "command": [
+        "git",
+        "diff",
+        "--no-index",
+        "--check",
+        "--",
+        "/dev/null",
+        "tests/quality/native-emulator-host-diagnostics.cjs"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "",
+      "passed": true
+    },
+    {
+      "scope": "tests/quality/native-ios-url-trace.cjs",
+      "command": [
+        "git",
+        "diff",
+        "--no-index",
+        "--check",
+        "--",
+        "/dev/null",
+        "tests/quality/native-ios-url-trace.cjs"
+      ],
+      "exitCode": 1,
+      "stdout": "",
+      "stderr": "",
+      "passed": true
+    }
+  ]
+}

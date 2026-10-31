@@ -7,6 +7,10 @@ const ts = require('typescript');
 const root = path.join(__dirname, '..');
 const compile = file => ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText;
 const sources = {
+  '@/lib/messageNavigationMemory': compile(path.join(root, 'lib/messageNavigationMemory.ts')),
+  '../../shared/navigationCache': compile(path.join(root, '../shared/navigationCache.ts')),
+  '@/lib/profileLookup': compile(path.join(root, 'lib/profileLookup.ts')),
+  '@/lib/withTimeout': compile(path.join(root, 'lib/withTimeout.ts')),
   '@/components/MessagesApp': compile(path.join(root, 'components/MessagesApp.tsx')),
   '@/lib/messageOutbox': compile(path.join(root, 'lib/messageOutbox.ts')),
   '../../shared/messageDelivery': compile(path.join(root, '../shared/messageDelivery.ts')),
@@ -27,7 +31,7 @@ const text = node => typeof node === 'string' || typeof node === 'number' ? Stri
 function nodes(tree) { const out = []; const walk = node => { if (Array.isArray(node)) return node.forEach(walk); if (!node || typeof node !== 'object') return; out.push(node); if (typeof node.type === 'function') walk(node.type(node.props)); else walk(node.props?.children); }; walk(tree); return out; }
 
 function scenario(initial = [row(1)], options = {}) {
-  let rows = [...initial], reactions = [], pins = {}, tree, dirty = true, effects = [], cursor = 0;
+  let rows = [...initial], reactions = [], pins = {}, tree, dirty = true, effects = [], layoutEffects = [], cursor = 0;
   const slots = [], writes = [], reads = [], rpcs = [], listeners = [], timers = new Set(), browserEvents = new Map(), domEvents = new Map();
   const convs = ['a', 'b'].map(value => ({ id: value, title: 'Conversation ' + value, other_id: 'other', context: 'personal', is_group: !!options.group, unread: 0, last_message: '', last_message_time: null }));
   let readOverride, writeOverride, rpcFailure = false;
@@ -77,44 +81,59 @@ function scenario(initial = [row(1)], options = {}) {
     useCallback(fn,deps) { const i = cursor++; if (!slots[i] || !same(slots[i].deps,deps)) slots[i] = { value: fn, deps }; return slots[i].value; },
     useMemo(fn,deps) { return hooks.useCallback(fn,deps)(); },
     useEffect(fn,deps) { const i = cursor++; if (!slots[i] || !same(slots[i].deps,deps)) { const previous = slots[i]; slots[i] = { deps }; effects.push(() => { previous?.cleanup?.(); slots[i].cleanup = fn(); }); } },
+    useLayoutEffect(fn,deps) { const i = cursor++; if (!slots[i] || !same(slots[i].deps,deps)) { const previous = slots[i]; slots[i] = { deps }; layoutEffects.push({cleanup:previous?.cleanup,create:() => { slots[i].cleanup = fn(); }}); } },
+    useSyncExternalStore(subscribe, snapshot) { const [value, setValue] = hooks.useState(snapshot); hooks.useLayoutEffect(() => { const update = () => setValue(snapshot()); const unsubscribe = subscribe(update); update(); return unsubscribe; }, [subscribe, snapshot]); return value; },
   };
+  hooks.useEffectEvent = callback => { const ref = hooks.useRef(callback); hooks.useLayoutEffect(() => { ref.current = callback; }); return hooks.useCallback((...args) => ref.current(...args), []); };
   const runtime = { jsx: (type,props,key) => ({ type,props,key }), jsxs: (type,props,key) => ({ type,props,key }), Fragment: 'Fragment' };
   const cache = new Map();
+  const navValues = options.navigationValues || new Map();
+  let navOwner = 'me', navScope = '1:me', navChanged = false, navRevision = 1;
+  const navigationStore = { getSnapshot:()=>({owner:navOwner,scope:navScope,changed:navChanged}), cache:{
+    read:(scope,key)=>scope===navScope?navValues.get(key)??null:null,
+    save:(scope,key,value)=>{if(scope!==navScope)return false;navValues.set(key,value);return true;},
+  }};
   const stored = new Map();
+  const location = { pathname: '/messages', search: options.search || '' };
+  const browserHistory = { state: {}, pushState(state, _, url) { this.state = state; location.search = new URL(url, 'https://example.test').search; }, replaceState(state, _, url) { this.state = state; location.search = new URL(url, 'https://example.test').search; } };
   const browserDocument = { body: { style: {} }, visibilityState: options.hidden ? 'hidden' : 'visible', hasFocus: () => options.focused !== false,
     addEventListener(name, fn) { const set = browserEvents.get(name) || new Set(); set.add(fn); browserEvents.set(name, set); }, removeEventListener(name, fn) { browserEvents.get(name)?.delete(fn); } };
   const localStorage = { get length() { return stored.size; }, key: i => [...stored.keys()][i], getItem: key => stored.get(key) ?? null, setItem: (key,value) => stored.set(key,value), removeItem: key => stored.delete(key) }; 
   const load = name => {
     if (cache.has(name)) return cache.get(name).exports;
+    if (name.endsWith('.module.css')) return { __esModule: true, default: new Proxy({}, { get: (_, key) => String(key) }) };
     if (name === 'react') return hooks;
     if (name === 'react/jsx-runtime') return runtime;
     if (name === '@/lib/supabase/client') return { createClient: () => client };
-    if (name === '@/lib/messages') return { loadConversations: async () => convs };
+    if (name === '@/lib/navigationCache') return {getNavigationStore:()=>navigationStore};
+    if (name === '@/lib/messages') return { loadConversations: async (_owner,context='personal') => convs.filter(row=>row.context===context) };
     if (name === '@/lib/chatMedia') return { signChatMedia: async rows => rows, isChatMediaUrl: () => false };
     if (name === '@/lib/feed') return { timeAgo: () => 'now' };
     if (name === 'next/link') return { __esModule: true, default: 'Link' };
+    if (name === 'next/image') return { __esModule: true, default: 'img' };
     if (!sources[name]) return new Proxy({}, { get: (_,key) => String(key) });
     const module = { exports: {} }; cache.set(name,module);
     vm.runInNewContext(sources[name], { module, exports: module.exports, require: load, process:{env:options.env||{}}, Error, URLSearchParams, AbortController, crypto: require('node:crypto').webcrypto,
-      window: { localStorage, addEventListener: browserDocument.addEventListener, removeEventListener: browserDocument.removeEventListener, location: { search: '' }, matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }), scrollTo() {} }, document: browserDocument,
+      window: { localStorage, addEventListener: browserDocument.addEventListener, removeEventListener: browserDocument.removeEventListener, location, history: browserHistory, matchMedia: () => ({ matches: !!options.narrow, addEventListener() {}, removeEventListener() {} }), scrollTo() {} }, document: browserDocument,
       navigator: options.navigator || {}, MediaRecorder: options.MediaRecorder, Blob,
-      setTimeout, clearTimeout, setInterval: () => 1, clearInterval() {}, requestAnimationFrame: fn => { const timer = setTimeout(fn,0); timers.add(timer); return timer; }, cancelAnimationFrame: clearTimeout,
+      queueMicrotask, setTimeout, clearTimeout, setInterval: () => 1, clearInterval() {}, requestAnimationFrame: fn => { const timer = setTimeout(fn,0); timers.add(timer); return timer; }, cancelAnimationFrame: clearTimeout,
       ResizeObserver: class { observe() {} disconnect() {} }, MutationObserver: class { observe() {} disconnect() {} },
     }); return module.exports;
   };
   const Component = load('@/components/MessagesApp').MessagesApp;
   const dom = { children: [], style: {}, scrollTop: 0, scrollHeight: 100, clientHeight: 50, value: 'selected-file', addEventListener(name, fn) { domEvents.set(name, fn); }, removeEventListener(name) { domEvents.delete(name); } };
-  function render() { for (let i=0; dirty && i<25; i++) { dirty=false; cursor=0; tree=Component({}); nodes(tree).forEach(node => { if (node.props?.ref) node.props.ref.current=dom; }); const pending=effects; effects=[]; pending.forEach(effect => effect()); } assert.equal(dirty,false,'render settles'); }
+  function render() { for (let i=0; dirty && i<25; i++) { dirty=false; cursor=0; tree=Component({context:options.context||'personal'}); nodes(tree).forEach(node => { if (node.props?.ref) node.props.ref.current=dom; }); const committed=layoutEffects; layoutEffects=[]; committed.forEach(effect => effect.cleanup?.()); committed.forEach(effect => effect.create()); const pending=effects; effects=[]; pending.forEach(effect => effect()); } assert.equal(dirty,false,'render settles'); }
   render();
-  return { client, rows: () => rows, writes, reads, rpcs, dom, listeners,
+  return { navigationValues:navValues, client, rows: () => rows, writes, reads, rpcs, dom, listeners, location,
     find: predicate => nodes(tree).find(predicate), all: predicate => nodes(tree).filter(predicate),
     get text() { return nodes(tree).filter(node => typeof node.type !== 'function').map(text).join(' '); },
     click(label) { const n = nodes(tree).find(node => (node.type==='button' || node.props?.role==='button') && (text(node).trim()===label || node.props?.['aria-label']===label || node.props?.title===label)); assert.ok(n,'missing button '+label); assert.ok(!n.props.disabled,'button disabled '+label); const result=n.props.onClick(); render(); return result; },
-    open(name) { const n=nodes(tree).find(node => node.props?.role==='button' && text(node).includes('Conversation '+name)); assert.ok(n); const result=n.props.onClick(); render(); return result; },
+    open(name) { const n=nodes(tree).find(node => node.type==='button' && node.props?.['aria-label']==='Open conversation with Conversation '+name); assert.ok(n); const result=n.props.onClick(); render(); return result; },
     draft(value) { const n=nodes(tree).find(node => node.type==='textarea'); n.props.onChange({target:{value}}); render(); },
-    changeUser(value) { authUser = value; authListener('SIGNED_IN', value ? { user: { id: value } } : null); render(); },
+    changeUser(value) { authUser = value; navOwner=value;navScope=value?`${++navRevision}:${value}`:null;navChanged=true;navValues.clear();authListener('SIGNED_IN', value ? { user: { id: value } } : null); render(); },
+    changeContext(value) {options.context=value;dirty=true;render();},
     setRead(fn) { readOverride=fn; }, setWrite(fn) { writeOverride=fn; }, setRpcFailure(value) { rpcFailure=value; },
-    event(name) { for (const fn of browserEvents.get(name) || []) fn(); render(); },
+    event(name, payload = {}) { for (const fn of browserEvents.get(name) || []) fn(payload); render(); },
     visible(value) { browserDocument.visibilityState = value ? 'visible' : 'hidden'; this.event('visibilitychange'); },
     focused(value) { options.focused = value; this.event('focus'); },
     scroll(top, height = 1000) { dom.scrollHeight = height; dom.scrollTop = top; domEvents.get('scroll')?.(); render(); },
@@ -266,4 +285,74 @@ test('GIF and sticker actions use durable message delivery and preserve the chos
 test('story replies expose the authorized story route without copying story media',async()=>{
   const storyId=id(42),app=scenario([row(1,{media_type:'link',media_url:JSON.stringify({pcStory:1,storyId})})]);await app.flush();await app.open('a');await app.flush();
   assert.ok(app.find(n=>n.type==='Link'&&n.props.href==='/story/'+storyId));assert.equal(app.all(n=>['img','video'].includes(n.type)).length,0);app.unmount();
+});
+
+
+test('compact chat Back preserves the draft and cannot reopen itself from an old deep link', async () => {
+  const app = scenario(undefined, { narrow: true, search: '?c=a' }); await app.flush();
+  assert.ok(app.find(node => node.type === 'textarea'));
+  app.draft('Saved before exit'); await app.click('Back to conversations'); await app.flush();
+  assert.equal(app.find(node => node.type === 'textarea'), undefined);
+  assert.equal(app.location.search, '');
+  await app.open('a'); await app.flush();
+  assert.equal(app.find(node => node.type === 'textarea').props.value, 'Saved before exit');
+  app.unmount();
+});
+
+test('Escape cancels an edit first, restores the unsent draft, then returns to the inbox', async () => {
+  const app = scenario(undefined, { narrow: true }); await app.flush(); await app.open('a'); await app.flush();
+  app.draft('Original draft'); app.click('Edit'); app.draft('Uncommitted edit');
+  app.event('keydown', { key: 'Escape', preventDefault() {} }); await app.flush();
+  assert.equal(app.find(node => node.type === 'textarea').props.value, 'Original draft');
+  assert.equal(app.writes.filter(call => call.table === 'messages' && call.op === 'update').length, 0);
+  app.event('keydown', { key: 'Escape', preventDefault() {} }); await app.flush();
+  assert.equal(app.find(node => node.type === 'textarea'), undefined);
+  app.unmount();
+});
+
+test('browser Back closes a compact conversation without a stale history response restoring it', async () => {
+  const app = scenario(undefined, { narrow: true }); await app.flush();
+  const wait = deferred(); app.setRead(call => call.table === 'messages' ? wait.promise : null);
+  const opening = app.open('a'); await app.flush();
+  app.location.search = ''; app.event('popstate');
+  wait.resolve({ data: [row(1)], error: null }); await opening; await app.flush();
+  assert.equal(app.find(node => node.type === 'textarea'), undefined);
+  assert.ok(!app.text.includes('Message 1')); app.unmount();
+});
+
+test('returning to Messages restores loaded inbox, selected thread, draft and scroll before its background read',async()=>{
+  const original=scenario([row(1)]);await original.flush();await original.open('a');await original.flush();original.draft('Keep this draft');original.scroll(240,1000);original.unmount();
+  const saved=original.navigationValues.get('messages:personal');assert.equal(saved.active.id,'a');assert.equal(saved.top,240);assert.equal(saved.draft,'Keep this draft');
+  const resumed=scenario([row(1)],{navigationValues:original.navigationValues}),gate=deferred();resumed.setRead(call=>call.table==='messages'?gate.promise:null);
+  assert.ok(resumed.text.includes('Message 1'));assert.equal(resumed.find(n=>n.type==='textarea').props.value,'Keep this draft');assert.equal(resumed.dom.scrollTop,240);
+  await resumed.flush();assert.ok(resumed.text.includes('Message 1'));assert.ok(!resumed.text.includes('Loading messages'));
+  gate.resolve({data:null,error:{message:'offline'}});await resumed.flush();assert.ok(resumed.text.includes('Message 1'));assert.ok(resumed.text.includes('Messages could not be loaded.'));resumed.unmount();
+});
+
+test('restored thread refresh removes revoked older messages without losing authorized pages or a typed draft',async()=>{
+  const rows=Array.from({length:55},(_,i)=>row(i+1)),original=scenario(rows);await original.flush();await original.open('a');await original.flush();await original.click('Load older messages');await original.flush();original.draft('Unsent');original.unmount();
+  const resumed=scenario(rows.filter(r=>r.id!==id(1)),{navigationValues:original.navigationValues});
+  assert.equal(resumed.all(n=>n.type==='p'&&/^Message \d+$/.test(text(n))).length,55);
+  await resumed.flush();assert.equal(resumed.all(n=>n.type==='p'&&/^Message \d+$/.test(text(n))).length,54);
+  assert.ok(!resumed.all(n=>n.type==='p').some(n=>text(n)==='Message 1'));assert.ok(resumed.all(n=>n.type==='p').some(n=>text(n)==='Message 2'));
+  assert.equal(resumed.find(n=>n.type==='textarea').props.value,'Unsent');resumed.unmount();
+});
+
+test('navigation memory never persists limited-view media capabilities or reuses a different business context',async()=>{
+  const original=scenario([row(1,{view_limit:1,media_url:'https://signed.invalid/private',_private_media_url:'https://signed.invalid/private',_private_thumbnail_url:'https://signed.invalid/thumb'})]);await original.flush();await original.open('a');await original.flush();original.draft('Personal');original.unmount();
+  const cached=original.navigationValues.get('messages:personal');assert.equal(cached.messages[0].media_url,null);assert.equal(cached.messages[0]._private_media_url,undefined);assert.equal(cached.messages[0]._private_thumbnail_url,undefined);
+  const market=scenario([],{navigationValues:original.navigationValues,context:'market'});assert.ok(!market.text.includes('Personal'));assert.equal(market.find(n=>n.type==='textarea'),undefined);await market.flush();market.unmount();
+});
+
+test('an account change after navigation restore drops the selected thread and late retained-page result',async()=>{
+  const original=scenario([row(1)]);await original.flush();await original.open('a');await original.flush();original.unmount();
+  const next=scenario([row(1)],{navigationValues:original.navigationValues}),gate=deferred();next.setRead(call=>call.table==='messages'?gate.promise:null);await next.flush();next.changeUser('other-account');
+  assert.ok(!next.text.includes('Message 1'));gate.resolve({data:[row(1)],error:null});await next.flush();assert.ok(!next.text.includes('Message 1'));assert.equal(next.navigationValues.size,0);next.unmount();
+});
+
+test('changing message business context on a mounted screen restores only that context and preserves the departing draft',async()=>{
+ const app=scenario([row(1)]);await app.flush();await app.open('a');await app.flush();app.draft('Private personal draft');
+ app.changeContext('market');assert.ok(!app.text.includes('Message 1'));assert.equal(app.find(n=>n.type==='textarea'),undefined);await app.flush();
+ assert.equal(app.navigationValues.get('messages:personal').draft,'Private personal draft');
+ app.changeContext('personal');assert.ok(app.text.includes('Message 1'));assert.equal(app.find(n=>n.type==='textarea').props.value,'Private personal draft');await app.flush();app.unmount();
 });

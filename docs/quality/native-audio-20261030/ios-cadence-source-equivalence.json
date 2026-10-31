@@ -1,0 +1,94 @@
+{
+  "kind": "independent source equivalence and report review",
+  "recordedAt": "2026-10-30T23:11:12.274259+00:00",
+  "baseline": {
+    "commit": "71aa363a5967d523a852516469a83ec163f93196",
+    "tree": "54758f064e900675d74d931fd17aa1b70ec0e9e1",
+    "scope": "Completed activation client/backend/browser gates and Android compile/runtime; expanded iOS cadence gate failed."
+  },
+  "candidate": {
+    "commit": "e673bdb97f77fc8f9763ef997f75fb805fe0f26f",
+    "tree": "4c5be88ea0a505a065ba5a191325357978ed6870",
+    "testedMerge": "4b0cf24573e12e88c92a23abfcf298bbd788740c",
+    "testedMergeTree": "4c5be88ea0a505a065ba5a191325357978ed6870",
+    "mergeTreeIndependentlyMatches": true
+  },
+  "comparison": {
+    "method": "Exact recursive Git object ID, object type, path and mode comparison; no test reruns or hosted service changes.",
+    "excludedPaths": [
+      "docs/",
+      "modules/boomerang/ios/StoryVideoComposition.swift"
+    ],
+    "equalTrackedEntries": 1844,
+    "gitObjectInventorySha256": "6405d5a51ba7c206ab927cc1220fc287530efad84169ccac42ce37cedf03a190",
+    "sourceAndInputGroups": {
+      "web/": {
+        "trackedEntries": 499,
+        "gitObjectInventorySha256": "e6c3e0794c404af9edfdc9994196f1ab3182b2b5162f9704c8bb0de493e289b0"
+      },
+      "admin-web/": {
+        "trackedEntries": 223,
+        "gitObjectInventorySha256": "849e27aa7f8c28430c4d5adb9d1c442db3ac0942c6a80dc10ed31f26d2bddc19"
+      },
+      "src/": {
+        "trackedEntries": 355,
+        "gitObjectInventorySha256": "e0f860220b657ec3e8d648cdf7ee90fd0534f579aafcc6fa0f9093d201a02a32"
+      },
+      "supabase/": {
+        "trackedEntries": 441,
+        "gitObjectInventorySha256": "e6e560ffa8ad016e9f5c482da6cd83629837ea9afb56df9e3e97f4de530594c2"
+      },
+      "modules/boomerang/android/": {
+        "trackedEntries": 5,
+        "gitObjectInventorySha256": "f83ffb5e28078fca6c2e60a499056ddf1892e9667220f59361ac89635c917d13"
+      },
+      "scripts/": {
+        "trackedEntries": 17,
+        "gitObjectInventorySha256": "9351026d35d09ebfbef8b954b21207a478e01bee37c0f8e347a8b70ff4c17081"
+      },
+      ".github/": {
+        "trackedEntries": 4,
+        "gitObjectInventorySha256": "bf8bde3ccb3261c062e839b2024e5ca1e1532d9741e8960d1ee8fcd7d25561fd"
+      },
+      "tests/": {
+        "trackedEntries": 142,
+        "gitObjectInventorySha256": "674de25c3f199892e1e51e6ce47da022570a7c094aeee25391dce031739bfacd"
+      }
+    }
+  },
+  "onlyExecutableChange": {
+    "path": "modules/boomerang/ios/StoryVideoComposition.swift",
+    "baselineSha256": "1fd77c1eaa9f802caabc75c20534606d5d4dee219ca044629045f70895945a87",
+    "candidateSha256": "5aacf6fe5842f6b846d11b9155b04df6ecbb5c3c923afc8b6479d477ddf2903c",
+    "addedLines": 3,
+    "removedLines": 0,
+    "review": "One property assignment resets sourceTrackIDForFrameTiming to kCMPersistentTrackID_Invalid before the existing 1/30 frame duration; two accompanying comment lines. Exact byte comparison found no other renderer change."
+  },
+  "unchangedHarness": {
+    "path": "scripts/quality/StoryAudioExportHarness.swift",
+    "sha256": "f62d1d285283d6b45a2dc8ab9b55f2e1c47f18a8e44bc3b56631d3f90379d714",
+    "scope": "All eight planned cases retain strict 30 fps count/spacing, decoded audio/video coverage, spectral/gain/excerpt and late-frame checks."
+  },
+  "acceptedEvidenceReused": [
+    "docs/quality/interaction-acceptance-20261030/activation-type-backend-ci.json",
+    "docs/quality/interaction-acceptance-20261030/final-browser-ci.json",
+    "docs/quality/native-audio-20261030/android-emulator-acceptance-71aa363a.json",
+    "docs/quality/native-audio-20261030/android-full-integration-71aa363a.json"
+  ],
+  "freshIosAcceptanceRequired": true,
+  "newTypeBackendWorkflowRun": 41142738970,
+  "workflowStatusScope": "Run ID supplied by parent; no new type/backend outcome is inferred or polled in this source-equivalence review.",
+  "reportReview": {
+    "path": "docs/quality/MUSIC_ACCEPTANCE_CONTINUATION_20261030.md",
+    "reviewedSha256": "36c25319416db593943fe88fddc15cced671bcc34edeecaa0ec523f45bafebfd",
+    "localEvidenceLinksChecked": 38,
+    "missingLinks": [],
+    "result": "No concrete stale counts or missing release blockers found. Hosted installation absent; catalogue disabled; production/device/provider gates and failed iOS cadence remain explicit. Two clarity notes sent to parent: retain diagnosis scope until new runtime passes, and mention the unsigned Android native QA APK has no embedded JS bundle."
+  },
+  "limits": [
+    "This proves identical repository inputs outside the specified Swift fix; it does not claim a fresh execution of all earlier tests.",
+    "Full Android compile is an unsigned native QA integration build without an embedded JavaScript bundle or installed-product acceptance.",
+    "The new iOS renderer still requires compile and all eight simulator cases; earlier iOS results do not establish corrected cadence.",
+    "No hosted Supabase migrations, provider licensing or physical-device acceptance occurred."
+  ]
+}

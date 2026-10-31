@@ -1,10 +1,11 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import NextImage from "next/image";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Bookmark, ChevronLeft, ChevronRight, Heart, Maximize2, MessageCircle, Minimize2, X } from "lucide-react";
 import type { FeedRow } from "@/lib/feed";
-import { VideoPlayer } from "@/components/VideoPlayer";
+import { VideoPlayer, type PostMediaEditRecipe } from "@/components/VideoPlayer";
 import { Comments } from "@/components/Comments";
 import { ShareMenu } from "@/components/ShareMenu";
 import { PostSoundtrack } from "@/components/PostSoundtrack";
@@ -16,7 +17,7 @@ import { AdjustOverlay } from "@/components/StoryEngine";
 import { readSoundtrack } from "../../shared/soundtrack";
 import { discoverFrame, discoverIndex, discoverNeedsMore } from "../../shared/discover";
 
-function EditPlanes({ edit }: { edit: any }) {
+function EditPlanes({ edit }: { edit: PostMediaEditRecipe | null | undefined }) {
   const filter = STORY_FILTERS.find(f=>f.id===edit?.filterId);
   const amount=Math.max(0,Math.min(1,(edit?.filterAmt??100)/100));
   return <>{filter?<div className="pointer-events-none absolute inset-0" style={{backdropFilter:filterCss(filter.id,amount),WebkitBackdropFilter:filterCss(filter.id,amount)}}>{filter.layers.map((l,i)=><div key={i} className="absolute inset-0" style={{backgroundColor:l.color,opacity:l.opacity*amount}}/>)}</div>:null}{edit?.adjust?<AdjustOverlay adjust={edit.adjust}/>:null}</>;
@@ -25,23 +26,24 @@ function DiscoverItem({post,active,expanded,onComments}:{post:FeedRow;active:boo
   const [slide,setSlide]=useState(0),[fresh,setFresh]=useState<FeedRow|null>(null),[mediaError,setMediaError]=useState(false),[retrying,setRetrying]=useState(false);
   const live=useRef(true),generation=useRef(0),frameRef=useRef<HTMLDivElement>(null);
   const [revealed,setRevealed]=useState(false),[frameSize,setFrameSize]=useState({width:1,height:1});
-  useEffect(()=>{setFresh(null);setMediaError(false);},[post]);
-  useEffect(()=>{live.current=true;return()=>{live.current=false;generation.current++;};},[]);
+  const [previousPost, setPreviousPost] = useState(post);
+  if (previousPost !== post) { setPreviousPost(post); setFresh(null); setMediaError(false); }
+  useEffect(()=>{live.current=true;return()=>{live.current=false;generation.current += 1;};},[]);
   useEffect(()=>{const node=frameRef.current;if(!node)return;const measure=()=>setFrameSize({width:Math.max(1,node.clientWidth),height:Math.max(1,node.clientHeight)});measure();const observer=new ResizeObserver(measure);observer.observe(node);return()=>observer.disconnect();},[]);
-  const media=(fresh??post).media??[];const item=media[slide];const edit=(item as any)?.edit;
-  const hidden=media.some(m=>(m as any).is_sensitive||(m as any).edit?.sensitive)&&!revealed;
+  const media=(fresh??post).media??[];const item=media[slide];const edit=item?.edit;
+  const hidden=media.some(m=>m.is_sensitive||m.edit?.sensitive)&&!revealed;
   const frame=discoverFrame(frameSize.width,frameSize.height,item?.width,item?.height,Number(edit?.rotation)||0);
-  const soundtrack=readSoundtrack((media[0] as any)?.edit?.soundtrack);
+  const soundtrack=readSoundtrack(media[0]?.edit?.soundtrack);
   const interaction=usePostInteractions(post.post_id,{liked:post.viewer_liked,bookmarked:post.viewer_bookmarked,likesCount:post.likes_count,bookmarksCount:post.bookmarks_count});
   const retry=async()=>{
-    if(retrying)return;setRetrying(true);const run=++generation.current;
+    if(retrying)return;setRetrying(true);const run=generation.current += 1;
     try{const [renewed]=await hydratePostMedia([post],createClient());if(live.current&&run===generation.current){setFresh(renewed);setMediaError(false);}}
     catch{if(live.current&&run===generation.current)setMediaError(true);}finally{if(live.current&&run===generation.current)setRetrying(false);}
   };
   return <article data-post-id={post.post_id} className="flex h-full min-h-0 snap-start snap-always flex-col bg-white">
     <div ref={frameRef} className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-black">
       {hidden?<button onClick={()=>setRevealed(true)} className="rounded-xl bg-black/80 p-6 text-white">Sensitive content. Tap to view.</button>:item?.media_type==='video' ? <VideoPlayer src={item.url} postId={post.post_id} immersive allowPlayback={active} width={item.width??undefined} height={item.height??undefined} edit={edit} poster={edit?.coverUrl} soundtrack={soundtrack} mediaOverlay={<EditPlanes edit={edit}/>}/>
-      :item?<><img src={item.url} alt={(item as any).alt_text||''} className="shrink-0 object-contain" onError={()=>setMediaError(true)} style={{...frame,transform:`translate(${(edit?.translateNX||0)*frameSize.width}px, ${(edit?.translateNY||0)*frameSize.height}px) rotate(${edit?.rotation||0}deg) scale(${(edit?.scale||1)*(edit?.flipX?-1:1)}, ${edit?.scale||1})`}}/><EditPlanes edit={edit}/></>
+      :item?<><NextImage unoptimized width={frameSize.width} height={frameSize.height} src={item.url} alt={item.alt_text||''} className="shrink-0 object-contain" onError={()=>setMediaError(true)} style={{...frame,transform:`translate(${(edit?.translateNX||0)*frameSize.width}px, ${(edit?.translateNY||0)*frameSize.height}px) rotate(${edit?.rotation||0}deg) scale(${(edit?.scale||1)*(edit?.flipX?-1:1)}, ${edit?.scale||1})`}}/><EditPlanes edit={edit}/></>
       :<div className="max-h-full overflow-y-auto p-8 text-xl leading-relaxed text-white"><h2 className="mb-3 font-bold">{post.article_title}</h2>{post.content||post.body}</div>}
       {!hidden&&item?.media_type!=='video'?<PostSoundtrack selection={soundtrack} active={active} className="absolute left-3 top-3"/>:null}
       {media.length>1?<div className="absolute bottom-5 left-1/2 flex -translate-x-1/2 items-center gap-5 rounded-full bg-black/70 p-2 text-white"><button aria-label="Previous photo" disabled={slide===0} onClick={()=>{setSlide(v=>v-1);setMediaError(false);}} className="disabled:opacity-30"><ChevronLeft/></button><span>{slide+1}/{media.length}</span><button aria-label="Next photo" disabled={slide>=media.length-1} onClick={()=>{setSlide(v=>v+1);setMediaError(false);}} className="disabled:opacity-30"><ChevronRight/></button></div>:null}
@@ -53,7 +55,7 @@ function DiscoverItem({post,active,expanded,onComments}:{post:FeedRow;active:boo
 export function DiscoverViewer({posts,initialId,hasMore,loading,error,loadMore,onClose}:{posts:FeedRow[];initialId:string;hasMore:boolean;loading:boolean;error:string|null;loadMore:()=>Promise<void>;onClose:()=>void}) {
   const [activeId,setActiveId]=useState(initialId),[comments,setComments]=useState<string|null>(null),[expanded,setExpanded]=useState(false),[visible,setVisible]=useState(()=>document.visibilityState!=='hidden');
   const scroller=useRef<HTMLDivElement>(null),dialog=useRef<HTMLDivElement>(null),didPosition=useRef(false);
-  const current=useRef({onClose,comments,posts,activeId});current.current={onClose,comments,posts,activeId};
+  const current=useRef({onClose,comments,posts,activeId});useLayoutEffect(()=>{current.current={onClose,comments,posts,activeId};},[onClose,comments,posts,activeId]);
   const index=discoverIndex(posts.map(p=>p.post_id),activeId);
   const position=useCallback((i:number,behavior:ScrollBehavior='smooth')=>{const node=scroller.current;if(node)node.scrollTo({top:Math.max(0,Math.min(posts.length-1,i))*node.clientHeight,behavior});},[posts.length]);
   useEffect(()=>{if(!didPosition.current&&posts.length&&scroller.current){didPosition.current=true;scroller.current.scrollTop=index*scroller.current.clientHeight;}},[posts.length,index]);

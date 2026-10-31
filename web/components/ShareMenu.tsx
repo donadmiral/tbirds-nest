@@ -4,20 +4,25 @@ import { useEffect, useRef, useState } from "react";
 import { Share2, Link2, Send, Check, CirclePlus } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { loadConversations, type Conv } from "@/lib/messages";
+import { loadConversationTargets, type ConversationTarget } from "../../shared/conversationTargets";
 import { sharePostToConversation } from "@/lib/postSharing";
+import { withTimeout } from "@/lib/withTimeout";
 
 function recordShare(postId: string) {
   const supabase = createClient();
   supabase.rpc("increment_share_count", { p_post_id: postId }).then(() => {}, () => {});
 }
 
-export function ShareMenu({ postId, sharesCount }: { postId: string; sharesCount?: number }) {
-  const supabase = useRef(createClient()).current;
+export function ShareMenu(props: Parameters<typeof PostShareMenu>[0]) {
+  return <PostShareMenu key={props.postId} {...props} />;
+}
+
+function PostShareMenu({ postId, sharesCount }: { postId: string; sharesCount?: number }) {
+  const [supabase] = useState(createClient);
   const boxRef = useRef<HTMLDivElement | null>(null);
   const [open, setOpen] = useState(false);
   const [sendMode, setSendMode] = useState(false);
-  const [convs, setConvs] = useState<Conv[]>([]);
+  const [convs, setConvs] = useState<ConversationTarget[]>([]);
   const [groups, setGroups] = useState<{ id: string; name: string; emoji: string | null }[]>([]);
   const [communities, setCommunities] = useState<{ id: string; name: string; emoji: string | null }[]>([]);
   const [copied, setCopied] = useState(false);
@@ -29,28 +34,38 @@ export function ShareMenu({ postId, sharesCount }: { postId: string; sharesCount
   const generation = useRef(0);
   const alive = useRef(true);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => { alive.current = true; return () => { alive.current = false; generation.current++; if (timer.current) clearTimeout(timer.current); }; }, []);
-  const [n, setN] = useState(sharesCount ?? 0);
-  useEffect(() => { setN(sharesCount ?? 0); }, [sharesCount, postId]);
-  useEffect(() => { generation.current++; setError(null); setSent(null); setConvs([]); setGroups([]); setCommunities([]); setOpen(false); setSendMode(false); setCopied(false); }, [postId]);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; generation.current += 1; if (timer.current) clearTimeout(timer.current); }; }, []);
+  const [count, setCount] = useState({ source: sharesCount, value: sharesCount ?? 0 });
+  if (count.source !== sharesCount) setCount({ source: sharesCount, value: sharesCount ?? 0 });
+  const n = count.value;
+  const setN = (next: (value: number) => number) => setCount(previous => ({ ...previous, value: next(previous.value) }));
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event) => {
       if (event !== 'SIGNED_IN' && event !== 'SIGNED_OUT') return;
-      generation.current++; setConvs([]); setGroups([]); setCommunities([]); setSendMode(false); setOpen(false);
+      generation.current += 1; setConvs([]); setGroups([]); setCommunities([]); setSendMode(false); setOpen(false);
     });
     return () => data.subscription.unsubscribe();
   }, [supabase]);
 
   useEffect(() => {
     if (!open) return;
-    function onKey(e: KeyboardEvent) { if (e.key === "Escape") { setOpen(false); setSendMode(false); } }
+    function onKey(e: KeyboardEvent) { if (e.key === "Escape") { e.stopPropagation(); closeMenu(); } }
     document.addEventListener("keydown", onKey);
     function onDoc(e: MouseEvent) {
-      if (boxRef.current && !boxRef.current.contains(e.target as Node)) { setOpen(false); setSendMode(false); }
+      if (boxRef.current && !boxRef.current.contains(e.target as Node)) closeMenu();
     }
     document.addEventListener("mousedown", onDoc);
     return () => { document.removeEventListener("mousedown", onDoc); document.removeEventListener("keydown", onKey); };
   }, [open]);
+
+  function closeMenu() {
+    generation.current += 1;
+    setOpen(false); setSendMode(false); setLoading(false); setError(null);
+  }
+  function backToShare() {
+    generation.current += 1;
+    setSendMode(false); setLoading(false); setError(null);
+  }
 
   const url = () => window.location.origin + "/post/" + postId;
 
@@ -74,31 +89,21 @@ export function ShareMenu({ postId, sharesCount }: { postId: string; sharesCount
   }
 
   async function openSend() {
-    const attempt = ++generation.current;
+    const attempt = generation.current += 1;
     const current = () => alive.current && attempt === generation.current;
     setSendMode(true); setLoading(true); setError(null); setSent(null);
     setConvs([]); setGroups([]); setCommunities([]);
     try {
-      const { data, error: authError } = await supabase.auth.getSession();
+      const { data, error: authError } = await withTimeout(supabase.auth.getSession());
       const uid = data.session?.user.id;
       if (authError || !uid) throw new Error("Sign in to share to a conversation.");
-      const [list, cm] = await Promise.all([
-        loadConversations(uid, "personal"),
-        supabase.from("community_members").select("community_id").eq("user_id", uid).limit(100),
-      ]);
-      if (cm.error) throw new Error("Your communities could not be loaded. Please retry.");
-      const cids = Array.from(new Set((cm.data ?? []).map(row => row.community_id).filter(Boolean)));
-      let communityRows: { id: string; name: string; emoji: string | null }[] = [];
-      if (cids.length) {
-        const result = await supabase.from("communities").select("id, name, emoji").in("id", cids).order("name").limit(30);
-        if (result.error) throw new Error("Your communities could not be loaded. Please retry.");
-        communityRows = result.data ?? [];
-      }
-      const session = await supabase.auth.getSession();
+      const targets = await loadConversationTargets(supabase, uid);
+      const session = await withTimeout(supabase.auth.getSession());
       if (!current() || session.data.session?.user.id !== uid) return;
-      setConvs(list.filter(c => !c.is_group).slice(0, 30));
-      setGroups(list.filter(c => c.is_group).slice(0, 30).map(c => ({ id: c.id, name: c.title, emoji: null })));
-      setCommunities(communityRows);
+      setConvs(targets.people);
+      setGroups(targets.groups);
+      setCommunities(targets.communities);
+      setError(targets.warning);
     } catch (e) { if (current()) setError(e instanceof Error ? e.message : "Conversations could not be loaded. Please retry."); }
     finally { if (current()) setLoading(false); }
   }
@@ -108,7 +113,7 @@ export function ShareMenu({ postId, sharesCount }: { postId: string; sharesCount
     sending.current = true; setBusy(true); setError(null); setSent(null);
     const attempt = generation.current;
     try {
-      const { data, error: authError } = await supabase.auth.getSession();
+      const { data, error: authError } = await withTimeout(supabase.auth.getSession());
       const uid = data.session?.user.id;
       if (authError || !uid) throw new Error("Sign in again before sharing.");
       let convId = destination;
@@ -132,7 +137,7 @@ export function ShareMenu({ postId, sharesCount }: { postId: string; sharesCount
 
   return (
     <div ref={boxRef} className="relative">
-      <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen((v) => !v); }}
+      <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); if (open) closeMenu(); else setOpen(true); }}
         title="Share" aria-label="Share post" aria-expanded={open} aria-haspopup="dialog"
         className="flex items-center gap-1.5 text-[13px] text-muted transition-colors hover:text-accent"
       >
@@ -141,6 +146,10 @@ export function ShareMenu({ postId, sharesCount }: { postId: string; sharesCount
       </button>
       {open ? (
         <div role="dialog" aria-label="Share post" className="absolute bottom-7 right-0 z-20 w-72 max-w-[calc(100vw-2rem)] max-h-[60vh] overflow-y-auto rounded-lg border border-ink/10 bg-surface shadow-2xl">
+          <div className="flex items-center justify-between border-b border-ink/10 px-3.5 py-2">
+            {sendMode ? <button type="button" className="min-h-11 text-sm text-ink" onClick={backToShare}>Back</button> : <span className="text-sm font-semibold text-ink">Share post</span>}
+            <button type="button" className="min-h-11 text-sm text-muted" onClick={closeMenu}>Cancel</button>
+          </div>
           {error ? <p role="status" className="px-3.5 py-3 text-[12px] text-danger">{error}{sendMode ? <button className="ml-2 underline" disabled={busy || loading} onClick={() => void openSend()}>Retry loading</button> : null}</p> : null}
           {busy ? <p role="status" className="px-3.5 pt-3 text-[12px] text-muted">Sending…</p> : null}
           {sendMode ? (
@@ -149,9 +158,9 @@ export function ShareMenu({ postId, sharesCount }: { postId: string; sharesCount
             ) : (
               <>
                 {convs.map((c) => (
-                  <button key={c.id} onClick={(e) => { e.stopPropagation(); sendToConversation(c.id, c.other_id); }} className={item} disabled={busy || !!sent}>
+                  <button key={c.id} onClick={(e) => { e.stopPropagation(); sendToConversation(c.id, c.otherId); }} className={item} disabled={busy || !!sent}>
                     {sent === c.id ? <Check size={15} className="text-success" /> : <Send size={15} />}
-                    <span className="truncate">{c.title}</span>
+                    <span className="truncate">{c.name}</span>
                   </button>
                 ))}
                 {groups.length ? <p className="px-3.5 pb-1 pt-2 text-[10.5px] font-extrabold uppercase tracking-wider text-muted">Groups</p> : null}

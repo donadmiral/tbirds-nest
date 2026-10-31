@@ -15,13 +15,14 @@ import {
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
-import { themedSheet, getTheme } from '../../theme/useTheme';
+import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { authorId as currentAuthorId } from '../../stores/actorStore';
 import GifPickerLite from '../GifPickerLite';
 import TierName from '../TierName';
 import VerifiedBadge from '../VerifiedBadge';
+import { loadCommentHighlights, pinnedFirst } from '../../../shared/commentHighlights';
 
 const NAVY = '#0B1E3D';
 const TEXT_PRIMARY = '#000000';
@@ -95,6 +96,9 @@ function RichText({ text, onMention, onHashtag, style }: { text: string; onMenti
 }
 
 const CommentsPanel = forwardRef<CommentsPanelHandle, CommentsPanelProps>(function CommentsPanel({ postId, postAuthorId, autoFocus, onCount, bottomInset = 0, onFocusChange, header, onRefresh, keyboardOffset }, ref) {
+  const { t } = useTheme();
+  const NAVY = t.ink.primary;
+  const TEXT_SECONDARY = t.ink.secondary;
   const navigation = useNavigation<any>();
   const { profile } = useAuthStore();
   const userId = profile?.id ?? null;
@@ -102,6 +106,16 @@ const CommentsPanel = forwardRef<CommentsPanelHandle, CommentsPanelProps>(functi
   const [items, setItems] = useState<Comment[]>([]);
   const [reactions, setReactions] = useState<Record<string, number>>({});
   const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [pinnedId, setPinnedId] = useState<string | null>(null);
+  const [authorLikes, setAuthorLikes] = useState<Set<string>>(new Set());
+  const pendingActions = useRef(new Set<string>());
+  const loadRevision = useRef(0);
+  const activeScope = useRef({ key: '', generation: 0 });
+  const scopeKey = `${postId}:${userId ?? ''}`;
+  if (activeScope.current.key !== scopeKey) activeScope.current = { key: scopeKey, generation: activeScope.current.generation + 1 };
+  // Native alerts and retained callbacks must belong to the render that opened them.
+  const actionScope = activeScope.current;
   const [canComment, setCanComment] = useState(true);
   const [policyOff, setPolicyOff] = useState(false);
   const [ownerId, setOwnerId] = useState<string | null>(postAuthorId ?? null);
@@ -122,12 +136,16 @@ const CommentsPanel = forwardRef<CommentsPanelHandle, CommentsPanelProps>(functi
   const onCountRef = useRef(onCount); onCountRef.current = onCount;
 
   const load = useCallback(async () => {
+    const revision = ++loadRevision.current, scope = activeScope.current;
+    const current = () => revision === loadRevision.current && scope === activeScope.current;
     try {
-      const [{ data: can }, { data: pd }] = await Promise.all([
+      const [{ data: can, error: canError }, { data: pd, error: postError }] = await Promise.all([
         supabase.rpc('can_comment', { p_post_id: postId }),
         supabase.from('posts').select('user_id, comment_policy').eq('id', postId).maybeSingle(),
       ]);
-      setCanComment(can !== false);
+      if (!current()) return;
+      if (postError) throw postError;
+      setCanComment(!canError && can !== false);
       const authorIdNow = (pd as any)?.user_id ?? postAuthorId ?? null;
       setOwnerId(authorIdNow);
       const off = (pd as any)?.comment_policy === 'off';
@@ -138,7 +156,8 @@ const CommentsPanel = forwardRef<CommentsPanelHandle, CommentsPanelProps>(functi
         .select('id, post_id, user_id, body, content, parent_comment_id, likes_count, dislikes_count, created_at, media_url, media_type, hidden_at, is_spam, spam_reason')
         .eq('post_id', postId)
         .order('created_at', { ascending: true });
-      if (cErr) console.log('COMMENTS_ERROR', JSON.stringify(cErr));
+      if (!current()) return;
+      if (cErr) throw cErr;
 
       // A hidden comment is seen by its writer and by the post's author only.
       let allRows = off ? [] : (rows ?? [])
@@ -173,24 +192,31 @@ const CommentsPanel = forwardRef<CommentsPanelHandle, CommentsPanelProps>(functi
         const { data: cr } = await supabase.from('comment_reactions').select('comment_id, value').eq('user_id', userId).in('comment_id', allIds);
         (cr ?? []).forEach((r: any) => { reacts[r.comment_id] = r.value; });
       }
-      setItems(hydrated);
+      if (!current()) return;
+      setItems(hydrated); setLoadError(null);
       setReactions(reacts);
+      void loadCommentHighlights(supabase, postId, authorIdNow, allIds).then(value => {
+        if (!current()) return;
+        setPinnedId(value.pinnedId); setAuthorLikes(value.likedByAuthor);
+      }).catch(() => { /* Optional badges cannot hide a readable thread. */ });
       onCountRef.current?.(hydrated.reduce((acc, c) => acc + ((c.hidden || c.spam) ? 0 : 1 + c.replies.length), 0));
     } catch (e) {
-      console.log('COMMENTS_PANEL_LOAD', e);
+      if (current()) setLoadError('Comments could not load. Please try again.');
     } finally {
-      setLoaded(true);
+      if (current()) setLoaded(true);
     }
   }, [postId, userId, postAuthorId]);
 
   useEffect(() => {
-    setItems([]); setLoaded(false); setReplyTo(null); setInput(''); setPendingGif(null);
+    pendingActions.current.clear();
+    setItems([]); setLoaded(false); setLoadError(null); setPinnedId(null); setAuthorLikes(new Set()); setReplyTo(null); setInput(''); setPendingGif(null); setSubmitting(false);
     load();
     const ch = supabase.channel(`sheet-comments-${postId}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'post_comments', filter: `post_id=eq.${postId}` }, () => load())
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'post_comments', filter: `post_id=eq.${postId}` }, () => load())
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'post_comments', filter: `post_id=eq.${postId}` }, () => load())
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => { ++loadRevision.current; activeScope.current = { ...activeScope.current, generation: activeScope.current.generation + 1 }; supabase.removeChannel(ch); };
   }, [postId, load]);
 
   useEffect(() => {
@@ -200,7 +226,9 @@ const CommentsPanel = forwardRef<CommentsPanelHandle, CommentsPanelProps>(functi
   }, [autoFocus, postId]);
 
   const reactToComment = async (commentId: string, value: 1 | -1) => {
-    if (!userId) return;
+    if (actionScope !== activeScope.current || !userId || pendingActions.current.has(commentId)) return;
+    pendingActions.current.add(commentId);
+    const scope = activeScope.current;
     const prevValue = reactions[commentId] ?? 0;
     const nextValue = prevValue === value ? 0 : value;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -212,9 +240,57 @@ const CommentsPanel = forwardRef<CommentsPanelHandle, CommentsPanelProps>(functi
       }));
     };
     applyCounts(commentId);
-    const { data, error } = await supabase.rpc('set_comment_reaction', { p_comment_id: commentId, p_value: value });
-    if (error) { setReactions((prev) => ({ ...prev, [commentId]: prevValue })); return; }
-    applyCounts(commentId, (data as any)?.likes, (data as any)?.dislikes);
+    try {
+      const { data, error } = await supabase.rpc('set_comment_reaction', { p_comment_id: commentId, p_value: value });
+      if (scope !== activeScope.current) return;
+      if (error) throw error;
+      applyCounts(commentId, (data as any)?.likes, (data as any)?.dislikes);
+      const confirmed = typeof (data as any)?.value === 'number' ? (data as any).value : nextValue;
+      setReactions(prev => ({ ...prev, [commentId]: confirmed }));
+      if (userId === ownerId) setAuthorLikes(prev => { const next = new Set(prev); if (confirmed === 1) next.add(commentId); else next.delete(commentId); return next; });
+    } catch {
+      if (scope === activeScope.current) { setReactions(prev => ({ ...prev, [commentId]: prevValue })); Alert.alert('Reaction not saved', 'Please try again.'); }
+    } finally { if (scope === activeScope.current) pendingActions.current.delete(commentId); }
+  };
+
+  const pinComment = async (c: Comment) => {
+    if (actionScope !== activeScope.current || !userId || ownerId !== currentAuthorId(userId) || pendingActions.current.has('pin')) return;
+    const scope = activeScope.current;
+    pendingActions.current.add('pin');
+    try {
+      const { data, error } = await supabase.rpc('set_comment_pinned', { p_comment_id: c.id, p_pinned: pinnedId !== c.id });
+      if (error) throw error;
+      if (scope === activeScope.current) setPinnedId((data as any)?.pinned_comment_id ?? null);
+    } catch { if (scope === activeScope.current) Alert.alert('Pin not saved', 'Please try again.'); }
+    finally { if (scope === activeScope.current) pendingActions.current.delete('pin'); }
+  };
+
+  const moderateComment = async (c: Comment, kind: 'hidden' | 'spam') => {
+    const action = `moderate:${c.id}`;
+    if (actionScope !== activeScope.current || !userId || ownerId !== userId || pendingActions.current.has(action)) return;
+    pendingActions.current.add(action);
+    const scope = activeScope.current;
+    try {
+      const result = kind === 'hidden'
+        ? await supabase.rpc('set_comment_hidden', { p_comment_id: c.id, p_hidden: !c.hidden })
+        : await supabase.rpc('set_comment_spam', { p_comment_id: c.id, p_spam: !c.spam });
+      if (result.error) throw result.error;
+      if (scope === activeScope.current) await load();
+    } catch { if (scope === activeScope.current) Alert.alert('Change not saved', 'Please try again.'); }
+    finally { if (scope === activeScope.current) pendingActions.current.delete(action); }
+  };
+
+  const deleteComment = async (c: Comment) => {
+    const action = `delete:${c.id}`;
+    if (actionScope !== activeScope.current || !userId || c.user_id !== userId || pendingActions.current.has(action)) return;
+    pendingActions.current.add(action);
+    const scope = activeScope.current;
+    try {
+      const { error } = await supabase.from('post_comments').delete().eq('id', c.id).eq('user_id', userId);
+      if (error) throw error;
+      if (scope === activeScope.current) await load();
+    } catch { if (scope === activeScope.current) Alert.alert('Delete not confirmed', 'Check the thread before trying again.'); }
+    finally { if (scope === activeScope.current) pendingActions.current.delete(action); }
   };
 
   const handleMentionTap = async (username: string) => {
@@ -238,10 +314,11 @@ const CommentsPanel = forwardRef<CommentsPanelHandle, CommentsPanelProps>(functi
   };
 
   const submitComment = async () => {
-    if ((!input.trim() && !pendingGif) || submitting || !userId) return;
+    if (actionScope !== activeScope.current || (!input.trim() && !pendingGif) || submitting || !userId || !canComment || policyOff || pendingActions.current.has('submit')) return;
+    pendingActions.current.add('submit');
     setSubmitting(true);
     const body = input.trim();
-    setInput(''); setReplyTo(null); setMentionOn(false); setMentions([]);
+    const sentInput = input, sentReply = replyTo, sentGif = pendingGif, scope = activeScope.current;
     try {
       const { error } = await supabase.from('post_comments').insert({
         post_id: postId,
@@ -251,32 +328,54 @@ const CommentsPanel = forwardRef<CommentsPanelHandle, CommentsPanelProps>(functi
         media_url: pendingGif,
         media_type: pendingGif ? 'gif' : null,
       });
-      if (error) { setInput(body); Alert.alert('Error', 'Could not post comment.'); }
+      if (scope !== activeScope.current) return;
+      if (error) { Alert.alert('Comment not sent', 'Your draft is still here. Please try again.'); }
       else {
-        setPendingGif(null);
+        setInput(current => current === sentInput ? '' : current); setReplyTo(current => current?.id === sentReply?.id ? null : current);
+        setPendingGif(current => current === sentGif ? null : current); setMentionOn(false); setMentions([]);
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         await load();
-        setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 200);
+        setTimeout(() => { if (scope === activeScope.current) listRef.current?.scrollToEnd({ animated: true }); }, 200);
       }
-    } catch { setInput(body); }
-    finally { setSubmitting(false); }
+    } catch { if (scope === activeScope.current) Alert.alert('Comment not confirmed', 'Your draft is still here. Check the thread before retrying.'); }
+    finally { if (scope === activeScope.current) { pendingActions.current.delete('submit'); setSubmitting(false); } }
+  };
+
+  const restrictCommentAuthor = async (c: Comment, who: string) => {
+    const action = `restrict:${c.user_id}`;
+    if (actionScope !== activeScope.current || !userId || pendingActions.current.has(action)) return;
+    const scope = actionScope;
+    pendingActions.current.add(action);
+    try {
+      const { error } = await supabase.rpc('set_restriction', { p_user: c.user_id, p_on: true });
+      if (scope !== activeScope.current) return;
+      if (error) Alert.alert('Could not restrict', error.message);
+      else Alert.alert('Restricted', who + ' is restricted. Undo it in Settings, under Restricted accounts.');
+    } catch {
+      if (scope === activeScope.current) Alert.alert('Could not restrict', 'The restriction could not be confirmed. Check Restricted accounts in Settings before trying again.');
+    } finally { if (scope === activeScope.current) pendingActions.current.delete(action); }
   };
 
   // Long-press on a comment: the post author moderates from here (hide, spam, restrict); a writer can delete their own.
   const commentMenu = (c: Comment) => {
+    if (actionScope !== activeScope.current) return;
     const isOwn = c.user_id === userId;
     const isPostAuthor = !!ownerId && ownerId === userId;
     const who = c.author?.full_name || (c.author?.username ? '@' + c.author.username : 'this person');
     const buttons: any[] = [];
+    if (isPostAuthor && !c.parent_comment_id && !c.hidden && !c.spam) buttons.push({ text: pinnedId === c.id ? 'Unpin comment' : 'Pin comment', onPress: () => pinComment(c) });
     if (isPostAuthor && !isOwn) {
-      buttons.push({ text: c.hidden ? 'Unhide comment' : 'Hide comment', onPress: () => supabase.rpc('set_comment_hidden', { p_comment_id: c.id, p_hidden: !c.hidden }).then(() => load(), () => {}) });
-      buttons.push({ text: c.spam ? 'Not spam' : 'Mark as spam', onPress: () => supabase.rpc('set_comment_spam', { p_comment_id: c.id, p_spam: !c.spam }).then(() => load(), () => {}) });
-      buttons.push({ text: 'Restrict ' + who, onPress: () => Alert.alert('Restrict ' + who + '?', 'Their comments on your posts will only be visible to them until you approve them, their messages move to Message requests, and you will not get notifications from them. They will not know.', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Restrict', style: 'destructive', onPress: () => supabase.rpc('set_restriction', { p_user: c.user_id, p_on: true }).then(({ error }) => { if (error) Alert.alert('Could not restrict', error.message); else Alert.alert('Restricted', who + ' is restricted. Undo it in Settings, under Restricted accounts.'); }) },
-      ]) });
+      buttons.push({ text: c.hidden ? 'Unhide comment' : 'Hide comment', onPress: () => moderateComment(c, 'hidden') });
+      buttons.push({ text: c.spam ? 'Not spam' : 'Mark as spam', onPress: () => moderateComment(c, 'spam') });
+      buttons.push({ text: 'Restrict ' + who, onPress: () => {
+        if (actionScope !== activeScope.current || pendingActions.current.has(`restrict:${c.user_id}`)) return;
+        Alert.alert('Restrict ' + who + '?', 'Their comments on your posts will only be visible to them until you approve them, their messages move to Message requests, and you will not get notifications from them. They will not know.', [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Restrict', style: 'destructive', onPress: () => restrictCommentAuthor(c, who) },
+        ]);
+      } });
     }
-    if (isOwn) buttons.push({ text: 'Delete comment', style: 'destructive', onPress: async () => { await supabase.from('post_comments').delete().eq('id', c.id); load(); } });
+    if (isOwn) buttons.push({ text: 'Delete comment', style: 'destructive', onPress: () => deleteComment(c) });
     if (!buttons.length) return;
     buttons.push({ text: 'Cancel', style: 'cancel' });
     Alert.alert(who, c.spam ? 'Folded as possible spam' + (c.spam_reason ? ' (' + c.spam_reason + ')' : '') : undefined, buttons);
@@ -309,7 +408,9 @@ const CommentsPanel = forwardRef<CommentsPanelHandle, CommentsPanelProps>(functi
             </TouchableOpacity>
             <Text style={s.commentTime}>{relTime(c.created_at)}</Text>
           </View>
+          {pinnedId === c.id ? <Text style={{ color: t.ink.secondary, fontSize: 11, marginBottom: 6 }}>Pinned by author</Text> : null}
           <RichText text={c.body} onMention={handleMentionTap} onHashtag={handleHashtagTap} style={s.commentBody} />
+          {authorLikes.has(c.id) ? <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 6 }}><Ionicons name="heart" size={11} color={t.status.danger} /><Text style={{ color: t.ink.secondary, fontSize: 11 }}>Liked by author</Text></View> : null}
           {c.media_url ? <Image source={{ uri: c.media_url }} style={{ width: 180, height: 135, borderRadius: 10, marginTop: 6 }} resizeMode="cover" /> : null}
           <View style={s.commentActions}>
             <TouchableOpacity style={s.commentAction} onPress={() => reactToComment(c.id, -1)} activeOpacity={0.75} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} accessibilityRole="button" accessibilityLabel={isDisliked ? 'Remove dislike' : 'Dislike comment'}>
@@ -333,13 +434,14 @@ const CommentsPanel = forwardRef<CommentsPanelHandle, CommentsPanelProps>(functi
               <Feather name="corner-up-left" size={13} color={TEXT_SECONDARY} />
               <Text style={s.commentActionTxt}>Reply</Text>
             </TouchableOpacity>
+            {isPostAuthor && !isReply && !c.hidden && !c.spam ? <TouchableOpacity style={s.commentAction} accessibilityRole="button" accessibilityLabel={pinnedId === c.id ? 'Unpin comment' : 'Pin comment'} onPress={() => pinComment(c)}><Feather name="bookmark" size={13} color={t.ink.secondary} /><Text style={s.commentActionTxt}>{pinnedId === c.id ? 'Unpin' : 'Pin'}</Text></TouchableOpacity> : null}
             {isPostAuthor && !isOwn && (
-              <TouchableOpacity style={s.commentAction} activeOpacity={0.75} onPress={() => supabase.rpc('set_comment_hidden', { p_comment_id: c.id, p_hidden: !c.hidden }).then(() => load(), () => {})}>
+              <TouchableOpacity style={s.commentAction} activeOpacity={0.75} onPress={() => moderateComment(c, 'hidden')}>
                 <Text style={s.commentActionTxt}>{c.hidden ? 'Unhide' : 'Hide'}</Text>
               </TouchableOpacity>
             )}
             {isPostAuthor && !isOwn && (
-              <TouchableOpacity style={s.commentAction} activeOpacity={0.75} onPress={() => supabase.rpc('set_comment_spam', { p_comment_id: c.id, p_spam: !c.spam }).then(() => load(), () => {})} accessibilityRole="button" accessibilityLabel={c.spam ? 'Not spam' : 'Mark as spam'}>
+              <TouchableOpacity style={s.commentAction} activeOpacity={0.75} onPress={() => moderateComment(c, 'spam')} accessibilityRole="button" accessibilityLabel={c.spam ? 'Not spam' : 'Mark as spam'}>
                 <Text style={s.commentActionTxt}>{c.spam ? 'Not spam' : 'Spam'}</Text>
               </TouchableOpacity>
             )}
@@ -348,7 +450,7 @@ const CommentsPanel = forwardRef<CommentsPanelHandle, CommentsPanelProps>(functi
                 style={s.commentAction}
                 onPress={() => Alert.alert('Delete comment?', 'This cannot be undone.', [
                   { text: 'Cancel', style: 'cancel' },
-                  { text: 'Delete', style: 'destructive', onPress: async () => { await supabase.from('post_comments').delete().eq('id', c.id); load(); } },
+                  { text: 'Delete', style: 'destructive', onPress: () => deleteComment(c) },
                 ])}
                 activeOpacity={0.75}
               >
@@ -442,7 +544,7 @@ const CommentsPanel = forwardRef<CommentsPanelHandle, CommentsPanelProps>(functi
             onBlur={() => onFocusChange?.(false)}
           />
           <TouchableOpacity style={[s.sendBtn, !canSend && s.sendBtnOff]} onPress={submitComment} disabled={!canSend || submitting} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel="Post comment">
-            {submitting ? <ActivityIndicator color="#fff" size={14} /> : <Feather name="arrow-up" size={18} color="#FFF" />}
+            {submitting ? <ActivityIndicator color={t.ink.inverse} size={14} /> : <Feather name="arrow-up" size={18} color={t.ink.inverse} />}
           </TouchableOpacity>
         </View>
       )}
@@ -453,10 +555,10 @@ const CommentsPanel = forwardRef<CommentsPanelHandle, CommentsPanelProps>(functi
     <View style={s.root}>
       <FlatList
         ref={listRef}
-        data={items.filter((c) => !c.spam)}
+        data={pinnedFirst(items.filter((c) => !c.spam), pinnedId)}
         keyExtractor={(c) => c.id}
         renderItem={({ item }) => renderComment(item)}
-        ListHeaderComponent={header ? <>{header}</> : null}
+        ListHeaderComponent={<>{header}{loadError ? <View style={s.emptyComments}><Text style={s.emptyCommentsHint}>{loadError}</Text><TouchableOpacity accessibilityRole="button" onPress={load}><Text style={s.repliesTxt}>Try again</Text></TouchableOpacity></View> : null}</>}
         ListFooterComponent={(() => {
           const spam = items.filter((c) => c.spam && (!c.hidden || c.user_id === userId || (!!ownerId && ownerId === userId)));
           if (!spam.length) return null;
@@ -478,7 +580,7 @@ const CommentsPanel = forwardRef<CommentsPanelHandle, CommentsPanelProps>(functi
         contentContainerStyle={{ paddingBottom: 12, paddingTop: 4 }}
         ListEmptyComponent={
           !loaded ? <View style={{ paddingVertical: 36, alignItems: 'center' }}><ActivityIndicator color={NAVY} /></View>
-          : policyOff ? <View style={s.emptyComments}><Feather name="message-circle" size={28} color="#E5E5EA" /><Text style={s.emptyCommentsTxt}>Comments are turned off</Text></View>
+          : loadError ? null : policyOff ? <View style={s.emptyComments}><Feather name="message-circle" size={28} color={t.ink.muted} /><Text style={s.emptyCommentsTxt}>Comments are turned off</Text></View>
           : (
             <View style={s.emptyComments}>
               <Feather name="message-circle" size={28} color="#E5E5EA" />
@@ -503,69 +605,69 @@ export default CommentsPanel;
 
 const s = themedSheet((t) => ({
   root: { flex: 1, backgroundColor: t.surface.canvas },
-  hashTag: { color: NAVY, fontWeight: '500' },
-  mention: { color: NAVY, fontWeight: '500' },
+  hashTag: { color: t.ink.primary, fontWeight: '500' },
+  mention: { color: t.ink.primary, fontWeight: '500' },
   emptyComments: { alignItems: 'center', paddingVertical: 40, gap: 8 },
-  emptyCommentsTxt: { fontSize: 15, fontWeight: '600', color: '#3C3C43' },
-  emptyCommentsHint: { fontSize: 13, color: TEXT_SECONDARY },
+  emptyCommentsTxt: { fontSize: 15, fontWeight: '600', color: t.ink.primary },
+  emptyCommentsHint: { fontSize: 13, color: t.ink.secondary },
   commentWrap: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 2 },
   replyWrap: { paddingLeft: 48, paddingTop: 6 },
-  threadLine: { position: 'absolute', left: 32, top: 0, bottom: 0, width: 1.5, backgroundColor: '#E8E8E8' },
-  commentCard: { backgroundColor: '#FAFAFB', borderRadius: 14, padding: 12 },
+  threadLine: { position: 'absolute', left: 32, top: 0, bottom: 0, width: 1.5, backgroundColor: t.surface.hairline },
+  commentCard: { backgroundColor: t.surface.raised, borderRadius: 14, padding: 12 },
   commentTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
   commentAuthorRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   commentAvatar: { width: 30, height: 30, borderRadius: 15 },
-  commentAvatarFb: { width: 30, height: 30, borderRadius: 15, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
+  commentAvatarFb: { width: 30, height: 30, borderRadius: 15, backgroundColor: t.brand.base, alignItems: 'center', justifyContent: 'center' },
   commentAvatarTxt: { fontSize: 11, fontWeight: '700', color: t.ink.inverse },
-  commentName: { fontSize: 13, fontWeight: '600', color: TEXT_PRIMARY },
-  commentHandle: { fontSize: 11, color: TEXT_SECONDARY, marginTop: 1 },
-  commentTime: { fontSize: 11, color: '#C7C7CC' },
-  commentBody: { fontSize: 14, lineHeight: 20, color: '#1A1A1A', marginBottom: 10 },
-  commentActions: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  commentAction: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 2 },
-  commentActionTxt: { fontSize: 12, color: TEXT_SECONDARY, fontWeight: '500' },
+  commentName: { fontSize: 13, fontWeight: '600', color: t.ink.primary },
+  commentHandle: { fontSize: 11, color: t.ink.secondary, marginTop: 1 },
+  commentTime: { fontSize: 11, color: t.ink.muted },
+  commentBody: { fontSize: 14, lineHeight: 20, color: t.ink.primary, marginBottom: 10 },
+  commentActions: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: 10, rowGap: 0 },
+  commentAction: { minHeight: 44, minWidth: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, paddingVertical: 2 },
+  commentActionTxt: { fontSize: 12, color: t.ink.secondary, fontWeight: '500' },
   deleteTxt: { fontSize: 12, color: '#FF3B30', fontWeight: '500' },
   repliesToggle: { marginLeft: 44, marginTop: 6, flexDirection: 'row', alignItems: 'center', gap: 6 },
-  repliesRule: { width: 24, height: 1, backgroundColor: '#C7CDD6' },
+  repliesRule: { width: 24, height: 1, backgroundColor: t.surface.hairline },
   spamToggle: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 10, paddingHorizontal: 16 },
-  repliesTxt: { fontSize: 12.5, fontWeight: '600', color: TEXT_SECONDARY },
+  repliesTxt: { fontSize: 12.5, fontWeight: '600', color: t.ink.secondary },
   mentionDrop: {
     marginHorizontal: 12, marginBottom: 2,
     backgroundColor: t.surface.canvas, borderRadius: 14,
-    borderWidth: StyleSheet.hairlineWidth, borderColor: HAIRLINE, overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline, overflow: 'hidden',
     shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 6, shadowOffset: { width: 0, height: -2 }, elevation: 4,
   },
-  mentionRow: { flexDirection: 'row', alignItems: 'center', padding: 10, gap: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F5F5F5' },
+  mentionRow: { flexDirection: 'row', alignItems: 'center', padding: 10, gap: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.divider },
   mentionAvatar: { width: 30, height: 30, borderRadius: 15 },
-  mentionAvatarFb: { width: 30, height: 30, borderRadius: 15, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
+  mentionAvatarFb: { width: 30, height: 30, borderRadius: 15, backgroundColor: t.brand.base, alignItems: 'center', justifyContent: 'center' },
   mentionAvatarTxt: { fontSize: 11, fontWeight: '700', color: t.ink.inverse },
-  mentionName: { fontSize: 13, fontWeight: '600', color: TEXT_PRIMARY },
-  mentionHandle: { fontSize: 12, color: TEXT_SECONDARY },
+  mentionName: { fontSize: 13, fontWeight: '600', color: t.ink.primary },
+  mentionHandle: { fontSize: 12, color: t.ink.secondary },
   replyBanner: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: '#F5F5F5', paddingHorizontal: 14, paddingVertical: 10,
-    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: HAIRLINE,
+    backgroundColor: t.surface.sunken, paddingHorizontal: 14, paddingVertical: 10,
+    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.surface.hairline,
   },
-  replyAccent: { width: 3, height: 28, borderRadius: 2, backgroundColor: NAVY },
-  replyBannerLbl: { flex: 1, fontSize: 13, color: '#6B7280' },
-  replyBannerName: { fontWeight: '700', color: NAVY },
+  replyAccent: { width: 3, height: 28, borderRadius: 2, backgroundColor: t.brand.base },
+  replyBannerLbl: { flex: 1, fontSize: 13, color: t.ink.secondary },
+  replyBannerName: { fontWeight: '700', color: t.ink.primary },
   replyClose: { padding: 4 },
   inputBar: {
     flexDirection: 'row', alignItems: 'flex-end', gap: 10,
     paddingHorizontal: 12, paddingTop: 10,
     backgroundColor: t.surface.canvas,
-    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: HAIRLINE,
+    borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.surface.hairline,
   },
   inputAvatar: { width: 34, height: 34, borderRadius: 17, marginBottom: 2 },
-  inputAvatarFb: { width: 34, height: 34, borderRadius: 17, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
+  inputAvatarFb: { width: 34, height: 34, borderRadius: 17, backgroundColor: t.brand.base, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
   inputAvatarTxt: { fontSize: 12, fontWeight: '700', color: t.ink.inverse },
-  gifChip: { fontSize: 11, fontWeight: '800', color: NAVY, borderWidth: 1.5, borderColor: NAVY, borderRadius: 6, paddingHorizontal: 5, paddingVertical: 2, overflow: 'hidden' },
+  gifChip: { fontSize: 11, fontWeight: '800', color: t.ink.primary, borderWidth: 1.5, borderColor: t.ink.primary, borderRadius: 6, paddingHorizontal: 5, paddingVertical: 2, overflow: 'hidden' },
   input: {
-    flex: 1, backgroundColor: '#F2F2F7', borderRadius: 22,
+    flex: 1, backgroundColor: t.surface.sunken, borderRadius: 22,
     paddingHorizontal: 14, paddingTop: 10, paddingBottom: 10,
-    fontSize: 15, color: TEXT_PRIMARY, maxHeight: 120,
+    fontSize: 16, color: t.ink.primary, minHeight: 44, maxHeight: 120,
     ...(Platform.OS === 'android' ? { textAlignVertical: 'center' as const } : {}),
   },
-  sendBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', marginBottom: 1 },
-  sendBtnOff: { backgroundColor: '#C7C7CC' },
+  sendBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: t.brand.base, alignItems: 'center', justifyContent: 'center', marginBottom: 1 },
+  sendBtnOff: { backgroundColor: t.ink.muted },
 }));

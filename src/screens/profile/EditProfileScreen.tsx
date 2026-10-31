@@ -8,8 +8,8 @@
  * degree_program as "Profession", which is a school column doing a job it was
  * not designed for. headline is the correct field and the one the header shows.
  */
-import { themedSheet, getTheme } from '../../theme/useTheme';
-import React, { useEffect, useState } from 'react';
+import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView,
   ActivityIndicator, Alert, Switch, KeyboardAvoidingView, Platform, StatusBar,
@@ -20,9 +20,10 @@ import { Feather } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../../services/supabase';
+import { profileRead } from '../../utils/profileRead';
 import { uploadMedia } from '../../services/mediaService';
 import { useAuthStore } from '../../stores/authStore';
-import { light, typeSize, fontWeight, radius, space } from '../../constants/tokens';
+import { typeSize, fontWeight, radius, space } from '../../constants/tokens';
 
 type Draft = {
   full_name: string;
@@ -48,42 +49,49 @@ const normalizeUrl = (u: string) => { const t = u.trim(); if (!t) return ''; ret
 
 export default function EditProfileScreen({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const { isDark } = useTheme();
   const { profile: authProfile, setProfile: setAuthProfile } = useAuthStore();
   const userId = (authProfile as any)?.id ?? null;
+  const identity = useRef({ userId });
+  if (identity.current.userId !== userId) identity.current = { userId };
+  const mounted = useRef(true);
+  const saveLock = useRef(false);
+  const uploadLock = useRef(false);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
 
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [loading, setLoading] = useState(true);
+  const [profileReady, setProfileReady] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busyImage, setBusyImage] = useState<'avatar' | 'banner' | null>(null);
 
   useEffect(() => {
     let alive = true;
-    (async () => {
-      if (!userId) { setLoading(false); return; }
-      const { data, error: err } = await supabase
-        .from('profiles')
-        .select('full_name, username, headline, bio, workplace, location, profile_visibility, avatar_url, banner_url, links')
-        .eq('id', userId)
-        .single();
-      if (!alive) return;
-      if (err) { setError(err.message); setLoading(false); return; }
-      setDraft({
-        full_name: data.full_name || '',
-        username: data.username || '',
-        headline: data.headline || '',
-        bio: data.bio || '',
-        workplace: data.workplace || '',
-        location: data.location || '',
-        links: Array.isArray((data as any).links) ? ((data as any).links as any[]).filter(l => l && l.url).map(l => ({ title: String(l.title || ''), url: String(l.url || '') })) : [],
-        isPrivate: (data.profile_visibility || 'public') === 'private',
-        avatar_url: data.avatar_url || null,
-        banner_url: data.banner_url || null,
-      });
-      setLoading(false);
+    const ownerScope = identity.current;
+    setLoading(true); setProfileReady(false); setError(null); setDraft(EMPTY); setBusyImage(null);
+    void (async () => {
+      try {
+        if (!userId) return;
+        const { data, error: err } = await profileRead(supabase.from('profiles')
+          .select('full_name, username, headline, bio, workplace, location, profile_visibility, avatar_url, banner_url, links')
+          .eq('id', userId).single());
+        if (!alive || identity.current !== ownerScope) return;
+        if (err || !data) throw err || new Error('Your profile could not load.');
+        setDraft({
+          full_name: data.full_name || '', username: data.username || '', headline: data.headline || '',
+          bio: data.bio || '', workplace: data.workplace || '', location: data.location || '',
+          links: Array.isArray((data as any).links) ? ((data as any).links as any[]).filter(l => l && l.url).map(l => ({ title: String(l.title || ''), url: String(l.url || '') })) : [],
+          isPrivate: (data.profile_visibility || 'public') === 'private',
+          avatar_url: data.avatar_url || null, banner_url: data.banner_url || null,
+        });
+        setProfileReady(true);
+      } catch (cause: any) { if (alive) setError(cause?.message || 'Your profile could not load. Return and try again.'); }
+      finally { if (alive) setLoading(false); }
     })();
     return () => { alive = false; };
-  }, [userId]);
+  }, [userId, loadAttempt]);
 
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setDraft(d => ({ ...d, [k]: v }));
   const setLink = (i: number, k: 'title' | 'url', v: string) => setDraft(d => ({ ...d, links: d.links.map((l, j) => (j === i ? { ...l, [k]: v } : l)) }));
@@ -91,7 +99,10 @@ export default function EditProfileScreen({ navigation }: any) {
   const removeLink = (i: number) => setDraft(d => ({ ...d, links: d.links.filter((_, j) => j !== i) }));
 
   const pickImage = async (kind: 'avatar' | 'banner') => {
-    if (!userId) return;
+    if (!userId || uploadLock.current || saveLock.current) return;
+    const owner = userId, ownerScope = identity.current;
+    uploadLock.current = true;
+    try {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!perm.granted) { Alert.alert('Permission needed', 'Allow photo access in your device settings.'); return; }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -101,54 +112,56 @@ export default function EditProfileScreen({ navigation }: any) {
       aspect: kind === 'avatar' ? [1, 1] : [3, 1],
       quality: 0.85,
     });
-    if (result.canceled || !result.assets?.[0]) return;
+    if (result.canceled || !result.assets?.[0] || !mounted.current || identity.current !== ownerScope) return;
     setBusyImage(kind);
     try {
       const asset = result.assets[0];
       const ext = (asset.uri.split('.').pop() || 'jpg').toLowerCase().replace('jpeg', 'jpg');
       const mime = ext === 'png' ? 'image/png' : 'image/jpeg';
       const { url } = await uploadMedia(
-        'avatars', userId,
+        'avatars', owner,
         { uri: asset.uri, kind: 'image', ext, mimeType: mime, width: asset.width, height: asset.height, base64: null },
         { filename: `${kind}_${Date.now()}.${ext}` },
       );
-      set(kind === 'avatar' ? 'avatar_url' : 'banner_url', url);
+      if (mounted.current && identity.current === ownerScope) set(kind === 'avatar' ? 'avatar_url' : 'banner_url', url);
     } catch (e: any) {
-      Alert.alert('Upload failed', e?.message || 'Could not upload the image.');
+      if (mounted.current && identity.current === ownerScope) Alert.alert('Upload failed', e?.message || 'Could not upload the image.');
     } finally {
-      setBusyImage(null);
+      if (mounted.current && identity.current === ownerScope) setBusyImage(null);
     }
+    } catch { if (mounted.current && identity.current === ownerScope) Alert.alert('Photo picker unavailable', 'Please try again.'); }
+    finally { uploadLock.current = false; }
   };
 
   const save = async () => {
-    if (!userId || saving) return;
+    if (!userId || !profileReady || saving || saveLock.current || uploadLock.current || busyImage) return;
     if (!draft.full_name.trim()) { Alert.alert('Required', 'Full name cannot be empty.'); return; }
-    setSaving(true);
-    const { error: err } = await supabase.from('profiles').update({
-      full_name: draft.full_name.trim(),
-      username: draft.username.trim().toLowerCase().replace(/\s+/g, '_') || null,
-      headline: draft.headline.trim() || null,
-      bio: draft.bio.trim() || null,
-      workplace: draft.workplace.trim() || null,
-      location: draft.location.trim() || null,
-      links: draft.links.filter(l => l.url.trim()).slice(0, 5).map(l => ({ title: l.title.trim(), url: normalizeUrl(l.url) })),
-      profile_visibility: draft.isPrivate ? 'private' : 'public',
-      avatar_url: draft.avatar_url,
-      banner_url: draft.banner_url,
-      updated_at: new Date().toISOString(),
-    }).eq('id', userId);
-    setSaving(false);
-    if (err) {
-      Alert.alert(
-        err.message.includes('duplicate') ? 'Username taken' : 'Could not save',
-        err.message.includes('duplicate') ? 'That username is already in use. Try another.' : err.message,
-      );
-      return;
-    }
-    if (setAuthProfile) {
-      setAuthProfile({ ...(authProfile as any), full_name: draft.full_name.trim(), avatar_url: draft.avatar_url });
-    }
-    navigation.goBack();
+    const owner = userId, ownerScope = identity.current;
+    const current = () => mounted.current && identity.current === ownerScope;
+    saveLock.current = true; setSaving(true); setError(null);
+    try {
+      const update = {
+        full_name: draft.full_name.trim(),
+        username: draft.username.trim().toLowerCase().replace(/\s+/g, '_') || null,
+        headline: draft.headline.trim() || null, bio: draft.bio.trim() || null,
+        workplace: draft.workplace.trim() || null, location: draft.location.trim() || null,
+        links: draft.links.filter(l => l.url.trim()).slice(0, 5).map(l => ({ title: l.title.trim(), url: normalizeUrl(l.url) })),
+        profile_visibility: draft.isPrivate ? 'private' : 'public',
+        avatar_url: draft.avatar_url, banner_url: draft.banner_url, updated_at: new Date().toISOString(),
+      };
+      const { data, error: err } = await profileRead(supabase.from('profiles').update(update).eq('id', owner).select('id').maybeSingle());
+      if (!current()) return;
+      if (err || data?.id !== owner) throw err || new Error('Your profile was not saved. Please try again.');
+      const latest = useAuthStore.getState().profile;
+      if (latest?.id !== owner) return;
+      setAuthProfile({ ...latest, ...update } as any);
+      navigation.goBack();
+    } catch (cause: any) {
+      if (current()) {
+        const message = cause?.message?.includes('duplicate') ? 'That username is already in use. Try another.' : cause?.message || 'Your profile could not save. Your changes are kept.';
+        setError(message); Alert.alert('Could not save', message);
+      }
+    } finally { saveLock.current = false; if (current()) setSaving(false); }
   };
 
   if (loading) {
@@ -161,7 +174,7 @@ export default function EditProfileScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
       <View style={s.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
@@ -171,13 +184,13 @@ export default function EditProfileScreen({ navigation }: any) {
           <Feather name="chevron-left" size={26} color={getTheme().ink.primary} />
         </TouchableOpacity>
         <Text style={s.title}>Edit profile</Text>
-        <TouchableOpacity onPress={save} disabled={saving} style={[s.saveBtn, saving && s.saveBtnOff]}>
+        <TouchableOpacity onPress={save} disabled={!profileReady || saving || !!busyImage} style={[s.saveBtn, (!profileReady || saving || !!busyImage) && s.saveBtnOff]}>
           {saving ? <ActivityIndicator size="small" color={getTheme().ink.inverse} /> : <Text style={s.saveTxt}>Save</Text>}
         </TouchableOpacity>
       </View>
 
       {error ? (
-        <View style={s.banner}><Text style={s.bannerTxt}>{error}</Text></View>
+        <View style={s.banner}><Text style={s.bannerTxt}>{error}</Text>{!profileReady&&<TouchableOpacity accessibilityRole="button" onPress={()=>setLoadAttempt(value=>value+1)} style={{paddingVertical:12}}><Text style={{color:getTheme().ink.primary,fontWeight:'700'}}>Retry loading profile</Text></TouchableOpacity>}</View>
       ) : null}
 
       <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>

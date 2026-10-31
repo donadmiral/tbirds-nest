@@ -1,0 +1,140 @@
+{
+  "measuredAt": "2026-10-31T04:10:23.598421+00:00",
+  "headCommit": "26e80ae96647884e7f2764bdbb1884fd5aabcff5",
+  "testedMergeCommit": "6373021f8dcbb2bc614039e74937d2acb0ff2d3e",
+  "tree": "1c10d4cc20fcfd5a0d4e82ba0121c51e90274c03",
+  "headAndMergeTreesEqual": true,
+  "engines": [
+    {
+      "platform": "ios-story",
+      "workflowRun": 41166955000,
+      "artifact": {
+        "id": 13029566147,
+        "sha256": "dd9391cac440cda1ecc2bd91e16247dfe62961d20f04709cb2307c47fdde49b8"
+      },
+      "casesPassed": 8,
+      "originalSourceHashesVerified": {
+        "modules/boomerang/ios/StoryVideoComposition.swift": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+        "scripts/quality/StoryAudioExportHarness.swift": "f62d1d285283d6b45a2dc8ab9b55f2e1c47f18a8e44bc3b56631d3f90379d714",
+        "scripts/quality/test-ios-story-audio.sh": "c024ac519360f68b3e2a9b30694439ab7e94fb6c34519ff1bc4d0309c8d61215"
+      },
+      "sourcesIdenticalToIndependentlyDecoded341395c6": true,
+      "retainedMediaHashesAndBytesVerified": 6,
+      "byteIdenticalToEarlierVerifiedMedia": [],
+      "receiptFile": "ios-story-26e80ae9-receipt.json",
+      "mediaWithDifferentBytes": [
+        "pc-story-export-mixed-speed-2x.mp4",
+        "pc-story-export-original.mp4",
+        "pc-story-export-still.mp4",
+        "pc-story-export-loop.mp4",
+        "pc-story-export-voice.mp4",
+        "pc-story-export-mixed-speed-0.5x.mp4"
+      ]
+    },
+    {
+      "platform": "ios-memory",
+      "workflowRun": 41166955000,
+      "artifact": {
+        "id": 13029299792,
+        "sha256": "c84fb5c03cdb47766201b4f7f53d501bbc823149c76c62b86231d23cf7b4b76e"
+      },
+      "casesPassed": 11,
+      "originalSourceHashesVerified": {
+        "modules/boomerang/ios/StoryVideoComposition.swift": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+        "modules/boomerang/ios/MemoryMovieComposition.swift": "920fc4a01277f3712863909ca8188ef7b3a7efa3b4e560d9caeba056addc0d11",
+        "scripts/quality/MemoryMovieExportHarness.swift": "515ec7ad6e1150a0e7035defb7fcde9699b96067637204137f16a2e5681f874f",
+        "scripts/quality/test-ios-memory-movie.sh": "fa60a4db91552e78b6181943dd76d105a2354f2934969b95a8ed655985c3c90c"
+      },
+      "sourcesIdenticalToIndependentlyDecoded341395c6": true,
+      "retainedMediaHashesAndBytesVerified": 9,
+      "byteIdenticalToEarlierVerifiedMedia": [
+        "pc-memory-image-transparent.png",
+        "pc-memory-image-normalized.png"
+      ],
+      "receiptFile": "ios-memory-26e80ae9-receipt.json",
+      "mediaWithDifferentBytes": [
+        "pc-memory-export-retry.mp4",
+        "pc-memory-export-continuous-phase.mp4",
+        "pc-memory-export-muted.mp4",
+        "pc-memory-export-voice-once.mp4",
+        "pc-memory-export-slow-fractional.mp4",
+        "pc-memory-export-motion.mp4",
+        "pc-memory-export-ordered.mp4"
+      ]
+    },
+    {
+      "platform": "android",
+      "workflowRun": 41166954940,
+      "artifact": {
+        "id": 13029491719,
+        "sha256": "394dc47049531d5fe0fed2010b5da8d7152fd5fe477f540d254674dfbf260e5a"
+      },
+      "casesPassed": 39,
+      "originalSourceHashesVerified": {
+        "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+        "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab",
+        "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5",
+        "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.gif": "fa09323d645946fc05e54d47d92c2d4171d67cbb93a4a9cc4225495cf00ae674",
+        "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.png": "296c54b04d0a9aa58171e9d22cff9b41b32a66116d3aa1d89bd67cd193082a77",
+        "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.webp": "417af2bcf554708ce2331d3c3558aa0148921e2231ab3e0b9e8989f6a19395f3",
+        "scripts/quality/android-story-export/src/androidTest/assets/memory-static.gif": "72d8dbe3283e3dbe380be331227f69cac8f86144e136fab17c320c43cd008ff9",
+        "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/MemoryMovieExportTest.kt": "692e0629c6ee7a642ed17cd3b00cba8c64d6b6e56854839deabaf8261573bf51",
+        "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/StoryAudioExportTest.kt": "8838f9ec96b6d297bbaa2cb7e80d6399731b53331d2dda4de2de54becd8f21f6"
+      },
+      "sourcesIdenticalToIndependentlyDecoded341395c6": true,
+      "retainedMediaHashesAndBytesVerified": 42,
+      "byteIdenticalToEarlierVerifiedMedia": [
+        "memory-normalized-alpha.png",
+        "memory-normalized-exif.png",
+        "memory-prepare-retry.png"
+      ],
+      "receiptFile": "android-26e80ae9-receipt.json",
+      "mediaWithDifferentBytes": [
+        "canvas-and-timed-artwork.mp4",
+        "full-1080x1920-portrait.mp4",
+        "known-length-open-provider.mp4",
+        "known-provider-source-original-330hz.mp4",
+        "matrix-alpha-bias.mp4",
+        "matrix-scale-translation.mp4",
+        "memory-cancel-retry.mp4",
+        "memory-continuous-music.mp4",
+        "memory-independent-audio.mp4",
+        "memory-local-effects.mp4",
+        "memory-muted-original.mp4",
+        "memory-one-pass.mp4",
+        "memory-source-original-330hz.mp4",
+        "memory-zero-volume.mp4",
+        "mute-source-original-330hz.mp4",
+        "muted-original.mp4",
+        "negative-y-orientation.mp4",
+        "one-pass-voiceover.mp4",
+        "original-only-mix.mp4",
+        "original-only-source-original-330hz.mp4",
+        "positive-y-orientation.mp4",
+        "provider-source-original-330hz.mp4",
+        "quarter-volume.mp4",
+        "readable-external-input.mp4",
+        "retry-after-blocked-provider.mp4",
+        "retry-after-cancel.mp4",
+        "seekable-provider-range.mp4",
+        "selected-excerpt-loop.mp4",
+        "slow-mix-source-original-330hz.mp4",
+        "slow-video-fractional-soundtrack-loop.mp4",
+        "source-original-330hz.mp4",
+        "source-with-short-audio.mp4",
+        "timed-video-source-original-330hz.mp4",
+        "trim-after-original-audio.mp4",
+        "trim-speed-original-mix.mp4",
+        "unknown-length-provider-input.mp4",
+        "video-output-time-artwork.mp4",
+        "voiceover-clipped-to-movie.mp4",
+        "zero-volume.mp4"
+      ]
+    }
+  ],
+  "limits": [
+    "Fresh CI reported 58 passing native encoder cases. The original source and all retained artifact hashes/bytes were independently verified.",
+    "The detailed independent waveform/pixel/cadence decoding receipt remains bound to earlier341395c6 outputs from byte-identical engine and acceptance sources. Fresh outputs with different bytes were not independently decoded again; no output equivalence is inferred from source equivalence.",
+    "These standalone engine harnesses do not establish the full native app navigation/capture flow, physical-device operation, hosted permissions, Photos save or signed distribution."
+  ]
+}

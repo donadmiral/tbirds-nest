@@ -53,7 +53,7 @@ function harness() {
     if(id==='@/lib/profileLookup')return profileModule.exports;
     return new Proxy({},{get:(_,key)=>String(key)});
   }});
-  const render=()=>{for(let round=0;dirty&&round<20;round++){dirty=false;cursor=0;tree=mod.exports.default();while(effects.length)effects.shift()();}assert.equal(dirty,false,'effects settle');};
+  const render=()=>{for(let round=0;dirty&&round<20;round++){dirty=false;cursor=0;tree=mod.exports.default();while(typeof tree?.type==='function')tree=tree.type(tree.props);while(effects.length)effects.shift()();}assert.equal(dirty,false,'effects settle');};
   const flush=async()=>{for(let i=0;i<7;i++){render();await new Promise(r=>setImmediate(r));}render();};
   const click=label=>{const button=nodes(tree).find(n=>n.type==='button'&&text(n)===label);assert.ok(button,'Missing '+label);assert.notEqual(button.props.disabled,true);button.props.onClick();render();};
   const doubleClick=label=>{const button=nodes(tree).find(n=>n.type==='button'&&text(n)===label);assert.ok(button);button.props.onClick();button.props.onClick();render();};

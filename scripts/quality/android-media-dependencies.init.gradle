@@ -1,0 +1,41 @@
+import groovy.json.JsonOutput
+import org.gradle.api.GradleException
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+
+// Read the actual resolved application runtime graph. The 1.8.1 common module
+// publishes alignment constraints; no force rule or node_modules edit is used.
+gradle.beforeProject { project ->
+  project.pluginManager.withPlugin('com.android.application') {
+    project.tasks.register('verifyStoryMediaDependencies') {
+      group = 'verification'
+      description = 'Verify and record the aligned Media3 runtime used by this Android app.'
+      doLast {
+        def destination = project.providers.gradleProperty('platinumStoryMediaReceipt').orNull
+        if (!destination) {
+          throw new GradleException('A destination for the resolved Media3 receipt is required.')
+        }
+        def resolved = project.configurations.getByName('debugRuntimeClasspath').incoming.resolutionResult.allComponents
+          .collect { it.id }
+          .findAll { it instanceof ModuleComponentIdentifier && it.group == 'androidx.media3' }
+          .collect { [group: it.group, module: it.module, version: it.version] }
+          .sort { left, right -> left.module <=> right.module }
+        def modules = resolved.collect { it.module } as Set
+        def required = ['media3-common', 'media3-effect', 'media3-transformer', 'media3-exoplayer'] as Set
+        if (!modules.containsAll(required) || resolved.any { it.version != '1.8.1' }) {
+          throw new GradleException('The actual Android runtime does not contain the complete aligned Media3 1.8.1 graph: ' + JsonOutput.toJson(resolved))
+        }
+        def output = new File(destination)
+        output.parentFile.mkdirs()
+        output.text = JsonOutput.prettyPrint(JsonOutput.toJson([
+          project: project.path,
+          configuration: 'debugRuntimeClasspath',
+          expectedVersion: '1.8.1',
+          aligned: true,
+          components: resolved,
+          scope: 'Resolved runtime version alignment; separate from security or encoded-media acceptance.'
+        ])) + '\n'
+        println('Verified ' + resolved.size() + ' resolved Media3 runtime components at 1.8.1.')
+      }
+    }
+  }
+}

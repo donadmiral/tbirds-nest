@@ -45,54 +45,36 @@ export type Msg = {
   _delivery?: 'pending' | 'rejected' | 'conflict';
 };
 
-export async function loadConversations(userId: string, context: string = "personal"): Promise<Conv[]> {
+export async function loadConversations(userId: string, context = 'personal', signal?: AbortSignal, accessToken?: string): Promise<Conv[]> {
   const supabase = createClient();
-  const { data: dmConvs, error: dmError } = await supabase
-    .from("conversations")
-    .select("*")
-    .or("user_1.eq." + userId + ",user_2.eq." + userId)
-    .eq("is_group", false)
-    .order("last_message_time", { ascending: false });
-
-  if (dmError) throw new Error('Conversations could not be loaded.');
-  const { data: memberRows, error: memberError } = await supabase
-    .from("conversation_members")
-    .select("conversation_id")
-    .eq("user_id", userId);
-  if (memberError) throw new Error('Group conversations could not be loaded.');
-  const groupIds = (memberRows ?? []).map((r) => r.conversation_id);
-  let groupConvs: Record<string, unknown>[] = [];
-  if (groupIds.length > 0) {
-    const { data: gc, error: groupError } = await supabase
-      .from("conversations")
-      .select("*")
-      .in("id", groupIds)
-      .eq("is_group", true)
-      .order("last_message_time", { ascending: false });
-    if (groupError) throw new Error('Group conversations could not be loaded.');
-    groupConvs = (gc ?? []) as Record<string, unknown>[];
-  }
-
-  const keep = (c: Record<string, unknown>) => ((c.context as string) || "personal") === context;
-
-  const dmOtherIds = ((dmConvs ?? []) as Record<string, unknown>[])
-    .filter(keep)
-    .map((c) => (c.user_1 === userId ? c.user_2 : c.user_1))
-    .filter(Boolean) as string[];
+  const pin = <T extends { abortSignal(signal: AbortSignal): unknown; setHeader(name: string, value: string): unknown }>(query: T): T => {
+    if (signal) query.abortSignal(signal);
+    if (accessToken) query.setHeader('Authorization', `Bearer ${accessToken}`);
+    return query;
+  };
+  const [dm, memberships, unread] = await Promise.all([
+    pin(supabase.from('conversations').select('*').or('user_1.eq.' + userId + ',user_2.eq.' + userId)
+      .eq('is_group', false).order('last_message_time', { ascending: false })),
+    pin(supabase.from('conversation_members').select('conversation_id').eq('user_id', userId)),
+    pin(supabase.rpc('get_unread_counts')),
+  ]);
+  if (dm.error || memberships.error || unread.error) throw new Error('Conversations could not be loaded.');
+  if (signal?.aborted) throw new Error('The conversation read was cancelled.');
+  const dmConvs = dm.data ?? [];
+  const groupIds = (memberships.data ?? []).map(row => row.conversation_id);
+  const keep = (c: Record<string, unknown>) => ((c.context as string) || 'personal') === context;
+  const dmOtherIds = [...new Set((dmConvs as Record<string, unknown>[]).filter(keep)
+    .map(c => c.user_1 === userId ? c.user_2 : c.user_1).filter(Boolean))] as string[];
+  const [groupResult, profiles] = await Promise.all([
+    groupIds.length ? pin(supabase.from('conversations').select('*').in('id', groupIds).eq('is_group', true).order('last_message_time', { ascending: false })) : { data: [], error: null },
+    dmOtherIds.length ? pin(supabase.from('profiles').select('id, full_name, username, avatar_url').in('id', dmOtherIds)) : { data: [], error: null },
+  ]);
+  if (groupResult.error || profiles.error) throw new Error('Conversation details could not be loaded.');
+  if (signal?.aborted) throw new Error('The conversation read was cancelled.');
+  const groupConvs = (groupResult.data ?? []) as Record<string, unknown>[];
   const profileMap = new Map<string, { full_name: string | null; username: string | null; avatar_url: string | null }>();
-  if (dmOtherIds.length > 0) {
-    const { data: profs } = await supabase
-      .from("profiles")
-      .select("id, full_name, username, avatar_url")
-      .in("id", dmOtherIds);
-    (profs ?? []).forEach((p) => profileMap.set(p.id, p));
-  }
-
-  const unreadMap: Record<string, number> = {};
-  try {
-    const { data: unreadData } = await supabase.rpc("get_unread_counts");
-    Object.assign(unreadMap, conversationUnreadCounts(unreadData));
-  } catch { /* non-fatal */ }
+  (profiles.data ?? []).forEach(p => profileMap.set(p.id, p));
+  const unreadMap = conversationUnreadCounts(unread.data);
 
   const dms: Conv[] = ((dmConvs ?? []) as Record<string, unknown>[]).filter(keep).map((c) => {
     const otherId = (c.user_1 === userId ? c.user_2 : c.user_1) as string | null;

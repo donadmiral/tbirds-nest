@@ -1,4 +1,4 @@
-import { themedSheet } from "../../theme/useTheme";
+import { themedSheet, useTheme } from "../../theme/useTheme";
 import React, { useEffect, useRef, useState } from "react";
 import {
   View,
@@ -34,6 +34,7 @@ export default function ReportListingSheet({
   reviewId,
   reporterId,
 }: Props) {
+  const { t, isDark } = useTheme();
   const [reason, setReason] = useState("");
   const [detail, setDetail] = useState("");
   const [busy, setBusy] = useState(false);
@@ -135,7 +136,8 @@ export default function ReportListingSheet({
                       editable={!busy}
                       accessibilityLabel="Report details, optional"
                       placeholder="Add detail (optional)"
-                      placeholderTextColor="#8E8E93"
+                      placeholderTextColor={t.ink.muted}
+                      keyboardAppearance={isDark ? "dark" : "light"}
                       multiline
                       maxLength={1000}
                     />
@@ -182,7 +184,7 @@ const s = themedSheet((t) => ({
   overlay: {
     flex: 1,
     justifyContent: "flex-end",
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: t.surface.scrim,
   },
   sheet: {
     backgroundColor: t.surface.canvas,
@@ -196,45 +198,45 @@ const s = themedSheet((t) => ({
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "#D8D8DC",
+    backgroundColor: t.surface.hairline,
     alignSelf: "center",
     marginBottom: 14,
   },
   title: {
     fontSize: 18,
     fontWeight: "800",
-    color: "#0A0A0A",
+    color: t.ink.primary,
     letterSpacing: -0.4,
   },
-  sub: { fontSize: 13.5, color: "#8E8E93", marginTop: 3, marginBottom: 8 },
+  sub: { fontSize: 13.5, color: t.ink.muted, marginTop: 3, marginBottom: 8 },
   row: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#EFEFF4",
+    borderBottomColor: t.surface.hairline,
   },
-  rowTitle: { fontSize: 15.5, fontWeight: "600", color: "#0A0A0A" },
-  rowSub: { fontSize: 12.5, color: "#8E8E93", marginTop: 1 },
+  rowTitle: { fontSize: 15.5, fontWeight: "600", color: t.ink.primary },
+  rowSub: { fontSize: 12.5, color: t.ink.muted, marginTop: 1 },
   radio: {
     width: 24,
     height: 24,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: "#C7C7CC",
+    borderColor: t.ink.muted,
     alignItems: "center",
     justifyContent: "center",
   },
   radioOn: { backgroundColor: "#DC2626", borderColor: "#DC2626" },
   input: {
     marginTop: 12,
-    backgroundColor: "#F2F2F7",
+    backgroundColor: t.surface.sunken,
     borderRadius: 12,
     padding: 12,
     minHeight: 60,
     fontSize: 14.5,
-    color: "#0A0A0A",
+    color: t.ink.primary,
     textAlignVertical: "top",
   },
   cta: {
@@ -245,5 +247,5 @@ const s = themedSheet((t) => ({
     alignItems: "center",
     justifyContent: "center",
   },
-  ctaTxt: { color: t.ink.inverse, fontSize: 16, fontWeight: "700" },
+  ctaTxt: { color: "#FFFFFF", fontSize: 16, fontWeight: "700" },
 }));

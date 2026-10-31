@@ -1,3 +1,6 @@
+import { loadConversationTargets } from '../../../shared/conversationTargets';
+import { createFeedTabCache } from '../../../shared/feedTabCache';
+import { uniqueCollaborators, collaborationName } from '../../../shared/collaborationPeople';
 function stripMd(input: string | null | undefined): string {
   if (!input) return '';
   return input
@@ -13,16 +16,14 @@ function stripMd(input: string | null | undefined): string {
     .replace(/\n/g, ' ')
     .trim();
 }
-import { Image as ExpoImagePrefetch } from 'expo-image';
 import { prefetch } from '../../lib/screenTransition';
 import PollCard from '../../components/PollCard';
 import CollaboratorsSheet from '../../components/CollaboratorsSheet';
 import PeoplePickerSheet from '../../components/PeoplePickerSheet';
 import { showMessage } from 'react-native-flash-message';
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { takePendingCapture } from '../../utils/captureBridge';
-import VideoThumb from '../../components/VideoThumb';
 import ArticleBody from '../../components/ArticleBody';
 import SharedPostCard from '../../components/feed/SharedPostCard';
 import { TapTopFlatList } from '../../components/TapTopList';
@@ -33,12 +34,10 @@ import TrendingStoriesRail from '../../components/TrendingStoriesRail';
 import MarketplaceShelf from '../../components/market/MarketplaceShelf';
 import { isMarketplacePost, MARKETPLACE_SHELF_AFTER, readMarketplaceRecommendations, type MarketplaceRecommendation } from '../../../shared/marketplaceRecommendations';
 import * as ExpoLinking from 'expo-linking';
-import * as FileSystem from 'expo-file-system/legacy';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { storiesService } from '../../services/storiesService';
 import {
-  View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Linking,
+  View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Linking,
   StatusBar, RefreshControl, Share, Alert, TextInput, Image,
   KeyboardAvoidingView, Platform, Keyboard, ScrollView, useWindowDimensions, Modal,
   Animated,
@@ -55,7 +54,7 @@ import * as VideoThumbnails from 'expo-video-thumbnails';
 import * as Crypto from 'expo-crypto';
 
 import type { SoundtrackSelection } from '../../../shared/soundtrack';
-import { MUSIC_CATALOG_ENABLED } from '../../../shared/musicAvailability';
+import { ORIGINAL_AUDIO_ENABLED } from '../../../shared/musicAvailability';
 import SoundtrackPicker from '../../components/SoundtrackPicker';
 import { normalizePostPlayback } from '../../../shared/postVoiceEffects';
 import { postLookRecipe } from '../../../shared/postMediaEditing';
@@ -75,7 +74,6 @@ import TrendingTopicsStrip from '../../components/TrendingTopicsStrip';
 import PostCarousel, { CarouselMedia } from '../../components/PostCarousel';
 import ProductCarousel, { PostProduct } from '../../components/ProductCarousel';
 import ProductPickerSheet from '../../components/ProductPickerSheet';
-import ActorSwitcher from '../../components/ActorSwitcher';
 import { useActorStore, authorId as currentAuthorId } from '../../stores/actorStore';
 import PostMediaViewer from '../../components/PostMediaViewer';
 import FullscreenVideo from '../../components/FullscreenVideo';
@@ -85,7 +83,6 @@ import { seekWhenClaimed } from '../../lib/videoEngine';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { CATEGORIES } from '../../constants/categories';
 import { FeedSkeleton } from '../../components/Skeleton';
-import { light } from '../../constants/tokens';
 import { hydratePostMedia } from '../../services/contentMedia';
 import { renewFeedMedia } from '../../../shared/feedMedia';
 import { feedSnapshots, savePublicFeedSnapshot, reconcileFeedVisibility } from '../../services/feedSnapshot';
@@ -113,7 +110,6 @@ type ProfileLite = { id: string; full_name?: string | null; username?: string | 
 type ProfileMap = Record<string, ProfileLite>;
 type CommentPreview = { body: string; authorName: string; likes?: number };
 type LocalMedia = { uri: string; type: 'image' | 'video'; ext: string; width?: number; height?: number; fileSize?: number; thumbnail?: string; edit?: PostMediaEdit | null; };
-type PostMediaRow = { id: string; url: string; media_type: 'image' | 'video'; width?: number | null; height?: number | null; sort_order: number; edit?: PostMediaEdit | null };
 
 function scorePost(p: Omit<Post, 'score'>): number {
   const h = (Date.now() - new Date(p.created_at || Date.now()).getTime()) / 3600000;
@@ -198,12 +194,62 @@ function isVideoPost(post: { media?: any[] | null }): boolean {
   return !!post.media?.some((m: any) => m.media_type === 'video');
 }
 
-function renderRichText(text: string, onHashtag: (t: string) => void, onMention: (u: string) => void) {
-  return text.split(/([@#][\w.]+)/g).map((part, i) => {
-    if (part.startsWith('#')) return <Text key={i} style={s.hashTag} onPress={() => onHashtag(part.slice(1))}>{part}</Text>;
-    if (part.startsWith('@')) return <Text key={i} style={s.mention} onPress={() => onMention(part.slice(1))}>{part}</Text>;
-    return <Text key={i}>{part}</Text>;
-  });
+type FeedTextDraft = { ownerId: string | null; text: string; exclusive: boolean; innovation: boolean };
+
+/** Restore only into an untouched draft, and never save a pre-hydration value. */
+function useFeedTextDraft(ownerId: string | null) {
+  const [draft, setDraft] = useState<FeedTextDraft>({ ownerId, text: '', exclusive: false, innovation: false });
+  const [hydrated, setHydrated] = useState<{ ownerId: string; generation: number; revision: number; read: boolean } | null>(null);
+  const generation = useRef(0), revision = useRef(0), mounted = useRef(false);
+  const visibleOwner = useRef(ownerId); visibleOwner.current = ownerId;
+  const current = useCallback((request: number) => mounted.current && generation.current === request
+    && !!ownerId && visibleOwner.current === ownerId && useAuthStore.getState().session?.user.id === ownerId
+    && useAuthStore.getState().profile?.id === ownerId, [ownerId]);
+
+  useEffect(() => {
+    const request = ++generation.current, startRevision = revision.current;
+    mounted.current = true;
+    let read = false;
+    if (ownerId && current(request)) {
+      void AsyncStorage.getItem('pc_draft:' + ownerId).then(raw => {
+        if (!current(request)) return;
+        read = true;
+        if (revision.current !== startRevision) return;
+        let saved: unknown = null;
+        try { saved = raw ? JSON.parse(raw) : null; } catch { /* Ignore invalid local metadata. */ }
+        const value = saved && typeof saved === 'object' ? saved as Record<string, unknown> : {};
+        setDraft({ ownerId, text: typeof value.text === 'string' ? value.text : '', exclusive: value.exclusive === true, innovation: value.innovation === true });
+      }).catch(() => {}).finally(() => {
+        if (current(request)) setHydrated({ ownerId, generation: request, revision: startRevision, read });
+      });
+    }
+    return () => { mounted.current = false; generation.current = request + 1; };
+  }, [ownerId, current]);
+
+  useEffect(() => {
+    if (!ownerId || hydrated?.ownerId !== ownerId || draft.ownerId !== ownerId
+      || !current(hydrated.generation) || (!hydrated.read && revision.current === hydrated.revision)) return;
+    const timer = setTimeout(() => {
+      if (!current(hydrated.generation)) return;
+      const key = 'pc_draft:' + ownerId;
+      if (draft.text.trim()) {
+        void AsyncStorage.setItem(key, JSON.stringify({ text: draft.text, exclusive: draft.exclusive, innovation: draft.innovation })).catch(() => {});
+      } else { void AsyncStorage.removeItem(key).catch(() => {}); }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [draft, hydrated, ownerId, current]);
+
+  const update = useCallback((change: Partial<Pick<FeedTextDraft, 'text' | 'exclusive' | 'innovation'>>) => {
+    if (!current(generation.current)) return;
+    revision.current++;
+    setDraft(previous => ({ ...(previous.ownerId === ownerId ? previous : { ownerId, text: '', exclusive: false, innovation: false }), ...change }));
+  }, [current, ownerId]);
+  const setComposerText = useCallback((text: string) => update({ text }), [update]);
+  const setExclusivePost = useCallback((exclusive: boolean) => update({ exclusive }), [update]);
+  const setInnovationPost = useCallback((innovation: boolean) => update({ innovation }), [update]);
+  const value = draft.ownerId === ownerId ? draft : { text: '', exclusive: false, innovation: false };
+  return { composerText: value.text, exclusivePost: value.exclusive, innovationPost: value.innovation,
+    setComposerText, setExclusivePost, setInnovationPost };
 }
 
 export default function FeedScreen({ navigation }: any) {
@@ -212,9 +258,10 @@ export default function FeedScreen({ navigation }: any) {
   const { width: SCREEN_W } = useWindowDimensions();
   const TILE_W = Math.floor((SCREEN_W - 12 * 2 - 10) / 2);
   const NAVY = t.ink.primary;
-  const { profile } = useAuthStore();
+  const { profile, session } = useAuthStore();
   const userId = profile?.id ?? null;
-  const isVerifiedSchoolUser = !!(profile as any)?.is_verified_school_user;
+  const { composerText, setComposerText, exclusivePost, setExclusivePost, innovationPost, setInnovationPost }
+    = useFeedTextDraft(session?.user.id === userId ? userId : null);
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [feedOwner, setFeedOwner] = useState(userId);
@@ -257,6 +304,7 @@ export default function FeedScreen({ navigation }: any) {
     const text = ((pp.content || '') + ' ' + ((pp as any).article_title || '')).toLowerCase();
     return mutedWords.some((w) => w && text.includes(w));
   }, [mutedWords]);
+  const isMutedRef = useRef(isMuted); isMutedRef.current = isMuted;
   // Last known counts per post. The feed query returns zeros for some of
   // them; this overlay makes sure a fresh load never draws a zero over a
   // number the phone already knows.
@@ -270,9 +318,8 @@ export default function FeedScreen({ navigation }: any) {
   const [loadingMore, setLoadingMore] = useState(false);
   const hasMoreRef = useRef(true);
   const cursorRef = useRef<{ key: number; id: string } | null>(null);
-  const modeFirstRun = useRef(true);
   const loadingMoreRef = useRef(false);
-  const [busyKeys, setBusyKeys] = useState<Record<string, boolean>>({});
+  const [, setBusyKeys] = useState<Record<string, boolean>>({});
   const [feedMode, setFeedMode] = useState<'forYou' | 'latest' | 'discover' | 'trending'>('forYou');
   const [discoverCat, setDiscoverCat] = useState('all');
   const [discoverOpen, setDiscoverOpen] = useState<string | null>(null);
@@ -280,15 +327,20 @@ export default function FeedScreen({ navigation }: any) {
   useEffect(() => { setDiscoverOpen(null); }, [userId, feedMode, discoverCat]);
   const [pendingPostCount, setPendingPostCount] = useState(0);
   const feedRequestRef = useRef(0);
+  const feedRefreshRequestRef = useRef<number | null>(null);
   const resolvedFeedRequestRef = useRef(0);
   const feedScopeRef = useRef('');
   feedScopeRef.current = `${userId ?? ''}:${feedMode}:${discoverCat}`;
+  const [visibleFeedScope, setVisibleFeedScope] = useState(feedScopeRef.current);
+  const feedTabs = useRef(createFeedTabCache<{
+    rows: Post[]; profiles: ProfileMap; likes: Record<string, boolean>; marks: Record<string, boolean>;
+    reposts: Record<string, boolean>; cursor: { key: number; id: string } | null; hasMore: boolean;
+    offset: number; discoverPage: { asOf: string; offset: number }; needsCursorRefresh: boolean;
+  }>()).current;
   const pendingPostsRef = useRef<Post[]>([]);
   const scrollOffsetRef = useRef(0);
   const restoredSnapshotRef = useRef(false);
   const prefetchedImagesRef = useRef(new Set<string>());
-  const discoverInnoIdsRef = useRef<Set<string>>(new Set());
-  const discoverMetaRef = useRef<Map<string, string | null>>(new Map());
   const discoverCatRef = useRef(discoverCat);
   const mediaTouchRef = useRef(false);
   // Discover pill row: remember its scroll offset across feed reloads so tapping a far pill never snaps the row back to the start.
@@ -315,9 +367,8 @@ export default function FeedScreen({ navigation }: any) {
   })).current;
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
   const [requestedIds, setRequestedIds] = useState<Set<string>>(new Set());
-  const [search, setSearch] = useState('');
+  const search = '';
   const [composerOpen, setComposerOpen] = useState(false);
-  const [composerText, setComposerText] = useState('');
   const [composerMedia, setComposerMedia] = useState<LocalMedia[]>([]);
   const composerMediaRef = useRef(composerMedia); composerMediaRef.current = composerMedia;
   const [editMediaIdx, setEditMediaIdx] = useState<number | null>(null);
@@ -336,8 +387,6 @@ export default function FeedScreen({ navigation }: any) {
     Keyboard.dismiss(); setComposerOpen(true);
     return false;
   };
-  const [exclusivePost, setExclusivePost] = useState(false);
-  const [innovationPost, setInnovationPost] = useState(false);
   const [postCategory, setPostCategory] = useState<string | null>(null);
   const [innoField, setInnoField] = useState<string | null>(null);
   const [innoStage, setInnoStage] = useState<string | null>(null);
@@ -363,24 +412,20 @@ export default function FeedScreen({ navigation }: any) {
     if (!ids.length) return;
     const isCurrent = metadataFence();
     supabase.from('post_polls').select('post_id').in('post_id', ids).then(({ data }) => { if (!isCurrent()) return; const m: Record<string, boolean> = {}; (data || []).forEach((r: any) => { m[r.post_id] = true; }); setPollPosts(prev => ({ ...prev, ...m })); }, () => {});
-  }, []);
+  }, [metadataFence]);
   const [collabs, setCollabs] = useState<Record<string, { id: string; username: string | null; full_name: string | null }[]>>({});
   const [collabPicker, setCollabPicker] = useState<'composer' | { postId: string } | null>(null);
   const askCollaborator = useCallback(() => { setCollabPicker('composer'); }, []);
-  const inviteCollaborators = useCallback(async (postId: string, picks: { id: string }[]) => {
-    if (!userId) return;
-    for (const p of picks) { await supabase.from('post_collaborators').insert({ post_id: postId, user_id: p.id, invited_by: userId }).then(() => {}, () => {}); }
-  }, [userId]);
   const hydrateCollabs = useCallback((ids: string[]) => {
     if (!ids.length) return;
     const isCurrent = metadataFence();
     supabase.from('post_collaborators').select('post_id, user_id, status, profile:profiles!post_collaborators_user_id_fkey(username, full_name, avatar_url, is_verified, verified_tier)').in('post_id', ids).eq('status', 'accepted').then(({ data }) => {
       if (!isCurrent()) return;
-      const m: Record<string, { id: string; username: string | null; full_name: string | null }[]> = {};
+      const m: Record<string, { id: string; username: string | null; full_name: string | null }[]> = Object.fromEntries(ids.map(id => [id, []]));
       (data || []).forEach((r: any) => { const pr = Array.isArray(r.profile) ? r.profile[0] : r.profile; if (!pr) return; (m[r.post_id] = m[r.post_id] || []).push({ id: r.user_id, username: pr.username ?? null, full_name: pr.full_name ?? null, avatar_url: pr.avatar_url ?? null, is_verified: !!pr.is_verified, verified_tier: pr.verified_tier ?? null } as any); });
       setCollabs(prev => ({ ...prev, ...m }));
     }, () => {});
-  }, []);
+  }, [metadataFence]);
   const COMMENT_META: Record<string, { label: string; icon: string }> = {
     everyone: { label: 'Anyone', icon: 'message-circle' }, following: { label: 'People I follow', icon: 'user-check' },
     followers: { label: 'My followers', icon: 'users' }, mentioned: { label: 'Mentioned only', icon: 'at-sign' }, off: { label: 'Comments off', icon: 'slash' },
@@ -412,27 +457,6 @@ export default function FeedScreen({ navigation }: any) {
   const mediaNodeRef = useRef<Record<string, any>>({});
   // While the sheet holds the media in its stage the card stays idle; the sheet hands the player back just before it leaves.
   const [commentsHold, setCommentsHold] = useState(false);
-  useEffect(() => {
-    AsyncStorage.getItem(('pc_draft:' + (userId || 'anon'))).then(v => {
-      if (!v) return;
-      try {
-        const d = JSON.parse(v);
-        if (d?.text) setComposerText(d.text);
-        if (d?.exclusive) setExclusivePost(true);
-        if (d?.innovation) setInnovationPost(true);
-      } catch {}
-    }).catch(() => {});
-  }, []);
-  useEffect(() => {
-    const t = setTimeout(() => {
-      if (composerText.trim().length > 0) {
-        AsyncStorage.setItem(('pc_draft:' + (userId || 'anon')), JSON.stringify({ text: composerText, exclusive: exclusivePost, innovation: innovationPost })).catch(() => {});
-      } else {
-        AsyncStorage.removeItem(('pc_draft:' + (userId || 'anon'))).catch(() => {});
-      }
-    }, 400);
-    return () => clearTimeout(t);
-  }, [composerText, exclusivePost, innovationPost]);
   const [likersPost, setLikersPost] = useState<Post | null>(null);
   const [likersList, setLikersList] = useState<any[]>([]);
   const [likersKind, setLikersKind] = useState<'likes' | 'reposts' | 'bookmarks'>('likes');
@@ -457,12 +481,12 @@ export default function FeedScreen({ navigation }: any) {
   const [sendLoading, setSendLoading] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
   const sendGeneration = useRef(0);
-  useEffect(() => { sendGeneration.current++; setSendPost(null); setSendConvs([]); setSendGroups([]); setSendCommunities([]); return () => { sendGeneration.current++; }; }, [userId]);
+  useEffect(() => { const generation = sendGeneration; generation.current++; setSendPost(null); setSendConvs([]); setSendGroups([]); setSendCommunities([]); return () => { generation.current++; }; }, [userId]);
   const [quotingPost, setQuotingPost] = useState<Post | null>(null);
   const [threadingPost, setThreadingPost] = useState<Post | null>(null);
   const [quotedMap, setQuotedMap] = useState<Record<string, { content: string; user_id: string; media?: { url: string; media_type: string; thumbnail_url?: string | null } | null }>>({});
   const [unreadNotifs, setUnreadNotifs] = useState(0);
-  const [momentRefreshKey, setMomentRefreshKey] = useState(0);
+  const [, setMomentRefreshKey] = useState(0);
 
   const realtimeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const likedPostsRef = useRef<Record<string, boolean>>({});
@@ -614,9 +638,59 @@ export default function FeedScreen({ navigation }: any) {
     }, 2000);
   }, []);
 
+  const hydrateShares = useCallback((ids: string[]) => {
+    if (!ids.length) return;
+    const isCurrent = metadataFence();
+    // The post row carries the counts the triggers maintain, readable by
+    // everyone. That is the number every phone shows, whatever it can or
+    // cannot read of the underlying like, repost and bookmark rows.
+    supabase.from('posts').select('id, likes_count, reposts_count, bookmarks_count, shares_count').in('id', ids).then(({ data }) => {
+      if (!isCurrent() || !data || !data.length) return;
+      const m: Record<string, any> = {};
+      data.forEach((r: any) => { m[r.id] = r; });
+      const pick = (a: any, b: any, cur: number) => { const v = a ?? b; return typeof v === 'number' ? Math.max(v, 0) : cur; };
+      Object.keys(m).forEach(id => {
+        const r = m[id];
+        countCacheRef.current[id] = {
+          likes_count: pick(r.likes_count, r.like_count, countCacheRef.current[id]?.likes_count ?? 0),
+          reposts_count: pick(r.reposts_count, r.repost_count, countCacheRef.current[id]?.reposts_count ?? 0),
+          bookmarks_count: pick(r.bookmarks_count, r.bookmark_count, countCacheRef.current[id]?.bookmarks_count ?? 0),
+          shares_count: pick(r.shares_count, r.share_count, countCacheRef.current[id]?.shares_count ?? 0),
+        };
+      });
+      setPosts(prev => overlayCounts(prev));
+    }, () => {});
+    // Quotes are posts that point at these ids. Counted here so the repost
+    // number means reposts and quotes together, as on X.
+    // Counts from the rows themselves, so a phone that did not do the acting
+    // still shows the real numbers even before the post row's counter catches up.
+    supabase.from('post_reposts').select('post_id').in('post_id', ids).then(({ data }) => {
+      if (!isCurrent()) return;
+      const m: Record<string, number> = {}; (data || []).forEach((r: any) => { m[r.post_id] = (m[r.post_id] || 0) + 1; });
+      setPosts(prev => prev.map(pp => ids.includes(pp.id) && (m[pp.id] || 0) > (pp.reposts_count || 0) ? { ...pp, reposts_count: m[pp.id] } : pp));
+    }, () => {});
+    supabase.from('post_bookmarks').select('post_id').in('post_id', ids).then(({ data }) => {
+      if (!isCurrent()) return;
+      const m: Record<string, number> = {}; (data || []).forEach((r: any) => { m[r.post_id] = (m[r.post_id] || 0) + 1; });
+      setPosts(prev => prev.map(pp => ids.includes(pp.id) && (m[pp.id] || 0) > (pp.bookmarks_count || 0) ? { ...pp, bookmarks_count: m[pp.id] } : pp));
+    }, () => {});
+    supabase.from('posts').select('quoted_post_id').in('quoted_post_id', ids).then(({ data }) => {
+      if (!isCurrent()) return;
+      const q: Record<string, number> = {};
+      (data || []).forEach((r: any) => { if (r.quoted_post_id) q[r.quoted_post_id] = (q[r.quoted_post_id] || 0) + 1; });
+      setPosts(prev => prev.map(pp => ids.includes(pp.id) ? { ...pp, quotes_count: q[pp.id] || 0 } : pp));
+    }, () => {});
+  }, [metadataFence]);
+
+  const recordShare = useCallback((p: Post) => {
+    supabase.rpc('increment_share_count', { p_post_id: p.id }).then(() => {}, () => {});
+    setPosts(prev => prev.map(x => x.id === p.id ? { ...x, shares_count: (x.shares_count ?? 0) + 1 } : x));
+  }, []);
+
   const loadFeed = useCallback(async (showLoader = false, background = false) => {
     if (!userId) return;
     const request = ++feedRequestRef.current;
+    feedRefreshRequestRef.current = request;
     const scope = feedScopeRef.current;
     const mode = feedModeRef.current;
     const category = discoverCatRef.current;
@@ -626,6 +700,8 @@ export default function FeedScreen({ navigation }: any) {
     setLoadingMore(false);
     const deadline = setTimeout(() => {
       if (!isCurrent()) return;
+      // A timed-out refresh must not later overwrite a newly requested page.
+      if (feedRefreshRequestRef.current === request) { ++feedRequestRef.current; feedRefreshRequestRef.current = null; }
       setLoading(false); setRefreshing(false);
       setFeedError(postsRef.current.length ? 'Your feed is taking longer to refresh. You can keep reading.' : 'Your feed is taking longer to load. Please try again.');
     }, 12_000);
@@ -654,7 +730,7 @@ export default function FeedScreen({ navigation }: any) {
 
       resolvedFeedRequestRef.current = request;
       const rows = (feedRows ?? []) as any[];
-      const scored = overlayCounts(rows.map(mapFeedRow)).filter(pp => !hiddenIdsRef.current.has(pp.id) && !isMuted(pp));
+      const scored = overlayCounts(rows.map(mapFeedRow)).filter(pp => !hiddenIdsRef.current.has(pp.id) && !isMutedRef.current(pp));
       hydrateShares(scored.map(pp => pp.id));
       hydrateCollabs(scored.map(pp => pp.id));
       hydratePolls(scored.map(pp => pp.id));
@@ -672,6 +748,7 @@ export default function FeedScreen({ navigation }: any) {
       setPendingPostCount(merged.pending.length);
       postsRef.current = merged.rows;
       setPosts(merged.rows);
+      setVisibleFeedScope(scope);
       if (!preservePosition || restoredSnapshotRef.current) {
         cursorRef.current = rows.length
           ? { key: rows[rows.length - 1].sort_key, id: rows[rows.length - 1].post_id }
@@ -680,6 +757,7 @@ export default function FeedScreen({ navigation }: any) {
         if (mode === 'discover') discoverPageRef.current = { asOf: discoverAsOf, offset: rows.length };
       }
       restoredSnapshotRef.current = false;
+      feedRefreshRequestRef.current = null;
       // Content is usable now. Profiles/comments below are optional enrichment.
       setLoading(false);
       setRefreshing(false);
@@ -758,27 +836,53 @@ export default function FeedScreen({ navigation }: any) {
           setCommentPreviews(prev => preservePosition ? { ...prev, ...cpMap } : cpMap);
         }
       }
-    } catch (e: any) {
+    } catch {
       if (!isCurrent()) return;
       setFeedError('Your feed could not load. Please try again.');
     }
-    finally { clearTimeout(deadline); if (isCurrent()) { setLoading(false); setRefreshing(false); } }
-  }, [userId]);
+    finally {
+      clearTimeout(deadline);
+      if (feedRefreshRequestRef.current === request) feedRefreshRequestRef.current = null;
+      if (isCurrent()) { setLoading(false); setRefreshing(false); }
+    }
+  }, [userId, hydrateShares, hydrateCollabs, hydratePolls]);
 
   useEffect(() => {
     loadFeedRef.current = loadFeed;
   }, [loadFeed]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     feedModeRef.current = feedMode;
     discoverCatRef.current = discoverCat;
-    if (modeFirstRun.current) { modeFirstRun.current = false; return; }
-    cursorRef.current = null;
-    hasMoreRef.current = true;
+    // Restore a resolved tab before paint. A passive effect first committed the
+    // new tab with the old scope and replaced the entire list with a skeleton.
+    if (visibleFeedScope === feedScopeRef.current) return;
+    if (visibleFeedScope.startsWith(`${userId ?? ''}:`) && !loading && (posts.length > 0 || !feedError)) {
+      feedTabs.save(visibleFeedScope, { rows: posts, profiles: profilesMap, likes: likedPosts, marks: bookmarkedPosts,
+        reposts: repostedPosts, cursor: cursorRef.current, hasMore: hasMoreRef.current,
+        offset: scrollOffsetRef.current, discoverPage: discoverPageRef.current, needsCursorRefresh: restoredSnapshotRef.current });
+    }
+    const restored = feedTabs.read(feedScopeRef.current);
+    const rows = restored?.rows.filter(post => !hiddenIdsRef.current.has(post.id)) ?? [];
+    postsRef.current = rows; setPosts(rows);
+    setProfilesMap(restored?.profiles ?? {}); setLikedPosts(restored?.likes ?? {});
+    setBookmarkedPosts(restored?.marks ?? {}); setRepostedPosts(restored?.reposts ?? {});
+    cursorRef.current = restored?.cursor ?? null;
+    hasMoreRef.current = restored?.hasMore ?? true;
+    discoverPageRef.current = restored?.discoverPage ?? { asOf: new Date().toISOString(), offset: 0 };
+    scrollOffsetRef.current = restored?.offset ?? 0;
+    // A disk snapshot can reach this cache before its first network response.
+    // Preserve its need for a cursor while retaining established tab cursors.
+    restoredSnapshotRef.current = restored?.needsCursorRefresh ?? false;
+    setVisibleFeedScope(feedScopeRef.current); setLoading(!restored); setFeedError(null);
     pendingPostsRef.current = [];
     setPendingPostCount(0);
-    loadFeedRef.current?.(false);
-  }, [feedMode, discoverCat]);
+    const scrollScope = feedScopeRef.current;
+    requestAnimationFrame(() => {
+      if (scrollScope === feedScopeRef.current) feedListRef.current?.scrollToOffset({ offset: restored?.offset ?? 0, animated: false });
+    });
+    loadFeedRef.current?.(!restored, !!restored);
+  }, [feedMode, discoverCat, userId, visibleFeedScope, loading, feedError, feedTabs, posts, profilesMap, likedPosts, bookmarkedPosts, repostedPosts]);
 
   useEffect(() => {
     if (!userId) return;
@@ -794,7 +898,9 @@ export default function FeedScreen({ navigation }: any) {
 
   useEffect(() => {
     let alive = true;
-    ++feedRequestRef.current;
+    const requests = feedRequestRef;
+    ++requests.current;
+    feedTabs.clear();
     postsRef.current = [];
     setFeedOwner(userId);
     setPosts([]); setProfilesMap({}); setLikedPosts({}); setBookmarkedPosts({}); setRepostedPosts({});
@@ -814,7 +920,7 @@ export default function FeedScreen({ navigation }: any) {
     void feedSnapshots.read(userId, feedModeRef.current).then(snapshot => {
       if (!alive || !snapshot || scope !== feedScopeRef.current || feedRequestRef.current !== initialRequest
         || resolvedFeedRequestRef.current === initialRequest || useAuthStore.getState().profile?.id !== userId || postsRef.current.length) return;
-      const restored = snapshot.rows.map(mapFeedRow).filter(post => !isMuted(post));
+      const restored = snapshot.rows.map(mapFeedRow).filter(post => !isMutedRef.current(post));
       const pm: ProfileMap = {}; const likes: Record<string, boolean> = {}, marks: Record<string, boolean> = {}, reposts: Record<string, boolean> = {};
       snapshot.rows.forEach(row => {
         pm[row.author_id] = { id: row.author_id, full_name: row.author_name, username: row.author_username,
@@ -822,12 +928,13 @@ export default function FeedScreen({ navigation }: any) {
         likes[row.post_id] = !!row.viewer_liked; marks[row.post_id] = !!row.viewer_bookmarked; reposts[row.post_id] = !!row.viewer_reposted;
       });
       restoredSnapshotRef.current = true;
+      setVisibleFeedScope(scope);
       postsRef.current = restored; setPosts(restored); setProfilesMap(pm);
       setLikedPosts(likes); setBookmarkedPosts(marks); setRepostedPosts(reposts); setLoading(false);
     });
     void loadFeed(true);
-    return () => { alive = false; ++feedRequestRef.current; };
-  }, [userId, loadFeed]);
+    return () => { alive = false; ++requests.current; };
+  }, [userId, loadFeed, feedTabs]);
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', state => {
@@ -1080,7 +1187,7 @@ export default function FeedScreen({ navigation }: any) {
       }, 220);
     }
     lastTapMap.current[postId] = now;
-  }, [toggleLike]);
+  }, [toggleLike, heartAnim]);
 
   const toggleBookmark = useCallback(async (postId: string) => {
     if (!userId || isBusy(`bk-${postId}`)) return;
@@ -1194,19 +1301,24 @@ export default function FeedScreen({ navigation }: any) {
 
   const [composerPreview, setComposerPreview] = useState<any>(null);
   const lpDebounceRef = useRef<any>(null);
+  const lpPreviewIntentRef = useRef({ owner: userId, url: null as string | null, dismissed: false });
   useEffect(() => {
+    let active = true;
     if (lpDebounceRef.current) clearTimeout(lpDebounceRef.current);
-    const m = composerText.match(/https?:\/\/[^\s<>"]+/);
-    if (!m) { setComposerPreview(null); return; }
-    const url = m[0];
+    const url = composerText.match(/https?:\/\/[^\s<>"]+/)?.[0] ?? null;
+    if (lpPreviewIntentRef.current.owner !== userId || lpPreviewIntentRef.current.url !== url) {
+      lpPreviewIntentRef.current = { owner: userId, url, dismissed: false };
+    }
+    if (!url || lpPreviewIntentRef.current.dismissed) { setComposerPreview(null); return; }
+    setComposerPreview((previous: any) => previous?.url === url ? previous : null);
     lpDebounceRef.current = setTimeout(async () => {
       try {
         const { data, error } = await supabase.functions.invoke('link-preview', { body: { url } });
-        if (!error && data && !data.error) setComposerPreview(data);
+        if (active && !lpPreviewIntentRef.current.dismissed && useAuthStore.getState().profile?.id === userId && !error && data && !data.error && data.url === url) setComposerPreview(data);
       } catch {}
     }, 800);
-    return () => { if (lpDebounceRef.current) clearTimeout(lpDebounceRef.current); };
-  }, [composerText]);
+    return () => { active = false; if (lpDebounceRef.current) clearTimeout(lpDebounceRef.current); };
+  }, [composerText, userId]);
 
   const hidePost = useCallback(async (postId: string) => {
     hiddenIdsRef.current.add(postId);
@@ -1304,29 +1416,12 @@ export default function FeedScreen({ navigation }: any) {
     setSendPost(post); setSendConvs([]); setSendGroups([]); setSendCommunities([]);
     setSendLoading(true); setSendError(null);
     try {
-      const [direct, memberships, communities] = await Promise.all([
-        supabase.from('conversations').select('id, user_1, user_2, last_message_time')
-          .eq('type', 'direct').or('context.is.null,context.eq.personal')
-          .or(`user_1.eq.${userId},user_2.eq.${userId}`).order('last_message_time', { ascending: false }).limit(30),
-        supabase.from('conversation_members').select('conversation_id').eq('user_id', userId).limit(100),
-        supabase.from('community_members').select('community_id').eq('user_id', userId).limit(100),
-      ]);
-      if (direct.error || memberships.error || communities.error) throw new Error('Your conversations could not be loaded. Please retry.');
-      const rows = direct.data ?? [];
-      const otherIds = Array.from(new Set(rows.map(c => c.user_1 === userId ? c.user_2 : c.user_1).filter(Boolean)));
-      const gids = Array.from(new Set((memberships.data ?? []).map(r => r.conversation_id).filter(Boolean)));
-      const cids = Array.from(new Set((communities.data ?? []).map(r => r.community_id).filter(Boolean)));
-      const [profiles, groups, communityRows] = await Promise.all([
-        otherIds.length ? supabase.from('profiles').select('id, full_name, username, avatar_url').in('id', otherIds) : { data: [], error: null },
-        gids.length ? supabase.from('conversations').select('id, group_name, group_emoji, last_message_time').eq('is_group', true).in('id', gids).order('last_message_time', { ascending: false }).limit(30) : { data: [], error: null },
-        cids.length ? supabase.from('communities').select('id, name, emoji, member_count').in('id', cids).order('name').limit(30) : { data: [], error: null },
-      ]);
-      if (profiles.error || groups.error || communityRows.error) throw new Error('Your conversations could not be loaded. Please retry.');
+      const targets = await loadConversationTargets(supabase, userId);
       if (!current()) return;
-      const profileMap = new Map((profiles.data ?? []).map(p => [p.id, p]));
-      setSendConvs(rows.map(c => { const otherId = c.user_1 === userId ? c.user_2 : c.user_1; return { ...c, other: profileMap.get(otherId), otherId }; }));
-      setSendGroups((groups.data ?? []).map(g => ({ ...g, otherId: null, group: true })));
-      setSendCommunities(communityRows.data ?? []);
+      setSendConvs(targets.people.map(target => ({ ...target, other: { full_name: target.name, username: target.username, avatar_url: target.avatar } })));
+      setSendGroups(targets.groups.map(target => ({ ...target, group_name: target.name, group_emoji: target.emoji })));
+      setSendCommunities(targets.communities);
+      setSendError(targets.warning);
     } catch (e) { if (current()) setSendError(e instanceof Error ? e.message : 'Conversations could not be loaded. Please retry.'); }
     finally { if (current()) setSendLoading(false); }
   }, [userId]);
@@ -1364,7 +1459,7 @@ export default function FeedScreen({ navigation }: any) {
       sendingPost.current = false;
       setSendBusy(false);
     }
-  }, [userId, sendPost]);
+  }, [userId, sendPost, recordShare]);
 
   const sendPostToCommunity = useCallback((community: any) =>
     sendPostTo({ id: community.id, otherId: null, community: true }), [sendPostTo]);
@@ -1381,7 +1476,7 @@ export default function FeedScreen({ navigation }: any) {
       postId: post.id,
       postAuthorName: author?.full_name || author?.username || 'Platinum Circles',
       postAuthorAvatar: author?.avatar_url || null,
-      postText: post.content || '',
+      postText: post.content?.trim() || (post as any).body?.trim() || '',
       postMediaUrl: first?.url || null,
       postMediaType: first?.media_type || null,
       postMediaCount: Math.max(media.length, first ? 1 : 0),
@@ -1401,55 +1496,6 @@ export default function FeedScreen({ navigation }: any) {
     (navigation as any).navigate('StoryComposer', { mode: 'text', seedStickers: [sticker] });
   }, [profilesMap, navigation]);
 
-  const hydrateShares = useCallback((ids: string[]) => {
-    if (!ids.length) return;
-    const isCurrent = metadataFence();
-    // The post row carries the counts the triggers maintain, readable by
-    // everyone. That is the number every phone shows, whatever it can or
-    // cannot read of the underlying like, repost and bookmark rows.
-    supabase.from('posts').select('id, likes_count, reposts_count, bookmarks_count, shares_count').in('id', ids).then(({ data }) => {
-      if (!isCurrent() || !data || !data.length) return;
-      const m: Record<string, any> = {};
-      data.forEach((r: any) => { m[r.id] = r; });
-      const pick = (a: any, b: any, cur: number) => { const v = a ?? b; return typeof v === 'number' ? Math.max(v, 0) : cur; };
-      Object.keys(m).forEach(id => {
-        const r = m[id];
-        countCacheRef.current[id] = {
-          likes_count: pick(r.likes_count, r.like_count, countCacheRef.current[id]?.likes_count ?? 0),
-          reposts_count: pick(r.reposts_count, r.repost_count, countCacheRef.current[id]?.reposts_count ?? 0),
-          bookmarks_count: pick(r.bookmarks_count, r.bookmark_count, countCacheRef.current[id]?.bookmarks_count ?? 0),
-          shares_count: pick(r.shares_count, r.share_count, countCacheRef.current[id]?.shares_count ?? 0),
-        };
-      });
-      setPosts(prev => overlayCounts(prev));
-    }, () => {});
-    // Quotes are posts that point at these ids. Counted here so the repost
-    // number means reposts and quotes together, as on X.
-    // Counts from the rows themselves, so a phone that did not do the acting
-    // still shows the real numbers even before the post row's counter catches up.
-    supabase.from('post_reposts').select('post_id').in('post_id', ids).then(({ data }) => {
-      if (!isCurrent()) return;
-      const m: Record<string, number> = {}; (data || []).forEach((r: any) => { m[r.post_id] = (m[r.post_id] || 0) + 1; });
-      setPosts(prev => prev.map(pp => ids.includes(pp.id) && (m[pp.id] || 0) > (pp.reposts_count || 0) ? { ...pp, reposts_count: m[pp.id] } : pp));
-    }, () => {});
-    supabase.from('post_bookmarks').select('post_id').in('post_id', ids).then(({ data }) => {
-      if (!isCurrent()) return;
-      const m: Record<string, number> = {}; (data || []).forEach((r: any) => { m[r.post_id] = (m[r.post_id] || 0) + 1; });
-      setPosts(prev => prev.map(pp => ids.includes(pp.id) && (m[pp.id] || 0) > (pp.bookmarks_count || 0) ? { ...pp, bookmarks_count: m[pp.id] } : pp));
-    }, () => {});
-    supabase.from('posts').select('quoted_post_id').in('quoted_post_id', ids).then(({ data }) => {
-      if (!isCurrent()) return;
-      const q: Record<string, number> = {};
-      (data || []).forEach((r: any) => { if (r.quoted_post_id) q[r.quoted_post_id] = (q[r.quoted_post_id] || 0) + 1; });
-      setPosts(prev => prev.map(pp => ids.includes(pp.id) ? { ...pp, quotes_count: q[pp.id] || 0 } : pp));
-    }, () => {});
-  }, []);
-
-  const recordShare = useCallback((p: Post) => {
-    supabase.rpc('increment_share_count', { p_post_id: p.id }).then(() => {}, () => {});
-    setPosts(prev => prev.map(x => x.id === p.id ? { ...x, shares_count: (x.shares_count ?? 0) + 1 } : x));
-  }, []);
-
   const postLink = (p: Post) => 'https://platinumcircles.app/post/' + p.id;
   const sharePost = useCallback(async (post: Post) => {
     if (sharingPostRef.current[post.id]) return;
@@ -1459,7 +1505,7 @@ export default function FeedScreen({ navigation }: any) {
       const res = await Share.share({ message: `${author?.full_name || 'Someone'} on Platinum Circles:\n\n${post.content}\n\nSee it: ${postLink(post)}` }); if ((res as any)?.action === Share.sharedAction) recordShare(post);
     } catch {}
     setTimeout(() => setSharingPost(p => { const n = { ...p }; delete n[post.id]; return n; }), 600);
-  }, [profilesMap]);
+  }, [profilesMap, recordShare]);
 
   const pickMedia = async (only?: 'images' | 'videos') => {
     if (!canEditPostDraft()) return;
@@ -1645,6 +1691,7 @@ export default function FeedScreen({ navigation }: any) {
             return `${process.env.EXPO_PUBLIC_SUPABASE_URL}/storage/v1/object/public/post-media/${name}`;
           } finally { clearTimeout(timeout); }
         };
+        const currentLink = composerText.match(/https?:\/\/[^\s<>"]+/)?.[0] ?? null;
         const post: any = {
           id: postId, user_id: author, content: composerText.trim() || null, is_exclusive: exclusivePost,
           channel: innovationPost ? 'innovation' : null, audience: postAudience, comment_policy: commentPolicy,
@@ -1654,7 +1701,7 @@ export default function FeedScreen({ navigation }: any) {
           ...(innovationPost && articleTitle.trim() ? { article_title: articleTitle.trim(), read_minutes: Math.max(1, Math.round(composerText.trim().split(/\s+/).length / 200)) } : {}),
           ...(quotingPost ? { quoted_post_id: quotingPost.id } : {}),
           ...(threadingPost ? { thread_parent_id: threadingPost.id } : {}),
-          ...(composerPreview?.url ? { link_url: composerPreview.url } : {}),
+          ...(composerPreview?.url && composerPreview.url === currentLink ? { link_url: composerPreview.url } : {}),
         };
         publicationAttempt.current = {
           owner, postId, started: false,
@@ -1666,7 +1713,7 @@ export default function FeedScreen({ navigation }: any) {
               const url = await upload(safe.uri, safe.mime, `${owner}/${postId}_${i}.${safe.ext}`);
               const { tags: _tags, coverLocalUri, soundtrack: previousSoundtrack, ...recipe } = m.edit ?? {};
               const chosenSoundtrack = i === 0 && composerSoundtrack ? composerSoundtrack : previousSoundtrack;
-              const edit: any = { ...recipe, ...(MUSIC_CATALOG_ENABLED && chosenSoundtrack ? { soundtrack: chosenSoundtrack } : {}) };
+              const edit: any = { ...recipe, ...(ORIGINAL_AUDIO_ENABLED && chosenSoundtrack ? { soundtrack: chosenSoundtrack } : {}) };
               if (video) {
                 const at = Math.max(0, Number(m.edit?.coverAt ?? m.edit?.trimStart ?? 0));
                 const thumb = coverLocalUri ? {uri:coverLocalUri} : await VideoThumbnails.getThumbnailAsync(m.uri, { time: Math.round(at * 1000), quality: 0.9 });
@@ -1681,16 +1728,13 @@ export default function FeedScreen({ navigation }: any) {
             await step('post', () => saveRows('posts', [{ ...post, ...(uploaded[0] ? { media_url: uploaded[0].url } : {}) }]));
             await step('media', () => saveRows('post_media', uploaded));
             await step('tags', () => saveRows('post_media_tags', tags));
-            await step('collaborators', () => saveRows('post_collaborators', collabPicks.map(p => ({ post_id: postId, user_id: p.id, invited_by: owner })), 'post_id,user_id'));
+            await step('collaborators', () => saveRows('post_collaborators', uniqueCollaborators(collabPicks, owner).map(p => ({ post_id: postId, user_id: p.id, invited_by: owner })), 'post_id,user_id'));
             if (pollRows.length) {
               await step('poll', () => saveRows('post_polls', [{ post_id: postId, ends_at: pollEnd }], 'post_id'));
               await step('poll-options', () => saveRows('post_poll_options', pollRows));
             }
             if (composerProducts.length) await step('products', async () => {
               const { error } = await supabase.rpc('set_post_products', { p_post_id: postId, p_products: composerProducts.map((p, i) => ({ ...p, sort_order: i })) }); if (error) throw error;
-            });
-            if (composerPreview?.url) await step('link-preview', async () => {
-              const { error } = await supabase.rpc('upsert_link_preview', { p_url: composerPreview.url, p_title: composerPreview.title ?? null, p_description: composerPreview.description ?? null, p_image_url: composerPreview.image_url ?? null, p_domain: composerPreview.domain ?? null }); if (error) throw error;
             });
             await check();
           },
@@ -1720,7 +1764,7 @@ export default function FeedScreen({ navigation }: any) {
     const mode = feedModeRef.current;
     const isCurrent = () => request === feedRequestRef.current && pageRequest === pageRequestRef.current && scope === feedScopeRef.current
       && useAuthStore.getState().profile?.id === userId;
-    if (loadingMoreRef.current || !hasMoreRef.current || (posts.length === 0 && mode !== 'discover')) return;
+    if (feedRefreshRequestRef.current === request || loadingMoreRef.current || !hasMoreRef.current || (posts.length === 0 && mode !== 'discover')) return;
     loadingMoreRef.current = true;
     pageRequest = ++pageRequestRef.current;
     setLoadingMore(true);
@@ -1748,7 +1792,7 @@ export default function FeedScreen({ navigation }: any) {
       if (rows.length === 0) { hasMoreRef.current = false; return; }
       const hydrated = await hydratePostMedia(rows);
       if (!isCurrent()) return;
-      const scored = overlayCounts(hydrated.map(mapFeedRow)).filter(pp => !hiddenIdsRef.current.has(pp.id) && !isMuted(pp));
+      const scored = overlayCounts(hydrated.map(mapFeedRow)).filter(pp => !hiddenIdsRef.current.has(pp.id) && !isMutedRef.current(pp));
       hasMoreRef.current = rows.length >= PAGE_SIZE;
       cursorRef.current = { key: rows[rows.length - 1].sort_key, id: rows[rows.length - 1].post_id };
       if (mode === 'discover') discoverPageRef.current.offset += rows.length;
@@ -1796,9 +1840,9 @@ export default function FeedScreen({ navigation }: any) {
         }
         setCommentPreviews(prev => { const cp = { ...prev }; topC.forEach((c: any) => { const cur = cp[c.post_id]; if (!cur || (c.likes_count ?? 0) > (cur.likes ?? 0)) { const a = authors2[c.user_id]; cp[c.post_id] = { body: c.body, authorName: a?.full_name || a?.username || 'User', likes: c.likes_count ?? 0 }; } }); return cp; });
       }
-    } catch (e) { if (isCurrent()) setFeedError('Could not load more posts. Please try again.'); }
+    } catch { if (isCurrent()) setFeedError('Could not load more posts. Please try again.'); }
     finally { clearTimeout(deadline); if (isCurrent()) { loadingMoreRef.current = false; setLoadingMore(false); } }
-  }, [posts, userId, profilesMap]);
+  }, [posts, userId, profilesMap, hydrateShares, hydrateCollabs, hydratePolls]);
 
   useEffect(() => {
     if (feedMode === 'discover' && !loading && !loadingMore && !feedError && posts.length === 0 && hasMoreRef.current) void loadMore();
@@ -1841,7 +1885,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
       list = [...list.slice(0, MARKETPLACE_SHELF_AFTER), { id: '__marketplace', media: [], products: [] } as unknown as Post, ...list.slice(MARKETPLACE_SHELF_AFTER)];
     }
     return list;
-  }, [posts, feedMode, discoverCat, search, followingIds, wtfSuggestions, promos, isMuted, feedOwner, userId, marketplaceItems]);
+  }, [posts, feedMode, search, followingIds, wtfSuggestions, promos, isMuted, feedOwner, userId, marketplaceItems]);
 
   useEffect(() => {
     if (!screenFocused || AppState.currentState !== 'active' || dataSaver) return;
@@ -1851,7 +1895,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
     if (!urls.length) return;
     if (prefetchedImagesRef.current.size > 80) prefetchedImagesRef.current.clear();
     urls.forEach(url => prefetchedImagesRef.current.add(url));
-    void ExpoImagePrefetch.prefetch(urls).catch(() => {
+    void ExpoImage.prefetch(urls).catch(() => {
       urls.forEach(url => prefetchedImagesRef.current.delete(url));
     });
   }, [displayPosts, activePostId, dataSaver, screenFocused, appActive]);
@@ -1923,7 +1967,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
       const vis = wtfSuggestions.filter((p: any) => !followingIds.has(p.id)).slice(0, 8);
       if (vis.length === 0) return <View />;
       return (
-        <View style={{ paddingTop: 12, paddingBottom: 14, borderBottomWidth: 6, borderBottomColor: '#F2F3F5', backgroundColor: getTheme().surface.canvas }}>
+        <View style={{ paddingTop: 12, paddingBottom: 14, borderBottomWidth: 6, borderBottomColor: t.surface.sunken, backgroundColor: getTheme().surface.canvas }}>
           <Text style={{ fontSize: 15, fontWeight: '700', color: getTheme().ink.primary, paddingHorizontal: 16, marginBottom: 10, letterSpacing: -0.1 }}>Who to follow</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 10 }} onTouchStart={() => { mediaTouchRef.current = true; }} onTouchEnd={() => { mediaTouchRef.current = false; }} onTouchCancel={() => { mediaTouchRef.current = false; }}>
             {vis.map((p: any) => (
@@ -1951,7 +1995,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
     const isReposted = !!repostedPostsRef.current[post.id];
     const preview = commentPreviewsRef.current[post.id];
     const isSharing = !!sharingPostRef.current[post.id];
-    const openPost = () => { if (isSharing) return; try { ((post as any).media || []).slice(0, 4).forEach((m: any) => { if (m?.url && m.media_type !== 'video') ExpoImagePrefetch.prefetch(m.url).catch(() => {}); }); } catch {} navigation.navigate('Post', { postId: post.id, media: Array.isArray((post as any).media) && (post as any).media.length > 0 ? (post as any).media : undefined }); };
+    const openPost = () => { if (isSharing) return; try { ((post as any).media || []).slice(0, 4).forEach((m: any) => { if (m?.url && m.media_type !== 'video') ExpoImage.prefetch(m.url).catch(() => {}); }); } catch {} navigation.navigate('Post', { postId: post.id, media: Array.isArray((post as any).media) && (post as any).media.length > 0 ? (post as any).media : undefined }); };
 
     return (
       <View style={s.postCard}>
@@ -1977,26 +2021,26 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
                 <TierName tier={(author as any)?.verified_tier ?? (((author as any)?.is_verified) ? 'business' : null)} baseStyle={s.postAuthor} text={author?.full_name || 'Member'} />
                 <VerifiedBadge userId={(author as any)?.id} size={13} />
-                {(() => { const list = collabs[post.id] || []; if (!list.length) return null; if (list.length === 1) { const x: any = list[0]; return (
+                {(() => { const list = uniqueCollaborators(collabs[post.id] || [], post.user_id); if (!list.length) return null; if (list.length === 1) { const x: any = list[0]; return (
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                    <Text style={[s.postAuthor, { fontWeight: '800' }]}>×</Text>
-                    <TouchableOpacity onPress={() => navigation.navigate('UserProfile', { userId: x.id })} activeOpacity={0.7}>
-                      <TierName userId={x.id} baseStyle={s.postAuthor} text={x.full_name || x.username || ''} />
+                    <Text style={{ color: t.ink.secondary, fontSize: 13 }}>with</Text>
+                    <TouchableOpacity accessibilityRole="link" accessibilityLabel={`Collaborator ${x.full_name || x.username || 'Member'}${x.username ? ', @' + x.username : ''}`} onPress={() => navigation.navigate('UserProfile', { userId: x.id })} activeOpacity={0.7}>
+                      <TierName userId={x.id} baseStyle={s.postAuthor} text={collaborationName(x, author?.full_name || author?.username)} />
                     </TouchableOpacity>
                     <VerifiedBadge userId={x.id} size={13} />
                   </View>
                 ); } return (
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
-                    <Text style={[s.postAuthor, { fontWeight: '800' }]}>×</Text>
-                    <TouchableOpacity onPress={() => setCollabSheet([...list])} activeOpacity={0.7}><Text style={s.postAuthor}>{list.length} others</Text></TouchableOpacity>
+                    <Text style={{ color: t.ink.secondary, fontSize: 13 }}>with</Text>
+                    <TouchableOpacity accessibilityRole="button" accessibilityLabel={`View ${list.length} collaborators`} onPress={() => setCollabSheet([...list])} activeOpacity={0.7}><Text style={s.postAuthor}>{list.length} collaborators</Text></TouchableOpacity>
                   </View>
                 ); })()}
               </View>
               <Text style={s.postSub}>{author?.username ? `@${author.username}` : ''}{author?.username && post.created_at ? ' · ' : ''}{relTime(post.created_at)}{post.channel === 'innovation' && <Text style={{ color: getTheme().status.innovation, fontWeight: '700' }}> · Innovation</Text>}</Text>
               {(post as any)._promo && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 3, alignSelf: 'flex-start', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, backgroundColor: '#EEF1F6' }}>
-                  <Feather name="briefcase" size={10} color="#64748B" />
-                  <Text style={{ fontSize: 10, fontWeight: '800', color: '#64748B', letterSpacing: 0.3 }}>{String((post as any)._promo.label || 'Sponsored').toUpperCase()}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 3, alignSelf: 'flex-start', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999, backgroundColor: t.surface.sunken }}>
+                  <Feather name="briefcase" size={10} color={t.ink.secondary} />
+                  <Text style={{ fontSize: 10, fontWeight: '800', color: t.ink.secondary, letterSpacing: 0.3 }}>{String((post as any)._promo.label || 'Sponsored').toUpperCase()}</Text>
                 </View>
               )}
               {post.is_trending && (
@@ -2054,12 +2098,12 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
             <View style={{ flexDirection: 'row', gap: 6, marginBottom: 6 }}>
               {(post as any).innovation_field ? (
                 <View style={{ paddingHorizontal: 9, paddingVertical: 3, borderRadius: 99, backgroundColor: 'rgba(217,119,6,0.12)' }}>
-                  <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#B45309' }}>{(post as any).innovation_field}</Text>
+                  <Text style={{ fontSize: 10.5, fontWeight: '700', color: t.status.innovation }}>{(post as any).innovation_field}</Text>
                 </View>
               ) : null}
               {(post as any).innovation_stage ? (
                 <View style={{ paddingHorizontal: 9, paddingVertical: 3, borderRadius: 99, backgroundColor: 'rgba(11,30,61,0.08)' }}>
-                  <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#0B1E3D' }}>{(post as any).innovation_stage}</Text>
+                  <Text style={{ fontSize: 10.5, fontWeight: '700', color: t.ink.primary }}>{(post as any).innovation_stage}</Text>
                 </View>
               ) : null}
             </View>
@@ -2232,7 +2276,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
       </View>
     );
   }, [
-    t,
+    t, NAVY, collabs, expandedPosts, heartAnim, navigation, openHashtag, openLikers, openMention, openPostViewers, pollPosts, postRings, requestedIds, userId, viewer,
     marketplaceItems,
     TILE_W,
     activePostId,
@@ -2252,7 +2296,6 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
     toggleLike,
     toggleBookmark,
     toggleRepost,
-    sharePost,
     openComments,
   ]);
 
@@ -2276,7 +2319,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
               >
                 <Feather name="search" size={20} color={getTheme().ink.primary} />
               </TouchableOpacity>
-              <TouchableOpacity style={s.iconBtn} onPress={() => navigation.navigate('Notifications')}>
+              <TouchableOpacity accessibilityRole="button" accessibilityLabel="Notifications" style={s.iconBtn} onPress={() => navigation.navigate('Notifications')}>
                 <View>
                   <Feather name="bell" size={20} color={getTheme().ink.primary} />
                   {unreadNotifs > 0 && (
@@ -2292,10 +2335,10 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
               {(['forYou', 'latest', 'discover', 'trending'] as const).map(m => {
                 const on = feedMode === m;
                 const label = m === 'forYou' ? 'For You' : m === 'latest' ? 'Latest' : m === 'discover' ? 'Discover' : 'Trending';
-                const accent = m === 'discover' ? '#D97706' : '#0B1E3D';
+                const accent = m === 'discover' ? t.status.innovation : t.ink.primary;
                 return (
                   <TouchableOpacity key={m} style={{ alignItems: 'center', paddingVertical: 8, paddingHorizontal: 4, marginRight: 14 }} onPress={() => setFeedMode(m)} activeOpacity={0.7}>
-                    <Text style={{ fontSize: 15, fontWeight: on ? '800' : '500', color: on ? '#0A0A0A' : '#A3A3A3', letterSpacing: -0.2 }}>{label}</Text>
+                    <Text style={{ fontSize: 15, fontWeight: on ? '800' : '500', color: on ? t.ink.primary : t.ink.secondary, letterSpacing: -0.2 }}>{label}</Text>
                     <View style={{ height: 3, width: 20, borderRadius: 2, marginTop: 5, backgroundColor: on ? accent : 'transparent' }} />
                   </TouchableOpacity>
                 );
@@ -2303,7 +2346,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
             </View>
           </View>
 
-          {feedError && posts.length === 0 ? (
+          {visibleFeedScope !== feedScopeRef.current ? <FeedSkeleton /> : feedError && posts.length === 0 ? (
             <View style={[s.emptyWrap, { flex: 1, justifyContent: 'center' }]}>
               <Feather name="alert-circle" size={40} color={getTheme().ink.faint} />
               <Text style={s.emptyTitle}>Could not load your feed</Text>
@@ -2422,7 +2465,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
             <KeyboardAvoidingView style={[s.composerContainer,{paddingTop:insets.top,paddingBottom:Math.max(insets.bottom,12)}]} behavior={Platform.OS==='ios'?'padding':'height'}>
               <View style={s.cHeader}><TouchableOpacity disabled={posting} style={s.cHeaderCancel} onPress={()=>{if(composerReview&&!publicationLocked)setComposerReview(false);else{setComposerOpen(false);Keyboard.dismiss();}}}><Text style={s.cHeaderCancelText}>{composerReview&&!publicationLocked?'Edit':'Cancel'}</Text></TouchableOpacity><Text style={s.cHeaderTitle}>{posting?'Sharing your moment':composerReview?'Review post':'New post'}</Text><TouchableOpacity accessibilityRole="button" disabled={posting||(!composerText.trim()&&!composerMedia.length)} onPress={()=>{Keyboard.dismiss();if(composerReview||publicationLocked)void createPost();else setComposerReview(true);}} style={[s.postBtn,(posting||(!composerText.trim()&&!composerMedia.length))&&s.postBtnOff]}>{posting?<ActivityIndicator color={t.ink.inverse}/>:<Text style={s.postBtnTxt}>{publicationLocked?'Retry':composerReview?'Post':'Review'}</Text>}</TouchableOpacity></View>
               {composerReview&&!posting?<View style={s.cReviewHint}><Text style={s.cReviewHintText}>Ready to share with {AUD_META[postAudience].label.toLowerCase()}? Check your media and caption, then tap Post.</Text></View>:null}
-              {posting?<View accessibilityLiveRegion="polite" style={s.cProgress}><View style={{flexDirection:'row',justifyContent:'space-between',gap:12}}><Text style={s.cProgressTitle}>{postProgress.label||'Preparing your post'}</Text>{postProgress.total>0?<Text style={s.cProgressTitle}>{postProgress.completed}/{postProgress.total}</Text>:null}</View><View style={s.cProgressTrack}><View style={[s.cProgressFill,{width:`${postProgress.total?postProgress.completed/postProgress.total*100:0}%`}]}/></View><ScrollView style={{maxHeight:150}} contentContainerStyle={{gap:8}}>{composerMedia.map((media,index)=><View key={media.uri} style={s.cUploadRow}><Image source={{uri:media.type==='video'?(media.edit?.coverLocalUri||media.thumbnail||media.uri):media.uri}} style={s.cUploadThumb}/><Text style={[s.cProgressTitle,{flex:1}]}>{media.type==='video'?'Video':'Photo'} {index+1}</Text>{index<postProgress.completed?<Feather name="check-circle" color="#496B51" size={18}/>:index===postProgress.completed?<ActivityIndicator size="small" color="#775D32"/>:<Feather name="clock" color="#716856" size={17}/>}<Text style={s.cProgressText}>{index<postProgress.completed?'Uploaded':index===postProgress.completed?'Uploading':'Waiting'}</Text></View>)}</ScrollView><Text style={[s.cProgressText,{marginTop:10}]}>Keep Platinum open on this feed until your post is confirmed.</Text><TouchableOpacity accessibilityRole="button" onPress={()=>{Keyboard.dismiss();setComposerOpen(false);}} style={s.cContinue}><Text style={s.cProgressTitle}>Continue browsing this feed</Text><Feather name="arrow-right" size={17} color="#0B1E3D"/></TouchableOpacity></View>:null}
+              {posting?<View accessibilityLiveRegion="polite" style={s.cProgress}><View style={{flexDirection:'row',justifyContent:'space-between',gap:12}}><Text style={s.cProgressTitle}>{postProgress.label||'Preparing your post'}</Text>{postProgress.total>0?<Text style={s.cProgressTitle}>{postProgress.completed}/{postProgress.total}</Text>:null}</View><View style={s.cProgressTrack}><View style={[s.cProgressFill,{width:`${postProgress.total?postProgress.completed/postProgress.total*100:0}%`}]}/></View><ScrollView style={{maxHeight:150}} contentContainerStyle={{gap:8}}>{composerMedia.map((media,index)=><View key={media.uri} style={s.cUploadRow}><Image source={{uri:media.type==='video'?(media.edit?.coverLocalUri||media.thumbnail||media.uri):media.uri}} style={s.cUploadThumb}/><Text style={[s.cProgressTitle,{flex:1}]}>{media.type==='video'?'Video':'Photo'} {index+1}</Text>{index<postProgress.completed?<Feather name="check-circle" color="#496B51" size={18}/>:index===postProgress.completed?<ActivityIndicator size="small" color="#775D32"/>:<Feather name="clock" color="#716856" size={17}/>}<Text style={s.cProgressText}>{index<postProgress.completed?'Uploaded':index===postProgress.completed?'Uploading':'Waiting'}</Text></View>)}</ScrollView><Text style={[s.cProgressText,{marginTop:10}]}>Keep Platinum open on this feed until your post is confirmed.</Text><TouchableOpacity accessibilityRole="button" onPress={()=>{Keyboard.dismiss();setComposerOpen(false);}} style={s.cContinue}><Text style={s.cProgressTitle}>Continue browsing this feed</Text><Feather name="arrow-right" size={17} color={t.ink.primary}/></TouchableOpacity></View>:null}
               {threadingPost && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: getTheme().surface.canvas, borderColor: getTheme().surface.hairline, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 6, marginBottom: 6, gap: 6 }}>
                   <Text style={{ fontSize: 12, fontWeight: '600', color: getTheme().ink.secondary }}>Adding to your thread</Text>
@@ -2511,7 +2554,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                 {innovationPost && (
                   <View style={[s.exclusiveBanner, { backgroundColor: getTheme().status.innovationBg, borderColor: getTheme().status.innovation }]}>
                     <Feather name="zap" size={13} color={getTheme().status.innovation} />
-                    <Text style={[s.exclusiveBannerTxt, { color: '#B45309' }]}>Posting to Innovation — showcasing what Zimbabwe is building</Text>
+                    <Text style={[s.exclusiveBannerTxt, { color: t.status.innovation }]}>Posting to Innovation — showcasing what Zimbabwe is building</Text>
                   </View>
                 )}
                 {innovationPost && (
@@ -2520,8 +2563,8 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
                       {['Agritech', 'Health', 'Energy', 'Fintech', 'Education', 'Other'].map((f) => (
                         <TouchableOpacity key={f} onPress={() => setInnoField(innoField === f ? null : f)}
-                          style={{ paddingHorizontal: 11, paddingVertical: 5, borderRadius: 99, borderWidth: 1, borderColor: innoField === f ? '#D97706' : 'rgba(11,30,61,0.14)', backgroundColor: innoField === f ? 'rgba(217,119,6,0.10)' : 'transparent' }}>
-                          <Text style={{ fontSize: 12, fontWeight: '600', color: innoField === f ? '#B45309' : 'rgba(11,30,61,0.6)' }}>{f}</Text>
+                          style={{ paddingHorizontal: 11, paddingVertical: 5, borderRadius: 99, borderWidth: 1, borderColor: innoField === f ? t.status.innovation : t.surface.hairline, backgroundColor: innoField === f ? t.status.innovationBg : 'transparent' }}>
+                          <Text style={{ fontSize: 12, fontWeight: '600', color: innoField === f ? t.status.innovation : t.ink.secondary }}>{f}</Text>
                         </TouchableOpacity>
                       ))}
                     </View>
@@ -2529,8 +2572,8 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                     <View style={{ flexDirection: 'row', gap: 6 }}>
                       {['Idea', 'Prototype', 'Launched'].map((g) => (
                         <TouchableOpacity key={g} onPress={() => setInnoStage(innoStage === g ? null : g)}
-                          style={{ paddingHorizontal: 11, paddingVertical: 5, borderRadius: 99, borderWidth: 1, borderColor: innoStage === g ? '#0B1E3D' : 'rgba(11,30,61,0.14)', backgroundColor: innoStage === g ? 'rgba(11,30,61,0.08)' : 'transparent' }}>
-                          <Text style={{ fontSize: 12, fontWeight: '600', color: innoStage === g ? '#0B1E3D' : 'rgba(11,30,61,0.6)' }}>{g}</Text>
+                          style={{ paddingHorizontal: 11, paddingVertical: 5, borderRadius: 99, borderWidth: 1, borderColor: innoStage === g ? t.ink.primary : t.surface.hairline, backgroundColor: innoStage === g ? t.brand.tintBg : 'transparent' }}>
+                          <Text style={{ fontSize: 12, fontWeight: '600', color: innoStage === g ? t.ink.primary : t.ink.secondary }}>{g}</Text>
                         </TouchableOpacity>
                       ))}
                     </View>
@@ -2551,7 +2594,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                       <Text style={{ fontSize: 10.5, fontWeight: '700', letterSpacing: 0.6, color: getTheme().ink.muted }}>{String(composerPreview.domain || '').toUpperCase()}</Text>
                       <Text style={{ fontSize: 13.5, fontWeight: '600', color: getTheme().ink.primary }} numberOfLines={2}>{composerPreview.title || composerPreview.url}</Text>
                     </View>
-                    <TouchableOpacity onPress={() => setComposerPreview(null)} hitSlop={8}>
+                    <TouchableOpacity accessibilityRole="button" accessibilityLabel="Remove link preview" onPress={() => { lpPreviewIntentRef.current.dismissed = true; setComposerPreview(null); }} hitSlop={8}>
                       <Feather name="x" size={16} color={getTheme().ink.muted} />
                     </TouchableOpacity>
                   </View>
@@ -2559,7 +2602,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
                 {composerMedia.length>0?(()=>{const idx=Math.min(selectedComposerMedia,composerMedia.length-1),media=composerMedia[idx];return <><View style={{position:'relative'}}><PostDraftPreview key={media.uri} media={media} active={composerOpen&&!musicOpen&&editMediaIdx===null} soundtrack={composerSoundtrack}/><View pointerEvents="none" style={s.cSelectedCount}><Text style={{color:'#FFF',fontSize:11,fontWeight:'700'}}>{idx+1} / {composerMedia.length}</Text></View></View>{!composerReview?<View style={s.cMediaActions}><TouchableOpacity style={s.cMediaAction} onPress={()=>{Keyboard.dismiss();setEditMediaIdx(idx);}}><Feather name="sliders" size={16} color={NAVY}/><Text style={s.cMediaActionText}>Edit {media.type==='video'?'video':'photo'}</Text></TouchableOpacity>{[-1,1].map(direction=><TouchableOpacity key={direction} accessibilityLabel={direction<0?'Move media earlier':'Move media later'} disabled={idx+direction<0||idx+direction>=composerMedia.length} style={[s.cMediaAction,(idx+direction<0||idx+direction>=composerMedia.length)&&{opacity:.35}]} onPress={()=>{const to=idx+direction;setComposerMedia(prev=>{const next=[...prev];[next[idx],next[to]]=[next[to],next[idx]];return next;});setSelectedComposerMedia(to);}}><Feather name={direction<0?'chevron-left':'chevron-right'} size={18} color={NAVY}/></TouchableOpacity>)}<TouchableOpacity accessibilityLabel="Remove selected media" style={s.cMediaAction} onPress={()=>{setComposerMedia(prev=>prev.filter((_,i)=>i!==idx));setSelectedComposerMedia(Math.max(0,idx-1));}}><Feather name="trash-2" size={17} color={NAVY}/></TouchableOpacity></View>:null}
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={[s.cMediaScroll,{marginTop:composerReview?12:0}]} contentContainerStyle={{gap:10,padding:2}} keyboardShouldPersistTaps="handled">{composerMedia.map((m,i)=><TouchableOpacity key={m.uri} accessibilityRole="button" accessibilityLabel={`Select media ${i+1}`} accessibilityState={{selected:i===idx}} style={[s.cThumb,i===idx&&s.cThumbSelected]} onPress={()=>setSelectedComposerMedia(i)}><Image source={{uri:m.type==='video'?(m.edit?.coverLocalUri||m.thumbnail||m.uri):m.uri}} style={s.cThumbImg} resizeMode="cover"/><View style={s.cThumbNumber}><Text style={{color:'#FFF',fontSize:10,fontWeight:'700'}}>{i+1}</Text></View>{m.type==='video'?<View style={{position:'absolute',left:6,bottom:6}}><Feather name="play" color="#FFF" size={14}/></View>:null}</TouchableOpacity>)}{!composerReview&&composerMedia.length<10?<TouchableOpacity accessibilityLabel="Add more media" style={s.cAddMore} onPress={()=>pickMedia()}><Feather name="plus" size={25} color={NAVY}/></TouchableOpacity>:null}</ScrollView></>})():null}
                 {editMediaIdx!=null&&composerMedia[editMediaIdx]?<PostMediaEditSheet visible uri={composerMedia[editMediaIdx].uri} mediaType={composerMedia[editMediaIdx].type} width={composerMedia[editMediaIdx].width} height={composerMedia[editMediaIdx].height} itemIndex={editMediaIdx} itemCount={composerMedia.length} initial={composerMedia[editMediaIdx].edit||null} onCancel={()=>setEditMediaIdx(null)} onDone={(ed,applyAll)=>{const idx=editMediaIdx;setComposerMedia(prev=>prev.map((m,i)=>i===idx?{...m,edit:ed}:applyAll?{...m,edit:{...m.edit,...postLookRecipe(ed)}}:m));setEditMediaIdx(null);if(composerMedia[idx].type==='video'&&!ed.coverLocalUri){const editedUri=composerMedia[idx].uri;void VideoThumbnails.getThumbnailAsync(editedUri,{time:Math.round((ed.coverAt??ed.trimStart??0)*1000),quality:.7}).then(result=>setComposerMedia(prev=>prev.map(m=>m.uri===editedUri&&m.edit===ed?{...m,thumbnail:result.uri}:m))).catch(()=>{});}}}/>:null}
-                <View style={s.cSettings}>{composerMedia.length?<TouchableOpacity accessibilityRole="button" style={s.cSettingRow} onPress={()=>{Keyboard.dismiss();setMusicOpen(true);}}><Feather name="music" size={18} color={NAVY}/><Text style={s.cSettingLabel}>Music</Text><Text style={s.cSettingValue}>{composerSoundtrack?`${composerSoundtrack.durationSec.toFixed(1)}s excerpt`:'Add a soundtrack'}</Text><Feather name="chevron-right" size={16} color={t.ink.secondary}/></TouchableOpacity>:null}<TouchableOpacity style={s.cSettingRow} onPress={pickCommentPolicy}><Feather name="message-circle" size={18} color={NAVY}/><Text style={s.cSettingLabel}>Comments</Text><Text style={s.cSettingValue}>{COMMENT_META[commentPolicy].label}</Text><Feather name="chevron-right" size={16} color="#8A93A0"/></TouchableOpacity><TouchableOpacity style={s.cSettingRow} onPress={askCollaborator}><Feather name="users" size={18} color={NAVY}/><Text style={s.cSettingLabel}>Collaborators</Text><Text numberOfLines={1} style={s.cSettingValue}>{collabPicks.length?`${collabPicks.length} selected`:'Invite people'}</Text><Feather name="chevron-right" size={16} color="#8A93A0"/></TouchableOpacity><TouchableOpacity style={s.cSettingRow} onPress={()=>setComposerSensitive(v=>!v)}><Feather name="shield" size={18} color={NAVY}/><Text style={s.cSettingLabel}>Sensitive content</Text><Feather name={composerSensitive?'check-circle':'circle'} size={20} color={composerSensitive?'#AE8B49':'#9AA1AD'}/></TouchableOpacity></View>
+                <View style={s.cSettings}>{composerMedia.length?<TouchableOpacity accessibilityRole="button" style={s.cSettingRow} onPress={()=>{Keyboard.dismiss();setMusicOpen(true);}}><Feather name="music" size={18} color={NAVY}/><Text style={s.cSettingLabel}>Music</Text><Text style={s.cSettingValue}>{composerSoundtrack?`${composerSoundtrack.durationSec.toFixed(1)}s excerpt`:'Add a soundtrack'}</Text><Feather name="chevron-right" size={16} color={t.ink.secondary}/></TouchableOpacity>:null}<TouchableOpacity style={s.cSettingRow} onPress={pickCommentPolicy}><Feather name="message-circle" size={18} color={NAVY}/><Text style={s.cSettingLabel}>Comments</Text><Text style={s.cSettingValue}>{COMMENT_META[commentPolicy].label}</Text><Feather name="chevron-right" size={16} color={t.ink.secondary}/></TouchableOpacity><TouchableOpacity style={s.cSettingRow} onPress={askCollaborator}><Feather name="users" size={18} color={NAVY}/><Text style={s.cSettingLabel}>Collaborators</Text><Text numberOfLines={1} style={s.cSettingValue}>{collabPicks.length?`${collabPicks.length} selected`:'Invite people'}</Text><Feather name="chevron-right" size={16} color={t.ink.secondary}/></TouchableOpacity><TouchableOpacity style={s.cSettingRow} onPress={()=>setComposerSensitive(v=>!v)}><Feather name="shield" size={18} color={NAVY}/><Text style={s.cSettingLabel}>Sensitive content</Text><Feather name={composerSensitive?'check-circle':'circle'} size={20} color={composerSensitive?'#AE8B49':'#9AA1AD'}/></TouchableOpacity></View>
                 </ScrollView>
                 {!composerReview?<View style={s.cToolbar}><TouchableOpacity style={s.cToolTile} onPress={()=>pickMedia()}><Feather name="image" size={20} color={NAVY}/><Text style={s.cMediaActionText}>Media</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" accessibilityLabel="Open post camera and lenses" style={[s.cToolTile,composerMedia.length>=10&&{opacity:.4}]} disabled={composerMedia.length>=10} onPress={openCamera}><Feather name="camera" size={20} color={NAVY}/><Text style={s.cMediaActionText}>Camera</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" accessibilityLabel="Add music to post" style={[s.cToolTile,!composerMedia.length&&{opacity:.4}]} disabled={!composerMedia.length} onPress={()=>{Keyboard.dismiss();setMusicOpen(true);}}><Feather name="music" size={20} color={NAVY}/><Text style={s.cMediaActionText}>Music</Text></TouchableOpacity><TouchableOpacity style={s.cToolTile} onPress={()=>setProductPickerOpen(true)}><Feather name="tag" size={19} color={NAVY}/><Text style={s.cMediaActionText}>Products</Text></TouchableOpacity><TouchableOpacity style={[s.cToolTile,composerMedia.length>0&&{opacity:.4}]} disabled={composerMedia.length>0} onPress={()=>setPollOpts(p=>p?null:['',''])}><Feather name="bar-chart-2" size={19} color={NAVY}/><Text style={s.cMediaActionText}>Poll</Text></TouchableOpacity></View>:null}
               </View>
@@ -2572,7 +2615,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
 
           {!composerOpen && (posting||publicationLocked||postConfirmed) ? <TouchableOpacity accessibilityRole="button" accessibilityLabel={postConfirmed?'Post shared. Dismiss confirmation.':'View post upload progress'} onPress={()=>postConfirmed?setPostConfirmed(false):setComposerOpen(true)} style={[s.cUploadBanner,{bottom:insets.bottom+TAB_BAR_CLEARANCE}]}>{posting?<ActivityIndicator color={t.ink.primary}/>:<Feather name={postConfirmed?'check-circle':'alert-circle'} color={t.ink.primary} size={22}/>}<View style={{flex:1}}><Text style={{color:t.ink.primary,fontWeight:'700'}}>{postConfirmed?'Your post has been shared':posting?(postProgress.label||'Preparing your post'):'Your post needs attention'}</Text><Text style={{color:t.ink.secondary,fontSize:12,marginTop:3}}>{postConfirmed?'Tap to dismiss':posting?'Keep Platinum open · Tap for progress':'Tap to review and finish the same post'}</Text></View><Feather name={postConfirmed?'x':'chevron-up'} color={t.ink.primary} size={19}/></TouchableOpacity> : null}
           {!composerOpen && !posting && !publicationLocked && !postConfirmed && (
-            <TouchableOpacity activeOpacity={0.85} onPress={() => setComposerOpen(true)} style={[s.fabRing, { bottom: insets.bottom + TAB_BAR_CLEARANCE }]}>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Create a post" activeOpacity={0.85} onPress={() => setComposerOpen(true)} style={[s.fabRing, { bottom: insets.bottom + TAB_BAR_CLEARANCE }]}>
               <View style={s.fabDisc}>
                 <Feather name="edit-3" size={22} color={t.ink.inverse} />
               </View>
@@ -2924,7 +2967,6 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
 
             <TouchableOpacity style={s.menuOption} activeOpacity={0.75} onPress={() => {
               const captured = menuPost;
-              const author = captured ? profilesMap[captured.user_id] : null;
               setMenuPost(null);
               setTimeout(() => { if (captured) addPostToStory(captured); }, 350);
             }}>
@@ -3018,7 +3060,7 @@ if (!search && feedMode !== 'discover' && promos.length > 0) {
 
 const s = themedSheet((t) => ({
   articleCard: { borderRadius: 18, overflow: 'hidden', marginTop: 8, backgroundColor: t.surface.canvas },
-  articleCover: { width: '100%', height: 190, backgroundColor: '#EFEFF4' },
+  articleCover: { width: '100%', height: 190, backgroundColor: t.surface.sunken },
   articleBody: { padding: 16 },
   articleKicker: { fontSize: 10.5, fontWeight: '800', letterSpacing: 1.2, color: t.ink.muted },
   articleTitle: { fontSize: 20, fontWeight: '800', color: t.ink.primary, letterSpacing: -0.5, lineHeight: 25, marginTop: 6 },
@@ -3031,7 +3073,7 @@ const s = themedSheet((t) => ({
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, marginBottom: 12 },
   logo: { fontSize: 24, fontFamily: 'SpaceGrotesk_700Bold', color: t.ink.primary, letterSpacing: -0.5 },
   iconBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: t.surface.raised, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline, alignItems: 'center', justifyContent: 'center' },
-  searchInput: { backgroundColor: t.surface.raised, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, minHeight: 48, fontSize: 16, color: t.ink.primary, marginBottom: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: '#EBEBEB' },
+  searchInput: { backgroundColor: t.surface.raised, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, minHeight: 48, fontSize: 16, color: t.ink.primary, marginBottom: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline },
   tabRow: { flexDirection: 'row', marginBottom: 10, backgroundColor: t.surface.raised, borderRadius: 12, padding: 3 },
   tab: { flex: 1, paddingVertical: 8, borderRadius: 10, alignItems: 'center' },
   tabActive: { backgroundColor: t.surface.canvas, shadowColor: t.ink.primary, shadowOpacity: 0.06, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 2 },
@@ -3039,7 +3081,7 @@ const s = themedSheet((t) => ({
   tabTxtActive: { color: t.ink.primary, fontWeight: '600' },
   list: { paddingHorizontal: 0, paddingTop: 8 },
   listEmpty: { flexGrow: 1 },
-  postCard: { backgroundColor: t.surface.canvas, borderBottomWidth: 6, borderBottomColor: '#F2F3F5' },
+  postCard: { backgroundColor: t.surface.canvas, borderBottomWidth: 6, borderBottomColor: t.surface.sunken },
   postTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 14, paddingBottom: 8 },
   postMeta: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   avatar: { width: 40, height: 40, borderRadius: 20, marginRight: 10 },
@@ -3074,7 +3116,7 @@ const s = themedSheet((t) => ({
   viewAll: { fontSize: 12, color: t.ink.muted, marginTop: 3 },
   composerContainer: { flex:1,backgroundColor:t.surface.canvas,paddingHorizontal:18 },
   mentionDropdown: { backgroundColor: t.surface.canvas, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: t.surface.hairline, marginBottom: 6, overflow: 'hidden' },
-  mentionRow: { flexDirection: 'row', alignItems: 'center', padding: 12, gap: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F5F5F5' },
+  mentionRow: { flexDirection: 'row', alignItems: 'center', padding: 12, gap: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.divider },
   mAvatar: { width: 34, height: 34, borderRadius: 17 },
   mAvatarFb: { width: 34, height: 34, borderRadius: 17, backgroundColor: t.status.linkBg, alignItems: 'center', justifyContent: 'center' },
   mAvatarTxt: { fontSize: 12, fontWeight: '700', color: t.status.link },
@@ -3084,24 +3126,24 @@ const s = themedSheet((t) => ({
   cHeaderCancel: { minHeight:44,justifyContent:'center',minWidth:58 },
   cHeaderCancelText: { color:t.ink.secondary,fontSize:13 },
   cHeaderTitle: { flex:1,textAlign:'center',fontSize:17,fontWeight:'700',color:t.ink.primary },
-  cReviewHint: { padding:13,borderRadius:13,backgroundColor:'#F3EDE2',marginBottom:12 },
-  cReviewHintText: { fontSize:12,color:'#716856',lineHeight:18 },
-  cProgress: { padding:16,borderRadius:16,backgroundColor:'#F3EDE2',marginBottom:12 },
-  cProgressTitle: { fontSize:13,fontWeight:'700',color:'#0B1E3D' },
-  cProgressText: { fontSize:12,color:'#716856',lineHeight:18 },
-  cProgressTrack: { height:5,backgroundColor:'#DED5C6',borderRadius:8,overflow:'hidden',marginVertical:12 },
+  cReviewHint: { padding:13,borderRadius:13,backgroundColor:t.surface.sunken,marginBottom:12 },
+  cReviewHintText: { fontSize:12,color:t.ink.secondary,lineHeight:18 },
+  cProgress: { padding:16,borderRadius:16,backgroundColor:t.surface.sunken,marginBottom:12 },
+  cProgressTitle: { fontSize:13,fontWeight:'700',color:t.ink.primary },
+  cProgressText: { fontSize:12,color:t.ink.secondary,lineHeight:18 },
+  cProgressTrack: { height:5,backgroundColor:t.surface.hairline,borderRadius:8,overflow:'hidden',marginVertical:12 },
   cProgressFill: { height:'100%',backgroundColor:'#AE8B49' },
   cUploadRow: { flexDirection:'row',alignItems:'center',gap:10 },
-  cUploadThumb: { width:38,height:42,borderRadius:8,backgroundColor:'#DED5C6' },
-  cContinue: { flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8,minHeight:44,marginTop:8,borderRadius:12,borderWidth:1,borderColor:'#D8C9AD' },
+  cUploadThumb: { width:38,height:42,borderRadius:8,backgroundColor:t.surface.hairline },
+  cContinue: { flexDirection:'row',alignItems:'center',justifyContent:'center',gap:8,minHeight:44,marginTop:8,borderRadius:12,borderWidth:1,borderColor:t.surface.hairline },
   cUploadBanner: { position:'absolute',left:16,right:16,minHeight:64,padding:14,borderRadius:18,backgroundColor:t.surface.raised,borderWidth:1,borderColor:t.surface.hairline,flexDirection:'row',alignItems:'center',gap:12,elevation:4,shadowColor:'#000',shadowOffset:{width:0,height:4},shadowOpacity:.12,shadowRadius:12 },
   cSelectedCount: { position:'absolute',top:12,right:12,paddingHorizontal:10,paddingVertical:5,borderRadius:20,backgroundColor:'rgba(16,33,61,.7)' },
   cMediaActions: { flexDirection:'row',alignItems:'center',gap:8,marginVertical:12 },
-  cMediaAction: { minHeight:44,paddingHorizontal:13,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:7,borderWidth:1,borderColor:'#E2DBD0',borderRadius:12,backgroundColor:t.surface.raised },
+  cMediaAction: { minHeight:44,paddingHorizontal:13,flexDirection:'row',alignItems:'center',justifyContent:'center',gap:7,borderWidth:1,borderColor:t.surface.hairline,borderRadius:12,backgroundColor:t.surface.raised },
   cMediaActionText: { fontSize:11.5,color:t.ink.primary,fontWeight:'600' },
   cThumbSelected: { borderColor:'#AE8B49' },
   cThumbNumber: { position:'absolute',right:3,top:3,width:21,height:21,borderRadius:11,backgroundColor:'rgba(16,33,61,.8)',alignItems:'center',justifyContent:'center' },
-  cToolTile: { flex:1,minHeight:56,borderWidth:1,borderColor:'#E4DDD2',borderRadius:13,backgroundColor:t.surface.raised,alignItems:'center',justifyContent:'center',gap:6 },
+  cToolTile: { flex:1,minHeight:56,borderWidth:1,borderColor:t.surface.hairline,borderRadius:13,backgroundColor:t.surface.raised,alignItems:'center',justifyContent:'center',gap:6 },
   cSettings: { marginTop:12,borderTopWidth:StyleSheet.hairlineWidth,borderTopColor:t.surface.hairline },
   cSettingRow: { flexDirection:'row',alignItems:'center',gap:11,minHeight:54,borderBottomWidth:StyleSheet.hairlineWidth,borderBottomColor:t.surface.hairline },
   cSettingLabel: { flex:1,fontSize:13,color:t.ink.primary },
@@ -3158,10 +3200,10 @@ const s = themedSheet((t) => ({
   emptyBtnTxt: { color: t.ink.inverse, fontSize: 15, fontWeight: '600' },
   menuOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
   menuSheet: { backgroundColor: t.surface.canvas, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingTop: 10, paddingBottom: 32, paddingHorizontal: 16 },
-  menuHandle: { width: 36, height: 4, borderRadius: 2, backgroundColor: '#E0E0E0', alignSelf: 'center', marginBottom: 14 },
+  menuHandle: { width: 36, height: 4, borderRadius: 2, backgroundColor: t.ink.faint, alignSelf: 'center', marginBottom: 14 },
   menuPreview: { fontSize: 14, color: t.ink.muted, lineHeight: 20, marginBottom: 12, paddingHorizontal: 4 },
   menuDivider: { height: StyleSheet.hairlineWidth, backgroundColor: t.surface.sunken, marginBottom: 8 },
-  menuOption: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16, paddingHorizontal: 4, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#F5F5F5' },
+  menuOption: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16, paddingHorizontal: 4, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.surface.divider },
   menuOptionTxt: { fontSize: 16, color: t.ink.primary, fontWeight: '400' },
   menuOptionSub: { fontSize: 12, color: t.ink.muted, marginTop: 1 },
   menuCancel: { justifyContent: 'center', marginTop: 8, borderBottomWidth: 0 },

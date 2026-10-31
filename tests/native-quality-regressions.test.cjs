@@ -78,21 +78,26 @@ for (const [mode, theme] of [['light',light],['dark',dark]]) {
   });
 }
 function marketHarness(readPage) {
-  const state = { rows: [], error: false, pageError: false }, requests = [], request = { current: 0 }, page = { current: { offset:0, hasMore:false, busy:false } };
+  const state = { rows: [], error: false, pageError: false }, requests = [], page = { current: { offset:0, hasMore:false, busy:false } };
+  const context = { scope: 'owner-session', cacheKey: 'browse' }, contextRef = { current: context }, activeRead = { current: null };
+  const viewRef = { current: { rows: [], savedIds: [], offset: 0, hasMore: false, top: 0, ready: false } };
+  const { mergeMarketDirectory } = compile(read('src/services/navigationDirectory.ts'), { require: () => ({}) });
   const set = key => value => { state[key] = typeof value === 'function' ? value(state[key]) : value; };
-  const globals = { request, page, PAGE_SIZE:30, search:'', category:null, filters:{}, marketTab:'browse', meProfile:{ id:'owner', location:'Harare' },
-    setPageFailed:set('pageError'),setLoadingMore:set('loadingMore'),setLoading:set('loading'),setLoadFailed:set('error'),setRefreshing:set('refreshing'),setListings:set('rows'),setSavedIds:set('saved'),
-    marketService:{ getMarketFeed: async opts => { requests.push(opts); return readPage(opts); }, getSavedIds:async()=>new Set() }, };
-  return { run:callback('src/screens/market/MarketScreen.tsx','load',globals),state,requests,page,request };
+  const globals = { scope:'owner-session', controlsOwner:'owner-session', saveContext:context, saveContextRef:contextRef, activeRead, viewRef, saveRevision:{current:0}, MARKET_PAGE_SIZE:30, marketTab:'browse', selection:{}, AbortController, navigationScope:()=> 'owner-session', mergeMarketDirectory,
+    setPageFailed:set('pageError'),setLoadingMore:set('loadingMore'),setLoading:set('loading'),setLoadFailed:set('error'),setRefreshing:set('refreshing'),
+    commit(next) { viewRef.current = next; state.rows = next.rows; state.saved = new Set(next.savedIds); page.current.offset = next.offset; page.current.hasMore = next.hasMore; },
+    readMarketDirectory: async (_scope, _selection, offset) => { const opts={offset,limit:31}; requests.push(opts); const rows=await readPage(opts); return {rows:rows.slice(0,30),retained:rows,savedIds:[],nextOffset:offset+Math.min(30,rows.length),hasMore:rows.length>30}; }, };
+  return { run:callback('src/screens/market/MarketScreen.tsx','load',globals),state,requests,page,contextRef,activeRead };
 }
 const listing = id => ({ id:String(id), title:'Listing '+id });
 function saveHarness() {
-  const context = {}, state = { saved: new Set(['item']), rows: [listing('item')] }, ref = { current: context };
+  const context = { scope: 'owner-session', cacheKey: 'saved' }, state = { saved: new Set(['item']), rows: [listing('item')] }, ref = { current: context };
+  const viewRef = { current: { rows: state.rows, savedIds: ['item'], offset: 0, hasMore: false, top: 0, ready: true } };
   const pendingSaves = { current: new Map() }, calls = [], alerts = [];
   const toggleSaved = () => new Promise((resolve,reject) => calls.push({resolve,reject}));
   const run = callback('src/screens/market/MarketScreen.tsx', 'toggleSave', {
-    saveContext:context,saveContextRef:ref,pendingSaves,savedIds:state.saved,marketTab:'saved',
-    marketService:{toggleSaved},setSavedIds:fn=>{state.saved=fn(state.saved);},setListings:fn=>{state.rows=fn(state.rows);},
+    scope:'owner-session',saveContext:context,saveContextRef:ref,pendingSaves,viewRef,saveRevision:{current:0},marketTab:'saved',navigationScope:()=> 'owner-session',
+    mutateDirectory:toggleSaved,setSavingIds(){},commit(next){viewRef.current=next;state.saved=new Set(next.savedIds);state.rows=next.rows;},
     Alert:{alert:(...args)=>alerts.push(args)},
   });
   return {run,state,ref,calls,alerts,pendingSaves};
@@ -134,7 +139,7 @@ test('failed next page preserves loaded listings and retry uses the same offset'
 test('invalidated market response never replaces a newer query result', async () => {
   let resolve;
   const h=marketHarness(()=>new Promise(done=>{resolve=done}));
-  const work=h.run(); h.request.current++; resolve([listing('stale')]); await work; assert.equal(h.state.rows.length,0);
+  const work=h.run(); h.contextRef.current={};h.activeRead.current.abort(); resolve([listing('stale')]); await work; assert.equal(h.state.rows.length,0);
 });
 test('account standing transport failure does not become a clean record', async()=>{
   let rows=['previous'], error=false; const chain={select(){return this},eq(){return this},order(){return this},limit:async()=>({data:null,error:Error('offline')})};

@@ -1,0 +1,47 @@
+{
+  "gate": "tsc-admin",
+  "started_at": "2026-10-30T04:23:14.433794+00:00",
+  "completed_at": "2026-10-30T04:23:16.403343+00:00",
+  "strategy": "TypeScript no-emit project check",
+  "node_version": "v24.22.1",
+  "head": "32ee0a5373dd5ebcddae92ca5145f9bf7293c9c9",
+  "branch": "codex/app-quality-20261029",
+  "explicit_environment": {},
+  "processes": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0
+  },
+  "reported_case_totals": null,
+  "processes_without_case_summary": [],
+  "before_source_sha256": "b1666194b7e7ff6efbe896b3a5d7f313aa55c79b19d8e3ddcc6ed9b7bea78be1",
+  "after_source_sha256": "b1666194b7e7ff6efbe896b3a5d7f313aa55c79b19d8e3ddcc6ed9b7bea78be1",
+  "source_file_count": 281,
+  "source_changed_during_run": [],
+  "before_manifest": "/tmp/platinum-final-verification/tsc-admin.before-source.json",
+  "after_manifest": "/tmp/platinum-final-verification/tsc-admin.after-source.json",
+  "results": [
+    {
+      "command": [
+        "node",
+        "admin-web/node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "admin-web/tsconfig.json"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:14.433876+00:00",
+      "completed_at": "2026-10-30T04:23:16.362443+00:00",
+      "duration_seconds": 1.929,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/tsc-admin.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "node_test_summaries": [],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    }
+  ],
+  "saved_before_manifest": "manifests/source-b1666194b7e7ff6efbe896b3a5d7f313aa55c79b19d8e3ddcc6ed9b7bea78be1.json",
+  "saved_after_manifest": "manifests/source-b1666194b7e7ff6efbe896b3a5d7f313aa55c79b19d8e3ddcc6ed9b7bea78be1.json"
+}

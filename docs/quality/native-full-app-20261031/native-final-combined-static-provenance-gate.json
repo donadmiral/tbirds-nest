@@ -1,0 +1,469 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31T17:35:26.863432+00:00",
+  "status": "PASS_LOCAL_COMBINED_STATIC_AND_PROVENANCE_ONLY",
+  "baseApplication": {
+    "head": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+    "merge": "cddbe51a25efbb39b9e91fb822a9821957b9a2bd",
+    "tree": "d72a8c25e7b9e8890d3520a0c825a6175aecf3c6"
+  },
+  "savedReaderCheckpoint": "5e6a789eec5e6fc332a5e23548ba3d106809ce3b",
+  "scope": "One final frozen-candidate native TypeScript, scoped lint, syntax and whitespace gate plus source/provenance enumeration. No functional suite, native build, simulator flow, provider action, report edit, or ref mutation.",
+  "counts": {
+    "originals": 501,
+    "uniqueOriginals": 501,
+    "overlays": 6,
+    "dependencies": 9,
+    "changedNonDocumentationPaths": 15,
+    "runtimePathsCompared": 496,
+    "selectedInputs": 1541
+  },
+  "changedPaths": [
+    {
+      "path": ".github/workflows/native-app-ui.yml",
+      "change": "modified",
+      "bytes": 4595,
+      "sha256": "f4c37d8f777628134b86ca91fa9476b59428150d4559d0848533f3e3cd8298f1",
+      "baselineSHA256": "893ef1c3c6ae5976337ab7ecb12d6f8080ad51ddfa3e80995745f409540cddca"
+    },
+    {
+      "path": "scripts/quality/native-ui-emulator-graphics.py",
+      "change": "added",
+      "bytes": 5358,
+      "sha256": "7768c98ec1eb3f3afc770dda6f6ece99fe4467bf65ce7e714be9b8b8a7f8ca78",
+      "baselineSHA256": null
+    },
+    {
+      "path": "scripts/quality/native-ui-emulator-host-diagnostics.py",
+      "change": "added",
+      "bytes": 21145,
+      "sha256": "8abae54231466496604aed4e1d83a1166b099da7da1c6f9f5a22adfb5bd2d8ef",
+      "baselineSHA256": null
+    },
+    {
+      "path": "scripts/quality/native-ui-ios-url-trace.py",
+      "change": "added",
+      "bytes": 7167,
+      "sha256": "fa37e06f5ee645af3fb29aae3f9e080cba24ab276480ac3a981731ee612fd885",
+      "baselineSHA256": null
+    },
+    {
+      "path": "scripts/quality/prepare-native-ui.cjs",
+      "change": "modified",
+      "bytes": 7053,
+      "sha256": "f72312199ded22f09fcd818b2df01c300175660cbf87b723a08ad52bb7c334ad",
+      "baselineSHA256": "b7b85afaf239d525bd8af01b5f180dc93acfd71610a963302a83817e01cec571"
+    },
+    {
+      "path": "scripts/quality/test-android-app-ui.sh",
+      "change": "modified",
+      "bytes": 9513,
+      "sha256": "e152bfa57b13fe9321703055769ee8f6bbf3ab7457440810a9e777832d15f355",
+      "baselineSHA256": "1cafb6dba876d9ee92288d7aa233ee41739fc2f271d4e1ca174f82c09620e12d"
+    },
+    {
+      "path": "scripts/quality/test-ios-app-ui.sh",
+      "change": "modified",
+      "bytes": 6940,
+      "sha256": "44cd612cd01f9b2a01208682bc3edcc34288eca8c55079a6357d4469e2c0b1e1",
+      "baselineSHA256": "138f2ac2e8ed32e09f4b6b5ca6e4c4b07a6f1c93b7373767703dbfd97b3f8077"
+    },
+    {
+      "path": "src/components/memory/MemoryPageTurn.tsx",
+      "change": "modified",
+      "bytes": 10296,
+      "sha256": "ddf7a604b0a6ecdd1b75910ff393a76c0404bb66ce19c52f0e4597731a502881",
+      "baselineSHA256": "4b88a3ba0cf7fc4390787b871bb6794f1ae33119f7ddc16ca3d7909e138bddb2"
+    },
+    {
+      "path": "src/screens/profile/MemoryAlbumScreen.tsx",
+      "change": "modified",
+      "bytes": 67855,
+      "sha256": "27844413189f30e36ebd3137dd5398e689c8393ca9f82469cd4a262351b3adab",
+      "baselineSHA256": "63cf58cdf501ef43c333c9cce04ba3620fb775f1de532e4d92ace987d0d8826f"
+    },
+    {
+      "path": "tests/quality/memory-page-turn.cjs",
+      "change": "modified",
+      "bytes": 20155,
+      "sha256": "dc56fe7ee45c59ca07d0d8271d2bab199ddaee7c553b79a4f1ef03b075850a58",
+      "baselineSHA256": "d305438c894b92a43770213bd47a8c43c5fa788ed05c07dacc8277d9fdb54e68"
+    },
+    {
+      "path": "tests/quality/native-auth-diagnostics.cjs",
+      "change": "modified",
+      "bytes": 20053,
+      "sha256": "b929623457a05c3bd236754ecddbf4f70b6bdf850ab093761326d36fd593f808",
+      "baselineSHA256": "31e4d3ea874ff7b1090061a23b746c800a5e0e01a17f7588d41f9e724e1b4e78"
+    },
+    {
+      "path": "tests/quality/native-emulator-graphics.cjs",
+      "change": "added",
+      "bytes": 7951,
+      "sha256": "c93c86747b01214dbe349b5f4e1d5bbd273993c0f4dd98fcb6a048b1c1defab3",
+      "baselineSHA256": null
+    },
+    {
+      "path": "tests/quality/native-emulator-host-diagnostics.cjs",
+      "change": "added",
+      "bytes": 20363,
+      "sha256": "5d036d76a437cf022e76ea369cb8fa7798c6275b6afb22f11805b0ff85068f0a",
+      "baselineSHA256": null
+    },
+    {
+      "path": "tests/quality/native-ios-url-trace.cjs",
+      "change": "added",
+      "bytes": 12849,
+      "sha256": "44e412813aca0f7beae73a1c4959e0056aa9a28af0740ee9d49d6cb72bafb75f",
+      "baselineSHA256": null
+    },
+    {
+      "path": "tests/quality/native-memory-album-loading.cjs",
+      "change": "modified",
+      "bytes": 29491,
+      "sha256": "f07fd6ae9991d5ec798646874ce565cd0c08ca31a88129ef5d01b463bd2c3402",
+      "baselineSHA256": "9059608e3383c7fec254757f281655548a904ef6ed5f53c2bc6f314200a47691"
+    }
+  ],
+  "sourceProvenanceManifest": {
+    "path": "docs/quality/native-full-app-20261031/native-final-combined-source-provenance-manifest.json",
+    "bytes": 70685,
+    "sha256": "1e97a79e983beeafad5fcb792c67879e53dbc2063c7173154a9aa570f5bfe0a4"
+  },
+  "beforeAfterVerification": {
+    "beforeRecordedAtUtc": "2026-10-31T17:32:25.297Z",
+    "afterRecordedAtUtc": "2026-10-31T17:34:07.267Z",
+    "selectedInputCount": 1541,
+    "inputSnapshotSHA256Before": "99790becb2e8fd93296b4d9b1619ced1b2dbf5d1458097e023f31fbc9d4e390f",
+    "inputSnapshotSHA256After": "99790becb2e8fd93296b4d9b1619ced1b2dbf5d1458097e023f31fbc9d4e390f",
+    "guardedProvenanceSHA256Before": "f7152d9124d5ff31dc2605f3d0163dfc5fc11d92bb78263fb30cc6123ead143c",
+    "guardedProvenanceSHA256After": "f7152d9124d5ff31dc2605f3d0163dfc5fc11d92bb78263fb30cc6123ead143c",
+    "allSourceInputsIdentical": true,
+    "allProvenanceFieldsIdentical": true,
+    "changedInputs": [],
+    "allFifteenOwnerFreezeHashesMatched": true,
+    "evidence": {
+      "path": "docs/quality/native-full-app-20261031/native-final-combined-static/before-after-comparison.json",
+      "bytes": 685,
+      "sha256": "04c5213242fcc811833a928c6cbb5f19419adc7101a3af54a7845afebecb7cb4"
+    }
+  },
+  "checks": [
+    {
+      "name": "typescript",
+      "command": "node node_modules/typescript/bin/tsc --noEmit --project tsconfig.json > /tmp/platinum-v9-combined-static/typescript.log.txt 2>&1",
+      "exitCode": 0,
+      "startedAtUtc": "2026-10-31T17:32:58.953Z",
+      "elapsedMsAroundToolCall": 23955,
+      "processWaitSecondsReportedByTool": 23.664786625,
+      "output": {
+        "path": "docs/quality/native-full-app-20261031/native-final-combined-static/typescript.log.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "eslint",
+      "command": "node node_modules/eslint/bin/eslint.js scripts/quality/prepare-native-ui.cjs src/components/memory/MemoryPageTurn.tsx src/screens/profile/MemoryAlbumScreen.tsx tests/quality/memory-page-turn.cjs tests/quality/native-auth-diagnostics.cjs tests/quality/native-emulator-graphics.cjs tests/quality/native-emulator-host-diagnostics.cjs tests/quality/native-ios-url-trace.cjs tests/quality/native-memory-album-loading.cjs > /tmp/platinum-v9-combined-static/eslint.log.txt 2>&1",
+      "exitCode": 0,
+      "startedAtUtc": "2026-10-31T17:32:58.953Z",
+      "elapsedMsAroundToolCall": 2578,
+      "processWaitSecondsReportedByTool": 2.234410674,
+      "output": {
+        "path": "docs/quality/native-full-app-20261031/native-final-combined-static/eslint.log.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "python-syntax",
+      "command": "python3 - <<'PY' > /tmp/platinum-v9-combined-static/python-syntax.log.txt 2>&1\nimport ast\nfrom pathlib import Path\nfor name in ['scripts/quality/native-ui-emulator-graphics.py','scripts/quality/native-ui-emulator-host-diagnostics.py','scripts/quality/native-ui-ios-url-trace.py']:\n ast.parse(Path(name).read_text(),filename=name)\n print(name+': Python AST parsed')\nPY",
+      "exitCode": 0,
+      "startedAtUtc": "2026-10-31T17:32:58.953Z",
+      "elapsedMsAroundToolCall": 305,
+      "processWaitSecondsReportedByTool": 2.1622e-05,
+      "output": {
+        "path": "docs/quality/native-full-app-20261031/native-final-combined-static/python-syntax.log.txt",
+        "bytes": 202,
+        "sha256": "efbe587ee660b61d820abd55002d6da2040b99eb4bb94d534b7087a346e2cb07"
+      }
+    },
+    {
+      "name": "bash-syntax",
+      "command": "for gate_file in scripts/quality/test-android-app-ui.sh scripts/quality/test-ios-app-ui.sh; do bash -n \"$gate_file\" || exit \"$?\"; done > /tmp/platinum-v9-combined-static/bash-syntax.log.txt 2>&1",
+      "exitCode": 0,
+      "startedAtUtc": "2026-10-31T17:32:58.953Z",
+      "elapsedMsAroundToolCall": 214,
+      "processWaitSecondsReportedByTool": 2.1382e-05,
+      "output": {
+        "path": "docs/quality/native-full-app-20261031/native-final-combined-static/bash-syntax.log.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "node-syntax",
+      "command": "for gate_file in scripts/quality/prepare-native-ui.cjs tests/quality/memory-page-turn.cjs tests/quality/native-auth-diagnostics.cjs tests/quality/native-emulator-graphics.cjs tests/quality/native-emulator-host-diagnostics.cjs tests/quality/native-ios-url-trace.cjs tests/quality/native-memory-album-loading.cjs; do node --check \"$gate_file\" || exit \"$?\"; done > /tmp/platinum-v9-combined-static/node-syntax.log.txt 2>&1",
+      "exitCode": 0,
+      "startedAtUtc": "2026-10-31T17:32:58.953Z",
+      "elapsedMsAroundToolCall": 542,
+      "processWaitSecondsReportedByTool": 0.216117117,
+      "output": {
+        "path": "docs/quality/native-full-app-20261031/native-final-combined-static/node-syntax.log.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "name": "yaml-syntax",
+      "command": "node -e 'const fs=require(\"node:fs\");const YAML=require(\"yaml\");const value=YAML.parse(fs.readFileSync(\".github/workflows/native-app-ui.yml\",\"utf8\"));if(!value.jobs||!value.name)throw Error(\"Invalid workflow structure\");process.stdout.write(\"native-app-ui.yml: YAML parsed\\n\");' > /tmp/platinum-v9-combined-static/yaml-syntax.log.txt 2>&1",
+      "exitCode": 0,
+      "startedAtUtc": "2026-10-31T17:32:58.953Z",
+      "elapsedMsAroundToolCall": 358,
+      "processWaitSecondsReportedByTool": 0.037923586,
+      "output": {
+        "path": "docs/quality/native-full-app-20261031/native-final-combined-static/yaml-syntax.log.txt",
+        "bytes": 31,
+        "sha256": "26a47f29fcfe7b2e4f80716bb625bc890ad393e48ea279a4571f04e19f5f0f58"
+      }
+    },
+    {
+      "name": "whitespace",
+      "exitCode": 0,
+      "elapsedMs": 17.055,
+      "modifiedFiles": 9,
+      "addedFiles": 6,
+      "details": {
+        "path": "docs/quality/native-full-app-20261031/native-final-combined-static/whitespace-checks.json",
+        "bytes": 3171,
+        "sha256": "e1fd8d94ab44a6490aa1c91a0a7fc8b3b3a721f813d196e1d23be28f9199a491"
+      },
+      "output": {
+        "path": "docs/quality/native-full-app-20261031/native-final-combined-static/whitespace.log.txt",
+        "bytes": 79,
+        "sha256": "514af0a13dec7a9f61bae89ead9d6359823c701c22f261d8d8689f40797125bb"
+      },
+      "initialWrapper": {
+        "exitCode": 1,
+        "output": {
+          "path": "docs/quality/native-full-app-20261031/native-final-combined-static/whitespace-initial.log.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "explanation": "The first wrapper incorrectly treated the clean added-file --no-index difference status as a failing --check result. Installed Git controls showed clean additions exit1 with empty output and each whitespace negative exits3 with warnings. The completed gate requires zero for tracked files and zero/one for added files, with no stdout/stderr in either case. All six additions were then checked. No source requirement or file was changed.",
+        "controls": {
+          "path": "docs/quality/native-full-app-20261031/native-final-combined-static/whitespace-command-controls.json",
+          "bytes": 711,
+          "sha256": "fa06ea9b0b04ba9271835de55f7d3693686c2cb202cef9d638e791d489943edd"
+        }
+      }
+    }
+  ],
+  "toolchain": {
+    "node": "v24.22.1",
+    "python": "3.12.14",
+    "git": "git version 2.51.1",
+    "bash": "GNU bash, version 5.2.21(1)-release (x86_64-pc-linux-gnu)",
+    "typescript": "5.9.3",
+    "eslint": "9.39.5",
+    "yaml": "2.8.3"
+  },
+  "baselineOriginalVerification": {
+    "count": 498,
+    "allMatch": true
+  },
+  "runtimeComparison": {
+    "count": 496,
+    "changedPaths": [
+      "src/components/memory/MemoryPageTurn.tsx",
+      "src/screens/profile/MemoryAlbumScreen.tsx"
+    ],
+    "unchangedCount": 494,
+    "newPaths": [],
+    "comparisonSHA256": "5dfb6b81206dc0ecf14bc8ec8e59aa55231c918d12aeae9d3f8d3273844db869"
+  },
+  "originalDelta": {
+    "added": [
+      "scripts/quality/native-ui-ios-url-trace.py",
+      "scripts/quality/native-ui-emulator-graphics.py",
+      "scripts/quality/native-ui-emulator-host-diagnostics.py"
+    ],
+    "removed": [],
+    "changed": [
+      "src/components/memory/MemoryPageTurn.tsx",
+      "src/screens/profile/MemoryAlbumScreen.tsx",
+      "scripts/quality/prepare-native-ui.cjs",
+      "scripts/quality/test-ios-app-ui.sh",
+      "scripts/quality/test-android-app-ui.sh",
+      ".github/workflows/native-app-ui.yml"
+    ]
+  },
+  "helpersIncludedExactlyOnce": [
+    {
+      "path": "scripts/quality/native-ui-emulator-graphics.py",
+      "originalEnumerationOccurrences": 1,
+      "disposableRequiredArrayOccurrences": 1,
+      "disposableManifestHashAssertionOccurrences": 1,
+      "sha256": "7768c98ec1eb3f3afc770dda6f6ece99fe4467bf65ce7e714be9b8b8a7f8ca78"
+    },
+    {
+      "path": "scripts/quality/native-ui-emulator-host-diagnostics.py",
+      "originalEnumerationOccurrences": 1,
+      "disposableRequiredArrayOccurrences": 1,
+      "disposableManifestHashAssertionOccurrences": 1,
+      "sha256": "8abae54231466496604aed4e1d83a1166b099da7da1c6f9f5a22adfb5bd2d8ef"
+    },
+    {
+      "path": "scripts/quality/native-ui-ios-url-trace.py",
+      "originalEnumerationOccurrences": 1,
+      "disposableRequiredArrayOccurrences": 1,
+      "disposableManifestHashAssertionOccurrences": 1,
+      "sha256": "fa37e06f5ee645af3fb29aae3f9e080cba24ab276480ac3a981731ee612fd885"
+    }
+  ],
+  "qaOverlaysUnchangedFromB5": {
+    "count": 6,
+    "allBeforeAfterReasonsAndRetainedPathsIdentical": true
+  },
+  "selectedDependenciesUnchangedFromB5": {
+    "count": 9,
+    "allHashesAndInstalledVersionsMatch": true
+  },
+  "reviewReferences": [
+    {
+      "path": "docs/quality/native-full-app-20261031/native-reader-entry-repair.json",
+      "bytes": 15890,
+      "sha256": "03e158f3521064f5f5e1133be00bf1f171b6b743f855921f2f00cdc731335c7d",
+      "role": "reader owner"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-reader-entry-independent-review.json",
+      "bytes": 8942,
+      "sha256": "ba17adf7db7703f7c54c270456f17e9f1f107db604a81bdcc20a59e4cc85fb02",
+      "role": "reader independent"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-page-turn-completion-repair.json",
+      "bytes": 8050,
+      "sha256": "e6982f70b21380014e9429c23dda92a0ce31d849549c0e7f8ae6e4dad4cecd10",
+      "role": "page-turn owner"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-page-turn-independent-review.json",
+      "bytes": 8834,
+      "sha256": "2d553c9c55ecae3b43d25b2b2e5b0d392c1f44f7afeb1c19d33cb8c73037cedd",
+      "role": "page-turn independent"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-ios-url-trace-repair.json",
+      "bytes": 12269,
+      "sha256": "6ec3cf55e53f475690c62a506409998475d30ff87c2462342421447e0a2d0c93",
+      "role": "URL tracer owner"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-ios-url-trace-independent-review.json",
+      "bytes": 9544,
+      "sha256": "2fa4960741426b1f31dc003a34e309be2e24a3e71c2a3c95d1e91e557613b69f",
+      "role": "URL tracer independent"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-v8-source-provenance-manifest.json",
+      "bytes": 67603,
+      "sha256": "eedb262e025ab280a6be2a459e34cf1261c9988c5e1e7d839fb11038687162bc",
+      "role": "unchanged historical 500-source manifest"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-v8-qa-scope-independent-review.json",
+      "bytes": 9818,
+      "sha256": "ca7f16eecbf350c0719f3dc886d815f0b76a83926d0ed6bc06bbce5278d3d9d9",
+      "role": "unchanged historical QA-only review"
+    }
+  ],
+  "retainedEvidence": [
+    {
+      "path": "docs/quality/native-full-app-20261031/native-final-combined-static/bash-syntax.log.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-final-combined-static/before-after-comparison.json",
+      "bytes": 685,
+      "sha256": "04c5213242fcc811833a928c6cbb5f19419adc7101a3af54a7845afebecb7cb4"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-final-combined-static/check-executions.json",
+      "bytes": 4938,
+      "sha256": "5287be89b3093189f20c7c911e1bcd4e6a67410f8f1b28db5d7e374bc345ddf6"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-final-combined-static/eslint.log.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-final-combined-static/inputs.json",
+      "bytes": 169378,
+      "sha256": "99790becb2e8fd93296b4d9b1619ced1b2dbf5d1458097e023f31fbc9d4e390f"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-final-combined-static/node-syntax.log.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-final-combined-static/provenance-enumeration.cjs.txt",
+      "bytes": 13571,
+      "sha256": "7ec2d96ca08af2e4f41814173f77f6f6f9b6ad8f23ac41113070372c2285bde5"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-final-combined-static/python-syntax.log.txt",
+      "bytes": 202,
+      "sha256": "efbe587ee660b61d820abd55002d6da2040b99eb4bb94d534b7087a346e2cb07"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-final-combined-static/toolchain.json",
+      "bytes": 216,
+      "sha256": "d18f161f2256d4d930137b3c9566ed013b1a2fcc2b07f9fc675b7f1d724b47be"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-final-combined-static/typescript.log.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-final-combined-static/whitespace-checks.json",
+      "bytes": 3171,
+      "sha256": "e1fd8d94ab44a6490aa1c91a0a7fc8b3b3a721f813d196e1d23be28f9199a491"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-final-combined-static/whitespace-command-controls.json",
+      "bytes": 711,
+      "sha256": "fa06ea9b0b04ba9271835de55f7d3693686c2cb202cef9d638e791d489943edd"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-final-combined-static/whitespace-initial.log.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-final-combined-static/whitespace.log.txt",
+      "bytes": 79,
+      "sha256": "514af0a13dec7a9f61bae89ead9d6359823c701c22f261d8d8689f40797125bb"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-final-combined-static/yaml-syntax.log.txt",
+      "bytes": 31,
+      "sha256": "26a47f29fcfe7b2e4f80716bb625bc890ad393e48ea279a4571f04e19f5f0f58"
+    }
+  ],
+  "functionalTestGroupsRun": 0,
+  "formalTestCasesAddedToTotals": 0,
+  "limits": [
+    "TypeScript and syntax/lint success do not establish timely reader/page-turn completion or timely capture entry in a simulator.",
+    "The application head remains b5; this is a prepared combined candidate and not a published/native-accepted result.",
+    "The existing 30-case page-turn, 42-case reader and 23-case URL-tracer focused results are separate owner/independent receipts; they were not rerun or added to this gate total.",
+    "Selected-input enumeration guards 1541 source/configuration/dependency inputs; the nine installed provenance files are not an exhaustive dependency-tree integrity claim.",
+    "The preparation script ran with read-only source access and memory-only output. It generated six virtual QA overlays without changing app, native, workflow or test files.",
+    "Earlier native-v8 500-source/QA-only receipts were verified unchanged and retain their historical scope."
+  ]
+}

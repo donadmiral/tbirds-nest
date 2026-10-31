@@ -1,0 +1,77 @@
+{
+  "createdAt": "2026-10-30T17:03:38.734919+00:00",
+  "hostedInstalled": false,
+  "uploadsEnabledByMigration": false,
+  "catalogEnabled": false,
+  "databaseTests": {
+    "bootstrapWithInstalledPrivacyErasurePrerequisites": "31 passed",
+    "existingMusicContracts": "31 passed"
+  },
+  "edgeTests": "19 passed: prior18 parser/Edge/upload lifecycle cases plus distinct retained-storage versus daily-limit failure recovery",
+  "files": [
+    {
+      "path": "supabase/migrations/20261030153811_original_music_library_and_delivery.sql",
+      "sha256": "bd3e6791a141d2ba1efb10a4e3dac090680d6dc5d5629307f99f665753c60e11"
+    },
+    {
+      "path": "supabase/functions/music-asset-finalize/index.ts",
+      "sha256": "8baaa840b234476713a7b7f7f240762635ad1d2c92c885bd25b775a7c933299a"
+    },
+    {
+      "path": "supabase/functions/music-asset-finalize/handler.ts",
+      "sha256": "9377de1a11b0a67c02ff36aa6013513a49272b407cf4305c713f1bca9bd06c62"
+    },
+    {
+      "path": "shared/originalAudio.ts",
+      "sha256": "527377ecfb0f17c1805e8db06803bf7ecc4f9599e4239060f19c3c66bde8ea4a"
+    },
+    {
+      "path": "supabase/functions/content-media-sign/handler.ts",
+      "sha256": "9fc8a12d93641046a06ec122062e5817e9473f281a7c521e51e9b314781a7d3f"
+    },
+    {
+      "path": "supabase/functions/media-content/handler.ts",
+      "sha256": "3ebe70908160a5ded596284d43eb9ffa47f24bb7be277710d89bee95275c672a"
+    },
+    {
+      "path": "supabase/functions/account-storage-erasure/handler.ts",
+      "sha256": "1bc4d4e88886441d70cdb6671077e68166a51e861e0a41af68dfa7371333fee8"
+    }
+  ],
+  "revision": 3,
+  "reviewFixes": [
+    "Recreated story_sounds SELECT policy bound to guarded current-identity metadata helper",
+    "Explicit service-only ACL for internal resolve_story_soundtrack",
+    "Admin session NULL rejected with IS DISTINCT FROM TRUE",
+    "Read and cancel cannot extend finalizer deadline",
+    "Finalization denied once account erasure has been accepted",
+    "Retained capacity is bounded across all ages/statuses:1000 records and1GiB, charging50MiB for every unverified slot and verified bytes after successful finalization.",
+    "Exact retries precede new-slot checks; expiry/revocation do not free capacity; daily limits remain separate."
+  ],
+  "previousRevision": {
+    "revision": 2,
+    "sqlSha256": "7d7449a59c4678c91985cada1d8b20ec035ce7fd8cb02c1dfbb0fc0cd94e04b8",
+    "qaAttemptReceipt": "docs/quality/backend-acceptance-20261030/music-qa-connector-blocker.json",
+    "interpretation": "Historical revision2 attempt stalled and was absent in its postflight. Revision3 has not been submitted to a hosted migration tool."
+  },
+  "updatedAt": "2026-10-30T19:58:19.131347+00:00",
+  "hostedAttemptedForCurrentRevision": false,
+  "retainedCapacity": {
+    "maxRecords": 1000,
+    "maxBytes": 1073741824,
+    "unverifiedSlotBytes": 52428800,
+    "allAgesAndStatusesCounted": true,
+    "automatedCleanup": false,
+    "reviewReceipt": "docs/quality/backend-acceptance-20261030/music-storage-capacity-review.json"
+  },
+  "independentRevision3Review": {
+    "receipt": "docs/quality/backend-acceptance-20261030/music-storage-capacity-review.json",
+    "result": "passed",
+    "reviewedAt": "2026-10-30T19:59:33.561392+00:00",
+    "databaseModes": [
+      31,
+      31
+    ],
+    "infrastructureCases": 19
+  }
+}

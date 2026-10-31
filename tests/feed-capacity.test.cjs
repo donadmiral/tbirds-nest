@@ -52,7 +52,7 @@ function harness({ previewRows = [], heldTable = null, rpc } = {}) {
     console: { log: (...args) => errors.push(args) }, setTimeout, clearTimeout,
     userId: 'viewer-a', posts: postState, profilesMap: {}, PAGE_SIZE: 20,
     postsRef: { current: postState }, realtimeTimerRef: { current: null },
-    feedRequestRef: { current: 0 }, resolvedFeedRequestRef: { current: 0 }, pageRequestRef: { current: 0 },
+    feedRequestRef: { current: 0 }, feedRefreshRequestRef: { current: null }, resolvedFeedRequestRef: { current: 0 }, pageRequestRef: { current: 0 },
     feedScopeRef: { current: 'viewer-a:latest:all' }, discoverCatRef: { current: 'all' },
     discoverPageRef: { current: { asOf: '2026-01-01T00:00:00.000Z', offset: 0 } },
     pendingPostsRef: { current: [] }, restoredSnapshotRef: { current: false }, scrollOffsetRef: { current: 0 },
@@ -64,11 +64,11 @@ function harness({ previewRows = [], heldTable = null, rpc } = {}) {
     feedModeRef: { current: 'latest' }, countCacheRef: { current: {} }, likedPostsRef: { current: {} },
     useAuthStore: { getState: () => ({ profile: { id: currentUser } }) },
     loadFeed: () => Promise.resolve(), scheduleRefresh() {},
-    overlayCounts: rows => rows, feedModeToServer: mode => mode, isMuted: () => false,
+    overlayCounts: rows => rows, feedModeToServer: mode => mode, isMutedRef: { current: () => false },
     mapFeedRow: row => ({ ...row, id: row.post_id, user_id: row.author_id }),
     hydratePostMedia: async rows => rows, renewFeedMedia,
     hydrateShares() {}, hydrateCollabs() {}, hydratePolls() {}, scorePost: () => 0,
-    setLoading(value) { loading = value; }, setRefreshing() {}, setLoadingMore() {}, setFeedError(error) { if (error) errors.push(error); },
+    setLoading(value) { loading = value; }, setVisibleFeedScope() {}, setRefreshing() {}, setLoadingMore() {}, setFeedError(error) { if (error) errors.push(error); },
     setProfilesMap() {}, setLikedPosts() {}, setBookmarkedPosts() {}, setRepostedPosts() {},
     setLikerNames() {}, setQuotedMap() {}, setWtfSuggestions() {},
     setPosts(update) { postState = typeof update === 'function' ? update(postState) : update; scope.postsRef.current = postState; },
@@ -317,4 +317,54 @@ test('Discover signing failure retains raw-page offset and retry advances it onl
   h.scope.hydratePostMedia = async rows => rows;
   await more(); assert.equal(h.scope.discoverPageRef.current.offset, 40);
   assert.deepEqual(offsets, [20, 20]); assert.equal(h.posts.length, 21);
+});
+
+
+test('restoring a disk snapshot establishes its first cursor without moving the reader', async () => {
+  const h = harness({ rpc: async () => ({ data: Array.from({ length: 20 }, (_, i) => row(i ? 'fresh-' + i : 'shown')), error: null }) });
+  h.scope.cursorRef.current = null; h.scope.restoredSnapshotRef.current = true;
+  h.scope.scrollOffsetRef.current = 240;
+  await compile('loadFeed', h.scope)(false, true);
+  assert.equal(h.posts[0].id, 'shown'); assert.equal(h.scope.scrollOffsetRef.current, 240);
+  assert.equal(h.scope.cursorRef.current.id, 'fresh-19'); assert.equal(h.scope.hasMoreRef.current, true);
+  assert.equal(h.scope.restoredSnapshotRef.current, false);
+});
+
+test('pagination cannot race a restored-tab refresh and skip its next page', async () => {
+  const requests = [];
+  const h = harness({ rpc: async (_name, args) => {
+    requests.push(args);
+    return { data: args.p_cursor_id ? [row('next-page')] : [row('shown')], error: null };
+  } });
+  let release;
+  h.scope.reconcileFeedVisibility = () => new Promise(resolve => { release = resolve; });
+  const refresh = compile('loadFeed', h.scope)(false, true); await tick();
+  const more = compile('loadMore', h.scope); await more();
+  assert.equal(requests.length, 1, 'pagination waits for the retained-page refresh to commit');
+  release(new Set(['shown'])); await refresh;
+  await more();
+  assert.equal(requests.length, 2); assert.equal(requests[1].p_cursor_id, 'old');
+  assert.deepEqual(Array.from(h.posts, post => post.id), ['shown', 'next-page']);
+  assert.equal(h.scope.cursorRef.current.id, 'next-page');
+});
+
+
+test('a timed-out refresh releases pagination and cannot overwrite a later page', async () => {
+  const requests = [], timers = [];
+  let finishRefresh;
+  const h = harness({ rpc: async (_name, args) => {
+    requests.push(args);
+    if (!args.p_cursor_id) return new Promise(resolve => { finishRefresh = resolve; });
+    return { data: [row('after-timeout')], error: null };
+  } });
+  h.scope.setTimeout = callback => { timers.push(callback); return timers.length; };
+  h.scope.clearTimeout = () => {};
+  const refresh = compile('loadFeed', h.scope)(false, true);
+  timers[0]();
+  await compile('loadMore', h.scope)();
+  assert.equal(requests.length, 2);
+  finishRefresh({ data: [row('obsolete-refresh')], error: null }); await refresh;
+  assert.deepEqual(Array.from(h.posts, post => post.id), ['shown', 'after-timeout']);
+  assert.equal(h.scope.cursorRef.current.id, 'after-timeout');
+  assert.equal(h.scope.feedRefreshRequestRef.current, null);
 });

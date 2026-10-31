@@ -1,0 +1,29 @@
+✔ private downloads stream in bounded writes and dispose only their own workspace (99.416322ms)
+✔ unknown-length downloads enforce the byte ceiling before a chunk reaches disk (31.380859ms)
+✔ cancelling a blocked media reader closes it and removes the partial file (26.070317ms)
+✔ foreign links and unapproved public objects never start a download (18.544518ms)
+✔ local copies validate size and retain their source through export cleanup (24.902185ms)
+✔ a low-space constructor allocates no workspace and timed steps release their listener (22.305374ms)
+✔ optional scene fields are omitted at the native boundary without mutating the caller (36.213705ms)
+✔ present native movie artwork and audio preserve zero, false and the exact timeline (19.843664ms)
+✔ nullable absent native movie options cannot leak into nested Android values (11.184965ms)
+✔ native result verification uses the submitted request snapshot after caller edits (10.905522ms)
+✔ cancellation keeps the submitted native job identity after caller replacement (11.209921ms)
+✔ whole-book capability requires the complete supported native contract on each phone platform (104.353499ms)
+✔ invalid scene and normalized-image acknowledgements cannot become saved files (10.123419ms)
+✔ abort reaches the native job and rejects a late successful encoder response (10.266045ms)
+✔ pre-aborted exports and unavailable builds never invoke native encoding (20.462226ms)
+✔ unimplemented animated native artwork cannot silently export as a static layer (9.581461ms)
+✔ actual native preparation reaches the real bridge with a representable movie request (144.660245ms)
+✔ native preparation captures writing and every artwork layer from authorized private sources (93.470759ms)
+✔ capture errors and revoked artwork links fail the whole native preparation and clean temporary bytes (216.094426ms)
+✔ cancelling during capture cannot submit a partial native scene and removes captured files (97.139204ms)
+✔ reduced-motion preparation emits a still transform and zero fade in the actual native request (78.795353ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1114.690675

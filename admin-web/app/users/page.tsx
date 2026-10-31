@@ -1,15 +1,17 @@
+import { requestTime } from '@/lib/requestTime';
 import Link from 'next/link';
 import { requireDesk } from '@/lib/adminAuth';
 import { canOpen, canPerform } from '@/lib/permissions';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import { USER_DIRECTORY_SELECT, withDirectoryCounts } from '@/lib/userDirectory';
 import Shell from '@/components/Shell';
-import UsersDesk from '@/components/UsersDesk';
+import UsersDesk, { type UserDirectoryRow } from '@/components/UsersDesk';
 
 export const dynamic = 'force-dynamic';
 
 export default async function UsersPage({ searchParams }: { searchParams: Promise<{ q?: string; page?: string }> }) {
   const admin = await requireDesk('/users');
+  const now = await requestTime();
   const { q, page: rawPage } = await searchParams;
   const page = /^\d{1,6}$/.test(rawPage || '') ? Math.max(1, Number(rawPage)) : 1;
   const start = (page - 1) * 25;
@@ -22,7 +24,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
   }
   profilesQuery = profilesQuery.order('created_at', {ascending:false}).order('id').range(start, start + 24);
 
-  const dayAgo = new Date(Date.now() - 24 * 60 * 60_000).toISOString();
+  const dayAgo = new Date(now - 24 * 60 * 60_000).toISOString();
   const [profilesRes, totalRes, verifiedRes, activeRes, restrictedRes, appealsRes] = await Promise.all([
     profilesQuery,
     svc.from('profiles').select('id', { count: 'exact', head: true }),
@@ -31,8 +33,13 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
     svc.from('profiles').select('id', { count: 'exact', head: true }).gt('restricted_until', new Date().toISOString()),
     canOpen(admin.role, '/support') ? svc.from('support_tickets').select('id, user_id, subject, created_at').eq('kind', 'appeal').eq('status', 'open').order('created_at', { ascending: true }).limit(20) : { data: [] },
   ]);
+  if ([profilesRes, totalRes, verifiedRes, activeRes, restrictedRes, appealsRes].some(result => 'error' in result && result.error)) {
+    throw new Error('The member directory could not be loaded. Refresh before reviewing an account.');
+  }
+  if ([profilesRes, totalRes, verifiedRes, activeRes, restrictedRes].some(result => result.count === null)) throw new Error('Member counts could not be confirmed.');
 
-  const rows = (profilesRes.data ?? []).map(withDirectoryCounts);
+  type DirectoryRecord = Omit<UserDirectoryRow, 'followers' | 'following' | 'strikes'> & { follower_counts: unknown; following_counts: unknown; strike_counts: unknown };
+  const rows = ((profilesRes.data ?? []) as DirectoryRecord[]).map(withDirectoryCounts);
 
   const stats = [
     { label: 'Total members', value: totalRes.count ?? 0 },
@@ -43,10 +50,10 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
   ];
 
   return (
-    <Shell admin={admin} active="/users" title="Users" sub="Every member on Platinum Circles \u2014 verification tier, strikes, restriction state and account standing.">
+    <Shell admin={admin} active="/users" title="Users" sub="Every member on Platinum Circles, with verification tier, strikes, restriction state and account standing.">
       {canPerform(admin.role, 'account_delete') && <Link href="/users/deletions" className="mb-4 inline-block text-sm underline">Deletion requests</Link>}
       <form method="get" className="mb-4 flex gap-2">
-        <input name="q" defaultValue={q || ''} placeholder="Search name, username, or email"
+        <input name="q" aria-label="Search all members" defaultValue={q || ''} placeholder="Search name, username, or email"
           className="flex-1 rounded-[12px] border border-[#17181C]/15 bg-white px-4 py-2.5 text-sm text-[#17181C] outline-none transition-colors duration-150 focus:border-[#17181C]/40" />
         <button className="rounded-[12px] bg-[#17181C] px-5 py-2.5 text-sm font-bold text-white transition-opacity duration-150 hover:opacity-90">Search</button>
       </form>
@@ -68,7 +75,7 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
       {rows.length === 0 ? (
         <p className="py-16 text-center text-[13px] text-[#9A9DA4]">No accounts match.</p>
       ) : (
-        <UsersDesk role={admin.role} rows={rows as any} appeals={appealsRes.data ?? []} />
+        <UsersDesk role={admin.role} rows={rows} appeals={appealsRes.data ?? []} />
       )}
     </Shell>
   );

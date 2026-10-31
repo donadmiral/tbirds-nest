@@ -1,0 +1,61 @@
+{
+  "checkedAt": "2026-10-31T04:06:02.528Z",
+  "commit": "26e80ae96647884e7f2764bdbb1884fd5aabcff5",
+  "method": "Read-only authenticated Vercel deployment and alias API inspection for the exact Git SHA.",
+  "deployments": [
+    {
+      "app": "web",
+      "project": "platinum-web",
+      "projectId": "prj_mvKhFO3aq4OeCefPa3yaH8ub583u",
+      "framework": "nextjs",
+      "environment": "preview",
+      "state": "READY",
+      "deploymentId": "dpl_CMirJQCo5PceidTrzxds6Ev5AJj4",
+      "url": "https://platinum-1j3rngsxg-intobank.vercel.app",
+      "branchAlias": "https://platinum-web-git-codex-app-quality-20261029-intobank.vercel.app",
+      "aliasDeploymentId": "dpl_CMirJQCo5PceidTrzxds6Ev5AJj4",
+      "commit": "26e80ae96647884e7f2764bdbb1884fd5aabcff5",
+      "branch": "codex/app-quality-20261029",
+      "repository": "donadmiral/tbirds-nest",
+      "buildStartedAt": "2026-10-31T04:03:46.944Z",
+      "readyAt": "2026-10-31T04:05:09.622Z",
+      "buildToReadySeconds": 82.678,
+      "aliasAssignedAt": "2026-10-31T04:05:09.767Z"
+    },
+    {
+      "app": "admin",
+      "project": "admin-web",
+      "projectId": "prj_TyzK69ngezfB1zyrfIrXt9keIPNs",
+      "framework": "nextjs",
+      "environment": "preview",
+      "state": "READY",
+      "deploymentId": "dpl_AVkd9Ygx8v6eUkmVnFRm8ErzBrSM",
+      "url": "https://admin-9csh4ygo3-intobank.vercel.app",
+      "branchAlias": "https://admin-web-git-codex-app-quality-20261029-intobank.vercel.app",
+      "aliasDeploymentId": "dpl_AVkd9Ygx8v6eUkmVnFRm8ErzBrSM",
+      "commit": "26e80ae96647884e7f2764bdbb1884fd5aabcff5",
+      "branch": "codex/app-quality-20261029",
+      "repository": "donadmiral/tbirds-nest",
+      "buildStartedAt": "2026-10-31T04:03:25.175Z",
+      "readyAt": "2026-10-31T04:03:46.214Z",
+      "buildToReadySeconds": 21.039,
+      "aliasAssignedAt": "2026-10-31T04:03:46.361Z"
+    }
+  ],
+  "webCompletionLog": [
+    {
+      "at": "2026-10-31T04:05:09.774Z",
+      "text": "Deployment completed"
+    },
+    {
+      "at": "2026-10-31T04:04:58.627Z",
+      "text": "Build Completed in /vercel/output [1m]"
+    }
+  ],
+  "reviewReceipt": "/tmp/platinum-26e80ae-jobs-review.json",
+  "scopeAndLimits": [
+    "Deployment READY state and alias binding are verified. This is not a hosted interaction or authorization acceptance result.",
+    "No source, branch, deployment configuration, authentication protection or production alias was changed.",
+    "No test suite was rerun for this receipt."
+  ]
+}

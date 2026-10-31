@@ -1,0 +1,607 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-31T03:42:15.013907Z",
+  "repository": "donadmiral/tbirds-nest",
+  "workflow": {
+    "id": 41163537203,
+    "name": "Browser interaction and video gates",
+    "status": "completed",
+    "conclusion": "success",
+    "run_number": 27,
+    "jobs_url": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/runs/41163537203/jobs",
+    "logs_url": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/runs/41163537203/logs",
+    "workflow_id": 401237884
+  },
+  "runUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41163537203",
+  "sourceBinding": {
+    "headSha": "341395c68cfc0bf74527bcf23e0dced3813e9225",
+    "checkoutMergeSha": "1ca98984eec5d0912d510da9e565a84a8d5aacfd",
+    "headTreeSha": "ca36583e931756f2d9ea98fdaf3c9869ee4daf8f",
+    "mergeTreeSha": "ca36583e931756f2d9ea98fdaf3c9869ee4daf8f",
+    "treesIdentical": true,
+    "method": "Commit-specific GitHub workflow discovery; checkout SHA in every job log; independent git object tree comparison.",
+    "artifactHeadSha": "341395c68cfc0bf74527bcf23e0dced3813e9225",
+    "workflowPath": ".github/workflows/browser-quality.yml",
+    "workflowSha256": "31ea446a79f74a2d53c7c4791d313fa03a3b44aa1cc265a819c238c053296155"
+  },
+  "outcome": "success",
+  "jobs": [
+    {
+      "id": 124426098886,
+      "name": "Connected app, Studio, admin and encoded movies",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41163537203,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Install locked browser and admin dependencies",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Install browser and media verification tools",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Exercise actual admin components",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Exercise public-web navigation, account changes and recovery",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Exercise jobs, application review, market offers and orders",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "Exercise Studio approval, campaign and creator journeys",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "Export and decode actual graded story video",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 10
+        },
+        {
+          "name": "Export and decode full memory movies and audio mixes",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Exercise book design, persistence, conflicts and account changes",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Verify private original uploads, microphone capture and retained music exports",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        },
+        {
+          "name": "Keep synthetic browser evidence",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 27
+        },
+        {
+          "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 28
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 29
+        }
+      ]
+    }
+  ],
+  "runtime": "Chromium 153.0.8010.12",
+  "artifact": {
+    "id": 13028475071,
+    "name": "browser-quality-evidence",
+    "size_in_bytes": 8853539,
+    "url": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/artifacts/13028475071",
+    "archive_download_url": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/artifacts/13028475071/zip",
+    "expired": false,
+    "created_at": "2026-10-31T03:21:39Z",
+    "expires_at": "2026-11-07T03:21:36Z",
+    "updated_at": "2026-10-31T03:21:39Z",
+    "digest": "sha256:baeb077fc9687bcc4c2329cb9f2306a3ed807f1cddde98f8f7dae2112c103cbf",
+    "workflow_run": {
+      "id": 41163537203,
+      "repository_id": 1314826575,
+      "head_repository_id": 1314826575,
+      "head_branch": "codex/app-quality-20261029",
+      "head_sha": "341395c68cfc0bf74527bcf23e0dced3813e9225"
+    },
+    "downloadedArchiveSha256": "baeb077fc9687bcc4c2329cb9f2306a3ed807f1cddde98f8f7dae2112c103cbf",
+    "digestMatchesGitHub": true,
+    "files": 68,
+    "jsonReports": 10,
+    "pngScreenshots": 58,
+    "retainedMovieFiles": 0
+  },
+  "reportSha256": {
+    "admin/browser-receipt.json": "13f950dd01c119de31fe2c1e612b34ac04467ad7b16a939c9a8387f04e905986",
+    "video/browser-receipt.json": "cc52d50dd5ad48b4a7f6c247630abf661b38659fab36122dc24221af8f1d8347",
+    "memory/browser-receipt.json": "62a0a2371ff504ac697028fc0d8b1973c3da1ccd623bb13000cb5222e8037a66",
+    "memory-cover/browser-receipt.json": "e2e0d629069de8891935cfdddcbf86139c6c7e71be40e9faa25ad0f1d6db7b49",
+    "memory-cover/latest-gallery.json": "3b8dfe77d6bed0e3a3818947e3147bcc5851ab6ea8e68caa509584abd2ef6e07",
+    "music/browser-receipt.json": "a1e31b904abf725b7add281d5f33c9adc6fc4606a851030ec7ccf7943df20f41",
+    "web/browser-receipt.json": "7c9f5709f64bc7cef63c491310913e15a0fd79c92eb9eded2123867c5c0df4f8",
+    "web/warm-navigation-frames.json": "a8a37a65bf44af625395d156679b774062ebcbfa88078df6f13ec77c81162b9d",
+    "commerce/browser-receipt.json": "635f53ad2617b2d398c4b4aafc18e1fa6e4ec3c4e590629a34c1aff2c8812aa9",
+    "studio/browser-receipt.json": "76bc17617b231aab1af50802477b914cc656baadee8fc18d129710051ee2cebd"
+  },
+  "uiWorkflows": {
+    "admin": {
+      "checks": 37,
+      "pass": 37,
+      "fail": 0,
+      "skipped": 0,
+      "browserErrors": 0,
+      "receipt": "admin/browser-receipt.json",
+      "scope": "Actual shared admin components, synthetic records and navigation adapter; not authenticated hosted acceptance",
+      "checkedAt": "2026-10-31T03:17:48.233Z"
+    },
+    "web": {
+      "checks": 40,
+      "pass": 40,
+      "fail": 0,
+      "skipped": 0,
+      "browserErrors": 0,
+      "receipt": "web/browser-receipt.json",
+      "scope": "Actual public-web modules compiled with synthetic Auth/database, media and Next navigation adapters. No real-provider, hosted authentication or physical-device acceptance.",
+      "checkedAt": "2026-10-31T03:18:20.108Z"
+    },
+    "commerce": {
+      "checks": 24,
+      "pass": 24,
+      "fail": 0,
+      "skipped": 0,
+      "browserErrors": 0,
+      "receipt": "commerce/browser-receipt.json",
+      "scope": "Actual Jobs/Market components with synthetic Auth/database and navigation adapters. No hosted authentication, real provider, payment, Storage, or physical-device acceptance.",
+      "checkedAt": "2026-10-31T03:18:35.453Z"
+    },
+    "studio": {
+      "checks": 25,
+      "pass": 25,
+      "fail": 0,
+      "skipped": 0,
+      "browserErrors": 0,
+      "receipt": "studio/browser-receipt.json",
+      "scope": "Actual Studio components with synthetic records and RPC adapters. This does not establish authenticated QA, Storage, provider, publishing-worker or physical-device acceptance.",
+      "checkedAt": "2026-10-31T03:18:47.895Z"
+    }
+  },
+  "uiWorkflowTotals": {
+    "checks": 126,
+    "pass": 126,
+    "fail": 0,
+    "skipped": 0,
+    "browserErrors": 0
+  },
+  "media": {
+    "story": {
+      "completedCases": 12,
+      "encodedAndDecodedOutputsReportedByCI": 8,
+      "encodedCases": [
+        {
+          "mode": "graded_audio",
+          "bytes": 35310,
+          "mime": "video/webm;codecs=vp9,opus",
+          "codec": "vp9",
+          "width": 1080,
+          "height": 1918,
+          "duration": 1.0752,
+          "hasAudio": true
+        },
+        {
+          "mode": "muted",
+          "bytes": 22504,
+          "mime": "video/webm;codecs=vp9",
+          "codec": "vp9",
+          "width": 1080,
+          "height": 1918,
+          "duration": 1.085299,
+          "hasAudio": false
+        },
+        {
+          "mode": "added_audio",
+          "bytes": 36261,
+          "mime": "video/webm;codecs=vp9,opus",
+          "codec": "vp9",
+          "width": 1080,
+          "height": 1918,
+          "duration": 1.052399,
+          "hasAudio": true
+        },
+        {
+          "mode": "added_only",
+          "bytes": 38267,
+          "mime": "video/webm;codecs=vp9,opus",
+          "codec": "vp9",
+          "width": 1080,
+          "height": 1918,
+          "duration": 1.079299,
+          "hasAudio": true
+        },
+        {
+          "mode": "delayed_start",
+          "bytes": 35629,
+          "mime": "video/webm;codecs=vp9,opus",
+          "codec": "vp9",
+          "width": 1080,
+          "height": 1918,
+          "duration": 1.0541,
+          "hasAudio": true
+        },
+        {
+          "mode": "unadjusted_no_webgl",
+          "bytes": 50790,
+          "mime": "video/webm;codecs=vp9,opus",
+          "codec": "vp9",
+          "width": 1080,
+          "height": 1918,
+          "duration": 1.03,
+          "hasAudio": true
+        },
+        {
+          "mode": "framed_no_webgl",
+          "bytes": 48935,
+          "mime": "video/webm;codecs=vp9,opus",
+          "codec": "vp9",
+          "width": 1080,
+          "height": 1918,
+          "duration": 1.0313,
+          "hasAudio": true
+        },
+        {
+          "mode": "cover_no_webgl",
+          "bytes": 51356,
+          "mime": "video/webm;codecs=vp9,opus",
+          "codec": "vp9",
+          "width": 1080,
+          "height": 1918,
+          "duration": 1.0269,
+          "hasAudio": true
+        }
+      ],
+      "otherSuccessfulCases": [
+        "bad_added_audio",
+        "oversized_final_chunk",
+        "cancelled",
+        "graded_no_webgl"
+      ]
+    },
+    "memory": {
+      "completedCases": 25,
+      "encodedAndDecodedOutputsReportedByCI": 8,
+      "encodedCases": [
+        {
+          "mode": "original",
+          "bytes": 139316,
+          "codec": "vp9",
+          "duration": 7.001599,
+          "dimensions": [
+            720,
+            1280
+          ]
+        },
+        {
+          "mode": "silent",
+          "bytes": 121006,
+          "codec": "vp9",
+          "duration": 7.001199,
+          "dimensions": [
+            720,
+            1280
+          ]
+        },
+        {
+          "mode": "score",
+          "bytes": 259067,
+          "codec": "vp9",
+          "duration": 7.0157,
+          "dimensions": [
+            720,
+            1280
+          ]
+        },
+        {
+          "mode": "local_once",
+          "bytes": 178595,
+          "codec": "vp9",
+          "duration": 7.001299,
+          "dimensions": [
+            720,
+            1280
+          ]
+        },
+        {
+          "mode": "local_loop",
+          "bytes": 264677,
+          "codec": "vp9",
+          "duration": 7.013799,
+          "dimensions": [
+            720,
+            1280
+          ]
+        },
+        {
+          "mode": "static_images",
+          "bytes": 145404,
+          "codec": "vp9",
+          "duration": 7.0149,
+          "dimensions": [
+            720,
+            1280
+          ]
+        },
+        {
+          "mode": "unadjusted_no_webgl",
+          "bytes": 156492,
+          "codec": "vp9",
+          "duration": 7.013,
+          "dimensions": [
+            720,
+            1280
+          ]
+        },
+        {
+          "mode": "automatic",
+          "duration": 12.2115,
+          "dimensions": [
+            720,
+            1280
+          ],
+          "titlePixels": 5173,
+          "closingPixels": 9400
+        }
+      ],
+      "otherSuccessfulCases": [
+        "revoked",
+        "changed",
+        "account_roundtrip",
+        "cancel",
+        "call",
+        "hidden",
+        "unmount",
+        "missing",
+        "overflow",
+        "animated_primary",
+        "animated_sticker",
+        "animated_background",
+        "animated_data",
+        "image_inspection_cancel",
+        "graded_no_webgl",
+        "unsupported_composition",
+        "film_entry_exit"
+      ]
+    },
+    "music": {
+      "completedCases": 5,
+      "encodedAndDecodedOutputsReportedByCI": 2,
+      "encodedCases": [
+        {
+          "mode": "book",
+          "bytes": 164822,
+          "duration": "6.006800"
+        },
+        {
+          "mode": "retained",
+          "bytes": 104474,
+          "duration": "6.009899"
+        }
+      ],
+      "otherSuccessfulCases": [
+        "revoked_during_export",
+        "microphone_verified",
+        "recording_cancel"
+      ]
+    }
+  },
+  "encodedOutputCountReportedByCI": 18,
+  "memoryCover": {
+    "editorDesignerCases": 5,
+    "cases": [
+      "actual designer creates the chosen owned photo and complete creative documents",
+      "actual editor persists revisions and protects the draft on a conflicting save",
+      "saved cover and album controls fit the mobile viewport",
+      "actual text-only book editor omits photo framing while cover writing remains editable",
+      "actual designer fences A to B to A during a pending create"
+    ],
+    "galleryGroups": 48,
+    "renderedLayouts": 288,
+    "measuredWidths": [
+      144,
+      230
+    ],
+    "maxOverflowOrOverlapPx": {
+      "outerOverflow": 0,
+      "textOverflow": 0,
+      "titleOverflow": 0,
+      "titleOverlap": 0
+    },
+    "consoleErrors": 0,
+    "sourceFilesVerifiedAgainstHead": {
+      "shared/memoryCoverWriting.ts": {
+        "sha256": "226edaf6737692c13c34c56e3d08aa716280b666b7baecf3c2a5f4d64dbea52d",
+        "matchesHeadBlob": true
+      },
+      "shared/memoryBookPersistence.ts": {
+        "sha256": "9e3b85448540a28e8910c4a74b5b3a853e94be358b36d5322c960733c12e7070",
+        "matchesHeadBlob": true
+      },
+      "src/components/memory/MemoryBookCover.tsx": {
+        "sha256": "50a86edb475b9a120d16e6fcda4a63494d4f6e1b5ee0e80e0cb68e52dbf163af",
+        "matchesHeadBlob": true
+      },
+      "src/screens/profile/MemoryAlbumScreen.tsx": {
+        "sha256": "437b2d5c52cf1ad00ce1d322367ac1e41da8857b6d2db6a1c7db263ad4e7f541",
+        "matchesHeadBlob": true
+      },
+      "web/components/memory/MemoryBookCover.tsx": {
+        "sha256": "ed608207e0325914948f3f929a4f15879a960ecff64e6f8be21d848d50c0bbb7",
+        "matchesHeadBlob": true
+      },
+      "web/components/memory/MemoryBookCover.module.css": {
+        "sha256": "569bc3a8b8bf67842e5838907a5e064b416941fd37c6caa8b1e68db0f0afb149",
+        "matchesHeadBlob": true
+      },
+      "web/components/memory/MemoryCreativeControls.tsx": {
+        "sha256": "ae1888dfc43ceac384e5f5540ecd9c2b46db3ab35f3acac81896a103a0aebc20",
+        "matchesHeadBlob": true
+      },
+      "web/components/memory/MemoryBookDesigner.tsx": {
+        "sha256": "bebf65115c4489cda22bf0fac2b2e6f58daad90c0826c5161b17f94fb2aa8bd5",
+        "matchesHeadBlob": true
+      },
+      "web/components/MemoryAlbum.tsx": {
+        "sha256": "decbea883a633598f26468d912622f64796c7c5a559178306586463fbff5235c",
+        "matchesHeadBlob": true
+      },
+      "web/tests/browser/memory-cover-adapter.ts": {
+        "sha256": "faed035bacbea89dc1f4369ce6123e32c108d16db4d67c019d89061a59eeb947",
+        "matchesHeadBlob": true
+      },
+      "web/tests/browser/memory-cover-fixture.tsx": {
+        "sha256": "39fd7f08bf81c73b77eb1c917b3fbb2f696bbd18f8c18fb4c355191b0cd7fc89",
+        "matchesHeadBlob": true
+      },
+      "web/tests/browser/memory-cover-run.cjs": {
+        "sha256": "3f0f43a5ac19dc42ca60848674d9c42f94a77ca3a42af2ae0c7dfebee2292d1b",
+        "matchesHeadBlob": true
+      }
+    },
+    "scope": "Actual web cover, designer and editor components. Auth/RPC and persistence use a test-only localStorage adapter; this is not hosted Supabase acceptance."
+  },
+  "warmNavigation": {
+    "receipt": "web/warm-navigation-frames.json",
+    "checkedAt": "2026-10-31T03:18:20.098Z",
+    "viewport": {
+      "width": 1586,
+      "height": 992
+    },
+    "scope": "Actual HomeFeed, MessagesApp, navigation cache and scroll logic in Chromium. Auth/database reads and Next routing are synthetic local adapters. requestAnimationFrame samples inspect layout and content paintability; this is not GPU frame-time, real-network or hosted Next-routing measurement.",
+    "probes": [
+      {
+        "destination": "/home",
+        "clickAt": 1237.2999999999884,
+        "stoppedAt": 2066.8000000000175,
+        "firstDestinationFrameMs": 217.39999999999418,
+        "sampledFrames": 39,
+        "destinationFrames": 39,
+        "blankContentFrames": 0,
+        "expected": {
+          "posts": 16,
+          "top": 780
+        },
+        "maxFrameIntervalMs": 200,
+        "maxScrollDeviationPx": 0,
+        "expectedDraftSearchAndDetailsPreserved": true
+      },
+      {
+        "destination": "/messages",
+        "clickAt": 2302.600000000006,
+        "stoppedAt": 3599.399999999994,
+        "firstDestinationFrameMs": 61.5,
+        "sampledFrames": 76,
+        "destinationFrames": 76,
+        "blankContentFrames": 0,
+        "expected": {
+          "messages": 34,
+          "top": 247,
+          "draft": "A warm navigation draft stays with this account.",
+          "query": "Jordan",
+          "detailsOpen": false
+        },
+        "maxFrameIntervalMs": 49.899999999999636,
+        "maxScrollDeviationPx": 0,
+        "expectedDraftSearchAndDetailsPreserved": true
+      }
+    ],
+    "sampledFrames": 115,
+    "blankContentFrames": 0,
+    "heldReadDurationsMs": [
+      {
+        "kind": "feed",
+        "durationMs": 786.6,
+        "aborted": false
+      },
+      {
+        "kind": "conversations",
+        "durationMs": 603.9,
+        "aborted": false
+      },
+      {
+        "kind": "messages",
+        "durationMs": 732.1,
+        "aborted": false
+      }
+    ],
+    "browserErrors": 0
+  },
+  "logProvenance": {
+    "jobId": 124426098886,
+    "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41163537203/job/124426098886",
+    "logsApiUrl": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/jobs/124426098886/logs",
+    "checkedOutCommit": "1ca98984eec5d0912d510da9e565a84a8d5aacfd",
+    "normalizedLogSha256": "d2c18e88efc8599b4f60c18c9c5dd65a72f84476392166c62e725b6754288d12",
+    "normalization": "Locally saved UTF-8 log body after removing timestamp prefixes, ANSI color codes and BOM."
+  },
+  "limitations": [
+    "Actual app components and media exporters run in Chromium with synthetic Auth/database/navigation/media/provider adapters. These results do not establish hosted login, real-provider delivery, payment, Storage or production acceptance.",
+    "Music transport and microphone input are synthetic. No commercial music licensing has been enabled or inferred.",
+    "Expected denial, cancellation, unsupported-composition and cleanup cases are successful assertions, not unexpected failures or skipped work.",
+    "Browser CI reports actual encoded output decoding and measurements. This artifact retains JSON measurements and screenshots, but no movies; this receipt does not claim a separate independent decode of those unavailable outputs.",
+    "Warm-navigation requestAnimationFrame observations inspect layout and content paintability in a local fixture. They are not GPU frame times, physical-device performance, real-network measurements or hosted Next.js routing timings.",
+    "The local CI navigation first-destination observations (217.4 ms Home and 61.5 ms Messages) and longest intervals (200 ms and 49.9 ms) are preserved; this evidence does not justify a universal instant or 60-fps claim.",
+    "Physical iPhone behavior, APNs/CallKit/background operation, native full-app acceptance and native artifact decoding are covered separately, where available."
+  ]
+}

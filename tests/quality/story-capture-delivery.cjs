@@ -124,12 +124,65 @@ test('native trim playback preserves paused seek positions and loops only while 
   const source = fs.readFileSync(path.join(root,'src/components/stories/MediaCanvas.tsx'),'utf8');
   const ast = ts.createSourceFile('MediaCanvas.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
   const fn = ast.statements.find(node => ts.isFunctionDeclaration(node) && node.name?.text === 'StoryVideoLayer');
-  const exports = {}, effects = []; let clock;
-  const player = { currentTime:0, playing:false, play(){this.playing=true;},pause(){this.playing=false;}, addListener(name,fn){if(name==='timeUpdate')clock=fn;return{remove(){}};} };
-  vm.runInNewContext(ts.transpileModule(fn.getText(ast).replace('function StoryVideoLayer','export function StoryVideoLayer'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText,{exports,require:()=>({jsx:()=>null}),useRef:value=>({current:value}),useEffect:fn=>effects.push(fn),useExpoVideoPlayer:()=>player,ExpoVideoView:'Video',StyleSheet:{absoluteFill:{}}});
-  exports.StoryVideoLayer({uri:'clip.mp4',fit:'contain',muted:true,paused:true,trimStart:2,trimEnd:8});effects.forEach(fn=>fn());
-  player.currentTime=8;clock({currentTime:8});assert.equal(player.currentTime,8);
-  player.play();clock({currentTime:8});assert.equal(player.currentTime,2);
+  assert.ok(fn, 'the actual trim layer must be present');
+  const slots = [], effects = [], foregroundListeners = new Set(), cache = new Map();
+  let cursor = 0, dirty = true, callState = 'idle', observedPlayer;
+  const same = (a,b) => a && b && a.length === b.length && a.every((value,index) => Object.is(value,b[index]));
+  const hooks = {
+    useState(initial) { const i=cursor++; if(!slots[i]) slots[i]={value:typeof initial==='function'?initial():initial}; return [slots[i].value,next=>{const value=typeof next==='function'?next(slots[i].value):next;if(!Object.is(value,slots[i].value)){slots[i].value=value;dirty=true;}}]; },
+    useRef(value) { const i=cursor++; return slots[i] || (slots[i]={current:value}); },
+    useMemo(factory,deps) { const i=cursor++; if(!slots[i] || !same(slots[i].deps,deps)) slots[i]={deps,value:factory()}; return slots[i].value; },
+    useEffect(effect,deps) { const i=cursor++,old=slots[i]; if(!old || !same(old.deps,deps)){slots[i]={deps};effects.push(()=>{old?.cleanup?.();slots[i].cleanup=effect();});} },
+  };
+  const appState = { currentState:'active', addEventListener(name,listener) { assert.equal(name,'change'); foregroundListeners.add(listener); return { remove:()=>foregroundListeners.delete(listener) }; } };
+  const jsx = { jsx:(type,props)=>({type,props}), jsxs:(type,props)=>({type,props}), Fragment:'Fragment' };
+  const native = { storyVideoVersion:1, cancelStoryComposition:async()=>{}, composeStory() { throw new Error('trim preview must not start an export'); } };
+  function evaluate(file, providedSource) {
+    file=path.resolve(root,file);
+    if(cache.has(file)) return cache.get(file);
+    const module={exports:{}};cache.set(file,module.exports);
+    const requireLocal = name => {
+      if(name==='react') return hooks;
+      if(name==='react/jsx-runtime') return jsx;
+      if(name==='react-native') return { AppState:appState, Platform:{OS:'ios'}, StyleSheet:{absoluteFill:{}}, View:'View',Text:'Text',TouchableOpacity:'Button' };
+      if(name==='expo-modules-core') return { requireOptionalNativeModule:()=>native,requireNativeViewManager:()=> 'NativeStoryVideo' };
+      if(name==='expo-video') return { VideoView:'LegacyVideo',useVideoPlayer(){throw new Error('expected the shipping story controller import');} };
+      if(name.endsWith('/CallContext')) return { useCallContext:()=>({callState}) };
+      if(name.endsWith('/StoryPixelImage')) return { StoryPhotoLookContext:{} };
+      assert.ok(name.startsWith('.'),'Unexpected import '+name);
+      const base=path.resolve(path.dirname(file),name),target=[base+'.ts',base+'.tsx'].find(fs.existsSync);
+      assert.ok(target,'Missing real source import '+name);return evaluate(target);
+    };
+    const code=ts.transpileModule(providedSource ?? fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText;
+    vm.runInNewContext(code,{module,exports:module.exports,require:requireLocal,AbortController,console},{filename:file});
+    return module.exports;
+  }
+  // Retain the layer's real imports, including the shipping player-controller
+  // module, instead of injecting an obsolete useExpoVideoPlayer global.
+  const imports = new Set(['react','react-native','../../contexts/CallContext','../../../modules/boomerang/storyVideo']);
+  const extracted = ast.statements.filter(node=>ts.isImportDeclaration(node)&&imports.has(node.moduleSpecifier.text)).map(node=>node.getText(ast)).join('\n')+'\n'+fn.getText(ast).replace('function StoryVideoLayer','export function StoryVideoLayer');
+  const { StoryVideoLayer } = evaluate('src/components/stories/MediaCanvas.tsx',extracted);
+  const { StoryVideoController } = evaluate('modules/boomerang/storyVideo.tsx');
+  const props = {uri:'clip.mp4',fit:'contain',muted:true,paused:true,trimStart:2,trimEnd:8,onPlayer:value=>{observedPlayer=value;}};
+  const render = (updates={}) => {Object.assign(props,updates);dirty=true;let attempts=0;while(dirty){assert.ok(++attempts<20,'hook updates settle');dirty=false;cursor=0;StoryVideoLayer(props);while(effects.length)effects.shift()();}};
+  render();const player=observedPlayer;
+  assert.ok(player instanceof StoryVideoController);assert.equal(player.currentTime,2);assert.equal(player.props().paused,true);
+  player.currentTime=8;player.receive({type:'timeUpdate',currentTime:8,playing:true});assert.equal(player.currentTime,8,'a paused seek at the trim end must stay put');
+  render({paused:false});assert.equal(observedPlayer,player,'rerenders retain the same source controller');
+  assert.equal(player.playing,false,'playback becomes active only when the native clock confirms it');
+  player.receive({type:'timeUpdate',currentTime:8,playing:true});assert.equal(player.currentTime,2,'playing loops to the selected start');assert.equal(player.props().seekSeconds,2);
+  player.currentTime=5;player.receive({type:'timeUpdate',currentTime:5,playing:true});assert.equal(player.currentTime,5,'an in-window seek is preserved');
+  render({paused:true});player.currentTime=8;player.receive({type:'timeUpdate',currentTime:8,playing:true});assert.equal(player.currentTime,8,'a late playing event cannot override pause');
+  render({trimStart:3,trimEnd:6});assert.equal(player.currentTime,3,'dragging the start handle seeks immediately');
+  player.currentTime=5.5;render({trimEnd:5});assert.equal(player.currentTime,3,'shortening the end clamps an out-of-window seek');
+  render({paused:false});player.receive({type:'timeUpdate',currentTime:5,playing:true});assert.equal(player.currentTime,3,'the existing listener uses the updated trim window');
+  appState.currentState='background';for(const listener of foregroundListeners)listener('background');render();assert.equal(player.props().paused,true);
+  player.receive({type:'timeUpdate',currentTime:5,playing:true});assert.equal(player.currentTime,5,'background playback never advances the trim loop');
+  appState.currentState='active';for(const listener of foregroundListeners)listener('active');render();assert.equal(player.props().paused,false);
+  callState='active';render();assert.equal(player.props().paused,true,'an active call pauses preview');
+  for(const slot of slots)slot?.cleanup?.();
+  assert.equal(observedPlayer,null);assert.equal(player.released,true);assert.equal(foregroundListeners.size,0);
+  player.receive({type:'timeUpdate',currentTime:9,playing:true});assert.equal(player.currentTime,5,'disposed listeners cannot seek or restart playback');
 });
 
 test('Camera Kit ignores out-of-order Lens loads and blocks capture while a Lens changes', async()=>{

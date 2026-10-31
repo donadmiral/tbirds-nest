@@ -1,6 +1,7 @@
 "use client";
+import NextImage from "next/image";
 
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { ArrowLeft, Camera, FlipHorizontal2, LoaderCircle, Search, Video, X } from 'lucide-react';
 import { createCameraKitCaptureBridge } from '../../src/screens/stories/cameraKitBridge';
 import { browserCameraKitHtml, cameraKitFile } from '../lib/cameraKitCapture';
@@ -17,7 +18,7 @@ export function StoryLensesCapture({ onCapture, onClose, onBack }: { onCapture: 
   const generation = useRef(0);
   const bridge = useRef(createCameraKitCaptureBridge(25000));
   const files = useRef(new Map<string, File>()), timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const callbacks = useRef({ onCapture, onClose }); callbacks.current = { onCapture, onClose };
+  const callbacks = useRef({ onCapture, onClose }); useLayoutEffect(() => { callbacks.current = { onCapture, onClose }; }, [onCapture, onClose]);
   const [html, setHtml] = useState(''), [attempt, setAttempt] = useState(0);
   const [ready, setReady] = useState(false), [phase, setPhase] = useState<Phase>('idle');
   const phaseRef = useRef<Phase>('idle');
@@ -41,23 +42,27 @@ export function StoryLensesCapture({ onCapture, onClose, onBack }: { onCapture: 
     return () => { if (typeof HTMLElement !== 'undefined' && opener instanceof HTMLElement && opener.isConnected) opener.focus(); };
   }, []);
   useEffect(() => {
-    alive.current = true; generation.current++;
+    alive.current = true; generation.current += 1;
+    const captureBridge=bridge.current,capturedFiles=files.current;
     if (!apiToken || !lensGroupId) return;
     void import('../../src/screens/stories/cameraKitEngine').then(engine => {
       if (alive.current) setHtml(browserCameraKitHtml(engine.CAMERA_KIT_ENGINE_HTML, window.location.origin));
     }).catch(() => fail('The Lens camera could not load. Try again or return to the other capture modes.', true));
     const receive = (event: MessageEvent) => {
       if (!alive.current || event.source !== frame.current?.contentWindow || event.origin !== window.location.origin || typeof event.data?.platinumCameraKit !== 'string') return;
-      let message: any; try { message = JSON.parse(event.data.platinumCameraKit); } catch { return; }
+      let parsed: unknown; try { parsed = JSON.parse(event.data.platinumCameraKit); } catch { return; }
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return;
+      const message = parsed as Record<string, unknown>;
       if (message.type === 'ready') { clearTimer(); readyRef.current = true; setReady(true); setError(''); }
-      else if (message.type === 'lenses') setLenses(Array.isArray(message.lenses) ? message.lenses.filter((lens: any) => typeof lens?.id === 'string' && typeof lens?.name === 'string' && typeof lens?.groupId === 'string') : []);
+      else if (message.type === 'lenses') setLenses(Array.isArray(message.lenses) ? message.lenses.filter((lens: unknown): lens is Lens => !!lens && typeof lens === 'object' && 'id' in lens && typeof lens.id === 'string' && 'name' in lens && typeof lens.name === 'string' && 'groupId' in lens && typeof lens.groupId === 'string') : []);
       else if (message.type === 'lensApplied') { setSelected(typeof message.lensId === 'string' ? message.lensId : null); if (phaseRef.current === 'applying') { clearTimer(); updatePhase('idle'); } }
       else if (message.type === 'flipped' && phaseRef.current === 'applying') { clearTimer(); updatePhase('idle'); }
       else if (message.type === 'recording' && message.state === 'started' && phaseRef.current === 'starting') { clearTimer(); setSeconds(0); updatePhase('recording'); }
-      else if (message.type === 'error') fail(message.operation === 'startVideo' ? 'Video recording could not start. Check microphone access, or choose Photo.' : message.operation === 'loadGroup' ? 'Your available lenses could not load. Please retry.' : 'This Lens could not finish. Check camera access, then retry or choose another capture mode.', ['init', 'render', 'dispose'].includes(message.operation));
-      else if (['photo', 'video'].includes(message.type) && typeof message.requestId === 'string') {
-        void bridge.current.complete(message.requestId, message.type, async () => {
-          const file = cameraKitFile(message.dataUrl, message.type), url = URL.createObjectURL(file); files.current.set(url, file); return url;
+      else if (message.type === 'error') fail(message.operation === 'startVideo' ? 'Video recording could not start. Check microphone access, or choose Photo.' : message.operation === 'loadGroup' ? 'Your available lenses could not load. Please retry.' : 'This Lens could not finish. Check camera access, then retry or choose another capture mode.', typeof message.operation === 'string' && ['init', 'render', 'dispose'].includes(message.operation));
+      else if ((message.type === 'photo' || message.type === 'video') && typeof message.requestId === 'string' && typeof message.dataUrl === 'string') {
+        const { requestId, type, dataUrl } = message;
+        void bridge.current.complete(requestId, type, async () => {
+          const file = cameraKitFile(dataUrl, type), url = URL.createObjectURL(file); files.current.set(url, file); return url;
         }, url => { URL.revokeObjectURL(url); files.current.delete(url); });
       }
     };
@@ -68,8 +73,8 @@ export function StoryLensesCapture({ onCapture, onClose, onBack }: { onCapture: 
     window.addEventListener('message', receive); document.addEventListener('visibilitychange', visibility);
     window.visualViewport?.addEventListener('resize', viewport); window.visualViewport?.addEventListener('scroll', viewport);
     return () => {
-      try { send({ type: 'dispose' }); } catch {} alive.current = false; generation.current++; readyRef.current = false; clearTimer(); bridge.current.fail('The Lens camera was closed.');
-      files.current.forEach((_file, url) => URL.revokeObjectURL(url)); files.current.clear();
+      try { send({ type: 'dispose' }); } catch {} alive.current = false; generation.current += 1; readyRef.current = false; clearTimer(); captureBridge.fail('The Lens camera was closed.');
+      capturedFiles.forEach((_file, url) => URL.revokeObjectURL(url)); capturedFiles.clear();
       window.removeEventListener('message', receive); document.removeEventListener('visibilitychange', visibility);
       window.visualViewport?.removeEventListener('resize', viewport); window.visualViewport?.removeEventListener('scroll', viewport);
     };
@@ -109,8 +114,8 @@ export function StoryLensesCapture({ onCapture, onClose, onBack }: { onCapture: 
     timer.current = setTimeout(() => { try { send({ type: 'dispose' }); } catch {} fail('Video recording did not start. Reopen the camera to try again.', true); }, 25000);
     try { send({ type: 'startVideo' }); } catch (failure) { fail(failure instanceof Error ? failure.message : 'Video recording could not start.'); }
   };
-  const retry = () => { generation.current++; readyRef.current = false; setReady(false); setError(''); setLenses([]); setSelected(null); updatePhase('idle'); setAttempt(value => value + 1); };
-  const leave = (next: () => void) => { try { send({type:'dispose'}); } catch {} alive.current=false; generation.current++; readyRef.current=false; clearTimer(); bridge.current.fail('The Lens camera was closed.'); next(); };
+  const retry = () => { generation.current += 1; readyRef.current = false; setReady(false); setError(''); setLenses([]); setSelected(null); updatePhase('idle'); setAttempt(value => value + 1); };
+  const leave = (next: () => void) => { try { send({type:'dispose'}); } catch {} alive.current=false; generation.current += 1; readyRef.current=false; clearTimer(); bridge.current.fail('The Lens camera was closed.'); next(); };
   const updateCamera = (message: object) => {
     if (!readyRef.current || !alive.current || phaseRef.current !== 'idle') return;
     (document.activeElement as HTMLElement)?.blur?.(); updatePhase('applying'); setError(''); clearTimer();
@@ -132,7 +137,7 @@ export function StoryLensesCapture({ onCapture, onClose, onBack }: { onCapture: 
     {!apiToken || !lensGroupId ? <div className={styles.notice}><Camera size={32}/><h2>Lenses are unavailable here</h2><p>You can keep creating with the other capture modes.</p><button type="button" onClick={onBack}>Back to camera</button></div> : error ? <div className={styles.notice} role="alert"><p>{error}</p><button type="button" onClick={retry}>Try lenses again</button><button type="button" onClick={onBack}>Other capture modes</button></div> : !ready ? <div className={styles.notice} aria-live="polite"><LoaderCircle className={styles.loading} size={28}/><p>Opening your Lens camera…</p></div> : null}
     {ready && !error ? <div className={styles.dock}>
       <label className={styles.search}><Search size={18}/><input aria-label="Search available Snapchat lenses" placeholder="Search your lenses" value={query} onChange={event => setQuery(event.target.value)} disabled={phase !== 'idle'}/>{query ? <button type="button" aria-label="Clear lens search" onClick={()=>setQuery('')}><X size={18}/></button> : null}</label>
-      <div className={styles.lenses} aria-label="Available Snapchat lenses"><button type="button" aria-pressed={!selected} disabled={phase !== 'idle'} onClick={()=>updateCamera({type:'applyLens',lensId:null,groupId:lensGroupId})}><span className={styles.thumbnail}><Camera size={23}/></span><span>Original</span></button>{filtered.map(lens=><button type="button" key={lens.id} aria-pressed={selected===lens.id} disabled={phase!=='idle'} onClick={()=>updateCamera({type:'applyLens',lensId:lens.id,groupId:lens.groupId})}><span className={styles.thumbnail}>{lens.iconUrl?<img src={lens.iconUrl} alt=""/>:<Camera size={23}/>}</span><span>{lens.name}</span></button>)}</div>
+      <div className={styles.lenses} aria-label="Available Snapchat lenses"><button type="button" aria-pressed={!selected} disabled={phase !== 'idle'} onClick={()=>updateCamera({type:'applyLens',lensId:null,groupId:lensGroupId})}><span className={styles.thumbnail}><Camera size={23}/></span><span>Original</span></button>{filtered.map(lens=><button type="button" key={lens.id} aria-pressed={selected===lens.id} disabled={phase!=='idle'} onClick={()=>updateCamera({type:'applyLens',lensId:lens.id,groupId:lens.groupId})}><span className={styles.thumbnail}>{lens.iconUrl?<NextImage unoptimized width={58} height={58} src={lens.iconUrl} alt=""/>:<Camera size={23}/>}</span><span>{lens.name}</span></button>)}</div>
       {!filtered.length?<p className={styles.caption}>{query?'No available Lens matches this search.':'Your Lens Group has no available lenses yet.'}</p>:null}
       <div className={styles.modes} role="tablist" aria-label="Lens capture mode">{(['photo','video'] as const).map(value=><button key={value} type="button" role="tab" aria-selected={mode===value} disabled={phase!=='idle'} onClick={()=>setMode(value)}>{value==='photo'?'Photo':'Video'}</button>)}</div>
       <div className={styles.shutterRow}><button type="button" className={styles.flip} aria-label="Switch Lens camera" disabled={phase!=='idle'} onClick={()=>updateCamera({type:'flip'})}><FlipHorizontal2 size={22}/></button><button type="button" className={styles.shutter} data-recording={phase==='recording'} aria-label={phase==='recording'?'Stop Lens recording':mode==='photo'?'Take Lens photo':'Record Lens video'} disabled={!ready||phase==='applying'||phase==='starting'||phase==='saving'} onClick={shutter}>{phase==='applying'||phase==='starting'||phase==='saving'?<LoaderCircle className={styles.loading} size={28}/>:<span/>}</button><span className={styles.duration}>{phase==='recording'?`${seconds}s`:mode==='video'?<Video size={22}/>:<Camera size={22}/>}</span></div>

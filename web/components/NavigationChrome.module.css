@@ -5,6 +5,54 @@
   box-shadow: inset 0 1px 0 var(--chrome-highlight), var(--chrome-shadow);
 }
 
+.sidebar { display: none; }
+.frame { min-width: 0; transition: margin-left 180ms ease; }
+.topbar { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 20px; min-height: 68px; padding: 10px 28px; border-bottom: 1px solid var(--chrome-border); background: var(--chrome-glass); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); }
+.search { display: flex; align-items: center; gap: 11px; width: min(100%, 620px); min-width: 0; min-height: 42px; margin-right: auto; padding: 0 14px; border: 1px solid transparent; border-radius: 10px; background: var(--color-surface); color: var(--color-muted); }
+.search:focus-within { border-color: var(--editorial-gold); box-shadow: 0 0 0 3px color-mix(in srgb, var(--editorial-gold) 13%, transparent); background: var(--surface-raised); }
+.search input { width: 100%; min-width: 0; height: 40px; border: 0; outline: 0; background: transparent; color: var(--color-ink); font-size: 13px; }
+.search input::-webkit-search-cancel-button { -webkit-appearance: none; }
+.search input::placeholder { color: var(--color-muted); }
+.search > svg { flex: 0 0 auto; }
+.search button { display: grid; min-width: 32px; min-height: 36px; place-items: center; }
+.search kbd { white-space: nowrap; border: 1px solid var(--chrome-border); padding: 2px 6px; border-radius: 5px; font-size: 10px; color: var(--color-muted); }
+.topActions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.topActions .control { position: relative; flex-shrink: 0; }
+.mobileBrand, .mobileMore { display: none; }
+.avatar { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; background: var(--color-surface-active); color: var(--color-ink); object-fit: cover; font-size: 12px; font-weight: 700; }
+.notificationBadge { position: absolute; top: 0; right: 0; display: grid; place-items: center; min-width: 16px; height: 16px; padding: 0 3px; border-radius: 12px; background: var(--editorial-gold); color: #fff; box-shadow: 0 0 0 2px var(--chrome-solid); font-size: 9px; font-weight: 700; }
+.backLink { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--color-secondary); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.backLink:hover { color: var(--color-ink); }
+.content { display: flex; align-items: flex-start; justify-content: center; gap: 24px; max-width: 1440px; margin: 0 auto; padding: 24px 28px 64px; }
+.mainColumn { width: 100%; min-width: 0; max-width: 740px; }
+.wideContent { width: 100%; max-width: 1560px; margin: 0 auto; padding: 24px 28px 64px; }
+.rightRail { display: none; }
+.professionalMain { min-width: 0; min-height: 100dvh; }
+.createButton { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; min-height: 46px; border: 1px solid transparent; border-radius: 10px; background: #0b1e3d; color: #fff; font-size: 14px; font-weight: 650; transition: background 140ms ease, box-shadow 140ms ease; }
+.createButton:hover { background: #19365b; box-shadow: 0 4px 12px #0b1e3d14; }
+:global(.dark) .createButton { background: #c4a063; color: #0b1e3d; }
+.createSlot { padding: 16px 8px 13px; }
+.popover { position: fixed; z-index: 90; width: 338px; max-width: calc(100vw - 24px); max-height: calc(100dvh - 24px); overflow: auto; overscroll-behavior: contain; padding: 8px; border: 1px solid var(--chrome-border); border-radius: 16px; background: var(--surface-raised); color: var(--color-ink); box-shadow: 0 18px 70px #08162d24, 0 3px 12px #08162d10; }
+.menuHeading { display: flex; flex-direction: column; gap: 5px; padding: 13px 12px; }
+.menuHeading strong { font-size: 15px; line-height: 1.5; overflow-wrap: anywhere; }
+.menuHeading span { font-size: 12px; line-height: 1.5; color: var(--color-muted); overflow-wrap: anywhere; }
+.menuDivider { height: 1px; background: var(--chrome-border); margin: 6px 8px; }
+.menuLink { display: flex; align-items: center; gap: 13px; width: 100%; min-height: 50px; border-radius: 9px; padding: 10px 12px; color: var(--color-secondary); text-align: left; }
+.menuLink > svg { flex: 0 0 auto; }
+.menuLink > span { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.menuLink strong { color: var(--color-ink); font-size: 13px; font-weight: 600; }
+.menuLink small { color: var(--color-muted); font-size: 11px; line-height: 1.45; }
+.menuLink:hover { background: var(--color-surface); }
+.menuLink:disabled { opacity: .6; cursor: wait; }
+.menuError { padding: 8px 12px; color: var(--color-danger); font-size: 12px; line-height: 1.5; }
+.appearance { padding: 10px 8px; }
+.appearance > span { display: block; margin: 0 4px 8px; color: var(--color-muted); font-size: 11px; font-weight: 600; }
+.appearance [role="group"] { border-radius: 10px; gap: 2px; }
+.appearance [role="group"] button { border-radius: 8px; font-size: 11px; padding-left: 8px; padding-right: 8px; }
+.mobileDestinations { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+.mobileDestinations a { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 3px; border-radius: 10px; font-size: 11px; }
+.mobileDestinations a:hover { background: var(--color-surface); }
+
 @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .surface {
     background: var(--chrome-glass);
@@ -37,6 +85,62 @@
   color: var(--chrome-secondary);
   touch-action: manipulation;
 }
+
+@media (min-width: 768px) {
+  .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 40; display: flex; flex-direction: column; width: 248px; min-height: 0; border-right: 1px solid var(--chrome-border); padding: 0 14px 12px; background: var(--chrome-solid); transition: width 180ms ease; }
+  .frame { margin-left: 248px; }
+  :global(.nav-collapsed) .frame { margin-left: 76px; }
+  .brandRow { position: relative; display: flex; align-items: center; justify-content: center; min-height: 80px; flex-shrink: 0; }
+  .brand { display: flex; align-items: center; justify-content: center; min-height: 44px; }
+  .brand img { border-radius: 10px; }
+  .collapseButton { position: absolute; right: -29px; bottom: 4px; z-index: 2; display: grid; place-items: center; width: 28px; min-height: 32px; border: 1px solid var(--chrome-border); border-radius: 8px; background: var(--surface-raised); color: var(--color-muted); opacity: 0; transition: opacity 140ms; }
+  .sidebar:hover .collapseButton, .sidebar:focus-within .collapseButton { opacity: 1; }
+  .navigation { display: flex; flex: 1; flex-direction: column; min-height: 0; gap: 3px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; padding: 2px 1px 12px; }
+  .navigation .navItem { display: flex; align-items: center; gap: 17px; width: 100%; min-height: 45px; flex-shrink: 0; padding: 10px 15px; border: 1px solid transparent; border-radius: 10px; color: var(--color-secondary); text-align: left; font-size: 13px; font-weight: 500; transition: background 140ms, color 140ms; }
+  .navigation .navItem > svg, .navIcon { flex: 0 0 auto; }
+  .navigation .navItem > span:not(.navIcon) { flex: 1; }
+  .navigation .navItem:hover { background: var(--color-surface); color: var(--color-ink); }
+  .navigation .navItem[aria-current="page"] { color: var(--color-ink); background: var(--color-surface-elevated); box-shadow: none; font-weight: 700; }
+  .navIcon { position: relative; display: inline-flex; }
+  .unreadDot { position: absolute; top: -2px; right: -3px; width: 7px; height: 7px; border-radius: 50%; background: var(--editorial-gold); }
+  .badge { display: grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 20px; background: var(--color-surface-active); font-size: 10px; font-weight: 650; }
+  .sidebarAccount { display: flex; align-items: center; gap: 11px; min-height: 62px; flex-shrink: 0; margin-top: 3px; padding: 11px 9px; border-top: 1px solid var(--chrome-border); border-radius: 0 0 10px 10px; }
+  .sidebarAccount:hover { background: var(--color-surface); }
+  .sidebarAccount > img { width: 36px; height: 36px; flex-shrink: 0; border-radius: 50%; object-fit: cover; }
+  .accountCopy { display: flex; flex-direction: column; gap: 3px; min-width: 0; overflow: hidden; }
+  .accountCopy small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-muted); font-size: 11px; }
+  .collapsed { width: 76px; padding-left: 9px; padding-right: 9px; }
+  .collapsed .navigation .navItem { justify-content: center; padding: 10px; }
+  .collapsed .navigation > .control { min-height: 45px; border-radius: 10px; }
+  .collapsed .createSlot { display: flex; justify-content: center; padding: 12px 0; }
+  .collapsed .createSlot .control { background: #0b1e3d; color: #fff; border-radius: 12px; }
+  .collapsed .sidebarAccount { justify-content: center; padding-left: 0; padding-right: 0; }
+  .collapsed .collapseButton { right: -25px; }
+}
+
+@media (min-width: 1200px) {
+  .rightRail { display: block; position: sticky; top: 92px; width: 340px; flex: 0 0 340px; }
+  .rightRail > div { display: flex; flex-direction: column; gap: 16px; }
+}
+
+@media (min-width: 1600px) { .rightRail { width: 380px; flex-basis: 380px; } }
+
+@media (max-width: 767px) {
+  .topbar { flex-wrap: wrap; gap: 5px 12px; padding: 7px 14px 9px; }
+  .mobileBrand { display: block; flex: 1; min-width: 0; }
+  .mobileMore { display: inline-flex; }
+  .topActions { gap: 0; }
+  .topActions > .control, .topActions > button { min-width: 40px; }
+  .search { order: 3; width: 100%; max-width: none; min-height: 40px; border-radius: 9px; }
+  .search kbd { display: none; }
+  .backLink { order: 4; min-height: 32px; padding-top: 3px; font-size: 12px; }
+  .content, .wideContent { padding: 16px 12px calc(100px + env(safe-area-inset-bottom)); }
+  .popover { max-height: calc(100dvh - 110px); }
+}
+
+@media (max-width: 390px) { .mobileBrand > a > span { font-size: 17px !important; } .topActions { gap: 0; } .topActions .avatar { width: 30px; height: 30px; } }
+/* Notifications remain in All destinations on the narrowest screens. */
+@media (max-width: 360px) { .topActions .headerNotifications { display: none; } .topbar { column-gap: 4px; } }
 
 .navItem[aria-current="page"] {
   color: var(--color-ink);

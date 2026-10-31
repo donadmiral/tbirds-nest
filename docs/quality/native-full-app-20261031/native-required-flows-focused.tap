@@ -1,0 +1,322 @@
+TAP version 13
+# Subtest: actual SDK locking keeps mutual exclusion and identifies the holder, waiter and pending storage span
+ok 1 - actual SDK locking keeps mutual exclusion and identifies the holder, waiter and pending storage span
+  ---
+  duration_ms: 6.490072
+  type: 'test'
+  ...
+# Subtest: lock wrapper preserves receiver, timeout arguments, callback arguments and result references
+ok 2 - lock wrapper preserves receiver, timeout arguments, callback arguments and result references
+  ---
+  duration_ms: 1.011371
+  type: 'test'
+  ...
+# Subtest: acquisition timeout retains the original error without invoking work or recording error content
+ok 3 - acquisition timeout retains the original error without invoking work or recording error content
+  ---
+  duration_ms: 0.907188
+  type: 'test'
+  ...
+# Subtest: callback and storage failures retain rejection identity and leave no false active operation
+ok 4 - callback and storage failures retain rejection identity and leave no false active operation
+  ---
+  duration_ms: 0.945194
+  type: 'test'
+  ...
+# Subtest: storage arguments, optional callbacks, receiver and resolved values survive observation
+ok 5 - storage arguments, optional callbacks, receiver and resolved values survive observation
+  ---
+  duration_ms: 0.676107
+  type: 'test'
+  ...
+# Subtest: event retention is bounded while preserving startup and recent observations
+ok 6 - event retention is bounded while preserving startup and recent observations
+  ---
+  duration_ms: 0.729015
+  type: 'test'
+  ...
+# Subtest: diagnostic clock and sink errors cannot change auth results
+ok 7 - diagnostic clock and sink errors cannot change auth results
+  ---
+  duration_ms: 0.3118
+  type: 'test'
+  ...
+# Subtest: timer descriptors identify lazy getters without invoking or changing them
+ok 8 - timer descriptors identify lazy getters without invoking or changing them
+  ---
+  duration_ms: 1.977306
+  type: 'test'
+  ...
+# Subtest: timer replacement is visible between lock phases and snapshot mutation cannot rewrite retained evidence
+ok 9 - timer replacement is visible between lock phases and snapshot mutation cannot rewrite retained evidence
+  ---
+  duration_ms: 1.788137
+  type: 'test'
+  ...
+# Subtest: timer descriptor failures and bounded identity overflow preserve auth behavior
+ok 10 - timer descriptor failures and bounded identity overflow preserve auth behavior
+  ---
+  duration_ms: 1.391222
+  type: 'test'
+  ...
+# Subtest: one finite wall-clock anchor pairs with the first monotonic observation without changing relative durations
+ok 11 - one finite wall-clock anchor pairs with the first monotonic observation without changing relative durations
+  ---
+  duration_ms: 0.397346
+  type: 'test'
+  ...
+# Subtest: native factory rejects production or real-provider configuration before filesystem access
+ok 12 - native factory rejects production or real-provider configuration before filesystem access
+  ---
+  duration_ms: 3.029689
+  type: 'test'
+  ...
+# Subtest: native trace writes are batched, serialized, isolated from storage and recover after failure
+ok 13 - native trace writes are batched, serialized, isolated from storage and recover after failure
+  ---
+  duration_ms: 5.90608
+  type: 'test'
+  ...
+# Subtest: disposable source overlay changes only the reviewed three anchors and retains SDK lock and storage
+ok 14 - disposable source overlay changes only the reviewed three anchors and retains SDK lock and storage
+  ---
+  duration_ms: 0.418998
+  type: 'test'
+  ...
+# Subtest: disposable preparation retains diagnostic source, original auth hash and exact overlay content
+ok 15 - disposable preparation retains diagnostic source, original auth hash and exact overlay content
+  ---
+  duration_ms: 88.363841
+  type: 'test'
+  ...
+# Subtest: Simulator entitlement reader verifies actual Mach-O/plist fixtures and rejects missing or mismatched identities
+ok 16 - Simulator entitlement reader verifies actual Mach-O/plist fixtures and rejects missing or mismatched identities
+  ---
+  duration_ms: 60.978833
+  type: 'test'
+  ...
+# Subtest: actual Simulator signing check: valid
+ok 17 - actual Simulator signing check: valid
+  ---
+  duration_ms: 26.012635
+  type: 'test'
+  ...
+# Subtest: actual Simulator signing check: empty-host
+ok 18 - actual Simulator signing check: empty-host
+  ---
+  duration_ms: 24.448117
+  type: 'test'
+  ...
+# Subtest: actual Simulator signing check: changed-embedded
+ok 19 - actual Simulator signing check: changed-embedded
+  ---
+  duration_ms: 25.241637
+  type: 'test'
+  ...
+# Subtest: actual Simulator signing check: non-adhoc
+ok 20 - actual Simulator signing check: non-adhoc
+  ---
+  duration_ms: 24.373577
+  type: 'test'
+  ...
+# Subtest: actual Simulator signing check: host-app-entitlement
+ok 21 - actual Simulator signing check: host-app-entitlement
+  ---
+  duration_ms: 24.530648
+  type: 'test'
+  ...
+# Subtest: actual shell requires two separate successful flows without a reset or repeated capture
+ok 22 - actual shell requires two separate successful flows without a reset or repeated capture
+  ---
+  duration_ms: 108.279995
+  type: 'test'
+  ...
+# Subtest: navigation failure still attempts capture
+ok 23 - navigation failure still attempts capture
+  ---
+  duration_ms: 97.313661
+  type: 'test'
+  ...
+# Subtest: capture failure preserves navigation success and fails the job
+ok 24 - capture failure preserves navigation success and fails the job
+  ---
+  duration_ms: 109.42205
+  type: 'test'
+  ...
+# Subtest: both failures remain recorded
+ok 25 - both failures remain recorded
+  ---
+  duration_ms: 95.824284
+  type: 'test'
+  ...
+# Subtest: a tee failure remains nonzero and does not suppress the capture invocation
+ok 26 - a tee failure remains nonzero and does not suppress the capture invocation
+  ---
+  duration_ms: 97.131648
+  type: 'test'
+  ...
+# Subtest: zero CLI exits cannot pass a failed capture JUnit report
+ok 27 - zero CLI exits cannot pass a failed capture JUnit report
+  ---
+  duration_ms: 110.36824
+  type: 'test'
+  ...
+# Subtest: zero CLI exits cannot pass a skipped capture JUnit report
+ok 28 - zero CLI exits cannot pass a skipped capture JUnit report
+  ---
+  duration_ms: 98.168798
+  type: 'test'
+  ...
+# Subtest: zero CLI exits cannot pass a skippedCount capture JUnit report
+ok 29 - zero CLI exits cannot pass a skippedCount capture JUnit report
+  ---
+  duration_ms: 96.461719
+  type: 'test'
+  ...
+# Subtest: zero CLI exits cannot pass a errored capture JUnit report
+ok 30 - zero CLI exits cannot pass a errored capture JUnit report
+  ---
+  duration_ms: 97.128098
+  type: 'test'
+  ...
+# Subtest: zero CLI exits cannot pass a emptySuite capture JUnit report
+ok 31 - zero CLI exits cannot pass a emptySuite capture JUnit report
+  ---
+  duration_ms: 103.234022
+  type: 'test'
+  ...
+# Subtest: zero CLI exits cannot pass a empty capture JUnit report
+ok 32 - zero CLI exits cannot pass a empty capture JUnit report
+  ---
+  duration_ms: 98.716987
+  type: 'test'
+  ...
+# Subtest: zero CLI exits cannot pass a missing capture JUnit report
+ok 33 - zero CLI exits cannot pass a missing capture JUnit report
+  ---
+  duration_ms: 103.527745
+  type: 'test'
+  ...
+# Subtest: zero CLI exits cannot pass a malformed capture JUnit report
+ok 34 - zero CLI exits cannot pass a malformed capture JUnit report
+  ---
+  duration_ms: 92.846158
+  type: 'test'
+  ...
+# Subtest: zero CLI exits cannot pass a wrongFlow capture JUnit report
+ok 35 - zero CLI exits cannot pass a wrongFlow capture JUnit report
+  ---
+  duration_ms: 95.714953
+  type: 'test'
+  ...
+# Subtest: zero CLI exits cannot pass a missingStatus capture JUnit report
+ok 36 - zero CLI exits cannot pass a missingStatus capture JUnit report
+  ---
+  duration_ms: 94.995747
+  type: 'test'
+  ...
+# Subtest: zero CLI exits cannot pass a duplicate capture JUnit report
+ok 37 - zero CLI exits cannot pass a duplicate capture JUnit report
+  ---
+  duration_ms: 104.951211
+  type: 'test'
+  ...
+# Subtest: missing, malformed, incomplete or repeated flow results fail closed
+ok 38 - missing, malformed, incomplete or repeated flow results fail closed
+  ---
+  duration_ms: 217.500521
+  type: 'test'
+  ...
+# Subtest: actual android shell tail aggregates none and always runs both existing verifiers
+ok 39 - actual android shell tail aggregates none and always runs both existing verifiers
+  ---
+  duration_ms: 224.57814
+  type: 'test'
+  ...
+# Subtest: actual android shell tail aggregates navigation and always runs both existing verifiers
+ok 40 - actual android shell tail aggregates navigation and always runs both existing verifiers
+  ---
+  duration_ms: 221.721601
+  type: 'test'
+  ...
+# Subtest: actual android shell tail aggregates decoder and always runs both existing verifiers
+ok 41 - actual android shell tail aggregates decoder and always runs both existing verifiers
+  ---
+  duration_ms: 221.232286
+  type: 'test'
+  ...
+# Subtest: actual android shell tail aggregates fullVerifier and always runs both existing verifiers
+ok 42 - actual android shell tail aggregates fullVerifier and always runs both existing verifiers
+  ---
+  duration_ms: 228.620962
+  type: 'test'
+  ...
+# Subtest: actual android shell tail aggregates evidence and always runs both existing verifiers
+ok 43 - actual android shell tail aggregates evidence and always runs both existing verifiers
+  ---
+  duration_ms: 219.490963
+  type: 'test'
+  ...
+# Subtest: actual ios shell tail aggregates none and always runs both existing verifiers
+ok 44 - actual ios shell tail aggregates none and always runs both existing verifiers
+  ---
+  duration_ms: 174.289347
+  type: 'test'
+  ...
+# Subtest: actual ios shell tail aggregates navigation and always runs both existing verifiers
+ok 45 - actual ios shell tail aggregates navigation and always runs both existing verifiers
+  ---
+  duration_ms: 183.84546
+  type: 'test'
+  ...
+# Subtest: actual ios shell tail aggregates decoder and always runs both existing verifiers
+ok 46 - actual ios shell tail aggregates decoder and always runs both existing verifiers
+  ---
+  duration_ms: 180.624773
+  type: 'test'
+  ...
+# Subtest: actual ios shell tail aggregates fullVerifier and always runs both existing verifiers
+ok 47 - actual ios shell tail aggregates fullVerifier and always runs both existing verifiers
+  ---
+  duration_ms: 175.365406
+  type: 'test'
+  ...
+# Subtest: actual ios shell tail aggregates evidence and always runs both existing verifiers
+ok 48 - actual ios shell tail aggregates evidence and always runs both existing verifiers
+  ---
+  duration_ms: 173.928787
+  type: 'test'
+  ...
+# Subtest: capture remains a single separate deep-link flow and source receipts bind its runner
+ok 49 - capture remains a single separate deep-link flow and source receipts bind its runner
+  ---
+  duration_ms: 0.390236
+  type: 'test'
+  ...
+# Subtest: full-app runtime verifier requires an actual saved account index on both native log formats
+ok 50 - full-app runtime verifier requires an actual saved account index on both native log formats
+  ---
+  duration_ms: 2.378608
+  type: 'test'
+  ...
+# Subtest: full-app runtime verifier requires the later actual account-store readback
+ok 51 - full-app runtime verifier requires the later actual account-store readback
+  ---
+  duration_ms: 1.572308
+  type: 'test'
+  ...
+# Subtest: a caught keychain failure or native bridge crash cannot be masked by a later successful log
+ok 52 - a caught keychain failure or native bridge crash cannot be masked by a later successful log
+  ---
+  duration_ms: 1.686988
+  type: 'test'
+  ...
+1..52
+# tests 52
+# suites 0
+# pass 52
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4183.396416

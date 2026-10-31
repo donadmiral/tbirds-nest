@@ -1,0 +1,6 @@
+
+Waiting for flows to complete...
+[Failed] Full native app navigation (2m 47s) (Assertion is false: "Travel journal" is visible)
+
+1/1 Flow Failed
+

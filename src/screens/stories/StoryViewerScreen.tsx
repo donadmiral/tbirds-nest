@@ -1,24 +1,24 @@
+import StoryPixelImage, { StoryPhotoLookContext } from '../../components/stories/StoryPixelImage';
+import { countdownReminderId, setStoryCountdownReminder } from '../../../shared/storyCountdownReminder';
+import { storyPhotoSpatialAdjust } from '../../../shared/storyColorMatrix';
+import { memoryStoryRecipe } from '../../../shared/memoryStoryPresentation';
 import * as ImagePicker from 'expo-image-picker';
 import AddYoursThreadSheet from '../../components/stories/AddYoursThreadSheet';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
-import { MUSIC_CATALOG_ENABLED } from '../../../shared/musicAvailability';
+import { ORIGINAL_AUDIO_ENABLED } from '../../../shared/musicAvailability';
 import React, { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import {
   AppState, View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, Animated,
   PanResponder, ActivityIndicator, Alert, StatusBar, Modal, FlatList,
   Platform, TextInput, Keyboard, LayoutChangeEvent , KeyboardAvoidingView } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
+import { useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { VideoView, useVideoPlayer } from 'expo-video';
+import { StoryVideoView as VideoView, useStoryVideoPlayer as useVideoPlayer } from '../../../modules/boomerang/storyVideo';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import {
-  palette, surface, text as textColor, accent, border as borderColor,
-  space, radius, borderRadius, typeSize, fontWeight as fw, letterSpacing as ls,
-  motion, duration, spring, feedback,
-} from '../../constants/tokens';
+import { palette } from '../../constants/tokens';
 import ReAnimated, {
   useSharedValue, useAnimatedStyle, withTiming, withSequence, withSpring, interpolate,
   Easing as REasing, cancelAnimation, runOnJS,
@@ -46,8 +46,10 @@ import IdentityPresence from '../../components/stories/IdentityPresence';
 import MemoryCaption from '../../components/stories/MemoryCaption';
 import StoryProgressBar from '../../components/stories/StoryProgressBar';
 import { FilterLayer } from '../../components/stories/StoryFilters';
+import { storyVideoPreviewAvailable } from '../../../modules/boomerang/storyComposition';
 import { useCallContext } from '../../contexts/CallContext';
 import { useStoryAudioMix } from '../../hooks/useStoryAudioMix';
+import { useStoryInteractionScope } from '../../hooks/useStoryInteractionScope';
 import { DrawingLayer } from '../../components/stories/DrawLayer';
 import { BackgroundLayer, AdjustLayer } from '../../components/stories/storyPanels';
 import StoryOptionsSheet from '../../components/stories/StoryOptionsSheet';
@@ -131,14 +133,10 @@ function initials(name?: string | null) { if (!name) return 'U'; const p = name.
 
 function timeAgo(iso?: string | null): string { if (!iso) return ''; const diff = Date.now() - new Date(iso).getTime(); const m = Math.floor(diff / 60000); const h = Math.floor(m / 60); if (m < 1) return 'Just now'; if (m < 60) return `${m}m ago`; if (h < 24) return `${h}h ago`; return `${Math.floor(h / 24)}d ago`; }
 
-function parseMediaTransform(raw: any): { scale: number; translateNX: number; translateNY: number; fit: 'cover' | 'contain' } | null {
+function parseMediaTransform(raw: any): import('../../services/storiesService').MediaTransform | null {
   if (!raw || typeof raw !== 'object') return null;
-  const scale = typeof raw.scale === 'number' ? raw.scale : null;
-  const translateNX = typeof raw.translateNX === 'number' ? raw.translateNX : null;
-  const translateNY = typeof raw.translateNY === 'number' ? raw.translateNY : null;
-  const fit = (raw.fit === 'cover' || raw.fit === 'contain') ? raw.fit : null;
-  if (scale === null && translateNX === null && translateNY === null && fit === null) return null;
-  return { scale: scale ?? 1, translateNX: translateNX ?? 0, translateNY: translateNY ?? 0, fit: fit ?? 'contain' };
+  const recipe = memoryStoryRecipe(raw);
+  return { scale: recipe.scale, translateNX: recipe.x, translateNY: recipe.y, fit: recipe.fit, adjust: recipe.adjust, bg: recipe.bg, filterAmt: recipe.filterAmt, trimStart: recipe.start, ...(recipe.end == null ? {} : { trimEnd: recipe.end }), speed: recipe.speed, mix: { orig: recipe.volume * 100, music: typeof raw.mix?.music === 'number' ? raw.mix.music : 100 } };
 }
 
 function parseDualLayout(raw: any): ParsedDualLayout | null {
@@ -244,6 +242,8 @@ export default function StoryViewerScreen() {
   const activityHandoffTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (activityHandoffTimer.current) clearTimeout(activityHandoffTimer.current); }, []);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsSaving, setSettingsSaving] = useState<string | null>(null);
+  const settingsBusy = useRef(new Set<string>());
   const [viewers, setViewers] = useState<StoryViewer[]>([]);
   const [loadingViewers, setLoadingViewers] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -253,6 +253,8 @@ export default function StoryViewerScreen() {
   const [viewerReactions, setViewerReactions] = useState<Map<string, string[]>>(new Map());
   const [reactionsCount, setReactionsCount] = useState(0);
   const reactionBusyRef = useRef<Set<string>>(new Set());
+  const reactionRevision = useRef(0);
+  const reactionsLoaded = useRef(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [replyMode, setReplyMode] = useState(false);
@@ -274,12 +276,17 @@ export default function StoryViewerScreen() {
   const [pollVotersOptionId, setPollVotersOptionId] = useState<string | null>(null);
   const [pollVoters, setPollVoters] = useState<StoryPollVoter[]>([]);
   const [loadingPollVoters, setLoadingPollVoters] = useState(false);
+  const [pollVotersError, setPollVotersError] = useState(false);
+  const pollVotersRequest = useRef(0);
+  const pollReadRevision = useRef(0);
+  const pollVoteBusy = useRef(new Set<string>());
+  const [pollReadError, setPollReadError] = useState(false);
+  const [pollRetry, setPollRetry] = useState(0);
   const pollLayoutRef = useRef<{ top: number; bottom: number; left: number; right: number } | null>(null);
   useEffect(() => { pollRef.current = poll; }, [poll]);
 
   const [highlightSheetOpen, setHighlightSheetOpen] = useState(false);
   const highlightId = params?.highlightId;
-  const highlightTitle = params?.highlightTitle;
   const [engagement, dispatchEngagement] = useReducer(engagementReducer, engagementInitial);
   const [responsesSheet, dispatchResponsesSheet] = useReducer(responsesSheetReducer, responsesSheetInitial);
 
@@ -290,9 +297,9 @@ export default function StoryViewerScreen() {
   const CHROME_FOCUS_LEVEL = 0.65;
   const CHROME_ENGAGE_LEVEL = 0.45;
 
-  const startChromeIdle = useCallback(() => { if (chromeIdleTimer.current) clearTimeout(chromeIdleTimer.current); if (pauseStackRef.current.size > 0) return; chromeIdleTimer.current = setTimeout(() => { chromeOpacity.value = withTiming(CHROME_FOCUS_LEVEL, { duration: 1400, easing: REasing.out(REasing.ease) }); }, CHROME_IDLE_MS); }, []);
-  const restoreChrome = useCallback(() => { if (chromeIdleTimer.current) { clearTimeout(chromeIdleTimer.current); chromeIdleTimer.current = null; } chromeOpacity.value = withTiming(1, { duration: 400, easing: REasing.out(REasing.ease) }); }, []);
-  const dimChromeForEngagement = useCallback(() => { if (chromeIdleTimer.current) { clearTimeout(chromeIdleTimer.current); chromeIdleTimer.current = null; } chromeOpacity.value = withTiming(CHROME_ENGAGE_LEVEL, { duration: 360, easing: REasing.out(REasing.ease) }); }, []);
+  const startChromeIdle = useCallback(() => { if (chromeIdleTimer.current) clearTimeout(chromeIdleTimer.current); if (pauseStackRef.current.size > 0) return; chromeIdleTimer.current = setTimeout(() => { chromeOpacity.value = withTiming(CHROME_FOCUS_LEVEL, { duration: 1400, easing: REasing.out(REasing.ease) }); }, CHROME_IDLE_MS); }, [chromeOpacity]);
+  const restoreChrome = useCallback(() => { if (chromeIdleTimer.current) { clearTimeout(chromeIdleTimer.current); chromeIdleTimer.current = null; } chromeOpacity.value = withTiming(1, { duration: 400, easing: REasing.out(REasing.ease) }); }, [chromeOpacity]);
+  const dimChromeForEngagement = useCallback(() => { if (chromeIdleTimer.current) { clearTimeout(chromeIdleTimer.current); chromeIdleTimer.current = null; } chromeOpacity.value = withTiming(CHROME_ENGAGE_LEVEL, { duration: 360, easing: REasing.out(REasing.ease) }); }, [chromeOpacity]);
   const pauseFor = useCallback((reason: string) => { pauseStackRef.current.add(reason); setPaused(true); if (reason !== 'longPress') { dimChromeForEngagement(); } }, [dimChromeForEngagement]);
   const resumeFrom = useCallback((reason: string) => { pauseStackRef.current.delete(reason); if (pauseStackRef.current.size === 0) { setPaused(false); restoreChrome(); startChromeIdle(); } }, [restoreChrome, startChromeIdle]);
 
@@ -337,6 +344,9 @@ export default function StoryViewerScreen() {
   useEffect(() => { userIndexRef.current = userIndex; }, [userIndex]);
 
   const currentStory = loadedViewer === myId ? stories[storyIndex] : undefined;
+  const currentStoryId = currentStory?.id;
+  const currentStoryOwner = currentStory?.user_id;
+  const captureInteraction = useStoryInteractionScope(myId, currentStoryId);
   const isVideo = currentStory?.media_type === 'video';
   const isText = currentStory?.media_type === 'text';
   const videoPlayer = useVideoPlayer(isVideo && !isText && currentStory ? currentStory.media_url : null, (player) => { if (player) { player.loop = false; player.muted = false; } });
@@ -347,7 +357,7 @@ export default function StoryViewerScreen() {
   const dualSwapAnimStyle = useAnimatedStyle(() => ({ opacity: dualSwapOpacity.value }));
   const bubbleEntryScale = useSharedValue(0);
   const bubbleEntryAnimStyle = useAnimatedStyle(() => ({ transform: [{ scale: bubbleEntryScale.value }] }));
-  useEffect(() => { setDualSwapped(false); dualSwapOpacity.value = 1; bubbleEntryScale.value = 0; }, [storyIndex, userIndex]);
+  useEffect(() => { setDualSwapped(false); dualSwapOpacity.value = 1; bubbleEntryScale.value = 0; }, [storyIndex, userIndex, dualSwapOpacity, bubbleEntryScale]);
   const handleDualSwapTap = useCallback(() => {
     if (isVideo) return; // v1: video swap lands with player.replace() in the polish pass
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -371,7 +381,7 @@ export default function StoryViewerScreen() {
     if (curStoryIdx < curStories.length - 1) { isUserSwitchRef.current = false; progressSV.value = PROGRESS_SEED; const next = curStoryIdx + 1; storyIndexRef.current = next; setStoryIndex(next); }
     else if (curUserIdx < userIds.length - 1) { isUserSwitchRef.current = true; contentScale.setValue(0.96); Animated.spring(contentScale, { toValue: 1, tension: 60, friction: 10, useNativeDriver: true }).start(); progressSV.value = PROGRESS_SEED; const next = curUserIdx + 1; userIndexRef.current = next; setUserIndex(next); }
     else { saveAndGoBack(); }
-  }, [resetProgress, userIds.length, saveAndGoBack, contentScale, highlightId, captureHoldover, prepareCrossfade, progressSV, caughtUpOpacitySV]);
+  }, [resetProgress, userIds.length, saveAndGoBack, contentScale, captureHoldover, prepareCrossfade, progressSV]);
 
   const advanceBackward = useCallback(() => {
     lastTapTimestampRef.current = Date.now(); captureHoldover(); prepareCrossfade(); resetProgress();
@@ -420,9 +430,56 @@ export default function StoryViewerScreen() {
 
   useEffect(() => { const prefetchStory = (story: StoryRow | undefined) => { if (story && story.media_type !== 'image' && (story as any).thumbnail_url) { const poster = (story as any).thumbnail_url as string; if (preloadStatus.current.get(poster) !== 'done') { preloadStatus.current.set(poster, 'pending'); ExpoImage.prefetch(poster).then((ok: any) => { preloadStatus.current.set(poster, ok === false ? 'failed' : 'done'); }).catch(() => { preloadStatus.current.set(poster, 'failed'); }); } } if (story && story.media_type === 'image' && story.media_url) { const url = story.media_url; if (preloadStatus.current.get(url) === 'done') return; preloadStatus.current.set(url, 'pending'); ExpoImage.prefetch(url).then((ok: any) => { preloadStatus.current.set(url, ok === false ? 'failed' : 'done'); }).catch(() => { preloadStatus.current.set(url, 'failed'); }); } }; prefetchStory(stories[storyIndex + 1]); prefetchStory(stories[storyIndex + 2]); }, [storyIndex, stories]);
 
-  useEffect(() => { setPickerOpen(false); setReactionToast(null); setReplyMode(false); setReplyText(''); setPoll(null); pollLayoutRef.current = null; reactionBusyRef.current = new Set(); pauseStackRef.current.clear(); if (!appActive || !['idle', 'ended'].includes(callState)) pauseStackRef.current.add('system'); setPaused(pauseStackRef.current.size > 0); chromeOpacity.value = 1; if (chromeIdleTimer.current) { clearTimeout(chromeIdleTimer.current); chromeIdleTimer.current = null; } startChromeIdle(); if (!currentStory || !myId || currentStory.user_id === myId) { const empty = new Set<string>(); setMyReactions(empty); myReactionsRef.current = empty; return; } let cancelled = false; storiesService.getMyReactions(currentStory.id).then(emojis => { if (!cancelled) { const loaded = new Set(emojis); setMyReactions(loaded); myReactionsRef.current = loaded; } }); return () => { cancelled = true; }; }, [currentStory?.id, myId]);
+  const refreshReactions = useCallback(async (reportFailure = false) => {
+    if (!currentStoryId || !myId || currentStoryOwner === myId) return false;
+    const current = captureInteraction(myId, currentStoryId);
+    const key = myId + ':' + currentStoryId;
+    if (!current() || reactionBusyRef.current.has(key)) return false;
+    const revision = ++reactionRevision.current;
+    try {
+      const emojis = await storiesService.getMyReactions(currentStoryId);
+      if (!current() || revision !== reactionRevision.current) return false;
+      const loaded = new Set(emojis);
+      myReactionsRef.current = loaded; setMyReactions(loaded); reactionsLoaded.current = true;
+      return true;
+    } catch {
+      if (current() && revision === reactionRevision.current) {
+        reactionsLoaded.current = false;
+        if (reportFailure) Alert.alert('Reactions unavailable', 'Your reactions could not be checked. Please try again.');
+      }
+      return false;
+    }
+  }, [currentStoryId, currentStoryOwner, myId, captureInteraction]);
+  const systemPaused = useRef(false);
+  systemPaused.current = !appActive || !['idle', 'ended'].includes(callState);
+  useEffect(() => {
+    reactionRevision.current += 1; reactionsLoaded.current = false;
+    pollReadRevision.current += 1; pollVotersRequest.current += 1; activityRequest.current += 1;
+    const empty = new Set<string>(); myReactionsRef.current = empty; setMyReactions(empty);
+    setPickerOpen(false); setReactionToast(null); setReplyMode(false); setReplyText('');
+    setPoll(null); pollRef.current = null; setVotingOptionId(null); setPollReadError(false); pollLayoutRef.current = null;
+    setPollVotersOpen(false); setPollVoters([]); setPollVotersOptionId(null); setPollVotersError(false); setLoadingPollVoters(false);
+    setViewersOpen(false); setViewers([]); setViewerReactions(new Map()); setReactionsCount(0); setActivityError(false); setLoadingViewers(false);
+    pendingActivitySettings.current = false;
+    if (activityHandoffTimer.current) { clearTimeout(activityHandoffTimer.current); activityHandoffTimer.current = null; }
+    pauseStackRef.current.clear();
+    if (systemPaused.current) pauseStackRef.current.add('system');
+    setPaused(pauseStackRef.current.size > 0); chromeOpacity.value = 1;
+    if (chromeIdleTimer.current) { clearTimeout(chromeIdleTimer.current); chromeIdleTimer.current = null; }
+    if (toastTimer.current) { clearTimeout(toastTimer.current); toastTimer.current = null; }
+    startChromeIdle();
+    void refreshReactions();
+  }, [currentStoryId, myId, chromeOpacity, startChromeIdle, refreshReactions]);
 
-  useEffect(() => { if (!currentStory) return; let cancelled = false; storiesService.getStoryPoll(currentStory.id).then(data => { if (!cancelled) setPoll(data); }).catch((e) => { console.log('[StoryPoll.load]', e); }); return () => { cancelled = true; }; }, [currentStory?.id]);
+  useEffect(() => {
+    if (!currentStoryId || !myId) return;
+    const current = captureInteraction(myId, currentStoryId);
+    const revision = ++pollReadRevision.current;
+    setPollReadError(false);
+    void storiesService.getStoryPoll(currentStoryId).then(data => {
+      if (current() && revision === pollReadRevision.current) { pollRef.current = data; setPoll(data); }
+    }).catch(() => { if (current() && revision === pollReadRevision.current) setPollReadError(true); });
+  }, [currentStoryId, myId, captureInteraction, pollRetry]);
 
   useEffect(() => {
     dispatchEngagement({ type: 'RESET' }); setEngagementError(false);
@@ -432,7 +489,14 @@ export default function StoryViewerScreen() {
     const own = currentStory.user_id === myId;
     const responses: Record<string, any> = {}, counts: Record<string, number> = {}, averages: Record<string, number> = {}, quizCounts: Record<string, Record<string, number>> = {};
     void Promise.all(stickers.map(async sticker => {
-      if (!own) { const response = await storiesService.getMyStickerResponse(currentStory.id, sticker.id); if (response) responses[sticker.id] = response; }
+      if (!own) {
+        const response = await storiesService.getMyStickerResponse(currentStory.id, sticker.id);
+        if (response && sticker.kind === 'countdown') {
+          const permissions = await Notifications.getPermissionsAsync();
+          const scheduled = permissions.granted ? await Notifications.getAllScheduledNotificationsAsync() : [];
+          if (scheduled.some(request => request.identifier === countdownReminderId(myId, currentStory.id, sticker.id))) responses[sticker.id] = response;
+        } else if (response) responses[sticker.id] = response;
+      }
       if (own || ['slider','quiz','addyours'].includes(sticker.kind || '')) {
         const summary = await storiesService.getStickerSummary(currentStory.id, sticker.id);
         counts[sticker.id] = summary.count;
@@ -445,7 +509,7 @@ export default function StoryViewerScreen() {
   }, [currentStory?.id, myId, engagementRetry]);
 
   useEffect(() => { if (!currentStory) return; if (myId && currentStory.user_id !== myId) { storiesService.markViewed(currentStory.id); } }, [currentStory?.id, myId]);
-  const storyAudioUrl = MUSIC_CATALOG_ENABLED && currentStory ? ((currentStory as any).audio_url as string | null) || null : null;
+  const storyAudioUrl = ORIGINAL_AUDIO_ENABLED && currentStory ? ((currentStory as any).audio_url as string | null) || null : null;
   const musicVol = (() => { try { const m: any = (currentStory as any)?.media_transform?.mix; const v = typeof m?.music === 'number' ? m.music : 100; return Math.max(0, Math.min(1, v / 100)); } catch { return 1; } })();
   useEffect(() => {
     if (!appActive || !['idle', 'ended'].includes(callState)) pauseFor('system');
@@ -462,7 +526,7 @@ export default function StoryViewerScreen() {
   }, [currentStory?.id, currentStory?.expires_at, params?.highlightId, pauseFor]);
 
   useEffect(() => { try { videoPlayer.muted = viewerMuted || (((currentStory as any)?.media_transform?.mix?.orig ?? 100) <= 0); } catch {} }, [viewerMuted, videoPlayer, currentStory?.id]);
-  const storyAudio = useStoryAudioMix(storyAudioUrl, !!storyAudioUrl && !!mediaReady && !paused, viewerMuted ? 0 : musicVol, currentStory?.audio_duration_sec);
+  const storyAudio = useStoryAudioMix(storyAudioUrl, !!storyAudioUrl && !!mediaReady && !paused, viewerMuted ? 0 : musicVol, currentStory?.audio_duration_sec, Number(currentStory?.media_transform?.audioStartSec)||0, currentStory?.audio_sound_id || currentStory?.media_transform?.audioSoundId);
   useEffect(() => { if (storyAudio.error) setMediaError(true); }, [storyAudio.error]);
   // Creative engine: playback clock for timed stickers + trim-end guard
   useEffect(() => {
@@ -480,7 +544,7 @@ export default function StoryViewerScreen() {
   }, [isVideo, mediaReady, paused, currentStory?.id, videoPlayer]);
   useEffect(() => { const stickerList = (currentStory?.stickers_json || []) as StoryTextSticker[]; const ox = mediaOriginRef.current.x; const oy = mediaOriginRef.current.y; const rects = stickerList.filter(s => s.kind === 'link' || s.kind === 'location' || s.kind === 'mention' || s.kind === 'hashtag' || s.kind === 'post' || s.kind === 'countdown' || (s as any).kind === 'entity' || (Array.isArray((s as any).mentions) && (s as any).mentions.length > 0)).map(s => { const w = s.kind === 'post' ? POST_CARD_W : ((s as any).kind === 'entity' ? 260 : (s.kind === 'countdown' ? 236 : ((s.kind === 'mention' || s.kind === 'link') ? 170 : (Array.isArray((s as any).mentions) ? 240 : 150)))); const hEst = s.kind === 'post' ? POST_CARD_EST_H : ((s as any).kind === 'entity' ? 84 : (s.kind === 'countdown' ? 150 : (Array.isArray((s as any).mentions) ? 48 : 36))); const cx = ox + s.nx * mediaSize.w; const cy = oy + s.ny * mediaSize.h; const hw = (w * s.scale) / 2 + 10; const hh = (hEst * s.scale) / 2 + 10; return { left: cx - hw, right: cx + hw, top: cy - hh, bottom: cy + hh }; }); tappableStickerRectsRef.current = rects; }, [currentStory?.stickers_json, mediaSize]);
 
-  useEffect(() => { if (!currentStory) return; if (!mediaReady) return; if (mediaReadyTimeoutRef.current) { clearTimeout(mediaReadyTimeoutRef.current); mediaReadyTimeoutRef.current = null; } const isFirstStory = isFirstStoryRef.current; if (isFirstStoryRef.current) { isFirstStoryRef.current = false; mediaOpacitySV.value = 1; setHoldoverMedia(null); } else { executeCrossfade(); } if (paused) { stopProgress(); if (isVideo && videoPlayer) { try { videoPlayer.pause(); } catch {} } return; } let durationMs: number; if (isVideo) { const mtx: any = (currentStory as any)?.media_transform; const tS = typeof mtx?.trimStart === 'number' ? mtx.trimStart : null; const tE = typeof mtx?.trimEnd === 'number' ? mtx.trimEnd : null; const d = tE != null ? Math.max(1, (tE - (tS || 0))) * 1000 : (currentStory.duration_sec ? currentStory.duration_sec * 1000 : VIDEO_MAX_MS); durationMs = Math.min(d, VIDEO_MAX_MS); if (videoPlayer) { try { videoPlayer.play(); } catch {} } } else { const postVid = ((currentStory.stickers_json || []) as any[]).some((sx: any) => sx?.kind === 'post' && sx?.postMediaType === 'video'); durationMs = postVid ? 15000 : IMAGE_DURATION_MS; if (currentStory.caption) { const readingMs = Math.ceil(currentStory.caption.length / 20) * 1000; durationMs = Math.min(durationMs + readingMs, 8000); } const audioSec = (currentStory as any).audio_duration_sec as number | null; if (MUSIC_CATALOG_ENABLED && audioSec && audioSec > 0) { durationMs = Math.min(Math.max(durationMs, audioSec * 1000), 30000); } } if (isVideo && videoPlayer) {
+  useEffect(() => { if (!currentStory) return; if (!mediaReady) return; if (mediaReadyTimeoutRef.current) { clearTimeout(mediaReadyTimeoutRef.current); mediaReadyTimeoutRef.current = null; } const isFirstStory = isFirstStoryRef.current; if (isFirstStoryRef.current) { isFirstStoryRef.current = false; mediaOpacitySV.value = 1; setHoldoverMedia(null); } else { executeCrossfade(); } if (paused) { stopProgress(); if (isVideo && videoPlayer) { try { videoPlayer.pause(); } catch {} } return; } let durationMs: number; if (isVideo) { const mtx: any = (currentStory as any)?.media_transform; const tS = typeof mtx?.trimStart === 'number' ? mtx.trimStart : null; const tE = typeof mtx?.trimEnd === 'number' ? mtx.trimEnd : null; const d = tE != null ? Math.max(1, (tE - (tS || 0))) * 1000 : (currentStory.duration_sec ? currentStory.duration_sec * 1000 : VIDEO_MAX_MS); durationMs = Math.min(d, VIDEO_MAX_MS); if (videoPlayer) { try { videoPlayer.play(); } catch {} } } else { const postVid = ((currentStory.stickers_json || []) as any[]).some((sx: any) => sx?.kind === 'post' && sx?.postMediaType === 'video'); durationMs = postVid ? 15000 : IMAGE_DURATION_MS; if (currentStory.caption) { const readingMs = Math.ceil(currentStory.caption.length / 20) * 1000; durationMs = Math.min(durationMs + readingMs, 8000); } const audioSec = (currentStory as any).audio_duration_sec as number | null; if (ORIGINAL_AUDIO_ENABLED && audioSec && audioSec > 0) { durationMs = Math.min(Math.max(durationMs, audioSec * 1000), 30000); } } if (isVideo && videoPlayer) {
       // Video stories: the bar follows the player's own clock. If the video
       // buffers or stalls, the bar stalls with it and the story never advances
       // ahead of the picture. End of the trim window (or playToEnd) advances.
@@ -531,7 +595,53 @@ export default function StoryViewerScreen() {
   const heartFnRef = useRef<null | (() => void)>(null);
   const canReactRef = useRef(false);
 
-  const handleReaction = useCallback(async (emoji: string) => { if (!currentStory || !myId) return; if (reactionBusyRef.current.has(emoji)) return; reactionBusyRef.current.add(emoji); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); const wasReacted = myReactionsRef.current.has(emoji); const optimistic = new Set(myReactionsRef.current); if (wasReacted) { optimistic.delete(emoji); } else { optimistic.add(emoji); } setMyReactions(optimistic); myReactionsRef.current = optimistic; if (!wasReacted) { setReactionToast(emoji); if (toastTimer.current) clearTimeout(toastTimer.current); toastTimer.current = setTimeout(() => setReactionToast(null), 2000); } try { const result = await storiesService.toggleReaction(currentStory.id, emoji); const synced = new Set(myReactionsRef.current); if (result.reacted) { synced.add(emoji); } else { synced.delete(emoji); } setMyReactions(synced); myReactionsRef.current = synced; } catch { const rollback = new Set(myReactionsRef.current); if (wasReacted) { rollback.add(emoji); } else { rollback.delete(emoji); } setMyReactions(rollback); myReactionsRef.current = rollback; } finally { reactionBusyRef.current.delete(emoji); } }, [currentStory, myId]);
+  const handleReaction = useCallback(async (emoji: string) => {
+    if (!currentStory || !myId || currentStory.user_id === myId || (currentStory as any).allow_reactions === false) return;
+    const current = captureInteraction(myId, currentStory.id);
+    const key = myId + ':' + currentStory.id;
+    if (!current() || reactionBusyRef.current.has(key)) return;
+    reactionBusyRef.current.add(key); reactionRevision.current += 1;
+    let wasReacted = false, changed = false, submitted = false;
+    try {
+      // Do not infer an empty reaction set from a pending or failed initial read.
+      if (!reactionsLoaded.current) {
+        const existing = await storiesService.getMyReactions(currentStory.id);
+        if (!current()) return;
+        const loaded = new Set(existing); myReactionsRef.current = loaded; setMyReactions(loaded); reactionsLoaded.current = true;
+      }
+      if (!current()) return;
+      wasReacted = myReactionsRef.current.has(emoji);
+      const optimistic = new Set(myReactionsRef.current);
+      if (wasReacted) optimistic.delete(emoji); else optimistic.add(emoji);
+      myReactionsRef.current = optimistic; setMyReactions(optimistic); changed = true;
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      if (!wasReacted) {
+        setReactionToast(emoji);
+        if (toastTimer.current) clearTimeout(toastTimer.current);
+        toastTimer.current = setTimeout(() => { if (current()) setReactionToast(null); }, 2000);
+      }
+      submitted = true;
+      const result = await storiesService.toggleReaction(currentStory.id, emoji);
+      if (!current()) return;
+      if (!result || typeof result.reacted !== 'boolean') throw new Error('Unconfirmed reaction');
+      const synced = new Set(myReactionsRef.current);
+      if (result.reacted) synced.add(emoji); else synced.delete(emoji);
+      myReactionsRef.current = synced; setMyReactions(synced);
+    } catch {
+      if (!current()) return;
+      reactionsLoaded.current = false;
+      if (changed) {
+        const rollback = new Set(myReactionsRef.current);
+        if (wasReacted) rollback.add(emoji); else rollback.delete(emoji);
+        myReactionsRef.current = rollback; setMyReactions(rollback); setReactionToast(null);
+      }
+      Alert.alert(submitted ? 'Reaction not confirmed' : 'Reactions unavailable', submitted
+        ? 'Check the saved reaction before trying again.' : 'Your reactions could not be loaded. Please check again.', [
+        { text: 'Close', style: 'cancel' },
+        { text: 'Check status', onPress: () => { if (current()) void refreshReactions(true); } },
+      ]);
+    } finally { reactionBusyRef.current.delete(key); }
+  }, [currentStory, myId, captureInteraction, refreshReactions]);
 
   heartFnRef.current = () => handleReaction('\u2764\uFE0F');
   canReactRef.current = !!currentStory && currentStory.user_id !== myId && (currentStory as any).allow_reactions !== false;
@@ -574,8 +684,22 @@ export default function StoryViewerScreen() {
     finally { replyPending.current = false; setSendingReply(false); }
   }, [currentStory, myId, replyText, resumeFrom]);
 
-  const handlePollVote = useCallback(async (optionId: string) => { if (!poll || votingOptionId) return; setVotingOptionId(optionId); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); try { const updated = await storiesService.voteStoryPoll(poll.poll_id, optionId); setPoll(updated); } catch (e) { console.log('[StoryPoll.vote]', e); Alert.alert('Error', 'Could not submit vote.'); } finally { setVotingOptionId(null); } }, [poll, votingOptionId]);
-  const closeViewersList = () => { activityRequest.current += 1; setViewersOpen(false); setViewers([]); setViewerReactions(new Map()); setReactionsCount(0); resumeFrom('viewers'); };
+  const handlePollVote = useCallback(async (optionId: string) => {
+    if (!poll || !myId || !currentStoryId || poll.story_id !== currentStoryId || !poll.options.some(option => option.id === optionId)) return;
+    const current = captureInteraction(myId, currentStoryId);
+    const key = myId + ':' + poll.poll_id;
+    if (!current() || pollVoteBusy.current.has(key)) return;
+    pollVoteBusy.current.add(key); pollReadRevision.current += 1; setVotingOptionId(optionId);
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    try {
+      const updated = await storiesService.voteStoryPoll(poll.poll_id, optionId);
+      if (!current()) return;
+      if (!updated || updated.poll_id !== poll.poll_id || updated.story_id !== currentStoryId) throw new Error('Vote not confirmed');
+      pollRef.current = updated; setPoll(updated);
+    } catch { if (current()) Alert.alert('Vote not confirmed', 'Your vote could not be confirmed. Reopen this story to check its saved result.'); }
+    finally { pollVoteBusy.current.delete(key); if (current()) setVotingOptionId(null); }
+  }, [poll, myId, currentStoryId, captureInteraction]);
+  const closeViewersList = useCallback(() => { activityRequest.current += 1; setViewersOpen(false); setViewers([]); setViewerReactions(new Map()); setReactionsCount(0); resumeFrom('viewers'); }, [resumeFrom]);
   const finishActivityHandoff = () => {
     if (activityHandoffTimer.current) clearTimeout(activityHandoffTimer.current);
     activityHandoffTimer.current = null;
@@ -590,13 +714,29 @@ export default function StoryViewerScreen() {
     // iOS must finish dismissing its current native modal before presenting another.
     if (Platform.OS !== 'ios') activityHandoffTimer.current = setTimeout(finishActivityHandoff, 300);
   };
-  const openPollVoters = useCallback(async (optionId: string) => { if (!poll) return; if (viewersOpen) closeViewersList(); pauseFor('pollVoters'); setPollVotersOptionId(optionId); setPollVotersOpen(true); setLoadingPollVoters(true); try { const voters = await storiesService.getStoryPollVoters(poll.poll_id, optionId); setPollVoters(voters); } catch (e) { console.log('[StoryPoll.voters]', e); setPollVoters([]); } finally { setLoadingPollVoters(false); } }, [poll, viewersOpen, closeViewersList, pauseFor]);
-  const closePollVoters = useCallback(() => { setPollVotersOpen(false); setPollVoters([]); setPollVotersOptionId(null); resumeFrom('pollVoters'); }, [resumeFrom]);
+  const openPollVoters = useCallback(async (optionId: string) => {
+    if (!poll || !myId || !currentStoryId || currentStoryOwner !== myId || poll.story_id !== currentStoryId || !poll.options.some(option => option.id === optionId)) return;
+    const active = captureInteraction(myId, currentStoryId);
+    if (!active()) return;
+    const request = ++pollVotersRequest.current;
+    const current = () => active() && request === pollVotersRequest.current;
+    if (viewersOpen) closeViewersList();
+    pauseFor('pollVoters'); setPollVotersOptionId(optionId); setPollVotersOpen(true); setLoadingPollVoters(true); setPollVotersError(false); setPollVoters([]);
+    try {
+      const voters = await storiesService.getStoryPollVoters(poll.poll_id, optionId);
+      if (current()) setPollVoters(voters);
+    } catch { if (current()) setPollVotersError(true); }
+    finally { if (current()) setLoadingPollVoters(false); }
+  }, [poll, myId, currentStoryId, currentStoryOwner, captureInteraction, viewersOpen, closeViewersList, pauseFor]);
+  const closePollVoters = useCallback(() => { pollVotersRequest.current += 1; setPollVotersOpen(false); setPollVoters([]); setPollVotersOptionId(null); setLoadingPollVoters(false); setPollVotersError(false); resumeFrom('pollVoters'); }, [resumeFrom]);
   useEffect(() => { return () => { if (toastTimer.current) clearTimeout(toastTimer.current); if (replyToastTimer.current) clearTimeout(replyToastTimer.current); if (caughtUpTimer.current) clearTimeout(caughtUpTimer.current); }; }, []);
 
   const openViewersList = async () => {
     if (!currentStory || currentStory.user_id !== myId) return;
+    const active = captureInteraction(myId, currentStory.id);
+    if (!active()) return;
     const request = ++activityRequest.current;
+    const current = () => active() && request === activityRequest.current;
     if (pollVotersOpen) closePollVoters();
     pauseFor('viewers'); setViewersOpen(true); setLoadingViewers(true); setActivityError(false); setActivityAudience(null);
     try {
@@ -605,21 +745,25 @@ export default function StoryViewerScreen() {
         supabase.rpc('get_story_reactions', { p_story_id: currentStory.id }),
         supabase.from('stories').select('audience').eq('id', currentStory.id).eq('user_id', myId).maybeSingle(),
       ]);
-      if (request !== activityRequest.current) return;
+      if (!current()) return;
       if (views.error || reacted.error) throw views.error || reacted.error;
       setViewers((views.data || []) as StoryViewer[]);
       setActivityAudience(settings.error ? null : settings.data?.audience || null);
       const rMap = new Map<string, string[]>();
       (reacted.data || []).forEach((reaction: StoryReaction) => { const current = rMap.get(reaction.user_id) || []; current.push(reaction.emoji); rMap.set(reaction.user_id, current); });
       setViewerReactions(rMap); setReactionsCount((reacted.data || []).length);
-    } catch { if (request === activityRequest.current) setActivityError(true); }
-    finally { if (request === activityRequest.current) setLoadingViewers(false); }
+    } catch { if (current()) setActivityError(true); }
+    finally { if (current()) setLoadingViewers(false); }
   };
   const openViewerProfile = (userId: string) => { closeViewersList(); setTimeout(() => { navigation.navigate('UserProfile', { userId }); }, 300); };
 
   // Questions box: the answer sheet. The field on the card opens it; Send records the answer.
   const [questionAnswer, setQuestionAnswer] = useState<{ stickerId: string; prompt: string } | null>(null);
   const [answerText, setAnswerText] = useState('');
+  const [answerSending, setAnswerSending] = useState(false);
+  const answerSheet = useRef(questionAnswer); answerSheet.current = questionAnswer;
+  const responseBusy = useRef(new Set<string>());
+  useEffect(() => { setQuestionAnswer(null); setAnswerText(''); setAnswerSending(false); }, [currentStory?.id, myId]);
   const handleEngagementTap = useCallback((stickerId: string) => {
     pauseFor('engagement');
     const list = (storiesRef.current[storyIndexRef.current]?.stickers_json || []) as any[];
@@ -628,16 +772,36 @@ export default function StoryViewerScreen() {
     setQuestionAnswer({ stickerId, prompt: st?.questionPrompt || st?.text || 'Question' });
   }, [pauseFor]);
   const sendQuestionAnswer = useCallback(async () => {
-    const v = answerText.trim(); if (!v || !questionAnswer || !currentStory) return;
+    const v = answerText.trim(); if (!v || !questionAnswer || !currentStory || !myId) return;
+    const storyId = currentStory.id, viewer = myId, key = viewer + ':' + storyId + ':' + questionAnswer.stickerId;
+    if (responseBusy.current.has(key)) return;
+    responseBusy.current.add(key); setAnswerSending(true);
+    const current = () => viewerRef.current === viewer && storiesRef.current[storyIndexRef.current]?.id === storyId && answerSheet.current === questionAnswer;
     try {
-      await storiesService.submitStickerResponse({ storyId: currentStory.id, stickerId: questionAnswer.stickerId, responseType: 'question', textValue: v });
-      dispatchEngagement({ type: 'SET_RESPONSE', stickerId: questionAnswer.stickerId, value: { text_value: v } });
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } catch (e: any) { Alert.alert('Not sent', e?.message || 'Try again.'); }
-    setQuestionAnswer(null); setAnswerText(''); resumeFrom('engagement');
-  }, [answerText, questionAnswer, currentStory, resumeFrom]);
-  const handleSliderSubmit = useCallback(async (stickerId: string, value: number) => { if (!currentStory) return; try { await storiesService.submitStickerResponse({ storyId: currentStory.id, stickerId, responseType: 'slider', numberValue: value }); dispatchEngagement({ type: 'SET_RESPONSE', stickerId, value: { number_value: value } }); } catch (e) { console.log('[SliderSubmit]', e); } }, [currentStory?.id]);
-  const handleQuizSubmit = useCallback(async (stickerId: string, optionId: string) => { if (!currentStory) return; try { await storiesService.submitStickerResponse({ storyId: currentStory.id, stickerId, responseType: 'quiz', optionId }); dispatchEngagement({ type: 'SET_RESPONSE', stickerId, value: { option_id: optionId } }); } catch (e) { console.log('[QuizSubmit]', e); } }, [currentStory?.id]);
+      const saved = await storiesService.submitStickerResponse({ storyId, stickerId: questionAnswer.stickerId, responseType: 'question', textValue: v });
+      if (!saved) throw new Error('Your answer was not confirmed. Your text is kept so you can retry.');
+      if (!current()) return;
+      dispatchEngagement({ type: 'SET_RESPONSE', stickerId: questionAnswer.stickerId, value: saved });
+      setQuestionAnswer(null); setAnswerText(''); resumeFrom('engagement');
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    } catch (e: any) { if (current()) Alert.alert('Not sent', e?.message || 'Your answer is kept. Try again.'); }
+    finally { responseBusy.current.delete(key); if (current()) setAnswerSending(false); }
+  }, [answerText, questionAnswer, currentStory, myId, resumeFrom]);
+  const submitChoice = useCallback(async (stickerId: string, responseType: 'slider' | 'quiz', value: number | string) => {
+    if (!currentStory || !myId) return;
+    const storyId = currentStory.id, viewer = myId, key = viewer + ':' + storyId + ':' + stickerId;
+    if (responseBusy.current.has(key)) return;
+    responseBusy.current.add(key);
+    const current = () => viewerRef.current === viewer && storiesRef.current[storyIndexRef.current]?.id === storyId;
+    try {
+      const saved = await storiesService.submitStickerResponse({ storyId, stickerId, responseType, ...(responseType === 'slider' ? { numberValue: Number(value) } : { optionId: String(value) }) });
+      if (!saved) throw new Error('Your response was not confirmed. Try again.');
+      if (current()) dispatchEngagement({ type: 'SET_RESPONSE', stickerId, value: saved });
+    } catch (error: any) { if (current()) Alert.alert('Response not saved', error?.message || 'Please try again.'); }
+    finally { responseBusy.current.delete(key); }
+  }, [currentStory, myId]);
+  const handleSliderSubmit = useCallback((stickerId: string, value: number) => submitChoice(stickerId, 'slider', value), [submitChoice]);
+  const handleQuizSubmit = useCallback((stickerId: string, optionId: string) => submitChoice(stickerId, 'quiz', optionId), [submitChoice]);
   const [addYoursThread, setAddYoursThread] = useState<{ prompt: string; originStoryId: string | null; originStickerId: string | null } | null>(null);
   const handleAddYoursThread = useCallback((sticker: any) => { if (!currentStory) return; pauseFor('thread'); setAddYoursThread({ prompt: sticker.addYoursPrompt || sticker.text || 'Add yours', originStoryId: sticker.addYoursOriginStoryId || currentStory.id, originStickerId: sticker.addYoursOriginStickerId || sticker.id }); }, [currentStory, pauseFor]);
   const handleCountdownShare = useCallback((sticker: any) => {
@@ -690,7 +854,7 @@ export default function StoryViewerScreen() {
   }, [responsesSheet.title, responsesSheet.type, pickBackgroundThen]);
   const handleAddYours = useCallback(async (sticker: any) => {
     if (!currentStory) return;
-    try { await storiesService.submitStickerResponse({ storyId: currentStory.id, stickerId: sticker.id, responseType: 'addyours', textValue: 'joined' }); dispatchEngagement({ type: 'SET_RESPONSE', stickerId: sticker.id, value: { text_value: 'joined' } }); } catch (e: any) { Alert.alert('Not saved', String(e?.message || e)); }
+    // The publisher joins this prompt only after the new story is confirmed.
     const seed = { id: 'ay_' + Date.now(), text: sticker.addYoursPrompt || sticker.text || 'Add yours', color: '#FFFFFF', nx: 0.5, ny: 0.2, scale: 1, rotation: 0, kind: 'addyours', addYoursPrompt: sticker.addYoursPrompt || sticker.text, addYoursOriginStoryId: sticker.addYoursOriginStoryId || currentStory.id, addYoursOriginStickerId: sticker.addYoursOriginStickerId || sticker.id };
     // Instagram's flow: pick the photo first, then the composer opens with it and the prompt already on it.
     let picked: any = null;
@@ -704,24 +868,50 @@ export default function StoryViewerScreen() {
     if (!currentStory) return;
     try { await storiesService.submitStickerResponse({ storyId: currentStory.id, stickerId: sticker.id, responseType: 'notify', textValue: 'signed' }); dispatchEngagement({ type: 'SET_RESPONSE', stickerId: sticker.id, value: { text_value: 'signed' } }); Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch (e: any) { Alert.alert('Not saved', String(e?.message || e)); }
   }, [currentStory]);
-  const handleNotifySend = useCallback(async (sticker: any) => {
-    if (!currentStory) return;
-    const { data, error } = await supabase.rpc('send_sticker_notify', { p_story_id: currentStory.id, p_sticker_id: sticker.id });
-    if (error) { Alert.alert('Not sent', error.message); return; }
-    Alert.alert('Sent', (Number(data) || 0) + ' people were notified.');
-  }, [currentStory]);
-  const handleCountdownRemind = useCallback(async (sticker: any) => { if (!currentStory) return; const targetIso = sticker?.countdownTarget; const when = targetIso ? new Date(targetIso) : null; try { if (when && when.getTime() > Date.now()) { const perm = await Notifications.getPermissionsAsync(); if (!perm.granted) { await Notifications.requestPermissionsAsync(); } await Notifications.scheduleNotificationAsync({ content: { title: (sticker.countdownTitle || sticker.text || 'Countdown'), body: 'The countdown just ended.' }, trigger: when as any }); } await storiesService.submitStickerResponse({ storyId: currentStory.id, stickerId: sticker.id, responseType: 'countdown', textValue: 'remind' }); dispatchEngagement({ type: 'SET_RESPONSE', stickerId: sticker.id, value: { text_value: 'remind' } }); Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success); } catch (e) { console.log('[CountdownRemind]', e); } }, [currentStory?.id]);
+  const reminderBusy = useRef(new Set<string>());
+  const handleCountdownRemind = useCallback(async (sticker: any) => {
+    if (!currentStory || !myId) return;
+    const storyId = currentStory.id, key = countdownReminderId(myId, storyId, sticker.id);
+    if (reminderBusy.current.has(key)) return;
+    reminderBusy.current.add(key);
+    try {
+      await setStoryCountdownReminder({ userId: myId, storyId, stickerId: sticker.id, title: sticker.countdownTitle || sticker.text || 'Countdown', target: sticker.countdownTarget || '' }, {
+        getPermissions: Notifications.getPermissionsAsync,
+        requestPermissions: () => Notifications.requestPermissionsAsync(),
+        scheduled: Notifications.getAllScheduledNotificationsAsync,
+        schedule: input => Notifications.scheduleNotificationAsync({ identifier: input.identifier, content: { title: input.title, body: 'The countdown just ended.', data: { storyId: input.storyId, stickerId: input.stickerId } }, trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: input.date } }),
+        cancel: Notifications.cancelScheduledNotificationAsync,
+        record: () => storiesService.submitStickerResponse({ storyId, stickerId: sticker.id, responseType: 'countdown' }),
+      });
+      if (storiesRef.current[storyIndexRef.current]?.id === storyId) dispatchEngagement({ type: 'SET_RESPONSE', stickerId: sticker.id, value: { text_value: 'remind' } });
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    } catch (error: any) { Alert.alert('Reminder not set', error?.message || 'Please try again.'); }
+    finally { reminderBusy.current.delete(key); }
+  }, [currentStory, myId]);
   const handleViewResponses = useCallback((stickerId: string, responseType: 'question' | 'slider' | 'quiz' | 'magic') => { const stickerList = (storiesRef.current[storyIndexRef.current]?.stickers_json || []) as StoryTextSticker[]; const sticker = stickerList.find(s => s.id === stickerId); pauseFor('responsesSheet'); dispatchResponsesSheet({ type: 'OPEN', stickerId, responseType, title: sticker?.questionPrompt || sticker?.sliderLabel || sticker?.quizQuestion || sticker?.text || '', quizOptions: sticker?.quizOptions }); }, [pauseFor]);
 
   const isOwn = currentStory?.user_id === myId;
-  const engagementProps = useMemo(() => ({ isOwn: isOwn ?? false, storyId: currentStory?.id ?? '', myResponses: engagement.responses, responseCounts: engagement.counts, responseAverages: engagement.averages, quizResponseCounts: engagement.quizCounts, onTapQuestionAnswer: handleEngagementTap, onSubmitSlider: handleSliderSubmit, onCountdownRemind: handleCountdownRemind, onAddYours: handleAddYours, onAddYoursThread: handleAddYoursThread, onCountdownShare: handleCountdownShare, onNotifySignUp: handleNotifySignUp, onNotifySend: handleNotifySend, onMagicAnswer: handleMagicAnswer, onMagicHold: (h: boolean) => { if (h) pauseFor('magic'); else resumeFrom('magic'); }, onSelectQuizOption: handleQuizSubmit, onViewResponses: handleViewResponses, onSliderDragStart: () => pauseFor('sliderDrag'), onSliderDragEnd: () => resumeFrom('sliderDrag') }), [isOwn, currentStory?.id, engagement, handleEngagementTap, handleSliderSubmit, handleQuizSubmit, handleCountdownRemind, handleAddYours, handleAddYoursThread, handleCountdownShare, handleNotifySignUp, handleNotifySend, handleMagicAnswer, handleViewResponses, pauseFor, resumeFrom]);
+  const engagementProps = useMemo(() => ({ isOwn: isOwn ?? false, storyId: currentStory?.id ?? '', myResponses: engagement.responses, responseCounts: engagement.counts, responseAverages: engagement.averages, quizResponseCounts: engagement.quizCounts, onTapQuestionAnswer: handleEngagementTap, onSubmitSlider: handleSliderSubmit, onCountdownRemind: handleCountdownRemind, onAddYours: handleAddYours, onAddYoursThread: handleAddYoursThread, onCountdownShare: handleCountdownShare, onNotifySignUp: handleNotifySignUp, onMagicAnswer: handleMagicAnswer, onMagicHold: (h: boolean) => { if (h) pauseFor('magic'); else resumeFrom('magic'); }, onSelectQuizOption: handleQuizSubmit, onViewResponses: handleViewResponses, onSliderDragStart: () => pauseFor('sliderDrag'), onSliderDragEnd: () => resumeFrom('sliderDrag') }), [isOwn, currentStory?.id, engagement, handleEngagementTap, handleSliderSubmit, handleQuizSubmit, handleCountdownRemind, handleAddYours, handleAddYoursThread, handleCountdownShare, handleNotifySignUp, handleMagicAnswer, handleViewResponses, pauseFor, resumeFrom]);
   const handleMediaLayout = useCallback((e: LayoutChangeEvent) => { const { width, height } = e.nativeEvent.layout; setMediaSize(prev => { if (prev.w === width && prev.h === height) return prev; return { w: width, h: height }; }); }, []);
+  const changeStorySettings = useCallback(async (patch: { allow_replies?: boolean; allow_reactions?: boolean; allow_sharing?: boolean }) => {
+    if (!currentStory || !myId || currentStory.user_id !== myId) return;
+    const storyId = currentStory.id, viewer = myId, key = viewer + ':' + storyId;
+    if (settingsBusy.current.has(key)) return;
+    settingsBusy.current.add(key); setSettingsSaving(storyId);
+    const current = () => viewerRef.current === viewer && storiesRef.current[storyIndexRef.current]?.id === storyId;
+    try {
+      const { data, error } = await supabase.from('stories').update(patch).eq('id', storyId).eq('user_id', viewer).select('id').maybeSingle();
+      if (error || !data) throw error || new Error('The setting was not saved. Refresh this story and try again.');
+      if (current()) setStories(previous => previous.map(story => story.id === storyId ? { ...story, ...patch } : story));
+    } catch (error: any) { if (current()) Alert.alert('Setting not saved', error?.message || 'Please try again.'); }
+    finally { settingsBusy.current.delete(key); if (current()) setSettingsSaving(null); }
+  }, [currentStory, myId]);
 
   // Dual reconstruction
   const dualLayout = useMemo(() => parseDualLayout((currentStory as any)?.dual_layout), [currentStory]);
   const dualFrontUrl: string | undefined = (currentStory as any)?.dual_front_url ?? undefined;
   const hasDual = !!dualFrontUrl && !!dualLayout;
-  useEffect(() => { if (hasDual && mediaReady) { bubbleEntryScale.value = withSpring(1, { damping: 14, stiffness: 160, mass: 1.0 }); } }, [hasDual, mediaReady]);
+  useEffect(() => { if (hasDual && mediaReady) { bubbleEntryScale.value = withSpring(1, { damping: 14, stiffness: 160, mass: 1.0 }); } }, [hasDual, mediaReady, bubbleEntryScale]);
   const dualMode = dualLayout?.mode ?? 'pip_front_small';
 
   const rearUrl = currentStory?.media_url;
@@ -772,8 +962,8 @@ export default function StoryViewerScreen() {
     const secondaryStyle = isVertical ? { position: 'absolute' as const, left: (SCREEN_W + SPLIT_GAP) / 2, top: 0, width: (SCREEN_W - SPLIT_GAP) / 2, height: SCREEN_H } : { position: 'absolute' as const, left: 0, top: (SCREEN_H + SPLIT_GAP) / 2, width: SCREEN_W, height: (SCREEN_H - SPLIT_GAP) / 2 };
     return (
       <ReAnimated.View style={[StyleSheet.absoluteFill, { zIndex: 1 }, dualSwapAnimStyle]}>
-        <View style={[primaryStyle, { overflow: 'hidden' }]}><Image source={effectivePrimaryUrl ? { uri: effectivePrimaryUrl } : undefined} style={{ width: SCREEN_W, height: SCREEN_H }} resizeMode="cover" fadeDuration={0} onLoadEnd={() => setMediaReady(true)} onError={() => { setMediaError(true); setMediaReady(true); }} /></View>
-        <View style={[secondaryStyle, { overflow: 'hidden' }]}><TouchableOpacity activeOpacity={0.9} onPress={handleDualSwapTap} style={{ flex: 1 }}><Image source={effectiveSecondaryUrl ? { uri: effectiveSecondaryUrl } : undefined} style={{ width: SCREEN_W, height: SCREEN_H }} resizeMode="cover" fadeDuration={0} /></TouchableOpacity></View>
+        <View style={[primaryStyle, { overflow: 'hidden' }]}><StoryPixelImage uri={effectivePrimaryUrl || ''} style={{ width: SCREEN_W, height: SCREEN_H }} fit="cover" onLoad={() => setMediaReady(true)} onError={() => { setMediaError(true); setMediaReady(true); }} /></View>
+        <View style={[secondaryStyle, { overflow: 'hidden' }]}><TouchableOpacity activeOpacity={0.9} onPress={handleDualSwapTap} style={{ flex: 1 }}><StoryPixelImage uri={effectiveSecondaryUrl || ''} style={{ width: SCREEN_W, height: SCREEN_H }} fit="cover" /></TouchableOpacity></View>
         {isVertical && <View style={{ position: 'absolute', left: (SCREEN_W - SPLIT_GAP) / 2, top: 0, width: SPLIT_GAP, height: SCREEN_H, backgroundColor: '#020408' }} />}
         {!isVertical && <View style={{ position: 'absolute', left: 0, top: (SCREEN_H - SPLIT_GAP) / 2, width: SCREEN_W, height: SPLIT_GAP, backgroundColor: '#020408' }} />}
       </ReAnimated.View>
@@ -785,14 +975,14 @@ export default function StoryViewerScreen() {
     return (
       <ReAnimated.View style={[s.dualBubble, dualBubbleViewStyle, { zIndex: 2 }, dualSwapAnimStyle, bubbleEntryAnimStyle]} pointerEvents="box-only">
         <TouchableOpacity activeOpacity={0.9} onPress={handleDualSwapTap} style={{ flex: 1 }}>
-          <Image source={{ uri: effectiveSecondaryUrl }} style={s.dualBubbleImg} resizeMode="cover" fadeDuration={0} />
+          <StoryPixelImage uri={effectiveSecondaryUrl} style={s.dualBubbleImg} fit="cover" />
         </TouchableOpacity>
       </ReAnimated.View>
     );
   };
 
   return (
-    <Animated.View style={[s.root, { transform: [{ translateY }, { scale: translateY.interpolate({ inputRange: [-SCREEN_H * 0.3, 0, SCREEN_H], outputRange: [1, 1, 0.92], extrapolate: 'clamp' }) }] }]} {...panResponder.panHandlers}
+    <StoryPhotoLookContext.Provider value={{ filterId: currentStory?.filter_id, filterAmt: mediaMt?.filterAmt, adjust: mediaMt?.adjust }}><Animated.View style={[s.root, { transform: [{ translateY }, { scale: translateY.interpolate({ inputRange: [-SCREEN_H * 0.3, 0, SCREEN_H], outputRange: [1, 1, 0.92], extrapolate: 'clamp' }) }] }]} {...panResponder.panHandlers}
       onTouchStart={beginSurfaceHold} onTouchEnd={endSurfaceHold} onTouchCancel={endSurfaceHold}
       onTouchMove={event => { if ((event.nativeEvent.touches?.length ?? 1) !== 1 || Math.hypot(event.nativeEvent.pageX - surfaceHold.current.x, event.nativeEvent.pageY - surfaceHold.current.y) > 12) endSurfaceHold(); }}>
       <StatusBar hidden />
@@ -806,16 +996,16 @@ export default function StoryViewerScreen() {
         {hasDual && isSplitMode ? renderSplitDual() : (
           <ZoomableMedia onZoomChange={(z) => { if (z) pauseFor('zoom'); else resumeFrom('zoom'); }}>
           <ReAnimated.View style={[StyleSheet.absoluteFill, activeMediaAnimStyle, { zIndex: 1 }]}>
-            {isText ? ((() => { const sharedPhoto = stickers.find(s => s.kind === 'post' && s.postMediaType !== 'video' && s.postMediaUrl)?.postMediaUrl; if (sharedPhoto) return <View style={s.media}><Image source={{ uri: sharedPhoto }} style={StyleSheet.absoluteFill} resizeMode="cover" blurRadius={32} /><View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,.48)' }]} /></View>; const bg = (currentStory as any)?.text_background; if (bg?.kind === 'gradient' && bg.colors?.length === 2) { return (<LinearGradient colors={bg.colors} start={bg.direction === 'diagonal' ? { x: 0, y: 0 } : { x: 0.5, y: 0 }} end={bg.direction === 'diagonal' ? { x: 1, y: 1 } : { x: 0.5, y: 1 }} style={s.media} />); } const solidColor = bg?.kind === 'solid' && bg.color ? bg.color : '#0B1E3D'; return <View style={[s.media, { backgroundColor: solidColor }]} />; })()
-            ) : isVideo ? (<>{mediaFitMode === 'contain' && (<View key={'vbg-' + currentStory.id} style={[s.media, { position: 'absolute', zIndex: -1 }]} pointerEvents="none"><BackgroundLayer bg={(mediaMt as any)?.bg || null} mediaUrl={null} /></View>)}<VideoView pointerEvents="none" key={'v-' + currentStory.id} style={[s.media, mediaHasTransform && mediaMt ? { transform: [{ translateX: mediaMt.translateNX * mediaSize.w }, { translateY: mediaMt.translateNY * mediaSize.h }, { scale: mediaMt.scale }] } : undefined] as any} player={videoPlayer} contentFit={mediaFitMode} nativeControls={false} onFirstFrameRender={() => setMediaReady(true)} /></>
-            ) : (<>{mediaFitMode === 'contain' && currentStory.media_url && (<View key={'bg-' + currentStory.id} style={[s.media, { position: 'absolute', zIndex: -1 }]} pointerEvents="none"><BackgroundLayer bg={(mediaMt as any)?.bg || null} mediaUrl={currentStory.media_url} /></View>)}<ExpoImage key={'m-' + currentStory.id} source={hasDual && effectivePrimaryUrl ? { uri: effectivePrimaryUrl } : (currentStory.media_url ? { uri: currentStory.media_url } : undefined)} style={[s.media, mediaHasTransform && !hasDual ? { transform: [{ translateX: mediaMt!.translateNX * mediaSize.w }, { translateY: mediaMt!.translateNY * mediaSize.h }, { scale: mediaMt!.scale }] } : undefined]} contentFit={mediaFitMode} transition={0} cachePolicy="memory-disk" onLoad={() => setMediaReady(true)} onError={() => { setMediaError(true); setMediaReady(true); }} /></>)}
+            {isText ? ((() => { if (mediaMt?.bg) return <BackgroundLayer bg={mediaMt.bg} mediaUrl={stickers.find(s => s.kind === 'post' && s.postMediaType !== 'video')?.postMediaUrl || null} />; const sharedPhoto = stickers.find(s => s.kind === 'post' && s.postMediaType !== 'video' && s.postMediaUrl)?.postMediaUrl; if (sharedPhoto) return <View style={s.media}><Image source={{ uri: sharedPhoto }} style={StyleSheet.absoluteFill} resizeMode="cover" blurRadius={32} /><View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,.48)' }]} /></View>; const bg = (currentStory as any)?.text_background; if (bg?.kind === 'gradient' && bg.colors?.length === 2) { return (<LinearGradient colors={bg.colors} start={bg.direction === 'diagonal' ? { x: 0, y: 0 } : { x: 0.5, y: 0 }} end={bg.direction === 'diagonal' ? { x: 1, y: 1 } : { x: 0.5, y: 1 }} style={s.media} />); } const solidColor = bg?.kind === 'solid' && bg.color ? bg.color : '#0B1E3D'; return <View style={[s.media, { backgroundColor: solidColor }]} />; })()
+            ) : isVideo ? (<>{mediaFitMode === 'contain' && (<View key={'vbg-' + currentStory.id} style={[s.media, { position: 'absolute', zIndex: -1 }]} pointerEvents="none"><BackgroundLayer bg={(mediaMt as any)?.bg || null} mediaUrl={null} /></View>)}<VideoView pointerEvents="none" key={'v-' + currentStory.id} style={[s.media, mediaHasTransform && mediaMt ? { transform: [{ translateX: mediaMt.translateNX * mediaSize.w }, { translateY: mediaMt.translateNY * mediaSize.h }, { scale: mediaMt.scale }] } : undefined] as any} look={{ filterId: (currentStory as any)?.filter_id, filterAmt: (mediaMt as any)?.filterAmt, adjust: (mediaMt as any)?.adjust }} player={videoPlayer} contentFit={mediaFitMode} nativeControls={false} onFirstFrameRender={() => setMediaReady(true)} /></>
+            ) : (<>{mediaFitMode === 'contain' && currentStory.media_url && (<View key={'bg-' + currentStory.id} style={[s.media, { position: 'absolute', zIndex: -1 }]} pointerEvents="none"><BackgroundLayer bg={(mediaMt as any)?.bg || null} mediaUrl={currentStory.media_url} /></View>)}<StoryPixelImage key={'m-' + currentStory.id} uri={(hasDual && effectivePrimaryUrl ? effectivePrimaryUrl : currentStory.media_url) || ''} style={[s.media, mediaHasTransform && !hasDual ? { transform: [{ translateX: mediaMt!.translateNX * mediaSize.w }, { translateY: mediaMt!.translateNY * mediaSize.h }, { scale: mediaMt!.scale }] } : undefined]} fit={mediaFitMode} onLoad={() => setMediaReady(true)} onError={() => { setMediaError(true); setMediaReady(true); }} /></>)}
           </ReAnimated.View>
           </ZoomableMedia>
         )}
         </ReAnimated.View>
 
-        <FilterLayer filterId={((currentStory as any)?.filter_id as string) || null} zIndex={2} amt={(mediaMt as any)?.filterAmt} />
-        <AdjustLayer adjust={(mediaMt as any)?.adjust || null} zIndex={2} />
+        <FilterLayer filterId={isText || isVideo && !storyVideoPreviewAvailable ? ((currentStory as any)?.filter_id as string) || null : null} zIndex={2} amt={(mediaMt as any)?.filterAmt} />
+        <AdjustLayer adjust={isText || isVideo && !storyVideoPreviewAvailable ? mediaMt?.adjust || null : storyPhotoSpatialAdjust(mediaMt?.adjust)} zIndex={2} />
         <DrawingLayer strokes={(((stickers.find(sx => (sx as any).kind === 'drawing') as any)?.strokes) || null) as any} width={mediaSize.w} height={mediaSize.h} zIndex={3} />
         {renderPipDual()}
         {mediaError && (<View style={{ ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center', zIndex: 4 }}><Feather name="image" size={28} color="rgba(245,240,235,0.08)" /><TouchableOpacity accessibilityRole="button" onPress={() => { storyAudio.retry(); void loadForCurrentUser(); }}><Text style={{ color: '#FFFFFF', fontSize: 14, marginTop: 14 }}>Media unavailable. Tap to retry.</Text></TouchableOpacity></View>)}
@@ -825,8 +1015,8 @@ export default function StoryViewerScreen() {
       </ReAnimated.View>
 
       <EnvironmentLayer chromeOpacity={chromeOpacity} isPaused={paused} isOwn={isOwn ?? false} />
-      {poll && (() => { const clampedTop = Math.max(insets.top + 90, Math.min(poll.ny * SCREEN_H - 100, SCREEN_H - 360)); const clampedLeft = (poll.nx * SCREEN_W) - (SCREEN_W * 0.4); return (<View style={[s.pollOverlay, { top: clampedTop, left: clampedLeft, transform: [{ scale: poll.scale || 1 }] }]} pointerEvents="auto" onLayout={(e) => { const layout = e.nativeEvent.layout; pollLayoutRef.current = { top: clampedTop, bottom: clampedTop + layout.height, left: clampedLeft, right: clampedLeft + layout.width }; }}><PollCard poll={poll} isOwn={isOwn} onVote={handlePollVote} onOpenVoters={openPollVoters} onShareResults={handlePollShareResults} /></View>); })()}
-      {engagementError ? <TouchableOpacity accessibilityRole="button" onPress={() => setEngagementRetry(value => value + 1)} style={{ position: 'absolute', top: insets.top + 80, alignSelf: 'center', zIndex: 10, backgroundColor: '#0B1E3D', padding: 10, borderRadius: 10 }}><Text style={{ color: '#FFF' }}>Responses could not load. Tap to retry.</Text></TouchableOpacity> : null}
+      {poll && (() => { const clampedTop = Math.max(insets.top + 90, Math.min(poll.ny * SCREEN_H - 100, SCREEN_H - 360)); const clampedLeft = (poll.nx * SCREEN_W) - (SCREEN_W * 0.4); return (<View style={[s.pollOverlay, { top: clampedTop, left: clampedLeft, transform: [{ scale: poll.scale || 1 }] }]} pointerEvents="auto" onLayout={(e) => { const layout = e.nativeEvent.layout; pollLayoutRef.current = { top: clampedTop, bottom: clampedTop + layout.height, left: clampedLeft, right: clampedLeft + layout.width }; }}><PollCard poll={poll} isOwn={isOwn} votingOptionId={votingOptionId} onVote={handlePollVote} onOpenVoters={openPollVoters} onShareResults={handlePollShareResults} /></View>); })()}
+      {engagementError || pollReadError ? <TouchableOpacity accessibilityRole="button" onPress={() => { setEngagementRetry(value => value + 1); setPollRetry(value => value + 1); }} style={{ position: 'absolute', top: insets.top + 80, alignSelf: 'center', zIndex: 10, backgroundColor: '#0B1E3D', padding: 10, borderRadius: 10 }}><Text style={{ color: '#FFF' }}>Responses could not load. Tap to retry.</Text></TouchableOpacity> : null}
       <StoryProgressBar progressSV={progressSV} currentIndex={storyIndex} totalStories={stories.length} chromeOpacity={chromeOpacity} topInset={insets.top} isPaused={paused} bottomInset={insets.bottom} />
       <MemoryCaption caption={currentStory.caption} chromeOpacity={chromeOpacity} bottomOffset={isOwn ? 130 : 125 + insets.bottom} />
       <IdentityPresence user={storyUser} isOwn={isOwn ?? false} timeAgo={timeAgo(currentStory.created_at)} scope={currentStory.scope} category={(currentStory as any).category} viewsCount={currentStory.views_count} chromeOpacity={chromeOpacity} topInset={insets.top} onOpenViewers={isOwn ? openViewersList : undefined} onSaveHighlight={isOwn ? () => { pauseFor('highlight'); setHighlightSheetOpen(true); } : undefined} onOpenSettings={isOwn ? () => { pauseFor('settings'); setSettingsOpen(true); } : undefined} onDelete={isOwn ? handleDelete : undefined} onOpenMore={isOwn ? () => { pauseFor('options'); setOptionsOpen(true); } : undefined} paused={paused} onTogglePause={() => { if (pauseStackRef.current.has('manual')) resumeFrom('manual'); else pauseFor('manual'); }} muted={viewerMuted} onToggleMute={isVideo || storyAudioUrl ? () => setViewerMuted(v => !v) : undefined} onClose={saveAndGoBack} bottomInset={insets.bottom} />
@@ -873,7 +1063,8 @@ export default function StoryViewerScreen() {
           allowReplies={(currentStory as any).allow_replies !== false}
           allowReactions={(currentStory as any).allow_reactions !== false}
           allowSharing={(currentStory as any).allow_sharing !== false}
-          onChange={async (patch) => { setStories(prev => prev.map(st => st.id === currentStory.id ? ({ ...st, ...patch } as any) : st)); try { await supabase.from('stories').update(patch).eq('id', currentStory.id); } catch (e) { console.log('[StorySettings]', e); } }}
+          updating={settingsSaving === currentStory.id}
+          onChange={changeStorySettings}
         />
       )}
 
@@ -905,7 +1096,7 @@ export default function StoryViewerScreen() {
           <TouchableOpacity activeOpacity={1} style={s.pollVotersSheet}>
             <View style={s.viewersHandle} />
             <View style={s.pollVotersHeader}><Text style={s.pollVotersTitle}>{poll?.options.find(o => o.id === pollVotersOptionId)?.label || 'Voters'}</Text><TouchableOpacity onPress={closePollVoters} style={{ padding: 4 }}><Feather name="x" size={20} color="#333" /></TouchableOpacity></View>
-            {loadingPollVoters ? (<View style={s.viewersLoader}><ActivityIndicator size="small" color={NAVY} /></View>) : pollVoters.length === 0 ? (<View style={s.viewersEmpty}><Text style={s.viewersEmptyTxt}>No votes yet</Text></View>) : (
+            {loadingPollVoters ? (<View style={s.viewersLoader}><ActivityIndicator size="small" color={NAVY} /></View>) : pollVotersError ? (<View style={s.viewersEmpty}><Text style={s.viewersEmptyTxt}>Voters could not load</Text><TouchableOpacity accessibilityRole="button" onPress={() => { if (pollVotersOptionId) void openPollVoters(pollVotersOptionId); }} style={s.activityClose}><Text style={{ color: NAVY, fontWeight: '700' }}>Retry</Text></TouchableOpacity></View>) : pollVoters.length === 0 ? (<View style={s.viewersEmpty}><Text style={s.viewersEmptyTxt}>No votes yet</Text></View>) : (
               <FlatList data={pollVoters} keyExtractor={v => v.user_id} contentContainerStyle={{ paddingBottom: insets.bottom + 20 }} renderItem={({ item }) => (
                 <TouchableOpacity style={s.viewerRow} activeOpacity={0.7} onPress={() => { closePollVoters(); setTimeout(() => navigation.navigate('UserProfile', { userId: item.user_id }), 300); }}>
                   {item.avatar_url ? (<Image source={{ uri: item.avatar_url }} style={s.viewerAvatar} />) : (<View style={[s.viewerAvatar, s.viewerAvatarFb]}><Text style={s.viewerAvatarTxt}>{initials(item.full_name)}</Text></View>)}
@@ -933,13 +1124,13 @@ export default function StoryViewerScreen() {
             <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '800', textAlign: 'center', marginTop: 4, marginBottom: 12 }}>{questionAnswer?.prompt}</Text>
             <TextInput value={answerText} onChangeText={setAnswerText} placeholder="Type your answer" placeholderTextColor="rgba(255,255,255,0.4)" autoFocus maxLength={200} multiline
               style={{ minHeight: 48, maxHeight: 120, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.08)', color: '#FFFFFF', paddingHorizontal: 14, paddingVertical: 12, fontSize: 15 }} />
-            <TouchableOpacity onPress={sendQuestionAnswer} disabled={!answerText.trim()} activeOpacity={0.85} style={{ marginTop: 12, height: 48, borderRadius: 14, backgroundColor: answerText.trim() ? '#C9BFB0' : 'rgba(201,191,176,0.35)', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#0B1E3D', fontSize: 15, fontWeight: '800' }}>Send</Text></TouchableOpacity>
+            <TouchableOpacity onPress={sendQuestionAnswer} disabled={answerSending || !answerText.trim()} activeOpacity={0.85} style={{ marginTop: 12, height: 48, borderRadius: 14, backgroundColor: answerText.trim() ? '#C9BFB0' : 'rgba(201,191,176,0.35)', alignItems: 'center', justifyContent: 'center' }}><Text style={{ color: '#0B1E3D', fontSize: 15, fontWeight: '800' }}>{answerSending ? 'Sending…' : 'Send'}</Text></TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
       </Modal>
       <AddYoursThreadSheet visible={!!addYoursThread} prompt={addYoursThread?.prompt || ''} originStoryId={addYoursThread?.originStoryId || null} originStickerId={addYoursThread?.originStickerId || null} onClose={() => { setAddYoursThread(null); resumeFrom('thread'); }} onOpen={(uid) => { saveAndGoBack(); setTimeout(() => (navigation as any).navigate('StoryViewer', { userId: uid }), 200); }} />
       {responsesSheet.open && (<StickerResponsesSheet visible={responsesSheet.open} onShareResponse={handleShareResponse} onMessageResponder={handleMessageResponder} onShareResults={handleShareResults} onClose={() => { dispatchResponsesSheet({ type: 'CLOSE' }); resumeFrom('responsesSheet'); }} storyId={currentStory.id} stickerId={responsesSheet.stickerId} responseType={responsesSheet.type} title={responsesSheet.title} quizOptions={responsesSheet.quizOptions} />)}
-    </Animated.View>
+    </Animated.View></StoryPhotoLookContext.Provider>
   );
 }
 

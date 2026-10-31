@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { loadConversations } from "@/lib/messages";
 
 export function MarketUnreadDot() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [n, setN] = useState(0);
 
   useEffect(() => {

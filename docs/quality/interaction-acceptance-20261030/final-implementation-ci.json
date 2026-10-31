@@ -1,0 +1,152 @@
+{
+  "observedAt": "2026-10-30 23:30:06 UTC",
+  "source": {
+    "head": "e673bdb97f77fc8f9763ef997f75fb805fe0f26f",
+    "tree": "4c5be88ea0a505a065ba5a191325357978ed6870",
+    "testedMerge": "4b0cf24573e12e88c92a23abfcf298bbd788740c",
+    "independentlyVerifiedTreeEquality": true
+  },
+  "status": "All four implementation workflows, all nine jobs and all four preview deployment statuses completed successfully.",
+  "workflows": [
+    {
+      "id": 41142738914,
+      "name": "iOS native compile",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41142738914",
+      "jobs": [
+        {
+          "id": 124361180734,
+          "name": "Compile Swift and native integration",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 124361180841,
+          "name": "Verify encoded story audio on iOS Simulator",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 41142738949,
+      "name": "Android native compile",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41142738949",
+      "jobs": [
+        {
+          "id": 124360637987,
+          "name": "Compile Kotlin and Android native integration",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 124360638340,
+          "name": "Verify encoded story audio on Android Emulator",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 41142738970,
+      "name": "Type and quality gates",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41142738970",
+      "jobs": [
+        {
+          "id": 124360637544,
+          "name": "Operations app",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 124360637788,
+          "name": "Link preview Edge TLS",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 124360637847,
+          "name": "Web app",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 124360637860,
+          "name": "Phone app",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 41142738953,
+      "name": "Browser interaction and video gates",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41142738953",
+      "jobs": [
+        {
+          "id": 124360638110,
+          "name": "Connected app, Studio, admin and encoded movies",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "previewDeployments": [
+    {
+      "context": "Vercel \u2013 admin-web",
+      "state": "success",
+      "target_url": "https://vercel.com/intobank/admin-web/EU2GkZapkdnf9RDV6ecVUsPhpA2a"
+    },
+    {
+      "context": "Vercel \u2013 platinum-admin",
+      "state": "success",
+      "target_url": "https://vercel.com/donadmirals-projects/platinum-admin/CdC4vvxqosgWrMFaqip64WLjXPe8"
+    },
+    {
+      "context": "Vercel \u2013 tbirds-nest",
+      "state": "success",
+      "target_url": "https://vercel.com/donadmirals-projects/tbirds-nest/JBqMyMhQMq8i4e2AphWGQLmT9Fyd"
+    },
+    {
+      "context": "Vercel \u2013 platinum-web",
+      "state": "success",
+      "target_url": "https://vercel.com/intobank/platinum-web/5Tt2mPWpS2PdSMHsWaiZ5MmCBrDi"
+    }
+  ],
+  "evidence": [
+    "cadence-type-backend-ci.json",
+    "cadence-browser-ci.json",
+    "../native-audio-20261030/android-equivalence-e673bdb9.json",
+    "../native-audio-20261030/final-ios-audio-e673bdb9.json",
+    "../native-audio-20261030/final-ios-compile-e673bdb9.json",
+    "../native-audio-20261030/ios-cadence-independent-e673bdb9.json",
+    "../native-audio-20261030/ios-cadence-source-equivalence.json",
+    "../native-audio-20261030/client-followup-verification.json",
+    "../backend-acceptance-20261030/continuation-hosted-postflight.json"
+  ],
+  "hostedQa": {
+    "checkedAt": "2026-10-30 23:13:17.862175+00",
+    "businessAuthSchemaPresent": false,
+    "musicLibrarySchemaPresent": false,
+    "candidateMigrationsPresent": 0,
+    "candidateMigrationsExpected": 5,
+    "dependentRolloutStarted": false,
+    "reason": "The supported migration connector stalled; read-only postflight confirms the candidate did not install. No approval rejection occurred."
+  },
+  "limits": [
+    "Workflow statuses establish completed CI jobs. Separate receipts verify exact artifacts, source hashes and measured media; their scope must be retained.",
+    "Backend tests use synthetic local fixtures. The broader browser harness uses synthetic Auth, database, transport and microphone inputs; actual signed-in QA route checks have separate receipts.",
+    "The native builds are unsigned integration targets; emulator/simulator media tests run isolated production encoders. Physical-device and full installed-product acceptance is not established.",
+    "Native/root strict lint retains 432 warnings; web/admin lint has zero errors or warnings. Passing workflows do not imply globally clean native lint.",
+    "Catalogue licensing remains disabled. Hosted business/music installation, actual Storage/CDN/Auth erasure, production rollout and real-provider journeys remain open.",
+    "A later documentation-only publication does not change this tested application implementation."
+  ]
+}

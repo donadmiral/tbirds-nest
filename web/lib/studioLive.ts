@@ -1,13 +1,13 @@
 "use client";
 // Live refresh for Studio desks on web. Same tables as the phone hook.
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 const TABLES = ["messages", "business_reviews", "job_applications", "chat_payments", "listing_offers"];
 
 export function useStudioLive(onChange: () => void, enabled: boolean = true) {
   const cb = useRef(onChange);
-  cb.current = onChange;
+  useLayoutEffect(() => { cb.current = onChange; }, [onChange]);
   useEffect(() => {
     if (!enabled) return;
     const supabase = createClient();

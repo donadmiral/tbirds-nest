@@ -1,0 +1,46 @@
+{
+  "input": {
+    "artifactPath": "app.log",
+    "bytes": 1707613,
+    "sha256": "23c92f2655d9ad0165fd5aa497b4a3b72b0dfb3552ec1ddf14da5ead7fb30c09",
+    "lineCount": 11904
+  },
+  "firstTimestampedLine": {
+    "line": 4,
+    "timestamp": "2026-10-31 17:02:56.302"
+  },
+  "lastTimestampedLine": {
+    "line": 11903,
+    "timestamp": "2026-10-31 17:10:27.710"
+  },
+  "patterns": {
+    "sdkLockOrAuthError": "Lock acquisition|LockAcquireTimeout|AuthApiError|GoTrueClient|processLock|@supabase/gotrue-js",
+    "accountIndex": "\\[accounts\\] index[\\'\\\", ]",
+    "accountInit": "\\[accounts\\] init",
+    "accountFailure": "\\[accounts\\].*failed"
+  },
+  "counts": {
+    "sdkLockOrAuthError": 0,
+    "accountIndex": 2,
+    "accountInit": 1,
+    "accountFailure": 0
+  },
+  "selectedLines": [
+    {
+      "line": 5891,
+      "text": "2026-10-31 17:04:01.050 I  PlatinumQA[77455:3623a] [com.facebook.react.log:javascript] '[accounts] index', 1"
+    },
+    {
+      "line": 5892,
+      "text": "2026-10-31 17:04:01.059 I  PlatinumQA[77455:3623a] [com.facebook.react.log:javascript] '[accounts] index', 1"
+    },
+    {
+      "line": 11892,
+      "text": "2026-10-31 17:10:10.048 I  PlatinumQA[77455:3623a] [com.facebook.react.log:javascript] '[accounts] init', 1, 'stored:', 1, 'current:', '10000000'"
+    }
+  ],
+  "limits": [
+    "No matching warning is evidence only for this retained log and the listed patterns.",
+    "The two account index writes do not by themselves establish reload; the init line corroborates the separate passed readback result."
+  ]
+}

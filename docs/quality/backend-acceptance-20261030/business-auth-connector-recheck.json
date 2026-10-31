@@ -1,0 +1,183 @@
+{
+  "project": "uaulhuelcfkjwojtymmw",
+  "candidate": "supabase/migrations/20261030034752_business_bound_auth_sessions.sql",
+  "sha256": "66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996",
+  "sourceHead": "0f2c52692b8276a04c2131a0f1e42cb8dceca9a8",
+  "previousAttemptsReceipt": "docs/quality/studio-workflows-20261030/business-auth-qa-connector-blocker.json",
+  "status": "one-additional-authorized-apply-stalled; absent-at-post-stall-read",
+  "branchIdentity": {
+    "projectRef": "uaulhuelcfkjwojtymmw",
+    "parentProjectRef": "prlkikhckbifseosbukl",
+    "branchId": "cb43dd64-7910-4e28-afc0-ede7a0741dc0",
+    "branchName": "codex-platinum-quality-20261017",
+    "branchStatus": "MIGRATIONS_FAILED",
+    "previewProjectStatus": "ACTIVE_HEALTHY",
+    "notes": "The QA project is a child branch. Its omission from list_projects and get_project response do not establish inactivity. No branch reset or rebase was attempted."
+  },
+  "attempt": {
+    "numberAfterHistoricalReceipt": 3,
+    "execCellId": "7",
+    "requestedWaitMilliseconds": 1000,
+    "observedWaitSeconds": 2592.6,
+    "result": "aborted by user after 2592.6s",
+    "applyResultReceived": false,
+    "automaticApprovalRejectionObserved": false,
+    "blindRetry": false
+  },
+  "postStall": {
+    "captured_at": "2026-10-30 16:17:39.280185+00",
+    "business_auth_schema": null,
+    "owner_contract": null,
+    "latest_migrations": [
+      {
+        "name": "reserve_business_provision_usernames",
+        "version": "20261030033815"
+      },
+      {
+        "name": "reserve_web_route_usernames",
+        "version": "20261030032528"
+      },
+      {
+        "name": "studio_editorial_and_partnership_workflows",
+        "version": "20261030032512"
+      },
+      {
+        "name": "staff_social_shells",
+        "version": "20261030013815"
+      },
+      {
+        "name": "account_erasure_admin_restore_guard",
+        "version": "20261030010956"
+      }
+    ],
+    "matching_transactions": [],
+    "auth_users": 1,
+    "profiles": 1,
+    "staff": 1,
+    "storage_objects": 15
+  },
+  "exactBaseline": {
+    "buckets": [
+      {
+        "id": "chat-files",
+        "public": false
+      },
+      {
+        "id": "chat-media",
+        "public": false
+      },
+      {
+        "id": "media",
+        "public": false
+      },
+      {
+        "id": "post-media",
+        "public": false
+      },
+      {
+        "id": "story-media",
+        "public": false
+      }
+    ],
+    "functions": [
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "hash": "c0f3550b138e1e1476a345f7094fbed7",
+        "signature": "public.resolve_media_delivery(text,text,text)",
+        "search_path": [
+          "search_path=\"\""
+        ]
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "hash": "725e31f7b81626e606a75618c87c969b",
+        "signature": "public.studio_bind_member(text)",
+        "search_path": [
+          "search_path=\"\""
+        ]
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "hash": "955f1c432cc78baa8af374a1b7764c1b",
+        "signature": "public.studio_role()",
+        "search_path": [
+          "search_path=\"\""
+        ]
+      },
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+        "hash": "47239a4b49b3408379d3314fda0a089a",
+        "signature": "public.studio_set_device(uuid,text)",
+        "search_path": [
+          "search_path=\"\""
+        ]
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "hash": "69d07d257bb8a9c59ae27d7a4e8e79cd",
+        "signature": "public.triniti_admin_provision(uuid,uuid,uuid,text,jsonb,text)",
+        "search_path": [
+          "search_path=\"\""
+        ]
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "hash": "88f2b41f172b80b323ad1b20fdf983db",
+        "signature": "studio_workflow.context(uuid)",
+        "search_path": [
+          "search_path=\"\""
+        ]
+      }
+    ],
+    "data_counts": {
+      "staff": 1,
+      "profiles": 1,
+      "auth_users": 1,
+      "auth_sessions": 17,
+      "storage_objects": 15,
+      "studio_bindings": 0,
+      "business_devices": 0,
+      "business_members": 0,
+      "business_profiles": 0,
+      "pending_provisions": 0
+    },
+    "schema_absent": true,
+    "unfenced_tables": 0,
+    "baseline_matches": true,
+    "protected_tables": 193,
+    "extension_functions": {
+      "digest": true,
+      "random_bytes": true
+    },
+    "request_hook_absent": true,
+    "authenticator_exists": true,
+    "auth_session_timestamp": true,
+    "provider_contracts_absent": true,
+    "unbound_business_sessions": 0
+  },
+  "transactionAndLockCheck": {
+    "captured_at": "2026-10-30 16:19:10.815493+00",
+    "long_or_blocked_transactions": [],
+    "waiting_locks": 0
+  },
+  "cliPrerequisites": {
+    "cli_on_path": null,
+    "local_cli": false,
+    "supabase_environment_variable_names": [],
+    "standard_cli_auth_file_present": false,
+    "standard_config_auth_file_present": false,
+    "linked_project_file_present": false
+  },
+  "documentedTransport": {
+    "references": [
+      "https://supabase.com/docs/reference/cli/supabase-db-push",
+      "https://supabase.com/docs/guides/local-development/cli-workflows"
+    ],
+    "conclusion": "db push preserves migration history, but requires an authenticated linked project or explicit database connection. Those prerequisites are absent. Hosted history versions also differ from repository filenames, so a broad push or --include-all is not safe. No alternate mutation, DDL via execute_sql, history repair, or placeholders were used."
+  },
+  "edgeDeploymentsStarted": 0,
+  "productionChanged": false,
+  "identitiesCreated": false,
+  "erasureJobsCreated": false,
+  "nextStep": "Resolve the apply_migration connector or establish an explicitly authenticated documented migration transport. Repeat schema, migration history, locks, and exact-definition preflight before resuming the same reviewed QA candidate. Deploy the associated eight Edge entrypoints only after database postflight passes."
+}

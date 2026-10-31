@@ -1,0 +1,15 @@
+2026-10-31T16:14:44.8380188Z HEAD is now at cddbe51 Merge b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6 into ce4f2f2ebbd7f7669b630caf650fd97cd59297b0
+2026-10-31T16:14:44.8463118Z cddbe51a25efbb39b9e91fb822a9821957b9a2bd
+2026-10-31T16:14:45.1311003Z (node:2160) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-31T16:14:45.4107724Z node: v22.23.4
+2026-10-31T16:14:45.4108302Z npm: 10.9.9
+2026-10-31T16:14:45.6954598Z (node:2160) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-31T16:16:18.3890545Z {"passed":37,"browserErrors":0,"artifacts":"/tmp/platinum-browser-evidence/admin"}
+2026-10-31T16:16:43.2031704Z {"passed":41,"browserErrors":0,"artifacts":"/tmp/platinum-browser-evidence/web"}
+2026-10-31T16:17:03.9198535Z {"passed":25,"browserErrors":0,"artifacts":"/tmp/platinum-browser-evidence/commerce"}
+2026-10-31T16:17:11.8536793Z {"passed":25,"browserErrors":0,"artifacts":"/tmp/platinum-browser-evidence/studio"}
+2026-10-31T16:19:42.3453936Z (node:9189) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-31T16:19:42.9151149Z (node:9189) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-10-31T16:19:43.8125073Z SHA256 digest of uploaded artifact zip is 8922da38005ad3ace420c7c447da05871364fb1624e89b19e78c5bf7edbb3d4a
+2026-10-31T16:19:44.4460685Z (node:9202) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-10-31T16:19:44.6800639Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@11d5960a326750d5838078e36cf38b85af677262, actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020, actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

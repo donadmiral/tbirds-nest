@@ -3,6 +3,7 @@
 import { hydratePostMedia } from "@/lib/contentMedia";
 import { withTimeout } from "@/lib/withTimeout";
 import { productDestination } from "../../shared/productDestination";
+import { uniqueCollaborators, collaborationName } from "../../shared/collaborationPeople";
 
 import { profilePath } from "@/lib/profileLookup";
 import { usePollFlag } from "@/lib/pollCheck";
@@ -21,11 +22,11 @@ function money(price: number | string | null | undefined, currency?: string | nu
   return (currency || "USD") === "USD" ? "$" + body : "ZWG " + body;
 }
 import { createClient } from "@/lib/supabase/client";
-import { VerifiedBadge, getTierColor } from "@/components/VerifiedBadge";
+
 import { StoryAvatar } from "@/components/StoryAvatar";
 import { FollowButton } from "@/components/FollowButton";
 import { PostMenu } from "@/components/PostMenu";
-import { RichText } from "@/components/RichText";
+
 import { PollCard } from "@/components/PollCard";
 import { MediaGallery } from "@/components/MediaGallery";
 import { ArticleBody } from "@/components/ArticleBody";
@@ -38,6 +39,7 @@ import type { FeedRow } from "@/lib/feed";
 import { RelativeTime } from "@/components/RelativeTime";
 import { toggleRepost } from "@/lib/interactions";
 import { usePostInteractions } from "@/lib/usePostInteractions";
+import cardStyles from "./PostCard.module.css";
 
 function count(n: number): string {
   if (n >= 1000000) return (n / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
@@ -71,8 +73,9 @@ function useToggle(initialOn: boolean, initialCount: number, action: (id: string
   return { on, n, flip, set };
 }
 
-function QuoteCard({ quotedId }: { quotedId: string }) {
-  const supabase = useRef(createClient()).current;
+function QuoteCard({quotedId}:{quotedId:string}) {return <QuoteContent key={quotedId} quotedId={quotedId}/>;}
+function QuoteContent({ quotedId }: { quotedId: string }) {
+  const [supabase] = useState(createClient);
   const [q, setQ] = useState<{ content: string | null; body: string | null; created_at: string; author: { full_name: string | null; username: string | null } | null; first: { url: string; media_type: string; edit?: { coverUrl?: string | null } | null } | null } | null>(null);
 
   useEffect(() => {
@@ -93,7 +96,7 @@ function QuoteCard({ quotedId }: { quotedId: string }) {
         setQ({content:data.content,body:data.body,created_at:data.created_at,author:author??null,first:media[0]??null});
       }catch{if(live&&run===version)setQ(null);}
     };
-    setQ(null);void load();
+    void load();
     const timer=setInterval(()=>void load(),240000);
     const {data}=supabase.auth.onAuthStateChange(()=>{version++;setQ(null);queueMicrotask(()=>{if(live)void load();});});
     return()=>{live=false;version++;clearInterval(timer);data.subscription.unsubscribe();};
@@ -129,7 +132,8 @@ function QuoteCard({ quotedId }: { quotedId: string }) {
   );
 }
 
-export function PostCard({ post, hideMedia, inlineComments = true }: { post: FeedRow; hideMedia?: boolean; inlineComments?: boolean }) {
+export function PostCard(props: Parameters<typeof PostContent>[0]) {return <PostContent key={props.post.post_id} {...props}/>;}
+function PostContent({ post, hideMedia, inlineComments = true }: { post: FeedRow; hideMedia?: boolean; inlineComments?: boolean }) {
   const router = useRouter();
   const [supabase] = useState(createClient);
   const [hidden, setHidden] = useState(false);
@@ -137,17 +141,24 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
   const [heart, setHeart] = useState(false);
   const [repostMenu, setRepostMenu] = useState(false);
   const [likesOpen, setLikesOpen] = useState(false);
-  const [collabNames, setCollabNames] = useState<{ name: string; username: string; verified: boolean; tier: string | null }[]>([]);
+  const [collabNames, setCollabNames] = useState<{ id: string; name: string; username: string; verified: boolean; tier: string | null }[]>([]);
   const [collabsOpen, setCollabsOpen] = useState(false);
+  const scope = post.author_id + ":" + post.author_name + ":" + post.article_title;
+  const [previousScope,setPreviousScope]=useState(scope);
+  if(previousScope!==scope){setPreviousScope(scope);setCollabNames([]);setCollabsOpen(false);setGalleryImages([]);}
   useEffect(() => {
     let dead = false;
-    supabase.from("post_collaborators").select("status, profile:profiles!post_collaborators_user_id_fkey(username, full_name, is_verified, verified_tier)").eq("post_id", post.post_id).eq("status", "accepted").then(({ data }) => {
+    supabase.from("post_collaborators").select("user_id, status, profile:profiles!post_collaborators_user_id_fkey(username, full_name, is_verified, verified_tier)").eq("post_id", post.post_id).eq("status", "accepted").then(({ data }) => {
       if (dead) return;
-      type Pr = { username?: string | null; full_name?: string | null; is_verified?: boolean | null; verified_tier?: string | null }; const names = ((data ?? []) as { profile?: Pr | Pr[] }[]).map((r) => { const pr = Array.isArray(r.profile) ? r.profile[0] : r.profile; return pr ? { name: pr.full_name || pr.username || "", username: pr.username || "", verified: !!pr.is_verified, tier: pr.verified_tier ?? null } : null; }).filter((x): x is { name: string; username: string; verified: boolean; tier: string | null } => !!x && !!x.name);
-      setCollabNames(names);
+      type Pr = { username?: string | null; full_name?: string | null; is_verified?: boolean | null; verified_tier?: string | null };
+      const names = ((data ?? []) as { user_id: string; profile?: Pr | Pr[] }[]).flatMap(r => {
+        const pr = Array.isArray(r.profile) ? r.profile[0] : r.profile;
+        return pr ? [{ id: r.user_id, name: collaborationName(pr, post.author_name), username: pr.username || '', verified: !!pr.is_verified, tier: pr.verified_tier ?? null }] : [];
+      });
+      setCollabNames(uniqueCollaborators(names, post.author_id));
     });
     return () => { dead = true; };
-  }, [supabase, post.post_id]);
+  }, [supabase, post.post_id, post.author_id, post.author_name]);
   const [listKind, setListKind] = useState<"likes" | "reposts" | "bookmarks">("likes");
   const [expanded, setExpanded] = useState(false);
   // Comments open right under the card, so the post and its video stay in view while you read and reply.
@@ -185,7 +196,6 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
   // Only the writer's own gallery block is fetched here - articles are a
   // small extra lookup, not part of get_feed's normal columns.
   useEffect(() => {
-    setGalleryImages([]);
     if (!post.article_title) return;
     let live=true,version=0;
     const load=async()=>{
@@ -230,7 +240,7 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
   }
 
   return (
-    <article className="relative mb-4 rounded-2xl border border-ink/10 bg-white px-5 py-4 transition-colors duration-[140ms] hover:border-ink/20">
+    <article className={`${cardStyles.card} relative mb-4 rounded-2xl border border-ink/10 bg-white px-5 py-4 transition-colors duration-[140ms] hover:border-ink/20`}>
       {(post as unknown as { is_pinned?: boolean }).is_pinned ? (
         <span className="mb-1.5 flex items-center gap-1.5 pl-10 text-[12px] font-semibold text-muted"><Pin size={13} /> Pinned</span>
       ) : null}
@@ -245,15 +255,15 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
           <Heart size={84} className="animate-ping text-danger" fill="currentColor" />
         </span>
       ) : null}
-      <div className="flex gap-3.5">
+      <div className={`${cardStyles.layout} flex gap-3.5`}>
         <StoryAvatar userId={post.author_id}
           name={post.author_name}
           avatarUrl={post.author_avatar}
           size={46}
           href={profileHref}
         />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start gap-2">
+        <div className={`${cardStyles.body} min-w-0 flex-1`}>
+          <div className={`${cardStyles.header} flex items-start gap-2`}>
             <div className="min-w-0 flex-1">
             <div className="flex min-w-0 flex-wrap items-center gap-x-1.5">
             <Link href={profileHref} className="flex min-w-0 items-center gap-1.5 hover:underline">
@@ -261,7 +271,22 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
                 <PersonName name={post.author_name ?? ""} verified={post.author_verified} tier={post.author_verified_tier ?? undefined} userId={post.author_id} className="text-[15.5px] font-semibold text-ink" badgeSize={15} />
               </span>
             </Link>
-            {collabNames.length === 1 ? <span className="ml-1 inline-flex items-center gap-1 font-semibold text-ink">× <Link href={"/" + collabNames[0].username} onClick={(e) => e.stopPropagation()} className="hover:underline"><PersonName name={collabNames[0].name} verified={collabNames[0].verified} tier={collabNames[0].tier} badgeSize={14} /></Link></span> : collabNames.length > 1 ? <span className="relative ml-1 font-semibold text-ink"><button type="button" onClick={(e) => { e.stopPropagation(); setCollabsOpen((v) => !v); }} className="hover:underline">× {collabNames.length} others</button>{collabsOpen ? <span className="absolute left-0 top-full z-20 mt-1 flex w-56 flex-col rounded-xl border border-ink/10 bg-white p-2 shadow-lg">{collabNames.map((x) => <Link key={x.username} href={"/" + x.username} onClick={(e) => e.stopPropagation()} className="rounded-lg px-2 py-1.5 text-[13px] hover:bg-surface"><PersonName name={x.name} verified={x.verified} tier={x.tier} badgeSize={13} /><span className="ml-1 text-muted">@{x.username}</span></Link>)}</span> : null}</span> : null}
+            {collabNames.length === 1 ? (
+              <span className="inline-flex min-w-0 items-center gap-1.5 text-[14px]">
+                <span className="text-secondary">with</span>
+                <Link href={profilePath(collabNames[0].username, collabNames[0].id)} aria-label={`Collaborator ${collabNames[0].name}${collabNames[0].username ? ', @' + collabNames[0].username : ''}`} onClick={e => e.stopPropagation()} className="font-semibold text-ink hover:underline">
+                  <PersonName name={collabNames[0].name} verified={collabNames[0].verified} tier={collabNames[0].tier} badgeSize={14} />
+                </Link>
+              </span>
+            ) : collabNames.length > 1 ? (
+              <span className="relative text-[14px] text-ink">
+                <span className="text-secondary">with </span>
+                <button type="button" aria-expanded={collabsOpen} aria-label={`View ${collabNames.length} collaborators`} onClick={e => { e.stopPropagation(); setCollabsOpen(value => !value); }} onKeyDown={e => { if (e.key === 'Escape') setCollabsOpen(false); }} className="font-semibold hover:underline">{collabNames.length} collaborators</button>
+                {collabsOpen ? <span className="absolute left-0 top-full z-20 mt-2 flex w-60 max-w-[80vw] flex-col rounded-xl border border-ink/15 bg-white p-2 shadow-lg">
+                  {collabNames.map(person => <Link key={person.id} href={profilePath(person.username, person.id)} onClick={e => { e.stopPropagation(); setCollabsOpen(false); }} className="flex min-h-11 flex-col justify-center rounded-lg px-2 py-1.5 text-[13px] hover:bg-surface"><PersonName name={person.name} verified={person.verified} tier={person.tier} badgeSize={13} />{person.username ? <span className="text-muted">@{person.username}</span> : null}</Link>)}
+                </span> : null}
+              </span>
+            ) : null}
             </div>
             <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[13px] text-muted">
               {post.author_username ? <Link href={profileHref} className="truncate hover:underline">@{post.author_username}</Link> : null}
@@ -397,14 +422,14 @@ export function PostCard({ post, hideMedia, inlineComments = true }: { post: Fee
             </div>
           ) : null}
 
-          <div className="-ml-2.5 mt-3 flex items-center gap-1">
+          <div className={`${cardStyles.actions} -ml-2.5 mt-3 flex flex-wrap items-center gap-1`}>
             {inlineComments ? (
               <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCommentsOpen((v) => !v); }} aria-expanded={commentsOpen} aria-label={commentsOpen ? "Hide comments" : "Show comments"} className={"flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] transition-colors duration-[140ms] hover:bg-ink/[0.06] hover:text-ink " + (commentsOpen ? "text-ink" : "text-muted")}>
                 <MessageCircle size={18} strokeWidth={1.8} fill={commentsOpen ? "currentColor" : "none"} />
                 {count(commentsCount)}
               </button>
             ) : (
-              <Link href={postHref} className="flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] text-muted transition-colors duration-[140ms] hover:bg-ink/[0.06] hover:text-ink">
+              <Link href={postHref} aria-label={`View post and ${commentsCount} comments`} className="flex items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] text-muted transition-colors duration-[140ms] hover:bg-ink/[0.06] hover:text-ink">
                 <MessageCircle size={18} strokeWidth={1.8} />
                 {count(commentsCount)}
               </Link>

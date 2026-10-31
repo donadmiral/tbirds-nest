@@ -1,0 +1,34 @@
+{
+  "recordedAt": "2026-10-31T03:49:14.436725+00:00",
+  "deploymentCommit": "341395c68cfc0bf74527bcf23e0dced3813e9225",
+  "origin": "https://platinum-web-git-codex-app-quality-20261029-intobank.vercel.app",
+  "environment": "Real branch deployment with the existing signed-in hosted-QA account; no transport overrides.",
+  "observations": [
+    {
+      "route": "/jobs",
+      "result": "Real initial search/location/type controls and no-matching-roles empty state loaded.",
+      "mutation": "Set local Search jobs to design, Job location to Remote and selected Freelance.",
+      "returnResult": "After Home then Jobs via primary navigation, search was empty, location All locations, type All Jobs and Loading jobs appeared.",
+      "status": "Observed continuity defect assigned to web Jobs follow-up."
+    },
+    {
+      "route": "/notifications",
+      "result": "Notifications heading, All/Likes/Comments/Follows/Mentions tabs and genuine empty state loaded."
+    },
+    {
+      "route": "/messages",
+      "result": "Conversation search, Chats/Groups/Unread controls and genuine no-conversations empty state loaded."
+    }
+  ],
+  "routeTransitionObservation": "A brief root Loading fallback was observed on immediate sidebar navigation to Home, Notifications and Messages. These are server-route transitions, not the destination-component frame measurements. No latency guarantee is inferred.",
+  "console": {
+    "capturedErrorCount": 98,
+    "browserExtensionErrors": 98,
+    "applicationOriginErrors": 0
+  },
+  "writes": "Only local filter inputs and navigation; no message, post, job, application or moderation submission.",
+  "limitations": [
+    "The hosted QA account has no job results, notifications or personal conversations for these checks. Populated and stale-session cases require the isolated browser/native fixtures.",
+    "The automated browser clicks do not establish pointer-hover prefetch timing or physical-device latency."
+  ]
+}

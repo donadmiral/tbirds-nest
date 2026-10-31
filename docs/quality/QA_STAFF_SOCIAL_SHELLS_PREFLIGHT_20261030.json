@@ -1,0 +1,23 @@
+{
+  "project": "uaulhuelcfkjwojtymmw",
+  "method": "Read-only hosted SQL preflight",
+  "preflight": {
+    "data_counts": {
+      "profiles": 1,
+      "auth_users": 1,
+      "provisions": 0,
+      "admin_users": 1,
+      "storage_objects": 15
+    },
+    "fresh_target": true,
+    "provision_matches": true,
+    "write_guard_matches": true,
+    "session_check_matches": true,
+    "storage_guard_matches": true,
+    "execution_grants_match": true,
+    "no_pending_staff_setup": true,
+    "write_coverage_complete": true,
+    "permission_check_matches": true,
+    "profile_visibility_matches": true
+  }
+}

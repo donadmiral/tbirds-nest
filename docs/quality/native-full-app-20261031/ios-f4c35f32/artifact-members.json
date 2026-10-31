@@ -1,0 +1,674 @@
+[
+  {
+    "name": "app.log",
+    "bytes": 1413943,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      34,
+      0
+    ]
+  },
+  {
+    "name": "build.log",
+    "bytes": 18261394,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      14,
+      18
+    ]
+  },
+  {
+    "name": "flow-results.json",
+    "bytes": 351,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      33,
+      50
+    ]
+  },
+  {
+    "name": "flow-verification.json",
+    "bytes": 89,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      33,
+      56
+    ]
+  },
+  {
+    "name": "maestro/memory-capture/2026-10-31_153056/Actual native memory capture and encoding/commands.json",
+    "bytes": 4908,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      33,
+      6
+    ]
+  },
+  {
+    "name": "maestro/memory-capture/2026-10-31_153056/Actual native memory capture and encoding/logs/device-simulator.log",
+    "bytes": 10081928,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      33,
+      6
+    ]
+  },
+  {
+    "name": "maestro/memory-capture/2026-10-31_153056/Actual native memory capture and encoding/logs/device-xctest.log",
+    "bytes": 84799,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      33,
+      6
+    ]
+  },
+  {
+    "name": "maestro/memory-capture/2026-10-31_153056/Actual native memory capture and encoding/logs/maestro.log",
+    "bytes": 1879,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      33,
+      2
+    ]
+  },
+  {
+    "name": "maestro/memory-capture/2026-10-31_153056/Actual native memory capture and encoding/manifest.json",
+    "bytes": 957,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      33,
+      6
+    ]
+  },
+  {
+    "name": "maestro/memory-capture/2026-10-31_153056/Actual native memory capture and encoding/screen-hierarchy/step-005-assertCondition-Native_capture_acceptanc.json",
+    "bytes": 32392,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      33,
+      2
+    ]
+  },
+  {
+    "name": "maestro/memory-capture/2026-10-31_153056/Actual native memory capture and encoding/screenshots/step-005-assertCondition-Native_capture_acceptanc.png",
+    "bytes": 691573,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      33,
+      2
+    ]
+  },
+  {
+    "name": "maestro/memory-capture/2026-10-31_153056/xctest_runner_2026-10-31_153130.log",
+    "bytes": 84923,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      33,
+      8
+    ]
+  },
+  {
+    "name": "maestro/navigation/2026-10-31_152218/Full native app navigation/commands.json",
+    "bytes": 73085,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      29,
+      26
+    ]
+  },
+  {
+    "name": "maestro/navigation/2026-10-31_152218/Full native app navigation/logs/device-simulator.log",
+    "bytes": 82473061,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      29,
+      32
+    ]
+  },
+  {
+    "name": "maestro/navigation/2026-10-31_152218/Full native app navigation/logs/device-xctest.log",
+    "bytes": 164947,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      29,
+      32
+    ]
+  },
+  {
+    "name": "maestro/navigation/2026-10-31_152218/Full native app navigation/logs/maestro.log",
+    "bytes": 29519,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      29,
+      16
+    ]
+  },
+  {
+    "name": "maestro/navigation/2026-10-31_152218/Full native app navigation/manifest.json",
+    "bytes": 1076,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      29,
+      32
+    ]
+  },
+  {
+    "name": "maestro/navigation/2026-10-31_152218/Full native app navigation/screen-hierarchy/step-043-assertCondition-Edit_memory_book.json",
+    "bytes": 13927,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      29,
+      16
+    ]
+  },
+  {
+    "name": "maestro/navigation/2026-10-31_152218/Full native app navigation/screenshots/step-035-runFlow.png",
+    "bytes": 58643,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      29,
+      16
+    ]
+  },
+  {
+    "name": "maestro/navigation/2026-10-31_152218/Full native app navigation/screenshots/step-043-assertCondition-Edit_memory_book.png",
+    "bytes": 58736,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      29,
+      16
+    ]
+  },
+  {
+    "name": "maestro/navigation/2026-10-31_152218/Full native app navigation/takeScreenshot/home.png",
+    "bytes": 354012,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      26,
+      28
+    ]
+  },
+  {
+    "name": "maestro/navigation/2026-10-31_152218/Full native app navigation/takeScreenshot/jobs.png",
+    "bytes": 228060,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      28,
+      0
+    ]
+  },
+  {
+    "name": "maestro/navigation/2026-10-31_152218/Full native app navigation/takeScreenshot/market.png",
+    "bytes": 197091,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      27,
+      4
+    ]
+  },
+  {
+    "name": "maestro/navigation/2026-10-31_152218/Full native app navigation/takeScreenshot/memory-shelf.png",
+    "bytes": 312613,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      28,
+      40
+    ]
+  },
+  {
+    "name": "maestro/navigation/2026-10-31_152218/Full native app navigation/takeScreenshot/messages.png",
+    "bytes": 187575,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      28,
+      12
+    ]
+  },
+  {
+    "name": "maestro/navigation/2026-10-31_152218/Full native app navigation/takeScreenshot/profile.png",
+    "bytes": 352633,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      28,
+      24
+    ]
+  },
+  {
+    "name": "maestro/navigation/2026-10-31_152218/xctest_runner_2026-10-31_152340.log",
+    "bytes": 165071,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      29,
+      34
+    ]
+  },
+  {
+    "name": "maestro-memory-capture.log",
+    "bytes": 169,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      33,
+      6
+    ]
+  },
+  {
+    "name": "maestro-memory-capture.xml",
+    "bytes": 646,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      33,
+      8
+    ]
+  },
+  {
+    "name": "maestro-navigation.log",
+    "bytes": 149,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      29,
+      34
+    ]
+  },
+  {
+    "name": "maestro-navigation.xml",
+    "bytes": 589,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      29,
+      34
+    ]
+  },
+  {
+    "name": "native-ui-auth-diagnostics.json",
+    "bytes": 197299,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      34,
+      4
+    ]
+  },
+  {
+    "name": "native-ui-receipt.json",
+    "bytes": 28193,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      34,
+      4
+    ]
+  },
+  {
+    "name": "navigation.mp4",
+    "bytes": 14367702,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      34,
+      0
+    ]
+  },
+  {
+    "name": "overlays/index.js",
+    "bytes": 33,
+    "date_time": [
+      2026,
+      10,
+      31,
+      14,
+      45,
+      42
+    ]
+  },
+  {
+    "name": "overlays/metro.config.js",
+    "bytes": 72,
+    "date_time": [
+      2026,
+      10,
+      31,
+      14,
+      45,
+      42
+    ]
+  },
+  {
+    "name": "overlays/modules__boomerang__ios__BoomerangModule.swift",
+    "bytes": 16619,
+    "date_time": [
+      2026,
+      10,
+      31,
+      14,
+      45,
+      42
+    ]
+  },
+  {
+    "name": "overlays/modules__boomerang__android__src__main__java__expo__modules__boomerang__BoomerangModule.kt",
+    "bytes": 2990,
+    "date_time": [
+      2026,
+      10,
+      31,
+      14,
+      45,
+      42
+    ]
+  },
+  {
+    "name": "overlays/src__navigation__AppNavigator.tsx",
+    "bytes": 38123,
+    "date_time": [
+      2026,
+      10,
+      31,
+      14,
+      45,
+      42
+    ]
+  },
+  {
+    "name": "overlays/src__services__supabase.ts",
+    "bytes": 5251,
+    "date_time": [
+      2026,
+      10,
+      31,
+      14,
+      45,
+      42
+    ]
+  },
+  {
+    "name": "phase-results.json",
+    "bytes": 63,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      34,
+      0
+    ]
+  },
+  {
+    "name": "pods.log",
+    "bytes": 32681,
+    "date_time": [
+      2026,
+      10,
+      31,
+      14,
+      49,
+      46
+    ]
+  },
+  {
+    "name": "prebuild.log",
+    "bytes": 168,
+    "date_time": [
+      2026,
+      10,
+      31,
+      14,
+      46,
+      2
+    ]
+  },
+  {
+    "name": "recording.log",
+    "bytes": 103,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      34,
+      0
+    ]
+  },
+  {
+    "name": "simulator-entitlements-before-resign.json",
+    "bytes": 954,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      14,
+      20
+    ]
+  },
+  {
+    "name": "simulator-entitlements.json",
+    "bytes": 954,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      14,
+      22
+    ]
+  },
+  {
+    "name": "simulator-host-entitlements-before-resign.log",
+    "bytes": 137,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      14,
+      20
+    ]
+  },
+  {
+    "name": "simulator-host-entitlements-before-resign.plist",
+    "bytes": 184,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      14,
+      20
+    ]
+  },
+  {
+    "name": "simulator-host-entitlements.log",
+    "bytes": 137,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      14,
+      22
+    ]
+  },
+  {
+    "name": "simulator-host-entitlements.plist",
+    "bytes": 0,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      14,
+      22
+    ]
+  },
+  {
+    "name": "simulator-signature-before-resign.log",
+    "bytes": 950,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      14,
+      20
+    ]
+  },
+  {
+    "name": "simulator-signature-verification.log",
+    "bytes": 283,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      14,
+      22
+    ]
+  },
+  {
+    "name": "simulator-signature.log",
+    "bytes": 950,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      14,
+      22
+    ]
+  },
+  {
+    "name": "simulator-signing.log",
+    "bytes": 145,
+    "date_time": [
+      2026,
+      10,
+      31,
+      15,
+      14,
+      20
+    ]
+  },
+  {
+    "name": "source.json",
+    "bytes": 59282,
+    "date_time": [
+      2026,
+      10,
+      31,
+      14,
+      45,
+      42
+    ]
+  },
+  {
+    "name": "toolchain.log",
+    "bytes": 51,
+    "date_time": [
+      2026,
+      10,
+      31,
+      14,
+      45,
+      56
+    ]
+  }
+]

@@ -1,15 +1,6 @@
 import { themedSheet } from '../../theme/useTheme';
 import { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import * as Linking from 'expo-linking';
 import { Feather } from '@expo/vector-icons';
 import { showMessage } from 'react-native-flash-message';
@@ -40,8 +31,8 @@ function extractTokensFromUrl(url: string): {
       const refresh_token = params.get('refresh_token');
       if (access_token && refresh_token) return { access_token, refresh_token };
     }
-  } catch (e) {
-    console.log('[extractTokens] hash error:', e);
+  } catch {
+    console.log('[AuthCallback] Hash parameters could not be read');
   }
   return null;
 }
@@ -54,8 +45,8 @@ function extractCodeFromUrl(url: string): string | null {
       const params = new URLSearchParams(queryString);
       return params.get('code');
     }
-  } catch (e) {
-    console.log('[extractCode] error:', e);
+  } catch {
+    console.log('[AuthCallback] Exchange parameters could not be read');
   }
   return null;
 }
@@ -73,14 +64,14 @@ function extractTokenHashFromUrl(url: string): {
       const type = params.get('type');
       if (token && type) return { tokenHash: token, type };
     }
-  } catch (e) {
-    console.log('[extractTokenHash] error:', e);
+  } catch {
+    console.log('[AuthCallback] Verification parameters could not be read');
   }
   return null;
 }
 
 async function establishSessionFromUrl(url: string): Promise<boolean> {
-  console.log('[AuthCallback] Processing URL:', url);
+  console.log('[AuthCallback] Processing authentication callback');
 
   const tokens = extractTokensFromUrl(url);
   if (tokens) {
@@ -90,7 +81,7 @@ async function establishSessionFromUrl(url: string): Promise<boolean> {
       refresh_token: tokens.refresh_token,
     });
     if (error) {
-      console.log('[AuthCallback] setSession error:', error.message);
+      console.log('[AuthCallback] Session establishment failed');
       return false;
     }
     return true;
@@ -98,13 +89,13 @@ async function establishSessionFromUrl(url: string): Promise<boolean> {
 
   const tokenHash = extractTokenHashFromUrl(url);
   if (tokenHash) {
-    console.log('[AuthCallback] Token hash found, type:', tokenHash.type);
+    console.log('[AuthCallback] Verification token received');
     const { error } = await supabase.auth.verifyOtp({
       token_hash: tokenHash.tokenHash,
       type: tokenHash.type as any,
     });
     if (error) {
-      console.log('[AuthCallback] verifyOtp error:', error.message);
+      console.log('[AuthCallback] Token verification failed');
       return false;
     }
     return true;
@@ -115,7 +106,7 @@ async function establishSessionFromUrl(url: string): Promise<boolean> {
     console.log('[AuthCallback] PKCE code found, exchanging');
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) {
-      console.log('[AuthCallback] exchangeCode error:', error.message);
+      console.log('[AuthCallback] Code exchange failed');
       return false;
     }
     return true;
@@ -170,7 +161,7 @@ export default function AuthCallbackScreen({ navigation }: any) {
         }
 
         const initialUrl = await Linking.getInitialURL();
-        console.log('[AuthCallback] initialURL:', initialUrl || 'NO_INITIAL_URL');
+        console.log(initialUrl ? '[AuthCallback] Initial callback received' : '[AuthCallback] No initial callback');
 
         if (initialUrl) {
           const success = await establishSessionFromUrl(initialUrl);
@@ -196,8 +187,8 @@ export default function AuthCallbackScreen({ navigation }: any) {
         if (!cancelled) {
           setError('Could not establish session. Please request a new link.');
         }
-      } catch (e: any) {
-        console.log('[AuthCallback] error:', e);
+      } catch {
+        console.log('[AuthCallback] Callback processing failed');
         if (!cancelled) {
           setError('Something went wrong. Please try again.');
         }
@@ -207,7 +198,7 @@ export default function AuthCallbackScreen({ navigation }: any) {
     processDeepLink();
 
     const subscription = Linking.addEventListener('url', async ({ url }) => {
-      console.log('[AuthCallback] Warm URL received:', url);
+      console.log('[AuthCallback] Warm callback received');
       const success = await establishSessionFromUrl(url);
       if (success) {
         if (!isPasswordRecovery) {

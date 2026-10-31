@@ -7,7 +7,7 @@
  * Each one loads independently and hides itself when it has nothing, so a
  * young account sees a short honest page rather than three empty headings.
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Hash, Radio } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -21,7 +21,7 @@ type Ch = { id: string; name: string; description: string | null; icon_url: stri
 type Topic = { topic: string; post_count: number };
 
 export function FeaturedChannels() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [rows, setRows] = useState<Ch[]>([]);
 
   useEffect(() => {
@@ -67,7 +67,7 @@ export function FeaturedChannels() {
 }
 
 export function ExploreTopics() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [rows, setRows] = useState<Topic[]>([]);
 
   useEffect(() => {
@@ -105,7 +105,7 @@ export function ExploreTopics() {
 /** Long-form deserves its own row: an article buried in a grid of photos never
  *  gets read, because it cannot compete on thumbnail. */
 export function TopArticles() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [rows, setRows] = useState<FeedRow[]>([]);
 
   useEffect(() => {

@@ -49,8 +49,14 @@ export default function SetupProfileScreen() {
   // Step 1
   const [displayName, setDisplayName] = useState(userFullName);
   const [username, setUsername] = useState('');
-  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
+  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'error'>('idle');
   const usernameTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const usernameRequest = useRef(0);
+  const confirmedUsername = useRef<{ ownerId: string; username: string } | null>(null);
+  const mounted = useRef(true);
+  const [usernameRetry, setUsernameRetry] = useState(0);
+  const ownerId = session?.user?.id || '';
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; usernameRequest.current++; }; }, []);
 
   // Step 2
   const [firstName, setFirstName] = useState('');
@@ -86,26 +92,30 @@ export default function SetupProfileScreen() {
   }, [userFullName]);
 
   useEffect(() => {
-    if (!username || username.length < 2) {
+    const request = ++usernameRequest.current;
+    confirmedUsername.current = null;
+    const clean = username.trim().toLowerCase();
+    if (!ownerId || !/^[a-z0-9_]{3,30}$/.test(clean)) {
       setUsernameStatus('idle');
       return;
     }
     setUsernameStatus('checking');
     if (usernameTimer.current) clearTimeout(usernameTimer.current);
     usernameTimer.current = setTimeout(async () => {
+      const current = () => mounted.current && usernameRequest.current === request && useAuthStore.getState().session?.user.id === ownerId;
+      if (!current()) return;
       try {
-        const { data } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('username', username.toLowerCase())
-          .maybeSingle();
-        setUsernameStatus(data ? 'taken' : 'available');
+        const { data, error } = await supabase.rpc('is_username_available', { p_username: clean });
+        if (!current()) return;
+        if (error || typeof data !== 'boolean') { setUsernameStatus('error'); return; }
+        confirmedUsername.current = data ? { ownerId, username: clean } : null;
+        setUsernameStatus(data ? 'available' : 'taken');
       } catch {
-        setUsernameStatus('idle');
+        if (current()) setUsernameStatus('error');
       }
     }, 500);
-    return () => { if (usernameTimer.current) clearTimeout(usernameTimer.current); };
-  }, [username]);
+    return () => { usernameRequest.current++; if (usernameTimer.current) clearTimeout(usernameTimer.current); };
+  }, [username, ownerId, usernameRetry]);
 
   async function handlePickAvatar() {
     try {
@@ -117,16 +127,21 @@ export default function SetupProfileScreen() {
   }
 
   function handleContinueToStep2() {
-    if (!username || username.length < 2) {
-      showMessage({ message: 'Pick a username (at least 2 characters)', type: 'warning' });
+    if (!ownerId || useAuthStore.getState().session?.user.id !== ownerId) return;
+    if (!/^[a-z0-9_]{3,30}$/.test(username.trim().toLowerCase())) {
+      showMessage({ message: 'Use 3–30 letters, numbers or underscores for your username.', type: 'warning' });
       return;
     }
     if (usernameStatus === 'taken') {
-      showMessage({ message: 'That username is taken', type: 'warning' });
+      showMessage({ message: 'That username is unavailable. Choose another.', type: 'warning' });
       return;
     }
     if (usernameStatus === 'checking') {
       showMessage({ message: 'Checking username, please wait', type: 'info' });
+      return;
+    }
+    if (usernameStatus !== 'available' || confirmedUsername.current?.ownerId !== ownerId || confirmedUsername.current?.username !== username.trim().toLowerCase()) {
+      showMessage({ message: 'Check username availability before continuing.', type: 'warning' });
       return;
     }
     setStep(2);
@@ -143,7 +158,10 @@ export default function SetupProfileScreen() {
     }
 
     const userId = session?.user?.id;
-    if (!userId) return;
+    if (!userId || useAuthStore.getState().session?.user.id !== userId) return;
+    if (usernameStatus !== 'available' || confirmedUsername.current?.ownerId !== userId || confirmedUsername.current?.username !== username.trim().toLowerCase() || !/^[a-z0-9_]{3,30}$/.test(username.trim().toLowerCase())) {
+      setStep(1); showMessage({ message: 'Confirm an available username before saving.', type: 'warning' }); return;
+    }
 
     setSaving(true);
     try {
@@ -166,7 +184,9 @@ export default function SetupProfileScreen() {
       }
 
       await authService.updateProfile(userId, updates);
+      if (!mounted.current || useAuthStore.getState().session?.user.id !== userId) return;
       await refreshProfile();
+      if (!mounted.current || useAuthStore.getState().session?.user.id !== userId) return;
 
       showMessage({
         message: 'Profile created',
@@ -175,9 +195,9 @@ export default function SetupProfileScreen() {
         duration: 3000,
       });
     } catch (err: any) {
-      showMessage({ message: err?.message ?? 'Failed to save profile', type: 'danger' });
+      if (mounted.current && useAuthStore.getState().session?.user.id === userId) showMessage({ message: err?.message ?? 'Failed to save profile', type: 'danger' });
     } finally {
-      setSaving(false);
+      if (mounted.current) setSaving(false);
     }
   }
 
@@ -238,18 +258,20 @@ export default function SetupProfileScreen() {
               <TextInput
                 style={s.input}
                 value={username}
-                onChangeText={(t) => setUsername(t.replace(/[^a-zA-Z0-9_]/g, '').toLowerCase())}
+                onChangeText={(t) => { confirmedUsername.current = null; setUsername(t.replace(/[^a-zA-Z0-9_]/g, '').toLowerCase()); }}
                 placeholder="username"
                 placeholderTextColor={GRAY_400}
                 autoCapitalize="none"
                 autoCorrect={false}
+                maxLength={30}
               />
               {usernameStatus === 'checking' && <ActivityIndicator size={14} color={GRAY_400} style={s.usernameIndicator} />}
               {usernameStatus === 'available' && <Feather name="check-circle" size={16} color={GREEN_500} style={s.usernameIndicator} />}
               {usernameStatus === 'taken' && <Feather name="x-circle" size={16} color={RED_500} style={s.usernameIndicator} />}
             </View>
             {usernameStatus === 'available' && <Text style={s.usernameAvailable}>Available</Text>}
-            {usernameStatus === 'taken' && <Text style={s.usernameTaken}>That username is taken</Text>}
+            {usernameStatus === 'taken' && <Text style={s.usernameTaken}>That username is unavailable. Choose another.</Text>}
+            {usernameStatus === 'error' && <View accessibilityRole="alert"><Text style={s.usernameTaken}>Availability could not be checked.</Text><TouchableOpacity accessibilityRole="button" onPress={() => setUsernameRetry(value => value + 1)} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={s.usernameTaken}>Check again</Text></TouchableOpacity></View>}
 
             <TouchableOpacity
               style={[s.primaryBtn, isASU && s.primaryBtnASU, { marginTop: 20 }]}

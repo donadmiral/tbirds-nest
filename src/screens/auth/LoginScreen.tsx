@@ -1,5 +1,6 @@
 import { themedSheet } from '../../theme/useTheme';
 import { useSafeAreaInsets } from '../../components/SafeArea';
+import AccountErasureStatus from '../../components/AccountErasureStatus';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
@@ -387,6 +388,7 @@ export default function LoginScreen({ navigation }: any) {
             </TouchableOpacity>
           </Animated.View>
 
+          <AccountErasureStatus />
           <View style={d.footer}>
             <TouchableOpacity onPress={() => navigation.navigate('SignUp')} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8 }}>
               <Text style={d.link}>New here? <Text style={d.linkStrong}>Create an account</Text></Text>

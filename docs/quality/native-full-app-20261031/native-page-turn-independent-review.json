@@ -1,0 +1,171 @@
+{
+  "schemaVersion": 1,
+  "reviewedBy": "hosted_backend",
+  "reviewedAt": "2026-10-31T17:24:08.086224+00:00",
+  "status": "accepted_frozen_local_candidate",
+  "publishedApplicationHead": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+  "scope": "Independent read-only review of the native MemoryPageTurn completion repair and one focused test execution. No source, ref, provider, workflow, timeout, or acceptance-gate edits.",
+  "candidate": {
+    "component": {
+      "path": "src/components/memory/MemoryPageTurn.tsx",
+      "sha256": "ddf7a604b0a6ecdd1b75910ff393a76c0404bb66ce19c52f0e4597731a502881"
+    },
+    "test": {
+      "path": "tests/quality/memory-page-turn.cjs",
+      "sha256": "dc56fe7ee45c59ca07d0d8271d2bab199ddaee7c553b79a4f1ef03b075850a58"
+    },
+    "allEightBoundInputsUnchangedBeforeAfter": true,
+    "unchangedFromPublished": [
+      "shared/memoryBookTurn.ts",
+      "shared/memoryBookDesign.ts",
+      "web/components/memory/MemoryPageTurn.tsx"
+    ]
+  },
+  "conclusion": {
+    "blockingFindings": [],
+    "sourceLevelRiskReproduced": "Without a delivered native animation callback, the former settle path could leave turn nonnull, accessibility hidden, and navigation controls disabled indefinitely. The owner retained three actual-component behavioral failures before the repair.",
+    "runtimeAttribution": "The b5 iPhone journey failed during initial Open book, before Next/Previous/swipe turns executed. This is an independently reproduced adjacent completion-contract risk, not a diagnosis of that run."
+  },
+  "reviewFindings": [
+    {
+      "topic": "One completion owner",
+      "finding": "Native completion and the JS duration callback share the same done/dispose closure. The first terminal path clears the timer and retires pendingSettlement; repeated or late success/interruption callbacks do not commit twice."
+    },
+    {
+      "topic": "Synchronous interruption",
+      "finding": "The fallback retires its closure before calling progress.stopAnimation. Pinned RN TimingAnimation.stop synchronously notifies finished:false; the retired callback cannot cancel the chosen terminal result. Explicit cancellation similarly retires before stopping/resetting native work.",
+      "sourceReferences": [
+        "node_modules/react-native/Libraries/Animated/animations/TimingAnimation.js:166-172",
+        "node_modules/react-native/Libraries/Animated/nodes/AnimatedValue.js:195-199,262-265"
+      ]
+    },
+    {
+      "topic": "Committed lifecycle",
+      "finding": "Identity/index sync, active=false, geometry/reduced-motion changes and live unmount cleanup use layout effects. Timer ownership is removed at those committed lifecycle boundaries, before a delayed passive cleanup could allow an invalidated completion."
+    },
+    {
+      "topic": "Content identity",
+      "finding": "JSON.stringify(pageIds) is collision-safe for the declared string-array input; JSON.parse supplies a matching immutable content snapshot to machine.sync. Equivalent arrays leave dependencies stable and preserve the pending turn. Distinct arrays such as [a|b,c] versus [a,b|c] invalidate it."
+    },
+    {
+      "topic": "Existing duration",
+      "finding": "Both native timing and the fallback use the same memoryTurnDuration result. The shared file is unchanged: reduced motion is zero, otherwise max(120, round(560 * remaining progress)). No extra grace interval, deadline widening, or global timer/animation override was added."
+    },
+    {
+      "topic": "Interruption and acknowledgement",
+      "finding": "A native finished:false delivered first cancels and unlocks. A duration completion chosen first ignores later native results. A committed turn remains locked in the existing state machine until the parent acknowledges the new index; no rapid duplicate page advance is allowed."
+    },
+    {
+      "topic": "Media and accessibility",
+      "finding": "The existing single live media child and static adjacent previews remain intact. Cancelled settle restores pointer/accessibility state; successful settle unlocks after parent index acknowledgement. Reduced-motion taps still commit without a native timed turn."
+    },
+    {
+      "topic": "Change scope",
+      "finding": "Production diff is limited to the native component completion/lifecycle/identity implementation. Shared rules, preview design logic and web implementation match the published source. The parent reader remains responsible for book key, active route/modal conditions and committed index."
+    }
+  ],
+  "independentExecution": {
+    "command": [
+      "env",
+      "-u",
+      "NODE_TEST_CONTEXT",
+      "node",
+      "--test",
+      "--test-isolation=none",
+      "--test-reporter=tap",
+      "tests/quality/memory-page-turn.cjs"
+    ],
+    "startedAt": "2026-10-31T17:23:15.732407+00:00",
+    "completedAt": "2026-10-31T17:23:16.527581+00:00",
+    "nodeVersion": "v24.22.1",
+    "exitCode": 0,
+    "counts": {
+      "tests": 30,
+      "pass": 30,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "reportedDurationMs": 748.000039,
+    "wallSeconds": 0.795182392001152,
+    "scope": "Only tests/quality/memory-page-turn.cjs was executed; no broad suite, provider call, simulator or CI rerun."
+  },
+  "regressionEvidence": {
+    "ownerRunsInspected": [
+      {
+        "stage": "owner original withheld-callback baseline",
+        "ownerTemporaryPath": "/tmp/native-page-turn-before-fix.tap",
+        "bytes": 8463,
+        "sha256": "4187dccb8f6baa3342e94b8cffd7c778574f55debe97d8425ba42af4079fd66c",
+        "counts": {
+          "tests": 25,
+          "pass": 22,
+          "fail": 3,
+          "cancelled": 0,
+          "skipped": 0
+        },
+        "independentlyRerunHere": false
+      },
+      {
+        "stage": "owner interim candidate before committed-lifecycle and collision fixes",
+        "ownerTemporaryPath": "/tmp/native-page-turn-review-regressions.tap",
+        "bytes": 11361,
+        "sha256": "69ea19b7d893d460b44adb98d84251a7e20b24011688c06831d5df1e87935b06",
+        "counts": {
+          "tests": 30,
+          "pass": 25,
+          "fail": 5,
+          "cancelled": 0,
+          "skipped": 0
+        },
+        "independentlyRerunHere": false
+      },
+      {
+        "stage": "owner final candidate",
+        "ownerTemporaryPath": "/tmp/native-page-turn-after-fix.tap",
+        "bytes": 6965,
+        "sha256": "fef56edf45b0bd1f7b606d9b57b6ff1daf44cf04af4e3347949a1e8d697c5fc3",
+        "counts": {
+          "tests": 30,
+          "pass": 30,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0
+        },
+        "independentlyRerunHere": false
+      }
+    ],
+    "coveredCases": [
+      "withheld native completion for a tap",
+      "native success/interruption winning before the duration",
+      "cancelled and committed swipe settlement without a native callback",
+      "late and duplicate native callbacks",
+      "explicit cancellation and parent index acknowledgement",
+      "route inactivity, resize, reduced-motion change and unmount before passive cleanup",
+      "book replacement and delimiter-collision identities",
+      "equivalent page-array refresh preserving the current turn",
+      "single live media child, authorized preview media and existing web/machine behavior"
+    ]
+  },
+  "limits": [
+    "The actual TSX component and shared rules execute through a controlled React-hook/native-host harness. The test does not run React Native, Hermes, UIKit/Android animation engines or a physical device.",
+    "Manual layout/passive scheduling demonstrates the reproduced committed-cleanup race; it is not a complete concurrent React scheduler.",
+    "The fallback cannot run while JavaScript is blocked, and therefore does not establish an absolute wall-clock upper bound or explain delayed b5 native event delivery.",
+    "At the intended duration, a runnable JS fallback may logically finish before a delayed native completion is delivered. That is the deliberate first-result contract, not proof the visual animation finished on time.",
+    "The existing callback ref publication and parent authentication/navigation lifecycle are not redesigned by this repair. No broader account/session acceptance is inferred.",
+    "Pinned installed RN source hashes identify the code read during review; this test is not a final app-binary attestation."
+  ],
+  "retainedFiles": [
+    {
+      "path": "docs/quality/native-full-app-20261031/native-page-turn-independent-review/focused-tests.tap",
+      "bytes": 6967,
+      "sha256": "79c746267631bbd886f42f295823bb297bb10ff0e9218106edd2ffd740e45aaa"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-page-turn-independent-review/execution.json",
+      "bytes": 2628,
+      "sha256": "e047091ed62ab9303f2724f477e858a61670956054811e85f8159c0441c7fa8b"
+    }
+  ]
+}

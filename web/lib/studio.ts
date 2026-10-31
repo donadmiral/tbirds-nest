@@ -34,6 +34,10 @@ export const ROOMS = [
   { key: "content", href: "/studio/content", label: "Content", ready: true },
   { key: "insights", href: "/studio/insights", label: "Insights", ready: true },
   { key: "planner", href: "/studio/planner", label: "Planner", ready: true },
+  { key: "newsroom", href: "/studio/newsroom", label: "Newsroom", ready: true },
+  { key: "partnerships", href: "/studio/partnerships", label: "Partnerships", ready: true },
+  { key: "earnings", href: "/studio/earnings", label: "Earnings", ready: true },
+  { key: "team", href: "/studio/team", label: "Team", ready: true },
   { key: "inbox", href: "/studio/inbox", label: "Inbox", ready: true },
   { key: "recruiter", href: "/studio/recruiter", label: "Recruiter", ready: true },
   { key: "commerce", href: "/studio/commerce", label: "Commerce", ready: true },
@@ -47,11 +51,11 @@ export const ROOMS = [
 // room hides itself.
 export const GROUPS: { label: string; keys: string[] }[] = [
   { label: "", keys: ["home"] },
-  { label: "Create and manage", keys: ["content", "planner"] },
+  { label: "Create and manage", keys: ["content", "planner", "newsroom"] },
   { label: "Engage", keys: ["inbox", "audience", "reviews"] },
-  { label: "Grow", keys: ["insights", "ads"] },
-  { label: "Operate", keys: ["commerce", "recruiter"] },
-  { label: "Manage", keys: ["settings"] },
+  { label: "Grow", keys: ["insights", "ads", "partnerships"] },
+  { label: "Operate", keys: ["commerce", "recruiter", "earnings"] },
+  { label: "Manage", keys: ["team", "settings"] },
 ];
 
 export const ROLE_CAN: Record<string, StudioRole[]> = {

@@ -1,3 +1,4 @@
+import { serveBusinessRequest } from '../_shared/serveBusinessRequest.ts';
 // supabase/functions/create-business/index.ts
 //
 // Creates a business as its own profiles row, backed by a shadow auth user that
@@ -8,8 +9,7 @@
 // business can only be created by a real signed-in person.
 //
 // deno-lint-ignore-file no-explicit-any
-import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -24,7 +24,7 @@ function json(status: number, body: unknown) {
   });
 }
 
-serve(async (req) => {
+serveBusinessRequest(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json(405, { error: "Use POST" });
 

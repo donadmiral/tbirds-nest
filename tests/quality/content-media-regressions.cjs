@@ -103,11 +103,12 @@ test('canonical reshares remove signed tokens from nested objects and Markdown b
 });
 test('owner upload hydration uses the separate server ownership manifest and never persists previews', async () => {
   const calls=[];
-  const client={auth:{getUser:async()=>({data:{user:{id}},error:null}),getSession:async()=>({data:{session:{access_token:"test-token",user:{id}}},error:null})},functions:{invoke:async(name,{body})=>{calls.push(body);return{data:{urls:[{key:`post-media/${id}/photo.jpg`,url:signed}],expiresAt:Date.now()+300000},error:null};}}};
+  const delivered=`${base}/functions/v1/media-content/post-media/${id}/photo.jpg?token=${'a'.repeat(64)}`;
+  const client={auth:{getUser:async()=>({data:{user:{id}},error:null}),getSession:async()=>({data:{session:{access_token:"test-token",user:{id}}},error:null})},functions:{invoke:async(name,{body})=>{calls.push(body);return{data:{urls:[{key:`post-media/${id}/photo.jpg`,url:delivered}],expiresAt:Date.now()+300000},error:null};}}};
   const original={body:`![Photo](${raw})`};
   const [result]=await media.hydrateOwnerUploadMedia(client,base,[original]);
-  assert.deepEqual(plain(calls),[{uploads:[raw]}]);
-  assert.equal(result.body,`![Photo](${signed})`);
+  assert.deepEqual(plain(calls),[{uploads:[raw],delivery:'no-store'}]);
+  assert.equal(result.body,`![Photo](${delivered})`);
   assert.equal(original.body,`![Photo](${raw})`);
 });
 test('upload requests cannot bypass authenticated owner authorization or mix modes', async () => {

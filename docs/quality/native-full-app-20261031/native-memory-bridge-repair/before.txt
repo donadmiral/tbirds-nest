@@ -1,0 +1,175 @@
+✔ private downloads stream in bounded writes and dispose only their own workspace (119.338761ms)
+✔ unknown-length downloads enforce the byte ceiling before a chunk reaches disk (36.290631ms)
+✔ cancelling a blocked media reader closes it and removes the partial file (36.447703ms)
+✔ foreign links and unapproved public objects never start a download (30.735478ms)
+✔ local copies validate size and retain their source through export cleanup (32.015967ms)
+✔ a low-space constructor allocates no workspace and timed steps release their listener (24.551719ms)
+✖ optional scene fields are omitted at the native boundary without mutating the caller (15.052269ms)
+✖ present native movie artwork and audio preserve zero, false and the exact timeline (13.10001ms)
+✖ nullable absent native movie options cannot leak into nested Android values (11.449045ms)
+✖ native result verification uses the submitted request snapshot after caller edits (14.363463ms)
+✖ cancellation keeps the submitted native job identity after caller replacement (12.090942ms)
+✔ whole-book capability requires the complete supported native contract on each phone platform (100.82066ms)
+✔ invalid scene and normalized-image acknowledgements cannot become saved files (9.747776ms)
+✔ abort reaches the native job and rejects a late successful encoder response (8.800429ms)
+✔ pre-aborted exports and unavailable builds never invoke native encoding (17.170623ms)
+✔ unimplemented animated native artwork cannot silently export as a static layer (8.520476ms)
+✖ actual native preparation reaches the real bridge with a representable movie request (145.617276ms)
+✔ native preparation captures writing and every artwork layer from authorized private sources (98.880675ms)
+✔ capture errors and revoked artwork links fail the whole native preparation and clean temporary bytes (175.228677ms)
+✔ cancelling during capture cannot submit a partial native scene and removes captured files (96.239505ms)
+✔ reduced-motion preparation emits a still transform and zero fade in the actual native request (79.436616ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 15
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1110.000987
+
+✖ failing tests:
+
+test at tests/quality/native-memory-export.cjs:139:1
+✖ optional scene fields are omitted at the native boundary without mutating the caller (15.052269ms)
+  Error: Unsupported native bridge value at request.scenes.0.backgroundUri
+      at requireNativeValues (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-export.cjs:135:57)
+      at requireNativeValues (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-export.cjs:136:53)
+      at requireNativeValues (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-export.cjs:136:53)
+      at requireNativeValues (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-export.cjs:136:53)
+      at f.native.composeMemoryMovie (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-export.cjs:145:7)
+      at Object.composeMemoryMovie (evalmachine.<anonymous>:42:37)
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-export.cjs:148:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+
+test at tests/quality/native-memory-export.cjs:159:1
+✖ present native movie artwork and audio preserve zero, false and the exact timeline (13.10001ms)
+  AssertionError [ERR_ASSERTION]: Expected "actual" not to be reference-equal to "expected":
+  
+  {
+    height: 1280,
+    id: 'memory-request-1',
+    outputUri: 'file:///cache/pc-memory-export-test.mp4',
+    scenes: [
+      {
+        audio: {
+          duration: 2,
+          loop: false,
+          start: 0,
+          uri: 'file:///cache/page.m4a',
+          volume: 0
+        },
+        backgroundUri: 'file:///cache/background.png',
+        id: 'scene-first-1',
+        inputKind: 'image',
+        inputUri: 'file:///cache/one.png',
+        layers: [
+          {
+            end: 2,
+            start: 0,
+            uri: 'file:///cache/writing.png'
+          }
+        ],
+        motion: {
+          fromScale: 1,
+          toScale: 1,
+          x: 0,
+          y: 0
+        },
+        recipe: {
+          fit: 'contain',
+          height: 1280,
+          matrix: [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+  ...
+  
+      at f.native.composeMemoryMovie (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-export.cjs:167:12)
+      at Object.composeMemoryMovie (evalmachine.<anonymous>:42:37)
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-export.cjs:174:25)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [Object],
+    expected: [Object],
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-memory-export.cjs:177:1
+✖ nullable absent native movie options cannot leak into nested Android values (11.449045ms)
+  Error: Unsupported native bridge value at request.scenes.0.backgroundUri
+      at requireNativeValues (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-export.cjs:135:57)
+      at requireNativeValues (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-export.cjs:136:53)
+      at requireNativeValues (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-export.cjs:136:53)
+      at requireNativeValues (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-export.cjs:136:53)
+      at f.native.composeMemoryMovie (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-export.cjs:181:5)
+      at Object.composeMemoryMovie (evalmachine.<anonymous>:42:37)
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-export.cjs:184:11)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+
+test at tests/quality/native-memory-export.cjs:187:1
+✖ native result verification uses the submitted request snapshot after caller edits (14.363463ms)
+  Error: The exported memory movie could not be verified. No file was saved.
+      at validateMemoryMovieResult (evalmachine.<anonymous>:52:15)
+      at Object.composeMemoryMovie (evalmachine.<anonymous>:45:71)
+      at async TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-export.cjs:195:27)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+
+test at tests/quality/native-memory-export.cjs:198:1
+✖ cancellation keeps the submitted native job identity after caller replacement (12.090942ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      [
+        'cancel',
+  +     'replacement-job'
+  -     'memory-request-1'
+      ]
+    ]
+  
+      at TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-export.cjs:205:51)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [Array],
+    expected: [Array],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at tests/quality/native-memory-export.cjs:270:1
+✖ actual native preparation reaches the real bridge with a representable movie request (145.617276ms)
+  Error: Unsupported native bridge value at request.scenes.0.backgroundUri
+      at requireNativeValues (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-export.cjs:135:57)
+      at requireNativeValues (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-export.cjs:136:53)
+      at requireNativeValues (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-export.cjs:136:53)
+      at requireNativeValues (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-export.cjs:136:53)
+      at Object.composeMemoryMovie (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-export.cjs:257:46)
+      at composeMemoryMovie (evalmachine.<anonymous>:42:37)
+      at Object.exportNativeMemoryMovie (evalmachine.<anonymous>:223:73)
+      at async TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-export.cjs:272:17)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7)

@@ -1,0 +1,124 @@
+TAP version 13
+# Subtest: android actual adapter reads only the registered packaged asset 1
+ok 1 - android actual adapter reads only the registered packaged asset 1
+  ---
+  duration_ms: 411.922324
+  type: 'test'
+  ...
+# Subtest: android actual adapter reads only the registered packaged asset 2
+ok 2 - android actual adapter reads only the registered packaged asset 2
+  ---
+  duration_ms: 6.346582
+  type: 'test'
+  ...
+# Subtest: android actual adapter reads only the registered packaged asset 3
+ok 3 - android actual adapter reads only the registered packaged asset 3
+  ---
+  duration_ms: 6.131855
+  type: 'test'
+  ...
+# Subtest: ios actual adapter reads only the registered packaged asset 1
+ok 4 - ios actual adapter reads only the registered packaged asset 1
+  ---
+  duration_ms: 5.568164
+  type: 'test'
+  ...
+# Subtest: ios actual adapter reads only the registered packaged asset 2
+ok 5 - ios actual adapter reads only the registered packaged asset 2
+  ---
+  duration_ms: 4.856955
+  type: 'test'
+  ...
+# Subtest: ios actual adapter reads only the registered packaged asset 3
+ok 6 - ios actual adapter reads only the registered packaged asset 3
+  ---
+  duration_ms: 4.171194
+  type: 'test'
+  ...
+# Subtest: unissued media and forbidden request options cannot reach asset delivery
+ok 7 - unissued media and forbidden request options cannot reach asset delivery
+  ---
+  duration_ms: 5.555245
+  type: 'test'
+  ...
+# Subtest: remote and arbitrary asset schemes are rejected before the native resource API
+ok 8 - remote and arbitrary asset schemes are rejected before the native resource API
+  ---
+  duration_ms: 20.811591
+  type: 'test'
+  ...
+# Subtest: materialized file scheme, presence and byte bounds still fail closed
+ok 9 - materialized file scheme, presence and byte bounds still fail closed
+  ---
+  duration_ms: 18.088665
+  type: 'test'
+  ...
+# Subtest: real adapter cancellation closes a held second chunk exactly once
+ok 10 - real adapter cancellation closes a held second chunk exactly once
+  ---
+  duration_ms: 5.817372
+  type: 'test'
+  ...
+# Subtest: actual QA capture link resets navigator routes while retaining the app runtime and cumulative receipt
+ok 11 - actual QA capture link resets navigator routes while retaining the app runtime and cumulative receipt
+  ---
+  duration_ms: 17.208566
+  type: 'test'
+  ...
+# Subtest: noncapture links preserve the installed default action semantics
+ok 12 - noncapture links preserve the installed default action semantics
+  ---
+  duration_ms: 2.180076
+  type: 'test'
+  ...
+# Subtest: a similar route name, wrong path or multiroute state cannot use the capture-only route replacement
+ok 13 - a similar route name, wrong path or multiroute state cannot use the capture-only route replacement
+  ---
+  duration_ms: 1.41661
+  type: 'test'
+  ...
+# Subtest: actual Android Daily timer replacement leaves the earlier SDK acquisition timeout alive after fulfilled auth
+ok 14 - actual Android Daily timer replacement leaves the earlier SDK acquisition timeout alive after fulfilled auth
+  ---
+  duration_ms: 4.59653
+  type: 'test'
+  ...
+# Subtest: actual production entry initializes Daily once before auth and the SDK cancels its original acquisition timeout
+ok 15 - actual production entry initializes Daily once before auth and the SDK cancels its original acquisition timeout
+  ---
+  duration_ms: 7.833326
+  type: 'test'
+  ...
+# Subtest: actual QA entry installs its guarded transports before Daily and initializes timers before linking or App auth
+ok 16 - actual QA entry installs its guarded transports before Daily and initializes timers before linking or App auth
+  ---
+  duration_ms: 9.808259
+  type: 'test'
+  ...
+# Subtest: production or real-provider QA configuration cannot initialize Daily or app auth
+ok 17 - production or real-provider QA configuration cannot initialize Daily or app auth
+  ---
+  duration_ms: 23.449853
+  type: 'test'
+  ...
+# Subtest: actual iOS Daily entry does not replace timer registries during an existing SDK acquisition
+ok 18 - actual iOS Daily entry does not replace timer registries during an existing SDK acquisition
+  ---
+  duration_ms: 1.69503
+  type: 'test'
+  ...
+# Subtest: bootstrapped actual SDK lock still excludes work and rejects at its configured 5000 ms acquisition deadline
+ok 19 - bootstrapped actual SDK lock still excludes work and rejects at its configured 5000 ms acquisition deadline
+  ---
+  duration_ms: 2.920659
+  type: 'test'
+  ...
+1..19
+# tests 19
+# suites 0
+# pass 19
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 870.187879

@@ -1,0 +1,417 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-30T04:51:23.012679+00:00",
+  "status": "passed_final_local_gates_with_explicit_feature_variant_skips",
+  "repository": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+  "branch": "codex/app-quality-20261029",
+  "head": "32ee0a5373dd5ebcddae92ca5145f9bf7293c9c9",
+  "uncommitted_changes_included": true,
+  "node_version": "v24.22.1",
+  "software_versions": {
+    "typescript_native": "5.9.3",
+    "typescript_web": "5.9.3",
+    "typescript_admin": "5.9.3",
+    "next_web": "16.4.3",
+    "next_admin": "16.4.3",
+    "pglite": "0.5.10"
+  },
+  "final_source_sha256": "7e092ad5f8893f9ae6133a1508469f3c0a05739137014311cb2b6afca1b7e796",
+  "final_source_file_count": 1749,
+  "final_source_manifest": "manifests/source-7e092ad5f8893f9ae6133a1508469f3c0a05739137014311cb2b6afca1b7e796.json",
+  "final_client_gate_source_stable": true,
+  "gates": [
+    {
+      "gate": "tsc-native",
+      "receipt": "gates/tsc-native.json",
+      "receipt_sha256": "ee7e13506def87c32aa0f2ece1b50b287da360d6ba7abde6816c53c52cff2cf7",
+      "started_at": "2026-10-30T04:35:34.773159+00:00",
+      "completed_at": "2026-10-30T04:36:05.931533+00:00",
+      "processes": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0
+      },
+      "reported_case_totals": null,
+      "uncounted_successful_programs": [],
+      "source_file_count": 637,
+      "before_source_sha256": "668d7fbd89b16fb24f5501c252ef44ab85b35cb0661c273833912a8db39cfe77",
+      "after_source_sha256": "668d7fbd89b16fb24f5501c252ef44ab85b35cb0661c273833912a8db39cfe77",
+      "source_changed_during_run": []
+    },
+    {
+      "gate": "tsc-web",
+      "receipt": "gates/tsc-web.json",
+      "receipt_sha256": "2df02b5abbd0baa8c32eab9488038ed7d0d5849ac4b61caab00ad756663adbdb",
+      "started_at": "2026-10-30T04:35:34.787488+00:00",
+      "completed_at": "2026-10-30T04:35:59.641640+00:00",
+      "processes": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0
+      },
+      "reported_case_totals": null,
+      "uncounted_successful_programs": [],
+      "source_file_count": 557,
+      "before_source_sha256": "a733cad07a320bb1943eea827ec46dd0c52ab56c59862869b8df35c8bb125b15",
+      "after_source_sha256": "a733cad07a320bb1943eea827ec46dd0c52ab56c59862869b8df35c8bb125b15",
+      "source_changed_during_run": []
+    },
+    {
+      "gate": "tsc-admin",
+      "receipt": "gates/tsc-admin.json",
+      "receipt_sha256": "90bc246faccaf226c371a69effda51368a8594303cef9644e4a5aad8cda4bc67",
+      "started_at": "2026-10-30T04:35:34.787543+00:00",
+      "completed_at": "2026-10-30T04:35:36.834986+00:00",
+      "processes": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0
+      },
+      "reported_case_totals": null,
+      "uncounted_successful_programs": [],
+      "source_file_count": 282,
+      "before_source_sha256": "e6c336b6bf470cf94646a570151cbeed0e0346a184f9991833f4f362e35aa26c",
+      "after_source_sha256": "e6c336b6bf470cf94646a570151cbeed0e0346a184f9991833f4f362e35aa26c",
+      "source_changed_during_run": []
+    },
+    {
+      "gate": "native-regressions",
+      "receipt": "gates/native-regressions.json",
+      "receipt_sha256": "599621e4fc13cba2a3449ac25bcf837eceaf358f6700d5992237dd020390d1cc",
+      "started_at": "2026-10-30T04:35:39.552616+00:00",
+      "completed_at": "2026-10-30T04:36:26.651700+00:00",
+      "processes": {
+        "total": 127,
+        "passed": 127,
+        "failed": 0
+      },
+      "reported_case_totals": {
+        "tests": 1194,
+        "pass": 1194,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "uncounted_successful_programs": [],
+      "source_file_count": 1749,
+      "before_source_sha256": "7e092ad5f8893f9ae6133a1508469f3c0a05739137014311cb2b6afca1b7e796",
+      "after_source_sha256": "7e092ad5f8893f9ae6133a1508469f3c0a05739137014311cb2b6afca1b7e796",
+      "source_changed_during_run": []
+    },
+    {
+      "gate": "web-regressions",
+      "receipt": "gates/web-regressions.json",
+      "receipt_sha256": "36e29746f1bc4e7d15e1c6b23fb7385a3cf35d475dbeadc0e6fd73d309f4a08a",
+      "started_at": "2026-10-30T04:35:37.690820+00:00",
+      "completed_at": "2026-10-30T04:36:05.869530+00:00",
+      "processes": {
+        "total": 54,
+        "passed": 54,
+        "failed": 0
+      },
+      "reported_case_totals": {
+        "tests": 607,
+        "pass": 607,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "uncounted_successful_programs": [
+        "tests/studio-presentation.cjs",
+        "tests/studio-regressions.cjs"
+      ],
+      "source_file_count": 557,
+      "before_source_sha256": "a733cad07a320bb1943eea827ec46dd0c52ab56c59862869b8df35c8bb125b15",
+      "after_source_sha256": "a733cad07a320bb1943eea827ec46dd0c52ab56c59862869b8df35c8bb125b15",
+      "source_changed_during_run": []
+    },
+    {
+      "gate": "admin-regressions",
+      "receipt": "gates/admin-regressions.json",
+      "receipt_sha256": "64f721f7c5324d637bf3385cd87104a9776f755aa07ccf6b8d313c5f3a1b677c",
+      "started_at": "2026-10-30T04:35:38.370076+00:00",
+      "completed_at": "2026-10-30T04:35:51.056097+00:00",
+      "processes": {
+        "total": 20,
+        "passed": 20,
+        "failed": 0
+      },
+      "reported_case_totals": {
+        "tests": 155,
+        "pass": 155,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "uncounted_successful_programs": [
+        "tests/payment-reporting.cjs"
+      ],
+      "source_file_count": 282,
+      "before_source_sha256": "e6c336b6bf470cf94646a570151cbeed0e0346a184f9991833f4f362e35aa26c",
+      "after_source_sha256": "e6c336b6bf470cf94646a570151cbeed0e0346a184f9991833f4f362e35aa26c",
+      "source_changed_during_run": [],
+      "additional_assertion_programs": [
+        {
+          "command": [
+            "node",
+            "tests/payment-reporting.cjs"
+          ],
+          "reported_assertions_passed": 13,
+          "log_path": "/tmp/platinum-final-verification/admin-regressions__admin-web__tests__payment-reporting.cjs.log",
+          "log_sha256": "29a1ee60dc64e58ea8066051cac780009a1c13ef84a9284e4acb671c85e35d29"
+        }
+      ]
+    },
+    {
+      "gate": "rpc-authorization",
+      "receipt": "gates/rpc-authorization.json",
+      "receipt_sha256": "21f761d561d86439511f8b5f7a157f88f4ba0599bc0aad41d4ad97e59ef77a3a",
+      "started_at": "2026-10-30T04:11:29.728574+00:00",
+      "completed_at": "2026-10-30T04:14:11.397384+00:00",
+      "processes": {
+        "total": 1,
+        "passed": 1,
+        "failed": 0
+      },
+      "reported_case_totals": {
+        "tests": 667,
+        "pass": 666,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 1,
+        "todo": 0
+      },
+      "uncounted_successful_programs": [],
+      "source_file_count": 621,
+      "before_source_sha256": "319596a1b892015e32b1e80a6214fa3e5d250da36ea5b621a8730241edfdfca3",
+      "after_source_sha256": "a26544b724808ada500ed997bcab3cfea806061ead42e3e998610b28023d2de9",
+      "source_changed_during_run": [
+        "tests/quality/business-session-clients.cjs"
+      ]
+    },
+    {
+      "gate": "supabase-node",
+      "receipt": "gates/supabase-node.json",
+      "receipt_sha256": "3360a550c7ec3aca79b1a5d74d9ecf92227048a4206281bce49ac538f03fea83",
+      "started_at": "2026-10-30T04:11:28.355586+00:00",
+      "completed_at": "2026-10-30T04:12:47.056095+00:00",
+      "processes": {
+        "total": 28,
+        "passed": 28,
+        "failed": 0
+      },
+      "reported_case_totals": {
+        "tests": 296,
+        "pass": 293,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 3,
+        "todo": 0
+      },
+      "uncounted_successful_programs": [],
+      "source_file_count": 621,
+      "before_source_sha256": "319596a1b892015e32b1e80a6214fa3e5d250da36ea5b621a8730241edfdfca3",
+      "after_source_sha256": "319596a1b892015e32b1e80a6214fa3e5d250da36ea5b621a8730241edfdfca3",
+      "source_changed_during_run": [],
+      "later_source_delta_receipt": "docs/quality/studio-workflows-20261030/business-auth-edge-delta.json"
+    }
+  ],
+  "skipped_cases": [
+    {
+      "name": "sound publication is owner-bound, attested and idempotent",
+      "skipped_gate": "rpc-authorization",
+      "reason": "PLATINUM_VISUAL_RELEASE=1 excludes the separate sound-publication variant",
+      "passed_gate": "supabase-node",
+      "passed_log": "/tmp/platinum-final-verification/supabase-node__supabase__tests__content-media-db.test.cjs.log",
+      "paired_pass_line": "\u2714 sound publication is owner-bound, attested and idempotent (31.361592ms)",
+      "paired_log_sha256": "55bc7d11410f6f01c16c6d6745fb54b40dec26181b1355e03aa34b5b043568b3"
+    },
+    {
+      "name": "book signing uses the reader permission for explicit custom access and inactive accounts",
+      "skipped_gate": "supabase-node",
+      "reason": "Default Node invocation does not set PLATINUM_VISUAL_RELEASE=1",
+      "passed_gate": "rpc-authorization",
+      "passed_log": "/tmp/platinum-final-verification/rpc-authorization.log",
+      "paired_pass_line": "\u2714 book signing uses the reader permission for explicit custom access and inactive accounts (36.899123ms)",
+      "paired_log_sha256": "740666de70ba974a7871380fc588a4beabc905f57826051b43743fab9e5a0e07"
+    },
+    {
+      "name": "visual-only manifests do not bind or sign separate audio, and install no soundtrack authorization",
+      "skipped_gate": "supabase-node",
+      "reason": "Default Node invocation does not set a visual-only release flag",
+      "passed_gate": "rpc-authorization",
+      "passed_log": "/tmp/platinum-final-verification/rpc-authorization.log",
+      "paired_pass_line": "\u2714 visual-only manifests do not bind or sign separate audio, and install no soundtrack authorization (35.234441ms)",
+      "paired_log_sha256": "740666de70ba974a7871380fc588a4beabc905f57826051b43743fab9e5a0e07"
+    },
+    {
+      "name": "visual-only publisher works without audio infrastructure, rejects added sound, and preserves recorded video controls",
+      "skipped_gate": "supabase-node",
+      "reason": "Default Node invocation does not set a visual-only release flag",
+      "passed_gate": "rpc-authorization",
+      "passed_log": "/tmp/platinum-final-verification/rpc-authorization.log",
+      "paired_pass_line": "\u2714 visual-only publisher works without audio infrastructure, rejects added sound, and preserves recorded video controls (25.163217ms)",
+      "paired_log_sha256": "740666de70ba974a7871380fc588a4beabc905f57826051b43743fab9e5a0e07"
+    }
+  ],
+  "related_browser_and_behavior_receipts": [
+    {
+      "path": "docs/quality/admin-design-20261030/browser-receipt.json",
+      "sha256": "348ed550e5fc9b220915eafde89fb729db994ae954c9da33c477c64e06cdc847",
+      "passed": 35,
+      "runtime_errors": 0
+    },
+    {
+      "path": "docs/quality/web-design-20261030/browser-receipt.json",
+      "sha256": "fd9064966753cdec5fff7c24d900a9cd83fef30c394fe06edd29f848499c8f22",
+      "passed": 38,
+      "runtime_errors": 0
+    },
+    {
+      "path": "docs/quality/studio-ui-20261030/browser-receipt.json",
+      "sha256": "43afadd3a273f7b4a3563c128fb1bcc378652ec417ee4b1cb41bec5ee5a569b3",
+      "passed": 25,
+      "runtime_errors": 0
+    },
+    {
+      "path": "docs/quality/commerce-design-20261030/browser-receipt.json",
+      "sha256": "ca09f44e8105da2b6c831a5a62413357c7fb6a5b5bc75226c3e5d24b635de5e0",
+      "passed": 24,
+      "runtime_errors": 0
+    },
+    {
+      "path": "docs/quality/commerce-design-20261030/verification.json",
+      "sha256": "4c4755d01291336a5dcc4ebe322b3ae737b6d9c9b716b3033ee6410922fbf41f"
+    },
+    {
+      "path": "docs/quality/memory-export-20261030/browser-receipt.json",
+      "sha256": "0bf69f65ac75fbf70c68712d07cea09b927de51efdc4be33ff2f6bfa1d6f12df"
+    },
+    {
+      "path": "docs/quality/memory-export-20261030/story-browser-receipt.json",
+      "sha256": "8a16419460230b3753fc792d2e36ddeb8b4d94524a8d8c906fa954ccf86fcc17"
+    },
+    {
+      "path": "docs/quality/memory-export-20261030/guard-browser-receipt.json",
+      "sha256": "f4f8d67b25a05bdf635f1502e365b85dc99abe3896212528790758b64315697e"
+    },
+    {
+      "path": "docs/quality/memory-export-20261030/animation-browser-receipt.json",
+      "sha256": "cf403e8a30ecfc72929e3ee9d36004dde11323202056f550bae1b8f92e133c61"
+    },
+    {
+      "path": "docs/quality/memory-export-20261030/animation-final-browser-receipt.json",
+      "sha256": "18aa047604cddebb79fce5785ff78f197dbf00f1e0846ff7eee02ce2899d709b"
+    },
+    {
+      "path": "docs/quality/memory-export-20261030/animation-story-browser-receipt.json",
+      "sha256": "5d53482a2e79b7db7df66c3b714330aa8f06819393a21c82bbca7a37d1b18321"
+    },
+    {
+      "path": "docs/quality/business-session-clients-20261030/receipt.json",
+      "sha256": "b02ad617f9e6159577615935ec2e877fc8475c011e54373d6839c06bebc417c8"
+    },
+    {
+      "path": "docs/quality/studio-workflows-20261030/business-auth-edge-delta.json",
+      "sha256": "0bc60a8b18a1a7a2c4c51c50d5f095c9be9f9de9a4a34f8aa1ef5982ee64b8e4"
+    }
+  ],
+  "whitespace_check": {
+    "command": [
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exit_code": 0,
+    "log_path": "/tmp/platinum-final-verification/final-whitespace.log",
+    "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "counting_notes": [
+    "Counts are executed scenarios, not unique tests across gates; several shared protections run in more than one package or release variant.",
+    "Native/web/Supabase Node inventories use the exact CI globs, one isolated Node process per file and maximum concurrency 2. Direct invocation preserves the underlying case summaries that this local Node aggregate --test reporter hides.",
+    "The full RPC npm test is unmodified. Its667 executions comprise550 Node test cases and117 explicitly reported custom checks. Migration unit counts and the successful uncounted postflight program are not inflated into case counts.",
+    "The full web inventory has54 successful programs:52 report 607 total test cases;2 legacy Studio programs pass without reporting an individual case count.",
+    "Strict ESLint is not included as a clean gate. Scoped lint findings and baseline comparisons are documented in each lane report.",
+    "The admin inventory has 20 successful programs:19 report 155 registered Node cases; the remaining payment-reporting program explicitly reports 13 passed assertions, recorded separately.",
+    "The 296-case full Supabase Node run is preserved at its earlier source snapshot. Final Edge changes have a separate 21-case targeted run and 8-entrypoint Deno check; the 21 overlap earlier cases and are not added to 296 as distinct tests."
+  ],
+  "limits": [
+    "All automated execution here is local with synthetic fixtures. These receipts do not establish real hosted/provider/production or physical-device acceptance.",
+    "Production media privacy, revoked/expired access through warmed caches and account Storage/CDN/Auth erasure still require hosted end-to-end evidence.",
+    "Licensed catalogue music and unsupported composition layers are not authorized or silently substituted by these tests.",
+    "Real staff/owner provisioning, payment, shipping, push, calls, device interruptions, iPhone-specific media behavior and accessibility acceptance remain separate integration/device checks.",
+    "No production publication, payment, provider configuration, TestFlight release, live account deletion or hosted mutation was performed by this verification run."
+  ],
+  "verified_final_delta": {
+    "description": "Auth request deadlines now include complete response-body consumption; late transport completion cannot return a session response after cancellation. Native business accounts enter the Studio tab.",
+    "source_sha256": {
+      "shared/authFetch.ts": "ddecbcb5f8a604dcd70f220baebbe431b838c5775982a19df1b7d98e4a165b53",
+      "web/lib/supabase/client.ts": "60282002e380d89d1b6933e3ae1bc01bdce98ad9c871dc68e4f709589c24aa12",
+      "src/services/supabase.ts": "457ab3f8c8c54aa3a5e770dd1b43f4869a98c7471c9ccffcbe5f9e3901847fee",
+      "src/navigation/AppNavigator.tsx": "afaad90adda2a3d854441c073a11a0c07dfa9d0f40b4d466739998c008ba3928",
+      "tests/quality/auth-transport-deadline.cjs": "7a9f981fdceb0d904386113de85ff37182b539e0136720fbc3189fdef07fc902",
+      "tests/quality/content-media-concurrency.cjs": "0b90503220a1a1479d65eb780a278bfa15970e306fb90c27f8b8caf78c2996b2"
+    },
+    "normal_auth_transport_deadline_ms": 15000,
+    "refresh_token_transport_deadline_ms": 60000,
+    "registered_focused_cases": 17,
+    "included_in_gate": "native-regressions",
+    "database_gate_retest_required": false,
+    "database_reason": "These client transport/navigation modules and client tests are not imported or executed by the frozen SQL/Edge regression suites."
+  },
+  "baseline_before_transport_receipt": "verification-before-auth-transport.json",
+  "final_edge_delta_validation": {
+    "receipt": "docs/quality/studio-workflows-20261030/business-auth-edge-delta.json",
+    "receipt_sha256": "0bc60a8b18a1a7a2c4c51c50d5f095c9be9f9de9a4a34f8aa1ef5982ee64b8e4",
+    "source_commit": "b7a37a7a1e271e1ec037798a39772e151fbcc318",
+    "full_node_gate": "gates/supabase-node.json",
+    "full_node_gate_cases": {
+      "registered": 296,
+      "passed": 293,
+      "skipped": 3,
+      "failed": 0
+    },
+    "full_node_gate_business_session_cases": 18,
+    "targeted_final_node": {
+      "command": "node supabase/tests/business-session.test.cjs",
+      "exit_code": 0,
+      "registered": 21,
+      "passed": 21,
+      "failed": 0,
+      "skipped": 0,
+      "log": "docs/quality/studio-workflows-20261030/business-auth-edge-delta-tests.txt",
+      "log_sha256": "9682c2cb43788f5e026808ba4d83b59471a770617f2d1cfd3129a09c1afcc0c9",
+      "original_log_path": "/tmp/business-session-edge-tests.log"
+    },
+    "deno_typecheck": {
+      "entrypoints": 8,
+      "exit_code": 0,
+      "provenance": "Observed completed exec_command tool result (chunk 258c86, exit_code 0, wall_time_seconds 0.508805468) after the bounded-fetch initSignal type fix. The output was retained in the conversation and is transcribed here; no standalone original Deno log was saved. No typecheck was rerun for this documentation update."
+    },
+    "delta_source_sha256": {
+      "supabase/functions/_shared/serveBusinessRequest.ts": "3844186f8839915178b129481c649ca975417228e086fe494f53b4ad9facefed",
+      "supabase/functions/business-session/runtime.ts": "e80f5b829184acc0dc2071a507c298f6418b64d53e75b37996b1c8ac733dacf9",
+      "supabase/tests/business-session.test.cjs": "c58ea611b1b9ce45426d3e48ae473b003014eeab6137874178556a4a5c9950ac",
+      "supabase/functions/_shared/boundedFetch.ts": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147"
+    },
+    "interpretation": "The earlier full Node gate predates these four source paths. The final 21-case targeted run overlaps the earlier 18 business-session cases and adds 3 deadline/cancellation cases; do not sum 296 and 21 as unique cases or describe the earlier full run as covering the later source. SQL is unchanged. No unrelated local gate was repeated for this documentation correction."
+  },
+  "published_evidence_follow_up": {
+    "source_commit": "b7a37a7a1e271e1ec037798a39772e151fbcc318",
+    "source_tree": "82d5e6c1fc437746459703f9578b72cf1627d098",
+    "scope": "Reports and receipts only; original local timing, counts, manifests and limits remain unchanged.",
+    "evidence": [
+      {
+        "path": "docs/quality/design-completion-20261030/hosted-ci-b7a37a7.json",
+        "sha256": "b42d8f9d9f876cd99c8e7087a8b8b331196f57282cada86f3337096acca32231"
+      },
+      {
+        "path": "docs/quality/design-completion-20261030/live-qa-walkthrough.json",
+        "sha256": "cb7a4cb4bdbbea2e5232482e4f52d000f3d7a8f0d06dbb1978cbda1ba705f68e"
+      }
+    ]
+  }
+}

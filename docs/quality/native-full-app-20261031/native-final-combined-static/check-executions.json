@@ -1,0 +1,93 @@
+[
+  {
+    "name": "typescript",
+    "cmd": "node node_modules/typescript/bin/tsc --noEmit --project tsconfig.json > /tmp/platinum-v9-combined-static/typescript.log.txt 2>&1",
+    "startedAtUtc": "2026-10-31T17:32:58.953Z",
+    "elapsedMs": 23955,
+    "result": {
+      "chunk_id": "10d0d1",
+      "wall_time_seconds": 23.664786625,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    }
+  },
+  {
+    "name": "eslint",
+    "cmd": "node node_modules/eslint/bin/eslint.js scripts/quality/prepare-native-ui.cjs src/components/memory/MemoryPageTurn.tsx src/screens/profile/MemoryAlbumScreen.tsx tests/quality/memory-page-turn.cjs tests/quality/native-auth-diagnostics.cjs tests/quality/native-emulator-graphics.cjs tests/quality/native-emulator-host-diagnostics.cjs tests/quality/native-ios-url-trace.cjs tests/quality/native-memory-album-loading.cjs > /tmp/platinum-v9-combined-static/eslint.log.txt 2>&1",
+    "startedAtUtc": "2026-10-31T17:32:58.953Z",
+    "elapsedMs": 2578,
+    "result": {
+      "chunk_id": "a7c0f2",
+      "wall_time_seconds": 2.234410674,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    }
+  },
+  {
+    "name": "python-syntax",
+    "cmd": "python3 - <<'PY' > /tmp/platinum-v9-combined-static/python-syntax.log.txt 2>&1\nimport ast\nfrom pathlib import Path\nfor name in ['scripts/quality/native-ui-emulator-graphics.py','scripts/quality/native-ui-emulator-host-diagnostics.py','scripts/quality/native-ui-ios-url-trace.py']:\n ast.parse(Path(name).read_text(),filename=name)\n print(name+': Python AST parsed')\nPY",
+    "startedAtUtc": "2026-10-31T17:32:58.953Z",
+    "elapsedMs": 305,
+    "result": {
+      "chunk_id": "37379d",
+      "wall_time_seconds": 0.000021622,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    }
+  },
+  {
+    "name": "bash-syntax",
+    "cmd": "for gate_file in scripts/quality/test-android-app-ui.sh scripts/quality/test-ios-app-ui.sh; do bash -n \"$gate_file\" || exit \"$?\"; done > /tmp/platinum-v9-combined-static/bash-syntax.log.txt 2>&1",
+    "startedAtUtc": "2026-10-31T17:32:58.953Z",
+    "elapsedMs": 214,
+    "result": {
+      "chunk_id": "702dfe",
+      "wall_time_seconds": 0.000021382,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    }
+  },
+  {
+    "name": "node-syntax",
+    "cmd": "for gate_file in scripts/quality/prepare-native-ui.cjs tests/quality/memory-page-turn.cjs tests/quality/native-auth-diagnostics.cjs tests/quality/native-emulator-graphics.cjs tests/quality/native-emulator-host-diagnostics.cjs tests/quality/native-ios-url-trace.cjs tests/quality/native-memory-album-loading.cjs; do node --check \"$gate_file\" || exit \"$?\"; done > /tmp/platinum-v9-combined-static/node-syntax.log.txt 2>&1",
+    "startedAtUtc": "2026-10-31T17:32:58.953Z",
+    "elapsedMs": 542,
+    "result": {
+      "chunk_id": "5408c8",
+      "wall_time_seconds": 0.216117117,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    }
+  },
+  {
+    "name": "yaml-syntax",
+    "cmd": "node -e 'const fs=require(\"node:fs\");const YAML=require(\"yaml\");const value=YAML.parse(fs.readFileSync(\".github/workflows/native-app-ui.yml\",\"utf8\"));if(!value.jobs||!value.name)throw Error(\"Invalid workflow structure\");process.stdout.write(\"native-app-ui.yml: YAML parsed\\n\");' > /tmp/platinum-v9-combined-static/yaml-syntax.log.txt 2>&1",
+    "startedAtUtc": "2026-10-31T17:32:58.953Z",
+    "elapsedMs": 358,
+    "result": {
+      "chunk_id": "a0acc7",
+      "wall_time_seconds": 0.037923586,
+      "exit_code": 0,
+      "original_token_count": 0,
+      "output": ""
+    }
+  },
+  {
+    "name": "whitespace",
+    "cmd": "git diff --check b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6 -- .github/workflows/native-app-ui.yml scripts/quality/prepare-native-ui.cjs scripts/quality/test-android-app-ui.sh scripts/quality/test-ios-app-ui.sh src/components/memory/MemoryPageTurn.tsx src/screens/profile/MemoryAlbumScreen.tsx tests/quality/memory-page-turn.cjs tests/quality/native-auth-diagnostics.cjs tests/quality/native-memory-album-loading.cjs > /tmp/platinum-v9-combined-static/whitespace.log.txt 2>&1\ntracked_status=$?\nif [ \"$tracked_status\" -ne 0 ]; then exit \"$tracked_status\"; fi\nfor gate_file in scripts/quality/native-ui-emulator-graphics.py scripts/quality/native-ui-emulator-host-diagnostics.py scripts/quality/native-ui-ios-url-trace.py tests/quality/native-emulator-graphics.cjs tests/quality/native-emulator-host-diagnostics.cjs tests/quality/native-ios-url-trace.cjs; do git diff --no-index --check -- /dev/null \"$gate_file\" >> /tmp/platinum-v9-combined-static/whitespace.log.txt 2>&1 || exit \"$?\"; done",
+    "startedAtUtc": "2026-10-31T17:32:58.953Z",
+    "elapsedMs": 321,
+    "result": {
+      "chunk_id": "81615e",
+      "wall_time_seconds": 0.000018728,
+      "exit_code": 1,
+      "original_token_count": 0,
+      "output": ""
+    }
+  }
+]

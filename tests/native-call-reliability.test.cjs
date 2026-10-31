@@ -168,29 +168,54 @@ test('group retry carries the exact original membership and unguarded failures a
 });
 
 function incoming(options = {}) {
-  const effects = [], cleanups = [], nativeEnds = [], state = [], channelCallbacks = new Map();
-  let nativeCallbacks, onIncoming, ended = 0;
-  const record = { id: 'incoming', caller_id: 'caller', status: 'ringing', is_group_call: false, created_at: new Date().toISOString() };
-  const react = { createElement() {}, useRef: current => ({ current }), useState: initial => [initial, value => state.push(value)], useCallback: fn => fn, useEffect: fn => effects.push(fn) };
-  const query = { select() { return this; }, eq() { return this; }, gt() { return this; }, then(fn) { return Promise.resolve(fn({ data: [] })); },
+  const effects = [], cleanups = [], nativeEnds = [], state = [], channelCallbacks = new Map(), routes = [], started = [], dismissed = [];
+  let nativeCallbacks, onIncoming, foregroundAction, ended = 0, guard = null, actor = 'actor', revision = 1;
+  const record = { id: 'incoming', caller_id: 'caller', receiver_id: 'actor', channel_id: 'channel', conversation_id: null,
+    is_video: true, status: 'ringing', is_group_call: false, created_at: new Date().toISOString() };
+  const react = { createElement() {}, useRef: current => ({ current }), useState: initial => [initial, value => state.push(value)],
+    useCallback: fn => fn, useEffect: fn => effects.push(fn), useSyncExternalStore: (_subscribe, snapshot) => snapshot() };
+  const query = { select() { return this; }, eq() { return this; }, gt() { return this; }, order() { return this; }, limit() { return this; },
+    setHeader() { return this; }, abortSignal() { return this; }, then(fn) { return Promise.resolve(fn({ data: [] })); },
     single: async () => ({ data: { id: 'caller', full_name: 'Caller' } }), maybeSingle: async () => ({ data: {} }), };
+  const auth = Object.assign(() => ({ profile: { id: 'actor' } }), { getState: () => ({ session: { user: { id: actor }, access_token: actor + '-token' } }) });
   const component = load('src/components/IncomingCallListener.tsx', {
-    react, '../theme/useTheme': { themedSheet: () => ({}) }, '@react-navigation/native': { useNavigation: () => ({ navigate() {} }) },
-    '../services/androidCallNotification': { consumeInitialCallNotification: async () => null, listenForegroundCallActions: () => () => {}, dismissIncomingCall() {} },
-    '../services/nativeCallService': { nativeCallService: { setup: cb => { nativeCallbacks = cb; }, listenForVoipPushes() {}, available: () => false,
+    react, '../theme/useTheme': { themedSheet: () => ({}) }, '@react-navigation/native': { useNavigation: () => ({ navigate: (...args) => routes.push(args) }) },
+    '../lib/navigationCache': { navigationScope: () => revision + ':' + actor, navigationRevision: () => revision, subscribeNavigationScope: () => () => {} },
+    '../services/incomingCallAccess': {
+      async withIncomingCallSession(payload, action, _deadline, signal) {
+        const original = actor, originalRevision = revision;
+        const current = () => actor === original && revision === originalRevision && !signal?.aborted;
+        const ensure = () => { if (!current()) throw Error('account changed'); };
+        if (payload.recipientId && payload.recipientId !== actor) throw Error('wrong recipient');
+        return action({ userId: actor, request: { accessToken: actor + '-token', signal }, current, ensure });
+      },
+      async readIncomingCall(payload, session) {
+        if (options.holdRead) await options.holdRead(); session.ensure();
+        if (record.status !== 'ringing') return null;
+        const current = options.distinctCalls ? { ...record, id: payload.callId } : record;
+        return { call: current, payload: { callId: current.id, callerName: 'Stored caller', isVideo: current.is_video, recipientId: actor } };
+      },
+      async declineIncomingCall() { if (options.failDecline) throw Error('offline'); return true; },
+    },
+    '../services/androidCallNotification': { consumeInitialCallNotification: () => options.initial ?? Promise.resolve(null),
+      listenForegroundCallActions: callback => { foregroundAction = callback; return () => {}; }, dismissIncomingCall: async id => { dismissed.push(id); } },
+    '../services/nativeCallService': { nativeCallService: { listen: cb => { nativeCallbacks = cb; return () => {}; }, listenForVoipPushes: () => () => {}, available: () => false,
       endNativeCall: id => nativeEnds.push(id), endAllNativeCalls: () => nativeEnds.push('*') } },
-    '../stores/authStore': { useAuthStore: () => ({ profile: { id: 'actor' } }) },
-    '../contexts/CallContext': { useCallContext: () => ({ callState: options.active ? 'active' : 'idle', activeCall: options.active ? { callId: 'current' } : null, startCall() {}, endCall: () => { ended++; } }) },
+    '../stores/authStore': { useAuthStore: auth },
+    '../contexts/CallContext': { useCallContext: () => ({ callState: options.active ? 'active' : 'idle', activeCall: options.active ? { callId: 'current' } : null,
+      startCall: payload => started.push(payload), endCall: () => { ended++; } }) },
     '../services/callService': { callService: { getCall: async () => record, listRingingCalls: async () => options.recoverIncoming ? [record] : [], declineCall: async () => {},
       subscribeToIncomingCalls: (_id, cb) => { onIncoming = cb; return { unsubscribe() {} }; } } },
-    '../services/supabase': { supabase: { from: () => query, removeChannel() {}, channel: name => ({ on(_type, filter, cb) { channelCallbacks.set(filter.table + ':' + (filter.filter ?? ''), cb); return this; }, subscribe() { return this; }, unsubscribe() {} }) } },
-    'react-native': { AppState: { addEventListener: () => ({ remove() {} }) }, Platform: { OS: 'ios' }, Vibration: { vibrate() {}, cancel() {} } },
+    '../services/supabase': { supabase: { from: () => query, removeChannel() {}, channel: () => ({ on(_type, filter, cb) { channelCallbacks.set(filter.table + ':' + (filter.filter ?? ''), cb); return this; }, subscribe() { return this; }, unsubscribe() {} }) } },
+    'react-native': { Alert: { alert() {} }, AppState: { addEventListener: () => ({ remove() {} }) }, Platform: { OS: 'ios' }, Vibration: { vibrate() {}, cancel() {} } },
     '@expo/vector-icons': {}, './SafeArea': { useSafeAreaInsets: () => ({ top: 0 }) },
     '../services/audioService': { audioService: { stopAll: async () => {} } },
-    '../services/notificationBootstrap': { setActiveCallNavId() {}, clearCallNavGuard() {}, isCallNavActive: () => false },
-  }, { setInterval: () => 1, clearInterval() {}, setTimeout: () => 1, clearTimeout() {} }).default;
+    '../services/notificationBootstrap': { setActiveCallNavId: id => { guard = id; }, clearCallNavGuard: () => { guard = null; }, isCallNavActive: id => id ? guard === id : guard !== null },
+  }, { AbortController, setInterval: () => 1, clearInterval() {}, setTimeout: () => 1, clearTimeout() {} }).default;
   component(); effects.forEach(fn => { const cleanup = fn(); if (cleanup) cleanups.push(cleanup); });
-  return { nativeCallbacks, nativeEnds, record, state, channelCallbacks, ended: () => ended, receive: () => onIncoming(record), cleanup: () => cleanups.forEach(fn => fn()) };
+  return { nativeCallbacks, nativeEnds, record, state, channelCallbacks, routes, started, dismissed,
+    ended: () => ended, receive: () => onIncoming(record), foreground: (payload, action) => foregroundAction(payload, action),
+    switchActor(next) { actor = next; revision++; }, cleanup: () => cleanups.forEach(fn => fn()) };
 }
 
 test('an old OS end callback cannot terminate the current native call', async () => {
@@ -233,4 +258,59 @@ test('account switching during a pending status lookup prevents the subsequent h
   const pending = h.api.flushNativeCallCloses('actor'); await tick();
   h.switchActor('other'); resolve({ status: 'active' }); await pending;
   assert.equal(h.calls.length, 0);
+});
+
+
+test('old native callbacks cannot end or reopen a call after an A-to-B-to-A session change', async () => {
+  const h = incoming({ active: true }); h.switchActor('other'); h.switchActor('actor');
+  h.nativeCallbacks.onEnd('current'); await h.nativeCallbacks.onAnswer('incoming');
+  assert.equal(h.ended(), 0); assert.equal(h.routes.length, 0); h.cleanup();
+});
+
+test('simultaneous native answers navigate once using stored caller metadata', async () => {
+  const h = incoming(); await Promise.all([h.nativeCallbacks.onAnswer('incoming'), h.nativeCallbacks.onAnswer('incoming')]);
+  assert.equal(h.routes.length, 1); assert.equal(h.started.length, 1);
+  assert.equal(h.routes[0][1].callerName, 'Stored caller'); h.cleanup();
+});
+
+test('a late initial Notifee response cannot replace a newer live action', async () => {
+  let resolve; const initial = new Promise(done => { resolve = done; });
+  const h = incoming({ initial });
+  h.foreground({ callId: 'incoming', callerName: 'Untrusted', recipientId: 'actor' }, 'decline'); await tick();
+  resolve({ payload: { callId: 'incoming', callerName: 'Old', recipientId: 'actor' }, answer: true }); await tick();
+  assert.equal(h.routes.length, 0); assert.equal(h.started.length, 0); assert.equal(h.dismissed.length, 1); h.cleanup();
+});
+
+test('failed foreground declines do not remove the retryable native notification', async () => {
+  const h = incoming({ failDecline: true }); h.foreground({ callId: 'incoming', callerName: 'Call', recipientId: 'actor' }, 'decline');
+  await tick(); assert.equal(h.dismissed.length, 0); h.cleanup();
+});
+
+test('pending incoming lookup is aborted on listener unmount and cannot revive a banner or route', async () => {
+  let resolve; const gate = new Promise(done => { resolve = done; });
+  const h = incoming({ holdRead: () => gate }); const answer = h.nativeCallbacks.onAnswer('incoming'); await tick();
+  h.cleanup(); resolve(); await answer; await tick();
+  assert.equal(h.routes.length, 0); assert.equal(h.state.some(value => value?.callId), false);
+});
+
+
+test('two different native answers cannot race into separate call screens before React updates', async () => {
+  const h = incoming({ distinctCalls: true });
+  await Promise.all([h.nativeCallbacks.onAnswer('incoming'), h.nativeCallbacks.onAnswer('second-incoming')]);
+  assert.equal(h.routes.length, 1); assert.equal(h.started.length, 1); h.cleanup();
+});
+
+test('a native hangup cancels an answer lookup that has not completed', async () => {
+  let resolve;
+  const gate = new Promise(done => { resolve = done; });
+  const h = incoming({ holdRead: () => gate });
+  const answer = h.nativeCallbacks.onAnswer('incoming'); await tick();
+  h.nativeCallbacks.onEnd('incoming'); await tick(); resolve(); await answer;
+  assert.equal(h.routes.length, 0); assert.equal(h.started.length, 0); h.cleanup();
+});
+
+test('a native hangup after startCall but before the next React render ends that call', async () => {
+  const h = incoming(); await h.nativeCallbacks.onAnswer('incoming');
+  assert.equal(h.started.length, 1); h.nativeCallbacks.onEnd('incoming');
+  assert.equal(h.ended(), 1); h.cleanup();
 });

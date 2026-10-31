@@ -1,0 +1,260 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-10-30T21:44:32.120731+00:00",
+  "recommendedVersion": "1.8.1",
+  "priorVersion": "1.8.0",
+  "officialSources": {
+    "releaseNotes": "https://developer.android.com/jetpack/androidx/releases/media3#1.8.1",
+    "artifactTemplate": "https://dl.google.com/dl/android/maven2/androidx/media3/{artifact}/{version}/{artifact}-{version}.{extension}"
+  },
+  "officialReleaseDate": "2026-05-21",
+  "sourceComparison": {
+    "media3-common": {
+      "sourceFilesCompared": 133,
+      "changedFiles": [
+        "androidx/media3/common/MediaLibraryInfo.java",
+        "androidx/media3/common/util/GlUtil.java"
+      ],
+      "oldSourceJarSha256": "800866952af08b1f1c39b2a56f906a46f3a0e7ca4ae5e92310ea5388beef7a38",
+      "patchedSourceJarSha256": "5bb29dd933bb9f8d5110d082db186068e6cf93f2aed648e9bd70ec180668aaa1"
+    },
+    "media3-effect": {
+      "sourceFilesCompared": 87,
+      "changedFiles": [],
+      "oldSourceJarSha256": "3e5cfcc9f6ea341786d71e68cfad1b4eb5c422188d9ed662f151a7e4af05a5f1",
+      "patchedSourceJarSha256": "1722eda9b1a95227a6bf7aa50baf1032094c47c1f66abb515b2151e7378c69aa"
+    },
+    "media3-transformer": {
+      "sourceFilesCompared": 75,
+      "changedFiles": [],
+      "oldSourceJarSha256": "dad8f262b90cfb76c7f74458f022356bfa13ee267a932da0c681669bfc015a1f",
+      "patchedSourceJarSha256": "83dfcc530b5ce62065038368afb1690fd9b68009a8182791e39fd2decf39b466"
+    }
+  },
+  "patchSummary": "The renderer/effect source APIs are unchanged. Common changes only version constants and default-framebuffer draw/read buffer reset after leaving a surfaceless EGL context. This is relevant to offscreen Transformer rendering.",
+  "artifactSha256": {
+    "media3-common-1.8.0.module": "74843676495f64913c2df6478b74de075359f416d3d55862977ca71a418e453d",
+    "media3-common-1.8.1-sources.jar": "5bb29dd933bb9f8d5110d082db186068e6cf93f2aed648e9bd70ec180668aaa1",
+    "media3-common-1.8.1.module": "52c6f7c6742a234bc3b97f8acae531639c3b64eb2c0c35588e607118d29dd4f3",
+    "media3-effect-1.8.0.module": "e97756a8690513367bdc32876b1714ae717323b4f03af308a23267d249fd6da6",
+    "media3-effect-1.8.1-sources.jar": "1722eda9b1a95227a6bf7aa50baf1032094c47c1f66abb515b2151e7378c69aa",
+    "media3-effect-1.8.1.module": "cd6126c4cbe967f7e1af9a63143581b4ee66516a59df349b0f6a7587a5a5e171",
+    "media3-transformer-1.8.0.module": "248ae0c6b090c6722aa0aa0945cd358aa1f5571688f08f2a92dbce0f6bccf160",
+    "media3-transformer-1.8.1-sources.jar": "83dfcc530b5ce62065038368afb1690fd9b68009a8182791e39fd2decf39b466",
+    "media3-transformer-1.8.1.module": "4411ee00f6fda4054e7ec245e48c6451f73290823e8ce239b43e46173d8a15c9"
+  },
+  "commonRuntimeConstraints": [
+    {
+      "group": "androidx.media3",
+      "module": "media3-cast",
+      "version": {
+        "requires": "1.8.1"
+      }
+    },
+    {
+      "group": "androidx.media3",
+      "module": "media3-common-ktx",
+      "version": {
+        "requires": "1.8.1"
+      }
+    },
+    {
+      "group": "androidx.media3",
+      "module": "media3-container",
+      "version": {
+        "requires": "1.8.1"
+      }
+    },
+    {
+      "group": "androidx.media3",
+      "module": "media3-database",
+      "version": {
+        "requires": "1.8.1"
+      }
+    },
+    {
+      "group": "androidx.media3",
+      "module": "media3-datasource",
+      "version": {
+        "requires": "1.8.1"
+      }
+    },
+    {
+      "group": "androidx.media3",
+      "module": "media3-datasource-cronet",
+      "version": {
+        "requires": "1.8.1"
+      }
+    },
+    {
+      "group": "androidx.media3",
+      "module": "media3-datasource-okhttp",
+      "version": {
+        "requires": "1.8.1"
+      }
+    },
+    {
+      "group": "androidx.media3",
+      "module": "media3-datasource-rtmp",
+      "version": {
+        "requires": "1.8.1"
+      }
+    },
+    {
+      "group": "androidx.media3",
+      "module": "media3-decoder",
+      "version": {
+        "requires": "1.8.1"
+      }
+    },
+    {
+      "group": "androidx.media3",
+      "module": "media3-exoplayer-midi",
+      "version": {
+        "requires": "1.8.1"
+      }
+    },
+    {
+      "group": "androidx.media3",
+      "module": "media3-effect",
+      "version": {
+        "requires": "1.8.1"
+      }
+    },
+    {
+      "group": "androidx.media3",
+      "module": "media3-exoplayer",
+      "version": {
+        "requires": "1.8.1"
+      }
+    },
+    {
+      "group": "androidx.media3",
+      "module": "media3-exoplayer-dash",
+      "version": {
+        "requires": "1.8.1"
+      }
+    },
+    {
+      "group": "androidx.media3",
+      "module": "media3-exoplayer-hls",
+      "version": {
+        "requires": "1.8.1"
+      }
+    },
+    {
+      "group": "androidx.media3",
+      "module": "media3-exoplayer-ima",
+      "version": {
+        "requires": "1.8.1"
+      }
+    },
+    {
+      "group": "androidx.media3",
+      "module": "media3-exoplayer-rtsp",
+      "version": {
+        "requires": "1.8.1"
+      }
+    },
+    {
+      "group": "androidx.media3",
+      "module": "media3-exoplayer-smoothstreaming",
+      "version": {
+        "requires": "1.8.1"
+      }
+    },
+    {
+      "group": "androidx.media3",
+      "module": "media3-exoplayer-workmanager",
+      "version": {
+        "requires": "1.8.1"
+      }
+    },
+    {
+      "group": "androidx.media3",
+      "module": "media3-extractor",
+      "version": {
+        "requires": "1.8.1"
+      }
+    },
+    {
+      "group": "androidx.media3",
+      "module": "media3-muxer",
+      "version": {
+        "requires": "1.8.1"
+      }
+    },
+    {
+      "group": "androidx.media3",
+      "module": "media3-session",
+      "version": {
+        "requires": "1.8.1"
+      }
+    },
+    {
+      "group": "androidx.media3",
+      "module": "media3-transformer",
+      "version": {
+        "requires": "1.8.1"
+      }
+    },
+    {
+      "group": "androidx.media3",
+      "module": "media3-ui",
+      "version": {
+        "requires": "1.8.1"
+      }
+    },
+    {
+      "group": "androidx.media3",
+      "module": "media3-ui-compose",
+      "version": {
+        "requires": "1.8.1"
+      }
+    },
+    {
+      "group": "androidx.media3",
+      "module": "media3-ui-leanback",
+      "version": {
+        "requires": "1.8.1"
+      }
+    },
+    {
+      "group": "androidx.media3",
+      "module": "media3-test-utils",
+      "version": {
+        "requires": "1.8.1"
+      }
+    },
+    {
+      "group": "androidx.media3",
+      "module": "media3-test-utils-robolectric",
+      "version": {
+        "requires": "1.8.1"
+      }
+    }
+  ],
+  "recommendedImplementation": [
+    "Change only the three explicit Media3 dependency declarations in the local Boomerang module and isolated encoder harness from 1.8.0 to 1.8.1.",
+    "Use normal Gradle resolution; common 1.8.1 publishes runtime constraints for all currently requested Expo Media3 modules. Do not alter installed Expo package source or move to a newer Media3 minor API.",
+    "Inspect the actually resolved debugRuntimeClasspath in both full app and standalone harness; fail CI if any androidx.media3 component resolves to a version other than 1.8.1. Store the resolved coordinates in acceptance receipts.",
+    "Rerun the actual Kotlin/full native compile and encoded PCM/pixel/cancellation harness on the patched dependency graph."
+  ],
+  "runtimeResolutionVerified": false,
+  "runtimeAcceptanceVerified": false,
+  "limitations": [
+    "Source and official Gradle metadata comparison is not a successful Android compile or emulator run.",
+    "Runtime constraints apply only when Gradle module metadata is honored. The resolved dependency receipt must establish actual alignment.",
+    "Physical Android/HDR/codec and installed-client acceptance remain separate."
+  ],
+  "advisoryReview": {
+    "receipt": "docs/quality/native-audio-20261030/media3-advisory-review.json",
+    "receiptSha256": "a9520ca2c1af59f142b96fcf631ac048b885f1cf8137d5083d688f95c7ce38cf",
+    "source": "https://api.osv.dev/v1/querybatch",
+    "checkedAt": "2026-10-30T21:42:10.069042+00:00",
+    "directCoordinatesQueried": 6,
+    "reportedAdvisoryEntries": 0,
+    "scope": "OSV direct-coordinate advisory lookup only. This does not assess the whole Gradle dependency graph, platform codecs, renderer correctness or private adaptations."
+  },
+  "decision": "Root accepted the minimal 1.8.1 patch with actual resolved runtime dependency graph proof required in both CI gates."
+}

@@ -3,8 +3,8 @@
 // Writes the same verification_applications rows, so the admin's verification
 // desk sees applications from either platform in one queue.
 import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, BadgeCheck } from "lucide-react";
+
+import { BadgeCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 import { currentVerificationStatus, prepareVerificationEvidence, verificationError, type VerificationApplication, type VerificationProfile } from "../../../../shared/verification";
@@ -16,7 +16,7 @@ const CATEGORIES = [
 type Tier = "public_figure" | "official" | "business";
 
 export default function VerificationPage() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [uid, setUid] = useState<string | null>(null);
   const [isBusiness, setIsBusiness] = useState(false);
   const [existing, setExisting] = useState<VerificationApplication | null | undefined>(undefined);
@@ -31,13 +31,16 @@ export default function VerificationPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    const generation = ++loadGeneration.current;
+  const load = useCallback(async (identity?: string | null) => {
+    const generation = loadGeneration.current += 1;
     setLoadError(null);
     try {
-      const { data: auth, error: authError } = await supabase.auth.getUser();
-      if (authError) throw authError;
-      const id = auth.user?.id ?? null;
+      let id = identity;
+      if (id === undefined) {
+        const { data: auth, error: authError } = await supabase.auth.getUser();
+        if (authError) throw authError;
+        id = auth.user?.id ?? null;
+      }
       if (generation !== loadGeneration.current) return;
       setUid(id);
       if (!id) { setExisting(null); setCurrentProfile(null); return; }
@@ -58,11 +61,24 @@ export default function VerificationPage() {
     }
   }, [supabase]);
   useEffect(() => {
-    void load();
+    let alive = true, bound: string | null | undefined;
+    const bind = (id: string | null) => {
+      if (!alive || bound === id) return;
+      bound = id; loadGeneration.current += 1;
+      setUid(id); setExisting(undefined); setCurrentProfile(null); setIsBusiness(false);
+      setLinks(""); setStatement(""); setOffice(""); setCategory(null); setError(null); setTier("public_figure");
+      queueMicrotask(() => { if (alive && bound === id) void load(id); });
+    };
+    const { data: auth } = supabase.auth.onAuthStateChange((_event, session) => bind(session?.user.id ?? null));
+    void supabase.auth.getUser().then(({ data, error: cause }) => {
+      if (!alive || bound !== undefined) return;
+      if (cause) { setLoadError(verificationError(cause)); return; }
+      bind(data.user?.id ?? null);
+    }).catch(cause => { if (alive && bound === undefined) setLoadError(verificationError(cause)); });
     const refresh = () => { if (document.visibilityState === "visible") void load(); };
     document.addEventListener("visibilitychange", refresh);
-    return () => { ++loadGeneration.current; document.removeEventListener("visibilitychange", refresh); };
-  }, [load]);
+    return () => { alive = false; loadGeneration.current += 1; auth.subscription.unsubscribe(); document.removeEventListener("visibilitychange", refresh); };
+  }, [load, supabase]);
 
   const submit = async () => {
     if (busy) return;

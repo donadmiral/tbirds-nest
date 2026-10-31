@@ -1,0 +1,88 @@
+{
+  "createdAt": "2026-10-30T17:21:45.245617+00:00",
+  "libraryStateTests": 8,
+  "infrastructureTests": 19,
+  "nativeTypes": "passed",
+  "webTypes": "passed",
+  "editedMusicLint": {
+    "errors": 0,
+    "warnings": 0
+  },
+  "browserExecution": "pending: local Chromium absent; compiled fixture and GitHub workflow are ready",
+  "files": [
+    {
+      "path": "web/app/settings/audio/page.tsx",
+      "sha256": "e497a8bc20128937c4c0def402918e10176a53c55ae26e3c2e9dad090b08cc49"
+    },
+    {
+      "path": "src/components/OriginalAudioLibrary.tsx",
+      "sha256": "63c0985a4b80f47b5f80a1acabd612e792d8afb8b08fe7467db18820d5be6f81"
+    },
+    {
+      "path": "shared/musicUpload.ts",
+      "sha256": "e7f12d82f4a0d7cb19cd0a4af6773d97ac0e8e7e159939e913291b927813dfc1"
+    },
+    {
+      "path": "shared/originalAudioAvailability.ts",
+      "sha256": "971b6b3a280e68e819fcb66818f21113adbac1325b3a9dd876c5bde92fdc3444"
+    },
+    {
+      "path": "web/lib/soundtrack.ts",
+      "sha256": "5c931ea1dc63fbbdcd9a2ed12f8d98fda30b58a0d0fa57d2f7b960471e2306b2"
+    },
+    {
+      "path": "src/services/soundtrackService.ts",
+      "sha256": "5b5acb36a5c5a0ec992b6e33e57491a6fa2737c03062dfc574644671cee0cd62"
+    },
+    {
+      "path": "web/lib/memoryFilmExport.ts",
+      "sha256": "aec36acf1ed8cddc20becef0340558282b8545d41339f97155e09bdc5931a0bc"
+    },
+    {
+      "path": "web/lib/libraryExportAudio.ts",
+      "sha256": "50b65f974a48cd1fe5151948f76e6769b3e09596b14baaf8fdf9e470e21990c2"
+    },
+    {
+      "path": "web/components/memory/MemoryMovieExport.tsx",
+      "sha256": "ba021bb0ea00ffcbc8b7a9601476f16a3fa0b3e0439efc1a49de50b626d7e601"
+    },
+    {
+      "path": "tests/quality/original-audio-library-state.cjs",
+      "sha256": "df8b02b15b94392a0829fa302e765d42885313ec137213da107f5da065d2a2b7"
+    },
+    {
+      "path": "tests/quality/original-audio-infrastructure.cjs",
+      "sha256": "a6821868d5e5ce60d2806369d535cf364a5a96aeab190a0e8891bf97a4c00820"
+    },
+    {
+      "path": "src/services/storiesService.ts",
+      "sha256": "0b0140dbd87d7bfff3a2c6affd44d16a8ffa863cca369180530a7adaf9603eb4"
+    },
+    {
+      "path": "web/lib/storyAudio.ts",
+      "sha256": "adc2981b2144ace460f91a6f8fa527c600f7fa070fb805bd58541fa197a9df1b"
+    },
+    {
+      "path": "tests/quality/story-audio-web-regressions.cjs",
+      "sha256": "a4d830474b697268f8ed79c6124232e62286cfc4b2033b0b6ccb4fba7c40b657"
+    },
+    {
+      "path": "tests/quality/music-disabled-release.cjs",
+      "sha256": "c0f6206c23b59b1d6582344b60133513f8a8abd7cf8ae8875bdc871278db253d"
+    }
+  ],
+  "revision": 3,
+  "storyAudioWebTests": 7,
+  "serviceGuardTests": 4,
+  "rolloutGuard": "Soundtrack and story readers require capability version1; upload readiness is separate; non-original rows rejected.",
+  "previousRevision": {
+    "revision": 2,
+    "scope": "Historical initial client freeze; retained-storage error copy and its regression are revised below."
+  },
+  "updatedAt": "2026-10-30T19:58:19.131347+00:00",
+  "retainedCapacityFollowup": {
+    "sharedUploadLint": "zero errors or warnings",
+    "infrastructureChecks": "19 passed",
+    "scope": "Quota failure copy only; no other client runtime changed by this followup."
+  }
+}

@@ -12,13 +12,14 @@ import { useMemo } from 'react';
 import { StyleSheet } from 'react-native';
 import { light } from '../constants/tokens/light';
 import { dark } from '../constants/tokens/dark';
+import { lightsOut } from '../constants/tokens/lightsOut';
 import { useThemeStore } from '../stores/themeStore';
 
 export type Theme = typeof light;
 
 export function useTheme(): { t: Theme; isDark: boolean } {
-  const resolved = useThemeStore(s => s.resolved);
-  return { t: resolved === 'dark' ? (dark as unknown as Theme) : light, isDark: resolved === 'dark' };
+  const palette = useThemeStore(s => s.resolved === 'dark' ? (s.mode === 'lightsOut' ? 'lightsOut' : 'dark') : 'light');
+  return { t: (palette === 'lightsOut' ? lightsOut : palette === 'dark' ? dark : light) as Theme, isDark: palette !== 'light' };
 }
 
 export function useThemedStyles<T extends StyleSheet.NamedStyles<T>>(factory: (t: Theme, isDark: boolean) => T): T {
@@ -27,7 +28,8 @@ export function useThemedStyles<T extends StyleSheet.NamedStyles<T>>(factory: (t
 }
 
 export function getTheme(): Theme {
-  return useThemeStore.getState().resolved === 'dark' ? (dark as unknown as Theme) : light;
+  const state = useThemeStore.getState();
+  return (state.resolved === 'light' ? light : state.mode === 'lightsOut' ? lightsOut : dark) as Theme;
 }
 /**
  * A style sheet that follows the theme without changing how screens use it.
@@ -38,9 +40,11 @@ export function getTheme(): Theme {
 export function themedSheet<T extends StyleSheet.NamedStyles<T>>(factory: (t: Theme) => T): T {
   const lightSheet = StyleSheet.create(factory(light));
   const darkSheet = StyleSheet.create(factory(dark as unknown as Theme));
+  const blackSheet = StyleSheet.create(factory(lightsOut as unknown as Theme));
   return new Proxy(lightSheet, {
     get(_target, key) {
-      const active = useThemeStore.getState().resolved === 'dark' ? darkSheet : lightSheet;
+      const state = useThemeStore.getState();
+      const active = state.resolved === 'light' ? lightSheet : state.mode === 'lightsOut' ? blackSheet : darkSheet;
       return (active as any)[key as any];
     },
   }) as T;

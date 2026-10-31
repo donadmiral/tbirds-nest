@@ -1,0 +1,126 @@
+{
+  "recordedAt": "2026-10-30T17:20:06.855532+00:00",
+  "project": "uaulhuelcfkjwojtymmw",
+  "action": "One authorized apply_migration of original_music_library_and_delivery",
+  "source": "supabase/migrations/20261030153811_original_music_library_and_delivery.sql",
+  "sha256": "7d7449a59c4678c91985cada1d8b20ec035ce7fd8cb02c1dfbb0fc0cd94e04b8",
+  "bytes": 66620,
+  "preflightReceipt": "docs/quality/backend-acceptance-20261030/music-qa-preflight.json",
+  "compatibilityPreflight": {
+    "capturedAt": "2026-10-30T17:06:08.899166+00:00",
+    "sounds": 0,
+    "storiesWithAudioUrl": 0,
+    "storiesWithSoundReference": 0,
+    "storiesReferencingExistingSound": 0,
+    "postMediaWithSoundtrack": 0,
+    "memoryAlbumsWithSoundtrack": 0,
+    "memoryPagesReferencingAudioStory": 0
+  },
+  "connector": {
+    "execCell": "88",
+    "initialYieldRequestedMs": 1000,
+    "initialYieldActualSeconds": 1,
+    "waitRequestedMs": 1000,
+    "waitBlockedSeconds": 738.4,
+    "outcome": "Interrupted after no returned success, failure, or approval rejection",
+    "resultReceived": false,
+    "sessionStoreStateAfterInterrupt": "Prior exec-local operation keys were unavailable after the interruption; outcome is established by fresh read-only database inspection."
+  },
+  "conclusion": "Migration absent at the recorded postflight; no active candidate transaction or waiting lock; prerequisite definitions and ACLs unchanged.",
+  "hostedInstalled": false,
+  "edgeDeploymentStarted": false,
+  "readinessEnabled": false,
+  "retried": false,
+  "alternateDdlUsed": false,
+  "productionChanged": false,
+  "postflight": {
+    "buckets": [
+      {
+        "id": "chat-files",
+        "public": false
+      },
+      {
+        "id": "chat-media",
+        "public": false
+      },
+      {
+        "id": "media",
+        "public": false
+      },
+      {
+        "id": "post-media",
+        "public": false
+      },
+      {
+        "id": "story-media",
+        "public": false
+      }
+    ],
+    "project": "uaulhuelcfkjwojtymmw",
+    "captured_at": "2026-10-30T17:20:06.855532+00:00",
+    "music_schema": null,
+    "music_tables": [],
+    "waiting_locks": 0,
+    "business_schema": null,
+    "finish_contract": null,
+    "key_definitions": [
+      {
+        "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "md5": "5d13cb1dd45585955bb6fb796035251b",
+        "signature": "publish_story_sound(uuid,boolean)"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "764d56fa35f531e2e047dc8cea9879f9",
+        "signature": "resolve_story_soundtrack(jsonb)"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "25dcf6c84db4090523cd0207d4f5545b",
+        "signature": "media_delivery.require_session()"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "87d8daadb1a6a4d31df56b50a88f7059",
+        "signature": "media_delivery.content_provenance(text,uuid,text,text,text,text)"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "1e7d3500acab0312bbc4e4a987b0aef0",
+        "signature": "media_delivery.issue(text,text,uuid,uuid)"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "cf09e2b49af05cbfa42f2889b80dd841",
+        "signature": "account_erasure.review_reason(uuid)"
+      }
+    ],
+    "reserve_contract": null,
+    "latest_migrations": [
+      {
+        "name": "reserve_business_provision_usernames",
+        "version": "20261030033815"
+      },
+      {
+        "name": "reserve_web_route_usernames",
+        "version": "20261030032528"
+      },
+      {
+        "name": "studio_editorial_and_partnership_workflows",
+        "version": "20261030032512"
+      },
+      {
+        "name": "staff_social_shells",
+        "version": "20261030013815"
+      },
+      {
+        "name": "account_erasure_admin_restore_guard",
+        "version": "20261030010956"
+      }
+    ],
+    "metadata_contract": null,
+    "active_transactions": [],
+    "capability_contract": null,
+    "matching_migrations": []
+  }
+}

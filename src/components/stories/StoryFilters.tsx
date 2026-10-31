@@ -1,13 +1,11 @@
 /**
- * StoryFilters - overlay-based photo looks for stories.
- * Filters are stored as an id on the story (stories.filter_id) and
- * rendered as stacked translucent layers over the media, so the same
- * definitions replicate exactly on web with rgba layers. No pixel
- * processing, no native dependencies.
+ * Photo filter previews use the same pixel grade as the published photo.
+ * Legacy video and text backdrops retain their stored translucent layers.
  */
 import React from 'react';
-import { View, Text, TouchableOpacity, Modal, ScrollView, Image, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from '../SafeArea';
+import StoryPixelImage from './StoryPixelImage';
 
 import { STORY_FILTERS, STORY_FILTER_FAMILIES, type StoryFilterFamily } from '../../../shared/storyFilterAppearance';
 export { STORY_FILTERS, STORY_FILTER_FAMILIES, type StoryFilterFamily, type StoryFilterDef } from '../../../shared/storyFilterAppearance';
@@ -40,7 +38,6 @@ export function FilterPickerSheet({ visible, onClose, selected, onSelect, previe
   const insets = useSafeAreaInsets();
   const families = STORY_FILTER_FAMILIES;
   const tilesFor = (fam: StoryFilterFamily): { id: string | null; label: string }[] => STORY_FILTERS.filter(f => f.family === fam).map(f => ({ id: f.id as string | null, label: f.label }));
-  const tiles: { id: string | null; label: string }[] = [{ id: null, label: 'None' }, ...STORY_FILTERS.map(f => ({ id: f.id as string | null, label: f.label }))];
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <TouchableOpacity style={fs.overlay} activeOpacity={1} onPress={onClose}>
@@ -55,11 +52,11 @@ export function FilterPickerSheet({ visible, onClose, selected, onSelect, previe
                   <TouchableOpacity key={t.id || 'none'} style={fs.tileWrap} activeOpacity={0.8} onPress={() => onSelect(t.id)}>
                     <View style={[fs.tile, isOn && fs.tileOn]}>
                       {previewUri ? (
-                        <Image source={{ uri: previewUri }} style={fs.tileImg} resizeMode="cover" fadeDuration={0} />
+                        <StoryPixelImage uri={previewUri} style={fs.tileImg} fit="cover" look={{ filterId: t.id }} />
                       ) : (
                         <View style={[fs.tileImg, { backgroundColor: '#1B2233' }]} />
                       )}
-                      <FilterLayer filterId={t.id} />
+                      {!previewUri ? <FilterLayer filterId={t.id} /> : null}
                     </View>
                     <Text style={[fs.tileLabel, isOn && fs.tileLabelOn]} numberOfLines={1}>{t.label}</Text>
                   </TouchableOpacity>

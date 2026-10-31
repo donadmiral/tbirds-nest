@@ -1,0 +1,97 @@
+{
+  "measuredAt": "2026-10-31T03:39:56.915989+00:00",
+  "workflowRun": 41163537294,
+  "jobId": 124426359456,
+  "headCommit": "341395c68cfc0bf74527bcf23e0dced3813e9225",
+  "testedMergeCommit": "1ca98984eec5d0912d510da9e565a84a8d5aacfd",
+  "tree": "ca36583e931756f2d9ea98fdaf3c9869ee4daf8f",
+  "headAndMergeTreesEqual": true,
+  "artifact": {
+    "id": 13028591471,
+    "name": "android-full-app-ui",
+    "sha256": "f3fad08a3515c76c761a15f9d3699ea67509657b5070841aa577a17e1c3e512b",
+    "sourceManifest": "android-full-app-341395c6-source.json",
+    "sourceManifestSha256": "da3e8f9bff0b1b508e6cd96e29ede2ed253513a096ad22f421cf767e65cfb098",
+    "sourceFilesVerifiedAgainstTestedMerge": 488,
+    "retainedOverlayHashesVerified": 5
+  },
+  "result": {
+    "passed": false,
+    "nativeReleaseBuildSucceeded": true,
+    "buildDuration": "16m27s",
+    "maestroDurationSeconds": 52.976,
+    "nativeBridgeFatalLines": 0,
+    "signedInSyntheticOwner": true,
+    "feedRequestExercised": true,
+    "failedAssertion": "Home post visible after sign-in",
+    "observedBlockingScreen": "Android RECORD_AUDIO permission dialog opened by call setup after sign-in.",
+    "networkForwarded": false,
+    "unsupportedFixtureRequests": [
+      {
+        "method": "POST",
+        "path": "/rest/v1/rpc/get_context_unread"
+      },
+      {
+        "method": "GET",
+        "path": "/rest/v1/announcements"
+      },
+      {
+        "method": "POST",
+        "path": "/rest/v1/rpc/get_trending_stories"
+      },
+      {
+        "method": "POST",
+        "path": "/rest/v1/rpc/get_trending_stories"
+      }
+    ],
+    "memoryBookOrCaptureReached": false
+  },
+  "reviewMedia": {
+    "screenshot": {
+      "file": "android-341395c6-startup-microphone-prompt.png",
+      "sha256": "39a743bbc846ddbed5295ec26027292fbeedc055cf404efd23f4c914d7e39739",
+      "bytes": 17211
+    },
+    "navigationVideo": {
+      "file": "android-341395c6-startup.mp4",
+      "sha256": "aeafe6acadaa65a698dee1a82eb422bc2e9e7a7b22defa5f864fcfc9ec3258a8",
+      "bytes": 1286213,
+      "codec": "h264",
+      "width": 320,
+      "height": 640,
+      "durationSeconds": 62.556411,
+      "frames": 511,
+      "averageFrameRate": "45990000/5630077",
+      "audioStreams": 0,
+      "note": "Variable-frame-rate diagnostic screen recording; this is not an animation-performance measurement."
+    }
+  },
+  "diagnostics": {
+    "appLogSha256": "bc3ee65e65a255cfa5bb2fee45fa4e741f9b6772ed71f4462c30012746ba102b",
+    "maestroLogSha256": "41e52d0b214969000946c74bf971c524bb923c5086e396ab04403a3412b25253",
+    "buildLogSha256": "bff13aca53dd90bcc52bd2ae006976622972ef04a1f32c02ec66db54d6a010e6",
+    "fixtureReceiptSha256": "6f9452578a7617cf4d823a1e626cffecdbcb236f2b6969bb779821526a76edc6"
+  },
+  "fixtureRepairCandidate": {
+    "observedContractsOnly": [
+      "get_context_unread: object with market/jobs/groups/personal counts from the synthetic messages",
+      "announcements: explicitly empty active-announcement table",
+      "get_trending_stories: empty ranked snapshot; the existing catchup story remains present"
+    ],
+    "sourceHashes": {
+      "tests/native/backend-fixture.cjs": "7e74952c27f489a4ff19b6b53cca5206e6160401e61922c5d8e6c6debc508470",
+      "tests/quality/native-ui-fixture.cjs": "8a41e6bdcd6af3d5d4fa85f4cb0ebe0db7bf77ad1f60cde053c7907dfda2a784"
+    },
+    "focusedCasesPassed": 46,
+    "focusedCasesFailed": 0,
+    "logSha256": "87fb0ea1cacf95a555a914a743225aa79eb9eda80a90744f80ca4e7f6a221bd3",
+    "unknownRequestsStillFail": true,
+    "permissionsNotPregranted": true,
+    "runtimeRerunPending": true
+  },
+  "callStartupRepair": "Owned separately by root; no startup microphone grant or call-service disable is inserted into the fixture.",
+  "limits": [
+    "Full-app Android Emulator build and sign-in are established; the navigation, memory-book, capture and cleanup gates did not complete.",
+    "No physical device, signed distribution, hosted provider or Photos-library save acceptance."
+  ]
+}

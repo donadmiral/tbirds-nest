@@ -4,7 +4,7 @@
  */
 import { themedSheet } from '../theme/useTheme';
 import React, { useCallback, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, AppState, Image } from 'react-native';
+import { View, Text, TouchableOpacity, AppState, Image } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useLockStore } from '../stores/lockStore';
 

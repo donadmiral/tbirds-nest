@@ -1,4 +1,4 @@
-import { Platform } from 'react-native';
+import 'react-native';
 import { isColorLight } from './colorUtils';
 import type { StoryStickerStyle } from '../services/storiesService';
 

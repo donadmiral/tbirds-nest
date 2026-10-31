@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31T07:13:24Z",
+  "observedBy": "root",
+  "sourceHead": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+  "scope": "Read-only signing metadata in the existing authenticated Expo browser session. This is not an Apple sign-in or an actual build/submission validation.",
+  "page": {
+    "url": "https://expo.dev/accounts/donadmiral/credentials",
+    "title": "Credentials — @donadmiral — Expo",
+    "account": "donadmiral"
+  },
+  "observedMetadata": {
+    "appleTeamMatchesRepository": true,
+    "appleTeamId": "6PHMSMFKSF",
+    "distributionCertificate": {
+      "present": true,
+      "displayedStatus": "Valid",
+      "displayedExpiration": "Apr 21, 2027 10:53 PM",
+      "expirationTimezone": "Not stated by the displayed tooltip; no UTC conversion is inferred."
+    },
+    "appStoreConnectKey": {
+      "present": true,
+      "sameAppleTeam": true,
+      "displayedRole": "ADMIN",
+      "credentialValueRead": false,
+      "currentAppleAcceptance": "Not tested by this metadata view."
+    },
+    "applePushKey": {
+      "present": true,
+      "sameAppleTeam": true,
+      "deliveryVerified": false
+    }
+  },
+  "conclusions": {
+    "storedSigningSetup": "Expo lists an existing distribution certificate as Valid for the configured Apple team, with a displayed future expiration, and retains a submission key for that team.",
+    "profileAssociation": "This account-level view does not establish that the current QA or production provisioning profile is valid for a new build.",
+    "cliAccess": "The supported local EAS CLI identity check remains Not logged in. Browser authentication was not transferred or copied to the CLI.",
+    "releaseReadiness": "A new source-bound signed build, profile validation, Apple processing and physical installation remain unverified."
+  },
+  "actionBoundary": [
+    "Opened the existing account's signing-metadata page and its certificate-status tooltip.",
+    "Did not inspect or download private key material, password, OTP, session token, cookie, or credential file.",
+    "Did not create, upload, revoke, replace or change a certificate, key, profile, permission or account setting.",
+    "Did not retry the aborted Apple sign-in or initiate an Expo login.",
+    "Did not build, submit, promote or enable a production capability."
+  ],
+  "timingLimit": "recordedAtUtc is the clock read after the browser observations, not a claimed exact request timestamp for every UI action."
+}

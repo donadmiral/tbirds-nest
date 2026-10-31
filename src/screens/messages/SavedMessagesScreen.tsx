@@ -1,5 +1,5 @@
 import { themedSheet } from '../../theme/useTheme';
-import EmptyState from '../../components/EmptyState';
+import '../../components/EmptyState';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,

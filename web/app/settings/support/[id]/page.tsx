@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+
+
 import { createClient } from "@/lib/supabase/client";
 
 type Ticket = { id: string; subject: string; body: string; status: string; created_at: string };
@@ -18,7 +18,7 @@ const STATUS_META: Record<string, { label: string; cls: string }> = {
 export default function TicketPage() {
   const params = useParams<{ id: string }>();
   const ticketId = params.id;
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [uid, setUid] = useState<string | null>(null);
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [msgs, setMsgs] = useState<Msg[] | null>(null);

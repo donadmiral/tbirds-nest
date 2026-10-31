@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Briefcase, Check, X } from "lucide-react";
@@ -10,28 +10,28 @@ const CATEGORIES = ["Retail", "Food & Drink", "Technology", "Services", "Health 
 type Avail = "idle" | "checking" | "free" | "taken" | "invalid";
 
 export default function NewBusinessPage() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const router = useRouter();
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [category, setCategory] = useState<string | null>(null);
-  const [avail, setAvail] = useState<Avail>("idle");
+  const [availability, setAvailability] = useState<{username:string;value:Avail} | null>(null);
+  const normalizedUsername = username.trim().toLowerCase();
+  const avail: Avail = !normalizedUsername ? "idle" : !/^[a-z0-9_]{3,30}$/.test(normalizedUsername) ? "invalid" : availability?.username === normalizedUsername ? availability.value : "checking";
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (timer.current) clearTimeout(timer.current);
-    const u = username.trim().toLowerCase();
-    if (!u) { setAvail("idle"); return; }
-    if (!/^[a-z0-9_]{3,30}$/.test(u)) { setAvail("invalid"); return; }
-    setAvail("checking");
-    timer.current = setTimeout(async () => {
-      const { data, error } = await supabase.rpc("is_username_available", { p_username: u });
-      if (error) { setAvail("idle"); return; }
-      setAvail(data ? "free" : "taken");
+    const u = normalizedUsername;
+    if (!/^[a-z0-9_]{3,30}$/.test(u)) return;
+    let active = true;
+    const timer = setTimeout(() => {
+      void supabase.rpc("is_username_available", { p_username: u }).then(({data,error}) => {
+        if (active) setAvailability({username:u,value:error?"idle":data?"free":"taken"});
+      }, () => { if (active) setAvailability({username:u,value:"idle"}); });
     }, 450);
-  }, [username, supabase]);
+    return () => { active = false; clearTimeout(timer); };
+  }, [normalizedUsername, supabase]);
 
   const canCreate = name.trim().length >= 2 && avail === "free" && !!category && !creating;
 

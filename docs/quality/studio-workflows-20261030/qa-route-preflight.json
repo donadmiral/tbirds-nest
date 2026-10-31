@@ -1,0 +1,97 @@
+{
+  "project": "uaulhuelcfkjwojtymmw",
+  "checkedAt": "2026-10-30T03:20:22.209Z",
+  "source": "supabase/ops/check-reserved-web-usernames.sql",
+  "result": [
+    {
+      "evidence": {
+        "trigger": null,
+        "profiles": 1,
+        "functions": [
+          {
+            "hash": "dca1048f7c4ce81e552d3992f07e1e11",
+            "owner": "postgres",
+            "signature": "is_username_available(text)",
+            "app_execute": true,
+            "search_path": [
+              "search_path=public"
+            ],
+            "anon_execute": true
+          }
+        ],
+        "collisions": {
+          "ads": 0,
+          "home": 0,
+          "jobs": 0,
+          "post": 0,
+          "about": 0,
+          "album": 0,
+          "calls": 0,
+          "login": 0,
+          "music": 0,
+          "saved": 0,
+          "story": 0,
+          "terms": 0,
+          "topic": 0,
+          "watch": 0,
+          "write": 0,
+          "market": 0,
+          "search": 0,
+          "signup": 0,
+          "studio": 0,
+          "archive": 0,
+          "explore": 0,
+          "privacy": 0,
+          "channels": 0,
+          "discover": 0,
+          "messages": 0,
+          "settings": 0,
+          "businesses": 0,
+          "communities": 0,
+          "monetization": 0,
+          "notifications": 0,
+          "business-login": 0,
+          "reset-password": 0,
+          "forgot-password": 0,
+          "account-deletion": 0
+        },
+        "availability": {
+          "ads": true,
+          "home": true,
+          "jobs": true,
+          "post": true,
+          "about": true,
+          "album": true,
+          "calls": true,
+          "login": true,
+          "music": true,
+          "saved": true,
+          "story": true,
+          "terms": true,
+          "topic": true,
+          "watch": true,
+          "write": true,
+          "market": true,
+          "search": true,
+          "signup": true,
+          "studio": true,
+          "archive": true,
+          "explore": true,
+          "privacy": true,
+          "channels": true,
+          "discover": true,
+          "messages": true,
+          "settings": true,
+          "businesses": true,
+          "communities": true,
+          "monetization": true,
+          "notifications": true,
+          "business-login": false,
+          "reset-password": false,
+          "forgot-password": false,
+          "account-deletion": false
+        }
+      }
+    }
+  ]
+}

@@ -5,7 +5,7 @@
  */
 import { themedSheet, useTheme } from '../theme/useTheme';
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Image, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Image, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useAuthStore } from '../stores/authStore';
 
 export default function ProfileRestore() {

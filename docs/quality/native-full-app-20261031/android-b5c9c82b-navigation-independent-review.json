@@ -1,0 +1,303 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31T16:40:02.540104+00:00",
+  "reviewer": "navigation_performance",
+  "status": "NATIVE_NAVIGATION_INCOMPLETE_DEVICE_DISAPPEARED_BEFORE_MEMORY_SHELF_ENTRY",
+  "candidate": {
+    "head": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+    "prMerge": "cddbe51a25efbb39b9e91fb822a9821957b9a2bd",
+    "tree": "d72a8c25e7b9e8890d3520a0c825a6175aecf3c6",
+    "workflowRun": 41218724056,
+    "job": 124588620179,
+    "workflowUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41218724056"
+  },
+  "artifact": {
+    "id": 13049009956,
+    "name": "android-full-app-ui",
+    "bytes": 365665,
+    "zipSha256": "fe4e1dab20ff0a5363fb0d0660a008b43d410a729ab01fa3a2b7da1667d4ff86",
+    "singleDownloadOwner": "native_acceptance",
+    "localExtraction": "/tmp/android-full-app-b5c9c82b-41218724056",
+    "localZip": "/tmp/android-full-app-b5c9c82b.zip",
+    "zipDigestIndependentlyRechecked": true
+  },
+  "sourceBinding": {
+    "canonicalSourceManifest": "docs/quality/native-full-app-20261031/android-full-app-b5c9c82b-source.json",
+    "sourceManifestSha256": "47d327e6ce2e5d44800be93a2173ff9f90e79e07b48a80f1100250f5a4e26102",
+    "artifactCommit": "cddbe51a25efbb39b9e91fb822a9821957b9a2bd",
+    "artifactWorkflowRun": "41218724056",
+    "fixtureMode": "Complete production App and screens with isolated synthetic transports and a CI-only capture route",
+    "capabilityMode": "qa-capability-overlay",
+    "sourceMemoryCapability": 0,
+    "fullSourceCoverageAttribution": "Native owner reports all 498 original files, six overlays and nine dependency files match the exact candidate. This review independently checks only the 12 relevant original navigation/reader/flow/trace files below; the runtime uses the six documented QA overlays.",
+    "focusedFiles": [
+      {
+        "path": "tests/native/flows/navigation.yaml",
+        "sha256": "1a3bb92ad2f80bfe9ba0c1c81829c65edfa1118dbfe10942074deeb9fe51e1f8",
+        "artifactOriginalMatchesPublishedGitBlob": true,
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "tests/native/flows/memory-navigation.yaml",
+        "sha256": "afd1a9deb1842880ca237405019525e75a9787ce84bb8effc7ec870b037b0792",
+        "artifactOriginalMatchesPublishedGitBlob": true,
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "tests/native/flows/memory-capture.yaml",
+        "sha256": "1bb3e4fa89bf9bbc516c43efae25e989a1f8b6d719de58a7723ea896d6eb5bde",
+        "artifactOriginalMatchesPublishedGitBlob": true,
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "src/screens/profile/ProfileScreen.tsx",
+        "sha256": "8054af477bbdbd0a17bb7ad417107490b1c1f457c9182fa4e80f3a51bd5e2d20",
+        "artifactOriginalMatchesPublishedGitBlob": true,
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "src/screens/profile/MemoryAlbumScreen.tsx",
+        "sha256": "63cf58cdf501ef43c333c9cce04ba3620fb775f1de532e4d92ace987d0d8826f",
+        "artifactOriginalMatchesPublishedGitBlob": true,
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "src/components/memory/MemoryFilm.tsx",
+        "sha256": "3b144c45ce8f5b85ef890806c2f3e0752b1e77950f7cfa9b357fb6e1c46971b4",
+        "artifactOriginalMatchesPublishedGitBlob": true,
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "src/components/memory/MemoryMovieExport.tsx",
+        "sha256": "f08a34b3f5ebf06a43cabf717e6e8b0cf3eda145a5ecfa38ccd99eb4823bae3a",
+        "artifactOriginalMatchesPublishedGitBlob": true,
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "src/navigation/AppNavigator.tsx",
+        "sha256": "25901306b597b2a0fc93111f97636ef74beee216174df9937e5cf16ad3ffed70",
+        "artifactOriginalMatchesPublishedGitBlob": true,
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "tests/native/entry.js",
+        "sha256": "826953456afbe130b718cc4c7a2cd8bfdfb584c88d0835291c7dad409d57528e",
+        "artifactOriginalMatchesPublishedGitBlob": true,
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "tests/native/MemoryCaptureFixtureScreen.tsx",
+        "sha256": "c3b4f3c429e2d7224fcc5d380f2769591bd9fd4431a3a392aa67910debc59f3f",
+        "artifactOriginalMatchesPublishedGitBlob": true,
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "tests/native/capture-boundary-trace.cjs",
+        "sha256": "72a87c787b59587f4d9aa95f21812da91cb948efd069ccddd6247437d2200cdb",
+        "artifactOriginalMatchesPublishedGitBlob": true,
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "tests/native/backend-fixture.cjs",
+        "sha256": "7ab02db8dba6d87642a2be01227fbf169b1091029870e6e4bdbb65fbc340a94d",
+        "artifactOriginalMatchesPublishedGitBlob": true,
+        "workingFileMatchesPublishedGitBlob": true
+      }
+    ],
+    "requiredFlowFilesChangedFromF4": []
+  },
+  "junit": {
+    "suite": {
+      "name": "Test Suite",
+      "device": "emulator-5556",
+      "tests": "1",
+      "failures": "1",
+      "time": "82.439",
+      "timestamp": "2026-10-31T16:34:24"
+    },
+    "testcase": {
+      "id": "Full native app navigation",
+      "name": "Full native app navigation",
+      "classname": "Full native app navigation",
+      "file": "tests/native/flows/navigation.yaml",
+      "time": "82.389",
+      "timestamp": "2026-10-31T16:34:24",
+      "status": "ERROR"
+    },
+    "failureFirstLine": "maestro.android.DeviceServerDiedException: Device server died during 'viewHierarchy' on emulator-5556 (33935ms since last byte, connection age 83412ms): StatusRuntimeException: UNAVAILABLE",
+    "classification": "DeviceServerDiedException during viewHierarchy with gRPC UNAVAILABLE; this is not a failed semantic memory-reader assertion.",
+    "deviceMissingEvidence": "The subsequent capture CLI reports: Device emulator-5556 was requested, but it is not connected.",
+    "deviceMissingLog": {
+      "artifactPath": "maestro-memory-capture.log",
+      "bytes": 62,
+      "sha256": "3e66cf2392dc12b00ab6dc4d9bf20c92711996aa761111a61d8abf079b296b02"
+    }
+  },
+  "completedVisibleCoverage": {
+    "pages": [
+      "Home",
+      "Market",
+      "Jobs",
+      "Messages",
+      "Profile"
+    ],
+    "assertions": "All recorded primary content assertions through Alex Rivera and Edit profile completed, including Home return from Market.",
+    "lastScreenshot": {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/navigation-profile.png",
+      "startedUtc": "2026-10-31T16:35:10.920Z",
+      "completedUtc": "2026-10-31T16:35:10.945Z",
+      "visualInspection": "Profile screenshot visibly contains Alex Rivera, Edit profile, profile metadata and the five main navigation icons. The memory-shelf link is below the current visible region; no failed-reader screen is retained."
+    },
+    "metadataCounts": {
+      "COMPLETED": 35,
+      "SKIPPED": 1,
+      "RUNNING": 2
+    },
+    "platformSkip": "The one recorded SKIPPED command is the iOS-only sign-in keyboard-dismissal runFlow on Android; required native acceptance still fails."
+  },
+  "failureBoundary": {
+    "lastCompletedUISequence": 34,
+    "lastCompletedConfigurationSequence": 36,
+    "unfinishedSequence": 37,
+    "command": "scrollUntilVisible View all memory books",
+    "direction": "DOWN",
+    "centerElement": true,
+    "timeoutMs": 20000,
+    "visibilityPercent": 100,
+    "metadataStartedUtc": "2026-10-31T16:35:10.947Z",
+    "textLogStartedTime": "16:35:10.948",
+    "initialMissingTargetTime": "16:35:11.629",
+    "lastRetainedTextLogTime": "16:35:11.671",
+    "lastRetainedTextLogEvent": "Swiping UP from center",
+    "followingNavigationCommandsExecuted": false,
+    "note": "An initial target miss while scrolling toward off-screen content is expected; the retained failure is the lost hierarchy/device transport. The scroll has no terminal metadata duration or completion record."
+  },
+  "notReached": [
+    "View all memory books tap",
+    "Private shelf filter",
+    "Two-memory book card assertion/tap",
+    "Edit memory book reader-readiness assertion",
+    "Reader page turning",
+    "Film/export entry and dismissal",
+    "Book settings editing/persistence",
+    "Final settings and repeated tab returns",
+    "Capture route heading",
+    "Saved-account readback",
+    "Native capture cancellation/retry/encoding"
+  ],
+  "captureAndReaderBoundaries": {
+    "emptyExports": [
+      {
+        "artifactPath": "native-ui-auth-diagnostics.json",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "artifactPath": "native-ui-auth-diagnostics-final.json",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "artifactPath": "native-ui-receipt.json",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "artifactPath": "native-ui-receipt-final.json",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "readerResponseBoundariesAvailable": false,
+    "captureBoundariesAvailable": false,
+    "authTimingAvailable": false,
+    "interpretation": "Zero-byte exports are unavailable diagnostics, not an empty successful trace. No body-settlement, capture URL/action/mount or account-readback conclusion can be drawn. Capture CLI fails device selection before a testcase; no capture JUnit or movie is retained.",
+    "preparedTraceSourceVerified": true,
+    "sourceRepairAcceptance": "The b5 optional-reaction reader repair and new QA boundaries are in the verified source but their relevant runtime behavior was not reached or retained here."
+  },
+  "conclusion": {
+    "demonstratedApplicationSelectorOrReaderDefect": false,
+    "sourceOrAssertionRepairProposed": false,
+    "overallNativeAcceptance": "FAIL / incomplete",
+    "assessment": "Retained navigation evidence establishes main-page progress followed by device transport loss during the first memory-shelf scroll. It does not establish an app component, selector, reader promise or capture route as the cause. Host/renderer/crash review is owned separately by Native."
+  },
+  "retainedEvidence": [
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/navigation-commands.json",
+      "artifactPath": "maestro/navigation/2026-10-31_163417/Full native app navigation/commands.json",
+      "bytes": 67469,
+      "sha256": "f20fddcd8850d4003250496c8afa4c40672969347b4469a0118e49e950e63b14",
+      "byteIdenticalToArchiveExtraction": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/navigation-artifact-manifest.json",
+      "artifactPath": "maestro/navigation/2026-10-31_163417/Full native app navigation/manifest.json",
+      "bytes": 480,
+      "sha256": "c163209e049c35be89dac73a93572f2c3e8d681d1676f0127c893cbd8025ccac",
+      "byteIdenticalToArchiveExtraction": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/navigation-maestro-log.txt",
+      "artifactPath": "maestro/navigation/2026-10-31_163417/Full native app navigation/logs/maestro.log",
+      "bytes": 19943,
+      "sha256": "e72558497720b456bd3cdb105673a78cc1b7ef316a36a412080b41bfe8eee9d5",
+      "byteIdenticalToArchiveExtraction": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/navigation-junit.xml",
+      "artifactPath": "maestro-navigation.xml",
+      "bytes": 4385,
+      "sha256": "dbc84868fb171e6b8a37b3075203ea5f48686357cd97c51068a6f63eb7ac13e6",
+      "byteIdenticalToArchiveExtraction": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/navigation-home.png",
+      "artifactPath": "maestro/navigation/2026-10-31_163417/Full native app navigation/takeScreenshot/home.png",
+      "bytes": 51659,
+      "sha256": "388465208b40045d7c70a9d7f5e5db5a722d7f9e12ae1a5407de3dc55df7ea8c",
+      "byteIdenticalToArchiveExtraction": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/navigation-market.png",
+      "artifactPath": "maestro/navigation/2026-10-31_163417/Full native app navigation/takeScreenshot/market.png",
+      "bytes": 33412,
+      "sha256": "fbc4fe55ea204e82188344c12833404a26336c53c46b6b225866e6155caca78c",
+      "byteIdenticalToArchiveExtraction": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/navigation-jobs.png",
+      "artifactPath": "maestro/navigation/2026-10-31_163417/Full native app navigation/takeScreenshot/jobs.png",
+      "bytes": 43692,
+      "sha256": "4af69a4de15bfbae7b741dcc333956d78da4080551921450644acada96c6b62c",
+      "byteIdenticalToArchiveExtraction": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/navigation-messages.png",
+      "artifactPath": "maestro/navigation/2026-10-31_163417/Full native app navigation/takeScreenshot/messages.png",
+      "bytes": 33923,
+      "sha256": "bfc8534accdcfe5f87067224c0c8cbefc549a97ff38bf79f106591a78a08dcda",
+      "byteIdenticalToArchiveExtraction": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/navigation-profile.png",
+      "artifactPath": "maestro/navigation/2026-10-31_163417/Full native app navigation/takeScreenshot/profile.png",
+      "bytes": 41801,
+      "sha256": "c615b53c86604f50efc37c893124a1d77e92a28adf66cf9f0b8f643d5d13cabf",
+      "byteIdenticalToArchiveExtraction": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/navigation-command-timeline.json",
+      "bytes": 18088,
+      "sha256": "ca572e3b123f5fecee5d05ecf11bc1c772c424fae7e32b9bf9a2375f26e8b39b",
+      "kind": "Derived bounded command/timeline projection"
+    }
+  ],
+  "limits": [
+    "The JUnit duration and 33,935ms since-last-byte diagnostic include driver waiting and are not app latency or exact crash timing.",
+    "Only the pre-scroll Profile screenshot is available at this boundary. No successful post-swipe hierarchy or failure screenshot was retained; absence cannot reveal later UI state.",
+    "The configured nested flow contains many future commands; those strings are not execution evidence. Separate command metadata stops at the first scroll.",
+    "Empty fixture/auth files do not show zero requests, stable timers, successful readback or absence of errors.",
+    "No actual native reader, film, settings, capture, saved-account or decoded-movie acceptance is claimed for this run.",
+    "No second archive download, host-log fetch, app/provider request, assertion/deadline/source change, report edit, ref movement or CI action was performed by this review."
+  ]
+}

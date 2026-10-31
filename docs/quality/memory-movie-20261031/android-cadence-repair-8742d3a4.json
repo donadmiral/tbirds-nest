@@ -1,0 +1,114 @@
+{
+  "recordedAt": "2026-10-31T01:46:53.990743+00:00",
+  "status": "Memory cadence repair compiled and independently source-reviewed. New actual emulator run required; memory capability remains0.",
+  "basis": {
+    "failedReceipt": "android-runtime-failed-8742d3a4.json",
+    "failedReceiptSha256": "dbba58f194fc725ec4b3fa063b13db3f3dac2b1e0c1af798f1b0c7ed34dfc6d3",
+    "head": "8742d3a43e54e0b8518cec308604289d089364cd"
+  },
+  "sourceSha256": {
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab",
+    "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/MemoryMovieExportTest.kt": "692e0629c6ee7a642ed17cd3b00cba8c64d6b6e56854839deabaf8261573bf51"
+  },
+  "unchangedSourceSha256": {
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+    "scripts/quality/android-story-export/build.gradle": "43d2e6d7df99ba6fb4c51870416b93271cd074a150728042acfb5580cfc0a0ad",
+    "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/StoryAudioExportTest.kt": "8838f9ec96b6d297bbaa2cb7e80d6399731b53331d2dda4de2de54becd8f21f6",
+    "scripts/quality/test-android-story-audio.sh": "8b9aba3df62726b0f367348015b16aa831962416696712f822796d4a0e66cdff",
+    "scripts/quality/compile-android-native.sh": "d638f2dedd0026cd91b149354927899185cbdf4c55c3f3db7a1b61b566f6fbf7",
+    ".github/workflows/android-native-compile.yml": "b61803a86989169286d8af51814cb15a76329e070c5e000af46d328c1b796d84",
+    "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.gif": "fa09323d645946fc05e54d47d92c2d4171d67cbb93a4a9cc4225495cf00ae674",
+    "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.png": "296c54b04d0a9aa58171e9d22cff9b41b32a66116d3aa1d89bd67cd193082a77",
+    "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.webp": "417af2bcf554708ce2331d3c3558aa0148921e2231ab3e0b9e8989f6a19395f3",
+    "scripts/quality/android-story-export/src/androidTest/assets/memory-static.gif": "72d8dbe3283e3dbe380be331227f69cac8f86144e136fab17c320c43cd008ff9"
+  },
+  "compile": {
+    "exitCode": 0,
+    "log": "android-cadence-repair-package.log",
+    "logSha256": "2676b70ab58ceaa2029f247830fb1f9bbb6c160bae25a3c54784c80aa010e33a",
+    "result": "BUILD SUCCESSFUL in24s;61tasks,10executed51up-to-date",
+    "productionCopiesVerified": true,
+    "command": "ANDROID_HOME=/tmp/platinum-android-sdk GRADLE_USER_HOME=/tmp/platinum-android-gradle JAVA_HOME=/tmp/platinum-android-jdk/jdk-17.0.21+9 bash /tmp/platinum-android-wrapper/gradlew -p scripts/quality/android-story-export --offline --no-daemon --console=plain --max-workers=2 '-Dorg.gradle.jvmargs=-Xmx2g -XX:MaxMetaspaceSize=1g' assembleDebug assembleDebugAndroidTest"
+  },
+  "artifacts": [
+    {
+      "path": "scripts/quality/android-story-export/build/outputs/apk/androidTest/debug/PlatinumStoryExportAcceptance-debug-androidTest.apk",
+      "bytes": 949556,
+      "sha256": "ace66575b749aa6e169ccd9eea8baa42e1d54f845990c99535c6c62af8e196cf"
+    },
+    {
+      "path": "scripts/quality/android-story-export/build/outputs/apk/debug/PlatinumStoryExportAcceptance-debug.apk",
+      "bytes": 4369000,
+      "sha256": "80823cc90d2693210f11c80d5cd1dbb48f7a0d5b08da3b8997c37accf19f0fc6"
+    }
+  ],
+  "validation": {
+    "memoryCaseNamesUnchanged": [
+      "stillScenesKeepOrderAndContinuousDuckedSoundtrack",
+      "videoPageAndBookAudioPreserveIndependentClocks",
+      "sceneArtworkFadeAndMotionUseLocalTime",
+      "onePassBookMusicDoesNotShortenSilentTail",
+      "zeroGainBookSelectionEncodesSilence",
+      "cancellationReleasesWriterBeforeRetryAndBlocksStory",
+      "cancelAllStopsMovieAndImagePreparation",
+      "outputByteCeilingCancelsAndRemovesTheOwnedFile",
+      "normalizedPngIsBoundedAndPreservesTransparency",
+      "normalizedJpegHonorsExifOrientation",
+      "animatedContainersAreRejectedBeforeStaticPreparation",
+      "imagePreparationRejectsUnsafeInputsAndPreservesExistingFiles",
+      "movieLimitsAndGainContinuityAreEnforcedBeforeWriting",
+      "aggregateInputBytesAreBoundedWithoutCopyingLargeSources",
+      "sourcePathsRemainConfinedEvenThroughSymlinks",
+      "mutedVideoKeepsPageVoiceoverAndSilentCards"
+    ],
+    "storyCaseNamesUnchanged": [
+      "selectedExcerptLoopsThroughActualStillMovie",
+      "onePassVoiceoverEndsInSilenceWithoutShorteningVideo",
+      "longVoiceoverIsClippedToTheOutputMovie",
+      "soundtrackVolumeAndZeroGainAreEncoded",
+      "videoTrimSpeedAndOriginalMixStayAlignedWithIndependentSoundtrack",
+      "mutedOriginalDoesNotLeakIntoTheMovie",
+      "slowedVideoRepeatsOnlyTheSelectedExcerptThroughItsPartialFinalLoop",
+      "originalOnlyAudioIsPreservedAndMeasured",
+      "trimmingPastShortOriginalAudioProducesAValidSilentMovie",
+      "canvasBackgroundAndTimedArtworkMatchDecodedPixels",
+      "fullColorMatrixScaleAndTranslationMatchPixels",
+      "matrixAlphaAndBiasAreNotDroppedByAFourByFourShortcut",
+      "verticalTextureOrientationAndBothTranslationDirectionsMatchTheCanvas",
+      "trimmedAndAcceleratedVideoUsesOutputTimeForArtwork",
+      "invalidInputsCannotOverwriteOrEscapeTheCache",
+      "cancellationStopsTheWriterCleansThePartialAndAllowsRetry",
+      "backgroundCancellationSettlesOnceAndPreservesTheDraftInputs",
+      "fullPortraitResolutionProducesActualVideoAndSoundtrack",
+      "cancellationAtTheCompletionBoundaryCannotLeaveARejectedOutput",
+      "unknownLengthContentAndReadableExternalVideoAreStagedAndRemoved",
+      "oversizedUnknownLengthProviderCannotConsumeUnboundedDisk",
+      "knownLengthProviderDoesNotNeedEofAndCannotHideAnEarlyEnd",
+      "blockedContentProviderCanBeCancelledWithoutWaitingForAnotherChunk"
+    ],
+    "caseTotal": 39,
+    "compiledOnly": true,
+    "thresholdsPreserved": [
+      "120ms decoded audio/video coverage",
+      "30fps cap and still frame-count range",
+      "maximum120000us frame gap",
+      "all tone/pitch/gain/excerpt/silent-tail checks",
+      "actual decoded720x1280pixels",
+      "256MiB output rejection and cleanup"
+    ],
+    "independentReviewer": "music_completion",
+    "independentRead": "No new blocker: exact pinned passthrough ownership, global effect-adjusted clock, EOS loss, rotation normalization and writer-start synchronization reviewed."
+  },
+  "capabilities": {
+    "storyVideoVersion": 1,
+    "storyAudioExportVersion": 1,
+    "memoryMovieVersion": 0
+  },
+  "limits": [
+    "No new emulator result exists for these repaired source hashes yet.",
+    "Memory frame limiter forwards existing frames; it does not synthesize frames for low-rate or sped sources. The native output remains bounded to approximately30fps through minimum33333us accepted spacing.",
+    "The watchdog fixture injects sparse file growth after actual muxer output; it does not claim a256MiB encoded movie."
+  ]
+}

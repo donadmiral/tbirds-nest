@@ -1,0 +1,6 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <application android:label="Story export acceptance" android:allowBackup="false">
+    <provider android:name="expo.modules.boomerang.FixtureMediaProvider"
+      android:authorities="app.platinumcircles.storyexporttest.media" android:exported="false" />
+  </application>
+</manifest>

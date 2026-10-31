@@ -1,0 +1,23 @@
+{
+  "cases": 2,
+  "passed": 2,
+  "failed": 0,
+  "boundaries": "No actual Android bridge executes. A pending public Asset native call cannot be cancelled by this adapter; when it resolves, the actual adapter immediately closes its handle and rejects without streaming bytes. Production downloader deadlines are unchanged.",
+  "outcomes": [
+    {
+      "check": "already-aborted Android request",
+      "passed": true,
+      "nativeMaterializations": 0,
+      "handlesOpened": 0
+    },
+    {
+      "check": "Android abort during local materialization",
+      "passed": true,
+      "nativeMaterializations": 1,
+      "handlesOpened": 1,
+      "handlesClosed": 1,
+      "streamedBytes": 0,
+      "finalPhase": "cancelled"
+    }
+  ]
+}

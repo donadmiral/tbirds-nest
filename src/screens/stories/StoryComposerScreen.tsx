@@ -1,3 +1,8 @@
+import StoryPixelImage, { StoryPhotoLookContext, StoryPhotoReadinessContext, type StoryPhotoReadiness } from '../../components/stories/StoryPixelImage';
+import { composeStoryVideo, storyVideoCompositionAvailable, storyAudioCompositionAvailable, storyVideoPreviewAvailable } from '../../../modules/boomerang/storyComposition';
+import { storyVideoRecipe, storyVideoLayerWindows, storyVideoExportLimit, storyVideoLayerAtTime, storyNativeEditingUnavailable } from '../../../shared/storyVideoComposition';
+import { storyPhotoSpatialAdjust } from '../../../shared/storyColorMatrix';
+import { captureRef, releaseCapture } from 'react-native-view-shot';
 import { normalizeStoryCapture, STORY_CLIP_LIMIT } from '../../../shared/storyCapture';
 import { storyLayerWindow } from '../../../shared/storyPresentation';
 import StoryTimingPanel from '../../components/stories/StoryTimingPanel';
@@ -9,7 +14,7 @@ import { updateDraftStickers, type StickerChange } from '../../controllers/stori
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Image, TextInput, FlatList,
-  ActivityIndicator, Alert, Platform, StatusBar, KeyboardAvoidingView,
+  ActivityIndicator, Alert, AppState, Platform, StatusBar, KeyboardAvoidingView,
   Dimensions, Modal, ScrollView, Animated, Keyboard, AccessibilityInfo, Easing, Switch,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
@@ -20,18 +25,16 @@ import * as Haptics from 'expo-haptics';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import { useStoryAudioMix } from '../../hooks/useStoryAudioMix';
 import { useStorySoundPreview } from '../../hooks/useStorySoundPreview';
+import { prepareStoryExportAudio, type PreparedStoryExportAudio } from '../../services/storyExportAudio';
 import VideoThumb from '../../components/VideoThumb';
 import StudioRail, { type RailItem } from '../../components/stories/StudioRail';
-import TrimStrip from '../../components/stories/TrimStrip';
+import '../../components/stories/TrimStrip';
 import StudioSheet, { type StudioTile } from '../../components/stories/StudioSheet';
 import { LinearGradient } from 'expo-linear-gradient';
-import {
-  storiesService, StoryTextSticker, StoryStickerStyle, MediaFit, MediaTransform,
-  StoryCategory, StoryTextBackground,
-} from '../../services/storiesService';
+import { StoryTextSticker, StoryStickerStyle, MediaFit, MediaTransform, StoryCategory, StoryTextBackground } from '../../services/storiesService';
 import { useAuthStore } from '../../stores/authStore';
 import { supabase } from '../../services/supabase';
-import { stickerTextStyle, STICKER_STYLES, STICKER_STYLE_LABELS, BASE_FONT_SIZES } from '../../utils/stickerStyles';
+import { STICKER_STYLES, STICKER_STYLE_LABELS, BASE_FONT_SIZES } from '../../utils/stickerStyles';
 import StickerOverlay from '../../components/stories/StickerOverlay';
 import StickerPill from '../../components/stories/StickerPill';
 import PollCard from '../../components/stories/PollCard';
@@ -40,13 +43,13 @@ import TierName from '../../components/TierName';
 import DraggableSticker from '../../components/stories/DraggableSticker';
 import type { SmartGuideEntry } from '../../components/stories/DraggableSticker';
 import MediaCanvas from '../../components/stories/MediaCanvas';
-import CategoryPicker from '../../components/stories/CategoryPicker';
-import { MUSIC_CATALOG_ENABLED } from '../../../shared/musicAvailability';
+import '../../components/stories/CategoryPicker';
+import { ORIGINAL_AUDIO_ENABLED } from '../../../shared/musicAvailability';
 import MusicSheet from '../../components/stories/MusicSheet';
 import { FilterLayer, FilterPickerSheet } from '../../components/stories/StoryFilters';
 import type { StoryAudioDraft } from '../../services/storiesService';
-import StickerIcon from '../../components/stories/StickerIcons';
-import VideoTrimmer, { autoSegments, STORY_MAX_SEC } from '../../components/stories/VideoTrimmer';
+import '../../components/stories/StickerIcons';
+import VideoTrimmer, { STORY_MAX_SEC } from '../../components/stories/VideoTrimmer';
 import DrawSurface, { DrawingLayer, type DrawStroke } from '../../components/stories/DrawLayer';
 import { MiniSlider, AdjustPanel, AdjustLayer, BackgroundSheet, BackgroundLayer, AudioMixSheet, EntitySheet, PreviewChrome, type StoryAdjust, type StoryBg, type StoryMix, type EntityPick } from '../../components/stories/storyPanels';
 import { EXTRA_TEXT_STYLES, EXTRA_TEXT_LABELS, composedTextStyle, TEXT_ANIMS, fetchWeatherNow, PHOTO_SHAPES, TIME_STYLES, DATE_STYLES, WEATHER_STYLES } from '../../components/stories/storyExtras';
@@ -56,17 +59,10 @@ import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as MediaLibrary from 'expo-media-library';
-import {
-  getBloomTools, BLOOM_RADIUS, INVOKE_SIZE, BLOOM_TOOL_SIZE,
-  type BloomToolDef,
-} from '../../components/stories/composerTheme';
-import DualArrangementOverlay, { type CompositionPreset } from '../../components/stories/DualArrangementOverlay';
+import { getBloomTools, BLOOM_TOOL_SIZE } from '../../components/stories/composerTheme';
+import DualArrangementOverlay from '../../components/stories/DualArrangementOverlay';
 import { PanGestureHandler, TapGestureHandler } from 'react-native-gesture-handler';
-import {
-  BUBBLE_BASE_WIDTH, BUBBLE_BASE_HEIGHT,
-  Z_BUBBLE, Z_STICKERS, Z_CHROME, Z_BLOOM, Z_SCRIM,
-  SHADOW_BUBBLE, SHADOW_CANVAS,
-} from '../../constants/motionDualMemory';
+import { Z_BUBBLE, Z_STICKERS, Z_CHROME, Z_BLOOM, Z_SCRIM, SHADOW_BUBBLE, SHADOW_CANVAS } from '../../constants/motionDualMemory';
 import {
   palette, surface, text as textColor, accent, border as borderColor,
   space, typeSize, fontWeight,
@@ -133,15 +129,15 @@ function StoryReviewPreview({ draft, width, height, textBackground, strokes }: {
   const frameW = Math.max(1, width), frameH = Math.max(1, height), ratio = 132 / frameW;
   const tx = draft.mediaTransform as any;
   const overlays = <>
-    <FilterLayer filterId={draft.filterId || null} amt={tx?.filterAmt} />
-    <AdjustLayer adjust={tx?.adjust || null} />
+    <FilterLayer filterId={draft.mediaType === "image" || draft.mediaType === "video" && storyVideoPreviewAvailable ? null : draft.filterId || null} amt={tx?.filterAmt} />
+    <AdjustLayer adjust={draft.mediaType === "image" || draft.mediaType === "video" && storyVideoPreviewAvailable ? storyPhotoSpatialAdjust(tx?.adjust) : tx?.adjust || null} />
     <DrawingLayer strokes={strokes.length ? strokes : null} width={frameW} height={frameH} />
     <StickerOverlay stickers={draft.stickers || []} containerW={frameW} containerH={frameH} interactive={false} storyPaused />
     {draft.pollData ? <PollDragWrap containerW={frameW} containerH={frameH} nx={draft.pollData.nx ?? .5} ny={draft.pollData.ny ?? .4} scale={draft.pollData.scale ?? 1} onChange={() => {}} onTap={() => {}}><PollCard poll={{ poll_id: 'preview', question: draft.pollData.question, options: draft.pollData.options.map((label, i) => ({ id: String(i), label, vote_count: 0 })), total_votes: 0, my_vote: null }} isOwn={false} onVote={() => {}} onOpenVoters={() => {}} /></PollDragWrap> : null}
   </>;
-  return <View style={[st.sharePreview, { height: frameH * ratio }]} pointerEvents="none"><View style={{ position: 'absolute', width: frameW, height: frameH, left: (132 - frameW) / 2, top: (frameH * ratio - frameH) / 2, transform: [{ scale: ratio }] }}>
-    {draft.mediaType === 'text' ? <View style={{ flex: 1 }}>{textBackground}{overlays}</View> : <MediaCanvas localUri={draft.localUri} mediaType={draft.mediaType} uploadState="idle" onRetry={() => {}} onLayout={() => {}} scaleAnim={scale} opacityAnim={opacity} imageW={draft.imageW} imageH={draft.imageH} mediaFit={draft.mediaFit} mediaTransform={draft.mediaTransform} onTransformChange={() => {}} onFitToggle={() => {}} interactive={false} bg={tx?.bg || null} videoMuted videoPaused trimStart={tx?.trimStart} trimEnd={tx?.trimEnd}>{overlays}</MediaCanvas>}
-  </View></View>;
+  return <StoryPhotoLookContext.Provider value={{ filterId: draft.filterId, filterAmt: tx?.filterAmt, adjust: tx?.adjust }}><View style={[st.sharePreview, { height: frameH * ratio }]} pointerEvents="none"><View style={{ position: 'absolute', width: frameW, height: frameH, left: (132 - frameW) / 2, top: (frameH * ratio - frameH) / 2, transform: [{ scale: ratio }] }}>
+    {draft.mediaType === 'text' ? <View style={{ flex: 1 }}>{tx?.bg ? <BackgroundLayer bg={tx.bg} mediaUrl={draft.stickers?.find(s => s.kind === 'post' && s.postMediaType !== 'video')?.postMediaUrl || null} /> : textBackground}{overlays}</View> : <MediaCanvas localUri={draft.localUri} mediaType={draft.mediaType} uploadState="idle" onRetry={() => {}} onLayout={() => {}} scaleAnim={scale} opacityAnim={opacity} imageW={draft.imageW} imageH={draft.imageH} mediaFit={draft.mediaFit} mediaTransform={draft.mediaTransform} onTransformChange={() => {}} onFitToggle={() => {}} interactive={false} bg={tx?.bg || null} videoMuted videoPaused trimStart={tx?.trimStart} trimEnd={tx?.trimEnd}>{overlays}</MediaCanvas>}
+  </View></View></StoryPhotoLookContext.Provider>;
 }
 
 function newDraftId() { return `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`; }
@@ -263,6 +259,7 @@ export default function StoryComposerScreen() {
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const active = drafts[activeIndex];
+  const activeDraftRef = useRef(active?.id); activeDraftRef.current = active?.id;
   const mountedRef = useRef(true);
 
   const updateActive = useCallback((patch: Partial<Draft> | ((current: Draft) => Partial<Draft>)) => {
@@ -311,12 +308,8 @@ export default function StoryComposerScreen() {
   const bloomTools = useMemo(() => getBloomTools(isDual ? 'dual' : (mode as any)).filter((tl: any) => !(isDualVideo && tl.id === 'layout')), [isDual, mode, isDualVideo]);
 
   // ── CONTROLLER: Bloom (no deps on other controllers) ──
-  const handleBloomToolAction = useCallback((toolId: string) => {
-    if (toolId === 'text') openTextEditor();
-    else if (toolId === 'sticker') openEmojiTray();
-    else if (toolId === 'more') setOverflowOpen(true);
-    else if (toolId === 'layout') { if (!isDualVideo) arrangement.openArrangement(); }
-  }, []);
+  const bloomActionRef = useRef<(toolId: string) => void>(() => {});
+  const handleBloomToolAction = useCallback((toolId: string) => bloomActionRef.current(toolId), []);
 
   // ── Publishing state ref (bridges declaration-order gap) ──
   const publishingRef = useRef(false);
@@ -546,8 +539,11 @@ export default function StoryComposerScreen() {
   const [cdTarget, setCdTarget] = useState<Date>(new Date(Date.now() + 24 * 3600 * 1000));
   const [musicOpen, setMusicOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
-  const openMusicSheet = useCallback(() => { if (MUSIC_CATALOG_ENABLED) setMusicOpen(true); }, []);
-  const openFilterSheet = useCallback(() => setFilterOpen(true), []);
+  const openMusicSheet = useCallback(() => { if (ORIGINAL_AUDIO_ENABLED) setMusicOpen(true); }, []);
+  const openFilterSheet = useCallback(() => {
+    if (active?.mediaType === 'video' && !storyVideoPreviewAvailable) { Alert.alert('Video color editing unavailable', storyNativeEditingUnavailable(Platform.OS, 'color')); return; }
+    setFilterOpen(true);
+  }, [active?.mediaType]);
 
   // ── Creative engine state ──
   const [trimOpen, setTrimOpen] = useState(false);
@@ -562,7 +558,7 @@ export default function StoryComposerScreen() {
   const [previewOn, setPreviewOn] = useState(false);
   const [vidPlayer, setVidPlayer] = useState<any>(null);
   // Music preview in the editor at the mixed volume, exactly as the viewer will play it.
-  const soundPreview = useStorySoundPreview(MUSIC_CATALOG_ENABLED ? active?.audio : null, myId);
+  const soundPreview = useStorySoundPreview(ORIGINAL_AUDIO_ENABLED ? active?.audio : null, myId);
   const previewAudioUrl = soundPreview.url;
   const previewMusicVol = Math.max(0, Math.min(1, (((active?.mediaTransform as any)?.mix?.music) ?? 100) / 100));
   const previewAudio = useStoryAudioMix(previewAudioUrl, !!previewAudioUrl && !publish.publishing && !textEditorOpen && !drawMode && !musicOpen && !shareOpen, previewMusicVol, active?.audio?.durationSec);
@@ -702,16 +698,116 @@ export default function StoryComposerScreen() {
       return out;
     });
   }, [active, activeIndex]);
+  const storySnapshotRef = useRef<View>(null);
+  const exportArtworkRef = useRef<View>(null);
+  const exportAbort = useRef<AbortController | null>(null);
+  const exportCommitting = useRef(false);
+  const [exportArtwork, setExportArtwork] = useState<{ phase: 'background' | 'layers'; clock: number } | null>(null);
+  const [exportStatus, setExportStatus] = useState<string | null>(null);
+  useEffect(() => () => { exportAbort.current?.abort(); }, [myId, active?.id]);
+  useEffect(() => { const sub = AppState.addEventListener('change', state => { if (state === 'background') exportAbort.current?.abort(); }); return () => sub.remove(); }, []);
+  const snapshotBusy = useRef(false);
+  const [capturing, setCapturing] = useState(false);
+  const photoReadiness = useRef(new Map<string, StoryPhotoReadiness>());
+  const reportPhotoReadiness = useCallback((id: string, state: StoryPhotoReadiness) => {
+    if (state === 'removed') photoReadiness.current.delete(id);
+    else photoReadiness.current.set(id, state);
+  }, []);
   const saveMediaToDevice = useCallback(async () => {
+    if (!active || snapshotBusy.current || active.uploadState !== 'idle') return;
+    snapshotBusy.current = true;
+    exportCommitting.current = false;
+    const owner = ownerRef.current, draftId = active.id;
+    const authOwner = useAuthStore.getState().session?.user.id;
+    const current = () => !!authOwner && mountedRef.current && ownerRef.current === owner && activeDraftRef.current === draftId
+      && useAuthStore.getState().session?.user.id === authOwner && useAuthStore.getState().profile?.id === owner;
+    const assertCurrent = () => { if (!current()) throw new Error('Return to the story you were saving.'); };
+    let snapshot: string | null = null, output: string | null = null;
+    let soundtrack: PreparedStoryExportAudio | null = null;
+    const artworkFiles: string[] = [];
+    const abort = new AbortController(); exportAbort.current = abort;
+    const unsubscribeOwner = useAuthStore.subscribe(state => {
+      if (state.session?.user.id !== authOwner || state.profile?.id !== owner) abort.abort();
+    });
+    const ensure = () => { assertCurrent(); if (abort.signal.aborted) throw new Error('Video export was cancelled.'); };
     try {
-      if (!active?.localUri) return;
-      const perm = await MediaLibrary.requestPermissionsAsync();
+      ensure();
+      if (active.mediaType === 'video' || active.audio) {
+        if (!storyVideoCompositionAvailable) throw new Error(storyNativeEditingUnavailable(Platform.OS, active.audio ? 'audio' : 'video'));
+        const limit = storyVideoExportLimit(active.stickers || [], !!active.audio, storyAudioCompositionAvailable, Platform.OS); if (limit) throw new Error(limit);
+      }
+      const perm = await MediaLibrary.requestPermissionsAsync(true);
+      ensure();
       if (!perm.granted) { Alert.alert('Allow Photos access', 'Enable photo library access in Settings to save.'); return; }
-      await MediaLibrary.saveToLibraryAsync(active.localUri);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert('Saved', 'Media saved to your device.');
-    } catch { Alert.alert('Could not save', 'Something went wrong saving this media.'); }
-  }, [active]);
+      if (active.mediaType === 'video' || active.audio) {
+        const isVideo = active.mediaType === 'video';
+        if (isVideo && !active.localUri) throw new Error('No video was selected.');
+        if (isVideo && active.dualFrontUri) throw new Error('Dual-camera video export is not available yet. Your draft stays available.');
+        const recipe = storyVideoRecipe(isVideo
+          ? { duration: Number(vidPlayer?.duration) || active.durationSec || 0, width: previewSize.w, height: previewSize.h, transform: { ...active.mediaTransform, fit: active.mediaFit }, filterId: active.filterId }
+          : { duration: Math.max(1, Math.min(30, Number(active.audio?.durationSec) || 5)), width: previewSize.w, height: previewSize.h, transform: { fit: 'contain', mix: { orig: 0 } } });
+        setCapturing(true); setExportStatus('Preparing story artwork…'); vidPlayer?.pause?.();
+        if (active.audio) {
+          setExportStatus('Preparing soundtrack…');
+          soundtrack = await prepareStoryExportAudio(active.audio, Math.max(0, Math.min(1, (active.mediaTransform?.mix?.music ?? 100) / 100)), owner, abort.signal, ensure);
+          ensure(); setExportStatus('Preparing story artwork…');
+        }
+        const captureArtwork = async (phase: 'background' | 'layers', clock: number) => {
+          ensure(); setExportArtwork({ phase, clock });
+          await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+          const deadline = Date.now() + 12000;
+          while ([...photoReadiness.current.values()].some(state => state === 'loading')) { ensure(); if (Date.now() > deadline) throw new Error('A story photo is still loading. Retry after it appears.'); await new Promise(resolve => setTimeout(resolve, 100)); }
+          ensure(); if ([...photoReadiness.current.values()].some(state => state === 'error')) throw new Error('A story photo could not load. Retry it before exporting.');
+          const uri = await captureRef(exportArtworkRef, { format: 'png', result: 'tmpfile', width: recipe.width, height: recipe.height, handleGLSurfaceViewOnAndroid: true });
+          artworkFiles.push(uri); ensure(); return uri;
+        };
+        let backgroundUri: string | undefined;
+        const layers: { uri: string; start: number; end: number }[] = [];
+        if (isVideo) {
+          backgroundUri = await captureArtwork('background', recipe.trimStart);
+          for (const window of storyVideoLayerWindows(active.stickers || [], recipe)) {
+            layers.push({ uri: await captureArtwork('layers', window.clock), start: window.start, end: window.end });
+          }
+        } else {
+          if (!storySnapshotRef.current) throw new Error('The story preview is not ready.');
+          const states = [...photoReadiness.current.values()];
+          if (states.some(state => state !== 'ready')) throw new Error('Wait for all story photos to load before saving.');
+          await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+          ensure();
+          snapshot = await captureRef(storySnapshotRef, { format: 'png', result: 'tmpfile', width: recipe.width, height: recipe.height, handleGLSurfaceViewOnAndroid: true });
+          ensure();
+        }
+        ensure(); setExportArtwork(null); setExportStatus('Rendering edited video…');
+        const id = 'story-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+        if (!FileSystem.cacheDirectory) throw new Error('The video export cache is unavailable.');
+        output = FileSystem.cacheDirectory + 'pc-story-export-' + id + '.mp4';
+        const result = await composeStoryVideo({ id, inputUri: isVideo ? active.localUri! : snapshot!, inputKind: isVideo ? 'video' : 'image', outputUri: output, recipe, backgroundUri, layers, ...(soundtrack ? { audio: soundtrack.layer } : {}) }, abort.signal);
+        ensure();
+        if (soundtrack) { setExportStatus('Checking soundtrack permission…'); await soundtrack.assertRights(); }
+        ensure(); exportCommitting.current = true; setExportStatus('Saving to Photos…');
+        await MediaLibrary.saveToLibraryAsync(result.uri);
+        if (!current() || abort.signal.aborted) return;
+        Alert.alert('Edited video saved', soundtrack ? 'Your edited story and selected soundtrack were saved to Photos.' : 'Your trim, framing, color, original sound and supported story artwork were saved to Photos.');
+      } else {
+        if (!storySnapshotRef.current) throw new Error('The story preview is not ready.');
+        const states = [...photoReadiness.current.values()];
+        if (states.some(state => state === 'error')) throw new Error('A photo could not load. Retry it before saving your story.');
+        if (states.some(state => state !== 'ready')) throw new Error('Your photos are still loading. Try saving again when they are visible.');
+        setCapturing(true);
+        // Commit the toolbar-free artwork, then allow its Skia view to draw.
+        await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+        ensure();
+        // Capture only artwork, excluding toolbars, navigation and upload chrome.
+        snapshot = await captureRef(storySnapshotRef, { format: 'png', result: 'tmpfile', width: 1080, height: Math.round(1080 * previewSize.h / Math.max(1, previewSize.w)), handleGLSurfaceViewOnAndroid: true });
+        ensure(); exportCommitting.current = true;
+        await MediaLibrary.saveToLibraryAsync(snapshot);
+        if (!current() || abort.signal.aborted) return;
+        Alert.alert('Story saved', 'Your edited story image was saved to Photos.');
+      }
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    } catch (error: any) { if (current() && !abort.signal.aborted) Alert.alert('Could not save', error?.message || 'The story could not be saved. Try again.'); }
+    finally { unsubscribeOwner(); if (snapshot) releaseCapture(snapshot); artworkFiles.forEach(releaseCapture); if (output) await FileSystem.deleteAsync(output, { idempotent: true }).catch(() => {}); if (soundtrack) await soundtrack.release(); if (exportAbort.current === abort) exportAbort.current = null; exportCommitting.current = false; if (mountedRef.current) { setCapturing(false); setExportArtwork(null); setExportStatus(null); } snapshotBusy.current = false; }
+  }, [active, previewSize, vidPlayer]);
   // Long videos: pre-set a 60s window once so publish is never over-length
   useEffect(() => {
     if (!active || active.mediaType !== 'video') return;
@@ -754,12 +850,19 @@ export default function StoryComposerScreen() {
     finally { addingClipsRef.current = false; if (mountedRef.current) setAddingClips(false); }
   }, [active?.sharedWith, audience, allowReplies, reach, publish.publishing]);
   const handleFitToggle = useCallback(() => { if (!active) return; const nf: MediaFit = (active.mediaFit || 'cover') === 'cover' ? 'contain' : 'cover'; updateActive({ mediaFit: nf, mediaTransform: { ...active.mediaTransform, scale: 1, translateNX: 0, translateNY: 0, fit: nf } }); }, [active, updateActive]);
-  const handleTransformChange = useCallback((t: MediaTransform) => { updateActive({ mediaTransform: t }); }, [updateActive]);
+  const handleTransformChange = useCallback((t: MediaTransform) => {
+    // Canvas gestures only change framing. Keep the draft's current grading,
+    // trim, speed and sound settings even if the gesture began before an edit.
+    updateActive(current => ({ mediaTransform: { ...current.mediaTransform, scale: t.scale, translateNX: t.translateNX, translateNY: t.translateNY, fit: t.fit } }));
+  }, [updateActive]);
   const nextStickerNy = useCallback((base: number = 0.4) => { const c = active?.stickers?.length ?? 0; return c === 0 ? base : Math.min(0.76, base + c * 0.12); }, [active]);
 
   // ── Text editor ──
   const openTextEditor = useCallback((existingId?: string) => {
     setTextPanel('font');
+    // Reference cards store their caption in postText/story metadata. Their
+    // empty text field must never enter the text-delete path.
+    if (existingId && !active?.stickers?.some(s => s.id === existingId && (!s.kind || s.kind === 'text'))) return;
     if (existingId && active?.stickers) { const ex = active.stickers.find(s => s.id === existingId); if (ex) { setEditingStickerId(existingId); setStickerText(ex.text); setStickerStyle(ex.style); setStickerColor(ex.color); setStickerBgEnabled(!!ex.bgEnabled); setStickerFontSize(ex.fontSizeOverride ?? 0); setStickerOpacity(ex.opacity ?? 1.0); setStickerTextAlign(ex.textAlign ?? 'center'); setStickerAnim((ex as any).anim || 'none'); setStickerStartSec(typeof (ex as any).startSec === 'number' ? (ex as any).startSec : null); setStickerEndSec(typeof (ex as any).endSec === 'number' ? (ex as any).endSec : null); setTextEditorOpen(true); const si = STICKER_STYLES.indexOf(ex.style); if (si > 0) setTimeout(() => stylePickerRef.current?.scrollTo({ x: si * 72, animated: false }), 100); setTimeout(() => stickerInputRef.current?.focus(), 200); return; } }
     if ((active?.stickers?.length ?? 0) >= MAX_STICKERS) { Alert.alert('Limit reached', `Maximum ${MAX_STICKERS} text overlays per story.`); return; }
     setEditingStickerId(null); setStickerText(''); setStickerStyle('classic'); setStickerColor(active?.mediaType === 'text' ? getDefaultStickerColor(active.textBgId) : '#FFFFFF'); setStickerBgEnabled(false); setStickerFontSize(0); setStickerOpacity(1.0); setStickerTextAlign('center'); setStickerAnim('none'); setStickerStartSec(null); setStickerEndSec(null); setTextEditorOpen(true); setTimeout(() => stickerInputRef.current?.focus(), 200);
@@ -786,11 +889,11 @@ export default function StoryComposerScreen() {
     }));
   }, [active?.id]);
   const saveSticker = useCallback(() => {
-    const tr = stickerText.trim(); if (!tr) { if (editingStickerId) updateStickers((active?.stickers || []).filter(s => s.id !== editingStickerId)); closeTextEditor(); return; }
+    const tr = stickerText.trim(); if (!tr) { if (editingStickerId) updateStickers(current => current.filter(s => s.id !== editingStickerId || !!s.kind && s.kind !== 'text')); closeTextEditor(); return; }
     const timing = storyLayerWindow(stickerStartSec, stickerEndSec, active?.durationSec || 15);
     const extra: any = { bgEnabled: stickerBgEnabled, fontSizeOverride: stickerFontSize > 0 ? stickerFontSize : undefined, opacity: stickerOpacity < 1.0 ? stickerOpacity : undefined, textAlign: stickerTextAlign !== 'center' ? stickerTextAlign : undefined, anim: stickerAnim !== 'none' ? stickerAnim : undefined, startSec: stickerStartSec != null ? timing.start : undefined, endSec: stickerEndSec != null ? timing.end : undefined };
-    if (editingStickerId) { updateStickers((active?.stickers || []).map(s => s.id === editingStickerId ? { ...s, text: tr, style: stickerStyle, color: stickerColor, ...extra } : s)); void resolveTextMentions(editingStickerId, tr); }
-    else { const nid = newStickerId(); updateStickers([...(active?.stickers || []), { id: nid, text: tr, style: stickerStyle, color: stickerColor, nx: 0.5, ny: nextStickerNy(0.4), scale: 1, rotation: 0, ...extra }]); void resolveTextMentions(nid, tr); }
+    if (editingStickerId) { updateStickers(current => current.map(s => s.id === editingStickerId && (!s.kind || s.kind === 'text') ? { ...s, text: tr, style: stickerStyle, color: stickerColor, ...extra } : s)); void resolveTextMentions(editingStickerId, tr); }
+    else { const nid = newStickerId(); updateStickers(current => [...current, { id: nid, kind: 'text', text: tr, style: stickerStyle, color: stickerColor, nx: 0.5, ny: nextStickerNy(0.4), scale: 1, rotation: 0, ...extra }]); void resolveTextMentions(nid, tr); }
     closeTextEditor();
   }, [stickerText, stickerStyle, stickerColor, stickerBgEnabled, stickerFontSize, stickerOpacity, stickerTextAlign, stickerAnim, stickerStartSec, stickerEndSec, editingStickerId, active, updateStickers, closeTextEditor, nextStickerNy, resolveTextMentions]);
   const deleteEditingSticker = useCallback(() => { if (!editingStickerId) return; updateStickers((active?.stickers || []).filter(s => s.id !== editingStickerId)); closeTextEditor(); }, [editingStickerId, active, updateStickers, closeTextEditor]);
@@ -806,7 +909,7 @@ export default function StoryComposerScreen() {
 
   // ── Sticker interaction handlers ──
   const handleTapSticker = useCallback((id: string) => { if (publish.publishing) return; const s = active?.stickers?.find(x => x.id === id); if (!s) return; if (s.kind === 'photo' && (s as any).photoShape === 'cell') openCellMenu(id, !!((s as any).photoUri || (s as any).photoUrl));
-    else if (s.kind === 'emoji') openEmojiTray(id); else if (s.kind === 'question') openQuestionModal(id); else if (s.kind === 'slider') openSliderModal(id); else if (s.kind === 'quiz') openQuizModal(id); else if ((s as any).kind === 'photo') { const shapes = PHOTO_SHAPES as any; const cur = shapes.indexOf((s as any).photoShape || 'rounded'); updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, photoShape: shapes[(cur + 1) % shapes.length] } as any) : x)); } else if ((s as any).kind === 'time' || (s as any).kind === 'date' || (s as any).kind === 'weather') { const mod = (s as any).kind === 'time' ? TIME_STYLES : (s as any).kind === 'date' ? DATE_STYLES : WEATHER_STYLES; updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, infoStyle: (((x as any).infoStyle || 0) + 1) % mod } as any) : x)); } else if (s.kind === 'link' || s.kind === 'location' || s.kind === 'mention' || s.kind === 'hashtag') { updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, pillVariant: (((x as any).pillVariant || 0) + 1) % 4 } as any) : x)); } else if ((s as any).kind === 'gif' || (s as any).kind === 'entity' || (s as any).kind === 'drawing') { /* no editor */ } else openTextEditor(id); }, [publish.publishing, active]);
+    else if (s.kind === 'emoji') openEmojiTray(id); else if (s.kind === 'question') openQuestionModal(id); else if (s.kind === 'slider') openSliderModal(id); else if (s.kind === 'quiz') openQuizModal(id); else if ((s as any).kind === 'photo') { const shapes = PHOTO_SHAPES as any; const cur = shapes.indexOf((s as any).photoShape || 'rounded'); updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, photoShape: shapes[(cur + 1) % shapes.length] } as any) : x)); } else if ((s as any).kind === 'time' || (s as any).kind === 'date' || (s as any).kind === 'weather') { const mod = (s as any).kind === 'time' ? TIME_STYLES : (s as any).kind === 'date' ? DATE_STYLES : WEATHER_STYLES; updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, infoStyle: (((x as any).infoStyle || 0) + 1) % mod } as any) : x)); } else if (s.kind === 'link' || s.kind === 'location' || s.kind === 'mention' || s.kind === 'hashtag') { updateStickers((active?.stickers || []).map(x => x.id === id ? ({ ...x, pillVariant: (((x as any).pillVariant || 0) + 1) % 4 } as any) : x)); } else if ((s as any).kind === 'gif' || (s as any).kind === 'entity' || (s as any).kind === 'drawing') { /* no editor */ } else if (!s.kind || s.kind === 'text') openTextEditor(id); else if (s.kind === 'post' || s.kind === 'story') { Alert.alert(s.kind === 'post' ? 'Shared post' : 'Shared story', 'Drag to move. Pinch with two fingers to resize or rotate.', [{ text: 'Bring forward', onPress: () => bringForward(id) }, { text: 'Send backward', onPress: () => sendBackward(id) }, { text: 'Remove card', style: 'destructive', onPress: () => updateStickers(current => current.filter(item => item.id !== id)) }, { text: 'Cancel', style: 'cancel' }]); } }, [publish.publishing, active, updateStickers, openTextEditor, bringForward, sendBackward]);
   const handleDragEnd = useCallback((id: string, nx: number, ny: number) => { updateStickers(current => current.map(s => s.id === id ? { ...s, nx, ny } : s)); }, [active, updateStickers]);
   const handleScaleEnd = useCallback((id: string, ns: number) => { updateStickers(current => current.map(s => s.id === id ? { ...s, scale: ns } : s)); }, [active, updateStickers]);
   const handleRotateEnd = useCallback((id: string, nr: number) => { updateStickers(current => current.map(s => s.id === id ? { ...s, rotation: nr } : s)); }, [active, updateStickers]);
@@ -955,6 +1058,13 @@ export default function StoryComposerScreen() {
     if (stickerForm.kind === 'support') { if (!b) { Alert.alert('Required', 'Add the link people should open.'); return; } addSimpleSticker({ kind: 'support', text: a, supportTitle: a, supportUrl: b }, 0.6); }
     setStickerForm(null);
   }, [stickerForm, addSimpleSticker]);
+  bloomActionRef.current = (toolId: string) => {
+    if (toolId === 'text') openTextEditor();
+    else if (toolId === 'sticker') setOverflowOpen(true);
+    else if (toolId === 'more') setOverflowOpen(true);
+    else if (toolId === 'layout' && !isDualVideo) arrangement.openArrangement();
+  };
+
   // ── Derived state ──
   const canPublish = publish.canPublish;
   const hasPoll = !!active?.pollData;
@@ -1006,14 +1116,14 @@ export default function StoryComposerScreen() {
     { id: 'location', cat: 'sharing', tint: '#F472B6', icon: 'map-pin', label: 'Location', on: stickerCounts.location > 0, run: openLocationModal },
     { id: 'link', cat: 'sharing', tint: '#7DD3FC', icon: 'link', label: 'Link', on: stickerCounts.link > 0, run: openLinkModal },
     { id: 'emoji', cat: 'fun', tint: '#FBBF24', icon: 'smile', label: 'Emoji', on: stickerCounts.emoji > 0, run: () => openEmojiTray() },
-    ...(MUSIC_CATALOG_ENABLED ? [{ id: 'music', cat: 'media', tint: '#F472B6', icon: 'music', label: 'Music', on: !!active?.audio, run: openMusicSheet } as StudioTile] : []),
+    ...(ORIGINAL_AUDIO_ENABLED ? [{ id: 'music', cat: 'media', tint: '#F472B6', icon: 'music', label: 'Music', on: !!active?.audio, run: openMusicSheet } as StudioTile] : []),
     { id: 'filter', cat: 'media', tint: '#818CF8', icon: 'droplet', label: 'Filter', on: !!active?.filterId, run: openFilterSheet },
-    { id: 'trim', cat: 'media', tint: '#F59E0B', icon: 'trim', label: 'Trim', on: (getTx() as any).trimEnd != null, run: () => { if (active?.mediaType !== 'video') { Alert.alert('Video only', 'Trim works on video stories.'); return; } setTrimOpen(true); } },
+    { id: 'trim', cat: 'media', tint: '#F59E0B', icon: 'trim', label: 'Trim', on: (getTx() as any).trimEnd != null, run: () => { if (active?.mediaType !== 'video') { Alert.alert('Video only', 'Choose a video clip to trim.'); return; } setTrimOpen(true); } },
     { id: 'adjust', cat: 'media', tint: '#34D399', icon: 'adjust', label: 'Adjust', on: !!(getTx() as any).adjust || (getTx() as any).filterAmt != null, run: () => setAdjustOpen(true) },
     { id: 'draw', cat: 'media', tint: '#FB7185', icon: 'draw', label: 'Draw', on: drawStrokes.length > 0, run: () => setDrawMode(true) },
-    { id: 'bg', cat: 'media', tint: '#60A5FA', icon: 'bg', label: 'Background', on: !!(getTx() as any).bg, run: () => { if ((active?.mediaFit || 'cover') !== 'contain') { Alert.alert('Fit first', 'Backgrounds show around media in fit mode. Tap the fit toggle, then pick a background.'); } setBgOpen(true); } },
-    ...(MUSIC_CATALOG_ENABLED || active?.mediaType === 'video' ? [{ id: 'mix', cat: 'media', tint: '#A78BFA', icon: 'mix', label: 'Video sound', on: !!(getTx() as any).mix, run: () => setMixOpen(true) } as StudioTile] : []),
-    { id: 'save', cat: 'media', tint: '#7DD3FC', icon: 'save', label: 'Save media', on: false, run: saveMediaToDevice },
+    { id: 'bg', cat: 'media', tint: '#60A5FA', icon: 'bg', label: 'Background', on: !!(getTx() as any).bg, run: () => { if (active?.mediaType !== 'text' && (active?.mediaFit || 'cover') !== 'contain') { Alert.alert('Fit first', 'Backgrounds show around media in fit mode. Tap the fit toggle, then pick a background.'); } setBgOpen(true); } },
+    ...(ORIGINAL_AUDIO_ENABLED || active?.mediaType === 'video' ? [{ id: 'mix', cat: 'media', tint: '#A78BFA', icon: 'mix', label: 'Video sound', on: !!(getTx() as any).mix, run: () => setMixOpen(true) } as StudioTile] : []),
+    { id: 'save', cat: 'media', tint: '#7DD3FC', icon: 'save', label: active?.mediaType === 'video' ? 'Save edited video' : 'Save story image', on: false, run: saveMediaToDevice },
     { id: 'preview', cat: 'media', tint: '#FBBF24', icon: 'preview', label: 'Preview', on: false, run: () => setPreviewOn(true) },
     { id: 'entity', cat: 'sharing', tint: '#E8A13A', icon: 'entity', label: 'Tag', on: stickerCounts.entity > 0, run: () => setEntityOpen(true) },
     { id: 'gif', cat: 'fun', tint: '#C4B5FD', icon: 'gif', label: 'GIF', on: stickerCounts.gif > 0, run: () => setGifOpen(true) },
@@ -1024,15 +1134,27 @@ export default function StoryComposerScreen() {
     { id: 'weather', cat: 'fun', tint: '#6EE7B7', icon: 'weather', label: 'Weather', on: stickerCounts.weather > 0, run: addWeatherSticker },];
 
   return (
-    <TouchableOpacity style={st.root} activeOpacity={1} onPress={() => Keyboard.dismiss()}>
+    <StoryPhotoLookContext.Provider value={compareOriginal ? null : { filterId: active?.filterId, filterAmt: active?.mediaTransform?.filterAmt, adjust: active?.mediaTransform?.adjust }}><TouchableOpacity style={st.root} activeOpacity={1} onPress={() => Keyboard.dismiss()}>
       <StatusBar barStyle="light-content" />
+      <Modal visible={!!exportStatus} transparent animationType="fade" onRequestClose={() => { if (!exportCommitting.current) exportAbort.current?.abort(); }}>
+        <View style={{ flex: 1, backgroundColor: '#11161bf2', alignItems: 'center', justifyContent: 'center', padding: 30 }}>
+          <ActivityIndicator color="#F1DFC5" size="large" />
+          <Text accessibilityRole="text" accessibilityLiveRegion="polite" style={{ color: '#fff', fontSize: 18, marginTop: 22, textAlign: 'center' }}>{exportStatus}</Text>
+          <Text style={{ color: '#c8cbd0', textAlign: 'center', marginTop: 12 }}>{exportStatus === 'Saving to Photos…' ? 'Finishing the save to Photos. Please keep the app open.' : 'Keep the app open while your edited video is prepared.'}</Text>
+          {exportStatus !== 'Saving to Photos…' && <TouchableOpacity accessibilityRole="button" accessibilityLabel="Cancel export" onPress={() => { if (!exportCommitting.current) exportAbort.current?.abort(); }} style={{ padding: 20, marginTop: 24 }}><Text style={{ color: '#F1DFC5', fontSize: 16 }}>Cancel export</Text></TouchableOpacity>}
+        </View>
+      </Modal>
 
       <Animated.View style={[st.canvasFrame, { opacity: mediaOpacity, transform: [{ scale: mediaScale }] }]}>
+        <StoryPhotoReadinessContext.Provider value={reportPhotoReadiness}><View ref={storySnapshotRef} collapsable={false} style={StyleSheet.absoluteFill}>
         {isTextStory ? (
           <View style={st.canvasInner} onLayout={e => setPreviewSize({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
-            {(() => { const sharedPhoto = active?.stickers?.find(s => s.kind === 'post' && s.postMediaType !== 'video' && s.postMediaUrl)?.postMediaUrl; return sharedPhoto ? <View style={StyleSheet.absoluteFill} pointerEvents="none"><Image source={{ uri: sharedPhoto }} style={StyleSheet.absoluteFill} resizeMode="cover" blurRadius={32} /><View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,.48)' }]} /></View> : renderTextBg(active?.textBackground || null); })()}
+            {(() => { const customBg = active?.mediaTransform?.bg; if (customBg) return <BackgroundLayer bg={customBg} mediaUrl={active?.stickers?.find(s => s.kind === 'post' && s.postMediaType !== 'video')?.postMediaUrl || null} />; const sharedPhoto = active?.stickers?.find(s => s.kind === 'post' && s.postMediaType !== 'video' && s.postMediaUrl)?.postMediaUrl; return sharedPhoto ? <View style={StyleSheet.absoluteFill} pointerEvents="none"><Image source={{ uri: sharedPhoto }} style={StyleSheet.absoluteFill} resizeMode="cover" blurRadius={32} /><View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,.48)' }]} /></View> : renderTextBg(active?.textBackground || null); })()}
+            <FilterLayer filterId={compareOriginal ? null : active?.filterId || null} amt={(getTx() as any).filterAmt} />
+            <AdjustLayer adjust={compareOriginal ? null : (getTx() as any).adjust || null} />
+            <DrawingLayer strokes={drawStrokes.length ? drawStrokes : null} width={previewSize.w} height={previewSize.h} />
             {active?.stickers && active.stickers.length > 0 && active.uploadState === 'idle' && (
-              <ComposerStickerOverlay stickers={active.stickers} containerW={previewSize.w} containerH={previewSize.h} onDragEnd={handleDragEnd} onTapSticker={handleTapSticker} onScaleEnd={handleScaleEnd} onRotateEnd={handleRotateEnd} onDeleteDrop={handleDeleteDrop} player={vidPlayer} timingPreview={timingOpen || previewOn} />
+              <ComposerStickerOverlay stickers={active.stickers.filter(s => !textEditorOpen || s.id !== editingStickerId)} containerW={previewSize.w} containerH={previewSize.h} onDragEnd={handleDragEnd} onTapSticker={handleTapSticker} onScaleEnd={handleScaleEnd} onRotateEnd={handleRotateEnd} onDeleteDrop={handleDeleteDrop} player={vidPlayer} timingPreview={timingOpen || previewOn} />
             )}
             {hasPoll && active?.uploadState === 'idle' && (<PollDragWrap containerW={previewSize.w} containerH={previewSize.h} nx={active.pollData!.nx ?? 0.5} ny={active.pollData!.ny ?? 0.4} scale={active.pollData!.scale ?? 1} onChange={(nx, ny, scale) => updateActive({ pollData: { ...active.pollData!, nx, ny, scale } })} onTap={openPollEditor}><PollCard poll={{ poll_id: 'preview', question: active.pollData!.question, options: active.pollData!.options.map((label, i) => ({ id: String(i), label, vote_count: 0 })), total_votes: 0, my_vote: null }} isOwn={true} onVote={() => {}} onOpenVoters={() => {}} /></PollDragWrap>)}
           </View>
@@ -1045,42 +1167,65 @@ export default function StoryComposerScreen() {
             scaleAnim={canvasScaleRef} opacityAnim={canvasOpacityRef}
             imageW={active?.imageW} imageH={active?.imageH} mediaFit={active?.mediaFit || 'cover'}
             mediaTransform={active?.mediaTransform || { scale: 1, translateNX: 0, translateNY: 0, fit: 'cover' }}
-            bg={((getTx() as any).bg ?? null)} videoPaused={shareOpen || textEditorOpen || musicOpen || publish.publishing} videoMuted={(((getTx() as any).mix?.orig ?? 100) <= 0)} videoVolume={Math.max(0, Math.min(1, ((getTx() as any).mix?.orig ?? 100) / 100))} videoSpeed={Number((getTx() as any).speed) || 1} trimStart={(getTx() as any).trimStart ?? null} trimEnd={(getTx() as any).trimEnd ?? null} onVideoPlayer={setVidPlayer}
+            bg={((getTx() as any).bg ?? null)} videoPaused={shareOpen || textEditorOpen || musicOpen || publish.publishing || capturing} videoMuted={(((getTx() as any).mix?.orig ?? 100) <= 0)} videoVolume={Math.max(0, Math.min(1, ((getTx() as any).mix?.orig ?? 100) / 100))} videoSpeed={Number((getTx() as any).speed) || 1} trimStart={(getTx() as any).trimStart ?? null} trimEnd={(getTx() as any).trimEnd ?? null} onVideoPlayer={setVidPlayer}
             onTransformChange={handleTransformChange} onFitToggle={handleFitToggle}
             bottomInset={Math.max(48, insets.bottom + 14) + (isBusiness ? 150 : 106) + (active?.mediaType === 'video' ? 66 : 0)}
-            interactive={arrangement.canvasInteractive && active?.uploadState === 'idle'}
+            interactive={arrangement.canvasInteractive && active?.uploadState === 'idle'} showControls={!capturing}
           >
-            <FilterLayer filterId={compareOriginal ? null : active?.filterId || null} amt={(getTx() as any).filterAmt} />
-            <AdjustLayer adjust={compareOriginal ? null : (getTx() as any).adjust || null} />
+            <FilterLayer filterId={compareOriginal || active?.mediaType === "image" || active?.mediaType === "video" && storyVideoPreviewAvailable ? null : active?.filterId || null} amt={(getTx() as any).filterAmt} />
+            <AdjustLayer adjust={compareOriginal ? null : active?.mediaType === "image" || active?.mediaType === "video" && storyVideoPreviewAvailable ? storyPhotoSpatialAdjust((getTx() as any).adjust) : (getTx() as any).adjust || null} />
             <DrawingLayer strokes={drawStrokes.length ? drawStrokes : null} width={previewSize.w} height={previewSize.h} />
             {!arrangement.arrangementOpen && active?.stickers && active.stickers.length > 0 && active.uploadState === 'idle' && (
-              <ComposerStickerOverlay stickers={active.stickers} containerW={previewSize.w} containerH={previewSize.h} onDragEnd={handleDragEnd} onTapSticker={handleTapSticker} onScaleEnd={handleScaleEnd} onRotateEnd={handleRotateEnd} onDeleteDrop={handleDeleteDrop} player={vidPlayer} timingPreview={timingOpen || previewOn} />
+              <ComposerStickerOverlay stickers={active.stickers.filter(s => !textEditorOpen || s.id !== editingStickerId)} containerW={previewSize.w} containerH={previewSize.h} onDragEnd={handleDragEnd} onTapSticker={handleTapSticker} onScaleEnd={handleScaleEnd} onRotateEnd={handleRotateEnd} onDeleteDrop={handleDeleteDrop} player={vidPlayer} timingPreview={timingOpen || previewOn} />
             )}
             {hasPoll && active?.uploadState === 'idle' && (<PollDragWrap containerW={previewSize.w} containerH={previewSize.h} nx={active.pollData!.nx ?? 0.5} ny={active.pollData!.ny ?? 0.4} scale={active.pollData!.scale ?? 1} onChange={(nx, ny, scale) => updateActive({ pollData: { ...active.pollData!, nx, ny, scale } })} onTap={openPollEditor}><PollCard poll={{ poll_id: 'preview', question: active.pollData!.question, options: active.pollData!.options.map((label, i) => ({ id: String(i), label, vote_count: 0 })), total_votes: 0, my_vote: null }} isOwn={true} onVote={() => {}} onOpenVoters={() => {}} /></PollDragWrap>)}
           </MediaCanvas>
         )}
+
+        {/* Dual bubble */}
+        {active?.dualFrontUri && (
+          <TapGestureHandler ref={bubble.tapRef} onHandlerStateChange={bubble.onBubbleTap} waitFor={bubble.panRef}>
+            <Animated.View style={[st.dualBubble, { transform: [{ translateX: Animated.subtract(bubble.animBubbleX, 75) }, { translateY: Animated.subtract(bubble.animBubbleY, 100) }, { scale: bubble.animBubbleScale }] }]} pointerEvents="box-none">
+              <PanGestureHandler ref={bubble.panRef} onHandlerStateChange={bubble.onBubblePan} onGestureEvent={bubble.onBubblePan} enabled={arrangement.arrangementOpen || !publish.publishing}>
+                <Animated.View style={{ width: 150, height: 200, borderRadius: 32, overflow: 'hidden' }}>
+                  <StoryPixelImage uri={arrangement.primaryCamera === 'rear' ? (active.dualFrontUri || '') : (active.localUri || '')} style={st.dualBubbleImg} fit="cover" />
+                </Animated.View>
+              </PanGestureHandler>
+            </Animated.View>
+          </TapGestureHandler>
+        )}
+
+        </View></StoryPhotoReadinessContext.Provider>
+        {exportArtwork ? <StoryPhotoLookContext.Provider value={{ filterId: active.filterId, filterAmt: active.mediaTransform?.filterAmt, adjust: active.mediaTransform?.adjust }}><StoryPhotoReadinessContext.Provider value={reportPhotoReadiness}><View ref={exportArtworkRef} collapsable={false} pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: 'transparent' }]}>
+          {exportArtwork.phase === 'background' ? <BackgroundLayer bg={active.mediaFit === 'contain' ? active.mediaTransform?.bg || null : null} mediaUrl={null} /> : <>
+            <AdjustLayer adjust={storyPhotoSpatialAdjust(active.mediaTransform?.adjust)} />
+            <DrawingLayer strokes={drawStrokes.length && storyVideoLayerAtTime(active.stickers?.find(layer => layer.kind === 'drawing'), exportArtwork.clock) ? drawStrokes : null} width={previewSize.w} height={previewSize.h} />
+            <StickerOverlay stickers={(active.stickers || []).filter(layer => storyVideoLayerAtTime(layer, exportArtwork.clock))} containerW={previewSize.w} containerH={previewSize.h} interactive={false} storyPaused clockSec={exportArtwork.clock} />
+            {active.pollData ? <PollDragWrap containerW={previewSize.w} containerH={previewSize.h} nx={active.pollData.nx ?? .5} ny={active.pollData.ny ?? .4} scale={active.pollData.scale ?? 1} onChange={() => {}} onTap={() => {}}><PollCard poll={{ poll_id: 'preview', question: active.pollData.question, options: active.pollData.options.map((label, i) => ({ id: String(i), label, vote_count: 0 })), total_votes: 0, my_vote: null }} isOwn={false} onVote={() => {}} onOpenVoters={() => {}} /></PollDragWrap> : null}
+          </>}
+        </View></StoryPhotoReadinessContext.Provider></StoryPhotoLookContext.Provider> : null}
 
         {/* Studio rail: primary tools on the canvas, the rest behind the chevron */}
         {!drawMode && !previewOn && !timingOpen && !adjustOpen && active?.uploadState === 'idle' && (
           <StudioRail top={insets.top + 8} maxHeight={previewSize.h - (insets.top + 64) - (Math.max(48, insets.bottom + 14) + (isBusiness ? 150 : 106) + (active?.mediaType === 'video' ? 92 : 0) + 10)} items={([
             { id: 'rtext', label: 'Text', feather: 'type', primary: true, run: () => openTextEditor() },
             { id: 'rsticker', label: 'Sticker', feather: 'smile', primary: true, on: (active?.stickers || []).length > 0, run: () => setOverflowOpen(true) },
-            { id: 'rcrop', label: (active?.mediaFit || 'cover') === 'contain' ? 'Fill' : 'Fit', feather: 'crop', on: (active?.mediaFit || 'cover') === 'contain', run: () => handleFitToggle() },
-            ...(MUSIC_CATALOG_ENABLED ? [{ id: 'rsound', label: 'Sound', feather: 'music', primary: true, on: !!active?.audio, run: openMusicSheet } as RailItem] : []),
+            ...(!isTextStory ? [{ id: 'rcrop', label: (active?.mediaFit || 'cover') === 'contain' ? 'Fill' : 'Fit', feather: 'crop', on: (active?.mediaFit || 'cover') === 'contain', run: () => handleFitToggle() } as RailItem] : []),
+            ...(ORIGINAL_AUDIO_ENABLED ? [{ id: 'rsound', label: 'Sound', feather: 'music', primary: true, on: !!active?.audio, run: openMusicSheet } as RailItem] : []),
             ...(active?.mediaType === 'video' ? [{ id: 'rtiming', label: 'Timing & layers', icon: 'trim', on: false, run: () => setTimingOpen(true) } as RailItem, { id: 'rtrim', label: 'Split video', icon: 'trim', on: false, run: () => setTrimOpen(true) } as RailItem] : []),
             ...(active?.mediaType === 'video' ? [{ id: 'rmute', label: (((getTx() as any).mix?.orig ?? 100) <= 0) ? 'Unmute' : 'Mute', feather: (((getTx() as any).mix?.orig ?? 100) <= 0) ? 'volume-x' : 'volume-2', primary: true, on: (((getTx() as any).mix?.orig ?? 100) <= 0), run: () => { const mix = (getTx() as any).mix || {}; const wasMuted = (mix.orig ?? 100) <= 0; setTx({ mix: { ...mix, orig: wasMuted ? 100 : 0 } } as any); } } as RailItem] : []),
             ...(active?.mediaType === 'video' ? [{ id: 'rspeed', label: ((getTx() as any).speed && (getTx() as any).speed !== 1) ? (getTx() as any).speed + 'x' : 'Speed', feather: 'fast-forward', primary: true, on: !!((getTx() as any).speed && (getTx() as any).speed !== 1), run: () => { const cur = (getTx() as any).speed || 1; const opts = [0.5, 1, 1.5, 2, 3]; const i = opts.indexOf(cur); const next = opts[(i + 1) % opts.length]; setTx({ speed: next === 1 ? undefined : next } as any); } } as RailItem] : []),
             { id: 'rfilter', label: 'Filter', icon: 'filter', on: !!active?.filterId, run: () => openFilterSheet() },
             { id: 'radjust', label: 'Adjust', icon: 'adjust', on: !!(getTx() as any).adjust, run: () => setAdjustOpen(true) },
             { id: 'rdraw', label: 'Draw', icon: 'draw', on: drawStrokes.length > 0, run: () => setDrawMode(true) },
-            { id: 'rbg', label: 'Backdrop', icon: 'bg', on: !!(getTx() as any).bg, run: () => { if ((active?.mediaFit || 'cover') !== 'contain') handleFitToggle(); setBgOpen(true); } },
-            ...(MUSIC_CATALOG_ENABLED || active?.mediaType === 'video' ? [{ id: 'rmix', label: 'Sound', icon: 'mix', on: !!(getTx() as any).mix, run: () => setMixOpen(true) } as RailItem] : []),
+            { id: 'rbg', label: 'Backdrop', icon: 'bg', on: !!(getTx() as any).bg, run: () => { if (!isTextStory && (active?.mediaFit || 'cover') !== 'contain') handleFitToggle(); setBgOpen(true); } },
+            ...(ORIGINAL_AUDIO_ENABLED || active?.mediaType === 'video' ? [{ id: 'rmix', label: 'Sound', icon: 'mix', on: !!(getTx() as any).mix, run: () => setMixOpen(true) } as RailItem] : []),
             { id: 'rpreview', label: 'Preview', icon: 'preview', run: () => setPreviewOn(true) },
-            { id: 'rsave', label: 'Save', icon: 'save', run: () => saveMediaToDevice() },
+            { id: 'rsave', label: active?.mediaType === 'video' ? 'Save edited video' : 'Save story image', icon: 'save', run: () => saveMediaToDevice() },
           ] as RailItem[])} />
         )}
         {/* Song chip: what plays, tap x to remove */}
-        {!drawMode && !previewOn && !timingOpen && !adjustOpen && MUSIC_CATALOG_ENABLED && !!active?.audio && (
+        {!drawMode && !previewOn && !timingOpen && !adjustOpen && ORIGINAL_AUDIO_ENABLED && !!active?.audio && (
           <View style={{ position: 'absolute', left: 14, top: insets.top + 60, zIndex: 30, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(12,16,26,0.62)', borderRadius: 16, paddingLeft: 10, paddingRight: 6, paddingVertical: 6, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.18)', maxWidth: 210 }}>
             <Feather name="music" size={13} color="#C9BFB0" />
             <Text style={{ color: '#FFFFFF', fontSize: 12.5, fontWeight: '700', flexShrink: 1 }} numberOfLines={1}>{active.audio.title || (active.audio.kind === 'voiceover' ? 'Voiceover' : 'Sound')}</Text>
@@ -1092,19 +1237,6 @@ export default function StoryComposerScreen() {
         {/* Scrims */}
         <LinearGradient colors={['rgba(0,0,0,0.35)', 'rgba(0,0,0,0)']} style={st.topScrim} pointerEvents="none" />
         <LinearGradient colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.4)']} style={st.bottomScrim} pointerEvents="none" />
-
-        {/* Dual bubble */}
-        {active?.dualFrontUri && (
-          <TapGestureHandler ref={bubble.tapRef} onHandlerStateChange={bubble.onBubbleTap} waitFor={bubble.panRef}>
-            <Animated.View style={[st.dualBubble, { transform: [{ translateX: Animated.subtract(bubble.animBubbleX, 75) }, { translateY: Animated.subtract(bubble.animBubbleY, 100) }, { scale: bubble.animBubbleScale }] }]} pointerEvents="box-none">
-              <PanGestureHandler ref={bubble.panRef} onHandlerStateChange={bubble.onBubblePan} onGestureEvent={bubble.onBubblePan} enabled={arrangement.arrangementOpen || !publish.publishing}>
-                <Animated.View style={{ width: 150, height: 200, borderRadius: 32, overflow: 'hidden' }}>
-                  <Image source={{ uri: arrangement.primaryCamera === 'rear' ? (active.dualFrontUri || '') : (active.localUri || '') }} style={st.dualBubbleImg} resizeMode="cover" fadeDuration={0} />
-                </Animated.View>
-              </PanGestureHandler>
-            </Animated.View>
-          </TapGestureHandler>
-        )}
 
         {/* Arrangement overlay */}
         {isDual && (
@@ -1153,14 +1285,14 @@ export default function StoryComposerScreen() {
           <View style={st.dockActions}>
             <TouchableOpacity accessibilityRole="button" accessibilityLabel="Add story text" style={st.dockTool} onPress={() => openTextEditor()}><Feather name="type" size={24} color="#FFFFFF" /><Text style={st.dockToolText}>Text</Text></TouchableOpacity>
             <TouchableOpacity accessibilityRole="button" accessibilityLabel="Open story stickers" style={st.dockTool} onPress={() => setOverflowOpen(true)}><Feather name="smile" size={24} color="#FFFFFF" /><Text style={st.dockToolText}>Stickers</Text></TouchableOpacity>
-            {MUSIC_CATALOG_ENABLED ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Choose story music or original audio" style={st.dockTool} onPress={openMusicSheet}><Feather name="music" size={24} color="#FFFFFF" /><Text style={st.dockToolText}>Music</Text></TouchableOpacity> : active?.mediaType === 'video' ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Adjust original video sound" style={st.dockTool} onPress={() => setMixOpen(true)}><Feather name="volume-2" size={24} color="#FFFFFF" /><Text style={st.dockToolText}>Sound</Text></TouchableOpacity> : null}
+            {ORIGINAL_AUDIO_ENABLED ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Choose story music or original audio" style={st.dockTool} onPress={openMusicSheet}><Feather name="music" size={24} color="#FFFFFF" /><Text style={st.dockToolText}>Music</Text></TouchableOpacity> : active?.mediaType === 'video' ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Adjust original video sound" style={st.dockTool} onPress={() => setMixOpen(true)}><Feather name="volume-2" size={24} color="#FFFFFF" /><Text style={st.dockToolText}>Sound</Text></TouchableOpacity> : null}
             <TouchableOpacity accessibilityRole="button" accessibilityLabel="Edit story media" style={st.dockTool} onPress={() => setAdjustOpen(true)}><Feather name="sliders" size={24} color="#FFFFFF" /><Text style={st.dockToolText}>Edit</Text></TouchableOpacity>
             <TouchableOpacity accessibilityRole="button" accessibilityLabel="Review story before sharing" style={st.nextPill} onPress={() => { Keyboard.dismiss(); setShareOpen(true); }} disabled={publish.publishing}><Text style={st.nextText}>Next</Text><Feather name="arrow-right" size={18} color="#181B1E" /></TouchableOpacity>
           </View>
         </View> : null}
       </Animated.View>
 
-      <StoryTimingPanel visible={timingOpen} uri={active?.mediaType === 'video' ? active.localUri : null} duration={active?.durationSec || 15} trimStart={(getTx() as any).trimStart || 0} trimEnd={(getTx() as any).trimEnd ?? Math.min(active?.durationSec || 15, 60)} player={vidPlayer} width={previewSize.w} topInset={insets.top} bottomInset={insets.bottom} stickers={active?.stickers || []} audioTitle={MUSIC_CATALOG_ENABLED ? active?.audio?.title : undefined} onClose={() => setTimingOpen(false)} onTrim={(start, end) => setTx({ trimStart: start, trimEnd: end } as any)} onDuration={duration => updateActive({ durationSec: duration })} onLayerChange={(id, start, end) => updateStickers((active?.stickers || []).map(s => s.id === id ? { ...s, startSec: start, endSec: end } : s))} />
+      <StoryTimingPanel visible={timingOpen} uri={active?.mediaType === 'video' ? active.localUri : null} duration={active?.durationSec || 15} trimStart={(getTx() as any).trimStart || 0} trimEnd={(getTx() as any).trimEnd ?? Math.min(active?.durationSec || 15, 60)} player={vidPlayer} width={previewSize.w} topInset={insets.top} bottomInset={insets.bottom} stickers={active?.stickers || []} audioTitle={ORIGINAL_AUDIO_ENABLED ? active?.audio?.title : undefined} onClose={() => setTimingOpen(false)} onTrim={(start, end) => setTx({ trimStart: start, trimEnd: end } as any)} onDuration={duration => updateActive({ durationSec: duration })} onLayerChange={(id, start, end) => updateStickers((active?.stickers || []).map(s => s.id === id ? { ...s, startSec: start, endSec: end } : s))} />
       {shareOpen ? <View accessibilityViewIsModal style={[st.shareScreen, { paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, 16) }]}>
         <View style={st.shareHeader}><TouchableOpacity accessibilityRole="button" accessibilityLabel="Back to story editing" style={st.shareBack} onPress={() => setShareOpen(false)} disabled={publish.publishing}><Feather name="chevron-left" size={25} color="#FFFFFF" /></TouchableOpacity><Text style={st.shareTitle}>Share story</Text><View style={{ width: 44 }} /></View>
         <ScrollView contentContainerStyle={{ padding: 22, paddingBottom: 32 }} keyboardShouldPersistTaps="handled">
@@ -1183,7 +1315,7 @@ export default function StoryComposerScreen() {
       {/* Text Editor Modal — Instagram construction */}
       <Modal visible={textEditorOpen} transparent animationType="fade" onRequestClose={closeTextEditor}>
         <View style={[st.textEditorOverlay, { paddingBottom: Platform.OS === 'ios' ? keyboard.keyboardHeight : 0 }]}>
-          {isTextStory && active?.textBackground && <View style={StyleSheet.absoluteFill} pointerEvents="none">{renderTextBg(active.textBackground)}<View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.45)' }]} /></View>}
+          {/* Keep the existing composition visible underneath the transparent editor. */}
           <StoryTextEditorToolbar
             compact topInset={insets.top} alignment={stickerTextAlign} background={stickerBgEnabled}
             onClose={closeTextEditor} onSave={saveSticker}
@@ -1293,9 +1425,9 @@ export default function StoryComposerScreen() {
       {soundPreview.error || previewAudio.error ? <TouchableOpacity accessibilityRole="button" onPress={() => { soundPreview.retry(); previewAudio.retry(); }} style={{ padding: 12 }}><Text style={{ color: '#FFB4B4' }}>{soundPreview.error || previewAudio.error}</Text></TouchableOpacity> : null}
       <MusicSheet userId={myId} visible={musicOpen} onClose={() => setMusicOpen(false)} current={active?.audio || null} onSelect={(a: StoryAudioDraft) => { updateActive({ audio: a }); setMusicOpen(false); }} onShareTrack={(track) => { addSimpleSticker({ kind: 'link', text: track.title + ' · ' + track.artist, url: track.url }); setMusicOpen(false); }} onRemove={() => { updateActive({ audio: null }); }} disabled={publish.publishing} />
       <FilterPickerSheet visible={filterOpen} onClose={() => setFilterOpen(false)} selected={active?.filterId || null} onSelect={(fid: string | null) => { updateActive({ filterId: fid }); }} previewUri={active?.localUri || null} />
-      <AdjustPanel visible={adjustOpen} onClose={() => { setAdjustOpen(false); setCompareOriginal(false); }} onCompare={setCompareOriginal} onCrop={() => { setAdjustOpen(false); handleFitToggle(); }} onFilters={() => { setAdjustOpen(false); openFilterSheet(); }} onDraw={() => { setAdjustOpen(false); setDrawMode(true); }} onTiming={active?.mediaType === 'video' ? () => { setAdjustOpen(false); setTimingOpen(true); } : undefined} adjust={((getTx() as any).adjust || {}) as StoryAdjust} onChange={(a: StoryAdjust) => setTx({ adjust: a } as any)} filterOn={!!active?.filterId} filterAmt={typeof (getTx() as any).filterAmt === 'number' ? (getTx() as any).filterAmt : 100} onFilterAmt={(v: number) => setTx({ filterAmt: v } as any)} />
+      <AdjustPanel colorEditingUnavailable={active?.mediaType === 'video' && !storyVideoPreviewAvailable ? storyNativeEditingUnavailable(Platform.OS, 'color') : undefined} visible={adjustOpen} onClose={() => { setAdjustOpen(false); setCompareOriginal(false); }} onCompare={setCompareOriginal} onCrop={isTextStory ? undefined : () => { setAdjustOpen(false); handleFitToggle(); }} onFilters={() => { setAdjustOpen(false); openFilterSheet(); }} onDraw={() => { setAdjustOpen(false); setDrawMode(true); }} onTiming={active?.mediaType === 'video' ? () => { setAdjustOpen(false); setTimingOpen(true); } : undefined} adjust={((getTx() as any).adjust || {}) as StoryAdjust} onChange={(a: StoryAdjust) => setTx({ adjust: a } as any)} filterOn={!!active?.filterId} filterAmt={typeof (getTx() as any).filterAmt === 'number' ? (getTx() as any).filterAmt : 100} onFilterAmt={(v: number) => setTx({ filterAmt: v } as any)} />
       <BackgroundSheet visible={bgOpen} onClose={() => setBgOpen(false)} bg={((getTx() as any).bg || null) as StoryBg | null} onChange={(b: StoryBg) => setTx({ bg: b } as any)} />
-      <AudioMixSheet visible={mixOpen} onClose={() => setMixOpen(false)} isVideo={active?.mediaType === 'video'} hasMusic={MUSIC_CATALOG_ENABLED && !!active?.audio} mix={((getTx() as any).mix || {}) as StoryMix} onChange={(m: StoryMix) => setTx({ mix: m } as any)} />
+      <AudioMixSheet visible={mixOpen} onClose={() => setMixOpen(false)} isVideo={active?.mediaType === 'video'} hasMusic={ORIGINAL_AUDIO_ENABLED && !!active?.audio} mix={((getTx() as any).mix || {}) as StoryMix} onChange={(m: StoryMix) => setTx({ mix: m } as any)} />
       <EntitySheet visible={entityOpen} onClose={() => setEntityOpen(false)} onPick={handleEntityPick} />
       <GifPickerLite visible={gifOpen} onClose={() => setGifOpen(false)} onSelect={handleGifPick} />
       {trimOpen && active?.mediaType === 'video' && !!active?.localUri && (
@@ -1563,7 +1695,7 @@ export default function StoryComposerScreen() {
       </Modal>
 
       {/* Enhancement Modal */}
-    </TouchableOpacity>
+    </TouchableOpacity></StoryPhotoLookContext.Provider>
   );
 }
 
@@ -1625,7 +1757,7 @@ const st = StyleSheet.create({
   thumbDone: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(52,199,89,0.5)', alignItems: 'center', justifyContent: 'center' } as any,
   thumbError: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(255,59,48,0.5)', alignItems: 'center', justifyContent: 'center' } as any,
   thumbRemove: { position: 'absolute', top: -1, right: -1, backgroundColor: 'rgba(0,0,0,0.75)', borderRadius: 8, width: 16, height: 16, alignItems: 'center', justifyContent: 'center' },
-  textEditorOverlay: { flex: 1, backgroundColor: 'rgba(14,17,20,0.48)' },
+  textEditorOverlay: { flex: 1, backgroundColor: 'rgba(14,17,20,0.18)' },
   textEditorHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 8 },
   textEditorCancel: { color: textColor.secondary, fontSize: typeSize.body, fontWeight: fontWeight.medium },
   textEditorDone: { color: accent.warm, fontSize: typeSize.body, fontWeight: fontWeight.bold },

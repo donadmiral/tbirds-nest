@@ -1,0 +1,103 @@
+{
+  "verifiedAtUtc": "2026-10-30T22:06:19.098554+00:00",
+  "reviewHead": "aa7804d436a2b079770a5d2e122c159162af2610",
+  "testedMerge": "0c1fb9e30d875de7d93f15fcc63040b734222e22",
+  "sourceTree": "f394693bece5c0eb4ff78f73ab518fbc67a7cda6",
+  "jobId": 124334480338,
+  "runId": 41134795944,
+  "artifactId": 13017185646,
+  "artifactSha256": "79c3757dc546729ca91714230340cf2ef9a5b56477016daef70470fea7df1e90",
+  "artifactDownloadedAndDigestVerified": true,
+  "productionAndHarnessSourceHashesMatch": true,
+  "allFourMovieBytesAndHashesMatch": true,
+  "measuredReceipt": {
+    "cases": [
+      {
+        "duration": 2,
+        "early": {
+          "hz": 879.7825632448254,
+          "rms": 0.14112127865889765,
+          "samples": 14349
+        },
+        "late": {
+          "hz": 876.6666666666666,
+          "rms": 0.14113121941615647,
+          "samples": 14400
+        },
+        "name": "video trim and speed keep looping excerpt and music pitch"
+      },
+      {
+        "afterBoundary": {
+          "hz": 0,
+          "rms": 0,
+          "samples": 0
+        },
+        "duration": 6,
+        "early": {
+          "hz": 879.7825632448254,
+          "rms": 0.14112127865889765,
+          "samples": 14349
+        },
+        "name": "voiceover stops while the remaining video stays present"
+      },
+      {
+        "audio": {
+          "hz": 436.6666666666667,
+          "rms": 0.07057355279306406,
+          "samples": 14400
+        },
+        "name": "original mix level and muted soundtrack are preserved"
+      },
+      {
+        "audio": {
+          "hz": 876.6666666666666,
+          "rms": 0.14113121941615647,
+          "samples": 14400
+        },
+        "name": "photo or text artwork becomes a movie with actual audio"
+      },
+      {
+        "name": "invalid audio range is rejected and partial output removed"
+      },
+      {
+        "name": "cancellation stops the native writer and removes temporary movies"
+      }
+    ],
+    "error": null,
+    "networkUsed": false,
+    "passed": true,
+    "photosWritten": false,
+    "physicalDevice": false,
+    "commit": "0c1fb9e30d875de7d93f15fcc63040b734222e22",
+    "workflow_run": "41134795944",
+    "architecture": "arm64",
+    "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-26-2",
+    "sources": {
+      "modules/boomerang/ios/StoryVideoComposition.swift": "1fd77c1eaa9f802caabc75c20534606d5d4dee219ca044629045f70895945a87",
+      "scripts/quality/StoryAudioExportHarness.swift": "8f1ec671969045ca49d363eb74e75f62aeb7e726419062f700fa395610e850f9"
+    },
+    "movies": {
+      "pc-story-export-original.mp4": {
+        "sha256": "6b228d0a4b57bee2ab0d7e0a517ca401053b0590c5a8283d5781e9e4a22db319",
+        "bytes": 99384
+      },
+      "pc-story-export-still.mp4": {
+        "sha256": "054d3c7993c83eb226cbc5e8e44b56e43ad830e8ea7b4bc16798c0ab988cee45",
+        "bytes": 66832
+      },
+      "pc-story-export-loop.mp4": {
+        "sha256": "875d9e240d7ff69fa0749566f258d24a051d612d3589a65f229d0df8cf6884a1",
+        "bytes": 74608
+      },
+      "pc-story-export-voice.mp4": {
+        "sha256": "2e43f8bfb3dad19996d8f95fb00f46dd9406a6e7bddfb59ce3e2868b8a5bd647",
+        "bytes": 53584
+      }
+    }
+  },
+  "limits": [
+    "Actual standalone production encoder running on iOS Simulator with synthetic local media.",
+    "No physical-device, Photos-library, signed product, hosted Auth/Storage or store-release acceptance.",
+    "Full-app compilation is a separate gate."
+  ]
+}

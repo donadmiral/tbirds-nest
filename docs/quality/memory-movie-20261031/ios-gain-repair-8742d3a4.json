@@ -1,0 +1,233 @@
+{
+  "recorded_at": "2026-10-31T01:36:36.367016+00:00",
+  "scope": "First hosted iOS whole-book runtime failure, retained-output analysis, and narrowly scoped constant scene-gain repair. The repaired output has not yet been encoded.",
+  "published_head": "8742d3a43e54e0b8518cec308604289d089364cd",
+  "tested_merge": "34988df5f3b7e431836f1067aa72cd59c338dc39",
+  "published_and_tested_tree": "0096dabaf209c6bf2be4e6192028bd0b657b98ca",
+  "workflow": {
+    "run": 41155341636,
+    "job": 124400783355,
+    "conclusion": "failure",
+    "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-26-2",
+    "architecture": "arm64"
+  },
+  "artifact": {
+    "id": 13023953981,
+    "name": "native-memory-movie-export",
+    "bytes": 136059,
+    "sha256": "c899e3b560109bc3fcf2f873df4cc8ae62b62e55abf53c6a9d0c23cdb8e9389f",
+    "receipt_sha256": "0532f48b5e61ee435d85875fdac5e2ba12c7baadd8ca4e53b74559cb4d7252e7",
+    "movie": {
+      "name": "pc-memory-export-ordered.mp4",
+      "bytes": 159114,
+      "sha256": "d58ff300d0b93a5730f61fbe0c47695b4fbad4eb89a48fca088db617785d68fb"
+    }
+  },
+  "result": {
+    "swift_compiled": true,
+    "movie_encoded": true,
+    "completed_named_cases": 0,
+    "failure": "Speed-adjusted original audio or page boundary is wrong: [\"880\": 0.0003265560427631841, \"440\": 0.0997284777123544, \"1100\": 0.00018043845111996747, \"1760\": 8.516947626077353e-05, \"1540\": 6.826515247233258e-05, \"rms\": 0.08614987331417631, \"330\": 0.00040945370063226363, \"660\": 0.06910233994888462, \"time\": 1.8, \"220\": 0.0004312922745793349]",
+    "note": "The first case encoded its movie and then failed the second audio-window assertion. Its result is appended only after all case assertions, so the empty case list is not evidence that no runtime work ran."
+  },
+  "output_measurement": {
+    "method": "FFmpeg first channel float32 PCM at 48000Hz",
+    "streams": [
+      {
+        "index": 0,
+        "codec_name": "aac",
+        "codec_type": "audio",
+        "width": null,
+        "height": null,
+        "sample_rate": "44100",
+        "channels": 1,
+        "duration": "4.498345",
+        "nb_frames": "196",
+        "avg_frame_rate": "0/0"
+      },
+      {
+        "index": 1,
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 720,
+        "height": 1280,
+        "sample_rate": null,
+        "channels": null,
+        "duration": "4.500000",
+        "nb_frames": "135",
+        "avg_frame_rate": "30/1"
+      }
+    ],
+    "windows": [
+      {
+        "start": 0.3,
+        "duration": 0.3,
+        "frames": 14400,
+        "220": 3.739499063578891e-08,
+        "330": 2.6930200930860603e-08,
+        "440": 1.3156610024450595e-08,
+        "660": 0.023998118667149057,
+        "880": 0.09999327988216417,
+        "1100": 3.2322592558262566e-06,
+        "1540": 2.2703811490487078e-07,
+        "1760": 3.004316855030493e-08,
+        "rms": 0.07271370757015236,
+        "hypothesized660LinearPointRamp": 0.024
+      },
+      {
+        "start": 1.55,
+        "duration": 0.3,
+        "frames": 14400,
+        "220": 5.436039842187618e-05,
+        "330": 6.439039771113414e-05,
+        "440": 0.10008679415736073,
+        "660": 0.044112311147784605,
+        "880": 6.217529076303719e-05,
+        "1100": 2.725853165536455e-05,
+        "1540": 1.0975282448101124e-05,
+        "1760": 7.988591991183503e-06,
+        "rms": 0.07758578095086893,
+        "hypothesized660LinearPointRamp": 0.04411428571428571
+      },
+      {
+        "start": 1.8,
+        "duration": 0.3,
+        "frames": 14400,
+        "220": 5.435004366309276e-05,
+        "330": 6.354552490841329e-05,
+        "440": 0.10007151659008869,
+        "660": 0.06925305670740592,
+        "880": 6.234704120190165e-05,
+        "1100": 2.7374368532929748e-05,
+        "1540": 1.0940503010667587e-05,
+        "1760": 7.914589501889146e-06,
+        "rms": 0.0862731100175065,
+        "hypothesized660LinearPointRamp": 0.06925714285714285
+      },
+      {
+        "start": 2.2,
+        "duration": 0.3,
+        "frames": 14400,
+        "220": 5.433185671380434e-05,
+        "330": 6.471780777062758e-05,
+        "440": 0.10006123323822236,
+        "660": 0.1094773676848946,
+        "880": 6.196552813197643e-05,
+        "1100": 2.7287728404028854e-05,
+        "1540": 1.0938899550045654e-05,
+        "1760": 8.013615543558303e-06,
+        "rms": 0.10505562569222983,
+        "hypothesized660LinearPointRamp": 0.1094857142857143
+      },
+      {
+        "start": 2.6,
+        "duration": 0.3,
+        "frames": 14400,
+        "220": 5.4459212439524646e-05,
+        "330": 6.594064239121441e-05,
+        "440": 0.10007708118148728,
+        "660": 0.14970431750445776,
+        "880": 6.231894029820694e-05,
+        "1100": 2.7493644560063305e-05,
+        "1540": 1.0996931736635385e-05,
+        "1760": 7.949523503758366e-06,
+        "rms": 0.12748067554374246,
+        "hypothesized660LinearPointRamp": 0.14971428571428574
+      },
+      {
+        "start": 2.9,
+        "duration": 0.3,
+        "frames": 14400,
+        "220": 5.4273767917253495e-05,
+        "330": 6.320865562309452e-05,
+        "440": 0.10007924015958204,
+        "660": 0.17988897796128472,
+        "880": 6.307247624352878e-05,
+        "1100": 2.711555433724477e-05,
+        "1540": 1.0885827893404093e-05,
+        "1760": 7.958794669859175e-06,
+        "rms": 0.1456908904478124,
+        "hypothesized660LinearPointRamp": 0.1798857142857143
+      },
+      {
+        "start": 3.3,
+        "duration": 0.3,
+        "frames": 14400,
+        "220": 1.0308872837634003e-07,
+        "330": 1.9743959010857117e-07,
+        "440": 3.013907584427564e-07,
+        "660": 0.19996662898663237,
+        "880": 1.24948950210226e-06,
+        "1100": 4.374816078533262e-07,
+        "1540": 5.120364973401695e-08,
+        "1760": 1.0179866017859144e-07,
+        "rms": 0.14139776974024226,
+        "hypothesized660LinearPointRamp": 0.2
+      },
+      {
+        "start": 3.6,
+        "duration": 0.3,
+        "frames": 14400,
+        "220": 1.6443928792594036e-07,
+        "330": 1.4129328062828434e-07,
+        "440": 2.1344420715426153e-07,
+        "660": 0.19997760640848017,
+        "880": 9.01144518596472e-07,
+        "1100": 2.572019849207649e-07,
+        "1540": 2.1988555709940588e-08,
+        "1760": 6.65125154659679e-08,
+        "rms": 0.14140553874127518,
+        "hypothesized660LinearPointRamp": 0.2
+      }
+    ]
+  },
+  "finding": {
+    "expected_book_amplitude_while_ducked": 0.024,
+    "expected_original_amplitude": 0.1,
+    "observed": "Book 660 Hz amplitude rises from 0.044112 at 1.55\u20131.85 seconds through 0.179889 at 2.9\u20133.2 seconds, while original 440 Hz remains approximately 0.100. The final book-only window is approximately 0.200.",
+    "inference": "The measured gain closely matches linear interpolation between the point-volume assignments at 1.5 and 3.25 seconds. This explains the failure; the repair still requires actual encoded-output verification."
+  },
+  "repair": {
+    "changed_source": "modules/boomerang/ios/MemoryMovieComposition.swift",
+    "behavior": "Every contiguous scene gain window now uses setVolumeRamp with identical start and end levels over its complete time range. Audio insertion and the continuous selected-excerpt clock are unchanged.",
+    "before_sha256": "a4af3c2e497d803136e3fb9384e53529caa2949af6090e7dbe7639faa8b546d0",
+    "after_sha256": "e1c176bb449f6a10b271897a55faceb49d9d6ace8d74097101c7ca513377630f",
+    "harness_assertions_changed": false,
+    "constant_caps_changed": false
+  },
+  "source_sha256": {
+    "modules/boomerang/ios/StoryVideoComposition.swift": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+    "modules/boomerang/ios/MemoryMovieComposition.swift": "e1c176bb449f6a10b271897a55faceb49d9d6ace8d74097101c7ca513377630f",
+    "scripts/quality/MemoryMovieExportHarness.swift": "97702bb42ff08151a8d4104cf9e02ef9a4df8f9b824c6b49b7f7823b276c1fab",
+    "scripts/quality/test-ios-memory-movie.sh": "fa60a4db91552e78b6181943dd76d105a2354f2934969b95a8ed655985c3c90c"
+  },
+  "unchanged_acceptance_inventory": {
+    "named_cases": 11,
+    "retained_movies": 7,
+    "retained_normalized_pngs": 2
+  },
+  "local_verification": [
+    {
+      "check": "Artifact and retained movie digests match the hosted metadata and receipt",
+      "passed": true
+    },
+    {
+      "check": "Published head and tested merge resolve to the same source tree",
+      "passed": true
+    },
+    {
+      "check": "Story renderer, harness and wrapper bytes are unchanged",
+      "passed": true
+    },
+    {
+      "command": "git diff --check -- modules/boomerang/ios/MemoryMovieComposition.swift",
+      "exit_code": 0
+    }
+  ],
+  "next_gate": "Hosted iOS memory run must complete all 11 unchanged measured cases before enabling memoryMovieVersion. This Linux host cannot compile or run AVFoundation.",
+  "limits": [
+    "Whole-book capability remains 0 on iOS and Android.",
+    "This receipt does not claim the gain repair has passed runtime acceptance.",
+    "No physical device, Photos write, production backend or licensed catalogue activation was performed."
+  ]
+}

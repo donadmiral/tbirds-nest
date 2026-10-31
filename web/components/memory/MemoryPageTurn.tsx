@@ -1,4 +1,5 @@
 'use client';
+import NextImage from "next/image";
 import {forwardRef,useCallback,useEffect,useImperativeHandle,useLayoutEffect,useRef,useState,type CSSProperties,type ReactNode,type PointerEvent} from 'react';
 import {MemoryBookTurnMachine,memoryTurnAngle,memoryTurnDuration,memoryTurnProgress,memoryTurnShouldCommit,type MemoryTurn,type MemoryTurnDirection} from '../../../shared/memoryBookTurn';
 import {memoryCoverMedia,type MemoryCoverPage} from '../../../shared/memoryBookDesign';
@@ -6,17 +7,20 @@ import styles from './MemoryPageTurn.module.css';
 export type MemoryPageTurnHandle={turn:(direction:MemoryTurnDirection)=>void;cancel:()=>void};
 type Props={pageIds:readonly string[];index:number;active:boolean;spine:string;title:string;children:ReactNode;renderPreview:(index:number)=>ReactNode;onCommit:(index:number)=>void;onTurningChange:(turning:boolean)=>void};
 export const MemoryPageTurn=forwardRef<MemoryPageTurnHandle,Props>(function MemoryPageTurn({pageIds,index,active,spine,title,children,renderPreview,onCommit,onTurningChange},ref){
- const machine=useRef(new MemoryBookTurnMachine(pageIds,index)).current;
+ const [machine]=useState(()=>new MemoryBookTurnMachine(pageIds,index));
  const root=useRef<HTMLDivElement>(null),frame=useRef(0),live=useRef(true),reduced=useRef(false);
- const callbacks=useRef({onCommit,onTurningChange});callbacks.current={onCommit,onTurningChange};
+ const callbacks=useRef({onCommit,onTurningChange});useLayoutEffect(()=>{callbacks.current={onCommit,onTurningChange};},[onCommit,onTurningChange]);
  const [turn,setTurn]=useState<MemoryTurn|null>(null);
  const gesture=useRef<{id:number;x:number;y:number;time:number;lastX:number;lastTime:number;velocity:number;token?:number;direction?:MemoryTurnDirection}|null>(null);
  const paint=useCallback((progress:number,direction:MemoryTurnDirection)=>{root.current?.style.setProperty('--book-angle',String(memoryTurnAngle(progress,direction)));root.current?.style.setProperty('--fold-shadow',String(Math.sin(Math.PI*progress)));},[]);
  const cancel=useCallback(()=>{cancelAnimationFrame(frame.current);machine.cancel();gesture.current=null;paint(0,1);if(live.current){setTurn(null);callbacks.current.onTurningChange(false);}},[machine,paint]);
  const identity=pageIds.join('|');
- useLayoutEffect(()=>{cancelAnimationFrame(frame.current);machine.sync(pageIds,index);if(!machine.turn){paint(0,1);setTurn(null);callbacks.current.onTurningChange(false);}},[identity,index,machine,paint]);
+ const scope=identity+':'+index+':'+active;
+ const [previousScope,setPreviousScope]=useState(scope);
+ if(previousScope!==scope){setPreviousScope(scope);setTurn(null);}
+ useLayoutEffect(()=>{cancelAnimationFrame(frame.current);machine.sync(identity?identity.split("|"):[],index);if(!machine.turn){paint(0,1);callbacks.current.onTurningChange(false);}},[identity,index,machine,paint]);
  useEffect(()=>{live.current=true;const media=matchMedia('(prefers-reduced-motion: reduce)');const apply=()=>{reduced.current=media.matches;if(media.matches)cancel();};apply();media.addEventListener('change',apply);const hidden=()=>{if(document.hidden)cancel();};document.addEventListener('visibilitychange',hidden);return()=>{live.current=false;cancelAnimationFrame(frame.current);machine.cancel();media.removeEventListener('change',apply);document.removeEventListener('visibilitychange',hidden);};},[cancel,machine]);
- useEffect(()=>{if(!active)cancel();},[active,cancel]);
+ useEffect(()=>{if(!active){cancelAnimationFrame(frame.current);machine.cancel();gesture.current=null;paint(0,1);callbacks.current.onTurningChange(false);}},[active,machine,paint]);
  const settle=useCallback((current:MemoryTurn,commit:boolean)=>{
   if(!machine.settle(current.token))return;
   const start=current.progress,target=commit?1:0,duration=memoryTurnDuration(start,commit,reduced.current),began=performance.now();
@@ -45,5 +49,5 @@ export const MemoryPageTurn=forwardRef<MemoryPageTurnHandle,Props>(function Memo
 /** Turning sheets intentionally render no video/audio element or player. */
 export function MemoryTurnPreview({page,index}:{page:MemoryCoverPage;index:number}){
  const media=memoryCoverMedia(page),[failed,setFailed]=useState<string[]>([]),src=[media.photoUrl,media.fallbackPhotoUrl].find(url=>url&&!failed.includes(url));
- return <div className={styles.preview}><span className={styles.previewNumber}>{String(index+1).padStart(2,'0')} ─</span><div className={styles.previewMedia}>{src?<img src={src} alt="" onError={()=>setFailed(values=>[...values,src])}/>:<span>{page.media_type==='video'?'Video memory':page.story_caption||page.caption||'A memory'}</span>}</div><span className={styles.previewCaption}>{page.caption}</span></div>;
+ return <div className={styles.preview}><span className={styles.previewNumber}>{String(index+1).padStart(2,'0')} ─</span><div className={styles.previewMedia}>{src?<NextImage unoptimized width={780} height={1040} src={src} alt="" onError={()=>setFailed(values=>[...values,src])}/>:<span>{page.media_type==='video'?'Video memory':page.story_caption||page.caption||'A memory'}</span>}</div><span className={styles.previewCaption}>{page.caption}</span></div>;
 }

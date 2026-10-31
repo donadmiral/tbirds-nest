@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation';
+import { requestTime } from '@/lib/requestTime';
 import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import { approveApplication, rejectApplication } from '@/lib/actions';
@@ -9,21 +9,21 @@ import { fmt, ago } from '@/lib/fmt';
 
 export const dynamic = 'force-dynamic';
 
-const PANEL: React.CSSProperties = { borderRadius: 13, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', overflow: 'hidden' };
+const PANEL: React.CSSProperties = { borderRadius: 12, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', overflow: 'hidden' };
 const HEAD: React.CSSProperties = { padding: '14px 16px 12px', borderBottom: '1px solid rgba(var(--on),0.10)' };
-const H_TITLE: React.CSSProperties = { fontSize: 13.5, fontWeight: 700, color: 'var(--txt)' };
-const H_SUB: React.CSSProperties = { fontSize: 11.3, color: 'rgba(var(--on),0.36)', marginTop: 3 };
+const H_TITLE: React.CSSProperties = { fontSize: 14, fontWeight: 700, color: 'var(--txt)' };
+const H_SUB: React.CSSProperties = { fontSize: 12, color: 'var(--txt-muted)', marginTop: 3 };
 
 const TIER_LABEL: Record<string, string> = { public_figure: 'Green seal', business: 'Space grey seal', official: 'Platinum seal' };
 const TIER_TONE: Record<string, Tone> = { public_figure: 'ok', business: 'neutral', official: 'warn' };
 
 const IC = {
-  seal: 'M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4L4.2 7.7l5.4-.8L12 2z',
-  clock: 'M12 2a10 10 0 100 20 10 10 0 000-20zm1 10.6V6h-2v7.4l5.2 3.1 1-1.7-4.2-2.2z',
-  check: 'M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z',
-  x: 'M19 6.4L17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z',
-  users: 'M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z',
-};
+  seal: 'verification',
+  clock: 'clock',
+  check: 'check',
+  x: 'close',
+  users: 'users',
+} as const;
 
 function medianHours(pairs: { created_at: string; decided_at: string }[]): number | null {
   if (pairs.length === 0) return null;
@@ -34,9 +34,10 @@ function medianHours(pairs: { created_at: string; decided_at: string }[]): numbe
 
 export default async function QueuePage() {
   const admin = await requireDesk('/queue');
+  const now = await requestTime();
   const svc = serviceClient();
 
-  const from30 = new Date(Date.now() - 30 * 86400000).toISOString();
+  const from30 = new Date(now - 30 * 86400000).toISOString();
 
   const [appsRes, decidedRes, approvedAllRes, rejectedAllRes, approved30Res, totalRes] = await Promise.all([
     svc.from('verification_applications').select('*').in('status', ['submitted', 'under_review']).order('created_at', { ascending: true }),
@@ -46,6 +47,9 @@ export default async function QueuePage() {
     svc.from('verification_applications').select('id', { count: 'exact', head: true }).eq('status', 'approved').gte('decided_at', from30),
     svc.from('verification_applications').select('id', { count: 'exact', head: true }),
   ]);
+  if ([appsRes, decidedRes, approvedAllRes, rejectedAllRes, approved30Res, totalRes].some(result => result.error)) {
+    throw new Error('Verification data could not be loaded. Refresh before reviewing a request.');
+  }
 
   const appsRaw = (appsRes.data ?? []) as Record<string, unknown>[];
   const decided = (decidedRes.data ?? []) as { id: string; applicant_id: string; tier: string; category: string | null; status: string; created_at: string; decided_at: string; decision_reason: string | null }[];
@@ -53,11 +57,13 @@ export default async function QueuePage() {
   const refByApp: Record<string, { referrer_id: string; note: string | null }[]> = {};
   const refNames: Record<string, { full_name: string | null; username: string | null }> = {};
   if (appsRaw.length) {
-    const { data: refs } = await svc.from('verification_referrals').select('application_id, referrer_id, note').in('application_id', appsRaw.map(a => String(a.id)));
+    const { data: refs, error: refsError } = await svc.from('verification_referrals').select('application_id, referrer_id, note').in('application_id', appsRaw.map(a => String(a.id)));
+    if (refsError) throw new Error('Verification referrals could not be loaded.');
     (refs ?? []).forEach((r: { application_id: string; referrer_id: string; note: string | null }) => { (refByApp[r.application_id] = refByApp[r.application_id] || []).push(r); });
     const rids = Array.from(new Set((refs ?? []).map((r: { referrer_id: string }) => r.referrer_id)));
     if (rids.length) {
-      const { data: rp } = await svc.from('profiles').select('id, full_name, username').in('id', rids);
+      const { data: rp, error: refProfilesError } = await svc.from('profiles').select('id, full_name, username').in('id', rids);
+      if (refProfilesError) throw new Error('Verification referral accounts could not be loaded.');
       (rp ?? []).forEach((p: { id: string; full_name: string | null; username: string | null }) => { refNames[p.id] = p; });
     }
   }
@@ -69,10 +75,15 @@ export default async function QueuePage() {
   const profiles: Record<string, { full_name: string | null; username: string | null; avatar_url: string | null; account_type: string | null; created_at: string; location: string | null }> = {};
   const strikeCounts: Record<string, number> = {};
   if (ids.length) {
-    const [{ data: profs }, strikeRows] = await Promise.all([
+    const [{ data: profs, error: profilesError }, strikeRows] = await Promise.all([
       svc.from('profiles').select('id, full_name, username, avatar_url, account_type, created_at, location').in('id', ids),
-      Promise.all(sortedApps.map(async a => ({ id: String(a.applicant_id), n: (await svc.from('member_strikes').select('id', { count: 'exact', head: true }).eq('user_id', String(a.applicant_id))).count ?? 0 }))),
+      Promise.all([...new Set(sortedApps.map(application => String(application.applicant_id)))].map(async id => {
+        const result = await svc.from('member_strikes').select('id', { count: 'exact', head: true }).eq('user_id', id);
+        if (result.error || result.count === null) throw new Error('Account safety history could not be loaded.');
+        return { id, n: result.count };
+      })),
     ]);
+    if (profilesError) throw new Error('Verification applicant accounts could not be loaded.');
     (profs ?? []).forEach((p: { id: string; full_name: string | null; username: string | null; avatar_url: string | null; account_type: string | null; created_at: string; location: string | null }) => { profiles[p.id] = p; });
     strikeRows.forEach(r => { strikeCounts[r.id] = r.n; });
   }
@@ -87,7 +98,7 @@ export default async function QueuePage() {
   const tierSlices: Slice[] = Object.keys(tierCount).map(k => ({ label: TIER_LABEL[k] || k, value: tierCount[k], color: k === 'public_figure' ? 'var(--ok)' : k === 'official' ? 'var(--pearl)' : 'rgba(var(--on),0.34)' }));
 
   const cards = [
-    { label: 'All requests', value: fmt(total), note: 'verification_applications, all time', icon: IC.seal, color: 'var(--c1)' },
+    { label: 'All requests', value: fmt(total), note: 'verification requests, all time', icon: IC.seal, color: 'var(--c1)' },
     { label: 'Pending review', value: fmt(sortedApps.length), note: 'submitted and under review', icon: IC.clock, color: 'var(--c3)' },
     { label: 'Approved', value: fmt(approvedAll), note: fmt(approved30Res.count ?? 0) + ' in the last 30 days', icon: IC.check, color: 'var(--c2)' },
     { label: 'Rejected', value: fmt(rejectedAll), note: 'with a written reason', icon: IC.x, color: 'var(--c5)' },
@@ -201,11 +212,11 @@ export default async function QueuePage() {
     <Shell admin={admin} active="/queue" title="Verification" sub="Review and decide every verification request. Vouched applications rise to the top, then the ones that have waited longest.">
       <StatStrip cards={cards} />
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_320px]">
+      <div className="mt-5 grid gap-5">
         <div>
           <Desk
             tabs={tabs}
-            columns={[{ label: 'Account' }, { label: 'Tier' }, { label: 'Category' }, { label: 'Vouches', align: 'right' }, { label: 'Strikes', align: 'right' }, { label: 'Waiting', align: 'right' }]}
+            columns={[{ label: 'Account' }, { label: 'Tier', sort: 'text' }, { label: 'Category', sort: 'text' }, { label: 'Vouches', align: 'right', sort: 'number' }, { label: 'Strikes', align: 'right', sort: 'number' }, { label: 'Waiting', align: 'right' }]}
             grid="minmax(180px,2fr) 130px minmax(110px,1fr) 80px 74px 92px"
             rows={rows}
             filters={[{ key: 'tier', label: 'Tier', options: Array.from(new Set(rows.map(r => r.facets?.tier || ''))).filter(Boolean) }]}
@@ -214,13 +225,13 @@ export default async function QueuePage() {
             minWidth={800}
             pageSize={12}
             actions={[
-              { key: 'approve', label: 'Approve and grant the seal', tone: 'ok', action: approveApplication, idName: 'id' },
-              { key: 'reject', label: 'Reject', tone: 'bad', action: rejectApplication, idName: 'id', inputs: [{ name: 'reason', placeholder: 'Reason the member will see', required: true }] },
+              { key: 'approve', label: 'Approve and grant the seal', tone: 'ok', action: approveApplication, idName: 'id', inputs: [{ name: 'reason', label: 'Approval review basis', type: 'textarea', placeholder: 'Explain the evidence supporting this decision', help: 'Confirm identity, evidence and account type against the requested seal. Give a specific review basis of 20–2,000 characters.', required: true, minLength: 20, maxLength: 2000 }] },
+              { key: 'reject', label: 'Reject request', tone: 'bad', action: rejectApplication, idName: 'id', inputs: [{ name: 'reason', label: 'Reason for the member', type: 'textarea', placeholder: 'Explain what was missing or did not meet the requirements', help: 'Give a specific, respectful reason of 20–2,000 characters.', required: true, minLength: 20, maxLength: 2000 }] },
             ]}
           />
         </div>
 
-        <div>
+        <div className="pc-queue-insights">
           <div style={PANEL}>
             <div style={HEAD}>
               <div style={H_TITLE}>What is waiting</div>
@@ -244,9 +255,9 @@ export default async function QueuePage() {
                   <span style={{ width: 6, height: 6, borderRadius: '50%', flex: '0 0 6px', background: ok ? 'var(--ok)' : 'var(--bad)' }} />
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ display: 'block', fontSize: 12, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p?.full_name || '@' + (p?.username || 'member')}</span>
-                    <span style={{ display: 'block', fontSize: 10.4, color: 'rgba(var(--on),0.32)', marginTop: 2 }}>{TIER_LABEL[d.tier] || d.tier}</span>
+                    <span style={{ display: 'block', fontSize: 11, color: 'var(--txt-muted)', marginTop: 2 }}>{TIER_LABEL[d.tier] || d.tier}</span>
                   </span>
-                  <span className="pc-num" style={{ fontSize: 10.5, color: 'rgba(var(--on),0.3)' }}>{ago(d.decided_at)}</span>
+                  <span className="pc-num" style={{ fontSize: 11, color: 'var(--txt-muted)' }}>{ago(d.decided_at)}</span>
                 </div>
               );
             })}

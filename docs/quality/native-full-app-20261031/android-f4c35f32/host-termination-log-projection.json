@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "source": "Authenticated completed GitHub Actions job log",
+  "repository": "donadmiral/tbirds-nest",
+  "runId": 41211437305,
+  "jobId": 124567097694,
+  "fetchCount": 1,
+  "fullTextCharacters": 366374,
+  "fullTextLines": 3485,
+  "selectedLines": [
+    {
+      "line": 100,
+      "text": "2026-10-31T14:43:23.6334818Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +6f3204cd44996dfe66ffe2dcf7192543805aa912:refs/remotes/pull/3/merge"
+    },
+    {
+      "line": 102,
+      "text": "2026-10-31T14:43:27.6157590Z  * [new ref]         6f3204cd44996dfe66ffe2dcf7192543805aa912 -> pull/3/merge"
+    },
+    {
+      "line": 127,
+      "text": "2026-10-31T14:43:27.9621057Z HEAD is now at 6f3204c Merge f4c35f32795be5f196840c37382143a2d7e33d55 into ce4f2f2ebbd7f7669b630caf650fd97cd59297b0"
+    },
+    {
+      "line": 130,
+      "text": "2026-10-31T14:43:27.9634956Z 6f3204cd44996dfe66ffe2dcf7192543805aa912"
+    },
+    {
+      "line": 3368,
+      "text": "2026-10-31T15:01:43.6207034Z BUILD SUCCESSFUL in 16m 14s"
+    },
+    {
+      "line": 3381,
+      "text": "2026-10-31T15:02:36.6861030Z Waiting for flows to complete..."
+    },
+    {
+      "line": 3382,
+      "text": "2026-10-31T15:04:07.4972103Z [Failed] Full native app navigation (1m 31s)"
+    },
+    {
+      "line": 3386,
+      "text": "2026-10-31T15:04:07.5925235Z Exception in thread \"Thread-5\" java.io.IOException: Command failed (host:transport:emulator-5556): device 'emulator-5556' not found"
+    },
+    {
+      "line": 3406,
+      "text": "2026-10-31T15:04:12.2092557Z Device emulator-5556 was requested, but it is not connected."
+    },
+    {
+      "line": 3407,
+      "text": "2026-10-31T15:04:12.2863567Z scripts/quality/test-android-app-ui.sh: line 105:  6995 Segmentation fault      (core dumped) \"$android_sdk/emulator/emulator\" -avd platinum_app_ui -port 5556 -no-window -no-audio -no-boot-anim -no-snapshot -gpu software -memory 3072 > native-ui-logs/emulator.log 2>&1"
+    },
+    {
+      "line": 3437,
+      "text": "2026-10-31T15:04:12.4661269Z ##[error]Process completed with exit code 1."
+    }
+  ]
+}

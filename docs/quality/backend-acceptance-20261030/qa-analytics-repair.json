@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-30",
+  "project": "uaulhuelcfkjwojtymmw",
+  "source": "supabase/ops/repair-qa-daily-analytics.sql",
+  "change": "Used the existing verified rebuild_daily_stats function to backfill 30 UTC days and install the existing production-equivalent daily refresh schedule",
+  "preflight": {
+    "dailyRows": 0,
+    "dailyRefreshJobs": 0,
+    "functionDefinitionMd5": "a6644cc5186d7ea4ea48d230cf2c5889",
+    "timezone": "UTC",
+    "sourcePosts": 7
+  },
+  "appliedPostflight": {
+    "dailyRows": 30,
+    "latestDay": "2026-10-30",
+    "summarizedPosts": 7,
+    "sourcePosts": 7,
+    "job": "daily-stats",
+    "schedule": "10 0 * * *",
+    "active": true
+  },
+  "independentPostflight": {
+    "checkedAt": "2026-10-30T20:50:57.866947+00:00",
+    "dailyRows": 30,
+    "latestDay": "2026-10-30",
+    "sourcePosts": 7,
+    "job": "daily-stats",
+    "schedule": "10 0 * * *",
+    "active": true
+  },
+  "browserRecheck": "Admin Analytics and Dashboard displayed dated charts and actual QA counts after the repair",
+  "production": "Read-only verification found an existing daily schedule and current reporting rows. No production reporting change was made.",
+  "limits": "The next scheduled execution has not yet occurred. Backfill execution and installed schedule were verified independently."
+}

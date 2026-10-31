@@ -145,21 +145,31 @@ export type CreateJobInput = {
 
 export const JOB_POSTING_ACCOUNT_MESSAGE = 'Job publishing for a managed organization is not available yet. Switch the posting identity back to your signed-in account to publish a job and manage its applicants.';
 
-type GetJobsOpts = {
+export type JobReadOptions = { signal?: AbortSignal; accessToken?: string };
+
+function pinJobRead<T>(query: T, options: JobReadOptions): T {
+  const request = query as any;
+  if (options.accessToken) request.setHeader('Authorization', `Bearer ${options.accessToken}`);
+  if (options.signal) request.abortSignal(options.signal);
+  return query;
+}
+
+type GetJobsOpts = JobReadOptions & {
   sortBy?: 'recent' | 'popular' | 'salary' | 'urgent';
   scope?: JobScope;
   userId?: string;
   limit?: number;
 };
 
-async function attachPosterProfiles(rows: any[]): Promise<Job[]> {
+async function attachPosterProfiles(rows: any[], options: JobReadOptions = {}): Promise<Job[]> {
   if (!rows || rows.length === 0) return [];
   const posterIds = Array.from(new Set(rows.map(j => j.posted_by).filter(Boolean)));
   if (posterIds.length === 0) return rows as Job[];
-  const { data: profiles } = await supabase
+  const { data: profiles, error } = await pinJobRead(supabase
     .from('profiles')
     .select('id, full_name, username, avatar_url')
-    .in('id', posterIds);
+    .in('id', posterIds), options);
+  if (error) throw error;
   const map: Record<string, PosterLite> = {};
   (profiles || []).forEach((p: any) => { map[p.id] = p; });
   return rows.map(j => ({ ...j, profile: map[j.posted_by] || null })) as Job[];
@@ -177,7 +187,7 @@ export const jobsService = {
       query = query.eq('remote_type', 'remote');
     } else if (scope === 'primary' && userId) {
       // Near me: match the job's location against the user's profile city
-      const { data: prof, error: profileError } = await supabase.from('profiles').select('location').eq('id', userId).maybeSingle();
+      const { data: prof, error: profileError } = await pinJobRead(supabase.from('profiles').select('location').eq('id', userId).maybeSingle(), opts);
       if (profileError) throw profileError;
       const city = String(prof?.location || '').trim().split(',')[0].trim();
       if (city.length < 3) throw new Error('Add your city to your profile to find jobs near you.');
@@ -185,7 +195,7 @@ export const jobsService = {
     }
     if (sortBy === 'popular') query = query.order('applications_count', { ascending: false });
     if (sortBy === 'urgent') query = query.order('urgent', { ascending: false });
-    const { data, error } = await query.order('created_at', { ascending: false });
+    const { data, error } = await pinJobRead(query.order('created_at', { ascending: false }), opts);
     if (error) throw error;
     let rows: any[] = data || [];
     // Client-side sort (RPC returns ordered by created_at desc).
@@ -220,7 +230,7 @@ export const jobsService = {
         break;
     }
 
-    const withProfiles = await attachPosterProfiles(rows);
+    const withProfiles = await attachPosterProfiles(rows, opts);
     
     return withProfiles as Job[];
   },
@@ -308,11 +318,11 @@ export const jobsService = {
     return attachPosterProfiles(data || []);
   },
 
-  async getSavedJobIds(userId: string): Promise<string[]> {
-    const { data, error } = await supabase
+  async getSavedJobIds(userId: string, options: JobReadOptions = {}): Promise<string[]> {
+    const { data, error } = await pinJobRead(supabase
       .from('job_saves')
       .select('job_id')
-      .eq('user_id', userId);
+      .eq('user_id', userId), options);
     if (error) throw error;
     return (data || []).map((r: any) => r.job_id);
   },
@@ -366,11 +376,11 @@ export const jobsService = {
     return { app: data as JobApplication, updated: false };
   },
 
-  async getAppliedJobIds(userId: string): Promise<Record<string, ApplicationStatus>> {
-    const { data, error } = await supabase
+  async getAppliedJobIds(userId: string, options: JobReadOptions = {}): Promise<Record<string, ApplicationStatus>> {
+    const { data, error } = await pinJobRead(supabase
       .from('job_applications')
       .select('job_id, status')
-      .eq('applicant_id', userId);
+      .eq('applicant_id', userId), options);
     if (error) throw error;
     const out: Record<string, ApplicationStatus> = {};
     (data || []).forEach((r: any) => {
@@ -379,11 +389,11 @@ export const jobsService = {
     return out;
   },
 
-  async getMyApplications(userId: string): Promise<JobApplication[]> {
+  async getMyApplications(userId: string, options: JobReadOptions = {}): Promise<JobApplication[]> {
     if (!userId) throw new Error('Sign in to see your applications.');
     // The home badge needs only a bounded preview. The applications screen
     // consumes the cursor so older applications remain reachable.
-    return (await loadMyApplicationPage<JobApplication>(supabase)).applications;
+    return (await loadMyApplicationPage<JobApplication>({ rpc: (name, args) => pinJobRead(supabase.rpc(name, args), options) })).applications;
   },
 
   async getMyApplicationsPage(cursor: ApplicantCursor | null = null): Promise<MyApplicationPage<JobApplication>> {
@@ -466,22 +476,23 @@ export const jobsService = {
     return data as JobRecommendation;
   },
 
-  async getRecommendationsForJob(jobId: string): Promise<JobRecommendation[]> {
-    const { data, error } = await supabase
+  async getRecommendationsForJob(jobId: string, options: JobReadOptions = {}): Promise<JobRecommendation[]> {
+    const { data, error } = await pinJobRead(supabase
       .from('job_recommendations')
       .select('*')
       .eq('job_id', jobId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false }), options);
     if (error) {
       console.log('[jobsService.getRecommendationsForJob]', error.message);
-      return [];
+      throw error;
     }
     if (!data || data.length === 0) return [];
     const ids = Array.from(new Set(data.map((r: any) => r.recommender_id)));
-    const { data: profiles } = await supabase
+    const { data: profiles, error: profilesError } = await pinJobRead(supabase
       .from('profiles')
       .select('id, full_name, username, avatar_url')
-      .in('id', ids);
+      .in('id', ids), options);
+    if (profilesError) throw profilesError;
     const pm: Record<string, PosterLite> = {};
     (profiles || []).forEach((p: any) => { pm[p.id] = p; });
     return data.map((r: any) => ({

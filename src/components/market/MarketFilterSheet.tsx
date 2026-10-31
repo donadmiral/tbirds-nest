@@ -1,13 +1,10 @@
 import { themedSheet, useTheme } from '../../theme/useTheme';
-import { KeyboardAvoidingView, Platform } from 'react-native';
+import { KeyboardAvoidingView, Platform , View, Text, Modal, TouchableOpacity, TextInput, ScrollView } from 'react-native';
 /**
  * MarketFilterSheet - Facebook Marketplace filter panel.
  */
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ScrollView } from 'react-native';
 import { MARKET_CONDITIONS } from '../../services/marketService';
-
-const NAVY = '#0B1E3D';
 
 export type MarketFilters = {
   minPrice: string;
@@ -84,7 +81,7 @@ export default function MarketFilterSheet({ visible, onClose, value, onApply }: 
 const s = themedSheet((t) => ({
   overlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.5)' },
   sheet: { backgroundColor: t.surface.canvas, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 18, paddingTop: 10, paddingBottom: 30 },
-  handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: '#D8D8DC', alignSelf: 'center', marginBottom: 12 },
+  handle: { width: 36, height: 4, borderRadius: 2, backgroundColor: t.surface.hairline, alignSelf: 'center', marginBottom: 12 },
   head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 8 },
   title: { fontSize: 17, fontWeight: '800', color: t.ink.primary },
   clear: { fontSize: 14.5, color: t.ink.secondary, fontWeight: '600' },

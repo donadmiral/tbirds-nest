@@ -1,4 +1,5 @@
 'use client';
+import Image from 'next/image';
 
 import { useEffect, useRef, useState, useTransition, type CSSProperties } from 'react';
 import { useRouter } from 'next/navigation';
@@ -17,7 +18,7 @@ export type ReviewMedia = { url: string; video?: boolean; width?: number | null;
 
 const bounded = (value: number | null | undefined, fallback: number, min: number, max: number) => Number.isFinite(value) ? Math.max(min, Math.min(max, value!)) : fallback;
 
-type PreviewProps = ReviewMedia & { thumbnail?: boolean };
+type PreviewProps = ReviewMedia & { thumbnail?: boolean; expanded?: boolean; onExpand?: () => void };
 
 export default function MediaPreview(props: PreviewProps) {
   // Renewed capabilities and a different attachment must get a fresh media
@@ -25,7 +26,7 @@ export default function MediaPreview(props: PreviewProps) {
   return <MediaPreviewSource key={`${props.url}:${props.video ? 'video' : 'image'}:${props.edit?.coverUrl ?? ''}`} {...props} />;
 }
 
-function MediaPreviewSource({ url, video = false, thumbnail = false, edit, width, height }: PreviewProps) {
+function MediaPreviewSource({ url, video = false, thumbnail = false, expanded = false, onExpand, edit, width, height }: PreviewProps) {
   const router = useRouter();
   const player = useRef<HTMLVideoElement>(null);
   const [failed, setFailed] = useState(false);
@@ -81,7 +82,7 @@ function MediaPreviewSource({ url, video = false, thumbnail = false, edit, width
   );
   return <div style={{ width: '100%', height: thumbnail ? '100%' : undefined }}>
     <div style={{ position: 'relative', overflow: 'hidden', background: '#10141C', margin: '0 auto',
-      width: thumbnail ? '100%' : `min(100%, ${320 * aspect}px)`, height: thumbnail ? '100%' : undefined, aspectRatio: aspect }}>
+      width: thumbnail ? '100%' : `min(100%, ${(expanded ? 680 : 320) * aspect}px)`, height: thumbnail ? '100%' : undefined, aspectRatio: aspect }}>
       {video && !(thumbnail && showCover) ? <video ref={player} key={`${url}:${retry}`} src={url} poster={edit?.coverUrl || undefined} muted={thumbnail || muted} playsInline
         preload="metadata" onError={() => setFailed(true)} onPlay={() => { setPlaying(true); setHasStarted(true); }} onPause={() => setPlaying(false)}
         onLoadedMetadata={event => {
@@ -98,12 +99,13 @@ function MediaPreviewSource({ url, video = false, thumbnail = false, edit, width
             element.pause(); element.currentTime = trim.start;
           }
           setTime(element.currentTime);
-        }} style={mediaStyle} /> : <img key={`${url}:${retry}`} src={thumbnail && showCover ? edit!.coverUrl! : url} alt={thumbnail ? '' : 'Content preview'} onError={() => thumbnail && showCover ? setCoverFailed(true) : setFailed(true)} style={mediaStyle} />}
-      {showCover && !thumbnail ? <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}><img src={edit!.coverUrl!} alt="Selected video cover" onError={() => setCoverFailed(true)} style={mediaStyle} /></div> : null}
+        }} style={mediaStyle} /> : <Image unoptimized fill sizes="100vw" key={`${url}:${retry}`} src={thumbnail && showCover ? edit!.coverUrl! : url} alt={thumbnail ? '' : 'Content preview'} onError={() => thumbnail && showCover ? setCoverFailed(true) : setFailed(true)} style={mediaStyle} />}
+      {showCover && !thumbnail ? <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}><Image unoptimized fill sizes="100vw" src={edit!.coverUrl!} alt="Selected video cover" onError={() => setCoverFailed(true)} style={mediaStyle} /></div> : null}
       {filter ? <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', backdropFilter: filterCss(filter.id, intensity), WebkitBackdropFilter: filterCss(filter.id, intensity) }}>
         {filter.layers.map((layer, index) => <div key={index} style={{ position: 'absolute', inset: 0, backgroundColor: layer.color, opacity: layer.opacity * intensity }} />)}
       </div> : null}
       {edit?.adjust ? <AdjustOverlay adjust={edit.adjust} /> : null}
+      {!video && onExpand ? <button type="button" className="pc-photo-expand-target" aria-label="Open photo in full screen" onClick={onExpand} /> : null}
       {cue ? <div style={{ position: 'absolute', left: '8%', right: '8%', zIndex: 2, pointerEvents: 'none', textAlign: 'center',
         ...(cue.position === 'top' ? { top: '10%' } : cue.position === 'middle' ? { top: '44%' } : { bottom: '16%' }) }}>
         <span style={{ display: 'inline-block', maxWidth: '100%', padding: '7px 11px', borderRadius: 5, overflowWrap: 'anywhere', whiteSpace: 'pre-wrap',

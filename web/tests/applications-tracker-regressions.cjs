@@ -61,7 +61,8 @@ function harness({read = async () => page(), sessionError = null, user='one'} = 
       return Promise.resolve().then(()=>read(name,call));
     },
   };
-  const runtime = { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }), Fragment: 'Fragment' };
+  const element = (type, props) => ({ type, props: type === 'ProductDialog' && !props.open ? { ...props, children: null } : props });
+  const runtime = { jsx: element, jsxs: element, Fragment: 'Fragment' };
   const moduleObject = { exports: {} };
   const stubs = new Proxy({}, { get: (_, key) => String(key) });
   vm.runInNewContext(compiled, {
@@ -77,6 +78,7 @@ function harness({read = async () => page(), sessionError = null, user='one'} = 
       if (id === '@/lib/feed') return {timeAgo: date => date};
       if (id === 'next/navigation') return {useRouter: () => ({push: path => routes.push(path)})};
       if (id.endsWith('/LoadError')) return { StudioLoadError: 'StudioLoadError' };
+      if (id === '@/components/ProductDialog') return { ProductDialog: 'ProductDialog' };
       if (id === 'next/link') return { __esModule: true, default: 'Link' };
       return stubs;
     },
@@ -144,9 +146,9 @@ test('more than 50 applications load in bounded pages without dropping the senti
     const start=call.args.p_before_id ? rows.findIndex(row=>row.id===call.args.p_before_id)+1 : 0;
     return page(rows.slice(start,start+call.args.p_limit),start+call.args.p_limit<rows.length);
   }});
-  app.render();await app.flush();assert.equal(app.nodes().filter(n=>n.type==='Link'&&n.props.href.startsWith('/jobs/job-')).length,25);
-  app.click('Load more');await app.flush();assert.equal(app.nodes().filter(n=>n.type==='Link'&&n.props.href.startsWith('/jobs/job-')).length,50);
-  app.click('Load more');await app.flush();assert.equal(app.nodes().filter(n=>n.type==='Link'&&n.props.href.startsWith('/jobs/job-')).length,52);
+  app.render();await app.flush();assert.equal(app.nodes().filter(n=>n.type==='article').length,25);
+  app.click('Load more applications');await app.flush();assert.equal(app.nodes().filter(n=>n.type==='article').length,50);
+  app.click('Load more applications');await app.flush();assert.equal(app.nodes().filter(n=>n.type==='article').length,52);
   assert.equal(app.text.includes('Load more'),false);
   assert.deepEqual(app.calls.map(c=>[c.args.p_before_id,c.args.p_limit]),[[null,25],[uuid(24),25],[uuid(49),25]]);
   const links=app.nodes().filter(n=>n.type==='Link'&&n.props.href.startsWith('/jobs/job-')).map(n=>n.props.href);
@@ -161,11 +163,11 @@ test('failed continuation preserves its cursor and loaded rows for retry',async(
     if(!call.args.p_before_id)return page(rows.slice(0,25),true);
     return fail ? {data:null,error:{message:'offline'}} : page(rows.slice(25));
   }});
-  app.render();await app.flush();app.click('Load more');await app.flush();
-  assert.equal(app.nodes().filter(n=>n.type==='Link'&&n.props.href.startsWith('/jobs/job-')).length,25);
+  app.render();await app.flush();app.click('Load more applications');await app.flush();
+  assert.equal(app.nodes().filter(n=>n.type==='article').length,25);
   assert.ok(app.text.includes('Applications could not be loaded'));
   fail=false;app.click('Retry');await app.flush();
-  assert.equal(app.nodes().filter(n=>n.type==='Link'&&n.props.href.startsWith('/jobs/job-')).length,27);
+  assert.equal(app.nodes().filter(n=>n.type==='article').length,27);
   assert.equal(app.calls[1].args.p_before_id,uuid(24));
   assert.equal(app.calls[2].args.p_before_id,uuid(24));
 });
@@ -207,7 +209,7 @@ test('account changes immediately clear rows and discard the previous account re
 
 test('missing dates are truthful and interview details come from application data',async()=>{
   const app=harness({read:async()=>page([application('one',{status:'interview',applied_at:null,interview_at:'2027-01-01T12:00:00Z',interview_location:'Office'})])});
-  app.render();await app.flush();assert.ok(app.text.includes('Date unavailable'));assert.ok(app.text.includes('Office'));assert.ok(app.text.includes('Job no longer available'));
+  app.render();await app.flush();assert.ok(app.text.toLowerCase().includes('date unavailable'));assert.ok(app.text.includes('Office'));assert.ok(app.text.includes('Job no longer available'));
 });
 
 test('unmount cancels queued account loads',async()=>{

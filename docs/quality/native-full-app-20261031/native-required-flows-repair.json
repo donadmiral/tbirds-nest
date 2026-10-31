@@ -1,0 +1,70 @@
+{
+  "measuredAt": "2026-10-31T05:30:49.196244+00:00",
+  "baseHeadCommit": "ab281bcaab525331930f6238f97e46c169eee1ee",
+  "scope": "Required native UI harness orchestration; no product renderer, signing semantics, auth fixture persistence or capability change.",
+  "sourceHashes": {
+    "scripts/quality/run-native-ui-flows.sh": "814e406898cdbeb9335ec2445aa723aa9b89f344c4d36e7863106609a65de65a",
+    "scripts/quality/native-ui-flow-results.py": "bd2ef2175adbdeb382898346c5c8195c4a45fb804491820946f00c830aa20efa",
+    "scripts/quality/test-ios-app-ui.sh": "138f2ac2e8ed32e09f4b6b5ca6e4c4b07a6f1c93b7373767703dbfd97b3f8077",
+    "scripts/quality/test-android-app-ui.sh": "b4b061b08be076c02d162dcf9db8f888afdab757b7bd694b3b76c4bf742de9dc",
+    "scripts/quality/verify-native-ui.cjs": "ddec859c99aa6738dec36dca136e17802943c3f6b0761c8f8fc482eaabc6107b",
+    "scripts/quality/prepare-native-ui.cjs": "9afa9baef4388c76155dab43708deb0c667a17b5f50e866c5afc0c74c94c8d84",
+    "tests/quality/native-auth-diagnostics.cjs": "9c1edc8e6f79a9afeeb89440384ed909ac1eb50bf034962155032cf519176ba9",
+    "tests/quality/native-ui-flows.cjs": "e9068722cd01b3c42dd153f62d7fa021739249bce7e912d4c043bbea9f983a19",
+    "tests/native/flows/navigation.yaml": "1a3bb92ad2f80bfe9ba0c1c81829c65edfa1118dbfe10942074deeb9fe51e1f8",
+    "tests/native/flows/memory-navigation.yaml": "42a6947e98ceda6e60e7073a486c5317f238f8e478763c30f4eed1e0dd39aeae",
+    "tests/native/flows/memory-capture.yaml": "16966925346646f2280ca0ebdea7ce0c5f2e131d03e9dec3841c69a761f0ba91"
+  },
+  "unchangedMemoryFlowAssertions": {
+    "tests/native/flows/memory-navigation.yaml": true,
+    "tests/native/flows/memory-capture.yaml": true
+  },
+  "behavior": {
+    "navigationInvocations": 1,
+    "captureInvocations": 1,
+    "separateJUnitAndDebugArtifacts": true,
+    "captureAttemptedAfterNavigationFailure": true,
+    "newSignInOrStateReset": false,
+    "captureRetriesAdded": false,
+    "staleResultReuseRejected": true,
+    "bothPipelineExitsRequired": true,
+    "bothExpectedSuccessJUnitCasesRequired": true,
+    "missingMalformedEmptySkippedOrWrongFlowReportRejected": true,
+    "teeFailurePreserved": true,
+    "bothExistingVerifiersAttemptedAfterFlowFailure": true,
+    "anyFlowCollectionDecoderOrFullVerifierFailureFailsJob": true,
+    "sourceManifestIncludesBothNewHelpers": true
+  },
+  "validation": {
+    "command": "node --test --test-isolation=none --test-reporter=tap tests/quality/native-ui-flows.cjs tests/quality/native-auth-diagnostics.cjs tests/quality/native-ui-runtime-diagnostics.cjs tests/quality/native-simulator-entitlements.cjs",
+    "nodeCases": 52,
+    "passed": 52,
+    "failed": 0,
+    "skipped": 0,
+    "breakdown": {
+      "actualShellFlowAndPhaseAggregation": 28,
+      "authDiagnosticsAndDisposablePreparation": 15,
+      "runtimeAccountAndBridgeGuards": 3,
+      "simulatorSigningParserAndMetadata": 6
+    },
+    "nestedPythonParserCases": 9,
+    "nestedPythonCasesAreNotAdditionalNodeCases": true,
+    "bashSyntaxPassed": true,
+    "gitDiffWhitespacePassed": true,
+    "retainedLog": "docs/quality/native-full-app-20261031/native-required-flows-focused.tap",
+    "retainedLogSha256": "df90320df6cf37801f5001aa724893cce34e8fae5f1be3adf47794bc0b644f6b"
+  },
+  "primarySourceLifecycleReview": {
+    "owner": "navigation_performance",
+    "maestroVersion": "2.11.0",
+    "tagCommit": "c8c361be1cc89b2e742f185466a302a22778be6b",
+    "sourceConclusion": "Both driver close paths stop their own Maestro test infrastructure, not the app under test.",
+    "successJUnitStatus": "SUCCESS"
+  },
+  "limits": [
+    "Local shell tests use controlled Maestro results and verify orchestration, report validation and exit aggregation; their session marker does not prove actual native process continuity.",
+    "Pinned CLI source supports retaining the app between invocations. Actual same-process session and cumulative fixture continuity remain required by the next full native run.",
+    "A prior authentication failure or native modal may prevent the capture deep link; the capture result then fails separately and never masks the navigation failure.",
+    "Full iPhone and Android account readback and capture/export acceptance are still pending. Production memoryMovieVersion remains 0."
+  ]
+}

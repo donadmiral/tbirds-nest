@@ -21,6 +21,7 @@ import { listScheduled, studioHome, type ScheduledPost, type StudioHome } from "
 import { useUploadPreview } from "@/lib/useUploadPreview";
 import { EmptyState, PillTabs } from "@/components/ui";
 import { Metric } from "@/components/Charts";
+import { withTimeout } from "@/lib/withTimeout";
 
 type Tab = "all" | "published" | "scheduled" | "draft" | "failed";
 
@@ -52,27 +53,26 @@ export default function ContentPage() {
   const mounted = useRef(true);
   const requestVersion = useRef(0);
 
-  const load = useCallback(async () => {
+  const load = useCallback(() => {
     const version = ++requestVersion.current;
     const current = () => mounted.current && version === requestVersion.current;
-    setLoading(true);
-    try {
-      const [posts, h] = await Promise.all([listScheduled(), studioHome()]);
+    return withTimeout(Promise.all([listScheduled(), studioHome()])).then(([posts, h]) => {
       if (!current()) return;
       if (!h) throw new Error("Content metrics unavailable");
       setRows(posts);
       setHome(h); setLoaded(true); setLoadError(null);
-    } catch {
+    }).catch(() => {
       if (current()) setLoadError("Content could not be refreshed. Please try again.");
-    } finally {
+    }).finally(() => {
       if (current()) setLoading(false);
-    }
+    });
   }, []);
 
   useEffect(() => {
+    const requests = requestVersion;
     mounted.current = true;
     void load();
-    return () => { mounted.current = false; ++requestVersion.current; };
+    return () => { mounted.current = false; ++requests.current; };
   }, [load]);
 
   const engagement = useMemo(() => {
@@ -116,7 +116,7 @@ export default function ContentPage() {
           <p className="mt-1 text-[13px] text-muted">Everything you have written, whatever state it is in.</p>
         </div>
         <Link
-          href="/studio/planner"
+          href="/studio/planner?compose=1"
           className="flex shrink-0 items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-[12.5px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90"
         >
           <Plus size={14} /> Create content
@@ -153,13 +153,14 @@ export default function ContentPage() {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
+            aria-label="Search your content"
             placeholder="Search your content"
             className="min-w-0 flex-1 bg-transparent text-[13.5px] text-ink outline-none placeholder:text-muted"
           />
         </label>
       </div>
 
-      <StudioLoadError message={loadError} retry={() => { void load(); }} busy={loading} />
+      <StudioLoadError message={loadError} retry={() => { setLoading(true); void load(); }} busy={loading} />
       {loading && !loaded ? (
         <p className="py-14 text-center text-sm text-muted">Loading</p>
       ) : !loaded ? null : shown.length === 0 ? (
@@ -221,7 +222,7 @@ export default function ContentPage() {
                 </span>
 
                 <Link
-                  href={r.status === "published" ? "/post/" + (r.published_post_id || r.id) : "/studio/planner"}
+                  href={r.status === "published" ? "/post/" + (r.published_post_id || r.id) : "/studio/planner?edit=" + encodeURIComponent(r.id)}
                   className="shrink-0 rounded-full border border-ink/15 px-3 py-1.5 text-[12px] font-semibold text-ink/65 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"
                 >
                   {r.status === "published" ? "View" : "Edit"}

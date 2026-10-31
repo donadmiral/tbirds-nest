@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "sourceHashes": {
+    "scripts/quality/test-android-app-ui.sh": "1cafb6dba876d9ee92288d7aa233ee41739fc2f271d4e1ca174f82c09620e12d",
+    "scripts/quality/native-ui-emulator-diagnostics.py": "0d02a6b446e4219757a17c0c52e4d5da0190a9800e92c547b629da6977bdc1e8",
+    "scripts/quality/prepare-native-ui.cjs": "b7b85afaf239d525bd8af01b5f180dc93acfd71610a963302a83817e01cec571",
+    "tests/quality/native-auth-diagnostics.cjs": "31e4d3ea874ff7b1090061a23b746c800a5e0e01a17f7588d41f9e724e1b4e78",
+    "tests/quality/native-emulator-diagnostics.cjs": "607adc77b1205b3ef07f445b57dad86e0110c3f39f134dacec60e69557c7db66"
+  },
+  "commands": [
+    {
+      "command": "node tests/quality/native-emulator-diagnostics.cjs",
+      "exitCode": 0,
+      "tests": 37,
+      "passed": 37,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "output": "collector-and-cleanup-tests.log.txt"
+    },
+    {
+      "command": "node tests/quality/native-auth-diagnostics.cjs",
+      "exitCode": 0,
+      "tests": 15,
+      "passed": 15,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "todo": 0,
+      "output": "source-manifest-integration-tests.log.txt"
+    },
+    {
+      "command": "npx --no-install eslint scripts/quality/prepare-native-ui.cjs tests/quality/native-auth-diagnostics.cjs tests/quality/native-emulator-diagnostics.cjs",
+      "exitCode": 0,
+      "note": "Only npm unknown http-proxy configuration warning; no ESLint findings."
+    },
+    {
+      "command": "bash -n scripts/quality/test-android-app-ui.sh",
+      "exitCode": 0
+    },
+    {
+      "command": "Python compile of scripts/quality/native-ui-emulator-diagnostics.py",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "environment": {
+    "node": "v24.22.1",
+    "python": "Python 3.12.14"
+  },
+  "beforeGuard": {
+    "output": "metadata-best-effort-before.log.txt",
+    "tests": 37,
+    "passed": 35,
+    "failed": 2,
+    "meaning": "One failing nested metadata-write case and its failed parent group; the overall script failed when the unguarded diagnostic metadata path was a directory."
+  },
+  "scopeProof": "scope-verification.json",
+  "fullNativeRunOrFullRootSuitePerformed": false
+}

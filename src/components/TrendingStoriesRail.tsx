@@ -1,3 +1,4 @@
+import { privateImageCachePolicy } from '../../shared/mediaDelivery';
 /**
  * TrendingStoriesRail - a handful of the hottest public stories right now.
  * One bubble per person: their best story of the last 24h, ranked by views
@@ -66,7 +67,7 @@ export default function TrendingStoriesRail() {
           <TouchableOpacity key={r.story_id} style={s.tile} activeOpacity={0.85}
             onPress={() => nav.navigate('StoryViewer', { userIds: rows.map(x => x.user_id), startUserId: r.user_id, startStoryId: r.story_id })}>
             {r.thumb ? (
-              <ExpoImage source={{ uri: r.thumb }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy="memory-disk" />
+              <ExpoImage source={{ uri: r.thumb }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy={privateImageCachePolicy(r.thumb)} />
             ) : (
               <View style={[StyleSheet.absoluteFill, s.tileFallback]}><View style={s.ringSvg} pointerEvents="none"><PlatinumRing userId={r.user_id} size={66} active /></View></View>
             )}

@@ -26,7 +26,7 @@ export default function AdsPage() {
   const mutations = useRef(new Set<string>());
 
   const load = useCallback(async (uid: string) => {
-    const request = ++rowRequest.current;
+    const request = rowRequest.current += 1;
     setLoading(true);
     setLoadError(null);
     try {
@@ -43,7 +43,7 @@ export default function AdsPage() {
   }, []);
 
   const loadChart = useCallback(async (uid: string) => {
-    const request = ++chartRequest.current;
+    const request = chartRequest.current += 1;
     setChartLoading(true);
     setChartError(null);
     try {
@@ -68,9 +68,9 @@ export default function AdsPage() {
     const changeAccount = (uid: string | null) => {
       if (!alive || account.current === uid) return;
       account.current = uid;
-      accountVersion.current++;
-      rowRequest.current++;
-      chartRequest.current++;
+      accountVersion.current += 1;
+      rowRequest.current += 1;
+      chartRequest.current += 1;
       mutations.current.clear();
       setBusyIds([]);
       setPromos(null);
@@ -96,9 +96,9 @@ export default function AdsPage() {
     return () => {
       alive = false;
       account.current = undefined;
-      revision.current++;
-      rows.current++;
-      chart.current++;
+      revision.current += 1;
+      rows.current += 1;
+      chart.current += 1;
       subscription.unsubscribe();
     };
   }, [supabase, load, loadChart]);

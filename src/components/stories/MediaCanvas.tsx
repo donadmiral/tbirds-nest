@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import StoryPixelImage from './StoryPixelImage';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -7,6 +8,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Animated,
+  AppState,
   LayoutChangeEvent,
 } from 'react-native';
 import {
@@ -18,20 +20,21 @@ import {
 import { Feather } from '@expo/vector-icons';
 import type { MediaFit, MediaTransform } from '../../services/storiesService';
 import { BackgroundLayer, type StoryBg } from './storyPanels';
+import { useCallContext } from '../../contexts/CallContext';
 
 // ── Video layer: plays the recorded/selected clip (Instagram behaviour) ──
-let ExpoVideoView: any = null;
-let useExpoVideoPlayer: any = null;
-try {
-  const vm = require('expo-video');
-  ExpoVideoView = vm.VideoView;
-  useExpoVideoPlayer = vm.useVideoPlayer;
-} catch {}
+import { StoryVideoView as ExpoVideoView, useStoryVideoPlayer as useExpoVideoPlayer } from '../../../modules/boomerang/storyVideo';
 
 function StoryVideoLayer({ uri, fit, muted, volume = 1, speed = 1, preservesPitch = true, trimStart = null, trimEnd = null, paused = false, onPlayer }: { uri: string; fit: 'cover' | 'contain'; muted: boolean; volume?: number; speed?: number; preservesPitch?: boolean; trimStart?: number | null; trimEnd?: number | null; paused?: boolean; onPlayer?: (p: any) => void }) {
-  const player = useExpoVideoPlayer(uri, (p: any) => { p.loop = true; p.muted = muted; p.volume = volume; try { p.timeUpdateEventInterval = 0.1; } catch {} try { p.preservesPitch = preservesPitch; p.playbackRate = speed; } catch {} if (!paused) p.play(); });
+  const [foreground, setForeground] = useState(AppState.currentState === 'active');
+  const { callState } = useCallContext();
+  const blocked = paused || !foreground || !['idle', 'ended'].includes(callState);
+  useEffect(() => { const sub = AppState.addEventListener('change', state => setForeground(state === 'active')); return () => sub.remove(); }, []);
+  const player = useExpoVideoPlayer(uri, (p: any) => { p.loop = true; p.muted = muted; p.volume = volume; try { p.timeUpdateEventInterval = 0.1; } catch {} try { p.preservesPitch = preservesPitch; p.playbackRate = speed; } catch {} if (!blocked) p.play(); });
+  const [failed, setFailed] = useState(false);
+  useEffect(() => { setFailed(player.status === 'error'); const sub = player.addListener('statusChange', event => setFailed(event.status === 'error')); return () => sub.remove(); }, [player]);
   useEffect(() => { try { (player as any).muted = muted; (player as any).volume = volume; (player as any).preservesPitch = preservesPitch; (player as any).playbackRate = speed; } catch {} }, [muted, volume, speed, preservesPitch, player]);
-  useEffect(() => { try { if (paused) player.pause(); else player.play(); } catch {} }, [paused, player]);
+  useEffect(() => { try { if (blocked) player.pause(); else player.play(); } catch {} }, [blocked, player]);
   useEffect(() => { onPlayer?.(player); return () => { onPlayer?.(null); }; }, [player, onPlayer]);
   // Trim preview: play only the selected window and loop inside it, so the
   // editor shows exactly what the viewer will play. Handle drags seek live.
@@ -45,7 +48,7 @@ function StoryVideoLayer({ uri, fit, muted, volume = 1, speed = 1, preservesPitc
     try { sub = p?.addListener?.('timeUpdate', (ev: any) => { const w = winRef.current; const t = typeof ev?.currentTime === 'number' ? ev.currentTime : p.currentTime; if (p.playing && w.e != null && typeof t === 'number' && t >= w.e - 0.05) { try { p.currentTime = w.s; } catch {} } }); } catch {}
     return () => { try { sub?.remove?.(); } catch {} };
   }, [player]);
-  return <ExpoVideoView pointerEvents="none" style={StyleSheet.absoluteFill} player={player} contentFit={fit} nativeControls={false} />;
+  return <><ExpoVideoView pointerEvents="none" style={StyleSheet.absoluteFill} player={player} contentFit={fit} nativeControls={false} />{failed ? <View style={[StyleSheet.absoluteFill, { backgroundColor: '#15191dcc', alignItems: 'center', justifyContent: 'center', padding: 24 }]}><Text style={{ color: '#fff', textAlign: 'center' }}>This video could not play.</Text><TouchableOpacity accessibilityRole="button" accessibilityLabel="Retry story video" style={{ minHeight: 44, justifyContent: 'center', marginTop: 12, paddingHorizontal: 24 }} onPress={() => { setFailed(false); const p = player as any; if (p.reload) p.reload(); else void p.replaceAsync(uri).catch(() => setFailed(true)); }}><Text style={{ color: '#F1DFC5' }}>Retry video</Text></TouchableOpacity></View> : null}</>;
 }
 
 // ── Constants ──
@@ -123,6 +126,7 @@ type MediaCanvasProps = {
   onTransformChange: (transform: MediaTransform) => void;
   onFitToggle: () => void;
   interactive: boolean;
+  showControls?: boolean;
   /** Space at the bottom of the canvas that chrome occupies (caption bar,
    *  Post button, home indicator) so canvas controls never sit under it. */
   bottomInset?: number;
@@ -156,6 +160,7 @@ export default function MediaCanvas({
   onTransformChange,
   onFitToggle,
   interactive,
+  showControls = true,
   bottomInset = 0,
   bg = null,
   videoMuted = false,
@@ -222,6 +227,7 @@ export default function MediaCanvas({
     const ch = containerH.current;
     if (cw === 0 || ch === 0) return;
     const t: MediaTransform = {
+      ...mediaTransform,
       scale,
       translateNX: txPx / cw,
       translateNY: tyPx / ch,
@@ -229,7 +235,7 @@ export default function MediaCanvas({
     };
     prevTransformRef.current = t;
     onTransformChange(t);
-  }, [mediaFit, onTransformChange]);
+  }, [mediaFit, mediaTransform, onTransformChange]);
 
   // ── Gesture handler refs for simultaneousHandlers ──
   const pinchRef = useRef<PinchGestureHandler>(null);
@@ -376,7 +382,7 @@ export default function MediaCanvas({
   }, [gesturesEnabled, imageW, imageH, mediaFit, imgScale, imgTx, imgTy, persistTransform]);
 
   // ── Fit/fill toggle button visibility ──
-  const showFitToggle = interactive && imageW > 0 && imageH > 0;
+  const showFitToggle = showControls && interactive && imageW > 0 && imageH > 0;
 
   // ── Image resizeMode ──
   const resizeMode = mediaFit === 'contain' ? 'contain' : 'cover';
@@ -401,14 +407,10 @@ export default function MediaCanvas({
         },
       ]}
     >
-      {mediaType === 'video' && ExpoVideoView && useExpoVideoPlayer ? (
+      {mediaType === 'video' ? (
         <StoryVideoLayer key={localUri} uri={localUri} fit={resizeMode as any} muted={videoMuted} paused={videoPaused} volume={videoVolume} speed={videoSpeed} preservesPitch={videoPreservesPitch} trimStart={trimStart} trimEnd={trimEnd} onPlayer={onVideoPlayer} />
       ) : (
-        <Image
-          source={{ uri: localUri }}
-          style={styles.media}
-          resizeMode={resizeMode}
-        />
+        <StoryPixelImage uri={localUri} style={styles.media} fit={resizeMode} />
       )}
     </Animated.View>
   ) : null;
@@ -482,16 +484,6 @@ export default function MediaCanvas({
 
       {/* Media layer: image and video share one gesture + transform pipeline */}
       {localUri ? gestureWrappedContent : null}
-
-      {/* Video fallback when expo-video is unavailable */}
-      {mediaType === 'video' && localUri && !(ExpoVideoView && useExpoVideoPlayer) && uploadState === 'idle' ? (
-        <View style={styles.videoOverlay}>
-          <View style={styles.playCircle}>
-            <Feather name="play" size={32} color="#FFF" />
-          </View>
-          <Text style={styles.videoLabel}>Video story</Text>
-        </View>
-      ) : null}
 
       {/* Upload states */}
       {uploadState === 'uploading' && (

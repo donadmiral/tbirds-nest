@@ -1,0 +1,145 @@
+{
+  "checkedAt": "2026-10-31T04:01:59.154036+00:00",
+  "finding": "Hosted web Jobs reset Search jobs=design, Job location=Remote and Freelance on Home then Jobs navigation, and replaced previously loaded content with Loading jobs.",
+  "changes": [
+    "Jobs restores search, location, category, sort, loaded rows, saved IDs, city and scroll synchronously from the existing browser navigation session cache.",
+    "Loaded empty results also restore without an initial loading replacement. Background failures keep usable rows and filter state with an in-place retry.",
+    "The loader coalesces foreground triggers, bounds and cancels work, pins the captured authorization on three parallel reads, and rejects stale session/account results including A to B to A.",
+    "Unused poster-profile enrichment was removed; JobCard never rendered those fields.",
+    "A successful save or unsave updates the remembered Discover bookmark from other Jobs routes. Newer confirmed saves override older in-flight reads; unmount cleanup cannot overwrite the confirmation.",
+    "Expired deadline rows are filtered from restored results.",
+    "Updated the existing Jobs parity hook harness to render the account-scoped wrapper and supply the real navigation-store interface; its cold-error assertions remain intact.",
+    "Confirmed saves send an owner/session-scoped event so a replacement Jobs instance can fence its already-running older saved-IDs read.",
+    "Every confirmation advances mutation ordering even when its boolean equals current state; an unchanged Set is reused to avoid a redundant render.",
+    "Job mutations capture the current Auth token, verify the component/session before constructing the query, pin Authorization, abort on session changes including same-owner new logins and A to B to A, and fence acknowledgement by original scope.",
+    "Authentication and mutation waits each have the existing 12-second deadline and no automatic retry. An already-issued same-session mutation may finish across route unmount; work still waiting for Auth may not start after unmount."
+  ],
+  "verification": {
+    "node": {
+      "passed": 23,
+      "failed": 0,
+      "files": {
+        "web/tests/jobs-navigation.cjs": 15,
+        "tests/quality/jobs-parity.cjs": 8
+      },
+      "invocation": "env -u NODE_TEST_CONTEXT node <file>; actual internal node:test cases executed"
+    },
+    "webTypecheck": {
+      "command": "web/node_modules/.bin/tsc --noEmit --incremental false",
+      "passed": true
+    },
+    "scopedLint": {
+      "passed": true,
+      "errors": 0,
+      "warnings": 0,
+      "files": [
+        "web/app/jobs/page.tsx",
+        "web/components/JobCard.tsx",
+        "web/lib/jobsNavigation.ts",
+        "web/tests/browser/commerce-backend.ts"
+      ]
+    },
+    "browser": {
+      "runtime": "153.0.8010.12",
+      "passedCommerceScenarios": 25,
+      "browserErrors": [],
+      "jobsCases": [
+        {
+          "name": "warm Jobs return retains the exact search/location/category/sort, eight loaded rows and scroll on every observed destination frame",
+          "passed": true,
+          "frames": 43,
+          "firstJobsFrameMs": 51.5,
+          "blankJobsFrames": 0,
+          "heldReads": 3,
+          "extraReadsAfterEightForegroundEvents": 0,
+          "tokenRefreshRetainsState": true
+        },
+        {
+          "name": "confirmed save survives a background response captured before the mutation",
+          "passed": true
+        },
+        {
+          "name": "unsaving on the real shortlist updates the remembered Discover bookmark before its refresh completes",
+          "passed": true
+        },
+        {
+          "name": "an already-dispatched same-session save confirms after route remount and fences the replacement screen older shortlist read",
+          "passed": true,
+          "pinnedWrite": true,
+          "cancellableWrite": true
+        },
+        {
+          "name": "failed warm refresh retains filtered rows and in-place retry recovers",
+          "passed": true
+        },
+        {
+          "name": "A to B to A clears prior filters/results and aborts old reads and a pending save before new-session data renders",
+          "passed": true,
+          "abortedReads": 3,
+          "pendingSaveNotPublished": true
+        },
+        {
+          "name": "a previously loaded empty Jobs dataset retains filters and its empty state on warm return",
+          "passed": true
+        }
+      ],
+      "viewport": {
+        "width": 1586,
+        "height": 992
+      },
+      "sampledJobsFrames": 43,
+      "firstJobsFrameMs": 51.5,
+      "firstSample": {
+        "at": 601.8,
+        "sinceClickMs": 51.5,
+        "search": "design",
+        "scope": "global",
+        "sort": "salary",
+        "category": "Freelance",
+        "rows": 8,
+        "scrollTop": 650,
+        "loading": false
+      },
+      "lastSample": {
+        "at": 1318.5,
+        "sinceClickMs": 728.6000000014901,
+        "search": "design",
+        "scope": "global",
+        "sort": "salary",
+        "category": "Freelance",
+        "rows": 8,
+        "scrollTop": 650,
+        "loading": false
+      }
+    }
+  },
+  "scopeAndLimits": [
+    "Actual JobsPage, JobCard and SavedJobsPage in Chromium with synthetic Auth/database and Next routing. The fixture Home destination is a placeholder.",
+    "The loaded fixture contains 14 jobs, eight matching design + Remote + Freelance. A separate phase verifies a successfully loaded empty dataset, matching the live QA data condition.",
+    "Frames are sampled after the Jobs component is present; they establish filter, row and scroll continuity during held refreshes. They do not measure the hosted sibling-layout/root-loading transition, RSC latency or GPU paint time.",
+    "No job, application, live saved item or other record was created or changed outside the synthetic fixture.",
+    "Native source and music licensing configuration were not changed by this follow-up."
+  ],
+  "sourceSha256": {
+    "web/app/jobs/page.tsx": "f74ec110c4ba787a164de9534218a024ec99e2828fa1183e84a3aa7f93ed6f2a",
+    "web/components/JobCard.tsx": "5c1173389e94440743724b8735e76176d5578f82d1ca2121dfe07a2c9d2768ad",
+    "web/lib/jobsNavigation.ts": "d38995edadd78fd382029627dc4917f8a123fed1550435e8549ea96749fa4c41",
+    "web/tests/jobs-navigation.cjs": "6ce5a6e00ac225a6d642346ed2985b8986809e3c647c385b8c6b11431a4ab751",
+    "web/tests/browser/jobs-navigation.cjs": "f72e4fb08d9258a6f8416481819f8a3c33f8ff9732ff9c639567fa9dfdbf539a",
+    "web/tests/browser/commerce-backend.ts": "30759f859d465d0f06109edf8ec56faee0959eb52600a4fb55e7eb7cc0f587bb",
+    "web/tests/browser/commerce-run.cjs": "8891cf24d9b5bb9e0f4906cf109b5ee64bfb24c42a45206f0d1836d6863f6ebb",
+    "tests/quality/jobs-parity.cjs": "6d9e6e1fcd9d2d80af2d177fb9dcfa0e8ed1db278b8f2bbcba6ae48e4e827291"
+  },
+  "independentReview": {
+    "method": "Separate read-only source review, pre-fix actual-component browser reproduction and installed-SDK synthetic fetch reproduction. No hosted traffic.",
+    "findingsResolved": [
+      "Save confirmation from the unmounted previous Jobs instance could be overwritten by the replacement instance stale shortlist read.",
+      "SDK implicit Authorization can rebind to a new same-user session across A to B to A.",
+      "Repeated same-value confirmation must advance ordering even when current membership already matches."
+    ],
+    "beforeEvidence": [
+      "docs/quality/navigation-20261031/warm-jobs-crossmount-before.json",
+      "docs/quality/navigation-20261031/warm-jobs-sdk-aba-before.json"
+    ]
+  }
+}

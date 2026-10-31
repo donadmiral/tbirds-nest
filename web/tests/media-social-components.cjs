@@ -9,8 +9,11 @@ const ts = require('typescript');
 // tests execute PostCard, MediaGallery, their shared hook/store, write helper,
 // and confirmed comment-count publisher together through their real handlers.
 const sources = new Map();
+sources.set('../../shared/collaborationPeople', ts.transpileModule(fs.readFileSync(path.join(__dirname, '../../shared/collaborationPeople.ts'), 'utf8'), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
+}).outputText);
 for (const file of ['components/PostCard.tsx', 'components/MediaGallery.tsx', 'lib/usePostInteractions.ts',
-  'lib/postInteractionState.ts', 'lib/interactions.ts', 'lib/commentCounts.ts', 'lib/profileLookup.ts']) {
+  'lib/postInteractionState.ts', 'lib/interactions.ts', 'lib/commentCounts.ts', 'lib/profileLookup.ts', 'lib/useBrowserMediaQuery.ts']) {
   sources.set('@/' + file.replace(/\.tsx?$/, ''), ts.transpileModule(fs.readFileSync(path.join(__dirname, '..', file), 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2020, esModuleInterop: true },
   }).outputText);
@@ -49,7 +52,7 @@ function scenario() {
   const add = (type, listener) => { const set = listeners.get(type) || new Set(); set.add(listener); listeners.set(type, set); };
   const remove = (type, listener) => listeners.get(type)?.delete(listener);
   const document = { body: { style: {} }, documentElement: { clientWidth: 1200 }, activeElement: null, fullscreenElement: null };
-  const window = { innerWidth: 1200, innerHeight: 900, matchMedia: () => ({ matches: false }),
+  const window = { innerWidth: 1200, innerHeight: 900, matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }),
     addEventListener: add, removeEventListener: remove,
     dispatchEvent: event => [...(listeners.get(event.type) || [])].forEach(listener => listener(event)), scrollTo() {} };
   const client = {
@@ -108,10 +111,10 @@ function scenario() {
   };
   const card = load('@/components/PostCard').PostCard, gallery = load('@/components/MediaGallery').MediaGallery;
   function mount(kind, initialProps) {
-    let props = initialProps, cursor = 0, effects = [], tree;
+    let props = initialProps, cursor = 0, effects = [], tree, rootKey;
     const slots = [];
     const dom = { isConnected: true, getBoundingClientRect: () => ({ width: 600 }),
-      addEventListener: add, removeEventListener: remove, contains: () => true, querySelectorAll: () => [],
+      addEventListener: add, removeEventListener: remove, contains: () => true, querySelectorAll: () => [], querySelector: () => null,
       focus() { document.activeElement = this; } };
     const same = (a, b) => a && b && a.length === b.length && a.every((value, i) => Object.is(value, b[i]));
     const screen = { dirty: true };
@@ -123,6 +126,8 @@ function scenario() {
       useCallback(fn, deps) { const i = cursor++; if (!slots[i] || !same(slots[i].deps, deps)) slots[i] = { value: fn, deps }; return slots[i].value; },
       useEffect(fn, deps) { const i = cursor++; if (!slots[i] || !same(slots[i].deps, deps)) {
         const previous = slots[i]; slots[i] = { deps }; effects.push(() => { previous?.cleanup?.(); slots[i].cleanup = fn(); }); } },
+      useLayoutEffect(fn, deps) { return hooks.useEffect(fn, deps); },
+      useMemo(fn, deps) { return hooks.useCallback(fn, deps)(); },
       useSyncExternalStore(subscribe, snapshot) {
         const i = cursor++;
         if (!slots[i] || slots[i].subscribe !== subscribe) {
@@ -136,6 +141,12 @@ function scenario() {
       render() {
         screen.dirty = false; currentHooks = hooks; cursor = 0;
         tree = (kind === 'card' ? card : gallery)(props);
+        if (typeof tree?.type === 'function') {
+          if (rootKey !== tree.key) {
+            slots.forEach(value => value?.cleanup?.()); slots.length = 0; effects = []; cursor = 0; rootKey = tree.key;
+          }
+          while (typeof tree?.type === 'function') tree = tree.type(tree.props);
+        }
         for (const node of nodes(tree)) if (node.props?.ref) node.props.ref.current = dom;
         const pending = effects; effects = []; pending.forEach(effect => effect());
       },
@@ -256,7 +267,7 @@ test('confirmed comment publisher updates pinned desktop and mobile counts witho
 test('changing the pinned post ignores an old count event and binds interactions to the new post', async () => {
   const app = scenario(), old = app.post(), viewer = app.mount('gallery', app.galleryProps(old)); viewer.open(); await app.flush();
   const next = app.post('next', { comments_count: 5, likes_count: 11 }); app.server('next').likesCount = 11;
-  viewer.update(app.galleryProps(next)); await app.flush();
+  viewer.update(app.galleryProps(next)); viewer.open(); await app.flush();
   app.event({ postId: 'post', count: 77 });
   assert.equal(viewer.commentTotal, '5');
   viewer.click('Like'); await app.flush();

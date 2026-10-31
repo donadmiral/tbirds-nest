@@ -1,0 +1,462 @@
+{
+  "artifactId": 13048289642,
+  "archiveSha256": "8922da38005ad3ace420c7c447da05871364fb1624e89b19e78c5bf7edbb3d4a",
+  "files": [
+    {
+      "artifactPath": "admin/browser-receipt.json",
+      "bytes": 4892,
+      "sha256": "b4aff052c42c2dce6fedfdf694978786cc9b481fd34f1e0bbb36585b2f0f6a4d",
+      "retainedInRepository": true
+    },
+    {
+      "artifactPath": "admin/desktop-dark.png",
+      "bytes": 316654,
+      "sha256": "91551a4233863bf6478570c9df8f9b55d97ed96e6b30c9c1e01c68c084b8cb33",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "admin/desktop-light.png",
+      "bytes": 314671,
+      "sha256": "9454e6566eca325f9c5983a85aef914c90828999ebdb3cde9cd19003d8948d39",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "admin/mobile-light.png",
+      "bytes": 246665,
+      "sha256": "97afb67a6d32831c390318787e953e1c975661c2215f93cfb4196810d99a217c",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "admin/presentation-mobile.png",
+      "bytes": 158534,
+      "sha256": "c99548a5fdb2a5a47c17f69c4387015807ceab36bb160efc7a4907b1bfdba9ed",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "admin/workspace-tools.png",
+      "bytes": 382862,
+      "sha256": "670447da9f8f2c01b04c34ec0973ea404a4862abd3ae382dce39dfb3be599a76",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "commerce/application-review.png",
+      "bytes": 232984,
+      "sha256": "da31543000fde185a090cc0398c4a2f69c9513cc0939bbabc89b275a41263a8a",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "commerce/applications-desktop.png",
+      "bytes": 83648,
+      "sha256": "15892cf7505ea3927af46b4ee18ef3b42a07f2b6b95913026c7439265e9321d6",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "commerce/browser-receipt.json",
+      "bytes": 2570,
+      "sha256": "c4454ed8ca610722edaf70d6900d5fe169c86ee1e56a92d0f35e130c1ab94be9",
+      "retainedInRepository": true
+    },
+    {
+      "artifactPath": "commerce/job-detail-desktop.png",
+      "bytes": 164641,
+      "sha256": "dbdffd206eff6a1ac05e2a6ade5ad11ca2b269a1ee65cb7b856ebe765d55207d",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "commerce/jobs-desktop.png",
+      "bytes": 197095,
+      "sha256": "6fc679d45a2fad67550734eb2c09ac4d4bc09259482a71b139a8798c2e054661",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "commerce/jobs-mobile.png",
+      "bytes": 128389,
+      "sha256": "4b0c3bff770ee3420b90fdd53fc74e76b638268a0c93b4c81396b649934e11fd",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "commerce/jobs-navigation-frames.json",
+      "bytes": 12093,
+      "sha256": "b0533dbe427bb1e805e1e7f0f2f6de065d5a7a92819308952ed57c2c54236fc4",
+      "retainedInRepository": true
+    },
+    {
+      "artifactPath": "commerce/market-dark.png",
+      "bytes": 227889,
+      "sha256": "a4888d6fc7f6aa6755cdd00bac1b566ca187cb525221f2beba71a197f7379d79",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "commerce/market-desktop.png",
+      "bytes": 223220,
+      "sha256": "2200a43e49acba597ed2559d06aefdd828d655b4c9a0827578e1057ec5db5ef2",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "commerce/offer-review-mobile.png",
+      "bytes": 52961,
+      "sha256": "3284479dab0b20aa416292b6fb21b7ecf0ad5f5850da224336741b4f3c3ea585",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "commerce/order-request-review.png",
+      "bytes": 216535,
+      "sha256": "9d8af088fa9258abcf3aa9efcfee7c6b901dd661d66d440d9de9a8411475498f",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "commerce/orders-desktop.png",
+      "bytes": 101090,
+      "sha256": "b5aa4412d00fc8cb5a1f1e18faaa8cb7b5d52a0affd4fe2545573d899419e413",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "commerce/product-desktop.png",
+      "bytes": 230695,
+      "sha256": "d8eeda14b487d422db586e6ebc2c164aa41f733ae566fa0f9372053544d11f2b",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "commerce/product-mobile.png",
+      "bytes": 150371,
+      "sha256": "727b2b4cd94b7a4a4886f97f56d6d0003e39abb046b4679f697f07d3d3d72640",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "commerce/warm-jobs-refresh-held.png",
+      "bytes": 143902,
+      "sha256": "310c406f10bf5daa1d5575fb106edc27a7cce34281f8308e42a26ef01b65d4ab",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "memory/animated-image-refused.png",
+      "bytes": 99335,
+      "sha256": "b506005991f6588428bf06c2af8a22a5a9475be672bdd677edf51b891065f214",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "memory/automatic-ready.png",
+      "bytes": 53725,
+      "sha256": "ec6d8f8b16b6c7b455516be7669c29657d39911b6b933fb2a7478dfc6c338484",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "memory/browser-receipt.json",
+      "bytes": 9613,
+      "sha256": "7c841e7b55d1018d582e6a7f573b430a15868efbf150831a16af955900f41327",
+      "retainedInRepository": true
+    },
+    {
+      "artifactPath": "memory/decoded-photo-artwork.png",
+      "bytes": 46252,
+      "sha256": "28cf21c4b10bc7682df00bd71bad7a6bc07ad2456d776aaf3139561acd9b7e42",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "memory/decoded-video-grade.png",
+      "bytes": 28337,
+      "sha256": "5b229a184e88f6928d0a767b7a6d8da1ba31e4c7e6b899df9de6fcb4bfdef6fa",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "memory/download-mobile.png",
+      "bytes": 62578,
+      "sha256": "8528a41cb15a2df6d04675fab93e3e1d7457f9ea3b7dac9b3942b17e62ac3600",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "memory/download-options.png",
+      "bytes": 91140,
+      "sha256": "bccb7f7093348c34a7a09da5de7fa673d2324245fad4b451bcbf45a3e80a1150",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "memory/download-ready.png",
+      "bytes": 54860,
+      "sha256": "12f902fc5c257e12b8ec598db5418f0005270bc46317fd011196fa69499acaab",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "memory-cover/browser-receipt.json",
+      "bytes": 187416,
+      "sha256": "f2dfad8740d28cf88237ba2a3595f473f2808a59660eafedbe855784c2a5cba4",
+      "retainedInRepository": true
+    },
+    {
+      "artifactPath": "memory-cover/covers-normal.png",
+      "bytes": 267370,
+      "sha256": "ee2f995b2924c7217fb89530bd93153169720eb31c4150fa73aea976eca30dc9",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "memory-cover/covers-wide.png",
+      "bytes": 348900,
+      "sha256": "c28279042dee26cfea562bdd72260ffce5d6110ca1ab4897bc73d004bfb80324",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "memory-cover/created-cover.png",
+      "bytes": 43697,
+      "sha256": "3974e1cf9fa6fbb4ff4a68427f946994af2a7d73d398e0b98bc054633f0160a1",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "memory-cover/designer-custom-cover.png",
+      "bytes": 75749,
+      "sha256": "251c3b6792c0db77f2e6466a11b955a970ed2a4d73b7bc2a30566538c2160607",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "memory-cover/latest-gallery.json",
+      "bytes": 3001,
+      "sha256": "3b8dfe77d6bed0e3a3818947e3147bcc5851ab6ea8e68caa509584abd2ef6e07",
+      "retainedInRepository": true
+    },
+    {
+      "artifactPath": "memory-cover/saved-book-mobile.png",
+      "bytes": 77609,
+      "sha256": "2ad35b049562431ec73b57ec8f7b159596f30ed88554aabca693f892c13447a8",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "memory-cover/text-only-book-editor.png",
+      "bytes": 79152,
+      "sha256": "3b67079f310e096364eb11aae4dd945b3bc19c8e479c4db0d6fe063996cd8731",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "music/browser-receipt.json",
+      "bytes": 5303,
+      "sha256": "df30c93600cbad7cbd80b05e25713786d19c3ce8bbcbed0137958bf3edb7321a",
+      "retainedInRepository": true
+    },
+    {
+      "artifactPath": "music/original-audio-mobile.png",
+      "bytes": 55357,
+      "sha256": "0ad67d5733a4dd497795762b490d673a2a339e24b58ad454aa8fb408e0a6c26e",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "shell/held-notifications-collapsed.png",
+      "bytes": 29761,
+      "sha256": "b6b8af971a2c43ac2bf35a3841e2d1501a6e112b0f9426fbc9b91abfb23d1a00",
+      "retainedInRepository": true
+    },
+    {
+      "artifactPath": "shell/held-profile-expanded.png",
+      "bytes": 40836,
+      "sha256": "8936759c374fb1d0916e2a0da590275413b9bf6650aac13e36acfc2495f546f1",
+      "retainedInRepository": true
+    },
+    {
+      "artifactPath": "shell/next.log",
+      "bytes": 782,
+      "sha256": "fe994bf558b08ed19362a80e20f357b06aa3b1e41454123f5d201a28d59a96fc",
+      "retainedInRepository": true
+    },
+    {
+      "artifactPath": "shell/receipt.json",
+      "bytes": 13633,
+      "sha256": "cb236cdafb9336d5c03458db3837b50e352a677c8f04592515c8569818935973",
+      "retainedInRepository": true
+    },
+    {
+      "artifactPath": "studio/browser-receipt.json",
+      "bytes": 3911,
+      "sha256": "20e11a6e2ea5cc3a8a7fd593a0ca1e31dac7041a0bca4d7cfd7c62f816eb5c69",
+      "retainedInRepository": true
+    },
+    {
+      "artifactPath": "studio/studio-ads-desktop.png",
+      "bytes": 280135,
+      "sha256": "366b1aa04489457808b10fb803fe5dc5c4c070195216f17f3328cb3ce6fe1358",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "studio/studio-earnings-desktop.png",
+      "bytes": 195052,
+      "sha256": "0956fd98750746b0e64b80645bae8cd53769bba35728cfd6518e1a866e0779a8",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "studio/studio-insights-desktop.png",
+      "bytes": 172893,
+      "sha256": "73e0e2bfc0f166d8d9139838556a4aa80e114526320cfaf4dd1e3ada5d67b836",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "studio/studio-newsroom-dark.png",
+      "bytes": 313456,
+      "sha256": "44779157df86793a7e312d8dd5093e9f19f2746e55d41a6033fe433fdcd29dca",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "studio/studio-newsroom-desktop.png",
+      "bytes": 309993,
+      "sha256": "5fe7d52a9763a51e9a9882625a2dd12d789e5780a362c0147fd5d20e618b9382",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "studio/studio-newsroom-mobile.png",
+      "bytes": 161842,
+      "sha256": "1fe1f77149606bbfca38cdcdc534e6219ddf4007c159ce6c53e4e770e35952aa",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "studio/studio-overview-desktop.png",
+      "bytes": 227169,
+      "sha256": "e457f98d9471e69b5eed30921794b3e6eb90941b2423eb61391999437132bb4f",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "studio/studio-partnerships-desktop.png",
+      "bytes": 248601,
+      "sha256": "10f352a60798621427ebdc68b690b74684251dcddabde84896d49aaf30555683",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "studio/studio-team-desktop.png",
+      "bytes": 146912,
+      "sha256": "a86f988c7fe3ca63cab10d76c11a74745cc1aca4f7570152cf8b0dba03e9ed3f",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "video/browser-receipt.json",
+      "bytes": 6321,
+      "sha256": "1a207f2df774f43825d3857f6631930e71cbe57e74fdb6098f82bf580d5df8de",
+      "retainedInRepository": true
+    },
+    {
+      "artifactPath": "web/browser-receipt.json",
+      "bytes": 5702,
+      "sha256": "882dac6574ecf4daf1f12a4ce718093c6be21b77c0e473f1ad560b0e2575062b",
+      "retainedInRepository": true
+    },
+    {
+      "artifactPath": "web/channel-desktop.png",
+      "bytes": 59602,
+      "sha256": "2658381cc62cbb8bf76dffaf66b412bee4e65f26837725974430f79635ebb3ba",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "web/communities-desktop.png",
+      "bytes": 74923,
+      "sha256": "bbc73583c6bcb268fb213350c08a299b8f1914b24d76ea50f0a455abb328e4c9",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "web/community-desktop.png",
+      "bytes": 120317,
+      "sha256": "6813994881265c66be4e5b5103c7f3b3e781759da01b721bb46f682b2985f6f1",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "web/community-mobile.png",
+      "bytes": 93717,
+      "sha256": "ee1f0f579016ea1e017901dbd312928df2e6d8b7ed7d2518de8511e0ee14c42c",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "web/composer-dark.png",
+      "bytes": 190447,
+      "sha256": "f367d668be71ee593b93ca13a50512aa538dfb75f67e309dba4d41e3259b6290",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "web/home-dark.png",
+      "bytes": 163799,
+      "sha256": "096ef22db83da071281d4dace42a2e2b60ae96f26ab4749579bc5ecb79facd62",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "web/home-light.png",
+      "bytes": 161344,
+      "sha256": "cee53a27eb1d717bed0ba387cb8e9badd4c00dcd661a030505cab977507ea2de",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "web/messages-desktop.png",
+      "bytes": 120535,
+      "sha256": "837d8d278ce6852fd956e04ca3b77dce8e63e0251a9365273739c7b2beab16c1",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "web/messages-mobile-320.png",
+      "bytes": 36145,
+      "sha256": "b7fe408a46315d18240587202aa5de9d5463ee867d5dfa51c544682d1e546418",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "web/messages-mobile.png",
+      "bytes": 32171,
+      "sha256": "52a070b434f10cb897063c7b46750cab5e1688f7b849d6245a1067f88289a704",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "web/mobile-320.png",
+      "bytes": 81430,
+      "sha256": "52bb575730790b794e8a39788bbf6f07996d9540dc1f47d15af335819c309493",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "web/mobile-destinations.png",
+      "bytes": 93995,
+      "sha256": "dab66d2bd9c0c74c33cfb553005f559c1be223c971769f5d494d870b15f686df",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "web/mobile-home.png",
+      "bytes": 88347,
+      "sha256": "e8800053f2c004ca86a2ce29467ffed0fb2b7cd7463e5923ffb03a64f77c9715",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "web/profile-editor.png",
+      "bytes": 137725,
+      "sha256": "34095e806c4751da13ed7bf44be73bbe23c0bac608a14b4991859d6eea442b2f",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "web/profile-light.png",
+      "bytes": 283304,
+      "sha256": "c9c08dca3a53c9e0e6caa8b35f6b17ee4f39fcb56bda7d598aada4f38aab5ab8",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "web/profile-navigation-frames.json",
+      "bytes": 8692,
+      "sha256": "7001d6b23a151aa47800cd8cc5dd8ef431439c79b51162230b473a70d47f7497",
+      "retainedInRepository": true
+    },
+    {
+      "artifactPath": "web/settings-light.png",
+      "bytes": 338599,
+      "sha256": "4248464ddf8ac87d191b92a76297da4b34e688b356ca61b8d94b92218f022f7a",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "web/warm-home-refresh-held.png",
+      "bytes": 155617,
+      "sha256": "9a4d7e119768d52390e6c8ddcb56dd253dcc556ec2605ff5e45d6827e0b53c21",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "web/warm-messages-refresh-held.png",
+      "bytes": 133019,
+      "sha256": "5bc07b41ecef0dd4bdece10ad2ac3c37dfd20b775361264a9f7c8df985cf0647",
+      "retainedInRepository": false
+    },
+    {
+      "artifactPath": "web/warm-navigation-frames.json",
+      "bytes": 60492,
+      "sha256": "8de5bf6a189474c96343f791a8fa434c6e545fa6929103e306c3bca8b19ae2f0",
+      "retainedInRepository": true
+    },
+    {
+      "artifactPath": "web/warm-profile-refresh-held.png",
+      "bytes": 236337,
+      "sha256": "ce285c94beb482c8d18939be5a1939b9eabe34fb31135e823571f58704837856",
+      "retainedInRepository": false
+    }
+  ]
+}

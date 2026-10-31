@@ -88,19 +88,24 @@ test('native channel settings reject partial loads instead of exposing blank edi
 });
 
 test('native directory failures are visible, and old search results cannot replace a newer query', async () => {
-  const wait = deferred(); let rows = [], error = null; const scope = { current: 'owner:channels:old' };
-  const globals = { uid: 'owner', mounted: { current: true }, searchScope: scope, request: { current: 0 }, setLoading() {}, setLoadError: value => { error = value; }, setRows: value => { rows = value; }, supabase: { rpc: () => wait.promise } };
-  const load = handler('src/screens/channels/ChannelsScreen.tsx', 'ChannelsScreen', 'load', globals);
-  const pending = load('old', 'channels'); scope.current = 'owner:channels:new'; wait.resolve({ data: [{ id: 'old' }], error: null }); await pending; assert.equal(rows.length, 0);
-  globals.supabase.rpc = async () => ({ data: null, error: Error('offline') });
-  await load('new', 'channels'); assert.match(error, /could not be loaded/); assert.equal(rows.length, 0);
+  const wait = deferred(); let rows = [], error = null; const contextRef = { current: null }, activeRead = { current: null };
+  const makeLoad = (q, readDirectory) => {
+    const context = {}; contextRef.current = context;
+    const globals = { scope:'owner-session',controlsOwner:'owner-session',context,contextRef,cacheKey:q,mounted:{current:true},activeRead,viewRef:{current:{ready:false,rows:[],top:0}},AbortController,navigationScope:()=> 'owner-session',channelDirectoryKey:(_tab,query)=>query,
+      setLoading(){},setRefreshing(){},setLoadError:value=>{error=value;},commit:value=>{rows=value.rows;},readChannelDirectory:readDirectory };
+    return handler('src/screens/channels/ChannelsScreen.tsx','ChannelsScreen','load',globals);
+  };
+  const pending = makeLoad('old', () => wait.promise)('old', 'channels');
+  const nextLoad = makeLoad('new', async () => { throw Error('offline'); });
+  wait.resolve([{id:'old'}]); await pending; assert.equal(rows.length,0);
+  await nextLoad('new','channels');assert.match(error,/could not be loaded/);assert.equal(rows.length,0);
 });
 
 for (const platform of ['native', 'web']) test(`${platform} channel creation prevents double taps and ignores old-account completion`, async () => {
   const wait = deferred(), locks = { current: new Set() }, routes = []; let valid = true, calls = 0, cleared = 0;
   const common = { cName: 'Updates', cDesc: 'News', cAud: 'everyone', locks, supabase: { rpc: () => { calls++; return wait.promise; } }, setCName: () => { cleared++; }, setCDesc() {}, setCAud() {} };
-  const globals = platform === 'native' ? { ...common, uid: 'owner', currentAccount: () => valid, setCreating() {}, setCreateOpen() {}, load: async () => {}, query: '', navigation: { navigate: (...args) => routes.push(args) }, Alert: { alert() {} } }
-    : { ...common, me: 'owner', mounted: { current: true }, scope: { current: 1 }, account: { current: 'owner' }, setCreating() {}, setBusy() {}, setActionError() {}, router: { push: url => routes.push(url) } };
+  const globals = platform === 'native' ? { ...common, uid: 'owner', scope:'owner-session',mutateDirectory:async(_scope,work)=>{const result=await work(value=>value,'owner');if(result.error)throw result.error;return result.data;}, currentAccount: () => valid, setCreating() {}, setCreateOpen() {}, load: async () => {}, query: '', navigation: { navigate: (...args) => routes.push(args) }, Alert: { alert() {} } }
+    : { ...common, withTimeout: value => Promise.resolve(value), me: 'owner', mounted: { current: true }, scope: { current: 1 }, account: { current: 'owner' }, setCreating() {}, setBusy() {}, setActionError() {}, router: { push: url => routes.push(url) } };
   const run = platform === 'native' ? handler('src/screens/channels/ChannelsScreen.tsx', 'ChannelsScreen', 'createChannel', globals) : handler('web/app/channels/page.tsx', 'ChannelsPage', 'create', globals);
   const pending = run(); await run(); assert.equal(calls, 1);
   valid = false; if (platform === 'web') globals.account.current = 'new-owner';
@@ -129,9 +134,21 @@ test('web member roles report network failure and do not apply a successful resp
 
 test('native business code creation cannot duplicate a tap or reveal a previous account code', async () => {
   let valid = true, issued = 0, calls = 0; const wait = deferred();
-  const globals = { newName: 'Teammate', acting: { current: false }, isOwner: true, current: () => valid, setBusy() {}, setIssued: () => { issued++; }, setNewName() {}, load: async () => {}, Alert: { alert() {} }, supabase: { rpc: () => { calls++; return wait.promise; } } };
+  const globals = { newName: 'Teammate', ownerId: 'business', info: { members: [] }, acting: { current: false }, isOwner: true, current: () => valid, setBusy() {}, setIssued: () => { issued++; }, setNewName() {}, load: async () => {}, reload: async () => {}, Alert: { alert() {} }, supabase: { rpc: () => { calls++; return wait.promise; } } };
   const create = handler('src/screens/studio/StudioScreen.tsx', 'SettingsSeg', 'addMember', globals);
   const pending = create(); await create(); assert.equal(calls, 1); valid = false; wait.resolve({ data: 'PRIVATE-CODE', error: null }); await pending; assert.equal(issued, 0);
+});
+
+test('native Studio creates and binds the first owner and limits later default codes to editor', async () => {
+  for (const existing of [[], [{ id: 'owner', role: 'owner' }]]) {
+    const calls = [], issued = []; let refreshed = 0;
+    const globals = { newName: 'Teammate', ownerId: 'business', info: { members: existing }, acting: { current: false }, isOwner: true, current: () => true, setBusy() {}, setIssued: value => issued.push(value), setNewName() {}, load: async () => {}, reload: async () => { refreshed++; }, Alert: { alert() {} }, supabase: { rpc: async (name, args) => { calls.push({ name, args }); return { data: 'SYNTHETIC-CODE', error: null }; } } };
+    await handler('src/screens/studio/StudioScreen.tsx', 'SettingsSeg', 'addMember', globals)();
+    assert.equal(calls[0].name, 'studio_create_member');
+    assert.equal(calls[0].args.p_expected_user, 'business');
+    assert.equal(calls[0].args.p_role, existing.length ? 'editor' : 'owner');
+    assert.equal(issued[0].ownerId, 'business'); assert.equal(refreshed, 1);
+  }
 });
 
 test('native channel media chooser stops after an account switch during permission', async () => {

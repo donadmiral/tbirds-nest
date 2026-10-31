@@ -1,0 +1,382 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-10-31T15:43:52Z",
+  "scope": "Independent read-only navigation/AX/screenshot/source review of the current f4 iPhone artifact. The owner separately verifies source/signing/global phases and capture; hosted reviewer owns auth diagnostics.",
+  "verdict": "Main-page and centered private-shelf navigation passed. The reader assertion failed; its retained error AX and screenshot show only the full-page loading spinner. No selector or keyboard mismatch is demonstrated. The awaited cause remains unestablished.",
+  "binding": {
+    "head": "f4c35f32795be5f196840c37382143a2d7e33d55",
+    "mergeCommit": "6f3204cd44996dfe66ffe2dcf7192543805aa912",
+    "tree": "7699f995aa8e5192658f785258eb48f408af6a39",
+    "workflowRun": 41211437305,
+    "jobId": 124567097560,
+    "artifact": {
+      "id": 13048655033,
+      "name": "ios-full-app-ui",
+      "bytes": 27550762,
+      "sha256": "616971794433088fcd6b8e05923eb86426e4008136caae6afad04e885bdfd6de",
+      "verification": "Reused the native owner single verified download/extraction; no duplicate fetch."
+    },
+    "extraction": "/tmp/ios-full-app-f4c35f32-41211437305",
+    "sourceManifest": {
+      "path": "docs/quality/native-full-app-20261031/android-full-app-f4c35f32-source.json",
+      "sha256": "13d9a02ebc361cbd6626cabaaa25bd18f691550fc68fcd7b0b216ccb4651f1a6",
+      "matchesArchiveBytes": true,
+      "recordedCommit": "6f3204cd44996dfe66ffe2dcf7192543805aa912",
+      "recordedRun": "41211437305"
+    },
+    "independentLiteralHeadComparisons": [
+      {
+        "path": "tests/native/flows/navigation.yaml",
+        "sha256": "1a3bb92ad2f80bfe9ba0c1c81829c65edfa1118dbfe10942074deeb9fe51e1f8",
+        "matchesLiteralHeadAndArtifact": true
+      },
+      {
+        "path": "tests/native/flows/memory-navigation.yaml",
+        "sha256": "afd1a9deb1842880ca237405019525e75a9787ce84bb8effc7ec870b037b0792",
+        "matchesLiteralHeadAndArtifact": true
+      },
+      {
+        "path": "src/screens/profile/MemoryAlbumScreen.tsx",
+        "sha256": "437b2d5c52cf1ad00ce1d322367ac1e41da8857b6d2db6a1c7db263ad4e7f541",
+        "matchesLiteralHeadAndArtifact": true
+      },
+      {
+        "path": "src/navigation/AppNavigator.tsx",
+        "sha256": "25901306b597b2a0fc93111f97636ef74beee216174df9937e5cf16ad3ffed70",
+        "matchesLiteralHeadAndArtifact": true
+      },
+      {
+        "path": "shared/contentMedia.ts",
+        "sha256": "a744a17a33a5b0f93be5b84ec943f4a5a05c94059ddd128109077031a2667664",
+        "matchesLiteralHeadAndArtifact": true
+      },
+      {
+        "path": "tests/native/memory-fixture.cjs",
+        "sha256": "9368a168342678a62e4c5aee24bfa2cbeba8d6245c1ff2910fa1494e4724b7d7",
+        "matchesLiteralHeadAndArtifact": true
+      }
+    ]
+  },
+  "navigation": {
+    "commandsRecorded": 43,
+    "commandStatusCounts": {
+      "COMPLETED": 39,
+      "SKIPPED": 2,
+      "FAILED": 2
+    },
+    "countLimit": "These are commands including nested configuration/flow and a platform-only skipped branch, not independent testcase totals. JUnit has one failed testcase.",
+    "passedContent": [
+      "Initial and switched/returned Home post",
+      "Market listing",
+      "Jobs title/company",
+      "Messages peer/preview",
+      "Profile name and Edit profile",
+      "Private shelf and exact THE SMALL ADVENTURES, 2 memories card"
+    ],
+    "shelfCentering": {
+      "command": {
+        "sequence0": 36,
+        "artifactStep1": 37,
+        "depth": 1,
+        "kind": "scrollUntilVisible",
+        "status": "COMPLETED",
+        "startEpochMs": 1793460504140,
+        "startUtc": "2026-10-31T15:28:24.140Z",
+        "durationMs": 5922,
+        "endUtcComputed": "2026-10-31T15:28:30.062Z",
+        "selector": {
+          "textRegex": "View all memory books",
+          "optional": false
+        },
+        "direction": "DOWN",
+        "timeout": "20000",
+        "centerElement": true
+      },
+      "initialBounds": {
+        "x": 330,
+        "y": 644,
+        "width": 47,
+        "height": 44
+      },
+      "afterOneScrollBounds": {
+        "x": 330,
+        "y": 180,
+        "width": 47,
+        "height": 44
+      },
+      "tapTimeAsLogged": "15:28:33.401",
+      "tapPointFromSemanticSelector": {
+        "x": 353,
+        "y": 202
+      },
+      "result": "The exact semantic View all memory books tap opened the shelf; Private selection, card assertion and shelf screenshot completed. No coordinate tap was added to the flow."
+    },
+    "bookTap": {
+      "command": {
+        "sequence0": 41,
+        "artifactStep1": 42,
+        "depth": 1,
+        "kind": "tapOnElement",
+        "status": "COMPLETED",
+        "startEpochMs": 1793460521438,
+        "startUtc": "2026-10-31T15:28:41.438Z",
+        "durationMs": 5869,
+        "endUtcComputed": "2026-10-31T15:28:47.307Z",
+        "selector": {
+          "textRegex": "THE SMALL ADVENTURES, 2 memories",
+          "optional": false
+        }
+      },
+      "elementBounds": {
+        "x": 16,
+        "y": 233,
+        "width": 172,
+        "height": 273
+      },
+      "tapTimeAsLogged": "15:28:43.345",
+      "tapPointFromSemanticSelector": {
+        "x": 102,
+        "y": 369
+      },
+      "selector": "THE SMALL ADVENTURES, 2 memories"
+    },
+    "failedAssertion": {
+      "sequence0": 42,
+      "artifactStep1": 43,
+      "depth": 1,
+      "kind": "assertConditionCommand",
+      "status": "FAILED",
+      "startEpochMs": 1793460527308,
+      "startUtc": "2026-10-31T15:28:47.308Z",
+      "durationMs": 25537,
+      "endUtcComputed": "2026-10-31T15:29:12.845Z",
+      "condition": {
+        "visible": {
+          "textRegex": "Edit memory book",
+          "optional": false
+        }
+      },
+      "timeout": "15000"
+    },
+    "retainedFailureAX": {
+      "path": "docs/quality/native-full-app-20261031/ios-f4c35f32/navigation-reader-failure-ax.json",
+      "labels": [
+        {
+          "text": "Platinum QA",
+          "value": null,
+          "bounds": "[0,0][393,852]"
+        },
+        {
+          "text": "In progress",
+          "value": "1",
+          "bounds": "[186,445][206,465]"
+        },
+        {
+          "text": "3:29\u202fPM",
+          "value": null,
+          "bounds": "[53,19][90,39]"
+        },
+        {
+          "text": "Cellular",
+          "value": "No signal",
+          "bounds": "[282,23][301,35]"
+        },
+        {
+          "text": "100% battery power",
+          "value": "Not charging",
+          "bounds": "[333,22][360,35]"
+        }
+      ],
+      "expectedEditLabelPresent": false,
+      "spinnerPresent": true
+    },
+    "retainedFailureScreenshot": "Full cream-colored app view with an ActivityIndicator and system status/home bars; no book header, edit button, keyboard or settings modal.",
+    "artifactTiming": {
+      "assertionStartUtc": "2026-10-31T15:28:47.308Z",
+      "configuredTimeoutMs": 15000,
+      "metadataDurationMs": 25537,
+      "lastPreErrorDriverHierarchyDoneUtc": "2026-10-31T15:29:12.829046Z",
+      "subsequentDriverHierarchyStartUtc": "2026-10-31T15:29:12.942460Z",
+      "subsequentDriverHierarchyDoneUtc": "2026-10-31T15:29:13.912767Z",
+      "failureScreenshotRequestUtc": "2026-10-31T15:29:16.650315Z",
+      "limit": "Saved error AX/screenshot are post-error artifacts, not each matching-poll payload. Configured deadline, command metadata duration and error-artifact completion differ. No continuous loading or universal app-latency measurement is inferred."
+    },
+    "notReached": [
+      "Successful reader readiness check",
+      "Open-book page interaction",
+      "Film playback/dismissal",
+      "Book settings/modal lifecycle acceptance",
+      "Cover edits and saved revision checks"
+    ]
+  },
+  "junit": {
+    "path": "docs/quality/native-full-app-20261031/ios-f4c35f32/navigation-junit.xml",
+    "tests": 1,
+    "failures": 1,
+    "testcaseStatus": "ERROR",
+    "testcaseSeconds": 276.47,
+    "suiteSeconds": 276.708,
+    "failureText": "Assertion is false: \"Edit memory book\" is visible"
+  },
+  "sourceReview": {
+    "loadingBranch": "src/screens/profile/MemoryAlbumScreen.tsx, lines 325\u2013329, renders the observed full-page ActivityIndicator while loading is true. The edit control appears only in the authorized loaded-book branch at lines 368\u2013370.",
+    "requiredStages": [
+      "Local auth/session readiness",
+      "get_memory_book result",
+      "hydrateMemoryAlbumMedia authorization/delivery checks when the book contains applicable private media"
+    ],
+    "optionalDependencyDefect": "Current f4 load additionally awaits story_reactions before finally clearing loading. A rejected optional read enters the same catch as a required-book failure and clears the already hydrated book. This is a concrete source-level loading/error-isolation defect; it is not proven to be the cause of this artifact interval.",
+    "fixtureBoundary": "The navigation book contains two text-only memories and no media locators. hydrateContentMedia returns these rows without media-signing work; the separate capture recipe contains media and has independent required authorization.",
+    "feedbackAudit": [
+      "load is memoized only by primitive ownerId, albumIdParam, viewerId and authReady.",
+      "The identity-reset effect also uses a stable useRef Animated.Value; navigation, album and likes publication are not dependencies.",
+      "The read effect depends on load, with explicit foreground AppState refresh and a four-minute interval.",
+      "Next-book lookup is separate and depends on owner/book/viewer identities.",
+      "No analogous navigation-object/profile feedback loop was identified in this inspected path."
+    ],
+    "limits": [
+      "Artifact request totals do not identify the exact awaited or completed promise at the failure time.",
+      "No timeout increase, selector relaxation or keyboard workaround is supported.",
+      "Root authorized a separate actual-component held/rejected optional-read regression and narrow repair; no repair acceptance is claimed by this baseline receipt."
+    ]
+  },
+  "video": {
+    "metadataPath": "docs/quality/native-full-app-20261031/ios-f4c35f32/navigation-video-metadata.json",
+    "metadataSha256": "d9ae8f5bab68b50c67273d75c6c8ec6757dca78fa7df45d3c38d1c70d5d3039a",
+    "binarySha256": "612a27e19b9ba6bc89ee9a8fcbb09490ee39fc116dbb1a16630d743631895add",
+    "bytes": 14367702,
+    "durationSeconds": 745.501667,
+    "reportedFrames": 3215,
+    "dimensions": [
+      1179,
+      2556
+    ],
+    "limit": "Metadata creation time is not a calibrated host/UI clock anchor. Sparse variable-rate frames and advertised 600 fps do not establish application frame rate. This receipt relies on exact Maestro command/AX/PNG evidence and makes no continuous-duration claim from the movie."
+  },
+  "retainedEvidence": [
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-f4c35f32/navigation-commands.json",
+      "sourceInArchive": "maestro/navigation/2026-10-31_152218/Full native app navigation/commands.json",
+      "bytes": 73085,
+      "sha256": "fa229e864a4e32ac81f2030b5cbdcd566c94f292940a40b30b4de13fd944d8c6",
+      "copiedByteForByte": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-f4c35f32/navigation-junit.xml",
+      "sourceInArchive": "maestro-navigation.xml",
+      "bytes": 589,
+      "sha256": "791557a69582be840e8cf510a7ee9d6bb066dd327df896d860a7390184c2bfc2",
+      "copiedByteForByte": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-f4c35f32/navigation-artifact-manifest.json",
+      "sourceInArchive": "maestro/navigation/2026-10-31_152218/Full native app navigation/manifest.json",
+      "bytes": 1076,
+      "sha256": "48ee3d2b956b3dae3bc7d67f4d442c768f1fed0b2842eacb62d665bca76d3483",
+      "copiedByteForByte": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-f4c35f32/navigation-home.png",
+      "sourceInArchive": "maestro/navigation/2026-10-31_152218/Full native app navigation/takeScreenshot/home.png",
+      "bytes": 354012,
+      "sha256": "71f67e1d14fa711b997f408289358860687cea55fe1cdd5e27412e1a2109935e",
+      "copiedByteForByte": true,
+      "dimensions": {
+        "width": 1178,
+        "height": 2556
+      }
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-f4c35f32/navigation-market.png",
+      "sourceInArchive": "maestro/navigation/2026-10-31_152218/Full native app navigation/takeScreenshot/market.png",
+      "bytes": 197091,
+      "sha256": "16aed04e4c10e8f48b55ba851f4e2c01d4eec0f527d0dc276d0147caaac33786",
+      "copiedByteForByte": true,
+      "dimensions": {
+        "width": 1178,
+        "height": 2556
+      }
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-f4c35f32/navigation-jobs.png",
+      "sourceInArchive": "maestro/navigation/2026-10-31_152218/Full native app navigation/takeScreenshot/jobs.png",
+      "bytes": 228060,
+      "sha256": "c3c6759b121d4061b7a302800b9855cfddd9f7f6e61bbc14620af0da5e46db09",
+      "copiedByteForByte": true,
+      "dimensions": {
+        "width": 1178,
+        "height": 2556
+      }
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-f4c35f32/navigation-messages.png",
+      "sourceInArchive": "maestro/navigation/2026-10-31_152218/Full native app navigation/takeScreenshot/messages.png",
+      "bytes": 187575,
+      "sha256": "0a1cf6614fef667110eed0dc8505ca7c4dcd43b6dc8dc5d3373e29ff82ede970",
+      "copiedByteForByte": true,
+      "dimensions": {
+        "width": 1178,
+        "height": 2556
+      }
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-f4c35f32/navigation-profile.png",
+      "sourceInArchive": "maestro/navigation/2026-10-31_152218/Full native app navigation/takeScreenshot/profile.png",
+      "bytes": 352633,
+      "sha256": "70019417d078af9a041ea0b3a2b3b6381ae6011484c8e090882e053f611e4be0",
+      "copiedByteForByte": true,
+      "dimensions": {
+        "width": 1178,
+        "height": 2556
+      }
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-f4c35f32/navigation-memory-shelf.png",
+      "sourceInArchive": "maestro/navigation/2026-10-31_152218/Full native app navigation/takeScreenshot/memory-shelf.png",
+      "bytes": 312613,
+      "sha256": "889968f18e5ece2ee15f59bb5e1f5e332b9d23f160d610e68020e8cda6c776f9",
+      "copiedByteForByte": true,
+      "dimensions": {
+        "width": 1178,
+        "height": 2556
+      }
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-f4c35f32/navigation-reader-failure-ax.json",
+      "sourceInArchive": "maestro/navigation/2026-10-31_152218/Full native app navigation/screen-hierarchy/step-043-assertCondition-Edit_memory_book.json",
+      "bytes": 13927,
+      "sha256": "61c8264a317af095de45131a869c359853337d6a7c8b45ccd33f3d2fd91b618b",
+      "copiedByteForByte": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-f4c35f32/navigation-reader-failure.png",
+      "sourceInArchive": "maestro/navigation/2026-10-31_152218/Full native app navigation/screenshots/step-043-assertCondition-Edit_memory_book.png",
+      "bytes": 58736,
+      "sha256": "025a14f48ba3f99599032e914dfb45844763d8198958cc8df64582e34bbfef2b",
+      "copiedByteForByte": true,
+      "dimensions": {
+        "width": 1178,
+        "height": 2556
+      }
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-f4c35f32/navigation-maestro-final-projection.json",
+      "bytes": 14383,
+      "sha256": "9208cb74034611adbb954cde095e4f52222849d805a0387295eaf8f9569d7881",
+      "derived": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-f4c35f32/navigation-xctest-final-projection.json",
+      "bytes": 7668,
+      "sha256": "95b21580a5f866e1b7ec274364a3b29701ce546464b29bf29cd83271bf498d3a",
+      "derived": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-f4c35f32/navigation-command-timeline.json",
+      "bytes": 17397,
+      "sha256": "e07d1e024f922428fa747299c297340ff20a831097e45fbf2d427ea6a999f60c",
+      "derived": true
+    }
+  ],
+  "actions": "Documentation and exact artifact copies only. No source/assertion/deadline/ref/CI mutation or duplicate download by this baseline review."
+}

@@ -2,32 +2,75 @@
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { createPagedCollection } from "@/lib/socialPages";
+import { createPagedCollection, type PageMemory } from "@/lib/socialPages";
 import { hydratePostMedia } from "@/lib/contentMedia";
 import { withTimeout } from "@/lib/withTimeout";
+import { getProfileNavigationStore, profileNavigationKey, safeProfileMemoryRows } from "@/lib/profileNavigation";
 
 export function useSocialPages<T extends object>(rpc: string, args: Record<string, unknown>, options: {
-  key?: string; size?: number; enabled?: boolean;
+  key?: string; size?: number; enabled?: boolean; ownProfileId?: string;
 } = {}) {
   const [client] = useState(createClient);
+  const [navigationStore] = useState(getProfileNavigationStore);
+  const session = useSyncExternalStore(navigationStore.subscribe, navigationStore.getSnapshot, navigationStore.getServerSnapshot);
   const serialized = JSON.stringify(args);
-  const { key = "id", size = 20, enabled = true } = options;
+  const { key = "id", size = 20, enabled = true, ownProfileId } = options;
+  const profileRevision = ownProfileId ? session.revision : 0;
+  const cacheScope = ownProfileId && session.owner === ownProfileId ? session.scope : null;
+  const cacheKey = ownProfileId ? profileNavigationKey(ownProfileId, 'posts') : '';
   const postMedia = ["get_profile_posts_page", "get_community_posts_page", "get_discover_page"].includes(rpc);
-  const reader = useMemo(() => createPagedCollection<T>({
-    size,
-    key: (item) => String((item as Record<string, unknown>)[key]),
-    fetchPage: async (offset, limit, asOf) => {
-      const { data, error } = await withTimeout(client.rpc(rpc, {
-        ...JSON.parse(serialized), p_offset: offset, p_limit: limit, p_as_of: asOf,
-      }));
-      if (error) throw new Error("Could not load this page. Please try again.");
-      const rows = (data ?? []) as T[];
-      return postMedia ? withTimeout(hydratePostMedia(rows, client)) : rows;
-    },
-  }), [client, rpc, serialized, key, size, postMedia]);
+  const reader = useMemo(() => {
+    const memory = cacheScope ? navigationStore.cache.read<PageMemory<T>>(cacheScope, cacheKey) : null;
+    return createPagedCollection<T>({
+      size,
+      memory: memory ? { ...memory, items: safeProfileMemoryRows(memory.items) } : null,
+      key: (item) => String((item as Record<string, unknown>)[key]),
+      fetchPage: async (offset, limit, asOf, signal) => {
+        const current = () => !signal?.aborted && (!ownProfileId || navigationStore.getSnapshot().revision === profileRevision);
+        if (!current()) throw new Error("The profile session changed. Please try again.");
+        const query = client.rpc(rpc, {
+          ...JSON.parse(serialized), p_offset: offset, p_limit: limit, p_as_of: asOf,
+        });
+        const { data, error } = await withTimeout(signal ? query.abortSignal(signal) : query);
+        if (!current()) throw new Error("The profile session changed. Please try again.");
+        if (error) throw new Error("Could not load this page. Please try again.");
+        const rows = (data ?? []) as T[];
+        return postMedia ? withTimeout(hydratePostMedia(rows, client)) : rows;
+      },
+    });
+  }, [client, rpc, serialized, key, size, postMedia, navigationStore, cacheScope, cacheKey, profileRevision, ownProfileId]);
   const state = useSyncExternalStore(reader.subscribe, reader.snapshot, reader.snapshot);
   useEffect(() => {
     if (!enabled) { reader.reset(); return; }
+    if (ownProfileId) {
+      if (!session.initialized) return;
+      const remember = () => {
+        if (reader.snapshot().loading || reader.snapshot().error) return;
+        const memory = reader.remember();
+        if (memory) navigationStore.cache.save(cacheScope, cacheKey, memory);
+      };
+      const unsubscribe = reader.subscribe(remember);
+      const refresh = () => { void reader.refresh(); };
+      const changed = () => { void reader.refresh(true); };
+      const visible = () => { if (document.visibilityState === 'visible') refresh(); };
+      const hidden = (event: Event) => {
+        const postId = (event as CustomEvent<{ postId?: string }>).detail?.postId;
+        if (postId) reader.setItems(rows => rows.filter(row => (row as Record<string, unknown>)[key] !== postId));
+        changed();
+      };
+      refresh();
+      window.addEventListener('pc-refresh-feed', changed);
+      window.addEventListener('pc-feed-hidden', hidden);
+      window.addEventListener('pc-feed-author-hidden', changed);
+      document.addEventListener('visibilitychange', visible);
+      return () => {
+        unsubscribe(); reader.cancel();
+        window.removeEventListener('pc-refresh-feed', changed);
+        window.removeEventListener('pc-feed-hidden', hidden);
+        window.removeEventListener('pc-feed-author-hidden', changed);
+        document.removeEventListener('visibilitychange', visible);
+      };
+    }
     let alive = true;
     let uid: string | null | undefined;
     const bind = (next: string | null) => {
@@ -43,7 +86,7 @@ export function useSocialPages<T extends object>(rpc: string, args: Record<strin
       }
     }, () => { if (alive && uid === undefined) bind(null); });
     return () => { alive = false; reader.cancel(); auth.subscription.unsubscribe(); };
-  }, [client, enabled, reader]);
+  }, [client, enabled, reader, ownProfileId, session.initialized, navigationStore, cacheScope, cacheKey, key]);
   useEffect(() => {
     if (!postMedia || !enabled) return;
     let alive = true, pending = false;
@@ -57,11 +100,15 @@ export function useSocialPages<T extends object>(rpc: string, args: Record<strin
       if (!expiring.length) return;
       pending = true;
       const version = reader.version();
+      const original = new Map(expiring.map(row => [String((row as Record<string, unknown>)[key]), row]));
       try {
         const hydrated = await withTimeout(hydratePostMedia(expiring, client));
         if (!alive || version !== reader.version()) return;
         const byId = new Map(hydrated.map((row) => [String((row as Record<string, unknown>)[key]), row]));
-        reader.setItems((previous) => previous.map((row) => byId.get(String((row as Record<string, unknown>)[key])) ?? row));
+        reader.setItems((previous) => previous.map((row) => {
+          const id = String((row as Record<string, unknown>)[key]);
+          return original.get(id) === row ? byId.get(id) ?? row : row;
+        }));
       } catch { /* Expired capabilities fail closed; retry when connectivity returns. */ }
       finally { pending = false; }
     };

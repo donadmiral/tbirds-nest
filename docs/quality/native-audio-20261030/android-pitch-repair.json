@@ -1,0 +1,223 @@
+{
+  "recordedAt": "2026-10-30T22:36:33Z",
+  "baseCommit": "00a516ae792009b287576f9ebc89b3b3e299b58e",
+  "status": "Pitch-preserving repair compiled and packaged; the unchanged 23-case emulator suite must pass before native activation.",
+  "failedRuntimeAttempt": {
+    "candidateCommit": "00a516ae792009b287576f9ebc89b3b3e299b58e",
+    "sourceTree": "c6c0ea60701e7c0702b8f79e09e428ac8417b595",
+    "workflowRun": 41137500687,
+    "jobId": 124343930681,
+    "artifactId": 13017410971,
+    "zipSha256": "73482007111103f8e5e06f72d80d045319d9993559586607619b060bd0414c3a",
+    "artifactDigestVerified": true,
+    "tests": 23,
+    "passed": 21,
+    "failed": 2,
+    "skipped": 0,
+    "failures": [
+      {
+        "case": "videoTrimSpeedAndOriginalMixStayAlignedWithIndependentSoundtrack",
+        "message": "java.lang.AssertionError: Original audio gain or pitch failed: 3.516586783696672E-6"
+      },
+      {
+        "case": "slowedVideoRepeatsOnlyTheSelectedExcerptThroughItsPartialFinalLoop",
+        "message": "java.lang.AssertionError: Original slow-motion pitch or volume changed"
+      }
+    ],
+    "retainedOutputs": [
+      {
+        "name": "trim-speed-original-mix.mp4",
+        "sha256": "f538a0c84e50c387b82e0525369f7b5e8bccaa61bb71b4a7f269e6f67d4fea77",
+        "bytes": 20903,
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "aac",
+            "codec_type": "audio",
+            "sample_rate": "48000",
+            "avg_frame_rate": "0/0",
+            "duration": "1.002667",
+            "nb_frames": "47",
+            "tags": {}
+          },
+          {
+            "index": 1,
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 480,
+            "height": 320,
+            "avg_frame_rate": "30/1",
+            "duration": "1.000000",
+            "nb_frames": "30",
+            "tags": {},
+            "side_data_list": [
+              {
+                "rotation": -90
+              }
+            ]
+          }
+        ],
+        "analysisWindowSeconds": [
+          0.2,
+          0.8
+        ],
+        "analysisSamples": 28800,
+        "toneAmplitudes": {
+          "165": 3.2826969915811486e-06,
+          "220": 3.6474339096175976e-06,
+          "330": 3.4719275731519485e-06,
+          "440": 0.049776682829870564,
+          "660": 0.09931426848692826,
+          "880": 3.880609948492639e-06,
+          "1760": 9.276383910755508e-07
+        },
+        "decodedFirstChannelSamples": 48128
+      },
+      {
+        "name": "slow-video-fractional-soundtrack-loop.mp4",
+        "sha256": "3660090b19c0abd37d19cf7a6629cbc1fa8766ab23d8e3806faba8d1e7d7ab50",
+        "bytes": 78718,
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "aac",
+            "codec_type": "audio",
+            "sample_rate": "48000",
+            "avg_frame_rate": "0/0",
+            "duration": "4.394667",
+            "nb_frames": "206",
+            "tags": {}
+          },
+          {
+            "index": 1,
+            "codec_name": "h264",
+            "codec_type": "video",
+            "width": 480,
+            "height": 320,
+            "avg_frame_rate": "15/1",
+            "duration": "4.333333",
+            "nb_frames": "65",
+            "tags": {},
+            "side_data_list": [
+              {
+                "rotation": -90
+              }
+            ]
+          }
+        ],
+        "analysisWindowSeconds": [
+          2.2,
+          3.7
+        ],
+        "analysisSamples": 72000,
+        "toneAmplitudes": {
+          "165": 0.049636739170693354,
+          "220": 0.00021263561041125973,
+          "330": 8.512606059305921e-05,
+          "440": 0.06653210470775651,
+          "660": 3.4344665562924064e-05,
+          "880": 0.03330921829833377,
+          "1760": 1.048975706924169e-05
+        },
+        "decodedFirstChannelSamples": 210944
+      }
+    ],
+    "independentReview": "docs/quality/native-audio-20261030/android-pitch-independent-review.json",
+    "independentDecodedReviewSha256": "30fe2804c646765eed51476e731591c71e9973dc9437b1c1dcb18de85552178d"
+  },
+  "sourceFinding": {
+    "media3Version": "1.8.1",
+    "cause": "The experimental speed pair uses SpeedChangingAudioProcessor, which sets both Sonic speed and pitch to the requested rate. The original 330 Hz tone therefore became 660 Hz at 2x and 165 Hz at 0.5x. Added music retained its intended pitch and gain; output durations are now correct after the finite-loop repair.",
+    "primarySource": "https://github.com/androidx/media/blob/1.8.1/libraries/common/src/main/java/androidx/media3/common/audio/SpeedChangingAudioProcessor.java",
+    "speedChangingSourceSha256": "9a90a5293a31a1a03a3ab92368f74a74ec3d29b5e2fcbe71da9fcb3fbe7d1639",
+    "sonicSourceSha256": "a18633156e95a12a46b9ac4423d32d7cb36a4542a3f279bec95cf2fb759ce8a5"
+  },
+  "repair": [
+    "The existing Sonic normalization stage now sets the original audio speed to the constant clip rate and pitch to 1.",
+    "Video timestamps use SpeedChangeEffect at the same clip rate.",
+    "Every added soundtrack excerpt retains speed 1 and pitch 1 through the default processor parameters.",
+    "Finite soundtrack timing, strict output attestation, and all 23 test assertions are unchanged."
+  ],
+  "verification": {
+    "command": "verifyStoryMediaDependencies assembleDebug assembleDebugAndroidTest",
+    "result": "BUILD SUCCESSFUL in 21s; 62 actionable tasks: 8 executed, 54 up-to-date",
+    "buildLogSha256": "a9b814c03e635cd3dbb71a3286afce5fcbc6ed91ef598123160ce5d05cbc7386",
+    "productionSourceCopiesExact": true,
+    "harnessUnchangedFromFailedCandidate": true,
+    "declaredTests": 23,
+    "resolvedMedia3": {
+      "project": ":",
+      "configuration": "debugRuntimeClasspath",
+      "expectedVersion": "1.8.1",
+      "aligned": true,
+      "components": [
+        {
+          "group": "androidx.media3",
+          "module": "media3-common",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-container",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-database",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-datasource",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-decoder",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-effect",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-exoplayer",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-extractor",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-muxer",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-transformer",
+          "version": "1.8.1"
+        }
+      ],
+      "scope": "Resolved runtime version alignment; separate from security or encoded-media acceptance."
+    },
+    "sourceHashes": {
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": "3ce3a5c568a332468e064dd7b03c508fa2ee6d79ad94309a58adb14a54a24f4d",
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": "754eaa2052a1b48c527eb2a2f9ccfb94cdd88ed269aa1bb4933fdde3e066633e",
+      "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/StoryAudioExportTest.kt": "b044919dde2469f0b466d8eb1341b3414b75cfa522eb89925c5dec25488546a7",
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt": "fba427784dd706134c2125717d7dc4accbcedb26fe668196228135064ec68f46"
+    }
+  },
+  "nativeAdvertisedCapabilities": {
+    "storyVideoVersion": 0,
+    "storyAudioExportVersion": 0
+  },
+  "acceptanceLimits": [
+    "The repaired pitch behavior is not established by local compilation. It must pass the actual retained-file emulator measurements.",
+    "The complete Expo application build is separate from the standalone harness.",
+    "Physical-device, installed-product, QA/production backend and commercial licensing acceptance are not established by this repair."
+  ]
+}

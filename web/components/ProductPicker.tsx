@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { X, Check, Link2, Download } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { errorMessage } from "@/lib/errors";
 import { priceLabel, type Listing } from "@/lib/market";
 
 export type ProductCard = {
@@ -23,7 +24,7 @@ export function ProductPicker({ selected, onChange, onClose }: {
   onChange: (cards: ProductCard[]) => void;
   onClose: () => void;
 }) {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [mine, setMine] = useState<Listing[] | null>(null);
   const [extOpen, setExtOpen] = useState(false);
   const [extTitle, setExtTitle] = useState("");
@@ -106,23 +107,24 @@ export function ProductPicker({ selected, onChange, onClose }: {
     try {
       const res = await fetch(address, { headers: { Accept: "application/json" } });
       if (!res.ok) throw new Error("The shop answered " + res.status);
-      const json = await res.json();
-      const list: any[] = Array.isArray(json) ? json : Array.isArray(json?.products) ? json.products : [];
+      const json:unknown=await res.json();
+      const rawProducts:unknown=Array.isArray(json)?json:json&&typeof json==='object'&&'products' in json?json.products:[];
+      const list=Array.isArray(rawProducts)?rawProducts.filter((item):item is Record<string,unknown>=>!!item&&typeof item==='object'&&!Array.isArray(item)):[];
       if (list.length === 0) throw new Error("No products in that feed");
-      setFeedItems(list.slice(0, 40).map((p: any, i: number) => ({
+      setFeedItems(list.slice(0, 40).map((p, i) => ({
         id: "feed-" + i + "-" + String(p.link_url || p.title || i).replace(/[^a-z0-9]/gi, "").slice(-24),
         title: String(p.title || p.name || "Product"),
-        subtitle: p.subtitle ?? null,
+        subtitle: typeof p.subtitle==='string'?p.subtitle:null,
         price: p.price == null || p.price === "" ? Number.NaN : Number(p.price),
-        currency: p.currency || "USD",
-        image_url: p.image_url ?? null,
+        currency: typeof p.currency==='string'?p.currency:"USD",
+        image_url: typeof p.image_url==='string'?p.image_url:null,
         listing_id: null,
         link_url: p.link_url ? String(p.link_url) : null,
-        cta_label: p.cta_label || "Shop",
+        cta_label: typeof p.cta_label==='string'?p.cta_label:"Shop",
         sort_order: i,
       })).map((c: ProductCard) => ({ ...c, price: Number.isNaN(c.price as number) ? null : c.price })));
-    } catch (e: any) {
-      setFeedItems(null); setFeedErr(e?.message || "Could not read that feed");
+    } catch (e) {
+      setFeedItems(null); setFeedErr(errorMessage(e,"Could not read that feed"));
     } finally { setFeedBusy(false); }
   }
   function toggleFeedItem(p: ProductCard) {

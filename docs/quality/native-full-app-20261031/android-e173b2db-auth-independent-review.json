@@ -1,0 +1,285 @@
+{
+  "review": "Independent Android e173 auth/timer and captured app-log review",
+  "recordedAtUtc": "2026-10-31T06:00:40.511642+00:00",
+  "outcome": "INCONCLUSIVE_RUNTIME_TIMER_IDENTITIES; prior warning absent in the retained log window",
+  "candidate": {
+    "head": "e173b2dbcf253342be5683fa85f102aa38065411",
+    "merge": "e6ca24e27b00207344eb7989ed53d2305cb04cf3",
+    "tree": "37ca8db90469d32a2a2d7b3069db54b522926530",
+    "equalHeadAndMergeTreesVerified": true,
+    "runId": 41173170193,
+    "jobId": 124455217307,
+    "jobConclusion": "failure"
+  },
+  "artifact": {
+    "id": 13031788334,
+    "name": "android-full-app-ui",
+    "zip": {
+      "path": "/tmp/android-full-app-e173b2db.zip",
+      "bytes": 361732,
+      "sha256": "956045dfff3b2e9043d817aefa91b16aefd99bc3d8279966d5fcffb3ac7626b2"
+    },
+    "zipDigestReverifiedIndependently": true,
+    "extractedDirectory": "/tmp/android-full-app-e173b2db-41173170193",
+    "downloadAndExtractionOwner": "native_acceptance; this review reused the shared extraction without another download"
+  },
+  "scope": "Read-only native artifact review. No application, auth, timer, timeout, capability, workflow, or test source was changed. No test suite, job retry, deployment, or live journey was run.",
+  "source": {
+    "retainedManifest": {
+      "path": "docs/quality/native-full-app-20261031/android-full-app-e173b2db-source.json",
+      "bytes": 59170,
+      "sha256": "0fec6c3859c429596d19932c87fd2c2472be9bd69e860f873ab8b1f5e64eeb48"
+    },
+    "manifestCommit": "e6ca24e27b00207344eb7989ed53d2305cb04cf3",
+    "manifestRun": "41173170193",
+    "manifestSourceHashCount": 495,
+    "focusedPublishedSourceComparisons": [
+      {
+        "file": "index.js",
+        "sha256": "b6c80d0b280a2446862ee5a19cbfcaff39d551d353ac3a9abf090680570a11e0",
+        "matchesPublishedHead": true,
+        "matchesWorkingFile": true
+      },
+      {
+        "file": "tests/native/entry.js",
+        "sha256": "e54f0e6acfdc9d73d6b0e877d24432809798689b65c2c4fad5ce5a212e84304b",
+        "matchesPublishedHead": true,
+        "matchesWorkingFile": true
+      },
+      {
+        "file": "src/services/supabase.ts",
+        "sha256": "457ab3f8c8c54aa3a5e770dd1b43f4869a98c7471c9ccffcbe5f9e3901847fee",
+        "matchesPublishedHead": true,
+        "matchesWorkingFile": true
+      },
+      {
+        "file": "tests/native/auth-diagnostics.cjs",
+        "sha256": "e7e62603147fda2f2f29e905876e5bd143e335e6a4a92a5d65063d422dc977a7",
+        "matchesPublishedHead": true,
+        "matchesWorkingFile": true
+      },
+      {
+        "file": "package-lock.json",
+        "sha256": "647ee46e04dee88a568cafb274dfc3172795efca34eaf8407cd86a8fe3a7ca40",
+        "matchesPublishedHead": true,
+        "matchesWorkingFile": true
+      }
+    ],
+    "focusedOverlays": [
+      {
+        "source": "src/services/supabase.ts",
+        "before": "457ab3f8c8c54aa3a5e770dd1b43f4869a98c7471c9ccffcbe5f9e3901847fee",
+        "after": "dfb6b6cfe427b7e5abdb7f7bedbdb45536f9abca000d4a2d3305dd45da4cf2e5",
+        "verified": true,
+        "retained": {
+          "path": "docs/quality/native-full-app-20261031/android-e173b2db/overlays/src__services__supabase.ts.txt",
+          "bytes": 5251,
+          "sha256": "dfb6b6cfe427b7e5abdb7f7bedbdb45536f9abca000d4a2d3305dd45da4cf2e5"
+        }
+      },
+      {
+        "source": "index.js",
+        "before": "b6c80d0b280a2446862ee5a19cbfcaff39d551d353ac3a9abf090680570a11e0",
+        "after": "380861fc291a775b81d0891675f0bc4c632660ae44662ba370cb43052a1efa4c",
+        "verified": true,
+        "retained": {
+          "path": "docs/quality/native-full-app-20261031/android-e173b2db/overlays/index.js",
+          "bytes": 33,
+          "sha256": "380861fc291a775b81d0891675f0bc4c632660ae44662ba370cb43052a1efa4c"
+        }
+      }
+    ],
+    "capabilityMode": "qa-capability-overlay",
+    "productionMemoryCapability": 0,
+    "dependencyProvenance": [
+      {
+        "package": "@supabase/supabase-js",
+        "installedVersion": "2.103.0",
+        "lockedVersion": "2.103.0",
+        "requireEntry": "node_modules/@supabase/supabase-js/dist/index.cjs",
+        "main": "dist/index.cjs",
+        "module": "dist/index.mjs",
+        "files": [
+          {
+            "file": "package.json",
+            "sha256": "697dd1bfd66925a5b586c52e0324517979a6650c45bdba8e03014b197e87304e",
+            "matchesLocalInstalledFile": true
+          },
+          {
+            "file": "dist/index.cjs",
+            "sha256": "b8ab8bdba298f953d755556979998098309d4d3bface6628ff9b8afd0a96ca4b",
+            "matchesLocalInstalledFile": true
+          },
+          {
+            "file": "dist/index.mjs",
+            "sha256": "a5a16d1d34369ee35c55f3029c1db2ca3bca0c53eb217b1c649822c2f1fc2736",
+            "matchesLocalInstalledFile": true
+          }
+        ]
+      },
+      {
+        "package": "@supabase/auth-js",
+        "installedVersion": "2.103.0",
+        "lockedVersion": "2.103.0",
+        "requireEntry": "node_modules/@supabase/auth-js/dist/main/index.js",
+        "main": "dist/main/index.js",
+        "module": "dist/module/index.js",
+        "files": [
+          {
+            "file": "package.json",
+            "sha256": "35ad1a61ad02fb70467db0ae2238f3d8fd7009729be73207bacc8f3ac07e4b93",
+            "matchesLocalInstalledFile": true
+          },
+          {
+            "file": "src/lib/locks.ts",
+            "sha256": "6d1ec3ee482d09c887d4212de582b13128af365a85f5b64893a25d09bc6c8668",
+            "matchesLocalInstalledFile": true
+          },
+          {
+            "file": "dist/main/index.js",
+            "sha256": "a43ea0c523b8f4f8b8d59bc3b16b9ec9158cad05de53ffc92238fceb26d8bcfd",
+            "matchesLocalInstalledFile": true
+          },
+          {
+            "file": "dist/module/index.js",
+            "sha256": "9be5694df0e46b33d4f3b7bb8bad0ecef05ce343a5734376d6b4c93a8233eba7",
+            "matchesLocalInstalledFile": true
+          },
+          {
+            "file": "dist/main/lib/locks.js",
+            "sha256": "9891124da312e1c4ba73296c98dc018ba2532a856ea39248f0e951036892b4e0",
+            "matchesLocalInstalledFile": true
+          },
+          {
+            "file": "dist/module/lib/locks.js",
+            "sha256": "bd308c17475037290c30f3c8455858368e3c0e170a156fb8361a71c7dc056c87",
+            "matchesLocalInstalledFile": true
+          }
+        ]
+      }
+    ],
+    "dependencyFileCount": 9,
+    "allDependencyFileHashesMatchLocalRegistryVerifiedDistribution": true,
+    "limit": "The retained preparation manifest and overlay bytes bind the selected source and installed distributions. This archive has no final APK/Metro module-resolution attestation. The native owner verifies the complete manifest and remaining overlays.",
+    "fullManifestIndependentOwnerReceipt": {
+      "path": "docs/quality/native-full-app-20261031/android-full-app-e173b2db-failure.json",
+      "sha256": "87d139da41423ce86eaf2ffb3d03342f307e45332e63bdf1b2d9d41114d456a8",
+      "owner": "native_acceptance",
+      "reportedVerifiedSourceFileCount": 495,
+      "reportedVerifiedOverlayCount": 6
+    }
+  },
+  "diagnostics": {
+    "exports": [
+      {
+        "file": "native-ui-auth-diagnostics.json",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "parseable": false
+      },
+      {
+        "file": "native-ui-auth-diagnostics-final.json",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "parseable": false
+      },
+      {
+        "file": "native-ui-receipt.json",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "parseable": false
+      },
+      {
+        "file": "native-ui-receipt-final.json",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "parseable": false
+      }
+    ],
+    "timerApiIdentityStability": null,
+    "wallClockOriginMs": null,
+    "lockWaitMetrics": null,
+    "lockCompletionCoverage": null,
+    "storageMetrics": null,
+    "fixtureStateOrReadbacks": null,
+    "reasonUnavailable": "All four exported JSON files are empty after loss of the emulator. Empty evidence is unavailable evidence, not a passing zero-warning trace."
+  },
+  "capturedLog": {
+    "file": {
+      "path": "/tmp/android-full-app-e173b2db-41173170193/app.log",
+      "bytes": 1466251,
+      "sha256": "da6fff291699c448ab5f0bb0d737ed78e9e3bf2969e6f53ba751c4b5d8ce3dbf"
+    },
+    "retainedProjection": {
+      "path": "docs/quality/native-full-app-20261031/android-e173b2db/app-log-auth-projection.json",
+      "bytes": 4461,
+      "sha256": "c8dd32dd73cf2adb54f059856e797e6b767e217c4e344299b89af34175890d6c"
+    },
+    "lineCount": 4187,
+    "firstTimestampText": "10-31 05:53:16.098",
+    "lastTimestampText": "10-31 05:54:13.784",
+    "appPid": 2543,
+    "appPidLineCount": 699,
+    "firstAppTimestampText": "10-31 05:53:26.260",
+    "lastAppTimestampText": "10-31 05:54:13.784",
+    "reactNativeJsLineCount": 12,
+    "reactNativeJsErrorLevelLineCount": 0,
+    "appErrorLevelLineCount": 4,
+    "appSkippedFrameNoticeCount": 2,
+    "searchPatterns": {
+      "prior5000msSdkLockWarning": "Lock .*acquisition timed out after\\s*5000ms",
+      "anyGoTrueLockWarning": "gotrue.*(?:Lock|lock|timed out)",
+      "fatalOrANR": "FATAL EXCEPTION|Fatal signal|ANR in|Application Not Responding"
+    },
+    "matchCounts": {
+      "prior5000msSdkLockWarning": 0,
+      "anyGoTrueLockWarning": 0,
+      "fatalOrANR": 0
+    },
+    "warningSummary": [
+      "Four NativeEventEmitter addListener/removeListeners compatibility warnings.",
+      "One expo-av deprecation warning."
+    ],
+    "nativeErrorSummary": [
+      "Unavailable JDWP debugging agent at 05:53:26.263.",
+      "AVManager reports unavailable JS context for JSI installation at 05:53:27.670, before Running main at 05:53:27.922.",
+      "Two IME animation FrameTracker timeout entries at 05:53:46.950 and 05:53:53.556."
+    ],
+    "performanceNotices": [
+      {
+        "timestamp": "05:53:46.404",
+        "skippedFrames": 30
+      },
+      {
+        "timestamp": "05:54:13.774",
+        "skippedFrames": 54
+      }
+    ],
+    "interpretation": "The prior 5,000 ms SDK lock warning was not observed in this captured log. This supports only an absence-of-warning observation over this log window. Without exported events, it cannot prove stable timer registries, lock durations, or warning causality. Native error-level and skipped-frame notices are retained without attributing the emulator termination or a product defect to them."
+  },
+  "navigationBoundary": {
+    "observed": "All five main-page screenshots and assertions were reached through Profile. The emulator disappeared during the subsequent first scroll toward View all memory books.",
+    "reviewOwnership": "native_acceptance retains the full commands/JUnit/screenshots and required-flow/capture result; hosted_backend investigates host emulator termination.",
+    "newApplicationSelectorDefectEstablished": false,
+    "memoryReadbackOrCaptureAcceptanceReached": false,
+    "speedOrFrameContinuityPassClaimed": false
+  },
+  "comparison": {
+    "priorInvestigation": {
+      "path": "docs/quality/live-app-20261031/native-auth-warning-ab281bca-investigation.json",
+      "bytes": 18793,
+      "sha256": "c857e58e1c53e520bf7ef042395b78b3fe34fb901540fa06042f5705ac7c6eda"
+    },
+    "actualDependencyMechanismRegression": {
+      "path": "docs/quality/live-app-20261031/native-daily-timer-switch-repro.json",
+      "bytes": 7011,
+      "sha256": "c7ffcabe333dd0b7a1310a277e39dd7c28a9d2d86189ae2c147baffcbff88116"
+    },
+    "finding": "The repaired Daily-before-App/auth bootstrap is source-bound in this candidate. Its native runtime timer-ID effect remains unverified in this Android artifact because the observer snapshots were not recovered. The prior warning is absent only from the captured app log."
+  },
+  "remainingEvidenceNeeded": [
+    "A completed native run with nonempty auth observer exports containing the same source-bound bootstrap.",
+    "Verify timer API identities and complete lock outcomes from those exported events; then correlate any warning with the finite wall-clock anchor within the documented log clock limits.",
+    "Complete the existing mandatory native navigation, account-readback, memory capture, and decoder/verifier gates."
+  ]
+}

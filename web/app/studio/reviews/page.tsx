@@ -1,5 +1,7 @@
 "use client";
 
+import { errorMessage } from "@/lib/errors";
+
 import { StudioLoadError } from "../LoadError";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -8,12 +10,15 @@ import Link from "next/link";
 import { profilePath } from "@/lib/profileLookup";
 import { MessageSquare, Star } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useStudio } from "@/components/StudioShell";
+import { withTimeout } from "@/lib/withTimeout";
 
 type Review = { id: string; rating: number; body: string | null; created_at: string; helpful_count: number; user_id: string; name: string; username: string | null; avatar_url: string | null; reply: string | null; replied_at: string | null };
 type Data = { average: number; count: number; distribution: Record<string, number>; reviews: Review[] };
 
 export default function ReviewsPage() {
-  const supabase = useRef(createClient()).current;
+  const { accountId } = useStudio();
+  const [supabase] = useState(createClient);
   const [d, setD] = useState<Data | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -22,27 +27,34 @@ export default function ReviewsPage() {
   const [replyFor, setReplyFor] = useState<string | null>(null);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
+  const working = useRef(false);
+  const mounted = useRef(true);
 
-  const load = useCallback(async () => {
+  const load = useCallback(() => {
     const version = ++loadVersion.current;
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.rpc("studio_reviews");
+    return withTimeout(supabase.rpc("studio_reviews")).then(({ data, error }) => {
       if (error || !data) throw error || new Error("Reviews unavailable");
       if (version !== loadVersion.current) return;
       setD(data as Data); setLoadError(null);
-    } catch {
+    }).catch(() => {
       if (version === loadVersion.current) setLoadError("Reviews could not be refreshed. Please try again.");
-    } finally { if (version === loadVersion.current) setLoading(false); }
+    }).finally(() => { if (version === loadVersion.current) setLoading(false); });
   }, [supabase]);
-  useEffect(() => { void load(); return () => { loadVersion.current += 1; }; }, [load]);
+  useEffect(() => { const requests = loadVersion; mounted.current = true; void load(); return () => { mounted.current = false; requests.current += 1; }; }, [load]);
 
   const save = async (r: Review, body = text) => {
-    if (busy) return;
+    if (working.current) return;
+    working.current = true;
     setBusy(true);
-    try { const { error } = await supabase.rpc("studio_reply_review", { p_review: r.id, p_body: body }); if (error) throw error; setReplyFor(null); setText(""); await load(); }
-    catch (e: any) { alert(e?.message || "Could not save the reply."); }
-    finally { setBusy(false); }
+    try {
+      const current = await withTimeout(supabase.auth.getSession());
+      if (!mounted.current || current.error || current.data.session?.user.id !== accountId) throw new Error("Your account changed. Reopen Reviews.");
+      const { error } = await supabase.rpc("studio_reply_review", { p_review: r.id, p_body: body });
+      if (error) throw error;
+      if (!mounted.current) return;
+      setReplyFor(null); setText(""); await load();
+    } catch (e: unknown) { if (mounted.current) alert(errorMessage(e, "Could not save the reply.")); }
+    finally { working.current = false; if (mounted.current) setBusy(false); }
   };
 
   const stars = (n: number) => <span className="inline-flex gap-0.5">{[1, 2, 3, 4, 5].map(i => <Star key={i} size={12} className={i <= n ? "fill-pearl text-accent" : "text-muted"} />)}</span>;
@@ -53,7 +65,7 @@ export default function ReviewsPage() {
       <h1 className="font-display text-[21px] leading-tight text-porcelain">Reviews</h1>
       <p className="mt-1 text-[13px] text-muted">Reply in public. A calm answer to a bad review is read by more people than the review itself.</p>
 
-      <StudioLoadError message={loadError} retry={() => { void load(); }} busy={loading} />
+      <StudioLoadError message={loadError} retry={() => { setLoading(true); void load(); }} busy={loading} />
       {loading && !d ? <p className="py-12 text-center text-sm text-muted">Loading</p> : !d ? null : (
         <>
           <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-[200px_1fr]">

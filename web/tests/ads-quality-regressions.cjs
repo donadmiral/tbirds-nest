@@ -169,7 +169,7 @@ function page({ read = async () => [promo()], chart = async () => [], write = as
     if (id === 'react/jsx-runtime') return { jsx, jsxs: jsx };
     if (id === '@/lib/supabase/client') return { createClient: () => client };
     if (id === '@/lib/ads') return {
-      promoDeliveryStatus: (p, at) => p.status === 'active' ? 'Active' : p.status === 'paused' ? 'Paused' : 'Ended',
+      promoDeliveryStatus: (p) => p.status === 'active' ? 'Active' : p.status === 'paused' ? 'Paused' : 'Ended',
       myPromos: uid => { calls.push(['read', uid]); return read(uid); },
       myPromoPerformance: uid => { calls.push(['chart', uid]); return chart(uid); },
       setPromoStatus: (...args) => { calls.push(['write', ...args]); return write(...args); },

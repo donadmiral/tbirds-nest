@@ -1,0 +1,40 @@
+{
+  "recordedAt": "2026-10-31T03:11:16.636725+00:00",
+  "baseCommit": "103a4d38351ae2fb87c975c32c8027e4f4fef234",
+  "scope": "Narrow web saved-book cover controls correction, matching native availability check.",
+  "sourceSha256": {
+    "web/components/MemoryAlbum.tsx": "decbea883a633598f26468d912622f64796c7c5a559178306586463fbff5235c",
+    "web/tests/browser/memory-cover-adapter.ts": "faed035bacbea89dc1f4369ce6123e32c108d16db4d67c019d89061a59eeb947",
+    "web/tests/browser/memory-cover-fixture.tsx": "39fd7f08bf81c73b77eb1c917b3fbb2f696bbd18f8c18fb4c355191b0cd7fc89",
+    "web/tests/browser/memory-cover-run.cjs": "3f0f43a5ac19dc42ca60848674d9c42f94a77ca3a42af2ae0c7dfebee2292d1b"
+  },
+  "change": "Photo framing controls now require an actual photoUrl or videoUrl from the selected cover page. A text-only page object by itself is no longer enough.",
+  "fixtureChanges": "Adds one synthetic text-only story and a real designer/create/edit/save journey. The gallery normalizes its potentially absent photo to undefined.",
+  "browser": {
+    "command": "STORY_QA_CHROME=/tmp/platinum-gate-chrome/chrome-linux64/chrome MEMORY_COVER_QA_OUTPUT=/tmp/platinum-text-cover-qa node web/tests/browser/memory-cover-run.cjs",
+    "version": "153.0.8010.12",
+    "passedScenarios": 5,
+    "galleryConfigurations": 48,
+    "measuredCovers": 288,
+    "pageErrors": [],
+    "receipt": "text-only-cover-browser-receipt.json",
+    "receiptSha256": "a5da98457def52176d030b187002074319839c386ceae26d4c721be772806023",
+    "logSha256": "b3eea56043ef9e8112da8a40a7db88cab18b9f24f2ffac0f8eff5971036bdc5b",
+    "regression": "A newly created saved text-only book exposes zero horizontal-position, vertical-position, zoom or reset-framing controls. Its writing is editable and successfully persisted. Existing photo-book editor still exposes all three framing sliders.",
+    "unchangedSourceVerifiedAfterRun": true
+  },
+  "webTypes": {
+    "command": "node node_modules/typescript/bin/tsc --noEmit",
+    "exitCode": 0
+  },
+  "lint": {
+    "files": 3,
+    "errors": 0,
+    "warnings": 0,
+    "logSha256": "c99de0e6fc0ac6f46d39f8b03ade47839b954799eb0a47c11b1e1a44dc4c897d"
+  },
+  "limits": [
+    "Browser uses the actual web designer, editor and cover components with synthetic Auth/RPC and localStorage persistence. This is not hosted Supabase or physical-device acceptance.",
+    "The production change is limited to the cover-controls availability condition."
+  ]
+}

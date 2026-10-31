@@ -1,0 +1,204 @@
+{
+  "bash": {
+    "command": "bash -n scripts/quality/test-android-app-ui.sh",
+    "exitCode": 0
+  },
+  "python": {
+    "check": "Python ast.parse syntax",
+    "files": [
+      "scripts/quality/native-ui-emulator-graphics.py",
+      "scripts/quality/native-ui-emulator-host-diagnostics.py"
+    ],
+    "passed": true,
+    "bytecodeWritten": false
+  },
+  "javascript": [
+    {
+      "command": [
+        "node",
+        "--check",
+        "scripts/quality/prepare-native-ui.cjs"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "tests/quality/native-auth-diagnostics.cjs"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "tests/quality/native-emulator-graphics.cjs"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "tests/quality/native-emulator-host-diagnostics.cjs"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "yaml": {
+    "check": "YAML syntax",
+    "path": ".github/workflows/native-app-ui.yml",
+    "errorCount": 0,
+    "warningCount": 0
+  },
+  "eslint": {
+    "command": "node node_modules/eslint/bin/eslint.js scripts/quality/prepare-native-ui.cjs tests/quality/native-auth-diagnostics.cjs tests/quality/native-emulator-graphics.cjs tests/quality/native-emulator-host-diagnostics.cjs --max-warnings 0 --format json",
+    "exitCode": 0,
+    "fileCount": 4,
+    "errorCount": 0,
+    "warningCount": 0,
+    "fatalErrorCount": 0,
+    "results": [
+      {
+        "filePath": "/workspace/scratch/f9638ed3020b/platinum-circles/scripts/quality/prepare-native-ui.cjs",
+        "messages": [],
+        "suppressedMessages": [],
+        "errorCount": 0,
+        "fatalErrorCount": 0,
+        "warningCount": 0,
+        "fixableErrorCount": 0,
+        "fixableWarningCount": 0,
+        "usedDeprecatedRules": []
+      },
+      {
+        "filePath": "/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-auth-diagnostics.cjs",
+        "messages": [],
+        "suppressedMessages": [],
+        "errorCount": 0,
+        "fatalErrorCount": 0,
+        "warningCount": 0,
+        "fixableErrorCount": 0,
+        "fixableWarningCount": 0,
+        "usedDeprecatedRules": []
+      },
+      {
+        "filePath": "/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-emulator-graphics.cjs",
+        "messages": [],
+        "suppressedMessages": [],
+        "errorCount": 0,
+        "fatalErrorCount": 0,
+        "warningCount": 0,
+        "fixableErrorCount": 0,
+        "fixableWarningCount": 0,
+        "usedDeprecatedRules": []
+      },
+      {
+        "filePath": "/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-emulator-host-diagnostics.cjs",
+        "messages": [],
+        "suppressedMessages": [],
+        "errorCount": 0,
+        "fatalErrorCount": 0,
+        "warningCount": 0,
+        "fixableErrorCount": 0,
+        "fixableWarningCount": 0,
+        "usedDeprecatedRules": []
+      }
+    ]
+  },
+  "whitespace": {
+    "trackedDiffCommand": "git diff --check b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6 -- .github/workflows/native-app-ui.yml scripts/quality/test-android-app-ui.sh scripts/quality/prepare-native-ui.cjs tests/quality/native-auth-diagnostics.cjs",
+    "trackedDiffExitCode": 0,
+    "newFileNoIndexChecks": [
+      {
+        "command": [
+          "git",
+          "diff",
+          "--no-index",
+          "--check",
+          "--no-exit-code",
+          "--",
+          "/dev/null",
+          "scripts/quality/native-ui-emulator-graphics.py"
+        ],
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "git",
+          "diff",
+          "--no-index",
+          "--check",
+          "--no-exit-code",
+          "--",
+          "/dev/null",
+          "tests/quality/native-emulator-graphics.cjs"
+        ],
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "git",
+          "diff",
+          "--no-index",
+          "--check",
+          "--no-exit-code",
+          "--",
+          "/dev/null",
+          "scripts/quality/native-ui-emulator-host-diagnostics.py"
+        ],
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "git",
+          "diff",
+          "--no-index",
+          "--check",
+          "--no-exit-code",
+          "--",
+          "/dev/null",
+          "tests/quality/native-emulator-host-diagnostics.cjs"
+        ],
+        "exitCode": 1,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "newFileExitCodeMeaning": "All four new files differ from /dev/null and return 1; each produced no whitespace diagnostic. No exit code is rewritten as 0.",
+    "additionalFullFileScan": {
+      "fileCount": 8,
+      "checks": [
+        "trailing spaces/tabs",
+        "spaces before indentation tabs",
+        "final newline",
+        "extra blank line at EOF"
+      ],
+      "violations": []
+    }
+  },
+  "generatedArtifactCleanup": [
+    {
+      "path": "scripts/quality/__pycache__/native-ui-emulator-diagnostics.cpython-312.pyc",
+      "bytes": 18069
+    },
+    {
+      "path": "scripts/quality/__pycache__/native-ui-emulator-graphics.cpython-312.pyc",
+      "bytes": 8621
+    }
+  ]
+}

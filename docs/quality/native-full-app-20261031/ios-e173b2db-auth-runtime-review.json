@@ -1,0 +1,248 @@
+{
+  "review": "Read-only iPhone e173 auth timing and timer-descriptor review",
+  "candidate": {
+    "head": "e173b2dbcf253342be5683fa85f102aa38065411",
+    "merge": "e6ca24e27b00207344eb7989ed53d2305cb04cf3",
+    "tree": "37ca8db90469d32a2a2d7b3069db54b522926530",
+    "runId": 41173170193,
+    "jobId": 124455216930,
+    "artifactId": 13033622896,
+    "artifactSha256": "06c1849b074c079ebc70b5032ed4b7f7289650064ef62408f06359921250b5b0"
+  },
+  "source": {
+    "manifest": "android-full-app-e173b2db-source.json",
+    "manifestSha256": "0fec6c3859c429596d19932c87fd2c2472be9bd69e860f873ab8b1f5e64eeb48",
+    "sameManifestBytesRetainedByAndroidAndIos": true,
+    "all495SourceHashesAnd6OverlaysVerifiedIn": "ios-full-app-e173b2db-review.json",
+    "authObserverSha256": "e7e62603147fda2f2f29e905876e5bd143e335e6a4a92a5d65063d422dc977a7",
+    "entrySha256": "e54f0e6acfdc9d73d6b0e877d24432809798689b65c2c4fad5ce5a212e84304b",
+    "productionEntrySha256": "b6c80d0b280a2446862ee5a19cbfcaff39d551d353ac3a9abf090680570a11e0",
+    "supabaseSourceSha256": "457ab3f8c8c54aa3a5e770dd1b43f4869a98c7471c9ccffcbe5f9e3901847fee",
+    "installedAndLockedVersions": {
+      "@supabase/supabase-js": "2.103.0",
+      "@supabase/auth-js": "2.103.0"
+    },
+    "dependencyHashes": [
+      {
+        "file": "node_modules/@supabase/supabase-js/package.json",
+        "sha256": "697dd1bfd66925a5b586c52e0324517979a6650c45bdba8e03014b197e87304e",
+        "matchesArtifact": true
+      },
+      {
+        "file": "node_modules/@supabase/supabase-js/dist/index.cjs",
+        "sha256": "b8ab8bdba298f953d755556979998098309d4d3bface6628ff9b8afd0a96ca4b",
+        "matchesArtifact": true
+      },
+      {
+        "file": "node_modules/@supabase/supabase-js/dist/index.mjs",
+        "sha256": "a5a16d1d34369ee35c55f3029c1db2ca3bca0c53eb217b1c649822c2f1fc2736",
+        "matchesArtifact": true
+      },
+      {
+        "file": "node_modules/@supabase/auth-js/package.json",
+        "sha256": "35ad1a61ad02fb70467db0ae2238f3d8fd7009729be73207bacc8f3ac07e4b93",
+        "matchesArtifact": true
+      },
+      {
+        "file": "node_modules/@supabase/auth-js/src/lib/locks.ts",
+        "sha256": "6d1ec3ee482d09c887d4212de582b13128af365a85f5b64893a25d09bc6c8668",
+        "matchesArtifact": true
+      },
+      {
+        "file": "node_modules/@supabase/auth-js/dist/main/index.js",
+        "sha256": "a43ea0c523b8f4f8b8d59bc3b16b9ec9158cad05de53ffc92238fceb26d8bcfd",
+        "matchesArtifact": true
+      },
+      {
+        "file": "node_modules/@supabase/auth-js/dist/module/index.js",
+        "sha256": "9be5694df0e46b33d4f3b7bb8bad0ecef05ce343a5734376d6b4c93a8233eba7",
+        "matchesArtifact": true
+      },
+      {
+        "file": "node_modules/@supabase/auth-js/dist/main/lib/locks.js",
+        "sha256": "9891124da312e1c4ba73296c98dc018ba2532a856ea39248f0e951036892b4e0",
+        "matchesArtifact": true
+      },
+      {
+        "file": "node_modules/@supabase/auth-js/dist/module/lib/locks.js",
+        "sha256": "bd308c17475037290c30f3c8455858368e3c0e170a156fb8361a71c7dc056c87",
+        "matchesArtifact": true
+      }
+    ]
+  },
+  "rawTrace": {
+    "file": "ios-e173b2db/native-ui-auth-diagnostics.json",
+    "bytes": 197546,
+    "sha256": "0750d5b6a3f1dfe6eb3ea58edf8856389eab7257559be164a9ba48b14bb18772",
+    "mode": "synthetic-native-auth-timing",
+    "totalOperations": 635,
+    "retainedEvents": 1024,
+    "droppedEvents": 658,
+    "totalRecordedEvents": 1682,
+    "droppedTracking": 0,
+    "snapshotAtMs": 550935.499,
+    "wallClockOriginMs": 1793427972673,
+    "originEpochAsUtc": "2026-10-31T06:26:12.673000+00:00",
+    "snapshotRelativeToOriginAsUtc": "2026-10-31T06:35:23.608499+00:00",
+    "retention": "The bounded recorder preserves the first 512 and last 512 events. 658 middle events were discarded. This is expected bounded retention, not complete per-operation coverage."
+  },
+  "timers": {
+    "cumulativeDistinctDescriptorIdentities": 2,
+    "identityLimitReached": false,
+    "retainedLockEventCount": 616,
+    "uniqueRetainedSnapshots": [
+      {
+        "clearTimeout": {
+          "id": 2,
+          "kind": "function"
+        },
+        "setTimeout": {
+          "id": 1,
+          "kind": "function"
+        }
+      }
+    ],
+    "allRetainedPhasesUseSameFunctionIdentities": true,
+    "interpretation": "setTimeout function id 1 and clearTimeout function id 2 appear unchanged in all 616 retained lock events. The recorder observed only two descriptor identities cumulatively, with no identity cap. Omitted middle events and timer scheduling/cancellation internals are not directly observable here."
+  },
+  "retainedOperations": {
+    "phaseCounts": [
+      {
+        "kind": "lock",
+        "phase": "acquired",
+        "count": 153
+      },
+      {
+        "kind": "lock",
+        "phase": "released",
+        "count": 153
+      },
+      {
+        "kind": "lock",
+        "phase": "requested",
+        "count": 157
+      },
+      {
+        "kind": "lock",
+        "phase": "settled",
+        "count": 153
+      },
+      {
+        "kind": "storage",
+        "phase": "settled",
+        "count": 204
+      },
+      {
+        "kind": "storage",
+        "phase": "started",
+        "count": 204
+      }
+    ],
+    "settledOutcomes": [
+      {
+        "kind": "lock",
+        "outcome": "fulfilled",
+        "count": 153
+      },
+      {
+        "kind": "storage",
+        "outcome": "fulfilled",
+        "count": 204
+      }
+    ],
+    "incompleteRetainedLockOperations": [
+      {
+        "operationId": 183,
+        "retainedPhases": [
+          "requested"
+        ]
+      },
+      {
+        "operationId": 184,
+        "retainedPhases": [
+          "requested"
+        ]
+      },
+      {
+        "operationId": 185,
+        "retainedPhases": [
+          "requested"
+        ]
+      },
+      {
+        "operationId": 186,
+        "retainedPhases": [
+          "requested"
+        ]
+      }
+    ],
+    "activeAtSnapshot": {
+      "locks": [],
+      "waitingLocks": [],
+      "storage": []
+    },
+    "initialLockWaitMs": 224.922,
+    "lockWait": {
+      "retainedSamples": 153,
+      "minimumMs": 0.079,
+      "medianMs": 0.277,
+      "p95NearestRankMs": 870.39,
+      "maximumMs": 897.645,
+      "maximumOperationId": 40
+    },
+    "lockHold": {
+      "retainedSamples": 153,
+      "minimumMs": 0.159,
+      "medianMs": 3.013,
+      "p95NearestRankMs": 130.478,
+      "maximumMs": 636.873,
+      "maximumOperationId": 28
+    },
+    "lockDuration": {
+      "retainedSamples": 153,
+      "minimumMs": 0.379,
+      "medianMs": 4.689,
+      "p95NearestRankMs": 877.625,
+      "maximumMs": 904.641,
+      "maximumOperationId": 40
+    },
+    "authStorageDuration": {
+      "retainedSamples": 204,
+      "minimumMs": 0.135,
+      "medianMs": 2.833,
+      "p95NearestRankMs": 107.838,
+      "maximumMs": 346.225,
+      "maximumOperationId": 50
+    }
+  },
+  "capturedLog": {
+    "archiveFile": "app.log",
+    "bytes": 1775114,
+    "sha256": "df77342303ef74dfaca3ad1a69f978892af72582903191233dad98d15ffe3d53",
+    "lines": 12108,
+    "firstTimestampText": "2026-10-31 06:25:48.968",
+    "lastTimestampText": "2026-10-31 06:35:17.712",
+    "patternCounts": {
+      "sdkAcquisitionTimeout": 0,
+      "nativeBridgeFatal": 0,
+      "accountWriteFailure": 0
+    },
+    "patterns": {
+      "sdkAcquisitionTimeout": "Lock .+ acquisition timed out after|Acquiring process lock.*timed out",
+      "nativeBridgeFatal": "Exception in HostObject|RCTFatal|Unhandled JS Exception|TurboModuleRegistry.getEnforcing.+could not be found",
+      "accountWriteFailure": "\\[accounts\\] (?:index|save) failed"
+    },
+    "accountProjection": "ios-e173b2db/account-write-log-projection.json",
+    "accountProjectionSha256": "ea7811830a19c15f19523f9db0b84556e09f272a4086baf50582d02aa68b33f0",
+    "qualification": "Absence is limited to the retained app-log window and listed patterns. No complete arbitrary-error absence claim is made."
+  },
+  "conclusion": "The captured iPhone runtime has no observed SDK acquisition-timeout warning; retained settled lock and auth-storage operations fulfilled, with no active operation at the final snapshot. Stable retained timer descriptors support the expected iOS behavior. This does not repair the separate navigation modal/capture prompt failures or establish missing Android timer traces.",
+  "limits": [
+    "658 middle timing events are absent; success is not claimed for all 635 operations.",
+    "The timing observer dynamically samples performance.now or Date.now and clamps elapsed time monotonically; raw clock-source identity and timer lifecycle are not recorded. Measured waits are diagnostic observations, not a wall-clock or end-user performance benchmark.",
+    "This uses synthetic transports; no hosted Supabase authentication or provider network behavior was tested.",
+    "Observed auth storage is AsyncStorage. Dedicated SecureStore account readback did not run because capture never mounted.",
+    "The Android archive from this candidate has empty diagnostics; these iPhone observations do not replace Android acceptance.",
+    "Full movie capture, decoded output and production capability activation remain unaccepted."
+  ]
+}

@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="Platinum full app UI 41169456344 - iOS 18.5 - 2BD2C7AE-736D-4876-B67C-27798227B871" tests="1" failures="1" time="167.549" timestamp="2026-10-31T05:14:18">
+    <testcase id="Full native app navigation" name="Full native app navigation" classname="Full native app navigation" file="tests/native/flows/navigation.yaml" time="167.334" timestamp="2026-10-31T05:14:19" status="ERROR">
+      <failure>Assertion is false: "Travel journal" is visible</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

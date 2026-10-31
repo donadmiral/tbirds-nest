@@ -1,0 +1,51 @@
+.page { width: 100%; max-width: 920px; margin: 0 auto; }
+.recovery { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 16px; padding: 16px 18px; border: 1px solid var(--chrome-border); border-left: 3px solid var(--editorial-gold); border-radius: 12px; background: var(--surface-raised); }
+.recovery > div { flex: 1; min-width: 180px; }
+.recovery strong { font-size: 13px; }
+.recovery p { margin: 5px 0 0; color: var(--color-muted); font-size: 12px; line-height: 1.6; }
+.recovery button { min-height: 44px; padding: 9px 13px; border: 1px solid var(--chrome-border); border-radius: 9px; font-size: 12px; font-weight: 600; }
+.form { overflow: hidden; border: 1px solid var(--chrome-border); border-radius: 16px; background: var(--surface-raised); }
+.fields { border: 0; margin: 0; padding: 0; min-width: 0; }
+.cover { position: relative; display: flex; align-items: center; justify-content: center; height: 210px; background: linear-gradient(115deg,#10233f,#3b516d); color: #fff; }
+.cover > img { width: 100%; height: 100%; object-fit: cover; }
+.cover > span { font-family: var(--font-display); font-size: 25px; letter-spacing: -.03em; color: #ffffff70; }
+.coverTools { position: absolute; bottom: 15px; right: 18px; display: flex; gap: 8px; }
+.coverTools button { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; min-width: 40px; padding: 8px 13px; border-radius: 9px; background: #071426b3; border: 1px solid #ffffff40; color: #fff; font-size: 12px; }
+.photoRow { display: flex; align-items: center; gap: 20px; padding: 0 28px 20px; margin-top: -35px; position: relative; }
+.photoRow > div { padding-top: 40px; }
+.photoRow strong { font-size: 13px; }
+.photoRow p { margin: 4px 0; color: var(--color-muted); font-size: 11px; }
+.avatar { position: relative; display: flex; flex-shrink: 0; align-items: center; justify-content: center; width: 108px; height: 108px; border: 5px solid var(--surface-raised); border-radius: 50%; background: var(--surface-sunken); font-size: 34px; }
+.avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.avatar i { position: absolute; bottom: -3px; right: -3px; display: grid; place-items: center; width: 33px; height: 33px; border: 2px solid var(--surface-raised); border-radius: 50%; background: #0b1e3d; color: #fff; }
+.textButton { min-height: 30px; color: var(--color-muted); font-size: 11px; text-decoration: underline; }
+.grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 20px; padding: 12px 28px 28px; }
+.full { grid-column: 1/-1; }
+.fields label { display: flex; flex-direction: column; gap: 8px; min-width: 0; color: var(--color-ink); font-size: 12px; font-weight: 600; }
+.fields input, .fields textarea, .fields select { width: 100%; min-width: 0; min-height: 44px; border: 1px solid var(--chrome-border); border-radius: 9px; background: var(--surface-raised); padding: 11px 12px; color: var(--color-ink); font: inherit; font-size: 13px; font-weight: 400; }
+.fields input:focus, .fields textarea:focus, .fields select:focus { outline: 2px solid var(--editorial-gold); outline-offset: 2px; }
+.fields input::placeholder, .fields textarea::placeholder { color: var(--color-muted); }
+.fields label small { align-self: flex-end; color: var(--color-muted); font-size: 10px; font-weight: 400; }
+.username { display: flex; flex-direction: column; gap: 9px; font-size: 12px; }
+.username > span { font-weight: 600; }
+.username > strong { font-size: 13px; font-weight: 400; }
+.username > a { align-self: flex-start; color: var(--color-info); font-size: 11px; text-decoration: underline; }
+.links { margin: 0 28px; padding: 22px 0; border-top: 1px solid var(--chrome-border); }
+.links header { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
+.links h2 { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 650; }
+.links p { margin: 5px 0; color: var(--color-muted); font-size: 12px; line-height: 1.5; }
+.links header button { display: flex; flex-shrink: 0; align-items: center; gap: 6px; min-height: 40px; border: 1px solid var(--chrome-border); border-radius: 9px; padding: 8px 12px; font-size: 12px; }
+.links header button:disabled { opacity: .4; }
+.linkRow { display: grid; grid-template-columns: 1fr 1.8fr 40px; gap: 10px; align-items: end; margin-top: 16px; }
+.linkRow > button { display: grid; place-items: center; height: 44px; color: var(--color-muted); }
+.visibility { display: grid; grid-template-columns: 220px minmax(0,1fr); align-items: center; gap: 25px; margin: 0 28px; padding: 22px 0 28px; border-top: 1px solid var(--chrome-border); }
+.visibility > p { color: var(--color-muted); font-size: 12px; line-height: 1.7; }
+.footer { display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 18px 28px; border-top: 1px solid var(--chrome-border); background: var(--canvas); }
+.footer span { margin-right: auto; color: var(--color-muted); font-size: 11px; }
+.footer button { min-height: 42px; border: 1px solid var(--chrome-border); border-radius: 9px; padding: 10px 15px; font-size: 12px; font-weight: 650; }
+.footer .save { background: #0b1e3d; border-color: #0b1e3d; color: #fff; }
+.footer button:disabled { opacity: .4; cursor: not-allowed; }
+.error { margin: 0 28px 20px; padding: 12px 14px; border-radius: 10px; background: color-mix(in srgb,var(--color-danger) 8%,transparent); color: var(--color-danger); font-size: 13px; line-height: 1.6; }
+.success { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 28px 20px; color: var(--color-success); font-size: 13px; }
+.success a { text-decoration: underline; }
+@media(max-width:599px) { .cover { height: 160px; } .cover > span { display: none; } .photoRow { padding-left: 16px; gap: 12px; } .grid { grid-template-columns: 1fr; padding: 16px; gap: 16px; } .links, .visibility { margin: 0 16px; } .linkRow { grid-template-columns: 1fr 40px; } .linkRow > label:first-child { grid-column: 1/-1; } .visibility { grid-template-columns: 1fr; gap: 10px; } .footer { padding: 16px; flex-wrap: wrap; } .footer span { width: 100%; } .error, .success { margin-left: 16px; margin-right: 16px; } }

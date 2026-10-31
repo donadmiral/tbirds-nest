@@ -1,0 +1,271 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-31T05:10:46.462424+00:00",
+  "sourceBinding": {
+    "headSha": "ab281bcaab525331930f6238f97e46c169eee1ee",
+    "mergeSha": "f033c50196f6f5f115f451247073ccdb357025d4",
+    "treeSha": "8e03d00ee3cd707f4095134b5d5c0eec79f5ef19",
+    "treesIdentical": true
+  },
+  "jobs": [
+    {
+      "platform": "ios",
+      "runId": 41169456330,
+      "jobId": 124444050494,
+      "jobStatus": "completed",
+      "jobConclusion": "success",
+      "runUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41169456330/job/124444050494",
+      "artifact": {
+        "id": 13030078792,
+        "bytes": 1021137,
+        "sha256": "e2fe6d43ebabc7134dc3c367edeb7add9dea85714f4ac7a41198f0c6dbd81c1f",
+        "digestVerified": true,
+        "members": 6
+      },
+      "rawReceiptSha256": "d2197bc17b02160b8f9720ad5ffd81df587ad86b2bf20ec2121adbdd1c52b21e",
+      "sourceVerification": [
+        {
+          "path": "modules/boomerang/ios/BoomerangModule.swift",
+          "sha256": "6e31a63649cf96a87caa9abf33c31492fafd2ff4ef18602c21808803d1e57967",
+          "matchesTestedMerge": true,
+          "matchesWorkingSource": true
+        },
+        {
+          "path": "modules/boomerang/ios/StoryVideoView.swift",
+          "sha256": "1601cd03287a4c42e395a1c7f7163cf3465daaab6f0f6957a1264569725749ac",
+          "matchesTestedMerge": true,
+          "matchesWorkingSource": true
+        },
+        {
+          "path": "modules/boomerang/ios/StoryVideoComposition.swift",
+          "sha256": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+          "matchesTestedMerge": true,
+          "matchesWorkingSource": true
+        }
+      ],
+      "receipt": {
+        "commit": "f033c50196f6f5f115f451247073ccdb357025d4",
+        "workflow_run": "41169456330",
+        "result": "unsigned iOS Simulator compile passed",
+        "native_sources": {
+          "modules/boomerang/ios/BoomerangModule.swift": {
+            "sha256": "6e31a63649cf96a87caa9abf33c31492fafd2ff4ef18602c21808803d1e57967",
+            "compiled_objects": [
+              "native-compile-derived/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/Boomerang.build/Objects-normal/x86_64/BoomerangModule.o"
+            ]
+          },
+          "modules/boomerang/ios/StoryVideoView.swift": {
+            "sha256": "1601cd03287a4c42e395a1c7f7163cf3465daaab6f0f6957a1264569725749ac",
+            "compiled_objects": [
+              "native-compile-derived/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/Boomerang.build/Objects-normal/x86_64/StoryVideoView.o"
+            ]
+          },
+          "modules/boomerang/ios/StoryVideoComposition.swift": {
+            "sha256": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+            "compiled_objects": [
+              "native-compile-derived/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/Boomerang.build/Objects-normal/x86_64/StoryVideoComposition.o"
+            ]
+          }
+        },
+        "simulator_architecture": "x86_64",
+        "app_executable_linked": true,
+        "device_or_provider_acceptance": false,
+        "archive_or_ipa_created": false,
+        "app_uploaded_or_submitted": false
+      }
+    },
+    {
+      "platform": "android",
+      "runId": 41169456380,
+      "jobId": 124444050402,
+      "jobStatus": "completed",
+      "jobConclusion": "success",
+      "runUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41169456380/job/124444050402",
+      "artifact": {
+        "id": 13031031245,
+        "bytes": 22866,
+        "sha256": "a4463cf045598a47fc54a7f378916dc1bb946367312447e29c178f51b9ee97af",
+        "digestVerified": true,
+        "members": 11
+      },
+      "rawReceiptSha256": "d9042eac43650deadf9a3823c9fa6fa6490f13794d6cfa0ce0f68201dfadcb05",
+      "sourceVerification": [
+        {
+          "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt",
+          "sha256": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237",
+          "matchesTestedMerge": true,
+          "matchesWorkingSource": true
+        },
+        {
+          "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt",
+          "sha256": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+          "matchesTestedMerge": true,
+          "matchesWorkingSource": true
+        },
+        {
+          "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt",
+          "sha256": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab",
+          "matchesTestedMerge": true,
+          "matchesWorkingSource": true
+        },
+        {
+          "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt",
+          "sha256": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5",
+          "matchesTestedMerge": true,
+          "matchesWorkingSource": true
+        }
+      ],
+      "receipt": {
+        "commit": "f033c50196f6f5f115f451247073ccdb357025d4",
+        "workflow_run": "41169456380",
+        "result": "unsigned Android QA native compile passed",
+        "native_source": {
+          "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt",
+          "sha256": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237",
+          "compiled_classes": [
+            "modules/boomerang/android/build/tmp/kotlin-classes/debug/expo/modules/boomerang/BoomerangModule.class"
+          ]
+        },
+        "native_sources": {
+          "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt": {
+            "sha256": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237",
+            "compiled_classes": [
+              "modules/boomerang/android/build/tmp/kotlin-classes/debug/expo/modules/boomerang/BoomerangModule.class"
+            ]
+          },
+          "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": {
+            "sha256": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+            "compiled_classes": [
+              "modules/boomerang/android/build/tmp/kotlin-classes/debug/expo/modules/boomerang/StoryVideoComposition.class"
+            ]
+          },
+          "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": {
+            "sha256": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab",
+            "compiled_classes": [
+              "modules/boomerang/android/build/tmp/kotlin-classes/debug/expo/modules/boomerang/StoryCanvasEffect.class"
+            ]
+          },
+          "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt": {
+            "sha256": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5",
+            "compiled_classes": [
+              "modules/boomerang/android/build/tmp/kotlin-classes/debug/expo/modules/boomerang/MemoryMovieComposition.class"
+            ]
+          }
+        },
+        "media3_runtime": {
+          "project": ":app",
+          "configuration": "debugRuntimeClasspath",
+          "expectedVersion": "1.8.1",
+          "aligned": true,
+          "components": [
+            {
+              "group": "androidx.media3",
+              "module": "media3-common",
+              "version": "1.8.1"
+            },
+            {
+              "group": "androidx.media3",
+              "module": "media3-container",
+              "version": "1.8.1"
+            },
+            {
+              "group": "androidx.media3",
+              "module": "media3-database",
+              "version": "1.8.1"
+            },
+            {
+              "group": "androidx.media3",
+              "module": "media3-datasource",
+              "version": "1.8.1"
+            },
+            {
+              "group": "androidx.media3",
+              "module": "media3-datasource-okhttp",
+              "version": "1.8.1"
+            },
+            {
+              "group": "androidx.media3",
+              "module": "media3-decoder",
+              "version": "1.8.1"
+            },
+            {
+              "group": "androidx.media3",
+              "module": "media3-effect",
+              "version": "1.8.1"
+            },
+            {
+              "group": "androidx.media3",
+              "module": "media3-exoplayer",
+              "version": "1.8.1"
+            },
+            {
+              "group": "androidx.media3",
+              "module": "media3-exoplayer-dash",
+              "version": "1.8.1"
+            },
+            {
+              "group": "androidx.media3",
+              "module": "media3-exoplayer-hls",
+              "version": "1.8.1"
+            },
+            {
+              "group": "androidx.media3",
+              "module": "media3-exoplayer-smoothstreaming",
+              "version": "1.8.1"
+            },
+            {
+              "group": "androidx.media3",
+              "module": "media3-extractor",
+              "version": "1.8.1"
+            },
+            {
+              "group": "androidx.media3",
+              "module": "media3-muxer",
+              "version": "1.8.1"
+            },
+            {
+              "group": "androidx.media3",
+              "module": "media3-session",
+              "version": "1.8.1"
+            },
+            {
+              "group": "androidx.media3",
+              "module": "media3-transformer",
+              "version": "1.8.1"
+            },
+            {
+              "group": "androidx.media3",
+              "module": "media3-ui",
+              "version": "1.8.1"
+            }
+          ],
+          "scope": "Resolved runtime version alignment; separate from security or encoded-media acceptance."
+        },
+        "expo_module_registration_verified": true,
+        "android_abi": "arm64-v8a",
+        "apk": {
+          "path": "android/app/build/outputs/apk/debug/app-debug-unsigned.apk",
+          "sha256": "e0410f89819959adc79e6dce0d88e871e5bb9df5f0aa53fe15f266d167c47bd1",
+          "bytes": 134810848
+        },
+        "application_id": "app.platinumcircles.mobile.qa",
+        "apk_signed": false,
+        "javascript_bundle_included": false,
+        "android_story_encoder_compiled": true,
+        "advertised_story_video_version": 1,
+        "advertised_story_audio_export_version": 1,
+        "android_memory_movie_encoder_compiled": true,
+        "advertised_memory_movie_version": 0,
+        "encoded_media_acceptance_inferred": false,
+        "device_or_provider_acceptance": false,
+        "app_installed_uploaded_or_submitted": false
+      }
+    }
+  ],
+  "limits": [
+    "These are complete native integration compile jobs, separate from the full-app UI and standalone encoder acceptance jobs.",
+    "The Android receipt advertises production memoryMovieVersion 0. QA capture remains a separate guarded overlay.",
+    "No signed device release, TestFlight submission, physical-device acceptance or movie decode is inferred from compilation.",
+    "The large iOS job-log connector returned Transport closed twice; its immutable diagnostic archive was downloaded instead and the published ZIP digest, embedded commit and all three recorded Swift source hashes were verified."
+  ]
+}

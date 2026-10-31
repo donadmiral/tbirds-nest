@@ -27,19 +27,8 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import * as Haptics from 'expo-haptics';
-import {
-  Z_ARRANGEMENT,
-  FADE_ARRANGEMENT_DIM,
-  FADE_ARRANGEMENT_GUIDES,
-  SPRING_ARRANGEMENT_ENTER,
-  OPACITY_ARRANGEMENT_DIM,
-  OPACITY_GUIDES,
-  HAPTIC_PRESET,
-  HAPTIC_DONE,
-  HAPTIC_SWAP,
-  SHADOW_POST,
-} from '../../constants/motionDualMemory';
+import 'expo-haptics';
+import { Z_ARRANGEMENT, FADE_ARRANGEMENT_DIM, FADE_ARRANGEMENT_GUIDES, SPRING_ARRANGEMENT_ENTER, OPACITY_ARRANGEMENT_DIM, OPACITY_GUIDES, SHADOW_POST } from '../../constants/motionDualMemory';
 
 const SCREEN_W = Dimensions.get('window').width;
 const SCREEN_H = Dimensions.get('window').height;

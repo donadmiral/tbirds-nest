@@ -1,25 +1,26 @@
-import { redirect } from 'next/navigation';
+import { requestTime } from '@/lib/requestTime';
 import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import Shell from '@/components/Shell';
 import { Desk, StatStrip, type DeskRow, type Tone } from '@/components/Desk';
 import { Donut, StackBars, Empty, type Slice } from '@/components/Viz';
 import { fmt, ago } from '@/lib/fmt';
+import Link from 'next/link';
 
 export const dynamic = 'force-dynamic';
 
-const PANEL: React.CSSProperties = { borderRadius: 13, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', overflow: 'hidden' };
+const PANEL: React.CSSProperties = { borderRadius: 12, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', overflow: 'hidden' };
 const HEAD: React.CSSProperties = { padding: '14px 16px 12px', borderBottom: '1px solid rgba(var(--on),0.10)' };
-const H_TITLE: React.CSSProperties = { fontSize: 13.5, fontWeight: 700, color: 'var(--txt)' };
-const H_SUB: React.CSSProperties = { fontSize: 11.3, color: 'var(--txt-muted)', marginTop: 3 };
+const H_TITLE: React.CSSProperties = { fontSize: 14, fontWeight: 700, color: 'var(--txt)' };
+const H_SUB: React.CSSProperties = { fontSize: 12, color: 'var(--txt-muted)', marginTop: 3 };
 
 const IC = {
-  list: 'M4 5h16v2H4V5zm0 6h16v2H4v-2zm0 6h10v2H4v-2z',
-  staff: 'M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3zm-8 0c1.7 0 3-1.3 3-3S9.7 5 8 5 5 6.3 5 8s1.3 3 3 3zm0 2c-2.3 0-7 1.2-7 3.5V19h14v-2.5C15 14.2 10.3 13 8 13zm8 0c-.3 0-.6 0-1 .1 1.2.8 2 1.9 2 3.4V19h6v-2.5c0-2.3-4.7-3.5-7-3.5z',
-  alert: 'M12 2L1 21h22L12 2zm1 14h-2v2h2v-2zm0-6h-2v4h2v-4z',
-  clock: 'M12 2a10 10 0 100 20 10 10 0 000-20zm1 10.6V6h-2v7.4l5.2 3.1 1-1.7-4.2-2.2z',
-  target: 'M12 2a10 10 0 100 20 10 10 0 000-20zm0 3a7 7 0 110 14 7 7 0 010-14zm0 2.5a4.5 4.5 0 100 9 4.5 4.5 0 000-9z',
-};
+  list: 'audit',
+  staff: 'staff',
+  alert: 'warning',
+  clock: 'clock',
+  target: 'target',
+} as const;
 
 const SERIES = ['var(--c1)', 'var(--c2)', 'var(--c3)', 'var(--c4)', 'var(--c5)', 'var(--c6)'];
 const HEAVY = ['suspend', 'ban', 'remove', 'reject', 'deactivate', 'revoke', 'strike'];
@@ -27,18 +28,21 @@ const HEAVY = ['suspend', 'ban', 'remove', 'reject', 'deactivate', 'revoke', 'st
 function title(s: string) { return (s || '').replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()); }
 function isHeavy(action: string) { return HEAVY.some(h => action.toLowerCase().includes(h)); }
 
-export default async function AuditPage() {
+export default async function AuditPage({ searchParams }: { searchParams: Promise<{ actor?: string | string[] }> }) {
   const admin = await requireDesk('/audit');
+  const requestedActor = (await searchParams).actor;
   const svc = serviceClient();
 
-  const now = Date.now();
+  const now = await requestTime();
   const from30 = new Date(now - 30 * 86400000).toISOString();
   const today = new Date(now).toISOString().slice(0, 10);
   const days30 = Array.from({ length: 30 }, (_, i) => new Date(now - (29 - i) * 86400000).toISOString().slice(0, 10));
 
   const fullAudit = ['super_admin', 'platform_admin', 'auditor_readonly'].includes(admin.role);
+  const actor = fullAudit && typeof requestedActor === 'string' && /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(requestedActor) ? requestedActor : null;
   let auditQuery = svc.from('admin_audit_log').select('id, admin_id, action, target_kind, target_id, reason, before, after, created_at', { count: 'exact' });
   if (!fullAudit) auditQuery = auditQuery.eq('admin_id', admin.id);
+  else if (actor) auditQuery = auditQuery.eq('admin_id', actor);
   const [{ data: rowsData, count, error: auditError }, { data: staff, error: staffError }] = await Promise.all([
     auditQuery.order('created_at', { ascending: false }).order('id').limit(400),
     fullAudit ? svc.from('admin_users').select('user_id, role') : svc.from('admin_users').select('user_id, role').eq('user_id', admin.id),
@@ -143,7 +147,7 @@ export default async function AuditPage() {
 
   return (
     <Shell admin={admin} active="/audit" title="Audit log" sub="Every administrative action, immutable, newest first. Nothing on this desk can be edited or deleted, including by the person who did it.">
-      <p className="mb-4 text-sm">{fullAudit ? "All staff" : "Your actions"}: showing the latest {rowsRaw.length} of {count ?? 0} events. Charts, filters and exports cover these displayed events.</p>
+      <p className="mb-4 text-sm">{actor ? 'Selected staff member' : fullAudit ? 'All staff' : 'Your actions'}: showing the latest {rowsRaw.length} of {count ?? 0} events. Charts, filters and exports cover these displayed events. {actor ? <Link href="/audit" className="pc-audit-reset">View all staff actions</Link> : null}</p>
       <StatStrip cards={cards} />
 
       <div className="mt-4" style={PANEL}>
@@ -195,8 +199,8 @@ export default async function AuditPage() {
             </div>
             {Object.keys(kindCount).length === 0 ? <Empty note="No target recorded yet." /> : Object.entries(kindCount).sort((a, b) => b[1] - a[1]).slice(0, 7).map(([k, n]) => (
               <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10.5px 16px', borderBottom: '1px solid rgba(var(--on),0.10)' }}>
-                <span style={{ flex: 1, fontSize: 12, color: 'rgba(var(--on),0.62)' }}>{title(k)}</span>
-                <span className="pc-num" style={{ fontSize: 11.6, fontWeight: 600, color: 'var(--txt)' }}>{n}</span>
+                <span style={{ flex: 1, fontSize: 12, color: 'var(--txt-muted)' }}>{title(k)}</span>
+                <span className="pc-num" style={{ fontSize: 12, fontWeight: 600, color: 'var(--txt)' }}>{n}</span>
               </div>
             ))}
           </div>

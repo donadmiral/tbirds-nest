@@ -1,0 +1,509 @@
+{
+  "reviewedAt": "2026-10-31T07:37:39Z",
+  "reviewer": "hosted_backend",
+  "scope": "Independent Android auth timing, timer identity, request-count and saved-account readback review from the one verified installed-app artifact. No provider access, auth reset, lock deadline change, native rerun or artifact redownload.",
+  "candidate": {
+    "head": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+    "merge": "ba8d659c4b6172c1c4930cd6d348d627bdb1470f",
+    "tree": "bebc0e7bfa5a9a6b17e477a29b17fcd41c2ae27d"
+  },
+  "artifact": {
+    "runId": 41179235060,
+    "jobId": 124473036936,
+    "artifactId": 13035220059,
+    "name": "android-full-app-ui",
+    "zipBytes": 3215162,
+    "zipSha256": "b869c6611030a06c9d7ced04e4c72050f164677738c43537e5019c3e5ade57c1",
+    "sharedExtraction": "/tmp/android-full-app-6878c384-41179235060",
+    "downloadAndGlobalSourceVerificationOwner": "native_acceptance",
+    "sourceManifest": {
+      "path": "docs/quality/native-full-app-20261031/android-full-app-6878c384-source.json",
+      "bytes": 59282,
+      "sha256": "46316da9f904617b1c9f2ec5e56a65251795cf5c8d28b4bcaa8d2b3dcadbe2f3"
+    },
+    "sourceVerification": "Native acceptance independently checked all 496 manifest files and six overlays against published head/merge. This review uses that single verified extraction and independently hashes the focused raw auth/account inputs; it does not repeat the global verification or download."
+  },
+  "canonicalRawInputs": [
+    {
+      "originalArtifactPath": "native-ui-auth-diagnostics.json",
+      "finalArtifactPath": "native-ui-auth-diagnostics-final.json",
+      "byteIdentical": true,
+      "retained": {
+        "path": "docs/quality/native-full-app-20261031/android-6878c384/native-ui-auth-diagnostics.json",
+        "bytes": 184780,
+        "sha256": "d7842204207c470226d5e5cbfcd4b2423177743fa84e65f5605dda354d1f0997"
+      },
+      "inputSha256": "d7842204207c470226d5e5cbfcd4b2423177743fa84e65f5605dda354d1f0997"
+    },
+    {
+      "originalArtifactPath": "native-ui-receipt.json",
+      "finalArtifactPath": "native-ui-receipt-final.json",
+      "byteIdentical": true,
+      "retained": {
+        "path": "docs/quality/native-full-app-20261031/android-6878c384/native-ui-receipt.json",
+        "bytes": 81008,
+        "sha256": "b883e19fe355718423785f146313622f70d4a57496a5bd07d22221a7eb551a9a"
+      },
+      "inputSha256": "b883e19fe355718423785f146313622f70d4a57496a5bd07d22221a7eb551a9a"
+    }
+  ],
+  "observed": {
+    "diagnostics": {
+      "schemaVersion": 1,
+      "mode": "synthetic-native-auth-timing",
+      "atMs": 250098.333,
+      "wallClockOriginMs": 1793431316620,
+      "timerApiIdentityCount": 2,
+      "timerApiIdentityLimitReached": false,
+      "totalOperations": 1861,
+      "droppedEvents": 2916,
+      "droppedTracking": 0,
+      "activeLocks": [],
+      "waitingLocks": [],
+      "activeStorage": []
+    },
+    "retention": {
+      "eventCount": 1024,
+      "policy": "First 512 events plus most recent 512 events. Intermediate events are evicted, not all events after the first 1024.",
+      "firstSegmentAtMs": [
+        0.009,
+        39192.871
+      ],
+      "lastSegmentAtMs": [
+        68365.455,
+        249853.793
+      ],
+      "limit": "The missing middle prevents a whole-run zero-error claim. The 508 retained outcome events are fulfilled; timeout/rejection events may be among 2916 dropped events."
+    },
+    "retainedPhaseCounts": {
+      "lock:requested": 117,
+      "lock:acquired": 109,
+      "storage:started": 290,
+      "storage:settled": 290,
+      "lock:released": 109,
+      "lock:settled": 109
+    },
+    "retainedOutcomeCounts": {
+      "fulfilled": 508
+    },
+    "timerIdentity": {
+      "allRetainedPairs": {
+        "setTimeout": {
+          "kind": "function",
+          "id": 1
+        },
+        "clearTimeout": {
+          "kind": "function",
+          "id": 2
+        }
+      },
+      "identityCountAcrossRecorder": 2,
+      "limit": "Descriptor/function identity samples are not per-timer lifecycle proof; they do not observe each timer registration, cancellation or native dispatch."
+    },
+    "longLock": {
+      "operationId": 173,
+      "phases": [
+        {
+          "kind": "lock",
+          "phase": "requested",
+          "operationId": 173,
+          "lockId": 1,
+          "acquireTimeoutMs": 5000,
+          "activeLockOperationIds": [],
+          "atMs": 38386.41,
+          "timerApis": {
+            "setTimeout": {
+              "kind": "function",
+              "id": 1
+            },
+            "clearTimeout": {
+              "kind": "function",
+              "id": 2
+            }
+          },
+          "utcFromClockAnchor": "2026-10-31T07:22:35.006410+00:00"
+        },
+        {
+          "kind": "lock",
+          "phase": "acquired",
+          "operationId": 173,
+          "lockId": 1,
+          "waitMs": 72.00600000000122,
+          "atMs": 38458.412,
+          "timerApis": {
+            "setTimeout": {
+              "kind": "function",
+              "id": 1
+            },
+            "clearTimeout": {
+              "kind": "function",
+              "id": 2
+            }
+          },
+          "utcFromClockAnchor": "2026-10-31T07:22:35.078412+00:00"
+        },
+        {
+          "kind": "lock",
+          "phase": "released",
+          "operationId": 173,
+          "lockId": 1,
+          "outcome": "fulfilled",
+          "holdMs": 31482.658999999992,
+          "atMs": 69941.096,
+          "timerApis": {
+            "setTimeout": {
+              "kind": "function",
+              "id": 1
+            },
+            "clearTimeout": {
+              "kind": "function",
+              "id": 2
+            }
+          },
+          "utcFromClockAnchor": "2026-10-31T07:23:06.561096+00:00"
+        },
+        {
+          "kind": "lock",
+          "phase": "settled",
+          "operationId": 173,
+          "lockId": 1,
+          "outcome": "fulfilled",
+          "durationMs": 31554.736999999994,
+          "atMs": 69941.155,
+          "timerApis": {
+            "setTimeout": {
+              "kind": "function",
+              "id": 1
+            },
+            "clearTimeout": {
+              "kind": "function",
+              "id": 2
+            }
+          },
+          "utcFromClockAnchor": "2026-10-31T07:23:06.561155+00:00"
+        }
+      ],
+      "holdMs": 31482.659,
+      "totalMs": 31554.737,
+      "acquisitionWaitMs": 72.006,
+      "outcome": "fulfilled"
+    },
+    "queuedBeforeHolderAcquired": {
+      "operations": [
+        {
+          "kind": "lock",
+          "phase": "requested",
+          "operationId": 174,
+          "lockId": 1,
+          "acquireTimeoutMs": 5000,
+          "activeLockOperationIds": [],
+          "atMs": 38386.476,
+          "timerApis": {
+            "setTimeout": {
+              "kind": "function",
+              "id": 1
+            },
+            "clearTimeout": {
+              "kind": "function",
+              "id": 2
+            }
+          }
+        },
+        {
+          "kind": "lock",
+          "phase": "requested",
+          "operationId": 175,
+          "lockId": 1,
+          "acquireTimeoutMs": 5000,
+          "activeLockOperationIds": [],
+          "atMs": 38386.564,
+          "timerApis": {
+            "setTimeout": {
+              "kind": "function",
+              "id": 1
+            },
+            "clearTimeout": {
+              "kind": "function",
+              "id": 2
+            }
+          }
+        },
+        {
+          "kind": "lock",
+          "phase": "requested",
+          "operationId": 176,
+          "lockId": 1,
+          "acquireTimeoutMs": 5000,
+          "activeLockOperationIds": [],
+          "atMs": 38386.607,
+          "timerApis": {
+            "setTimeout": {
+              "kind": "function",
+              "id": 1
+            },
+            "clearTimeout": {
+              "kind": "function",
+              "id": 2
+            }
+          }
+        },
+        {
+          "kind": "lock",
+          "phase": "requested",
+          "operationId": 177,
+          "lockId": 1,
+          "acquireTimeoutMs": 5000,
+          "activeLockOperationIds": [],
+          "atMs": 38390.041,
+          "timerApis": {
+            "setTimeout": {
+              "kind": "function",
+              "id": 1
+            },
+            "clearTimeout": {
+              "kind": "function",
+              "id": 2
+            }
+          }
+        },
+        {
+          "kind": "lock",
+          "phase": "requested",
+          "operationId": 178,
+          "lockId": 1,
+          "acquireTimeoutMs": 5000,
+          "activeLockOperationIds": [],
+          "atMs": 38454.356,
+          "timerApis": {
+            "setTimeout": {
+              "kind": "function",
+              "id": 1
+            },
+            "clearTimeout": {
+              "kind": "function",
+              "id": 2
+            }
+          }
+        },
+        {
+          "kind": "lock",
+          "phase": "requested",
+          "operationId": 179,
+          "lockId": 1,
+          "acquireTimeoutMs": 5000,
+          "activeLockOperationIds": [],
+          "atMs": 38454.41,
+          "timerApis": {
+            "setTimeout": {
+              "kind": "function",
+              "id": 1
+            },
+            "clearTimeout": {
+              "kind": "function",
+              "id": 2
+            }
+          }
+        },
+        {
+          "kind": "lock",
+          "phase": "requested",
+          "operationId": 180,
+          "lockId": 1,
+          "acquireTimeoutMs": 5000,
+          "activeLockOperationIds": [],
+          "atMs": 38455.481,
+          "timerApis": {
+            "setTimeout": {
+              "kind": "function",
+              "id": 1
+            },
+            "clearTimeout": {
+              "kind": "function",
+              "id": 2
+            }
+          }
+        },
+        {
+          "kind": "lock",
+          "phase": "requested",
+          "operationId": 181,
+          "lockId": 1,
+          "acquireTimeoutMs": 5000,
+          "activeLockOperationIds": [],
+          "atMs": 38455.619,
+          "timerApis": {
+            "setTimeout": {
+              "kind": "function",
+              "id": 1
+            },
+            "clearTimeout": {
+              "kind": "function",
+              "id": 2
+            }
+          }
+        }
+      ],
+      "warningCount": 8,
+      "warningWindowUtc": [
+        "2026-10-31T07:22:40.013Z",
+        "2026-10-31T07:22:40.090Z"
+      ],
+      "deadlineMs": 5000,
+      "correlation": "The eight retained outer requests have five-second deadlines matching the eight warning times. Warning lines lack operation IDs; this is count/time-range correlation, not a proven one-to-one mapping."
+    },
+    "retainedStorageWhile173Active": {
+      "starts": 108,
+      "matchedSettlements": 108,
+      "outcomeCounts": {
+        "fulfilled": 108
+      },
+      "maxDurationMs": 168.497,
+      "limit": "Many short reads occur while the outer auth operation remains held. The missing middle prevents a complete count and attribution of every underlying operation."
+    },
+    "maxRetainedWaitMs": 219.079,
+    "maxRetainedStorageDurationMs": 168.497,
+    "fixtureRequests": {
+      "total": 779,
+      "pathCounts": {
+        "/auth/v1/health": 55,
+        "/auth/v1/token": 1,
+        "/rest/v1/profiles": 14,
+        "/rest/v1/rpc/get_catchup_feed": 10,
+        "/rest/v1/notifications": 2,
+        "/rest/v1/follows": 1,
+        "/rest/v1/follow_requests": 1,
+        "/rest/v1/rpc/get_my_actors": 1,
+        "/rest/v1/rpc/get_feed": 4,
+        "/rest/v1/rpc/home_marketplace_recommendations": 3,
+        "/rest/v1/rpc/get_active_promos": 1,
+        "/rest/v1/rpc/get_context_unread": 4,
+        "/rest/v1/rpc/get_profile": 280,
+        "/rest/v1/conversations": 3,
+        "/rest/v1/conversation_members": 3,
+        "/rest/v1/conversation_settings": 3,
+        "/rest/v1/rpc/get_unread_counts": 3,
+        "/rest/v1/posts": 6,
+        "/rest/v1/post_reposts": 3,
+        "/rest/v1/post_bookmarks": 3,
+        "/rest/v1/post_collaborators": 3,
+        "/rest/v1/post_polls": 3,
+        "/rest/v1/rpc/get_feed_visibility": 4,
+        "/rest/v1/rpc/get_recent_likers": 3,
+        "/rest/v1/call_sessions": 2,
+        "/rest/v1/call_participants": 2,
+        "/rest/v1/announcements": 3,
+        "/rest/v1/feature_flags": 1,
+        "/rest/v1/rpc/get_trending_topics": 3,
+        "/rest/v1/post_comments": 3,
+        "/rest/v1/rpc/get_trending_stories": 7,
+        "/rest/v1/user_presence": 6,
+        "/rest/v1/post_seen": 1,
+        "/rest/v1/saved_listings": 1,
+        "/rest/v1/rpc/get_market_feed": 1,
+        "/rest/v1/marketplace_listings": 1,
+        "/rest/v1/jobs": 1,
+        "/rest/v1/job_saves": 1,
+        "/rest/v1/job_applications": 1,
+        "/rest/v1/rpc/my_application_page": 1,
+        "/rest/v1/conversation_typing": 11,
+        "/rest/v1/message_mentions": 2,
+        "/rest/v1/rpc/get_memory_albums": 279,
+        "/auth/v1/user": 20,
+        "/rest/v1/rpc/get_memory_book": 13,
+        "/functions/v1/content-media-sign": 5
+      },
+      "networkForwarded": false,
+      "unhandled": [],
+      "limit": "These are intercepted synthetic QA requests, not provider network calls. Request rows carry no individual timestamp, so path counts cannot be assigned exact times."
+    },
+    "savedAccountReadback": {
+      "actualResults": [
+        {
+          "passed": true,
+          "reloaded": true,
+          "accountCount": 1
+        }
+      ],
+      "accountIndexSuccessLogLines": [
+        3041,
+        3070
+      ],
+      "accountInitLogLine": 9254,
+      "accountSaveOrIndexFailureLogCount": 0,
+      "acceptance": "The QA helper called the unchanged production account store init, which rereads account index and records through real Expo SecureStore, and checked one stored synthetic account, matching refresh token/current owner, and unchanged active session. Only passed/reloaded/count were emitted.",
+      "limits": [
+        "Same installed Android synthetic QA app process only; not a restart, reboot, multiaccount, token-rotation or physical-device durability test.",
+        "SecureStore readback is distinct from the AsyncStorage timing wrapper. The recorder does not time SecureStore operations."
+      ]
+    }
+  },
+  "analysis": [
+    "This run has a real 31.5-second auth lock hold and eight warnings. It must not be described as warning-free or fixed merely because retained final active arrays are empty.",
+    "The formerly observed Daily timer identity replacement is absent from sampled phases in this run. There are two recorded identities throughout; no evidence supports attributing these new warnings to that earlier registry switch.",
+    "Warning timers fired near their five-second deadlines and many short storage operations completed during the hold. The evidence does not support one uninterrupted 31.5-second synchronous event-loop freeze or one 31.5-second disk operation.",
+    "The actual application has a deterministic callback-identity feedback loop: profile publication rerenders AppNavigator, an inline unhandled-action function changes navigation helpers/cache, and focused Profile/shelf effects restart. The source and focused before/after proof are recorded in native-navigation-focus-feedback-repair.json.",
+    "Pinned Supabase fetch requests obtain a session before checking an explicit bearer header; its auth client queues concurrent calls in pendingInLock and drains that queue before releasing an outer lock. This explains how repeated focus reads can prolong one lock. The artifact does not log every pendingInLock entry; exact per-read attribution remains a source-supported inference.",
+    "The shelf tap at 07:22:40.652 was independently shown beneath Android system navigation. That masked target and the overlapping auth storm are separate findings. The later export failure is also reviewed independently; neither is resolved by this receipt."
+  ],
+  "sources": [
+    {
+      "path": "src/services/supabase.ts",
+      "bytes": 5093,
+      "sha256": "457ab3f8c8c54aa3a5e770dd1b43f4869a98c7471c9ccffcbe5f9e3901847fee",
+      "publishedSha256": "457ab3f8c8c54aa3a5e770dd1b43f4869a98c7471c9ccffcbe5f9e3901847fee",
+      "matchesPublished": true
+    },
+    {
+      "path": "src/stores/accountsStore.ts",
+      "bytes": 6719,
+      "sha256": "964d19720cad8c09bd3354d97372cbbca96c1a92d523a4cf61d1778836e8da71",
+      "publishedSha256": "964d19720cad8c09bd3354d97372cbbca96c1a92d523a4cf61d1778836e8da71",
+      "matchesPublished": true
+    },
+    {
+      "path": "tests/native/account-readback.cjs",
+      "bytes": 1280,
+      "sha256": "32f49dba2d807f4db7e63a8474c1d5b1e429d05efe90f343c25a12b1aca3ab19",
+      "publishedSha256": "32f49dba2d807f4db7e63a8474c1d5b1e429d05efe90f343c25a12b1aca3ab19",
+      "matchesPublished": true
+    },
+    {
+      "path": "tests/native/MemoryCaptureFixtureScreen.tsx",
+      "bytes": 2940,
+      "sha256": "2733bae6355e06851454cab5e73e7579bff585b23de5aa2b8259acae7f68de2d",
+      "publishedSha256": "2733bae6355e06851454cab5e73e7579bff585b23de5aa2b8259acae7f68de2d",
+      "matchesPublished": true
+    },
+    {
+      "path": "tests/native/auth-diagnostics.cjs",
+      "bytes": 9178,
+      "sha256": "e7e62603147fda2f2f29e905876e5bd143e335e6a4a92a5d65063d422dc977a7",
+      "publishedSha256": "e7e62603147fda2f2f29e905876e5bd143e335e6a4a92a5d65063d422dc977a7",
+      "matchesPublished": true
+    },
+    {
+      "path": "src/screens/profile/ProfileScreen.tsx",
+      "bytes": 48999,
+      "sha256": "8054af477bbdbd0a17bb7ad417107490b1c1f457c9182fa4e80f3a51bd5e2d20",
+      "publishedSha256": "8054af477bbdbd0a17bb7ad417107490b1c1f457c9182fa4e80f3a51bd5e2d20",
+      "matchesPublished": true
+    },
+    {
+      "path": "src/components/MemoryAlbumCard.tsx",
+      "bytes": 10085,
+      "sha256": "e6974756880f972305f8afccce6b9df1ccb1db67c1dafac181802ee9a935d074",
+      "publishedSha256": "e6974756880f972305f8afccce6b9df1ccb1db67c1dafac181802ee9a935d074",
+      "matchesPublished": true
+    }
+  ],
+  "evidence": [
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/auth-account-log-excerpt.json",
+      "bytes": 3408,
+      "sha256": "1b93efad154851cf7110646834c897ee44739b9f0c23138f8c5c90fe99a7b19d"
+    }
+  ],
+  "relatedRepair": "docs/quality/native-full-app-20261031/native-navigation-focus-feedback-repair.json",
+  "runtimeAcceptance": "Pending a subsequent source-bound installed-app trace. Local repaired callback tests do not establish native lock-time or performance acceptance.",
+  "observerLimit": "QA wrappers add observation work, microtasks and bounded file writes. Durations diagnose phases in this instrumented run, not uninstrumented production performance."
+}

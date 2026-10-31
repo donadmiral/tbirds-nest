@@ -1,0 +1,193 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31 07:18:22 UTC",
+  "source": {
+    "head": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+    "tree": "bebc0e7bfa5a9a6b17e477a29b17fcd41c2ae27d",
+    "checks": {
+      "app.json": {
+        "sha256": "129b756b7bf5e6e1b6b456bbe982f63923b83b0568fa41cac6721a892ea555c2",
+        "matchesPublishedHead": true,
+        "unchangedFromReleaseHandoff": true
+      },
+      "app.config.js": {
+        "sha256": "b59c5ad8fca40e523557e3de9e23f296fc78b7b735d34084a31da6a579cee710",
+        "matchesPublishedHead": true,
+        "unchangedFromReleaseHandoff": true
+      },
+      "eas.json": {
+        "sha256": "2743117e9493cb0e2ef3eb452f3c7bf166700adf0ac4088a3dcc5ba89e85efd7",
+        "matchesPublishedHead": true,
+        "unchangedFromReleaseHandoff": true
+      },
+      "package.json": {
+        "sha256": "ff7c1c59d4c9d435eb97c5b0fb328b3c02871de6e5c210a0ce848bff84b132bd",
+        "matchesPublishedHead": true,
+        "unchangedFromReleaseHandoff": true
+      },
+      ".easignore": {
+        "sha256": "9c57368cd63ca32d8cce18c532b4f9275192edc6bb61209c40dec13715f82ae1",
+        "matchesPublishedHead": true,
+        "unchangedFromReleaseHandoff": true
+      },
+      "index.js": {
+        "sha256": "b6c80d0b280a2446862ee5a19cbfcaff39d551d353ac3a9abf090680570a11e0",
+        "matchesPublishedHead": true,
+        "unchangedFromReleaseHandoff": true
+      },
+      "modules/boomerang/ios/BoomerangModule.swift": {
+        "sha256": "6e31a63649cf96a87caa9abf33c31492fafd2ff4ef18602c21808803d1e57967",
+        "matchesPublishedHead": true,
+        "unchangedFromReleaseHandoff": true
+      },
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt": {
+        "sha256": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237",
+        "matchesPublishedHead": true,
+        "unchangedFromReleaseHandoff": true
+      },
+      "shared/musicAvailability.ts": {
+        "sha256": "4d5685745d2ddfc3941fbee61e404a5f05b3620ff30b4c8c928af968205af157",
+        "matchesPublishedHead": true,
+        "unchangedFromReleaseHandoff": true
+      },
+      "scripts/quality/prepare-native-ui.cjs": {
+        "sha256": "9afa9baef4388c76155dab43708deb0c667a17b5f50e866c5afc0c74c94c8d84",
+        "matchesPublishedHead": true,
+        "unchangedFromReleaseHandoff": true
+      },
+      "scripts/quality/test-ios-app-ui.sh": {
+        "sha256": "138f2ac2e8ed32e09f4b6b5ca6e4c4b07a6f1c93b7373767703dbfd97b3f8077",
+        "matchesPublishedHead": true,
+        "unchangedFromReleaseHandoff": true
+      }
+    },
+    "priorHandoffSha256": "51c5a35c07a213284860965f2a550594b4c14a57e962a49df2f6f036803910a2"
+  },
+  "scope": "Current source-bound signed-iPhone readiness and exact installed-CLI command support. This receipt updates the historical handoff; it is not a build, submission, profile validation or physical-device acceptance result.",
+  "preparedIdentity": {
+    "owner": "donadmiral",
+    "slug": "platinum-circles",
+    "projectId": "6962a2bb-3ebe-4ff8-8d35-e4fb58271259",
+    "appleTeamId": "6PHMSMFKSF",
+    "appStoreConnectAppId": "6764038613",
+    "marketingVersion": "1.1.0"
+  },
+  "deliveryTargets": [
+    {
+      "profile": "preview",
+      "bundleIdentifier": "app.platinumcircles.mobile.qa",
+      "backend": "uaulhuelcfkjwojtymmw.supabase.co",
+      "distribution": "internal device",
+      "iosSimulator": false,
+      "autoIncrement": true,
+      "requires": "Existing valid QA provisioning including the intended device. No QA store submission destination is configured."
+    },
+    {
+      "profile": "production",
+      "bundleIdentifier": "app.platinumcircles.mobile",
+      "backend": "prlkikhckbifseosbukl.supabase.co",
+      "distribution": "store",
+      "iosSimulator": false,
+      "autoIncrement": true,
+      "requires": "Production release gates and existing valid store provisioning. Builds are not automatically submitted."
+    }
+  ],
+  "access": {
+    "browser": "Existing authenticated Expo account and configured project verified.",
+    "cli": "The prior supported EAS whoami check returned Not logged in. No CLI login has been initiated.",
+    "accountSigningMetadata": "Expo displays the configured team's distribution certificate as Valid, expiration Apr 21, 2027 10:53 PM (displayed timezone unspecified), with a submission-key entry for that team.",
+    "signingEvidence": "expo-signing-metadata-6878c384.json",
+    "limit": "Account metadata does not prove the profile association, current Apple acceptance of a new build/submission, or an installed device result.",
+    "appleLogin": "The previously aborted Apple browser sign-in was not retried."
+  },
+  "installedCli": {
+    "package": "eas-cli",
+    "version": "27.2.0",
+    "runtime": "Node.js 24.22.1",
+    "commandPrefix": "npm exec --offline --yes --cache /tmp/platinum-eas-cli-cache --package=eas-cli@27.2.0 -- eas",
+    "helpCommandsExecuted": [
+      "build --help",
+      "build:version:get --help"
+    ],
+    "helpExitCodes": [
+      0,
+      0
+    ],
+    "observedFlags": {
+      "build": [
+        "--platform ios",
+        "--profile PROFILE_NAME",
+        "--freeze-credentials",
+        "--non-interactive",
+        "--no-wait",
+        "--json"
+      ],
+      "build:version:get": [
+        "--platform ios",
+        "--profile PROFILE_NAME",
+        "--json",
+        "--non-interactive"
+      ]
+    },
+    "freezeCredentialsMeaning": "The installed CLI help states this prevents the build from updating credentials in non-interactive mode."
+  },
+  "nextCommandsNotExecuted": [
+    {
+      "command": "eas project:info",
+      "purpose": "Confirm the existing configured account/project after supported Expo authentication.",
+      "mutation": false
+    },
+    {
+      "command": "eas build:version:get --platform ios --profile preview --json --non-interactive",
+      "purpose": "Read the actual remote QA iOS version; do not infer it from local buildNumber or historical build 16.",
+      "mutation": false
+    },
+    {
+      "command": "eas build --platform ios --profile preview --non-interactive --freeze-credentials --no-wait --json",
+      "purpose": "Build the accepted source for signed internal QA delivery using existing credentials.",
+      "prerequisites": [
+        "Usable authorized Expo CLI session",
+        "Required native gate results reviewed",
+        "Existing QA provisioning for the target device"
+      ],
+      "mutation": true
+    },
+    {
+      "command": "eas build --platform ios --profile production --non-interactive --freeze-credentials --no-wait --json",
+      "purpose": "Prepare a source-bound store artifact only after the existing production compatibility/capability/provider gates clear.",
+      "prerequisites": [
+        "Usable authorized Expo CLI session",
+        "Production release gates",
+        "Valid existing production provisioning"
+      ],
+      "mutation": true
+    }
+  ],
+  "currentNativeGate": {
+    "runId": 41179235060,
+    "status": "Still running at this readiness snapshot; no installed-app acceptance pass inferred from compiler/encoder results."
+  },
+  "capabilityBoundary": "Production memoryMovieVersion remains 0; the disposable complete-app test overlay uses 1. This receipt does not enable whole-book export, private-media sessions, commercial licensing, or dependent hosted rollout.",
+  "earlierEvidence": {
+    "path": "ios-signed-release-handoff-e173b2db.json",
+    "sha256": "51c5a35c07a213284860965f2a550594b4c14a57e962a49df2f6f036803910a2",
+    "interpretation": "The eleven release/config inputs match current head. Its historical runtime/access observations remain historical and are superseded only where this receipt or linked current receipts explicitly provide newer observations."
+  },
+  "actionsNotPerformed": [
+    "No Apple sign-in retry",
+    "No secret, key, cookie or session-value extraction",
+    "No CLI authentication",
+    "No build or submission",
+    "No version-counter write",
+    "No profile/certificate/key/device/permission mutation",
+    "No app-source or production-capability change"
+  ],
+  "archiveInspectionPreflight": {
+    "installedCommandHelpChecked": true,
+    "commandSourceSha256": "24bc0d76b90274576d1e108376028f3160c938bf46cfe29856235e0813fe733c",
+    "supportedCommand": "eas build:inspect --platform ios --profile preview --stage archive --output <new-temporary-output-directory>",
+    "authenticationRequirement": "The installed command includes ContextOptions.LoggedIn and resolves that context with nonInteractive:false before its archive branch. The help does not advertise --non-interactive.",
+    "archiveCommandInvoked": false,
+    "reasonNotInvoked": "The known CLI session is signed out. No login prompt, unsupported flag or authentication bypass was attempted. The exact Git source and archive rules are already frozen."
+  }
+}

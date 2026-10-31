@@ -1,0 +1,130 @@
+{
+  "sourceInArchive": "maestro/memory-capture/2026-10-31_170815/Actual native memory capture and encoding/logs/device-xctest.log",
+  "sourceSHA256": "75ab713a7fbc7d17900f5d26c85a32518d2041578019fcce8be7be56ad53b27c",
+  "sourceBytes": 107559,
+  "sourceLines": 996,
+  "selection": "Only the explicit failure/post-error seconds 17:09:56, 17:09:57, 17:09:58",
+  "lines": [
+    {
+      "line": 951,
+      "text": "2026-10-31 17:09:56.131673+0000 maestro-driver-iosUITests-Runner[86717:244739] [Done] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa' "
+    },
+    {
+      "line": 952,
+      "text": "2026-10-31 17:09:56.139946+0000 maestro-driver-iosUITests-Runner[86717:245266] [FlyingFox] <127.0.0.1> request: POST /deviceInfo"
+    },
+    {
+      "line": 954,
+      "text": "2026-10-31 17:09:56.153944+0000 maestro-driver-iosUITests-Runner[86717:244739] Detected running apps: [\"app.platinumcircles.mobile.qa\"]"
+    },
+    {
+      "line": 956,
+      "text": "2026-10-31 17:09:56.160090+0000 maestro-driver-iosUITests-Runner[86717:244739] Returning cached screen size"
+    },
+    {
+      "line": 957,
+      "text": "2026-10-31 17:09:56.160417+0000 maestro-driver-iosUITests-Runner[86717:244739] Device orientation is 1"
+    },
+    {
+      "line": 958,
+      "text": "2026-10-31 17:09:56.164045+0000 maestro-driver-iosUITests-Runner[86717:245256] [FlyingFox] <127.0.0.1> request: POST /viewHierarchy"
+    },
+    {
+      "line": 959,
+      "text": "2026-10-31 17:09:56.173322+0000 maestro-driver-iosUITests-Runner[86717:244739] Detected running apps: [\"app.platinumcircles.mobile.qa\"]"
+    },
+    {
+      "line": 960,
+      "text": "2026-10-31 17:09:56.175098+0000 maestro-driver-iosUITests-Runner[86717:244739] [Start] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa'"
+    },
+    {
+      "line": 961,
+      "text": "2026-10-31 17:09:56.175351+0000 maestro-driver-iosUITests-Runner[86717:244739] [ViewHierarchyHandler] Starting getHierarchyWithFallback for element."
+    },
+    {
+      "line": 963,
+      "text": "2026-10-31 17:09:56.328072+0000 maestro-driver-iosUITests-Runner[86717:244739] [ViewHierarchyHandler] Successfully retrieved element hierarchy."
+    },
+    {
+      "line": 964,
+      "text": "2026-10-31 17:09:56.329541+0000 maestro-driver-iosUITests-Runner[86717:244739] [ViewHierarchyHandler] Fetch status bar hierarchy - start"
+    },
+    {
+      "line": 969,
+      "text": "2026-10-31 17:09:56.787111+0000 maestro-driver-iosUITests-Runner[86717:244739] Fetch status bar hierarchy - duration 0.45753300189971924"
+    },
+    {
+      "line": 970,
+      "text": "2026-10-31 17:09:56.787371+0000 maestro-driver-iosUITests-Runner[86717:244739] [ViewHierarchyHandler] Fetch Safari WebView hierarchy - start"
+    },
+    {
+      "line": 971,
+      "text": "2026-10-31 17:09:56.787619+0000 maestro-driver-iosUITests-Runner[86717:244739] Fetch Safari WebView hierarchy - duration 0.0002090930938720703"
+    },
+    {
+      "line": 973,
+      "text": "2026-10-31 17:09:56.925326+0000 maestro-driver-iosUITests-Runner[86717:244739] [Done] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa' "
+    },
+    {
+      "line": 974,
+      "text": "2026-10-31 17:09:56.938740+0000 maestro-driver-iosUITests-Runner[86717:245266] [FlyingFox] <127.0.0.1> request: POST /deviceInfo"
+    },
+    {
+      "line": 976,
+      "text": "2026-10-31 17:09:56.951475+0000 maestro-driver-iosUITests-Runner[86717:244739] Detected running apps: [\"app.platinumcircles.mobile.qa\"]"
+    },
+    {
+      "line": 978,
+      "text": "2026-10-31 17:09:56.956709+0000 maestro-driver-iosUITests-Runner[86717:244739] Returning cached screen size"
+    },
+    {
+      "line": 979,
+      "text": "2026-10-31 17:09:56.957079+0000 maestro-driver-iosUITests-Runner[86717:244739] Device orientation is 1"
+    },
+    {
+      "line": 980,
+      "text": "2026-10-31 17:09:56.961577+0000 maestro-driver-iosUITests-Runner[86717:245269] [FlyingFox] <127.0.0.1> request: POST /viewHierarchy"
+    },
+    {
+      "line": 981,
+      "text": "2026-10-31 17:09:56.971807+0000 maestro-driver-iosUITests-Runner[86717:244739] Detected running apps: [\"app.platinumcircles.mobile.qa\"]"
+    },
+    {
+      "line": 982,
+      "text": "2026-10-31 17:09:56.973917+0000 maestro-driver-iosUITests-Runner[86717:244739] [Start] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa'"
+    },
+    {
+      "line": 983,
+      "text": "2026-10-31 17:09:56.974249+0000 maestro-driver-iosUITests-Runner[86717:244739] [ViewHierarchyHandler] Starting getHierarchyWithFallback for element."
+    },
+    {
+      "line": 985,
+      "text": "2026-10-31 17:09:57.126799+0000 maestro-driver-iosUITests-Runner[86717:244739] [ViewHierarchyHandler] Successfully retrieved element hierarchy."
+    },
+    {
+      "line": 986,
+      "text": "2026-10-31 17:09:57.127134+0000 maestro-driver-iosUITests-Runner[86717:244739] [ViewHierarchyHandler] Fetch status bar hierarchy - start"
+    },
+    {
+      "line": 991,
+      "text": "2026-10-31 17:09:57.607657+0000 maestro-driver-iosUITests-Runner[86717:244739] Fetch status bar hierarchy - duration 0.4804689884185791"
+    },
+    {
+      "line": 992,
+      "text": "2026-10-31 17:09:57.607891+0000 maestro-driver-iosUITests-Runner[86717:244739] [ViewHierarchyHandler] Fetch Safari WebView hierarchy - start"
+    },
+    {
+      "line": 993,
+      "text": "2026-10-31 17:09:57.608112+0000 maestro-driver-iosUITests-Runner[86717:244739] Fetch Safari WebView hierarchy - duration 0.0001900196075439453"
+    },
+    {
+      "line": 995,
+      "text": "2026-10-31 17:09:57.700113+0000 maestro-driver-iosUITests-Runner[86717:244739] [Done] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa' "
+    },
+    {
+      "line": 996,
+      "text": "2026-10-31 17:09:58.368574+0000 maestro-driver-iosUITests-Runner[86717:245266] [FlyingFox] <127.0.0.1> request: GET /screenshot"
+    }
+  ],
+  "limit": "These driver events bound saved error-artifact timing. They do not retain all preceding matching-poll payloads or measure continuous app latency."
+}

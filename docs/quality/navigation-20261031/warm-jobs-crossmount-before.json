@@ -1,0 +1,14 @@
+{
+  "checkedAt": "2026-10-31T03:57:03.172Z",
+  "scope": "Actual pre-fix Jobs page and card in existing synthetic commerce browser fixture; no hosted traffic",
+  "runtime": "153.0.8010.12",
+  "bundleSha256": "6d6c49935edc77779059c24dbfd82a243f48067a1ae523c0dd43ca42534ee22d",
+  "actual": {
+    "mutationConfirmed": true,
+    "remountedCardSavedAfterConfirmation": false,
+    "remountedCardSavedAfterStaleRead": false,
+    "savedRouteShowsPersistedSave": true
+  },
+  "raceReproduced": true,
+  "browserErrors": []
+}

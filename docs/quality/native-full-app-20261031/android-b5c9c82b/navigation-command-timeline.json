@@ -1,0 +1,563 @@
+{
+  "commandMetadataTimeBasis": "Unix epoch milliseconds converted to UTC. Maestro text log time-of-day is retained verbatim; no device/frame/host-clock calibration is inferred.",
+  "commandStatusCounts": {
+    "COMPLETED": 35,
+    "SKIPPED": 1,
+    "RUNNING": 2
+  },
+  "commands": [
+    {
+      "sequence": 0,
+      "kind": "defineVariablesCommand",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464465464,
+      "timestampUtc": "2026-10-31T16:34:25.464000+00:00",
+      "durationMs": 14,
+      "completionUtcFromMetadata": "2026-10-31T16:34:25.478000+00:00"
+    },
+    {
+      "sequence": 1,
+      "kind": "applyConfigurationCommand",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464465481,
+      "timestampUtc": "2026-10-31T16:34:25.481000+00:00",
+      "durationMs": 0,
+      "completionUtcFromMetadata": "2026-10-31T16:34:25.481000+00:00"
+    },
+    {
+      "sequence": 2,
+      "kind": "launchAppCommand",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464465482,
+      "timestampUtc": "2026-10-31T16:34:25.482000+00:00",
+      "durationMs": 221,
+      "completionUtcFromMetadata": "2026-10-31T16:34:25.703000+00:00"
+    },
+    {
+      "sequence": 3,
+      "kind": "assertConditionCommand",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464465704,
+      "timestampUtc": "2026-10-31T16:34:25.704000+00:00",
+      "durationMs": 2422,
+      "completionUtcFromMetadata": "2026-10-31T16:34:28.126000+00:00",
+      "condition": {
+        "visible": {
+          "textRegex": "Sign in",
+          "optional": false
+        }
+      },
+      "timeoutMs": 30000
+    },
+    {
+      "sequence": 4,
+      "kind": "tapOnElement",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464468127,
+      "timestampUtc": "2026-10-31T16:34:28.127000+00:00",
+      "durationMs": 3098,
+      "completionUtcFromMetadata": "2026-10-31T16:34:31.225000+00:00",
+      "selector": {
+        "textRegex": "Username or email",
+        "optional": false
+      }
+    },
+    {
+      "sequence": 5,
+      "kind": "inputTextCommand",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464471225,
+      "timestampUtc": "2026-10-31T16:34:31.225000+00:00",
+      "durationMs": 3767,
+      "completionUtcFromMetadata": "2026-10-31T16:34:34.992000+00:00"
+    },
+    {
+      "sequence": 6,
+      "kind": "runFlowCommand",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464474993,
+      "timestampUtc": "2026-10-31T16:34:34.993000+00:00",
+      "durationMs": 1276,
+      "completionUtcFromMetadata": "2026-10-31T16:34:36.269000+00:00",
+      "note": "Contains configured nested commands; only separate metadata records attest their execution."
+    },
+    {
+      "sequence": 7,
+      "kind": "hideKeyboardCommand",
+      "status": "COMPLETED",
+      "depth": 1,
+      "timestampUnixMs": 1793464474994,
+      "timestampUtc": "2026-10-31T16:34:34.994000+00:00",
+      "durationMs": 1273,
+      "completionUtcFromMetadata": "2026-10-31T16:34:36.267000+00:00"
+    },
+    {
+      "sequence": 8,
+      "kind": "tapOnElement",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464476268,
+      "timestampUtc": "2026-10-31T16:34:36.268000+00:00",
+      "durationMs": 2425,
+      "completionUtcFromMetadata": "2026-10-31T16:34:38.693000+00:00",
+      "selector": {
+        "textRegex": "Password",
+        "optional": false
+      }
+    },
+    {
+      "sequence": 9,
+      "kind": "inputTextCommand",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464478694,
+      "timestampUtc": "2026-10-31T16:34:38.694000+00:00",
+      "durationMs": 2826,
+      "completionUtcFromMetadata": "2026-10-31T16:34:41.520000+00:00"
+    },
+    {
+      "sequence": 10,
+      "kind": "runFlowCommand",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464481520,
+      "timestampUtc": "2026-10-31T16:34:41.520000+00:00",
+      "durationMs": 942,
+      "completionUtcFromMetadata": "2026-10-31T16:34:42.462000+00:00",
+      "note": "Contains configured nested commands; only separate metadata records attest their execution."
+    },
+    {
+      "sequence": 11,
+      "kind": "hideKeyboardCommand",
+      "status": "COMPLETED",
+      "depth": 1,
+      "timestampUnixMs": 1793464481521,
+      "timestampUtc": "2026-10-31T16:34:41.521000+00:00",
+      "durationMs": 941,
+      "completionUtcFromMetadata": "2026-10-31T16:34:42.462000+00:00"
+    },
+    {
+      "sequence": 12,
+      "kind": "runFlowCommand",
+      "status": "SKIPPED",
+      "depth": 0,
+      "timestampUnixMs": 1793464482463,
+      "timestampUtc": "2026-10-31T16:34:42.463000+00:00",
+      "durationMs": 0,
+      "completionUtcFromMetadata": "2026-10-31T16:34:42.463000+00:00",
+      "note": "Contains configured nested commands; only separate metadata records attest their execution."
+    },
+    {
+      "sequence": 13,
+      "kind": "tapOnElement",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464482463,
+      "timestampUtc": "2026-10-31T16:34:42.463000+00:00",
+      "durationMs": 3589,
+      "completionUtcFromMetadata": "2026-10-31T16:34:46.052000+00:00",
+      "selector": {
+        "textRegex": "Sign in",
+        "optional": false
+      }
+    },
+    {
+      "sequence": 14,
+      "kind": "assertConditionCommand",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464486053,
+      "timestampUtc": "2026-10-31T16:34:46.053000+00:00",
+      "durationMs": 253,
+      "completionUtcFromMetadata": "2026-10-31T16:34:46.306000+00:00",
+      "condition": {
+        "visible": {
+          "textRegex": "A quiet morning in the desert. Small moments worth keeping.",
+          "optional": false
+        }
+      },
+      "timeoutMs": 30000
+    },
+    {
+      "sequence": 15,
+      "kind": "takeScreenshotCommand",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464486308,
+      "timestampUtc": "2026-10-31T16:34:46.308000+00:00",
+      "durationMs": 399,
+      "completionUtcFromMetadata": "2026-10-31T16:34:46.707000+00:00",
+      "screenshot": "home"
+    },
+    {
+      "sequence": 16,
+      "kind": "tapOnElement",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464486709,
+      "timestampUtc": "2026-10-31T16:34:46.709000+00:00",
+      "durationMs": 3536,
+      "completionUtcFromMetadata": "2026-10-31T16:34:50.245000+00:00",
+      "selector": {
+        "textRegex": "Latest",
+        "optional": false
+      }
+    },
+    {
+      "sequence": 17,
+      "kind": "assertConditionCommand",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464490245,
+      "timestampUtc": "2026-10-31T16:34:50.245000+00:00",
+      "durationMs": 277,
+      "completionUtcFromMetadata": "2026-10-31T16:34:50.522000+00:00",
+      "condition": {
+        "visible": {
+          "textRegex": "A quiet morning in the desert. Small moments worth keeping.",
+          "optional": false
+        }
+      },
+      "timeoutMs": null
+    },
+    {
+      "sequence": 18,
+      "kind": "tapOnElement",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464490523,
+      "timestampUtc": "2026-10-31T16:34:50.523000+00:00",
+      "durationMs": 3469,
+      "completionUtcFromMetadata": "2026-10-31T16:34:53.992000+00:00",
+      "selector": {
+        "textRegex": "For You",
+        "optional": false
+      }
+    },
+    {
+      "sequence": 19,
+      "kind": "assertConditionCommand",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464493993,
+      "timestampUtc": "2026-10-31T16:34:53.993000+00:00",
+      "durationMs": 193,
+      "completionUtcFromMetadata": "2026-10-31T16:34:54.186000+00:00",
+      "condition": {
+        "visible": {
+          "textRegex": "A quiet morning in the desert. Small moments worth keeping.",
+          "optional": false
+        }
+      },
+      "timeoutMs": null
+    },
+    {
+      "sequence": 20,
+      "kind": "tapOnElement",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464494187,
+      "timestampUtc": "2026-10-31T16:34:54.187000+00:00",
+      "durationMs": 3698,
+      "completionUtcFromMetadata": "2026-10-31T16:34:57.885000+00:00",
+      "selector": {
+        "idRegex": "main-tab-market",
+        "optional": false
+      }
+    },
+    {
+      "sequence": 21,
+      "kind": "assertConditionCommand",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464497885,
+      "timestampUtc": "2026-10-31T16:34:57.885000+00:00",
+      "durationMs": 123,
+      "completionUtcFromMetadata": "2026-10-31T16:34:58.008000+00:00",
+      "condition": {
+        "visible": {
+          "textRegex": "View listing: Travel journal",
+          "optional": false
+        }
+      },
+      "timeoutMs": 15000
+    },
+    {
+      "sequence": 22,
+      "kind": "takeScreenshotCommand",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464498009,
+      "timestampUtc": "2026-10-31T16:34:58.009000+00:00",
+      "durationMs": 57,
+      "completionUtcFromMetadata": "2026-10-31T16:34:58.066000+00:00",
+      "screenshot": "market"
+    },
+    {
+      "sequence": 23,
+      "kind": "tapOnElement",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464498066,
+      "timestampUtc": "2026-10-31T16:34:58.066000+00:00",
+      "durationMs": 3299,
+      "completionUtcFromMetadata": "2026-10-31T16:35:01.365000+00:00",
+      "selector": {
+        "idRegex": "main-tab-feed",
+        "optional": false
+      }
+    },
+    {
+      "sequence": 24,
+      "kind": "assertConditionCommand",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464501366,
+      "timestampUtc": "2026-10-31T16:35:01.366000+00:00",
+      "durationMs": 233,
+      "completionUtcFromMetadata": "2026-10-31T16:35:01.599000+00:00",
+      "condition": {
+        "visible": {
+          "textRegex": "A quiet morning in the desert. Small moments worth keeping.",
+          "optional": false
+        }
+      },
+      "timeoutMs": null
+    },
+    {
+      "sequence": 25,
+      "kind": "tapOnElement",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464501600,
+      "timestampUtc": "2026-10-31T16:35:01.600000+00:00",
+      "durationMs": 3030,
+      "completionUtcFromMetadata": "2026-10-31T16:35:04.630000+00:00",
+      "selector": {
+        "idRegex": "main-tab-jobs",
+        "optional": false
+      }
+    },
+    {
+      "sequence": 26,
+      "kind": "assertConditionCommand",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464504630,
+      "timestampUtc": "2026-10-31T16:35:04.630000+00:00",
+      "durationMs": 152,
+      "completionUtcFromMetadata": "2026-10-31T16:35:04.782000+00:00",
+      "condition": {
+        "visible": {
+          "textRegex": "(?s)^(?:Product designer|(?:.*?, )?Product designer, (?:.*?, )?Desert Studio(?:, .*)?)$",
+          "optional": false
+        }
+      },
+      "timeoutMs": 15000
+    },
+    {
+      "sequence": 27,
+      "kind": "takeScreenshotCommand",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464504783,
+      "timestampUtc": "2026-10-31T16:35:04.783000+00:00",
+      "durationMs": 34,
+      "completionUtcFromMetadata": "2026-10-31T16:35:04.817000+00:00",
+      "screenshot": "jobs"
+    },
+    {
+      "sequence": 28,
+      "kind": "tapOnElement",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464504817,
+      "timestampUtc": "2026-10-31T16:35:04.817000+00:00",
+      "durationMs": 2788,
+      "completionUtcFromMetadata": "2026-10-31T16:35:07.605000+00:00",
+      "selector": {
+        "idRegex": "main-tab-messages",
+        "optional": false
+      }
+    },
+    {
+      "sequence": 29,
+      "kind": "assertConditionCommand",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464507605,
+      "timestampUtc": "2026-10-31T16:35:07.605000+00:00",
+      "durationMs": 95,
+      "completionUtcFromMetadata": "2026-10-31T16:35:07.700000+00:00",
+      "condition": {
+        "visible": {
+          "textRegex": "(?s)^(?:Ready for our next adventure\\?|(?:.*?, )?Jordan Ellis, (?:.*?, )?Ready for our next adventure\\?(?:, .*)?)$",
+          "optional": false
+        }
+      },
+      "timeoutMs": 15000
+    },
+    {
+      "sequence": 30,
+      "kind": "takeScreenshotCommand",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464507701,
+      "timestampUtc": "2026-10-31T16:35:07.701000+00:00",
+      "durationMs": 56,
+      "completionUtcFromMetadata": "2026-10-31T16:35:07.757000+00:00",
+      "screenshot": "messages"
+    },
+    {
+      "sequence": 31,
+      "kind": "tapOnElement",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464507757,
+      "timestampUtc": "2026-10-31T16:35:07.757000+00:00",
+      "durationMs": 2867,
+      "completionUtcFromMetadata": "2026-10-31T16:35:10.624000+00:00",
+      "selector": {
+        "idRegex": "main-tab-profile",
+        "optional": false
+      }
+    },
+    {
+      "sequence": 32,
+      "kind": "assertConditionCommand",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464510624,
+      "timestampUtc": "2026-10-31T16:35:10.624000+00:00",
+      "durationMs": 155,
+      "completionUtcFromMetadata": "2026-10-31T16:35:10.779000+00:00",
+      "condition": {
+        "visible": {
+          "textRegex": "Alex Rivera",
+          "optional": false
+        }
+      },
+      "timeoutMs": 15000
+    },
+    {
+      "sequence": 33,
+      "kind": "assertConditionCommand",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464510780,
+      "timestampUtc": "2026-10-31T16:35:10.780000+00:00",
+      "durationMs": 140,
+      "completionUtcFromMetadata": "2026-10-31T16:35:10.920000+00:00",
+      "condition": {
+        "visible": {
+          "textRegex": "(?s)^(?:.*?, )?Edit profile$",
+          "optional": false
+        }
+      },
+      "timeoutMs": null
+    },
+    {
+      "sequence": 34,
+      "kind": "takeScreenshotCommand",
+      "status": "COMPLETED",
+      "depth": 0,
+      "timestampUnixMs": 1793464510920,
+      "timestampUtc": "2026-10-31T16:35:10.920000+00:00",
+      "durationMs": 25,
+      "completionUtcFromMetadata": "2026-10-31T16:35:10.945000+00:00",
+      "screenshot": "profile"
+    },
+    {
+      "sequence": 35,
+      "kind": "runFlowCommand",
+      "status": "RUNNING",
+      "depth": 0,
+      "timestampUnixMs": 1793464510946,
+      "timestampUtc": "2026-10-31T16:35:10.946000+00:00",
+      "note": "Contains configured nested commands; only separate metadata records attest their execution."
+    },
+    {
+      "sequence": 36,
+      "kind": "applyConfigurationCommand",
+      "status": "COMPLETED",
+      "depth": 1,
+      "timestampUnixMs": 1793464510946,
+      "timestampUtc": "2026-10-31T16:35:10.946000+00:00",
+      "durationMs": 1,
+      "completionUtcFromMetadata": "2026-10-31T16:35:10.947000+00:00"
+    },
+    {
+      "sequence": 37,
+      "kind": "scrollUntilVisible",
+      "status": "RUNNING",
+      "depth": 1,
+      "timestampUnixMs": 1793464510947,
+      "timestampUtc": "2026-10-31T16:35:10.947000+00:00",
+      "selector": {
+        "textRegex": "View all memory books",
+        "optional": false
+      },
+      "direction": "DOWN",
+      "centerElement": true,
+      "timeoutMs": 20000,
+      "requiredVisibilityPercent": 100
+    }
+  ],
+  "lastLogEvents": [
+    "16:35:10.920 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Assert that \"(?s)^(?:.*?, )?Edit profile$\" is visible COMPLETED",
+    "16:35:10.920 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Take screenshot profile RUNNING",
+    "16:35:10.921 [ INFO] maestro.Maestro.takeScreenshot: Taking screenshot",
+    "16:35:10.921 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to output sink",
+    "16:35:10.945 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Take screenshot profile COMPLETED",
+    "16:35:10.946 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Run memory-navigation.yaml RUNNING",
+    "16:35:10.946 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Apply configuration RUNNING",
+    "16:35:10.947 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Apply configuration COMPLETED",
+    "16:35:10.948 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Scrolling DOWN until \"View all memory books\" is visible with speed 40, visibility percentage 100%, timeout 20000 ms, with centering enabled RUNNING",
+    "16:35:11.629 [ WARN] maestro.orchestra.Orchestra.scrollUntilVisible: Error: maestro.MaestroException$ElementNotFound: Element not found: Text matching regex: View all memory books",
+    "16:35:11.671 [ INFO] maestro.Maestro.swipeFromCenter: Swiping UP from center"
+  ],
+  "lastCompletedVisibleUICommand": {
+    "sequence": 34,
+    "kind": "takeScreenshotCommand",
+    "status": "COMPLETED",
+    "depth": 0,
+    "timestampUnixMs": 1793464510920,
+    "timestampUtc": "2026-10-31T16:35:10.920000+00:00",
+    "durationMs": 25,
+    "completionUtcFromMetadata": "2026-10-31T16:35:10.945000+00:00",
+    "screenshot": "profile"
+  },
+  "lastCompletedMetadataCommand": {
+    "sequence": 36,
+    "kind": "applyConfigurationCommand",
+    "status": "COMPLETED",
+    "depth": 1,
+    "timestampUnixMs": 1793464510946,
+    "timestampUtc": "2026-10-31T16:35:10.946000+00:00",
+    "durationMs": 1,
+    "completionUtcFromMetadata": "2026-10-31T16:35:10.947000+00:00"
+  },
+  "unfinishedCommand": {
+    "sequence": 37,
+    "kind": "scrollUntilVisible",
+    "status": "RUNNING",
+    "depth": 1,
+    "timestampUnixMs": 1793464510947,
+    "timestampUtc": "2026-10-31T16:35:10.947000+00:00",
+    "selector": {
+      "textRegex": "View all memory books",
+      "optional": false
+    },
+    "direction": "DOWN",
+    "centerElement": true,
+    "timeoutMs": 20000,
+    "requiredVisibilityPercent": 100
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "recordedAt": "2026-10-31T01:07:45.516720+00:00",
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "environment": "QA",
+  "providerDeliveryAccepted": false,
+  "physicalDeviceTested": false,
+  "handlerBehavioralCases": 18,
+  "sharedPreferenceCases": 11,
+  "denoTypecheck": "passed with TLS validation enabled and system CA store",
+  "deployments": [
+    {
+      "name": "send-push-notification",
+      "version": 33,
+      "status": "ACTIVE",
+      "gatewayVerifyJwt": false,
+      "bodyAuthentication": "exact service credential for ordinary notifications; exact service credential or verified nonanonymous user with current owner-session authorization for calls",
+      "readbackEveryFileIdentical": true,
+      "liveDenials": [
+        {
+          "case": "anonymous",
+          "status": 401
+        },
+        {
+          "case": "forged bearer",
+          "status": 401
+        }
+      ],
+      "files": {
+        "shared/notificationPreferences.ts": "c1cce2e3e4e8de3d16a10def3b7d9783507dad753150f776b0343d8b98424abf",
+        "supabase/functions/_shared/pushDelivery.ts": "184cfbc43490c00dd267c0c4079ba6e1478996769d9307a454d9c39f50afbafb",
+        "supabase/functions/_shared/boundedFetch.ts": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+        "supabase/functions/send-push-notification/index.ts": "f16ae9c6f912eb3779bee8b77a8fdc104986c31d798f1cdc7059c35eebb00f3a",
+        "supabase/functions/send-push-notification/handler.ts": "f983a0667899875b7011b82aceabefa36554a81e1bb52501338cc282c4e7fc68"
+      }
+    },
+    {
+      "name": "send-voip-push",
+      "version": 22,
+      "status": "ACTIVE",
+      "gatewayVerifyJwt": false,
+      "bodyAuthentication": "exact service credential for ordinary notifications; exact service credential or verified nonanonymous user with current owner-session authorization for calls",
+      "readbackEveryFileIdentical": true,
+      "liveDenials": [
+        {
+          "case": "anonymous",
+          "status": 401
+        },
+        {
+          "case": "forged bearer",
+          "status": 401
+        }
+      ],
+      "files": {
+        "shared/notificationPreferences.ts": "c1cce2e3e4e8de3d16a10def3b7d9783507dad753150f776b0343d8b98424abf",
+        "supabase/functions/_shared/pushDelivery.ts": "184cfbc43490c00dd267c0c4079ba6e1478996769d9307a454d9c39f50afbafb",
+        "supabase/functions/_shared/boundedFetch.ts": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+        "supabase/functions/send-voip-push/index.ts": "6219e2462771be75c6deb144b24784e7b8ca51d684d76e170f8f89454387e5d8",
+        "supabase/functions/send-voip-push/handler.ts": "331b30515e7020f41f078c891b89e70b251cf90c654f4ec78562bdf9bcd822fa"
+      }
+    }
+  ]
+}

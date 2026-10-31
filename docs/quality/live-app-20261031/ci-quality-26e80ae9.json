@@ -1,0 +1,914 @@
+{
+  "schemaVersion": 2,
+  "recordedAt": "2026-10-31T04:13:11.060231Z",
+  "repository": "donadmiral/tbirds-nest",
+  "workflow": {
+    "id": 41166954946,
+    "name": "Type and quality gates",
+    "status": "completed",
+    "conclusion": "success",
+    "run_number": 449,
+    "jobs_url": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/runs/41166954946/jobs",
+    "logs_url": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/runs/41166954946/logs",
+    "workflow_id": 345679496
+  },
+  "runUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41166954946",
+  "sourceBinding": {
+    "headSha": "26e80ae96647884e7f2764bdbb1884fd5aabcff5",
+    "checkoutMergeSha": "6373021f8dcbb2bc614039e74937d2acb0ff2d3e",
+    "headTreeSha": "1c10d4cc20fcfd5a0d4e82ba0121c51e90274c03",
+    "mergeTreeSha": "1c10d4cc20fcfd5a0d4e82ba0121c51e90274c03",
+    "treesIdentical": true,
+    "method": "Commit-specific GitHub workflow discovery; checkout SHA in every retained job log; independent local git tree comparison.",
+    "workflowPath": ".github/workflows/typecheck.yml",
+    "workflowSha256": "dc41c9a035b84a2c562349a876b6e5805960ea1392e8bb0ad8e9244bfd50be0a"
+  },
+  "outcome": "success",
+  "jobs": [
+    {
+      "id": 124436466282,
+      "name": "Link preview Edge TLS",
+      "status": "completed",
+      "conclusion": "success",
+      "unsuccessfulSteps": []
+    },
+    {
+      "id": 124436466487,
+      "name": "Phone app",
+      "status": "completed",
+      "conclusion": "success",
+      "unsuccessfulSteps": []
+    },
+    {
+      "id": 124436466547,
+      "name": "Web app",
+      "status": "completed",
+      "conclusion": "success",
+      "unsuccessfulSteps": []
+    },
+    {
+      "id": 124436466646,
+      "name": "Operations app",
+      "status": "completed",
+      "conclusion": "success",
+      "unsuccessfulSteps": []
+    }
+  ],
+  "testCounts": {
+    "root": {
+      "jobId": 124436466487,
+      "typecheck": "success",
+      "command": "node --test --test-concurrency=2 tests/*.cjs tests/quality/*.cjs",
+      "tests": 1638,
+      "pass": 1638,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "web": {
+      "jobId": 124436466547,
+      "typecheck": "success",
+      "command": "node --test --test-concurrency=2 tests/*.cjs tests/quality/*.cjs",
+      "tests": 672,
+      "pass": 672,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "admin": {
+      "jobId": 124436466646,
+      "typecheck": "success",
+      "command": "node --test --test-concurrency=2 tests/*.cjs",
+      "tests": 195,
+      "pass": 195,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "backendNode": {
+      "jobId": 124436466487,
+      "command": "node --experimental-strip-types --test --test-concurrency=2 supabase/tests/*.test.*",
+      "tests": 317,
+      "pass": 314,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 3,
+      "todo": 0
+    },
+    "rpcAuthorization": {
+      "jobId": 124436466487,
+      "command": "npm test --prefix supabase/tests/rpc-authorization",
+      "totalIsolatedChildInvocations": 46,
+      "tapChildInvocations": 43,
+      "nonTapChildInvocations": 3,
+      "runnerSha256": "b8d1149589ddee1fa0a48d7c2d028e50b14c2b90241a78c323af44dfef924fa3",
+      "tests": 886,
+      "pass": 883,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 3,
+      "todo": 0
+    },
+    "edgeTls": {
+      "jobId": 124436466282,
+      "runtime": "Deno 2.1.4",
+      "handlerTypecheck": "success",
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0,
+      "elapsedReported": "161ms"
+    }
+  },
+  "rpcTapInvocations": [
+    {
+      "isolatedInvocation": 4,
+      "script": "./test-admin-support-review-chain.mjs",
+      "environment": {},
+      "tests": 16,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 5,
+      "script": "./test-admin-completion-chain.mjs",
+      "environment": {},
+      "tests": 34,
+      "pass": 34,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 6,
+      "script": "./test-qa-admin-completion-chain.mjs",
+      "environment": {},
+      "tests": 36,
+      "pass": 36,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 7,
+      "script": "./test-account-storage-erasure-chain.mjs",
+      "environment": {},
+      "tests": 11,
+      "pass": 11,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 8,
+      "script": "./test-private-media-cutover-chain.mjs",
+      "environment": {},
+      "tests": 14,
+      "pass": 14,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 9,
+      "script": "./test-bounded-media-delivery-chain.mjs",
+      "environment": {},
+      "tests": 21,
+      "pass": 21,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 10,
+      "script": "./test-bounded-media-delivery-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_MEDIA_UPGRADE": "1"
+      },
+      "tests": 21,
+      "pass": 21,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 11,
+      "script": "./test-database-hardening-chain.mjs",
+      "environment": {},
+      "tests": 18,
+      "pass": 18,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 12,
+      "script": "./test-database-hardening-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_DATABASE_HARDENING": "1"
+      },
+      "tests": 18,
+      "pass": 18,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 13,
+      "script": "./test-erasure-operator-chain.mjs",
+      "environment": {},
+      "tests": 20,
+      "pass": 20,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 14,
+      "script": "./test-erasure-operator-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_ERASURE_OPERATOR": "1"
+      },
+      "tests": 20,
+      "pass": 20,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 15,
+      "script": "./test-staff-social-shells-chain.mjs",
+      "environment": {},
+      "tests": 16,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 16,
+      "script": "./test-staff-social-shells-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_STAFF_SHELLS": "1"
+      },
+      "tests": 16,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 17,
+      "script": "./test-studio-workflow-chain.mjs",
+      "environment": {},
+      "tests": 41,
+      "pass": 41,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 18,
+      "script": "./test-studio-workflow-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_STUDIO_WORKFLOWS": "1"
+      },
+      "tests": 41,
+      "pass": 41,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 19,
+      "script": "./test-business-auth-chain.mjs",
+      "environment": {},
+      "tests": 27,
+      "pass": 27,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 20,
+      "script": "./test-business-auth-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_BUSINESS_AUTH": "1"
+      },
+      "tests": 27,
+      "pass": 27,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 21,
+      "script": "./test-notification-preferences.mjs",
+      "environment": {},
+      "tests": 33,
+      "pass": 32,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 1,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 22,
+      "script": "./test-notification-preferences.mjs",
+      "environment": {
+        "NOTIFICATION_BUSINESS_FIXTURE": "1"
+      },
+      "tests": 33,
+      "pass": 33,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 23,
+      "script": "./test-notification-event-dispatch.mjs",
+      "environment": {},
+      "tests": 16,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 24,
+      "script": "./test-offer-response-serialization.mjs",
+      "environment": {},
+      "tests": 15,
+      "pass": 15,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 25,
+      "script": "./test-original-music-library.mjs",
+      "environment": {},
+      "tests": 31,
+      "pass": 31,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 26,
+      "script": "./test-original-music-library.mjs",
+      "environment": {
+        "MUSIC_FIXTURE_PREEXISTING": "1"
+      },
+      "tests": 31,
+      "pass": 31,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 27,
+      "script": "./test-original-music-library.mjs",
+      "environment": {
+        "MUSIC_PIPELINE_FIXTURE": "1"
+      },
+      "tests": 31,
+      "pass": 31,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 28,
+      "script": "./test-music-operations.mjs",
+      "environment": {},
+      "tests": 19,
+      "pass": 19,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 29,
+      "script": "./test-licensed-catalogue.mjs",
+      "environment": {},
+      "tests": 22,
+      "pass": 22,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 30,
+      "script": "./test-business-music-integration.mjs",
+      "environment": {},
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 31,
+      "script": "./test-business-music-integration.mjs",
+      "environment": {
+        "PLATINUM_QA_BUSINESS_AUTH": "1"
+      },
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 32,
+      "script": "./test-link-preview-chain.mjs",
+      "environment": {
+        "PLATINUM_CURRENT_PRODUCTION_LINK_PREVIEW": "1"
+      },
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 33,
+      "script": "./test-link-preview-chain.mjs",
+      "environment": {},
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 34,
+      "script": "./test-link-preview-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_LINK_PREVIEW": "1"
+      },
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 35,
+      "script": "../../../tests/link-preview.test.cjs",
+      "environment": {},
+      "tests": 21,
+      "pass": 21,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 36,
+      "script": "./test-legacy-chat-media-compatibility.mjs",
+      "environment": {},
+      "tests": 11,
+      "pass": 11,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 37,
+      "script": "./test-legacy-public-media-snapshots.mjs",
+      "environment": {},
+      "tests": 11,
+      "pass": 11,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 38,
+      "script": "./test-memory-book-visual-presentation.mjs",
+      "environment": {},
+      "tests": 16,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 39,
+      "script": "./test-memory-book-creative.mjs",
+      "environment": {},
+      "tests": 31,
+      "pass": 30,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 1,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 40,
+      "script": "./test-memory-book-creative.mjs",
+      "environment": {
+        "MEMORY_CREATIVE_MUSIC_ORDER": "before"
+      },
+      "tests": 31,
+      "pass": 31,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 41,
+      "script": "./test-memory-book-creative.mjs",
+      "environment": {
+        "MEMORY_CREATIVE_MUSIC_ORDER": "after"
+      },
+      "tests": 31,
+      "pass": 31,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 42,
+      "script": "../content-media-db.test.cjs",
+      "environment": {
+        "PLATINUM_VISUAL_RELEASE": "1"
+      },
+      "tests": 17,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 1,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 43,
+      "script": "../story-mention-reshare-db.test.cjs",
+      "environment": {
+        "PLATINUM_VISUAL_RELEASE": "1"
+      },
+      "tests": 33,
+      "pass": 33,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 44,
+      "script": "../discover-media-projections.test.cjs",
+      "environment": {
+        "PLATINUM_VISUAL_RELEASE": "1"
+      },
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 45,
+      "script": "../../../tests/quality/chat-call-authorization.cjs",
+      "environment": {},
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 46,
+      "script": "../../../tests/quality/call-membership-recovery.cjs",
+      "environment": {},
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  ],
+  "nonTapBackendReports": [
+    {
+      "runtime": "PostgreSQL 18.6 (PGlite 0.5.10) on wasm32-unknown-emscripten, compiled by emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 6.0.5 (1db513782be24469589d7cb8a1f1834e9a33f271), 32-bit",
+      "runtimePackage": "@electric-sql/pglite@0.5.10",
+      "hostedWrites": false,
+      "testCount": 13,
+      "candidateSha256": "12eecb88f7ef39952d8f4deb2c187a134dd72c92131164236392b7b8e66b4b00",
+      "script": "test-push-authorization.mjs",
+      "testsReportedEntries": 13,
+      "limitationsReportedEntries": 3,
+      "countUnit": "as named by the source report; not added to TAP counts",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "suite": "community_group_authorization",
+      "checks": 19,
+      "script": "community-group-tests.mjs",
+      "reportedPassedChecks": 19,
+      "resultsReportedEntries": 19,
+      "limitationsReportedEntries": 3,
+      "countUnit": "as named by the source report; not added to TAP counts",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "hostedWrites": false,
+      "testCount": 4,
+      "candidateSha256": "7614375d9996a321859954663e85ec71cfde7104148e6d487c8e54a78237ca33",
+      "script": "test-combined-atomicity.mjs",
+      "testsReportedEntries": 4,
+      "countUnit": "as named by the source report; not added to TAP counts",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "suite": "admin-commands-integrated",
+      "passed": 22,
+      "hostedWrites": false,
+      "script": "test-admin-commands.mjs",
+      "testsReportedEntries": 22,
+      "limitationsReportedEntries": 2,
+      "countUnit": "as named by the source report; not added to TAP counts",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "suite": "pending-migration-chain",
+      "passed": 41,
+      "hostedWrites": false,
+      "script": "test-pending-migration-chain.mjs",
+      "appliedReportedEntries": 41,
+      "limitationsReportedEntries": 1,
+      "countUnit": "applied migration files, not test scenarios",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "ok": true,
+      "units": 18,
+      "sourceFiles": 19,
+      "alreadyAppliedUnits": 7,
+      "remainingUnits": 11,
+      "heldMigrations": 34,
+      "musicInfrastructureUnchanged": true,
+      "excludedFinanceMarketHiringAdminStorageUnchanged": true,
+      "privateMediaSchemaAbsent": true,
+      "originalBucketVisibilityPreserved": true,
+      "script": "test-production-rollout-chain.mjs",
+      "baselineFunctionHashesReportedEntries": 8,
+      "countUnit": "migration units/source files, not test scenarios",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "ok": true,
+      "baselineUnits": 18,
+      "candidateUnits": 7,
+      "script": "test-parity-release-chain.mjs",
+      "checksReportedEntries": 9,
+      "countUnit": "as named by the source report; not added to TAP counts",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "success": true,
+      "candidate": "20261023185734_redacted_client_diagnostics",
+      "script": "test-app-quality-hiring-chain.mjs",
+      "checksReportedEntries": 11,
+      "countUnit": "as named by the source report; not added to TAP counts",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "success": true,
+      "candidate": "20261029190200_comment_author_highlights",
+      "script": "test-app-quality-hiring-chain.mjs",
+      "checksReportedEntries": 15,
+      "countUnit": "as named by the source report; not added to TAP counts",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "success": true,
+      "baselineUnits": 25,
+      "candidate": "20261025073234_applicant_self_service_quality",
+      "script": "test-app-quality-hiring-chain.mjs",
+      "checksReportedEntries": 16,
+      "countUnit": "as named by the source report; not added to TAP counts",
+      "failureOrSkipCounterEmitted": false
+    }
+  ],
+  "nonTapBackendTextReports": [
+    {
+      "script": "test-postflight.mjs",
+      "observedSummary": "Read-only postflight passed: exact definitions/ACLs and six expected role denials.",
+      "reportedExpectedRoleDenials": 6,
+      "countNote": "Also verifies exact definitions and ACLs; no formal total scenario/fail/skip counter emitted."
+    },
+    {
+      "script": "test-verification-integrity.mjs",
+      "reportedPassedScenarios": 8,
+      "countNote": "Reported scenarios are separate from TAP counts; no formal fail/skip counter emitted."
+    }
+  ],
+  "conditionalSkipsWithPassingCounterparts": [
+    {
+      "name": "book signing uses the reader permission for explicit custom access and inactive accounts",
+      "step": "backendNode",
+      "reasonFromTap": null,
+      "passingCounterparts": [
+        {
+          "step": "rpcAuthorization",
+          "script": "../content-media-db.test.cjs",
+          "environment": {
+            "PLATINUM_VISUAL_RELEASE": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "visual-only manifests do not bind or sign separate audio, and install no soundtrack authorization",
+      "step": "backendNode",
+      "reasonFromTap": null,
+      "passingCounterparts": [
+        {
+          "step": "rpcAuthorization",
+          "script": "../content-media-db.test.cjs",
+          "environment": {
+            "PLATINUM_VISUAL_RELEASE": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "visual-only publisher works without audio infrastructure, rejects added sound, and preserves recorded video controls",
+      "step": "backendNode",
+      "reasonFromTap": null,
+      "passingCounterparts": [
+        {
+          "step": "rpcAuthorization",
+          "script": "../story-mention-reshare-db.test.cjs",
+          "environment": {
+            "PLATINUM_VISUAL_RELEASE": "1"
+          }
+        }
+      ]
+    },
+    {
+      "name": "a real bound business session works until device revocation",
+      "step": "rpcAuthorization",
+      "reasonFromTap": null,
+      "passingCounterparts": [
+        {
+          "step": "rpcAuthorization",
+          "script": "./test-notification-preferences.mjs",
+          "environment": {
+            "NOTIFICATION_BUSINESS_FIXTURE": "1"
+          }
+        }
+      ],
+      "skippedScript": "./test-notification-preferences.mjs",
+      "skippedEnvironment": {}
+    },
+    {
+      "name": "a current exact business binding supports creative persistence and revoked devices stop it",
+      "step": "rpcAuthorization",
+      "reasonFromTap": "Paired combined-music fixture exercises actual business issuance.",
+      "passingCounterparts": [
+        {
+          "step": "rpcAuthorization",
+          "script": "./test-memory-book-creative.mjs",
+          "environment": {
+            "MEMORY_CREATIVE_MUSIC_ORDER": "before"
+          }
+        },
+        {
+          "step": "rpcAuthorization",
+          "script": "./test-memory-book-creative.mjs",
+          "environment": {
+            "MEMORY_CREATIVE_MUSIC_ORDER": "after"
+          }
+        }
+      ],
+      "skippedScript": "./test-memory-book-creative.mjs",
+      "skippedEnvironment": {}
+    },
+    {
+      "name": "sound publication is owner-bound, attested and idempotent",
+      "step": "rpcAuthorization",
+      "reasonFromTap": null,
+      "passingCounterparts": [
+        {
+          "step": "backendNode"
+        }
+      ],
+      "skippedScript": "../content-media-db.test.cjs",
+      "skippedEnvironment": {
+        "PLATINUM_VISUAL_RELEASE": "1"
+      }
+    }
+  ],
+  "logProvenance": {
+    "phone": {
+      "jobId": 124436466487,
+      "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41166954946/job/124436466487",
+      "logsApiUrl": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/jobs/124436466487/logs",
+      "checkedOutCommit": "6373021f8dcbb2bc614039e74937d2acb0ff2d3e",
+      "normalizedLogSha256": "2b8321975281a4be9801ce8ea5e6bddc16b64cd6812fdfcf9677870edf18314a",
+      "normalization": "UTF-8 log body with timestamp prefixes, ANSI color codes and initial BOM removed."
+    },
+    "web": {
+      "jobId": 124436466547,
+      "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41166954946/job/124436466547",
+      "logsApiUrl": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/jobs/124436466547/logs",
+      "checkedOutCommit": "6373021f8dcbb2bc614039e74937d2acb0ff2d3e",
+      "normalizedLogSha256": "2e0973d330f65c23e4227473183e8a4adea9f8e145281035be6497142f931114",
+      "normalization": "UTF-8 log body with timestamp prefixes, ANSI color codes and initial BOM removed."
+    },
+    "admin": {
+      "jobId": 124436466646,
+      "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41166954946/job/124436466646",
+      "logsApiUrl": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/jobs/124436466646/logs",
+      "checkedOutCommit": "6373021f8dcbb2bc614039e74937d2acb0ff2d3e",
+      "normalizedLogSha256": "345a8756ae4e1a341a53e990d8b1befd2c5ace6796ca70c88cc7e9083b8323b0",
+      "normalization": "UTF-8 log body with timestamp prefixes, ANSI color codes and initial BOM removed."
+    },
+    "edge": {
+      "jobId": 124436466282,
+      "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41166954946/job/124436466282",
+      "logsApiUrl": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/jobs/124436466282/logs",
+      "checkedOutCommit": "6373021f8dcbb2bc614039e74937d2acb0ff2d3e",
+      "normalizedLogSha256": "d42b3035d5cc8777e3ffbfe1a23bd43e91bb7c6528b190ef3952fbee8bee6b96",
+      "normalization": "UTF-8 log body with timestamp prefixes, ANSI color codes and initial BOM removed."
+    }
+  },
+  "artifacts": [],
+  "reportedDeploymentStatuses": [
+    {
+      "context": "Vercel \u2013 tbirds-nest",
+      "state": "success",
+      "target_url": "https://vercel.com/donadmirals-projects/tbirds-nest/Gpm1RKYVuUNFzAikMJacT9nDbGEt"
+    },
+    {
+      "context": "Vercel \u2013 platinum-admin",
+      "state": "success",
+      "target_url": "https://vercel.com/donadmirals-projects/platinum-admin/CgqNn8RzWgZb47f3uKEq4vfpLkRC"
+    },
+    {
+      "context": "Vercel \u2013 admin-web",
+      "state": "success",
+      "target_url": "https://vercel.com/intobank/admin-web/AVkd9Ygx8v6eUkmVnFRm8ErzBrSM"
+    },
+    {
+      "context": "Vercel \u2013 platinum-web",
+      "state": "success",
+      "target_url": "https://vercel.com/intobank/platinum-web/CMirJQCo5PceidTrzxds6Ev5AJj4"
+    }
+  ],
+  "limitations": [
+    "Counts describe executed TAP cases and reported checks. Fixture modes repeat tests; no combined unique-feature or unique-test total is asserted.",
+    "Non-TAP checks, scenario counts, source-file counts and migration units are retained separately. Reports without fail/skip counters do not establish such formal totals.",
+    "Database authorization/migration suites use local PGlite and synthetic managed Auth/Storage/Vault. They do not establish hosted Postgres/PostgREST compatibility, production migration acceptance or real-user journeys.",
+    "PGlite serializes queries; these runs do not establish multi-backend lock/deadlock performance or production concurrency latency.",
+    "Edge TLS tests exercise actual local HTTPS/IP pinning and cancellation, not a deployed function or push-provider delivery.",
+    "The notification-event candidate is source-only and outside automatic migrations; passing its source/SQL fixtures does not activate it on QA or production.",
+    "Vercel commit statuses and native CI are separate evidence. Live signed-in application acceptance is recorded separately by the parent agent."
+  ]
+}

@@ -1,7 +1,6 @@
 import TierName from './TierName';
 import { themedSheet, getTheme, useTheme } from '../theme/useTheme';
-import { getTierColor } from './VerifiedBadge';
-import VerifiedBadge from './VerifiedBadge';
+import VerifiedBadge, { getTierColor } from './VerifiedBadge';
 /**
  * ProfileHeader
  *
@@ -20,7 +19,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, Modal, Share, Linking } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
-import { light, typeSize, fontWeight, radius, space } from '../constants/tokens';
+import { typeSize, fontWeight, radius, space } from '../constants/tokens';
 import { supabase } from '../services/supabase';
 import { openNow, hoursSummary, hasHours, DAY_ORDER, dayLabel } from '../utils/businessHours';
 import PlatinumRing from './stories/PlatinumRing';

@@ -1,0 +1,11 @@
+
+/workspace/scratch/d4753960f6a2/tbirds-nest/src/screens/auth/BusinessSignInScreen.tsx
+  53:56  warning  The ref value 'generation.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'generation.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+/workspace/scratch/d4753960f6a2/tbirds-nest/src/screens/profile/BusinessApplyScreen.tsx
+  102:59   warning  The ref value 'actionVersion.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'actionVersion.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+  102:82   warning  The ref value 'readVersion.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'readVersion.current' to a variable inside the effect, and use that variable in the cleanup function      react-hooks/exhaustive-deps
+  102:107  warning  The ref value 'handleVersion.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'handleVersion.current' to a variable inside the effect, and use that variable in the cleanup function  react-hooks/exhaustive-deps
+
+✖ 4 problems (0 errors, 4 warnings)
+

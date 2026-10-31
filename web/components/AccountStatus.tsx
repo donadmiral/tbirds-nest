@@ -7,11 +7,13 @@
  * for the sake of a number: each line is a fact the app already knows, and the
  * ones that are not yet true read as an action rather than a failure.
  */
-import { useEffect, useState } from "react";
+import { useAccountResource } from "@/lib/useAccountResource";
 import Link from "next/link";
 import { BadgeCheck, Check, ShieldAlert } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Panel } from "@/components/ui";
+
+
 
 type Me = {
   created_at: string | null;
@@ -23,29 +25,18 @@ type Me = {
   headline: string | null;
 };
 
+async function loadAccountStatus(client: ReturnType<typeof createClient>, owner: string): Promise<Me> {
+  const {data,error} = await client.from("profiles").select("created_at, is_verified, verified_tier, account_type, username, avatar_url, headline").eq("id",owner).maybeSingle();
+  if(error || !data) throw new Error("Your account details could not load.");
+  return data as Me;
+}
 export function AccountStatus() {
-  const [supabase] = useState(createClient);
-  const [me, setMe] = useState<Me | null>(null);
-  const [email, setEmail] = useState<string | null>(null);
-  const [confirmed, setConfirmed] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      const { data: sess } = await supabase.auth.getSession();
-      const u = sess.session?.user;
-      if (!u) return;
-      setEmail(u.email ?? null);
-      setConfirmed(!!u.email_confirmed_at);
-      const { data } = await supabase
-        .from("profiles")
-        .select("created_at, is_verified, verified_tier, account_type, username, avatar_url, headline")
-        .eq("id", u.id)
-        .maybeSingle();
-      setMe((data ?? null) as Me | null);
-    })();
-  }, [supabase]);
-
+  const resource = useAccountResource<Me|null>(loadAccountStatus, null);
+  const viewer=resource.viewer;
+  if (resource.error) return <Panel title="Account status"><p role="status" className="text-sm text-muted">{resource.error}</p><button type="button" className="mt-2 min-h-11 text-sm font-semibold text-ink" onClick={resource.retry}>Try again</button></Panel>;
+  const me = resource.data;
   if (!me) return null;
+  const email = viewer?.email ?? null, confirmed = Boolean(viewer?.email_confirmed_at);
 
   const since = me.created_at ? new Date(me.created_at) : null;
 
@@ -55,8 +46,8 @@ export function AccountStatus() {
   const checks = [
     { label: "Email confirmed", ok: confirmed, href: "/settings" },
     { label: "Username set", ok: !!me.username, href: "/settings/username" },
-    { label: "Profile photo", ok: !!me.avatar_url, href: me.username ? "/" + encodeURIComponent(me.username) : "/settings/username" },
-    { label: "Headline written", ok: !!me.headline, href: me.username ? "/" + encodeURIComponent(me.username) : "/settings/username" },
+    { label: "Profile photo", ok: !!me.avatar_url, href: '/settings/profile' },
+    { label: "Headline written", ok: !!me.headline, href: '/settings/profile' },
   ];
 
   return (

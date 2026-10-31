@@ -1,0 +1,97 @@
+{
+  "checked_at": "2026-10-30 01:38:30 UTC",
+  "project": "uaulhuelcfkjwojtymmw",
+  "environment": "QA",
+  "migration_sha256": "fbb7d221defb64168d6601f55ffdcb21ff4f061430a340e420e3b766ed3457a0",
+  "status": "Applied and verified; no identity created or altered",
+  "postflight": {
+    "registry": {
+      "acl": "{postgres=arwdDxtm/postgres}",
+      "rls": true,
+      "rows": 0,
+      "owner": "postgres",
+      "policies": 0,
+      "anon_access": false,
+      "service_access": false,
+      "authenticated_access": false
+    },
+    "functions": [
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "b4bf8700c07c75a0c6b8dadb7b9051ef",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "account_erasure.assert_writable(uuid)",
+        "anon_execute": false,
+        "service_execute": false,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "60f85bff8f70e05c3401c4a35d7173b1",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "admin_ops.enforce_staff_social_shell()",
+        "anon_execute": false,
+        "service_execute": false,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "2a59dac44760254e1f2e730c6154d9a9",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "admin_ops.require_session(uuid,uuid,text)",
+        "anon_execute": false,
+        "service_execute": true,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "def6cbc9557e3ec5fa22ce85b003a291",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "triniti_admin_provision(uuid,uuid,uuid,text,jsonb,text)",
+        "anon_execute": false,
+        "service_execute": true,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "ba2e1c694288129ee94d8b6d06746eef",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "triniti_admin_session_check(uuid,uuid)",
+        "anon_execute": false,
+        "service_execute": true,
+        "security_definer": true,
+        "authenticated_execute": false
+      }
+    ],
+    "data_counts": {
+      "profiles": 1,
+      "auth_users": 1,
+      "provisions": 0,
+      "admin_users": 1,
+      "storage_objects": 15
+    },
+    "profile_trigger": {
+      "enabled": "O",
+      "definition": "CREATE TRIGGER enforce_staff_social_shell BEFORE INSERT OR UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION admin_ops.enforce_staff_social_shell()"
+    }
+  }
+}

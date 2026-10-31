@@ -1,0 +1,122 @@
+{
+  "observedAt": "2026-10-31T04:22:33Z",
+  "candidates": [
+    {
+      "head": "26e80ae96647884e7f2764bdbb1884fd5aabcff5",
+      "merge": "6373021f8dcbb2bc614039e74937d2acb0ff2d3e",
+      "tree": "1c10d4cc20fcfd5a0d4e82ba0121c51e90274c03",
+      "headAndMergeTreesEqual": true,
+      "runIds": [
+        41166955000,
+        41166954940
+      ]
+    },
+    {
+      "head": "341395c68cfc0bf74527bcf23e0dced3813e9225",
+      "merge": "1ca98984eec5d0912d510da9e565a84a8d5aacfd",
+      "tree": "ca36583e931756f2d9ea98fdaf3c9869ee4daf8f",
+      "headAndMergeTreesEqual": true,
+      "runIds": [
+        41163537257,
+        41163537282
+      ]
+    }
+  ],
+  "runs": [
+    {
+      "runId": 41166955000,
+      "jobs": [
+        {
+          "jobId": 124436466328,
+          "name": "Verify encoded story audio on iOS Simulator",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41166955000/job/124436466328"
+        },
+        {
+          "jobId": 124436466465,
+          "name": "Verify full memory movies on iOS Simulator",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41166955000/job/124436466465"
+        },
+        {
+          "jobId": 124436466518,
+          "name": "Compile Swift and native integration",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41166955000/job/124436466518"
+        }
+      ]
+    },
+    {
+      "runId": 41166954940,
+      "jobs": [
+        {
+          "jobId": 124436466451,
+          "name": "Compile Kotlin and Android native integration",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41166954940/job/124436466451"
+        },
+        {
+          "jobId": 124436466570,
+          "name": "Verify encoded story audio and memory movies on Android Emulator",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41166954940/job/124436466570"
+        }
+      ]
+    },
+    {
+      "runId": 41163537257,
+      "jobs": [
+        {
+          "jobId": 124426344596,
+          "name": "Compile Swift and native integration",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41163537257/job/124426344596"
+        },
+        {
+          "jobId": 124426344780,
+          "name": "Verify full memory movies on iOS Simulator",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41163537257/job/124426344780"
+        },
+        {
+          "jobId": 124426344849,
+          "name": "Verify encoded story audio on iOS Simulator",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41163537257/job/124426344849"
+        }
+      ]
+    },
+    {
+      "runId": 41163537282,
+      "jobs": [
+        {
+          "jobId": 124426307220,
+          "name": "Verify encoded story audio and memory movies on Android Emulator",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41163537282/job/124426307220"
+        },
+        {
+          "jobId": 124426307458,
+          "name": "Compile Kotlin and Android native integration",
+          "status": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41163537282/job/124426307458"
+        }
+      ]
+    }
+  ],
+  "limits": [
+    "These are standalone compile/encoder workflow outcomes, not full-app navigation acceptance.",
+    "Current26e8 encoder artifact hashes/source receipts are retained separately; no repeat independent decoding is claimed.",
+    "No active native job remained to be canceled when the follow-up source batch was prepared."
+  ]
+}

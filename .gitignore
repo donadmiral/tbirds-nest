@@ -36,3 +36,8 @@ cloudflared.exe
 *.log
 *.zip
 .ffmpeg/
+
+# Disposable native compiler and instrumentation outputs.
+/android-native-compile-logs/
+/android-story-export-logs/
+/modules/boomerang/android/build/

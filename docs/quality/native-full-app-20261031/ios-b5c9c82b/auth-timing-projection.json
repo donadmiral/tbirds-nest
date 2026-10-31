@@ -1,0 +1,282 @@
+{
+  "mode": "synthetic-native-auth-timing",
+  "schemaVersion": 1,
+  "snapshotAtMs": 431619.197,
+  "wallClockOriginMs": 1793466192749,
+  "snapshotUtcFromAnchor": "2026-10-31T17:10:24.368+00:00",
+  "retainedEventCount": 1024,
+  "retainedWindow": {
+    "firstUnixMs": 1793466192749.019,
+    "lastUnixMs": 1793466624135.745,
+    "firstUtc": "2026-10-31T17:03:12.749+00:00",
+    "lastUtc": "2026-10-31T17:10:24.135+00:00"
+  },
+  "totalOperations": 424,
+  "droppedEvents": 182,
+  "droppedTracking": 0,
+  "timerApiIdentityCount": 2,
+  "timerApiIdentityLimitReached": false,
+  "phaseCounts": {
+    "lock:requested": 153,
+    "lock:acquired": 148,
+    "storage:started": 213,
+    "storage:settled": 213,
+    "lock:released": 149,
+    "lock:settled": 148
+  },
+  "outcomeCounts": {
+    "fulfilled": 510
+  },
+  "retainedTimerDescriptorPairs": {
+    "(('function', 1), ('function', 2))": 598
+  },
+  "largestRetainedWaits": [
+    {
+      "operationId": 40,
+      "lockId": 1,
+      "atMs": 49759.938,
+      "waitMs": 1478.9060000000027
+    },
+    {
+      "operationId": 39,
+      "lockId": 1,
+      "atMs": 49754.258,
+      "waitMs": 1473.7599999999948
+    },
+    {
+      "operationId": 38,
+      "lockId": 1,
+      "atMs": 49748.408,
+      "waitMs": 1468.059000000001
+    },
+    {
+      "operationId": 37,
+      "lockId": 1,
+      "atMs": 49745.714,
+      "waitMs": 1465.5069999999978
+    },
+    {
+      "operationId": 36,
+      "lockId": 1,
+      "atMs": 49698.715,
+      "waitMs": 1418.6489999999976
+    },
+    {
+      "operationId": 35,
+      "lockId": 1,
+      "atMs": 49694.849,
+      "waitMs": 1414.9650000000038
+    },
+    {
+      "operationId": 34,
+      "lockId": 1,
+      "atMs": 49477.971,
+      "waitMs": 1198.451000000001
+    },
+    {
+      "operationId": 33,
+      "lockId": 1,
+      "atMs": 49305.712,
+      "waitMs": 1043.0930000000008
+    }
+  ],
+  "largestRetainedHolds": [
+    {
+      "operationId": 91,
+      "lockId": 1,
+      "atMs": 70543.697,
+      "holdMs": 621.2050000000017,
+      "outcome": "fulfilled"
+    },
+    {
+      "operationId": 28,
+      "lockId": 1,
+      "atMs": 49268.088,
+      "holdMs": 361.6189999999988,
+      "outcome": "fulfilled"
+    },
+    {
+      "operationId": 20,
+      "lockId": 1,
+      "atMs": 48519.673,
+      "holdMs": 238.5,
+      "outcome": "fulfilled"
+    },
+    {
+      "operationId": 375,
+      "lockId": 1,
+      "atMs": 371795.528,
+      "holdMs": 218.4210000000312,
+      "outcome": "fulfilled"
+    },
+    {
+      "operationId": 34,
+      "lockId": 1,
+      "atMs": 49694.688,
+      "holdMs": 216.71600000000035,
+      "outcome": "fulfilled"
+    },
+    {
+      "operationId": 116,
+      "lockId": 1,
+      "atMs": 88022.549,
+      "holdMs": 202.50100000000384,
+      "outcome": "fulfilled"
+    },
+    {
+      "operationId": 33,
+      "lockId": 1,
+      "atMs": 49477.922,
+      "holdMs": 172.21500000000378,
+      "outcome": "fulfilled"
+    },
+    {
+      "operationId": 281,
+      "lockId": 1,
+      "atMs": 231155.555,
+      "holdMs": 161.23300000000745,
+      "outcome": "fulfilled"
+    }
+  ],
+  "largestRetainedStorageDurations": [
+    {
+      "operationId": 41,
+      "method": "getItem",
+      "atMs": 48519.511,
+      "durationMs": 238.278999999995,
+      "outcome": "fulfilled"
+    },
+    {
+      "operationId": 382,
+      "method": "getItem",
+      "atMs": 371795.384,
+      "durationMs": 218.21100000001024,
+      "outcome": "fulfilled"
+    },
+    {
+      "operationId": 53,
+      "method": "getItem",
+      "atMs": 49174.03,
+      "durationMs": 204.3139999999985,
+      "outcome": "fulfilled"
+    },
+    {
+      "operationId": 107,
+      "method": "getItem",
+      "atMs": 70537.336,
+      "durationMs": 195.7719999999972,
+      "outcome": "fulfilled"
+    },
+    {
+      "operationId": 67,
+      "method": "getItem",
+      "atMs": 49672.658,
+      "durationMs": 194.63699999999517,
+      "outcome": "fulfilled"
+    },
+    {
+      "operationId": 97,
+      "method": "getItem",
+      "atMs": 70115.99,
+      "durationMs": 193.27300000000105,
+      "outcome": "fulfilled"
+    },
+    {
+      "operationId": 130,
+      "method": "getItem",
+      "atMs": 88008.636,
+      "durationMs": 180.46199999999953,
+      "outcome": "fulfilled"
+    },
+    {
+      "operationId": 66,
+      "method": "getItem",
+      "atMs": 49477.821,
+      "durationMs": 172.05199999999604,
+      "outcome": "fulfilled"
+    }
+  ],
+  "activeLocksAtSnapshot": {
+    "count": 0,
+    "rows": [],
+    "projectionTruncated": false
+  },
+  "waitingLocksAtSnapshot": {
+    "count": 0,
+    "rows": [],
+    "projectionTruncated": false
+  },
+  "activeStorageAtSnapshot": {
+    "count": 0,
+    "rows": [],
+    "projectionTruncated": false
+  },
+  "limits": [
+    "Default retention is first 512 plus latest 512 events; dropped middle events are not reconstructed.",
+    "An active operation is active at this persisted snapshot, not necessarily at artifact collection.",
+    "Stable retained descriptor IDs do not prove timer behavior for an unobserved interval."
+  ],
+  "retentionJoin": {
+    "lastInitialRetainedEventIndex": 511,
+    "lastInitialRetainedAtMs": 131430.784,
+    "lastInitialRetainedUtc": "2026-10-31T17:05:24.179+00:00",
+    "firstRecentRetainedEventIndex": 512,
+    "firstRecentRetainedAtMs": 209820.921,
+    "firstRecentRetainedUtc": "2026-10-31T17:06:42.569+00:00",
+    "droppedEvents": 182,
+    "interpretation": "182 middle events were discarded; the later reader and capture windows fall in the fully retained recent segment."
+  },
+  "exactUiWindows": [
+    {
+      "name": "page_one_assertion",
+      "startUtc": "2026-10-31T17:07:09.714+00:00",
+      "endUtc": "2026-10-31T17:07:28.754+00:00",
+      "uiStatus": "FAILED",
+      "retainedEventCount": 0,
+      "firstEventUtc": null,
+      "lastEventUtc": null,
+      "phaseCounts": {},
+      "outcomeCounts": {},
+      "largestWaitMs": null,
+      "largestHoldMs": null,
+      "largestStorageDurationMs": null,
+      "acquisitionTimesUtc": []
+    },
+    {
+      "name": "capture_heading_assertion",
+      "startUtc": "2026-10-31T17:09:24.716+00:00",
+      "endUtc": "2026-10-31T17:09:56.931+00:00",
+      "uiStatus": "FAILED",
+      "retainedEventCount": 66,
+      "firstEventUtc": "2026-10-31T17:09:27.106+00:00",
+      "lastEventUtc": "2026-10-31T17:09:55.207+00:00",
+      "phaseCounts": {
+        "lock:requested": 11,
+        "lock:acquired": 11,
+        "storage:started": 11,
+        "storage:settled": 11,
+        "lock:released": 11,
+        "lock:settled": 11
+      },
+      "outcomeCounts": {
+        "fulfilled": 33
+      },
+      "largestWaitMs": 0.20699999999487773,
+      "largestHoldMs": 2.956000000005588,
+      "largestStorageDurationMs": 2.680999999982305,
+      "acquisitionTimesUtc": [
+        "2026-10-31T17:09:27.106+00:00",
+        "2026-10-31T17:09:30.621+00:00",
+        "2026-10-31T17:09:34.137+00:00",
+        "2026-10-31T17:09:37.653+00:00",
+        "2026-10-31T17:09:41.170+00:00",
+        "2026-10-31T17:09:44.687+00:00",
+        "2026-10-31T17:09:48.191+00:00",
+        "2026-10-31T17:09:51.691+00:00",
+        "2026-10-31T17:09:52.386+00:00",
+        "2026-10-31T17:09:54.123+00:00",
+        "2026-10-31T17:09:55.207+00:00"
+      ]
+    }
+  ]
+}

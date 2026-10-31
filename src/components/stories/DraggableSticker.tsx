@@ -14,24 +14,13 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Text, View, StyleSheet } from 'react-native';
+import { Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withDecay,
-  withTiming,
-  withSequence,
-  runOnJS,
-  cancelAnimation,
-  Easing,
-  type SharedValue,
-} from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, withSequence, runOnJS, cancelAnimation, type SharedValue } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
-import { StoryTextSticker, StoryStickerStyle } from '../../services/storiesService';
-import { stickerTextStyle } from '../../utils/stickerStyles';
+import { StoryTextSticker } from '../../services/storiesService';
+import '../../utils/stickerStyles';
 import StickerPill from './StickerPill';
 import PostStoryCard from './PostStoryCard';
 import { sharedPostFrame } from '../../../shared/storyPresentation';
@@ -44,7 +33,7 @@ import QuestionStickerCard from './QuestionStickerCard';
 import SliderStickerCard from './SliderStickerCard';
 import QuizStickerCard from './QuizStickerCard';
 import { TimeStickerView, DateStickerView, WeatherStickerView, PhotoStickerView, GifStickerView, EntityStickerCard, composedTextStyle } from './storyExtras';
-import { motion, feedback } from '../../constants/tokens';
+import '../../constants/tokens';
 
 // ── Constants ──
 

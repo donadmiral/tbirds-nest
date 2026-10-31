@@ -1,0 +1,69 @@
+diff --git a/scripts/quality/prepare-native-ui.cjs b/scripts/quality/prepare-native-ui.cjs
+index a5910541..e9172c0f 100644
+--- a/scripts/quality/prepare-native-ui.cjs
++++ b/scripts/quality/prepare-native-ui.cjs
+@@ -22,7 +22,7 @@ const source = ['App.tsx', 'index.js', 'app.config.js', 'package-lock.json', ...
+   'modules/boomerang/memoryComposition.ts',
+   'scripts/quality/prepare-native-ui.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-ios-entitlements.py', 'scripts/quality/verify-native-ui.cjs',
+   'scripts/quality/install-native-ui-tools.sh', 'scripts/quality/run-native-ui-flows.sh', 'scripts/quality/native-ui-flow-results.py', 'scripts/quality/test-ios-app-ui.sh',
+-  'scripts/quality/test-android-app-ui.sh', 'scripts/quality/verify-native-ui-memory.py', '.github/workflows/native-app-ui.yml'];
++  'scripts/quality/test-android-app-ui.sh', 'scripts/quality/native-ui-emulator-diagnostics.py', 'scripts/quality/verify-native-ui-memory.py', '.github/workflows/native-app-ui.yml'];
+ const hashes = Object.fromEntries(source.map(file => [file, crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')]));
+ // Capture installed distributions before overlays; this does not change SDK resolution or code.
+ const dependencyFiles = {
+diff --git a/scripts/quality/test-android-app-ui.sh b/scripts/quality/test-android-app-ui.sh
+index 1c4a9b5d..081a84ec 100644
+--- a/scripts/quality/test-android-app-ui.sh
++++ b/scripts/quality/test-android-app-ui.sh
+@@ -15,6 +15,7 @@ export ANDROID_AVD_HOME="$work_dir/avd"
+ export ANDROID_SERIAL=emulator-5556
+ mkdir -p "$ANDROID_AVD_HOME"
+ emulator_pid=''
++emulator_started_ns=''
+ log_pid=''
+ video_pid=''
+ cleanup() {
+@@ -33,6 +34,10 @@ cleanup() {
+     timeout 10 "$adb_bin" emu kill >/dev/null 2>&1 || true
+     kill "$emulator_pid" >/dev/null 2>&1 || true
+     wait "$emulator_pid" >/dev/null 2>&1 || true
++    # Diagnostics cannot replace the original flow/decoder/verification result.
++    timeout 10 python3 scripts/quality/native-ui-emulator-diagnostics.py \
++      --pid "$emulator_pid" --started-ns "$emulator_started_ns" --gate-exit "$status" \
++      > native-ui-logs/emulator-crashpad-collector.log 2>&1 || true
+   fi
+   if [[ -n "$log_pid" ]]; then kill "$log_pid" >/dev/null 2>&1 || true; fi
+   rm -rf "$work_dir"
+@@ -79,10 +84,16 @@ with zipfile.ZipFile(sys.argv[1]) as z:
+     if not any(p.startswith('lib/x86_64/') for p in z.namelist()): raise SystemExit('Emulator ABI is missing.')
+ PY
+ printf 'no\n' | "$avd_manager" create avd --force --name platinum_app_ui --package 'system-images;android-35;default;x86_64' --path "$ANDROID_AVD_HOME/platinum_app_ui.avd"
+-# Use the supported software backend selector on this headless runner. The
+-# previous swiftshader_indirect mode was deprecated in Emulator 36.4.9.
++# Select an explicit supported backend to isolate the observed host crashes
++# with adaptive software (Lavapipe/SwANGLE). Guest Vulkan remains enabled.
+ # https://developer.android.com/studio/run/emulator-acceleration
+-"$android_sdk/emulator/emulator" -avd platinum_app_ui -port 5556 -no-window -no-audio -no-boot-anim -no-snapshot -gpu software -memory 3072 > native-ui-logs/emulator.log 2>&1 &
++emulator_version_status=0
++timeout 10 "$android_sdk/emulator/emulator" -version > native-ui-logs/emulator-version.log 2>&1 || emulator_version_status=$?
++emulator_help_status=0
++timeout 10 "$android_sdk/emulator/emulator" -help-gpu > native-ui-logs/emulator-gpu-help.log 2>&1 || emulator_help_status=$?
++printf '{"versionExitCode":%s,"gpuHelpExitCode":%s}\n' "$emulator_version_status" "$emulator_help_status" > native-ui-logs/emulator-cli-metadata.json || true
++emulator_started_ns="$(date +%s%N)"
++"$android_sdk/emulator/emulator" -avd platinum_app_ui -port 5556 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader -memory 3072 > native-ui-logs/emulator.log 2>&1 &
+ emulator_pid=$!
+ timeout 180 "$adb_bin" wait-for-device
+ for ((attempt=0; attempt<120; attempt++)); do
+diff --git a/tests/quality/native-auth-diagnostics.cjs b/tests/quality/native-auth-diagnostics.cjs
+index dc36f701..0e0bd8d5 100644
+--- a/tests/quality/native-auth-diagnostics.cjs
++++ b/tests/quality/native-auth-diagnostics.cjs
+@@ -231,7 +231,7 @@ test('disposable preparation retains diagnostic source, original auth hash and e
+     'modules/boomerang/memoryComposition.ts', 'tests/native/auth-diagnostics.cjs', 'tests/native/entry.js',
+     'scripts/quality/prepare-native-ui.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-ios-entitlements.py', 'scripts/quality/verify-native-ui.cjs',
+     'scripts/quality/install-native-ui-tools.sh', 'scripts/quality/run-native-ui-flows.sh', 'scripts/quality/native-ui-flow-results.py', 'scripts/quality/test-ios-app-ui.sh', 'scripts/quality/test-android-app-ui.sh',
+-    'scripts/quality/verify-native-ui-memory.py', '.github/workflows/native-app-ui.yml'];
++    'scripts/quality/native-ui-emulator-diagnostics.py', 'scripts/quality/verify-native-ui-memory.py', '.github/workflows/native-app-ui.yml'];
+   const dependencyFiles = {
+     '@supabase/supabase-js': ['package.json', 'dist/index.cjs', 'dist/index.mjs'],
+     '@supabase/auth-js': ['package.json', 'src/lib/locks.ts', 'dist/main/index.js', 'dist/module/index.js', 'dist/main/lib/locks.js', 'dist/module/lib/locks.js'],

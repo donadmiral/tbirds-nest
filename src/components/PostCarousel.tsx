@@ -1,3 +1,4 @@
+import { privateImageCachePolicy } from '../../shared/mediaDelivery';
 import { postPlaybackSettings } from '../../shared/postVoiceEffects';
 import { postAspectRatio, type PostFrameRecipe } from '../../shared/postMediaEditing';
 import { carouselIndex } from '../../shared/carouselNavigation';
@@ -22,10 +23,7 @@ import PostCaption from './PostCaption';
  */
 import { themedSheet } from '../theme/useTheme';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  View, Text, StyleSheet, FlatList, TouchableOpacity,
-  ActivityIndicator, ViewToken, Animated,
-} from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, ViewToken, Animated } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { VideoView } from 'expo-video';
 import { useSharedVideo } from '../lib/videoEngine';
@@ -82,7 +80,7 @@ function CarouselImage({ uri, width, height, edit, fullFrame }: { uri: string; w
         style={{ width: '100%', height: '100%', transform: xform as any }}
         contentFit={fit}
         contentPosition="center"
-        cachePolicy="memory-disk"
+        cachePolicy={privateImageCachePolicy(uri)}
         priority="high"
         transition={200}
         onLoad={() => setLoaded(true)}

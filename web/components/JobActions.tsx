@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import styles from "@/app/jobs/JobsWorkspace.module.css";
 import { useRouter } from "next/navigation";
 import { Bookmark, Share2, MessageCircle, Check } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -8,7 +9,7 @@ import { createClient } from "@/lib/supabase/client";
 export function JobActions({ jobId, posterId, initiallySaved, viewerId }: {
   jobId: string; posterId: string; initiallySaved: boolean; viewerId: string | null;
 }) {
-  const supabase = createClient();
+  const [supabase] = useState(createClient);
   const router = useRouter();
   const [saved, setSaved] = useState(initiallySaved);
   const [copied, setCopied] = useState(false);
@@ -16,12 +17,15 @@ export function JobActions({ jobId, posterId, initiallySaved, viewerId }: {
   const saving = useRef(false);
   const messaging = useRef(false);
   const [savePending, setSavePending] = useState(false);
+  const [error, setError] = useState("");
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
   async function toggleSave() {
     if (!viewerId) { router.push("/login"); return; }
     if (saving.current) return;
     saving.current = true;
-    setSavePending(true);
+    setSavePending(true); setError("");
     const next = !saved;
     setSaved(next);
     try {
@@ -31,37 +35,42 @@ export function JobActions({ jobId, posterId, initiallySaved, viewerId }: {
       if (error && error.code !== "23505") throw error;
     } catch {
       setSaved(!next);
-      alert("Could not save job. Please try again.");
+      setError("Could not save the job. Please try again.");
     } finally { saving.current = false; setSavePending(false); }
   }
 
   async function share() {
-    const url = window.location.href;
-    if (navigator.share) {
-      try { await navigator.share({ url }); return; } catch { /* cancelled */ }
-    }
-    await navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+    const url = window.location.origin + "/jobs/" + jobId;
+    setError("");
+    try {
+      if (navigator.share) {
+        try { await navigator.share({ url }); return; }
+        catch (reason) { if (reason instanceof Error && reason.name === "AbortError") return; }
+      }
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = setTimeout(() => setCopied(false), 2500);
+    } catch { setError("The link couldn’t be copied. Copy the page address to share this role."); }
   }
 
   async function messageEmployer() {
     if (!viewerId) { router.push("/login"); return; }
     if (messaging.current) return;
     messaging.current = true;
-    setMsgPending(true);
+    setMsgPending(true); setError("");
     try {
       const { data, error } = await supabase.rpc("start_dm_ctx", { p_receiver_id: posterId, p_context: "jobs", p_ref_id: jobId });
       if (error || !data) throw error || new Error("Could not start conversation");
       router.push("/jobs/messages?c=" + data);
-    } catch { alert("Could not open the conversation. Please try again."); }
+    } catch { setError("Could not open the conversation. Please try again."); }
     finally { messaging.current = false; setMsgPending(false); }
   }
 
-  const btn = "flex items-center gap-1.5 rounded-md bg-surface px-3.5 py-2 text-[13px] text-ink/80 transition-colors hover:bg-surface-elevated hover:text-ink";
+  const btn = styles.button;
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div><div className={styles.actions}>
       <button onClick={toggleSave} disabled={savePending} aria-pressed={saved} className={btn + (saved ? " text-accent" : "")}>
         <Bookmark size={16} fill={saved ? "currentColor" : "none"} /> {saved ? "Saved" : "Save"}
       </button>
@@ -73,6 +82,6 @@ export function JobActions({ jobId, posterId, initiallySaved, viewerId }: {
           <MessageCircle size={16} /> {msgPending ? "Opening" : "Message employer"}
         </button>
       ) : null}
-    </div>
+    </div>{error ? <p role="alert" className={styles.error + " mt-2"}>{error}</p> : copied ? <p role="status" className={styles.help + " mt-2"}>Job link copied.</p> : null}</div>
   );
 }

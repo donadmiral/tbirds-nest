@@ -1,0 +1,52 @@
+{
+  "createdAt": "2026-10-30T16:58:14.426473+00:00",
+  "scope": "Browser fixture contract and typing repairs; synthetic local data only",
+  "changes": [
+    "Replaced explicit any values in social, commerce and Studio adapters with typed fixture rows/results and Supabase boundary types.",
+    "Corrected create-community/create-channel results to valid UUIDs and matching navigation expectation.",
+    "Corrected profile context to mutual_names, mutual_count and shared_communities.",
+    "Configured NextImage runtime compile constants while retaining the actual next/image implementation."
+  ],
+  "verification": {
+    "focusedEslint": "exit 0 for all three adapters",
+    "webTypecheck": "exit 0; tsc --noEmit --incremental false",
+    "actualSocialFixtureCompile": "exit 0 after Next runtime constants",
+    "actualCommerceFixtureCompile": "exit 0 after Next runtime constants",
+    "inMemoryContractSmoke": {
+      "exitCode": 0,
+      "networkRequests": 0,
+      "checks": [
+        "Social UUID return contract, mutual fields, owner profile query, failed write remains unchanged",
+        "Commerce integer minor-unit money, lost-response idempotent retry, saved-job persistence",
+        "Studio approval and scheduling, idempotent transition replay, publishing consent separate from paid promotion"
+      ]
+    },
+    "diffCheck": "exit 0"
+  },
+  "limits": [
+    "The local browser runners could not bind 127.0.0.1 because listen returned EPERM. Browser assertions did not run locally.",
+    "The parent owns hosted browser CI and Studio harness execution."
+  ],
+  "files": [
+    {
+      "path": "web/tests/browser/social-backend.ts",
+      "sha256": "88a4fc32f4c527ab8b97a66d523005a9d0111d008dcd33fc73cd43a9c2d57407"
+    },
+    {
+      "path": "web/tests/browser/commerce-backend.ts",
+      "sha256": "79058d88ff453050ee177cd00490ffeffadc1d8362ed9de7c3b312cdd3190873"
+    },
+    {
+      "path": "web/tests/browser/studio-backend.ts",
+      "sha256": "516ab704b6e4a9ceca64bb311862ce8ce6dbffc47e6efd16b74e91faa4a55b2c"
+    },
+    {
+      "path": "web/tests/browser/social-run.cjs",
+      "sha256": "c25e329b8a36895625047c496546462f82bc01d19adc262bbb65f64644808728"
+    },
+    {
+      "path": "web/tests/browser/ui-compile.cjs",
+      "sha256": "da3f41c3d0a167ebc4c363393d1eaa47e198a527c7442fdaf4fe944ce85affde"
+    }
+  ]
+}

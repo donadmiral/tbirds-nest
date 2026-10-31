@@ -1,0 +1,1072 @@
+{
+  "schemaVersion": 3,
+  "recordedAt": "2026-10-31T05:42:34Z",
+  "repository": "donadmiral/tbirds-nest",
+  "workflow": {
+    "id": 41173170133,
+    "name": "Browser interaction and video gates",
+    "status": "completed",
+    "conclusion": "success",
+    "head_sha": "e173b2dbcf253342be5683fa85f102aa38065411",
+    "html_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41173170133",
+    "path": ".github/workflows/browser-quality.yml",
+    "run_number": 30,
+    "created_at": "2026-10-31T05:34:57Z",
+    "updated_at": "2026-10-31T05:40:22Z"
+  },
+  "outcome": "success",
+  "sourceBinding": {
+    "headSha": "e173b2dbcf253342be5683fa85f102aa38065411",
+    "checkoutMergeSha": "e6ca24e27b00207344eb7989ed53d2305cb04cf3",
+    "headAndMergeTreeSha": "37ca8db90469d32a2a2d7b3069db54b522926530",
+    "treesIdentical": true,
+    "artifactHeadSha": "e173b2dbcf253342be5683fa85f102aa38065411",
+    "method": "Raw GitHub metadata, exact checkout merge in completed log, equal published head/merge Git trees, downloaded ZIP digest, and reported source hashes compared with published Git blobs.",
+    "sourceFiles": {
+      "shared/memoryCoverWriting.ts": {
+        "sha256": "226edaf6737692c13c34c56e3d08aa716280b666b7baecf3c2a5f4d64dbea52d",
+        "matchesPublishedGitBlob": true,
+        "reportedByCI": true
+      },
+      "shared/memoryBookPersistence.ts": {
+        "sha256": "9e3b85448540a28e8910c4a74b5b3a853e94be358b36d5322c960733c12e7070",
+        "matchesPublishedGitBlob": true,
+        "reportedByCI": true
+      },
+      "src/components/memory/MemoryBookCover.tsx": {
+        "sha256": "50a86edb475b9a120d16e6fcda4a63494d4f6e1b5ee0e80e0cb68e52dbf163af",
+        "matchesPublishedGitBlob": true,
+        "reportedByCI": true
+      },
+      "src/screens/profile/MemoryAlbumScreen.tsx": {
+        "sha256": "437b2d5c52cf1ad00ce1d322367ac1e41da8857b6d2db6a1c7db263ad4e7f541",
+        "matchesPublishedGitBlob": true,
+        "reportedByCI": true
+      },
+      "web/components/memory/MemoryBookCover.tsx": {
+        "sha256": "ed608207e0325914948f3f929a4f15879a960ecff64e6f8be21d848d50c0bbb7",
+        "matchesPublishedGitBlob": true,
+        "reportedByCI": true
+      },
+      "web/components/memory/MemoryBookCover.module.css": {
+        "sha256": "569bc3a8b8bf67842e5838907a5e064b416941fd37c6caa8b1e68db0f0afb149",
+        "matchesPublishedGitBlob": true,
+        "reportedByCI": true
+      },
+      "web/components/memory/MemoryCreativeControls.tsx": {
+        "sha256": "ae1888dfc43ceac384e5f5540ecd9c2b46db3ab35f3acac81896a103a0aebc20",
+        "matchesPublishedGitBlob": true,
+        "reportedByCI": true
+      },
+      "web/components/memory/MemoryBookDesigner.tsx": {
+        "sha256": "c779935599da0f1f21df5e65e0c1f17c8a3799cd0bb09ccf77989a70c8ae7f52",
+        "matchesPublishedGitBlob": true,
+        "reportedByCI": true
+      },
+      "web/components/MemoryAlbum.tsx": {
+        "sha256": "4218bb2a9a1621f62e72984e8d62f8f9a9fe7abb198e473bddf6999c9fb829a4",
+        "matchesPublishedGitBlob": true,
+        "reportedByCI": true
+      },
+      "web/tests/browser/memory-cover-adapter.ts": {
+        "sha256": "faed035bacbea89dc1f4369ce6123e32c108d16db4d67c019d89061a59eeb947",
+        "matchesPublishedGitBlob": true,
+        "reportedByCI": true
+      },
+      "web/tests/browser/memory-cover-fixture.tsx": {
+        "sha256": "39fd7f08bf81c73b77eb1c917b3fbb2f696bbd18f8c18fb4c355191b0cd7fc89",
+        "matchesPublishedGitBlob": true,
+        "reportedByCI": true
+      },
+      "web/tests/browser/memory-cover-run.cjs": {
+        "sha256": "3f0f43a5ac19dc42ca60848674d9c42f94a77ca3a42af2ae0c7dfebee2292d1b",
+        "matchesPublishedGitBlob": true,
+        "reportedByCI": true
+      },
+      ".github/workflows/browser-quality.yml": {
+        "sha256": "f70a018eb66aa51279290eedabca08992029d7880b26e5a852d3d2070c400f70",
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      "web/tests/browser/navigation-loading-next.cjs": {
+        "sha256": "f84762786ccdd76de193d8a6e8590756632abb674498679f8107aebb55e93c46",
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      "web/app/loading.tsx": {
+        "sha256": "1a02b8100608be1ba059f996fbf800e68c7883698cdb4be46df4660c1bc9650e",
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      "web/components/AppShell.tsx": {
+        "sha256": "4f213f270c045a835776cb1232190f1be7db7b3af3259deb58e13e951be10950",
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      "web/components/NavigationLoading.tsx": {
+        "sha256": "7a51a46b81fea86c45714ae553b5d53682274d7266ef2b7dca2f40315a5ac27b",
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      "web/lib/navigationChromeMemory.ts": {
+        "sha256": "c0c0459d141b300981ea3efb6fa56397993fbfcf6d2310071caeee282038d2ce",
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      "web/lib/serverViewer.ts": {
+        "sha256": "63fd078167f92716c7f258fdfe984bbf519588d7c4f9aac26230e5b77d0e9891",
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      "web/proxy.ts": {
+        "sha256": "312412090e5966dce693c633de8cb71306c2576bdb4d3fbb47298d3656f2d1f2",
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      "web/package-lock.json": {
+        "sha256": "1a0a029d06acb66ea43db5ef4f2def59c695736fd43e37258b2c2e327e8ee408",
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      "admin-web/package-lock.json": {
+        "sha256": "e587e53d2b1fe34364a3df6d8899615ee731a9973d8d202beb3463651320b7ce",
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      "shared/navigationCache.ts": {
+        "sha256": "3c96b45ecbc04af6c214423d83bca2564659906c1781acf1ab265df53e3969ba",
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      "web/lib/navigationCache.ts": {
+        "sha256": "64260f2f9c45c7ed8b8f78d15592e6601ce5f4aa1ba6d197d62ad2a0742d3295",
+        "workingFileMatchesPublishedGitBlob": true
+      }
+    },
+    "unchangedDeploymentInputs": "docs/quality/live-app-20261031/deployment-review-e173b2db.json"
+  },
+  "job": {
+    "id": 124455216909,
+    "name": "Connected app, Studio, admin and encoded movies",
+    "status": "completed",
+    "conclusion": "success",
+    "head_sha": "e173b2dbcf253342be5683fa85f102aa38065411",
+    "started_at": "2026-10-31T05:34:59Z",
+    "completed_at": "2026-10-31T05:40:21Z",
+    "html_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41173170133/job/124455216909",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-10-31T05:35:00Z",
+        "completed_at": "2026-10-31T05:35:00Z"
+      },
+      {
+        "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-10-31T05:35:00Z",
+        "completed_at": "2026-10-31T05:35:04Z"
+      },
+      {
+        "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-10-31T05:35:04Z",
+        "completed_at": "2026-10-31T05:35:07Z"
+      },
+      {
+        "name": "Install locked browser and admin dependencies",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4,
+        "started_at": "2026-10-31T05:35:07Z",
+        "completed_at": "2026-10-31T05:36:01Z"
+      },
+      {
+        "name": "Install browser and media verification tools",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5,
+        "started_at": "2026-10-31T05:36:01Z",
+        "completed_at": "2026-10-31T05:36:34Z"
+      },
+      {
+        "name": "Exercise actual admin components",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6,
+        "started_at": "2026-10-31T05:36:34Z",
+        "completed_at": "2026-10-31T05:36:45Z"
+      },
+      {
+        "name": "Exercise public-web navigation, account changes and recovery",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-10-31T05:36:45Z",
+        "completed_at": "2026-10-31T05:37:12Z"
+      },
+      {
+        "name": "Exercise real Next cold-route navigation and held server responses",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 8,
+        "started_at": "2026-10-31T05:37:12Z",
+        "completed_at": "2026-10-31T05:37:21Z"
+      },
+      {
+        "name": "Exercise jobs, application review, market offers and orders",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 9,
+        "started_at": "2026-10-31T05:37:21Z",
+        "completed_at": "2026-10-31T05:37:35Z"
+      },
+      {
+        "name": "Exercise Studio approval, campaign and creator journeys",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 10,
+        "started_at": "2026-10-31T05:37:35Z",
+        "completed_at": "2026-10-31T05:37:44Z"
+      },
+      {
+        "name": "Export and decode actual graded story video",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 11,
+        "started_at": "2026-10-31T05:37:44Z",
+        "completed_at": "2026-10-31T05:38:00Z"
+      },
+      {
+        "name": "Export and decode full memory movies and audio mixes",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 12,
+        "started_at": "2026-10-31T05:38:00Z",
+        "completed_at": "2026-10-31T05:39:41Z"
+      },
+      {
+        "name": "Exercise book design, persistence, conflicts and account changes",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 13,
+        "started_at": "2026-10-31T05:39:41Z",
+        "completed_at": "2026-10-31T05:39:52Z"
+      },
+      {
+        "name": "Verify private original uploads, microphone capture and retained music exports",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 14,
+        "started_at": "2026-10-31T05:39:52Z",
+        "completed_at": "2026-10-31T05:40:18Z"
+      },
+      {
+        "name": "Keep synthetic browser evidence",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 15,
+        "started_at": "2026-10-31T05:40:18Z",
+        "completed_at": "2026-10-31T05:40:19Z"
+      },
+      {
+        "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 29,
+        "started_at": "2026-10-31T05:40:19Z",
+        "completed_at": "2026-10-31T05:40:19Z"
+      },
+      {
+        "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 30,
+        "started_at": "2026-10-31T05:40:19Z",
+        "completed_at": "2026-10-31T05:40:20Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 31,
+        "started_at": "2026-10-31T05:40:20Z",
+        "completed_at": "2026-10-31T05:40:20Z"
+      }
+    ]
+  },
+  "elapsedSeconds": 322.0,
+  "jobTimeoutMinutes": 20,
+  "realNextStepSeconds": 9.0,
+  "runtime": {
+    "node": "22.23.4",
+    "chromium": "153.0.8010.12",
+    "platform": "GitHub ubuntu-latest; loopback synthetic backends and actual compiled React/Next/browser components"
+  },
+  "artifact": {
+    "id": 13032067312,
+    "name": "browser-quality-evidence",
+    "bytes": 9271594,
+    "sha256": "865b5921c0e5770d816790745a6fa4837d5393a4641780d4c75d6bd3c04c33a5",
+    "digestVerified": true,
+    "fileCount": 76,
+    "fileTypes": {
+      ".json": 13,
+      ".png": 62,
+      ".log": 1
+    },
+    "localZip": "/tmp/browser-quality-e173b2db.zip",
+    "localExtraction": "/tmp/browser-quality-e173b2db",
+    "retentionDays": 7,
+    "movieFilesRetained": false
+  },
+  "uiWorkflows": {
+    "admin": 37,
+    "web": 41,
+    "commerce": 25,
+    "studio": 25,
+    "realNext": 3
+  },
+  "uiWorkflowTotal": 131,
+  "realNextColdNavigation": {
+    "scope": "Real Next dev App Router, production proxy/getServerViewer/AppShell/root loading/Jobs/Profile/Notifications modules; synthetic local Supabase HTTP Auth/database. No Next routing adapter and no hosted requests.",
+    "checks": [
+      {
+        "name": "cold Jobs to own Profile retains visible passive navigation while actual server AppShell profile response is held",
+        "passed": true,
+        "heldResponses": 1,
+        "observedFrames": 44,
+        "totalTransitionFrames": 116,
+        "framesWithoutChrome": 0,
+        "extraUnreadRequests": 0,
+        "editableInputs": 0,
+        "signedAvatarLocators": 0
+      },
+      {
+        "name": "passive navigation interrupts the held route and late Profile completion does not replace Jobs",
+        "passed": true
+      },
+      {
+        "name": "collapsed sidebar and content geometry stay aligned during a real cold Notifications transition",
+        "passed": true,
+        "sidebarWidth": 76,
+        "sidebarRight": 76,
+        "mainLeft": 76
+      }
+    ],
+    "frames": 116,
+    "limits": [
+      "Development compilation and localhost transport prevent production latency claims.",
+      "This proves visible navigation during held server response, not persistent DOM, GPU paint or faster network.",
+      "Auth/account replacement is covered by focused helper and actual-recorder tests, not a hosted account switch in this run."
+    ]
+  },
+  "warmNavigation": {
+    "scope": "Actual HomeFeed, MessagesApp, navigation cache and scroll logic in Chromium. Auth/database reads and Next routing are synthetic local adapters. requestAnimationFrame samples inspect layout and content paintability; this is not GPU frame-time, real-network or hosted Next-routing measurement.",
+    "probes": [
+      {
+        "destination": "/home",
+        "clickAt": 847.0999999999767,
+        "stoppedAt": 1494,
+        "firstDestinationFrameMs": 51.5,
+        "sampledFrames": 38,
+        "destinationFrames": 38,
+        "blankContentFrames": 0,
+        "expected": {
+          "posts": 16,
+          "top": 780
+        },
+        "maxFrameIntervalMs": 33.30000000000007
+      },
+      {
+        "destination": "/messages",
+        "clickAt": 1695.899999999965,
+        "stoppedAt": 2944,
+        "firstDestinationFrameMs": 32.800000000046566,
+        "sampledFrames": 75,
+        "destinationFrames": 75,
+        "blankContentFrames": 0,
+        "expected": {
+          "messages": 34,
+          "top": 247,
+          "draft": "A warm navigation draft stays with this account.",
+          "query": "Jordan",
+          "detailsOpen": false
+        },
+        "maxFrameIntervalMs": 16.800000000000182
+      }
+    ],
+    "limit": "Observed DOM samples in synthetic component routing, not production device/GPU frames or hosted route latency."
+  },
+  "jobsAndProfileContinuity": {
+    "jobs": [
+      {
+        "name": "warm Jobs return retains the exact search/location/category/sort, eight loaded rows and scroll on every observed destination frame",
+        "passed": true,
+        "frames": 43,
+        "firstJobsFrameMs": 36.29999999998836,
+        "blankJobsFrames": 0,
+        "heldReads": 3,
+        "extraReadsAfterEightForegroundEvents": 0,
+        "tokenRefreshRetainsState": true
+      },
+      {
+        "name": "confirmed save survives a background response captured before the mutation",
+        "passed": true
+      },
+      {
+        "name": "unsaving on the real shortlist updates the remembered Discover bookmark before its refresh completes",
+        "passed": true
+      },
+      {
+        "name": "an already-dispatched same-session save confirms after route remount and fences the replacement screen older shortlist read",
+        "passed": true,
+        "pinnedWrite": true,
+        "cancellableWrite": true
+      },
+      {
+        "name": "failed warm refresh retains filtered rows and in-place retry recovers",
+        "passed": true
+      },
+      {
+        "name": "A to B to A clears prior filters/results and aborts old reads and a pending save before new-session data renders",
+        "passed": true,
+        "abortedReads": 3,
+        "pendingSaveNotPublished": true
+      },
+      {
+        "name": "a previously loaded empty Jobs dataset retains filters and its empty state on warm return",
+        "passed": true
+      }
+    ],
+    "profile": [
+      {
+        "name": "real book Back restores owner posts and four books on every sampled frame during held refreshes",
+        "passed": true,
+        "frames": 45,
+        "firstProfileFrameMs": 37.90000000002328,
+        "blankProfileFrames": 0,
+        "postsReads": 1,
+        "bookReads": 1
+      },
+      {
+        "name": "actual editor save invalidates off-route shelf revision and returns current title and private visibility",
+        "passed": true,
+        "revision": 1,
+        "audience": "only_me",
+        "pinnedSave": true
+      },
+      {
+        "name": "rapid successful shelf changes cancel the stale read and coalesce to the latest book revision",
+        "passed": true,
+        "mutations": 8,
+        "reads": 2,
+        "staleReadAborted": true
+      },
+      {
+        "name": "A to B to A clears warm content and cancels old transport before fresh results appear",
+        "passed": true,
+        "abortedReads": 2
+      },
+      {
+        "name": "visitor return waits for current visibility and removes revoked posts and books",
+        "passed": true
+      }
+    ],
+    "limit": "Jobs fixture with eight loaded rows and Profile fixture with four books, held reads and modeled account/session mutations. No new hosted or live dataset claim."
+  },
+  "media": {
+    "video": {
+      "cases": 12,
+      "caseModes": [
+        "graded_audio",
+        "muted",
+        "added_audio",
+        "added_only",
+        "bad_added_audio",
+        "delayed_start",
+        "oversized_final_chunk",
+        "cancelled",
+        "unadjusted_no_webgl",
+        "framed_no_webgl",
+        "cover_no_webgl",
+        "graded_no_webgl"
+      ],
+      "encodedMovieOutputsReported": 8
+    },
+    "memory": {
+      "cases": 25,
+      "caseModes": [
+        "original",
+        "silent",
+        "score",
+        "local_once",
+        "local_loop",
+        "static_images",
+        "unadjusted_no_webgl",
+        "automatic",
+        "revoked",
+        "changed",
+        "account_roundtrip",
+        "cancel",
+        "call",
+        "hidden",
+        "unmount",
+        "missing",
+        "overflow",
+        "animated_primary",
+        "animated_sticker",
+        "animated_background",
+        "animated_data",
+        "image_inspection_cancel",
+        "graded_no_webgl",
+        "unsupported_composition",
+        "film_entry_exit"
+      ],
+      "encodedMovieOutputsReported": 8
+    },
+    "music": {
+      "cases": 5,
+      "caseModes": [
+        "book",
+        "retained",
+        "revoked_during_export",
+        "microphone_verified",
+        "recording_cancel"
+      ],
+      "encodedMovieOutputsReported": 2
+    }
+  },
+  "encodedOutputCountReportedByCI": 18,
+  "memoryCover": {
+    "editorCases": 5,
+    "galleryLayouts": 288,
+    "sourceHashesIndependentlyMatched": 12,
+    "allGalleryOverflowAndOverlapValuesZero": true,
+    "cases": [
+      {
+        "name": "actual designer creates the chosen owned photo and complete creative documents",
+        "bookId": "6d61f0cb-709e-41f1-b96e-983a99c747e2",
+        "revision": 0,
+        "pinnedAuthorization": true,
+        "reloadCoverSha256": "3974e1cf9fa6fbb4ff4a68427f946994af2a7d73d398e0b98bc054633f0160a1"
+      },
+      {
+        "name": "actual editor persists revisions and protects the draft on a conflicting save",
+        "updatedRevision": 1,
+        "conflictPreservesDraft": true,
+        "savedDocumentUnchangedAfterConflict": true
+      },
+      {
+        "name": "saved cover and album controls fit the mobile viewport",
+        "width": 390,
+        "noHorizontalOverflow": true
+      },
+      {
+        "name": "actual text-only book editor omits photo framing while cover writing remains editable",
+        "pages": 1,
+        "photoFramingControls": 0,
+        "writingSaved": true
+      },
+      {
+        "name": "actual designer fences A to B to A during a pending create",
+        "oldDraftClosed": true,
+        "noLateCreatedBook": true
+      }
+    ]
+  },
+  "retainedBrowserOrConsoleErrors": 0,
+  "reportSha256": {
+    "video/browser-receipt.json": "e23a92ad222092c1495a2f9f40ed6dd0acc77efce12def3c6585c2788a2c9e32",
+    "memory-cover/latest-gallery.json": "3b8dfe77d6bed0e3a3818947e3147bcc5851ab6ea8e68caa509584abd2ef6e07",
+    "memory-cover/browser-receipt.json": "471781ee49a7daf986e1074c37d9febfb3b2743a18cdbd1f6310da3c2c0274d9",
+    "music/browser-receipt.json": "17423e57c99d9f0848b8d8cc571c1bd12d949f9eec0ca707ef0f82f02b9bd64a",
+    "memory/browser-receipt.json": "1a2e27ed56b8e39dc7e9bd381511e3d329df8bf399f07c4e6b4bb71d3addee2c",
+    "shell/receipt.json": "2a1615d7daca9e9fd4c976e2c570b4b6e29a2ccccd9cc8b2fe1eab1c86613d1f",
+    "commerce/jobs-navigation-frames.json": "cdbec9c988f6abb0c74f20a9709d15bfb8cddef491e024083db6297a2bbc6031",
+    "commerce/browser-receipt.json": "11e2979d4988e66aa014dfbba632927c50f785e1a251a1b0aa5baeb5f7d13181",
+    "studio/browser-receipt.json": "2eed7d755f82e0b41205b4bc7f2544e224771301472a0e39a41c9feb611b8482",
+    "admin/browser-receipt.json": "e0242b21330b95ccbfcd014bf44a3cb9bd84b4a8fc8d8462ff42dd704120debe",
+    "web/warm-navigation-frames.json": "94e68241f6bc018815baa99bc2f80790511ce66ef1f22c090242712bf6f5932b",
+    "web/profile-navigation-frames.json": "4de9ffc015fa4f733e3b3f331e190d5dbb12018eef352f383aa3d2df80c63686",
+    "web/browser-receipt.json": "022f4387bfb497b615a8890a9d6d5740c48814efdd1fca2c495360fc1950fe6e"
+  },
+  "retainedEvidence": [
+    {
+      "path": "docs/quality/browser-ci-e173b2db/admin/browser-receipt.json",
+      "artifactPath": "admin/browser-receipt.json",
+      "sha256": "e0242b21330b95ccbfcd014bf44a3cb9bd84b4a8fc8d8462ff42dd704120debe",
+      "bytes": 4892
+    },
+    {
+      "path": "docs/quality/browser-ci-e173b2db/commerce/browser-receipt.json",
+      "artifactPath": "commerce/browser-receipt.json",
+      "sha256": "11e2979d4988e66aa014dfbba632927c50f785e1a251a1b0aa5baeb5f7d13181",
+      "bytes": 2570
+    },
+    {
+      "path": "docs/quality/browser-ci-e173b2db/commerce/jobs-navigation-frames.json",
+      "artifactPath": "commerce/jobs-navigation-frames.json",
+      "sha256": "cdbec9c988f6abb0c74f20a9709d15bfb8cddef491e024083db6297a2bbc6031",
+      "bytes": 12201
+    },
+    {
+      "path": "docs/quality/browser-ci-e173b2db/memory/browser-receipt.json",
+      "artifactPath": "memory/browser-receipt.json",
+      "sha256": "1a2e27ed56b8e39dc7e9bd381511e3d329df8bf399f07c4e6b4bb71d3addee2c",
+      "bytes": 9616
+    },
+    {
+      "path": "docs/quality/browser-ci-e173b2db/memory-cover/browser-receipt.json",
+      "artifactPath": "memory-cover/browser-receipt.json",
+      "sha256": "471781ee49a7daf986e1074c37d9febfb3b2743a18cdbd1f6310da3c2c0274d9",
+      "bytes": 187416
+    },
+    {
+      "path": "docs/quality/browser-ci-e173b2db/memory-cover/latest-gallery.json",
+      "artifactPath": "memory-cover/latest-gallery.json",
+      "sha256": "3b8dfe77d6bed0e3a3818947e3147bcc5851ab6ea8e68caa509584abd2ef6e07",
+      "bytes": 3001
+    },
+    {
+      "path": "docs/quality/browser-ci-e173b2db/music/browser-receipt.json",
+      "artifactPath": "music/browser-receipt.json",
+      "sha256": "17423e57c99d9f0848b8d8cc571c1bd12d949f9eec0ca707ef0f82f02b9bd64a",
+      "bytes": 5303
+    },
+    {
+      "path": "docs/quality/browser-ci-e173b2db/shell/receipt.json",
+      "artifactPath": "shell/receipt.json",
+      "sha256": "2a1615d7daca9e9fd4c976e2c570b4b6e29a2ccccd9cc8b2fe1eab1c86613d1f",
+      "bytes": 14516
+    },
+    {
+      "path": "docs/quality/browser-ci-e173b2db/studio/browser-receipt.json",
+      "artifactPath": "studio/browser-receipt.json",
+      "sha256": "2eed7d755f82e0b41205b4bc7f2544e224771301472a0e39a41c9feb611b8482",
+      "bytes": 3911
+    },
+    {
+      "path": "docs/quality/browser-ci-e173b2db/video/browser-receipt.json",
+      "artifactPath": "video/browser-receipt.json",
+      "sha256": "e23a92ad222092c1495a2f9f40ed6dd0acc77efce12def3c6585c2788a2c9e32",
+      "bytes": 6322
+    },
+    {
+      "path": "docs/quality/browser-ci-e173b2db/web/browser-receipt.json",
+      "artifactPath": "web/browser-receipt.json",
+      "sha256": "022f4387bfb497b615a8890a9d6d5740c48814efdd1fca2c495360fc1950fe6e",
+      "bytes": 5702
+    },
+    {
+      "path": "docs/quality/browser-ci-e173b2db/web/profile-navigation-frames.json",
+      "artifactPath": "web/profile-navigation-frames.json",
+      "sha256": "4de9ffc015fa4f733e3b3f331e190d5dbb12018eef352f383aa3d2df80c63686",
+      "bytes": 8809
+    },
+    {
+      "path": "docs/quality/browser-ci-e173b2db/web/warm-navigation-frames.json",
+      "artifactPath": "web/warm-navigation-frames.json",
+      "sha256": "94e68241f6bc018815baa99bc2f80790511ce66ef1f22c090242712bf6f5932b",
+      "bytes": 57980
+    },
+    {
+      "path": "docs/quality/browser-ci-e173b2db/shell/next-log.txt",
+      "artifactPath": "shell/next.log",
+      "sha256": "f17b545ed7a55e839f0a3de5e8cd176914065e889fb45d9069cf95cf11b38de9",
+      "bytes": 781
+    }
+  ],
+  "artifactFileManifest": [
+    {
+      "path": "admin/browser-receipt.json",
+      "bytes": 4892,
+      "sha256": "e0242b21330b95ccbfcd014bf44a3cb9bd84b4a8fc8d8462ff42dd704120debe"
+    },
+    {
+      "path": "admin/desktop-dark.png",
+      "bytes": 316643,
+      "sha256": "4bb6e2b19846d2d4c638cea5255d878904ef8122828c4a2a13fcb2c8c94167fc"
+    },
+    {
+      "path": "admin/desktop-light.png",
+      "bytes": 314671,
+      "sha256": "9454e6566eca325f9c5983a85aef914c90828999ebdb3cde9cd19003d8948d39"
+    },
+    {
+      "path": "admin/mobile-light.png",
+      "bytes": 246658,
+      "sha256": "baa51b4c5d7450e45493e6e50db48378def13bcd80fa76919576a2002a303d5c"
+    },
+    {
+      "path": "admin/presentation-mobile.png",
+      "bytes": 158620,
+      "sha256": "eb4658cec51bb13f0c0a0e6a4612c00bda57bcfea456bdf59f9bb91fe4ef663e"
+    },
+    {
+      "path": "admin/workspace-tools.png",
+      "bytes": 382862,
+      "sha256": "670447da9f8f2c01b04c34ec0973ea404a4862abd3ae382dce39dfb3be599a76"
+    },
+    {
+      "path": "commerce/application-review.png",
+      "bytes": 232966,
+      "sha256": "552305408d3cdf2a999b218d9fc1a387eca7fa3d6d75cf05515f48db481cb468"
+    },
+    {
+      "path": "commerce/applications-desktop.png",
+      "bytes": 83617,
+      "sha256": "e3edd316baef9f95712b7c43a8102140c86c0085e7791b7e853e5f2112605d29"
+    },
+    {
+      "path": "commerce/browser-receipt.json",
+      "bytes": 2570,
+      "sha256": "11e2979d4988e66aa014dfbba632927c50f785e1a251a1b0aa5baeb5f7d13181"
+    },
+    {
+      "path": "commerce/job-detail-desktop.png",
+      "bytes": 164614,
+      "sha256": "76adc24ccccf7ef55e1d0b3af39cb945a14cd6a76439db7221eefbe76931c042"
+    },
+    {
+      "path": "commerce/jobs-desktop.png",
+      "bytes": 196946,
+      "sha256": "7375f396b86a2ff6e3ce914eae7213bc63a086cf80fdd725fb43088d87fbb2e9"
+    },
+    {
+      "path": "commerce/jobs-mobile.png",
+      "bytes": 128036,
+      "sha256": "fc91de32e6314075ada491782bcd130274e85eeba81ce10b08b476941e796a01"
+    },
+    {
+      "path": "commerce/jobs-navigation-frames.json",
+      "bytes": 12201,
+      "sha256": "cdbec9c988f6abb0c74f20a9709d15bfb8cddef491e024083db6297a2bbc6031"
+    },
+    {
+      "path": "commerce/market-dark.png",
+      "bytes": 227789,
+      "sha256": "e42c50d9c0c8e15a20b20f3a27f919f90915886a8fcd7ed5e8a6b3d6765e8150"
+    },
+    {
+      "path": "commerce/market-desktop.png",
+      "bytes": 223160,
+      "sha256": "d2dc0cb43fe49eb65ca0713b10dbc0dbbdecffee21b4dee81ff77eae75636331"
+    },
+    {
+      "path": "commerce/offer-review-mobile.png",
+      "bytes": 52957,
+      "sha256": "7909e2b63a9fee261e9096b12c57144afaa9020f5ef22937e6b92d54589401e5"
+    },
+    {
+      "path": "commerce/order-request-review.png",
+      "bytes": 216517,
+      "sha256": "f681fc7435692e9f87ac9704ce4216ff80ed20f11823df09d73bed3745efff7e"
+    },
+    {
+      "path": "commerce/orders-desktop.png",
+      "bytes": 101076,
+      "sha256": "8e4d596df55319d74979a7cc76359df97cd7813caf13cfd5856ca25ae1ec92a0"
+    },
+    {
+      "path": "commerce/product-desktop.png",
+      "bytes": 230667,
+      "sha256": "8f239f2caeaaa7b3671e4b0d8ae212690aae6c16384bd7f0224b9b7d2e4e08f9"
+    },
+    {
+      "path": "commerce/product-mobile.png",
+      "bytes": 150341,
+      "sha256": "a8de7d2aaba6a5ccf779d5033a4df0aeae45438b0eb3cd8e9165a2cce90d917f"
+    },
+    {
+      "path": "commerce/warm-jobs-refresh-held.png",
+      "bytes": 143751,
+      "sha256": "bfc592127387332b0222b2a0f15e143a816b1b1b6fc7f7d8e05a2ba0595c7bd0"
+    },
+    {
+      "path": "memory/animated-image-refused.png",
+      "bytes": 99335,
+      "sha256": "b506005991f6588428bf06c2af8a22a5a9475be672bdd677edf51b891065f214"
+    },
+    {
+      "path": "memory/automatic-ready.png",
+      "bytes": 53725,
+      "sha256": "ec6d8f8b16b6c7b455516be7669c29657d39911b6b933fb2a7478dfc6c338484"
+    },
+    {
+      "path": "memory/browser-receipt.json",
+      "bytes": 9616,
+      "sha256": "1a2e27ed56b8e39dc7e9bd381511e3d329df8bf399f07c4e6b4bb71d3addee2c"
+    },
+    {
+      "path": "memory/decoded-photo-artwork.png",
+      "bytes": 46139,
+      "sha256": "e7b4726c4dca1738d49903e9067552d1242eaecd10c5413fa85b6f2dc4a81836"
+    },
+    {
+      "path": "memory/decoded-video-grade.png",
+      "bytes": 28337,
+      "sha256": "5b229a184e88f6928d0a767b7a6d8da1ba31e4c7e6b899df9de6fcb4bfdef6fa"
+    },
+    {
+      "path": "memory/download-mobile.png",
+      "bytes": 62578,
+      "sha256": "8528a41cb15a2df6d04675fab93e3e1d7457f9ea3b7dac9b3942b17e62ac3600"
+    },
+    {
+      "path": "memory/download-options.png",
+      "bytes": 91142,
+      "sha256": "a1c1c139bfad2301af97c966f50f70a7afcbccc9355f194a25fb8cef17d2ce45"
+    },
+    {
+      "path": "memory/download-ready.png",
+      "bytes": 54860,
+      "sha256": "12f902fc5c257e12b8ec598db5418f0005270bc46317fd011196fa69499acaab"
+    },
+    {
+      "path": "memory-cover/browser-receipt.json",
+      "bytes": 187416,
+      "sha256": "471781ee49a7daf986e1074c37d9febfb3b2743a18cdbd1f6310da3c2c0274d9"
+    },
+    {
+      "path": "memory-cover/covers-normal.png",
+      "bytes": 267370,
+      "sha256": "ee2f995b2924c7217fb89530bd93153169720eb31c4150fa73aea976eca30dc9"
+    },
+    {
+      "path": "memory-cover/covers-wide.png",
+      "bytes": 348900,
+      "sha256": "c28279042dee26cfea562bdd72260ffce5d6110ca1ab4897bc73d004bfb80324"
+    },
+    {
+      "path": "memory-cover/created-cover.png",
+      "bytes": 43697,
+      "sha256": "3974e1cf9fa6fbb4ff4a68427f946994af2a7d73d398e0b98bc054633f0160a1"
+    },
+    {
+      "path": "memory-cover/designer-custom-cover.png",
+      "bytes": 75749,
+      "sha256": "251c3b6792c0db77f2e6466a11b955a970ed2a4d73b7bc2a30566538c2160607"
+    },
+    {
+      "path": "memory-cover/latest-gallery.json",
+      "bytes": 3001,
+      "sha256": "3b8dfe77d6bed0e3a3818947e3147bcc5851ab6ea8e68caa509584abd2ef6e07"
+    },
+    {
+      "path": "memory-cover/saved-book-mobile.png",
+      "bytes": 77609,
+      "sha256": "2ad35b049562431ec73b57ec8f7b159596f30ed88554aabca693f892c13447a8"
+    },
+    {
+      "path": "memory-cover/text-only-book-editor.png",
+      "bytes": 79152,
+      "sha256": "3b67079f310e096364eb11aae4dd945b3bc19c8e479c4db0d6fe063996cd8731"
+    },
+    {
+      "path": "music/browser-receipt.json",
+      "bytes": 5303,
+      "sha256": "17423e57c99d9f0848b8d8cc571c1bd12d949f9eec0ca707ef0f82f02b9bd64a"
+    },
+    {
+      "path": "music/original-audio-mobile.png",
+      "bytes": 55357,
+      "sha256": "0ad67d5733a4dd497795762b490d673a2a339e24b58ad454aa8fb408e0a6c26e"
+    },
+    {
+      "path": "shell/held-notifications-collapsed.png",
+      "bytes": 29761,
+      "sha256": "b6b8af971a2c43ac2bf35a3841e2d1501a6e112b0f9426fbc9b91abfb23d1a00"
+    },
+    {
+      "path": "shell/held-profile-expanded.png",
+      "bytes": 40836,
+      "sha256": "8936759c374fb1d0916e2a0da590275413b9bf6650aac13e36acfc2495f546f1"
+    },
+    {
+      "path": "shell/next.log",
+      "bytes": 781,
+      "sha256": "f17b545ed7a55e839f0a3de5e8cd176914065e889fb45d9069cf95cf11b38de9"
+    },
+    {
+      "path": "shell/receipt.json",
+      "bytes": 14516,
+      "sha256": "2a1615d7daca9e9fd4c976e2c570b4b6e29a2ccccd9cc8b2fe1eab1c86613d1f"
+    },
+    {
+      "path": "studio/browser-receipt.json",
+      "bytes": 3911,
+      "sha256": "2eed7d755f82e0b41205b4bc7f2544e224771301472a0e39a41c9feb611b8482"
+    },
+    {
+      "path": "studio/studio-ads-desktop.png",
+      "bytes": 280655,
+      "sha256": "3a7de3f50c9d32b89a1b2c3ecd55d7dcf9388ca9fa9fbf8bc62ce942d35c48e7"
+    },
+    {
+      "path": "studio/studio-earnings-desktop.png",
+      "bytes": 195654,
+      "sha256": "54ffdd74a14c79a27f30159e5e1fd404167145065cd76cf544fd7c65e23218ca"
+    },
+    {
+      "path": "studio/studio-insights-desktop.png",
+      "bytes": 172893,
+      "sha256": "73e0e2bfc0f166d8d9139838556a4aa80e114526320cfaf4dd1e3ada5d67b836"
+    },
+    {
+      "path": "studio/studio-newsroom-dark.png",
+      "bytes": 315006,
+      "sha256": "f3cc5a1ad38cb17366629a7df550f751556c14911fa6d9f4ce9606df80765eb1"
+    },
+    {
+      "path": "studio/studio-newsroom-desktop.png",
+      "bytes": 311369,
+      "sha256": "2664df9e5a20198343ab5050f83233fc978f154dab5bee3b0a4f8d0aae401d44"
+    },
+    {
+      "path": "studio/studio-newsroom-mobile.png",
+      "bytes": 162960,
+      "sha256": "181e9b8528f17eee051c9a233c10abe251362a8529996f18b9eb9c786984fa6f"
+    },
+    {
+      "path": "studio/studio-overview-desktop.png",
+      "bytes": 227080,
+      "sha256": "a7fc9ae9bb27d6d2f4e43512e1efbc68124ac75f1fb3f50a426f8b69ec0c0030"
+    },
+    {
+      "path": "studio/studio-partnerships-desktop.png",
+      "bytes": 249240,
+      "sha256": "1570f88238c6c4fb4485873972ab5403e5236a0573a931b6765f4b1ba30839cd"
+    },
+    {
+      "path": "studio/studio-team-desktop.png",
+      "bytes": 146912,
+      "sha256": "a86f988c7fe3ca63cab10d76c11a74745cc1aca4f7570152cf8b0dba03e9ed3f"
+    },
+    {
+      "path": "video/browser-receipt.json",
+      "bytes": 6322,
+      "sha256": "e23a92ad222092c1495a2f9f40ed6dd0acc77efce12def3c6585c2788a2c9e32"
+    },
+    {
+      "path": "web/browser-receipt.json",
+      "bytes": 5702,
+      "sha256": "022f4387bfb497b615a8890a9d6d5740c48814efdd1fca2c495360fc1950fe6e"
+    },
+    {
+      "path": "web/channel-desktop.png",
+      "bytes": 59602,
+      "sha256": "2658381cc62cbb8bf76dffaf66b412bee4e65f26837725974430f79635ebb3ba"
+    },
+    {
+      "path": "web/communities-desktop.png",
+      "bytes": 74923,
+      "sha256": "bbc73583c6bcb268fb213350c08a299b8f1914b24d76ea50f0a455abb328e4c9"
+    },
+    {
+      "path": "web/community-desktop.png",
+      "bytes": 120317,
+      "sha256": "6813994881265c66be4e5b5103c7f3b3e781759da01b721bb46f682b2985f6f1"
+    },
+    {
+      "path": "web/community-mobile.png",
+      "bytes": 93717,
+      "sha256": "ee1f0f579016ea1e017901dbd312928df2e6d8b7ed7d2518de8511e0ee14c42c"
+    },
+    {
+      "path": "web/composer-dark.png",
+      "bytes": 190447,
+      "sha256": "f367d668be71ee593b93ca13a50512aa538dfb75f67e309dba4d41e3259b6290"
+    },
+    {
+      "path": "web/home-dark.png",
+      "bytes": 163799,
+      "sha256": "096ef22db83da071281d4dace42a2e2b60ae96f26ab4749579bc5ecb79facd62"
+    },
+    {
+      "path": "web/home-light.png",
+      "bytes": 161344,
+      "sha256": "cee53a27eb1d717bed0ba387cb8e9badd4c00dcd661a030505cab977507ea2de"
+    },
+    {
+      "path": "web/messages-desktop.png",
+      "bytes": 120535,
+      "sha256": "837d8d278ce6852fd956e04ca3b77dce8e63e0251a9365273739c7b2beab16c1"
+    },
+    {
+      "path": "web/messages-mobile-320.png",
+      "bytes": 36205,
+      "sha256": "54efc5fef5feba373b8ae84ea3226db28b1a1269b7434e058718c47c7af1f475"
+    },
+    {
+      "path": "web/messages-mobile.png",
+      "bytes": 32171,
+      "sha256": "52a070b434f10cb897063c7b46750cab5e1688f7b849d6245a1067f88289a704"
+    },
+    {
+      "path": "web/mobile-320.png",
+      "bytes": 81430,
+      "sha256": "52bb575730790b794e8a39788bbf6f07996d9540dc1f47d15af335819c309493"
+    },
+    {
+      "path": "web/mobile-destinations.png",
+      "bytes": 84194,
+      "sha256": "d638746d68a74bb441a75ad82c22175bd9dd2a97771d8934ffaab8be1bf516da"
+    },
+    {
+      "path": "web/mobile-home.png",
+      "bytes": 78716,
+      "sha256": "66d7c5b618b28f312c4c3a846d94eb2776b39702ab63dc7900c0a70718a1b6fb"
+    },
+    {
+      "path": "web/profile-editor.png",
+      "bytes": 137725,
+      "sha256": "34095e806c4751da13ed7bf44be73bbe23c0bac608a14b4991859d6eea442b2f"
+    },
+    {
+      "path": "web/profile-light.png",
+      "bytes": 283304,
+      "sha256": "c9c08dca3a53c9e0e6caa8b35f6b17ee4f39fcb56bda7d598aada4f38aab5ab8"
+    },
+    {
+      "path": "web/profile-navigation-frames.json",
+      "bytes": 8809,
+      "sha256": "4de9ffc015fa4f733e3b3f331e190d5dbb12018eef352f383aa3d2df80c63686"
+    },
+    {
+      "path": "web/settings-light.png",
+      "bytes": 338599,
+      "sha256": "4248464ddf8ac87d191b92a76297da4b34e688b356ca61b8d94b92218f022f7a"
+    },
+    {
+      "path": "web/warm-home-refresh-held.png",
+      "bytes": 155617,
+      "sha256": "9a4d7e119768d52390e6c8ddcb56dd253dcc556ec2605ff5e45d6827e0b53c21"
+    },
+    {
+      "path": "web/warm-messages-refresh-held.png",
+      "bytes": 133019,
+      "sha256": "5bc07b41ecef0dd4bdece10ad2ac3c37dfd20b775361264a9f7c8df985cf0647"
+    },
+    {
+      "path": "web/warm-navigation-frames.json",
+      "bytes": 57980,
+      "sha256": "94e68241f6bc018815baa99bc2f80790511ce66ef1f22c090242712bf6f5932b"
+    },
+    {
+      "path": "web/warm-profile-refresh-held.png",
+      "bytes": 236337,
+      "sha256": "ce285c94beb482c8d18939be5a1939b9eabe34fb31135e823571f58704837856"
+    }
+  ],
+  "jobLog": {
+    "localPath": "/tmp/browser-quality-e173b2db-job.log",
+    "sha256": "f4260915f1285aeb7018717ba48dbeaeed5fcf81988700f8b8bef52ce474b4f3",
+    "checkoutMergeLine": "2026-10-31T05:35:04.6653813Z HEAD is now at e6ca24e Merge e173b2dbcf253342be5683fa85f102aa38065411 into ce4f2f2ebbd7f7669b630caf650fd97cd59297b0",
+    "artifactDigestLine": "2026-10-31T05:40:19.4590868Z SHA256 digest of uploaded artifact zip is 865b5921c0e5770d816790745a6fa4837d5393a4641780d4c75d6bd3c04c33a5"
+  },
+  "limitations": [
+    "All browser/media steps succeeded, but synthetic fixture results do not establish blanket app latency or complete hosted/provider acceptance.",
+    "Real Next tests use local development Next and a controlled held server response; they verify visible passive chrome, not reduced server latency or persistent DOM.",
+    "Warm navigation metrics are single-run DOM observations. No 60 fps or native-device performance claim is made.",
+    "CI generated and decoded 18 movie outputs, as reported by its JSON and successful gates. The upload retains reports/screenshots, not movie binaries; this review did not independently re-decode the movies.",
+    "No hosted journeys were repeated: exact retained READY deployments and identical build inputs are documented separately. Backend and environment state are not inferred from Git equality.",
+    "Licensed external music remains disabled; fixture original/microphone/export acceptance is not provider licensing acceptance.",
+    "No code, CI mutation, deployment, alias, Git ref or Apple credential action was performed for this review."
+  ]
+}

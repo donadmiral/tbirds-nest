@@ -5,7 +5,7 @@
  */
 import { themedSheet, useTheme } from '../../theme/useTheme';
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 
 const NAVY = '#0B1E3D';
 const PLATINUM = '#C9BFB0';

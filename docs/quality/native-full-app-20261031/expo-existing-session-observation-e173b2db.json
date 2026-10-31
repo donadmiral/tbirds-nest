@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "scope": "Separate record of the root agent's supported read-only existing Expo session check. This receipt does not alter the sealed signed-release handoff.",
+  "observedBy": "root",
+  "recordedBy": "hosted_backend from root-provided command, result and clock observation; no additional account/provider calls made",
+  "observationTime": {
+    "clockImmediatelyAfterObservationUtc": "2026-10-31T06:28:12Z",
+    "reportedObservationWindowUtc": "2026-10-31 06:27\u201306:28 UTC",
+    "commandStartUtc": null,
+    "commandEndUtc": null,
+    "limit": "Actual command start/end timestamps were not recorded. The post-observation clock is not presented as either execution timestamp."
+  },
+  "sourceContext": {
+    "applicationHead": "e173b2dbcf253342be5683fa85f102aa38065411",
+    "savedNextCandidate": "9327",
+    "savedNextCandidateIdentifierScope": "Root-reported short commit identifier",
+    "rootReportedSourceStatus": "Application source unchanged; the already-reviewed Android emulator graphics script candidate is the only pending non-documentation source change. No dependency lockfile changes.",
+    "sealedHandoffPath": "docs/quality/native-full-app-20261031/ios-signed-release-handoff-e173b2db.json",
+    "sealedHandoffSha256": "51c5a35c07a213284860965f2a550594b4c14a57e962a49df2f6f036803910a2"
+  },
+  "cli": {
+    "previouslyInstalled": false,
+    "distribution": "Official eas-cli package",
+    "version": "27.2.0",
+    "platform": "linux-x64",
+    "nodeVersion": "24.22.1",
+    "acquisition": "Root used npm exec and an isolated temporary npm cache. No repository dependency or lockfile was changed.",
+    "cacheDirectory": "/tmp/platinum-eas-cli-cache"
+  },
+  "check": {
+    "purpose": "Report the currently authenticated Expo identity, without attempting authentication.",
+    "command": "npm exec --offline --yes --cache /tmp/platinum-eas-cli-cache --package=eas-cli@27.2.0 -- eas whoami",
+    "completed": true,
+    "exitCode": 1,
+    "exactReportedOutput": "Not logged in",
+    "projectLookupPerformed": false
+  },
+  "conclusion": {
+    "currentEnvironmentExpoAuthentication": "Absent: the supported CLI reported Not logged in.",
+    "remoteSigningCredentialValidity": "Unknown; no remote credential inspection was performed.",
+    "remoteSubmissionCredentialValidity": "Unknown; no submission-key inspection was performed.",
+    "appleAuthentication": "No Apple sign-in retry, credential prompt or credential entry occurred.",
+    "signedBuildAccess": "The current local Expo session cannot initiate an authenticated EAS build. This does not prove missing, expired or revoked remotely stored Apple credentials.",
+    "historicalBuild16": "The historical successful build/submission receipt remains historical evidence; this observation does not recheck its Apple processing or installation state."
+  },
+  "officialDocumentation": [
+    {
+      "url": "https://docs.expo.dev/eas/cli/",
+      "rootReviewed": true,
+      "supports": "Official CLI command and current version; eas whoami reports the current Expo identity."
+    },
+    {
+      "url": "https://docs.expo.dev/app-signing/managed-credentials/",
+      "rootReviewed": true,
+      "supports": "Existing managed credentials may be reused by authorized Expo users; current remote validity was not established by this check."
+    }
+  ],
+  "notPerformed": [
+    "No Expo login attempt",
+    "No Apple login retry",
+    "No credential prompt or entry",
+    "No secret-value or credential-file inspection",
+    "No project lookup or project linking",
+    "No EAS build or TestFlight submission",
+    "No production or database call",
+    "No release-gate or capability change",
+    "No repository dependency or lockfile change"
+  ],
+  "receiptWriteBoundary": "This task only writes this new documentation receipt. The sealed handoff is unchanged; no further account, authentication or provider call was made."
+}

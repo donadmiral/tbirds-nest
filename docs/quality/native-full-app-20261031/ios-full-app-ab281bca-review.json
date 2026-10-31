@@ -1,0 +1,574 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-31T05:23:08Z",
+  "status": "Build, simulator launch, authentication and Home-to-Market navigation reached; full flow failed at a grouped iOS accessibility selector. Later gates were not reached.",
+  "scope": "Read-only inspection of the exact completed CI artifact. Synthetic HTTP/Realtime transport; real production App, screens, native simulator build and Maestro. No hosted data writes, Apple sign-in, rerun, cancel, push or source edits.",
+  "ci": {
+    "repository": "donadmiral/tbirds-nest",
+    "runId": 41169456344,
+    "jobId": 124444050317,
+    "jobName": "Tap through the full iPhone Simulator app",
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41169456344/job/124444050317",
+    "startedAt": "2026-10-31T04:39:40Z",
+    "completedAt": "2026-10-31T05:17:33Z",
+    "conclusion": "failure",
+    "nativeScriptStartedAt": "2026-10-31T04:41:25Z",
+    "nativeScriptCompletedAt": "2026-10-31T05:17:26Z",
+    "evidenceUpload": "success"
+  },
+  "artifact": {
+    "id": 13031278233,
+    "name": "ios-full-app-ui",
+    "bytes": 15510012,
+    "zipSha256": "56cf8b8b395cf928146290f9c120270ad5fd42556ae3a98a20a59dbe4452a2fd",
+    "zipDigestVerified": true,
+    "files": 37,
+    "localZip": "/tmp/ios-full-app-ab281bca-review.zip",
+    "localExtraction": "/tmp/ios-full-app-ab281bca-review-41169456344"
+  },
+  "sourceBinding": {
+    "head": "ab281bcaab525331930f6238f97e46c169eee1ee",
+    "manifestCommit": "f033c50196f6f5f115f451247073ccdb357025d4",
+    "expectedPrMerge": "f033c50196f6f5f115f451247073ccdb357025d4",
+    "tree": "8e03d00ee3cd707f4095134b5d5c0eec79f5ef19",
+    "sourceHashesChecked": 493,
+    "sourceHashMismatches": [],
+    "check": "SHA256 of each published head Git blob compared with the source manifest; working tree not used as the baseline.",
+    "overlaysChecked": 6,
+    "allOverlayBeforeAndAfterHashesMatch": true,
+    "capabilityMode": "qa-capability-overlay",
+    "sourceMemoryCapability": 0,
+    "installedSupabaseVersions": {
+      "@supabase/supabase-js": "2.103.0",
+      "@supabase/auth-js": "2.103.0"
+    },
+    "installedDependencyFileHashesMatched": [
+      {
+        "path": "node_modules/@supabase/supabase-js/package.json",
+        "sha256": "697dd1bfd66925a5b586c52e0324517979a6650c45bdba8e03014b197e87304e"
+      },
+      {
+        "path": "node_modules/@supabase/supabase-js/dist/index.cjs",
+        "sha256": "b8ab8bdba298f953d755556979998098309d4d3bface6628ff9b8afd0a96ca4b"
+      },
+      {
+        "path": "node_modules/@supabase/supabase-js/dist/index.mjs",
+        "sha256": "a5a16d1d34369ee35c55f3029c1db2ca3bca0c53eb217b1c649822c2f1fc2736"
+      },
+      {
+        "path": "node_modules/@supabase/auth-js/package.json",
+        "sha256": "35ad1a61ad02fb70467db0ae2238f3d8fd7009729be73207bacc8f3ac07e4b93"
+      },
+      {
+        "path": "node_modules/@supabase/auth-js/src/lib/locks.ts",
+        "sha256": "6d1ec3ee482d09c887d4212de582b13128af365a85f5b64893a25d09bc6c8668"
+      },
+      {
+        "path": "node_modules/@supabase/auth-js/dist/main/index.js",
+        "sha256": "a43ea0c523b8f4f8b8d59bc3b16b9ec9158cad05de53ffc92238fceb26d8bcfd"
+      },
+      {
+        "path": "node_modules/@supabase/auth-js/dist/module/index.js",
+        "sha256": "9be5694df0e46b33d4f3b7bb8bad0ecef05ce343a5734376d6b4c93a8233eba7"
+      },
+      {
+        "path": "node_modules/@supabase/auth-js/dist/main/lib/locks.js",
+        "sha256": "9891124da312e1c4ba73296c98dc018ba2532a856ea39248f0e951036892b4e0"
+      },
+      {
+        "path": "node_modules/@supabase/auth-js/dist/module/lib/locks.js",
+        "sha256": "bd308c17475037290c30f3c8455858368e3c0e170a156fb8361a71c7dc056c87"
+      }
+    ],
+    "headAndMergeTreeVerified": true
+  },
+  "buildAndNavigation": {
+    "xcodeBuild": "BUILD SUCCEEDED",
+    "simulator": "iPhone16 / iOS18.5 / x86_64",
+    "maestroFlows": 1,
+    "passedFlows": 0,
+    "failedFlows": 1,
+    "maestroDurationSeconds": 167.334,
+    "commandStatuses": {
+      "COMPLETED": 18,
+      "SKIPPED": 2,
+      "FAILED": 1
+    },
+    "lastCompletedCommand": {
+      "sequenceNumber": 19,
+      "command": "tapOn Market",
+      "durationMs": 7534
+    },
+    "failedCommand": {
+      "sequenceNumber": 20,
+      "command": "extendedWaitUntil visible Travel journal",
+      "configuredTimeoutMs": 15000,
+      "observedCommandDurationMs": 16703
+    },
+    "observedPassed": [
+      "Sign-in reached synthetic account Home.",
+      "Expected Home post visible after initial sign-in, Latest and For You selections.",
+      "Market tab activation completed and screenshot shows loaded $12 Travel journal card."
+    ],
+    "notReached": [
+      "Jobs screen assertion",
+      "Messages screen assertion and repeated Home/Messages returns",
+      "Profile and saved-memory-book navigation",
+      "Settings",
+      "Account persistence readback",
+      "Memory capture, native encode and independent decode verification"
+    ]
+  },
+  "failureDiagnosis": {
+    "classification": "Flow exact-label mismatch on a grouped native accessibility element; retained screenshot contains expected content.",
+    "expectedText": "Travel journal",
+    "observedAccessibilityText": "View listing: Travel journal",
+    "observedBounds": "[12,339][190,605]",
+    "sourceReference": "src/screens/market/MarketScreen.tsx:161 explicitly labels the card View listing: ${item.title}.",
+    "nativeTabObservation": "All five app tab labels are exposed with 72x64 point bounds; Market is selected.",
+    "selectedAxNodes": [
+      {
+        "accessibilityText": "Market",
+        "bounds": "[16,73][102,104]",
+        "enabled": "true",
+        "focused": "false",
+        "selected": "false",
+        "checked": "false"
+      },
+      {
+        "accessibilityText": "Market",
+        "bounds": "[16,73][102,104]",
+        "enabled": "true",
+        "focused": "false",
+        "selected": "false",
+        "checked": "false"
+      },
+      {
+        "accessibilityText": "View listing: Travel journal",
+        "bounds": "[12,339][190,605]",
+        "enabled": "true",
+        "focused": "false",
+        "selected": "false",
+        "checked": "false"
+      },
+      {
+        "accessibilityText": "Home",
+        "bounds": "[16,744][88,808]",
+        "enabled": "true",
+        "focused": "false",
+        "selected": "false",
+        "checked": "false"
+      },
+      {
+        "accessibilityText": "Market",
+        "bounds": "[88,744][160,808]",
+        "enabled": "true",
+        "focused": "false",
+        "selected": "true",
+        "checked": "false"
+      },
+      {
+        "accessibilityText": "Jobs",
+        "bounds": "[160,744][232,808]",
+        "enabled": "true",
+        "focused": "false",
+        "selected": "false",
+        "checked": "false"
+      },
+      {
+        "accessibilityText": "Messages",
+        "bounds": "[232,744][304,808]",
+        "enabled": "true",
+        "focused": "false",
+        "selected": "false",
+        "checked": "false"
+      },
+      {
+        "accessibilityText": "Profile",
+        "bounds": "[304,744][376,808]",
+        "enabled": "true",
+        "focused": "false",
+        "selected": "false",
+        "checked": "false"
+      }
+    ],
+    "recommendation": "Match the exact existing semantic card label in the native flow; preserve content assertion and timeout. The separate Android Home tab ID repair remains necessary.",
+    "productionChangeRequiredForThisFailure": false
+  },
+  "runtimeTransport": {
+    "mode": "synthetic-native-ui",
+    "networkForwarded": false,
+    "requests": 110,
+    "unhandled": [],
+    "mutations": [
+      {
+        "table": "user_presence",
+        "method": "POST",
+        "owner": "10000000-0000-4000-8000-000000000001"
+      },
+      {
+        "table": "post_seen",
+        "method": "POST",
+        "owner": "10000000-0000-4000-8000-000000000001"
+      }
+    ],
+    "mediaCount": 0,
+    "bookReadCount": 0,
+    "accountReadbackCount": 0
+  },
+  "authControl": {
+    "wallClockOriginMs": 1793423714049,
+    "wallClockOriginUtc": "2026-10-31T05:15:14.049Z",
+    "finalAtMs": 120518.305,
+    "lastEventAtMs": 120267.228,
+    "totalOperations": 151,
+    "lockOperations": 51,
+    "storageOperations": 100,
+    "events": 404,
+    "all151OperationsFulfilled": true,
+    "noActiveOrWaitingAtSnapshot": true,
+    "droppedEvents": 0,
+    "droppedTracking": 0,
+    "maxWaitMs": 747.042,
+    "maxHoldMs": 494.03,
+    "maxLockDurationMs": 749.936,
+    "maxStorageDurationMs": 200.688,
+    "timerApiIdentityCount": 2,
+    "timerApiIdentityLimitReached": false,
+    "timerApisConstant": true,
+    "strictlyIncreasingEventTimes": true,
+    "lockTimeoutWarningsInRetainedAppLog": 0,
+    "interpretation": "This unrepaired iOS source is a control consistent with Daily not replacing iOS timer globals. It does not prove the Android bootstrap repair in a native run.",
+    "allOperationIdsAndExpectedPhasesPresent": true
+  },
+  "signingAndReadback": "Independent native reviewer owns ios-signing-account-ab281bca-review.json and small signing artifacts. Account index1 logs exist without save/index failures; accountReadbacks is empty and no memory-capture directory exists, so reload/capture acceptance is not claimed.",
+  "subsequentSelectorAudit": {
+    "method": "Read-only source and pinned React Native0.81.5 implementation; later screens were not reached by this native run.",
+    "groupingRule": [
+      "TouchableOpacity.js:303 defaults accessible=true.",
+      "Fabric RCTViewComponentView.mm:1203-1236 joins descendant labels with comma separators when no explicit label exists.",
+      "RCTParagraphComponentView.mm:209-247 can coopt descendant text into an accessible ancestor."
+    ],
+    "findings": [
+      {
+        "screen": "Jobs",
+        "currentAssertion": "Product designer",
+        "source": "src/screens/jobs/JobsScreen.tsx:390-478",
+        "finding": "Outer TouchableOpacity has no explicit label and includes title, company, location, salary and metadata; source-supported grouped-label risk."
+      },
+      {
+        "screen": "Messages",
+        "currentAssertion": "Ready for our next adventure?",
+        "source": "src/screens/messages/ConversationsScreen.tsx:463-533",
+        "finding": "Outer TouchableOpacity has no explicit label and includes peer, time, preview and optional badges; grouping risk. Literal question mark must be escaped if selector is a regular expression."
+      },
+      {
+        "screen": "Profile name",
+        "currentAssertion": "Alex Rivera",
+        "source": "src/components/ProfileHeader.tsx:213",
+        "finding": "Standalone Text with nested TierName, no accessible button ancestor; exact assertion is consistent with source."
+      },
+      {
+        "screen": "Edit profile",
+        "currentAssertion": "Edit profile",
+        "source": "src/components/ProfileHeader.tsx:227-230",
+        "finding": "Unlabeled TouchableOpacity contains Feather icon plus Text; icon glyph may prefix implicit label. Source-supported risk, unreached natively."
+      },
+      {
+        "screen": "Settings",
+        "currentAssertion": "Settings",
+        "source": "src/components/ProfileHeader.tsx:168-176; src/screens/profile/SettingsScreen.tsx:498",
+        "finding": "Entry control has explicit Settings label; destination header is standalone Text. Exact assertions are consistent with source."
+      }
+    ]
+  },
+  "retained": [
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-ab281bca/source.json",
+      "artifactPath": "source.json",
+      "bytes": 58939,
+      "sha256": "0f223fb53f651869a1a5d9f392d0d89bfe987c03235c1dc013c9fa2ba427b6b0"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-ab281bca/native-ui-receipt.json",
+      "artifactPath": "native-ui-receipt.json",
+      "bytes": 10546,
+      "sha256": "6751dabc3a35aa4c12bdfe22ee9f13d07abd6ac889999504ac08a81c417085c8"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-ab281bca/auth-diagnostics.json",
+      "artifactPath": "native-ui-auth-diagnostics.json",
+      "bytes": 74682,
+      "sha256": "8f3d1145306ecfc44bc636e29aaf3610b4bf4eff76cb58b2322568c6171a94af"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-ab281bca/commands.json",
+      "artifactPath": "maestro/2026-10-31_051232/Full native app navigation/commands.json",
+      "bytes": 15134,
+      "sha256": "c32aa59db13c3f4edd19bf4a41cffa12cf7d993ef570a12136447f3fb81ac8aa"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-ab281bca/market-ax.json",
+      "artifactPath": "maestro/2026-10-31_051232/Full native app navigation/screen-hierarchy/step-021-assertCondition-Travel_journal.json",
+      "bytes": 65880,
+      "sha256": "71c2a1241e5915a37e9ebb0bd4598a17d4b4e6df953c194b975bd7919cfb09c0"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-ab281bca/market-failure.png",
+      "artifactPath": "maestro/2026-10-31_051232/Full native app navigation/screenshots/step-021-assertCondition-Travel_journal.png",
+      "bytes": 195665,
+      "sha256": "795aec1199d6c208e43d10a13de58c53cf0155960b759816e4f4dc91671b0f8b"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-ab281bca/home.png",
+      "artifactPath": "maestro/2026-10-31_051232/Full native app navigation/takeScreenshot/home.png",
+      "bytes": 353402,
+      "sha256": "89cee6860dffb1e779b3254123223e2ed305c1e7d008a12ce8815a54e1ce209d"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-ab281bca/maestro.xml",
+      "artifactPath": "maestro.xml",
+      "bytes": 588,
+      "sha256": "d6bb2b96e36c400fabcfd08612eb8693d65e23dee647bafbae234cb646417d9b"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-ab281bca/maestro-log.txt",
+      "artifactPath": "maestro.log",
+      "bytes": 147,
+      "sha256": "ab2edf88b71baebc71c23abf0e6ceecdd15cf76f07b5bc28e4e5b20afaa1da54"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-ab281bca/overlays/index.js.txt",
+      "artifactPath": "overlays/index.js",
+      "bytes": 33,
+      "sha256": "380861fc291a775b81d0891675f0bc4c632660ae44662ba370cb43052a1efa4c"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-ab281bca/overlays/modules__boomerang__ios__BoomerangModule.swift.txt",
+      "artifactPath": "overlays/modules__boomerang__ios__BoomerangModule.swift",
+      "bytes": 16619,
+      "sha256": "e50ecc3027064c532f474784ac49299954f09ce1a00eb3ea5f45fc906878f6a8"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-ab281bca/overlays/modules__boomerang__android__src__main__java__expo__modules__boomerang__BoomerangModule.kt.txt",
+      "artifactPath": "overlays/modules__boomerang__android__src__main__java__expo__modules__boomerang__BoomerangModule.kt",
+      "bytes": 2990,
+      "sha256": "33170373380d9c69afabe789dfd7862f212ba1732a1328a74d7d123b7699d617"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-ab281bca/overlays/metro.config.js.txt",
+      "artifactPath": "overlays/metro.config.js",
+      "bytes": 72,
+      "sha256": "d93f48605ead9e6d7b6fbc1cc210255bb653b227ac9daada78f69317a88c9534"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-ab281bca/overlays/src__services__supabase.ts.txt",
+      "artifactPath": "overlays/src__services__supabase.ts",
+      "bytes": 5251,
+      "sha256": "dfb6b6cfe427b7e5abdb7f7bedbdb45536f9abca000d4a2d3305dd45da4cf2e5"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-ab281bca/overlays/src__navigation__AppNavigator.tsx.txt",
+      "artifactPath": "overlays/src__navigation__AppNavigator.tsx",
+      "bytes": 37907,
+      "sha256": "52f2298a81d658e3cf777a19690bc24101ecc1326e3c3221366f4c0403f6acf5"
+    }
+  ],
+  "artifactFileManifest": [
+    {
+      "path": "app.log",
+      "bytes": 1033702,
+      "sha256": "e7e9888ea340a8947a79d73b4b197b72f41ed62b4693c0c2ece3d4a2a8fd1b19"
+    },
+    {
+      "path": "build.log",
+      "bytes": 18151533,
+      "sha256": "f7b62f803c4722f24d39e831db5b7fb78a08fd80656fc4141af5b9ccb79a9701"
+    },
+    {
+      "path": "maestro/2026-10-31_051232/Full native app navigation/commands.json",
+      "bytes": 15134,
+      "sha256": "c32aa59db13c3f4edd19bf4a41cffa12cf7d993ef570a12136447f3fb81ac8aa"
+    },
+    {
+      "path": "maestro/2026-10-31_051232/Full native app navigation/logs/device-simulator.log",
+      "bytes": 54002318,
+      "sha256": "c9402ac22b16cac1148f1a7bb4f06869701563abda5d893fdbaf0437c0a1079d"
+    },
+    {
+      "path": "maestro/2026-10-31_051232/Full native app navigation/logs/device-xctest.log",
+      "bytes": 147647,
+      "sha256": "7426a16ea2790b9c5d6c46e8db336affce7349d619ad798d2719c24b55dc4463"
+    },
+    {
+      "path": "maestro/2026-10-31_051232/Full native app navigation/logs/maestro.log",
+      "bytes": 13181,
+      "sha256": "c0f828723f9a456a6c35eeb5bdef8963346c3f7ebda56074f160c1325f35066f"
+    },
+    {
+      "path": "maestro/2026-10-31_051232/Full native app navigation/manifest.json",
+      "bytes": 1076,
+      "sha256": "a28fc0da45cb0c8d8fb7486c71225b7be1f1719f80180c00fba62b7554808197"
+    },
+    {
+      "path": "maestro/2026-10-31_051232/Full native app navigation/screen-hierarchy/step-021-assertCondition-Travel_journal.json",
+      "bytes": 65880,
+      "sha256": "71c2a1241e5915a37e9ebb0bd4598a17d4b4e6df953c194b975bd7919cfb09c0"
+    },
+    {
+      "path": "maestro/2026-10-31_051232/Full native app navigation/screenshots/step-021-assertCondition-Travel_journal.png",
+      "bytes": 195665,
+      "sha256": "795aec1199d6c208e43d10a13de58c53cf0155960b759816e4f4dc91671b0f8b"
+    },
+    {
+      "path": "maestro/2026-10-31_051232/Full native app navigation/takeScreenshot/home.png",
+      "bytes": 353402,
+      "sha256": "89cee6860dffb1e779b3254123223e2ed305c1e7d008a12ce8815a54e1ce209d"
+    },
+    {
+      "path": "maestro/2026-10-31_051232/xctest_runner_2026-10-31_051317.log",
+      "bytes": 147771,
+      "sha256": "eac3f95936e82dde37fae21b55b07d92cc8939273b799a15ce7c4cdb1b8f91e6"
+    },
+    {
+      "path": "maestro.log",
+      "bytes": 147,
+      "sha256": "ab2edf88b71baebc71c23abf0e6ceecdd15cf76f07b5bc28e4e5b20afaa1da54"
+    },
+    {
+      "path": "maestro.xml",
+      "bytes": 588,
+      "sha256": "d6bb2b96e36c400fabcfd08612eb8693d65e23dee647bafbae234cb646417d9b"
+    },
+    {
+      "path": "native-ui-auth-diagnostics.json",
+      "bytes": 74682,
+      "sha256": "8f3d1145306ecfc44bc636e29aaf3610b4bf4eff76cb58b2322568c6171a94af"
+    },
+    {
+      "path": "native-ui-receipt.json",
+      "bytes": 10546,
+      "sha256": "6751dabc3a35aa4c12bdfe22ee9f13d07abd6ac889999504ac08a81c417085c8"
+    },
+    {
+      "path": "navigation.mp4",
+      "bytes": 7685951,
+      "sha256": "3ca75ef78f2a1630e336676c2da23cab59351c5ca8d45f5c91bd8b433cd0d1c2"
+    },
+    {
+      "path": "overlays/index.js",
+      "bytes": 33,
+      "sha256": "380861fc291a775b81d0891675f0bc4c632660ae44662ba370cb43052a1efa4c"
+    },
+    {
+      "path": "overlays/metro.config.js",
+      "bytes": 72,
+      "sha256": "d93f48605ead9e6d7b6fbc1cc210255bb653b227ac9daada78f69317a88c9534"
+    },
+    {
+      "path": "overlays/modules__boomerang__android__src__main__java__expo__modules__boomerang__BoomerangModule.kt",
+      "bytes": 2990,
+      "sha256": "33170373380d9c69afabe789dfd7862f212ba1732a1328a74d7d123b7699d617"
+    },
+    {
+      "path": "overlays/modules__boomerang__ios__BoomerangModule.swift",
+      "bytes": 16619,
+      "sha256": "e50ecc3027064c532f474784ac49299954f09ce1a00eb3ea5f45fc906878f6a8"
+    },
+    {
+      "path": "overlays/src__navigation__AppNavigator.tsx",
+      "bytes": 37907,
+      "sha256": "52f2298a81d658e3cf777a19690bc24101ecc1326e3c3221366f4c0403f6acf5"
+    },
+    {
+      "path": "overlays/src__services__supabase.ts",
+      "bytes": 5251,
+      "sha256": "dfb6b6cfe427b7e5abdb7f7bedbdb45536f9abca000d4a2d3305dd45da4cf2e5"
+    },
+    {
+      "path": "pods.log",
+      "bytes": 32759,
+      "sha256": "aa18e3b5e7937dd96eb49fe29d56080dd4322f2ddab4f543d5a75fb637bbf98f"
+    },
+    {
+      "path": "prebuild.log",
+      "bytes": 168,
+      "sha256": "760817c0abef0754ae42e2529d618519cf915fee2cdeec02b4741f131bac4111"
+    },
+    {
+      "path": "recording.log",
+      "bytes": 103,
+      "sha256": "b0a2887a68a72980b773eaa96419b7bfae8f5c82afc5bc7f315af7c767d87159"
+    },
+    {
+      "path": "simulator-entitlements-before-resign.json",
+      "bytes": 954,
+      "sha256": "c80980de643b3d7dbff407cc1307b78693e8a43f8184a964d683e55c91e23dae"
+    },
+    {
+      "path": "simulator-entitlements.json",
+      "bytes": 954,
+      "sha256": "d928c7008bcf9e717f667b6d39eabe2b5b9e30f8cee5d1679f47c66c0e9bd10a"
+    },
+    {
+      "path": "simulator-host-entitlements-before-resign.log",
+      "bytes": 137,
+      "sha256": "88f02df28b6657104f4e977d5f70240680249de2ebfa3a06360ead59a2ca921c"
+    },
+    {
+      "path": "simulator-host-entitlements-before-resign.plist",
+      "bytes": 184,
+      "sha256": "00491886daae07a5296c8bad50f116bf006b0004d7bf7338ad46669fbd903a4a"
+    },
+    {
+      "path": "simulator-host-entitlements.log",
+      "bytes": 137,
+      "sha256": "88f02df28b6657104f4e977d5f70240680249de2ebfa3a06360ead59a2ca921c"
+    },
+    {
+      "path": "simulator-host-entitlements.plist",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "simulator-signature-before-resign.log",
+      "bytes": 950,
+      "sha256": "cbbed04053cee38b4615c41248b6244e6a1f9d98eceb1bd925ad3de56b539c3c"
+    },
+    {
+      "path": "simulator-signature-verification.log",
+      "bytes": 283,
+      "sha256": "f0ccb9045d05b5def9c7ddf6c70864b92a59b61cdd39c431dd7b356ed1e5490e"
+    },
+    {
+      "path": "simulator-signature.log",
+      "bytes": 950,
+      "sha256": "d0ee371f12bdaf3bcb2be2ce8577eee818b69359cda538409b706f6fdc1c971b"
+    },
+    {
+      "path": "simulator-signing.log",
+      "bytes": 145,
+      "sha256": "072b72a1b428d4369dce58316e69aff87d3c6e34c017cd3e1226ddefdb2ee048"
+    },
+    {
+      "path": "source.json",
+      "bytes": 58939,
+      "sha256": "0f223fb53f651869a1a5d9f392d0d89bfe987c03235c1dc013c9fa2ba427b6b0"
+    },
+    {
+      "path": "toolchain.log",
+      "bytes": 51,
+      "sha256": "8d315d67a5517bc04b78c43c06e9ef5213bbb599704c907128dd3ad66b06ab29"
+    }
+  ],
+  "limitations": [
+    "Full native acceptance did not pass; later screens, account readback and capture/encode/decode gates were not reached.",
+    "Maestro command durations include automation and idle settling; they are not application startup or frame latency measurements.",
+    "The screenshot is one retained moment, not proof of every frame.",
+    "Installed dependency provenance does not independently attest which Metro/Hermes module was selected in the bundled binary.",
+    "Timer descriptor identities do not record timer handles or cancellation callbacks.",
+    "The diagnostic clock-source boundary documented in native-auth-clock-source-switch-repro.json remains; this trace has strictly increasing relative times and no origin-switch signature.",
+    "All37 artifact files are hash-inventoried; large build/device logs and navigation video remain in the downloaded/archive artifact rather than duplicated in the repository.",
+    "Source-supported follow-on selector risks require actual simulator rerun; no broader assertion or timeout relaxation is authorized."
+  ]
+}

@@ -1,51 +1,55 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import { useAccountResource } from "@/lib/useAccountResource";
+import { errorMessage } from "@/lib/errors";
+import { withTimeout } from "@/lib/withTimeout";
+import { ErrorState } from "@/components/ErrorState";
 import { displayImageUrl } from "@/lib/media";
-import Link from "next/link";
-import { ArrowLeft, ShieldOff, UserX } from "lucide-react";
+
+import { ShieldOff, UserX } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { PersonName } from "@/components/PersonName";
 
 type Row = { blocked_id: string; created_at: string | null; full_name: string | null; username: string | null; avatar_url: string | null };
 
+async function fetchRows(supabase: ReturnType<typeof createClient>, uid: string): Promise<Row[]> {
+  const { data, error } = await supabase.from("blocked_users").select("blocked_id, created_at").eq("blocker_id", uid).order("created_at", { ascending: false });
+  if (error) throw error;
+  const ids = (data ?? []).map(row => row.blocked_id);
+  if (!ids.length) return [];
+  const { data: people, error: profileError } = await supabase.from("profiles").select("id, full_name, username, avatar_url").in("id", ids);
+  if (profileError) throw profileError;
+  const byId = new Map((people ?? []).map(person => [person.id, person]));
+  return (data ?? []).map(row => ({ blocked_id: row.blocked_id, created_at: row.created_at, full_name: byId.get(row.blocked_id)?.full_name ?? null, username: byId.get(row.blocked_id)?.username ?? null, avatar_url: byId.get(row.blocked_id)?.avatar_url ?? null }));
+}
+
 export default function BlockedAccountsPage() {
-  const supabase = useRef(createClient()).current;
-  const [rows, setRows] = useState<Row[] | null>(null);
-  const [err, setErr] = useState<string | null>(null);
+  const { client: supabase, data: rows, setData: setRows, error: loadError, loading, retry, assertOwner } = useAccountResource<Row[]>(fetchRows, []);
+  const [actionError, setActionError] = useState("");
+  const err = actionError || loadError;
   const [busy, setBusy] = useState<Record<string, boolean>>({});
 
-  const load = useCallback(async () => {
-    const { data: auth } = await supabase.auth.getUser();
-    const uid = auth.user?.id;
-    if (!uid) { setRows([]); return; }
-    const { data, error } = await supabase.from("blocked_users").select("blocked_id, created_at").eq("blocker_id", uid).order("created_at", { ascending: false });
-    if (error) { setErr(error.message); return; }
-    const ids = (data ?? []).map(r => r.blocked_id);
-    if (!ids.length) { setRows([]); return; }
-    const { data: people } = await supabase.from("profiles").select("id, full_name, username, avatar_url").in("id", ids);
-    const byId = new Map((people ?? []).map(p => [p.id, p]));
-    setRows((data ?? []).map(r => ({ blocked_id: r.blocked_id, created_at: r.created_at, full_name: byId.get(r.blocked_id)?.full_name ?? null, username: byId.get(r.blocked_id)?.username ?? null, avatar_url: byId.get(r.blocked_id)?.avatar_url ?? null })));
-  }, [supabase]);
-  useEffect(() => { void load(); }, [load]);
 
   const unblock = async (row: Row) => {
     const name = row.full_name || (row.username ? "@" + row.username : "this person");
     if (!confirm(name + " will be able to see your posts and message you again. Unblock?")) return;
-    setBusy(b => ({ ...b, [row.blocked_id]: true }));
-    const { data: auth } = await supabase.auth.getUser();
-    const uid = auth.user?.id;
-    const { error } = await supabase.from("blocked_users").delete().eq("blocker_id", uid).eq("blocked_id", row.blocked_id);
-    setBusy(b => { const n = { ...b }; delete n[row.blocked_id]; return n; });
-    if (error) { alert("Could not unblock: " + error.message); return; }
-    setRows(r => (r ?? []).filter(x => x.blocked_id !== row.blocked_id));
+    if (busy[row.blocked_id]) return;
+    setBusy(previous => ({ ...previous, [row.blocked_id]: true })); setActionError("");
+    try {
+      const owner = await assertOwner();
+      const { error } = await withTimeout(supabase.from("blocked_users").delete().eq("blocker_id", owner).eq("blocked_id", row.blocked_id));
+      if (error) throw error;
+      setRows(previous => previous.filter(item => item.blocked_id !== row.blocked_id));
+    } catch (cause) { setActionError(errorMessage(cause, "This person could not be unblocked. Please try again.")); }
+    finally { setBusy(previous => ({ ...previous, [row.blocked_id]: false })); }
   };
 
   return (
     <div className="mx-auto max-w-[560px] px-1">
       <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><ShieldOff size={19} className="text-accent" /> Blocked accounts</h1>
       <p className="pb-5 text-[13px] text-muted">When you block someone they cannot see your posts or message you. You can undo it here.</p>
-      {err ? <p className="text-sm text-danger">{err}</p> : rows === null ? <p className="py-10 text-center text-sm text-muted">Loading</p>
+      {err ? <ErrorState title={err} onRetry={() => { setActionError(""); retry(); }} /> : loading ? <p className="py-10 text-center text-sm text-muted">Loading</p>
       : rows.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-ink/15 py-14 text-center">
           <UserX size={28} className="text-muted" />

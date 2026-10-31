@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "runnerSha256": "1cafb6dba876d9ee92288d7aa233ee41739fc2f271d4e1ca174f82c09620e12d",
+  "method": "Execute the frozen actual cleanup block with fake ADB/collector commands and real isolated sleep processes; send SIGTERM to only the fixture process group.",
+  "results": [
+    {
+      "signal": "SIGTERM",
+      "collectorExitCode": 0,
+      "actualProcessReturnCode": -15,
+      "collectorCleanupEntryStatus": 0,
+      "temporaryWorkRemoved": true,
+      "result": "pass"
+    },
+    {
+      "signal": "SIGTERM",
+      "collectorExitCode": 77,
+      "actualProcessReturnCode": -15,
+      "collectorCleanupEntryStatus": 0,
+      "temporaryWorkRemoved": true,
+      "result": "pass"
+    }
+  ],
+  "limits": [
+    "This is an actual-shell cancellation probe, not a GitHub cancellation or real emulator run.",
+    "The collector gate-exit argument is the incoming EXIT trap status. It can be zero during signal termination and does not establish the final process/workflow outcome.",
+    "SIGKILL cannot guarantee cleanup or diagnostic retention and was not claimed."
+  ]
+}

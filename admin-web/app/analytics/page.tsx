@@ -1,6 +1,6 @@
+import Image from 'next/image';
+import { requestTime } from '@/lib/requestTime';
 import { completeRead } from '@/lib/completeRead';
-import { redirect } from 'next/navigation';
-import Link from 'next/link';
 import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import Shell from '@/components/Shell';
@@ -9,13 +9,14 @@ import { fmt } from '@/lib/fmt';
 import { pickMedia, resolveMedia, isVideoUrl } from '@/lib/media';
 import { resolveModerationMedia } from '@/lib/moderationMedia';
 import { canPerform } from '@/lib/permissions';
+import ContentReviewLink from '@/components/ContentReviewLink';
 
 export const dynamic = 'force-dynamic';
 
-const PANEL: React.CSSProperties = { borderRadius: 13, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', overflow: 'hidden' };
+const PANEL: React.CSSProperties = { borderRadius: 12, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', overflow: 'hidden' };
 const HEAD: React.CSSProperties = { padding: '14px 16px 12px', borderBottom: '1px solid rgba(var(--on),0.10)' };
-const H_TITLE: React.CSSProperties = { fontSize: 13.5, fontWeight: 700, color: 'var(--txt)' };
-const H_SUB: React.CSSProperties = { fontSize: 11.3, color: 'rgba(var(--on),0.36)', marginTop: 3 };
+const H_TITLE: React.CSSProperties = { fontSize: 14, fontWeight: 700, color: 'var(--txt)' };
+const H_SUB: React.CSSProperties = { fontSize: 12, color: 'var(--txt-muted)', marginTop: 3 };
 
 type Day = Record<string, number | string>;
 
@@ -37,9 +38,10 @@ function weekStart(iso: string) {
 
 export default async function AnalyticsPage() {
   const admin = await requireDesk('/analytics');
+  const now = await requestTime();
   const svc = serviceClient();
 
-  const cohortFrom = new Date(Date.now() - 70 * 86400000).toISOString();
+  const cohortFrom = new Date(now - 70 * 86400000).toISOString();
 
   const [daysRes, membersRes, bizRes, verifiedRes, bizVerifiedRes, tierRes, postRes, cohortRes, locRes] = await Promise.all([
     svc.from('daily_stats').select('*').order('day', { ascending: false }).limit(90),
@@ -164,7 +166,7 @@ export default async function AnalyticsPage() {
     }
   });
   const cohorts = Object.keys(cohortMap).sort().reverse().map(w => {
-    const ageDays = (Date.now() - new Date(w).getTime()) / 86400000 - 7;
+    const ageDays = (now - new Date(w).getTime()) / 86400000 - 7;
     return { week: w, size: cohortMap[w].size, kept: cohortMap[w].kept, ageDays };
   });
 
@@ -192,11 +194,11 @@ export default async function AnalyticsPage() {
           const d = delta(k.value, k.prev);
           return (
             <div key={k.label} style={{ ...PANEL, padding: '14px 15px 12px' }}>
-              <div style={{ fontSize: 11.3, fontWeight: 600, color: 'rgba(var(--on),0.5)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{k.label}</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--txt-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{k.label}</div>
               <div className="pc-num" style={{ marginTop: 9, fontSize: 26, lineHeight: 1, color: 'var(--txt-strong)' }}>{fmt(k.value)}</div>
               <div style={{ marginTop: 9, display: 'flex', alignItems: 'baseline', gap: 7 }}>
-                <span className="pc-num" style={{ fontSize: 10.5, fontWeight: 600, color: d.fg }}>{d.text}</span>
-                <span style={{ fontSize: 10, color: 'rgba(var(--on),0.3)' }}>vs prior 7 days</span>
+                <span className="pc-num" style={{ fontSize: 11, fontWeight: 600, color: d.fg }}>{d.text}</span>
+                <span style={{ fontSize: 11, color: 'var(--txt-muted)' }}>vs prior 7 days</span>
               </div>
               <div style={{ marginTop: 9 }}><Spark values={series30(k.key)} color={k.color} height={22} /></div>
             </div>
@@ -290,12 +292,12 @@ export default async function AnalyticsPage() {
             <Donut slices={memberSlices} centerLabel="members" size={148} />
             {tierSlices.length ? (
               <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid rgba(var(--on),0.10)' }}>
-                <div style={{ fontSize: 11.3, fontWeight: 600, color: 'rgba(var(--on),0.5)', marginBottom: 10 }}>Verified by seal</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--txt-muted)', marginBottom: 10 }}>Verified by seal</div>
                 {tierSlices.map(t => (
                   <div key={t.label} style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '4px 0' }}>
                     <span style={{ width: 8, height: 8, borderRadius: '50%', background: t.color, flex: '0 0 8px' }} />
-                    <span style={{ flex: 1, fontSize: 11.8, color: 'rgba(var(--on),0.62)' }}>{t.label}</span>
-                    <span className="pc-num" style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--txt)' }}>{t.value}</span>
+                    <span style={{ flex: 1, fontSize: 12, color: 'var(--txt-muted)' }}>{t.label}</span>
+                    <span className="pc-num" style={{ fontSize: 12, fontWeight: 600, color: 'var(--txt)' }}>{t.value}</span>
                   </div>
                 ))}
               </div>
@@ -317,8 +319,8 @@ export default async function AnalyticsPage() {
                   <div key={l.label} style={{ marginBottom: 11 }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, marginBottom: 5 }}>
                       <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.label}</span>
-                      <span className="pc-num" style={{ fontSize: 11.4, fontWeight: 600, color: 'var(--txt)' }}>{l.n}</span>
-                      <span className="pc-num" style={{ fontSize: 10.5, color: 'rgba(var(--on),0.34)', width: 44, textAlign: 'right' }}>{located ? ((l.n / located) * 100).toFixed(1) + '%' : '-'}</span>
+                      <span className="pc-num" style={{ fontSize: 12, fontWeight: 600, color: 'var(--txt)' }}>{l.n}</span>
+                      <span className="pc-num" style={{ fontSize: 11, color: 'var(--txt-muted)', width: 44, textAlign: 'right' }}>{located ? ((l.n / located) * 100).toFixed(1) + '%' : '-'}</span>
                     </div>
                     <div style={{ height: 6, borderRadius: 4, background: 'rgba(var(--on),0.06)', overflow: 'hidden' }}>
                       <div style={{ height: '100%', width: Math.max(2, (l.n / locMax) * 100) + '%', borderRadius: 4, background: 'var(--c1)' }} />
@@ -326,8 +328,8 @@ export default async function AnalyticsPage() {
                   </div>
                 ))}
                 <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid rgba(var(--on),0.10)', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ flex: 1, fontSize: 11.4, color: 'rgba(var(--on),0.42)' }}>Profiles with no location set</span>
-                  <span className="pc-num" style={{ fontSize: 11.6, fontWeight: 600, color: 'var(--txt)' }}>{fmt(noLocation)}</span>
+                  <span style={{ flex: 1, fontSize: 12, color: 'var(--txt-muted)' }}>Profiles with no location set</span>
+                  <span className="pc-num" style={{ fontSize: 12, fontWeight: 600, color: 'var(--txt)' }}>{fmt(noLocation)}</span>
                 </div>
               </div>
             )}
@@ -345,14 +347,14 @@ export default async function AnalyticsPage() {
             const url = rawUrl ? postUrlMap[rawUrl] || null : null;
             const video = isVideoUrl(rawUrl);
             return (
-              <Link key={p.id} href={'/p/' + p.id} className="pc-nav" style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 16px', borderBottom: '1px solid rgba(var(--on),0.10)', textDecoration: 'none' }}>
+              <ContentReviewLink key={p.id} role={admin.role} id={p.id} className="pc-nav" style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 16px', borderBottom: '1px solid rgba(var(--on),0.10)', textDecoration: 'none' }}>
                 <span style={{ width: 40, height: 40, flex: '0 0 40px', borderRadius: 9, overflow: 'hidden', background: 'rgba(var(--on),0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
                   {url
                     ? (video
                       ? <video src={url} muted playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      : <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />)
+                      : <Image unoptimized width={40} height={40} src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />)
                     : (a?.avatar_url
-                      ? <img src={a.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ? <Image unoptimized width={40} height={40} src={a.avatar_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       : <svg width="15" height="15" viewBox="0 0 24 24" style={{ fill: 'rgba(var(--on),0.24)' }}><path d="M4 4h16v12H5.2L4 17.2V4zm2 3h12v2H6V7zm0 4h8v2H6v-2z" /></svg>)}
                   {video && url ? (
                     <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.28)' }}>
@@ -361,15 +363,15 @@ export default async function AnalyticsPage() {
                   ) : null}
                 </span>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12.3, fontWeight: 600, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.content || 'Media post'}</div>
-                  <div style={{ fontSize: 10.6, color: 'rgba(var(--on),0.36)', marginTop: 3 }}>{a ? '@' + (a.username || 'member') : 'unknown author'}</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.content || 'Media post'}</div>
+                  <div style={{ fontSize: 11, color: 'var(--txt-muted)', marginTop: 3 }}>{a ? '@' + (a.username || 'member') : 'unknown author'}</div>
                 </div>
-                <div className="pc-num" style={{ display: 'flex', gap: 12, flex: '0 0 auto', fontSize: 11, color: 'rgba(var(--on),0.5)' }}>
+                <div className="pc-num" style={{ display: 'flex', gap: 12, flex: '0 0 auto', fontSize: 11, color: 'var(--txt-muted)' }}>
                   <span>{fmt(p.likes_count || 0)} likes</span>
                   <span>{fmt(p.comments_count || 0)} comments</span>
                   <span>{fmt(p.shares_count || 0)} shares</span>
                 </div>
-              </Link>
+              </ContentReviewLink>
             );
           })}
         </div>
@@ -384,18 +386,18 @@ export default async function AnalyticsPage() {
               <div style={{ minWidth: 430 }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '128px 62px 1fr 1fr 1fr 1fr', padding: '0 16px', borderBottom: '1px solid rgba(var(--on),0.10)', background: 'rgba(var(--on),0.015)' }}>
                   {['Signup week', 'Joined', 'At least 1 week', 'At least 2 weeks', 'At least 3 weeks', 'At least 4 weeks'].map((c, i) => (
-                    <div key={c} style={{ padding: '9px 6px', fontSize: 10.3, fontWeight: 700, color: 'rgba(var(--on),0.36)', textAlign: i > 1 ? 'right' : 'left', whiteSpace: 'nowrap' }}>{c}</div>
+                    <div key={c} style={{ padding: '9px 6px', fontSize: 11, fontWeight: 700, color: 'var(--txt-muted)', textAlign: i > 1 ? 'right' : 'left', whiteSpace: 'nowrap' }}>{c}</div>
                   ))}
                 </div>
                 {cohorts.map(c => (
                   <div key={c.week} style={{ display: 'grid', gridTemplateColumns: '128px 62px 1fr 1fr 1fr 1fr', padding: '0 16px', borderBottom: '1px solid rgba(var(--on),0.10)' }}>
-                    <div style={{ padding: '10px 6px', fontSize: 11.8, color: 'rgba(var(--on),0.62)' }}>{new Date(c.week + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</div>
-                    <div className="pc-num" style={{ padding: '10px 6px', fontSize: 11.8, color: 'var(--txt)' }}>{c.size}</div>
+                    <div style={{ padding: '10px 6px', fontSize: 12, color: 'var(--txt-muted)' }}>{new Date(c.week + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</div>
+                    <div className="pc-num" style={{ padding: '10px 6px', fontSize: 12, color: 'var(--txt)' }}>{c.size}</div>
                     {[7, 14, 21, 28].map((mark, i) => {
                       const ready = c.ageDays >= mark;
                       const pct = c.size ? Math.round((c.kept[i] / c.size) * 100) : 0;
                       return (
-                        <div key={mark} className="pc-num" style={{ padding: '10px 6px', fontSize: 11.8, textAlign: 'right', color: ready ? (pct > 0 ? 'var(--txt)' : 'rgba(var(--on),0.3)') : 'rgba(var(--on),0.18)', background: ready && pct > 0 ? 'rgba(var(--ok-rgb),' + (0.06 + (pct / 100) * 0.16).toFixed(3) + ')' : 'transparent' }}>
+                        <div key={mark} className="pc-num" style={{ padding: '10px 6px', fontSize: 12, textAlign: 'right', color: ready ? (pct > 0 ? 'var(--txt)' : 'rgba(var(--on),0.3)') : 'rgba(var(--on),0.18)', background: ready && pct > 0 ? 'rgba(var(--ok-rgb),' + (0.06 + (pct / 100) * 0.16).toFixed(3) + ')' : 'transparent' }}>
                           {ready ? pct + '%' : '-'}
                         </div>
                       );
@@ -417,20 +419,20 @@ export default async function AnalyticsPage() {
           <div style={{ minWidth: 900 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr 72px 72px 82px 72px 82px 72px 76px 62px', padding: '0 16px', borderBottom: '1px solid rgba(var(--on),0.10)', background: 'rgba(var(--on),0.015)' }}>
               {['Day', 'Actives', 'Signups', 'Posts', 'Comments', 'Likes', 'Messages', 'Stories', 'Listings', 'Jobs'].map((c, i) => (
-                <div key={c} style={{ padding: '9px 8px', fontSize: 10.3, fontWeight: 700, color: 'rgba(var(--on),0.36)', textAlign: i > 1 ? 'right' : 'left', whiteSpace: 'nowrap' }}>{c}</div>
+                <div key={c} style={{ padding: '9px 8px', fontSize: 11, fontWeight: 700, color: 'var(--txt-muted)', textAlign: i > 1 ? 'right' : 'left', whiteSpace: 'nowrap' }}>{c}</div>
               ))}
             </div>
             {desc.length === 0 ? <Empty note="The first nightly computation lands after midnight." /> : desc.map(r => (
               <div key={String(r.day)} className="pc-nav" style={{ display: 'grid', gridTemplateColumns: '110px 1fr 72px 72px 82px 72px 82px 72px 76px 62px', padding: '0 16px', borderBottom: '1px solid rgba(var(--on),0.10)' }}>
-                <div className="pc-num" style={{ padding: '9px 8px', fontSize: 11.6, color: 'rgba(var(--on),0.55)' }}>{String(r.day)}</div>
+                <div className="pc-num" style={{ padding: '9px 8px', fontSize: 12, color: 'var(--txt-muted)' }}>{String(r.day)}</div>
                 <div style={{ padding: '9px 8px', display: 'flex', alignItems: 'center', gap: 9, minWidth: 0 }}>
                   <div style={{ flex: 1, height: 7, borderRadius: 4, background: 'rgba(var(--on),0.06)', overflow: 'hidden' }}>
                     <div style={{ height: '100%', width: Math.max(2, Math.round(((Number(r.dau) || 0) / maxDau) * 100)) + '%', background: 'var(--c1)', borderRadius: 4 }} />
                   </div>
-                  <span className="pc-num" style={{ width: 30, flex: '0 0 30px', fontSize: 11.8, fontWeight: 600, color: 'var(--txt)' }}>{Number(r.dau) || 0}</span>
+                  <span className="pc-num" style={{ width: 30, flex: '0 0 30px', fontSize: 12, fontWeight: 600, color: 'var(--txt)' }}>{Number(r.dau) || 0}</span>
                 </div>
                 {['new_signups', 'posts', 'comments', 'likes', 'messages', 'stories', 'listings', 'jobs'].map(k => (
-                  <div key={k} className="pc-num" style={{ padding: '9px 8px', fontSize: 11.6, textAlign: 'right', color: (Number(r[k]) || 0) > 0 ? 'var(--txt)' : 'rgba(var(--on),0.22)' }}>{Number(r[k]) || 0}</div>
+                  <div key={k} className="pc-num" style={{ padding: '9px 8px', fontSize: 12, textAlign: 'right', color: (Number(r[k]) || 0) > 0 ? 'var(--txt)' : 'rgba(var(--on),0.22)' }}>{Number(r[k]) || 0}</div>
                 ))}
               </div>
             ))}
@@ -444,8 +446,8 @@ export default async function AnalyticsPage() {
 function Insight({ title, body, fg }: { title: string; body: string; fg?: string }) {
   return (
     <div style={{ padding: '12px 0', borderBottom: '1px solid rgba(var(--on),0.08)' }}>
-      <div style={{ fontSize: 11.8, fontWeight: 700, color: fg || 'var(--txt)' }}>{title}</div>
-      <div style={{ fontSize: 11.6, color: 'rgba(var(--on),0.48)', marginTop: 4, lineHeight: 1.45 }}>{body}</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: fg || 'var(--txt)' }}>{title}</div>
+      <div style={{ fontSize: 12, color: 'var(--txt-muted)', marginTop: 4, lineHeight: 1.45 }}>{body}</div>
     </div>
   );
 }

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31T07:33:23.700595+00:00",
+  "reviewer": "root",
+  "scope": "Independent bounded review of the Android semantic shelf-entry centering follow-up. No new native gesture, source/ref change or workflow run.",
+  "baselineHead": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+  "artifactId": 13035220059,
+  "artifactZipSha256": "b869c6611030a06c9d7ced04e4c72050f164677738c43537e5019c3e5ade57c1",
+  "reviewed": [
+    "Read the exact one-line diff in tests/native/flows/memory-navigation.yaml.",
+    "Inspected the actual failure PNG showing Profile and the shelf link beneath Android system navigation.",
+    "Read the retained pinned UiElement and ScrollDirection source: DOWN maps to UP and the safe-centering condition is centerY < 448 for this 640px screen.",
+    "Executed all three focused regression cases; all passed with zero failures/skips.",
+    "Confirmed the tests compare parsed flow to the retained original after deleting only centerElement, and explicitly label their geometry decision model."
+  ],
+  "verdict": "Accepted for next actual native run. The semantic target is unchanged and the current captured tap position requires another scroll under the pinned command semantics.",
+  "preserved": [
+    "All original command ordering/selectors/assertions/timeouts",
+    "One attempt per independent required flow",
+    "Same installed app/account continuity",
+    "No coordinate tap or production capability change"
+  ],
+  "limits": [
+    "This is source/fixture/retained-image review, not a real repaired Maestro gesture.",
+    "The existing bounded centering fallback can still complete if a list cannot move; actual runtime remains authoritative.",
+    "The overlapping auth refresh/lock feedback loop is separately investigated and not excluded as a contributor."
+  ],
+  "sourceSha256": {
+    "tests/native/flows/memory-navigation.yaml": "afd1a9deb1842880ca237405019525e75a9787ce84bb8effc7ec870b037b0792",
+    "tests/quality/native-memory-shelf-entry.cjs": "cb6e2b846921a1e73a78f9c1e05248c7915c8bc350f8b3b1f546892b94155af7",
+    "docs/quality/native-full-app-20261031/android-6878c384-shelf-entry-repair.json": "c6b6cdb936238d0b97e40a56cc4f32856f0a189c417671792da91bb60b571eb8"
+  }
+}

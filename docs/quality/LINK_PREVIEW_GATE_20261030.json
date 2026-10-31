@@ -1,0 +1,106 @@
+{
+  "verifiedAt": "2026-10-30T00:52:39.018764+00:00",
+  "files": [
+    {
+      "path": "supabase/migrations/20261030000331_link_preview_verified_cache.sql",
+      "sha256": "999e44ee9602e15069443caed2590b5a3b2fb82c6044e8c2195abd2521c82daa"
+    },
+    {
+      "path": "supabase/functions/link-preview/index.ts",
+      "sha256": "bccd626c01ea2b0cd3aaff3433490336785668c2b5ad9e7761f9dd0e8f9c5c53"
+    },
+    {
+      "path": "supabase/functions/link-preview/handler.ts",
+      "sha256": "b0b4979cfbf2cfa414ace29bab9a084a5f08e29eaa60a2571522ba8e8e98f149"
+    },
+    {
+      "path": "supabase/functions/link-preview/networkPolicy.ts",
+      "sha256": "fa325525dbcab85eeacd5920d606ea313dbaecbd739620c302f8d0c7725c5f94"
+    },
+    {
+      "path": "supabase/functions/link-preview/transport.ts",
+      "sha256": "8ba42c01bdeb1c47626ff981992a57bff3a131a4730d9e9d7c017a1abbe1b82a"
+    },
+    {
+      "path": "supabase/functions/link-preview/denoTransport.ts",
+      "sha256": "b56554f8e32cf9e1de19ebf9bd732c4ec54fb76ca5777df4ee6d5d4d5d92b99a"
+    },
+    {
+      "path": "src/services/linkPreview.ts",
+      "sha256": "a1831698ef4f6d5a881a47a5f0df9b50c62ec7d95c6abb5b528bb193b036674d"
+    },
+    {
+      "path": "src/screens/feed/FeedScreen.tsx",
+      "sha256": "db858cc7abfd28e83b910ef2bf88b469aea1799c4bc99a85f33ecc4067d13c51"
+    },
+    {
+      "path": "src/components/LinkAttachSheet.tsx",
+      "sha256": "7c5b329540b12d74f352be7d793353cdde33873ab65eac58f56db1807c60c16d"
+    },
+    {
+      "path": "web/components/Composer.tsx",
+      "sha256": "e07776bacdaeaf272736e7767993a9f60ae1eb9b699d2a4d30032e1d525f2404"
+    },
+    {
+      "path": "supabase/config.toml",
+      "sha256": "29b920db58fbb41a27bb435f0ab92263ba81618878589c452fd4df461ac2a808"
+    },
+    {
+      "path": "tests/link-preview.test.cjs",
+      "sha256": "c63dfd319438212343a445cc691634397084098279ddddcef39412aa7d481333"
+    },
+    {
+      "path": "supabase/tests/link-preview.deno.ts",
+      "sha256": "999bca6471e16db339d862580827f02cb1a592086c190355ff4d26f13dff7743"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/test-link-preview-chain.mjs",
+      "sha256": "aca38353a57485308ce12ba8708a96a12a2e078071e23c9778a02d1df2e741c1"
+    },
+    {
+      "path": "supabase/ops/check-link-preview-preflight.sql",
+      "sha256": "73186d64b51a6dd86d3a70502e25885e6a48c7b486ba7d52de55d9b518845731"
+    },
+    {
+      "path": "supabase/ops/check-link-preview-postflight.sql",
+      "sha256": "cf0d208121db478f4d8bcb73e6ef84fdb09d02d731aaf560c0acc252ba618468"
+    }
+  ],
+  "nodeBehaviorTestsPassed": 21,
+  "denoTlsTestsPassed": 2,
+  "currentProductionDbTestsPassed": 12,
+  "combinedProductionDbTestsPassed": 12,
+  "qaDbTestsPassed": 12,
+  "typeChecks": {
+    "native": true,
+    "web": true,
+    "denoEdge": true
+  },
+  "denoVersion": "2.1.4",
+  "edgeSupabaseJsVersion": "2.112.3",
+  "independentReview": "Original cache/client findings addressed; root independently reviewed native Deno transport framing, bounds, TLS verification, pinned destinations and cancellation with no concrete remaining gap.",
+  "hostedDeploymentPerformedByThisLane": false,
+  "testFlightOrIpa": false,
+  "remainingAcceptance": [
+    "Legitimate authenticated preview request and publication",
+    "Web/native publication and cancellation walkthrough",
+    "Newly installed iPhone build acceptance"
+  ],
+  "denoTlsChecks": [
+    "pinned-IP and original Host/SNI success",
+    "wrong certificate hostname rejected before HTTP",
+    "untrusted CA rejected before HTTP",
+    "unfinished response cancellation closes connection"
+  ],
+  "runtimeCompatibilityRepair": {
+    "initialHostedVersion": "supabase-edge-runtime-1.77.9 (Deno 2.1.4)",
+    "initialFailure": "Valid public raster returned HTTP 502; sanitized QA diagnosis isolated TLS.",
+    "localReproduction": "Deno 2.1.4 node:https ignores separate TLS servername; trusted fixture returned NotValidForName for pinned IP and sent no HTTP request.",
+    "correction": "Deno.connect to validated literal IP, Deno.startTls with original hostname and normal CA verification, bounded HTTP/1.1 reader.",
+    "cleanBundleDiagnosticsRemoved": true,
+    "qaV19HttpChecksReportedByRoot": 6,
+    "qaV19RasterBytes": 147877,
+    "qaV19RasterSha256": "8a15d59d2cd91deff61bdda862bd6982c7646d03797bc4a815f25e10244f0664",
+    "cleanHostedBundleAcceptance": "Owned by root rollout receipt after final redeploy."
+  }
+}

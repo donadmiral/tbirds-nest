@@ -1,0 +1,43 @@
+{
+  "node_modules/@supabase/postgrest-js/package.json": {
+    "sha256": "ecc19cbce8164646efd54147d01fc910cfb8030f8d191f0583280e7e21500925",
+    "bytes": 2001,
+    "version": "2.103.0"
+  },
+  "node_modules/@supabase/postgrest-js/src/PostgrestBuilder.ts": {
+    "sha256": "a9f199b2303afe62ab5e0dc1f0034e7bccda0e0e9e057b16fad451556b62a4c3",
+    "bytes": 20966
+  },
+  "node_modules/whatwg-fetch/package.json": {
+    "sha256": "773f705e4e3f83dc4758188878c4db45478df953a10bceeb14e4aafbbe7847bc",
+    "bytes": 1249,
+    "version": "3.6.20"
+  },
+  "node_modules/whatwg-fetch/dist/fetch.umd.js": {
+    "sha256": "8c006dece7b95b63787c3ae297593c6bad9386cb8054697d18104177a5f52c87",
+    "bytes": 19815
+  },
+  "node_modules/@react-navigation/native/package.json": {
+    "sha256": "7be33a8f810a611ade552bf5e7dc88a2e1275f4848c3ba383b09f1a412a492a1",
+    "bytes": 1788,
+    "version": "6.1.18"
+  },
+  "node_modules/@react-navigation/core/package.json": {
+    "sha256": "8e58c26a70ad855affdb1ac5db5d68894f11bc26fea35e29cbef46d51465dd09",
+    "bytes": 1742,
+    "version": "6.4.17"
+  },
+  "node_modules/@react-navigation/core/src/getStateFromPath.tsx": {
+    "sha256": "85caa5e4caff2942d5a4d70687e3630b3eb2fec95f949533a7de4577f7f28fb9",
+    "bytes": 17369
+  },
+  "node_modules/@react-navigation/routers/package.json": {
+    "sha256": "ec52ba614c8931860760357d873decc83d087f75c03fdb3cd9731594d576f981",
+    "bytes": 1374,
+    "version": "6.1.9"
+  },
+  "node_modules/@react-navigation/routers/src/StackRouter.tsx": {
+    "sha256": "d0f330df6b1377593b451389c5147e6a3968d214e4aa4d9bef01f42c84d26e72",
+    "bytes": 13848
+  }
+}

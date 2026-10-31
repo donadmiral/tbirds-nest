@@ -14,7 +14,7 @@ export function StoryLink({ storyId }: { storyId: string }) {
   useEffect(() => {
     const client = createClient(); let alive = true, authVersion = 0;
     const load = async (viewer: string | null) => {
-      const current = ++generation.current;
+      const current = generation.current += 1;
       setState({ status: viewer ? 'loading' : 'signin' });
       if (!viewer) return;
       try {
@@ -30,7 +30,7 @@ export function StoryLink({ storyId }: { storyId: string }) {
     const { data: { subscription } } = client.auth.onAuthStateChange((_event, session) => { authVersion++; void load(session?.user.id ?? null); });
     const initialVersion = authVersion;
     void client.auth.getSession().then(({ data, error }) => { if (alive && authVersion === initialVersion) void load(error ? null : data.session?.user.id ?? null); }, () => { if (alive && authVersion === initialVersion) void load(null); });
-    return () => { alive = false; ++generation.current; subscription.unsubscribe(); };
+    return () => { alive = false; generation.current += 1; subscription.unsubscribe(); };
   }, [storyId]);
   if (state.status === 'ready' && state.user) return <StoryViewer key={storyId} users={[state.user]} startIndex={0} initialStoryId={storyId} onClose={() => router.push('/home')} />;
   return <main className="mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center gap-4 p-6 text-center text-ink"><p role="status">{state.status === 'loading' ? 'Opening story…' : state.status === 'signin' ? 'Sign in to view this story.' : 'This story has expired or is not shared with you.'}</p><Link className="rounded-full bg-pearl px-5 py-3 text-sm font-semibold text-on-pearl" href={state.status === 'signin' ? '/login?next=' + encodeURIComponent('/story/' + storyId) : '/home'}>{state.status === 'signin' ? 'Sign in' : 'Go home'}</Link></main>;

@@ -1,0 +1,3559 @@
+{
+  "gate": "native-regressions",
+  "started_at": "2026-10-30T04:23:17.150135+00:00",
+  "completed_at": "2026-10-30T04:24:01.751414+00:00",
+  "strategy": "Exact CI glob inventory, one isolated Node process per test file, maximum concurrency 2; direct invocation preserves underlying test case and skip summaries hidden by local Node aggregate --test output",
+  "node_version": "v24.22.1",
+  "head": "32ee0a5373dd5ebcddae92ca5145f9bf7293c9c9",
+  "branch": "codex/app-quality-20261029",
+  "explicit_environment": {},
+  "processes": {
+    "total": 126,
+    "passed": 126,
+    "failed": 0
+  },
+  "reported_case_totals": {
+    "tests": 1177,
+    "pass": 1177,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "processes_without_case_summary": [],
+  "before_source_sha256": "fce7692d39ab22d3f936753b23896e9873aec41b80656c7fa2c0ce2338cd3b1d",
+  "after_source_sha256": "fce7692d39ab22d3f936753b23896e9873aec41b80656c7fa2c0ce2338cd3b1d",
+  "source_file_count": 1747,
+  "source_changed_during_run": [],
+  "before_manifest": "/tmp/platinum-final-verification/native-regressions.before-source.json",
+  "after_manifest": "/tmp/platinum-final-verification/native-regressions.after-source.json",
+  "results": [
+    {
+      "command": [
+        "node",
+        "tests/account-storage-erasure.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:17.151658+00:00",
+      "completed_at": "2026-10-30T04:23:17.622633+00:00",
+      "duration_seconds": 0.471,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__account-storage-erasure.test.cjs.log",
+      "log_sha256": "cc9e4831ff83e4cfdbac3b9ce274d9a61b8ee043a5b953c4f8908eb2665fc55f",
+      "node_test_summaries": [
+        {
+          "tests": 10,
+          "suites": 0,
+          "pass": 10,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 45.952178
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/call-media.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:17.152194+00:00",
+      "completed_at": "2026-10-30T04:23:17.719514+00:00",
+      "duration_seconds": 0.567,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__call-media.test.cjs.log",
+      "log_sha256": "78fa9aa9740df221c45ad8c5815a3f2516ea3ebf52d98c1b360681c1fc31e17b",
+      "node_test_summaries": [
+        {
+          "tests": 8,
+          "suites": 0,
+          "pass": 8,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 307.660044
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/call-transitions.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:17.623665+00:00",
+      "completed_at": "2026-10-30T04:23:18.196187+00:00",
+      "duration_seconds": 0.573,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__call-transitions.test.cjs.log",
+      "log_sha256": "bbafb98fb81e4d4b19afe2dfa0d03fe1932f18e6f5312db7f28048715369ba05",
+      "node_test_summaries": [
+        {
+          "tests": 3,
+          "suites": 0,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 325.951178
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/chat-media-cache.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:17.720006+00:00",
+      "completed_at": "2026-10-30T04:23:18.696690+00:00",
+      "duration_seconds": 0.977,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__chat-media-cache.test.cjs.log",
+      "log_sha256": "0646d22228cd59ba307c46d35a89821135020aacb38bc6c2c8a66f3d7afc594a",
+      "node_test_summaries": [
+        {
+          "tests": 32,
+          "suites": 0,
+          "pass": 32,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 649.975429
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/chat-quality.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:18.196509+00:00",
+      "completed_at": "2026-10-30T04:23:18.964977+00:00",
+      "duration_seconds": 0.768,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__chat-quality.test.cjs.log",
+      "log_sha256": "404cd298daf3c190e640778a62ed79dda2f91dba721af2f8ed349a1856498d1f",
+      "node_test_summaries": [
+        {
+          "tests": 13,
+          "suites": 0,
+          "pass": 13,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 260.279448
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/client-diagnostics.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:18.697330+00:00",
+      "completed_at": "2026-10-30T04:23:19.375414+00:00",
+      "duration_seconds": 0.678,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__client-diagnostics.test.cjs.log",
+      "log_sha256": "baad13df3288c6c831f214ef9a31fe92cee7f7230adbed124f06436549ffb388",
+      "node_test_summaries": [
+        {
+          "tests": 8,
+          "suites": 0,
+          "pass": 8,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 277.013183
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/commerce-domain.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:18.965458+00:00",
+      "completed_at": "2026-10-30T04:23:19.079956+00:00",
+      "duration_seconds": 0.115,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__commerce-domain.test.cjs.log",
+      "log_sha256": "89c0199d6ce3cc3127bf7af8a3ce8089c2293c6945ee81477726c81d0cc93cc4",
+      "node_test_summaries": [
+        {
+          "tests": 4,
+          "suites": 0,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 9.966763
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/creator-monetization.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:19.080328+00:00",
+      "completed_at": "2026-10-30T04:23:19.558106+00:00",
+      "duration_seconds": 0.478,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__creator-monetization.test.cjs.log",
+      "log_sha256": "06f6c9c45d361ddd646d4547a2766427989e35fba3bfe43eb5deffa6b5e9d789",
+      "node_test_summaries": [
+        {
+          "tests": 16,
+          "suites": 0,
+          "pass": 16,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 23.460891
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/creator-payout-worker.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:19.376744+00:00",
+      "completed_at": "2026-10-30T04:23:19.897943+00:00",
+      "duration_seconds": 0.521,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__creator-payout-worker.test.cjs.log",
+      "log_sha256": "b62914f239871c7fe3b91776ae9c6064bb31f10095445c7eee81d6f7f1e81375",
+      "node_test_summaries": [
+        {
+          "tests": 9,
+          "suites": 0,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 77.313943
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/daily-call-access.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:19.558593+00:00",
+      "completed_at": "2026-10-30T04:23:20.882891+00:00",
+      "duration_seconds": 1.324,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__daily-call-access.test.cjs.log",
+      "log_sha256": "01fccac372c33d98db799783838d849351ffc96307dc9a1e0f9f7681cbb65e97",
+      "node_test_summaries": [
+        {
+          "tests": 24,
+          "suites": 0,
+          "pass": 24,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 1004.094075
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/export-data.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:19.898319+00:00",
+      "completed_at": "2026-10-30T04:23:20.371751+00:00",
+      "duration_seconds": 0.473,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__export-data.test.cjs.log",
+      "log_sha256": "1fd78d4641ac1c0eec7db2afcd7cb835c15dbb647b02742de633222d96f5cf4d",
+      "node_test_summaries": [
+        {
+          "tests": 7,
+          "suites": 0,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 54.971439
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/faststart-video.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:20.372150+00:00",
+      "completed_at": "2026-10-30T04:23:20.892752+00:00",
+      "duration_seconds": 0.521,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__faststart-video.test.cjs.log",
+      "log_sha256": "bba01e103c588805c444619df068c0b3c6b23a1ceff5723a0279a666297d6b65",
+      "node_test_summaries": [
+        {
+          "tests": 10,
+          "suites": 0,
+          "pass": 10,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 73.519379
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/feed-capacity.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:20.883300+00:00",
+      "completed_at": "2026-10-30T04:23:21.806149+00:00",
+      "duration_seconds": 0.923,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__feed-capacity.test.cjs.log",
+      "log_sha256": "84b2b592a48a1ccec4a97a92bed9c20a1b58fed8a1baa1cd947a3ff8222f4c87",
+      "node_test_summaries": [
+        {
+          "tests": 23,
+          "suites": 0,
+          "pass": 23,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 451.358023
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/feed-load-harness.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:20.893115+00:00",
+      "completed_at": "2026-10-30T04:23:21.111058+00:00",
+      "duration_seconds": 0.218,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__feed-load-harness.test.cjs.log",
+      "log_sha256": "9423a9d1a3717c53c7b5ab4463482b156e9b86cac951f87a642f53421a71b490",
+      "node_test_summaries": [
+        {
+          "tests": 3,
+          "suites": 0,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 70.521712
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/feed-snapshot.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:21.111420+00:00",
+      "completed_at": "2026-10-30T04:23:21.482433+00:00",
+      "duration_seconds": 0.371,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__feed-snapshot.test.cjs.log",
+      "log_sha256": "fef1808dada592292ff56745df9d65ded83621c4c297365d87123bff61e84a45",
+      "node_test_summaries": [
+        {
+          "tests": 9,
+          "suites": 0,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 18.153627
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/fullscreen-video-accessibility.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:21.482820+00:00",
+      "completed_at": "2026-10-30T04:23:21.954369+00:00",
+      "duration_seconds": 0.472,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__fullscreen-video-accessibility.test.cjs.log",
+      "log_sha256": "282c657c8d4de6de44f79fdf811f223add742f9cfedd1e3ca6b9f2d99f068e85",
+      "node_test_summaries": [
+        {
+          "tests": 5,
+          "suites": 0,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 33.900806
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/group-call-service.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:21.806687+00:00",
+      "completed_at": "2026-10-30T04:23:22.533870+00:00",
+      "duration_seconds": 0.727,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__group-call-service.test.cjs.log",
+      "log_sha256": "d6307431f98b06740303289fc01f9bc4a89f190dec047a36f75093fac4932866",
+      "node_test_summaries": [
+        {
+          "tests": 8,
+          "suites": 0,
+          "pass": 8,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 387.430227
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/intobank-link-sheet.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:21.954682+00:00",
+      "completed_at": "2026-10-30T04:23:22.485401+00:00",
+      "duration_seconds": 0.531,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__intobank-link-sheet.test.cjs.log",
+      "log_sha256": "0fcc7f418275ba2900d614b1cb72ea4236a78ddecbcae98e12ae9f863cd23f35",
+      "node_test_summaries": [
+        {
+          "tests": 4,
+          "suites": 0,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 209.826259
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/intobank-link-state.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:22.485801+00:00",
+      "completed_at": "2026-10-30T04:23:22.606617+00:00",
+      "duration_seconds": 0.121,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__intobank-link-state.test.cjs.log",
+      "log_sha256": "bf75dcbd1bac31f2cc81a25462e6abf394a018e77675a060bd64f6f31f075d7a",
+      "node_test_summaries": [
+        {
+          "tests": 10,
+          "suites": 0,
+          "pass": 10,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 17.696119
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/link-preview.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:22.534206+00:00",
+      "completed_at": "2026-10-30T04:23:23.315935+00:00",
+      "duration_seconds": 0.782,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__link-preview.test.cjs.log",
+      "log_sha256": "d4d8d6fea87d1c7fff19bf007da655bfc94de2cee1899fce7c5cacc28b79f020",
+      "node_test_summaries": [
+        {
+          "tests": 21,
+          "suites": 0,
+          "pass": 21,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 297.589696
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/market-reviews.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:22.607498+00:00",
+      "completed_at": "2026-10-30T04:23:22.722121+00:00",
+      "duration_seconds": 0.115,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__market-reviews.test.cjs.log",
+      "log_sha256": "3b755574b41617160573904d2c7c2e9318af14b1c57cda9e0beaf824280c715c",
+      "node_test_summaries": [
+        {
+          "tests": 4,
+          "suites": 0,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 11.023976
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/marketplace-recommendations.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:22.722419+00:00",
+      "completed_at": "2026-10-30T04:23:23.045920+00:00",
+      "duration_seconds": 0.324,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__marketplace-recommendations.test.cjs.log",
+      "log_sha256": "db248bba9ee2eee202836827624b39d7a6c84c6571bdb097bea19501f5f8de81",
+      "node_test_summaries": [
+        {
+          "tests": 4,
+          "suites": 0,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 18.884146
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/media-delivery.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:23.046326+00:00",
+      "completed_at": "2026-10-30T04:23:23.574066+00:00",
+      "duration_seconds": 0.528,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__media-delivery.test.cjs.log",
+      "log_sha256": "3887560e1a1c2c25936f2716cb375ce9a06e6255e5ee9c40e3c7f78bfb0811fe",
+      "node_test_summaries": [
+        {
+          "tests": 13,
+          "suites": 0,
+          "pass": 13,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 36.672764
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/message-delivery.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:23.316423+00:00",
+      "completed_at": "2026-10-30T04:23:24.188521+00:00",
+      "duration_seconds": 0.872,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__message-delivery.test.cjs.log",
+      "log_sha256": "ae6fb20eb98603bfdf7e89a78032a982af9d773f2b1fc456d614846b302973d2",
+      "node_test_summaries": [
+        {
+          "tests": 11,
+          "suites": 0,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 498.466869
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/message-outbox.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:23.574513+00:00",
+      "completed_at": "2026-10-30T04:23:24.197527+00:00",
+      "duration_seconds": 0.623,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__message-outbox.test.cjs.log",
+      "log_sha256": "47a5c173362777f437aeb3f53ee7065a36804406eb00d782dbdeb1aa811a3080",
+      "node_test_summaries": [
+        {
+          "tests": 7,
+          "suites": 0,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 315.105915
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/message-receipts.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:24.188869+00:00",
+      "completed_at": "2026-10-30T04:23:24.655198+00:00",
+      "duration_seconds": 0.466,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__message-receipts.test.cjs.log",
+      "log_sha256": "727cd5514d0968678a39272387084859fbe19631b2412147f4f43d07520bbef4",
+      "node_test_summaries": [
+        {
+          "tests": 5,
+          "suites": 0,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 223.233344
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/native-call-reliability.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:24.197966+00:00",
+      "completed_at": "2026-10-30T04:23:25.168719+00:00",
+      "duration_seconds": 0.971,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__native-call-reliability.test.cjs.log",
+      "log_sha256": "a936fad1c9eda517be77c10aeffa594c41d616e77bb0c1cb17730e3d98507c0a",
+      "node_test_summaries": [
+        {
+          "tests": 15,
+          "suites": 0,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 723.87018
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/native-quality-regressions.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:24.657669+00:00",
+      "completed_at": "2026-10-30T04:23:26.385469+00:00",
+      "duration_seconds": 1.728,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__native-quality-regressions.test.cjs.log",
+      "log_sha256": "746c9cf7846f742f749eb31a65c6a22e3c83303545ee1c1b5d585657269ac275",
+      "node_test_summaries": [
+        {
+          "tests": 15,
+          "suites": 0,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 1363.122304
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/navigation-accessibility.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:25.169146+00:00",
+      "completed_at": "2026-10-30T04:23:25.688560+00:00",
+      "duration_seconds": 0.519,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__navigation-accessibility.test.cjs.log",
+      "log_sha256": "6e8cf95ba09b01fdaee5219160409f3cea2bf17e9c111846e7ffceda6bdaaa77",
+      "node_test_summaries": [
+        {
+          "tests": 7,
+          "suites": 0,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 229.807454
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/order-request.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:25.688971+00:00",
+      "completed_at": "2026-10-30T04:23:25.803559+00:00",
+      "duration_seconds": 0.115,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__order-request.test.cjs.log",
+      "log_sha256": "ebf73ac54fd8411c18bf97202c3ffcd534e94c5086e763232a0155484ff14dbd",
+      "node_test_summaries": [
+        {
+          "tests": 6,
+          "suites": 0,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 16.597868
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/payment-intent.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:25.803956+00:00",
+      "completed_at": "2026-10-30T04:23:25.970923+00:00",
+      "duration_seconds": 0.167,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__payment-intent.test.cjs.log",
+      "log_sha256": "be156ed940d68a3dfcf433b8f27b02ddcdf589894a83611cc9e9909b95556301",
+      "node_test_summaries": [
+        {
+          "tests": 10,
+          "suites": 0,
+          "pass": 10,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 23.838506
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/payment-provider-status.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:25.971541+00:00",
+      "completed_at": "2026-10-30T04:23:26.086522+00:00",
+      "duration_seconds": 0.115,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__payment-provider-status.test.cjs.log",
+      "log_sha256": "0ba34ecf9cd4db3bb5ea12906824fa1d3d610a4a2542201182bf006db3db6b90",
+      "node_test_summaries": [
+        {
+          "tests": 3,
+          "suites": 0,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 10.50781
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/payment-receipt.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:26.086799+00:00",
+      "completed_at": "2026-10-30T04:23:26.252985+00:00",
+      "duration_seconds": 0.166,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__payment-receipt.test.cjs.log",
+      "log_sha256": "fa5d2c8ed26bb41d137470a4bac02c9e2c9a59f2f8ae2ac3f733bd4f15e839ba",
+      "node_test_summaries": [
+        {
+          "tests": 3,
+          "suites": 0,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 12.838976
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/payment-service.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:26.253364+00:00",
+      "completed_at": "2026-10-30T04:23:26.528326+00:00",
+      "duration_seconds": 0.275,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__payment-service.test.cjs.log",
+      "log_sha256": "d8438c3d04c062d1725ecbd2b0dcc211bf1cd98c3be6f5adc81a962e977ffc7a",
+      "node_test_summaries": [
+        {
+          "tests": 13,
+          "suites": 0,
+          "pass": 13,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 124.287362
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/post-media-editing.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:26.385802+00:00",
+      "completed_at": "2026-10-30T04:23:26.756792+00:00",
+      "duration_seconds": 0.371,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__post-media-editing.test.cjs.log",
+      "log_sha256": "90eef3dadf21af001763f2257b97d90713e388b81f29d9c2f69c53229ba616f8",
+      "node_test_summaries": [
+        {
+          "tests": 7,
+          "suites": 0,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 11.179691
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/post-sharing.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:26.529240+00:00",
+      "completed_at": "2026-10-30T04:23:27.401143+00:00",
+      "duration_seconds": 0.872,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__post-sharing.test.cjs.log",
+      "log_sha256": "0be883fca1c4e26c18b901074ae0a027ff623d8491550236629b0722902dbdf2",
+      "node_test_summaries": [
+        {
+          "tests": 14,
+          "suites": 0,
+          "pass": 14,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 634.729774
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/post-voice-effects.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:26.757074+00:00",
+      "completed_at": "2026-10-30T04:23:27.172524+00:00",
+      "duration_seconds": 0.415,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__post-voice-effects.test.cjs.log",
+      "log_sha256": "5cfa55d40240fc7610fa5b5e689c9b28cdfaa5e21a4ca4337a130861fdca0441",
+      "node_test_summaries": [
+        {
+          "tests": 4,
+          "suites": 0,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 9.888554
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/private-media-cleanup.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:27.172837+00:00",
+      "completed_at": "2026-10-30T04:23:27.639310+00:00",
+      "duration_seconds": 0.466,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__private-media-cleanup.test.cjs.log",
+      "log_sha256": "77791dc4da28372027476228c7458f1fb76e845dd73725a335024f96c1399234",
+      "node_test_summaries": [
+        {
+          "tests": 4,
+          "suites": 0,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 22.720774
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/private-media-reader-regressions.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:27.402117+00:00",
+      "completed_at": "2026-10-30T04:23:28.073537+00:00",
+      "duration_seconds": 0.671,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__private-media-reader-regressions.test.cjs.log",
+      "log_sha256": "3dbda2f8d6d79e23ea539b2172da8fc4e35126ae9c1a9e236813d61628742d0f",
+      "node_test_summaries": [
+        {
+          "tests": 6,
+          "suites": 0,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 402.542526
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/private-media-session.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:27.643835+00:00",
+      "completed_at": "2026-10-30T04:23:28.113020+00:00",
+      "duration_seconds": 0.469,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__private-media-session.test.cjs.log",
+      "log_sha256": "0477d6ea0fea05e0cf9394e22ed8229d34ea700b96a0f13b10f6117fa43496c3",
+      "node_test_summaries": [
+        {
+          "tests": 10,
+          "suites": 0,
+          "pass": 10,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 49.13319
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/private-screen-capture.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:28.073907+00:00",
+      "completed_at": "2026-10-30T04:23:28.497427+00:00",
+      "duration_seconds": 0.424,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__private-screen-capture.test.cjs.log",
+      "log_sha256": "4350b61a1360835e1d455cdbf849cb4c95522985352863e90b9d6a9b08e8edf9",
+      "node_test_summaries": [
+        {
+          "tests": 2,
+          "suites": 0,
+          "pass": 2,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 123.320118
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/profile-mention-lookup.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:28.113463+00:00",
+      "completed_at": "2026-10-30T04:23:31.058391+00:00",
+      "duration_seconds": 2.945,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__profile-mention-lookup.test.cjs.log",
+      "log_sha256": "27515db96f1d5f2d6e788cd88848166a7272612fa9d61c60a75a10bad0a09684",
+      "node_test_summaries": [
+        {
+          "tests": 11,
+          "suites": 0,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 2550.592818
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/app-interaction-sweep.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:28.497888+00:00",
+      "completed_at": "2026-10-30T04:23:29.171971+00:00",
+      "duration_seconds": 0.674,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__app-interaction-sweep.cjs.log",
+      "log_sha256": "a17c874decb84af0cdc20e6672ef25664334bc41df9596c0db40a66bb5cd1113",
+      "node_test_summaries": [
+        {
+          "tests": 6,
+          "suites": 0,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 247.5139
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/apple-music-regressions.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:29.175833+00:00",
+      "completed_at": "2026-10-30T04:23:29.694861+00:00",
+      "duration_seconds": 0.519,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__apple-music-regressions.cjs.log",
+      "log_sha256": "e8495fd4d2179a59f8cd040838d4ad23c8ce72783cbb0f4589eb70b9b522d66b",
+      "node_test_summaries": [
+        {
+          "tests": 11,
+          "suites": 0,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 49.154548
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/auth-regressions.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:29.695234+00:00",
+      "completed_at": "2026-10-30T04:23:30.274480+00:00",
+      "duration_seconds": 0.579,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__auth-regressions.cjs.log",
+      "log_sha256": "bda8d3b89a50ced1fbd7c046bab730aba03cb0d17fbe98d40bef2f7eb7ffeeda",
+      "node_test_summaries": [],
+      "custom_summaries": [
+        {
+          "kind": "auth custom regression runner",
+          "tests": 31,
+          "pass": 31,
+          "fail": 0,
+          "skipped": 0
+        }
+      ],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/auth-service-recovery.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:30.274828+00:00",
+      "completed_at": "2026-10-30T04:23:30.844995+00:00",
+      "duration_seconds": 0.57,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__auth-service-recovery.cjs.log",
+      "log_sha256": "8886287cc35f1c0028af8e32d83432fe6c931748331d6872d525a7f1fa431401",
+      "node_test_summaries": [
+        {
+          "tests": 5,
+          "suites": 0,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 307.869404
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/boomerang-cancellation.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:30.845309+00:00",
+      "completed_at": "2026-10-30T04:23:31.116005+00:00",
+      "duration_seconds": 0.271,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__boomerang-cancellation.cjs.log",
+      "log_sha256": "a8ce449bebe7dd2d6126d4797f9b014f84e1c5a8a01e6ace0f316d060300d44f",
+      "node_test_summaries": [
+        {
+          "tests": 5,
+          "suites": 0,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 15.25608
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/build-env-regressions.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:31.058795+00:00",
+      "completed_at": "2026-10-30T04:23:32.896001+00:00",
+      "duration_seconds": 1.837,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__build-env-regressions.cjs.log",
+      "log_sha256": "5abab45e591d656b81101c99e9ecb5390a711b670c1221b4515e24b424de44f5",
+      "node_test_summaries": [
+        {
+          "tests": 14,
+          "suites": 0,
+          "pass": 14,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 1746.179542
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/business-access-rpc.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:31.116400+00:00",
+      "completed_at": "2026-10-30T04:23:32.055957+00:00",
+      "duration_seconds": 0.94,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__business-access-rpc.cjs.log",
+      "log_sha256": "3abb53235084e74dabde834e784618663484da3eb22f15984bc485c6cc289256",
+      "node_test_summaries": [
+        {
+          "tests": 6,
+          "suites": 0,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 707.483731
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/business-session-clients.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:32.056233+00:00",
+      "completed_at": "2026-10-30T04:23:34.803898+00:00",
+      "duration_seconds": 2.748,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__business-session-clients.cjs.log",
+      "log_sha256": "70f02bc64c3fdb02d16a197e9733075f9d8235fb8edbee78a08e6b347140064f",
+      "node_test_summaries": [
+        {
+          "tests": 48,
+          "suites": 0,
+          "pass": 48,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 2452.924526
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/call-membership-recovery.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:32.896473+00:00",
+      "completed_at": "2026-10-30T04:23:35.278781+00:00",
+      "duration_seconds": 2.382,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__call-membership-recovery.cjs.log",
+      "log_sha256": "dd5b6f55c40fef2211ee9479d27c5a5cfd85e95f26e17c9e104100495eecdbea",
+      "node_test_summaries": [
+        {
+          "tests": 1,
+          "suites": 0,
+          "pass": 1,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 2169.130486
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/call-revocation-worker.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:34.804580+00:00",
+      "completed_at": "2026-10-30T04:23:35.272411+00:00",
+      "duration_seconds": 0.468,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__call-revocation-worker.cjs.log",
+      "log_sha256": "d3eccde38a04cc1429455ae4ae9a1f40e45a8deae40462533198d190eda41db3",
+      "node_test_summaries": [
+        {
+          "tests": 6,
+          "suites": 0,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 213.958755
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/call-worker-credential.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:35.273140+00:00",
+      "completed_at": "2026-10-30T04:23:37.758416+00:00",
+      "duration_seconds": 2.485,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__call-worker-credential.cjs.log",
+      "log_sha256": "cf3336023b3e03653ddffc78adf047be941103ede4eb2e849ac32c5b8e6cd6de",
+      "node_test_summaries": [
+        {
+          "tests": 1,
+          "suites": 0,
+          "pass": 1,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 2371.998896
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/channel-studio-desks.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:35.279114+00:00",
+      "completed_at": "2026-10-30T04:23:36.053892+00:00",
+      "duration_seconds": 0.775,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__channel-studio-desks.cjs.log",
+      "log_sha256": "4e689ab4feb6fcf47eeb3cbc6ea25dc8796d9ee3fa23710ec373558be45c5884",
+      "node_test_summaries": [
+        {
+          "tests": 14,
+          "suites": 0,
+          "pass": 14,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 570.436998
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/chat-attachment-cards.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:36.054235+00:00",
+      "completed_at": "2026-10-30T04:23:36.428014+00:00",
+      "duration_seconds": 0.374,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__chat-attachment-cards.cjs.log",
+      "log_sha256": "83f8ca0e6f15447c15c3a95e5205ddd2080b811afb83721e462ad325cb8507b6",
+      "node_test_summaries": [
+        {
+          "tests": 5,
+          "suites": 0,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 12.212443
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/chat-call-authorization.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:36.428419+00:00",
+      "completed_at": "2026-10-30T04:23:39.021194+00:00",
+      "duration_seconds": 2.593,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__chat-call-authorization.cjs.log",
+      "log_sha256": "63b83a4b3804c26be8d256d7dcf3b9fb28839ea856669de137dbc9086c9114b0",
+      "node_test_summaries": [
+        {
+          "tests": 1,
+          "suites": 0,
+          "pass": 1,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 2378.034206
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/chat-media-signer.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:37.758707+00:00",
+      "completed_at": "2026-10-30T04:23:38.634386+00:00",
+      "duration_seconds": 0.876,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__chat-media-signer.cjs.log",
+      "log_sha256": "36b97546e8437709e7ea465e941009ef6aa9a624e22ba2c7237b04ed2b95f51a",
+      "node_test_summaries": [
+        {
+          "tests": 12,
+          "suites": 0,
+          "pass": 12,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 660.93665
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/chat-storage-cutover.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:38.634710+00:00",
+      "completed_at": "2026-10-30T04:23:41.129890+00:00",
+      "duration_seconds": 2.495,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__chat-storage-cutover.cjs.log",
+      "log_sha256": "4c95fa46d968beb1592ef6297d2a88fcdcd79e71fad7b85dd76c06eef1541a46",
+      "node_test_summaries": [
+        {
+          "tests": 1,
+          "suites": 0,
+          "pass": 1,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 2301.206712
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/content-media-concurrency.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:39.021541+00:00",
+      "completed_at": "2026-10-30T04:23:39.646624+00:00",
+      "duration_seconds": 0.625,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__content-media-concurrency.cjs.log",
+      "log_sha256": "b56362419c787cbaf38a7f1619b2f9f4b7b386038ebaf6406836258c9ef58350",
+      "node_test_summaries": [
+        {
+          "tests": 7,
+          "suites": 0,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 202.845073
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/content-media-regressions.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:39.646918+00:00",
+      "completed_at": "2026-10-30T04:23:40.175565+00:00",
+      "duration_seconds": 0.529,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__content-media-regressions.cjs.log",
+      "log_sha256": "097c7a454833125859f93fc7e90e3dffaea37e996c50e14494bcd66ab11c435d",
+      "node_test_summaries": [
+        {
+          "tests": 16,
+          "suites": 0,
+          "pass": 16,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 33.045349
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/conversation-targets.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:40.175980+00:00",
+      "completed_at": "2026-10-30T04:23:40.696954+00:00",
+      "duration_seconds": 0.521,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__conversation-targets.cjs.log",
+      "log_sha256": "aa8124ba1179509e696c12f8a98bc2d1b22b8892e3914287baa1da7a709f435a",
+      "node_test_summaries": [
+        {
+          "tests": 9,
+          "suites": 0,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 75.025459
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/dark-surfaces-sweep.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:40.699761+00:00",
+      "completed_at": "2026-10-30T04:23:41.824633+00:00",
+      "duration_seconds": 1.125,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__dark-surfaces-sweep.cjs.log",
+      "log_sha256": "f24900746dee2d67f13ad053a2198cb92e73ade3e3920f96dddc60b81e40967b",
+      "node_test_summaries": [
+        {
+          "tests": 8,
+          "suites": 0,
+          "pass": 8,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 753.081877
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/deep-link-security.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:41.130235+00:00",
+      "completed_at": "2026-10-30T04:23:41.552212+00:00",
+      "duration_seconds": 0.422,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__deep-link-security.cjs.log",
+      "log_sha256": "8e4c043a5432d10a8c31315ca9ea4d07bd4f23e8bc28efce50e4a5d016747813",
+      "node_test_summaries": [
+        {
+          "tests": 8,
+          "suites": 0,
+          "pass": 8,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 208.330121
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/deployment-skip-regressions.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:41.552637+00:00",
+      "completed_at": "2026-10-30T04:23:42.270900+00:00",
+      "duration_seconds": 0.718,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__deployment-skip-regressions.cjs.log",
+      "log_sha256": "b7b9b36b1871b7fa6ae66dfcfcc7be509e7de62527f8e403834687652002c90d",
+      "node_test_summaries": [
+        {
+          "tests": 15,
+          "suites": 0,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 637.604916
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/directory-media-sweep.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:41.825051+00:00",
+      "completed_at": "2026-10-30T04:23:42.491784+00:00",
+      "duration_seconds": 0.667,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__directory-media-sweep.cjs.log",
+      "log_sha256": "4132407dbe57b9fb12eeb71c9c18ec667814f91bbb709526c4eb77ed36693ecf",
+      "node_test_summaries": [
+        {
+          "tests": 11,
+          "suites": 0,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 291.861345
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/draft-soundtrack-interaction.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:42.271231+00:00",
+      "completed_at": "2026-10-30T04:23:43.243933+00:00",
+      "duration_seconds": 0.973,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__draft-soundtrack-interaction.cjs.log",
+      "log_sha256": "08083db07c0f2333e1cedb76a20802aad84d404fa339ae8bf6c0e79aa0556ac1",
+      "node_test_summaries": [
+        {
+          "tests": 21,
+          "suites": 0,
+          "pass": 21,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 601.758512
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/edit-profile-save.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:42.494185+00:00",
+      "completed_at": "2026-10-30T04:23:42.863187+00:00",
+      "duration_seconds": 0.369,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__edit-profile-save.cjs.log",
+      "log_sha256": "45eb05d06d1c68f36aac58800cc7cbccaca722d13fe2ecfa988e75d568a91640",
+      "node_test_summaries": [
+        {
+          "tests": 4,
+          "suites": 0,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 86.96056
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/finance-unavailable-release.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:42.863503+00:00",
+      "completed_at": "2026-10-30T04:23:43.328859+00:00",
+      "duration_seconds": 0.465,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__finance-unavailable-release.cjs.log",
+      "log_sha256": "cfe03853371591a4affad00e2b5b4c621bf7ffec6a04793c8a71ae30740c2f15",
+      "node_test_summaries": [
+        {
+          "tests": 6,
+          "suites": 0,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 98.586271
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/hiring-workflow.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:43.245493+00:00",
+      "completed_at": "2026-10-30T04:23:45.640207+00:00",
+      "duration_seconds": 2.395,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__hiring-workflow.cjs.log",
+      "log_sha256": "ba8c0c4cd7a3f3f310e5d617926c8155ad3c0b7c97e33b4251c7cc212e0f8adb",
+      "node_test_summaries": [
+        {
+          "tests": 2,
+          "suites": 0,
+          "pass": 2,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 2124.901611
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/job-application-self-service.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:43.329150+00:00",
+      "completed_at": "2026-10-30T04:23:47.370489+00:00",
+      "duration_seconds": 4.041,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__job-application-self-service.cjs.log",
+      "log_sha256": "a9187d70d24d54b8c2ac41069475639f7fde3fb8d26c32ad0065bb617884c203",
+      "node_test_summaries": [
+        {
+          "tests": 3,
+          "suites": 0,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 3737.718514
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/jobs-market-regressions.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:45.640509+00:00",
+      "completed_at": "2026-10-30T04:23:46.711141+00:00",
+      "duration_seconds": 1.071,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__jobs-market-regressions.cjs.log",
+      "log_sha256": "a55c7292ca3e14c9747b728c503b58eda23ecf1a99425c72d0e0e6f951cf45e0",
+      "node_test_summaries": [
+        {
+          "tests": 50,
+          "suites": 0,
+          "pass": 50,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 804.837015
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/jobs-parity.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:46.712023+00:00",
+      "completed_at": "2026-10-30T04:23:47.583142+00:00",
+      "duration_seconds": 0.871,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__jobs-parity.cjs.log",
+      "log_sha256": "f7576d7695959c15abd5fab542b460a766252ab0e01f2a2c049be6036c42a194",
+      "node_test_summaries": [
+        {
+          "tests": 8,
+          "suites": 0,
+          "pass": 8,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 601.346327
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/legacy-limited-media.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:47.370843+00:00",
+      "completed_at": "2026-10-30T04:23:47.690038+00:00",
+      "duration_seconds": 0.319,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__legacy-limited-media.cjs.log",
+      "log_sha256": "3c1471773a80fb2d63fb4321687d68ab447c673e496ecf332374e157371444ae",
+      "node_test_summaries": [
+        {
+          "tests": 5,
+          "suites": 0,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 32.216473
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/lens-camera-interaction.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:47.583509+00:00",
+      "completed_at": "2026-10-30T04:23:48.253254+00:00",
+      "duration_seconds": 0.67,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__lens-camera-interaction.cjs.log",
+      "log_sha256": "21e7458a1055248be32f50bbea37892d6791c224482e42539bcf0d70e854204c",
+      "node_test_summaries": [
+        {
+          "tests": 7,
+          "suites": 0,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 470.090426
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/link-preview-publication.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:47.690336+00:00",
+      "completed_at": "2026-10-30T04:23:48.206680+00:00",
+      "duration_seconds": 0.516,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__link-preview-publication.cjs.log",
+      "log_sha256": "2a7b4d188b9ab33d393143c57faf1d4227bcaeebb11750315809edefa722623d",
+      "node_test_summaries": [
+        {
+          "tests": 6,
+          "suites": 0,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 171.278207
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/marketplace-refresh.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:48.206994+00:00",
+      "completed_at": "2026-10-30T04:23:48.772361+00:00",
+      "duration_seconds": 0.565,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__marketplace-refresh.cjs.log",
+      "log_sha256": "9fd1554f54705ab63d2d0045cc4dab075cbb6a3b1af4e5b6538a6063bb0dff42",
+      "node_test_summaries": [
+        {
+          "tests": 5,
+          "suites": 0,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 333.848588
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/memory-film-lifecycle.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:48.253582+00:00",
+      "completed_at": "2026-10-30T04:23:49.120090+00:00",
+      "duration_seconds": 0.867,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__memory-film-lifecycle.cjs.log",
+      "log_sha256": "a07647edd7b01965300c7e8a6f07b1cd69b4463c370e127bb14d7966a2ef99a4",
+      "node_test_summaries": [
+        {
+          "tests": 8,
+          "suites": 0,
+          "pass": 8,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 634.866865
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/memory-film.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:48.772654+00:00",
+      "completed_at": "2026-10-30T04:23:50.144594+00:00",
+      "duration_seconds": 1.372,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__memory-film.cjs.log",
+      "log_sha256": "fff89074104126ebd8333eac3f2d1f09d914119991adbeb52e682e0d603c7eb5",
+      "node_test_summaries": [
+        {
+          "tests": 14,
+          "suites": 0,
+          "pass": 14,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 1150.901861
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/memory-media-regressions.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:49.120614+00:00",
+      "completed_at": "2026-10-30T04:23:49.488952+00:00",
+      "duration_seconds": 0.368,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__memory-media-regressions.cjs.log",
+      "log_sha256": "3b8ce6cf81d96c9639feea27551cd55d138600d50f0cbce4cdefcd2291944420",
+      "node_test_summaries": [
+        {
+          "tests": 6,
+          "suites": 0,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 47.458882
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/memory-page-turn.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:49.489254+00:00",
+      "completed_at": "2026-10-30T04:23:50.211506+00:00",
+      "duration_seconds": 0.722,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__memory-page-turn.cjs.log",
+      "log_sha256": "6486c17439d777239b1d902ad889b361f6036b643ca69209eeb4d8ea35fb338f",
+      "node_test_summaries": [
+        {
+          "tests": 14,
+          "suites": 0,
+          "pass": 14,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 352.676119
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/memory-picker-accessibility.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:50.144939+00:00",
+      "completed_at": "2026-10-30T04:23:50.614030+00:00",
+      "duration_seconds": 0.469,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__memory-picker-accessibility.cjs.log",
+      "log_sha256": "a9e0e50434e070cb0f0489b63dd81c74c9323f82152f003b54019f1f2604e85d",
+      "node_test_summaries": [
+        {
+          "tests": 4,
+          "suites": 0,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 197.47066
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/memory-playback.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:50.211887+00:00",
+      "completed_at": "2026-10-30T04:23:50.577061+00:00",
+      "duration_seconds": 0.365,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__memory-playback.cjs.log",
+      "log_sha256": "2bbb1a556790ad3efa87a1c294117112bf3bba817b7d831fa1725c056977532f",
+      "node_test_summaries": [
+        {
+          "tests": 6,
+          "suites": 0,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 42.200917
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/memory-stability-regressions.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:50.577365+00:00",
+      "completed_at": "2026-10-30T04:23:50.994159+00:00",
+      "duration_seconds": 0.417,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__memory-stability-regressions.cjs.log",
+      "log_sha256": "5e036541c0784bb736ae89d8196932a6e81478292722bc9a6528fa1995849384",
+      "node_test_summaries": [
+        {
+          "tests": 14,
+          "suites": 0,
+          "pass": 14,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 173.591981
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/memory-story-presentation.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:50.614386+00:00",
+      "completed_at": "2026-10-30T04:23:51.183663+00:00",
+      "duration_seconds": 0.569,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__memory-story-presentation.cjs.log",
+      "log_sha256": "714113c566c774b174f7d2a45f8657915c564be5c2f5bd9ad00b798d3ae8d75f",
+      "node_test_summaries": [
+        {
+          "tests": 17,
+          "suites": 0,
+          "pass": 17,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 244.885161
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/music-disabled-release.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:50.994749+00:00",
+      "completed_at": "2026-10-30T04:23:51.365658+00:00",
+      "duration_seconds": 0.371,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__music-disabled-release.cjs.log",
+      "log_sha256": "0937248eb68dadd13b61827922b1af36152d37e7ff63d5fdc11782037abb92c0",
+      "node_test_summaries": [
+        {
+          "tests": 4,
+          "suites": 0,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 125.156184
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/native-comment-actions.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:51.184201+00:00",
+      "completed_at": "2026-10-30T04:23:51.699979+00:00",
+      "duration_seconds": 0.516,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__native-comment-actions.cjs.log",
+      "log_sha256": "2e4664989cd5453902197c8850ee4c92a51016605cae609e1b4ae57fdaf0e1a8",
+      "node_test_summaries": [
+        {
+          "tests": 11,
+          "suites": 0,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 221.033547
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/native-dependency-compat.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:51.365949+00:00",
+      "completed_at": "2026-10-30T04:23:52.132796+00:00",
+      "duration_seconds": 0.767,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__native-dependency-compat.cjs.log",
+      "log_sha256": "76cf5673ca33a7e5d3345cabdff92642e39215cf5090fcfd38b9a61bcfe14a8c",
+      "node_test_summaries": [
+        {
+          "tests": 10,
+          "suites": 0,
+          "pass": 10,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 667.054202
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/native-environment.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:51.700401+00:00",
+      "completed_at": "2026-10-30T04:23:51.764705+00:00",
+      "duration_seconds": 0.064,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__native-environment.cjs.log",
+      "log_sha256": "91c5758593be2ae9eee10ebe80a19b28844d39ad73fc144215acbc13ced2a01c",
+      "node_test_summaries": [
+        {
+          "tests": 3,
+          "suites": 0,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 14.566252
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/native-theme-inputs.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:51.765055+00:00",
+      "completed_at": "2026-10-30T04:23:52.534507+00:00",
+      "duration_seconds": 0.769,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__native-theme-inputs.cjs.log",
+      "log_sha256": "7c39aa61723621374dd03cd742ce14c7c9f77bb7617af3fa2070d5f3322e94c3",
+      "node_test_summaries": [
+        {
+          "tests": 7,
+          "suites": 0,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 456.944105
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/native-vendor-compat.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:52.133101+00:00",
+      "completed_at": "2026-10-30T04:23:52.498743+00:00",
+      "duration_seconds": 0.366,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__native-vendor-compat.cjs.log",
+      "log_sha256": "91acabec169647c3d957d97f91a6dcfe2869307ed2ff4ea4340077a46c4e898b",
+      "node_test_summaries": [
+        {
+          "tests": 7,
+          "suites": 0,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 287.22335
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/parity-navigation.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:52.499029+00:00",
+      "completed_at": "2026-10-30T04:23:52.970058+00:00",
+      "duration_seconds": 0.471,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__parity-navigation.cjs.log",
+      "log_sha256": "51f578c81bedc9e11dfa72d267176d39e709d12b6c40a701564f4853fb4b4744",
+      "node_test_summaries": [
+        {
+          "tests": 5,
+          "suites": 0,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 189.2095
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/post-editor-interaction.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:52.534974+00:00",
+      "completed_at": "2026-10-30T04:23:54.015057+00:00",
+      "duration_seconds": 1.48,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__post-editor-interaction.cjs.log",
+      "log_sha256": "9bbfe207ba71dd6811c41cd28271264808e296ab1dccc911baf124fd6333c8fb",
+      "node_test_summaries": [
+        {
+          "tests": 14,
+          "suites": 0,
+          "pass": 14,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 1245.52353
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/post-soundtrack-quality.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:52.970335+00:00",
+      "completed_at": "2026-10-30T04:23:53.485649+00:00",
+      "duration_seconds": 0.515,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__post-soundtrack-quality.cjs.log",
+      "log_sha256": "b081621b08238cfc68c1f68fb9de275f0c58dee265682b706e4463240544043a",
+      "node_test_summaries": [
+        {
+          "tests": 10,
+          "suites": 0,
+          "pass": 10,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 193.055844
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/post-upload-draft-ownership.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:53.485968+00:00",
+      "completed_at": "2026-10-30T04:23:54.101648+00:00",
+      "duration_seconds": 0.616,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__post-upload-draft-ownership.cjs.log",
+      "log_sha256": "a51eaa7c03597a724c950f97faa274cc43cfc12fea73b61328342bfeda046597",
+      "node_test_summaries": [
+        {
+          "tests": 7,
+          "suites": 0,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 188.362195
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/post-voice-viewer.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:54.015435+00:00",
+      "completed_at": "2026-10-30T04:23:54.380913+00:00",
+      "duration_seconds": 0.365,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__post-voice-viewer.cjs.log",
+      "log_sha256": "6527e59d0125346c021b1ea4a5d2a7dae2418d51111fc8a3f54e1da76fc65a31",
+      "node_test_summaries": [
+        {
+          "tests": 2,
+          "suites": 0,
+          "pass": 2,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 131.537153
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/private-reader-compat.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:54.101929+00:00",
+      "completed_at": "2026-10-30T04:23:54.517072+00:00",
+      "duration_seconds": 0.415,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__private-reader-compat.cjs.log",
+      "log_sha256": "0d2cb8c8e801cac307aa74264be71f69e1fa2e70fa354b5c2c0714bf2c2782fe",
+      "node_test_summaries": [
+        {
+          "tests": 4,
+          "suites": 0,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 167.030534
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/profile-content-regressions.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:54.381193+00:00",
+      "completed_at": "2026-10-30T04:23:55.048211+00:00",
+      "duration_seconds": 0.667,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__profile-content-regressions.cjs.log",
+      "log_sha256": "beeee364c74f4a7fc17ffe39129408d7db1fe93ae2693fe49aa57df1e7cabde8",
+      "node_test_summaries": [
+        {
+          "tests": 15,
+          "suites": 0,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 373.44457
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/profile-media-renewal.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:54.517463+00:00",
+      "completed_at": "2026-10-30T04:23:54.882578+00:00",
+      "duration_seconds": 0.365,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__profile-media-renewal.cjs.log",
+      "log_sha256": "dfaa21061922c989fdf3c2e5b6b693645dee440e5a0ba7b9e25e986841761ef7",
+      "node_test_summaries": [
+        {
+          "tests": 3,
+          "suites": 0,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 73.655224
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/profile-shelf-lifecycle.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:54.882964+00:00",
+      "completed_at": "2026-10-30T04:23:55.448976+00:00",
+      "duration_seconds": 0.566,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__profile-shelf-lifecycle.cjs.log",
+      "log_sha256": "5cf798fa33d7cbe1244be78343fc51cae54683f953da0742345827e24b568e88",
+      "node_test_summaries": [
+        {
+          "tests": 4,
+          "suites": 0,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 167.286133
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/setup-profile-username.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:55.048554+00:00",
+      "completed_at": "2026-10-30T04:23:55.467800+00:00",
+      "duration_seconds": 0.419,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__setup-profile-username.cjs.log",
+      "log_sha256": "dca2884fece1a51c3084b71797ec1b8d3f318932b708be5141591f3215d5435f",
+      "node_test_summaries": [
+        {
+          "tests": 6,
+          "suites": 0,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 20.839456
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/social-interaction-regressions.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:55.449236+00:00",
+      "completed_at": "2026-10-30T04:23:55.915075+00:00",
+      "duration_seconds": 0.466,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__social-interaction-regressions.cjs.log",
+      "log_sha256": "ae2a8d1fd025e1204de52bde44cc7c6c1314b83d257f1e3d16b19fc1bcdbbd94",
+      "node_test_summaries": [
+        {
+          "tests": 10,
+          "suites": 0,
+          "pass": 10,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 259.04548
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/soundtrack-playback.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:55.468078+00:00",
+      "completed_at": "2026-10-30T04:23:55.984084+00:00",
+      "duration_seconds": 0.516,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__soundtrack-playback.cjs.log",
+      "log_sha256": "91367e3828c3c8e8b50cda2537e7b4bd4286b8f88565e39fa5dfb5721bc509a6",
+      "node_test_summaries": [
+        {
+          "tests": 7,
+          "suites": 0,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 175.938394
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/story-audio-playback-regressions.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:55.915395+00:00",
+      "completed_at": "2026-10-30T04:23:56.285001+00:00",
+      "duration_seconds": 0.37,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__story-audio-playback-regressions.cjs.log",
+      "log_sha256": "157a51a3fc545b3592e9751beb86478c9f79833289985c858e335db06f999827",
+      "node_test_summaries": [
+        {
+          "tests": 11,
+          "suites": 0,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 64.06324
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/story-audio-web-regressions.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:55.987909+00:00",
+      "completed_at": "2026-10-30T04:23:56.302827+00:00",
+      "duration_seconds": 0.315,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__story-audio-web-regressions.cjs.log",
+      "log_sha256": "810635ed3390f92f2eb0917c6ce1ebd2f53c4e1449595965d4aa3284daa79d41",
+      "node_test_summaries": [
+        {
+          "tests": 5,
+          "suites": 0,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 16.919841
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/story-capture-delivery.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:56.285324+00:00",
+      "completed_at": "2026-10-30T04:23:56.800931+00:00",
+      "duration_seconds": 0.516,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__story-capture-delivery.cjs.log",
+      "log_sha256": "cb78b2291616f00012d7aa2b82e98148bdfb7239bc164b495726577b12a1e163",
+      "node_test_summaries": [
+        {
+          "tests": 13,
+          "suites": 0,
+          "pass": 13,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 308.795443
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/story-capture-lifecycle.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:56.303075+00:00",
+      "completed_at": "2026-10-30T04:23:57.022571+00:00",
+      "duration_seconds": 0.72,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__story-capture-lifecycle.cjs.log",
+      "log_sha256": "80950c9f7922527df184e0735e7d9c0ab6935bd88cdf00c52037df775b5a364a",
+      "node_test_summaries": [
+        {
+          "tests": 15,
+          "suites": 0,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 492.581035
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/story-dual-capture.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:56.803897+00:00",
+      "completed_at": "2026-10-30T04:23:57.223325+00:00",
+      "duration_seconds": 0.419,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__story-dual-capture.test.cjs.log",
+      "log_sha256": "8d5ea1e1b85f9d3849fc8d3128f2b054c90287ce8004d786d75131f4e09b7b97",
+      "node_test_summaries": [
+        {
+          "tests": 7,
+          "suites": 0,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 22.000642
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/story-editing-state.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:57.022898+00:00",
+      "completed_at": "2026-10-30T04:23:57.792433+00:00",
+      "duration_seconds": 0.77,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__story-editing-state.cjs.log",
+      "log_sha256": "9ac608cf39c291a713ff028721c6c9a45443df996bdcd9fb6ecbea36a49d9a12",
+      "node_test_summaries": [
+        {
+          "tests": 12,
+          "suites": 0,
+          "pass": 12,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 418.847165
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/story-engagement-quality.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:57.223643+00:00",
+      "completed_at": "2026-10-30T04:23:57.689365+00:00",
+      "duration_seconds": 0.466,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__story-engagement-quality.cjs.log",
+      "log_sha256": "f86271f849af87eed9c481bc585b2c3457808dd49fb9f3fa84b18e51b4d23d10",
+      "node_test_summaries": [
+        {
+          "tests": 9,
+          "suites": 0,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 181.409149
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/story-music-disabled-ui.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:57.689699+00:00",
+      "completed_at": "2026-10-30T04:23:58.054682+00:00",
+      "duration_seconds": 0.365,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__story-music-disabled-ui.cjs.log",
+      "log_sha256": "2badee98971aa8e4cea05f844822f7c94ca8a730a3db35d75e2f0fbea9fef0b9",
+      "node_test_summaries": [
+        {
+          "tests": 2,
+          "suites": 0,
+          "pass": 2,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 118.140365
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/story-photo-pixels.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:57.792783+00:00",
+      "completed_at": "2026-10-30T04:23:58.157677+00:00",
+      "duration_seconds": 0.365,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__story-photo-pixels.cjs.log",
+      "log_sha256": "333bda327436a9afd7650eb93265f7408ded5e215c918153c66d156f53e9870c",
+      "node_test_summaries": [
+        {
+          "tests": 7,
+          "suites": 0,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 61.692035
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/story-publication-regressions.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:58.054989+00:00",
+      "completed_at": "2026-10-30T04:23:59.533447+00:00",
+      "duration_seconds": 1.478,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__story-publication-regressions.cjs.log",
+      "log_sha256": "988877edf168cb622d0b4d79ae0f615aeea681af93fe5e76ef2f37fea98df8fb",
+      "node_test_summaries": [
+        {
+          "tests": 25,
+          "suites": 0,
+          "pass": 25,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 1234.906847
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/story-studio-interaction.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:58.158057+00:00",
+      "completed_at": "2026-10-30T04:23:58.826383+00:00",
+      "duration_seconds": 0.668,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__story-studio-interaction.cjs.log",
+      "log_sha256": "0835176490aa3d8f1cf1b1176ee3c9bc7d7e44b9614e092da1eafacf806e1696",
+      "node_test_summaries": [
+        {
+          "tests": 9,
+          "suites": 0,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 447.745999
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/story-trending-canvas.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:58.826891+00:00",
+      "completed_at": "2026-10-30T04:23:59.142525+00:00",
+      "duration_seconds": 0.316,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__story-trending-canvas.test.cjs.log",
+      "log_sha256": "45c6ba714140e91b83401c544797afffd35eae70cd744990fd248c8af4e58e6b",
+      "node_test_summaries": [
+        {
+          "tests": 8,
+          "suites": 0,
+          "pass": 8,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 41.510309
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/story-video-composition.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:59.142936+00:00",
+      "completed_at": "2026-10-30T04:23:59.612415+00:00",
+      "duration_seconds": 0.469,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__story-video-composition.cjs.log",
+      "log_sha256": "552e5d749bffa6d5868f31372af4ca30d1cc04907d407a806fefc561df8e025c",
+      "node_test_summaries": [
+        {
+          "tests": 10,
+          "suites": 0,
+          "pass": 10,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 119.757018
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/story-viewer-privacy-regressions.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:59.533986+00:00",
+      "completed_at": "2026-10-30T04:23:59.799050+00:00",
+      "duration_seconds": 0.265,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__story-viewer-privacy-regressions.cjs.log",
+      "log_sha256": "1948f3582f049a236c67601cd0f361ba7e2db364b38c49f204f1c0044d7feb97",
+      "node_test_summaries": [
+        {
+          "tests": 6,
+          "suites": 0,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 12.931936
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/theme-store-hydration.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:59.612753+00:00",
+      "completed_at": "2026-10-30T04:23:59.877411+00:00",
+      "duration_seconds": 0.265,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__theme-store-hydration.cjs.log",
+      "log_sha256": "5d1cb71a833a8db7de5f347a107c9b71322bb7aad7e8023a3914c52f0535f458",
+      "node_test_summaries": [
+        {
+          "tests": 4,
+          "suites": 0,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 11.728286
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/upload-preview-regressions.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:59.799405+00:00",
+      "completed_at": "2026-10-30T04:24:00.164645+00:00",
+      "duration_seconds": 0.365,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__upload-preview-regressions.cjs.log",
+      "log_sha256": "a29c40b46cb5e6fb105e6f6baf7fe0054f6750d69efbced0d92b66b452802262",
+      "node_test_summaries": [
+        {
+          "tests": 6,
+          "suites": 0,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 69.77426
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/upload-safe-regressions.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:23:59.877727+00:00",
+      "completed_at": "2026-10-30T04:24:00.243320+00:00",
+      "duration_seconds": 0.366,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__upload-safe-regressions.cjs.log",
+      "log_sha256": "d0eced948748097f6f55f20f38b3e6942125f45352155cf96303172754d2d51d",
+      "node_test_summaries": [
+        {
+          "tests": 5,
+          "suites": 0,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 17.389188
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/video-thumb-lifecycle.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:24:00.165151+00:00",
+      "completed_at": "2026-10-30T04:24:00.480152+00:00",
+      "duration_seconds": 0.315,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__video-thumb-lifecycle.cjs.log",
+      "log_sha256": "246178bb97d799cae59d60ab6fafc3765e622b6d69fd1579bf101f4dc3b59bd4",
+      "node_test_summaries": [
+        {
+          "tests": 4,
+          "suites": 0,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 11.865663
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/voice-recorder-reliability.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:24:00.243615+00:00",
+      "completed_at": "2026-10-30T04:24:00.608727+00:00",
+      "duration_seconds": 0.365,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__voice-recorder-reliability.cjs.log",
+      "log_sha256": "851558b776f2e5094f38cb8cba0639d8f1d01dd9309c689ce32780640153513f",
+      "node_test_summaries": [
+        {
+          "tests": 13,
+          "suites": 0,
+          "pass": 13,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 21.389414
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/quality/web-message-outbox.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:24:00.480843+00:00",
+      "completed_at": "2026-10-30T04:24:00.896694+00:00",
+      "duration_seconds": 0.416,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__quality__web-message-outbox.cjs.log",
+      "log_sha256": "98fb3396a542a008fe67ba161e4f41e4aab39214ed7c679e22ba55e0cd236fda",
+      "node_test_summaries": [
+        {
+          "tests": 4,
+          "suites": 0,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 167.408571
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/send-money-sheet-context.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:24:00.609064+00:00",
+      "completed_at": "2026-10-30T04:24:01.375429+00:00",
+      "duration_seconds": 0.766,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__send-money-sheet-context.test.cjs.log",
+      "log_sha256": "ea04711c099bcd16b19fa52a59ba39e5a424398b47a198fe1638c6f78eda3ed8",
+      "node_test_summaries": [
+        {
+          "tests": 13,
+          "suites": 0,
+          "pass": 13,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 558.109878
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/story-message-reference.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:24:00.897064+00:00",
+      "completed_at": "2026-10-30T04:24:01.212297+00:00",
+      "duration_seconds": 0.315,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__story-message-reference.test.cjs.log",
+      "log_sha256": "35165f9a98306dedcfe7dff0ceb39bf8e10c24ba14f24b4076ffcd0042471ca6",
+      "node_test_summaries": [
+        {
+          "tests": 4,
+          "suites": 0,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 12.988927
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/studio-reliability.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:24:01.212609+00:00",
+      "completed_at": "2026-10-30T04:24:01.629574+00:00",
+      "duration_seconds": 0.417,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__studio-reliability.test.cjs.log",
+      "log_sha256": "4d2645168065d4c95f2af64a96a887f4c72f52ce71913cd8790da7e293e0e0ae",
+      "node_test_summaries": [
+        {
+          "tests": 9,
+          "suites": 0,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 126.260778
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    },
+    {
+      "command": [
+        "node",
+        "tests/verification-integrity.test.cjs"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:24:01.375930+00:00",
+      "completed_at": "2026-10-30T04:24:01.694050+00:00",
+      "duration_seconds": 0.318,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/native-regressions__tests__verification-integrity.test.cjs.log",
+      "log_sha256": "724d243d2ede4e5f68cf1a9172fb24c24a5e4a9dfd0a737d206f4f6e3c08295b",
+      "node_test_summaries": [
+        {
+          "tests": 5,
+          "suites": 0,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 11.309656
+        }
+      ],
+      "custom_summaries": [],
+      "eprem_matches": 0,
+      "skip_lines": []
+    }
+  ],
+  "saved_before_manifest": "manifests/source-fce7692d39ab22d3f936753b23896e9873aec41b80656c7fa2c0ce2338cd3b1d.json",
+  "saved_after_manifest": "manifests/source-fce7692d39ab22d3f936753b23896e9873aec41b80656c7fa2c0ce2338cd3b1d.json"
+}

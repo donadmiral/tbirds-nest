@@ -1,5 +1,5 @@
+import { requestTime } from '@/lib/requestTime';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import { adminRemoveListing } from '@/lib/actions';
@@ -11,18 +11,18 @@ import { pickMedia, pickAllMedia, resolveMedia, isVideoUrl } from '@/lib/media';
 
 export const dynamic = 'force-dynamic';
 
-const PANEL: React.CSSProperties = { borderRadius: 13, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', overflow: 'hidden' };
+const PANEL: React.CSSProperties = { borderRadius: 12, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', overflow: 'hidden' };
 const HEAD: React.CSSProperties = { padding: '14px 16px 12px', borderBottom: '1px solid rgba(var(--on),0.10)' };
-const H_TITLE: React.CSSProperties = { fontSize: 13.5, fontWeight: 700, color: 'var(--txt)' };
-const H_SUB: React.CSSProperties = { fontSize: 11.3, color: 'rgba(var(--on),0.36)', marginTop: 3 };
+const H_TITLE: React.CSSProperties = { fontSize: 14, fontWeight: 700, color: 'var(--txt)' };
+const H_SUB: React.CSSProperties = { fontSize: 12, color: 'var(--txt-muted)', marginTop: 3 };
 
 const IC = {
-  bag: 'M4 7l2-4h12l2 4v2a3 3 0 01-1 2.2V20H5v-8.8A3 3 0 014 9V7zm3 6h4v5H7v-5z',
-  money: 'M12 2a10 10 0 100 20 10 10 0 000-20zm1 15.9V19h-2v-1.1c-1.6-.3-2.8-1.3-2.9-2.9h2c.1.7.8 1.2 1.9 1.2 1.2 0 1.8-.5 1.8-1.2 0-.6-.5-1-1.8-1.3-2.2-.5-3.7-1.2-3.7-3 0-1.5 1.2-2.5 2.7-2.8V7h2v1c1.5.3 2.6 1.2 2.7 2.7h-2c-.1-.7-.6-1.1-1.6-1.1-1.1 0-1.7.4-1.7 1.1 0 .6.6.9 2 1.2 2.2.5 3.5 1.2 3.5 3.1 0 1.6-1.2 2.6-2.9 2.9z',
-  check: 'M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z',
-  users: 'M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z',
-  flag: 'M12 2L1 21h22L12 2zm1 14h-2v2h2v-2zm0-6h-2v4h2v-4z',
-};
+  bag: 'market',
+  money: 'payment',
+  check: 'check',
+  users: 'users',
+  flag: 'reports',
+} as const;
 
 const SERIES = ['var(--c2)', 'var(--c1)', 'var(--c3)', 'var(--c4)', 'var(--c6)', 'var(--c5)'];
 const STATUS_TONE: Record<string, Tone> = { available: 'ok', active: 'ok', sold: 'neutral', pending: 'warn', reserved: 'warn', removed: 'bad', draft: 'neutral' };
@@ -34,7 +34,7 @@ export default async function MarketPage() {
   const admin = await requireDesk('/market');
   const svc = serviceClient();
 
-  const now = Date.now();
+  const now = await requestTime();
   const from7 = new Date(now - 7 * 86400000).toISOString();
   const from14 = new Date(now - 14 * 86400000).toISOString();
   const days30 = Array.from({ length: 30 }, (_, i) => new Date(now - (29 - i) * 86400000).toISOString().slice(0, 10));
@@ -70,8 +70,6 @@ export default async function MarketPage() {
 
   const available = listings.filter(l => ['available', 'active'].includes(statusOf(l)));
   const sold = listings.filter(l => statusOf(l) === 'sold');
-  const listedValue = available.reduce((a, l) => a + priceOf(l), 0);
-  const soldValue = sold.reduce((a, l) => a + priceOf(l), 0);
   const flagged = listings.filter(l => (reportsByListing[String(l.id)]?.open || 0) > 0).length;
   const sellers = new Set(listings.map(l => String(l.seller_id))).size;
 

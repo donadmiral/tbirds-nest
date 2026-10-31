@@ -1,0 +1,68 @@
+{
+  "fileSHA256": "8a7d871dfc05a472f13d4224723fa95579c080ff744ac07a04e346c5f475e8c8",
+  "probe": {
+    "programs": [],
+    "streams": [
+      {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 320,
+        "height": 640,
+        "r_frame_rate": "90000/1",
+        "avg_frame_rate": "22038750/2454317",
+        "nb_frames": "1959"
+      },
+      {
+        "codec_type": "data",
+        "r_frame_rate": "0/0",
+        "avg_frame_rate": "0/0",
+        "nb_frames": "1"
+      },
+      {
+        "codec_type": "data",
+        "r_frame_rate": "0/0",
+        "avg_frame_rate": "0/0",
+        "nb_frames": "1"
+      }
+    ],
+    "format": {
+      "duration": "218.161511",
+      "size": "2946742"
+    }
+  },
+  "pixelDecodeCommand": [
+    "ffmpeg",
+    "-v",
+    "error",
+    "-i",
+    "/tmp/android-full-app-6878c384-41179235060/navigation.mp4",
+    "-map",
+    "0:v:0",
+    "-fps_mode",
+    "passthrough",
+    "-f",
+    "rawvideo",
+    "-pix_fmt",
+    "rgb24",
+    "-"
+  ],
+  "pixelDecodeExitCode": 0,
+  "screenRecordingOnly": true,
+  "memoryMovieProduced": false,
+  "frameRateLimit": "Variable-frame-rate screen recording metadata is not a measurement of app FPS.",
+  "initialNullMuxerObservation": "Both default null-muxer and rawvideo conversions exited0 but emitted output non-monotonic-DTS messages; this recording is not a movie-quality or app-frame-rate gate.",
+  "pixelDecodeStderrSummary": {
+    "bytes": 53152,
+    "sha256": "6d60c25109b2871cf991ecd8f454f8e5af2ab79ea4457cba6fa18fd173738a6e",
+    "lines": 645,
+    "firstLines": [
+      "[rawvideo @ 0x55e8c3e6c940] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 11 >= 11",
+      "[rawvideo @ 0x55e8c3e6c940] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 12 >= 12"
+    ],
+    "lastLines": [
+      "[rawvideo @ 0x55e8c3e6c940] Application provided invalid, non monotonically increasing dts to muxer in stream 0: 891 >= 891",
+      "    Last message repeated 1 times"
+    ],
+    "classification": "Output muxer reported non-monotonically increasing DTS; the command exited0. No clean timing verification is claimed."
+  }
+}

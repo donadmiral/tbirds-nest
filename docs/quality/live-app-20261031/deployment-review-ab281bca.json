@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-31T04:40:56.534Z",
+  "commit": "ab281bcaab525331930f6238f97e46c169eee1ee",
+  "method": "Read-only authenticated Vercel deployment and alias API inspection for the exact Git SHA; retained admin dependency inputs compared by Git trees/blobs.",
+  "web": {
+    "project": "platinum-web",
+    "projectId": "prj_mvKhFO3aq4OeCefPa3yaH8ub583u",
+    "environment": "preview",
+    "state": "READY",
+    "deploymentId": "dpl_BZyKWqMVaJ7ce7kS5NVmfX1xNGAX",
+    "url": "https://platinum-47i0ssv6k-intobank.vercel.app",
+    "branchAlias": "https://platinum-web-git-codex-app-quality-20261029-intobank.vercel.app",
+    "aliasDeploymentId": "dpl_BZyKWqMVaJ7ce7kS5NVmfX1xNGAX",
+    "commit": "ab281bcaab525331930f6238f97e46c169eee1ee",
+    "branch": "codex/app-quality-20261029",
+    "repository": "donadmiral/tbirds-nest",
+    "buildStartedAt": "2026-10-31T04:39:33.226Z",
+    "readyAt": "2026-10-31T04:40:17.747Z",
+    "buildToReadySeconds": 44.521,
+    "aliasAssignedAt": "2026-10-31T04:40:17.882Z"
+  },
+  "admin": {
+    "requestedCommit": "ab281bcaab525331930f6238f97e46c169eee1ee",
+    "requestedDeploymentId": "dpl_7FQajD1m1BnpxrXaRzAMRSWu4nhw",
+    "requestedState": "CANCELED",
+    "cancellationReason": "The deployment was canceled because the Ignored Build Step command returned exit code 0.",
+    "ignoredBuildCommand": "Running \"case \"$VERCEL_GIT_PREVIOUS_SHA\" in ''|*[!0-9a-fA-F]*) exit 1;; esac; [ \"${#VERCEL_GIT_PREVIOUS_SHA}\" -eq 40 ] || exit 1; git diff --quiet \"$VERCEL_GIT_PREVIOUS_SHA\" HEAD -- . && exit 0; exit 1\"",
+    "retainedReadyDeployment": {
+      "state": "READY",
+      "deploymentId": "dpl_AVkd9Ygx8v6eUkmVnFRm8ErzBrSM",
+      "url": "https://admin-9csh4ygo3-intobank.vercel.app",
+      "branchAlias": "https://admin-web-git-codex-app-quality-20261029-intobank.vercel.app",
+      "aliasDeploymentId": "dpl_AVkd9Ygx8v6eUkmVnFRm8ErzBrSM",
+      "commit": "26e80ae96647884e7f2764bdbb1884fd5aabcff5",
+      "readyAt": "2026-10-31T04:03:46.214Z"
+    },
+    "inputEquivalence": {
+      "method": "git diff 26e80ae96647884e7f2764bdbb1884fd5aabcff5 ab281bcaab525331930f6238f97e46c169eee1ee -- admin-web shared package.json package-lock.json has no changes; Git object IDs below match both commits.",
+      "adminTree": "37d06fed5fed387da0c9b5ad499a3a84fc83721f",
+      "sharedTree": "d676187cb20ae4f214d76754f987357ae41fca15",
+      "rootPackageBlob": "30c0b9e16b8a4822e372c59e677e348a76d3622d",
+      "rootPackageLockBlob": "929eea34c7feeffa664089b0c708420e0cd92c96",
+      "includesAdminLockfileAndConfig": true,
+      "sourceSearch": "Admin production source imports shared verification, media editing/playback, diagnostics, market orders and monetization/payment helpers; the entire shared tree is equal."
+    }
+  },
+  "limits": [
+    "Web READY and alias binding are verified; this receipt does not claim a hosted navigation/authentication interaction passed.",
+    "Admin has no READY deployment at the new commit. Its existing READY 26e80ae9 deployment remains aliased, with identical admin/shared/package inputs; no rebuild was forced.",
+    "No source, branch, protection configuration or deployment alias was modified. Environment configuration equivalence is not inferred from Git equality."
+  ]
+}

@@ -1,4 +1,5 @@
 'use client';
+import Image from 'next/image';
 import CommandForm from '@/components/CommandForm';
 import { safeEvidenceUrl } from '../../shared/verification';
 
@@ -10,7 +11,7 @@ const TIER_LABEL: Record<string, string> = { public_figure: 'Green', business: '
 
 type App = {
   id: string; applicant_id: string; tier: string; category: string | null; status: string;
-  created_at: string; evidence: any; full_name: string | null; username: string | null; avatar_url: string | null;
+  created_at: string; evidence: unknown; full_name: string | null; username: string | null; avatar_url: string | null;
   account_type: string | null; vouches: number; voucherNames: string; strikes: number;
 };
 
@@ -25,16 +26,15 @@ function waiting(iso: string) {
 export default function VerificationDesk({ apps }: { apps: App[] }) {
   const [tab, setTab] = useState<'all' | 'submitted' | 'under_review'>('all');
   const [selectedId, setSelectedId] = useState<string | null>(apps[0]?.id ?? null);
-  const selected = apps.find(app => app.id === selectedId) ?? apps[0] ?? null;
-
   const filtered = apps.filter(a => tab === 'all' || a.status === tab);
+  const selected = filtered.find(app => app.id === selectedId) ?? filtered[0] ?? null;
   const tabs: { key: typeof tab; label: string; count: number }[] = [
     { key: 'all', label: 'All', count: apps.length },
     { key: 'submitted', label: 'Submitted', count: apps.filter(a => a.status === 'submitted').length },
     { key: 'under_review', label: 'Under review', count: apps.filter(a => a.status === 'under_review').length },
   ];
 
-  const ev = selected?.evidence || {};
+  const ev = selected?.evidence && typeof selected.evidence === 'object' && !Array.isArray(selected.evidence) ? selected.evidence as Record<string, unknown> : {};
   const docCount = (Array.isArray(ev.links) ? ev.links.length : 0) + (ev.office ? 1 : 0) + (ev.statement ? 1 : 0);
 
   return (
@@ -42,7 +42,7 @@ export default function VerificationDesk({ apps }: { apps: App[] }) {
       <div className="lg:col-span-2 overflow-hidden rounded-[14px] border border-[#E5E4E0] bg-white">
         <div className="flex gap-1 border-b border-[#F0EFEC] px-3 pt-2">
           {tabs.map(t => (
-            <button key={t.key} onClick={() => setTab(t.key)}
+            <button key={t.key} type="button" aria-pressed={tab === t.key} onClick={() => setTab(t.key)}
               className={'shrink-0 rounded-t-[9px] px-3 py-2 text-[12.5px] font-semibold transition-colors duration-150 ' + (tab === t.key ? 'border-b-2 border-[#17181C] text-[#17181C]' : 'text-[#9A9DA4] hover:text-[#17181C]')}>
               {t.label} <span className="tabular-nums">{t.count}</span>
             </button>
@@ -53,7 +53,7 @@ export default function VerificationDesk({ apps }: { apps: App[] }) {
         ) : filtered.map(a => (
           <button key={a.id} onClick={() => setSelectedId(a.id)}
             className={'flex w-full items-center gap-3 border-t border-[#F0EFEC] px-4 py-3 text-left transition-colors duration-150 hover:bg-[#FAFAF9] ' + (selected?.id === a.id ? 'bg-[#FAFAF9]' : '')}>
-            {a.avatar_url ? <img src={a.avatar_url} alt="" className="h-9 w-9 rounded-full object-cover" />
+            {a.avatar_url ? <Image unoptimized width={36} height={36} src={a.avatar_url} alt="" className="h-9 w-9 rounded-full object-cover" />
               : <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#17181C]/10 text-[12px] font-bold text-[#17181C]">{String(a.full_name || '?').slice(0, 1)}</span>}
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[13px] font-semibold text-[#17181C]">{a.full_name || 'Unknown'}</span>
@@ -70,7 +70,7 @@ export default function VerificationDesk({ apps }: { apps: App[] }) {
         ) : (
           <>
             <div className="flex items-center gap-3">
-              {selected.avatar_url ? <img src={selected.avatar_url} alt="" className="h-12 w-12 rounded-full object-cover" />
+              {selected.avatar_url ? <Image unoptimized width={48} height={48} src={selected.avatar_url} alt="" className="h-12 w-12 rounded-full object-cover" />
                 : <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#17181C]/10 text-[15px] font-bold text-[#17181C]">{String(selected.full_name || '?').slice(0, 1)}</span>}
               <div>
                 <p className="text-[14.5px] font-semibold text-[#17181C]">{selected.full_name || 'Unknown'} <span className="font-normal text-[#9A9DA4]">@{selected.username || '-'}</span></p>

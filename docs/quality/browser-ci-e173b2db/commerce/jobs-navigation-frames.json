@@ -1,0 +1,521 @@
+{
+  "checkedAt": "2026-10-31T05:37:35.121Z",
+  "runtime": "153.0.8010.12",
+  "scope": "Actual JobsPage, JobCard and SavedJobsPage components. Auth/database and Next routing use local synthetic adapters; the Home destination is a fixture placeholder. Destination component frames measure restored content and filters, not hosted layout/RSC or GPU transition timing.",
+  "checks": [
+    {
+      "name": "warm Jobs return retains the exact search/location/category/sort, eight loaded rows and scroll on every observed destination frame",
+      "passed": true,
+      "frames": 43,
+      "firstJobsFrameMs": 36.29999999998836,
+      "blankJobsFrames": 0,
+      "heldReads": 3,
+      "extraReadsAfterEightForegroundEvents": 0,
+      "tokenRefreshRetainsState": true
+    },
+    {
+      "name": "confirmed save survives a background response captured before the mutation",
+      "passed": true
+    },
+    {
+      "name": "unsaving on the real shortlist updates the remembered Discover bookmark before its refresh completes",
+      "passed": true
+    },
+    {
+      "name": "an already-dispatched same-session save confirms after route remount and fences the replacement screen older shortlist read",
+      "passed": true,
+      "pinnedWrite": true,
+      "cancellableWrite": true
+    },
+    {
+      "name": "failed warm refresh retains filtered rows and in-place retry recovers",
+      "passed": true
+    },
+    {
+      "name": "A to B to A clears prior filters/results and aborts old reads and a pending save before new-session data renders",
+      "passed": true,
+      "abortedReads": 3,
+      "pendingSaveNotPublished": true
+    },
+    {
+      "name": "a previously loaded empty Jobs dataset retains filters and its empty state on warm return",
+      "passed": true
+    }
+  ],
+  "frames": [
+    {
+      "at": 559.1,
+      "sinceClickMs": 36.29999999998836,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 575.7,
+      "sinceClickMs": 39,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 592.4,
+      "sinceClickMs": 49.20000000001164,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 609.1,
+      "sinceClickMs": 62.40000000002328,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 625.8,
+      "sinceClickMs": 78.70000000001164,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 642.4,
+      "sinceClickMs": 95.20000000001164,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 659.1,
+      "sinceClickMs": 112,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 675.8,
+      "sinceClickMs": 128.60000000003492,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 692.4,
+      "sinceClickMs": 145.29999999998836,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 709.1,
+      "sinceClickMs": 161.90000000002328,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 725.7,
+      "sinceClickMs": 178.60000000003492,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 742.4,
+      "sinceClickMs": 195.29999999998836,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 759.1,
+      "sinceClickMs": 211.90000000002328,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 775.8,
+      "sinceClickMs": 228.60000000003492,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 792.4,
+      "sinceClickMs": 245.29999999998836,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 809.1,
+      "sinceClickMs": 261.9000000000233,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 825.7,
+      "sinceClickMs": 278.70000000001164,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 842.5,
+      "sinceClickMs": 295.29999999998836,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 859.1,
+      "sinceClickMs": 312,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 875.8,
+      "sinceClickMs": 328.6000000000349,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 892.4,
+      "sinceClickMs": 345.20000000001164,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 909.1,
+      "sinceClickMs": 361.9000000000233,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 925.7,
+      "sinceClickMs": 378.5,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 942.5,
+      "sinceClickMs": 395.29999999998836,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 959.1,
+      "sinceClickMs": 411.9000000000233,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 975.7,
+      "sinceClickMs": 428.70000000001164,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 992.4,
+      "sinceClickMs": 445.29999999998836,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 1009.1,
+      "sinceClickMs": 461.9000000000233,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 1025.8,
+      "sinceClickMs": 478.6000000000349,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 1042.5,
+      "sinceClickMs": 495.20000000001164,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 1059.1,
+      "sinceClickMs": 511.79999999998836,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 1075.7,
+      "sinceClickMs": 528.6000000000349,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 1092.4,
+      "sinceClickMs": 545.2999999999884,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 1109.1,
+      "sinceClickMs": 562,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 1125.7,
+      "sinceClickMs": 578.6000000000349,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 1142.5,
+      "sinceClickMs": 595.2000000000116,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 1159.1,
+      "sinceClickMs": 611.9000000000233,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 1175.8,
+      "sinceClickMs": 628.5,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 1192.4,
+      "sinceClickMs": 645.2999999999884,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 1209.1,
+      "sinceClickMs": 661.9000000000233,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 1225.7,
+      "sinceClickMs": 678.5,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 1242.4,
+      "sinceClickMs": 695.2999999999884,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    },
+    {
+      "at": 1259,
+      "sinceClickMs": 711.9000000000233,
+      "search": "design",
+      "scope": "global",
+      "sort": "salary",
+      "category": "Freelance",
+      "rows": 8,
+      "scrollTop": 650,
+      "loading": false
+    }
+  ],
+  "browserErrors": []
+}

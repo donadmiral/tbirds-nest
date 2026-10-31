@@ -1,0 +1,104 @@
+{
+  "reviewedAt": "2026-10-31T07:37:21.357463+00:00",
+  "reviewer": "navigation_performance",
+  "verdict": "Accepted. No remaining source review objection to the stateless navigation callback identity repair.",
+  "scope": "Independent read-only source review plus one focused five-case run on the frozen AppNavigator and harness. No app edits, broad-suite execution, native/CI rerun, SDK lock or auth behavior changes.",
+  "artifactContext": {
+    "head": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+    "merge": "ba8d659c4b6172c1c4930cd6d348d627bdb1470f",
+    "runId": 41179235060,
+    "jobId": 124473036936,
+    "artifactId": 13035220059,
+    "zipSha256": "b869c6611030a06c9d7ced04e4c72050f164677738c43537e5019c3e5ade57c1",
+    "ownerAnalysis": "Hosted owns actual auth warning/read-storm counts and timeline; this review independently establishes the source feedback chain and repair behavior."
+  },
+  "installedVersions": {
+    "@react-navigation/core": "6.4.17",
+    "@react-navigation/native": "6.1.18",
+    "@react-navigation/routers": "6.1.9"
+  },
+  "findings": [
+    {
+      "topic": "Feedback source",
+      "result": "AppNavigator subscribes to profile. The actual Profile load completion calls setAuthProfile with a newly merged object. An inline onUnhandledAction therefore changed on each successful profile publication. Installed useNavigationHelpers includes UnhandledActionContext in its memo dependencies; useNavigationCache depends on those helpers; useFocusEffect depends on navigation and reruns the effect while focused when that identity changes."
+    },
+    {
+      "topic": "Narrow repair",
+      "result": "Both normal and password-recovery NavigationContainer branches now receive the same stateless module-level handleUnhandledNavigationAction. It closes over no account, profile, theme, navigation, request or component lifecycle value, so it cannot retain stale account state."
+    },
+    {
+      "topic": "Unhandled action behavior",
+      "result": "The function body is identical to the former inline handler: GO_BACK is ignored; other actions log only their optional type with the same prefix. It does not add a dev/prod condition or expose action payloads."
+    },
+    {
+      "topic": "Real focus transitions",
+      "result": "The focused harness executes installed Navigation helper/cache/focus code. It verifies that same-profile publication retains one focus read, genuine blur cleans up and genuine refocus reloads, while duplicate focus events remain suppressed."
+    },
+    {
+      "topic": "Session and account boundaries",
+      "result": "No existing session revision subscription, account/setup/recovery gate, root navigator key, provider or route changed. The actual rendered root key differs for A\u2192B\u2192A revisions, even though the stateless diagnostic handler remains stable."
+    }
+  ],
+  "verification": {
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-navigation-handler.cjs",
+    "tests": 5,
+    "passed": 5,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "exitCode": 0,
+    "sourcesIdenticalBeforeAndAfter": true,
+    "raw": {
+      "path": "docs/quality/native-full-app-20261031/native-navigation-handler-independent.tap",
+      "sha256": "6ef20304c4185b5767594faf72db9c47384f346e49baab8cae70290213d5bb10"
+    }
+  },
+  "limits": [
+    "Production AppNavigator, the actual extracted Profile load callback and installed Navigation 6 hook/cache implementations execute, but React scheduling, native hosts, navigation contexts/listeners and auth state are controlled doubles. This is not a complete mounted native application.",
+    "The profile test deterministically processes six subsequent render turns to expose the handler-driven feedback path; it is not a performance or network throughput benchmark.",
+    "The A\u2192B\u2192A test verifies actual root-key changes, not native view destruction, provider reinitialization or saved-account persistence. Those remain native acceptance checks.",
+    "No claim that this single repair eliminates every possible read storm or observed lock delay. The next native trace must confirm actual request/lock behavior without suppressing warnings or changing deadlines."
+  ],
+  "sourceFiles": [
+    {
+      "path": "src/navigation/AppNavigator.tsx",
+      "sha256": "25901306b597b2a0fc93111f97636ef74beee216174df9937e5cf16ad3ffed70"
+    },
+    {
+      "path": "tests/quality/native-navigation-handler.cjs",
+      "sha256": "583b51e9b3eba3471ebfc612a44a3045203b5843682bf4d235a2c5084a1a0add"
+    },
+    {
+      "path": "src/screens/profile/ProfileScreen.tsx",
+      "sha256": "8054af477bbdbd0a17bb7ad417107490b1c1f457c9182fa4e80f3a51bd5e2d20"
+    },
+    {
+      "path": "src/components/MemoryAlbumCard.tsx",
+      "sha256": "e6974756880f972305f8afccce6b9df1ccb1db67c1dafac181802ee9a935d074"
+    },
+    {
+      "path": "node_modules/@react-navigation/core/src/useNavigationHelpers.tsx",
+      "sha256": "7102ce8c413221f299fbb206847d9857376613187492c025f3e44d34594428e6"
+    },
+    {
+      "path": "node_modules/@react-navigation/core/src/useNavigationCache.tsx",
+      "sha256": "a880bca9fd84be387e2161930ab7e7ade806e45f5abd471910c18b431544ec5f"
+    },
+    {
+      "path": "node_modules/@react-navigation/core/src/useFocusEffect.tsx",
+      "sha256": "72215f66cc658a41114bd06eef79ee9d26ff555abe6c4830c82021aef65aa7bf"
+    },
+    {
+      "path": "node_modules/@react-navigation/core/src/BaseNavigationContainer.tsx",
+      "sha256": "780847062cd0a5e9d911e78364c02e18a90ab8858c15472f86b9bee8ba53ee19"
+    },
+    {
+      "path": "node_modules/@react-navigation/core/package.json",
+      "sha256": "8e58c26a70ad855affdb1ac5db5d68894f11bc26fea35e29cbef46d51465dd09"
+    },
+    {
+      "path": "node_modules/@react-navigation/native/package.json",
+      "sha256": "7be33a8f810a611ade552bf5e7dc88a2e1275f4848c3ba383b09f1a412a492a1"
+    }
+  ]
+}

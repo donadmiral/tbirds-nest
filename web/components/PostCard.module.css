@@ -1,0 +1,17 @@
+.card { min-width: 0; }
+.body { overflow-wrap: anywhere; }
+.actions { row-gap: 4px; }
+.actions > button, .actions > a, .actions > span > button { min-height: 44px; min-width: 44px; }
+.actions > span { min-width: 0; }
+
+/* Let photos and controls use the full card on a phone, while the avatar
+   stays beside the author. Every action remains visible at large text sizes. */
+@media (max-width: 600px) {
+  .card { padding: 14px 12px; }
+  .layout { display: grid; grid-template-columns: 46px minmax(0, 1fr); gap: 0 10px; }
+  .layout > :first-child { grid-column: 1; grid-row: 1; align-self: start; }
+  .body { display: contents; }
+  .body > * { grid-column: 1 / -1; min-width: 0; }
+  .body > .header { grid-column: 2; grid-row: 1; min-height: 46px; margin-bottom: 6px; }
+  .actions { margin-left: -5px; margin-right: -5px; justify-content: space-between; }
+}

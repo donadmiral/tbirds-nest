@@ -1,0 +1,41 @@
+✔ web album loader commits authorized media (6.917288ms)
+✔ web late album read cannot restore an old account's media (3.197131ms)
+✔ web failed album authorization clears media and offers retry (3.378613ms)
+✔ native album loader commits authorized media (19.103623ms)
+✔ native late album read cannot restore an old account's media (8.099206ms)
+✔ native failed album authorization clears media and offers retry (7.652795ms)
+✔ held optional reactions do not block the actual authorized reader (216.572456ms)
+✔ unknown initial reaction state cannot expose an actionable Like guess (151.195842ms)
+✔ optional reaction reject cannot discard the authorized book (124.861113ms)
+✔ optional reaction error-result cannot discard the authorized book (102.511376ms)
+✔ pending auth cannot dispatch required book or optional reaction reads (97.546967ms)
+✔ pending required book authorization keeps the reader gated (88.182388ms)
+✔ required book rejection still clears the reader and offers retry (106.829263ms)
+✔ required media rejection still clears the reader and offers retry (116.493244ms)
+✔ held required media hydration cannot publish a book or start optional reads (110.202959ms)
+✔ old optional read cannot affect a replacement route that shares a story ID (89.483064ms)
+✔ account ABA invalidates old optional reads before a replacement viewer commit (99.229419ms)
+✔ unmount invalidates a pending optional reaction result (99.358002ms)
+✔ a newer load result wins over the previous optional reaction read (88.34349ms)
+✔ an older reaction read preserves a newer successful toggle and other page results (96.652081ms)
+✔ a newer successful unreact removes the stale read membership (87.361873ms)
+✔ failed toggle leaves the optional authoritative reaction result usable (92.923611ms)
+✔ fresh book identity cannot display old confirmed likes while its optional read is held (87.774051ms)
+✔ empty refreshed book removes old likes before a source returns (103.937957ms)
+✔ no-story refreshed book removes old likes before a source returns (102.505391ms)
+✔ a successful old-route toggle cannot leak into a replacement book (86.270447ms)
+✔ optional background reject retains confirmed known reaction state (98.354069ms)
+✔ optional background error-result retains confirmed known reaction state (86.193627ms)
+✔ an old-account mutation cannot apply after ABA before React rerenders (104.746443ms)
+✔ unmounted confirmed reaction completion cannot publish state or errors (107.143911ms)
+✔ unmounted rejected reaction completion cannot publish state or errors (81.356882ms)
+✔ soundtrack confirmation does not discard a held optional reaction response (95.289646ms)
+✔ soundtrack confirmation invalidating a held refresh cannot strand unknown reactions as loading (110.433564ms)
+ℹ tests 33
+ℹ suites 0
+ℹ pass 33
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3198.749363

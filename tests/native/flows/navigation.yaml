@@ -1,0 +1,87 @@
+appId: app.platinumcircles.mobile.qa
+name: Full native app navigation
+---
+- launchApp:
+    clearState: true
+    permissions:
+      notifications: deny
+- extendedWaitUntil:
+    visible: Sign in
+    timeout: 30000
+- tapOn: Username or email
+- inputText: qa.alex@example.invalid
+# On compact Android displays the open email keyboard covers the next field.
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- tapOn: Password
+- inputText: FixtureOnly-2026!
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      # The iOS keyboard has no standard dismiss button; use the real scroll-view dismissal.
+      - tapOn: Platinum Circles
+- tapOn: Sign in
+- extendedWaitUntil:
+    visible: A quiet morning in the desert. Small moments worth keeping.
+    timeout: 30000
+- takeScreenshot: home
+- tapOn: Latest
+- assertVisible: A quiet morning in the desert. Small moments worth keeping.
+- tapOn: For You
+- assertVisible: A quiet morning in the desert. Small moments worth keeping.
+- tapOn:
+    id: main-tab-market
+- extendedWaitUntil:
+    visible: 'View listing: Travel journal'
+    timeout: 15000
+- takeScreenshot: market
+- tapOn:
+    id: main-tab-feed
+- assertVisible: A quiet morning in the desert. Small moments worth keeping.
+- tapOn:
+    id: main-tab-jobs
+- extendedWaitUntil:
+    visible: '(?s)^(?:Product designer|(?:.*?, )?Product designer, (?:.*?, )?Desert Studio(?:, .*)?)$'
+    timeout: 15000
+- takeScreenshot: jobs
+- tapOn:
+    id: main-tab-messages
+- extendedWaitUntil:
+    visible: '(?s)^(?:Ready for our next adventure\?|(?:.*?, )?Jordan Ellis, (?:.*?, )?Ready for our next adventure\?(?:, .*)?)$'
+    timeout: 15000
+- takeScreenshot: messages
+- tapOn:
+    id: main-tab-profile
+- extendedWaitUntil:
+    visible: Alex Rivera
+    timeout: 15000
+- assertVisible: '(?s)^(?:.*?, )?Edit profile$'
+- takeScreenshot: profile
+- runFlow: memory-navigation.yaml
+- tapOn: Settings
+- extendedWaitUntil:
+    visible: Settings
+    timeout: 15000
+- takeScreenshot: settings
+- tapOn:
+    id: main-tab-feed
+- assertVisible: A quiet morning in the desert. Small moments worth keeping.
+- repeat:
+    times: 3
+    commands:
+      - tapOn:
+          id: main-tab-messages
+      - assertVisible: '(?s)^(?:Ready for our next adventure\?|(?:.*?, )?Jordan Ellis, (?:.*?, )?Ready for our next adventure\?(?:, .*)?)$'
+      - tapOn:
+          id: main-tab-feed
+      - assertVisible: A quiet morning in the desert. Small moments worth keeping.
+- takeScreenshot: returned-home

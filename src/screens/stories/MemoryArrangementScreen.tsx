@@ -17,19 +17,7 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  Dimensions,
-  Animated,
-  Easing,
-  AccessibilityInfo,
-  Alert,
-  StatusBar,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, Animated, Easing, AccessibilityInfo, StatusBar } from 'react-native';
 import { useSafeAreaInsets } from '../../components/SafeArea';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import {
@@ -39,7 +27,7 @@ import {
   State as GHState,
 } from 'react-native-gesture-handler';
 import { Feather } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
+import 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { DualCaptureAsset, DualLayout } from '../../components/stories/dual/dualCaptureTypes';
 

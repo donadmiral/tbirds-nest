@@ -31,14 +31,14 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
   const userReports = userResult.data;
 
   const pids = Array.from(new Set((postReports ?? []).map(r => r.post_id).filter(Boolean)));
-  const posts: Record<string, any> = {};
+  const posts: Record<string, { id: string; user_id: string; content: string | null; created_at: string }> = {};
   if (pids.length) {
     const { data, error } = await svc.from('posts').select('id, user_id, content, created_at').in('id', pids);
     if (error) throw new Error('Reported posts could not be loaded.');
     (data ?? []).forEach(p => { posts[p.id] = p; });
   }
   const lids = Array.from(new Set((listingReports ?? []).map(r => r.listing_id).filter(Boolean)));
-  const listings: Record<string, any> = {};
+  const listings: Record<string, { id: string; seller_id: string; title: string; price: number; status: string }> = {};
   if (lids.length) {
     const { data, error } = await svc.from('marketplace_listings').select('id, seller_id, title, price, status').in('id', lids);
     if (error) throw new Error('Reported listings could not be loaded.');
@@ -48,10 +48,10 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
   (postReports ?? []).forEach(r => uidSet.add(r.reporter_id));
   (listingReports ?? []).forEach(r => uidSet.add(r.reporter_id));
   (userReports ?? []).forEach(r => { uidSet.add(r.reporter_id); uidSet.add(r.reported_id); });
-  Object.values(posts).forEach((p: any) => uidSet.add(p.user_id));
-  Object.values(listings).forEach((l: any) => uidSet.add(l.seller_id));
+  Object.values(posts).forEach(p => uidSet.add(p.user_id));
+  Object.values(listings).forEach(l => uidSet.add(l.seller_id));
   const profileIds = Array.from(uidSet).filter(Boolean);
-  const people: Record<string, any> = {};
+  const people: Record<string, { id: string; full_name: string | null; username: string | null }> = {};
   if (profileIds.length) {
     const { data, error } = await svc.from('profiles').select('id, full_name, username').in('id', profileIds);
     if (error) throw new Error('Report participants could not be loaded.');
@@ -120,7 +120,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
         <div className="mt-6">
           <p className="mb-2 text-[12px] font-semibold uppercase tracking-wider text-[#9A9DA4]">Recently resolved</p>
           <div className="rounded-[12px] border border-[#E8E6E1] bg-white">
-            {resolved.map((r: any) => (
+            {resolved.map(r => (
               <div key={r.kind + r.id} className="flex items-center gap-3 border-b border-[#F0EFEC] px-5 py-2.5 last:border-0">
                 <span className="shrink-0 rounded-full bg-[#F4F3F0] px-2 py-0.5 text-[10.5px] font-bold text-[#7A7D84]">{r.kind}</span>
                 <p className="min-w-0 flex-1 truncate text-[12.5px] text-[#5A5D64]">{r.reason}</p>

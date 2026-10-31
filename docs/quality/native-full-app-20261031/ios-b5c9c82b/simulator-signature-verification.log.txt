@@ -1,0 +1,2 @@
+/Users/runner/work/tbirds-nest/tbirds-nest/native-ui-derived/Build/Products/Release-iphonesimulator/PlatinumQA.app: valid on disk
+/Users/runner/work/tbirds-nest/tbirds-nest/native-ui-derived/Build/Products/Release-iphonesimulator/PlatinumQA.app: satisfies its Designated Requirement

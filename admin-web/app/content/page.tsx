@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation';
+import { requestTime } from '@/lib/requestTime';
 import { requireDesk } from '@/lib/adminAuth';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import { adminRemovePost } from '@/lib/actions';
@@ -12,18 +12,18 @@ import type { MediaPreviewEdit, ReviewMedia } from '@/components/MediaPreview';
 
 export const dynamic = 'force-dynamic';
 
-const PANEL: React.CSSProperties = { borderRadius: 13, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', overflow: 'hidden' };
+const PANEL: React.CSSProperties = { borderRadius: 12, background: 'var(--panel)', border: '1px solid rgba(var(--on),0.10)', overflow: 'hidden' };
 const HEAD: React.CSSProperties = { padding: '14px 16px 12px', borderBottom: '1px solid rgba(var(--on),0.10)' };
-const H_TITLE: React.CSSProperties = { fontSize: 13.5, fontWeight: 700, color: 'var(--txt)' };
-const H_SUB: React.CSSProperties = { fontSize: 11.3, color: 'var(--txt-muted)', marginTop: 3 };
+const H_TITLE: React.CSSProperties = { fontSize: 14, fontWeight: 700, color: 'var(--txt)' };
+const H_SUB: React.CSSProperties = { fontSize: 12, color: 'var(--txt-muted)', marginTop: 3 };
 
 const IC = {
-  post: 'M4 4h16v12H5.2L4 17.2V4zm2 3h12v2H6V7zm0 4h8v2H6v-2z',
-  flag: 'M12 2L1 21h22L12 2zm1 14h-2v2h2v-2zm0-6h-2v4h2v-4z',
-  heart: 'M12 21S3 14.5 3 8.9A5 5 0 0112 6a5 5 0 019 2.9C21 14.5 12 21 12 21z',
-  eye: 'M12 5c5 0 9 4.5 9 7s-4 7-9 7-9-4.5-9-7 4-7 9-7zm0 3.5A3.5 3.5 0 1012 15a3.5 3.5 0 000-6.5z',
-  media: 'M4 5h16v14H4V5zm2 10l3.5-4.5 2.5 3 3-4L18 17H6z',
-};
+  post: 'content',
+  flag: 'reports',
+  heart: 'heart',
+  eye: 'eye',
+  media: 'image',
+} as const;
 
 const isVideo = isVideoUrl;
 
@@ -31,7 +31,7 @@ export default async function ContentPage() {
   const admin = await requireDesk('/content');
   const svc = serviceClient();
 
-  const now = Date.now();
+  const now = await requestTime();
   const from7 = new Date(now - 7 * 86400000).toISOString();
   const from14 = new Date(now - 14 * 86400000).toISOString();
   const days30 = Array.from({ length: 30 }, (_, i) => new Date(now - (29 - i) * 86400000).toISOString().slice(0, 10));
@@ -64,7 +64,7 @@ export default async function ContentPage() {
   // Resolve verified post media for the authenticated moderation desk.
   posts.forEach(p => {
     if (!mediaByPost[p.id]?.length) {
-      const found = pickMedia(p as unknown as Record<string, unknown>);
+      const found = pickMedia({ media_url: p.media_url });
       if (found) mediaByPost[p.id] = [found];
     }
   });
@@ -205,7 +205,7 @@ export default async function ContentPage() {
           ...(rep && rep.reasons.length ? [{ label: 'Why it was reported', text: Array.from(new Set(rep.reasons)).join('\n') }] : []),
         ],
         links: [
-          { label: 'Open post', href: '/p/' + p.id },
+          { label: 'Open post', href: '/content/' + p.id },
           { label: 'Open author', href: '/users/' + p.user_id },
           ...(rep?.open ? [{ label: 'Open reports desk', href: '/reports' }] : []),
         ],
@@ -281,8 +281,8 @@ export default async function ContentPage() {
             </div>
             {removed.length === 0 ? <Empty note="No post has been removed by this desk." /> : removed.slice(0, 6).map(r => (
               <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10.5px 16px', borderBottom: '1px solid rgba(var(--on),0.10)' }}>
-                <span className="pc-num" style={{ flex: 1, minWidth: 0, fontSize: 11.4, color: 'rgba(var(--on),0.55)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{String(r.target_id).slice(0, 18)}</span>
-                <span className="pc-num" style={{ fontSize: 10.5, color: 'rgba(var(--on),0.3)' }}>{ago(r.created_at)}</span>
+                <span className="pc-num" style={{ flex: 1, minWidth: 0, fontSize: 12, color: 'var(--txt-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{String(r.target_id).slice(0, 18)}</span>
+                <span className="pc-num" style={{ fontSize: 11, color: 'var(--txt-muted)' }}>{ago(r.created_at)}</span>
               </div>
             ))}
           </div>

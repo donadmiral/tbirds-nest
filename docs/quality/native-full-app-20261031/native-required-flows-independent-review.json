@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-31T05:32:14Z",
+  "status": "Independent review accepted; all28focused shell regressions passed. Real native run remains pending.",
+  "scope": "Read-only review of frozen required-flow split and independent execution of its28actual-shell cases. No production edits, native rebuilds, job mutations, broad-suite reruns, Apple sign-in or refs changes.",
+  "sourceHashes": {
+    "scripts/quality/run-native-ui-flows.sh": "814e406898cdbeb9335ec2445aa723aa9b89f344c4d36e7863106609a65de65a",
+    "scripts/quality/native-ui-flow-results.py": "bd2ef2175adbdeb382898346c5c8195c4a45fb804491820946f00c830aa20efa",
+    "scripts/quality/test-ios-app-ui.sh": "138f2ac2e8ed32e09f4b6b5ca6e4c4b07a6f1c93b7373767703dbfd97b3f8077",
+    "scripts/quality/test-android-app-ui.sh": "b4b061b08be076c02d162dcf9db8f888afdab757b7bd694b3b76c4bf742de9dc",
+    "scripts/quality/verify-native-ui.cjs": "ddec859c99aa6738dec36dca136e17802943c3f6b0761c8f8fc482eaabc6107b",
+    "scripts/quality/prepare-native-ui.cjs": "9afa9baef4388c76155dab43708deb0c667a17b5f50e866c5afc0c74c94c8d84",
+    "tests/quality/native-ui-flows.cjs": "e9068722cd01b3c42dd153f62d7fa021739249bce7e912d4c043bbea9f983a19",
+    "tests/quality/native-auth-diagnostics.cjs": "9c1edc8e6f79a9afeeb89440384ed909ac1eb50bf034962155032cf519176ba9",
+    "tests/native/flows/navigation.yaml": "1a3bb92ad2f80bfe9ba0c1c81829c65edfa1118dbfe10942074deeb9fe51e1f8",
+    "tests/native/flows/memory-capture.yaml": "16966925346646f2280ca0ebdea7ce0c5f2e131d03e9dec3841c69a761f0ba91",
+    "tests/native/flows/memory-navigation.yaml": "42a6947e98ceda6e60e7073a486c5317f238f8e478763c30f4eed1e0dd39aeae",
+    ".github/workflows/native-app-ui.yml": "893ef1c3c6ae5976337ab7ecb12d6f8080ad51ddfa3e80995745f409540cddca"
+  },
+  "sourceUnchangedDuringFocusedExecution": true,
+  "lifecycleReview": {
+    "path": "docs/quality/native-full-app-20261031/maestro-2.11.0-lifecycle-review.json",
+    "sha256": "fc4125d587cef58996c89922dabd230737bd61f89def16e107ae773fb48bf94b",
+    "pinnedVersion": "2.11.0",
+    "officialSourceCommit": "c8c361be1cc89b2e742f185466a302a22778be6b",
+    "verifiedOfficialSourceFiles": 22,
+    "conclusion": "Separate CLI startup/cleanup initializes and stops Maestro drivers, with no implicit AUT stop/clear/relaunch in the reviewed pinned source. Native process continuity remains a required acceptance outcome."
+  },
+  "implementationReview": {
+    "onceOnly": "Runner explicitly executes navigation then memory-capture once on the same device; no retries. Existing result or JUnit paths cause refusal before any new invocation. Navigation no longer nests capture.",
+    "state": "Capture YAML is unchanged and starts at the existing QA deep-link. No launchApp, stopApp, state/keychain clear, reauthentication, fixture persistence workaround or transport changes.",
+    "failureAggregation": "pipefail preserves a nonzero Maestro or tee pipeline result. Capture runs even after navigation fails. Both platform tails attempt evidence collection, independent memory decoder and full-app verifier, then fail if any phase is nonzero.",
+    "junit": "The stdlib XML validator requires two ordered flow records, exactly one attempt each, numeric zero exits, nonempty bounded reports, exactly one declared suite/case per report, exact expected file/name, status SUCCESS, tests1/failures0 and no failure/error/skipped nodes or nonzero failure/error/skipped/disabled attributes. Missing, empty, malformed, wrong-flow, duplicated or incomplete results fail.",
+    "artifacts": "Separate navigation and memory-capture JUnit/log/debug directories prevent report overwrites. Both screenshot sets remain under the existing recursive maestro root, with the same15required screenshot names and unique-file checks. flow-results.json, flow-verification.json and phase-results.json retain flow/aggregate outcomes.",
+    "verifiers": "The existing native bridge, account save/readback, supported fixture request, memory cancellation/decoder, book revision/save/readback and screenshot gates remain. The full verifier reruns the strict flow validator and records both successful flow identities in final receipt.",
+    "sourceProvenance": "Both new helpers are included in the disposable source manifest and required-file regression. Native preparation/auth overlay behavior is unchanged.",
+    "timeoutsAndConcurrency": "Workflow75minute deadlines, Maestro flow timeouts, platform build/bootstrap/cleanup behavior and concurrency settings are unchanged."
+  },
+  "independentValidation": {
+    "command": "env -u NODE_TEST_CONTEXT node tests/quality/native-ui-flows.cjs",
+    "subprocessExitCode": 0,
+    "counts": {
+      "tests": 28,
+      "pass": 28,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "reporter": "Node spec reporter;28named passing cases plus formal counters",
+    "reportedDurationMs": 3962.413027,
+    "output": "docs/quality/native-full-app-20261031/native-required-flows-independent-output.txt",
+    "outputSha256": "5b264ce07003d2d19926891d8b3efa2c438c178667ad25ab139eefdbadbcf52c",
+    "initialReceiptParserNote": "The independent wrapper initially expected TAP # counters; Node emitted spec \u2139 counters. The test subprocess exited0 and the source before/after assertion passed. The existing output was parsed correctly; the tests were not rerun.",
+    "coverage": [
+      "Successful navigation and capture, then duplicate-invocation refusal.",
+      "Navigation failure followed by capture; capture failure; both failures.",
+      "Nonzero tee result retained while capture still executes.",
+      "Zero CLI exit with failed/skipped/skipped-count/error/empty-suite/empty/missing/malformed/wrong-flow/missing-status/duplicate-case JUnit rejected.",
+      "Missing/malformed/incomplete/repeated flow records rejected.",
+      "Actual Android and iOS post-install shell tails aggregate each flow/evidence/decoder/full-verifier failure while attempting both existing verifiers.",
+      "Capture remains separate/deep-link-only and source manifest includes helper/validator."
+    ],
+    "simulationBoundary": "Tests execute the actual Bash runner, actual Python validator and actual post-install platform shell tails. Maestro, platform evidence commands and expensive native verifiers are controlled test executables; marker persistence proves orchestration only, not an actual app process."
+  },
+  "authorValidationReference": {
+    "path": "docs/quality/native-full-app-20261031/native-required-flows-repair.json",
+    "sha256": "4048350f015d396ad6ceeefe5ec8d1ec61cf3edb0ff6e09bc73adb8f247a74d1",
+    "attribution": "Native owner reported52focusedNodepasses including28newrunnercases and9nestedPythonparsercases; this independent review reran only the28newcases."
+  },
+  "remainingGate": "The next real Android/iPhone run must retain both executed flow reports and pass all existing cumulative app/account/book/capture/decode checks. Neither mocked shell tests nor pinned source review prove native process continuity or full-app acceptance.",
+  "reviewOutcome": "No remaining source objection; frozen source accepted for final combined local gate and native rerun."
+}

@@ -56,8 +56,8 @@ export async function ensureCallCategory(): Promise<void> {
       { identifier: 'decline', buttonTitle: 'Decline', options: { opensAppToForeground: false, isDestructive: true } },
     ]);
     callCategoryReady = true;
-  } catch (e) {
-    console.log('CALL_CATEGORY_ERROR', (e as any)?.message);
+  } catch {
+    console.log('CALL_CATEGORY_ERROR');
   }
 }
 
@@ -88,7 +88,7 @@ export async function ensureCategoryChannels(): Promise<void> {
         lockscreenVisibility: Notifications.AndroidNotificationVisibility.PRIVATE,
         showBadge: c.id === 'messages',
       });
-    } catch (e) { console.log('CHANNEL_ERROR', c.id, (e as any)?.message); }
+    } catch { console.log('CHANNEL_ERROR'); }
   }
   categoryChannelsReady = true;
 }
@@ -108,8 +108,8 @@ export async function ensureCallChannel(): Promise<void> {
       showBadge: false,
     });
     callChannelReady = true;
-  } catch (e) {
-    console.log('CALL_CHANNEL_ERROR', (e as any)?.message);
+  } catch {
+    console.log('CALL_CHANNEL_ERROR');
   }
 }
 
@@ -161,7 +161,7 @@ export async function registerForPushNotifications(userId: string) {
     finalStatus = status;
   }
 
-  console.log('[push] permission', finalStatus);
+  console.log(finalStatus === 'granted' ? '[push] Permission granted' : '[push] Permission not granted');
   if (finalStatus !== 'granted') {
     console.log('Permission not granted for notifications');
     return null;
@@ -171,7 +171,7 @@ export async function registerForPushNotifications(userId: string) {
     Constants.expoConfig?.extra?.eas?.projectId ??
     Constants.easConfig?.projectId;
 
-  console.log('[push] asking Expo for a token, project', projectId ? String(projectId).slice(0, 8) : 'MISSING');
+  console.log(projectId ? '[push] Requesting token' : '[push] Requesting token without project configuration');
   const tokenResponse = await Promise.race([
     Notifications.getExpoPushTokenAsync({ projectId }),
     new Promise<never>((_, rej) => setTimeout(() => rej(new Error('Expo push token request hung for 15s')), 15000)),
@@ -186,9 +186,9 @@ export async function registerForPushNotifications(userId: string) {
       Device.deviceName ?? undefined,
     );
     lastPushToken = token;
-    console.log('[push] token saved for', userId.slice(0, 8), 'ending', token.slice(-8));
-  } catch (error) {
-    console.log('TOKEN_SAVE_ERROR', error);
+    console.log('[push] Token registration saved');
+  } catch {
+    console.log('TOKEN_SAVE_ERROR');
   }
 
   // Dormant until the CallKit build: registers the iOS VoIP token and files
@@ -205,7 +205,7 @@ export async function registerForPushNotifications(userId: string) {
       if (!rotated || !rotationUserId || rotated === lastPushToken) return;
       pushTokenService.saveToken(rotationUserId, rotated, Device.deviceName ?? undefined)
         .then(() => { lastPushToken = rotated; })
-        .catch((e) => console.log('TOKEN_ROTATE_SAVE_ERROR', e));
+        .catch(() => console.log('TOKEN_ROTATE_SAVE_ERROR'));
     });
   }
 

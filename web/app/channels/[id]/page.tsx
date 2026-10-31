@@ -1,10 +1,12 @@
 "use client";
 
+import { errorMessage } from "@/lib/errors";
+
 import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { displayImageUrl } from "@/lib/media";
+import { checkUploadableBytes, displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, BarChart2, Camera, Check, ChevronDown, ChevronUp, HelpCircle, Image as ImageIcon, Plus, Radio, Send, Settings2, X } from "lucide-react";
+import { ArrowLeft, BarChart2, Camera, ChevronDown, ChevronUp, HelpCircle, Image as ImageIcon, Plus, Radio, Send, Settings2, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { channelMediaObject } from "@/lib/channelMedia";
 import { useSocialPages } from "@/lib/useSocialPages";
@@ -12,6 +14,9 @@ import { SocialPageFooter } from "@/components/SocialPageFooter";
 import { withTimeout } from "@/lib/withTimeout";
 import { ErrorState } from "@/components/ErrorState";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { ProductDialog } from "@/components/ProductDialog";
+import type { DirectoryPerson } from "@/lib/socialTypes";
+import styles from "@/components/SocialWorkspace.module.css";
 
 const EMOJIS = ["\u2764\uFE0F", "\uD83D\uDD25", "\uD83D\uDC4F", "\uD83D\uDE02", "\uD83D\uDE2E"];
 
@@ -70,7 +75,9 @@ function ChannelInner() {
   const [mediaUrls, setMediaUrls] = useState<Record<string, string>>({});
   const scrollOnce = useRef(true);
   const [repliesEnabled, setRepliesEnabled] = useState(true);
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsScope, setSettingsScope] = useState<number | null>(null);
+  const settingsOpen = settingsScope !== null;
+  const setSettingsOpen = (open: boolean) => setSettingsScope(open ? epoch.current : null);
   const [me, setMe] = useState<string | null>(null);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [loading, setLoading] = useState(true);
@@ -93,9 +100,9 @@ function ChannelInner() {
   const endRef = useRef<HTMLDivElement | null>(null);
   const readPending = useRef(false), lastRead = useRef('');
   const readState = useRef({ message: '', ready: false });
-  readState.current = { message: messages[0]?.id || '', ready: !!me && isMember && !loading && !settingsOpen && !pollOpen && !openThread };
+  useLayoutEffect(() => { readState.current = { message: messages[0]?.id || '', ready: !!me && isMember && !loading && !settingsOpen && !pollOpen && !openThread }; }, [messages, me, isMember, loading, settingsOpen, pollOpen, openThread]);
 
-  const markRead = useCallback(async (): Promise<void> => {
+  const markRead = useCallback(async function markVisibleChannelRead(): Promise<void> {
     const version = epoch.current, message = readState.current.message;
     const marker = `${version}:${message}`;
     const rect = endRef.current?.getBoundingClientRect();
@@ -109,7 +116,7 @@ function ChannelInner() {
     finally {
       if (version === epoch.current) {
         readPending.current = false;
-        if (readState.current.message !== message) void markRead();
+        if (readState.current.message !== message) void markVisibleChannelRead();
       }
     }
   }, [channelId, supabase]);
@@ -192,7 +199,7 @@ function ChannelInner() {
     const refresh = () => { if (timer) clearTimeout(timer); timer = setTimeout(() => { if (alive) void load(); }, 180); };
     const bind = (next: string | null) => {
       if (!alive || uid === next) return;
-      uid = next; epoch.current++; activeLoads.current=false;pendingRefresh.current=false;locks.current.clear();setSending(false);setAttaching(false);setPollBusy(false);setReplySending(false);setReplyLoading(null);setReplyMore({});cursor.current = null; scrollOnce.current = true;
+      uid = next; epoch.current += 1; activeLoads.current=false;pendingRefresh.current=false;locks.current.clear();setSending(false);setAttaching(false);setPollBusy(false);setReplySending(false);setReplyLoading(null);setReplyMore({});cursor.current = null; scrollOnce.current = true;
       readPending.current = false; lastRead.current = '';
       setMe(next); setOpenThread(null); setDraft(""); setReplyDraft(""); setSettingsOpen(false); setPollOpen(false); setName("Channel"); setMyRole(""); setIsMember(false); setMessages([]); setReplies({}); setMediaUrls({}); setLoading(true); setHasMore(true);
       if (realtime) void supabase.removeChannel(realtime);
@@ -210,7 +217,7 @@ function ChannelInner() {
     document.addEventListener("visibilitychange", focus);
     // Reconcile missed events and renew expiring attachment URLs while the page is open.
     const renewal = setInterval(() => { if (document.visibilityState === "visible") refresh(); }, 4 * 60 * 1000);
-    return () => { alive = false; epoch.current++; pendingRefresh.current = false; auth.subscription.unsubscribe(); if (timer) clearTimeout(timer); if (realtime) void supabase.removeChannel(realtime); document.removeEventListener("visibilitychange", focus); clearInterval(renewal); };
+    return () => { alive = false; epoch.current += 1; pendingRefresh.current = false; auth.subscription.unsubscribe(); if (timer) clearTimeout(timer); if (realtime) void supabase.removeChannel(realtime); document.removeEventListener("visibilitychange", focus); clearInterval(renewal); };
   }, [channelId, supabase, load]);
   useEffect(() => {
     if (!loading && scrollOnce.current) { scrollOnce.current = false; endRef.current?.scrollIntoView({ block: "end" }); }
@@ -285,12 +292,12 @@ function ChannelInner() {
     locks.current.add("poll");
     setPollBusy(true);
     try {
-      const { error } = await supabase.rpc("post_channel_poll", { p_channel: channelId, p_question: question, p_options: opts, p_days: pollDays });
+      const { error } = await withTimeout(supabase.rpc("post_channel_poll", { p_channel: channelId, p_question: question, p_options: opts, p_days: pollDays }));
       if (error) throw error;
       if(version!==epoch.current)return;setPollOpen(false); setPollQ(""); setPollOpts(["", ""]); setPollDays(3);
       setLoading(true);
       await load();
-    } catch (err: any) { if(version===epoch.current)setError(err?.message || "Could not create the poll."); }
+    } catch (err: unknown) { if(version===epoch.current)setError(errorMessage(err, "Could not create the poll.")); }
     finally { if(version===epoch.current){locks.current.delete("poll"); setPollBusy(false);} }
   };
 
@@ -407,9 +414,9 @@ function ChannelInner() {
   const ordered = [...messages].reverse();
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-[640px] flex-col px-4">
-      <div className="sticky top-0 z-20 -mx-4 flex items-center gap-2.5 border-b border-ink/10 bg-white/85 px-4 py-2.5 backdrop-blur-md">
-        <Link href="/channels" className="rounded-full p-1.5 text-ink/60 hover:bg-black/5" aria-label="Back"><ArrowLeft size={18} /></Link>
+    <section className={styles.channel}>
+      <header className={styles.channelHeader}>
+        <Link href="/channels" className="rounded-full p-1.5 text-ink/60 hover:bg-black/5" aria-label="Back to channels"><ArrowLeft size={18} /></Link>
         {iconUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={iconUrl} alt="" className="h-9 w-9 rounded-full object-cover" />
@@ -417,15 +424,15 @@ function ChannelInner() {
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-ink text-white"><Radio size={15} /></span>
         )}
         <div className="min-w-0 flex-1">
-          <p className="truncate text-[15px] font-semibold text-ink">{name}</p>
-          <p className="text-[11.5px] text-muted">{String(memberCount)} {memberCount === 1 ? "member" : "members"}</p>
+          <h1 className="truncate text-xl font-bold text-ink">{name}</h1>
+          <p className="text-xs text-muted">{String(memberCount)} {memberCount === 1 ? "member" : "members"} · Host announcements</p>
         </div>
         {isMember ? (
           <button onClick={() => setSettingsOpen(true)} className="rounded-full p-2 text-ink/60 hover:bg-black/5" aria-label="Channel settings"><Settings2 size={17} /></button>
         ) : null}
-      </div>
+      </header>
 
-      <div className="flex-1 py-4">
+      <div className={styles.channelBody}>
         {error ? <ErrorState title={error} onRetry={() => void load()} /> : null}
         {!loading && hasMore ? <button type="button" disabled={loadingMore} onClick={() => void load(true)} className="mb-4 w-full rounded-full bg-surface py-2 text-sm text-ink disabled:opacity-50">{loadingMore ? "Loading…" : "Load older updates"}</button> : null}
         {loading ? (
@@ -553,54 +560,26 @@ function ChannelInner() {
         )}
       </div>
 
-      {pollOpen ? (
-        <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/45 sm:items-center" onClick={() => setPollOpen(false)}>
-          <div className="w-full max-w-[440px] rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
-            <div className="mb-3 flex items-center justify-between">
-              <p className="text-[15px] font-semibold text-ink">New poll</p>
-              <button onClick={() => setPollOpen(false)} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={16} /></button>
-            </div>
-            <input value={pollQ} onChange={e => setPollQ(e.target.value)} maxLength={140} placeholder="Ask a question"
-              className="mb-2 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none focus:border-ink/40" />
-            {pollOpts.map((o, i) => (
-              <div key={i} className="mb-2 flex items-center gap-2">
-                <input value={o} maxLength={60} placeholder={"Option " + String(i + 1)}
-                  onChange={e => setPollOpts(prev => prev.map((x, j) => j === i ? e.target.value : x))}
-                  className="w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none focus:border-ink/40" />
-                {pollOpts.length > 2 ? (
-                  <button onClick={() => setPollOpts(prev => prev.filter((_, j) => j !== i))} className="rounded-full p-1 text-muted hover:text-danger" aria-label="Remove option"><X size={15} /></button>
-                ) : null}
-              </div>
-            ))}
-            {pollOpts.length < 4 ? (
-              <button onClick={() => setPollOpts(prev => [...prev, ""])} className="mb-3 inline-flex items-center gap-1 text-[13px] font-semibold text-ink"><Plus size={14} /> Add option</button>
-            ) : null}
-            <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted">Runs for</p>
-            <div className="mb-4 flex gap-2">
-              {[1, 3, 7].map(d => (
-                <button key={d} onClick={() => setPollDays(d)}
-                  className={"flex-1 rounded-lg border px-3 py-2 text-[13px] font-semibold " + (pollDays === d ? "border-ink bg-black/[0.03] text-ink" : "border-ink/10 text-ink/60")}>
-                  {d === 1 ? "1 day" : String(d) + " days"}
-                </button>
-              ))}
-            </div>
-            <button onClick={createPoll} disabled={!pollQ.trim() || pollOpts.filter(o => o.trim()).length < 2 || pollBusy}
-              className="w-full rounded-md bg-ink py-2.5 text-sm font-semibold text-white disabled:opacity-40">
-              {pollBusy ? "Creating\u2026" : "Create poll"}
-            </button>
-          </div>
-        </div>
-      ) : null}
+      <ProductDialog open={pollOpen} title="New poll" description="Ask your channel a question. Closing keeps your draft on this page." busy={pollBusy} onClose={() => setPollOpen(false)}>
+        <form className={styles.form} onSubmit={event => { event.preventDefault(); void createPoll(); }}>
+          <label>Question<input autoFocus disabled={pollBusy} required value={pollQ} maxLength={140} onChange={event => setPollQ(event.target.value)} placeholder="What would you like to ask?" /></label>
+          {pollOpts.map((option, index) => <label key={index}>Option {index + 1}<div className="flex items-center gap-2"><input disabled={pollBusy} value={option} maxLength={60} onChange={event => setPollOpts(previous => previous.map((value, at) => at === index ? event.target.value : value))} />{pollOpts.length > 2 ? <button type="button" disabled={pollBusy} className={styles.button} onClick={() => setPollOpts(previous => previous.filter((_value, at) => at !== index))} aria-label={`Remove option ${index + 1}`}><X size={16} aria-hidden /></button> : null}</div></label>)}
+          {pollOpts.length < 4 ? <button type="button" disabled={pollBusy} className={styles.button} onClick={() => setPollOpts(previous => [...previous, ''])}><Plus size={16} aria-hidden />Add option</button> : null}
+          <fieldset disabled={pollBusy}><legend>Poll duration</legend><div className={styles.choices}>{[1,3,7].map(days => <button type="button" key={days} aria-pressed={pollDays === days} onClick={() => setPollDays(days)}>{days} {days === 1 ? 'day' : 'days'}</button>)}</div></fieldset>
+          {error ? <p role="alert" className={styles.error}>{error}</p> : null}
+          <footer className={styles.footer}><button type="button" disabled={pollBusy} className={styles.button} onClick={() => setPollOpen(false)}>Cancel</button><button type="submit" disabled={!pollQ.trim() || pollOpts.filter(option => option.trim()).length < 2 || pollBusy} className={styles.primary}>{pollBusy ? 'Creating…' : 'Create poll'}</button></footer>
+        </form>
+      </ProductDialog>
 
       {settingsOpen && isMember ? (
-        <ChannelSettings channelId={channelId} myRole={myRole} meId={me} isCurrent={(() => { const version = epoch.current; return () => version === epoch.current; })()} onClose={() => setSettingsOpen(false)}
+        <ChannelSettings key={channelId + ":" + me} channelId={channelId} myRole={myRole} meId={me} isCurrent={() => settingsScope === epoch.current} onClose={() => setSettingsOpen(false)}
           onUpdated={p => {
             if (p.name) setName(p.name);
             if (p.icon_url) setIconUrl(p.icon_url);
             if (typeof p.replies_enabled === "boolean") setRepliesEnabled(p.replies_enabled);
           }} />
       ) : null}
-    </main>
+    </section>
   );
 }
 
@@ -618,6 +597,10 @@ function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated, isCurren
   const [iconUrl, setIconUrl] = useState<string | null>(null);
   const [iconBusy, setIconBusy] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [draftPhoto, setDraftPhoto] = useState<{file: File; path: string; url: string} | null>(null);
+  const [writeError, setWriteError] = useState('');
+  const [baseline, setBaseline] = useState('');
+  useEffect(() => () => { if (draftPhoto) URL.revokeObjectURL(draftPhoto.url); }, [draftPhoto]);
   const membersPage = useSocialPages<Member>("get_channel_members_page", { p_channel: channelId }, { key: "user_id" });
   const { items: members, setItems: setMembers } = membersPage;
   const [settingsError, setSettingsError] = useState(false);
@@ -625,34 +608,36 @@ function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated, isCurren
   const actionLocks = useRef(new Set<string>());
   const [myLevel, setMyLevel] = useState("all");
   const [q, setQ] = useState("");
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<DirectoryPerson[]>([]);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [inviting, setInviting] = useState<string | null>(null);
   const iconRef = useRef<HTMLInputElement | null>(null);
   const live = useRef(true);
   const identity = channelId + ':' + meId;
-  const currentIdentity = useRef(identity); currentIdentity.current = identity;
-  const current = () => live.current && currentIdentity.current === identity && isCurrent();
+  const currentIdentity = useRef(identity);
+  useLayoutEffect(() => { currentIdentity.current = identity; }, [identity]);
+  const checkOwner=useRef(isCurrent);
+  useLayoutEffect(()=>{checkOwner.current=isCurrent;},[isCurrent]);
+  const current = useCallback(() => live.current && currentIdentity.current === identity && checkOwner.current(),[identity]);
   useEffect(() => { live.current = true; return () => { live.current = false; }; }, [identity]);
 
   useEffect(() => {
     let alive = true;
-    setLoading(true); setSettingsError(false);
-    supabase.rpc("get_channel_detail", { p_channel: channelId }).then(({ data, error }) => {
+    withTimeout(supabase.rpc("get_channel_detail", { p_channel: channelId })).then(({ data, error }) => {
       if (!alive || !current()) return;
       const row = Array.isArray(data) ? data[0] : data;
       if (error || !row?.is_member) { setSettingsError(true); setLoading(false); return; }
       setName(row.name || ""); setDesc(row.description || "");
       setAudience(row.audience === "followers" ? "followers" : "everyone");
       setReplies(row.replies_enabled !== false); setIconUrl(row.icon_url || null); setMyLevel(row.my_notification_level || "all");
+      setBaseline(JSON.stringify({ name: row.name || "", desc: row.description || "", audience: row.audience === "followers" ? "followers" : "everyone", replies: row.replies_enabled !== false }));
       setLoading(false);
     }, () => { if (alive && current()) { setSettingsError(true); setLoading(false); } });
     return () => { alive = false; };
-  }, [channelId, meId, supabase, retry]);
+  }, [channelId, meId, supabase, retry, current]);
 
   useEffect(() => {
-    setSearchError(null); setResults([]);
-    if (q.trim().length < 2) { setResults([]); return; }
+    if (q.trim().length < 2) return;
     let alive = true;
     const timer = setTimeout(async () => {
       try {
@@ -664,46 +649,49 @@ function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated, isCurren
       } catch { if (alive && current()) { setResults([]); setSearchError("People could not be loaded. Edit your search to retry."); } }
     }, 250);
     return () => { alive = false; clearTimeout(timer); };
-  }, [q, members, supabase]);
+  }, [q, members, supabase, current]);
 
-  const onPickIcon = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file || !meId || !isOwner || !current() || actionLocks.current.has("icon")) return;
-    if (!file.type.startsWith("image/") || file.type === "image/svg+xml" || file.size > 10 * 1024 * 1024) { alert("Choose a photo smaller than 10 MB."); return; }
-    actionLocks.current.add("icon");
-    setIconBusy(true);
-    try {
-      const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace("jpeg", "jpg");
-      const path = meId + "/channel_" + channelId + "_" + Date.now() + "." + ext;
-      const up = await supabase.storage.from("avatars").upload(path, file, { contentType: file.type || "image/jpeg" });
-      if (up.error) throw up.error;
-      if (!current()) return;
-      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
-      const { error } = await supabase.rpc("update_channel_settings", { p_channel: channelId, p_icon_url: pub.publicUrl });
-      if (error) throw error;
-      if (!current()) return;
-      setIconUrl(pub.publicUrl);
-      onUpdated({ icon_url: pub.publicUrl });
-    } catch (err: any) { if (current()) alert(err?.message || "Could not update the icon."); }
-    finally { if (current()) { actionLocks.current.delete("icon"); setIconBusy(false); } }
+  const close = () => {
+    if (saving || iconBusy) return;
+    const dirty = !!draftPhoto || (!!baseline && baseline !== JSON.stringify({ name, desc, audience, replies }));
+    if (!dirty || window.confirm('Discard these unsaved channel changes?')) onClose();
   };
-
-  const save = async () => {
-    if (!isOwner || !current() || actionLocks.current.has("save") || !name.trim()) return;
-    actionLocks.current.add("save");
-    setSaving(true);
+  const verifyOwner = async () => {
+    const { data, error } = await withTimeout(supabase.auth.getUser());
+    if (error || !current() || !meId || data.user?.id !== meId) throw new Error('Your account changed. Reopen channel settings before saving.');
+  };
+  const onPickIcon = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]; event.target.value = '';
+    if (!file || !meId || !isOwner || !current() || actionLocks.current.has('icon') || actionLocks.current.has('save')) return;
+    actionLocks.current.add('icon'); setIconBusy(true); setWriteError('');
     try {
-      const { error } = await supabase.rpc("update_channel_settings", {
-        p_channel: channelId, p_name: name.trim(), p_description: desc.trim() || null,
-        p_audience: audience, p_replies_enabled: replies,
-      });
-      if (error) throw error;
+      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || !file.size || file.size > 10 * 1024 * 1024) throw new Error('Choose a JPG, PNG or WebP photo under 10 MB.');
+      const issue = await checkUploadableBytes(file); if (issue) throw new Error(issue);
       if (!current()) return;
-      onUpdated({ name: name.trim(), replies_enabled: replies });
-      onClose();
-    } catch (err: any) { if (current()) alert(err?.message || "Could not save."); }
-    finally { if (current()) { actionLocks.current.delete("save"); setSaving(false); } }
+      const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
+      setDraftPhoto({file, path: `${meId}/channel_${channelId}_${crypto.randomUUID()}.${ext}`, url: URL.createObjectURL(file)});
+    } catch(cause) { if(current()) setWriteError(cause instanceof Error ? cause.message : 'This photo could not be opened.'); }
+    finally { actionLocks.current.delete('icon'); if(current())setIconBusy(false); }
+  };
+  const save = async () => {
+    if (!isOwner || !current() || actionLocks.current.has('save') || actionLocks.current.has('icon') || !name.trim()) return;
+    actionLocks.current.add('save'); setSaving(true); setWriteError('');
+    try {
+      await verifyOwner();
+      let savedIcon = iconUrl;
+      if(draftPhoto) {
+        const upload = await withTimeout(supabase.storage.from('avatars').upload(draftPhoto.path, draftPhoto.file, { contentType: draftPhoto.file.type, upsert:true }),45000);
+        if(!current())return;
+        if(upload.error)throw new Error('The channel photo could not upload. Your changes are still here; try again.');
+        savedIcon = supabase.storage.from('avatars').getPublicUrl(draftPhoto.path).data.publicUrl;
+      }
+      await verifyOwner();
+      const {error} = await withTimeout(supabase.rpc('update_channel_settings',{p_channel:channelId,p_name:name.trim(),p_description:desc.trim()||null,p_audience:audience,p_replies_enabled:replies,...(draftPhoto ? {p_icon_url:savedIcon} : {})}));
+      if(error)throw new Error('Your changes could not be confirmed. Keep this window open and retry.');
+      if(!current())return;
+      onUpdated({name:name.trim(),replies_enabled:replies,...(draftPhoto&&savedIcon ? {icon_url:savedIcon} : {})});onClose();
+    } catch(cause){if(current())setWriteError(cause instanceof Error ? cause.message : 'Your changes could not be confirmed.');}
+    finally{actionLocks.current.delete('save');if(current())setSaving(false);}
   };
 
   const setLevel = async (level: "all" | "highlights" | "mute") => {
@@ -731,7 +719,7 @@ function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated, isCurren
     finally { if (current()) actionLocks.current.delete(key); }
   };
 
-  const invite = async (r: any) => {
+  const invite = async (r: DirectoryPerson) => {
     if (!isOwner || !current() || actionLocks.current.has("invite")) return;
     actionLocks.current.add("invite");
     setInviting(r.id);
@@ -741,20 +729,16 @@ function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated, isCurren
       if (!current()) return;
       setMembers(prev => [...prev.filter(member => member.user_id !== r.id), { user_id: r.id, full_name: r.full_name, username: r.username, avatar_url: r.avatar_url, role: "collaborator", notification_level: "all" }]);
       setQ(""); setResults([]);
-    } catch (err: any) { if (current()) alert(err?.message || "Could not invite."); }
+    } catch (err: unknown) { if (current()) alert(errorMessage(err, "Could not invite.")); }
     finally { if (current()) { actionLocks.current.delete("invite"); setInviting(null); } }
   };
 
   const roleLabel = (r: string) => r === "owner" ? "Owner" : r === "collaborator" ? "Collaborator" : r === "moderator" ? "Moderator" : null;
 
-  return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/45 sm:items-center" onClick={onClose}>
-      <div className="max-h-[88vh] w-full max-w-[520px] overflow-y-auto rounded-t-2xl bg-surface p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
-        <div className="mb-3 flex items-center justify-between">
-          <p className="text-[15px] font-semibold text-ink">Channel settings</p>
-          <button onClick={onClose} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={16} /></button>
-        </div>
-        {settingsError ? <ErrorState title="Could not load channel settings" onRetry={() => setRetry((value) => value + 1)} /> : loading ? (
+  return <ProductDialog open title="Channel settings" description="Profile changes are applied when you save. Notification and member actions apply individually." busy={saving || iconBusy} onClose={close}>
+      {writeError ? <p role="alert" className={styles.error}>{writeError}</p> : null}
+      <fieldset disabled={saving || iconBusy} className="min-w-0 border-0 p-0">
+        {settingsError ? <ErrorState title="Could not load channel settings" onRetry={() => { setLoading(true); setSettingsError(false); setRetry((value) => value + 1); }} /> : loading ? (
           <p className="py-10 text-center text-sm text-muted">Loading&hellip;</p>
         ) : (
           <div>
@@ -762,9 +746,9 @@ function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated, isCurren
               <div>
                 <div className="mb-4 flex flex-col items-center">
                   <button onClick={() => iconRef.current?.click()} className="relative" aria-label="Change the channel icon">
-                    {iconUrl ? (
+                    {draftPhoto?.url || iconUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={iconUrl} alt="" className="h-[76px] w-[76px] rounded-full object-cover" />
+                      <img src={draftPhoto?.url || iconUrl!} alt="Channel photo preview" className="h-[76px] w-[76px] rounded-full object-cover" />
                     ) : (
                       <span className="flex h-[76px] w-[76px] items-center justify-center rounded-full bg-ink text-white"><Radio size={26} /></span>
                     )}
@@ -772,19 +756,19 @@ function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated, isCurren
                       {iconBusy ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" /> : <Camera size={12} />}
                     </span>
                   </button>
-                  <input ref={iconRef} type="file" accept="image/*" className="hidden" onChange={onPickIcon} />
-                  <p className="mt-2 text-[12px] text-muted">Tap to change the channel icon</p>
+                  <input ref={iconRef} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" tabIndex={-1} aria-label="Channel photo file" onChange={onPickIcon} />
+                  <p className="mt-2 text-[12px] text-muted">Preview a JPG, PNG or WebP photo, then save. Up to 10 MB.</p>
                 </div>
                 <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted">Name</p>
-                <input value={name} onChange={e => setName(e.target.value)} maxLength={60}
+                <input aria-label="Channel name" value={name} onChange={e => setName(e.target.value)} maxLength={60}
                   className="mb-3 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none focus:border-ink/40" />
                 <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted">Description</p>
-                <input value={desc} onChange={e => setDesc(e.target.value)} maxLength={160} placeholder="What is it about?"
+                <input aria-label="Channel description" value={desc} onChange={e => setDesc(e.target.value)} maxLength={160} placeholder="What is it about?"
                   className="mb-3 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none focus:border-ink/40" />
                 <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted">Who can join</p>
                 <div className="mb-3 flex gap-2">
                   {(["everyone", "followers"] as const).map(k => (
-                    <button key={k} onClick={() => setAudience(k)}
+                    <button key={k} onClick={() => setAudience(k)} aria-pressed={audience === k}
                       className={"flex-1 rounded-lg border px-3 py-2 text-[13px] font-semibold " + (audience === k ? "border-ink bg-black/[0.03] text-ink" : "border-ink/10 text-ink/60")}>
                       {k === "everyone" ? "Everyone can join" : "My followers"}
                     </button>
@@ -807,7 +791,7 @@ function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated, isCurren
             <p className="mb-2 text-[13px] font-semibold text-ink">Notifications</p>
             <div className="mb-1.5 flex gap-2">
               {(["all", "highlights", "mute"] as const).map(k => (
-                <button key={k} onClick={() => setLevel(k)}
+                <button key={k} onClick={() => setLevel(k)} aria-pressed={myLevel === k}
                   className={"flex-1 rounded-lg border px-3 py-2 text-[13px] font-semibold " + (myLevel === k ? "border-ink bg-black/[0.03] text-ink" : "border-ink/10 text-ink/60")}>
                   {k === "all" ? "All" : k === "highlights" ? "Highlights" : "Mute"}
                 </button>
@@ -819,7 +803,7 @@ function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated, isCurren
             {isOwner ? (
               <div className="mb-4">
                 <p className="mb-2 text-[13px] font-semibold text-ink">Invite a collaborator</p>
-                <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search people"
+                <input aria-label="Search collaborators" value={q} onChange={e => { setQ(e.target.value); setResults([]); setSearchError(null); }} placeholder="Search people"
                   className="mb-2 w-full rounded-lg border border-ink/15 px-3 py-2 text-[13px] text-ink outline-none focus:border-ink/40" />
                 {searchError ? <p role="alert" className="text-sm text-danger">{searchError}</p> : null}
             {results.map(r => (
@@ -864,9 +848,9 @@ function ChannelSettings({ channelId, myRole, meId, onClose, onUpdated, isCurren
             <SocialPageFooter {...membersPage} />
           </div>
         )}
-      </div>
-    </div>
-  );
+      </fieldset>
+      <button type="button" className={styles.button} onClick={close} disabled={saving || iconBusy}>Close settings</button>
+    </ProductDialog>;
 }
 
 export default function ChannelPage() {

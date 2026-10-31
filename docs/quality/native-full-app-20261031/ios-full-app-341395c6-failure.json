@@ -1,0 +1,138 @@
+{
+  "measuredAt": "2026-10-31T04:18:54.620581+00:00",
+  "workflowRun": 41163537294,
+  "attempt": 1,
+  "jobId": 124426359293,
+  "headCommit": "341395c68cfc0bf74527bcf23e0dced3813e9225",
+  "testedMergeCommit": "1ca98984eec5d0912d510da9e565a84a8d5aacfd",
+  "tree": "ca36583e931756f2d9ea98fdaf3c9869ee4daf8f",
+  "headAndMergeTreesEqual": true,
+  "artifact": {
+    "id": 13029459676,
+    "name": "ios-full-app-ui",
+    "bytes": 30299597,
+    "sha256": "bea986586b76eccc9175f6f123dc443796462ab39d39422921ed7f95847beb89"
+  },
+  "sourceProof": {
+    "hashesVerifiedAgainstTestedMerge": 488,
+    "mismatches": [],
+    "retainedOverlayHashesVerified": 5,
+    "sourceMemoryCapability": 0,
+    "capabilityMode": "qa-capability-overlay"
+  },
+  "result": {
+    "passed": false,
+    "nativeBuildSucceeded": true,
+    "syntheticSignInSucceeded": true,
+    "homePostAssertionPassed": true,
+    "latestAndForYouAssertionsPassed": true,
+    "failureCommand": "tapOn: Market",
+    "failureSequenceNumber": 19,
+    "failureMessage": "Element not found: Text matching regex: Market",
+    "maestroReportedDuration": "3m 36s",
+    "memoryNavigationReached": false,
+    "memoryCaptureReached": false
+  },
+  "diagnosis": {
+    "visibleTabs": [
+      "Home",
+      "Market",
+      "Jobs",
+      "Messages",
+      "Profile"
+    ],
+    "tabLabelsPresentInFailedAccessibilityTree": [],
+    "sourceFinding": "AdaptiveTabBar has an animated parent without explicit height and an absolutely positioned BottomTabBar child. The native accessibility tree omits the entire visually present tab bar. Labels and roles are already provided by the installed BottomTabBar implementation.",
+    "causalityLimit": "The zero-height source geometry matches the runtime omission; corrected native runtime accessibility remains to be verified."
+  },
+  "unhandledContracts": [
+    {
+      "method": "GET",
+      "path": "/rest/v1/announcements",
+      "count": 3
+    },
+    {
+      "method": "POST",
+      "path": "/rest/v1/rpc/get_trending_stories",
+      "count": 6
+    },
+    {
+      "method": "POST",
+      "path": "/rest/v1/rpc/home_marketplace_recommendations",
+      "count": 2
+    },
+    {
+      "method": "POST",
+      "path": "/rest/v1/rpc/get_context_unread",
+      "count": 1
+    }
+  ],
+  "networkForwarded": false,
+  "otherDiagnostics": [
+    {
+      "message": "Expo SecureStore account save/index calls failed: A required entitlement is not present.",
+      "impact": "Synthetic sign-in and Home succeed, but simulator keychain persistence is unverified. Current ad-hoc signing does not include app entitlements."
+    },
+    {
+      "message": "Physical-device push notifications are unavailable in this simulator.",
+      "impact": "No push-delivery acceptance claim."
+    }
+  ],
+  "retained": [
+    {
+      "file": "ios-341395c6-home.png",
+      "sha256": "50cb6bbb4da8b8336e174b886fc8dcc4642703d7249ee0447c638d71a3b77f27",
+      "bytes": 353928
+    },
+    {
+      "file": "ios-341395c6-tab-accessibility-failure.png",
+      "sha256": "7466be9132072b1bedd52e62842545ed5f5d1c4f73a305160943e9bb0ada9e13",
+      "bytes": 353737
+    },
+    {
+      "file": "ios-341395c6-tab-accessibility-tree.json",
+      "sha256": "9c938c176fea0cbe0358236f339f6608943cf48348189e89f0fb7301c5856a67",
+      "bytes": 86065
+    },
+    {
+      "file": "ios-full-app-341395c6-source.json",
+      "sha256": "da3e8f9bff0b1b508e6cd96e29ede2ed253513a096ad22f421cf767e65cfb098",
+      "bytes": 56352
+    }
+  ],
+  "video": {
+    "programs": [],
+    "streams": [
+      {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1179,
+        "height": 2556,
+        "avg_frame_rate": "413300/42131",
+        "duration": "421.183333",
+        "nb_frames": "4133"
+      }
+    ],
+    "format": {
+      "duration": "421.183333",
+      "size": "25317114"
+    },
+    "sha256": "092a92b060ada5fd9378b4fab0c150e6352db46470407e3cc6d1f83f33769bd7",
+    "localPath": "/tmp/ios-full-app-341395c6/navigation.mp4",
+    "interpretation": "Simulator diagnostic screen recording with variable cadence; not an app frame-rate or latency measurement."
+  },
+  "artifactFileModificationTimesUtc": {
+    "source.json": "2026-10-31T03:19:10+00:00",
+    "prebuild.log": "2026-10-31T03:19:32+00:00",
+    "pods.log": "2026-10-31T03:24:42+00:00",
+    "build.log": "2026-10-31T03:57:24+00:00",
+    "simulator-signing.log": "2026-10-31T03:57:26+00:00",
+    "maestro.log": "2026-10-31T04:10:04+00:00"
+  },
+  "limits": [
+    "Actual full native UI with synthetic transports; no hosted-provider or physical-device acceptance.",
+    "Runtime acceptance stops before first cross-tab navigation, reader/editor/export and actual capture checks.",
+    "Production memoryMovieVersion remains0; disposable QA capability overlay1 only.",
+    "The retained Home image is from341395c6, not the later26e80ae9 candidate."
+  ]
+}

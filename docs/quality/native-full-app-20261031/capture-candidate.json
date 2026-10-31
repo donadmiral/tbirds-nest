@@ -1,0 +1,85 @@
+{
+  "recordedAt": "2026-10-31T02:29:46.065590+00:00",
+  "status": "Full-app capture gate implemented and locally bundled. Actual new full-app Simulator/Emulator acceptance must still run.",
+  "previousAndroidFailure": {
+    "commit": "98d065f3c6c0086565dcc0e50a45553188302a49",
+    "run": 41157322271,
+    "job": 124409231782,
+    "artifact": 13026830906,
+    "artifactSha256": "d762f2b585a76440413de84ec90ca0d45d1a9f760493a8f7a70250042978a2e5",
+    "appLogSha256": "fc7b48c11cf961c88e11fffe9b842934b6236b8565e5828137310fa6b1c95dd5",
+    "actualFailure": "RNCallKeep throws TurboModuleInteropUtils ParsingException because displayIncomingCall is exported twice. Full app becomes white after pressing Sign in. The last persisted synthetic-transport receipt contains no auth token requests, but the crash may have prevented a later receipt flush.",
+    "ownership": "Root is repairing the native dependency compatibility.",
+    "compiled": true,
+    "navigationPassed": false
+  },
+  "newCaptureGate": {
+    "actualAppNavigator": true,
+    "actualMemoryMovieExportComponent": true,
+    "actualProductionExportService": true,
+    "actualViewShotAndNativeEncoders": true,
+    "syntheticAuthAndTransport": true,
+    "qaOnlyCapabilityOverlay": true,
+    "packagedSyntheticMedia": true,
+    "noNetworkFallback": true,
+    "cases": [
+      "Cancel after a real private-media file chunk, close its reader and delete partial files.",
+      "Capture all five scenes and seven artwork windows through the actual RN view-shot path.",
+      "Retain actual returned PNG/MP4 hashes before closing.",
+      "Decode the MP4 separately with ffmpeg and ffprobe: dimensions, timeline, frame cadence, title/text pixels, photo colors, timed sticker, video grade, original audio gain and original packaged score.",
+      "Close the actual export and verify all capture, preparation and movie temporary files are removed."
+    ]
+  },
+  "localVerification": {
+    "nativeFocusedCases": 43,
+    "nativeFocusedPass": 43,
+    "nativeFocusedLogSha256": "e80783b0cb7e0b24ebee2cd65c5581538bdcdc95d5ce14928eb19aee030a24fb",
+    "rootTypeScript": "passed",
+    "typeScriptLogSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "iosFullJavaScriptBundle": "passed in a disposable prepared copy",
+    "bundleLogSha256": "575c4e1f894223713d9ba11f489a29accaf09626cfb5d61415daeb228ca8624c",
+    "bundleScope": "The real app and fixture files bundle. This is not a native compile or device runtime acceptance.",
+    "shellSyntax": "passed",
+    "pythonSyntax": "passed",
+    "webTypeScript": "passed",
+    "webTypeScriptLogSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "browserCases": {
+      "story": 12,
+      "music": 5,
+      "memory": 25
+    },
+    "crashGateNegativeControl": "The actual retained failing Android app.log is rejected on its RNCallKeep HostObject exception."
+  },
+  "sourceSha256": {
+    "scripts/quality/prepare-native-ui.cjs": "bd22ea1d708762d4d14f7ad649fcc7e8f8d83a4e42115d4150332d18e019296e",
+    "scripts/quality/verify-native-ui.cjs": "fce22faa7a3f4edadd42cfcba694f010f613bc2d2ff37703d801e410282c9fee",
+    "scripts/quality/verify-native-ui-memory.py": "a59f80c172b1bc9e82c5f0d73567f633e9b170d148b22633092fb382e3b5b9ca",
+    "scripts/quality/test-ios-app-ui.sh": "484b8516c657b79750a1789154ed9151027cc1abe904970407cbe1d158458151",
+    "scripts/quality/test-android-app-ui.sh": "33342195e5f4b3fdb58ec4fe736255ba0cb25131e25f460a5ea3fdda7edb3575",
+    ".github/workflows/native-app-ui.yml": "79ad75e45260821ff8583185b9613e08bf4113c51ff1a0b4bbdbe2234aa1e8d9",
+    "tests/native/backend-fixture.cjs": "ad2680b58bc07257e698eab75ac4ef6717795609bf1fb7fa45b1df64ad9826af",
+    "tests/native/entry.js": "47c7d769b9265fd1e9b9e30ce7034a0c9bf4f7aa7422049ad94e8919cfb1025d",
+    "tests/native/MemoryCaptureFixtureScreen.tsx": "b83b55c5636fc8293e9fed84943a740e7ae44461335ef8f57977f73fe0e5c9b5",
+    "tests/native/memory-capture-observer.cjs": "9f341201ee67393a29ac614afd3bf1e91b84430c46c27f784d54d84a43e6e6a4",
+    "tests/native/memory-export-adapter.ts": "a9f143cac1afc04a8b28dc4b6365b7919d39f6903bee4f96198193f0b9903518",
+    "tests/native/memory-fixture.cjs": "c3e9f03f2570fa1c2dae479785545dfa115ea16a89c3fb9619c02b1c8b299af6",
+    "tests/native/expo-fetch-fixture.cjs": "0a8eff17f9d4d1ac2d771e29a81620b79238759d459fffb75845ec91ead2f19c",
+    "tests/native/fixture-runtime.cjs": "f49fead1a57074329faa1388fc3b3c9529e925aac0afce8fdc62213306e06792",
+    "tests/native/metro-config.cjs": "ef3ce3ec3050e53d98b457c6b1e9aa8abfc8490091637a011112bb82d3c0a90f",
+    "tests/native/flows/navigation.yaml": "c5605c25ee888444c8e19d89f7167e0555184ad9932f92a419e9343a268082b6",
+    "tests/native/flows/memory-capture.yaml": "8f50afcaa2891d4f57f6b6ba0bab8bad2607187a4ee9211e568767ba44405bd3",
+    "tests/native/assets/memory-capture-photo.png": "3b9a7aeedbf62a83256e320ad4472fb50d32ceb9f3ff62fc98f903d4fae9cd65",
+    "tests/native/assets/memory-capture-sticker.png": "1eb3f1a983c7a13e77c00ffdc1d89f44e1bd01b5ac94131c6c6026a0d2836fdb",
+    "tests/native/assets/memory-capture-video.mp4": "e7a68e03487b0527b67426cf8a9a706a047a70535d571c17ead636b1806013f2",
+    "shared/memoryMovieComposition.ts": "08b1accdc205e5b80f55d06201bb9b2abfbf692d643cb37601ab5544a42d0e82",
+    "tests/quality/native-memory-export.cjs": "7ca560610bd8dbc5b315e8fe40737df1c508a0f92ca424b9e08142eafa4e162a"
+  },
+  "notClaimed": [
+    "A complete new Simulator/Emulator run",
+    "Physical-device acceptance",
+    "A Photos-library write",
+    "Provider or production acceptance",
+    "Animated/nested-video/dual-camera export"
+  ],
+  "unimplementedAnimationHandling": "Incomplete helpers are retained as WIP outside the source publication. Native animation requests are explicitly rejected before dispatch until the engines support them."
+}

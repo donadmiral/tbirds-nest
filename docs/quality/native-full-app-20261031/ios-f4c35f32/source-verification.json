@@ -1,0 +1,113 @@
+{
+  "head": "f4c35f32795be5f196840c37382143a2d7e33d55",
+  "merge": "6f3204cd44996dfe66ffe2dcf7192543805aa912",
+  "tree": "7699f995aa8e5192658f785258eb48f408af6a39",
+  "exactSourceCount": 496,
+  "matched": 496,
+  "expectedGitHashSetSHA256": "1c505e11fff7d250219abac545835beecbea9801911424182649a9ac5b23eeba",
+  "canonicalSourceManifest": "docs/quality/native-full-app-20261031/android-full-app-f4c35f32-source.json",
+  "manifestSHA256": "13d9a02ebc361cbd6626cabaaa25bd18f691550fc68fcd7b0b216ccb4651f1a6",
+  "manifestByteIdenticalToAndroid": true,
+  "overlays": [
+    {
+      "file": "src/services/supabase.ts",
+      "before": "457ab3f8c8c54aa3a5e770dd1b43f4869a98c7471c9ccffcbe5f9e3901847fee",
+      "after": "dfb6b6cfe427b7e5abdb7f7bedbdb45536f9abca000d4a2d3305dd45da4cf2e5",
+      "reason": "Disposable QA-only lock and auth-storage timing observation. Original SDK processLock, timeouts, arguments, results and errors are preserved; no keys or session contents are recorded.",
+      "retained": "overlays/src__services__supabase.ts"
+    },
+    {
+      "file": "modules/boomerang/ios/BoomerangModule.swift",
+      "before": "6e31a63649cf96a87caa9abf33c31492fafd2ff4ef18602c21808803d1e57967",
+      "after": "e50ecc3027064c532f474784ac49299954f09ce1a00eb3ea5f45fc906878f6a8",
+      "reason": "Disposable QA-only declaration: exercise the independently accepted renderer through the real JS capability check.",
+      "retained": "overlays/modules__boomerang__ios__BoomerangModule.swift"
+    },
+    {
+      "file": "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt",
+      "before": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237",
+      "after": "33170373380d9c69afabe789dfd7862f212ba1732a1328a74d7d123b7699d617",
+      "reason": "Disposable QA-only declaration: exercise the independently accepted renderer through the real JS capability check.",
+      "retained": "overlays/modules__boomerang__android__src__main__java__expo__modules__boomerang__BoomerangModule.kt"
+    },
+    {
+      "file": "src/navigation/AppNavigator.tsx",
+      "before": "25901306b597b2a0fc93111f97636ef74beee216174df9937e5cf16ad3ffed70",
+      "after": "d7377b4164e5beb7e508f53a24ad03f944ca9126cc83966c5bb8a99617c6c62a",
+      "reason": "Register one synthetic capture route inside the unchanged production auth, call and safe-area providers.",
+      "retained": "overlays/src__navigation__AppNavigator.tsx"
+    },
+    {
+      "file": "metro.config.js",
+      "before": null,
+      "after": "d93f48605ead9e6d7b6fbc1cc210255bb653b227ac9daada78f69317a88c9534",
+      "reason": "Only packaged synthetic bytes for expo/fetch; production capture/export delegation records actual returned files. No network fallback.",
+      "retained": "overlays/metro.config.js"
+    },
+    {
+      "file": "index.js",
+      "before": "b6c80d0b280a2446862ee5a19cbfcaff39d551d353ac3a9abf090680570a11e0",
+      "after": "380861fc291a775b81d0891675f0bc4c632660ae44662ba370cb43052a1efa4c",
+      "reason": "Install the isolated synthetic HTTP/Realtime transport before the actual App imports.",
+      "retained": "overlays/index.js"
+    }
+  ],
+  "overlaysVerified": 6,
+  "dependencyFilesVerified": [
+    {
+      "package": "@supabase/supabase-js",
+      "version": "2.103.0",
+      "file": "package.json",
+      "sha256": "697dd1bfd66925a5b586c52e0324517979a6650c45bdba8e03014b197e87304e"
+    },
+    {
+      "package": "@supabase/supabase-js",
+      "version": "2.103.0",
+      "file": "dist/index.cjs",
+      "sha256": "b8ab8bdba298f953d755556979998098309d4d3bface6628ff9b8afd0a96ca4b"
+    },
+    {
+      "package": "@supabase/supabase-js",
+      "version": "2.103.0",
+      "file": "dist/index.mjs",
+      "sha256": "a5a16d1d34369ee35c55f3029c1db2ca3bca0c53eb217b1c649822c2f1fc2736"
+    },
+    {
+      "package": "@supabase/auth-js",
+      "version": "2.103.0",
+      "file": "package.json",
+      "sha256": "35ad1a61ad02fb70467db0ae2238f3d8fd7009729be73207bacc8f3ac07e4b93"
+    },
+    {
+      "package": "@supabase/auth-js",
+      "version": "2.103.0",
+      "file": "src/lib/locks.ts",
+      "sha256": "6d1ec3ee482d09c887d4212de582b13128af365a85f5b64893a25d09bc6c8668"
+    },
+    {
+      "package": "@supabase/auth-js",
+      "version": "2.103.0",
+      "file": "dist/main/index.js",
+      "sha256": "a43ea0c523b8f4f8b8d59bc3b16b9ec9158cad05de53ffc92238fceb26d8bcfd"
+    },
+    {
+      "package": "@supabase/auth-js",
+      "version": "2.103.0",
+      "file": "dist/module/index.js",
+      "sha256": "9be5694df0e46b33d4f3b7bb8bad0ecef05ce343a5734376d6b4c93a8233eba7"
+    },
+    {
+      "package": "@supabase/auth-js",
+      "version": "2.103.0",
+      "file": "dist/main/lib/locks.js",
+      "sha256": "9891124da312e1c4ba73296c98dc018ba2532a856ea39248f0e951036892b4e0"
+    },
+    {
+      "package": "@supabase/auth-js",
+      "version": "2.103.0",
+      "file": "dist/module/lib/locks.js",
+      "sha256": "bd308c17475037290c30f3c8455858368e3c0e170a156fb8361a71c7dc056c87"
+    }
+  ],
+  "sourceMemoryCapability": 0
+}

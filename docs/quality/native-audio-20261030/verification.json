@@ -1,0 +1,71 @@
+{
+  "recordedAt": "2026-10-30T21:03:37.263822+00:00",
+  "repository": "donadmiral/tbirds-nest",
+  "workflow": ".github/workflows/ios-native-compile.yml",
+  "runId": 41127054909,
+  "jobId": 124308175134,
+  "jobName": "Verify encoded story audio on iOS Simulator",
+  "conclusion": "success",
+  "passedCases": 6,
+  "runUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41127054909",
+  "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41127054909/job/124308175134",
+  "sourceBranch": "codex/app-quality-20261029",
+  "sourceCommit": "ddc968bd11be40d37af7a5aeff1c134e53c397d8",
+  "testedMergeCommit": "bed8712a27d3e9f39768d577bd29c5e6e881eba9",
+  "architecture": "arm64",
+  "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-26-2",
+  "macOS": "15.8.2",
+  "xcode": "16.4",
+  "compilerSDK": "iPhoneSimulator18.5.sdk",
+  "artifact": {
+    "id": 13012355346,
+    "name": "native-story-audio-export",
+    "bytes": 238657,
+    "sha256": "669953316f6366b74712aaa098f824a29726b043f26eac15ba7a8c1064b77382",
+    "createdAt": "2026-10-30T21:01:47Z",
+    "expiresAt": "2026-11-06T21:01:45Z",
+    "downloadVerified": true,
+    "savedFiles": [
+      "receipt.json",
+      "simulator-summary.log"
+    ],
+    "encodedMoviesSavedToRepository": false
+  },
+  "receiptSha256": "91201fe71ad1261cc238f46ec01dcc4ef54452ac7233646cefc297f3d6c1dc6e",
+  "testedAudioSourcesMatchCurrentCheckout": {
+    "modules/boomerang/ios/StoryVideoComposition.swift": true,
+    "scripts/quality/StoryAudioExportHarness.swift": true
+  },
+  "workflowAndScript": {
+    ".github/workflows/ios-native-compile.yml": {
+      "sha256": "7a03e0b68bad1545956cb4cc65383d9bcc84e6338fa88487387704788403d374",
+      "workingTreeMatchesSourceCommit": true
+    },
+    "scripts/quality/test-ios-story-audio.sh": {
+      "sha256": "b4323532c5f4dddf16604e83e7a660d5b33a35add66ccbe66fd0074f8b9ff440",
+      "workingTreeMatchesSourceCommit": true
+    }
+  },
+  "decodedAudioChecks": {
+    "loopedMusicHz": [
+      876.6666666666666,
+      876.6666666666666
+    ],
+    "loopedMusicRms": [
+      0.14113944628582312,
+      0.14113121941615647
+    ],
+    "voiceoverAfterBoundaryRms": 0,
+    "originalMixHz": 436.6666666666667,
+    "originalMixRms": 0.07057355279306406,
+    "photoTextMusicRms": 0.14113121941615647
+  },
+  "compilerWarnings": [
+    "CoreImage CIImage capture is not Sendable under the pinned Swift toolchain; the job completed successfully."
+  ],
+  "limits": [
+    "This is an actual isolated iOS Simulator native export run, not the installed app on a physical iPhone.",
+    "The fixture uses generated local media, no accounts or network, and writes no Photos-library assets.",
+    "The separate whole-app iOS compile job is not implied by this audio-export receipt."
+  ]
+}

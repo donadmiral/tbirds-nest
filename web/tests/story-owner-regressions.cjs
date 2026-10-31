@@ -23,9 +23,11 @@ function scenario(options = {}) {
   const hooks = {
     Suspense: 'Suspense',
     useState(initial) { const i=cursor++; if (!(i in slots)) slots[i]=typeof initial==='function'?initial():initial; return [slots[i], value => { if (!mounted) updatesAfterUnmount++; const next=typeof value==='function'?value(slots[i]):value; if (!Object.is(next,slots[i])) { slots[i]=next; dirty=true; } }]; },
+    useCallback(fn,deps) { const i=cursor++; if (!slots[i] || !same(slots[i].deps,deps)) slots[i]={fn,deps}; return slots[i].fn; },
     useRef(initial) { const i=cursor++; return slots[i]??={current:initial}; },
     useEffect(fn,deps) { const i=cursor++; if (!slots[i] || !same(slots[i].deps,deps)) { const previous=slots[i]; slots[i]={deps}; effects.push(()=>{ previous?.cleanup?.(); slots[i].cleanup=fn(); }); } },
   };
+  hooks.useLayoutEffect = hooks.useEffect;
   const execute = async call => {
     if (call.op !== 'select') { writes.push(call); return options.write ? options.write(call) : { data: { id: call.payload?.id || 'saved', user_id: call.payload?.user_id }, error: null }; }
     reads.push(call);
@@ -51,7 +53,7 @@ function scenario(options = {}) {
     }; } },
   };
   const runtime={jsx:(type,props)=>({type,props}),jsxs:(type,props)=>({type,props})};
-  const storage = new Map();
+  const storage = new Map(options.storage || []);
   const common={sessionStorage:{getItem:key=>storage.get(key)??null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},console,Promise,Set,Map,Error,crypto:{randomUUID:()=> 'upload-'+(++nextUuid)},
     setTimeout:(callback,ms)=>{const id=++nextTimer;timers.set(id,{callback,ms});return id;},clearTimeout:id=>timers.delete(id),
     URL:class extends URL { static createObjectURL(){return 'blob:preview';} static revokeObjectURL(value){revoked.push(value);} },
@@ -59,12 +61,16 @@ function scenario(options = {}) {
     document:{createElement:()=>{ const video={removeAttribute(){},load(){this.cleaned=true;},duration:10};videos.push(video);return video;}},
   };
   function load(code) { const module={exports:{}};vm.runInNewContext(code,{...common,module,exports:module.exports,require:name=>{
-    if(name==='../../shared/musicAvailability')return options.musicAvailable===false?load(compile('../shared/musicAvailability.ts')):{MUSIC_CATALOG_ENABLED:true};
+    if(name==='../../shared/musicAvailability')return options.musicAvailable===false?load(compile('../shared/musicAvailability.ts')):{MUSIC_CATALOG_ENABLED:false, ORIGINAL_AUDIO_ENABLED:true};
     if(name==='../../shared/contentMedia')return load(compile('../shared/contentMedia.ts'));
+    if(name==='../../shared/storyColorMatrix')return load(compile('../shared/storyColorMatrix.ts'));
+    if(name==='./storyFilterAppearance')return load(compile('../shared/storyFilterAppearance.ts'));
     if(name==='@/lib/storyPostShare')return{loadPostStorySticker:async(_client,id,check)=>{const result=await options.loadPost(id,owner);check();return result;}};
     if(name==='react')return hooks;if(name==='react/jsx-runtime')return runtime;
+    if(name==='./memory/useMemoryDialog')return load(compile('components/memory/useMemoryDialog.ts'));
     if(name==='next/navigation')return{useRouter:()=>router,useSearchParams:()=>params};
     if(name==='next/link')return{__esModule:true,default:'Link'};
+    if(name==='next/image')return{__esModule:true,default:'img'};
     if(name==='@/lib/supabase/client')return{createClient:()=>client};
     if(name==='@/lib/publication')return load(publication);
     if(name==='@/lib/storyClipQueue')return load(queueSource);
@@ -176,7 +182,7 @@ test('saved story draft keeps its filter and stickers in the owner-scoped write'
   const h=scenario({loadDrafts:()=>({data:[row],error:null})}); await h.flush(); await h.openDraft(); await h.flush();
   await h.button('Update draft').props.onClick(); await h.flush();
   const saved=h.writes.find(w=>w.table==='story_drafts'); assert.equal(saved.payload.filter_id,'warm');
-  assert.deepEqual(JSON.parse(JSON.stringify(saved.payload.stickers_json)),row.stickers_json); assert.deepEqual(saved.payload.media_transform,row.media_transform);
+  assert.deepEqual(JSON.parse(JSON.stringify(saved.payload.stickers_json)),row.stickers_json); assert.deepEqual(JSON.parse(JSON.stringify(saved.payload.media_transform)),{...row.media_transform,audioStartSec:0});
   assert.equal(saved.op,'upsert'); assert.equal(saved.payload.user_id,'a'); h.unmount();
 });
 
@@ -240,17 +246,20 @@ test('drawing cancel and stale account callbacks cannot change the active story'
  const h=scenario();await h.flush();h.pick();await h.flush();h.editor().props.onOpenDraw();h.render();let draw=nodes(h.tree).find(n=>n.type==='StoryDrawStudio');draw.props.onCancel();h.render();assert.equal(h.editor().props.value.length,0);h.editor().props.onOpenDraw();h.render();draw=nodes(h.tree).find(n=>n.type==='StoryDrawStudio');h.changeOwner('b');await h.flush();h.pick();await h.flush();draw.props.onApply([{tool:'pen',color:'#FFFFFF',width:8,points:[{x:.2,y:.3}]}]);h.render();assert.equal(h.editor().props.value.length,0);assert.equal(nodes(h.tree).some(n=>n.type==='StoryDrawStudio'),false);h.unmount();
 });
 
-test('shipping music-disabled drafts omit absent audio column and publishing keeps only original video sound',async()=>{
+function loadAvailability(){const module={exports:{}};vm.runInNewContext(compile('../shared/musicAvailability.ts'),{module,exports:module.exports});return module.exports;}
+
+test('commercial catalogue stays disabled while original audio and source-video mix persist through draft and publication',async()=>{
  const oldAudio={kind:'sound',soundId:'old-sound',title:'Old recording',durationSec:12};
  for(const action of ['Update draft','Share story']){
   const d={...draft('a'),audio_draft:oldAudio,media_transform:{scale:1,translateNX:0,translateNY:0,fit:'contain',mix:{orig:47,music:80},trimStart:2,trimEnd:8}};
   const h=scenario({musicAvailable:false,loadDrafts:()=>({data:[d],error:null})});await h.flush();await h.openDraft();await h.flush();
-  assert.equal(h.editor().props.onOpenMusic,undefined);
+  assert.equal(typeof h.editor().props.onOpenMusic,'function');
+  const availabilityModule=loadAvailability();assert.equal(availabilityModule.MUSIC_CATALOG_ENABLED,false);assert.equal(availabilityModule.ORIGINAL_AUDIO_ENABLED,true);
   await h.button(action).props.onClick();await h.flush();
   const written=h.writes.find(w=>w.table===(action==='Update draft'?'story_drafts':'publish_story_v2'));
   const payload=action==='Update draft'?written.payload:written.payload.p_story;
   assert.equal(payload.media_transform.mix.orig,47);assert.equal(payload.media_transform.trimStart,2);
-  if(action==='Update draft')assert.equal(Object.hasOwn(payload,'audio_draft'),false);else assert.equal(payload.audio_draft,null);
+  assert.equal(payload.audio_draft.soundId,oldAudio.soundId);assert.equal(payload.media_transform.mix.music,80);assert.equal(payload.media_transform.audioStartSec,0);assert.ok(!JSON.stringify(payload).includes('token='));
   h.unmount();
  }
 });
@@ -290,4 +299,24 @@ test('saved shared-post drafts display signed media and save only canonical medi
  assert.equal(h.editor().props.value[0].postMediaUrl,preview.postMediaUrl);
  await h.button('Update draft').props.onClick();await h.flush();
  assert.equal(h.writes.find(w=>w.table==='story_drafts').payload.stickers_json[0].postMediaUrl,canonical.postMediaUrl);h.unmount();
+});
+
+
+test('pending story restoration keeps editing disabled until account and media verification finish', async()=>{
+ const session=defer(),preview=defer();let sessions=0;
+ const queue={version:1,editable:true,clips:[{clipId:'recovered',requestId:'original-request',payload:{media_type:'image',media_url:'https://media.test/canonical',caption:'Recovered caption',audience:'everyone'}}]};
+ const h=scenario({storage:[['platinum:story-batch:a',JSON.stringify(queue)]],session:()=>++sessions===1?Promise.resolve({data:{session:{user:{id:'a'}}},error:null}):session.promise,hydrateDrafts:rows=>rows.length?preview.promise:Promise.resolve([])});
+ await h.flush();assert.equal(nodes(h.tree).find(n=>n.type==='fieldset').props.disabled,true);assert.match(h.text,/Checking for your pending story/);
+ session.resolve({data:{session:{user:{id:'a'}}},error:null});await h.flush();assert.equal(nodes(h.tree).find(n=>n.type==='fieldset').props.disabled,true);
+ preview.resolve([{media_url:'https://media.test/signed?token=temporary'}]);await h.flush();assert.equal(nodes(h.tree).find(n=>n.type==='fieldset').props.disabled,false);
+ assert.ok(nodes(h.tree).some(n=>n.type==='img'&&n.props.src==='https://media.test/signed?token=temporary'));h.unmount();
+});
+
+test('an old pending preview cannot replace the next account story after its restoration completes',async()=>{
+ const preview=defer();
+ const queue={version:1,editable:true,clips:[{clipId:'recovered',requestId:'original-request',payload:{media_type:'image',media_url:'https://media.test/private-a'}}]};
+ const h=scenario({storage:[['platinum:story-batch:a',JSON.stringify(queue)]],hydrateDrafts:rows=>rows.length?preview.promise:Promise.resolve([])});
+ await h.flush();h.changeOwner('b');await h.flush();h.pick();await h.flush();
+ preview.resolve([{media_url:'https://media.test/signed-a?token=private'}]);await h.flush();
+ assert.ok(!nodes(h.tree).some(n=>n.props?.src?.includes('signed-a')));assert.ok(nodes(h.tree).some(n=>n.type==='img'&&n.props.src==='blob:preview'));h.unmount();
 });

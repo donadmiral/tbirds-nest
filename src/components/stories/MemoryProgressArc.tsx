@@ -12,12 +12,8 @@
  *   - Bottom corners use increased radius for optical weight compensation
  */
 import React, { useMemo, useEffect } from 'react';
-import { View, Text, StyleSheet, Dimensions, Platform } from 'react-native';
-import ReAnimated, {
-  SharedValue, useSharedValue, useAnimatedStyle, useAnimatedProps,
-  interpolate, withRepeat, withTiming, withSequence, withDelay,
-  Easing as REasing, cancelAnimation,
-} from 'react-native-reanimated';
+import { Text, StyleSheet, Dimensions } from 'react-native';
+import ReAnimated, { SharedValue, useSharedValue, useAnimatedStyle, useAnimatedProps, interpolate, withRepeat, withTiming, withSequence, Easing as REasing, cancelAnimation } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');

@@ -1,6 +1,7 @@
 // Mirrors src/services/storiesService.ts shapes and RPCs used by the viewer.
 import { createClient } from "@/lib/supabase/client";
 import { hydrateStoryMedia } from "@/lib/contentMedia";
+import { invalidateStoryNavigation, loadStoryNavigation } from './storyNavigation';
 
 export type CatchupUser = {
   user_id: string;
@@ -29,7 +30,10 @@ export type StoryTextSticker = {
   gifUrl?: string;
   photoUri?: string | null;
   photoUrl?: string | null;
-  photoShape?: "square" | "rounded" | "circle";
+  photoShape?: "square" | "rounded" | "circle" | "cell";
+  /** Layout-cell width and height, normalized to the story canvas. */
+  photoFw?: number;
+  photoFh?: number;
   infoStyle?: number;
   weatherTemp?: number;
   weatherCode?: number;
@@ -52,6 +56,13 @@ export type StoryTextSticker = {
   mentionUsername?: string;
   mentions?: { id: string; username: string }[];
   hashtag?: string;
+  pillVariant?: number;
+  storyId?: string;
+  storyThumbUrl?: string | null;
+  storyMediaUrl?: string | null;
+  storyUsername?: string | null;
+  storyAuthorName?: string | null;
+  storyAuthorAvatar?: string | null;
   postId?: string;
   postAuthorName?: string;
   postText?: string;
@@ -101,6 +112,8 @@ export type StoryMediaTransform = {
   translateNX: number;
   translateNY: number;
   fit?: "cover" | "contain";
+  audioStartSec?: number;
+  audioSoundId?: string | null;
   // Creative engine extras, written by the phone composer and replayed here
   trimStart?: number;
   trimEnd?: number;
@@ -132,6 +145,7 @@ export type StoryRow = {
   media_transform?: StoryMediaTransform | null;
   dual_front_url?: string | null;
   audio_url?: string | null;
+  audio_sound_id?: string | null;
   audio_title?: string | null;
   audio_source?: string | null;
   audio_duration_sec?: number | null;
@@ -159,18 +173,13 @@ export async function markStoryViewed(storyId: string): Promise<void> {
   await supabase.rpc("mark_story_viewed", { p_story_id: storyId });
 }
 
-// Shared ring source: one cached catchup call powers every ringed avatar.
-let ringCache: { users: CatchupUser[]; at: number } | null = null;
-
 export async function getRingUsers(force = false): Promise<CatchupUser[]> {
-  if (!force && ringCache && Date.now() - ringCache.at < 60000) return ringCache.users;
-  const users = await getCatchupFeed(50);
-  ringCache = { users, at: Date.now() };
-  return users;
+  try { return (await loadStoryNavigation('all', force)).users; }
+  catch { return []; }
 }
 
 export function invalidateRings(): void {
-  ringCache = null;
+  invalidateStoryNavigation();
 }
 
 export const REACTION_EMOJIS = ["\u2764\uFE0F", "\uD83D\uDD25", "\uD83D\uDE02", "\uD83D\uDE2E", "\uD83D\uDE22", "\uD83D\uDC4F"];

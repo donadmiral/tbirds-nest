@@ -1,0 +1,136 @@
+{
+  "candidate": "supabase/migrations/20261030012831_staff_social_shells.sql",
+  "sha256": "fbb7d221defb64168d6601f55ffdcb21ff4f061430a340e420e3b766ed3457a0",
+  "qaMode": true,
+  "testsPassed": 16,
+  "tests": [
+    "forward migration preserves every existing account, session, staff policy, provider trigger and unrelated function",
+    "reservation marks only its fresh UUID, then the real Auth trigger creates an already hidden shell",
+    "pending staff cannot reactivate the shell or perform social posts, follows, presence, and RPC writes",
+    "user and service-owned Storage upload attempts cannot give a reserved staff shell social media",
+    "finish grants the reviewed role while preserving hidden profile and valid AAL1/AAL2 staff operations",
+    "finished staff can operate the support desk through the protected server while social writes stay disabled",
+    "expired and revoked staff sessions still fail independently of shell deactivation",
+    "wrong provider metadata cannot create an active profile or finish a staff reservation",
+    "a failed finish leaves the provider-created profile hidden, grants no staff access, and can retry its reservation",
+    "replays do not duplicate shell markers, roles, audit entries, or reset the original deactivation time",
+    "service metadata edits work, but service or ordinary admin restoration cannot activate a staff social profile",
+    "business provisioning stays an active delegated profile and does not acquire a staff marker",
+    "existing staff, existing member writes and an older completed reservation retain their original state",
+    "shell records and trigger functions deny direct app and service access",
+    "ordinary account-erasure and missing-identity fences remain effective after adding the staff boundary",
+    "repeat application, unexpected grants and unfinished legacy staff setup fail closed at preflight"
+  ],
+  "preflight": {
+    "data_counts": {
+      "profiles": 5,
+      "auth_users": 5,
+      "provisions": 1,
+      "admin_users": 4,
+      "storage_objects": 15
+    },
+    "fresh_target": true,
+    "provision_matches": true,
+    "write_guard_matches": true,
+    "session_check_matches": true,
+    "storage_guard_matches": true,
+    "execution_grants_match": true,
+    "no_pending_staff_setup": true,
+    "write_coverage_complete": true,
+    "permission_check_matches": true,
+    "profile_visibility_matches": true
+  },
+  "postflight": {
+    "registry": {
+      "acl": "{postgres=arwdDxtm/postgres}",
+      "rls": true,
+      "rows": 0,
+      "owner": "postgres",
+      "policies": 0,
+      "anon_access": false,
+      "service_access": false,
+      "authenticated_access": false
+    },
+    "functions": [
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "b4bf8700c07c75a0c6b8dadb7b9051ef",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "account_erasure.assert_writable(uuid)",
+        "anon_execute": false,
+        "service_execute": false,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "60f85bff8f70e05c3401c4a35d7173b1",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "admin_ops.enforce_staff_social_shell()",
+        "anon_execute": false,
+        "service_execute": false,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "2a59dac44760254e1f2e730c6154d9a9",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "admin_ops.require_session(uuid,uuid,text)",
+        "anon_execute": false,
+        "service_execute": true,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "def6cbc9557e3ec5fa22ce85b003a291",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "triniti_admin_provision(uuid,uuid,uuid,text,jsonb,text)",
+        "anon_execute": false,
+        "service_execute": true,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "ba2e1c694288129ee94d8b6d06746eef",
+        "owner": "postgres",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "triniti_admin_session_check(uuid,uuid)",
+        "anon_execute": false,
+        "service_execute": true,
+        "security_definer": true,
+        "authenticated_execute": false
+      }
+    ],
+    "data_counts": {
+      "profiles": 5,
+      "auth_users": 5,
+      "provisions": 1,
+      "admin_users": 4,
+      "storage_objects": 15
+    },
+    "profile_trigger": {
+      "enabled": "O",
+      "definition": "CREATE TRIGGER enforce_staff_social_shell BEFORE INSERT OR UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION admin_ops.enforce_staff_social_shell()"
+    }
+  },
+  "existingDataAndPoliciesPreserved": true,
+  "authProfileTriggerMatchedHostedQA": true,
+  "verifiedAt": "2026-10-30T01:38:13.922Z"
+}

@@ -1,22 +1,7 @@
 import { normalizeStoryCapture, STORY_CAPTURE_VIDEO_QUALITY, STORY_CAPTURE_VIDEO_BITRATE } from '../../../shared/storyCapture';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useCameraLife } from '../../hooks/useCameraLife';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Pressable,
-  StatusBar,
-  Platform,
-  Alert,
-  Image,
-  Dimensions,
-  ActivityIndicator,
-  Animated,
-  PanResponder,
-  ScrollView,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar, Alert, Image, Dimensions, ActivityIndicator, Animated, PanResponder, ScrollView } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';

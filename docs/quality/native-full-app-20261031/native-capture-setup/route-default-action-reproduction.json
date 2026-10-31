@@ -1,0 +1,31 @@
+{
+  "registrationSource": "linking.prefixes.push('platinum-circles-qa://');\nlinking.config.screens.NativeMemoryCaptureFixture = 'ui-fixture/memory';",
+  "parsedState": {
+    "routes": [
+      {
+        "name": "NativeMemoryCaptureFixture",
+        "path": "ui-fixture/memory"
+      }
+    ]
+  },
+  "actualDefaultLinkAction": {
+    "type": "NAVIGATE",
+    "payload": {
+      "name": "NativeMemoryCaptureFixture",
+      "path": "ui-fixture/memory",
+      "params": {}
+    }
+  },
+  "previousRoutes": [
+    "Main",
+    "MemoryAlbum"
+  ],
+  "nextRoutes": [
+    "Main",
+    "MemoryAlbum",
+    "NativeMemoryCaptureFixture"
+  ],
+  "previousBookRouteKeyPreserved": true,
+  "navigationReset": false,
+  "authStoreMutation": false
+}

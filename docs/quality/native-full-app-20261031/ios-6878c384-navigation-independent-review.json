@@ -1,0 +1,390 @@
+{
+  "schemaVersion": 2,
+  "reviewedAtUtc": "2026-10-31T14:48:31.323885+00:00",
+  "recovery": {
+    "status": "Regenerated receipt after transient workspace loss; not byte-identical to the original receipt.",
+    "historicalOriginalReceiptSha256": "d199b367caf8d9d61573fc52bed56064856e1166daefd2c2ce4ff62af4a37b0b",
+    "originalReceiptBytesRecovered": false,
+    "originalReviewRetainedInConversation": true,
+    "sourceArchive": "The single recovery download matches the original exact ZIP SHA-256. Five raw files are restored byte-for-byte from that archive. Derived projections and two PNG decodes were regenerated from the same archived inputs.",
+    "freshNativeAcceptancePerformed": false
+  },
+  "scope": "Independent actual iPhone navigation diagnosis and read-only recovery; no application, flow, selector, timeout, auth, CI or Git ref changes.",
+  "candidate": {
+    "head": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+    "pullRequestMerge": "ba8d659c4b6172c1c4930cd6d348d627bdb1470f",
+    "tree": "bebc0e7bfa5a9a6b17e477a29b17fcd41c2ae27d",
+    "runId": 41179235060,
+    "jobId": 124473036780
+  },
+  "artifact": {
+    "id": 13036600139,
+    "name": "ios-full-app-ui",
+    "zipBytes": 34433330,
+    "zipSha256": "3b547c1d320de3a5a1241d13466c0eb50208e8e587cf807f73b3480e88328544",
+    "singleRecoveryDownloadAndArchiveDigestVerification": "native_acceptance",
+    "canonicalSourceManifest": "docs/quality/native-full-app-20261031/android-full-app-6878c384-source.json",
+    "sourceManifestSha256": "46316da9f904617b1c9f2ec5e56a65251795cf5c8d28b4bcaa8d2b3dcadbe2f3",
+    "full496SourceAnd6OverlayChecks": "native_acceptance; this recovery independently verifies the nine literal-head source files below."
+  },
+  "result": {
+    "navigation": "FAILED",
+    "failedCommand": "Assert that Alex Rivera is visible",
+    "commandSequenceNumber": 31,
+    "artifactStepNumber": 32,
+    "configuredTimeoutMs": 15000,
+    "completedVisualFlowBeforeFailure": [
+      "Home post",
+      "Market Travel journal",
+      "Home post on return",
+      "Jobs Product designer / Desert Studio",
+      "Messages Jordan Ellis / literal message preview"
+    ],
+    "memoryNavigationReached": false,
+    "modalSettingsAcceptanceReached": false,
+    "newMovieCaptured": false,
+    "captureStage": "Separate mandatory CLI was attempted but failed before a testcase; native_acceptance owns that driver-startup diagnosis."
+  },
+  "timeline": [
+    {
+      "sequenceNumber": 23,
+      "status": "COMPLETED",
+      "startedAtUtc": "2026-10-31T08:03:13.736000+00:00",
+      "timestampMs": 1793433793736,
+      "durationMs": 1547,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "A quiet morning in the desert. Small moments worth keeping.",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      }
+    },
+    {
+      "sequenceNumber": 24,
+      "status": "COMPLETED",
+      "startedAtUtc": "2026-10-31T08:03:15.283000+00:00",
+      "timestampMs": 1793433795283,
+      "durationMs": 9442,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "idRegex": "main-tab-jobs",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      }
+    },
+    {
+      "sequenceNumber": 25,
+      "status": "COMPLETED",
+      "startedAtUtc": "2026-10-31T08:03:24.725000+00:00",
+      "timestampMs": 1793433804725,
+      "durationMs": 38130,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "(?s)^(?:Product designer|(?:.*?, )?Product designer, (?:.*?, )?Desert Studio(?:, .*)?)$",
+              "optional": false
+            }
+          },
+          "timeout": "15000",
+          "optional": false
+        }
+      }
+    },
+    {
+      "sequenceNumber": 26,
+      "status": "COMPLETED",
+      "startedAtUtc": "2026-10-31T08:04:02.860000+00:00",
+      "timestampMs": 1793433842860,
+      "durationMs": 258,
+      "command": {
+        "takeScreenshotCommand": {
+          "path": "jobs",
+          "optional": false
+        }
+      }
+    },
+    {
+      "sequenceNumber": 27,
+      "status": "COMPLETED",
+      "startedAtUtc": "2026-10-31T08:04:03.119000+00:00",
+      "timestampMs": 1793433843119,
+      "durationMs": 3447,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "idRegex": "main-tab-messages",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      }
+    },
+    {
+      "sequenceNumber": 28,
+      "status": "COMPLETED",
+      "startedAtUtc": "2026-10-31T08:04:06.567000+00:00",
+      "timestampMs": 1793433846567,
+      "durationMs": 4296,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "(?s)^(?:Ready for our next adventure\\?|(?:.*?, )?Jordan Ellis, (?:.*?, )?Ready for our next adventure\\?(?:, .*)?)$",
+              "optional": false
+            }
+          },
+          "timeout": "15000",
+          "optional": false
+        }
+      }
+    },
+    {
+      "sequenceNumber": 29,
+      "status": "COMPLETED",
+      "startedAtUtc": "2026-10-31T08:04:10.864000+00:00",
+      "timestampMs": 1793433850864,
+      "durationMs": 231,
+      "command": {
+        "takeScreenshotCommand": {
+          "path": "messages",
+          "optional": false
+        }
+      }
+    },
+    {
+      "sequenceNumber": 30,
+      "status": "COMPLETED",
+      "startedAtUtc": "2026-10-31T08:04:11.095000+00:00",
+      "timestampMs": 1793433851095,
+      "durationMs": 2583,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "idRegex": "main-tab-profile",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      }
+    },
+    {
+      "sequenceNumber": 31,
+      "status": "FAILED",
+      "startedAtUtc": "2026-10-31T08:04:13.679000+00:00",
+      "timestampMs": 1793433853679,
+      "durationMs": 20133,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Alex Rivera",
+              "optional": false
+            }
+          },
+          "timeout": "15000",
+          "optional": false
+        }
+      }
+    }
+  ],
+  "keyClockObservationsUtc": {
+    "profileTargetSelected": "08:04:12.006",
+    "targetId": "main-tab-profile",
+    "targetBounds": "[304,744][376,808]",
+    "profileTapCompleted": "08:04:13.679",
+    "nameAssertionStarted": "08:04:13.679",
+    "commandExecutionError": "08:04:33.812",
+    "postErrorHierarchyRequest": "08:04:33.955297",
+    "postErrorHierarchyStart": "08:04:34.159181",
+    "postErrorHierarchyDone": "08:04:37.100909",
+    "failureScreenshotRequested": "08:04:41.217",
+    "driverScreenshotRequest": "08:04:41.241873",
+    "failureListenerFinished": "08:04:41.794"
+  },
+  "findings": [
+    {
+      "finding": "Correct tab and visible Profile, no demonstrated selector mismatch.",
+      "evidence": "The command log selected main-tab-profile. The failure PNG visibly shows Alex Rivera; the later AX contains two exact Alex Rivera nodes at[135,282][257,310] and selected main-tab-profile. The recording changes from Messages atPTS456.926667 to visible Profile/Alex Rivera at456.970000, consistent with the tap period."
+    },
+    {
+      "finding": "The saved failure hierarchy does not establish what the matching polls saw.",
+      "evidence": "Pinned Maestro performs fresh hierarchy reads when constructing lookup/assertion exceptions and collecting artifacts. Driver logs record completed snapshots without retained per-poll payloads. The post-error hierarchy and screenshot are later than the logged failure."
+    },
+    {
+      "finding": "Visible name continuity does not establish completed Profile data loading.",
+      "evidence": "The failure PNG and later decoded frames show the shelf skeleton. The final auth/fixture snapshot precedes the Profile tap, so it cannot prove or rule out post-Profile feedback or other JS work failure."
+    },
+    {
+      "finding": "Memory reader, film, export-entry and settings acceptance were not reached.",
+      "evidence": "The navigation sequence stops at the name assertion. This run does not validate the modal lifecycle repair."
+    }
+  ],
+  "pinnedMaestroReview": {
+    "version": "2.11.0",
+    "tagCommit": "c8c361be1cc89b2e742f185466a302a22778be6b",
+    "retainedSourceBindingReceipt": "docs/quality/native-full-app-20261031/maestro-2.11.0-lifecycle-review.json",
+    "receiptMatchesPublishedF4Bytes": true,
+    "sourceFiles": [
+      {
+        "path": "maestro-client/src/main/java/maestro/Maestro.kt",
+        "upstreamBlobSha": "1f850dce7dda23de26c7ea2a4108f29ce8a00462",
+        "sha256": "4b1b2f901f909d850970f3805e52e1b6ccf1895d28aa2b8d51ac054a8bb553fa",
+        "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-client/src/main/java/maestro/Maestro.kt"
+      },
+      {
+        "path": "maestro-orchestra/src/main/java/maestro/orchestra/Orchestra.kt",
+        "upstreamBlobSha": "4127338828db0a14de0488873bac3bd5dfa6be66",
+        "sha256": "06e8e2803af1c9704783452a22bf4a3652f89574f384e893afd97d5fcc9007b5",
+        "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-orchestra/src/main/java/maestro/orchestra/Orchestra.kt"
+      }
+    ],
+    "recoveryLimit": "Immutable pinned-source inspection is carried forward from the original review and published lifecycle receipt; source files were not downloaded again.",
+    "reviewedBehavior": [
+      "Maestro.kt530-552: findElementWithTimeout obtains and filters fresh hierarchy data.",
+      "Orchestra.kt1435-1511: failed lookup constructs ElementNotFound with another viewHierarchy().root.",
+      "Orchestra.kt1063-1072 and516-530: a failed visible condition leads to AssertionFailure with another fresh hierarchy.",
+      "Error/artifact hierarchies are not counted as successful retries."
+    ]
+  },
+  "authCoverageReference": {
+    "path": "docs/quality/native-full-app-20261031/ios-6878c384-auth-independent-review.json",
+    "sha256": "f8fa089ce9b0537ba2717797bd017b8ec9779538a863b15e76aa4a5be7f27b08",
+    "boundary": "Auth snapshot ends before the Profile tap; no current capture-route account readback. See independent receipt for exact anchor/provenance limits."
+  },
+  "sourceChecks": [
+    {
+      "path": "src/navigation/AppNavigator.tsx",
+      "artifactManifestSha256": "ee5ce00883df84956d2840d4d70f7f0ed7395797a7889abbb2970d6f7fa455fe",
+      "gitHeadBytesMatch": true
+    },
+    {
+      "path": "src/screens/profile/ProfileScreen.tsx",
+      "artifactManifestSha256": "8054af477bbdbd0a17bb7ad417107490b1c1f457c9182fa4e80f3a51bd5e2d20",
+      "gitHeadBytesMatch": true
+    },
+    {
+      "path": "src/components/ProfileHeader.tsx",
+      "artifactManifestSha256": "421e63d3627a45141b87bcfd0da60a2bcbd52cc7645891b595d176e38f833f29",
+      "gitHeadBytesMatch": true
+    },
+    {
+      "path": "src/components/TierName.tsx",
+      "artifactManifestSha256": "9b26eab9a6dc1dad46bfbb76ba2860ee45e64a6facc1a7c56eb30a2d34be12f0",
+      "gitHeadBytesMatch": true
+    },
+    {
+      "path": "tests/native/flows/navigation.yaml",
+      "artifactManifestSha256": "1a3bb92ad2f80bfe9ba0c1c81829c65edfa1118dbfe10942074deeb9fe51e1f8",
+      "gitHeadBytesMatch": true
+    },
+    {
+      "path": "tests/native/flows/memory-navigation.yaml",
+      "artifactManifestSha256": "42a6947e98ceda6e60e7073a486c5317f238f8e478763c30f4eed1e0dd39aeae",
+      "gitHeadBytesMatch": true
+    },
+    {
+      "path": "src/hooks/useNativeModalDismissal.ts",
+      "artifactManifestSha256": "3cece062691b5407cec3a2a9f45c01fc12f5a42e2eea25972de7f7e6b2053974",
+      "gitHeadBytesMatch": true
+    },
+    {
+      "path": "src/components/memory/MemoryFilm.tsx",
+      "artifactManifestSha256": "3b144c45ce8f5b85ef890806c2f3e0752b1e77950f7cfa9b357fb6e1c46971b4",
+      "gitHeadBytesMatch": true
+    },
+    {
+      "path": "src/components/memory/MemoryMovieExport.tsx",
+      "artifactManifestSha256": "f08a34b3f5ebf06a43cabf717e6e8b0cf3eda145a5ecfa38ccd99eb4823bae3a",
+      "gitHeadBytesMatch": true
+    }
+  ],
+  "evidence": [
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-6878c384/navigation-commands.json",
+      "bytes": 22616,
+      "sha256": "19271067c830400fbf1e49f7bc31402c16a7e64992218d805b6afebaf1086fb8"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-6878c384/navigation-junit.xml",
+      "bytes": 584,
+      "sha256": "2aad7be604ca19ec1089ae66cadd93dba47aea8cb10bfa69241c76ed9a1642d4"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-6878c384/profile-assertion-failure-ax.json",
+      "bytes": 89366,
+      "sha256": "203b018435fcd553bb7a14e99ec1fa9f569a78018aed1d68acef370b340b1e32"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-6878c384/profile-assertion-failure.png",
+      "bytes": 238922,
+      "sha256": "03522261d1f7b76bc76a1b4eca2e60ccc2fa8add9491fc792fed646c8e82b0ee"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-6878c384/navigation-maestro-log.txt",
+      "bytes": 20740,
+      "sha256": "367f88515a23aa056ca625a388828ebac5b229abf193848d66d64b3077a4fe59"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-6878c384/navigation-xctest-window.txt",
+      "bytes": 39297,
+      "sha256": "c171187477cc9e4ce13c7f5bcb5e6721e62ff68f1e160ee93cc705ff4ae0cd56"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-6878c384/profile-assertion-ax-projection.json",
+      "bytes": 4613,
+      "sha256": "eeb55a5ead2e114e8801ba38b9e3f7c46304184df8047759ce8ef4b9a10532d5"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-6878c384/profile-video-projection.json",
+      "bytes": 2788,
+      "sha256": "3e0d3bbbda974028a5ea79b22dc2a3db50b96d627edfd805f0e4e8df418cee5e"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-6878c384/video-messages-pts456926667.png",
+      "bytes": 247784,
+      "sha256": "de0cb61b50b3ddf4e640b73b74e768b1bf980e80379ea6396057221aad2a7071"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-6878c384/video-profile-pts456970000.png",
+      "bytes": 331725,
+      "sha256": "a159ce6fd836283d5c617b5b80b4e31d285fef8fec26d2ac8af11055bad56729"
+    }
+  ],
+  "originalUncopiedLogHashes": [
+    {
+      "artifactPath": "maestro/navigation/2026-10-31_075705/Full native app navigation/logs/device-xctest.log",
+      "sha256": "63b0221681d15aa2527d5d05c03339ab9d34c58a9fcedfb525d95a6bd4d6efff",
+      "bytes": 144851
+    }
+  ],
+  "decision": {
+    "newSourceRepairProposed": false,
+    "selectorsOrTimeoutsChanged": false,
+    "reason": "No incorrect name selector or late blank Profile rendering is demonstrated. Keep the exact semantic assertion and existing deadline. The separately reviewed stable navigation-handler repair is now published atf4c35f32795be5f196840c37382143a2d7e33d55; the older6878 run cannot show whether it resolves this symptom.",
+    "remainingGate": "Both required native flows must pass on the repair candidate, including reader/film/settings navigation, account readback, captures and independent movie verification. This old failed gate remains failed."
+  },
+  "limits": [
+    "No retained pre-failure accessibility payloads or JS heartbeat; the exact accessibility-mismatch cause remains unresolved.",
+    "Simulator recording metadata is not calibrated latency or FPS evidence.",
+    "Recovery did not execute a new simulator journey, broad suite or relaxed assertion.",
+    "Capture driver startup, signing, complete source proof and global verifier outcomes are owned separately by native_acceptance."
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "checkedAt": "2026-10-31T03:56:52.041Z",
+  "sdk": "@supabase/supabase-js 2.112.3",
+  "scope": "Pinned installed SDK query/fetchWithAuth with synthetic controlled accessToken callback and custom fetch; no hosted requests. Demonstrates late token resolution behavior, not live GoTrue mutex timing.",
+  "cases": {
+    "implicit": {
+      "pinned": false,
+      "cancel": false,
+      "transportCount": 1,
+      "bearerSession": "A-session-2",
+      "writeUserRemainsA": true,
+      "error": false
+    },
+    "pinned": {
+      "pinned": true,
+      "cancel": false,
+      "transportCount": 1,
+      "bearerSession": "A-session-1",
+      "writeUserRemainsA": true,
+      "error": false
+    },
+    "canceled": {
+      "pinned": true,
+      "cancel": true,
+      "transportCount": 0,
+      "bearerSession": null,
+      "writeUserRemainsA": false,
+      "error": true
+    }
+  }
+}

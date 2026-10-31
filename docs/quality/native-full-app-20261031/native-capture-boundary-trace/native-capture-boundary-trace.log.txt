@@ -1,0 +1,20 @@
+✔ the real fixture recorder retains only known phases, booleans, sequence and a numeric timestamp (2.892157ms)
+✔ retention stays bounded and reports dropped markers without growing the event list (0.367332ms)
+✔ clock, synchronous sink and rejecting sink failures remain isolated observations (5.768551ms)
+✔ broken recorder accessors, detail producers and immutable receipt arrays cannot escape observation (0.630628ms)
+✔ the installed native WHATWG Response is observed without extra reads, clones or promise replacement (4.248166ms)
+✔ reader response tracing preserves receiver, arguments, result reference and synchronous error identity (0.561924ms)
+✔ reader retention stays bounded independently of capture markers and never consumes unrequested bodies (0.609557ms)
+✔ nonselected and nonextensible responses keep their original behavior without false body completion (0.383717ms)
+✔ actual capture component and readback helper record mount and one pending init before completion (94.185254ms)
+✔ an unfinished read may complete after component cleanup without creating another init or UI update (20.563497ms)
+✔ actual readback retains the original rejection and emits no error contents (22.433141ms)
+✔ failed diagnostics preserve successful actual readback and wrong-owner guards still precede init (13.915538ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 173.751294

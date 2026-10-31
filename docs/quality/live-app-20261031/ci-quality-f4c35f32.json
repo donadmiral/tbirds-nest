@@ -1,0 +1,1584 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-31 14:56:19 UTC",
+  "repository": "donadmiral/tbirds-nest",
+  "workflow": {
+    "id": 41211437271,
+    "name": "Type and quality gates",
+    "path": ".github/workflows/typecheck.yml",
+    "event": "pull_request",
+    "status": "completed",
+    "conclusion": "success",
+    "head_sha": "f4c35f32795be5f196840c37382143a2d7e33d55",
+    "head_tree": "7699f995aa8e5192658f785258eb48f408af6a39",
+    "run_attempt": 1,
+    "created_at": "2026-10-31T14:43:18Z",
+    "run_started_at": "2026-10-31T14:43:18Z",
+    "updated_at": "2026-10-31T14:52:30Z",
+    "html_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41211437271"
+  },
+  "outcome": "All four fresh Type and quality jobs passed.",
+  "sourceBinding": {
+    "head": "f4c35f32795be5f196840c37382143a2d7e33d55",
+    "pullRequestMerge": "6f3204cd44996dfe66ffe2dcf7192543805aa912",
+    "headAndMergeTree": "7699f995aa8e5192658f785258eb48f408af6a39",
+    "mergeTreeIndependentlyReadFromGitHub": true,
+    "allFourCheckoutLogsMatchMerge": true,
+    "workflowPath": ".github/workflows/typecheck.yml",
+    "workflowSha256": "dc41c9a035b84a2c562349a876b6e5805960ea1392e8bb0ad8e9244bfd50be0a",
+    "localGate": {
+      "path": "docs/quality/native-full-app-20261031/native-v6-final-root-regressions.json",
+      "bytes": 108131,
+      "sha256": "62cb7d74fc829c8339ed5eb7052321a1e8dbb00660f748b404addb62cf47177b"
+    },
+    "localCandidateInputsMatched": 15,
+    "localSelectedTestSourcesMatched": 172,
+    "candidateInputs": [
+      {
+        "path": "modules/boomerang/memoryComposition.ts",
+        "sha256": "38debdfe443ebdc3b728cb5a3f8605f203866a8dfc7c56daab14896686e9eead"
+      },
+      {
+        "path": "src/components/stories/StoryPixelImage.tsx",
+        "sha256": "e1063b3d571d3823eac5b5fcaca2d167d3990df0988fde1b99ccb1c3f1697e6e"
+      },
+      {
+        "path": "src/navigation/AppNavigator.tsx",
+        "sha256": "25901306b597b2a0fc93111f97636ef74beee216174df9937e5cf16ad3ffed70"
+      },
+      {
+        "path": "tests/native/flows/memory-navigation.yaml",
+        "sha256": "afd1a9deb1842880ca237405019525e75a9787ce84bb8effc7ec870b037b0792"
+      },
+      {
+        "path": "tests/quality/native-memory-export.cjs",
+        "sha256": "4a40c71e24d7f23aa9f4995d5a29edacac116b7976bb7a6dcd25780498a80696"
+      },
+      {
+        "path": "tests/quality/native-memory-shelf-entry.cjs",
+        "sha256": "cb6e2b846921a1e73a78f9c1e05248c7915c8bc350f8b3b1f546892b94155af7"
+      },
+      {
+        "path": "tests/quality/native-memory-capture-image-readiness.cjs",
+        "sha256": "730ccd2d07e8d9c8c1a34bcb50da7b1595d6e7514001ca9b1a5e34fd30e45171"
+      },
+      {
+        "path": "tests/quality/native-navigation-handler.cjs",
+        "sha256": "583b51e9b3eba3471ebfc612a44a3045203b5843682bf4d235a2c5084a1a0add"
+      },
+      {
+        "path": "docs/quality/native-full-app-20261031/ios-e173b2db/capture-open-link-ax.json",
+        "sha256": "df636b1b3ce9ddcf2439db86478f543415a28e24f9e9ea487f0603edb7237696"
+      },
+      {
+        "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-02.png",
+        "sha256": "640cc29c1ee90e88514af38625a694c0f4727df249bbee7e57b05c6004b59a16"
+      },
+      {
+        "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-04.png",
+        "sha256": "73cee8956fc630885d928992cc209a7d1c0e89ef54796092e828e36e4982a885"
+      },
+      {
+        "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-navigation-before.yaml.txt",
+        "sha256": "42a6947e98ceda6e60e7073a486c5317f238f8e478763c30f4eed1e0dd39aeae"
+      },
+      {
+        "path": "docs/quality/native-full-app-20261031/android-6878c384/shelf-entry-failure-ax.json",
+        "sha256": "ce78935c253d13b8e5a399cb2ce475740af9f4eb2d6d57bc6c5ee32bb04528a2"
+      },
+      {
+        "path": "docs/quality/native-full-app-20261031/android-6878c384/navigation-commands.json",
+        "sha256": "885ed3ac2bd57a877cabecbafb1790c0dddce091988c98e7bbfd324d17848af7"
+      },
+      {
+        "path": "docs/quality/native-full-app-20261031/android-6878c384/shelf-entry-maestro-log.txt",
+        "sha256": "f5ac63b3fd094ed4793c3c90afa679e2fca37f280de12f6c22c4268c9323729a"
+      }
+    ],
+    "note": "These checks bind the fresh CI checkout to the frozen source previously tested locally. No local tests were repeated."
+  },
+  "jobs": [
+    {
+      "id": 124567097155,
+      "name": "Operations app",
+      "head_sha": "f4c35f32795be5f196840c37382143a2d7e33d55",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-31T14:43:20Z",
+      "completed_at": "2026-10-31T14:44:37Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:43:21Z",
+          "completed_at": "2026-10-31T14:43:22Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:43:22Z",
+          "completed_at": "2026-10-31T14:43:26Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:43:26Z",
+          "completed_at": "2026-10-31T14:43:30Z"
+        },
+        {
+          "name": "Run npm ci",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:43:30Z",
+          "completed_at": "2026-10-31T14:44:16Z"
+        },
+        {
+          "name": "Run npx tsc --noEmit",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:44:16Z",
+          "completed_at": "2026-10-31T14:44:23Z"
+        },
+        {
+          "name": "Test operations quality regressions",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:44:23Z",
+          "completed_at": "2026-10-31T14:44:34Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:44:34Z",
+          "completed_at": "2026-10-31T14:44:34Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:44:34Z",
+          "completed_at": "2026-10-31T14:44:34Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:44:34Z",
+          "completed_at": "2026-10-31T14:44:34Z"
+        }
+      ],
+      "runtimeSeconds": 77.0
+    },
+    {
+      "id": 124567097355,
+      "name": "Link preview Edge TLS",
+      "head_sha": "f4c35f32795be5f196840c37382143a2d7e33d55",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-31T14:43:20Z",
+      "completed_at": "2026-10-31T14:43:33Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:43:21Z",
+          "completed_at": "2026-10-31T14:43:22Z"
+        },
+        {
+          "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:43:22Z",
+          "completed_at": "2026-10-31T14:43:26Z"
+        },
+        {
+          "name": "Run denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:43:26Z",
+          "completed_at": "2026-10-31T14:43:29Z"
+        },
+        {
+          "name": "Verify Edge runtime version",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:43:29Z",
+          "completed_at": "2026-10-31T14:43:29Z"
+        },
+        {
+          "name": "Check authenticated push handlers and their pinned dependencies",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:43:29Z",
+          "completed_at": "2026-10-31T14:43:30Z"
+        },
+        {
+          "name": "Test actual pinned-IP HTTPS and cancellation",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:43:30Z",
+          "completed_at": "2026-10-31T14:43:31Z"
+        },
+        {
+          "name": "Post Run denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:43:31Z",
+          "completed_at": "2026-10-31T14:43:31Z"
+        },
+        {
+          "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:43:31Z",
+          "completed_at": "2026-10-31T14:43:32Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:43:32Z",
+          "completed_at": "2026-10-31T14:43:32Z"
+        }
+      ],
+      "runtimeSeconds": 13.0
+    },
+    {
+      "id": 124567097374,
+      "name": "Phone app",
+      "head_sha": "f4c35f32795be5f196840c37382143a2d7e33d55",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-31T14:43:20Z",
+      "completed_at": "2026-10-31T14:52:29Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:43:21Z",
+          "completed_at": "2026-10-31T14:43:21Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:43:21Z",
+          "completed_at": "2026-10-31T14:43:26Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:43:26Z",
+          "completed_at": "2026-10-31T14:43:31Z"
+        },
+        {
+          "name": "Run npm ci",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:43:31Z",
+          "completed_at": "2026-10-31T14:43:56Z"
+        },
+        {
+          "name": "Run npx tsc --noEmit",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:43:56Z",
+          "completed_at": "2026-10-31T14:44:26Z"
+        },
+        {
+          "name": "Install dependencies for cross-app and database regressions",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:44:26Z",
+          "completed_at": "2026-10-31T14:45:02Z"
+        },
+        {
+          "name": "Test phone, diagnostics, feed and call regressions",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:45:02Z",
+          "completed_at": "2026-10-31T14:46:35Z"
+        },
+        {
+          "name": "Test payment recovery and database boundaries",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:46:35Z",
+          "completed_at": "2026-10-31T14:48:21Z"
+        },
+        {
+          "name": "Test RPC authorization",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:48:21Z",
+          "completed_at": "2026-10-31T14:52:27Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:52:27Z",
+          "completed_at": "2026-10-31T14:52:28Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:52:28Z",
+          "completed_at": "2026-10-31T14:52:28Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:52:28Z",
+          "completed_at": "2026-10-31T14:52:28Z"
+        }
+      ],
+      "runtimeSeconds": 549.0
+    },
+    {
+      "id": 124567097378,
+      "name": "Web app",
+      "head_sha": "f4c35f32795be5f196840c37382143a2d7e33d55",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-31T14:43:20Z",
+      "completed_at": "2026-10-31T14:45:30Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:43:21Z",
+          "completed_at": "2026-10-31T14:43:22Z"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:43:22Z",
+          "completed_at": "2026-10-31T14:43:26Z"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:43:26Z",
+          "completed_at": "2026-10-31T14:43:32Z"
+        },
+        {
+          "name": "Run npm ci",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:43:32Z",
+          "completed_at": "2026-10-31T14:44:31Z"
+        },
+        {
+          "name": "Run npx tsc --noEmit",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:44:31Z",
+          "completed_at": "2026-10-31T14:44:52Z"
+        },
+        {
+          "name": "Run npm ci --prefix supabase/tests/rpc-authorization",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:44:52Z",
+          "completed_at": "2026-10-31T14:44:53Z"
+        },
+        {
+          "name": "Test web quality regressions",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:44:53Z",
+          "completed_at": "2026-10-31T14:45:28Z"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:45:28Z",
+          "completed_at": "2026-10-31T14:45:28Z"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:45:28Z",
+          "completed_at": "2026-10-31T14:45:28Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-10-31T14:45:28Z",
+          "completed_at": "2026-10-31T14:45:28Z"
+        }
+      ],
+      "runtimeSeconds": 130.0
+    }
+  ],
+  "runtimeVersions": {
+    "node": "v22.23.4",
+    "npm": "10.9.9",
+    "deno": "2.1.4",
+    "pglite": "@electric-sql/pglite@0.5.10",
+    "pgliteRuntime": "PostgreSQL 18.6 (PGlite 0.5.10) on wasm32-unknown-emscripten, compiled by emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 6.0.5 (1db513782be24469589d7cb8a1f1834e9a33f271), 32-bit"
+  },
+  "testCounts": {
+    "root": {
+      "jobId": 124567097374,
+      "typecheck": "success",
+      "command": "node --test --test-concurrency=2 tests/*.cjs tests/quality/*.cjs",
+      "tests": 1771,
+      "suites": 0,
+      "pass": 1771,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 92459.179976
+    },
+    "web": {
+      "jobId": 124567097378,
+      "typecheck": "success",
+      "command": "node --test --test-concurrency=2 tests/*.cjs tests/quality/*.cjs",
+      "tests": 683,
+      "suites": 0,
+      "pass": 683,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 34829.802483
+    },
+    "admin": {
+      "jobId": 124567097155,
+      "typecheck": "success",
+      "command": "node --test --test-concurrency=2 tests/*.cjs",
+      "tests": 195,
+      "suites": 0,
+      "pass": 195,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 11167.774862
+    },
+    "backendNode": {
+      "jobId": 124567097374,
+      "stepConclusion": "success",
+      "command": "node --experimental-strip-types --test --test-concurrency=2 supabase/tests/*.test.*",
+      "tests": 317,
+      "suites": 0,
+      "pass": 314,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 3,
+      "todo": 0,
+      "duration_ms": 106281.916555
+    },
+    "rpcAuthorization": {
+      "jobId": 124567097374,
+      "stepConclusion": "success",
+      "command": "npm test --prefix supabase/tests/rpc-authorization",
+      "totalIsolatedChildInvocations": 46,
+      "tapChildInvocations": 43,
+      "nonTapChildInvocations": 3,
+      "runnerSha256": "b8d1149589ddee1fa0a48d7c2d028e50b14c2b90241a78c323af44dfef924fa3",
+      "tests": 886,
+      "pass": 883,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 3,
+      "todo": 0
+    },
+    "edgeTls": {
+      "jobId": 124567097355,
+      "handlerTypecheck": "success",
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0,
+      "elapsedReported": "157ms"
+    }
+  },
+  "rootSupplementalReport": {
+    "observedSummary": "# 33/33 auth regression checks passed",
+    "countNote": "CI root TAP includes one standalone auth-program file wrapper. Thus 1771 CI-reported cases correspond to the prior 1770 formal internal cases plus that wrapper. The separately printed 33 internal auth checks are not added to the CI TAP total."
+  },
+  "rpcTapInvocations": [
+    {
+      "isolatedInvocation": 4,
+      "script": "./test-admin-support-review-chain.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-admin-support-review-chain.mjs",
+      "sourceSha256": "05b573c5e2f1b87758d60e069f7cc4d7ad1b705a6a9030a43afd695d747ef3e0",
+      "tests": 16,
+      "suites": 0,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5037.679796
+    },
+    {
+      "isolatedInvocation": 5,
+      "script": "./test-admin-completion-chain.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-admin-completion-chain.mjs",
+      "sourceSha256": "75aace8d8986940304179b697dbf989104a67e8dc4ae757aa95df22104adc9e0",
+      "tests": 34,
+      "suites": 0,
+      "pass": 34,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5532.661221
+    },
+    {
+      "isolatedInvocation": 6,
+      "script": "./test-qa-admin-completion-chain.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-qa-admin-completion-chain.mjs",
+      "sourceSha256": "8fdf1e890e89d2c043ad19125b9707c9bfa9c3fa6101a229986a9bbbd538c017",
+      "tests": 36,
+      "suites": 0,
+      "pass": 36,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5758.027074
+    },
+    {
+      "isolatedInvocation": 7,
+      "script": "./test-account-storage-erasure-chain.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-account-storage-erasure-chain.mjs",
+      "sourceSha256": "9dcb09aa8187322b76c3d0590eec005f790ae70744c85421d09ba508fc1428d9",
+      "tests": 11,
+      "suites": 0,
+      "pass": 11,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 4436.576675
+    },
+    {
+      "isolatedInvocation": 8,
+      "script": "./test-private-media-cutover-chain.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-private-media-cutover-chain.mjs",
+      "sourceSha256": "b1878952c9d6e13fc8791e90de4987a5c35951722f690f56ba3c923d38730fce",
+      "tests": 14,
+      "suites": 0,
+      "pass": 14,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 4298.223743
+    },
+    {
+      "isolatedInvocation": 9,
+      "script": "./test-bounded-media-delivery-chain.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-bounded-media-delivery-chain.mjs",
+      "sourceSha256": "245feab46b00da5369847aa671881eb4540bf1e4bd3f95cb6b87a0b0c1cbeb83",
+      "tests": 21,
+      "suites": 0,
+      "pass": 21,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5876.131605
+    },
+    {
+      "isolatedInvocation": 10,
+      "script": "./test-bounded-media-delivery-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_MEDIA_UPGRADE": "1"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-bounded-media-delivery-chain.mjs",
+      "sourceSha256": "245feab46b00da5369847aa671881eb4540bf1e4bd3f95cb6b87a0b0c1cbeb83",
+      "tests": 21,
+      "suites": 0,
+      "pass": 21,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 6034.005794
+    },
+    {
+      "isolatedInvocation": 11,
+      "script": "./test-database-hardening-chain.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-database-hardening-chain.mjs",
+      "sourceSha256": "04917712f4d55d719866d15792fccf0033fb818460a41e058828b4f8781fd591",
+      "tests": 18,
+      "suites": 0,
+      "pass": 18,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 4530.310194
+    },
+    {
+      "isolatedInvocation": 12,
+      "script": "./test-database-hardening-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_DATABASE_HARDENING": "1"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-database-hardening-chain.mjs",
+      "sourceSha256": "04917712f4d55d719866d15792fccf0033fb818460a41e058828b4f8781fd591",
+      "tests": 18,
+      "suites": 0,
+      "pass": 18,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5132.291765
+    },
+    {
+      "isolatedInvocation": 13,
+      "script": "./test-erasure-operator-chain.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-erasure-operator-chain.mjs",
+      "sourceSha256": "55e7a4aeb77649da46f2a444fc84029c599e6d6e0958f5f3eb194c845f175a3a",
+      "tests": 20,
+      "suites": 0,
+      "pass": 20,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5031.500246
+    },
+    {
+      "isolatedInvocation": 14,
+      "script": "./test-erasure-operator-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_ERASURE_OPERATOR": "1"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-erasure-operator-chain.mjs",
+      "sourceSha256": "55e7a4aeb77649da46f2a444fc84029c599e6d6e0958f5f3eb194c845f175a3a",
+      "tests": 20,
+      "suites": 0,
+      "pass": 20,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5642.657291
+    },
+    {
+      "isolatedInvocation": 15,
+      "script": "./test-staff-social-shells-chain.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-staff-social-shells-chain.mjs",
+      "sourceSha256": "a19c68508fb9a490b7fc8fbeec08c02938c2c32d1378af245b6cc514ecc9123b",
+      "tests": 16,
+      "suites": 0,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 4650.380123
+    },
+    {
+      "isolatedInvocation": 16,
+      "script": "./test-staff-social-shells-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_STAFF_SHELLS": "1"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-staff-social-shells-chain.mjs",
+      "sourceSha256": "a19c68508fb9a490b7fc8fbeec08c02938c2c32d1378af245b6cc514ecc9123b",
+      "tests": 16,
+      "suites": 0,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5221.398222
+    },
+    {
+      "isolatedInvocation": 17,
+      "script": "./test-studio-workflow-chain.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-studio-workflow-chain.mjs",
+      "sourceSha256": "c58d35e6927ce1e7055db5ead465de93c74b1029dc11ea5883f9ad2abcaf8169",
+      "tests": 41,
+      "suites": 0,
+      "pass": 41,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5431.955434
+    },
+    {
+      "isolatedInvocation": 18,
+      "script": "./test-studio-workflow-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_STUDIO_WORKFLOWS": "1"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-studio-workflow-chain.mjs",
+      "sourceSha256": "c58d35e6927ce1e7055db5ead465de93c74b1029dc11ea5883f9ad2abcaf8169",
+      "tests": 41,
+      "suites": 0,
+      "pass": 41,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5922.459576
+    },
+    {
+      "isolatedInvocation": 19,
+      "script": "./test-business-auth-chain.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-business-auth-chain.mjs",
+      "sourceSha256": "c58688a0dc274142e20d07fb27e4ec815f16a0fe300921bb683017d331df0b2e",
+      "tests": 27,
+      "suites": 0,
+      "pass": 27,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5260.698704
+    },
+    {
+      "isolatedInvocation": 20,
+      "script": "./test-business-auth-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_BUSINESS_AUTH": "1"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-business-auth-chain.mjs",
+      "sourceSha256": "c58688a0dc274142e20d07fb27e4ec815f16a0fe300921bb683017d331df0b2e",
+      "tests": 27,
+      "suites": 0,
+      "pass": 27,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5660.20056
+    },
+    {
+      "isolatedInvocation": 21,
+      "script": "./test-notification-preferences.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-notification-preferences.mjs",
+      "sourceSha256": "8b7e4752b29350ff492296e312180c8fdba39993d02144bbf398b81579f804db",
+      "tests": 33,
+      "suites": 0,
+      "pass": 32,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 1,
+      "todo": 0,
+      "duration_ms": 5512.600486
+    },
+    {
+      "isolatedInvocation": 22,
+      "script": "./test-notification-preferences.mjs",
+      "environment": {
+        "NOTIFICATION_BUSINESS_FIXTURE": "1"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-notification-preferences.mjs",
+      "sourceSha256": "8b7e4752b29350ff492296e312180c8fdba39993d02144bbf398b81579f804db",
+      "tests": 33,
+      "suites": 0,
+      "pass": 33,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5759.142189
+    },
+    {
+      "isolatedInvocation": 23,
+      "script": "./test-notification-event-dispatch.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-notification-event-dispatch.mjs",
+      "sourceSha256": "a61ad88974d9f2aac680d992336f1c1ca47f543712ff563c201c24f797cf2100",
+      "tests": 16,
+      "suites": 0,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5155.415518
+    },
+    {
+      "isolatedInvocation": 24,
+      "script": "./test-offer-response-serialization.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-offer-response-serialization.mjs",
+      "sourceSha256": "8685d72eb02c79e358a3d81f496d14f8fd6905e233a0dcd82e4c27bc2096bf5c",
+      "tests": 15,
+      "suites": 0,
+      "pass": 15,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 4036.058909
+    },
+    {
+      "isolatedInvocation": 25,
+      "script": "./test-original-music-library.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-original-music-library.mjs",
+      "sourceSha256": "f9075a07639a91cd10e489d4f1c1f9ffb7e9bf9991225ff394f9f77bbe7e10aa",
+      "tests": 31,
+      "suites": 0,
+      "pass": 31,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5620.523288
+    },
+    {
+      "isolatedInvocation": 26,
+      "script": "./test-original-music-library.mjs",
+      "environment": {
+        "MUSIC_FIXTURE_PREEXISTING": "1"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-original-music-library.mjs",
+      "sourceSha256": "f9075a07639a91cd10e489d4f1c1f9ffb7e9bf9991225ff394f9f77bbe7e10aa",
+      "tests": 31,
+      "suites": 0,
+      "pass": 31,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5560.08223
+    },
+    {
+      "isolatedInvocation": 27,
+      "script": "./test-original-music-library.mjs",
+      "environment": {
+        "MUSIC_PIPELINE_FIXTURE": "1"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-original-music-library.mjs",
+      "sourceSha256": "f9075a07639a91cd10e489d4f1c1f9ffb7e9bf9991225ff394f9f77bbe7e10aa",
+      "tests": 31,
+      "suites": 0,
+      "pass": 31,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5705.082704
+    },
+    {
+      "isolatedInvocation": 28,
+      "script": "./test-music-operations.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-music-operations.mjs",
+      "sourceSha256": "723631d7d96a511478935557dc1077668e9a284cde7ff42a52d186b8db873825",
+      "tests": 19,
+      "suites": 0,
+      "pass": 19,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 4795.094337
+    },
+    {
+      "isolatedInvocation": 29,
+      "script": "./test-licensed-catalogue.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-licensed-catalogue.mjs",
+      "sourceSha256": "26a5499396705b9a84cddfd34d5cfd99ba13fe4541e8e526e27b8a14b0a8a6af",
+      "tests": 22,
+      "suites": 0,
+      "pass": 22,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5004.295121
+    },
+    {
+      "isolatedInvocation": 30,
+      "script": "./test-business-music-integration.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-business-music-integration.mjs",
+      "sourceSha256": "3b2e77ec28e2e9cb0d178e10764f721d006b779091836103001ced5399c0d15f",
+      "tests": 6,
+      "suites": 0,
+      "pass": 6,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 4835.17937
+    },
+    {
+      "isolatedInvocation": 31,
+      "script": "./test-business-music-integration.mjs",
+      "environment": {
+        "PLATINUM_QA_BUSINESS_AUTH": "1"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-business-music-integration.mjs",
+      "sourceSha256": "3b2e77ec28e2e9cb0d178e10764f721d006b779091836103001ced5399c0d15f",
+      "tests": 6,
+      "suites": 0,
+      "pass": 6,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 5346.725411
+    },
+    {
+      "isolatedInvocation": 32,
+      "script": "./test-link-preview-chain.mjs",
+      "environment": {
+        "PLATINUM_CURRENT_PRODUCTION_LINK_PREVIEW": "1"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-link-preview-chain.mjs",
+      "sourceSha256": "aca38353a57485308ce12ba8708a96a12a2e078071e23c9778a02d1df2e741c1",
+      "tests": 12,
+      "suites": 0,
+      "pass": 12,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 4258.236432
+    },
+    {
+      "isolatedInvocation": 33,
+      "script": "./test-link-preview-chain.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-link-preview-chain.mjs",
+      "sourceSha256": "aca38353a57485308ce12ba8708a96a12a2e078071e23c9778a02d1df2e741c1",
+      "tests": 12,
+      "suites": 0,
+      "pass": 12,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 4408.397251
+    },
+    {
+      "isolatedInvocation": 34,
+      "script": "./test-link-preview-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_LINK_PREVIEW": "1"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-link-preview-chain.mjs",
+      "sourceSha256": "aca38353a57485308ce12ba8708a96a12a2e078071e23c9778a02d1df2e741c1",
+      "tests": 12,
+      "suites": 0,
+      "pass": 12,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 4944.597465
+    },
+    {
+      "isolatedInvocation": 35,
+      "script": "../../../tests/link-preview.test.cjs",
+      "environment": {},
+      "sourcePath": "tests/link-preview.test.cjs",
+      "sourceSha256": "c63dfd319438212343a445cc691634397084098279ddddcef39412aa7d481333",
+      "tests": 21,
+      "suites": 0,
+      "pass": 21,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 279.672391
+    },
+    {
+      "isolatedInvocation": 36,
+      "script": "./test-legacy-chat-media-compatibility.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-legacy-chat-media-compatibility.mjs",
+      "sourceSha256": "acaa654b48a11f1d0920270900c5d67a56aa735ca8f7c000f7c54c7f7acb8745",
+      "tests": 11,
+      "suites": 0,
+      "pass": 11,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 3932.320836
+    },
+    {
+      "isolatedInvocation": 37,
+      "script": "./test-legacy-public-media-snapshots.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-legacy-public-media-snapshots.mjs",
+      "sourceSha256": "878b2ee7610b8683f37303db8cb5fbd4ccd7a508a5305e75976a0ba0c70d3557",
+      "tests": 11,
+      "suites": 0,
+      "pass": 11,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 4218.525486
+    },
+    {
+      "isolatedInvocation": 38,
+      "script": "./test-memory-book-visual-presentation.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-memory-book-visual-presentation.mjs",
+      "sourceSha256": "d6fe6dfa0b8880b2650c45c9e6f175d0280f60cf8a65a079a5228f40a4c9e1ad",
+      "tests": 16,
+      "suites": 0,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 4251.681052
+    },
+    {
+      "isolatedInvocation": 39,
+      "script": "./test-memory-book-creative.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-memory-book-creative.mjs",
+      "sourceSha256": "d46e8454733ad216d19dd767edde87bb13a76ea336a3a7ef289217d3271e324c",
+      "tests": 31,
+      "suites": 0,
+      "pass": 30,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 1,
+      "todo": 0,
+      "duration_ms": 5720.965903
+    },
+    {
+      "isolatedInvocation": 40,
+      "script": "./test-memory-book-creative.mjs",
+      "environment": {
+        "MEMORY_CREATIVE_MUSIC_ORDER": "before"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-memory-book-creative.mjs",
+      "sourceSha256": "d46e8454733ad216d19dd767edde87bb13a76ea336a3a7ef289217d3271e324c",
+      "tests": 31,
+      "suites": 0,
+      "pass": 31,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 6165.302868
+    },
+    {
+      "isolatedInvocation": 41,
+      "script": "./test-memory-book-creative.mjs",
+      "environment": {
+        "MEMORY_CREATIVE_MUSIC_ORDER": "after"
+      },
+      "sourcePath": "supabase/tests/rpc-authorization/test-memory-book-creative.mjs",
+      "sourceSha256": "d46e8454733ad216d19dd767edde87bb13a76ea336a3a7ef289217d3271e324c",
+      "tests": 31,
+      "suites": 0,
+      "pass": 31,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 6081.429305
+    },
+    {
+      "isolatedInvocation": 42,
+      "script": "../content-media-db.test.cjs",
+      "environment": {
+        "PLATINUM_VISUAL_RELEASE": "1"
+      },
+      "sourcePath": "supabase/tests/content-media-db.test.cjs",
+      "sourceSha256": "4218c34b4578fb4c1a5e42d8f3ce9767f6e181555209b0f24ec7f58ae90d9ed5",
+      "tests": 17,
+      "suites": 0,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 1,
+      "todo": 0,
+      "duration_ms": 2917.295041
+    },
+    {
+      "isolatedInvocation": 43,
+      "script": "../story-mention-reshare-db.test.cjs",
+      "environment": {
+        "PLATINUM_VISUAL_RELEASE": "1"
+      },
+      "sourcePath": "supabase/tests/story-mention-reshare-db.test.cjs",
+      "sourceSha256": "6bd1792b80659caccd0449f972c82c30b3f923a7455bcbab7c6ef0572a4882c3",
+      "tests": 33,
+      "suites": 0,
+      "pass": 33,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 3154.091242
+    },
+    {
+      "isolatedInvocation": 44,
+      "script": "../discover-media-projections.test.cjs",
+      "environment": {
+        "PLATINUM_VISUAL_RELEASE": "1"
+      },
+      "sourcePath": "supabase/tests/discover-media-projections.test.cjs",
+      "sourceSha256": "06a29b704913d4686bfc95f38a55618aed61e1ed82c6b7dac00e198b0c8c23f5",
+      "tests": 6,
+      "suites": 0,
+      "pass": 6,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 4322.02168
+    },
+    {
+      "isolatedInvocation": 45,
+      "script": "../../../tests/quality/chat-call-authorization.cjs",
+      "environment": {},
+      "sourcePath": "tests/quality/chat-call-authorization.cjs",
+      "sourceSha256": "f826b4e1726199e04bf1997e9f1bc27aa1e4b5eb58590433694cd2d1d8e6dab8",
+      "tests": 1,
+      "suites": 0,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 2446.90763
+    },
+    {
+      "isolatedInvocation": 46,
+      "script": "../../../tests/quality/call-membership-recovery.cjs",
+      "environment": {},
+      "sourcePath": "tests/quality/call-membership-recovery.cjs",
+      "sourceSha256": "fd7b831b8825dfd7255031db1a07d4a34b2c12a7fcc9cf996fc7d1f7eac4adb5",
+      "tests": 1,
+      "suites": 0,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 2441.256222
+    }
+  ],
+  "rpcNonTapChildren": [
+    {
+      "script": "./test-production-rollout-chain.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-production-rollout-chain.mjs",
+      "sourceSha256": "4454754d36fbc406acb4f737592834581d7ccc6cad5e1c212c52dde2ed2930a9"
+    },
+    {
+      "script": "./test-parity-release-chain.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-parity-release-chain.mjs",
+      "sourceSha256": "a536d770718e4dcb813439309aac8fefb9c65d79fbc9320bfb17089fb93c7abb"
+    },
+    {
+      "script": "./test-app-quality-hiring-chain.mjs",
+      "environment": {},
+      "sourcePath": "supabase/tests/rpc-authorization/test-app-quality-hiring-chain.mjs",
+      "sourceSha256": "66c57294d2fe9a018fc5b9d606e71066e0fc53a98a304085a1d0ea49a43a20af"
+    }
+  ],
+  "nonTapBackendReports": [
+    {
+      "runtime": "PostgreSQL 18.6 (PGlite 0.5.10) on wasm32-unknown-emscripten, compiled by emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 6.0.5 (1db513782be24469589d7cb8a1f1834e9a33f271), 32-bit",
+      "runtimePackage": "@electric-sql/pglite@0.5.10",
+      "hostedWrites": false,
+      "testCount": 13,
+      "candidateSha256": "12eecb88f7ef39952d8f4deb2c187a134dd72c92131164236392b7b8e66b4b00",
+      "script": "test-push-authorization.mjs",
+      "arrayEntries": {
+        "tests": 13,
+        "limitations": 3
+      },
+      "countUnit": "as named by the source report; not added to TAP counts",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "suite": "community_group_authorization",
+      "checks": 19,
+      "script": "community-group-tests.mjs",
+      "arrayEntries": {
+        "results": 19,
+        "limitations": 3
+      },
+      "countUnit": "as named by the source report; not added to TAP counts",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "hostedWrites": false,
+      "testCount": 4,
+      "candidateSha256": "7614375d9996a321859954663e85ec71cfde7104148e6d487c8e54a78237ca33",
+      "script": "test-combined-atomicity.mjs",
+      "arrayEntries": {
+        "tests": 4
+      },
+      "countUnit": "as named by the source report; not added to TAP counts",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "suite": "admin-commands-integrated",
+      "passed": 22,
+      "hostedWrites": false,
+      "script": "test-admin-commands.mjs",
+      "arrayEntries": {
+        "tests": 22,
+        "limitations": 2
+      },
+      "countUnit": "as named by the source report; not added to TAP counts",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "suite": "pending-migration-chain",
+      "passed": 41,
+      "hostedWrites": false,
+      "script": "test-pending-migration-chain.mjs",
+      "arrayEntries": {
+        "applied": 41,
+        "limitations": 1
+      },
+      "countUnit": "applied migration files, not test scenarios",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "ok": true,
+      "units": 18,
+      "sourceFiles": 19,
+      "alreadyAppliedUnits": 7,
+      "remainingUnits": 11,
+      "heldMigrations": 34,
+      "musicInfrastructureUnchanged": true,
+      "excludedFinanceMarketHiringAdminStorageUnchanged": true,
+      "privateMediaSchemaAbsent": true,
+      "originalBucketVisibilityPreserved": true,
+      "script": "test-production-rollout-chain.mjs",
+      "arrayEntries": {
+        "baselineFunctionHashes": 8
+      },
+      "countUnit": "migration units/source files/check entries as named; not added to TAP counts",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "ok": true,
+      "baselineUnits": 18,
+      "candidateUnits": 7,
+      "script": "test-parity-release-chain.mjs",
+      "arrayEntries": {
+        "checks": 9
+      },
+      "countUnit": "migration units/source files/check entries as named; not added to TAP counts",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "success": true,
+      "candidate": "20261023185734_redacted_client_diagnostics",
+      "script": "test-app-quality-hiring-chain.mjs",
+      "arrayEntries": {
+        "checks": 11
+      },
+      "countUnit": "as named by the source report; not added to TAP counts",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "success": true,
+      "candidate": "20261029190200_comment_author_highlights",
+      "script": "test-app-quality-hiring-chain.mjs",
+      "arrayEntries": {
+        "checks": 15
+      },
+      "countUnit": "as named by the source report; not added to TAP counts",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "success": true,
+      "baselineUnits": 25,
+      "candidate": "20261025073234_applicant_self_service_quality",
+      "script": "test-app-quality-hiring-chain.mjs",
+      "arrayEntries": {
+        "checks": 16
+      },
+      "countUnit": "as named by the source report; not added to TAP counts",
+      "failureOrSkipCounterEmitted": false
+    }
+  ],
+  "nonTapBackendTextReports": [
+    {
+      "script": "test-postflight.mjs",
+      "observedSummary": "Read-only postflight passed: exact definitions/ACLs and six expected role denials.",
+      "reportedExpectedRoleDenials": 6,
+      "countNote": "Local fixture also checks definitions and ACLs; no formal scenario/fail/skip counter emitted."
+    },
+    {
+      "script": "test-verification-integrity.mjs",
+      "reportedPassedScenarios": 8,
+      "countNote": "Reported separately from TAP counts; no formal fail/skip counter emitted."
+    }
+  ],
+  "conditionalSkipsWithPassingCounterparts": [
+    {
+      "name": "book signing uses the reader permission for explicit custom access and inactive accounts",
+      "step": "backendNode",
+      "reasonFromTap": null,
+      "passingCounterparts": [
+        {
+          "step": "rpcAuthorization",
+          "script": "../content-media-db.test.cjs",
+          "environment": {
+            "PLATINUM_VISUAL_RELEASE": "1"
+          }
+        }
+      ],
+      "freshPassingLines": [
+        {
+          "source": "../content-media-db.test.cjs {\"PLATINUM_VISUAL_RELEASE\": \"1\"}",
+          "line": "ok 12 - book signing uses the reader permission for explicit custom access and inactive accounts"
+        }
+      ]
+    },
+    {
+      "name": "visual-only manifests do not bind or sign separate audio, and install no soundtrack authorization",
+      "step": "backendNode",
+      "reasonFromTap": null,
+      "passingCounterparts": [
+        {
+          "step": "rpcAuthorization",
+          "script": "../content-media-db.test.cjs",
+          "environment": {
+            "PLATINUM_VISUAL_RELEASE": "1"
+          }
+        }
+      ],
+      "freshPassingLines": [
+        {
+          "source": "../content-media-db.test.cjs {\"PLATINUM_VISUAL_RELEASE\": \"1\"}",
+          "line": "ok 17 - visual-only manifests do not bind or sign separate audio, and install no soundtrack authorization"
+        }
+      ]
+    },
+    {
+      "name": "visual-only publisher works without audio infrastructure, rejects added sound, and preserves recorded video controls",
+      "step": "backendNode",
+      "reasonFromTap": null,
+      "passingCounterparts": [
+        {
+          "step": "rpcAuthorization",
+          "script": "../story-mention-reshare-db.test.cjs",
+          "environment": {
+            "PLATINUM_VISUAL_RELEASE": "1"
+          }
+        }
+      ],
+      "freshPassingLines": [
+        {
+          "source": "../story-mention-reshare-db.test.cjs {\"PLATINUM_VISUAL_RELEASE\": \"1\"}",
+          "line": "ok 31 - visual-only publisher works without audio infrastructure, rejects added sound, and preserves recorded video controls"
+        }
+      ]
+    },
+    {
+      "name": "a real bound business session works until device revocation",
+      "step": "rpcAuthorization",
+      "reasonFromTap": null,
+      "passingCounterparts": [
+        {
+          "step": "rpcAuthorization",
+          "script": "./test-notification-preferences.mjs",
+          "environment": {
+            "NOTIFICATION_BUSINESS_FIXTURE": "1"
+          }
+        }
+      ],
+      "skippedScript": "./test-notification-preferences.mjs",
+      "skippedEnvironment": {},
+      "freshPassingLines": [
+        {
+          "source": "./test-notification-preferences.mjs {\"NOTIFICATION_BUSINESS_FIXTURE\": \"1\"}",
+          "line": "ok 33 - a real bound business session works until device revocation"
+        }
+      ]
+    },
+    {
+      "name": "a current exact business binding supports creative persistence and revoked devices stop it",
+      "step": "rpcAuthorization",
+      "reasonFromTap": "Paired combined-music fixture exercises actual business issuance.",
+      "passingCounterparts": [
+        {
+          "step": "rpcAuthorization",
+          "script": "./test-memory-book-creative.mjs",
+          "environment": {
+            "MEMORY_CREATIVE_MUSIC_ORDER": "before"
+          }
+        },
+        {
+          "step": "rpcAuthorization",
+          "script": "./test-memory-book-creative.mjs",
+          "environment": {
+            "MEMORY_CREATIVE_MUSIC_ORDER": "after"
+          }
+        }
+      ],
+      "skippedScript": "./test-memory-book-creative.mjs",
+      "skippedEnvironment": {},
+      "freshPassingLines": [
+        {
+          "source": "./test-memory-book-creative.mjs {\"MEMORY_CREATIVE_MUSIC_ORDER\": \"before\"}",
+          "line": "ok 31 - a current exact business binding supports creative persistence and revoked devices stop it"
+        },
+        {
+          "source": "./test-memory-book-creative.mjs {\"MEMORY_CREATIVE_MUSIC_ORDER\": \"after\"}",
+          "line": "ok 31 - a current exact business binding supports creative persistence and revoked devices stop it"
+        }
+      ]
+    },
+    {
+      "name": "sound publication is owner-bound, attested and idempotent",
+      "step": "rpcAuthorization",
+      "reasonFromTap": null,
+      "passingCounterparts": [
+        {
+          "step": "backendNode"
+        }
+      ],
+      "skippedScript": "../content-media-db.test.cjs",
+      "skippedEnvironment": {
+        "PLATINUM_VISUAL_RELEASE": "1"
+      },
+      "freshPassingLines": [
+        {
+          "source": "backendNode",
+          "line": "ok 81 - sound publication is owner-bound, attested and idempotent"
+        }
+      ]
+    }
+  ],
+  "logProvenance": {
+    "phone": {
+      "jobId": 124567097374,
+      "logsApiUrl": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/jobs/124567097374/logs",
+      "checkedOutCommit": "6f3204cd44996dfe66ffe2dcf7192543805aa912",
+      "raw": {
+        "path": "/tmp/platinum-ci-f4c35f32-phone.log",
+        "bytes": 1281509,
+        "sha256": "acf0f83f27826b871c4aeee52cb770dc492187b231f1aee1a996cf9ca7087805"
+      },
+      "normalized": {
+        "path": "/tmp/platinum-ci-f4c35f32-phone-normalized.log",
+        "bytes": 733376,
+        "sha256": "17636413b82365bfefacfd66ee42b801377ee22ee3387004095669d584e31a5c"
+      },
+      "normalization": "UTF-8 body with leading ISO timestamp prefixes, ANSI colors and initial BOM removed; terminal newlines canonicalized to one LF."
+    },
+    "web": {
+      "jobId": 124567097378,
+      "logsApiUrl": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/jobs/124567097378/logs",
+      "checkedOutCommit": "6f3204cd44996dfe66ffe2dcf7192543805aa912",
+      "raw": {
+        "path": "/tmp/platinum-ci-f4c35f32-web.log",
+        "bytes": 289283,
+        "sha256": "237c98826d290dd61606c503f9945acfd18c8d3ce55a8cd3f977896e051da527"
+      },
+      "normalized": {
+        "path": "/tmp/platinum-ci-f4c35f32-web-normalized.log",
+        "bytes": 164072,
+        "sha256": "a572f41121055e073d6cf15f6d37ebb0ec749b8131de22f2fa12e30d193f5f8b"
+      },
+      "normalization": "UTF-8 body with leading ISO timestamp prefixes, ANSI colors and initial BOM removed; terminal newlines canonicalized to one LF."
+    },
+    "admin": {
+      "jobId": 124567097155,
+      "logsApiUrl": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/jobs/124567097155/logs",
+      "checkedOutCommit": "6f3204cd44996dfe66ffe2dcf7192543805aa912",
+      "raw": {
+        "path": "/tmp/platinum-ci-f4c35f32-admin.log",
+        "bytes": 95283,
+        "sha256": "0fd707f056ce8c7ad4cc365e9fa169cdda0333924b8dc52175fb3f60c1185588"
+      },
+      "normalized": {
+        "path": "/tmp/platinum-ci-f4c35f32-admin-normalized.log",
+        "bytes": 55314,
+        "sha256": "445c860b2979efffbc067beaffdf1a9dfcbda9fdf095930ad6e1a78aaafaeef8"
+      },
+      "normalization": "UTF-8 body with leading ISO timestamp prefixes, ANSI colors and initial BOM removed; terminal newlines canonicalized to one LF."
+    },
+    "edge": {
+      "jobId": 124567097355,
+      "logsApiUrl": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/jobs/124567097355/logs",
+      "checkedOutCommit": "6f3204cd44996dfe66ffe2dcf7192543805aa912",
+      "raw": {
+        "path": "/tmp/platinum-ci-f4c35f32-edge.log",
+        "bytes": 19873,
+        "sha256": "a2d43a9fafd9f374edc6cb24557cccf9d0a392034145e53d7a4d21a1f1459e10"
+      },
+      "normalized": {
+        "path": "/tmp/platinum-ci-f4c35f32-edge-normalized.log",
+        "bytes": 12785,
+        "sha256": "3709ce33df4bea2bf94ff8599532d4562522938f64f9bb84231beb583d26dbff"
+      },
+      "normalization": "UTF-8 body with leading ISO timestamp prefixes, ANSI colors and initial BOM removed; terminal newlines canonicalized to one LF."
+    }
+  },
+  "metadataProvenance": {
+    "path": "/tmp/platinum-ci-f4c35f32-final-metadata.json",
+    "bytes": 11476,
+    "sha256": "5f12e9c911a58910b82b2e600b9cb42451afd48ac8bd821bbfa912e1650cc414"
+  },
+  "artifacts": {
+    "totalCount": 0,
+    "items": []
+  },
+  "reviewerActions": {
+    "jobLogsFetched": 4,
+    "artifactsDownloaded": 0,
+    "testsRerunLocally": false,
+    "sourceEdited": false,
+    "workflowRetriedOrCancelled": false,
+    "refsChanged": false,
+    "providerDataWritten": false
+  },
+  "limitations": [
+    "Backend SQL/RPC regressions use isolated PGlite fixtures; their success is not hosted QA migration or actor-journey acceptance.",
+    "Six conditional TAP skips remain visible. Every skipped case has a fresh observed passing counterpart in its intended alternate fixture branch; those counterparts are already within the reported counters and are not counted again.",
+    "Custom JSON/text reports use mixed units (checks, scenarios, applied migration files and units); they are retained separately, not added to formal TAP totals.",
+    "The two Deno TLS checks and handler typechecks are local CI verification, not a new Edge deployment.",
+    "Native full-app, emulator/simulator encoder, native compiler, signed distribution and physical-device gates are separate.",
+    "The actual fresh source is f4; recovered 6878 iPhone evidence remains historical and has not been relabeled as current runtime acceptance."
+  ]
+}

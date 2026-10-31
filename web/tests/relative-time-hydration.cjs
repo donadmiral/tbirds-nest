@@ -15,12 +15,14 @@ function scenario({now=Date.parse('2026-10-28T12:00:00Z'),mode='server'}={}) {
  const context={Date:Clock,exports:{}};
  vm.runInNewContext(code('lib/feed.ts'),context); const helpers=context.exports;
  const react=mode==='actual-server'?React:{useSyncExternalStore(subscribe,snapshot,serverSnapshot){hook={subscribe,snapshot,serverSnapshot};return mode==='client'?snapshot():serverSnapshot();}};
- const module={exports:{}};
- vm.runInNewContext(code('components/RelativeTime.tsx'),{module,exports:module.exports,Date:Clock,Set,
-  require(name){if(name==='react')return react;if(name==='react/jsx-runtime')return jsx;if(name==='@/lib/feed')return helpers;throw Error(name);},
+ const module={exports:{}},clockModule={exports:{}};
+ const browser={Date:Clock,Set,
+  require(name){if(name==='react')return react;if(name==='react/jsx-runtime')return jsx;if(name==='@/lib/feed')return helpers;if(name==='@/lib/useCurrentTime')return clockModule.exports;throw Error(name);},
   setInterval(fn,delay){const key={fn,delay};intervals.set(key,key);return key;},clearInterval(key){intervals.delete(key);},
   document:{addEventListener(name,fn){listeners.set(name,fn);},removeEventListener(name){listeners.delete(name);}},
- });
+ };
+ vm.runInNewContext(code('lib/useCurrentTime.ts'),{...browser,module:clockModule,exports:clockModule.exports});
+ vm.runInNewContext(code('components/RelativeTime.tsx'),{...browser,module,exports:module.exports});
  return{helpers,intervals,listeners,get hook(){return hook;},setNow(value){clock=value;},render(iso){return renderToString(React.createElement(module.exports.RelativeTime,{dateTime:iso}));}};
 }
 test('actual React server HTML matches the first hydration render across timezone and clock boundaries',()=>{

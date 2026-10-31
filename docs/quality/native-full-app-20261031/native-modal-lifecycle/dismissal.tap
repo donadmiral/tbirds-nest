@@ -1,0 +1,136 @@
+TAP version 13
+# Subtest: iOS Close memory film pauses immediately and waits for one native dismissal
+ok 1 - iOS Close memory film pauses immediately and waits for one native dismissal
+  ---
+  duration_ms: 453.761424
+  type: 'test'
+  ...
+# Subtest: iOS Read memory book pauses immediately and waits for one native dismissal
+ok 2 - iOS Read memory book pauses immediately and waits for one native dismissal
+  ---
+  duration_ms: 211.175893
+  type: 'test'
+  ...
+# Subtest: iOS native close request uses the same deferred film lifecycle
+ok 3 - iOS native close request uses the same deferred film lifecycle
+  ---
+  duration_ms: 210.337276
+  type: 'test'
+  ...
+# Subtest: film unmount invalidates a retained native dismissal callback
+ok 4 - film unmount invalidates a retained native dismissal callback
+  ---
+  duration_ms: 167.568381
+  type: 'test'
+  ...
+# Subtest: film same-owner replacement invalidates dismissal before React renders the replacement session
+ok 5 - film same-owner replacement invalidates dismissal before React renders the replacement session
+  ---
+  duration_ms: 182.387029
+  type: 'test'
+  ...
+# Subtest: film account ABA invalidates dismissal before React renders the replacement session
+ok 6 - film account ABA invalidates dismissal before React renders the replacement session
+  ---
+  duration_ms: 134.46182
+  type: 'test'
+  ...
+# Subtest: film book replacement discards the old action and late acknowledgements cannot close the replacement
+ok 7 - film book replacement discards the old action and late acknowledgements cannot close the replacement
+  ---
+  duration_ms: 157.908001
+  type: 'test'
+  ...
+# Subtest: a stale film control cannot start dismissal of a replacement book
+ok 8 - a stale film control cannot start dismissal of a replacement book
+  ---
+  duration_ms: 82.230106
+  type: 'test'
+  ...
+# Subtest: same-book page and delivery refresh preserves the intended film close
+ok 9 - same-book page and delivery refresh preserves the intended film close
+  ---
+  duration_ms: 141.43345
+  type: 'test'
+  ...
+# Subtest: film post handoff waits for native dismissal and retains a refreshed identical source
+ok 10 - film post handoff waits for native dismissal and retains a refreshed identical source
+  ---
+  duration_ms: 106.073111
+  type: 'test'
+  ...
+# Subtest: a removed or changed film source cannot dispatch its stale post navigation
+ok 11 - a removed or changed film source cannot dispatch its stale post navigation
+  ---
+  duration_ms: 81.796021
+  type: 'test'
+  ...
+# Subtest: Android Close memory film completes once without an unavailable onDismiss event
+ok 12 - Android Close memory film completes once without an unavailable onDismiss event
+  ---
+  duration_ms: 74.291851
+  type: 'test'
+  ...
+# Subtest: Android Read memory book completes once without an unavailable onDismiss event
+ok 13 - Android Read memory book completes once without an unavailable onDismiss event
+  ---
+  duration_ms: 90.514632
+  type: 'test'
+  ...
+# Subtest: iOS export cancellation aborts immediately, retains its subtree, and notifies parent once after dismissal
+ok 14 - iOS export cancellation aborts immediately, retains its subtree, and notifies parent once after dismissal
+  ---
+  duration_ms: 25.181019
+  type: 'test'
+  ...
+# Subtest: closing a ready iOS movie releases its result before native acknowledgement and blocks stale Photos actions
+ok 15 - closing a ready iOS movie releases its result before native acknowledgement and blocks stale Photos actions
+  ---
+  duration_ms: 17.577317
+  type: 'test'
+  ...
+# Subtest: export unmount invalidates its pending native close acknowledgement
+ok 16 - export unmount invalidates its pending native close acknowledgement
+  ---
+  duration_ms: 18.65719
+  type: 'test'
+  ...
+# Subtest: export same-owner replacement cannot dispatch an old close or restart old work
+ok 17 - export same-owner replacement cannot dispatch an old close or restart old work
+  ---
+  duration_ms: 30.384632
+  type: 'test'
+  ...
+# Subtest: export account ABA cannot dispatch an old close or restart old work
+ok 18 - export account ABA cannot dispatch an old close or restart old work
+  ---
+  duration_ms: 23.948601
+  type: 'test'
+  ...
+# Subtest: export book replacement waits for old dismissal and ignores old callbacks during the replacement close
+ok 19 - export book replacement waits for old dismissal and ignores old callbacks during the replacement close
+  ---
+  duration_ms: 22.411946
+  type: 'test'
+  ...
+# Subtest: same-book export presentation refresh preserves its legitimate close
+ok 20 - same-book export presentation refresh preserves its legitimate close
+  ---
+  duration_ms: 17.109277
+  type: 'test'
+  ...
+# Subtest: Android export cancellation remains immediate and exactly once without onDismiss
+ok 21 - Android export cancellation remains immediate and exactly once without onDismiss
+  ---
+  duration_ms: 17.079954
+  type: 'test'
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 21
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2273.099482

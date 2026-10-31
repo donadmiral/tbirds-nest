@@ -1,4 +1,7 @@
 "use client";
+import NextImage from "next/image";
+
+import { createdId, errorMessage } from "@/lib/errors";
 
 import { useEffect, useRef, useState } from "react";
 import { withTimeout } from "@/lib/withTimeout";
@@ -6,10 +9,12 @@ import { useSocialPages } from "@/lib/useSocialPages";
 import { SocialPageFooter } from "@/components/SocialPageFooter";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Radio, Search, Users, X } from "lucide-react";
+import { Check, Plus, Radio, Search, Users, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { CATEGORIES } from "@/lib/categories";
 import { COMM_COLORS } from "@/lib/communities";
+import { ProductDialog } from "@/components/ProductDialog";
+import styles from "@/components/SocialWorkspace.module.css";
 
 type Comm = {
   id: string; name: string; description: string | null; icon_url: string | null;
@@ -24,7 +29,7 @@ export default function CommunitiesPage() {
   const [q, setQ] = useState("");
   const [query, setQuery] = useState("");
   const page = useSocialPages<Comm>("get_communities_page", { p_query: query.trim() || null });
-  const { items: rows, setItems: setRows, loading } = page;
+  const { items: rows, loading } = page;
   const [actionError, setActionError] = useState<string | null>(null);
   const locks = useRef(new Set<string>());const actionEpoch=useRef(0);
   const [me, setMe] = useState<string | null>(null);
@@ -36,13 +41,14 @@ export default function CommunitiesPage() {
   const [gColor, setGColor] = useState("sky");
   const [gCat, setGCat] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [joining, setJoining] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true, uid:string|null|undefined;
-    const bind=(next:string|null)=>{if(!alive||next===uid)return;uid=next;actionEpoch.current++;locks.current.clear();setBusy(false);setCreating(false);setGName('');setGDesc('');setGRules('');setMe(next);setActionError(null);};
+    const bind=(next:string|null)=>{if(!alive||next===uid)return;uid=next;actionEpoch.current += 1;locks.current.clear();setBusy(false);setJoining(null);setCreating(false);setGName('');setGDesc('');setGRules('');setMe(next);setActionError(null);};
     const {data:auth}=supabase.auth.onAuthStateChange((_event,session)=>bind(session?.user.id??null));
     withTimeout(supabase.auth.getSession()).then(({data,error})=>{if(error)throw error;if(uid===undefined)bind(data.session?.user.id??null);}).catch(()=>{if(alive)setActionError('Your session could not be loaded. Reload to try again.');});
-    return()=>{alive=false;actionEpoch.current++;auth.subscription.unsubscribe();};
+    return()=>{alive=false;actionEpoch.current += 1;auth.subscription.unsubscribe();};
   }, [supabase]);
 
   useEffect(() => {
@@ -51,144 +57,60 @@ export default function CommunitiesPage() {
   }, [q]);
 
   const join = async (c: Comm) => {
-    if (locks.current.has(c.id)) return;
-    locks.current.add(c.id); setActionError(null);
+    if (!me || locks.current.has(c.id)) return;
+    locks.current.add(c.id); setJoining(c.id); setActionError(null);
     const version = actionEpoch.current;
     try {
-    const { data, error } = await supabase.rpc("join_community", { p_community: c.id });
+    const { error } = await withTimeout(supabase.rpc("join_community", { p_community: c.id }));
     if (error) throw error;
     if (version !== actionEpoch.current) return;
     await page.reload();
     } catch { if(version===actionEpoch.current)setActionError("Could not join this community. Please try again."); }
-    finally { if(version===actionEpoch.current)locks.current.delete(c.id); }
+    finally { if(version===actionEpoch.current){locks.current.delete(c.id);setJoining(null);} }
   };
 
   const create = async () => {
     const nm = gName.trim();
-    if (!nm || locks.current.has("create")) return;
+    if (!nm || !me || locks.current.has("create")) return;
     const version=actionEpoch.current;locks.current.add("create"); setActionError(null);
     setBusy(true);
     try {
-      const { data, error } = await supabase.rpc("create_community", {
+      const { data, error } = await withTimeout(supabase.rpc("create_community", {
         p_name: nm, p_description: gDesc.trim() || null, p_category: gCat,
         p_join_mode: gMode, p_cover_color: gColor, p_rules: gRules.trim() || null,
-      });
+      }));
       if (error) throw error;
-      if(version!==actionEpoch.current)return;setCreating(false);
-      const id = typeof data === "string" ? data : (data as any)?.id;
-      if (id) router.push("/communities/" + id);
-      else void page.reload();
-    } catch (err: any) { if(version===actionEpoch.current)setActionError(err?.message || "Could not create the community."); }
+      if(version!==actionEpoch.current)return;
+      const id = createdId(data);
+      if (!id) throw new Error("Community creation was not confirmed. Check the directory before retrying.");
+      setCreating(false);setGName("");setGDesc("");setGRules("");
+      router.push("/communities/" + encodeURIComponent(id));
+    } catch (err: unknown) { if(version===actionEpoch.current)setActionError(errorMessage(err, "Could not create the community.")); }
     finally { if(version===actionEpoch.current){locks.current.delete("create"); setBusy(false);} }
   };
 
   const catLabel = (key: string | null) => key ? (CATEGORIES.find(c => c.key === key)?.label || key) : null;
 
-  return (
-    <main className="mx-auto min-h-screen w-full max-w-[640px] px-4 py-6">
-      <div className="mb-3 flex items-center justify-between">
-        <h1 className="flex items-center gap-2 text-lg font-semibold text-ink"><Users size={19} /> Communities</h1>
-        {me ? (
-          <button onClick={() => setCreating(true)} className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-[13px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90"><Plus size={14} /> New community</button>
-        ) : null}
-      </div>
-      <div className="mb-3 flex gap-2">
-        <Link href="/channels" className="inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-3.5 py-1.5 text-[12.5px] font-semibold text-ink/60 transition-colors duration-[140ms] hover:text-ink"><Radio size={13} /> Channels</Link>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-[12.5px] font-semibold text-white"><Users size={13} /> Communities</span>
-      </div>
-      <div className="mb-4 flex items-center gap-2 rounded-lg bg-ink/5 px-3 py-2 transition-colors duration-[140ms] focus-within:bg-ink/[0.07]">
-        <Search size={15} className="text-muted" />
-        <input value={q} onChange={e => setQ(e.target.value)} aria-label="Search communities" placeholder="Search communities"
-          className="w-full bg-transparent text-[14px] text-ink outline-none placeholder:text-muted" />
-        {q ? <button onClick={() => setQ("")} className="rounded-full p-0.5 transition-colors duration-[140ms] hover:bg-ink/10"><X size={15} className="text-muted" /></button> : null}
-      </div>
-      {actionError ? <p role="alert" className="py-2 text-sm text-danger">{actionError}</p> : null}
-      {loading && rows.length === 0 ? (
-        <p className="py-16 text-center text-sm text-muted">Loading&hellip;</p>
-      ) : rows.length === 0 && !page.error ? (
-        <p className="py-16 text-center text-sm text-muted">{q ? "No communities match." : "No communities yet. Create the first one."}</p>
-      ) : (
-        <ul>
-          {rows.map(c => (
-            <li key={c.id} className="flex items-center gap-3 border-b border-ink/5 py-3">
-              <Link href={"/communities/" + c.id} className="flex min-w-0 flex-1 items-center gap-3">
-                {c.icon_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={c.icon_url} alt="" className="h-11 w-11 rounded-xl object-cover" />
-                ) : (
-                  <span className="flex h-11 w-11 items-center justify-center rounded-xl text-[#1F2937]" style={{ background: COMM_COLORS[c.cover_color] || COMM_COLORS.sky }}><Users size={17} /></span>
-                )}
-                <span className="min-w-0">
-                  <span className="block truncate text-[14.5px] font-semibold text-ink">{c.name}</span>
-                  <span className="block truncate text-[12.5px] text-muted">
-                    {String(c.member_count || 0)} {c.member_count === 1 ? "member" : "members"}
-                    {catLabel(c.category) ? " · " + catLabel(c.category) : ""}
-                    {c.description ? " · " + c.description : ""}
-                  </span>
-                </span>
-              </Link>
-              {c.is_member ? (
-                <span className="rounded-full bg-ink/5 px-3.5 py-1.5 text-[12.5px] font-semibold text-muted">Joined</span>
-              ) : c.has_invite ? (
-                <button onClick={() => join(c)} className="rounded-full bg-ink px-3.5 py-1.5 text-[12.5px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90">Accept invite</button>
-              ) : c.has_pending ? (
-                <span className="rounded-full bg-ink/5 px-3.5 py-1.5 text-[12.5px] font-semibold text-muted">Requested</span>
-              ) : c.join_mode === "invite" ? (
-                <span className="rounded-full bg-ink/5 px-3 py-1.5 text-[12px] font-semibold text-muted">Invite only</span>
-              ) : me ? (
-                <button onClick={() => join(c)} className="rounded-full bg-ink px-3.5 py-1.5 text-[12.5px] font-semibold text-white transition-opacity duration-[140ms] hover:opacity-90">{c.join_mode === "approval" ? "Request" : "Join"}</button>
-              ) : null}
-            </li>
-          ))}
-        </ul>
-      )}
-      <SocialPageFooter {...page} />
-      {creating ? (
-        <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/45 sm:items-center" onClick={() => setCreating(false)}>
-          <div className="max-h-[88vh] w-full max-w-[460px] overflow-y-auto rounded-t-2xl bg-white p-4 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
-            <div className="mb-3 flex items-center justify-between">
-              <p className="text-[15px] font-semibold text-ink">New community</p>
-              <button onClick={() => setCreating(false)} className="rounded-full p-1.5 text-muted transition-colors duration-[140ms] hover:bg-black/5" aria-label="Close"><X size={16} /></button>
-            </div>
-            <input value={gName} onChange={e => setGName(e.target.value)} maxLength={60} placeholder="Community name"
-              className="mb-2 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
-            <input value={gDesc} onChange={e => setGDesc(e.target.value)} maxLength={200} placeholder="What is it about? (optional)"
-              className="mb-3 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
-            <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted">Who can join</p>
-            <div className="mb-3 flex gap-2">
-              {(["open", "approval", "invite"] as const).map(k => (
-                <button key={k} onClick={() => setGMode(k)}
-                  className={"flex-1 rounded-lg border px-2 py-2 text-[12.5px] font-semibold transition-colors duration-[140ms] " + (gMode === k ? "border-ink bg-black/[0.03] text-ink" : "border-ink/10 text-ink/60")}>
-                  {k === "open" ? "Open" : k === "approval" ? "Approval" : "Invite only"}
-                </button>
-              ))}
-            </div>
-            <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted">Category</p>
-            <div className="mb-3 flex flex-wrap gap-1.5">
-              {CATEGORIES.map(c => (
-                <button key={c.key} onClick={() => setGCat(gCat === c.key ? null : c.key)}
-                  className={"rounded-full border px-2.5 py-1 text-[12px] font-semibold transition-colors duration-[140ms] " + (gCat === c.key ? "border-ink bg-ink text-white" : "border-ink/10 text-ink/60")}>
-                  {c.label}
-                </button>
-              ))}
-            </div>
-            <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted">Cover color</p>
-            <div className="mb-3 flex flex-wrap gap-2">
-              {Object.entries(COMM_COLORS).map(([k, v]) => (
-                <button key={k} onClick={() => setGColor(k)} aria-label={k}
-                  className={"h-8 w-8 rounded-full border-2 transition-colors duration-[140ms] " + (gColor === k ? "border-ink" : "border-transparent")} style={{ background: v }} />
-              ))}
-            </div>
-            <textarea value={gRules} onChange={e => setGRules(e.target.value)} maxLength={600} placeholder="Rules shown to people when they join (optional)"
-              className="mb-4 h-20 w-full rounded-lg border border-ink/15 px-3 py-2 text-[13.5px] text-ink outline-none transition-colors duration-[140ms] focus:border-ink/40" />
-            {actionError ? <p role="alert" className="mb-2 text-sm text-danger">{actionError}</p> : null}
-            <button onClick={create} disabled={!gName.trim() || busy}
-              className="w-full rounded-full bg-ink py-2.5 text-sm font-bold text-white transition-opacity duration-[140ms] hover:opacity-90 disabled:opacity-40">
-              {busy ? "Creating\u2026" : "Create community"}
-            </button>
-          </div>
-        </div>
-      ) : null}
-    </main>
-  );
+  return <section className={styles.directory}>
+    <header className={styles.heading}><div><h1>Communities</h1><p>Find your people. Make room for a shared interest.</p></div>{me ? <button className={styles.primary} onClick={() => { setActionError(null); setCreating(true); }}><Plus size={18} aria-hidden />New community</button> : <Link href="/login" className={styles.button}>Sign in to join</Link>}</header>
+    <nav className={styles.tabs} aria-label="Circles"><Link href="/communities" aria-current="page"><Users size={17} aria-hidden />Communities</Link><Link href="/channels"><Radio size={17} aria-hidden />Channels</Link></nav>
+    <div className={styles.toolbar}><div className={styles.search}><Search size={18} aria-hidden /><input value={q} onChange={event => setQ(event.target.value)} aria-label="Search communities" placeholder="Search communities by name or interest" />{q ? <button onClick={() => setQ('')} aria-label="Clear community search"><X size={17} aria-hidden /></button> : null}</div><span className={styles.hint}>Conversations, ideas and shared experiences.</span></div>
+    {actionError && !creating ? <p role="alert" className={styles.error}>{actionError}</p> : null}
+    {loading && rows.length === 0 ? <p role="status" className={styles.empty}>Loading communities…</p> : !rows.length && !page.error ? <section className={styles.empty}><Users size={30} strokeWidth={1.5} aria-hidden /><h2>{q ? 'No communities found' : 'A place for your people'}</h2><p>{q ? 'Try another name or interest, or clear your search to explore.' : 'Start a community around the things you care about.'}</p>{q ? <button className={styles.button} onClick={() => setQ('')}>Clear search</button> : me ? <button className={styles.primary} onClick={() => setCreating(true)}>Create a community</button> : null}</section> : <ul className={styles.list}>
+      {rows.map(c => <li key={c.id} className={styles.card}><Link href={'/communities/' + c.id} className={styles.cardLink}>{c.icon_url ? <NextImage unoptimized width={70} height={70} src={c.icon_url} alt="" className={styles.icon} /> : <span className={styles.icon} style={{ background: COMM_COLORS[c.cover_color] || COMM_COLORS.sky, color: '#14213a' }}><Users size={27} strokeWidth={1.5} aria-hidden /></span>}<div><h2>{c.name}</h2><span className={styles.meta}>{Number.isFinite(c.member_count) ? c.member_count.toLocaleString() : '—'} {c.member_count === 1 ? 'member' : 'members'}{catLabel(c.category) ? ' · ' + catLabel(c.category) : ''}</span>{c.description ? <p>{c.description}</p> : null}</div></Link>{c.is_member ? <span className={styles.status}><Check size={14} aria-hidden />Joined</span> : c.has_pending ? <span className={styles.status}>Requested</span> : c.join_mode === 'invite' && !c.has_invite ? <span className={styles.status}>Invite only</span> : me ? <button className={styles.button} disabled={!!joining} onClick={() => void join(c)} aria-label={`${c.has_invite ? 'Accept invitation to' : c.join_mode === 'approval' ? 'Request to join' : 'Join'} ${c.name}`}>{joining === c.id ? 'Joining…' : c.has_invite ? 'Accept invite' : c.join_mode === 'approval' ? 'Request to join' : 'Join community'}</button> : null}</li>)}
+    </ul>}
+    <SocialPageFooter {...page} />
+    <ProductDialog open={creating} title="New community" description="Choose the purpose and who can join. Your draft stays here when you close this window." busy={busy} onClose={() => setCreating(false)}>
+      <form className={styles.form} onSubmit={event => { event.preventDefault(); void create(); }}>
+        <label>Community name<input autoFocus required disabled={busy} value={gName} onChange={event => setGName(event.target.value)} maxLength={60} placeholder="Give your community a name" /></label>
+        <label>About this community<textarea disabled={busy} value={gDesc} onChange={event => setGDesc(event.target.value)} maxLength={200} placeholder="What brings everyone together?" /><small>{gDesc.length}/200 characters · optional</small></label>
+        <fieldset disabled={busy}><legend>Who can join</legend><div className={styles.choices}>{(['open', 'approval', 'invite'] as const).map(mode => <button type="button" key={mode} aria-pressed={gMode === mode} onClick={() => setGMode(mode)}>{mode === 'open' ? 'Open to everyone' : mode === 'approval' ? 'Approval required' : 'Invite only'}</button>)}</div></fieldset>
+        <label>Category<select disabled={busy} value={gCat ?? ''} onChange={event => setGCat(event.target.value || null)}><option value="">Choose a category (optional)</option>{CATEGORIES.map(category => <option key={category.key} value={category.key}>{category.label}</option>)}</select></label>
+        <fieldset disabled={busy}><legend>Cover color</legend><div className={styles.colors}>{Object.entries(COMM_COLORS).map(([key, color]) => <button type="button" key={key} onClick={() => setGColor(key)} aria-label={`${key} cover`} aria-pressed={gColor === key} style={{ background: color }}>{gColor === key ? <Check size={18} aria-hidden /> : null}</button>)}</div></fieldset>
+        <label>Community rules<textarea disabled={busy} value={gRules} onChange={event => setGRules(event.target.value)} maxLength={600} placeholder="Help people understand how to take part." /><small>Shown to people before they join · optional</small></label>
+        {actionError ? <p role="alert" className={styles.error}>{actionError}</p> : null}
+        <footer className={styles.footer}><button type="button" className={styles.button} disabled={busy} onClick={() => setCreating(false)}>Cancel</button><button type="submit" disabled={!gName.trim() || busy} className={styles.primary}>{busy ? 'Creating…' : 'Create community'}</button></footer>
+      </form>
+    </ProductDialog>
+  </section>;
 }

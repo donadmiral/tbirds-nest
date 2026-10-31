@@ -1,4 +1,5 @@
 'use client';
+import Image from 'next/image';
 import CommandForm from '@/components/CommandForm';
 import PermissionGate from '@/components/PermissionGate';
 import { canPerform } from '@/lib/permissions';
@@ -8,13 +9,14 @@ import Link from 'next/link';
 import Seal from '@/components/Seal';
 import { suspendUser, restoreUser, revokeVerification, issueStrike, adminDeleteAccount } from '@/lib/actions';
 
-type Row = {
+export type UserDirectoryRow = {
   id: string; full_name: string | null; username: string | null; email: string | null;
   avatar_url: string | null; account_type: string | null; is_verified: boolean;
   verified_tier: string | null; verified_category: string | null; created_at: string;
   deactivated_at: string | null; suspended_reason: string | null; restricted_until: string | null;
   followers: number; following: number; strikes: number;
 };
+type Row = UserDirectoryRow;
 
 function standing(u: Row): { label: string; cls: string } {
   if (u.deactivated_at) return { label: 'Suspended', cls: 'bg-[#FBF0F0] text-[#B03A3A]' };
@@ -24,7 +26,7 @@ function standing(u: Row): { label: string; cls: string } {
 
 export default function UsersDesk({ rows, appeals, role }: { role: string; rows: Row[]; appeals: { id: string; user_id: string; subject: string; created_at: string }[] }) {
   const [tab, setTab] = useState<'all' | 'verified' | 'restricted' | 'suspended' | 'appeals'>('all');
-  const [selected, setSelected] = useState<Row | null>(rows[0] ?? null);
+  const [selectedId, setSelectedId] = useState<string | null>(rows[0]?.id ?? null);
   const [strikeOpen, setStrikeOpen] = useState(false);
 
   const appealUserIds = new Set(appeals.map(a => a.user_id));
@@ -35,6 +37,7 @@ export default function UsersDesk({ rows, appeals, role }: { role: string; rows:
     if (tab === 'appeals') return appealUserIds.has(u.id);
     return true;
   });
+  const selected = filtered.find(user => user.id === selectedId) ?? filtered[0] ?? null;
 
   const tabs: { key: typeof tab; label: string; count: number }[] = [
     { key: 'all', label: 'All members', count: rows.length },
@@ -45,11 +48,11 @@ export default function UsersDesk({ rows, appeals, role }: { role: string; rows:
   ];
 
   return (
-    <div className="grid gap-4 lg:grid-cols-5">
+    <div className="pc-member-desk grid gap-5 lg:grid-cols-5">
       <div className="lg:col-span-3 overflow-hidden rounded-[14px] border border-[#E5E4E0] bg-white">
         <div className="flex gap-1 overflow-x-auto border-b border-[#F0EFEC] px-3 pt-2">
           {tabs.map(t => (
-            <button key={t.key} onClick={() => setTab(t.key)}
+            <button key={t.key} type="button" aria-pressed={tab === t.key} onClick={() => { setTab(t.key); setStrikeOpen(false); }}
               className={'shrink-0 rounded-t-[9px] px-3 py-2 text-[12.5px] font-semibold transition-colors duration-150 ' + (tab === t.key ? 'border-b-2 border-[#17181C] text-[#17181C]' : 'text-[#9A9DA4] hover:text-[#17181C]')}>
               {t.label} <span className="tabular-nums">{t.count}</span>
             </button>
@@ -71,11 +74,16 @@ export default function UsersDesk({ rows, appeals, role }: { role: string; rows:
             ) : filtered.map(u => {
               const s = standing(u);
               return (
-                <tr key={u.id} onClick={() => { setSelected(u); setStrikeOpen(false); }}
+                <tr key={u.id} tabIndex={0} aria-selected={selected?.id === u.id} onClick={() => { setSelectedId(u.id); setStrikeOpen(false); }}
+                  onKeyDown={event => {
+                    if (event.target !== event.currentTarget) return;
+                    if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setSelectedId(u.id); setStrikeOpen(false); }
+                    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') { event.preventDefault(); const row = event.key === 'ArrowDown' ? event.currentTarget.nextElementSibling : event.currentTarget.previousElementSibling; if (row instanceof HTMLElement) row.focus(); }
+                  }}
                   className={'cursor-pointer border-t border-[#F0EFEC] transition-colors duration-150 hover:bg-[#FAFAF9] ' + (selected?.id === u.id ? 'bg-[#FAFAF9]' : '')}>
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-2.5">
-                      {u.avatar_url ? <img src={u.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
+                      {u.avatar_url ? <Image unoptimized width={32} height={32} src={u.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
                         : <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#17181C]/10 text-[11px] font-bold text-[#17181C]">{String(u.full_name || '?').slice(0, 1)}</span>}
                       <span className="min-w-0">
                         <span className="flex items-center gap-1 truncate font-semibold text-[#17181C]">{u.full_name || 'Unnamed'}{(u.verified_tier || u.is_verified) ? <Seal tier={u.verified_tier || 'business'} size={12} /> : null}</span>
@@ -98,9 +106,9 @@ export default function UsersDesk({ rows, appeals, role }: { role: string; rows:
         {!selected ? (
           <div className="rounded-[14px] border border-[#E5E4E0] bg-white p-10 text-center text-[13px] text-[#9A9DA4]">Select a member</div>
         ) : (
-          <div className="rounded-[14px] border border-[#E5E4E0] bg-white p-5">
+          <div key={selected.id} className="rounded-[14px] border border-[#E5E4E0] bg-white p-5" role="region" aria-label="Selected member details">
             <div className="flex items-center gap-3">
-              {selected.avatar_url ? <img src={selected.avatar_url} alt="" className="h-12 w-12 rounded-full object-cover" />
+              {selected.avatar_url ? <Image unoptimized width={48} height={48} src={selected.avatar_url} alt="" className="h-12 w-12 rounded-full object-cover" />
                 : <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#17181C]/10 text-[15px] font-bold text-[#17181C]">{String(selected.full_name || '?').slice(0, 1)}</span>}
               <div className="min-w-0">
                 <p className="flex items-center gap-1 truncate text-[14.5px] font-semibold text-[#17181C]">{selected.full_name || 'Unnamed'}{(selected.verified_tier || selected.is_verified) ? <Seal tier={selected.verified_tier || 'business'} size={14} /> : null}</p>
@@ -142,33 +150,33 @@ export default function UsersDesk({ rows, appeals, role }: { role: string; rows:
             {strikeOpen && !selected.deactivated_at ? (
               <PermissionGate role={role} permission="user_moderate"><CommandForm scope="issueStrike" action={issueStrike} className="mt-3 flex flex-col gap-2 rounded-[10px] border border-[#E5E4E0] p-3">
                 <input type="hidden" name="uid" value={selected.id} />
-                <select name="level" required className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1.5 text-[12.5px] text-[#17181C] outline-none">
+                <select name="level" aria-label="Account action" required className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1.5 text-[12.5px] text-[#17181C] outline-none">
                   <option value="warn">Warn</option>
                   <option value="restrict">Restrict posting</option>
                   <option value="suspend">Suspend</option>
                   <option value="ban">Ban</option>
                 </select>
-                <input name="days" type="number" min="1" placeholder="Days (restrict only)" className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1.5 text-[12.5px] outline-none" />
-                <input name="reason" required placeholder="Reason (required)" className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1.5 text-[12.5px] outline-none" />
+                <input name="days" aria-label="Restriction length in days" type="number" min="1" placeholder="Days (restrict only)" className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1.5 text-[12.5px] outline-none" />
+                <input name="reason" aria-label="Account action reason" required placeholder="Reason (required)" className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1.5 text-[12.5px] outline-none" />
                 <button className="rounded-[8px] bg-[#B03A3A] px-3 py-1.5 text-[12.5px] font-bold text-white transition-opacity duration-150 hover:opacity-90">Confirm strike</button>
               </CommandForm></PermissionGate>
             ) : null}
 
             {!selected.deactivated_at && !strikeOpen ? (
               <>
-              <details hidden={!canPerform(role, 'account_delete')} className="mt-4 rounded-[10px] border border-[#F3C9C9] bg-[#FFF7F7] p-3">
+              <details hidden={!canPerform(role, 'account_delete')} className="mt-4 rounded-[10px] border border-[#F3C9C9] bg-[rgba(var(--bad-rgb),0.06)] p-3">
                 <summary className="cursor-pointer text-[12.5px] font-bold text-[#B03A3A]">Request account deletion</summary>
-                <p className="mt-2 text-[12px] text-[#6B6E76]">Immediately disables sign-in and queues deletion review. Payment, order and audit history is retained while obligations are checked. This does not claim that erasure is complete.</p>
+                <p className="mt-2 text-[12px] text-[var(--txt-muted)]">Immediately disables sign-in and queues deletion review. Payment, order and audit history is retained while obligations are checked. This does not claim that erasure is complete.</p>
                 <PermissionGate role={role} permission="account_delete"><CommandForm scope="adminDeleteAccount" action={adminDeleteAccount} className="mt-2 flex flex-col gap-2">
                   <input type="hidden" name="id" value={selected.id} />
-                  <input name="reason" required placeholder="Reason (required, kept in the audit log)" className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1.5 text-[12.5px] outline-none" />
-                  <input name="confirm" required placeholder="Type DELETE to confirm" className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1.5 text-[12.5px] outline-none" />
-                  <button className="self-start rounded-[9px] bg-[#B03A3A] px-3.5 py-2 text-[12px] font-bold text-white transition-colors duration-150 hover:bg-[#8F2E2E]">Disable and request deletion</button>
+                  <input name="reason" aria-label="Deletion review reason" required placeholder="Reason (required, kept in the audit log)" className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1.5 text-[12.5px] outline-none" />
+                  <input name="confirm" aria-label="Type DELETE to confirm" required pattern="DELETE" placeholder="Type DELETE to confirm" className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1.5 text-[12.5px] outline-none" />
+                  <button className="self-start rounded-[9px] bg-[#B03A3A] px-3.5 py-2 text-[12px] font-bold text-white transition-colors duration-150 hover:bg-[var(--alert)]">Disable and request deletion</button>
                 </CommandForm></PermissionGate>
               </details>
               <PermissionGate role={role} permission="user_moderate"><CommandForm scope="suspendUser" action={suspendUser} className="mt-3 flex flex-col gap-2">
                 <input type="hidden" name="id" value={selected.id} />
-                <input name="reason" required placeholder="Suspension reason (required)" className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1.5 text-[12.5px] outline-none" />
+                <input name="reason" aria-label="Suspension reason" required placeholder="Suspension reason (required)" className="rounded-[8px] border border-[#E5E4E0] px-2.5 py-1.5 text-[12.5px] outline-none" />
                 <button className="self-start rounded-[9px] border border-[#F3C9C9] bg-[#FBF0F0] px-3.5 py-2 text-[12px] font-bold text-[#B03A3A] transition-colors duration-150 hover:bg-[#F8E4E4]">Suspend account</button>
               </CommandForm></PermissionGate>
               </>

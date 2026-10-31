@@ -1,0 +1,90 @@
+{
+  "measuredAt": "2026-10-31T04:33:57.863408+00:00",
+  "baseCommit": "26e80ae96647884e7f2764bdbb1884fd5aabcff5",
+  "observedFailure": "ios-full-app-341395c6-failure.json",
+  "evidence": {
+    "runtime": "Actual iPhone Simulator Home sign-in logs show Expo SecureStore account save/index calls failing with missing entitlement.",
+    "installedExpoSource": "node_modules/expo-secure-store/ios/SecureStoreModule.swift uses SecItemAdd with default access group unless callers supply one; src/stores/accountsStore.ts supplies none.",
+    "baselineBuild": "CODE_SIGNING_ALLOWED=NO and empty CODE_SIGN_IDENTITY; build log declares ENTITLEMENTS_DESTINATION=__entitlements and has no ProductPackaging simulated entitlement step.",
+    "baselineBinaryEntitlementsInspected": false
+  },
+  "primarySources": [
+    {
+      "url": "https://raw.githubusercontent.com/apple-oss-distributions/Security/db15acbe6a7f257a859ad9a3bb86097bfe0679d9/sectask/SecTask.c",
+      "sha256": "e0946d82714960201144a92dee269a482cf0b516ad30760e1237c7e1db0c7a26"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/swiftlang/swift-build/0d155c394d89ac27375a857b0e725211ae876812/Sources/SWBCore/SpecImplementations/Tools/ProductPackaging.swift",
+      "sha256": "b0be4244b018e07d81c0b6d17ff70c5ba6af631bedc6597549633c8fcafe5c61"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/swiftlang/swift-build/0d155c394d89ac27375a857b0e725211ae876812/Sources/SWBTaskExecution/TaskActions/ProcessProductEntitlementsTaskAction.swift",
+      "sha256": "145067272e78132a9f691244faee21a19edfb75b56fb83edc952beab81fb17dc"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/swiftlang/swift-build/0d155c394d89ac27375a857b0e725211ae876812/Tests/SWBBuildSystemTests/EntitlementsBuildOperationTests.swift",
+      "sha256": "ee7d8c802b37416653943aa1b3270b77f4e448c854777481a799c2627aeea99a"
+    },
+    {
+      "url": "https://developer.apple.com/documentation/security/sharing-access-to-keychain-items-among-a-collection-of-apps",
+      "finding": "Application identity forms the default keychain access group when no explicit keychain group is set."
+    }
+  ],
+  "repair": {
+    "scope": "Disposable Intel iPhone Simulator QA workflow only",
+    "xcodeFlags": {
+      "CODE_SIGNING_ALLOWED": "YES",
+      "CODE_SIGNING_REQUIRED": "NO",
+      "CODE_SIGN_IDENTITY": "-"
+    },
+    "generatedApplicationIdentity": "Read from actual compiled QA Mach-O; not invented or copied from a user account.",
+    "hostSigning": "Existing deep plain ad-hoc sign retained; no iOS application/keychain entitlements injected into host signature.",
+    "verification": [
+      "Confirm QA bundle identifier, iPhoneSimulator platform and thin x86_64 Mach-O.",
+      "Decode embedded __TEXT,__entitlements XML; require resolved QA application identifier and valid optional keychain groups.",
+      "Require nonempty __TEXT,__ents_der section; retain bytes/hash without claiming independent DER semantic decode.",
+      "Retain before/after embedded and host entitlement metadata; require identical embedded sections after ad-hoc signing.",
+      "Require Signature=adhoc and successful deep strict codesign verification; host entitlement keys limited to debug access.",
+      "Full-app verifier rejects caught account save/index failures and requires a successful one-account index save.",
+      "After real navigation reaches the existing QA capture route, call unchanged accountsStore.init to read its index/account from SecureStore. Compare reloaded/current synthetic session only in memory; require a passed/reloaded/count-only fixture receipt and a semantic Maestro assertion."
+    ]
+  },
+  "localVerification": {
+    "pythonReaderTests": 9,
+    "actualShellSigningBlockCases": 5,
+    "runtimeLogGuardCases": 3,
+    "focusedNodeSuitePassed": 52,
+    "bashSyntaxPassed": true,
+    "rootTypeScriptPassed": true,
+    "tabComponentLintPassed": true,
+    "actualAccountStoreReadbackCases": 6,
+    "nodeBreakdown": {
+      "actualAccountStoreReadback": 6,
+      "authTimingDiagnostics": 15,
+      "simulatorReaderWrapperAndActualSigningBlock": 6,
+      "tabGeometryAndBehavior": 12,
+      "nativeFixtureContracts": 10,
+      "runtimeLogAndReadbackGate": 3
+    },
+    "pythonReaderTestsAreInvokedByOneNodeWrapperCase": true
+  },
+  "sourceHashes": {
+    "scripts/quality/test-ios-app-ui.sh": "f127d3c3d8d1c558d1c43196410b923e687a58eb348d52abd3517b262f5e83e7",
+    "scripts/quality/native-ui-ios-entitlements.py": "ebec3f0271afaecb372710a2bdc6aa4eb43eec00c736a4923aaed0c317c1f65b",
+    "scripts/quality/prepare-native-ui.cjs": "f12f6d6cba9066e0caf98f4b67d0a93730021a20aa4328f800e14152e79b44af",
+    "scripts/quality/verify-native-ui.cjs": "9ef176d0aeb42e1505d19b5ff49e93042f48f102c9867dc331897a81bc13bbd8",
+    "tests/native/test_simulator_entitlements.py": "807370d2980e90a2558fb74728fbe2400b0c60da05d498020ed602bee8018e41",
+    "tests/quality/native-simulator-entitlements.cjs": "408f6e9725a87bcab3b562abea30dbb5acaec5199c5321e3d79c24a228ac81ac",
+    "tests/quality/native-ui-runtime-diagnostics.cjs": "954c322808f72b77a4383c133edcfe191dade219f9326ddef67cc8255ac8cf5a",
+    "tests/native/account-readback.cjs": "32f49dba2d807f4db7e63a8474c1d5b1e429d05efe90f343c25a12b1aca3ab19",
+    "tests/native/backend-fixture.cjs": "854cbd355bc8e02736997027fce630e22e298a62a3e1bcfb372d0648f0cf2eb9",
+    "tests/native/MemoryCaptureFixtureScreen.tsx": "2733bae6355e06851454cab5e73e7579bff585b23de5aa2b8259acae7f68de2d",
+    "tests/native/flows/memory-capture.yaml": "16966925346646f2280ca0ebdea7ce0c5f2e131d03e9dec3841c69a761f0ba91",
+    "tests/quality/native-account-readback.cjs": "e29c9448c6725e996ad71ccc0b9175c578a69d5011d10dd0ddd6de3912613856"
+  },
+  "limits": [
+    "Local parser tests use synthetic Mach-O/plist fixtures, not macOS signing or a live keychain.",
+    "The next full iPhone Simulator build must prove Xcode local signing, embedded identity, launch and actual account persistence.",
+    "No Apple account access, profile download, physical-device signing or production entitlement change."
+  ]
+}

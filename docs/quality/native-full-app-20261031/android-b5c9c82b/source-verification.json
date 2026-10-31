@@ -1,0 +1,29 @@
+{
+  "head": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+  "merge": "cddbe51a25efbb39b9e91fb822a9821957b9a2bd",
+  "tree": "d72a8c25e7b9e8890d3520a0c825a6175aecf3c6",
+  "workflowRun": "41218724056",
+  "originalSourceCount": 498,
+  "allOriginalHashesMatchPublishedGitBlobs": true,
+  "overlaysVerified": [
+    "src/services/supabase.ts",
+    "modules/boomerang/ios/BoomerangModule.swift",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt",
+    "src/navigation/AppNavigator.tsx",
+    "metro.config.js",
+    "index.js"
+  ],
+  "installedDependencyFilesVerified": [
+    "@supabase/supabase-js/package.json",
+    "@supabase/supabase-js/dist/index.cjs",
+    "@supabase/supabase-js/dist/index.mjs",
+    "@supabase/auth-js/package.json",
+    "@supabase/auth-js/src/lib/locks.ts",
+    "@supabase/auth-js/dist/main/index.js",
+    "@supabase/auth-js/dist/module/index.js",
+    "@supabase/auth-js/dist/main/lib/locks.js",
+    "@supabase/auth-js/dist/module/lib/locks.js"
+  ],
+  "sourceMemoryCapability": 0,
+  "sourceManifestSha256": "47d327e6ce2e5d44800be93a2173ff9f90e79e07b48a80f1100250f5a4e26102"
+}

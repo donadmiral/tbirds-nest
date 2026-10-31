@@ -1,5 +1,7 @@
 "use client";
 
+import { errorMessage } from "@/lib/errors";
+
 import { StudioLoadError } from "../LoadError";
 
 import { StudioRailPortal } from "@/components/StudioRailPortal";
@@ -13,6 +15,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useStudioLive } from "@/lib/studioLive";
 import { can, deleteReply, getAutoReplies, listReplies, setAutoReplies, upsertReply, type AutoReplies, type SavedReply } from "@/lib/studio";
 import { useStudio } from "@/components/StudioShell";
+import { withTimeout } from "@/lib/withTimeout";
 
 type Item = {
   kind: "dm" | "offer" | "applicant" | "review"; id: string; ref: string; title: string; username: string | null; avatar_url: string | null;
@@ -24,8 +27,8 @@ const LABELS = ["lead", "customer", "vip", "urgent", "follow up", "spam"];
 const KIND_ICON = { dm: MessageCircle, offer: Tag, applicant: Briefcase, review: Star } as const;
 
 export default function InboxPage() {
-  const { me } = useStudio();
-  const supabase = useRef(createClient()).current;
+  const { me, accountId } = useStudio();
+  const [supabase] = useState(createClient);
   const canInbox = can(me?.role ?? null, "inbox") || can(me?.role ?? null, "recruit");
   const [items, setItems] = useState<Item[]>([]);
   const [team, setTeam] = useState<Member[]>([]);
@@ -42,77 +45,97 @@ export default function InboxPage() {
   const [saving, setSaving] = useState(false);
   const [noteFor, setNoteFor] = useState<string | null>(null);
   const [noteText, setNoteText] = useState("");
+  const mounted = useRef(true);
+  const savingLock = useRef(false);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
 
-  const load = useCallback(async () => {
+  const load = useCallback(() => {
     const version = ++loadVersion.current;
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.rpc("studio_inbox", { p_filter: filter, p_limit: 120 });
+    return withTimeout(supabase.rpc("studio_inbox", { p_filter: filter, p_limit: 120 })).then(({ data, error }) => {
       if (error) throw error;
       if (version !== loadVersion.current) return;
       setItems((data as Item[]) ?? []);
       setLoaded(true); setLoadError(null);
-    } catch {
+    }).catch(() => {
       if (version === loadVersion.current) setLoadError("Inbox could not be refreshed. Your last loaded data is unchanged.");
-    } finally { if (version === loadVersion.current) setLoading(false); }
+    }).finally(() => { if (version === loadVersion.current) setLoading(false); });
   }, [supabase, filter]);
-  useEffect(() => { void load(); return () => { loadVersion.current += 1; }; }, [load]);
+  useEffect(() => { const requests = loadVersion; void load(); return () => { requests.current += 1; }; }, [load]);
   useStudioLive(load);
   const [toolsError, setToolsError] = useState<string | null>(null);
-  const [toolsLoading, setToolsLoading] = useState(false);
+  const [toolsLoading, setToolsLoading] = useState(true);
   const failedTools = useRef(new Set(["team", "replies", "automations"]));
   const toolsPending = useRef(false);
-  const loadTools = useCallback(async () => {
+  const loadTools = useCallback(() => {
     if (toolsPending.current) return;
     toolsPending.current = true;
-    setToolsLoading(true);
-    try {
       // Retry only failed sections so a team-directory error cannot hide saved
       // replies or overwrite an automation draft the user is already editing.
-      await Promise.allSettled([
+      return Promise.allSettled([
         failedTools.current.has("team") ? (async () => {
-          const members = await supabase.rpc("studio_team");
+          const members = await withTimeout(supabase.rpc("studio_team"));
           if (members.error) throw members.error;
+          if (!mounted.current) return;
           setTeam((members.data as Member[]) ?? []); failedTools.current.delete("team");
         })() : Promise.resolve(),
-        failedTools.current.has("replies") ? listReplies().then(saved => { setReplies(saved); failedTools.current.delete("replies"); }) : Promise.resolve(),
-        failedTools.current.has("automations") ? getAutoReplies().then(automation => { setAuto(automation); failedTools.current.delete("automations"); }) : Promise.resolve(),
-      ]);
-      setToolsError(failedTools.current.size ? "Some inbox tools could not be loaded. Please try again." : null);
-    } finally { toolsPending.current = false; setToolsLoading(false); }
+        failedTools.current.has("replies") ? withTimeout(listReplies()).then(saved => { if (mounted.current) { setReplies(saved); failedTools.current.delete("replies"); } }) : Promise.resolve(),
+        failedTools.current.has("automations") ? withTimeout(getAutoReplies()).then(automation => { if (mounted.current) { setAuto(automation); failedTools.current.delete("automations"); } }) : Promise.resolve(),
+      ]).then(() => {
+        if (mounted.current) setToolsError(failedTools.current.size ? "Some inbox tools could not be loaded. Please try again." : null);
+      }).finally(() => { toolsPending.current = false; if (mounted.current) setToolsLoading(false); });
   }, [supabase]);
   useEffect(() => { void loadTools(); }, [loadTools]);
   const pendingThreads = useRef(new Set<string>());
+  const assertAccount = async () => {
+    const { data, error } = await supabase.auth.getSession();
+    if (!mounted.current || error || !accountId || data.session?.user.id !== accountId) throw new Error("Your account changed. Reopen Inbox before continuing.");
+  };
 
   const setState = async (it: Item, patch: { label?: string | null; assignee?: string | null; done?: boolean; note?: string | null }) => {
     if (pendingThreads.current.has(it.id)) return;
     pendingThreads.current.add(it.id);
     try {
+      await assertAccount();
       const { error } = await supabase.rpc("studio_set_thread", { p_conversation: it.id, p_label: patch.label ?? null, p_assignee: patch.assignee ?? null, p_done: patch.done ?? null, p_note: patch.note ?? null });
       if (error) throw error;
+      if (!mounted.current) return;
       setItems(prev => prev.map(x => x.id === it.id ? { ...x, ...patch } : x));
-    } catch { alert("This conversation could not be updated. Please try again."); }
+    } catch { if (mounted.current) alert("This conversation could not be updated. Please try again."); }
     finally { pendingThreads.current.delete(it.id); }
   };
 
   const respondOffer = async (it: Item, action: "accepted" | "declined") => {
-    const { error } = await supabase.rpc("respond_offer", { p_offer_id: it.id, p_action: action, p_counter_amount: null });
-    if (error) { alert(error.message); return; }
-    setItems(prev => prev.filter(x => x.id !== it.id));
+    if (pendingThreads.current.has(it.id)) return;
+    pendingThreads.current.add(it.id);
+    try {
+      await assertAccount();
+      const { error } = await supabase.rpc("respond_offer", { p_offer_id: it.id, p_action: action, p_counter_amount: null });
+      if (error) throw error;
+      if (mounted.current) setItems(prev => prev.filter(x => x.id !== it.id));
+    } catch (error: unknown) { if (mounted.current) alert(errorMessage(error, "The offer response was not confirmed. Refresh before retrying.")); }
+    finally { pendingThreads.current.delete(it.id); }
   };
 
   const saveReply = async () => {
-    if (!newReply.body.trim() || saving) return;
+    if (!newReply.body.trim() || savingLock.current) return;
+    savingLock.current = true;
     setSaving(true);
-    try { await upsertReply({ shortcut: newReply.shortcut || newReply.title, title: newReply.title || newReply.shortcut, body: newReply.body }); setNewReply({ shortcut: "", title: "", body: "" }); setReplies(await listReplies()); }
-    catch (e: any) { alert(e?.message || "Could not save."); }
-    finally { setSaving(false); }
+    try { await assertAccount(); await upsertReply({ shortcut: newReply.shortcut || newReply.title, title: newReply.title || newReply.shortcut, body: newReply.body }); if (!mounted.current) return; setNewReply({ shortcut: "", title: "", body: "" }); const saved = await withTimeout(listReplies()); if (mounted.current) setReplies(saved); }
+    catch (e: unknown) { if (mounted.current) alert(errorMessage(e, "Could not save.")); }
+    finally { savingLock.current = false; if (mounted.current) setSaving(false); }
   };
-  const removeReply = async (r: SavedReply) => { try { await deleteReply(r.id); setReplies(prev => prev.filter(x => x.id !== r.id)); } catch { alert("The reply could not be deleted. Please try again."); } };
+  const removeReply = async (r: SavedReply) => {
+    if (pendingThreads.current.has(r.id)) return;
+    pendingThreads.current.add(r.id);
+    try { await assertAccount(); await deleteReply(r.id); if (mounted.current) setReplies(prev => prev.filter(x => x.id !== r.id)); }
+    catch { if (mounted.current) alert("The reply could not be deleted. Please try again."); }
+    finally { pendingThreads.current.delete(r.id); }
+  };
   const saveAuto = async () => {
-    if (!auto || saving) return;
+    if (!auto || savingLock.current) return;
+    savingLock.current = true;
     setSaving(true);
-    try { await setAutoReplies(auto); alert("Saved."); } catch (e: any) { alert(e?.message || "Could not save."); } finally { setSaving(false); }
+    try { await assertAccount(); await setAutoReplies(auto); if (mounted.current) alert("Saved."); } catch (e: unknown) { if (mounted.current) alert(errorMessage(e, "Could not save.")); } finally { savingLock.current = false; if (mounted.current) setSaving(false); }
   };
 
   const shown = items.filter(i => showDone || !i.done);
@@ -120,8 +143,8 @@ export default function InboxPage() {
 
   return (
     <div className="max-w-[960px]">
-      <StudioLoadError message={toolsError} retry={() => { void loadTools(); }} busy={toolsLoading} />
-      <StudioLoadError message={loadError} retry={() => { void load(); }} busy={loading} />
+      <StudioLoadError message={toolsError} retry={() => { setToolsLoading(true); void loadTools(); }} busy={toolsLoading} />
+      <StudioLoadError message={loadError} retry={() => { setLoading(true); void load(); }} busy={loading} />
       <StudioRailPortal>
         <>
           {items.length > 0 ? (
@@ -181,7 +204,7 @@ export default function InboxPage() {
         <>
           <div className="mt-4 flex flex-wrap items-center gap-2">
             {(["all", "dm", "offer", "applicant", "review"] as const).map(f => (
-              <button key={f} onClick={() => setFilter(f)} className={"rounded-full px-3 py-1.5 text-[12.5px] font-semibold " + (filter === f ? "bg-ink text-white" : "bg-surface text-ink/60")}>
+              <button key={f} onClick={() => { if (f !== filter) { setFilter(f); setLoading(true); setLoaded(false); setItems([]); setLoadError(null); } }} className={"rounded-full px-3 py-1.5 text-[12.5px] font-semibold " + (filter === f ? "bg-ink text-white" : "bg-surface text-ink/60")}>
                 {f === "all" ? "All" : f === "dm" ? "Messages" : f === "offer" ? "Offers" : f === "applicant" ? "Applicants" : "Reviews"}
               </button>
             ))}

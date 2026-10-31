@@ -11,19 +11,27 @@
  * Panels rendered here sit above the shared ones, so the desk-specific answer
  * comes first and the general actions stay where they always are.
  */
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 
 export const STUDIO_RAIL_SLOT = "studio-rail-slot";
 
-export function StudioRailPortal({ children }: { children: React.ReactNode }) {
-  const [host, setHost] = useState<HTMLElement | null>(null);
+const railHost = () => document.getElementById(STUDIO_RAIL_SLOT);
+const serverRailHost = () => null;
+function subscribeToRail(notify: () => void) {
+  let previous = railHost();
+  const observer = new MutationObserver(() => {
+    const next = railHost();
+    if (next !== previous) { previous = next; notify(); }
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+  return () => observer.disconnect();
+}
 
-  useEffect(() => {
-    // The slot only exists after the shell has mounted, so this runs on the
-    // client and re-checks on every navigation between desks.
-    setHost(document.getElementById(STUDIO_RAIL_SLOT));
-  }, []);
+export function StudioRailPortal({ children }: { children: React.ReactNode }) {
+  // The shell owns this external DOM node. Reconnect if navigation replaces it,
+  // including a delayed shell mount after authentication finishes.
+  const host = useSyncExternalStore(subscribeToRail, railHost, serverRailHost);
 
   if (!host) return null;
   return createPortal(children, host);

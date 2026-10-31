@@ -1,0 +1,156 @@
+{
+  "schemaVersion": 1,
+  "reviewedBy": "hosted_backend",
+  "reviewedAt": "2026-10-31T17:32:28.355809+00:00",
+  "status": "accepted_frozen_qa_candidate_native_compilation_and_observation_pending",
+  "publishedApplicationHead": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+  "scope": "Independent read-only source review of the five frozen QA URL-tracer paths and one execution of the new 23-case file. No production source, provider, authentication, workflow/ref, deadline or acceptance changes by this reviewer.",
+  "candidateSources": [
+    {
+      "path": "scripts/quality/native-ui-ios-url-trace.py",
+      "bytes": 7167,
+      "sha256": "fa37e06f5ee645af3fb29aae3f9e080cba24ab276480ac3a981731ee612fd885"
+    },
+    {
+      "path": "tests/quality/native-ios-url-trace.cjs",
+      "bytes": 12849,
+      "sha256": "44e412813aca0f7beae73a1c4959e0056aa9a28af0740ee9d49d6cb72bafb75f"
+    },
+    {
+      "path": "scripts/quality/test-ios-app-ui.sh",
+      "bytes": 6940,
+      "sha256": "44cd612cd01f9b2a01208682bc3edcc34288eca8c55079a6357d4469e2c0b1e1"
+    },
+    {
+      "path": "scripts/quality/prepare-native-ui.cjs",
+      "bytes": 7053,
+      "sha256": "f72312199ded22f09fcd818b2df01c300175660cbf87b723a08ad52bb7c334ad"
+    },
+    {
+      "path": "tests/quality/native-auth-diagnostics.cjs",
+      "bytes": 20053,
+      "sha256": "b929623457a05c3bd236754ecddbf4f70b6bdf850ab093761326d36fd593f808"
+    }
+  ],
+  "boundInputsUnchanged": true,
+  "scopeVerification": {
+    "iosRunnerDiff": "Exactly one helper invocation after successful Expo prebuild and before plist preparation/CocoaPods. Removing that line restores the published b5 runner byte for byte.",
+    "iosRunnerInsertionCount": 1,
+    "provenanceOnlyAdditionsAgainstPreviouslyReviewedMesaIntegration": [
+      {
+        "path": "scripts/quality/prepare-native-ui.cjs",
+        "urlHelperPathInsertions": 1,
+        "removingOnlyTheseInsertionsRestoresPriorReviewedSHA256": "3aaf404903272008f7f9479f21814981f58548df3366855b6382942af3ce2053"
+      },
+      {
+        "path": "tests/quality/native-auth-diagnostics.cjs",
+        "urlHelperPathInsertions": 2,
+        "removingOnlyTheseInsertionsRestoresPriorReviewedSHA256": "494fea44421e8e95f88f3b3c8eec1e464157650dc3eabcb5570c3084f407291c"
+      }
+    ],
+    "remainingIosBuildSigningFlowDecoderVerificationStatusCleanupBytesUnchanged": true
+  },
+  "conclusion": {
+    "blockingFindings": [],
+    "acceptedPurpose": "Observe entry to and return from the generated QA AppDelegate open-URL method, so a later native run can compare that boundary with the existing JS received/parsed/action/mounted/readback markers.",
+    "noCausalClaim": "No native URL-delivery timing or cause of the prior b5 delay is established by these local source/fixture tests."
+  },
+  "reviewFindings": [
+    {
+      "topic": "Original forwarding behavior",
+      "finding": "The helper requires one exact AppDelegate class anchor, one exact open-URL method/signature and one original forwarding line. It inserts the observation before the unchanged return expression: super.application(...) || RCTLinkingManager.application(...). Operand order, short-circuit evaluation and returned Bool are byte-preserved. Removing only added observer/import text exactly restores the entire original generated source."
+    },
+    {
+      "topic": "Entry and exit meaning",
+      "finding": "The entry marker precedes original forwarding. Swift defer emits the exit marker on return from that method; it does not await JS event handling, rewrite the URL, choose a different handler, schedule work, sleep, retry or call forwarding twice."
+    },
+    {
+      "topic": "Privacy and bound",
+      "finding": "Only the exact QA bundle and QA scheme qualify. A per-delegate counter admits at most 16 qualifying calls, producing at most 32 intended records. Log arguments are sequence, Foundation epoch milliseconds and a numeric exact-fixture-match flag; URL text, query/options, tokens, session data and environment values are not logged. The URL is inspected solely to compute the match Boolean."
+    },
+    {
+      "topic": "Preparation guards",
+      "finding": "The helper requires CI=true, app environment qa and the fixed synthetic transport-key sentinel. It accepts no path arguments. The fixed original-source manifest must bind the current nonempty GITHUB_SHA and GITHUB_RUN_ID and the exact helper SHA. Wrong/missing run, commit, helper hash, manifest shape, imports, method, forwarding or duplicate observer fail before generated-source mutation."
+    },
+    {
+      "topic": "Bounded disposable files",
+      "finding": "Source/helper reads are capped at 128 KiB and the manifest at 1 MiB. Preexisting symlinks are rejected, regular files checked, and evidence reuse refused. The fixed generated QA AppDelegate is replaced through an exclusive temporary file only after full before/after source copies have been retained. This is controlled CI preparation, not a general adversarial-filesystem API."
+    },
+    {
+      "topic": "Generated-source proof",
+      "finding": "The separate source-proof records current commit/run, helper and original-manifest hashes, full before/after hashes and sizes, the forwarding-expression hash, exact reversal, log bounds/fields and uncalibrated clock. Generated Swift is retained as .swift.txt. The new helper is included in original-source provenance before prebuild; existing six source overlays remain distinct."
+    },
+    {
+      "topic": "Build and gate behavior",
+      "finding": "The real shell under controlled tool fixtures reaches CocoaPods only after a valid patch. A changed method exits 2 before CocoaPods, while valid preparation preserves the injected pod failure exit 31. Existing compiler/signing/flow/media-decoder/verifier/status/cleanup logic and native acceptance deadlines are unchanged."
+    },
+    {
+      "topic": "Installed template integration",
+      "finding": "The tests execute the actual Python patcher against the installed Expo template, that template after the repository VoIP config-plugin AppDelegate callback, and an existing Foundation import. They restore and compare the entire original source, not only the forwarding line. The plugin dangerous filesystem mod and native build/provider programs are controlled test doubles."
+    }
+  ],
+  "independentExecution": {
+    "command": [
+      "env",
+      "-u",
+      "NODE_TEST_CONTEXT",
+      "node",
+      "--test",
+      "--test-isolation=none",
+      "--test-reporter=tap",
+      "tests/quality/native-ios-url-trace.cjs"
+    ],
+    "startedAt": "2026-10-31T17:31:18.034322+00:00",
+    "completedAt": "2026-10-31T17:31:18.943384+00:00",
+    "nodeVersion": "v24.22.1",
+    "pythonVersion": "Python 3.12.14",
+    "mode": "approved subprocess-enabled local execution; real patcher and shell, temporary fixtures and stubbed provider/build programs",
+    "exitCode": 0,
+    "counts": {
+      "tests": 23,
+      "pass": 23,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "reportedDurationMs": 865.373705,
+    "wallSeconds": 0.909068084001774,
+    "disjointCoverage": {
+      "fullOriginalSourcePreservationVariants": 3,
+      "boundedNumericObserverContract": 1,
+      "failClosedMutationGuardCases": 15,
+      "pathSymlinkRepeatApplicationCase": 1,
+      "preexistingEvidenceCase": 1,
+      "actualIosShellOrderingAndFailureCases": 2
+    },
+    "notRerun": [
+      "15 existing native-auth/provenance cases",
+      "renderer cases",
+      "host-diagnostic cases",
+      "combined static/provenance gate"
+    ]
+  },
+  "limits": [
+    "No Swift compiler, UIKit/Expo runtime, iPhone Simulator, physical device or native log stream was executed here. The next native CI build must confirm compilation and actual log delivery.",
+    "The 16-call/32-record contract is verified from emitted Swift and assumes normal serialized AppDelegate delivery. This is not an adversarial concurrent-caller stress test.",
+    "NSLog and Date observation add work. These markers diagnose ordering and boundary delay; they do not establish uninstrumented performance.",
+    "Foundation Date uses wall-clock epoch milliseconds, not a monotonic clock calibrated against Maestro, host logs or JS timestamps. Cross-clock differences require explicit qualification.",
+    "An exit marker establishes only return from the delegate method. It does not establish which short-circuit branch handled the URL or downstream JS/React completion.",
+    "Missing markers can reflect unobserved process/log coverage, exhausted bounded trace budget, a nonmatching scheme/bundle or no delegate call. Missing logs alone do not prove the operating system never delivered the URL.",
+    "File checks reject the tested preexisting symlinks and oversized inputs; no concurrent filesystem-race or hardlink-adversary guarantee is claimed for the trusted disposable checkout.",
+    "The original-source hash guard is preparation provenance, not a final signed-binary attestation. Actual generated before/after proof must be inspected from the future artifact."
+  ],
+  "retainedFiles": [
+    {
+      "path": "docs/quality/native-full-app-20261031/native-ios-url-trace-independent-review/focused-tests.tap",
+      "bytes": 5326,
+      "sha256": "fdc903c1a801fe29356e6c2c5c310834168d38a52fee190b626c7521ef2cd266"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-ios-url-trace-independent-review/execution.json",
+      "bytes": 2811,
+      "sha256": "68ece32b2d707fd2697796436144f1bf7028b3557653a61f615304b97a262b0d"
+    }
+  ]
+}

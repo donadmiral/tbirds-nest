@@ -1,0 +1,11 @@
+-- Read-only exact-state check for production and the existing QA instance.
+-- All booleans must be true. Cache count is observational, never a row export.
+select jsonb_build_object(
+ 'functionReady',(select md5(pg_get_functiondef(p.oid))='686178f5e0db6e4bf417d153a2bc585f' and pg_get_userbyid(p.proowner)='postgres' and coalesce(p.proacl::text,'') in('{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}','{postgres=X/postgres,=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}') from pg_proc p where p.oid=to_regprocedure('public.upsert_link_preview(text,text,text,text,text)')),
+ 'tableReady',exists(select 1 from pg_class c where c.oid='public.link_previews'::regclass and c.relrowsecurity and c.relacl::text='{postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres}') and (select array_agg(attname::text order by attnum) from pg_attribute where attrelid='public.link_previews'::regclass and attnum>0 and not attisdropped)=array['url','title','description','image_url','domain','fetched_at'] and not exists(select 1 from pg_attribute where attrelid='public.link_previews'::regclass and attnum>0 and not attisdropped and attacl is not null),
+ 'policyReady',not exists(select 1 from pg_policy where polrelid='public.link_previews'::regclass and(polname<>'link_previews_read' or polcmd<>'r' or pg_get_expr(polqual,polrelid) is distinct from 'true')) and exists(select 1 from pg_policy where polrelid='public.link_previews'::regclass and polname='link_previews_read' and polroles=array[(select oid from pg_roles where rolname='authenticated')]),
+ 'targetsAbsent',to_regnamespace('link_preview_service') is null and to_regprocedure('public.claim_link_preview_fetch(uuid)') is null and to_regprocedure('public.claim_link_preview_image(uuid)') is null and to_regprocedure('public.store_verified_link_preview(text,text,text,text,text,text)') is null,
+ 'authColumnReady',exists(select 1 from pg_attribute where attrelid='auth.users'::regclass and attname='banned_until' and atttypid='timestamptz'::regtype and not attisdropped),
+ 'serviceRoleReady',exists(select 1 from pg_roles where rolname='service_role' and rolbypassrls),
+ 'cacheRows',(select count(*) from public.link_previews)
+) preflight;

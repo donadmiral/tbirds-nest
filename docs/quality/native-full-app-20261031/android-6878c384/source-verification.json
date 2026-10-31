@@ -1,0 +1,47 @@
+{
+  "head": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+  "merge": "ba8d659c4b6172c1c4930cd6d348d627bdb1470f",
+  "tree": "bebc0e7bfa5a9a6b17e477a29b17fcd41c2ae27d",
+  "sourceManifestSHA256": "46316da9f904617b1c9f2ec5e56a65251795cf5c8d28b4bcaa8d2b3dcadbe2f3",
+  "exactSourceSetEntries": 496,
+  "allSourceHashesMatchPublishedGitBlobs": true,
+  "allSixRetainedOverlayBeforeAfterHashesMatch": true,
+  "installedDependencyFileChecks": [
+    {
+      "path": "node_modules/@supabase/supabase-js/package.json",
+      "sha256": "697dd1bfd66925a5b586c52e0324517979a6650c45bdba8e03014b197e87304e"
+    },
+    {
+      "path": "node_modules/@supabase/supabase-js/dist/index.cjs",
+      "sha256": "b8ab8bdba298f953d755556979998098309d4d3bface6628ff9b8afd0a96ca4b"
+    },
+    {
+      "path": "node_modules/@supabase/supabase-js/dist/index.mjs",
+      "sha256": "a5a16d1d34369ee35c55f3029c1db2ca3bca0c53eb217b1c649822c2f1fc2736"
+    },
+    {
+      "path": "node_modules/@supabase/auth-js/package.json",
+      "sha256": "35ad1a61ad02fb70467db0ae2238f3d8fd7009729be73207bacc8f3ac07e4b93"
+    },
+    {
+      "path": "node_modules/@supabase/auth-js/src/lib/locks.ts",
+      "sha256": "6d1ec3ee482d09c887d4212de582b13128af365a85f5b64893a25d09bc6c8668"
+    },
+    {
+      "path": "node_modules/@supabase/auth-js/dist/main/index.js",
+      "sha256": "a43ea0c523b8f4f8b8d59bc3b16b9ec9158cad05de53ffc92238fceb26d8bcfd"
+    },
+    {
+      "path": "node_modules/@supabase/auth-js/dist/module/index.js",
+      "sha256": "9be5694df0e46b33d4f3b7bb8bad0ecef05ce343a5734376d6b4c93a8233eba7"
+    },
+    {
+      "path": "node_modules/@supabase/auth-js/dist/main/lib/locks.js",
+      "sha256": "9891124da312e1c4ba73296c98dc018ba2532a856ea39248f0e951036892b4e0"
+    },
+    {
+      "path": "node_modules/@supabase/auth-js/dist/module/lib/locks.js",
+      "sha256": "bd308c17475037290c30f3c8455858368e3c0e170a156fb8361a71c7dc056c87"
+    }
+  ]
+}

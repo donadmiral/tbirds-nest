@@ -13,7 +13,7 @@ import { StudioRailPortal } from "@/components/StudioRailPortal";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Briefcase, Calendar, ExternalLink, FileText, MessageCircle, Phone, Plus, X } from "lucide-react";
+import { Briefcase, Calendar, ExternalLink, MessageCircle, Phone, Plus, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { can } from "@/lib/studio";
 import { useStudio } from "@/components/StudioShell";
@@ -39,7 +39,7 @@ const STAGE_LABEL = RECRUITER_STAGE_LABEL;
 export default function RecruiterPage() {
   const { me } = useStudio();
   const router = useRouter();
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const recruiter = can(me?.role ?? null, "recruit");
   const [jobs, setJobs] = useState<Job[]>([]);
   const [jobId, setJobId] = useState<string | null>(null);
@@ -121,10 +121,10 @@ export default function RecruiterPage() {
     } finally { if (current()) setLoadingApps(false); }
   }, [supabase, statusFilter]);
   useEffect(() => {
-    let live = true;
+    const pending = [jobsRequest, appsRequest]; let live = true;
     mounted.current = true;
     queueMicrotask(() => { if (live && recruiter) void loadJobs(); });
-    return () => { live = false; mounted.current = false; jobsRequest.current++; appsRequest.current++; };
+    return () => { live = false; mounted.current = false; pending.forEach(version => version.current++); };
   }, [recruiter, loadJobs]);
   useEffect(() => {
     let live = true;

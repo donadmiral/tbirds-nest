@@ -1,0 +1,13 @@
+{
+  "artifactMember": "build.log",
+  "bytes": 18261394,
+  "sha256": "13d184bd6aad84a0b1ac50488091e977ef5357d5e279f3164385a0b4b7ea5b9d",
+  "totalLines": 92727,
+  "matchingLines": [
+    {
+      "line": 92726,
+      "text": "** BUILD SUCCEEDED **"
+    }
+  ],
+  "limit": null
+}

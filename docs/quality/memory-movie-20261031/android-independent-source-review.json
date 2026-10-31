@@ -1,0 +1,40 @@
+{
+  "recordedAt": "2026-10-31T01:13:45.794815+00:00",
+  "reviewer": "music_completion",
+  "sourceReceipt": "docs/quality/memory-movie-20261031/android-candidate-local.json",
+  "sourceReceiptSha256": "c5925d9ceb2f785a8264edce71580ac7b9bb6a75e5b955d79f51995463d04201",
+  "sourceSha256": {
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": "fae09b8a1f02f9fbf4cf550e0a0553a60ec929a33308ee4d72272d1f388d0a23",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt": "cdeed895ec4b1d7e163098794391a4772c1e869f2d493b9bcf8329392de9a5c4",
+    "scripts/quality/android-story-export/build.gradle": "43d2e6d7df99ba6fb4c51870416b93271cd074a150728042acfb5580cfc0a0ad",
+    "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/StoryAudioExportTest.kt": "8838f9ec96b6d297bbaa2cb7e80d6399731b53331d2dda4de2de54becd8f21f6",
+    "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/MemoryMovieExportTest.kt": "bca3081091b35a17c77b16a8bde24183a33caa73ba4c10d90a43337c867ecb57",
+    "scripts/quality/test-android-story-audio.sh": "8b9aba3df62726b0f367348015b16aa831962416696712f822796d4a0e66cdff",
+    "scripts/quality/compile-android-native.sh": "d638f2dedd0026cd91b149354927899185cbdf4c55c3f3db7a1b61b566f6fbf7",
+    ".github/workflows/android-native-compile.yml": "b61803a86989169286d8af51814cb15a76329e070c5e000af46d328c1b796d84",
+    "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.gif": "fa09323d645946fc05e54d47d92c2d4171d67cbb93a4a9cc4225495cf00ae674",
+    "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.png": "296c54b04d0a9aa58171e9d22cff9b41b32a66116d3aa1d89bd67cd193082a77",
+    "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.webp": "417af2bcf554708ce2331d3c3558aa0148921e2231ab3e0b9e8989f6a19395f3",
+    "scripts/quality/android-story-export/src/androidTest/assets/memory-static.gif": "72d8dbe3283e3dbe380be331227f69cac8f86144e136fab17c320c43cd008ff9"
+  },
+  "checks": [
+    "Read the complete Memory engine, internal Story/effect extensions, Expo bridge,16-case memory harness and changes to the23 existing Story tests.",
+    "Independently matched all14 source/asset hashes and both packaged APK digests to the frozen local compile receipt.",
+    "Independently extracted exact16 memory and23 retained Story method names from current source and compared the ordered inventories.",
+    "Reviewed per-scene output clock offsets, pitch-preserving original audio, independent page audio, finite continuous book excerpts and gain-window continuity.",
+    "Reviewed private canonical source confinement, shared encoder reservation, cancellation/terminal settlement, byte/pixel/timeline bounds and cleanup.",
+    "Confirmed fixes for atomic monitor registration/rescheduling and shared unsupported-image markers/chunk ceilings.",
+    "Client normalizer now emits to the private cache root and copies the bounded result into its owned workspace, matching the native confinement contract."
+  ],
+  "result": "No remaining concrete source blocker found in this scope. Candidate stays disabled pending generated-file and full-app acceptance.",
+  "declaredMemoryCases": 16,
+  "retainedStoryCases": 23,
+  "runtimeExecuted": false,
+  "capability": 0,
+  "limits": [
+    "Compilation and packaged tests do not establish emulator execution, generated audio/pixel correctness, full Expo integration, or installed-device acceptance.",
+    "Animated/nested-video/dual-camera layers remain explicitly unsupported by this first whole-book contract and are separate requested work."
+  ]
+}

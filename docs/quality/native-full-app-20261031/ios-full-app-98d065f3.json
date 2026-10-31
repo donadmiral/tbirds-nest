@@ -1,0 +1,51 @@
+{
+  "measuredAt": "2026-10-31T03:12:16.532115+00:00",
+  "workflowRun": 41157322271,
+  "jobId": 124409232017,
+  "headCommit": "98d065f3c6c0086565dcc0e50a45553188302a49",
+  "testedMergeCommit": "148bac62c1eb938070b9bbd81808de118c702fa5",
+  "testedTree": "c92205338f50da948a84c677329f0045dfabae86",
+  "headAndMergeTreesEqual": true,
+  "artifact": {
+    "id": 13027726932,
+    "name": "ios-full-app-ui",
+    "sha256": "632a91f9e8d07e98b77ae9a3435624dd922574f17627572feaa80247f1f3c022",
+    "sourceManifestSha256": "6bb8d8f164a3da2746e22ba2782b70f984291c8dc0af2fde75054b36c1e2b40a",
+    "sourceFilesVerifiedAgainstTestedMerge": 471,
+    "sourceHashMismatches": []
+  },
+  "result": {
+    "passed": false,
+    "nativeBuildSucceeded": true,
+    "fullProductionAppLaunched": true,
+    "simulator": "iPhone 16 / iOS 18.5",
+    "maestroDurationSeconds": 99.21,
+    "failedCommand": "First unconditional hideKeyboard after entering the synthetic email",
+    "failure": "Could not hide the keyboard. The flow never reached password entry or Sign in.",
+    "authenticatedNavigationAccepted": false,
+    "nativeBridgeFatalLines": 0,
+    "externalNetworkForwarded": false,
+    "fixtureUnhandledRequests": 0
+  },
+  "diagnostics": {
+    "flowSha256": "fa5ff1f9335b0b0cc52b1ffd69c0045249bbc8f7443c55b351f681a3cf9a292f",
+    "sameFlowAs6c3586a7": true,
+    "maestroLogSha256": "0d508dbc2a4113d5add71cb136a0ade312147154e6c493feb4d4ddcbbea4fab3",
+    "appLogSha256": "2136c65c969d8cff325ef3870d8653615c8c02ba5cf61ee5e380f68b95c37218",
+    "buildLogSha256": "1324272d9d55872f7d9f0caa4a810689bb89e49a614c75998e644204936d570f",
+    "fixtureReceiptSha256": "9ed8820c1e8452504601268e5c82c47ac0bd6f2daf6f754b6d42ec91b172098d"
+  },
+  "currentCandidate": {
+    "headCommit": "103a4d38351ae2fb87c975c32c8027e4f4fef234",
+    "mergeCommit": "d38447c884290168b3dd2251102cb83b6e4dd897",
+    "tree": "bc874d1406ba212e3a2445e93b557404f956d655",
+    "headAndMergeTreesEqual": true,
+    "flowSha256": "4355d5a8613e9a2db9c808222aa569293927577ce7b409ad274827ac2ac179a5",
+    "repair": "Android dismisses the keyboard after each field; iOS enters both fields and taps the actual Platinum Circles heading before Sign in.",
+    "runtimeResult": "Pending, do not infer success from the repair."
+  },
+  "limits": [
+    "Unsigned Intel iPhone Simulator build only.",
+    "No physical device, signed release, Photos library or hosted provider acceptance."
+  ]
+}

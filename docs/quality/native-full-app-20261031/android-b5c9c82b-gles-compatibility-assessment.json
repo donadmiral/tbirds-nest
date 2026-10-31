@@ -1,0 +1,360 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "hosted_backend",
+  "recordedAtUtc": "2026-10-31T16:46:36+00:00",
+  "status": "read-only source assessment; GLES-only QA isolation is compatible with the reviewed explicit app requirements; runtime acceptance pending",
+  "application": {
+    "head": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+    "merge": "cddbe51a25efbb39b9e91fb822a9821957b9a2bd",
+    "tree": "d72a8c25e7b9e8890d3520a0c825a6175aecf3c6",
+    "localSourceComparedDirectlyToPublishedGitObjects": 10
+  },
+  "artifact": {
+    "runId": 41218724056,
+    "jobId": 124588620179,
+    "artifactId": 13049009956,
+    "zipBytes": 365665,
+    "zipSha256": "fe4e1dab20ff0a5363fb0d0660a008b43d410a729ab01fa3a2b7da1667d4ff86",
+    "archiveVerification": "Reused native_acceptance single verified extraction; no duplicate download.",
+    "canonicalSourceManifest": {
+      "path": "docs/quality/native-full-app-20261031/android-full-app-b5c9c82b-source.json",
+      "bytes": 59522,
+      "sha256": "47d327e6ce2e5d44800be93a2173ff9f90e79e07b48a80f1100250f5a4e26102"
+    },
+    "globalSourceVerification": "native_acceptance verified 498 original hashes, six retained overlays and nine dependency-provenance files; this review independently matches the selected ten repository inputs to the published head."
+  },
+  "officialGuidance": {
+    "url": "https://developer.android.com/studio/run/emulator-troubleshooting",
+    "pageLastUpdatedUtc": "2026-07-30",
+    "retrievedReference": "turn75view0",
+    "reviewedGuidance": "Android documents -feature -Vulkan when no apps require Vulkan, and documents keeping GLES acceleration with Vulkan disabled. The page also supports explicit SwiftShader software rendering.",
+    "interpretation": "This establishes a supported emulator option. It does not establish the faulting component of these Linux SIGSEGVs or prove that every host implementation path becomes Vulkan-free."
+  },
+  "findings": [
+    {
+      "area": "Actual b5 x86_64 Skia build",
+      "evidence": {
+        "file": "build.log",
+        "bytes": 189816,
+        "sha256": "4e071a14f2a9f18e7b449c9b6cbda5929237420bd13b124d90464aa87fba8030",
+        "lines": [
+          {
+            "line": 280,
+            "text": "> Task :shopify_react-native-skia:configureCMakeRelWithDebInfo[x86_64]"
+          },
+          {
+            "line": 281,
+            "text": "C/C++: -- SK_GRAPHITE: OFF (Graphite symbols not found in libskia)"
+          },
+          {
+            "line": 282,
+            "text": "C/C++: -- ABI     : x86_64"
+          }
+        ]
+      },
+      "conclusion": "The actual QA build selected SK_GRAPHITE OFF. This is observed build output, not an assumed library default."
+    },
+    {
+      "area": "Pinned Skia 2.2.12 backend",
+      "source": "node_modules/@shopify/react-native-skia/android/CMakeLists.txt",
+      "lines": [
+        14,
+        50,
+        85,
+        97,
+        361,
+        371
+      ],
+      "conclusion": "The observed non-Graphite branch defines SK_GL and SK_GANESH, selects OpenGLWindowContext.cpp and links GLESv2/EGL. The alternate Dawn/Graphite branch was not selected in this artifact."
+    },
+    {
+      "area": "Skia surface/context path",
+      "sources": [
+        {
+          "path": "node_modules/@shopify/react-native-skia/android/cpp/rnskia-android/RNSkOpenGLCanvasProvider.cpp",
+          "lines": [
+            110,
+            114
+          ]
+        },
+        {
+          "path": "node_modules/@shopify/react-native-skia/android/cpp/rnskia-android/gl/Display.h",
+          "lines": [
+            44,
+            45,
+            77,
+            81
+          ]
+        },
+        {
+          "path": "node_modules/@shopify/react-native-skia/android/cpp/rnskia-android/OpenGLContext.h",
+          "lines": [
+            190,
+            195
+          ]
+        },
+        {
+          "path": "node_modules/@shopify/react-native-skia/android/cpp/rnskia-android/OpenGLWindowContext.cpp",
+          "lines": [
+            43,
+            44
+          ]
+        }
+      ],
+      "conclusion": "The non-Graphite provider uses OpenGLContext; it requests an EGL OpenGL ES2 configuration/client context and creates Ganesh GL contexts/render targets. This supplies an explicit GLES implementation path for the reviewed Skia build."
+    },
+    {
+      "area": "App-owned video/composition modules",
+      "sources": [
+        {
+          "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt",
+          "lines": [
+            10,
+            18,
+            20,
+            163,
+            272
+          ]
+        },
+        {
+          "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt",
+          "lines": [
+            237,
+            243
+          ]
+        }
+      ],
+      "conclusion": "Custom effects use android.opengl.GLES20 and Media3 GlEffect/GlShaderProgram. Memory composition explicitly selects tone mapping using OpenGL. No explicit Vulkan-required API or manifest feature was found in the reviewed app-owned modules."
+    },
+    {
+      "area": "React Native 0.81.5 core Android views",
+      "sources": [
+        {
+          "path": "node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/ReactRootView.java",
+          "lines": [
+            18,
+            88,
+            287,
+            289
+          ]
+        },
+        {
+          "path": "node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/view/ReactViewGroup.kt",
+          "lines": [
+            16,
+            79,
+            868,
+            872
+          ]
+        }
+      ],
+      "conclusion": "Reviewed core view/root drawing uses Android Canvas/ViewGroup. No explicit exclusive Vulkan requirement was found in the scoped ReactAndroid/ReactCommon search. The Android framework still chooses its own underlying hardware-renderer implementation."
+    }
+  ],
+  "negativeSearch": {
+    "pattern": "\\bvulkan\\b|SK_GRAPHITE|SKIA_USE_GRAPHITE|android.hardware.vulkan|debug.hwui.renderer|glEsVersion",
+    "roots": [
+      "app.json",
+      "app.config.js",
+      "modules",
+      "plugins",
+      "src",
+      "node_modules/react-native/ReactAndroid/src/main",
+      "node_modules/react-native/ReactCommon",
+      "node_modules/@shopify/react-native-skia/android"
+    ],
+    "excluded": [
+      "*.a",
+      "*.so",
+      "*.map"
+    ],
+    "result": "Only Skia conditional Graphite source matched; no explicit Vulkan requirement or renderer override was found in the app-owned files or the scanned React Native source.",
+    "limit": "Scoped textual search is not an exhaustive attestation of all third-party binaries, APK merged manifests, framework code, devices or runtime branches."
+  },
+  "recommendation": {
+    "scope": "A QA-only GLES-only follow-up is supported by the explicit reviewed app requirements. Host-renderer selection is a separate isolation decision and must be verified from actual runtime output.",
+    "emulatorOption": "-feature -Vulkan",
+    "retain": [
+      "Published app/native source and production capabilities",
+      "API 35 and existing runner tier/RAM",
+      "Mandatory navigation and separate capture invocations",
+      "Existing assertion, timeout, account-readback, movie-decode and final exit gates",
+      "Bounded diagnostic collector"
+    ],
+    "requiredRuntimeEvidence": [
+      "Successful boot and verified selected renderer with no unexpected fallback",
+      "The unchanged mandatory UI/capture/export/account acceptance gates",
+      "Retained logs and bounded diagnostics if the host process fails again"
+    ],
+    "notClaimed": [
+      "Vulkan is the proven crash component",
+      "This option cures the SIGSEGV",
+      "Vulkan compatibility or performance has been tested",
+      "All host Vulkan code is eliminated",
+      "Physical Android or iPhone acceptance"
+    ]
+  },
+  "dependencyProvenance": {
+    "packages": [
+      {
+        "package": "react-native",
+        "lockedVersion": "0.81.5",
+        "installedVersion": "0.81.5",
+        "lockIntegrity": "sha512-1w+/oSjEXZjMqsIvmkCRsOc8UBYv163bTWKTI8+1mxztvQPhCRYGTvZ/PL1w16xXHneIj/SLGfxWg2GWN2uexw=="
+      },
+      {
+        "package": "@shopify/react-native-skia",
+        "lockedVersion": "2.2.12",
+        "installedVersion": "2.2.12",
+        "lockIntegrity": "sha512-P5wZSMPTp00hM0do+awNFtb5aPh5hSpodMGwy7NaxK90AV+SmUu7wZe6NGevzQIwgFa89Epn6xK3j4jKWdQi+A=="
+      },
+      {
+        "package": "expo",
+        "lockedVersion": "54.0.37",
+        "installedVersion": "54.0.37",
+        "lockIntegrity": "sha512-afzbtO4i/K9ZCrzyLgEOaXW56w/yuAK61JkCOMrw/S/VFCAp6YwKWA494X5mIcrVmRAmclv/ec7ga8ndTkzhxw=="
+      }
+    ],
+    "installedSourceFiles": [
+      {
+        "path": "node_modules/@shopify/react-native-skia/package.json",
+        "bytes": 4993,
+        "sha256": "c5e78d86a78e1ecb5236536bdbb85c6f269b981cb3a0d1f14a1ba0e9009ac2b3"
+      },
+      {
+        "path": "node_modules/@shopify/react-native-skia/android/CMakeLists.txt",
+        "bytes": 12366,
+        "sha256": "0efb10dd43981e229a88ee3c17a778b0e626259126c9aaecd5f0531eb679c280"
+      },
+      {
+        "path": "node_modules/@shopify/react-native-skia/android/build.gradle",
+        "bytes": 12558,
+        "sha256": "e3608ebf7155e46194e1ee7cbc18a4ec36c26534c70fb65836c9dc5de78b7a7e"
+      },
+      {
+        "path": "node_modules/@shopify/react-native-skia/android/src/main/AndroidManifest.xml",
+        "bytes": 162,
+        "sha256": "78d750019e510bc85970ea26eb80f13c091e94ac9d540b043b534cd8ae18aa58"
+      },
+      {
+        "path": "node_modules/@shopify/react-native-skia/android/cpp/rnskia-android/RNSkOpenGLCanvasProvider.cpp",
+        "bytes": 4442,
+        "sha256": "dd82eeb01ff28830b9705ac4069a7e967825aee60e4778f82e9f6de19f405bd8"
+      },
+      {
+        "path": "node_modules/@shopify/react-native-skia/android/cpp/rnskia-android/OpenGLContext.h",
+        "bytes": 7091,
+        "sha256": "c2a09b5c2122536a569bd5b9d5fb7aeea7a14041131bf709544bc35f4cd85a93"
+      },
+      {
+        "path": "node_modules/@shopify/react-native-skia/android/cpp/rnskia-android/OpenGLWindowContext.cpp",
+        "bytes": 1710,
+        "sha256": "fc204391ec75d5df6e5d2eb11c2a4395e1415b5ae1d3d75fbaa19c31e636e705"
+      },
+      {
+        "path": "node_modules/@shopify/react-native-skia/android/cpp/rnskia-android/gl/Display.h",
+        "bytes": 3280,
+        "sha256": "e3fb6a371dac9e992cfa243309ec805a3a282bb7a60abd8a7516deb57703059b"
+      },
+      {
+        "path": "node_modules/react-native/package.json",
+        "bytes": 6508,
+        "sha256": "82105be2013f90516cdc635bbd1d485453bac2b3af15749eedafca05adcccfcd"
+      },
+      {
+        "path": "node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/ReactRootView.java",
+        "bytes": 38784,
+        "sha256": "f45d771b94071467b104cdfb04c93cbc73d56c21810f651a51a94d47928f4c19"
+      },
+      {
+        "path": "node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/view/ReactViewGroup.kt",
+        "bytes": 35525,
+        "sha256": "180a3ed855e383c32c3ba92b43c997c2857edefb92e8da7d4bf4500b87d55005"
+      }
+    ],
+    "limit": "These are hashes of local installed package source matching locked package versions. The full-app source manifest separately hashes selected auth dependencies, not these Skia/RN implementation files. This review did not independently attest the final APK native libraries or redownload package archives; the actual Skia build branch is directly evidenced above."
+  },
+  "publishedRepositoryInputs": [
+    {
+      "path": "app.json",
+      "bytes": 3985,
+      "sha256": "129b756b7bf5e6e1b6b456bbe982f63923b83b0568fa41cac6721a892ea555c2",
+      "matchesPublishedHeadBlob": true
+    },
+    {
+      "path": "app.config.js",
+      "bytes": 1812,
+      "sha256": "b59c5ad8fca40e523557e3de9e23f296fc78b7b735d34084a31da6a579cee710",
+      "matchesPublishedHeadBlob": true
+    },
+    {
+      "path": "package.json",
+      "bytes": 5301,
+      "sha256": "ff7c1c59d4c9d435eb97c5b0fb328b3c02871de6e5c210a0ce848bff84b132bd",
+      "matchesPublishedHeadBlob": true
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 545630,
+      "sha256": "647ee46e04dee88a568cafb274dfc3172795efca34eaf8407cd86a8fe3a7ca40",
+      "matchesPublishedHeadBlob": true
+    },
+    {
+      "path": "modules/boomerang/android/build.gradle",
+      "bytes": 858,
+      "sha256": "1073ed103b08ff07f4f21f79d5914497ef03c990b11bb2be7eadcfe6e287dbb4",
+      "matchesPublishedHeadBlob": true
+    },
+    {
+      "path": "modules/boomerang/android/src/main/AndroidManifest.xml",
+      "bytes": 81,
+      "sha256": "2546c8dc8df1bcb3de9278896051f61500eb3c7fdf666410f99d9f12946242fc",
+      "matchesPublishedHeadBlob": true
+    },
+    {
+      "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt",
+      "bytes": 13288,
+      "sha256": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab",
+      "matchesPublishedHeadBlob": true
+    },
+    {
+      "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt",
+      "bytes": 24719,
+      "sha256": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5",
+      "matchesPublishedHeadBlob": true
+    },
+    {
+      "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt",
+      "bytes": 29054,
+      "sha256": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+      "matchesPublishedHeadBlob": true
+    },
+    {
+      "path": "scripts/quality/test-android-app-ui.sh",
+      "bytes": 7361,
+      "sha256": "1cafb6dba876d9ee92288d7aa233ee41739fc2f271d4e1ca174f82c09620e12d",
+      "matchesPublishedHeadBlob": true
+    }
+  ],
+  "relatedReceipts": [
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b-auth-independent-review.json",
+      "bytes": 7111,
+      "sha256": "8d653aac4a928c94c5209254c4d2c84cfd1da14d2ef7b9757e6e16aed1b6efb3"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-full-app-b5c9c82b-review.json",
+      "bytes": 18123,
+      "sha256": "8e9ca892eb8b368c1f5578a980d543079281fe50a5b5c32201606d4a64bae8b1"
+    }
+  ],
+  "actions": {
+    "sourceEdits": 0,
+    "testRuns": 0,
+    "providerCalls": 0,
+    "ciReruns": 0,
+    "refChanges": 0,
+    "productionChanges": 0,
+    "writtenArtifacts": "This assessment JSON only."
+  }
+}

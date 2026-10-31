@@ -1,0 +1,90 @@
+{
+  "recordedAt": "2026-10-31T02:23:31.455545+00:00",
+  "status": "Frozen Profile retention repair; focused behavior, native types and scoped lint pass.",
+  "basedOnCommit": "6c3586a712e5dae7ca57517f1fb059e641e1f6f2",
+  "sourceSha256": {
+    "src/screens/profile/ProfileScreen.tsx": "cd4092eb4b77140bb53bfd001c30b9548010059f85385f7165b4329319b726c9",
+    "src/services/profileContent.ts": "8bb0708d65f0b51c1bff66540d99f4f1858d2639d0864564725918ff07570894",
+    "tests/quality/profile-content-regressions.cjs": "3e381849e9960139ac96909b3bb50c2a7e7cb62ad2504156df5b7c68e112f520"
+  },
+  "tests": {
+    "command": "node tests/quality/profile-content-regressions.cjs",
+    "summary": {
+      "tests": 35,
+      "suites": 0,
+      "pass": 35,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "durationMs": 1927.631383,
+    "namedCases": [
+      "profile posts publishes authorized metadata while private previews resolve",
+      "profile reposts publishes authorized metadata while private previews resolve",
+      "profile saved publishes authorized metadata while private previews resolve",
+      "profile tagged publishes authorized metadata while private previews resolve",
+      "account ABA and superseded loads cannot replace the current profile feed",
+      "query and signing failures expose retry without stranding the profile spinner",
+      "legacy video metadata stays video and normalizing does not reorder cached source arrays",
+      "visitor profile honors server content visibility before requesting posts",
+      "visitor profile signs post previews and drops old account/target responses",
+      "profile focus starts and restarts content without waiting for a header refresh",
+      "reselecting a loaded tab keeps its content visible while media access refreshes",
+      "a hanging optional collaboration query cannot hold own posts or first-page loading",
+      "a read that never reaches transport settles with retry, and a late response cannot replace it",
+      "a media outage leaves the authorized post content usable and a retry replaces its stripped previews",
+      "pending media is a loading state, not an unavailable photo; text-only posts never display a media spinner",
+      "a consumed profile prefetch cannot hide updated follow or visibility state on refresh",
+      "warm Profile focus keeps every paged row and scroll, rechecks RLS, and preserves its scanned cursor",
+      "a warm Profile signing outage preserves authorized pages while keeping revoked rows removed",
+      "warm reposts removes revoked previews before a failed signing refresh",
+      "warm saved removes revoked previews before a failed signing refresh",
+      "warm tagged removes revoked previews before a failed signing refresh",
+      "the story indicator pins its session, aborts on same-user ABA, and ignores late data",
+      "the story indicator has a deadline, catches transport errors, and cancels on blur",
+      "profile header and optional reach use the initiating token without blocking visible metadata",
+      "header prefetch and metadata deadlines cannot dispatch late or cross-session reach requests",
+      "a delayed collaborator decoration cannot discard an appended own page or alter its cursor",
+      "a generally readable former collaboration requires a current accepted link before publication",
+      "Profile pagination has a synchronous lock, preserves failed-page retry, and ignores a blur cancellation",
+      "Profile refresh blocks pagination only during its active metadata/signing read",
+      "an explicit pull refresh replaces old pages, while ordinary focus preserves them",
+      "the own-page cursor preserves PostgreSQL microseconds and rejects unsafe cursor values",
+      "retained Profile reads have at most two100-ID batches and one total deadline",
+      "a session A-to-B-to-A transition aborts current Profile metadata before React can rerender",
+      "private Profile media verification and every signing batch use the initiating token, then stop on account change",
+      "profile scroll offsets stay separate for each tab and are applied without animation before paint"
+    ],
+    "logSha256": "0d7b6c0bd9316dbb5b8d9dba7e0cb2c9e7545810c65d2f63cd209a8a7a26b7f1"
+  },
+  "types": {
+    "command": "node node_modules/typescript/bin/tsc --noEmit",
+    "exitCode": 0,
+    "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "lint": {
+    "command": "node node_modules/eslint/bin/eslint.js src/screens/profile/ProfileScreen.tsx src/services/profileContent.ts --format json",
+    "files": 2,
+    "errors": 0,
+    "warnings": 0,
+    "receiptSha256": "3353343f93225272639cd7f3e9d99ed36c9d4678b6888579d3610ec251b20d30"
+  },
+  "changes": [
+    "Ordinary focus retains all loaded own pages and independent per-tab scroll positions; explicit pull refresh resets the own-page window.",
+    "Own pagination follows the last scanned raw row, preserving PostgreSQL timestamp precision and UUID tie-breaking independently of pins and collaborations.",
+    "A single scoped 25-second operation pins the initiating JWT for metadata and later media capabilities, limits retained hydration to two concurrent 100-ID requests, and stops subsequent batches on cancellation or session change.",
+    "Every tab removes rows no longer present in successful authorized metadata before signing; a signing outage preserves authorized existing previews and exposes retry.",
+    "Synchronous pagination locks and request/session generations prevent duplicate pages, late decoration truncation, blurred callbacks and A-to-B-to-A responses.",
+    "Header, optional reach and story indicator use bounded scoped reads; prefetch completion is checked before dispatch and focus cleanup aborts requests.",
+    "Generally readable collaborator posts are excluded from the primary retained own-post window; only a currently accepted collaboration link can add them back, including when the optional membership read fails."
+  ],
+  "coverage": [
+    "Actual compiled profile service and extracted production screen callbacks with synthetic transport, including the shared private-media authorization/signing helper.",
+    "Per-tab ScrollView offset and before-paint restoration callback behavior; not an emulator or physical-device timing measurement."
+  ],
+  "limits": [
+    "The Auth SDK getUser transport has no AbortSignal argument; the outer deadline rejects the UI operation and prevents later dispatch/updates even if an underlying Auth transport settles later.",
+    "Full bundled native UI and deployed browser timing remain separate acceptance evidence."
+  ]
+}

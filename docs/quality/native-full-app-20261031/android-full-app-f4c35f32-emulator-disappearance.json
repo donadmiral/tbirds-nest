@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "hosted_backend",
+  "recordedAtUtc": "2026-10-31 15:11:42 UTC",
+  "conclusion": "The host shell positively reports SIGSEGV of the Android emulator process. The faulting component and underlying root cause remain unknown.",
+  "source": {
+    "repository": "donadmiral/tbirds-nest",
+    "head": "f4c35f32795be5f196840c37382143a2d7e33d55",
+    "prMerge": "6f3204cd44996dfe66ffe2dcf7192543805aa912",
+    "tree": "7699f995aa8e5192658f785258eb48f408af6a39",
+    "runId": 41211437305,
+    "jobId": 124567097694,
+    "sourceManifest": "docs/quality/native-full-app-20261031/android-full-app-f4c35f32-source.json",
+    "sourceManifestSha256": "13d9a02ebc361cbd6626cabaaa25bd18f691550fc68fcd7b0b216ccb4651f1a6",
+    "manifestVerification": "Native owner independently verified 496 original sources, six overlays and nine dependency source hashes; this review reused that single verified extraction.",
+    "androidScriptSha256": "6d9ea96189108721634a31bd0650b0e068a8403d64bf9cbeb108836aef795fe6"
+  },
+  "artifact": {
+    "id": 13046647489,
+    "name": "android-full-app-ui",
+    "bytes": 363323,
+    "sha256": "8d524a19d2704cb80f0ee35088b1eaed23b49abeed837e61e3b714215be9d2fa",
+    "verifiedExtraction": "/tmp/android-full-app-f4c35f32-41211437305",
+    "downloadedByThisReview": false
+  },
+  "completedHostLog": {
+    "method": "One authenticated completed GitHub Actions job-log fetch; no live logs or artifact redownload",
+    "fetchCount": 1,
+    "boundedProjection": "docs/quality/native-full-app-20261031/android-f4c35f32/host-termination-log-projection.json",
+    "boundedProjectionSha256": "ee8b4059fb06d733bc5060b1a4c3eac36cad7127a60d54d8f49bf21a7a1c3d24",
+    "shellReportTimestamp": "2026-10-31T15:04:12.2863567Z",
+    "exactTerminalLine": "2026-10-31T15:04:12.2863567Z scripts/quality/test-android-app-ui.sh: line 105:  6995 Segmentation fault      (core dumped) \"$android_sdk/emulator/emulator\" -avd platinum_app_ui -port 5556 -no-window -no-audio -no-boot-anim -no-snapshot -gpu software -memory 3072 > native-ui-logs/emulator.log 2>&1",
+    "processId": 6995,
+    "terminationSignal": "SIGSEGV",
+    "exitCodeOfOverallJobScript": 1,
+    "timeLimit": "This is the shell's reporting timestamp, not a measured exact crash instant. The host can report a background process termination when returning from a foreground command.",
+    "interpretation": "The specific emulator process terminated with a segmentation fault; device-unavailable messages are downstream and are not merely an unexplained ADB disconnect."
+  },
+  "crashEvidence": {
+    "emulatorVersion": "37.2.13",
+    "launchMode": "software",
+    "reportedCrashStore": [
+      {
+        "line": 15,
+        "text": "INFO         | Storing crashdata in: /tmp/android-runner/emu-crash-37.2.13.db, detection is enabled for process: 6995"
+      }
+    ],
+    "crashStoreOrCoreInArchive": [],
+    "limitations": [
+      "The log names crashdata storage and the shell says core dumped, but the retained archive contains neither crash database nor core/minidump/stack.",
+      "No faulting component can be identified from these logs.",
+      "No positive host OOM-kill evidence or deliberate terminating kill is present in the fetched terminal context. This does not establish that host memory pressure was absent.",
+      "The source cleanup's emu kill/kill/wait commands occur in the EXIT trap after evidence/verifier handling; the SIGSEGV diagnostic appears before that overall failure. A cleanup command is not supported as the observed termination cause.",
+      "The supported software selector was applied. This second SIGSEGV does not by itself justify another graphics flag or prove which renderer subcomponent failed."
+    ]
+  },
+  "observedSequence": [
+    {
+      "at": "2026-10-31T15:01:43.6207034Z",
+      "event": "Gradle BUILD SUCCESSFUL in 16m 14s"
+    },
+    {
+      "at": "2026-10-31T15:02:36.6861030Z",
+      "event": "Maestro waiting for required navigation flow"
+    },
+    {
+      "at": "2026-10-31T15:04:07.4972103Z",
+      "event": "Navigation flow failed"
+    },
+    {
+      "at": "2026-10-31T15:04:07.5925235Z",
+      "event": "Maestro cleanup observes emulator-5556 not found"
+    },
+    {
+      "at": "2026-10-31T15:04:12.2092557Z",
+      "event": "Second required capture CLI reports requested emulator not connected"
+    },
+    {
+      "at": "2026-10-31T15:04:12.2863567Z",
+      "event": "Shell reports emulator PID6995 SIGSEGV/core dumped"
+    },
+    {
+      "at": "2026-10-31T15:04:12.4661269Z",
+      "event": "Script exits1; failed acceptance preserved"
+    }
+  ],
+  "authCoverage": {
+    "projection": {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/auth-log-coverage-projection.json",
+      "sha256": "0de37f38d9afac2b4219938782e8f18d74b0ae40fcdf97dbd182e6d1123a5ea2"
+    },
+    "rawFiles": {
+      "app.log": {
+        "bytes": 1479730,
+        "sha256": "3cc4172ad7ab6da0d4e3447b98294e0dddfc2f4a5db9fc6c4e19da664dbf7905"
+      },
+      "emulator.log": {
+        "bytes": 8469,
+        "sha256": "3d4d27fed5e91cb0c201f6d536322ded52d50509b067dfbb97691117ab3c4f57"
+      },
+      "build.log": {
+        "bytes": 189944,
+        "sha256": "83a68339eeae2a4732196be46e059c7b4f4429d8e33fa79e8b949a571c8689b2"
+      },
+      "recording.log": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "native-ui-auth-diagnostics.json": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "native-ui-auth-diagnostics-final.json": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "native-ui-receipt.json": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "native-ui-receipt-final.json": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "observedCounts": {
+      "processLockAcquisitionTimeout": 0,
+      "multipleAuthClientWarning": 0,
+      "appFatalOrAnr": 0,
+      "accountsInit": 0,
+      "accountsIndex": 2
+    },
+    "reactNativeJsLines": 12,
+    "lastAppLogTimestampAsRecorded": "10-31 15:03:27.050",
+    "lastAccountIndexLogTimestampAsRecorded": "10-31 15:02:57.116",
+    "snapshotState": "All four auth/fixture snapshots are zero bytes; no parseable JSON was recovered.",
+    "limits": [
+      "No timer identities, actual lock durations, profile/shelf request counts or saved-account readback can be established from this artifact.",
+      "There is no matching auth acquisition warning among the retained JS lines, but that truncated coverage cannot establish full runtime acceptance of the f4 focus-feedback repair.",
+      "Two account-index log writes are observed; no account init/readback is observed. The capture route did not run.",
+      "No app fatal-exception/ANR match was found in the retained log; absence in a truncated log is not a global app-health proof."
+    ]
+  },
+  "nextStep": {
+    "sourceFixEstablished": false,
+    "recommendation": "Use the existing emulator crash store/stack for component attribution before choosing another renderer/version/runner change. If a later run is independently approved, retaining that already-emitted crash evidence is a targeted diagnostic addition; this review did not change capture, artifacts, infrastructure, assertions or timeouts.",
+    "retryPerformed": false
+  },
+  "changesMade": "Bounded documentation/projections only. No source, CI, ref, provider, emulator or test invocation."
+}

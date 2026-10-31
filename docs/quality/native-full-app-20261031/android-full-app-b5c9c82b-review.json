@@ -1,0 +1,400 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-31T16:42:23.037163+00:00",
+  "status": "Failed: host Android Emulator SIGSEGV during navigation; independent capture could not connect to the missing emulator.",
+  "binding": {
+    "head": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+    "testedMerge": "cddbe51a25efbb39b9e91fb822a9821957b9a2bd",
+    "tree": "d72a8c25e7b9e8890d3520a0c825a6175aecf3c6",
+    "workflowRun": 41218724056,
+    "jobId": 124588620179,
+    "artifactId": 13049009956,
+    "artifactName": "android-full-app-ui",
+    "artifactBytes": 365665,
+    "artifactZipSha256": "fe4e1dab20ff0a5363fb0d0660a008b43d410a729ab01fa3a2b7da1667d4ff86",
+    "archiveVerifiedAgainstGitHubDigest": true,
+    "archiveMembers": 39,
+    "singleDownload": "/tmp/android-full-app-b5c9c82b.zip",
+    "extraction": "/tmp/android-full-app-b5c9c82b-41218724056",
+    "sourceManifest": "docs/quality/native-full-app-20261031/android-full-app-b5c9c82b-source.json",
+    "sourceManifestSha256": "47d327e6ce2e5d44800be93a2173ff9f90e79e07b48a80f1100250f5a4e26102"
+  },
+  "timing": {
+    "jobStartedAt": "2026-10-31T16:14:38Z",
+    "jobCompletedAt": "2026-10-31T16:35:55Z",
+    "fullAppScript": {
+      "name": "Run bash scripts/quality/test-android-app-ui.sh",
+      "status": "completed",
+      "conclusion": "failure",
+      "number": 7,
+      "started_at": "2026-10-31T16:15:42Z",
+      "completed_at": "2026-10-31T16:35:52Z"
+    },
+    "upload": {
+      "name": "Retain actual app UI evidence",
+      "status": "completed",
+      "conclusion": "success",
+      "number": 8,
+      "started_at": "2026-10-31T16:35:52Z",
+      "completed_at": "2026-10-31T16:35:53Z"
+    },
+    "jobTimeoutMinutes": 75,
+    "gradleBuildCompletedLogAt": "2026-10-31T16:33:33.0373732Z",
+    "gradleReportedDuration": "16m 46s",
+    "gradleTasks": "1403 actionable tasks: 1403 executed",
+    "hostSegfaultReportAt": "2026-10-31T16:35:51.9332966Z",
+    "lastCompletedNavigationScreenshotAt": "2026-10-31T16:35:10.945Z",
+    "qualifications": "Build duration is the Gradle report; Bash SIGSEGV time is the shell reporting timestamp, not a calibrated crash instant. Full-app script includes setup, compilation and runtime."
+  },
+  "sourceVerification": {
+    "head": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+    "merge": "cddbe51a25efbb39b9e91fb822a9821957b9a2bd",
+    "tree": "d72a8c25e7b9e8890d3520a0c825a6175aecf3c6",
+    "workflowRun": "41218724056",
+    "originalSourceCount": 498,
+    "allOriginalHashesMatchPublishedGitBlobs": true,
+    "overlaysVerified": [
+      "src/services/supabase.ts",
+      "modules/boomerang/ios/BoomerangModule.swift",
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt",
+      "src/navigation/AppNavigator.tsx",
+      "metro.config.js",
+      "index.js"
+    ],
+    "installedDependencyFilesVerified": [
+      "@supabase/supabase-js/package.json",
+      "@supabase/supabase-js/dist/index.cjs",
+      "@supabase/supabase-js/dist/index.mjs",
+      "@supabase/auth-js/package.json",
+      "@supabase/auth-js/src/lib/locks.ts",
+      "@supabase/auth-js/dist/main/index.js",
+      "@supabase/auth-js/dist/module/index.js",
+      "@supabase/auth-js/dist/main/lib/locks.js",
+      "@supabase/auth-js/dist/module/lib/locks.js"
+    ],
+    "sourceMemoryCapability": 0,
+    "sourceManifestSha256": "47d327e6ce2e5d44800be93a2173ff9f90e79e07b48a80f1100250f5a4e26102",
+    "expectedSourceReceipt": "docs/quality/native-full-app-20261031/native-full-app-b5c9c82b-expected-sources.json",
+    "expectedSourceReceiptSha256": "2e5a27635c432e491fcbe48e69f944a549c4b229c901ac5dc795ce545ec55f25",
+    "productionCapabilityActivated": false,
+    "retainedOverlayCopies": "Six exact after-overlay byte streams are retained with .txt suffixes so archived source is not compiled by repository TypeScript."
+  },
+  "hostAndRenderer": {
+    "emulatorVersion": "37.2.13.0",
+    "emulatorBuildId": "16740729",
+    "androidSystemImage": "system-images;android-35;default;x86_64",
+    "requestedGpuMode": "swiftshader",
+    "emulatorPid": 7038,
+    "emulatorMemoryMb": 3072,
+    "actualSelection": {
+      "config": "vulkan_mode_selected:swiftshader gles_mode_selected:swiftshader",
+      "vulkanDevice": "SwiftShader Device (Subzero), Version: 1.3.0",
+      "glesAdapter": "Android Emulator OpenGL ES Translator (Google SwiftShader)",
+      "glesApi": "OpenGL ES 3.0 (OpenGL ES 3.0 SwiftShader 4.0.0.1)",
+      "guestVulkanMaxApiVersion": "1.3.0",
+      "guestVulkanDisabled": false
+    },
+    "versionAndHelpExitCodes": {
+      "versionExitCode": 0,
+      "gpuHelpExitCode": 0
+    },
+    "terminalEvidence": "The authenticated completed job log reports PID7038 Segmentation fault (core dumped) on the exact launch command using -gpu swiftshader -memory3072. The application build succeeded; later ADB/CLI commands report the emulator missing.",
+    "resultOfEmpiricalIsolation": "The requested explicit backend selection took effect, but did not prevent this host failure. This is not proof of a particular graphics component fault or of an app defect; the candidate also contains separately reviewed reader/QA-trace changes.",
+    "otherObservedHostWarning": "emulator.log line85 reports an unmappable pointer inside a protected range before the boot-completed line. It is retained without treating it as a demonstrated cause.",
+    "retainedMarkerScan": "No matching fatal/stack/backtrace/OOM/lmkd-kill marker in the retained97-line emulator log or4236-line app log. This bounded scan cannot rule out unlogged host memory pressure or component failure."
+  },
+  "crashpadCollection": {
+    "status": "collected",
+    "runId": "41218724056",
+    "emulatorPid": 7038,
+    "gateExitCode": 1,
+    "source": {
+      "path": "/tmp/android-runner/emu-crash-37.2.13.db",
+      "version": "37.2.13",
+      "logSHA256": "57024b6dcf236fc2ecefb5f275d1ab4b2f4c97e3dc108fe6ccc2bd10d72c0c21",
+      "logBytes": 8355
+    },
+    "entriesExamined": 5,
+    "bytesRead": 40,
+    "bytesCopied": 40,
+    "filesCopied": 1,
+    "limitsHit": [],
+    "entries": [
+      {
+        "path": "settings.dat",
+        "status": "copied",
+        "bytes": 40,
+        "sha256": "a05289b5d4c32cca35c66c7c7322722653b00d7fd47e717dd068c8c406313690",
+        "sourceMtimeNs": "1793464415218268520"
+      }
+    ],
+    "pidLogAndCopiedHashVerified": true,
+    "limit": "Only40-byte settings.dat was available in the bounded advertised store. No dump, core image or stack is retained. This does not establish that no diagnostic was produced elsewhere. gateExitCode is cleanup metadata, not an independent workflow pass result."
+  },
+  "requiredFlows": {
+    "attempts": {
+      "schemaVersion": 1,
+      "mode": "same-app-required-flows",
+      "flows": [
+        {
+          "name": "navigation",
+          "flow": "tests/native/flows/navigation.yaml",
+          "attempts": 1,
+          "exitCode": 1,
+          "junit": "maestro-navigation.xml"
+        },
+        {
+          "name": "memory-capture",
+          "flow": "tests/native/flows/memory-capture.yaml",
+          "attempts": 1,
+          "exitCode": 1,
+          "junit": "maestro-memory-capture.xml"
+        }
+      ]
+    },
+    "navigationJUnit": {
+      "suite": {
+        "name": "Test Suite",
+        "device": "emulator-5556",
+        "tests": "1",
+        "failures": "1",
+        "time": "82.439",
+        "timestamp": "2026-10-31T16:34:24"
+      },
+      "testcase": {
+        "id": "Full native app navigation",
+        "name": "Full native app navigation",
+        "classname": "Full native app navigation",
+        "file": "tests/native/flows/navigation.yaml",
+        "time": "82.389",
+        "timestamp": "2026-10-31T16:34:24",
+        "status": "ERROR"
+      },
+      "failureFirstLine": "maestro.android.DeviceServerDiedException: Device server died during 'viewHierarchy' on emulator-5556 (33935ms since last byte, connection age 83412ms): StatusRuntimeException: UNAVAILABLE",
+      "classification": "DeviceServerDiedException during viewHierarchy with gRPC UNAVAILABLE; this is not a failed semantic memory-reader assertion.",
+      "deviceMissingEvidence": "The subsequent capture CLI reports: Device emulator-5556 was requested, but it is not connected.",
+      "deviceMissingLog": {
+        "artifactPath": "maestro-memory-capture.log",
+        "bytes": 62,
+        "sha256": "3e66cf2392dc12b00ab6dc4d9bf20c92711996aa761111a61d8abf079b296b02"
+      }
+    },
+    "navigationFailureBoundary": {
+      "lastCompletedUISequence": 34,
+      "lastCompletedConfigurationSequence": 36,
+      "unfinishedSequence": 37,
+      "command": "scrollUntilVisible View all memory books",
+      "direction": "DOWN",
+      "centerElement": true,
+      "timeoutMs": 20000,
+      "visibilityPercent": 100,
+      "metadataStartedUtc": "2026-10-31T16:35:10.947Z",
+      "textLogStartedTime": "16:35:10.948",
+      "initialMissingTargetTime": "16:35:11.629",
+      "lastRetainedTextLogTime": "16:35:11.671",
+      "lastRetainedTextLogEvent": "Swiping UP from center",
+      "followingNavigationCommandsExecuted": false,
+      "note": "An initial target miss while scrolling toward off-screen content is expected; the retained failure is the lost hierarchy/device transport. The scroll has no terminal metadata duration or completion record."
+    },
+    "completedVisibleCoverage": [
+      "Home",
+      "Market",
+      "Jobs",
+      "Messages",
+      "Profile"
+    ],
+    "capture": "Attempted once by its independent required Maestro invocation; it reports Device emulator-5556 was requested, but it is not connected. No capture JUnit or fixture/movie output exists in the archive.",
+    "unreached": [
+      "Memory shelf entry tap",
+      "Memory reader readiness",
+      "Film/settings/export navigation",
+      "Native capture heading and account readback assertion",
+      "Cancellation and completed movie acceptance",
+      "Independent produced-movie decoder checks"
+    ],
+    "retainedFlowVerification": {
+      "passed": false,
+      "error": "The navigation Maestro pipeline did not exit successfully."
+    }
+  },
+  "phaseExitCodes": {
+    "flows": 1,
+    "evidence": 1,
+    "memoryDecoder": 1,
+    "fullAppVerifier": 1
+  },
+  "authAndBoundaryCoverage": {
+    "exportedAuthAndFixtureJsonFiles": 4,
+    "allExportedFilesBytes": 0,
+    "recordedJsLogLines": 12,
+    "visibleAccountIndexWriteCompletions": 2,
+    "completedReadbackVerified": false,
+    "numericAuthTimerLockMetricsAvailable": false,
+    "newCaptureOrReaderResponseTimelineAvailable": false,
+    "qualification": "The four files are failed/empty exports after emulator loss, not proof that their on-device counterparts were empty. Two index-write logs do not establish a complete saved-account reread. No absent-event or zero-lock-duration claim is made from the empty exports.",
+    "independentReview": "docs/quality/native-full-app-20261031/android-b5c9c82b-auth-independent-review.json"
+  },
+  "media": {
+    "navigationRecordingRetained": false,
+    "producedMovieRetained": false,
+    "capturePngSetRetained": false,
+    "independentMovieDecodePerformed": false,
+    "reason": "No memory-capture output exists in the archive; a successful full-app/movie claim cannot be made."
+  },
+  "acceptance": {
+    "nativeAppCompiled": true,
+    "fiveMainPageScreenshots": true,
+    "fullNavigationPassed": false,
+    "independentCapturePassed": false,
+    "savedAccountReadbackPassed": false,
+    "requiredMovieDecodePassed": false,
+    "fullNativeAcceptancePassed": false,
+    "productionMemoryCapability": 0,
+    "physicalDeviceAcceptanceClaimed": false
+  },
+  "retainedOwnerFiles": [
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/artifact-metadata.json",
+      "bytes": 747,
+      "sha256": "681c2336ded9414c4962e7f91916eaf6f10b649e2f62ce54d7e6d030cab4d54a"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/job-metadata.json",
+      "bytes": 3743,
+      "sha256": "b7fc024e1f6f1c5c3be68e9617dc9998306d5771b5cefdcee1cd42d806521f60"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/artifact-members.json",
+      "bytes": 6322,
+      "sha256": "3c4cb939f8a012f28a86cfd0462897555aaba7877eb9fcedc9040b1a69d20828"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/source-verification.json",
+      "bytes": 1124,
+      "sha256": "30f3f16936288715519fd64f28f88b334d33e85431481fc76413fa5b34d4411a"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/flow-results.json",
+      "bytes": 351,
+      "sha256": "ad60595633d62c1ad75e4e0a972fe90e11c6bbd66bd9396b2c5e24b812de4e85"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/phase-results.json",
+      "bytes": 63,
+      "sha256": "9488f7548883aadb3421cbedd6aa243cfc4a05c4fc03aad3b3792b1a871e4f1e"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/flow-verification.json",
+      "bytes": 89,
+      "sha256": "563b1fc2263772fab105ed01de4ef3fbadccc02cec744309682a392fb1cc83f6"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/capture-cli.log.txt",
+      "bytes": 62,
+      "sha256": "3e66cf2392dc12b00ab6dc4d9bf20c92711996aa761111a61d8abf079b296b02"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/emulator.log.txt",
+      "bytes": 8355,
+      "sha256": "57024b6dcf236fc2ecefb5f275d1ab4b2f4c97e3dc108fe6ccc2bd10d72c0c21"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/emulator-version.log.txt",
+      "bytes": 655,
+      "sha256": "1a523c9091747b7bf48a755396278f2eca455352b40c281336f1c3e075607b54"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/emulator-gpu-help.log.txt",
+      "bytes": 686,
+      "sha256": "2b41d0c256896c5ef239eb26346d65fce2de08275953f3c131d639aedfa69f6f"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/emulator-cli-metadata.json",
+      "bytes": 42,
+      "sha256": "cdf3ad7af8ffd359862843e7946f96ac9b371d8e4996f3691c7c12a9d4c4cf91"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/emulator-crashpad-manifest.json",
+      "bytes": 991,
+      "sha256": "d0aeb1017f1cb17d2aba3db26d76c79b2eeeb9f3373e7f1457a3f0781d982fee"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/emulator-crashpad-settings.dat",
+      "bytes": 40,
+      "sha256": "a05289b5d4c32cca35c66c7c7322722653b00d7fd47e717dd068c8c406313690"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/toolchain.log.txt",
+      "bytes": 199,
+      "sha256": "ce4d3a9267e0a3cc61da7b1fd7540dc0033332a025f10970aa0aa5994c36b252"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/sdk-packages.txt",
+      "bytes": 135,
+      "sha256": "80a8e246e96293b58e0ae0810b43b19794f2dc84077511b3b1d94dd9608e62ab"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/overlays/src__services__supabase.ts.txt",
+      "bytes": 5251,
+      "sha256": "dfb6b6cfe427b7e5abdb7f7bedbdb45536f9abca000d4a2d3305dd45da4cf2e5"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/overlays/modules__boomerang__ios__BoomerangModule.swift.txt",
+      "bytes": 16619,
+      "sha256": "e50ecc3027064c532f474784ac49299954f09ce1a00eb3ea5f45fc906878f6a8"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/overlays/modules__boomerang__android__src__main__java__expo__modules__boomerang__BoomerangModule.kt.txt",
+      "bytes": 2990,
+      "sha256": "33170373380d9c69afabe789dfd7862f212ba1732a1328a74d7d123b7699d617"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/overlays/src__navigation__AppNavigator.tsx.txt",
+      "bytes": 38123,
+      "sha256": "d7377b4164e5beb7e508f53a24ad03f944ca9126cc83966c5bb8a99617c6c62a"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/overlays/metro.config.js.txt",
+      "bytes": 72,
+      "sha256": "d93f48605ead9e6d7b6fbc1cc210255bb653b227ac9daada78f69317a88c9534"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/overlays/index.js.txt",
+      "bytes": 33,
+      "sha256": "380861fc291a775b81d0891675f0bc4c632660ae44662ba370cb43052a1efa4c"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/host-job-log-projection.json",
+      "bytes": 2653,
+      "sha256": "b8ef23bffa515ee26d613db8707ff77747d3b877a4560257989b013bc9cef819"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/build-log-projection.json",
+      "bytes": 574,
+      "sha256": "bfb94a490e54de784ffc028ae375c68593074aaa5ce6051e152d0996b5dae9e6"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-b5c9c82b/runtime-marker-scan.json",
+      "bytes": 962,
+      "sha256": "2fa5a009294f0ace18c512f163da14c44a1017f0459917efe24d751c410bac9f"
+    }
+  ],
+  "sharedReviews": {
+    "docs/quality/native-full-app-20261031/android-b5c9c82b-navigation-independent-review.json": "7669ae765ef76589fa362d9c5f391495eafcca5ea27deddee3af1517db3c30d7",
+    "docs/quality/native-full-app-20261031/android-b5c9c82b-auth-independent-review.json": "8d653aac4a928c94c5209254c4d2c84cfd1da14d2ef7b9757e6e16aed1b6efb3"
+  },
+  "actions": {
+    "jobLogFetches": 1,
+    "artifactDownloads": 1,
+    "reruns": 0,
+    "cancellations": 0,
+    "refChanges": 0,
+    "sourceOrGateChangesDuringReview": false,
+    "siblingIPhonePreserved": true
+  },
+  "limits": [
+    "This failure is a host emulator SIGSEGV confirmed by Bash. No retained stack permits blaming Vulkan, GLES, a driver, memory pressure or the application as its cause.",
+    "A semantic memory-reader assertion did not fail here: navigation lost device hierarchy transport during the first scroll toward the shelf.",
+    "The failed gates remain failed. Source/renderer diagnostics and supporting compile/encoder successes do not replace either required full-app flow or movie decoder acceptance."
+  ]
+}

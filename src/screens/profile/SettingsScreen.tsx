@@ -4,7 +4,10 @@ import TierName from '../../components/TierName';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { showMessage } from 'react-native-flash-message';
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
-import { AppState, KeyboardAvoidingView, Platform } from 'react-native';
+import { AppState, KeyboardAvoidingView, Platform ,
+  View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Alert,
+  StatusBar, Linking, Modal, TextInput, ActivityIndicator, Image,
+} from 'react-native';
 import { paymentsService } from '../../services/paymentsService';
 import { createIntoBankLinkState } from '../../services/intoBankLinkState';
 import LinkIntoBankSheet from '../../components/LinkIntoBankSheet';
@@ -13,21 +16,21 @@ import { useAccountsStore } from '../../stores/accountsStore';
 import { useThemeStore } from '../../stores/themeStore';
 import { useLockStore } from '../../stores/lockStore';
 import React, { useCallback, useState } from 'react';
-import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Alert,
-  StatusBar, Linking, Modal, TextInput, ActivityIndicator, Image,
-} from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { Feather } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '../../stores/authStore';
 import { useSettingsStore } from '../../stores/settingsStore';
-import { light, typeSize, fontWeight, radius, space } from '../../constants/tokens';
+import { typeSize, fontWeight, radius, space } from '../../constants/tokens';
 import { supabase } from '../../services/supabase';
+import { requestAccountErasure } from '../../services/accountErasureService';
+import { erasureMessage } from '../../../shared/accountErasure';
+import { categoryEnabled, createNotificationPreferenceEditor, pushEnabled as notificationsEnabled,
+  type NotificationCategory, type NotificationEditorState, type NotificationPreferenceKey } from '../../../shared/notificationPreferences';
+import { navigationScope } from '../../lib/navigationCache';
 
 const MAROON = '#8C1D40';
-const GOLD = '#FFC627';
 
 function initials(n?: string | null) {
   if (!n) return 'U';
@@ -73,12 +76,12 @@ export default function SettingsScreen() {
   const exportBusy = React.useRef(false);
   const insets = useSafeAreaInsets();
   const { profile, signOut } = useAuthStore();
-
-  const [notifMessages,    setNotifMessages]    = useState(true);
-  const [notifConnections, setNotifConnections] = useState(true);
-  const [notifJobs,        setNotifJobs]        = useState(true);
-  const [pushEnabled,      setPushEnabled]      = useState(true);
-  const [savingNotifs,     setSavingNotifs]     = useState(false);
+  const ownerId = useAuthStore(st => st.session?.user.id ?? '');
+  const notificationEditor = React.useRef<ReturnType<typeof createNotificationPreferenceEditor> | null>(null);
+  const [notificationState, setNotificationState] = useState<NotificationEditorState>({ profile: null, loading: false, pending: null, issue: null });
+  const knownNotificationState = React.useRef<{ scope: string | null; state: NotificationEditorState } | null>(null);
+  const pushEnabled = notificationsEnabled(notificationState.profile ?? {});
+  const notificationBusy = !notificationState.profile || notificationState.pending !== null;
   const [localProfile,     setLocalProfile]     = useState(profile);
 
   const [pwModal,     setPwModal]     = useState(false);
@@ -131,35 +134,37 @@ export default function SettingsScreen() {
   const [deleting,         setDeleting]         = useState(false);
 
   const [deactivating, setDeactivating] = useState(false);
-
-  const [followRequestCount, setFollowRequestCount] = useState(0);
+  const deactivationBusy = React.useRef(false);
 
   useFocusEffect(useCallback(() => {
-    if (!profile?.id) return;
-    supabase.from('profiles').select('*').eq('id', profile.id).single().then(({ data }) => {
-      if (data) {
-        setLocalProfile({ ...profile, ...data });
-        setNotifMessages(data.notif_messages ?? true);
-        setNotifPrefs((data as any).notif_prefs || {});
-        setNotifConnections(data.notif_connections ?? true);
-        setNotifJobs(data.notif_jobs ?? true);
-        setVisibility(data.profile_visibility ?? 'public');
-      }
+    if (!ownerId) return;
+    const scope = navigationScope();
+    const isCurrent = () => !!scope && navigationScope() === scope && useAuthStore.getState().session?.user.id === ownerId;
+    const editor = createNotificationPreferenceEditor({
+      initialProfile: knownNotificationState.current?.scope === scope ? knownNotificationState.current.state.profile : null,
+      isCurrent,
+      read: async signal => {
+        const { data, error } = await supabase.from('profiles').select('*').eq('id', ownerId).abortSignal(signal).single();
+        if (error || !data) throw error ?? new Error('Profile unavailable');
+        if (isCurrent() && !signal.aborted) { setLocalProfile(data); setVisibility(data.profile_visibility ?? 'public'); }
+        return data;
+      },
+      write: async (key, enabled, signal) => {
+        const { data, error } = await supabase.rpc('set_notification_preference', { p_key: key, p_enabled: enabled }).abortSignal(signal);
+        if (error) throw error;
+        return data;
+      },
+      onState: state => { knownNotificationState.current = { scope, state }; setNotificationState(state); },
     });
-    supabase.from('follow_requests')
-      .select('id', { count: 'exact', head: true })
-      .eq('target_id', profile.id)
-      .eq('status', 'pending')
-      .then(({ count }) => {
-        setFollowRequestCount(count ?? 0);
-      });
-  }, [profile?.id]));
+    notificationEditor.current = editor;
+    void editor.load();
+    return () => { editor.dispose(); if (notificationEditor.current === editor) notificationEditor.current = null; };
+  }, [ownerId]));
 
-const [notifPrefs, setNotifPrefs] = useState<Record<string, boolean>>({});
   const [settingsQuery, setSettingsQuery] = useState('');
   const appSet = useSettingsStore();
   // Instagram's categories, one switch each; the server maps every notification type to one of these.
-  const NOTIF_TYPES: { key: string; icon: string; label: string; sub: string }[] = [
+  const NOTIF_TYPES: { key: NotificationCategory; icon: string; label: string; sub: string }[] = [
     { key: 'messages', icon: 'message-circle', label: 'Messages', sub: 'Direct messages, group messages and message requests' },
     { key: 'message_reactions', icon: 'smile', label: 'Message reactions', sub: 'Reactions to your messages' },
     { key: 'calls', icon: 'phone', label: 'Calls', sub: 'Incoming and missed voice and video calls' },
@@ -172,22 +177,16 @@ const [notifPrefs, setNotifPrefs] = useState<Record<string, boolean>>({});
     { key: 'payments', icon: 'credit-card', label: 'Payments', sub: 'Money received in chat' },
     { key: 'account', icon: 'shield', label: 'Account notices', sub: 'Security alerts, sign-ins and system notices' },
   ];
-  const setTypePref = async (key: string, enabled: boolean) => {
-    if (!profile?.id) return;
-    const prev = notifPrefs;
-    const next = { ...notifPrefs };
-    if (enabled) delete next[key]; else next[key] = false;
-    setNotifPrefs(next);
-    const { error } = await supabase.from('profiles').update({ notif_prefs: next }).eq('id', profile.id);
-    if (error) {
-      setNotifPrefs(prev); // the write was rejected — the switch tells the truth
-      Alert.alert('Not saved', 'That change could not be saved. Try again.');
-    }
+  const setTypePref = async (key: NotificationPreferenceKey, enabled: boolean) => {
+    const editor = notificationEditor.current;
+    if (!editor) return;
+    const saved = await editor.set(key, enabled);
+    if (!saved && notificationEditor.current === editor && editor.getState().issue) Alert.alert('Not saved', editor.getState().issue!);
   };
 
 type SetRow = { icon: string; color?: string; label: string; sub?: string; onPress?: () => void; right?: React.ReactNode; danger?: boolean; chevron?: boolean; visible?: boolean };
-  const sw = (value: boolean, onChange: (v: boolean) => void, disabled = false) => (
-    <Switch value={value} onValueChange={onChange} trackColor={{ false: getTheme().surface.hairline, true: getTheme().status.success }} thumbColor="#FFF" disabled={disabled} />
+  const sw = (value: boolean, onChange: (v: boolean) => void, disabled = false, label?: string) => (
+    <Switch value={value} onValueChange={onChange} accessibilityLabel={label} trackColor={{ false: getTheme().surface.hairline, true: getTheme().status.success }} thumbColor="#FFF" disabled={disabled} />
   );
   const ibOwnerId = useAuthStore(st => st.session?.user?.id || '');
   const [ibState, setIbState] = React.useState<{ ownerId: string; linked: boolean | null; issue: string | null }>({ ownerId: '', linked: null, issue: null });
@@ -197,8 +196,9 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
   const ibStateRef = React.useRef<ReturnType<typeof createIntoBankLinkState> | null>(null);
   // An outage on the way to IntoBank is shown as an outage. The link itself changes only on a definite answer or the person's own unlink.
   const refreshIbStatus = React.useCallback(() => {
+    if (!ibOwnerId || useAuthStore.getState().session?.user.id !== ibOwnerId) return;
     void ibStateRef.current?.refresh();
-  }, []);
+  }, [ibOwnerId]);
   const lockEnabled = useLockStore(st => st.enabled);
   const toggleAppLock = async () => {
     const st = useLockStore.getState();
@@ -236,7 +236,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
     refreshIbStatus();
     const subscription = AppState.addEventListener('change', state => { if (state === 'active') refreshIbStatus(); });
     return () => subscription.remove();
-  }, [ibOwnerId, refreshIbStatus]));
+  }, [refreshIbStatus]));
   const confirmUnlink = () => {
     const controller = ibStateRef.current;
     const isCurrentOwner = () => !!controller && ibStateRef.current === controller && !!ibOwnerId && useAuthStore.getState().session?.user?.id === ibOwnerId;
@@ -280,11 +280,12 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
           { text: 'Cancel', style: 'cancel' },
         ]);
       } },
-      { icon: 'moon', color: getTheme().ink.primary, label: 'Appearance', sub: (() => { const m = useThemeStore.getState().mode; return m === 'dark' ? 'Dark' : m === 'light' ? 'Light' : 'Follows your phone'; })(), onPress: () => {
-        Alert.alert('Appearance', 'Light, dark, or whatever your phone is set to', [
+      { icon: 'moon', color: getTheme().ink.primary, label: 'Appearance', sub: (() => { const m = useThemeStore.getState().mode; return m === 'lightsOut' ? 'Lights out' : m === 'dark' ? 'Dim' : m === 'light' ? 'Light' : 'Follows your phone'; })(), onPress: () => {
+        Alert.alert('Appearance', 'Choose a light, dim, or black background.', [
           { text: 'Follow my phone', onPress: () => useThemeStore.getState().setMode('system') },
           { text: 'Light', onPress: () => useThemeStore.getState().setMode('light') },
-          { text: 'Dark', onPress: () => useThemeStore.getState().setMode('dark') },
+          { text: 'Dim', onPress: () => useThemeStore.getState().setMode('dark') },
+          { text: 'Lights out', onPress: () => useThemeStore.getState().setMode('lightsOut') },
           { text: 'Cancel', style: 'cancel' },
         ]);
       } },
@@ -338,7 +339,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
           try {
             const Sharing = require('expo-sharing');
             if (Sharing?.isAvailableAsync && await Sharing.isAvailableAsync()) { assertOwner(); await Sharing.shareAsync(path, { mimeType: 'application/json', dialogTitle: 'Your Platinum Circles data' }); shared = true; }
-          } catch (e) { assertOwner(); }
+          } catch { assertOwner(); }
           if (!shared) { assertOwner(); const { Share } = require('react-native'); await Share.share({ url: path, title: 'Your Platinum Circles data' } as any); }
         } catch (e: any) { Alert.alert('Could not export', e?.message || 'Please try again.'); }
         finally { exportBusy.current = false; }
@@ -357,9 +358,10 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
       { icon: 'edit-3', color: getTheme().ink.primary, label: 'Write an article', sub: 'Long-form publishing with a cover and read time', onPress: () => (navigation as any).navigate('ArticleCompose') },
     ]},
     { title: 'Notifications', rows: [
-      { icon: 'bell', color: '#FF3B30', label: 'Push Notifications', sub: 'Master toggle for all alerts', chevron: false, right: sw(pushEnabled, togglePush) },
+      { icon: 'bell', color: '#FF3B30', label: 'Push Notifications', sub: notificationState.loading ? 'Refreshing your saved choices' : 'Pause all alerts and keep your category choices', chevron: false, right: sw(pushEnabled, v => { void setTypePref('all', v); }, notificationBusy, 'Push notifications') },
       ...NOTIF_TYPES.map(t => ({ icon: t.icon, color: getTheme().ink.primary, label: t.label, sub: t.sub, chevron: false,
-        right: sw(notifPrefs[t.key] !== false && pushEnabled, (v: boolean) => setTypePref(t.key, v), !pushEnabled) })),
+        right: sw(categoryEnabled(notificationState.profile ?? {}, t.key) && pushEnabled, (v: boolean) => { void setTypePref(t.key, v); }, !pushEnabled || notificationBusy, t.label) })),
+      ...(notificationState.issue ? [{ icon: 'refresh-cw', label: 'Retry notification settings', sub: notificationState.issue, onPress: () => { void notificationEditor.current?.load(); } }] : []),
     ]},
     { title: 'Data & appearance', rows: [
       { icon: 'play-circle', color: getTheme().ink.primary, label: 'Autoplay videos', sub: 'Turn off to save mobile data', chevron: false,
@@ -370,7 +372,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
     { title: 'Support', rows: [
       { icon: 'help-circle', color: getTheme().ink.primary, label: 'Help & Support', sub: 'FAQs, submit a ticket', onPress: () => navigation.navigate('HelpSupport') },
       { icon: 'mail', color: getTheme().ink.primary, label: 'Contact Us', sub: 'support@platinumcircles.app', onPress: () => Linking.openURL('mailto:support@platinumcircles.app?subject=PlatinumCircles%20Inquiry').catch(() => Alert.alert('No mail app', 'Email us at support@platinumcircles.app')) },
-      { icon: 'star', color: getTheme().ink.primary, label: 'Rate the App', sub: 'Share your feedback', onPress: () => Alert.alert('Thank you!', 'App Store rating coming soon.') },
+      { icon: 'star', color: getTheme().ink.primary, label: 'Rate the App', sub: 'Available after the public App Store release', chevron: false },
     ]},
     { title: 'Legal', rows: [
       { icon: 'file-text', color: getTheme().ink.secondary, label: 'Terms of Service', onPress: () => navigation.navigate('Terms') },
@@ -379,29 +381,10 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
     { title: 'Account Actions', rows: [
       { icon: 'refresh-cw', color: getTheme().ink.primary, label: 'Switch Account', sub: 'Up to five accounts on this phone; long-press the Profile tab any time', onPress: () => useAccountsStore.getState().openSwitcher() },
       { icon: 'log-out', color: getTheme().ink.primary, label: 'Sign Out', onPress: handleSignOut },
-      { icon: 'moon', color: getTheme().ink.secondary, label: 'Deactivate Account', sub: 'Hide your profile temporarily', onPress: handleDeactivate },
-      { icon: 'trash-2', color: '#FF3B30', label: 'Delete Account', sub: 'Permanently remove all your data', danger: true, onPress: () => { setDeleteConfirmTxt(''); setDeleteModal(true); } },
+      { icon: 'moon', color: getTheme().ink.secondary, label: deactivating ? 'Deactivating…' : 'Deactivate Account', sub: 'Hide your profile temporarily', onPress: deactivating ? undefined : handleDeactivate },
+      { icon: 'trash-2', color: '#FF3B30', label: 'Delete Account', sub: 'Permanently delete this account', danger: true, onPress: () => { setDeleteConfirmTxt(''); setDeleteModal(true); } },
     ]},
   ];
-
-  const saveNotifPref = async (field: string, value: boolean) => {
-    if (!profile?.id || savingNotifs) return;
-    setSavingNotifs(true);
-    try {
-      await supabase.from('profiles').update({ [field]: value }).eq('id', profile.id);
-    } catch {}
-    finally { setSavingNotifs(false); }
-  };
-
-  const togglePush = (val: boolean) => {
-    setPushEnabled(val);
-    if (!val) {
-      setNotifMessages(false); setNotifConnections(false); setNotifJobs(false);
-      saveNotifPref('notif_messages', false);
-      saveNotifPref('notif_connections', false);
-      saveNotifPref('notif_jobs', false);
-    }
-  };
 
   const changePassword = async () => {
     if (!currentPw) { Alert.alert('Current password', 'Enter your current password first.'); return; }
@@ -424,13 +407,17 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
   };
 
   const savePrivacy = async () => {
-    if (!profile?.id) return;
+    if (!ownerId || profile?.id !== ownerId || savingPriv) return;
+    const scope = navigationScope();
     setSavingPriv(true);
     try {
-      await supabase.from('profiles').update({ profile_visibility: visibility }).eq('id', profile.id);
+      const { error } = await supabase.from('profiles').update({ profile_visibility: visibility }).eq('id', ownerId);
+      if (error) throw error;
+      if (navigationScope() !== scope) return;
+      setLocalProfile(p => p?.id === ownerId ? { ...p, profile_visibility: visibility } : p);
       setPrivacyModal(false);
       Alert.alert('Saved', visibility === 'public' ? 'Your profile is now public.' : 'Your profile is now private. Only connections can see it.');
-    } catch {}
+    } catch { if (navigationScope() === scope) Alert.alert('Not saved', 'Your privacy choice could not be saved. Please try again.'); }
     finally { setSavingPriv(false); }
   };
 
@@ -445,17 +432,6 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
     );
   };
 
-  const handleSwitchAccount = () => {
-    Alert.alert(
-      'Switch account?',
-      'You will be signed out and can sign in with a different account.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Switch Account', onPress: async () => { await signOut(); } },
-      ]
-    );
-  };
-
   const handleDeactivate = () => {
     Alert.alert(
       'Deactivate account?',
@@ -466,18 +442,21 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
           text: 'Deactivate',
           style: 'destructive',
           onPress: async () => {
-            if (!profile?.id) return;
+            if (!ownerId || profile?.id !== ownerId || deactivationBusy.current || useAuthStore.getState().session?.user.id !== ownerId) return;
+            const scope = navigationScope();
+            deactivationBusy.current = true;
             setDeactivating(true);
             try {
               const { error } = await supabase
                 .from('profiles')
                 .update({ deactivated_at: new Date().toISOString() })
-                .eq('id', profile.id);
+                .eq('id', ownerId);
+              if (navigationScope() !== scope) return;
               if (error) { Alert.alert('Error', error.message); return; }
               await signOut();
             } catch (e: any) {
-              Alert.alert('Error', e?.message || 'Could not deactivate account.');
-            } finally { setDeactivating(false); }
+              if (navigationScope() === scope) Alert.alert('Error', e?.message || 'Could not deactivate account.');
+            } finally { deactivationBusy.current = false; setDeactivating(false); }
           },
         },
       ]
@@ -485,18 +464,18 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
   };
 
   const handleDeleteAccount = async () => {
-    if (deleteConfirmTxt !== 'DELETE') return;
+    if (deleteConfirmTxt !== 'DELETE' || deleting) return;
     if (!profile?.id) return;
     setDeleting(true);
     try {
-      const { error } = await supabase.rpc('delete_user_account', { p_user_id: profile.id });
-      if (error) { Alert.alert('Error', error.message); setDeleting(false); return; }
+      const { status, accountChanged } = await requestAccountErasure(profile.id);
+      const message = erasureMessage(status);
       setDeleteModal(false);
-      await signOut();
+      Alert.alert(message.title, message.detail);
+      if (!accountChanged) await signOut();
     } catch (e: any) {
-      Alert.alert('Error', e?.message || 'Could not delete account.');
-      setDeleting(false);
-    }
+      Alert.alert('Deletion request', e?.message || 'Could not confirm your deletion request. Check its saved status.');
+    } finally { setDeleting(false); }
   };
 
   const goToEditProfile = () => {
@@ -706,11 +685,11 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
       </Modal>
 
       {/* Delete Account Modal */}
-      <Modal visible={deleteModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setDeleteModal(false)}>
+      <Modal visible={deleteModal} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { if (!deleting) setDeleteModal(false); }}>
         <SafeAreaView style={{ flex: 1, backgroundColor: getTheme().surface.canvas, paddingTop: insets.top }} edges={['left', 'right']}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
           <View style={s.modalHeader}>
-            <TouchableOpacity onPress={() => setDeleteModal(false)}><Text style={s.modalCancel}>Cancel</Text></TouchableOpacity>
+            <TouchableOpacity disabled={deleting} onPress={() => setDeleteModal(false)}><Text style={s.modalCancel}>Cancel</Text></TouchableOpacity>
             <Text style={s.modalTitle}>Delete Account</Text>
             <View style={{ minWidth: 60 }} />
           </View>
@@ -719,7 +698,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
               <Feather name="alert-triangle" size={24} color="#FF3B30" />
               <Text style={s.deleteWarningTitle}>This action is permanent</Text>
               <Text style={s.deleteWarningTxt}>
-                All your data will be permanently deleted, including your profile, posts, messages, connections, and all other content. This cannot be undone.
+                Your account will be disabled while your stored files and account records are erased. This cannot be undone. Payment records, shared accounts or files with unclear ownership may need a support review. Deletion is complete only when your request status confirms it.
               </Text>
             </View>
             <Text style={s.modalFieldLabel}>Type DELETE to confirm</Text>
@@ -728,7 +707,7 @@ type SetRow = { icon: string; color?: string; label: string; sub?: string; onPre
               style={[s.deleteBtn, (deleting || deleteConfirmTxt !== 'DELETE') && s.deleteBtnOff]}
               onPress={handleDeleteAccount} disabled={deleting || deleteConfirmTxt !== 'DELETE'} activeOpacity={0.85}
             >
-              {deleting ? <ActivityIndicator color={getTheme().ink.inverse} /> : <Text style={s.deleteBtnTxt}>Delete My Account</Text>}
+              {deleting ? <ActivityIndicator color={getTheme().ink.inverse} /> : <Text style={s.deleteBtnTxt}>Request Account Deletion</Text>}
             </TouchableOpacity>
           </ScrollView>
         </KeyboardAvoidingView>

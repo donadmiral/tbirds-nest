@@ -13,6 +13,12 @@ const compiled = file => ts.transpileModule(fs.readFileSync(path.join(root, file
 }).outputText;
 const commentSource = compiled('components/Comments.tsx');
 const cardSource = compiled('components/PostCard.tsx');
+const sharedModules = {};
+for (const name of ['collaborationPeople', 'commentHighlights']) {
+  const module = { exports: {} };
+  vm.runInNewContext(compiled('../shared/' + name + '.ts'), { module, exports: module.exports, Set, Promise });
+  sharedModules['../../shared/' + name] = module.exports;
+}
 const profileModule = { exports: {} };
 vm.runInNewContext(compiled('lib/profileLookup.ts'), { module: profileModule, exports: profileModule.exports });
 // Keep the new test helper available when running original component sources.
@@ -43,7 +49,7 @@ function scenario(initialCount = 0) {
     confirm: () => true,
   };
   const client = {
-    auth: { getSession: async () => ({ data: { session: { user: { id: 'author' } } } }) },
+    auth: { getSession: async () => ({ data: { session: { user: { id: 'author' } } } }), onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }) },
     from(table) {
       let selection = '', operation = 'select', input;
       const chain = {
@@ -80,11 +86,14 @@ function scenario(initialCount = 0) {
         slots[i]?.cleanup?.(); slots[i] = { deps }; effects.push(() => { slots[i].cleanup = fn(); });
       } },
     };
+    hooks.useLayoutEffect=hooks.useEffect;
+    hooks.useMemo=(fn,deps)=>{const i=cursor++;if(!slots[i]||!same(slots[i].deps,deps))slots[i]={value:fn(),deps};return slots[i].value;};
     const runtime = { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }), Fragment: 'Fragment' };
     const module = { exports: {} };
     vm.runInNewContext(kind === 'comments' ? commentSource : cardSource, {
-      module, exports: module.exports, window, CustomEvent, alert: message => alerts.push(message), setTimeout, clearTimeout,
+      module, exports: module.exports, window, CustomEvent, alert: message => alerts.push(message), setTimeout, clearTimeout, queueMicrotask,
       require(id) {
+        if (sharedModules[id]) return sharedModules[id];
         if (id === 'react') return hooks;
         if (id === 'react/jsx-runtime') return runtime;
         if (id === '@/lib/commentCounts') return helper;
@@ -98,7 +107,7 @@ function scenario(initialCount = 0) {
         return new Proxy({}, { get: (_, key) => String(key) });
       },
     });
-    const render = () => { cursor = 0; tree = module.exports[kind === 'comments' ? 'Comments' : 'PostCard'](props); const pending = effects; effects = []; pending.forEach(fn => fn()); };
+    const render = () => { cursor = 0; tree = module.exports[kind === 'comments' ? 'Comments' : 'PostCard'](props); while(typeof tree?.type==='function')tree=tree.type(tree.props); const pending = effects; effects = []; pending.forEach(fn => fn()); };
     const nodes = () => {
       const found = [];
       const walk = n => { if (!n || typeof n !== 'object') return; if (Array.isArray(n)) return n.forEach(walk);

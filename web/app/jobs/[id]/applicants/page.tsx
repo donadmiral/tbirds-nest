@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { FileText, Phone, Link2, CalendarClock, MessageCircle } from "lucide-react";
+import { Phone, Link2, CalendarClock, MessageCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { RelativeTime } from "@/components/RelativeTime";
@@ -50,7 +50,7 @@ export default function ApplicantsPage() {
   const morePending = useRef(false);
   const account = useRef<string | null>(null);
   const load = useCallback(async () => {
-    const token = ++request.current;
+    const token = request.current += 1;
     setLoading(true); setError(null); setApps([]); setCounts({ all: 0 }); setNextCursor(null);
     morePending.current = false; setLoadingMore(false);
     try {
@@ -79,7 +79,7 @@ export default function ApplicantsPage() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const next = session?.user.id ?? null;
       if (next === account.current) return;
-      account.current = next; ++request.current;
+      account.current = next; request.current += 1;
       setApps([]); setCounts({ all: 0 }); setAllowed(null); setScheduling(null); setWhen(''); setWhere('');
       pending.current.clear(); setPendingIds(new Set());
       queueMicrotask(() => { if (!cancelled) void load(); });
@@ -136,7 +136,7 @@ export default function ApplicantsPage() {
       <div className="mt-3 flex gap-2 overflow-x-auto pb-2">
         {["all", ...STATUS_ORDER].map((s) => (
           <button key={s}
-            onClick={() => { if (s !== filter) { ++request.current; setFilter(s); setScheduling(null); } }}
+            onClick={() => { if (s !== filter) { request.current += 1; setFilter(s); setScheduling(null); } }}
             className={"shrink-0 rounded-md px-3 py-1.5 text-[13px] transition-colors " + (filter === s ? "bg-surface-elevated font-semibold text-ink" : "bg-surface text-ink/60 hover:text-ink")}
           >
             {s === "all" ? "All" : STATUS_META[s as ApplicationStatus].label} {counts[s] ? "(" + counts[s] + ")" : ""}

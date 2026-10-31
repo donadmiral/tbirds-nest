@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31T06:45:24.683Z",
+  "reviewer": "hosted_backend independent review",
+  "outcome": "Accepted: no source-review blocker for the observed iOS QA-app handoff. Actual Simulator interaction and complete capture remain pending.",
+  "scope": "Review only the frozen capture-prompt flow, its focused regression, retained AX/owner receipt and the unchanged Android graphics candidate. No backend, Apple, Expo, release or ref operation.",
+  "sourceBinding": {
+    "baselineCommit": "e173b2dbcf253342be5683fa85f102aa38065411",
+    "baselineFlowSha256": "16966925346646f2280ca0ebdea7ce0c5f2e131d03e9dec3841c69a761f0ba91",
+    "hashes": {
+      "tests/native/flows/memory-capture.yaml": "1bb3e4fa89bf9bbc516c43efae25e989a1f8b6d719de58a7723ea896d6eb5bde",
+      "tests/quality/native-capture-open-link.cjs": "8789514527b86f1a6a5caa89ef5f1f67798f85f2f51d4dab5ddcf114696e192f",
+      "docs/quality/native-full-app-20261031/ios-capture-open-link-repair.json": "87da10e2ae81a3afb78fe9be7b5b97effb35f6450b7a918b708eb8544663a184",
+      "docs/quality/native-full-app-20261031/ios-e173b2db/capture-open-link-ax.json": "df636b1b3ce9ddcf2439db86478f543415a28e24f9e9ea487f0603edb7237696",
+      "scripts/quality/test-android-app-ui.sh": "6d9ea96189108721634a31bd0650b0e068a8403d64bf9cbeb108836aef795fe6"
+    },
+    "ownerReceipt": "docs/quality/native-full-app-20261031/ios-capture-open-link-repair.json",
+    "sourceStability": "Frozen flow/test/AX and Android candidate match their previously supplied hashes."
+  },
+  "independentFindings": {
+    "exactPrompt": "Open in “Platinum QA”?",
+    "gate": {
+      "platform": "iOS",
+      "visible": "^Open in “Platinum QA”\\?$"
+    },
+    "action": {
+      "tapOn": "Open"
+    },
+    "position": "One conditional runFlow inserted immediately after the existing deep link and before the original required route wait.",
+    "platformAndVisibilityRequired": true,
+    "wrongAppOrPunctuationCannotMatch": true,
+    "tapUsesSemanticLabelNotCoordinates": true,
+    "retainedOpenTarget": {
+      "count": 1,
+      "enabled": true,
+      "bounds": "[197,446][331,490]",
+      "boundsUse": "Evidence of the actual enabled target only; not tap coordinates."
+    },
+    "noPromptBehavior": "No handoff action; the unchanged Native capture acceptance route wait still must succeed.",
+    "permissionScope": "Only the observed app-opening confirmation. No camera, microphone, Photos, notification or general permission approval was added.",
+    "originalCommandCount": 18,
+    "candidateCommandCount": 19,
+    "originalCommandBytesUnchangedAfterRemovingSingleInsertion": true,
+    "parsedOriginalCommandsDeepEqual": true,
+    "appIdAndFlowNameUnchanged": true,
+    "originalChecksPreserved": [
+      "Single original deep-link URL",
+      "Required capture route and Saved account readback passed",
+      "Cancellation movie and real in-flight reader timing",
+      "Cancellation close and first cleanup",
+      "Complete movie creation and Save movie to Photos readiness",
+      "Final close, second cleanup and both screenshots",
+      "Every original timeout, interaction option and command order"
+    ],
+    "noStateResetOrAcceptanceRelaxation": "No launch, stop, clearState, clearKeychain, new sign-in, retry, optional assertion or timeout widening was introduced."
+  },
+  "pinnedMaestroReview": {
+    "version": "2.11.0",
+    "commit": "c8c361be1cc89b2e742f185466a302a22778be6b",
+    "localSourcesRead": [
+      {
+        "path": "maestro-client/src/main/java/maestro/drivers/IOSDriver.kt",
+        "sha256": "f4b0990e891edf7401c0cc163f11247c3a095dcd9d45e8c1977ba605e245a4d3",
+        "finding": "openLink forwards the URL to iosDevice.openLink; autoVerify is logged but performs no confirmation handling."
+      },
+      {
+        "path": "maestro-orchestra/src/main/java/maestro/orchestra/Orchestra.kt",
+        "sha256": "06e8e2803af1c9704783452a22bf4a3652f89574f384e893afd97d5fcc9007b5",
+        "finding": "runFlow evaluates the condition before its commands. A platform mismatch returns false, and visible selection must also succeed."
+      },
+      {
+        "path": "maestro-ios-driver/src/main/kotlin/device/SimctlIOSDevice.kt",
+        "sha256": "5e683075148b70ec2273c7b85a4f6f77c0b0fbdf228d9ed6eb0e38461f55cf4f",
+        "finding": "The simulator device forwards the URL through localSimulatorUtils.openURL."
+      }
+    ],
+    "provenance": "Locally retained official pinned sources; each complete-file hash matches the owner receipt. No new external-source retrieval was needed."
+  },
+  "focusedIndependentExecution": {
+    "command": "node --test --test-isolation=none --test-reporter=tap tests/quality/native-capture-open-link.cjs",
+    "node": "v24.22.1",
+    "exitCode": 0,
+    "testCases": 5,
+    "passed": 5,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0,
+    "tapDurationMs": 53.956054,
+    "retainedTap": "TAP version 13\n# Subtest: the iOS handoff condition and semantic Open target match the retained real system alert\nok 1 - the iOS handoff condition and semantic Open target match the retained real system alert\n  ---\n  duration_ms: 2.124244\n  type: 'test'\n  ...\n# Subtest: an identical-looking Android alert never triggers the iOS handoff action\nok 2 - an identical-looking Android alert never triggers the iOS handoff action\n  ---\n  duration_ms: 0.246804\n  type: 'test'\n  ...\n# Subtest: another app title or nonliteral punctuation cannot authorize an Open tap\nok 3 - another app title or nonliteral punctuation cannot authorize an Open tap\n  ---\n  duration_ms: 0.212263\n  type: 'test'\n  ...\n# Subtest: no handoff dialog leaves unrelated Open controls untouched\nok 4 - no handoff dialog leaves unrelated Open controls untouched\n  ---\n  duration_ms: 0.163841\n  type: 'test'\n  ...\n# Subtest: confirmation handling preserves the required route, storage and export assertions\nok 5 - confirmation handling preserves the required route, storage and export assertions\n  ---\n  duration_ms: 0.544523\n  type: 'test'\n  ...\n1..5\n# tests 5\n# suites 0\n# pass 5\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 53.956054\n",
+    "scope": "Actual retained AX and parsed candidate YAML exercised against the documented condition projection. This is not a fresh Maestro/Simulator interaction.",
+    "widerTests": "The owner's 28 actual-shell cases are recorded in its bound receipt; they were not rerun or added to this independent five-case count.",
+    "setupNotes": "Two preliminary ad hoc orchestration wrappers stopped before invoking the test: an options-argument typo, then Node child-process EPERM in this sandbox. The direct isolated test command above completed successfully; no product assertion failed in those setup attempts."
+  },
+  "androidGraphicsRecheck": {
+    "path": "scripts/quality/test-android-app-ui.sh",
+    "sha256": "6d9ea96189108721634a31bd0650b0e068a8403d64bf9cbeb108836aef795fe6",
+    "matchesPreviouslyReviewedBytes": true,
+    "changeRemains": "Exactly -gpu swiftshader_indirect to -gpu software plus the three approved comment lines relative to e173.",
+    "previousReview": "docs/quality/native-full-app-20261031/android-full-app-e173b2db-emulator-disappearance.json",
+    "noNewClaim": "Selected renderer and crash stability still require the next runtime observation."
+  },
+  "remainingRuntimeGate": "The next complete native run must dismiss the observed iOS prompt, reach the capture route, reload the saved account, and pass actual cancellation, full capture, independent decoding and cleanup. This change does not fix or waive the separately investigated native-modal navigation issue.",
+  "writeBoundary": "Only this independent documentation receipt was created. No source/test/configuration edits, root report edits, commits, ref changes, provider/database calls or Apple/Expo actions."
+}

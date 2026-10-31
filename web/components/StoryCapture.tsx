@@ -1,5 +1,7 @@
 "use client";
+import NextImage from "next/image";
 import { useEffect, useRef, useState } from 'react';
+import { useObjectUrl } from '@/lib/useObjectUrl';
 import { Camera, FlipHorizontal2, ImagePlus, Video, X } from 'lucide-react';
 import { captureStoryPhoto, composeStoryPhotos, encodeStoryBoomerang, STORY_LAYOUTS, type BoomerangEffect, type StoryLayout } from '@/lib/storyCaptureMedia';
 import { StoryLensesCapture } from './StoryLensesCapture';
@@ -7,8 +9,7 @@ import s from './StoryCapture.module.css';
 type CaptureMode='photo'|'video'|'dual'|'layout'|'boomerang'|'lenses';
 const MODES:{id:CaptureMode;label:string}[]=[{id:'photo',label:'Photo'},{id:'video',label:'Video'},{id:'dual',label:'Dual'},{id:'layout',label:'Layout'},{id:'boomerang',label:'Boomerang'},{id:'lenses',label:'Lenses'}];
 function captureMessage(error:unknown){const name=error instanceof DOMException?error.name:'';if(name==='NotAllowedError'||name==='SecurityError')return 'Camera access is off. Allow access in your browser, or choose photos from your gallery.';if(name==='NotFoundError'||name==='NotReadableError')return 'This camera is unavailable or in use. Try again, or choose a photo or video.';return error instanceof Error?error.message:'The capture could not be prepared. Please retry.';}
-function useObjectUrl(file:Blob|null){const[url,setUrl]=useState<string|null>(null);useEffect(()=>{if(!file){setUrl(null);return;}const next=URL.createObjectURL(file);setUrl(next);return()=>URL.revokeObjectURL(next);},[file]);return url;}
-function PhotoSlot({file,index,disabled,onRemove}:{file:Blob|null;index:number;disabled:boolean;onRemove:()=>void}){const url=useObjectUrl(file);return <div className={s.photoSlot}>{url?<><img src={url} alt={'Layout photo '+(index+1)}/><button type="button" aria-label={'Remove layout photo '+(index+1)} disabled={disabled} onClick={onRemove}><X size={13}/></button></>:<span>{index+1}</span>}</div>;}
+function PhotoSlot({file,index,disabled,onRemove}:{file:Blob|null;index:number;disabled:boolean;onRemove:()=>void}){const url=useObjectUrl(file);return <div className={s.photoSlot}>{url?<><NextImage unoptimized width={44} height={58} src={url} alt={'Layout photo '+(index+1)}/><button type="button" aria-label={'Remove layout photo '+(index+1)} disabled={disabled} onClick={onRemove}><X size={13}/></button></>:<span>{index+1}</span>}</div>;}
 /** Every mode returns a real local File through the same ordered upload queue. */
 export function StoryCapture({onCapture,onClose,onGallery,purpose='story'}:{onCapture:(file:File)=>Promise<void>;onClose:()=>void;onGallery:()=>void;purpose?:'story'|'post'}){
  const video=useRef<HTMLVideoElement|null>(null),stream=useRef<MediaStream|null>(null),recorder=useRef<MediaRecorder|null>(null),fileInput=useRef<HTMLInputElement|null>(null);
@@ -20,16 +21,19 @@ export function StoryCapture({onCapture,onClose,onGallery,purpose='story'}:{onCa
  const [effect,setEffect]=useState<BoomerangEffect>('classic'),[boomInput,setBoomInput]=useState<Blob|null>(null);
  useEffect(()=>{const opener=document.activeElement;return()=>{if(typeof HTMLElement!=='undefined'&&opener instanceof HTMLElement&&opener.isConnected)opener.focus();};},[]);
  useEffect(()=>{dialog.current?.focus();},[mode]);
+ const cameraKey=facing+":"+mode+":"+retry;
+ const [previousCameraKey,setPreviousCameraKey]=useState(cameraKey);
+ if(previousCameraKey!==cameraKey){setPreviousCameraKey(cameraKey);setReady(false);setError(null);}
  const rearUrl=useObjectUrl(rear),needed=STORY_LAYOUTS.find(item=>item.id===layout)!.count;
  const stop=()=>{try{if(recorder.current?.state==='recording')recorder.current.stop();}catch{}};
  const disposeStream=()=>{stream.current?.getTracks().forEach(track=>track.stop());stream.current=null;if(video.current)video.current.srcObject=null;};
- const cancel=()=>{generation.current++;operation.current?.abort();operation.current=null;if(recorder.current){recorder.current.onstop=null;recorder.current.onerror=null;}stop();disposeStream();capturing.current=false;};
+ const cancel=()=>{generation.current += 1;operation.current?.abort();operation.current=null;if(recorder.current){recorder.current.onstop=null;recorder.current.onerror=null;}stop();disposeStream();capturing.current=false;};
  useEffect(()=>{
-  const request=++generation.current;setReady(false);setError(null);operation.current?.abort();operation.current=null;disposeStream();
-  if(mode==='lenses')return()=>{generation.current++;};
-  const dispose=()=>{generation.current++;operation.current?.abort();operation.current=null;if(recorder.current){recorder.current.onstop=null;recorder.current.onerror=null;}stop();disposeStream();capturing.current=false;};
-  if(!navigator.mediaDevices?.getUserMedia){setError('Camera capture is unavailable in this browser. Your gallery is still available.');return dispose;}
-  void navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing},width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:30,max:30}},audio:mode==='video'}).then(async next=>{if(generation.current!==request){next.getTracks().forEach(track=>track.stop());return;}stream.current=next;if(video.current){video.current.srcObject=next;await video.current.play();}if(generation.current===request)setReady(true);}).catch(failure=>{if(generation.current===request){disposeStream();setError(captureMessage(failure));}});
+  const request=generation.current += 1;operation.current?.abort();operation.current=null;disposeStream();
+  if(mode==='lenses')return()=>{generation.current += 1;};
+  const dispose=()=>{generation.current += 1;operation.current?.abort();operation.current=null;if(recorder.current){recorder.current.onstop=null;recorder.current.onerror=null;}stop();disposeStream();capturing.current=false;};
+  const openCamera=async()=>{if(!navigator.mediaDevices?.getUserMedia)throw new Error('Camera capture is unavailable in this browser. Your gallery is still available.');return navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:facing},width:{ideal:1920},height:{ideal:1080},frameRate:{ideal:30,max:30}},audio:mode==='video'});};
+  void openCamera().then(async next=>{if(generation.current!==request){next.getTracks().forEach(track=>track.stop());return;}stream.current=next;if(video.current){video.current.srcObject=next;await video.current.play();}if(generation.current===request)setReady(true);}).catch(failure=>{if(generation.current===request){disposeStream();setError(captureMessage(failure));}});
   const visibility=()=>{if(document.hidden){if(handoffRef.current){disposeStream();setReady(false);return;}dispose();setReady(false);setRecording(false);setBusy(false);setError('Camera paused while you were away. Return to continue.');}else if(!handoffRef.current)setRetry(n=>n+1);};document.addEventListener('visibilitychange',visibility);
   return()=>{dispose();document.removeEventListener('visibilitychange',visibility);};
  },[facing,mode,retry]);
@@ -61,7 +65,7 @@ export function StoryCapture({onCapture,onClose,onGallery,purpose='story'}:{onCa
  return <section ref={dialog} tabIndex={-1} role="dialog" aria-modal="true" aria-label={purpose==='post'?'Post camera':'Story camera'} className={s.camera} onKeyDown={event=>{if(event.key==='Escape'){event.stopPropagation();close();return;}if(event.key!=='Tab')return;const buttons=Array.from(dialog.current?.querySelectorAll<HTMLElement>('button:not([disabled]),input:not([hidden]),[tabindex="0"]')??[]).filter(node=>node.offsetParent!==null),first=buttons[0],last=buttons.at(-1);if(event.shiftKey&&(document.activeElement===first||document.activeElement===dialog.current)){event.preventDefault();last?.focus();}else if(!event.shiftKey&&(document.activeElement===last||document.activeElement===dialog.current)){event.preventDefault();first?.focus();}}}>
   <video ref={video} autoPlay playsInline muted className={s.cameraVideo} style={{transform:facing==='user'?'scaleX(-1)':undefined}}/>
   <div className={s.topbar}><button type="button" className={s.icon} aria-label={`Close ${purpose} camera`} onClick={close} disabled={handoff}><X size={23}/></button><strong>{MODES.find(item=>item.id===mode)?.label}</strong><button type="button" className={s.icon} aria-label={`Switch ${purpose} camera`} disabled={recording||busy||mode==='dual'} onClick={()=>{if(!capturing.current)setFacing(value=>value==='user'?'environment':'user');}}><FlipHorizontal2 size={22}/></button></div>
-  {mode==='dual'&&rearUrl?<div className={s.rearPreview}><img src={rearUrl} alt="Captured scene"/><button type="button" disabled={busy} onClick={()=>{setRear(null);setFacing('environment');setError(null);}}>Retake scene</button></div>:null}
+  {mode==='dual'&&rearUrl?<div className={s.rearPreview}><NextImage unoptimized width={90} height={120} src={rearUrl} alt="Captured scene"/><button type="button" disabled={busy} onClick={()=>{setRear(null);setFacing('environment');setError(null);}}>Retake scene</button></div>:null}
   {busy?<div className={s.status} role="status"><span className={s.spinner}/><p>{hint}</p>{!handoff?<button type="button" className={s.button} onClick={close}>Cancel capture</button>:null}</div>:null}
   {error&&!busy?<div role="alert" className={s.error}><Camera size={28}/><p>{error}</p>{mode==='boomerang'&&boomInput?<><button type="button" className={s.primary} onClick={()=>{const request=generation.current,controller=begin();void bounce(boomInput,request,controller);}}>Retry Boomerang</button><button type="button" className={s.button} onClick={()=>{setBoomInput(null);setRetry(n=>n+1);}}>Retake</button></>:<><button type="button" className={s.button} onClick={()=>setRetry(n=>n+1)}>Try camera again</button><button type="button" className={s.primary} onClick={gallery}>{mode==='layout'?'Choose layout photos':'Open gallery'}</button></>}</div>:null}
   <div className={s.dock}>

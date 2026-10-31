@@ -2,6 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { ArrowLeft, ArrowRight, Send, RefreshCw, CalendarDays } from "lucide-react";
+import { ProductDialog } from "@/components/ProductDialog";
+import styles from "../JobsWorkspace.module.css";
 import { createClient } from "@/lib/supabase/client";
 import { type JobRow, STATUS_META, APPLICATION_STATUS_ORDER } from "@/lib/jobs";
 import { RelativeTime } from "@/components/RelativeTime";
@@ -33,7 +36,7 @@ export default function MyApplicationsPage() {
 
   const load = useCallback(async (append = false) => {
     if (append && pending.current) return;
-    const token = ++request.current;
+    const token = request.current += 1;
     retryAppend.current = append;
     pending.current = true;
     setLoading(true); setError(null);
@@ -66,7 +69,7 @@ export default function MyApplicationsPage() {
     try {
       const saved = await withdrawApplication(supabase, application);
       if (!live.current || account.current !== owner) return;
-      request.current++; pending.current = false; setLoading(false);
+      request.current += 1; pending.current = false; setLoading(false);
       setApps(previous => previous.map(row => row.id === saved.id ? saved : row)
         .filter(row => filter === 'all' || row.status === filter));
       setConfirmWithdrawal(null);
@@ -81,65 +84,42 @@ export default function MyApplicationsPage() {
   useEffect(() => {
     let active = true;
     live.current = true; cursor.current = null;
-    setConfirmWithdrawal(null); setWithdrawError(null);
-    queueMicrotask(() => { if (active) void load(); });
+    void supabase.auth.getSession().then(() => {if (active) void load();});
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const uid = session?.user.id ?? null;
       if (uid === account.current) return;
-      request.current++; account.current = uid; cursor.current = null; pending.current = false;
+      request.current += 1; account.current = uid; cursor.current = null; pending.current = false;
       setApps([]); setHasMore(false); setError(null); setSignedOut(!uid);
       setConfirmWithdrawal(null); setWithdrawError(null); setWithdrawing(null);
       // Leave the auth callback before calling another Supabase method.
       queueMicrotask(() => { if (active) void load(); });
     });
-    return () => { active = false; live.current = false; request.current++; pending.current = false; subscription.unsubscribe(); };
+    return () => { active = false; live.current = false; request.current += 1; pending.current = false; subscription.unsubscribe(); };
   }, [load, supabase]);
 
-  return (
-    <div>
-      <div className="flex flex-wrap items-center gap-3 px-1 pb-4">
-        <Link href="/jobs" className="text-sm text-muted hover:text-ink">← Jobs</Link>
-        <h1 className="font-display text-xl text-porcelain">My applications</h1>
-        <select disabled={withdrawing !== null} aria-label="Filter applications by status" value={filter} onChange={e => { request.current++; setApps([]); setHasMore(false); setFilter(e.target.value); }} className="ml-auto rounded-md border border-ink/15 bg-surface px-3 py-2 text-sm text-ink">
-          <option value="all">All statuses</option>
-          {APPLICATION_STATUS_ORDER.map(status => <option key={status} value={status}>{STATUS_META[status].label}</option>)}
-        </select>
-        <button onClick={() => { void load(); }} disabled={loading} className="text-sm text-ink/60 underline disabled:opacity-40">Refresh</button>
-      </div>
-      {error ? <p role="alert" className="py-3 text-sm text-danger">{error} <button disabled={loading} onClick={() => { void load(retryAppend.current); }} className="underline">Retry</button></p> : null}
-      {withdrawError ? <p role="alert" className="py-3 text-sm text-danger">{withdrawError}</p> : null}
-      {signedOut ? <p className="py-16 text-center text-sm text-muted"><Link href="/login" className="underline">Sign in</Link> to see your applications.</p>
-        : loading && apps.length === 0 ? <p role="status" className="py-16 text-center text-sm text-muted">Loading</p>
-        : apps.length === 0 && !error ? <p className="py-16 text-center text-sm text-muted">{filter === "all" ? "Roles you apply for show up here with their status." : "No applications with this status."}</p>
-        : <div className="border-t border-ink/10">
-          {apps.map(a => {
-            const meta = STATUS_META[a.status as keyof typeof STATUS_META] || { label: a.status, color: "#6B7280", bg: "#F3F4F6" };
-            const date = a.applied_at && Number.isFinite(Date.parse(a.applied_at)) ? <RelativeTime dateTime={a.applied_at} /> : "Date unavailable";
-            return (
-              <div key={a.id} className="border-b border-ink/10 px-1 py-4">
-                <div className="flex items-center gap-4">
-                <Link href={"/jobs/" + a.job_id} className="min-w-0 flex-1 transition-colors hover:bg-surface">
-                  <span className="block truncate text-[15px] font-semibold text-ink">{a.job?.title ?? "Job no longer available"}</span>
-                  {a.job ? <span className="block truncate text-[13px] text-ink/60">{[a.job.company, a.job.location].filter(Boolean).join(" · ")}</span> : null}
-                  <span className="block text-[12px] text-muted">Applied {date}</span>
-                  {a.status === "interview" && a.interview_at && Number.isFinite(Date.parse(a.interview_at)) ? <span className="mt-1 block text-[12px] text-ink/60">Interview {new Date(a.interview_at).toLocaleString()}{a.interview_location ? " · " + a.interview_location : ""}</span> : null}
-                </Link>
-                <span className="shrink-0 rounded-full px-3 py-1 text-[12px] font-semibold" style={{ color: meta.color, backgroundColor: meta.bg }}>{meta.label}</span>
-                </div>
-                {canWithdrawApplication(a.status) ? <div className="mt-2 text-right text-sm text-muted">
-                  {confirmWithdrawal === a.id ? <div className="rounded-lg border border-ink/10 p-3 text-left">
-                    <p>Withdraw this application? The employer will be notified. Your history stays available, but this application cannot be reopened.</p>
-                    <div className="mt-2 flex flex-wrap gap-4">
-                      <button disabled={withdrawing !== null} onClick={() => void withdraw(a)} className="min-h-11 text-danger underline disabled:opacity-40">{withdrawing === a.id ? 'Withdrawing…' : 'Confirm withdrawal'}</button>
-                      <button disabled={withdrawing !== null} onClick={() => setConfirmWithdrawal(null)} className="min-h-11 underline disabled:opacity-40">Keep application</button>
-                    </div>
-                  </div> : <button disabled={withdrawing !== null} onClick={() => { setConfirmWithdrawal(a.id); setWithdrawError(null); }} className="min-h-11 underline disabled:opacity-40">Withdraw application</button>}
-                </div> : null}
-              </div>
-            );
-          })}
-        </div>}
-      {hasMore && !signedOut ? <button disabled={loading} onClick={() => { void load(true); }} className="my-4 rounded-md bg-surface px-4 py-2 text-sm text-ink disabled:opacity-40">{loading ? "Loading" : "Load more"}</button> : null}
-    </div>
-  );
+  const withdrawingApplication = apps.find(application => application.id === confirmWithdrawal);
+  return <div className={styles.workspace}>
+    <Link href="/jobs" className={styles.back}><ArrowLeft size={17} aria-hidden />Back to Jobs</Link>
+    <header className={styles.header}><div><h1>My applications</h1><p>Follow your progress, review interviews, and manage your next steps.</p></div><button onClick={() => void load()} disabled={loading || withdrawing !== null} className={styles.button}><RefreshCw size={16} aria-hidden />Refresh</button></header>
+    <nav className={styles.tabs} aria-label="Jobs navigation"><Link href="/jobs">Discover</Link><Link href="/jobs/saved">Saved jobs</Link><Link href="/jobs/applications" aria-current="page">My applications</Link></nav>
+    <div className={styles.toolbar + " mb-5"}><label className={styles.help} htmlFor="application-status">Application status</label><select id="application-status" disabled={withdrawing !== null} value={filter} onChange={event => { request.current += 1; setApps([]); setHasMore(false); setLoading(true); setConfirmWithdrawal(null); setWithdrawError(null); setFilter(event.target.value); }}><option value="all">All statuses</option>{APPLICATION_STATUS_ORDER.map(status => <option key={status} value={status}>{STATUS_META[status].label}</option>)}</select><span className={styles.help}>{!loading && !signedOut && !error ? apps.length + " applications shown" : ""}</span></div>
+    {error ? <div role="alert" className={styles.notice + " mb-4"}><p>{error}</p><button disabled={loading} onClick={() => void load(retryAppend.current)} className="underline">Retry</button></div> : null}
+    {signedOut ? <div className={styles.state}><Send size={28} aria-hidden /><h2>Keep track of your applications</h2><p>Sign in to view updates from hiring teams.</p><Link href="/login" className={styles.primary}>Sign in</Link></div>
+      : loading && apps.length === 0 ? <div className={styles.state} role="status"><p>Loading applications…</p></div>
+      : apps.length === 0 && !error ? <div className={styles.state}><Send size={28} aria-hidden /><h2>{filter === "all" ? "Your next chapter starts here" : "No applications with this status"}</h2><p>{filter === "all" ? "Roles you apply for will appear here with their latest status." : "Choose another status to find your applications."}</p>{filter === "all" ? <Link href="/jobs" className={styles.primary}>Discover jobs</Link> : <button onClick={() => setFilter("all")} className={styles.button}>Show all applications</button>}</div>
+      : <div className={styles.list}>{apps.map(application => {
+        const meta = STATUS_META[application.status as keyof typeof STATUS_META] || { label: application.status, color: "#6B7280", bg: "#F3F4F6" };
+        return <article key={application.id} className={styles.panel + " " + styles.application}>
+          <div className={styles.applicationTop}><Link href={"/jobs/" + application.job_id}><strong>{application.job?.title ?? "Job no longer available"}</strong>{application.job ? <small>{[application.job.company, application.job.location].filter(Boolean).join(" · ")}</small> : null}<small>Applied {application.applied_at && Number.isFinite(Date.parse(application.applied_at)) ? <RelativeTime dateTime={application.applied_at} /> : "date unavailable"}</small></Link><span className={styles.badge} style={{color: meta.color, backgroundColor: meta.bg}}>{meta.label}</span></div>
+          {application.status === "interview" && application.interview_at && Number.isFinite(Date.parse(application.interview_at)) ? <p className={styles.notice + " mt-4"}><CalendarDays size={18} aria-hidden /><span>Interview {new Date(application.interview_at).toLocaleString()}{application.interview_location ? " · " + application.interview_location : ""}</span></p> : null}
+          <div className={styles.applicationFooter}><Link className={styles.button} href={"/jobs/" + application.job_id}>View role <ArrowRight size={15} aria-hidden /></Link>{canWithdrawApplication(application.status) ? <button disabled={withdrawing !== null} onClick={() => { setConfirmWithdrawal(application.id); setWithdrawError(null); }}>Withdraw application</button> : null}</div>
+        </article>;
+      })}</div>}
+    {hasMore && !signedOut ? <button disabled={loading} onClick={() => void load(true)} className={styles.button + " mt-5"}>{loading ? "Loading…" : "Load more applications"}</button> : null}
+    <ProductDialog open={!!withdrawingApplication} title="Withdraw application?" description={withdrawingApplication?.job?.title ?? "Review this change before continuing."} busy={withdrawing !== null} onClose={() => setConfirmWithdrawal(null)}>
+      <p className={styles.help}>The employer will be notified. Your history stays available, but this application cannot be reopened.</p>
+      {withdrawError ? <p role="alert" className={styles.error + " mt-3"}>{withdrawError}</p> : null}
+      <div className={styles.actions + " mt-5"}><button disabled={withdrawing !== null} onClick={() => setConfirmWithdrawal(null)} className={styles.button}>Keep application</button><button disabled={withdrawing !== null} onClick={() => withdrawingApplication && void withdraw(withdrawingApplication)} className={styles.primary}>{withdrawing ? "Withdrawing…" : "Confirm withdrawal"}</button></div>
+    </ProductDialog>
+  </div>;
 }

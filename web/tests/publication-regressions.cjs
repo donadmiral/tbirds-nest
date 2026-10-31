@@ -52,7 +52,7 @@ for (const [surface, file] of [['web', path.join(root, 'lib/publication.ts')], [
 // Exercise real Composer event handlers with synthetic React state and database
 // responses. No browser session, network, or production content is used.
 function harness(responses, { owner = 'author', mount = false } = {}) {
-  let slot = 0;
+  let slot = 0, dirty = false;
   const values = [];
   const calls = [];
   const draft = new Map(), effects = [];
@@ -60,12 +60,16 @@ function harness(responses, { owner = 'author', mount = false } = {}) {
   const state = (initial) => {
     const key = slot++;
     if (!(key in values)) values[key] = typeof initial === 'function' ? initial() : initial;
-    return [values[key], (value) => { values[key] = typeof value === 'function' ? value(values[key]) : value; }];
+    return [values[key], (value) => { const next=typeof value === 'function' ? value(values[key]) : value;if(!Object.is(next,values[key])){values[key]=next;dirty=true;} }];
   };
-  const react = { useState: state, useRef: (value) => state(() => ({ current: value }))[0], useEffect(fn,deps) { const i=slot++,old=values[i];if(!old||!deps||deps.some((value,j)=>!Object.is(value,old.deps[j]))){values[i]={deps,cleanup:old?.cleanup};if(mount)effects.push(()=>{values[i].cleanup?.();values[i].cleanup=fn();});} }, useMemo: (fn) => fn() };
+  const effect=(fn,deps,enabled)=>{const i=slot++,old=values[i];if(!old||!deps||deps.some((value,j)=>!Object.is(value,old.deps[j]))){const record={deps,cleanup:old?.cleanup};values[i]=record;if(enabled)effects.push(()=>{old?.cleanup?.();record.cleanup=fn();});}};
+  const react = { useState: state, useRef: (value) => state(() => ({ current: value }))[0], useEffect(fn,deps){effect(fn,deps,mount);},useLayoutEffect(fn,deps){effect(fn,deps,true);},
+    useMemo(fn,deps){const i=slot++,old=values[i];if(!old||deps.some((value,j)=>!Object.is(value,old.deps[j])))values[i]={deps,value:fn()};return values[i].value;},
+    useCallback(fn,deps){return react.useMemo(()=>fn,deps);},useSyncExternalStore(subscribe,snapshot){effect(()=>subscribe(()=>{dirty=true;}),[subscribe],mount);return snapshot();} };
+
   const jsx = (type, props) => ({ type, props });
   const client = {
-    auth: { getSession: async () => ({ data: { session: sessionOwner ? { user: { id: sessionOwner } } : null } }),onAuthStateChange(fn){authListener=fn;return{data:{subscription:{unsubscribe(){authListener=null;}}}};} },
+    auth: { getUser:async()=>({data:{user:sessionOwner?{id:sessionOwner}:null},error:null}),getSession: async () => ({ data: { session: sessionOwner ? { user: { id: sessionOwner } } : null } }),onAuthStateChange(fn){authListener=fn;return{data:{subscription:{unsubscribe(){authListener=null;}}}};} },
     from(table) {
       const builder = {
         insert(payload) { calls.push({ table, payload }); return builder; },
@@ -87,10 +91,13 @@ function harness(responses, { owner = 'author', mount = false } = {}) {
     '@/lib/stories': { STORY_FILTERS: [] },
     './PostComposer.module.css':{default:{}},
   }, { get: (target, key) => target[key] ?? {} });
-  const globals = { window:{addEventListener(){},removeEventListener(){}},document:{body:{style:{overflow:''}}},crypto: require('node:crypto').webcrypto, localStorage: { getItem: (key) => draft.get(key), setItem: (key, value) => draft.set(key, value), removeItem: (key) => draft.delete(key) }, URL: { revokeObjectURL() {} } };
+  const listeners=new Map();
+  const globals = { Event,StorageEvent:class StorageEvent extends Event{},window:{addEventListener(name,fn){const group=listeners.get(name)||new Set();group.add(fn);listeners.set(name,group);},removeEventListener(name,fn){listeners.get(name)?.delete(fn);},dispatchEvent(event){listeners.get(event.type)?.forEach(fn=>fn(event));}},document:{activeElement:null,body:{style:{overflow:''}},addEventListener(){},removeEventListener(){}},HTMLElement:class HTMLElement{},requestAnimationFrame(fn){fn();return 1;},cancelAnimationFrame(){},crypto: require('node:crypto').webcrypto, localStorage: { getItem: (key) => draft.get(key), setItem: (key, value) => draft.set(key, value), removeItem: (key) => draft.delete(key) }, URL: { revokeObjectURL() {} } };
+  imports['@/lib/useBrowserStorage']=load(path.join(root,'lib/useBrowserStorage.ts'),imports,globals);
   let posted = 0;
   const { Composer } = load(path.join(root, 'components/Composer.tsx'), imports, globals);
-  const render = () => { slot = 0; const tree=Composer({ ownerId: owner, onPosted: () => { posted++; } });while(effects.length)effects.shift()();return tree; };
+  const render = () => { let tree,round=0;do{dirty=false;slot=0;tree=Composer({ownerId:owner,onPosted:()=>{posted++;}});while(typeof tree?.type==='function')tree=tree.type(tree.props);while(effects.length)effects.shift()();if(++round>20)throw Error('Composer did not settle');}while(dirty);return tree; };
+  const flush=async()=>{for(let i=0;i<5;i++){await new Promise(setImmediate);render();}};
   const all = (node) => !node || typeof node !== 'object' ? [] : Array.isArray(node) ? node.flatMap(all) : [node, ...all(node.props?.children)];
   const text = (node) => typeof node === 'string' ? node : Array.isArray(node) ? node.map(text).join('') : node?.props ? text(node.props.children) : '';
   const button = (tree, label) => all(tree).findLast((n) => n.type === 'button' && text(n) === label);
@@ -102,7 +109,7 @@ function harness(responses, { owner = 'author', mount = false } = {}) {
     input(render(), 'Option 2').props.onChange({ target: { value: 'Two' } });
     button(render(),'Review').props.onClick();
   };
-  return { render, button, input, preparePoll, calls, posted: () => posted, all, text, client, draft, setSession(next,notify=false){sessionOwner=next;if(notify)authListener?.('SIGNED_IN',next?{user:{id:next}}:null);},unmount(){values.forEach(value=>value?.cleanup?.());} };
+  return { render, flush, button, input, preparePoll, calls, posted: () => posted, all, text, client, draft, setSession(next,notify=false){sessionOwner=next;if(notify)authListener?.('SIGNED_IN',next?{user:{id:next}}:null);},unmount(){values.forEach(value=>value?.cleanup?.());} };
 }
 test('Composer retains poll draft on child failure; Retry only saves missing options', async () => {
   const h = harness({ posts: [{ data: { id: 'post-1' }, error: null }], post_polls: [{ data: null, error: null }], post_poll_options: [{ data: null, error: { code: '42501', message: 'Options denied' } }, { data: null, error: null }] });
@@ -162,14 +169,26 @@ test('Composer never publishes an Account A draft under a later Account B sessio
 test('account changes during the first authentication read prevent every post write',async()=>{
  const h=harness({}, {owner:'account-a'});h.preparePoll();let finish;h.client.auth.getSession=()=>new Promise(resolve=>finish=resolve);const pending=h.button(h.render(),'Post').props.onClick();finish({data:{session:{user:{id:'account-b'}}}});await pending;assert.equal(h.calls.length,0);assert.equal(h.posted(),0);
 });
-test('post draft restoration and persistence are isolated to the authenticated owner',()=>{
- const a=harness({}, {owner:'account-a',mount:true});a.draft.set('pc_draft_web:account-a',JSON.stringify({text:'Account A only'}));a.draft.set('pc_draft_web:account-b',JSON.stringify({text:'Account B only'}));a.draft.set('pc_draft_web',JSON.stringify({text:'Unattributed legacy draft'}));a.render();assert.equal(a.input(a.render(),'Write a caption…').props.value,'Account A only');a.unmount();
- const b=harness({}, {owner:'account-b',mount:true});for(const[key,value]of a.draft)b.draft.set(key,value);b.render();assert.equal(b.input(b.render(),'Write a caption…').props.value,'Account B only');b.input(b.render(),'Write a caption…').props.onChange({target:{value:'B edited'}});b.render();assert.equal(JSON.parse(b.draft.get('pc_draft_web:account-a')).text,'Account A only');assert.equal(JSON.parse(b.draft.get('pc_draft_web:account-b')).text,'B edited');b.unmount();
+test('post draft restoration and persistence are isolated to the authenticated owner',async()=>{
+ const a=harness({}, {owner:'account-a',mount:true});a.draft.set('pc_draft_web:account-a',JSON.stringify({text:'Account A only'}));a.draft.set('pc_draft_web:account-b',JSON.stringify({text:'Account B only'}));a.draft.set('pc_draft_web',JSON.stringify({text:'Unattributed legacy draft'}));a.render();await a.flush();assert.equal(a.input(a.render(),'Write a caption…').props.value,'Account A only');a.unmount();
+ const b=harness({}, {owner:'account-b',mount:true});for(const[key,value]of a.draft)b.draft.set(key,value);b.render();await b.flush();assert.equal(b.input(b.render(),'Write a caption…').props.value,'Account B only');b.input(b.render(),'Write a caption…').props.onChange({target:{value:'B edited'}});b.render();assert.equal(JSON.parse(b.draft.get('pc_draft_web:account-a')).text,'Account A only');assert.equal(JSON.parse(b.draft.get('pc_draft_web:account-b')).text,'B edited');b.unmount();
 });
 test('A-to-B-to-A auth events invalidate an old in-flight post despite returning to the same ID',async()=>{
  let finish;const held=new Promise(resolve=>finish=resolve),h=harness({posts:[held]}, {owner:'account-a',mount:true});h.preparePoll();const pending=h.button(h.render(),'Post').props.onClick();for(let i=0;i<60&&!h.calls.some(c=>c.table==='posts');i++)await Promise.resolve();assert.equal(h.calls.filter(c=>c.table==='posts').length,1,h.text(h.render()));h.setSession('account-b',true);h.setSession('account-a',true);finish({data:null,error:null});await pending;assert.equal(h.posted(),0);assert.equal(h.calls.some(c=>c.table==='post_polls'),false);h.unmount();
 });
 test('HomeFeed remounts the owner-scoped composer and clears previous quote intent on auth changes',()=>{
  const source=fs.readFileSync(path.join(root,'components/HomeFeed.tsx'),'utf8'),ast=ts.createSourceFile('HomeFeed.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);let callback,element;function visit(n){if(ts.isCallExpression(n)&&n.expression.getText(ast).endsWith('auth.onAuthStateChange'))callback=n.arguments[0].getText(ast);if(ts.isConditionalExpression(n)&&n.whenTrue.getText(ast).startsWith('<Composer '))element=n.getText(ast);ts.forEachChild(n,visit);}visit(ast);assert.ok(callback&&element);
- const ctx={exports:{},uidRef:{current:'account-a'},seenPendingRef:{current:new Set()},seenSentRef:{current:new Set()},state:{owner:'account-a'},composerGeneration:0,quote:{id:'old'},composeKind:undefined,thenPromote:{current:false},controller:{setOwner(value){ctx.state.owner=value;}},setComposerGeneration(fn){ctx.composerGeneration=fn(ctx.composerGeneration);},setQuote(value){ctx.quote=value;},setComposeKind(value){ctx.composeKind=value;},queueMicrotask(){},router:{refresh(){},replace(){}},load(){},Composer:'Composer',require:()=>({jsx:(type,props,key)=>({type,props,key})})};vm.createContext(ctx);const js=text=>ts.transpileModule(text,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;vm.runInContext(js('this.auth='+callback+';this.render=()=>('+element+');'),ctx);const original=ctx.render();ctx.auth('SIGNED_IN',{user:{id:'account-b'}});const next=ctx.render();assert.equal(next.props.ownerId,'account-b');assert.notEqual(next.key,original.key);assert.equal(next.props.quote,null);ctx.auth('SIGNED_IN',{user:{id:'account-a'}});assert.notEqual(ctx.render().key,original.key);ctx.auth('SIGNED_OUT',null);assert.equal(ctx.render(),null);
+ const ctx={exports:{},uidRef:{current:'account-a'},seenPendingRef:{current:new Set()},seenSentRef:{current:new Set()},state:{owner:'account-a'},composerGeneration:0,quote:{id:'old'},composeKind:undefined,composeRequest:0,thenPromote:false,setThenPromote(value){ctx.thenPromote=value;},controller:{setOwner(value){ctx.state.owner=value;}},setComposerGeneration(fn){ctx.composerGeneration=fn(ctx.composerGeneration);},setQuote(value){ctx.quote=value;},setComposeKind(value){ctx.composeKind=value;},queueMicrotask(){},router:{refresh(){},replace(){}},load(){},Composer:'Composer',require:()=>({jsx:(type,props,key)=>({type,props,key})})};vm.createContext(ctx);const js=text=>ts.transpileModule(text,{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText;vm.runInContext(js('this.auth='+callback+';this.render=()=>('+element+');'),ctx);const original=ctx.render();ctx.auth('SIGNED_IN',{user:{id:'account-b'}});const next=ctx.render();assert.equal(next.props.ownerId,'account-b');assert.notEqual(next.key,original.key);assert.equal(next.props.quote,null);ctx.auth('SIGNED_IN',{user:{id:'account-a'}});assert.notEqual(ctx.render().key,original.key);ctx.auth('SIGNED_OUT',null);assert.equal(ctx.render(),null);
+});
+
+
+test('a delayed draft read never overwrites text already entered in the composer',async()=>{
+ const h=harness({}, {owner:'account-a',mount:true});let finish;
+ h.client.auth.getUser=()=>new Promise(resolve=>{finish=resolve;});
+ h.draft.set('pc_draft_web:account-a',JSON.stringify({text:'Earlier saved caption'}));
+ h.button(h.render(),'Post').props.onClick();
+ h.input(h.render(),'Write a caption…').props.onChange({target:{value:'New caption typed during the session check'}});
+ h.render();finish({data:{user:{id:'account-a'}},error:null});await h.flush();
+ assert.equal(h.input(h.render(),'Write a caption…').props.value,'New caption typed during the session check');
+ assert.equal(JSON.parse(h.draft.get('pc_draft_web:account-a')).text,'New caption typed during the session check');h.unmount();
 });

@@ -137,9 +137,9 @@ function storyLoadHarness({ initialStoryId='target', userIdx=0, startIndex=0 }={
   const end=source.indexOf('  }, [user, userIdx, startIndex, initialStoryId, uid, storyLoadAttempt]);');
   const start=source.lastIndexOf('  useEffect(() => {',end);
   assert.ok(start>=0&&end>start,'story loading effect is present');
-  const pending=defer(), observed={};let cleanup;
+  const pending=defer(), observed={stories:[],finished:false,error:false};let cleanup;
   const code=source.slice(start,end)+'  }, []);';
-  vm.runInNewContext(code,{uid:'viewer',user:{user_id:'owner'},userIdx,startIndex,initialStoryId,useEffect:fn=>cleanup=fn(),getUserStories:()=>pending.promise,setStories:value=>observed.stories=value,setItemIdx:value=>observed.index=value,setStoryLoadFinished:value=>observed.finished=value,setStoryLoadError:value=>observed.error=value});
+  vm.runInNewContext(code,{queueMicrotask,uid:'viewer',user:{user_id:'owner'},userIdx,startIndex,initialStoryId,useEffect:fn=>cleanup=fn(),getUserStories:()=>pending.promise,setStories:value=>observed.stories=value,setItemIdx:value=>observed.index=value,setStoryLoadFinished:value=>observed.finished=value,setStoryLoadError:value=>observed.error=value});
   return {pending,observed,cleanup};
 }
 test('story notification opens its exact asynchronously loaded story',async()=>{

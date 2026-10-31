@@ -1,0 +1,362 @@
+{
+  "candidate": "supabase/migrations/20261029224550_admin_operations_completion.sql",
+  "sha256": "22eaa117a397c5973055f9e1c6f4c612328e93cbf7438e0e37e82e068f051cbc",
+  "baselineUnits": 25,
+  "appliedQualityFixes": 4,
+  "localPreflightMatchesProduction": true,
+  "postflight": {
+    "triggers": [
+      {
+        "name": "admin_removed_comment_guard",
+        "table": "post_comments",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER admin_removed_comment_guard BEFORE INSERT OR UPDATE ON public.post_comments FOR EACH ROW EXECUTE FUNCTION admin_ops.guard_removed_content()"
+      },
+      {
+        "name": "admin_removed_listing_guard",
+        "table": "marketplace_listings",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER admin_removed_listing_guard BEFORE INSERT OR DELETE OR UPDATE ON public.marketplace_listings FOR EACH ROW EXECUTE FUNCTION admin_ops.guard_removed_content()"
+      },
+      {
+        "name": "admin_removed_post_guard",
+        "table": "posts",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER admin_removed_post_guard BEFORE INSERT OR UPDATE ON public.posts FOR EACH ROW EXECUTE FUNCTION admin_ops.guard_removed_content()"
+      },
+      {
+        "name": "admin_removed_story_guard",
+        "table": "stories",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER admin_removed_story_guard BEFORE INSERT OR UPDATE ON public.stories FOR EACH ROW EXECUTE FUNCTION admin_ops.guard_removed_content()"
+      },
+      {
+        "name": "capture_admin_removal",
+        "table": "admin_audit_log",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER capture_admin_removal AFTER INSERT ON public.admin_audit_log FOR EACH ROW EXECUTE FUNCTION admin_ops.capture_removal()"
+      },
+      {
+        "name": "guard_profile_verification",
+        "table": "profiles",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER guard_profile_verification BEFORE INSERT OR UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION admin_ops.guard_profile_verification()"
+      },
+      {
+        "name": "guard_verification_application",
+        "table": "verification_applications",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER guard_verification_application BEFORE INSERT OR UPDATE ON public.verification_applications FOR EACH ROW EXECUTE FUNCTION admin_ops.guard_verification_application()"
+      },
+      {
+        "name": "sync_verification_revocation",
+        "table": "profiles",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER sync_verification_revocation AFTER UPDATE OF is_verified ON public.profiles FOR EACH ROW EXECUTE FUNCTION admin_ops.sync_verification_revocation()"
+      }
+    ],
+    "functions": [
+      {
+        "md5": "bf89643fce4a977f7de52ba97b865109",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "admin_ops.capture_removal()",
+        "anon_execute": false,
+        "service_execute": false,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "md5": "da38b04a1e00c632e71780ad9d345775",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "admin_ops.guard_profile_verification()",
+        "anon_execute": false,
+        "service_execute": false,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "md5": "3746a7ec876c1c4d4a4ef8a101d90654",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "admin_ops.guard_removed_content()",
+        "anon_execute": false,
+        "service_execute": false,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "md5": "4d4d16b1a6dd927221712611704c93dd",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "admin_ops.guard_verification_application()",
+        "anon_execute": false,
+        "service_execute": false,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "md5": "2a59dac44760254e1f2e730c6154d9a9",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "admin_ops.require_session(uuid,uuid,text)",
+        "anon_execute": false,
+        "service_execute": true,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "md5": "61fceb5d957ba77a9cb069c440d69a98",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "admin_ops.sync_verification_revocation()",
+        "anon_execute": false,
+        "service_execute": false,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "md5": "6ee2eabb828c4eec1f03e5f77362a014",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "admin_ops.validate_verification_evidence(text,text,jsonb)",
+        "anon_execute": false,
+        "service_execute": false,
+        "security_definer": false,
+        "authenticated_execute": false
+      },
+      {
+        "md5": "d2ec097054f70c24afe98fbcdea421fb",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "sync_post_comment_count()",
+        "anon_execute": false,
+        "service_execute": false,
+        "security_definer": false,
+        "authenticated_execute": false
+      },
+      {
+        "md5": "3ab906717a2fdc32cb379516b859d48b",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "sync_post_comments_count()",
+        "anon_execute": false,
+        "service_execute": false,
+        "security_definer": false,
+        "authenticated_execute": false
+      },
+      {
+        "md5": "88a277b95fa24808ceee76ceb57ef7c2",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "triniti_admin_deletion_requests(uuid,uuid,integer)",
+        "anon_execute": false,
+        "service_execute": true,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "md5": "06bc23c46b912a538427a6e0d49d01b1",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "triniti_admin_provision(uuid,uuid,uuid,text,jsonb,text)",
+        "anon_execute": false,
+        "service_execute": true,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "md5": "e70f392fe433810f1f1dbf9bb384dbcb",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "triniti_platinum_admin_command(uuid,uuid,uuid,text,jsonb)",
+        "anon_execute": false,
+        "service_execute": true,
+        "security_definer": true,
+        "authenticated_execute": false
+      },
+      {
+        "md5": "008f18da2039b8c91219ed1ac989aafb",
+        "config": [
+          "search_path=\"\""
+        ],
+        "signature": "update_comment_count()",
+        "anon_execute": false,
+        "service_execute": false,
+        "security_definer": false,
+        "authenticated_execute": false
+      }
+    ],
+    "private_tables": [
+      {
+        "rls": true,
+        "name": "commands",
+        "anon_access": false,
+        "authenticated_access": false,
+        "service_direct_access": false
+      },
+      {
+        "rls": true,
+        "name": "deletion_requests",
+        "anon_access": false,
+        "authenticated_access": false,
+        "service_direct_access": false
+      },
+      {
+        "rls": true,
+        "name": "provisions",
+        "anon_access": false,
+        "authenticated_access": false,
+        "service_direct_access": false
+      },
+      {
+        "rls": true,
+        "name": "removals",
+        "anon_access": false,
+        "authenticated_access": false,
+        "service_direct_access": false
+      },
+      {
+        "rls": true,
+        "name": "support_triage",
+        "anon_access": false,
+        "authenticated_access": false,
+        "service_direct_access": false
+      }
+    ],
+    "verification_constraint": [
+      "CHECK ((status = ANY (ARRAY['submitted'::text, 'under_review'::text, 'approved'::text, 'rejected'::text, 'revoked'::text])))",
+      "CHECK ((tier = ANY (ARRAY['public_figure'::text, 'business'::text, 'official'::text])))"
+    ],
+    "native_session_check_md5": "ba2e1c694288129ee94d8b6d06746eef",
+    "support_commands_available": true,
+    "verification_status_write_denied": true,
+    "preserved_support_review_functions": [
+      {
+        "md5": "1d53c63fc9a4e88440c7b6ca4e302b4a",
+        "signature": "admin_seller_review_reports(uuid,uuid,timestamp with time zone,uuid,text)"
+      },
+      {
+        "md5": "ff3a047eb910180de72828b0e985f335",
+        "signature": "admin_support_triage_read(uuid[])"
+      },
+      {
+        "md5": "1e8322e592c38888439cc442a56dc874",
+        "signature": "admin_support_triage_update(uuid,uuid,uuid,uuid,integer,uuid,text,text,boolean,text)"
+      },
+      {
+        "md5": "b4d0a3bc989f29d8f8426ea490354014",
+        "signature": "moderate_seller_review(uuid,uuid,uuid,uuid,text,text,integer)"
+      }
+    ]
+  },
+  "date": "2026-10-29",
+  "status": "source-complete-locally-verified-not-applied",
+  "baseline_commit": "b2e261332ea449a19c19a128e8ec3b50ce032a2e",
+  "production_mutations_performed": false,
+  "hosted_account_creation_or_messages_performed": false,
+  "testflight": "held",
+  "preflight_receipt": "docs/quality/ADMIN_COMPLETION_PREFLIGHT_20261029.json",
+  "preflight_query": "supabase/ops/check-admin-completion-preflight.sql",
+  "postflight_query": "supabase/ops/check-admin-completion-postflight.sql",
+  "database_gate": {
+    "command": "ADMIN_COMPLETION_CATALOG_OUTPUT=/tmp/platinum-admin-completion-catalog.json node supabase/tests/rpc-authorization/test-admin-completion-chain.mjs",
+    "registered": 34,
+    "pass": 34,
+    "fail": 0,
+    "skip": 0,
+    "log": "/tmp/platinum-admin-completion-chain.log",
+    "test_names": [
+      "forward candidate matches the deployed chain, preserves unrelated state and enables only reviewed contracts",
+      "a repeated deployment refuses to overwrite installed target contracts",
+      "the three public APIs are service-only and app callers cannot forge a privileged role",
+      "all new private tables deny direct reads and mutations even to the service role",
+      "current AAL1 and AAL2 staff sessions work while unknown and revoked identities are denied",
+      "all 11 roles match all 15 frontend action permissions and unknown permissions fail closed",
+      "commands validate operation, field names, field types, payload size and target identity",
+      "identical commands produce one result and audit; changed, cross-operation and cross-actor replays are denied",
+      "audit failure rolls back the action and receipt, allowing an identical successful retry",
+      "verification approval validates evidence and review basis, rejects self approval and synchronizes revocation",
+      "applicants cannot forge badges, decisions or another account application and evidence stays private",
+      "verification submissions reject duplicate pending requests and malformed evidence",
+      "verification evidence rejects backslashes before a misleading URL can enter the review queue",
+      "suspension revokes sessions, restoration and bounded strikes work, active staff are protected",
+      "reported removals bind the exact target and report decisions use valid states",
+      "reporters cannot submit a pre-resolved report or impersonate its resolver",
+      "listing removal retains order history and owners cannot restore, delete or reuse moderated identities",
+      "post, comment and story removals run with safe trigger search paths and prevent reused IDs",
+      "support replies are once-only and solve/reopen transitions clear resolution metadata",
+      "campaign review cannot forge funding or bypass allowed review states",
+      "last-super-admin protection and role changes retain active staff safety and session revocation",
+      "feature flags, announcements and blocked words validate and mutate the intended records",
+      "organization transfer and archive update ownership and revoke delegations atomically",
+      "business rejection needs a pending application and cannot race reserved provisioning",
+      "staff provisioning reserves only a new identity and finishes exactly once after trusted provider confirmation",
+      "provisioning rejects changed payloads, other actors, existing emails and unreserved finish",
+      "business provisioning uses delegated identity, protects application snapshot, bans direct sign-in and preserves owner email",
+      "provisioning audit failure keeps the reservation resumable and does not grant a partial staff role",
+      "deletion requests preserve Auth and financial history, revoke sessions and block unreviewed restoration",
+      "deletion queue is bounded and super-admin only; account owners must transfer ownership first",
+      "business provisioning rechecks every reviewed field before assigning a verified identity",
+      "business provisioning denies banned/deleted owners both at reservation and completion",
+      "a provider-created identity that has been banned cannot gain a new staff role",
+      "organization ownership cannot be transferred to a banned or deleted Auth identity"
+    ],
+    "exit_code": 0
+  },
+  "admin_server_contract_gate": {
+    "command": "node tests/command-contracts.cjs",
+    "working_directory": "admin-web",
+    "registered": 16,
+    "pass": 16,
+    "fail": 0,
+    "skip": 0,
+    "log": "/tmp/platinum-admin-command-contracts.log"
+  },
+  "admin_typecheck": {
+    "command": "node node_modules/typescript/bin/tsc --noEmit --incremental false",
+    "working_directory": "admin-web",
+    "diagnostic_errors": 0,
+    "log": "/tmp/platinum-admin-completion-types.log",
+    "exit_code": 0
+  },
+  "regression_evidence": {
+    "database_hardening_cases_failed_before_fix": 5,
+    "server_receipt_cases_failed_before_fix": 3,
+    "notes": [
+      "Business reserve/finish binds all six reviewed fields and denies a banned/deleted owner.",
+      "A provider-created banned staff identity cannot be finished into an admin role.",
+      "Organization ownership transfer denies banned/deleted target identities.",
+      "Malformed reservation/completion receipts and missing trusted identity metadata do not report success or trigger unreserved provider creation.",
+      "Backslash-containing evidence URLs are rejected; the inherited LIKE expression had escaped the percent wildcard instead of matching a backslash."
+    ]
+  },
+  "rollout_order": [
+    "Complete the matching admin UI validation and exact-response server helper deployment.",
+    "Run the combined admin/privacy/erasure candidate chain in isolated QA.",
+    "Repeat read-only preflight against the deployment target and compare with this tested catalog.",
+    "Apply exactly the reviewed candidate SHA as one transaction; abort on definition or target drift.",
+    "Run read-only postflight and compare every installed definition, privilege, trigger, preserved support RPC and native session hash.",
+    "Run intentional hosted staff-session and Auth reserve/create/finish acceptance with approved disposable fixtures."
+  ],
+  "remaining_acceptance": [
+    "Hosted Auth Admin reserve/create/finish and resumable retries with real provider identity metadata.",
+    "Authenticated staff browser walkthrough of restored operations and denied-role behavior.",
+    "Multi-connection database lock/race acceptance; PGlite executes local cases on one connection.",
+    "Combined candidate integration with the separate media privacy and account Storage erasure changes.",
+    "Admin deletion requests remain retention_review and do not claim completed erasure."
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "command": [
+    "node",
+    "--test",
+    "--test-isolation=none",
+    "--test-reporter=tap",
+    "tests/quality/native-emulator-host-diagnostics.cjs"
+  ],
+  "environmentChange": "NODE_TEST_CONTEXT omitted for this standalone focused run",
+  "exitCode": 0,
+  "counts": {
+    "tests": 47,
+    "pass": 47,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "sourceHashes": {
+    "scripts/quality/native-ui-emulator-host-diagnostics.py": "8abae54231466496604aed4e1d83a1166b099da7da1c6f9f5a22adfb5bd2d8ef",
+    "tests/quality/native-emulator-host-diagnostics.cjs": "5d036d76a437cf022e76ea369cb8fa7798c6275b6afb22f11805b0ff85068f0a"
+  },
+  "allSourceHashesUnchanged": true,
+  "log": "docs/quality/native-full-app-20261031/native-emulator-host-diagnostics/independent-focused.tap",
+  "logSha256": "5aafdeaa0d3969d5a5901c9b6e360d3224a66a8624a1684c62a43571ef6188d6"
+}

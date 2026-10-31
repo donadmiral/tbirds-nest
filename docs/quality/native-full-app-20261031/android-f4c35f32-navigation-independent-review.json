@@ -1,0 +1,308 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-10-31T15:10:17Z",
+  "scope": "Independent read-only navigation and screenshot analysis of the current Android full-application artifact; no new execution or source changes.",
+  "verdict": "Navigation stopped on device transport loss during the first memory-shelf scroll. Main-page assertions passed; memory navigation and export acceptance remain unverified.",
+  "binding": {
+    "head": "f4c35f32795be5f196840c37382143a2d7e33d55",
+    "mergeCommit": "6f3204cd44996dfe66ffe2dcf7192543805aa912",
+    "tree": "7699f995aa8e5192658f785258eb48f408af6a39",
+    "workflowRun": 41211437305,
+    "jobId": 124567097694,
+    "artifact": {
+      "id": 13046647489,
+      "name": "android-full-app-ui",
+      "bytes": 363323,
+      "sha256": "8d524a19d2704cb80f0ee35088b1eaed23b49abeed837e61e3b714215be9d2fa",
+      "verification": "The native acceptance owner performed the single archive download, metadata/digest verification and extraction; this review reused that verified extraction without a second download."
+    },
+    "sharedExtraction": "/tmp/android-full-app-f4c35f32-41211437305",
+    "sourceManifest": {
+      "path": "docs/quality/native-full-app-20261031/android-full-app-f4c35f32-source.json",
+      "sha256": "13d9a02ebc361cbd6626cabaaa25bd18f691550fc68fcd7b0b216ccb4651f1a6",
+      "matchesArchiveBytes": true,
+      "recordedCommit": "6f3204cd44996dfe66ffe2dcf7192543805aa912",
+      "recordedRun": "41211437305"
+    },
+    "independentlyComparedLiteralHeadFiles": [
+      {
+        "path": "tests/native/flows/navigation.yaml",
+        "literalHeadSha256": "1a3bb92ad2f80bfe9ba0c1c81829c65edfa1118dbfe10942074deeb9fe51e1f8",
+        "artifactManifestSha256": "1a3bb92ad2f80bfe9ba0c1c81829c65edfa1118dbfe10942074deeb9fe51e1f8",
+        "matches": true
+      },
+      {
+        "path": "tests/native/flows/memory-navigation.yaml",
+        "literalHeadSha256": "afd1a9deb1842880ca237405019525e75a9787ce84bb8effc7ec870b037b0792",
+        "artifactManifestSha256": "afd1a9deb1842880ca237405019525e75a9787ce84bb8effc7ec870b037b0792",
+        "matches": true
+      },
+      {
+        "path": "tests/native/flows/memory-capture.yaml",
+        "literalHeadSha256": "1bb3e4fa89bf9bbc516c43efae25e989a1f8b6d719de58a7723ea896d6eb5bde",
+        "artifactManifestSha256": "1bb3e4fa89bf9bbc516c43efae25e989a1f8b6d719de58a7723ea896d6eb5bde",
+        "matches": true
+      },
+      {
+        "path": "src/navigation/AppNavigator.tsx",
+        "literalHeadSha256": "25901306b597b2a0fc93111f97636ef74beee216174df9937e5cf16ad3ffed70",
+        "artifactManifestSha256": "25901306b597b2a0fc93111f97636ef74beee216174df9937e5cf16ad3ffed70",
+        "matches": true
+      },
+      {
+        "path": "src/screens/profile/ProfileScreen.tsx",
+        "literalHeadSha256": "8054af477bbdbd0a17bb7ad417107490b1c1f457c9182fa4e80f3a51bd5e2d20",
+        "artifactManifestSha256": "8054af477bbdbd0a17bb7ad417107490b1c1f457c9182fa4e80f3a51bd5e2d20",
+        "matches": true
+      }
+    ],
+    "completeSourceCoverage": "The native acceptance owner separately verified all 496 source files, six overlays and nine installed-dependency file hashes. This review independently compared the five navigation-related literal-head files listed above."
+  },
+  "observedNavigation": {
+    "commandsRecorded": 38,
+    "statusCountsIncludingNestedConfigurationAndFlow": {
+      "COMPLETED": 35,
+      "SKIPPED": 1,
+      "FAILED": 2
+    },
+    "statusCountLimit": "These are command statuses, including the nested failed parent flow and the expected iOS-only branch skipped on Android; they are not independent test-case counts. Navigation JUnit contains exactly one failed testcase.",
+    "passedContent": [
+      "Home seeded post on initial, Latest, For You and returned Home views",
+      "Market View listing: Travel journal",
+      "Jobs Product designer / Desert Studio semantic matcher",
+      "Messages Jordan Ellis / literal adventure-preview semantic matcher",
+      "Profile Alex Rivera and Edit profile"
+    ],
+    "screenshotsVisuallyReviewed": [
+      "home.png",
+      "market.png",
+      "jobs.png",
+      "messages.png",
+      "profile.png"
+    ],
+    "screenshotObservation": "Each retained320\u00d7640 image shows its corresponding native page with the expected seeded content and bottom tabs. Profile visibly shows Alex Rivera, Edit profile and populated profile details. These are sparse snapshots, not frame continuity, safe-area acceptance for every target, or latency measurements.",
+    "lastCompletedUiCommand": {
+      "sequence0": 34,
+      "artifactStep1": 35,
+      "metadataSequenceNumber": 34,
+      "depth": 0,
+      "kind": "takeScreenshotCommand",
+      "status": "COMPLETED",
+      "startEpochMs": 1793459005464,
+      "startUtc": "2026-10-31T15:03:25.464Z",
+      "durationMs": 29,
+      "endUtcComputed": "2026-10-31T15:03:25.493Z",
+      "path": "profile"
+    },
+    "lastCompletedNestedCommand": {
+      "sequence0": 36,
+      "artifactStep1": 37,
+      "metadataSequenceNumber": 36,
+      "depth": 1,
+      "kind": "applyConfigurationCommand",
+      "status": "COMPLETED",
+      "startEpochMs": 1793459005494,
+      "startUtc": "2026-10-31T15:03:25.494Z",
+      "durationMs": 0,
+      "endUtcComputed": "2026-10-31T15:03:25.494Z"
+    },
+    "failedCommand": {
+      "sequence0": 37,
+      "artifactStep1": 38,
+      "metadataSequenceNumber": 37,
+      "depth": 1,
+      "kind": "scrollUntilVisible",
+      "status": "FAILED",
+      "startEpochMs": 1793459005494,
+      "startUtc": "2026-10-31T15:03:25.494Z",
+      "durationMs": 41431,
+      "endUtcComputed": "2026-10-31T15:04:06.925Z",
+      "selector": {
+        "textRegex": "View all memory books",
+        "optional": false
+      },
+      "direction": "DOWN",
+      "timeout": "20000",
+      "centerElement": true
+    },
+    "firstScrollLogs": [
+      {
+        "timeAsLogged": "15:03:25.495",
+        "observation": "Scroll DOWN until exact View all memory books, visibility 100%, speed 40, timeout 20,000 ms, centering enabled."
+      },
+      {
+        "timeAsLogged": "15:03:26.209",
+        "observation": "Initial lookup reports the target is not visible; the scroll command continues."
+      },
+      {
+        "timeAsLogged": "15:03:26.253",
+        "observation": "Maestro begins swipe UP from center."
+      },
+      {
+        "timeAsLogged": "15:04:06.947",
+        "observation": "Error-artifact hierarchy capture reports DeviceServerDiedException during deviceInfo: 40,680 ms since last byte; UNAVAILABLE, caused by device offline."
+      },
+      {
+        "timeAsLogged": "15:04:06.955",
+        "observation": "Failure screenshot cannot be captured; first memory scroll marked FAILED."
+      }
+    ],
+    "notReached": [
+      "View all memory books tap",
+      "Private shelf assertion",
+      "Saved-book reader",
+      "Film playback and close",
+      "Book settings/modal dismissal journey",
+      "Cover editing",
+      "Native memory capture route/readback/renderer acceptance"
+    ],
+    "failureArtifacts": {
+      "failedStepAXRetained": false,
+      "failedStepScreenshotRetained": false,
+      "reason": "Device transport was unavailable when Maestro attempted both error artifacts. Manifest contains only the five successful-page screenshots, commands and detailed log."
+    }
+  },
+  "junit": {
+    "path": "docs/quality/native-full-app-20261031/android-f4c35f32/navigation-junit.xml",
+    "tests": 1,
+    "failures": 1,
+    "status": "ERROR",
+    "failureText": "Unknown error",
+    "testcaseSeconds": 90.768,
+    "suiteSeconds": 90.814
+  },
+  "deviceBoundary": {
+    "independentlyReadLocalEvidence": [
+      "Detailed Maestro log reports device server died, UNAVAILABLE and device offline.",
+      "Root navigation log reports emulator-5556 not found during driver cleanup.",
+      "Subsequent separate capture CLI reports emulator-5556 was requested but is not connected."
+    ],
+    "hostTermination": "Hosted-backend reviewer separately established emulator host SIGSEGV from the authenticated job log. This navigation review does not independently fetch that job log or attribute the host crash to a component, selector, input event or graphics subsystem.",
+    "limits": [
+      "The initial missing-target lookup is expected to allow scrolling; it is not a demonstrated selector defect.",
+      "The recorded 41.431 s command duration includes failed driver/transport work; it does not establish 41.431 s application rendering or a functioning device exceeding the 20 s selector deadline.",
+      "No shelf-link tap was dispatched, so this run neither proves nor disproves the semantic centering repair.",
+      "Main-page snapshots do not prove the focus-loop repair eliminated every redundant request.",
+      "No source/assertion/timeout change is proposed on this evidence."
+    ]
+  },
+  "unavailableDiagnostics": {
+    "files": [
+      {
+        "archivePath": "native-ui-auth-diagnostics.json",
+        "bytes": 0
+      },
+      {
+        "archivePath": "native-ui-auth-diagnostics-final.json",
+        "bytes": 0
+      },
+      {
+        "archivePath": "native-ui-receipt.json",
+        "bytes": 0
+      },
+      {
+        "archivePath": "native-ui-receipt-final.json",
+        "bytes": 0
+      }
+    ],
+    "meaning": "All four fixture/auth exports are empty. No timer identity stability, lock waits, no-warning outcome, request counts, saved-account readback or capture-cleanup acceptance can be established from these files."
+  },
+  "retainedEvidence": [
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/navigation-commands.json",
+      "sourceInArchive": "maestro/navigation/2026-10-31_150229/Full native app navigation/commands.json",
+      "bytes": 67554,
+      "sha256": "940c52966efb320a1795c13057a3fd423942975f4357f904dcfb552a6c05ea7b",
+      "copiedByteForByte": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/navigation-junit.xml",
+      "sourceInArchive": "maestro-navigation.xml",
+      "bytes": 483,
+      "sha256": "30207508dcb0117ca004b5c27c80ee5874b1e5c3306819ba823d11e6dc62207e",
+      "copiedByteForByte": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/navigation-artifact-manifest.json",
+      "sourceInArchive": "maestro/navigation/2026-10-31_150229/Full native app navigation/manifest.json",
+      "bytes": 480,
+      "sha256": "e1f6b0b95627f6521332d2da993c0f1c5ad508821df376a7912a5932a548bb0c",
+      "copiedByteForByte": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/home.png",
+      "sourceInArchive": "maestro/navigation/2026-10-31_150229/Full native app navigation/takeScreenshot/home.png",
+      "bytes": 51703,
+      "sha256": "22c4dcd3453817b23de389fdf3a59b381c6eed620cfbe4b9c816565e34eb8d65",
+      "copiedByteForByte": true,
+      "dimensions": {
+        "width": 320,
+        "height": 640
+      }
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/market.png",
+      "sourceInArchive": "maestro/navigation/2026-10-31_150229/Full native app navigation/takeScreenshot/market.png",
+      "bytes": 33524,
+      "sha256": "bccdfafe62ccee677a2baf25241929840e9113d9cef30c70930de5fee025b8b1",
+      "copiedByteForByte": true,
+      "dimensions": {
+        "width": 320,
+        "height": 640
+      }
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/jobs.png",
+      "sourceInArchive": "maestro/navigation/2026-10-31_150229/Full native app navigation/takeScreenshot/jobs.png",
+      "bytes": 43586,
+      "sha256": "70b6792fff1f736c48bad6d65d182d99d04d571e7d9cb6ff19b0cd2ca342ab94",
+      "copiedByteForByte": true,
+      "dimensions": {
+        "width": 320,
+        "height": 640
+      }
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/messages.png",
+      "sourceInArchive": "maestro/navigation/2026-10-31_150229/Full native app navigation/takeScreenshot/messages.png",
+      "bytes": 33815,
+      "sha256": "4637ac67d5fbd9e9a1652d84d4ec0576cf6ae984b1f2a56ce385c2adf6d9a21c",
+      "copiedByteForByte": true,
+      "dimensions": {
+        "width": 320,
+        "height": 640
+      }
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/profile.png",
+      "sourceInArchive": "maestro/navigation/2026-10-31_150229/Full native app navigation/takeScreenshot/profile.png",
+      "bytes": 41708,
+      "sha256": "d27e027c9d4b494556b3dff344715b3437f95e797276a18aeb37a4a521465a72",
+      "copiedByteForByte": true,
+      "dimensions": {
+        "width": 320,
+        "height": 640
+      }
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/navigation-maestro-final-projection.json",
+      "bytes": 10020,
+      "sha256": "90c78fbf4913c023c377753f7cb64d1cdf71464a5ba4ed33b2957301efb192a7",
+      "derived": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/navigation-command-timeline.json",
+      "bytes": 16523,
+      "sha256": "200ba22f6d2bb3f794e839259eca1854ba0ebd28874147d0d2b08a74c5373e27",
+      "derived": true
+    }
+  ],
+  "unchanged": {
+    "productionSource": true,
+    "testsAndAssertions": true,
+    "timeouts": true,
+    "refs": true,
+    "ciRuns": true,
+    "noDuplicateArtifactDownload": true
+  }
+}

@@ -1,0 +1,142 @@
+{
+  "checkedAt": "2026-10-31T03:45:41.942838+00:00",
+  "finding": "Returning from a book to the signed-in viewer own web profile recreated empty posts and shelf state even after a recent visit.",
+  "changes": [
+    "Synchronous in-memory paged-post and book-shelf restoration is limited to the currently signed-in owner profile and the existing navigation session scope.",
+    "Every profile mount still reads fresh server data in the background. Other viewers content is never restored from these snapshots.",
+    "Refresh re-reads all retained pages using one new server timestamp and keeps raw continuation offsets. It preserves local edits and deletions made during the refresh.",
+    "Duplicate foreground refreshes coalesce; newer mutation requests abort older reads. Account changes fence late RPC and media work, including A to B to A.",
+    "Successful book creation, presentation/visibility, page, caption and audience-access changes invalidate remembered shelf revisions even while the profile is unmounted.",
+    "Expired signed media URLs are stripped from restored rows while metadata remains available. Late media signing cannot overwrite newer row metadata."
+  ],
+  "retentionLimits": {
+    "account": "matching current viewer own profile only",
+    "storage": "browser memory only",
+    "navigationCacheMaxEntries": 24,
+    "navigationCacheMaxAgeMinutes": 30,
+    "maximumRememberedPostRows": 200
+  },
+  "verification": {
+    "node": {
+      "passed": 33,
+      "failed": 0,
+      "files": {
+        "web/tests/social-page-quality.test.cjs": 11,
+        "web/tests/profile-navigation-cache.cjs": 5,
+        "web/tests/memory-book-shelf-refresh.cjs": 3,
+        "tests/quality/memory-stability-regressions.cjs": 14
+      },
+      "invocation": "env -u NODE_TEST_CONTEXT node <file>; actual internal node:test cases were executed"
+    },
+    "webTypecheck": {
+      "command": "web/node_modules/.bin/tsc --noEmit --incremental false",
+      "passed": true
+    },
+    "scopedLint": {
+      "passed": true,
+      "errors": 0,
+      "warnings": 0,
+      "files": [
+        "web/components/ProfilePosts.tsx",
+        "web/components/MemoryAlbumBook.tsx",
+        "web/components/MemoryAlbum.tsx",
+        "web/components/SaveToMemory.tsx",
+        "web/components/memory/MemoryBookDesigner.tsx",
+        "web/lib/useSocialPages.ts",
+        "web/lib/socialPages.ts",
+        "web/lib/profileNavigation.ts",
+        "web/lib/memoryBookEvents.ts",
+        "web/lib/memoryAlbum.ts",
+        "web/tests/browser/social-backend.ts",
+        "web/tests/browser/social-fixture.tsx"
+      ]
+    },
+    "browser": {
+      "runtime": "153.0.8010.12",
+      "passedSocialScenarios": 41,
+      "browserErrors": [],
+      "profileCases": [
+        {
+          "name": "real book Back restores owner posts and four books on every sampled frame during held refreshes",
+          "passed": true,
+          "frames": 44,
+          "firstProfileFrameMs": 65,
+          "blankProfileFrames": 0,
+          "postsReads": 1,
+          "bookReads": 1
+        },
+        {
+          "name": "actual editor save invalidates off-route shelf revision and returns current title and private visibility",
+          "passed": true,
+          "revision": 1,
+          "audience": "only_me",
+          "pinnedSave": true
+        },
+        {
+          "name": "rapid successful shelf changes cancel the stale read and coalesce to the latest book revision",
+          "passed": true,
+          "mutations": 8,
+          "reads": 2,
+          "staleReadAborted": true
+        },
+        {
+          "name": "A to B to A clears warm content and cancels old transport before fresh results appear",
+          "passed": true,
+          "abortedReads": 2
+        },
+        {
+          "name": "visitor return waits for current visibility and removes revoked posts and books",
+          "passed": true
+        }
+      ],
+      "viewport": {
+        "width": 1586,
+        "height": 992
+      },
+      "sampledProfileFrames": 44,
+      "firstProfileFrameMs": 65,
+      "firstSample": {
+        "at": 608.5,
+        "sinceClickMs": 65,
+        "posts": 1,
+        "books": 4,
+        "loadingPosts": false,
+        "loadingBooks": false
+      },
+      "lastSample": {
+        "at": 1375.2,
+        "sinceClickMs": 776.1000000014901,
+        "posts": 1,
+        "books": 4,
+        "loadingPosts": false,
+        "loadingBooks": false
+      }
+    }
+  },
+  "scopeAndLimits": [
+    "Browser execution uses actual web profile, posts, shelf, book reader/editor and navigation modules with synthetic Auth/RPC, media signing and Next route adapters.",
+    "Profile frame samples begin once the destination profile component is present; 1 post and 4 books are checked throughout held refreshes. This measures component content continuity and does not claim all-transition GPU paint timing, production network latency or hosted RSC speed.",
+    "Saved-book coverage uses the actual editor and save helper with synthetic authoritative revisions and audience data. It is not hosted Supabase authorization acceptance.",
+    "Native app source and music licensing configuration were not changed by this follow-up."
+  ],
+  "sourceSha256": {
+    "web/components/ProfilePosts.tsx": "3075d55715d1d0bb6e91043494eb573d8fd49291d6109d2c574bf92d2c6cc1b1",
+    "web/components/MemoryAlbumBook.tsx": "479a03fd31028d6062015f70c29416a01ecb962424a2685618e8918ce60cb5c6",
+    "web/components/MemoryAlbum.tsx": "4218bb2a9a1621f62e72984e8d62f8f9a9fe7abb198e473bddf6999c9fb829a4",
+    "web/components/SaveToMemory.tsx": "0dfd8c82cabdbea3958818b315fee4577b7c34d65e85dba17ea69299b224f457",
+    "web/components/memory/MemoryBookDesigner.tsx": "c779935599da0f1f21df5e65e0c1f17c8a3799cd0bb09ccf77989a70c8ae7f52",
+    "web/lib/useSocialPages.ts": "b393bf1f05c48deab1bfa85df5f8d88a8d18c87af0b0e8401844ea6e3de434a7",
+    "web/lib/socialPages.ts": "84a7f8b257017e1c39fad732463d44db2a582cf4b3146f7ab86aeef22e7c5c27",
+    "web/lib/profileNavigation.ts": "0ccf4f5d9d1c11c0423b32fdd188d73b8833404547f5732f7fa4c8b6700389ce",
+    "web/lib/memoryBookEvents.ts": "6a7913641d716c64fddb64b480fc1ae69193c58d44a0083b4a81645c0ee4fcac",
+    "web/lib/memoryAlbum.ts": "3b5b993be95f0dddd0f2e74b7b5d1875f6da2ec6150fdb0b54c3da51b40c7e9d",
+    "web/tests/profile-navigation-cache.cjs": "c54892fc9bd567111915abe414e66ae189b81cacf943f413e572f8249295b535",
+    "web/tests/social-page-quality.test.cjs": "1f30e86677f3316b8c3c0a10c1b15c3324e405e8d087bf9e2a2bb16b00fb0998",
+    "web/tests/memory-book-shelf-refresh.cjs": "0ba88f941c97fd6e49712f3b149426f49e0440b2b53b3eb170ae0be3f592a0bd",
+    "tests/quality/memory-stability-regressions.cjs": "6c7496278a6534d27e45109d17032dc57a1af33a8c9bf1b8f481a1b252bdd457",
+    "web/tests/browser/profile-navigation.cjs": "0f92ba0a2f791278c55ed6682a8deebe10bff3c4f1425096c63d865e95a17ec6",
+    "web/tests/browser/social-backend.ts": "21f266f312ac436e344f7b84ebf4ef49ac493373563ae7ce54590b3e4154ee47",
+    "web/tests/browser/social-fixture.tsx": "759c5017f9c875747799eaef48ef8b7aa04e6fef59e7f817108740486a064c0e",
+    "web/tests/browser/social-run.cjs": "060a6a70e2681b8c8ddd6ffea46e62d4bca6a4dc5912affd9fdcd105b4d827aa"
+  }
+}

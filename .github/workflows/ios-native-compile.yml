@@ -1,0 +1,137 @@
+name: iOS native compile
+
+on:
+  pull_request:
+    paths:
+      - 'modules/**'
+      - 'plugins/**'
+      - 'vendor/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'app.json'
+      - 'app.config.js'
+      - 'ios/**'
+      - 'scripts/quality/compile-ios-simulator.sh'
+      - 'scripts/quality/test-ios-story-audio.sh'
+      - 'scripts/quality/StoryAudioExportHarness.swift'
+      - 'scripts/quality/test-ios-memory-movie.sh'
+      - 'scripts/quality/MemoryMovieExportHarness.swift'
+      - 'scripts/quality/android-story-export/src/androidTest/assets/memory-animated.*'
+      - '.github/workflows/ios-native-compile.yml'
+  push:
+    branches: [master]
+    paths:
+      - 'modules/**'
+      - 'plugins/**'
+      - 'vendor/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'app.json'
+      - 'app.config.js'
+      - 'ios/**'
+      - 'scripts/quality/compile-ios-simulator.sh'
+      - 'scripts/quality/test-ios-story-audio.sh'
+      - 'scripts/quality/StoryAudioExportHarness.swift'
+      - 'scripts/quality/test-ios-memory-movie.sh'
+      - 'scripts/quality/MemoryMovieExportHarness.swift'
+      - 'scripts/quality/android-story-export/src/androidTest/assets/memory-animated.*'
+      - '.github/workflows/ios-native-compile.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-native-compile-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  simulator-memory-export:
+    name: Verify full memory movies on iOS Simulator
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      CI: 'true'
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+    steps:
+      - name: Read source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Encode and inspect actual multi-scene memory movies
+        run: bash scripts/quality/test-ios-memory-movie.sh
+      - name: Keep memory movie runtime evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-memory-movie-export
+          path: native-memory-logs/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  simulator-audio-export:
+    name: Verify encoded story audio on iOS Simulator
+    runs-on: macos-15
+    timeout-minutes: 15
+    env:
+      CI: 'true'
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+    steps:
+      - name: Read source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Verify actual story soundtrack movies in an isolated simulator
+        run: bash scripts/quality/test-ios-story-audio.sh
+      - name: Keep native audio export evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: native-story-audio-export
+          path: |
+            native-audio-logs/*.log
+            native-audio-logs/receipt.json
+            native-audio-logs/*.mp4
+          if-no-files-found: ignore
+          retention-days: 7
+
+  simulator-compile:
+    name: Compile Swift and native integration
+    runs-on: macos-15
+    timeout-minutes: 50
+    env:
+      CI: 'true'
+      EXPO_NO_TELEMETRY: '1'
+      EXPO_PUBLIC_APP_ENV: qa
+      EXPO_PUBLIC_SUPABASE_URL: https://uaulhuelcfkjwojtymmw.supabase.co
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: compile-only-not-a-provider-key
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+    steps:
+      - name: Read source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Set Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-fund
+      - name: Install the Expo 54 CocoaPods toolchain
+        run: |
+          gem install --user-install cocoapods --version 1.16.2 --no-document
+          ruby -e 'puts File.join(Gem.user_dir, "bin")' >> "$GITHUB_PATH"
+      - name: Compile the unsigned iOS Simulator target
+        run: bash scripts/quality/compile-ios-simulator.sh
+      - name: Keep compiler diagnostics only
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ios-native-compile-diagnostics
+          path: |
+            native-compile-logs/*.log
+            native-compile-logs/receipt.json
+          if-no-files-found: ignore
+          retention-days: 7

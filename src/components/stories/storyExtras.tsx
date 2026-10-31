@@ -6,6 +6,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, Animated, Easing, StyleSheet, TouchableOpacity } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
+import StoryPixelImage from './StoryPixelImage';
 import { Feather } from '@expo/vector-icons';
 import TierName from '../TierName';
 import VerifiedBadge from '../VerifiedBadge';
@@ -153,7 +154,7 @@ export function PhotoStickerView({ sticker, containerW, containerH }: { sticker:
   const radius = isCell ? 6 : shape === 'circle' ? 100 : shape === 'rounded' ? 22 : 2;
   return (
     <View style={{ width: w, height: h, borderRadius: radius, overflow: 'hidden', borderWidth: isCell ? 2 : 3, borderColor: '#FFFFFF', backgroundColor: uri ? '#111' : 'rgba(11,30,61,0.55)', alignItems: 'center', justifyContent: 'center' }}>
-      {uri ? <ExpoImage source={{ uri }} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={0} /> : <Feather name="plus" size={Math.max(16, Math.min(30, Math.min(w, h) * 0.3))} color="rgba(255,255,255,0.9)" />}
+      {uri ? <StoryPixelImage uri={uri} style={{ width: '100%', height: '100%' }} fit="cover" look={null} /> : <Feather name="plus" size={Math.max(16, Math.min(30, Math.min(w, h) * 0.3))} color="rgba(255,255,255,0.9)" />}
     </View>
   );
 }
@@ -173,7 +174,7 @@ export function EntityStickerCard({ sticker, onPress }: { sticker: StoryTextStic
   const Card = (
     <View style={xs.entityCard}>
       {s.entityImage ? (
-        <ExpoImage source={{ uri: s.entityImage }} style={xs.entityImg} contentFit="cover" transition={0} />
+        <StoryPixelImage uri={s.entityImage} style={[xs.entityImg, {overflow:'hidden'}]} fit="cover" look={null} />
       ) : (
         <View style={[xs.entityImg, xs.entityImgEmpty]}><Feather name={icon as any} size={22} color="#0B1E3D" /></View>
       )}

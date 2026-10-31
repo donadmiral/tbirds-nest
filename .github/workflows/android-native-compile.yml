@@ -1,0 +1,130 @@
+name: Android native compile
+
+on:
+  pull_request:
+    paths:
+      - 'modules/**'
+      - 'plugins/**'
+      - 'vendor/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'app.json'
+      - 'app.config.js'
+      - 'android/**'
+      - 'scripts/quality/compile-android-native.sh'
+      - 'scripts/quality/test-android-story-audio.sh'
+      - 'scripts/quality/android-story-export/**'
+      - 'scripts/quality/android-media-dependencies.init.gradle'
+      - '.github/workflows/android-native-compile.yml'
+  push:
+    branches: [master]
+    paths:
+      - 'modules/**'
+      - 'plugins/**'
+      - 'vendor/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'app.json'
+      - 'app.config.js'
+      - 'android/**'
+      - 'scripts/quality/compile-android-native.sh'
+      - 'scripts/quality/test-android-story-audio.sh'
+      - 'scripts/quality/android-story-export/**'
+      - 'scripts/quality/android-media-dependencies.init.gradle'
+      - '.github/workflows/android-native-compile.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-native-compile-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android-story-export:
+    name: Verify encoded story audio and memory movies on Android Emulator
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    env:
+      CI: 'true'
+      EXPO_NO_TELEMETRY: '1'
+    steps:
+      - name: Read source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Set Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Use the runner's Java 17 toolchain
+        run: |
+          test -n "$JAVA_HOME_17_X64"
+          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-fund
+      - name: Install the emulator host audio library
+        # The emulator binary links libpulse even when its audio output is disabled.
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends libpulse0
+      - name: Allow this disposable runner to use KVM
+        run: |
+          test -c /dev/kvm
+          sudo chmod a+rw /dev/kvm
+      - name: Exercise the actual story and memory encoders in an isolated emulator
+        run: bash scripts/quality/test-android-story-audio.sh
+      - name: Keep encoded media and instrumentation diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: android-story-audio-export
+          path: android-story-export-logs/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  android-compile:
+    name: Compile Kotlin and Android native integration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    env:
+      CI: 'true'
+      EXPO_NO_TELEMETRY: '1'
+      EXPO_PUBLIC_APP_ENV: qa
+      EXPO_PUBLIC_SUPABASE_URL: https://uaulhuelcfkjwojtymmw.supabase.co
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: compile-only-not-a-provider-key
+    steps:
+      - name: Read source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Set Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Use the runner's Java 17 toolchain
+        run: |
+          test -n "$JAVA_HOME_17_X64"
+          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-fund
+      - name: Compile the unsigned Android QA target
+        run: bash scripts/quality/compile-android-native.sh
+      - name: Keep compiler diagnostics only
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: android-native-compile-diagnostics
+          path: |
+            android-native-compile-logs/*.log
+            android-native-compile-logs/media3-runtime.json
+            android-native-compile-logs/receipt.json
+          if-no-files-found: ignore
+          retention-days: 7

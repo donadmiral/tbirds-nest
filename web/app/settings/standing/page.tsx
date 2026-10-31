@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { AlertTriangle, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useCurrentTime } from "@/lib/useCurrentTime";
+
+import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 type Strike = { id: string; level: string; reason: string | null; created_at: string };
 const LEVEL_LABEL: Record<string, string> = { warn: "Warning", restrict: "Restriction", suspend: "Suspension", ban: "Ban" };
 
 export default function AccountStandingPage() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [rows, setRows] = useState<Strike[] | null>(null);
   const [restrictedUntil, setRestrictedUntil] = useState<string | null>(null);
 
@@ -26,7 +27,8 @@ export default function AccountStandingPage() {
     })();
   }, [supabase]);
 
-  const restrictionActive = !!restrictedUntil && new Date(restrictedUntil).getTime() > Date.now();
+  const now = useCurrentTime();
+  const restrictionActive = now !== null && !!restrictedUntil && new Date(restrictedUntil).getTime() > now;
   const severe = (l: string) => l === "suspend" || l === "ban";
 
   return (

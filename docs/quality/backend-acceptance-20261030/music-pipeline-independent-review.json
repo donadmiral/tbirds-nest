@@ -1,0 +1,148 @@
+{
+  "reviewedAt": "2026-10-30T20:59:10.780876+00:00",
+  "reviewer": "backend_installation independent of music_completion implementation",
+  "result": "Scoped source review and local synthetic integration passed after four reported implementation/verification fixes.",
+  "hostedInstalled": false,
+  "catalogueActivationPerformed": false,
+  "sourceFiles": [
+    {
+      "path": "supabase/migrations/20261030203619_music_catalogue_operations_and_cleanup.sql",
+      "sha256": "36500836cd925af7aade1a6bff7d85e547fab9c00c5306fb0130cbca9ce7d0bd"
+    },
+    {
+      "path": "supabase/migrations/20261030204339_licensed_catalogue_pipeline.sql",
+      "sha256": "25914fee9c333ab9802793c4737ad467d0b7d712e603e71769a384350046a849"
+    },
+    {
+      "path": "supabase/functions/music-maintenance/handler.ts",
+      "sha256": "d111e7a50e852dc952263aab1afeeed9a3d034d5845f5de5a34a0b6f97fabe3f"
+    },
+    {
+      "path": "supabase/functions/music-catalogue-ingest/handler.ts",
+      "sha256": "a239a2e8dfa8d31ccf95e31df04a67766c6c9d3b1e6fa1a066858fef8dc594f6"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/test-business-music-integration.mjs",
+      "sha256": "3b2e77ec28e2e9cb0d178e10764f721d006b779091836103001ced5399c0d15f"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/business-auth-fixture.mjs",
+      "sha256": "eb13e7295842f6e6e8502074f51925e73533335021d7f3e5914c905e42cb79d5"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/run-all.mjs",
+      "sha256": "6a476ee1d9c3cefd84d35041ee32db38fdb67e69912666d7d35a91972b1ac2e3"
+    }
+  ],
+  "checks": [
+    {
+      "command": "node supabase/tests/rpc-authorization/test-music-operations.mjs",
+      "tests": 19,
+      "pass": 19,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "command": "node supabase/tests/rpc-authorization/test-licensed-catalogue.mjs",
+      "tests": 22,
+      "pass": 22,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "command": "node tests/quality/music-maintenance.cjs",
+      "tests": 14,
+      "pass": 14,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "command": "MUSIC_PIPELINE_FIXTURE=1 node supabase/tests/rpc-authorization/test-original-music-library.mjs",
+      "tests": 31,
+      "pass": 31,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "command": "node supabase/tests/rpc-authorization/test-business-music-integration.mjs",
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "command": "PLATINUM_QA_BUSINESS_AUTH=1 node supabase/tests/rpc-authorization/test-business-music-integration.mjs",
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "command": "node tests/quality/catalogue-ingestion.cjs",
+      "tests": 11,
+      "pass": 11,
+      "fail": 0,
+      "skipped": 0,
+      "evidence": "Independent direct tool run completed with exit code 0; request and persisted bytes were exercised through handler dependencies."
+    }
+  ],
+  "reviewFixes": [
+    {
+      "finding": "Service-role Storage insertion bypasses RLS and could recreate a provider path after cleanup released its capacity.",
+      "resolution": "Catalogue Storage INSERT/UPDATE now takes the same asset row share lock used against cleanup and checks reserved state, current hosting grant, canonical path, ownership, size and active provider. Purging, purged and ready recordings reject overwrites. A late privileged insert after cleanup is tested."
+    },
+    {
+      "finding": "The operations postflight hardcoded false for catalogue activation and could misreport an unexpected active backend.",
+      "resolution": "Postflight reads actual original upload readiness, catalogue ingestion/playback switches, credential and current hosting-grant counts, cleanup states and privileged ACLs. No activation value is hardcoded."
+    },
+    {
+      "finding": "A parent deadline already reached before a Storage child controller was attached could still start a deletion request.",
+      "resolution": "Worker checks inherited abort before the child controller, immediately after linking it, and before fetch. A regression proves no Storage request starts after parent cancellation."
+    },
+    {
+      "finding": "Always preferring the original-upload queue could starve catalogue cleanup under a continuous backlog.",
+      "resolution": "The bounded worker alternates queue preference with fallback. The mixed-backlog regression proves five original and five catalogue jobs are processed in a ten-job batch."
+    }
+  ],
+  "integrationCoverage": [
+    "Business Auth, original music, serialized offers, operations and catalogue migrations apply in the declared order in both production-shaped and QA-shaped synthetic databases.",
+    "Existing QA soundtrack table/trigger dependencies are installed before the captured QA function catalog. Read-only hosted metadata confirms these preexisting dependencies; no user or credential rows are copied.",
+    "Capabilities preserve disabled uploads/ingestion/playback on installation and private Storage.",
+    "Personal originals still reserve, finalize, authorize export and deny direct object reads.",
+    "Unbound business JWTs cannot use audio capabilities, reserve uploads or use serialized offers.",
+    "Bound business audio uses current approved sessions. Personal-owner signout and loss of device approval stop its access, including an already issued delivery token through nested music/business resolver wrappers.",
+    "Private helper schemas and service-only finalizers, provider ingestion, cleanup and moderator entry points remain inaccessible to app/anonymous roles."
+  ],
+  "remainingLimits": [
+    "The supported hosted migration connector stalled and fresh postflight still found no installed business/music schema. This review is not hosted installation evidence.",
+    "PGlite is a single-connection synthetic Postgres runtime. Ordered state tests and lock-bearing SQL do not prove actual multi-session hosted contention.",
+    "Storage object writes/deletes in SQL tests model Storage API results. Actual provider Storage API acceptance and byte deletion must run after installation.",
+    "The narrowly scoped managed Storage metadata trigger needs hosted compatibility verification and review against future provider schema updates. Source code continues to upload/delete objects using Storage API, never SQL metadata deletion.",
+    "Catalogue ingestion/playback remain disabled and there are no production grants or provider credentials. No commercial catalogue was fetched or activated.",
+    "Provider-specific contract mappings, territory determination and royalty-qualified reporting depend on the later chosen licensed-provider agreement. Current usage output explicitly measures server operations, not listening time, plays or royalties.",
+    "No physical-device, production cutover, payment or provider delivery acceptance is inferred."
+  ],
+  "installationReceipt": "docs/quality/backend-acceptance-20261030/continuation-installation-attempt.json",
+  "qaMusicMetadataReceipt": "docs/quality/backend-acceptance-20261030/qa-music-structure.json",
+  "operationalHandoff": {
+    "reviewedAt": "2026-10-30T21:08:23.017041+00:00",
+    "candidate": "docs/quality/music-operations-20261030/candidate.json",
+    "candidateSha256": "202531fe22d0bc7cdebcd195f4608138d7e81a75d719c3d0308658583ffb7344",
+    "builder": "scripts/quality/build-music-candidate.mjs",
+    "builderSha256": "9d8e0d85763eda48058bb979a143deaf6b67197664b76ad9a6ac110e2b9ad0c9",
+    "command": "node scripts/quality/build-music-candidate.mjs --check",
+    "result": "passed",
+    "affectedEdgeBundles": 14,
+    "existingPrerequisiteEdgeBundles": 2,
+    "uniqueBundledFiles": 42,
+    "pendingCombinedMigrations": 5,
+    "keyChecks": [
+      "Recursive imports include shared/originalAudio.ts for both verification handlers and daily-get-token/deno.json for the explicit import map.",
+      "QA and production have separate exact-state prerequisite sequences; the offer migration is identified as independent from audio.",
+      "Original uploads, maintenance, catalogue ingestion and catalogue playback have separate explicit readiness controls.",
+      "The postflight now reads actual original upload readiness as well as catalogue and worker states.",
+      "Disabled worker invocation is expected to reject; only scoped invocation after QA readiness can establish heartbeat.",
+      "No new migration attempt, deployment, licence activation or production change occurred during this handoff review."
+    ]
+  }
+}

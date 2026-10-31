@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "observedAt": "2026-10-31T02:26:21.719401+00:00",
+  "preflight": {
+    "observedAt": "2026-10-31T02:25:12.02868+00:00",
+    "stage": "business-auth:66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996:stage-3",
+    "fingerprint": "2f92a9d038364736fa2413bb6d05a160",
+    "catalogRecords": 99,
+    "expectedFingerprint": "2f92a9d038364736fa2413bb6d05a160",
+    "exactMatch": true
+  },
+  "attempt": {
+    "source": "supabase/ops/qa/business-auth-staged-20261031/04_private_member_signin.sql",
+    "sourceSha256": "ba49c5c8b8545952288ac1885bcf3421d4b42bb21c054d87391b891ed7edb749",
+    "sourceBytes": 7894,
+    "classifierRequiresConfirmation": true,
+    "started": {
+      "current_time": "2026-10-31 02:25:18 UTC"
+    },
+    "status": "no_result_within_45000ms",
+    "remoteOutcome": "unknown",
+    "serverCancellationConfirmed": false,
+    "approvalFormReceived": false,
+    "approvalRejectionReceived": false
+  },
+  "postflight": {
+    "stage": "business-auth:66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996:stage-3",
+    "history": [
+      {
+        "name": "qa_business_auth_01_foundation_20261031",
+        "sqlMd5": "5a65ff55953c0d1c31f72889ffb8210a",
+        "version": "20261031020659"
+      },
+      {
+        "name": "qa_business_auth_02_private_guards_20261031",
+        "sqlMd5": "d345fece1ff55a50935d13b0457a3a37",
+        "version": "20261031021053"
+      },
+      {
+        "name": "qa_business_auth_03_private_device_20261031",
+        "sqlMd5": "18ff7871146cb9d7d4c1a8171054e2d4",
+        "version": "20261031021956"
+      }
+    ],
+    "observedAt": "2026-10-31T02:26:21.719401+00:00",
+    "musicSchema": false,
+    "activeMigrations": 0,
+    "stagedPrivateFunction": null
+  },
+  "decision": "No further apply attempt and no alternate execution bridge. The safe private stage 3 is preserved; dependent business Edge rollout and music installation remain held.",
+  "release": {
+    "businessPublicContractsInstalled": false,
+    "musicSchemaInstalled": false,
+    "commercialLicensingEnabled": false,
+    "productionModified": false
+  },
+  "limits": [
+    "The local wait ended without a tool result. It does not establish a server cancellation or the cause.",
+    "Independent hosted postflight found no stage4 function/history and no active migration query at the recorded instant.",
+    "This was not an automatic approval rejection."
+  ]
+}

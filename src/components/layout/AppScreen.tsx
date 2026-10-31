@@ -1,14 +1,6 @@
 import { themedSheet } from '../../theme/useTheme';
 import React from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleProp,
-  StyleSheet,
-  View,
-  ViewStyle,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleProp, View, ViewStyle } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../SafeArea';
 
 type AppScreenProps = {

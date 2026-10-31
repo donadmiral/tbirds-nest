@@ -1,32 +1,40 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 export default function CommunityJoinPage() {
-  const supabase = useRef(createClient()).current;
   const params = useParams<{ token: string }>();
+  const token = String(params.token || "");
+  return <CommunityInvitation key={token} token={token}/>;
+}
+function CommunityInvitation({token}: {token:string}) {
+  const [supabase] = useState(createClient);
   const router = useRouter();
-  const [state, setState] = useState<{ kind: "working" | "signed_out" | "error"; text?: string }>({ kind: "working" });
+  const [state, setState] = useState<{ kind: "working" | "signed_out" | "error"; text?: string }>(token ? { kind: "working" } : {kind:"error",text:"This invite link is incomplete."});
 
   useEffect(() => {
-    const token = String(params.token || "");
-    if (!token) { setState({ kind: "error", text: "This invite link is incomplete." }); return; }
+    if (!token) return;
+    let active = true;
     (async () => {
-      const { data: s } = await supabase.auth.getSession();
+      const { data: s, error: authError } = await supabase.auth.getSession();
+      if (!active) return;
+      if (authError) throw authError;
       if (!s.session) { setState({ kind: "signed_out" }); return; }
       const { data, error } = await supabase.rpc("join_community_by_link", { p_token: token });
+      if (!active) return;
       if (error) { setState({ kind: "error", text: error.message }); return; }
       const row = data as { community_id?: string; name?: string } | null;
       if (row?.community_id) router.replace("/communities/" + row.community_id);
       else setState({ kind: "error", text: "This invite link is no longer valid." });
-    })();
-  }, [params.token, router, supabase]);
+    })().catch(() => {if(active)setState({kind:"error",text:"The invitation could not load. Check your connection and reopen the link."});});
+    return () => {active=false;};
+  }, [token, router, supabase]);
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-[520px] flex-col items-center justify-center px-6 text-center">
+    <section className="mx-auto flex min-h-screen w-full max-w-[520px] flex-col items-center justify-center px-6 text-center">
       {state.kind === "error" ? (
         <>
           <p className="text-[17px] font-bold text-ink">This invitation cannot be used</p>
@@ -42,6 +50,6 @@ export default function CommunityJoinPage() {
       ) : (
         <p className="text-[14px] text-ink/60">Opening your invitation&hellip;</p>
       )}
-    </main>
+    </section>
   );
 }

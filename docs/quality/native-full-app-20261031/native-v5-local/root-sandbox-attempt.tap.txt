@@ -1,0 +1,1060 @@
+TAP version 13
+# Subtest: tests/account-storage-erasure.test.cjs
+ok 1 - tests/account-storage-erasure.test.cjs
+  ---
+  duration_ms: 356.471161
+  type: 'test'
+  ...
+# Subtest: tests/call-media.test.cjs
+ok 2 - tests/call-media.test.cjs
+  ---
+  duration_ms: 467.945401
+  type: 'test'
+  ...
+# Subtest: tests/call-transitions.test.cjs
+ok 3 - tests/call-transitions.test.cjs
+  ---
+  duration_ms: 443.290027
+  type: 'test'
+  ...
+# Subtest: tests/chat-media-cache.test.cjs
+ok 4 - tests/chat-media-cache.test.cjs
+  ---
+  duration_ms: 657.179698
+  type: 'test'
+  ...
+# Subtest: tests/chat-quality.test.cjs
+ok 5 - tests/chat-quality.test.cjs
+  ---
+  duration_ms: 551.202834
+  type: 'test'
+  ...
+# Subtest: tests/client-diagnostics.test.cjs
+ok 6 - tests/client-diagnostics.test.cjs
+  ---
+  duration_ms: 434.640992
+  type: 'test'
+  ...
+# Subtest: tests/commerce-domain.test.cjs
+ok 7 - tests/commerce-domain.test.cjs
+  ---
+  duration_ms: 95.89174
+  type: 'test'
+  ...
+# Subtest: tests/creator-monetization.test.cjs
+ok 8 - tests/creator-monetization.test.cjs
+  ---
+  duration_ms: 406.164086
+  type: 'test'
+  ...
+# Subtest: tests/creator-payout-worker.test.cjs
+ok 9 - tests/creator-payout-worker.test.cjs
+  ---
+  duration_ms: 404.594021
+  type: 'test'
+  ...
+# Subtest: tests/daily-call-access.test.cjs
+ok 10 - tests/daily-call-access.test.cjs
+  ---
+  duration_ms: 972.917086
+  type: 'test'
+  ...
+# Subtest: tests/export-data.test.cjs
+ok 11 - tests/export-data.test.cjs
+  ---
+  duration_ms: 415.950504
+  type: 'test'
+  ...
+# Subtest: tests/faststart-video.test.cjs
+ok 12 - tests/faststart-video.test.cjs
+  ---
+  duration_ms: 433.85287
+  type: 'test'
+  ...
+# Subtest: tests/feed-capacity.test.cjs
+ok 13 - tests/feed-capacity.test.cjs
+  ---
+  duration_ms: 752.494913
+  type: 'test'
+  ...
+# Subtest: tests/feed-load-harness.test.cjs
+not ok 14 - tests/feed-load-harness.test.cjs
+  ---
+  duration_ms: 57.992274
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/feed-load-harness.test.cjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: tests/feed-snapshot.test.cjs
+ok 15 - tests/feed-snapshot.test.cjs
+  ---
+  duration_ms: 290.314943
+  type: 'test'
+  ...
+# Subtest: tests/fullscreen-video-accessibility.test.cjs
+ok 16 - tests/fullscreen-video-accessibility.test.cjs
+  ---
+  duration_ms: 359.792945
+  type: 'test'
+  ...
+# Subtest: tests/group-call-service.test.cjs
+ok 17 - tests/group-call-service.test.cjs
+  ---
+  duration_ms: 511.790818
+  type: 'test'
+  ...
+# Subtest: tests/intobank-link-sheet.test.cjs
+ok 18 - tests/intobank-link-sheet.test.cjs
+  ---
+  duration_ms: 382.433494
+  type: 'test'
+  ...
+# Subtest: tests/intobank-link-state.test.cjs
+ok 19 - tests/intobank-link-state.test.cjs
+  ---
+  duration_ms: 89.844047
+  type: 'test'
+  ...
+# Subtest: tests/link-preview.test.cjs
+ok 20 - tests/link-preview.test.cjs
+  ---
+  duration_ms: 598.534266
+  type: 'test'
+  ...
+# Subtest: tests/market-reviews.test.cjs
+ok 21 - tests/market-reviews.test.cjs
+  ---
+  duration_ms: 80.696592
+  type: 'test'
+  ...
+# Subtest: tests/marketplace-recommendations.test.cjs
+ok 22 - tests/marketplace-recommendations.test.cjs
+  ---
+  duration_ms: 307.048512
+  type: 'test'
+  ...
+# Subtest: tests/media-delivery.test.cjs
+ok 23 - tests/media-delivery.test.cjs
+  ---
+  duration_ms: 369.537185
+  type: 'test'
+  ...
+# Subtest: tests/message-delivery.test.cjs
+ok 24 - tests/message-delivery.test.cjs
+  ---
+  duration_ms: 591.016467
+  type: 'test'
+  ...
+# Subtest: tests/message-outbox.test.cjs
+ok 25 - tests/message-outbox.test.cjs
+  ---
+  duration_ms: 408.741027
+  type: 'test'
+  ...
+# Subtest: tests/message-receipts.test.cjs
+ok 26 - tests/message-receipts.test.cjs
+  ---
+  duration_ms: 430.965924
+  type: 'test'
+  ...
+# Subtest: tests/native-call-reliability.test.cjs
+ok 27 - tests/native-call-reliability.test.cjs
+  ---
+  duration_ms: 907.262567
+  type: 'test'
+  ...
+# Subtest: tests/native-quality-regressions.test.cjs
+ok 28 - tests/native-quality-regressions.test.cjs
+  ---
+  duration_ms: 1354.56571
+  type: 'test'
+  ...
+# Subtest: tests/navigation-accessibility.test.cjs
+ok 29 - tests/navigation-accessibility.test.cjs
+  ---
+  duration_ms: 776.077085
+  type: 'test'
+  ...
+# Subtest: tests/order-request.test.cjs
+ok 30 - tests/order-request.test.cjs
+  ---
+  duration_ms: 91.564435
+  type: 'test'
+  ...
+# Subtest: tests/payment-intent.test.cjs
+ok 31 - tests/payment-intent.test.cjs
+  ---
+  duration_ms: 85.14883
+  type: 'test'
+  ...
+# Subtest: tests/payment-provider-status.test.cjs
+ok 32 - tests/payment-provider-status.test.cjs
+  ---
+  duration_ms: 78.028857
+  type: 'test'
+  ...
+# Subtest: tests/payment-receipt.test.cjs
+ok 33 - tests/payment-receipt.test.cjs
+  ---
+  duration_ms: 83.554113
+  type: 'test'
+  ...
+# Subtest: tests/payment-service.test.cjs
+ok 34 - tests/payment-service.test.cjs
+  ---
+  duration_ms: 192.104625
+  type: 'test'
+  ...
+# Subtest: tests/post-media-editing.test.cjs
+ok 35 - tests/post-media-editing.test.cjs
+  ---
+  duration_ms: 278.272868
+  type: 'test'
+  ...
+# Subtest: tests/post-sharing.test.cjs
+ok 36 - tests/post-sharing.test.cjs
+  ---
+  duration_ms: 609.853539
+  type: 'test'
+  ...
+# Subtest: tests/post-voice-effects.test.cjs
+ok 37 - tests/post-voice-effects.test.cjs
+  ---
+  duration_ms: 271.59354
+  type: 'test'
+  ...
+# Subtest: tests/private-media-cleanup.test.cjs
+ok 38 - tests/private-media-cleanup.test.cjs
+  ---
+  duration_ms: 286.026011
+  type: 'test'
+  ...
+# Subtest: tests/private-media-reader-regressions.test.cjs
+ok 39 - tests/private-media-reader-regressions.test.cjs
+  ---
+  duration_ms: 437.667249
+  type: 'test'
+  ...
+# Subtest: tests/private-media-session.test.cjs
+ok 40 - tests/private-media-session.test.cjs
+  ---
+  duration_ms: 339.717575
+  type: 'test'
+  ...
+# Subtest: tests/private-screen-capture.test.cjs
+ok 41 - tests/private-screen-capture.test.cjs
+  ---
+  duration_ms: 291.440247
+  type: 'test'
+  ...
+# Subtest: tests/profile-mention-lookup.test.cjs
+ok 42 - tests/profile-mention-lookup.test.cjs
+  ---
+  duration_ms: 2168.685123
+  type: 'test'
+  ...
+# Subtest: tests/quality/app-interaction-sweep.cjs
+ok 43 - tests/quality/app-interaction-sweep.cjs
+  ---
+  duration_ms: 474.058612
+  type: 'test'
+  ...
+# Subtest: tests/quality/apple-music-regressions.cjs
+ok 44 - tests/quality/apple-music-regressions.cjs
+  ---
+  duration_ms: 399.045299
+  type: 'test'
+  ...
+# Subtest: tests/quality/auth-callback-logging.cjs
+ok 45 - tests/quality/auth-callback-logging.cjs
+  ---
+  duration_ms: 430.241614
+  type: 'test'
+  ...
+# Subtest: tests/quality/auth-regressions.cjs
+ok 46 - tests/quality/auth-regressions.cjs
+  ---
+  duration_ms: 324.73287
+  type: 'test'
+  ...
+# Subtest: tests/quality/auth-service-recovery.cjs
+ok 47 - tests/quality/auth-service-recovery.cjs
+  ---
+  duration_ms: 385.416955
+  type: 'test'
+  ...
+# Subtest: tests/quality/auth-transport-deadline.cjs
+ok 48 - tests/quality/auth-transport-deadline.cjs
+  ---
+  duration_ms: 583.993882
+  type: 'test'
+  ...
+# Subtest: tests/quality/boomerang-cancellation.cjs
+ok 49 - tests/quality/boomerang-cancellation.cjs
+  ---
+  duration_ms: 291.406723
+  type: 'test'
+  ...
+# Subtest: tests/quality/build-env-regressions.cjs
+not ok 50 - tests/quality/build-env-regressions.cjs
+  ---
+  duration_ms: 777.961942
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/build-env-regressions.cjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: tests/quality/business-access-rpc.cjs
+ok 51 - tests/quality/business-access-rpc.cjs
+  ---
+  duration_ms: 612.123404
+  type: 'test'
+  ...
+# Subtest: tests/quality/business-session-clients.cjs
+ok 52 - tests/quality/business-session-clients.cjs
+  ---
+  duration_ms: 1860.018347
+  type: 'test'
+  ...
+# Subtest: tests/quality/call-membership-recovery.cjs
+ok 53 - tests/quality/call-membership-recovery.cjs
+  ---
+  duration_ms: 1823.917878
+  type: 'test'
+  ...
+# Subtest: tests/quality/call-revocation-worker.cjs
+ok 54 - tests/quality/call-revocation-worker.cjs
+  ---
+  duration_ms: 358.730956
+  type: 'test'
+  ...
+# Subtest: tests/quality/call-worker-credential.cjs
+ok 55 - tests/quality/call-worker-credential.cjs
+  ---
+  duration_ms: 2052.816857
+  type: 'test'
+  ...
+# Subtest: tests/quality/catalogue-ingestion.cjs
+ok 56 - tests/quality/catalogue-ingestion.cjs
+  ---
+  duration_ms: 550.955156
+  type: 'test'
+  ...
+# Subtest: tests/quality/channel-studio-desks.cjs
+ok 57 - tests/quality/channel-studio-desks.cjs
+  ---
+  duration_ms: 792.401613
+  type: 'test'
+  ...
+# Subtest: tests/quality/chat-attachment-cards.cjs
+ok 58 - tests/quality/chat-attachment-cards.cjs
+  ---
+  duration_ms: 259.918446
+  type: 'test'
+  ...
+# Subtest: tests/quality/chat-call-authorization.cjs
+ok 59 - tests/quality/chat-call-authorization.cjs
+  ---
+  duration_ms: 1839.812837
+  type: 'test'
+  ...
+# Subtest: tests/quality/chat-history-loading.cjs
+ok 60 - tests/quality/chat-history-loading.cjs
+  ---
+  duration_ms: 387.129808
+  type: 'test'
+  ...
+# Subtest: tests/quality/chat-media-signer.cjs
+ok 61 - tests/quality/chat-media-signer.cjs
+  ---
+  duration_ms: 605.879268
+  type: 'test'
+  ...
+# Subtest: tests/quality/chat-storage-cutover.cjs
+ok 62 - tests/quality/chat-storage-cutover.cjs
+  ---
+  duration_ms: 1925.670425
+  type: 'test'
+  ...
+# Subtest: tests/quality/content-media-concurrency.cjs
+ok 63 - tests/quality/content-media-concurrency.cjs
+  ---
+  duration_ms: 496.814561
+  type: 'test'
+  ...
+# Subtest: tests/quality/content-media-regressions.cjs
+ok 64 - tests/quality/content-media-regressions.cjs
+  ---
+  duration_ms: 325.649986
+  type: 'test'
+  ...
+# Subtest: tests/quality/conversation-targets.cjs
+ok 65 - tests/quality/conversation-targets.cjs
+  ---
+  duration_ms: 378.328836
+  type: 'test'
+  ...
+# Subtest: tests/quality/dark-surfaces-sweep.cjs
+ok 66 - tests/quality/dark-surfaces-sweep.cjs
+  ---
+  duration_ms: 722.312556
+  type: 'test'
+  ...
+# Subtest: tests/quality/deep-link-security.cjs
+ok 67 - tests/quality/deep-link-security.cjs
+  ---
+  duration_ms: 340.739384
+  type: 'test'
+  ...
+# Subtest: tests/quality/deployment-skip-regressions.cjs
+not ok 68 - tests/quality/deployment-skip-regressions.cjs
+  ---
+  duration_ms: 499.986732
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/deployment-skip-regressions.cjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: tests/quality/directory-media-sweep.cjs
+ok 69 - tests/quality/directory-media-sweep.cjs
+  ---
+  duration_ms: 538.346558
+  type: 'test'
+  ...
+# Subtest: tests/quality/draft-soundtrack-interaction.cjs
+ok 70 - tests/quality/draft-soundtrack-interaction.cjs
+  ---
+  duration_ms: 887.85891
+  type: 'test'
+  ...
+# Subtest: tests/quality/edit-profile-save.cjs
+ok 71 - tests/quality/edit-profile-save.cjs
+  ---
+  duration_ms: 301.892077
+  type: 'test'
+  ...
+# Subtest: tests/quality/finance-unavailable-release.cjs
+ok 72 - tests/quality/finance-unavailable-release.cjs
+  ---
+  duration_ms: 356.75239
+  type: 'test'
+  ...
+# Subtest: tests/quality/hiring-workflow.cjs
+ok 73 - tests/quality/hiring-workflow.cjs
+  ---
+  duration_ms: 2093.560478
+  type: 'test'
+  ...
+# Subtest: tests/quality/incoming-call-access.cjs
+ok 74 - tests/quality/incoming-call-access.cjs
+  ---
+  duration_ms: 946.531051
+  type: 'test'
+  ...
+# Subtest: tests/quality/job-application-self-service.cjs
+ok 75 - tests/quality/job-application-self-service.cjs
+  ---
+  duration_ms: 3497.101936
+  type: 'test'
+  ...
+# Subtest: tests/quality/jobs-market-regressions.cjs
+ok 76 - tests/quality/jobs-market-regressions.cjs
+  ---
+  duration_ms: 947.399087
+  type: 'test'
+  ...
+# Subtest: tests/quality/jobs-navigation.cjs
+ok 77 - tests/quality/jobs-navigation.cjs
+  ---
+  duration_ms: 885.684017
+  type: 'test'
+  ...
+# Subtest: tests/quality/jobs-parity.cjs
+ok 78 - tests/quality/jobs-parity.cjs
+  ---
+  duration_ms: 730.731693
+  type: 'test'
+  ...
+# Subtest: tests/quality/legacy-limited-media.cjs
+ok 79 - tests/quality/legacy-limited-media.cjs
+  ---
+  duration_ms: 302.932212
+  type: 'test'
+  ...
+# Subtest: tests/quality/lens-camera-interaction.cjs
+ok 80 - tests/quality/lens-camera-interaction.cjs
+  ---
+  duration_ms: 590.921243
+  type: 'test'
+  ...
+# Subtest: tests/quality/link-preview-publication.cjs
+ok 81 - tests/quality/link-preview-publication.cjs
+  ---
+  duration_ms: 437.633865
+  type: 'test'
+  ...
+# Subtest: tests/quality/marketplace-refresh.cjs
+ok 82 - tests/quality/marketplace-refresh.cjs
+  ---
+  duration_ms: 481.025889
+  type: 'test'
+  ...
+# Subtest: tests/quality/memory-creative-plan.cjs
+ok 83 - tests/quality/memory-creative-plan.cjs
+  ---
+  duration_ms: 438.820295
+  type: 'test'
+  ...
+# Subtest: tests/quality/memory-film-lifecycle.cjs
+ok 84 - tests/quality/memory-film-lifecycle.cjs
+  ---
+  duration_ms: 1145.193273
+  type: 'test'
+  ...
+# Subtest: tests/quality/memory-film.cjs
+ok 85 - tests/quality/memory-film.cjs
+  ---
+  duration_ms: 1922.042303
+  type: 'test'
+  ...
+# Subtest: tests/quality/memory-media-regressions.cjs
+ok 86 - tests/quality/memory-media-regressions.cjs
+  ---
+  duration_ms: 304.764198
+  type: 'test'
+  ...
+# Subtest: tests/quality/memory-page-turn.cjs
+ok 87 - tests/quality/memory-page-turn.cjs
+  ---
+  duration_ms: 512.876931
+  type: 'test'
+  ...
+# Subtest: tests/quality/memory-picker-accessibility.cjs
+ok 88 - tests/quality/memory-picker-accessibility.cjs
+  ---
+  duration_ms: 398.658926
+  type: 'test'
+  ...
+# Subtest: tests/quality/memory-playback.cjs
+ok 89 - tests/quality/memory-playback.cjs
+  ---
+  duration_ms: 309.484941
+  type: 'test'
+  ...
+# Subtest: tests/quality/memory-soundtrack-save.cjs
+ok 90 - tests/quality/memory-soundtrack-save.cjs
+  ---
+  duration_ms: 637.601211
+  type: 'test'
+  ...
+# Subtest: tests/quality/memory-stability-regressions.cjs
+ok 91 - tests/quality/memory-stability-regressions.cjs
+  ---
+  duration_ms: 398.844345
+  type: 'test'
+  ...
+# Subtest: tests/quality/memory-story-presentation.cjs
+ok 92 - tests/quality/memory-story-presentation.cjs
+  ---
+  duration_ms: 494.655481
+  type: 'test'
+  ...
+# Subtest: tests/quality/music-catalogue-client.cjs
+ok 93 - tests/quality/music-catalogue-client.cjs
+  ---
+  duration_ms: 349.628225
+  type: 'test'
+  ...
+# Subtest: tests/quality/music-disabled-release.cjs
+ok 94 - tests/quality/music-disabled-release.cjs
+  ---
+  duration_ms: 379.56987
+  type: 'test'
+  ...
+# Subtest: tests/quality/music-favorites.cjs
+ok 95 - tests/quality/music-favorites.cjs
+  ---
+  duration_ms: 1102.129503
+  type: 'test'
+  ...
+# Subtest: tests/quality/music-maintenance.cjs
+ok 96 - tests/quality/music-maintenance.cjs
+  ---
+  duration_ms: 340.309399
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-account-readback.cjs
+ok 97 - tests/quality/native-account-readback.cjs
+  ---
+  duration_ms: 388.69764
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-auth-diagnostics.cjs
+ok 98 - tests/quality/native-auth-diagnostics.cjs
+  ---
+  duration_ms: 173.21918
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-call-event-lifecycle.cjs
+ok 99 - tests/quality/native-call-event-lifecycle.cjs
+  ---
+  duration_ms: 710.124383
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-capture-open-link.cjs
+ok 100 - tests/quality/native-capture-open-link.cjs
+  ---
+  duration_ms: 86.868584
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-capture-setup.cjs
+ok 101 - tests/quality/native-capture-setup.cjs
+  ---
+  duration_ms: 871.686461
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-comment-actions.cjs
+ok 102 - tests/quality/native-comment-actions.cjs
+  ---
+  duration_ms: 463.308718
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-dependency-compat.cjs
+not ok 103 - tests/quality/native-dependency-compat.cjs
+  ---
+  duration_ms: 550.984578
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-dependency-compat.cjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: tests/quality/native-draft-follow-reliability.cjs
+ok 104 - tests/quality/native-draft-follow-reliability.cjs
+  ---
+  duration_ms: 885.709132
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-environment.cjs
+ok 105 - tests/quality/native-environment.cjs
+  ---
+  duration_ms: 52.070581
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-flow-content-selectors.cjs
+ok 106 - tests/quality/native-flow-content-selectors.cjs
+  ---
+  duration_ms: 614.928748
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-memory-export.cjs
+ok 107 - tests/quality/native-memory-export.cjs
+  ---
+  duration_ms: 1320.876049
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-memory-modal-lifecycle.cjs
+ok 108 - tests/quality/native-memory-modal-lifecycle.cjs
+  ---
+  duration_ms: 1787.840396
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-music-sheet.cjs
+ok 109 - tests/quality/native-music-sheet.cjs
+  ---
+  duration_ms: 1359.674231
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-private-diagnostics.cjs
+ok 110 - tests/quality/native-private-diagnostics.cjs
+  ---
+  duration_ms: 341.536598
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-simulator-entitlements.cjs
+not ok 111 - tests/quality/native-simulator-entitlements.cjs
+  ---
+  duration_ms: 271.080019
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-simulator-entitlements.cjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: tests/quality/native-story-export-audio.cjs
+ok 112 - tests/quality/native-story-export-audio.cjs
+  ---
+  duration_ms: 817.17578
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-story-interactions.cjs
+ok 113 - tests/quality/native-story-interactions.cjs
+  ---
+  duration_ms: 899.563736
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-tab-bar.cjs
+ok 114 - tests/quality/native-tab-bar.cjs
+  ---
+  duration_ms: 637.580346
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-tab-selectors.cjs
+ok 115 - tests/quality/native-tab-selectors.cjs
+  ---
+  duration_ms: 936.440272
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-theme-inputs.cjs
+ok 116 - tests/quality/native-theme-inputs.cjs
+  ---
+  duration_ms: 679.038949
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-timer-bootstrap.cjs
+ok 117 - tests/quality/native-timer-bootstrap.cjs
+  ---
+  duration_ms: 326.949089
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-ui-fixture.cjs
+ok 118 - tests/quality/native-ui-fixture.cjs
+  ---
+  duration_ms: 353.874824
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-ui-flows.cjs
+ok 119 - tests/quality/native-ui-flows.cjs
+  ---
+  duration_ms: 4142.849453
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-ui-runtime-diagnostics.cjs
+ok 120 - tests/quality/native-ui-runtime-diagnostics.cjs
+  ---
+  duration_ms: 57.420716
+  type: 'test'
+  ...
+# Subtest: tests/quality/native-vendor-compat.cjs
+not ok 121 - tests/quality/native-vendor-compat.cjs
+  ---
+  duration_ms: 332.836128
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-vendor-compat.cjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: tests/quality/native-verification-offers.cjs
+ok 122 - tests/quality/native-verification-offers.cjs
+  ---
+  duration_ms: 924.622635
+  type: 'test'
+  ...
+# Subtest: tests/quality/navigation-cache.cjs
+ok 123 - tests/quality/navigation-cache.cjs
+  ---
+  duration_ms: 478.281531
+  type: 'test'
+  ...
+# Subtest: tests/quality/navigation-directory.cjs
+ok 124 - tests/quality/navigation-directory.cjs
+  ---
+  duration_ms: 1096.141456
+  type: 'test'
+  ...
+# Subtest: tests/quality/navigation-screens.cjs
+ok 125 - tests/quality/navigation-screens.cjs
+  ---
+  duration_ms: 314.280766
+  type: 'test'
+  ...
+# Subtest: tests/quality/notification-event-dispatch.cjs
+ok 126 - tests/quality/notification-event-dispatch.cjs
+  ---
+  duration_ms: 367.753237
+  type: 'test'
+  ...
+# Subtest: tests/quality/notification-loading.cjs
+ok 127 - tests/quality/notification-loading.cjs
+  ---
+  duration_ms: 685.450012
+  type: 'test'
+  ...
+# Subtest: tests/quality/notification-preferences.cjs
+ok 128 - tests/quality/notification-preferences.cjs
+  ---
+  duration_ms: 434.791831
+  type: 'test'
+  ...
+# Subtest: tests/quality/notification-tap.cjs
+ok 129 - tests/quality/notification-tap.cjs
+  ---
+  duration_ms: 515.261794
+  type: 'test'
+  ...
+# Subtest: tests/quality/original-audio-infrastructure.cjs
+ok 130 - tests/quality/original-audio-infrastructure.cjs
+  ---
+  duration_ms: 814.037537
+  type: 'test'
+  ...
+# Subtest: tests/quality/original-audio-library-state.cjs
+ok 131 - tests/quality/original-audio-library-state.cjs
+  ---
+  duration_ms: 459.841544
+  type: 'test'
+  ...
+# Subtest: tests/quality/parity-navigation.cjs
+ok 132 - tests/quality/parity-navigation.cjs
+  ---
+  duration_ms: 448.28082
+  type: 'test'
+  ...
+# Subtest: tests/quality/post-editor-interaction.cjs
+ok 133 - tests/quality/post-editor-interaction.cjs
+  ---
+  duration_ms: 1189.702488
+  type: 'test'
+  ...
+# Subtest: tests/quality/post-soundtrack-quality.cjs
+ok 134 - tests/quality/post-soundtrack-quality.cjs
+  ---
+  duration_ms: 472.941102
+  type: 'test'
+  ...
+# Subtest: tests/quality/post-upload-draft-ownership.cjs
+ok 135 - tests/quality/post-upload-draft-ownership.cjs
+  ---
+  duration_ms: 510.582885
+  type: 'test'
+  ...
+# Subtest: tests/quality/post-voice-viewer.cjs
+ok 136 - tests/quality/post-voice-viewer.cjs
+  ---
+  duration_ms: 334.097189
+  type: 'test'
+  ...
+# Subtest: tests/quality/private-reader-compat.cjs
+ok 137 - tests/quality/private-reader-compat.cjs
+  ---
+  duration_ms: 355.643695
+  type: 'test'
+  ...
+# Subtest: tests/quality/profile-content-regressions.cjs
+ok 138 - tests/quality/profile-content-regressions.cjs
+  ---
+  duration_ms: 1875.804965
+  type: 'test'
+  ...
+# Subtest: tests/quality/profile-media-renewal.cjs
+ok 139 - tests/quality/profile-media-renewal.cjs
+  ---
+  duration_ms: 476.575737
+  type: 'test'
+  ...
+# Subtest: tests/quality/profile-shelf-lifecycle.cjs
+ok 140 - tests/quality/profile-shelf-lifecycle.cjs
+  ---
+  duration_ms: 429.13128
+  type: 'test'
+  ...
+# Subtest: tests/quality/qa-notification-setup.cjs
+ok 141 - tests/quality/qa-notification-setup.cjs
+  ---
+  duration_ms: 316.510715
+  type: 'test'
+  ...
+# Subtest: tests/quality/setup-profile-username.cjs
+ok 142 - tests/quality/setup-profile-username.cjs
+  ---
+  duration_ms: 331.073978
+  type: 'test'
+  ...
+# Subtest: tests/quality/social-interaction-regressions.cjs
+ok 143 - tests/quality/social-interaction-regressions.cjs
+  ---
+  duration_ms: 408.171536
+  type: 'test'
+  ...
+# Subtest: tests/quality/soundtrack-playback.cjs
+ok 144 - tests/quality/soundtrack-playback.cjs
+  ---
+  duration_ms: 363.592597
+  type: 'test'
+  ...
+# Subtest: tests/quality/story-audio-playback-regressions.cjs
+ok 145 - tests/quality/story-audio-playback-regressions.cjs
+  ---
+  duration_ms: 314.154633
+  type: 'test'
+  ...
+# Subtest: tests/quality/story-audio-web-regressions.cjs
+ok 146 - tests/quality/story-audio-web-regressions.cjs
+  ---
+  duration_ms: 1535.360493
+  type: 'test'
+  ...
+# Subtest: tests/quality/story-capture-delivery.cjs
+ok 147 - tests/quality/story-capture-delivery.cjs
+  ---
+  duration_ms: 499.802361
+  type: 'test'
+  ...
+# Subtest: tests/quality/story-capture-lifecycle.cjs
+ok 148 - tests/quality/story-capture-lifecycle.cjs
+  ---
+  duration_ms: 757.268953
+  type: 'test'
+  ...
+# Subtest: tests/quality/story-dual-capture.test.cjs
+ok 149 - tests/quality/story-dual-capture.test.cjs
+  ---
+  duration_ms: 338.749632
+  type: 'test'
+  ...
+# Subtest: tests/quality/story-editing-state.cjs
+ok 150 - tests/quality/story-editing-state.cjs
+  ---
+  duration_ms: 916.328667
+  type: 'test'
+  ...
+# Subtest: tests/quality/story-engagement-quality.cjs
+ok 151 - tests/quality/story-engagement-quality.cjs
+  ---
+  duration_ms: 423.814887
+  type: 'test'
+  ...
+# Subtest: tests/quality/story-music-disabled-ui.cjs
+ok 152 - tests/quality/story-music-disabled-ui.cjs
+  ---
+  duration_ms: 370.435592
+  type: 'test'
+  ...
+# Subtest: tests/quality/story-photo-pixels.cjs
+ok 153 - tests/quality/story-photo-pixels.cjs
+  ---
+  duration_ms: 364.550214
+  type: 'test'
+  ...
+# Subtest: tests/quality/story-publication-regressions.cjs
+ok 154 - tests/quality/story-publication-regressions.cjs
+  ---
+  duration_ms: 1910.273024
+  type: 'test'
+  ...
+# Subtest: tests/quality/story-studio-interaction.cjs
+ok 155 - tests/quality/story-studio-interaction.cjs
+  ---
+  duration_ms: 698.814264
+  type: 'test'
+  ...
+# Subtest: tests/quality/story-trending-canvas.test.cjs
+ok 156 - tests/quality/story-trending-canvas.test.cjs
+  ---
+  duration_ms: 289.283518
+  type: 'test'
+  ...
+# Subtest: tests/quality/story-video-composition.cjs
+ok 157 - tests/quality/story-video-composition.cjs
+  ---
+  duration_ms: 1246.153389
+  type: 'test'
+  ...
+# Subtest: tests/quality/story-viewer-privacy-regressions.cjs
+ok 158 - tests/quality/story-viewer-privacy-regressions.cjs
+  ---
+  duration_ms: 259.161182
+  type: 'test'
+  ...
+# Subtest: tests/quality/theme-store-hydration.cjs
+ok 159 - tests/quality/theme-store-hydration.cjs
+  ---
+  duration_ms: 278.574377
+  type: 'test'
+  ...
+# Subtest: tests/quality/unread-session.cjs
+ok 160 - tests/quality/unread-session.cjs
+  ---
+  duration_ms: 401.213672
+  type: 'test'
+  ...
+# Subtest: tests/quality/upload-preview-regressions.cjs
+ok 161 - tests/quality/upload-preview-regressions.cjs
+  ---
+  duration_ms: 339.715269
+  type: 'test'
+  ...
+# Subtest: tests/quality/upload-safe-regressions.cjs
+ok 162 - tests/quality/upload-safe-regressions.cjs
+  ---
+  duration_ms: 305.2655
+  type: 'test'
+  ...
+# Subtest: tests/quality/video-thumb-lifecycle.cjs
+ok 163 - tests/quality/video-thumb-lifecycle.cjs
+  ---
+  duration_ms: 271.520478
+  type: 'test'
+  ...
+# Subtest: tests/quality/voice-recorder-reliability.cjs
+ok 164 - tests/quality/voice-recorder-reliability.cjs
+  ---
+  duration_ms: 303.413877
+  type: 'test'
+  ...
+# Subtest: tests/quality/web-message-outbox.cjs
+ok 165 - tests/quality/web-message-outbox.cjs
+  ---
+  duration_ms: 340.373275
+  type: 'test'
+  ...
+# Subtest: tests/send-money-sheet-context.test.cjs
+ok 166 - tests/send-money-sheet-context.test.cjs
+  ---
+  duration_ms: 747.472461
+  type: 'test'
+  ...
+# Subtest: tests/story-message-reference.test.cjs
+ok 167 - tests/story-message-reference.test.cjs
+  ---
+  duration_ms: 265.852282
+  type: 'test'
+  ...
+# Subtest: tests/studio-reliability.test.cjs
+ok 168 - tests/studio-reliability.test.cjs
+  ---
+  duration_ms: 416.120708
+  type: 'test'
+  ...
+# Subtest: tests/verification-integrity.test.cjs
+ok 169 - tests/verification-integrity.test.cjs
+  ---
+  duration_ms: 255.143189
+  type: 'test'
+  ...
+1..169
+# tests 169
+# suites 0
+# pass 163
+# fail 6
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 53594.454598

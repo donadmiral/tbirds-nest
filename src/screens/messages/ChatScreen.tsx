@@ -1,3 +1,4 @@
+import { messagesBack } from '../../navigation/messagesNavigation';
 import { ChatSkeleton } from '../../components/skeletons';
 import { useTheme, themedSheet } from '../../theme/useTheme';
 import TierName from '../../components/TierName';
@@ -42,12 +43,13 @@ import * as DocumentPicker from 'expo-document-picker';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
 import { messageStatusService } from '../../services/messageStatusService';
-import { callService } from '../../services/callService';
+import '../../services/callService';
 import { uploadMedia } from '../../services/mediaService';
 import { signChatMedia, signChatMediaMap, isChatMediaUrl, signGroupAvatars } from '../../services/chatMediaService';
-import { useVoiceRecorder, formatVoiceDuration, MAX_VOICE_SECONDS } from '../../controllers/messages/useVoiceRecorder';
+import { useVoiceRecorder, formatVoiceDuration } from '../../controllers/messages/useVoiceRecorder';
 import VoiceNote from '../../components/VoiceNote';
 import { ShareDetailsSheet } from '../../components/messages/ShareDetailsSheet';
+import { CounterOfferDialog } from '../../components/messages/CounterOfferDialog';
 import { parseChatAttachmentCard, attachmentCardText, attachmentCardLinks } from '../../../shared/chatAttachmentCards';
 import { PrivateMediaViewer } from '../../components/messages/PrivateMediaViewer';
 import PaymentBubble, { ChatPayment } from '../../components/PaymentBubble';
@@ -480,7 +482,7 @@ export default function ChatScreen() {
     const saved = useDraftStore.getState().drafts[conversationId];
     if (saved) setMessage(saved);
   }, [conversationId]);
-  const { t } = useTheme();
+  const { t, isDark } = useTheme();
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [hasOlder, setHasOlder] = useState(false);
@@ -585,6 +587,7 @@ export default function ChatScreen() {
   useEffect(() => {
     ++mediaOperation.current; mediaSending.current = false; setUploadingMedia(false);
     setEditTarget(null); setCapturedVideo(null); setSelectedMsg(null); setReplyTo(null); setForwardMsg(null); setShowForwardPicker(false);
+    setCounterOffer(null);
     setShowInfoModal(false); setInfoMedia([]); setInfoFiles([]); setInfoStarred([]); setOtherTyping(false); setTypingUserId(null);
     setSharedPostsMap({}); setSavedIds(new Set()); setStarredIds(new Set()); setPinnedMsg(null);
     lastTypingRef.current = false; typingSentAt.current = 0;
@@ -921,6 +924,7 @@ export default function ChatScreen() {
       const { data, error } = await supabase.from('messages').select('*').eq('conversation_id', convId)
         .order('created_at', { ascending: false }).order('id', { ascending: false }).limit(MESSAGE_PAGE_SIZE);
       if (error) throw error;
+      if (!current()) return;
       const rows = (data || []) as MessageItem[];
       const msgs = await signChatMedia(rows);
       if (!current()) return;
@@ -929,8 +933,9 @@ export default function ChatScreen() {
       setHasOlder(rows.length === MESSAGE_PAGE_SIZE);
       setMessages(prev => mergeMessagePage(msgs, prev.filter(m => m.conversation_id === convId && (!m._optimistic || !confirmedIds.has(m.id)))));
       historyLoadedRef.current = true;
-      await loadReactions(msgs.map(m => m.id));
-      await Promise.all([refreshStatus(), loadStarredIds(), loadSavedIds()]);
+      // Authorized history can render while its independent decorations load.
+      setLoading(false);
+      await Promise.all([loadReactions(msgs.map(m => m.id)), refreshStatus(), loadStarredIds(), loadSavedIds()]);
     } catch {
       if (current()) setHistoryError('Messages could not be loaded. Please try again.');
     } finally { if (current()) setLoading(false); }
@@ -1623,6 +1628,7 @@ const pickAndSendDocument = useCallback(async () => {
 
   const [paymentsMap, setPaymentsMap] = useState<Record<string, ChatPayment>>({});
   const [offersMap, setOffersMap] = useState<Record<string, any>>({});
+  const [counterOffer, setCounterOffer] = useState<{ id: string; scope: string; ownerId: string; actorId: string } | null>(null);
   useEffect(() => {
     const ids: string[] = [];
     messages.forEach(m => {
@@ -1901,7 +1907,7 @@ const pickAndSendDocument = useCallback(async () => {
                           <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#059669' }}>Accept</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={{ flex: 1, paddingVertical: 10, alignItems: 'center', borderLeftWidth: 1, borderLeftColor: 'rgba(11,30,61,0.08)' }} onPress={() => {
-                          Alert.prompt ? Alert.prompt('Counter-offer', 'Your amount', (t) => { const n = Number(String(t).replace(/,/g, '')); if (Number.isFinite(n) && n > 0) respondOffer(j.offer_id, 'countered', n); }, 'plain-text', '', 'numeric') : respondOffer(j.offer_id, 'declined');
+                          if (session?.user.id && currentUserId) setCounterOffer({ id: j.offer_id, scope: attachmentScope, ownerId: session.user.id, actorId: currentUserId });
                         }}>
                           <Text style={{ fontSize: 12.5, fontWeight: '800', color: t.ink.primary }}>Counter</Text>
                         </TouchableOpacity>
@@ -2119,11 +2125,21 @@ const pickAndSendDocument = useCallback(async () => {
 
   return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right', 'bottom']}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={t.surface.canvas} />
+      {counterOffer && counterOffer.scope === attachmentScope && counterOffer.ownerId === session?.user.id && (
+        <CounterOfferDialog key={`${counterOffer.scope}:${counterOffer.id}`} offerId={counterOffer.id}
+          ownerId={counterOffer.ownerId} actorId={counterOffer.actorId}
+          onClose={() => setCounterOffer(null)}
+          onResolved={offer => {
+            if (attachmentScopeRef.current !== counterOffer.scope || useAuthStore.getState().session?.user.id !== counterOffer.ownerId) return;
+            setOffersMap(previous => ({ ...previous, [offer.id]: offer }));
+            setCounterOffer(null);
+          }} />
+      )}
 
       <View style={s.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} activeOpacity={0.6} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(11,30,61,0.06)', alignItems: 'center', justifyContent: 'center' }}><Ionicons name="chevron-back" size={22} color={t.ink.primary} /></View>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Back to conversations" onPress={() => messagesBack(navigation)} style={s.backBtn} activeOpacity={0.6} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <View style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: t.brand.tintBg, alignItems: 'center', justifyContent: 'center' }}><Ionicons name="chevron-back" size={22} color={t.ink.primary} /></View>
         </TouchableOpacity>
         <TouchableOpacity style={s.headerCenter} activeOpacity={0.7}
           onPress={() => setShowInfoModal(true)}>

@@ -15,7 +15,7 @@ import { VideoView, useVideoPlayer } from 'expo-video';
 import { Feather } from '@expo/vector-icons';
 import { useSafeAreaInsets } from './SafeArea';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming, runOnJS } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring, runOnJS } from 'react-native-reanimated';
 
 function fmt(t: number) {
   const s = Math.max(0, Math.floor(t || 0)); const m = Math.floor(s / 60); const r = s % 60;

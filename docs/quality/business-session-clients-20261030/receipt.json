@@ -1,0 +1,78 @@
+{
+  "recorded_at": "2026-10-30T04:36:05.750269+00:00",
+  "base_commit": "32ee0a5373dd5ebcddae92ca5145f9bf7293c9c9",
+  "scope": "Actual client components/helpers, real synthetic fetch streams and installed Auth SDKs; no hosted identities or physical phone",
+  "checks": {
+    "web_client_tests": {
+      "passed": 52,
+      "failed": 0,
+      "exit_code": 0
+    },
+    "native_client_tests": {
+      "passed": 48,
+      "failed": 0,
+      "exit_code": 0
+    },
+    "web_types": {
+      "exit_code": 0
+    },
+    "native_types": {
+      "exit_code": 0
+    },
+    "web_lint": {
+      "errors": 0,
+      "warnings": 9,
+      "exit_code": 0
+    },
+    "native_lint": {
+      "errors": 0,
+      "warnings": 4,
+      "exit_code": 0
+    },
+    "scoped_diff_check": {
+      "exit_code": 0
+    },
+    "auth_transport_tests": {
+      "passed": 17,
+      "failed": 0,
+      "exit_code": 0,
+      "scope": "Actual streams, root and web installed Auth SDK setSession, factory wiring, native tab tree, refresh 60s vs normal Auth 15s"
+    },
+    "transport_media_regressions": {
+      "passed": 7,
+      "failed": 0,
+      "exit_code": 0
+    },
+    "auth_transport_lint": {
+      "errors": 0,
+      "warnings": 5,
+      "exit_code": 0
+    }
+  },
+  "source_sha256": {
+    "web/lib/businessAccess.ts": "1954bbe3e48d47d0223abdfd1072a0b505e2f258846c522b8378a11c960dd3bf",
+    "web/app/business-login/page.tsx": "1a70fcc2de9dd78a868dd78af4e5c0318285ec2c873ecb728459a23ec01ac0f3",
+    "web/app/businesses/page.tsx": "d0aa27b0b26d5841c37360c982c8699cd122bc12002118f3bccb83f1d0d7828f",
+    "web/app/businesses/apply/page.tsx": "0ab0aed40f3acc38221f52feeeeacc6af0a14b6ce910b629bf428685903fee3e",
+    "src/services/businessSessionService.ts": "e3631fbb1e7edd4294d4d1ec3143d8077f22aaac896c8b9ae009a169150f0ae4",
+    "src/screens/auth/BusinessSignInScreen.tsx": "03920d66cdcf22b33b82cc94b6d9b3a4eefacd9f6ccc0c4d8edebf3670b3767f",
+    "src/screens/profile/BusinessApplyScreen.tsx": "4e28e1ac9ff4da927436a25ddea2c13e10d0cd86c6a906efa1493a6496da88e0",
+    "src/screens/profile/BusinessesScreen.tsx": "046778860dfabe8d9025beaa29a57da3737aad108ca85d32a1f94fd73a5cd426",
+    "web/tests/business-application-regressions.cjs": "d5789f4ab1cca51aa17dfba11d1d9980cda27270391dcd07bef276a00d012f79",
+    "tests/quality/business-session-clients.cjs": "73f0a03f646ade7d184a93fc205c91014e5c827ce92b111f70128161a6ac2389",
+    "shared/businessSession.ts": "f39514f82377eb8eb3b45f66d0af7703a9a9d86d026b79fa64d7c6289741a655",
+    "shared/authFetch.ts": "ddecbcb5f8a604dcd70f220baebbe431b838c5775982a19df1b7d98e4a165b53",
+    "web/lib/supabase/client.ts": "60282002e380d89d1b6933e3ae1bc01bdce98ad9c871dc68e4f709589c24aa12",
+    "src/services/supabase.ts": "457ab3f8c8c54aa3a5e770dd1b43f4869a98c7471c9ccffcbe5f9e3901847fee",
+    "src/navigation/AppNavigator.tsx": "afaad90adda2a3d854441c073a11a0c07dfa9d0f40b4d466739998c008ba3928",
+    "tests/quality/auth-transport-deadline.cjs": "7a9f981fdceb0d904386113de85ff37182b539e0136720fbc3189fdef07fc902",
+    "tests/quality/content-media-concurrency.cjs": "0b90503220a1a1479d65eb780a278bfa15970e306fb90c27f8b8caf78c2996b2"
+  },
+  "limitations": [
+    "No provider or installed-phone success is established by these synthetic client checks.",
+    "New owner devices after first setup require an already authorized owner/admin approval.",
+    "Lost-device sole-owner recovery remains outside this client change.",
+    "Updated source does not update an installed native binary."
+  ],
+  "type_check_scope_note": "Native and web full type checks passed after transport and native landing changes. Final refresh-budget boolean selection is included in focused17/17; the final combined workstream reruns all project types against the frozen source."
+}

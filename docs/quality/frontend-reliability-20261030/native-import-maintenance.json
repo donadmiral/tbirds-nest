@@ -1,0 +1,577 @@
+{
+  "date": "2026-10-30",
+  "scope": "Conservative native import-only maintenance outside music-owned paths",
+  "changedFiles": 68,
+  "removedUnusedBindings": 78,
+  "mergedDuplicateImportFiles": 15,
+  "files": [
+    {
+      "file": "src/components/AccountSwitcherSheet.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "97c2f3956a2f27a11139d66c369886b7332a5b11dc4a8ea018690ec1b76fee04"
+    },
+    {
+      "file": "src/components/ActorSwitcher.tsx",
+      "removedBindings": [
+        "light"
+      ],
+      "sha256": "c94855f9949c12e685a3b4fc259dbceaa993088657f4d9f3f2e873110d045e9d"
+    },
+    {
+      "file": "src/components/AppLockGate.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "43105375c79c19d8e733feb3e558c44d9a437dfcf923b48b3e10d654cb003e47"
+    },
+    {
+      "file": "src/components/BusinessTabs.tsx",
+      "removedBindings": [
+        "light"
+      ],
+      "sha256": "a310eeddd68ad897201498831d4924fc8ba8b6bf2ab96b3d76cb4f3a26c15f79"
+    },
+    {
+      "file": "src/components/CallEventBubble.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "4e7af43fa7a8d58bf101bb89745162f6f47cef768ad3a5a350e07ca48cb7e38d"
+    },
+    {
+      "file": "src/components/ChatInfoSections.tsx",
+      "removedBindings": [
+        "light"
+      ],
+      "sha256": "18d4f055165aa685d18aa897320690d4c26a9a893c5236d6bbe43d948c1548bb"
+    },
+    {
+      "file": "src/components/EmptyState.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "c9109697d7bc6e546a979746fc0570edaab9b4ceebb4c28372d13e8f2767bc9c"
+    },
+    {
+      "file": "src/components/FullscreenVideo.tsx",
+      "removedBindings": [
+        "withTiming"
+      ],
+      "sha256": "fbfd58db240b454bf2703e42b6c24ad06587a2034065a526283059e24e6cf0b9"
+    },
+    {
+      "file": "src/components/IncomingCallListener.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "f77c2115bef2c9465367e441a2226ed2de760e18b3b62ea583a60397f4a6fd80"
+    },
+    {
+      "file": "src/components/LaunchVeil.tsx",
+      "removedBindings": [
+        "View",
+        "Image"
+      ],
+      "sha256": "54078477e1a1125e23bbabc17be8c10c49cd1f6426ffa731b3e62d5a93e6b69a"
+    },
+    {
+      "file": "src/components/LinkAttachSheet.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "cdb8a71077dd6248f83145efb4552366be088fe55a3f39704f19d76df08943f4"
+    },
+    {
+      "file": "src/components/MiniCallBar.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "ea755ffd4f83905e280c3931e93351af81945c1b9c7bfdbf7bc879982e25042a"
+    },
+    {
+      "file": "src/components/OfflineBanner.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "6f7f084c5f849a4de8ecf88ada8df9424947ca45bc884f16d00d824ba5ff6f4e"
+    },
+    {
+      "file": "src/components/PlatinumCirclesLogo.tsx",
+      "removedBindings": [
+        "G"
+      ],
+      "sha256": "a7b40baad5916e53f667d665e764f725130c9e259d31351514e3bf3bb4b77ef2"
+    },
+    {
+      "file": "src/components/PostCarousel.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "5883323cac20832d3c9b2bc34ac274ff944d4b306ce5c37f89192197794457e2"
+    },
+    {
+      "file": "src/components/PostInsightsSheet.tsx",
+      "removedBindings": [
+        "light"
+      ],
+      "sha256": "8458844b749834f7c20c4eadca263235e1be58652541b2a75e9ec10b1bc76485"
+    },
+    {
+      "file": "src/components/ProductPickerSheet.tsx",
+      "removedBindings": [
+        "light"
+      ],
+      "sha256": "c7b6d102fd99a949e64dc515b1cd538a3308c87f6cf496b4ce5082814f56a512"
+    },
+    {
+      "file": "src/components/ProfileHeader.tsx",
+      "removedBindings": [
+        "light"
+      ],
+      "mergedDuplicateImports": true,
+      "sha256": "421e63d3627a45141b87bcfd0da60a2bcbd52cc7645891b595d176e38f833f29"
+    },
+    {
+      "file": "src/components/ProfileRestore.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "df56974d17262d69484a3e9f39c3e05102f122b6a49c139c30359e3fe8b667cf"
+    },
+    {
+      "file": "src/components/SafeImage.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "0068706bc16948526101c0edfaa47bab20c42b243372a7ba39b482f811603fd9"
+    },
+    {
+      "file": "src/components/Skeleton.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "e299519d53e333ad67ba1c385f8e71e49fb91c37cb6e3d4a4771d5662c29f3c7"
+    },
+    {
+      "file": "src/components/SplashLoader.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "8179dbe79d59ab6fad9b3d39e50bc1aae93a1e92fb57341c5d5dcda6460e23c5"
+    },
+    {
+      "file": "src/components/VoiceNote.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "8fbd9eee7c5c306b39ef314e241c1e185b2648507dd0f49f600669448a73e607"
+    },
+    {
+      "file": "src/components/common/Avatar.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "8ce2ebf49a5e81260fa9a0bfc0b92754788c110186f4051b0ba3992f69d12777"
+    },
+    {
+      "file": "src/components/jobs/JobListRow.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "823d79e1151d9341216e81e9e0353d2b6735a12bbbde171d7bb85bbf59083a5c"
+    },
+    {
+      "file": "src/components/layout/AppScreen.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "bf0eba78874584a5ff6aaf2c4d9f2a64ceaa92def33ef277187b09b7205853bf"
+    },
+    {
+      "file": "src/components/market/MarketFilterSheet.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "mergedDuplicateImports": true,
+      "sha256": "695144d4f649dc268a37a52fdbf9e1f84950c2b0048fe56cafb1089dd08dece5"
+    },
+    {
+      "file": "src/components/market/SellerTrust.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "cddab6e427c9b251824d8106db0d810c1ca8868dacf4816c85e7e60f9f06c927"
+    },
+    {
+      "file": "src/components/messages/MediaViewer.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "1109b3bbe2151ee7ce3da21dd18e6a6c5f9e7d52ed2157fe35a3fd20d8dc431e"
+    },
+    {
+      "file": "src/contexts/CallContext.tsx",
+      "removedBindings": [
+        "CallStatus"
+      ],
+      "sha256": "3cb5c882300a35d991a29ae69b1b7d78af630c9840460df2a402bf640a0bdc4a"
+    },
+    {
+      "file": "src/navigation/AppNavigator.tsx",
+      "removedBindings": [
+        "Text"
+      ],
+      "mergedDuplicateImports": true,
+      "sha256": "46fd5eff6c80c1366436a89984311d91c74ebe1695923f2b64ddb0ff234b2e90"
+    },
+    {
+      "file": "src/screens/auth/AuthCallbackScreen.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "27cd3d27805f3cc07172f9342c01bb3dcb609eefa1641b622e1482078dcf95a6"
+    },
+    {
+      "file": "src/screens/auth/VerifyEmailScreen.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "539866a4150d44bdd2060dfd46f12d36856b76da54310554392cb1fe474482f6"
+    },
+    {
+      "file": "src/screens/feed/ArticleComposeScreen.tsx",
+      "removedBindings": [
+        "StyleSheet",
+        "Platform",
+        "KeyboardAvoidingView"
+      ],
+      "sha256": "cd9b2570d06f147d0cfac72788dc46ac733d9241f87acbeac9c131eef86470a1"
+    },
+    {
+      "file": "src/screens/feed/ArticleReaderScreen.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "mergedDuplicateImports": true,
+      "sha256": "4ac2014abef2c8755399723800894372661c6fb06e0ae94457e5419438116500"
+    },
+    {
+      "file": "src/screens/jobs/ApplicantsScreen.tsx",
+      "removedBindings": [
+        "jobsService",
+        "ActivityIndicator"
+      ],
+      "sha256": "e3f9186d92043c0092f4d788928b45c5e0d3cdcd533294166b182ac95c11b6d6"
+    },
+    {
+      "file": "src/screens/jobs/JobsScreen.tsx",
+      "removedBindings": [
+        "Image",
+        "Keyboard",
+        "useEffect"
+      ],
+      "sha256": "55514fb794f7152572731412e5a310a5b9a24f6195e793f4415629279e2c2917"
+    },
+    {
+      "file": "src/screens/jobs/SavedJobsScreen.tsx",
+      "removedBindings": [
+        "ActivityIndicator"
+      ],
+      "mergedDuplicateImports": true,
+      "sha256": "4a749f872cedff71d4920aa9b35a0b21d3147f135a176c75417eedd918e6a311"
+    },
+    {
+      "file": "src/screens/messages/CallLogScreen.tsx",
+      "removedBindings": [
+        "ActivityIndicator"
+      ],
+      "sha256": "487d3eb4b380840dffc8e8a5c22a0c15256add0a8669fc92e0bd589d20337d63"
+    },
+    {
+      "file": "src/screens/messages/CallScreen.tsx",
+      "removedBindings": [
+        "SafeAreaView"
+      ],
+      "sha256": "ed4277e2d422804df79aee1b1d1a5000c0412ebda483d273b68e183aa130d3f0"
+    },
+    {
+      "file": "src/screens/messages/ChatScreen.tsx",
+      "removedBindings": [
+        "MAX_VOICE_SECONDS"
+      ],
+      "sha256": "10b38a934a5a80d0862f33f3ea734da24ac1d4e31169f55c327e3041c6585ada"
+    },
+    {
+      "file": "src/screens/messages/ContextInboxScreen.tsx",
+      "removedBindings": [
+        "light"
+      ],
+      "sha256": "a302fa30f16bb7402d237c9c91c355559f0a9eab6d225686fd96fd6ae8f3e329"
+    },
+    {
+      "file": "src/screens/messages/ConversationsScreen.tsx",
+      "removedBindings": [
+        "FlatList",
+        "ActivityIndicator",
+        "Animated"
+      ],
+      "mergedDuplicateImports": true,
+      "sha256": "2f7b662d90b2d7e199f96052d9070a613e2494d7c5f5221a994bc9e4409297e4"
+    },
+    {
+      "file": "src/screens/messages/IncomingCallScreen.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "332301d426d3f861ff29ad5f9a647d0e7a79a5719a34e1b623fea6f240952347"
+    },
+    {
+      "file": "src/screens/messages/MessageRequestsScreen.tsx",
+      "removedBindings": [
+        "useEffect"
+      ],
+      "sha256": "cfd75be8ebf96f58f63a32883e62bf1c79c8e0a208c3cec4d631315c8392dc7a"
+    },
+    {
+      "file": "src/screens/messages/StarredMessagesScreen.tsx",
+      "removedBindings": [
+        "ActivityIndicator"
+      ],
+      "mergedDuplicateImports": true,
+      "sha256": "23d9bc45cc365b63d8662580bbeedbc3a9240fca42dc4f87794c01a19ec88f32"
+    },
+    {
+      "file": "src/screens/notifications/NotificationsScreen.tsx",
+      "removedBindings": [
+        "light",
+        "SectionList"
+      ],
+      "mergedDuplicateImports": true,
+      "sha256": "c413448ff89ff64d085637d6672a98de9b1c5a1f6027c74bb5b279c525d2399f"
+    },
+    {
+      "file": "src/screens/profile/AboutScreen.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "e94c6c3a5b20874beaf8cbc947f053d0412d88eabb28b2b55d055bb73786cff9"
+    },
+    {
+      "file": "src/screens/profile/AccountStandingScreen.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "400e5c7c44da1fe7e2fa65f29d2563b0266e0160264af0ae4986299688a532c2"
+    },
+    {
+      "file": "src/screens/profile/ApplyVerificationScreen.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "8f0018f2bafe84e5517325bddc1dead9f73dafe7a46b7aa8787f62f7d65aa9e2"
+    },
+    {
+      "file": "src/screens/profile/BlockedAccountsScreen.tsx",
+      "removedBindings": [
+        "light"
+      ],
+      "sha256": "c87ba4d3fd3b0d039f343ff4ad6818f67b11df86e96eb09939e83e681736df8a"
+    },
+    {
+      "file": "src/screens/profile/BusinessInboxScreen.tsx",
+      "removedBindings": [
+        "ActivityIndicator"
+      ],
+      "sha256": "b0e3551dd6816ebab02b72ba09db6b941dd13b95c4c7ef3d0b0a575225c1d6c8"
+    },
+    {
+      "file": "src/screens/profile/BusinessManageScreen.tsx",
+      "removedBindings": [
+        "light"
+      ],
+      "sha256": "de33b92c3667f6f31959d798eb5217ca9e7498eb4ca7b90f244364debec786f2"
+    },
+    {
+      "file": "src/screens/profile/ChangeUsernameScreen.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "276f755783018667c6c019f8fadb1a7b16b679b67836d406b58301f026dfb170"
+    },
+    {
+      "file": "src/screens/profile/CreateBusinessScreen.tsx",
+      "removedBindings": [
+        "light"
+      ],
+      "sha256": "15e90b6d384e3ba484d93b9dc6af2156908f4881c888132be2e4fe43996d8759"
+    },
+    {
+      "file": "src/screens/profile/EditProfileScreen.tsx",
+      "removedBindings": [
+        "light"
+      ],
+      "sha256": "c1d4fa07bb1bf155baf0fe06039a674a13587c53001b5bf236b802230c8fb59b"
+    },
+    {
+      "file": "src/screens/profile/HelpSupportScreen.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "4d77bd1712008fba793d4c1b217bdcb2149f739d281e4ed9fc70f95791c41a0c"
+    },
+    {
+      "file": "src/screens/profile/PrivacyPolicyScreen.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "ac130c9ebb1ee8f81663ac41bcee0a0ee5a0683e2cf1d9745d77f3c995b422b4"
+    },
+    {
+      "file": "src/screens/profile/ProfileScreen.tsx",
+      "removedBindings": [
+        "MediaRenderer",
+        "Image",
+        "TextInput",
+        "KeyboardAvoidingView",
+        "Platform"
+      ],
+      "mergedDuplicateImports": true,
+      "sha256": "601a924c9e27dabebc9560384760d6b6153ee525d8814736443151cfeccf4468"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "removedBindings": [
+        "light"
+      ],
+      "mergedDuplicateImports": true,
+      "sha256": "d70d55857bc642fb6f3121581fc7db8fbea2f1ecd589f4077bd3968e3a1cb992"
+    },
+    {
+      "file": "src/screens/profile/TermsScreen.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "69d860e6f85eece204ef000fef9d774e9884cfba91c2e3c7bdd7df7f50bcb273"
+    },
+    {
+      "file": "src/screens/profile/TicketScreen.tsx",
+      "removedBindings": [
+        "StyleSheet"
+      ],
+      "sha256": "761464cd1c4c9d1395a1dde88436c95e0c01458785f521e60ad35e778be372b5"
+    },
+    {
+      "file": "src/screens/profile/UserProfileScreen.tsx",
+      "removedBindings": [
+        "MediaRenderer",
+        "Image"
+      ],
+      "mergedDuplicateImports": true,
+      "sha256": "4ffb4a911963305adad66d141e7c0ec493ce5838339a2ca1e977bcb68713e9ba"
+    },
+    {
+      "file": "src/screens/studio/StudioMoreSegs.tsx",
+      "removedBindings": [
+        "useTheme"
+      ],
+      "sha256": "b916b1432c3357e3e335ff3304dad22b59f562a4abaabc0f86739512eee86f6c"
+    },
+    {
+      "file": "src/components/MediaRenderer.tsx",
+      "removedBindings": [],
+      "mergedDuplicateImports": true,
+      "sha256": "45f1b95ef7df050429b0a09fc729e34b3e6365cd8b113d358f9793d2189c4089"
+    },
+    {
+      "file": "src/screens/market/ListingDetailScreen.tsx",
+      "removedBindings": [],
+      "mergedDuplicateImports": true,
+      "sha256": "3702872a78c4fb6de2a5c2c6232dfa65c775f3f326278eadcdbc48467ad33229"
+    },
+    {
+      "file": "src/screens/network/NetworkScreen.tsx",
+      "removedBindings": [],
+      "mergedDuplicateImports": true,
+      "sha256": "af2113b8c92de309ae2d4c5d96a0ecf7011a4cfc42025a515fe4c625fecedbc2"
+    },
+    {
+      "file": "src/screens/profile/CampaignsScreen.tsx",
+      "removedBindings": [],
+      "mergedDuplicateImports": true,
+      "sha256": "a8eb44dfbfc61fa7d072f59b1d68683d696da9bb03f5c6e7502694ad25de7227"
+    }
+  ],
+  "preservedForIndividualReview": [
+    {
+      "file": "src/components/feed/DiscoverTile.tsx",
+      "names": [
+        "light"
+      ],
+      "reason": "whole value import retained to preserve module initialization"
+    },
+    {
+      "file": "src/screens/messages/ChatScreen.tsx",
+      "names": [
+        "callService"
+      ],
+      "reason": "whole value import retained to preserve module initialization"
+    },
+    {
+      "file": "src/screens/messages/SavedMessagesScreen.tsx",
+      "names": [
+        "EmptyState"
+      ],
+      "reason": "whole value import retained to preserve module initialization"
+    },
+    {
+      "file": "src/screens/profile/ProfileScreen.tsx",
+      "names": [
+        "HighlightRow"
+      ],
+      "reason": "whole value import retained to preserve module initialization"
+    },
+    {
+      "file": "src/utils/stickerStyles.ts",
+      "names": [
+        "Platform"
+      ],
+      "reason": "whole value import retained to preserve module initialization"
+    }
+  ],
+  "verification": [
+    {
+      "command": "npx tsc --noEmit",
+      "cwd": "root",
+      "exitCode": 0
+    },
+    {
+      "command": "npx eslint . --format json",
+      "cwd": "root",
+      "exitCode": 0,
+      "errors": 0,
+      "warnings": 476,
+      "filesWithFindings": 119,
+      "findingsByRule": {
+        "@typescript-eslint/no-unused-vars": 226,
+        "react-hooks/exhaustive-deps": 230,
+        "@typescript-eslint/array-type": 2,
+        "import/no-named-as-default-member": 1,
+        "no-unused-expressions": 10,
+        "import/no-duplicates": 6,
+        "unused-directive": 1
+      }
+    }
+  ],
+  "limits": [
+    "The lint totals cover the integrated shared tree; concurrent music fixes also reduced findings.",
+    "No effect dependencies were added or rules suppressed to erase warnings in this batch.",
+    "Whole unused value-import declarations were retained when module initialization required individual review.",
+    "Residual hook, unused variable and other warnings remain open; this is not a globally clean native lint result.",
+    "Physical device behavior is not verified by import cleanup and TypeScript."
+  ],
+  "additionalScopedSecurityRepairs": [
+    "AuthCallbackScreen and MediaRenderer have separately tested diagnostic redactions; notificationBootstrap has an additional independent redaction outside the import-only manifest. See auth-callback-log-redaction.json and native-private-diagnostics.json."
+  ]
+}

@@ -1,0 +1,259 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-31T04:29:42.767177Z",
+  "status": "Unresolved: the SDK emitted a 5000ms acquisition warning while every observed configured-lock operation completed promptly. Do not treat this warning as fixed.",
+  "sourceBinding": {
+    "publishedHead": "26e80ae96647884e7f2764bdbb1884fd5aabcff5",
+    "artifactCommit": "6373021f8dcbb2bc614039e74937d2acb0ff2d3e",
+    "equivalentTree": "1c10d4cc20fcfd5a0d4e82ba0121c51e90274c03",
+    "workflowRun": "41166954949",
+    "artifactMode": "Complete production App and screens with isolated synthetic transports and a CI-only capture route",
+    "inputSha256": {
+      "app.log": "7285a829a9c8639705efc8b3a3b3346fe3caa787938c861f9676124da036a6eb",
+      "native-ui-auth-diagnostics-final.json": "441f660e2623715e61a0b282558639662571a194fac3d984c14b55242125ece4",
+      "source.json": "02dc83aec28e438d0157b17255cb794abcf52cf63feaa9c27c36519d0564ce8e",
+      "overlays/src__services__supabase.ts": "dfb6b6cfe427b7e5abdb7f7bedbdb45536f9abca000d4a2d3305dd45da4cf2e5"
+    },
+    "publishedOriginalSha256": {
+      "package-lock.json": "647ee46e04dee88a568cafb274dfc3172795efca34eaf8407cd86a8fe3a7ca40",
+      "tests/native/auth-diagnostics.cjs": "a3ee0fb82b68e7de2fa6629bd30ff059ad50458c487e577458030296857733eb",
+      "scripts/quality/native-ui-auth-overlay.cjs": "797b06fd623cc0e2d4786c161afdc5541c815a7fe8036f1622e232317b16fa73",
+      "tests/native/entry.js": "47c7d769b9265fd1e9b9e30ce7034a0c9bf4f7aa7422049ad94e8919cfb1025d",
+      "tests/native/metro-config.cjs": "ef3ce3ec3050e53d98b457c6b1e9aa8abfc8490091637a011112bb82d3c0a90f",
+      "src/services/supabase.ts": "457ab3f8c8c54aa3a5e770dd1b43f4869a98c7471c9ccffcbe5f9e3901847fee"
+    },
+    "originalHashesCheckedAgainstPublishedGitBlobs": true,
+    "authOverlay": {
+      "file": "src/services/supabase.ts",
+      "before": "457ab3f8c8c54aa3a5e770dd1b43f4869a98c7471c9ccffcbe5f9e3901847fee",
+      "after": "dfb6b6cfe427b7e5abdb7f7bedbdb45536f9abca000d4a2d3305dd45da4cf2e5",
+      "reason": "Disposable QA-only lock and auth-storage timing observation. Original SDK processLock, timeouts, arguments, results and errors are preserved; no keys or session contents are recorded.",
+      "retained": "overlays/src__services__supabase.ts"
+    }
+  },
+  "observedWarning": {
+    "count": 1,
+    "logLine": 2408,
+    "utcTime": "2026-10-31T04:17:50.210Z",
+    "pid": 2494,
+    "thread": 2554,
+    "declaredAcquireTimeoutMs": 5000,
+    "normalizedText": "@supabase/gotrue-js: Lock [omitted] acquisition timed out after 5000ms.",
+    "startupMarkers": [
+      {
+        "event": "NativeCalls gate",
+        "utcTime": "2026-10-31T04:17:45.207Z",
+        "differenceToWarningMs": 5003
+      },
+      {
+        "event": "Running main",
+        "utcTime": "2026-10-31T04:17:45.283Z",
+        "differenceToWarningMs": 4927
+      }
+    ]
+  },
+  "trace": {
+    "mode": "synthetic-native-auth-timing",
+    "durationAtSnapshotMs": 30332.278,
+    "totalOperations": 115,
+    "events": 274,
+    "droppedEvents": 0,
+    "droppedTracking": 0,
+    "phaseCounts": [
+      {
+        "kind": "lock",
+        "phase": "requested",
+        "outcome": null,
+        "count": 22
+      },
+      {
+        "kind": "lock",
+        "phase": "acquired",
+        "outcome": null,
+        "count": 22
+      },
+      {
+        "kind": "storage",
+        "phase": "started",
+        "outcome": null,
+        "count": 93
+      },
+      {
+        "kind": "storage",
+        "phase": "settled",
+        "outcome": "fulfilled",
+        "count": 93
+      },
+      {
+        "kind": "lock",
+        "phase": "released",
+        "outcome": "fulfilled",
+        "count": 22
+      },
+      {
+        "kind": "lock",
+        "phase": "settled",
+        "outcome": "fulfilled",
+        "count": 22
+      }
+    ],
+    "lockResourceIds": [
+      1
+    ],
+    "maxWait": {
+      "kind": "lock",
+      "phase": "acquired",
+      "operationId": 93,
+      "lockId": 1,
+      "waitMs": 293.0709999999999,
+      "atMs": 25114.206
+    },
+    "maxHold": {
+      "kind": "lock",
+      "phase": "released",
+      "operationId": 14,
+      "lockId": 1,
+      "outcome": "fulfilled",
+      "holdMs": 389.20500000000175,
+      "atMs": 17369.492
+    },
+    "maxStorage": {
+      "kind": "storage",
+      "phase": "settled",
+      "operationId": 17,
+      "storageId": 1,
+      "method": "getItem",
+      "outcome": "fulfilled",
+      "durationMs": 109.76699999999983,
+      "atMs": 17094.068
+    },
+    "initialLockOperation": [
+      {
+        "kind": "lock",
+        "phase": "requested",
+        "operationId": 1,
+        "lockId": 1,
+        "acquireTimeoutMs": 5000,
+        "activeLockOperationIds": [],
+        "atMs": 0.009
+      },
+      {
+        "kind": "lock",
+        "phase": "acquired",
+        "operationId": 1,
+        "lockId": 1,
+        "waitMs": 80.127,
+        "atMs": 80.139
+      },
+      {
+        "kind": "lock",
+        "phase": "released",
+        "operationId": 1,
+        "lockId": 1,
+        "outcome": "fulfilled",
+        "holdMs": 1,
+        "atMs": 81.129
+      },
+      {
+        "kind": "lock",
+        "phase": "settled",
+        "operationId": 1,
+        "lockId": 1,
+        "outcome": "fulfilled",
+        "durationMs": 81.136,
+        "atMs": 81.138
+      }
+    ],
+    "initialIdleIntervalMs": [
+      94.027,
+      16967.347
+    ],
+    "finalActiveLocks": [],
+    "finalWaitingLocks": [],
+    "finalActiveStorage": []
+  },
+  "coverageReview": [
+    "Retained overlay constructs the QA observer before createClient and passes its wrapper as the configured auth lock. The original processLock implementation and acquireTimeout arguments remain unchanged.",
+    "Pinned GoTrueClient assigns settings.lock before initialize. External acquisitions use this.lock; re-entrant operations remain inside the enclosing observed hold, which includes draining pendingInLock.",
+    "All 22 requested lock operations acquired and settled fulfilled. All 93 observed storage operations settled fulfilled. No bounded trace/tracking entries were dropped.",
+    "One createClient/processLock use was found in the production native src/shared/App source surface. This source search does not prove there was no additional runtime or separately bundled instance.",
+    "The source manifest hashes for the lockfile, diagnostics, QA overlay helper, entry, Metro config and production Supabase source match the published source tree. The retained Supabase overlay hash also matches the manifest."
+  ],
+  "registryIntegrity": [
+    {
+      "package": "@supabase/auth-js",
+      "version": "2.103.0",
+      "registryUrl": "https://registry.npmjs.org/@supabase/auth-js/-/auth-js-2.103.0.tgz",
+      "integrity": "sha512-6zAanO6c+6gpHOlt5Lb9TlBBkJdZiUWkWCJKAxzkywBDcwaHlLJKXnjQGX6GyVCyKRR1e7sTq4re/yRTH6U/9A==",
+      "matchesPublishedLockIntegrity": true,
+      "archiveSha256": "460978f13f8110ff899a3e3a3ebcc11844eca021cbcafc5f5969b61a51b32aa0",
+      "files": [
+        {
+          "path": "src/lib/locks.ts",
+          "registrySha256": "6d1ec3ee482d09c887d4212de582b13128af365a85f5b64893a25d09bc6c8668",
+          "localSha256": "6d1ec3ee482d09c887d4212de582b13128af365a85f5b64893a25d09bc6c8668",
+          "matches": true
+        },
+        {
+          "path": "dist/main/lib/locks.js",
+          "registrySha256": "9891124da312e1c4ba73296c98dc018ba2532a856ea39248f0e951036892b4e0",
+          "localSha256": "9891124da312e1c4ba73296c98dc018ba2532a856ea39248f0e951036892b4e0",
+          "matches": true
+        },
+        {
+          "path": "dist/module/lib/locks.js",
+          "registrySha256": "bd308c17475037290c30f3c8455858368e3c0e170a156fb8361a71c7dc056c87",
+          "localSha256": "bd308c17475037290c30f3c8455858368e3c0e170a156fb8361a71c7dc056c87",
+          "matches": true
+        }
+      ],
+      "implementationReview": "processLock clears acquisition timer in both fulfilled and error paths."
+    },
+    {
+      "package": "@supabase/supabase-js",
+      "version": "2.103.0",
+      "registryUrl": "https://registry.npmjs.org/@supabase/supabase-js/-/supabase-js-2.103.0.tgz",
+      "integrity": "sha512-j/6q5+LtXbR/YOLSLhy7Na74RD1cV2v+KwIIuuqMEjk1JpLEEyu0ynwDHpGoxMncDQl+R5FogaVqZm+85lZvtw==",
+      "matchesPublishedLockIntegrity": true,
+      "archiveSha256": "672f38a6f28c289ca856a4056d71eb6f314929b920814c0a8cdd0f0d49e83fef",
+      "files": [
+        {
+          "path": "dist/index.cjs",
+          "registrySha256": "b8ab8bdba298f953d755556979998098309d4d3bface6628ff9b8afd0a96ca4b",
+          "localSha256": "b8ab8bdba298f953d755556979998098309d4d3bface6628ff9b8afd0a96ca4b",
+          "matches": true
+        },
+        {
+          "path": "dist/index.mjs",
+          "registrySha256": "a5a16d1d34369ee35c55f3029c1db2ca3bca0c53eb217b1c649822c2f1fc2736",
+          "localSha256": "a5a16d1d34369ee35c55f3029c1db2ca3bca0c53eb217b1c649822c2f1fc2736",
+          "matches": true
+        }
+      ],
+      "implementationReview": "Exports/delegates auth-js; no separate inlined processLock implementation was found."
+    }
+  ],
+  "runtimeSourceReview": [
+    "Installed React Native timer IDs are monotonic; C++ clearTimeout accepts a numeric zero handle rather than rejecting it on falsiness.",
+    "TimerManager.deleteTimer erases the callback map entry. Queued callTimer work rechecks that map before invocation. This does not support a simple zero-ID or ordinary queued-callback explanation."
+  ],
+  "inferencesAndLimits": [
+    "The 5003ms interval from the native startup gate suggests a startup acquisition timer, but the trace has no wall-clock origin or timer IDs. The warning cannot be conclusively assigned to operation 1.",
+    "A fulfilled acquisition should clear its timer in the verified SDK source. A later warning from an already-settled operation is possible only if the runtime timer behavior or executed implementation differs from that expectation; this has not been proven.",
+    "Registry/lock/local byte equality rules out a local-versus-registry source mismatch. The retained CI artifact has no APK/JS bundle or Metro module-resolution record, so the exact executed dependency module is not independently attested.",
+    "Unobserved lock/client instance, module-resolution differences, or a timer implementation/replacement issue remain hypotheses. There is insufficient evidence to select one.",
+    "The QA observer adds promise microtasks and bounded file writes. These measurements diagnose observed lock/storage phases; they are not uninstrumented production performance figures."
+  ],
+  "nextRunDiscriminator": {
+    "status": "Proposal coordinated with navigation_performance and root; no new observer implementation performed by this reviewer.",
+    "minimum": [
+      "Record a wall-clock origin paired with the existing monotonic trace clock, without keys or session contents.",
+      "Record bounded numeric identity/kind of global timer property descriptors at lock phases using Object.getOwnPropertyDescriptor; do not access lazy timer getters or replace timer functions.",
+      "Hash the actual installed SDK package/entry/lock implementation files in the native source receipt. Distinguish installed-file provenance from executed Metro module resolution."
+    ],
+    "interpretation": "A descriptor identity change across the initial acquisition would support timer replacement. Stable IDs alone cannot distinguish an unobserved caller from a missed cancellation or unexpected callback firing; a later strictly guarded timer-lifecycle probe may be needed if the warning persists.",
+    "constraints": [
+      "No timeout increase, warning suppression, lock bypass, production auth source change, storage key/value logging or backend write."
+    ]
+  }
+}

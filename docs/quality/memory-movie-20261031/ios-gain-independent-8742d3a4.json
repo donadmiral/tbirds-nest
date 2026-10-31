@@ -1,0 +1,110 @@
+{
+  "movie": "/tmp/platinum-memory-ios-8742/pc-memory-export-ordered.mp4",
+  "sha256": "d58ff300d0b93a5730f61fbe0c47695b4fbad4eb89a48fca088db617785d68fb",
+  "sample_rate": 44100,
+  "channels": 1,
+  "decoded_end_seconds": 4.503219954648526,
+  "windows": [
+    {
+      "start": 0.3,
+      "end": 0.6,
+      "amplitude": {
+        "440": 1.3104997934625937e-08,
+        "660": 0.023998120184080797,
+        "880": 0.09999289679579383,
+        "1540": 2.2704251914030813e-07,
+        "1760": 2.985809516092711e-08
+      },
+      "linear_interpolation_hypothesis": null
+    },
+    {
+      "start": 1.55,
+      "end": 1.85,
+      "amplitude": {
+        "440": 0.1000871828765938,
+        "660": 0.044112313756184324,
+        "880": 6.218187036893214e-05,
+        "1540": 1.0981904041922827e-05,
+        "1760": 7.995161772928314e-06
+      },
+      "linear_interpolation_hypothesis": 0.04411428571428571
+    },
+    {
+      "start": 1.8,
+      "end": 2.1,
+      "amplitude": {
+        "440": 0.10007190660618934,
+        "660": 0.06925306097256807,
+        "880": 6.23519382759341e-05,
+        "1540": 1.0945368158323158e-05,
+        "1760": 7.919429853672136e-06
+      },
+      "linear_interpolation_hypothesis": 0.06925714285714285
+    },
+    {
+      "start": 2.2,
+      "end": 2.5,
+      "amplitude": {
+        "440": 0.10006162230252644,
+        "660": 0.1094773742272345,
+        "880": 6.19713372047337e-05,
+        "1540": 1.0944638782802936e-05,
+        "1760": 8.019426438753659e-06
+      },
+      "linear_interpolation_hypothesis": 0.1094857142857143
+    },
+    {
+      "start": 2.6,
+      "end": 2.9,
+      "amplitude": {
+        "440": 0.10007747040398247,
+        "660": 0.14970432670791728,
+        "880": 6.232465368314443e-05,
+        "1540": 1.1002717738261935e-05,
+        "1760": 7.955380578560705e-06
+      },
+      "linear_interpolation_hypothesis": 0.14971428571428574
+    },
+    {
+      "start": 2.9,
+      "end": 3.1999999999999997,
+      "amplitude": {
+        "440": 0.10007962952575161,
+        "660": 0.17988898886896862,
+        "880": 6.307807958608383e-05,
+        "1540": 1.0891465699912435e-05,
+        "1760": 7.964530804335914e-06
+      },
+      "linear_interpolation_hypothesis": 0.1798857142857143
+    },
+    {
+      "start": 3.6,
+      "end": 3.9,
+      "amplitude": {
+        "440": 2.1309475158838425e-07,
+        "660": 0.1999776186425578,
+        "880": 9.009513484655967e-07,
+        "1540": 2.2094293407700023e-08,
+        "1760": 6.685112346728643e-08
+      },
+      "linear_interpolation_hypothesis": null
+    }
+  ],
+  "recorded_at": "2026-10-31T01:37:12.743853+00:00",
+  "candidate_base": "8742d3a43e54e0b8518cec308604289d089364cd",
+  "reviewer_lane": "frontend_acceptance",
+  "artifact": {
+    "id": 13023953981,
+    "zip_sha256": "c899e3b560109bc3fcf2f873df4cc8ae62b62e55abf53c6a9d0c23cdb8e9389f"
+  },
+  "source_sha256": {
+    "modules/boomerang/ios/MemoryMovieComposition.swift": "e1c176bb449f6a10b271897a55faceb49d9d6ace8d74097101c7ca513377630f",
+    "modules/boomerang/ios/StoryVideoComposition.swift": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+    "scripts/quality/MemoryMovieExportHarness.swift": "97702bb42ff08151a8d4104cf9e02ef9a4df8f9b824c6b49b7f7823b276c1fab",
+    "scripts/quality/test-ios-memory-movie.sh": "fa60a4db91552e78b6181943dd76d105a2354f2934969b95a8ed655985c3c90c"
+  },
+  "finding": "The retained movie has a genuine page-ducking error: its 660 Hz music rises through the middle page instead of remaining near 0.024, while the independent original 440 Hz audio remains near 0.100.",
+  "inference": "Window amplitudes agree within 0.000011 with linear interpolation between the existing point gains at 1.5 and 3.25 seconds. This identifies observed output behavior; it is not a claim about every AVFoundation implementation.",
+  "source_review": "The only production delta replaces each point gain with an equal-start/end volume ramp over that complete validated contiguous page interval. It preserves source clocks, excerpt boundaries, selection gain, thresholds and the 11-case harness.",
+  "runtime_status": "The repair is source-reviewed, not yet encoded/verified. The strict new hosted eleven-case run and full native compile remain required. Memory capability stays 0."
+}

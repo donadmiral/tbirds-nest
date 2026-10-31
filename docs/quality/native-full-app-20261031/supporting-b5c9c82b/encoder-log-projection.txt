@@ -1,0 +1,6 @@
+android_encoder: checkout cddbe51a25efbb39b9e91fb822a9821957b9a2bd
+Android production story and memory encoder instrumentation passed; 23 story + 16 memory measured passed=true cases; compiled source copies verified.
+ios_story: checkout cddbe51a25efbb39b9e91fb822a9821957b9a2bd
+Native encoded story audio: all eight named simulator cases passed; all six movies retained and hashed.
+ios_memory: checkout cddbe51a25efbb39b9e91fb822a9821957b9a2bd
+Native whole-book movies: all eleven named simulator cases passed; seven movies and both normalized PNGs retained and hashed.

@@ -59,6 +59,7 @@ function harness({ available = false, rpcError, triageRows, deny = false, ticket
           return send(triageRows ?? ids.map(ticket_id => ({ ...assignment, ticket_id })));
         }
         if (name === 'admin_seller_review_reports') return send({ rows: [], has_more: false, next_cursor: null });
+        if (name === 'triniti_admin_deletion_requests') return send({ rows: [], total: 0 });
         throw new Error('Unexpected RPC ' + name);
       }
       assert.equal(['GET', 'HEAD'].includes(method), true, 'fallback rendering must be read-only');
@@ -88,20 +89,26 @@ function harness({ available = false, rpcError, triageRows, deny = false, ticket
     return { id: 'staff-1', sessionId: 'session-1', role: 'super_admin' };
   };
   const triage = load('lib/supportTriage.ts', { 'server-only': {}, './supabaseAdmin': api, './adminRpcAvailability': availability });
+  const erasureReview = load('lib/adminErasureReview.ts', {
+    'server-only': {}, './adminAuth': { requirePermission: authorize },
+    './supabaseAdmin': api, './adminRpcAvailability': availability,
+  });
   const common = {
+    '@/lib/requestTime': { requestTime: async () => Date.parse('2026-10-30T12:00:00Z') },
     'next/link': { default: 'Link' }, 'next/navigation': { redirect() { throw new Error('redirect'); } },
     '@/lib/adminAuth': { requireDesk: authorize, requirePermission: authorize }, '@/lib/supabaseAdmin': api,
     '@/lib/permissions': permissions, '@/lib/fmt': fmt, '@/lib/supportReporting': reporting, '@/lib/supportTriage': triage,
     '@/lib/adminRpcAvailability': availability, '@/components/Shell': { default: 'Shell' },
+    '@/lib/adminErasureReview': erasureReview,
     '@/components/CommandForm': { default: 'CommandForm' }, '@/components/PermissionGate': { default: 'PermissionGate' },
     '@/components/Desk': { Desk: 'Desk', StatStrip: 'StatStrip' }, '@/components/ReportsDesk': { default: 'ReportsDesk' },
     '@/components/Viz': { Donut: 'Donut', StackBars: 'StackBars', Empty: 'Empty' },
     '@/lib/actions': { sendTicketReply() { throw new Error('no write'); }, setTicketStatus() { throw new Error('no write'); } },
     '@/lib/supportTriageActions': { updateSupportTriage() { throw new Error('no write'); } },
-    './actions': { moderateReview() { throw new Error('no write'); } },
+    './actions': { moderateReview() { throw new Error('no write'); }, reviewErasure() { throw new Error('Rendering must not submit an erasure review'); } },
   };
   const render = async file => load(file, common).default({ params: Promise.resolve({ tid: ticket.id }), searchParams: Promise.resolve({}) });
-  return { requests, list: () => render('app/support/page.tsx'), detail: () => render('app/support/[tid]/page.tsx'), reviews: () => render('app/market/reviews/page.tsx'), reports: () => render('app/reports/page.tsx') };
+  return { requests, list: () => render('app/support/page.tsx'), detail: () => render('app/support/[tid]/page.tsx'), reviews: () => render('app/market/reviews/page.tsx'), reports: () => render('app/reports/page.tsx'), deletions: () => render('app/users/deletions/page.tsx') };
 }
 
 test('missing assignment capability keeps the inbox and its actual counts readable without invented triage', async () => {
@@ -204,9 +211,52 @@ test('existing post and listing reports do not depend on the optional seller-rev
 });
 
 test('missing capability never bypasses support or review desk authorization', async () => {
-  for (const page of ['list', 'detail', 'reviews']) {
+  for (const page of ['list', 'detail', 'reviews', 'deletions']) {
     const h = harness({ deny: true });
     await assert.rejects(h[page](), /desk denied/);
     assert.equal(h.requests.length, 0);
+  }
+});
+
+test('missing deletion queue shows a truthful unavailable state and recovery links, not an empty queue', async () => {
+  const unavailable = harness(), tree = await unavailable.deletions();
+  assert.match(textOf(tree), /Deletion requests cannot be loaded/);
+  assert.match(textOf(tree), /does not confirm.*personal data has been erased/);
+  assert.doesNotMatch(textOf(tree), /No deletion requests on this page/);
+  assert.equal(elements(tree, 'Link')[0].props.href, '/users');
+  assert.equal(elements(tree, 'a')[0].props.href, '/users/deletions?page=1');
+  assert.equal(elements(tree, 'CommandForm').length, 0);
+  assert.deepEqual(unavailable.requests.filter(request => request.url.pathname.includes('/rpc/')).map(request => request.url.pathname.split('/').at(-1)), ['triniti_admin_deletion_requests']);
+  const available = await harness({ available: true }).deletions();
+  assert.match(textOf(available), /No deletion requests on this page/);
+  await assert.rejects(harness({ rpcError: { code: 'PGRST003', message: 'Pool timeout' } }).deletions(), /Deletion requests could not be loaded/);
+});
+
+function actionHarness(file, rpcError) {
+  const calls = [], refreshed = [];
+  const auth = { requirePermission: async () => ({ id: '10000000-0000-4000-8000-000000000001', sessionId: '10000000-0000-4000-8000-000000000002' }) };
+  const service = { serviceClient: () => ({ rpc: async (name, args) => { calls.push({ name, args }); return { data: null, error: rpcError }; } }) };
+  const action = load(file, { 'server-only': {}, 'next/cache': { revalidatePath: path => refreshed.push(path) },
+    './adminAuth': auth, '@/lib/adminAuth': auth, './supabaseAdmin': service, '@/lib/supabaseAdmin': service,
+    './adminRpcAvailability': availability, '@/lib/adminRpcAvailability': availability });
+  const form = new FormData();
+  for (const [name, value] of Object.entries({ command_key: '10000000-0000-4000-8000-000000000003', ticket_id: '10000000-0000-4000-8000-000000000004',
+    report_id: '10000000-0000-4000-8000-000000000005', content_version: '1', version: '1', assigned_to: '', escalated: 'false', priority: 'normal', queue: 'general', decision: 'dismiss', reason: 'Synthetic review only' })) form.set(name, value);
+  return { run: () => (action.updateSupportTriage || action.moderateReview)(form), calls, refreshed };
+}
+test('direct review and assignment actions explain their missing endpoint without offering a fruitless retry', async () => {
+  for (const [file, name] of [['lib/supportTriageActions.ts', 'admin_support_triage_update'], ['app/market/reviews/actions.ts', 'moderate_seller_review']]) {
+    const h = actionHarness(file, missing(name));
+    const result = await h.run();
+    assert.equal(result.success, false); assert.match(result.error, /unavailable on this deployment/); assert.match(result.error, /No .* was changed/); assert.doesNotMatch(result.error, /retry/i);
+    assert.equal(h.calls.length, 1); assert.equal(h.refreshed.length, 0);
+  }
+});
+test('review and assignment network or permission failures never claim no mutation was possible', async () => {
+  for (const file of ['lib/supportTriageActions.ts', 'app/market/reviews/actions.ts']) {
+    for (const error of [{ code: '42501', message: 'permission denied' }, { code: 'PGRST003', message: 'Pool timeout' }, { code: '42883', message: 'function private_dependency(uuid) does not exist' }]) {
+      const result = await actionHarness(file, error).run();
+      assert.equal(result.success, false); assert.doesNotMatch(result.error, /unavailable on this deployment|No .* was changed/);
+    }
   }
 });

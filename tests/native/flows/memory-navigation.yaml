@@ -1,0 +1,127 @@
+appId: app.platinumcircles.mobile.qa
+name: Saved memory book, automatic film and cover editing
+---
+# Enter through the real Profile shelf. This book contains two text memories;
+# the separate capture flow verifies actual photos, video, sound and encoding.
+- scrollUntilVisible:
+    element: View all memory books
+    direction: DOWN
+    centerElement: true
+- tapOn: View all memory books
+- tapOn: Private
+- assertVisible: THE SMALL ADVENTURES, 2 memories
+- takeScreenshot: memory-shelf
+- tapOn: THE SMALL ADVENTURES, 2 memories
+- extendedWaitUntil:
+    visible: Edit memory book
+    timeout: 15000
+- scrollUntilVisible:
+    element: Open book
+    direction: DOWN
+- tapOn: Open book
+- assertVisible: Page 1 of 2
+- assertVisible: WE TOOK THE LONG WAY HOME
+- tapOn: Next memory
+- assertVisible: Page 2 of 2
+- assertVisible: THE STORIES WE KEEP
+- takeScreenshot: memory-reader
+- tapOn: Play continuous memory film
+- tapOn:
+    text: Pause memory film
+    waitToSettleTimeoutMs: 500
+- assertVisible: Play memory film
+- assertVisible: 'reflective · 2 of 2 memories · .* seconds'
+- takeScreenshot: memory-film
+- tapOn: Create memory movie
+- assertVisible: Your memory movie
+- assertVisible: THE SMALL ADVENTURES · 2 memories
+- assertVisible: Create memory movie
+- takeScreenshot: memory-export-entry
+- tapOn: Close movie export
+- assertVisible: Play memory film
+- tapOn: Read memory book
+- assertVisible: Page 2 of 2
+- tapOn: Close memory book
+- tapOn: Edit memory book
+- assertVisible: Book settings
+- tapOn: Book title
+- eraseText
+- inputText: THE LONG WAY HOME
+# iOS dismisses through the following real settings scroll (on-drag).
+# Maestro's center-screen hideKeyboard swipe can miss this modal's scroll view.
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- scrollUntilVisible:
+    element: sage cover color
+    direction: DOWN
+- tapOn: sage cover color
+- scrollUntilVisible:
+    element:
+      id: memory-cover-inscription
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: memory-cover-inscription
+- inputText: Roads worth remembering
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- scrollUntilVisible:
+    element: 'Writing style: Simple'
+    direction: DOWN
+- tapOn: 'Writing style: Simple'
+- scrollUntilVisible:
+    element:
+      id: memory-cover-postmark
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: memory-cover-postmark
+- inputText: DESERT DAYS
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
+- scrollUntilVisible:
+    element: 'Mood: Cinematic'
+    direction: DOWN
+- tapOn: 'Mood: Cinematic'
+- scrollUntilVisible:
+    element: Postcard cover design
+    direction: DOWN
+- tapOn: Postcard cover design
+- tapOn: Save memory book
+- extendedWaitUntil:
+    notVisible: Book settings
+    timeout: 15000
+- assertVisible: 'Postcard book cover: THE LONG WAY HOME. A book from this week. Roads worth remembering. DESERT DAYS'
+- takeScreenshot: memory-cover-edited
+- tapOn: Back to profile
+- scrollUntilVisible:
+    element: THE LONG WAY HOME, 2 memories
+    direction: DOWN
+- tapOn: THE LONG WAY HOME, 2 memories
+- extendedWaitUntil:
+    visible: Edit memory book
+    timeout: 15000
+- assertVisible: 'Postcard book cover: THE LONG WAY HOME. A book from this week. Roads worth remembering. DESERT DAYS'
+- scrollUntilVisible:
+    element: Play continuous memory film with original music
+    direction: DOWN
+- tapOn: Play continuous memory film with original music
+- tapOn:
+    text: Pause memory film
+    waitToSettleTimeoutMs: 500
+- assertVisible: 'cinematic · 2 of 2 memories · .* seconds'
+- takeScreenshot: memory-film-reloaded
+- tapOn: Close memory film
+- tapOn: Back to profile
+- scrollUntilVisible:
+    element: Settings
+    direction: UP

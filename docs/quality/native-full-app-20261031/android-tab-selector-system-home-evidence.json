@@ -1,0 +1,265 @@
+{
+  "schemaVersion": 1,
+  "workflowRun": 41169456344,
+  "artifactId": 13030523360,
+  "artifactZipSha256": "a5b90f53abdb87955c5f2a84097e451dc2d6f4a3088b233635423ec4db841eff",
+  "sourceCommit": "f033c50196f6f5f115f451247073ccdb357025d4",
+  "commandsSource": {
+    "path": "maestro/2026-10-31_045649/Full native app navigation/commands.json",
+    "sha256": "0d7000ca01d1ddae7bd156cf8a2ce72ea13ed6127e99a61c18531269f44d02e8"
+  },
+  "commands": [
+    {
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "A quiet morning in the desert. Small moments worth keeping.",
+              "optional": false
+            }
+          },
+          "timeout": "30000",
+          "optional": false
+        }
+      },
+      "metadata": {
+        "status": "COMPLETED",
+        "timestamp": 1793422636939,
+        "duration": 210,
+        "sequenceNumber": 14,
+        "depth": 0
+      }
+    },
+    {
+      "command": {
+        "takeScreenshotCommand": {
+          "path": "home",
+          "optional": false
+        }
+      },
+      "metadata": {
+        "status": "COMPLETED",
+        "timestamp": 1793422637149,
+        "duration": 328,
+        "sequenceNumber": 15,
+        "depth": 0
+      }
+    },
+    {
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Latest",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "metadata": {
+        "status": "COMPLETED",
+        "timestamp": 1793422637477,
+        "duration": 3125,
+        "sequenceNumber": 16,
+        "depth": 0
+      }
+    },
+    {
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "A quiet morning in the desert. Small moments worth keeping.",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      },
+      "metadata": {
+        "status": "COMPLETED",
+        "timestamp": 1793422640602,
+        "duration": 206,
+        "sequenceNumber": 17,
+        "depth": 0
+      }
+    },
+    {
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "For You",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "metadata": {
+        "status": "COMPLETED",
+        "timestamp": 1793422640809,
+        "duration": 3484,
+        "sequenceNumber": 18,
+        "depth": 0
+      }
+    },
+    {
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "A quiet morning in the desert. Small moments worth keeping.",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      },
+      "metadata": {
+        "status": "COMPLETED",
+        "timestamp": 1793422644293,
+        "duration": 141,
+        "sequenceNumber": 19,
+        "depth": 0
+      }
+    },
+    {
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Market",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "metadata": {
+        "status": "COMPLETED",
+        "timestamp": 1793422644435,
+        "duration": 2787,
+        "sequenceNumber": 20,
+        "depth": 0
+      }
+    },
+    {
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Travel journal",
+              "optional": false
+            }
+          },
+          "timeout": "15000",
+          "optional": false
+        }
+      },
+      "metadata": {
+        "status": "COMPLETED",
+        "timestamp": 1793422647222,
+        "duration": 120,
+        "sequenceNumber": 21,
+        "depth": 0
+      }
+    },
+    {
+      "command": {
+        "takeScreenshotCommand": {
+          "path": "market",
+          "optional": false
+        }
+      },
+      "metadata": {
+        "status": "COMPLETED",
+        "timestamp": 1793422647342,
+        "duration": 59,
+        "sequenceNumber": 22,
+        "depth": 0
+      }
+    },
+    {
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Home",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      },
+      "metadata": {
+        "status": "COMPLETED",
+        "timestamp": 1793422647402,
+        "duration": 3633,
+        "sequenceNumber": 23,
+        "depth": 0
+      }
+    },
+    {
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "A quiet morning in the desert. Small moments worth keeping.",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      },
+      "metadata": {
+        "status": "FAILED",
+        "timestamp": 1793422651035,
+        "duration": 17216,
+        "sequenceNumber": 24,
+        "depth": 0
+      }
+    }
+  ],
+  "maestroTapEvidence": {
+    "sourcePath": "maestro/2026-10-31_045649/Full native app navigation/logs/maestro.log",
+    "sourceSha256": "b997e4e1767ae9a8311edb486fb39746b2bdf26a30e9b551295380d4a30fdfbb",
+    "matches": [
+      {
+        "line": 84,
+        "text": "04:57:27.522 [ INFO] maestro.Maestro.tap-HgV9Ck0: Tapping on element:  UiElement(treeNode=TreeNode(attributes={text=, accessibilityText=Home, hintText=, ignoreBoundsFiltering=false, resource-id=com.android.launcher3:id/home, clickable=true, bounds=[119,594][199,638], enabled=true, focused=false, checked=false, scrollable=false, selected=false, class=android.widget.ImageView, important-for-accessibility=true, error=}, children=[], clickable=true, enabled=true, focused=false, checked=false, selected=false), bounds=Bounds(x=119, y=594, width=80, height=44))"
+      }
+    ]
+  },
+  "systemHomeTransitionEvidence": {
+    "sourcePath": "app.log",
+    "sourceSha256": "e9d67f6165ae446c393a4f7474ec36eb11635dcfec8469aebad094cac992449f",
+    "matches": [
+      {
+        "line": 3645,
+        "text": "10-31 04:57:28.795   541  1874 I ActivityTaskManager: START u0 {act=android.intent.action.MAIN cat=[android.intent.category.HOME] flg=0x10000000 cmp=com.android.launcher3/.uioverrides.QuickstepLauncher} with LAUNCH_SINGLE_TASK from uid 10120 (BAL_ALLOW_VISIBLE_WINDOW) result code=2"
+      }
+    ]
+  },
+  "screenshots": [
+    {
+      "path": "docs/quality/native-full-app-20261031/android-tab-selector-before-market.png",
+      "sha256": "2a7c6bac008e1862b2b98a35193f156b7395fb8783ef3f1fcf1d009f9243f64d",
+      "bytes": 33432,
+      "sourceArtifactPath": "maestro/2026-10-31_045649/Full native app navigation/takeScreenshot/market.png",
+      "unchangedCopy": true
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-tab-selector-system-home.png",
+      "sha256": "7acb8dc0dfddd91572d3862c5b35d9a844ec626a4d8e0dbcc6edb2cd5e8622b4",
+      "bytes": 172995,
+      "sourceArtifactPath": "maestro/2026-10-31_045649/Full native app navigation/screenshots/step-025-assertCondition-A_quiet_morning_in_the_d.png",
+      "unchangedCopy": true
+    }
+  ]
+}

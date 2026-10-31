@@ -68,6 +68,7 @@ function harness(username) {
   });
   client.auth.getSession = async () => ({ data: { session: null }, error: null });
   const react = {
+    cache(fn) { return fn; },
     useState(initial) { const key = slot++; state[key] = typeof initial === 'function' ? initial() : initial; return [state[key], value => { state[key] = typeof value === 'function' ? value(state[key]) : value; }]; },
     useEffect(fn) { effects.push(fn); }, useCallback(fn) { return fn; }, useMemo(fn) { return fn(); }, useRef(value) { return {current:value}; },
   };
@@ -89,10 +90,11 @@ function harness(username) {
       return compile('app/[username]/page.tsx', requireModule).generateMetadata({ params: Promise.resolve({ username }) });
     },
     async followsTarget() {
-      compile('app/[username]/follows/page.tsx', requireModule).default();
+      let tree = compile('app/[username]/follows/page.tsx', requireModule).default();
+      while (typeof tree?.type === 'function') tree = tree.type(tree.props);
       effects[0]();
       await flush(); await pending; await flush();
-      return state[0];
+      return state.find(value => value && typeof value === 'object' && 'id' in value) ?? null;
     },
   };
 }

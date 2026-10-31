@@ -1,12 +1,12 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Send } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 export function CommentComposer({ postId }: { postId: string }) {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const router = useRouter();
   const [text, setText] = useState("");
   const [pending, setPending] = useState(false);

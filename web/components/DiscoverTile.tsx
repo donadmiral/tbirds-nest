@@ -32,8 +32,9 @@ export function DiscoverTile({ post, onHide, onOpen }: { post: FeedRow; onHide?:
     const { data: sess } = await supabase.auth.getSession();
     const uid = sess.session?.user.id;
     if (!uid) return;
+    const { error } = await supabase.from("hidden_posts").upsert({ user_id: uid, post_id: post.post_id }, { onConflict: "user_id,post_id" });
+    if (error) { window.alert("This post could not be hidden. Please try again."); return; }
     onHide?.(post.post_id);
-    await supabase.from("hidden_posts").insert({ user_id: uid, post_id: post.post_id });
   };
   const href = "/post/" + post.post_id;
   const media = (post.media ?? []).slice().sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
@@ -81,9 +82,9 @@ export function DiscoverTile({ post, onHide, onOpen }: { post: FeedRow; onHide?:
         className="group flex flex-col overflow-hidden rounded-2xl border border-ink/10 bg-white transition-colors duration-[140ms] hover:border-ink/20"
       >
         <span className="relative block aspect-square w-full overflow-hidden bg-surface">
-          {(first as any).is_sensitive || (first as any).edit?.sensitive ? <span className="flex h-full items-center justify-center gap-2 text-muted"><EyeOff size={20}/>Sensitive content</span> : isVideo ? (
+          {first.is_sensitive || first.edit?.sensitive ? <span className="flex h-full items-center justify-center gap-2 text-muted"><EyeOff size={20}/>Sensitive content</span> : isVideo ? (
             <>
-              <video src={first.url} poster={(first as any).edit?.coverUrl||undefined} muted playsInline preload="metadata" className="h-full w-full object-cover" />
+              <video src={first.url} poster={first.edit?.coverUrl||undefined} muted playsInline preload="metadata" className="h-full w-full object-cover" />
               <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white">
                 <Play size={13} fill="currentColor" />
               </span>

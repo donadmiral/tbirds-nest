@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "source": "profile-assertion-failure-ax.json",
+  "selection": "Exact Alex Rivera, Memory books, Loading memory books, Settings labels and main-tab-profile id; no hidden or timing state inferred.",
+  "nodes": [
+    {
+      "path": "root.children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[1].children[0].children[0].children[0].children[0].children[0].children[1].children[0].children[0].children[0].children[2]",
+      "attributes": {
+        "accessibilityText": "Settings",
+        "bounds": "[335,71][379,115]",
+        "enabled": "true",
+        "focused": "false",
+        "selected": "false",
+        "checked": "false"
+      },
+      "enabled": true,
+      "selected": false
+    },
+    {
+      "path": "root.children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[1].children[0].children[0].children[0].children[0].children[0].children[1].children[0].children[0].children[0].children[4]",
+      "attributes": {
+        "accessibilityText": "Alex Rivera",
+        "bounds": "[135,282][257,310]",
+        "enabled": "true",
+        "focused": "false",
+        "selected": "false",
+        "checked": "false"
+      },
+      "enabled": true,
+      "selected": false
+    },
+    {
+      "path": "root.children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[1].children[0].children[0].children[0].children[0].children[0].children[1].children[0].children[0].children[0].children[4].children[0]",
+      "attributes": {
+        "accessibilityText": "Alex Rivera",
+        "bounds": "[135,282][257,310]",
+        "enabled": "true",
+        "focused": "false",
+        "selected": "false",
+        "checked": "false"
+      },
+      "enabled": true,
+      "selected": false
+    },
+    {
+      "path": "root.children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[1].children[0].children[0].children[0].children[0].children[0].children[1].children[0].children[0].children[0].children[22]",
+      "attributes": {
+        "accessibilityText": "Memory books",
+        "bounds": "[16,624][150,647]",
+        "enabled": "true",
+        "focused": "false",
+        "selected": "false",
+        "checked": "false"
+      },
+      "enabled": true,
+      "selected": false
+    },
+    {
+      "path": "root.children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[1].children[0].children[0].children[0].children[0].children[0].children[1].children[0].children[0].children[0].children[22].children[0]",
+      "attributes": {
+        "accessibilityText": "Memory books",
+        "bounds": "[16,624][150,647]",
+        "enabled": "true",
+        "focused": "false",
+        "selected": "false",
+        "checked": "false"
+      },
+      "enabled": true,
+      "selected": false
+    },
+    {
+      "path": "root.children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[1].children[0].children[0].children[0].children[0].children[0].children[1].children[0].children[0].children[0].children[23]",
+      "attributes": {
+        "accessibilityText": "Loading memory books",
+        "bounds": "[16,659][188,885]",
+        "enabled": "true",
+        "focused": "false",
+        "selected": "false",
+        "checked": "false"
+      },
+      "enabled": true,
+      "selected": false
+    },
+    {
+      "path": "root.children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[0].children[1].children[0].children[5]",
+      "attributes": {
+        "accessibilityText": "Profile",
+        "resource-id": "main-tab-profile",
+        "bounds": "[304,744][376,808]",
+        "enabled": "true",
+        "focused": "false",
+        "selected": "true",
+        "checked": "false"
+      },
+      "enabled": true,
+      "selected": true
+    }
+  ]
+}

@@ -38,7 +38,7 @@ for (const [app, callback] of [['web', 'retry'], ['admin-web', 'unstable_retry']
       const React = require('../' + app + '/node_modules/react');
       const jsx = require('../' + app + '/node_modules/react/jsx-runtime');
       const component = load(app + '/app/' + file, { react: { ...React, useEffect() {} }, 'react/jsx-runtime': jsx,
-        '@/lib/clientDiagnostics': { reportClientError() {} }, 'next/link': 'a', 'lucide-react': { AlertTriangle: 'span', RotateCcw: 'span' } }).default;
+        '@/lib/clientDiagnostics': { reportClientError() {} }, '@/components/AdminIcon': 'span', 'next/link': 'a', 'lucide-react': { AlertTriangle: 'span', RotateCcw: 'span' } }).default;
       let retries = 0; const tree = component({ error: Object.assign(Error('secret'), { digest: 'private-digest' }), [callback]: () => retries++ });
       const walk = value => { if (!value || typeof value !== 'object') return; if (value.type === 'button') value.props.onClick(); React.Children.forEach(value.props?.children, walk); };
       walk(tree); assert.equal(retries, 1);

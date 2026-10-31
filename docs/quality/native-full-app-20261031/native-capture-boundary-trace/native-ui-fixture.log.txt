@@ -1,0 +1,19 @@
+✔ fixture installation initializes the real WHATWG types behind React Native lazy fetch before overriding it (5.233146ms)
+✔ native UI fixtures run the actual Supabase authentication and PostgREST adapters without a provider request (36.522ms)
+✔ an unimplemented endpoint or external provider is a recorded failure, never a green empty response (0.814535ms)
+✔ only exact book POST and reaction GET responses report actual SDK body-consumption boundaries (3.708995ms)
+✔ the full app connectivity probe has an explicit local health response and retains abort/offline failures (1.01747ms)
+✔ the isolated socket completes actual Phoenix join/heartbeat messages without opening a network socket (3.467823ms)
+✔ observed Home ancillary requests return the exact synthetic unread and empty-announcement/ranking contracts (3.171197ms)
+✔ the Jobs screen application helper reads the versioned empty page through the actual Supabase adapter (241.54827ms)
+✔ the observed Home marketplace helper reads its empty recommendation shelf through the actual Supabase adapter (17.315899ms)
+✔ native book fixtures persist a revisioned owner edit through actual Supabase adapters and a fresh shelf/read (13.302973ms)
+✔ private synthetic books deny another actor and reject a previous session token after an owner returns (3.491999ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 336.938685

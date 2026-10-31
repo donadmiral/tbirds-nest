@@ -6,9 +6,9 @@
 @theme {
   --color-ink: #0b1e3d;
   --color-navy: #0b1e3d;
-  --color-pearl: #c9bfb0;
-  --color-pearl-muted: #625548;
-  --color-accent: #625548;
+  --color-pearl: #c7a66a;
+  --color-pearl-muted: #806034;
+  --color-accent: #806034;
   --color-secondary: rgba(11, 30, 61, 0.74);
   --color-muted: rgba(11, 30, 61, 0.62);
   --color-on-pearl: #0b1e3d;
@@ -33,11 +33,11 @@
 
 :root {
   color-scheme: light;
-  --canvas: #fbf9f5;
+  --canvas: #f6f8fb;
   --surface-raised: #ffffff;
-  --surface-sunken: #f2eee7;
-  --chrome-solid: #fbf9f5;
-  --chrome-glass: rgba(251, 249, 245, 0.94);
+  --surface-sunken: #edf1f6;
+  --chrome-solid: #ffffff;
+  --chrome-glass: rgba(255, 255, 255, 0.96);
   --chrome-border: rgba(11, 30, 61, 0.08);
   --chrome-highlight: rgba(255, 255, 255, 0.85);
   --chrome-secondary: rgba(11, 30, 61, 0.74);
@@ -45,7 +45,7 @@
   --focus-ring: #625548;
   --wordmark-primary: #0b1e3d;
   --wordmark-secondary: rgba(11, 30, 61, 0.74);
-  --editorial-gold: #ae8b49;
+  --editorial-gold: #b38b48;
 }
 
 body {
@@ -111,8 +111,29 @@ body {
   --wordmark-secondary: rgba(245, 243, 239, 0.74);
   color-scheme: dark;
 }
-.dark body { background: #0a1220; }
+.dark body { background: var(--canvas); }
 .dark img[src$=".svg"] { filter: none; }
+
+.dark.lights-out {
+  --canvas: #000000;
+  --surface-raised: #16181c;
+  --surface-sunken: #0a0a0c;
+  --color-ink: #e7e9ea;
+  --color-navy: #e7e9ea;
+  --color-porcelain: #e7e9ea;
+  --color-white: #16181c;
+  --color-secondary: #b3bac2;
+  --color-muted: #a1a9b2;
+  --color-surface: #202327;
+  --color-surface-elevated: #272b30;
+  --color-surface-active: #33363b;
+  --chrome-solid: #16181c;
+  --chrome-glass: rgba(22, 24, 28, 0.96);
+  --chrome-border: #33363b;
+  --chrome-secondary: #b3bac2;
+  --wordmark-primary: #e7e9ea;
+  --wordmark-secondary: #b3bac2;
+}
 
 /* Video controls and the theater are dark even when the page is light. Keep
    foreground and backdrop tokens together so a page theme cannot invert one. */
@@ -140,8 +161,9 @@ body {
   --color-surface-elevated: rgba(255, 255, 255, 0.10);
 }
 .theater-comments button.bg-ink { background-color: var(--color-on-pearl); }
+.theater-comments span.bg-white { background-color: #15191d; }
 .theater-comments button.bg-pearl { color: var(--color-on-pearl); }
-.theater-comments button.bg-pearl:disabled { opacity: 0.65; }
+.theater-comments button.bg-pearl:disabled { opacity: 0.8; }
 .theater-comments textarea::placeholder { color: rgb(255 255 255 / 0.6); }
 
 /* The post menu retains its light popup. Its trigger remains on the dark
@@ -180,8 +202,8 @@ body {
    these lines give every select and its options the site's own colours in both modes. */
 select { color-scheme: light; background-color: #FFFFFF; color: #0B1E3D; }
 select option, select optgroup { background-color: #FFFFFF; color: #0B1E3D; }
-.dark select { color-scheme: dark; background-color: #111B2E; color: #F5F3EF; }
-.dark select option, .dark select optgroup { background-color: #111B2E; color: #F5F3EF; }
+.dark select { color-scheme: dark; background-color: var(--surface-raised); color: var(--color-ink); }
+.dark select option, .dark select optgroup { background-color: var(--surface-raised); color: var(--color-ink); }
 .video-player select, .video-player select option {
   color-scheme: dark;
   background-color: var(--color-ink);

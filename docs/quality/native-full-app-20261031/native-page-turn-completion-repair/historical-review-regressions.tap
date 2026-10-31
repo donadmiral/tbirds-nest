@@ -1,0 +1,315 @@
+TAP version 13
+# Subtest: turn bounds never wrap, including an empty book
+ok 1 - turn bounds never wrap, including an empty book
+  ---
+  duration_ms: 1.211803
+  type: 'test'
+  ...
+# Subtest: short drags cancel, deliberate drags commit, and flicks must move in the intended direction
+ok 2 - short drags cancel, deliberate drags commit, and flicks must move in the intended direction
+  ---
+  duration_ms: 0.162354
+  type: 'test'
+  ...
+# Subtest: rapid navigation stays locked through commit until the new React page is acknowledged
+ok 3 - rapid navigation stays locked through commit until the new React page is acknowledged
+  ---
+  duration_ms: 0.536007
+  type: 'test'
+  ...
+# Subtest: a cancelled, reordered or replaced book rejects its old animation callback
+ok 4 - a cancelled, reordered or replaced book rejects its old animation callback
+  ---
+  duration_ms: 0.248193
+  type: 'test'
+  ...
+# Subtest: front and back hinge angles are continuous and reduced motion has no timed turn
+ok 5 - front and back hinge angles are continuous and reduced motion has no timed turn
+  ---
+  duration_ms: 0.41904
+  type: 'test'
+  ...
+# Subtest: native swipe completes or returns to its starting page, including interrupted gestures
+ok 6 - native swipe completes or returns to its starting page, including interrupted gestures
+  ---
+  duration_ms: 40.234902
+  type: 'test'
+  ...
+# Subtest: native rapid taps, stale callbacks and route changes cannot skip pages
+ok 7 - native rapid taps, stale callbacks and route changes cannot skip pages
+  ---
+  duration_ms: 26.633458
+  type: 'test'
+  ...
+# Subtest: native reduced motion navigates immediately without starting a page animation
+ok 8 - native reduced motion navigates immediately without starting a page animation
+  ---
+  duration_ms: 22.105546
+  type: 'test'
+  ...
+# Subtest: native turn reaches its requested page when the native completion callback never arrives
+ok 9 - native turn reaches its requested page when the native completion callback never arrives
+  ---
+  duration_ms: 21.883198
+  type: 'test'
+  ...
+# Subtest: native completion or interruption wins before the duration and leaves no pending timer
+ok 10 - native completion or interruption wins before the duration and leaves no pending timer
+  ---
+  duration_ms: 37.865627
+  type: 'test'
+  ...
+# Subtest: native cancelled swipe unlocks at its settling duration even without native completion
+ok 11 - native cancelled swipe unlocks at its settling duration even without native completion
+  ---
+  duration_ms: 13.856016
+  type: 'test'
+  ...
+# Subtest: native committed swipe uses its remaining duration and preserves one live media child
+ok 12 - native committed swipe uses its remaining duration and preserves one live media child
+  ---
+  duration_ms: 17.970741
+  type: 'test'
+  ...
+# Subtest: native explicit cancellation retires both the duration and late native completion
+ok 13 - native explicit cancellation retires both the duration and late native completion
+  ---
+  duration_ms: 18.500042
+  type: 'test'
+  ...
+# Subtest: native route inactivity retires both the duration and late native completion
+ok 14 - native route inactivity retires both the duration and late native completion
+  ---
+  duration_ms: 22.05814
+  type: 'test'
+  ...
+# Subtest: native book replacement retires both the duration and late native completion
+ok 15 - native book replacement retires both the duration and late native completion
+  ---
+  duration_ms: 18.189766
+  type: 'test'
+  ...
+# Subtest: native external page selection retires both the duration and late native completion
+ok 16 - native external page selection retires both the duration and late native completion
+  ---
+  duration_ms: 18.299671
+  type: 'test'
+  ...
+# Subtest: native reduced motion change retires both the duration and late native completion
+ok 17 - native reduced motion change retires both the duration and late native completion
+  ---
+  duration_ms: 10.737123
+  type: 'test'
+  ...
+# Subtest: native size change retires both the duration and late native completion
+ok 18 - native size change retires both the duration and late native completion
+  ---
+  duration_ms: 11.156754
+  type: 'test'
+  ...
+# Subtest: native unmount retires both the duration and late native completion
+ok 19 - native unmount retires both the duration and late native completion
+  ---
+  duration_ms: 14.857868
+  type: 'test'
+  ...
+# Subtest: native inactive route rejects completion before passive effects flush
+not ok 20 - native inactive route rejects completion before passive effects flush
+  ---
+  duration_ms: 13.344947
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/memory-page-turn.cjs:95:130'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   1
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 1
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/memory-page-turn.cjs:96:137)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: native resized book rejects completion before passive effects flush
+not ok 21 - native resized book rejects completion before passive effects flush
+  ---
+  duration_ms: 16.244629
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/memory-page-turn.cjs:95:130'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   1
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 1
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/memory-page-turn.cjs:96:137)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: native reduced motion rejects completion before passive effects flush
+not ok 22 - native reduced motion rejects completion before passive effects flush
+  ---
+  duration_ms: 11.999663
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/memory-page-turn.cjs:95:130'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   1
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 1
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/memory-page-turn.cjs:96:137)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: native unmount rejects completion before passive cleanup flushes
+not ok 23 - native unmount rejects completion before passive cleanup flushes
+  ---
+  duration_ms: 11.897674
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/memory-page-turn.cjs:98:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   1
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 1
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/memory-page-turn.cjs:99:133)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: native equivalent page arrays preserve the active turn while distinct identities cancel it
+not ok 24 - native equivalent page arrays preserve the active turn while distinct identities cancel it
+  ---
+  duration_ms: 26.253937
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/memory-page-turn.cjs:101:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + [
+    +   1
+    + ]
+    - []
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual:
+    0: 1
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/memory-page-turn.cjs:103:193)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: native animated sheets keep exactly one live media child and static adjacent previews
+ok 25 - native animated sheets keep exactly one live media child and static adjacent previews
+  ---
+  duration_ms: 11.040921
+  type: 'test'
+  ...
+# Subtest: turning video pages only use an authorized poster or a text fallback on both platforms
+ok 26 - turning video pages only use an authorized poster or a text fallback on both platforms
+  ---
+  duration_ms: 25.781777
+  type: 'test'
+  ...
+# Subtest: cover stamps use the chosen memory date and never invent a trip date
+ok 27 - cover stamps use the chosen memory date and never invent a trip date
+  ---
+  duration_ms: 12.706606
+  type: 'test'
+  ...
+# Subtest: web pointer cancellation and vertical scrolling preserve the current page
+ok 28 - web pointer cancellation and vertical scrolling preserve the current page
+  ---
+  duration_ms: 12.900047
+  type: 'test'
+  ...
+# Subtest: web committed swipe changes one page and preserves the single media child during the hinge
+ok 29 - web committed swipe changes one page and preserves the single media child during the hinge
+  ---
+  duration_ms: 11.672941
+  type: 'test'
+  ...
+# Subtest: web tap and keyboard requests share a lock, and reduced motion commits without a frame
+ok 30 - web tap and keyboard requests share a lock, and reduced motion commits without a frame
+  ---
+  duration_ms: 23.321807
+  type: 'test'
+  ...
+1..30
+# tests 30
+# suites 0
+# pass 25
+# fail 5
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 733.978443

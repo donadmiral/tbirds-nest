@@ -11,9 +11,11 @@ export type MemoryPage = {
   style?: "polaroid" | "full"; taken_at: string | null; sort_order: number;
   story_id?: string; kind?: string; story_caption?: string | null; text_background?: StoryRow["text_background"]; stickers?: StoryRow["stickers_json"] | string;
   media_transform?: StoryMediaTransform | null; filter_id?: string | null;
+  audio_sound_id?: string | null; audio_duration_sec?: number | null;
   duration_sec?: number | null; dual_front_url?: string | null; audio_url?: string | null; audio_title?: string | null;
 };
 export type MemoryAlbum = {
+  cover_artwork?: import('../../shared/memoryBookCreative').MemoryCoverArtwork; film_settings?: import('../../shared/memoryBookCreative').MemoryFilmSettings; presentation_revision?: number;
   subtitle?: string; cover_story_id?: string | null; cover_page?: import('../../shared/memoryBookDesign').MemoryCoverPage | null;
   id: string; user_id?: string; is_default?: boolean; cover_design?: string; soundtrack?: import("../../shared/soundtrack").SoundtrackSelection | null;
   is_owner: boolean; can_view: boolean; title: string;
@@ -32,16 +34,17 @@ export async function getMemoryAlbum(ownerId: string): Promise<MemoryAlbum | nul
   return album;
 }
 
-export type MemoryBookInfo = { id: string; title: string; subtitle?: string; cover_story_id?: string | null; cover_page?: import('../../shared/memoryBookDesign').MemoryCoverPage | null; cover_color: string; cover_design?: string; audience: string; count: number; is_default?: boolean; is_owner?: boolean; can_view?: boolean };
+export type MemoryBookInfo = { cover_artwork?: import('../../shared/memoryBookCreative').MemoryCoverArtwork; film_settings?: import('../../shared/memoryBookCreative').MemoryFilmSettings; presentation_revision?: number; id: string; title: string; subtitle?: string; cover_story_id?: string | null; cover_page?: import('../../shared/memoryBookDesign').MemoryCoverPage | null; cover_color: string; cover_design?: string; audience: string; count: number; is_default?: boolean; is_owner?: boolean; can_view?: boolean };
 
 export type MemoryShelf = { is_owner: boolean; books: MemoryBookInfo[] };
 
-export async function getMemoryBooks(ownerId: string): Promise<MemoryShelf> {
+export async function getMemoryBooks(ownerId: string, signal?: AbortSignal): Promise<MemoryShelf> {
   const supabase = createClient();
-  const { data, error } = await supabase.rpc("get_memory_albums", { p_owner: ownerId });
+  const query = supabase.rpc("get_memory_albums", { p_owner: ownerId });
+  const { data, error } = await (signal ? query.abortSignal(signal) : query);
   if (error) throw error;
   if (!data) throw new Error("Memory books unavailable");
-  const env = data as any;
+  const env = data as MemoryShelf | MemoryBookInfo[];
   if (Array.isArray(env)) return { is_owner: false, books: await hydrateMemoryAlbumMedia(env as MemoryBookInfo[], supabase) };
   return { is_owner: !!env.is_owner, books: await hydrateMemoryAlbumMedia((env.books ?? []) as MemoryBookInfo[], supabase) };
 }

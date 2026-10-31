@@ -1,0 +1,246 @@
+{
+  "reviewedAt": "2026-10-31T07:32:08.113136+00:00",
+  "scope": "Independent Android navigation-only review and one-command semantic shelf-entry centering repair; no app, auth, call, capture, signing or CI changes.",
+  "candidate": {
+    "head": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+    "merge": "ba8d659c4b6172c1c4930cd6d348d627bdb1470f",
+    "tree": "bebc0e7bfa5a9a6b17e477a29b17fcd41c2ae27d"
+  },
+  "artifact": {
+    "runId": 41179235060,
+    "jobId": 124473036936,
+    "artifactId": 13035220059,
+    "name": "android-full-app-ui",
+    "bytes": 3215162,
+    "zipSha256": "b869c6611030a06c9d7ced04e4c72050f164677738c43537e5019c3e5ade57c1",
+    "sharedExtraction": "/tmp/android-full-app-6878c384-41179235060",
+    "downloadOwner": "native_acceptance",
+    "sourceManifest": {
+      "path": "docs/quality/native-full-app-20261031/android-full-app-6878c384-source.json",
+      "sha256": "46316da9f904617b1c9f2ec5e56a65251795cf5c8d28b4bcaa8d2b3dcadbe2f3"
+    },
+    "sourceVerification": "Native acceptance independently verified all 496 manifest files and six overlays against the published head/merge; this review verifies the canonical manifest hash and focused published component/flow inputs."
+  },
+  "observed": {
+    "mainNavigation": "Home, Market, Jobs, Messages and Profile content assertions and five screenshots completed.",
+    "precedingScroll": {
+      "sequence": 37,
+      "status": "COMPLETED",
+      "startedEpochMs": 1793431356423,
+      "durationMs": 2957,
+      "target": "View all memory books",
+      "centerElement": false,
+      "visibility": 1.0
+    },
+    "precedingTap": {
+      "sequence": 38,
+      "status": "COMPLETED",
+      "startedEpochMs": 1793431359381,
+      "durationMs": 1657,
+      "loggedTapAtUtc": "07:22:40.652",
+      "target": "View all memory books",
+      "point": [
+        282,
+        605
+      ]
+    },
+    "failure": {
+      "sequence": 39,
+      "artifactStep": 40,
+      "status": "FAILED",
+      "startedEpochMs": 1793431361039,
+      "durationMs": 17168,
+      "message": "Element not found: Text matching regex: Private"
+    },
+    "geometry": {
+      "screen": [
+        320,
+        640
+      ],
+      "targetBounds": [
+        260,
+        583,
+        304,
+        627
+      ],
+      "systemNavContainerBounds": [
+        0,
+        592,
+        320,
+        640
+      ],
+      "systemControlBoundsY": [
+        594,
+        638
+      ],
+      "targetEnabled": true,
+      "targetClickable": true,
+      "targetCenterInsideSystemNavContainer": true
+    },
+    "screen": "The retained failure PNG and AX still show the Profile, its Memory books shelf heading, and the obscured View all link. The collection modal and Private tab are absent.",
+    "notReached": [
+      "private shelf selection",
+      "saved-book reader",
+      "film",
+      "export entry",
+      "Book settings",
+      "cover editing/save/reload"
+    ]
+  },
+  "analysis": {
+    "finding": "The exact shelf link is present but Maestro accepts raw viewport visibility and taps its center within the Android system navigation overlay. A completed tap command does not establish that the app handled the press.",
+    "productionSource": "MemoryAlbumCard.tsx:69 opens the collection on the View all memory books press; Private is a real tab inside that collection at line78. ProfileScreen.tsx:491 already supplies bottom scroll clearance. No missing-label or absent-content source defect is demonstrated.",
+    "correlationLimit": "Hosted independently observed a genuine overlapping auth lock wait/read storm. This receipt establishes the masked tap geometry and does not claim it is the sole possible contributor or diagnose that separate mechanism."
+  },
+  "repair": {
+    "path": "tests/native/flows/memory-navigation.yaml",
+    "change": "Add centerElement:true to the first existing scrollUntilVisible for View all memory books. The following semantic tap and Private assertion sequence remain exact.",
+    "commandsSelectorsAssertionsTimeoutsPreserved": true,
+    "coordinatesIntroduced": false,
+    "appSourceChanged": false
+  },
+  "pinnedMaestro": {
+    "version": "2.11.0",
+    "tagCommit": "c8c361be1cc89b2e742f185466a302a22778be6b",
+    "orchestraSource": {
+      "path": "maestro-orchestra/src/main/java/maestro/orchestra/Orchestra.kt",
+      "upstreamBlobSha": "4127338828db0a14de0488873bac3bd5dfa6be66",
+      "retrievedGitBlobSha": "4127338828db0a14de0488873bac3bd5dfa6be66",
+      "gitBlobMatches": true,
+      "sha256": "06e8e2803af1c9704783452a22bf4a3652f89574f384e893afd97d5fcc9007b5",
+      "bytes": 77165,
+      "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-orchestra/src/main/java/maestro/orchestra/Orchestra.kt"
+    },
+    "uiElement": {
+      "upstreamPath": "maestro-client/src/main/java/maestro/UiElement.kt",
+      "gitBlobSha": "36b148d62b10777270f822836f248390ca71bf74",
+      "retainedPath": "docs/quality/native-full-app-20261031/android-6878c384/maestro-2.11.0-UiElement.kt.txt"
+    },
+    "direction": {
+      "upstreamPath": "maestro-client/src/main/java/maestro/ScrollDirection.kt",
+      "gitBlobSha": "2bf8fdd9049778adddfed80da8356ad9de9868ac",
+      "retainedPath": "docs/quality/native-full-app-20261031/android-6878c384/maestro-2.11.0-ScrollDirection.kt.txt"
+    },
+    "semantics": "ScrollDirection.DOWN maps to SwipeDirection.UP. UiElement near-center for UP requires centerY < screenHeight/2 + screenHeight/5, here448px. Orchestra checks this before accepting visibility when centerElement is true, so the captured center605px requires another swipe. The existing retry cap remains unchanged.",
+    "documentation": "https://docs.maestro.dev/reference/commands-available/scrolluntilvisible.md",
+    "byteVerification": "Both newly retained Kotlin files have Git object SHA-1 values equal to the official pinned tree entries. Existing retained Orchestra source hash matches the prior official-source review."
+  },
+  "verification": {
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-memory-shelf-entry.cjs",
+    "before": {
+      "tests": 3,
+      "passed": 1,
+      "failed": 2,
+      "exitCode": 1,
+      "flowSha256": "42a6947e98ceda6e60e7073a486c5317f238f8e478763c30f4eed1e0dd39aeae"
+    },
+    "after": {
+      "tests": 3,
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0
+    },
+    "checks": [
+      "Actual retained AX and command/log evidence verifies the target, tap point, system overlay and failure screen.",
+      "Pinned geometry decision projection rejects the captured obscured point with the repaired parsed flow while a synthetic centered occurrence is accepted.",
+      "Parsed YAML equality after removing only the new flag proves every prior command, selector, assertion, timeout and lifecycle operation is unchanged."
+    ],
+    "eslint": "Passed for tests/quality/native-memory-shelf-entry.cjs",
+    "diffCheck": "Passed for owned flow/test/evidence paths"
+  },
+  "limits": [
+    "Focused JavaScript projection of pinned Kotlin decision logic, not execution of the Maestro JVM or an actual native gesture.",
+    "The synthetic centered occurrence is a geometry control, not a new runtime screenshot.",
+    "Pinned centering eventually falls back after its existing bounded retry attempts if a list cannot move; the next real native run remains authoritative.",
+    "No iPhone modal repair acceptance follows from this Android artifact; the memory journey was not reached.",
+    "No native run was retried, canceled or published by this agent."
+  ],
+  "sourceFiles": [
+    {
+      "path": "tests/native/flows/memory-navigation.yaml",
+      "sha256": "afd1a9deb1842880ca237405019525e75a9787ce84bb8effc7ec870b037b0792",
+      "bytes": 3770,
+      "publishedSha256": "42a6947e98ceda6e60e7073a486c5317f238f8e478763c30f4eed1e0dd39aeae",
+      "matchesPublished": false
+    },
+    {
+      "path": "tests/quality/native-memory-shelf-entry.cjs",
+      "sha256": "cb6e2b846921a1e73a78f9c1e05248c7915c8bc350f8b3b1f546892b94155af7",
+      "bytes": 5367
+    },
+    {
+      "path": "src/components/MemoryAlbumCard.tsx",
+      "sha256": "e6974756880f972305f8afccce6b9df1ccb1db67c1dafac181802ee9a935d074",
+      "bytes": 10085,
+      "publishedSha256": "e6974756880f972305f8afccce6b9df1ccb1db67c1dafac181802ee9a935d074",
+      "matchesPublished": true
+    },
+    {
+      "path": "src/screens/profile/ProfileScreen.tsx",
+      "sha256": "8054af477bbdbd0a17bb7ad417107490b1c1f457c9182fa4e80f3a51bd5e2d20",
+      "bytes": 48999,
+      "publishedSha256": "8054af477bbdbd0a17bb7ad417107490b1c1f457c9182fa4e80f3a51bd5e2d20",
+      "matchesPublished": true
+    },
+    {
+      "path": "scripts/quality/install-native-ui-tools.sh",
+      "sha256": "30ed0ef0d19fa409b18177d850009b0094cb7d20c86cf3e7f9809ea4192587f5",
+      "bytes": 1459,
+      "publishedSha256": "30ed0ef0d19fa409b18177d850009b0094cb7d20c86cf3e7f9809ea4192587f5",
+      "matchesPublished": true
+    }
+  ],
+  "evidenceFiles": [
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/navigation-commands.json",
+      "bytes": 70315,
+      "sha256": "885ed3ac2bd57a877cabecbafb1790c0dddce091988c98e7bbfd324d17848af7"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/navigation-junit.xml",
+      "bytes": 516,
+      "sha256": "12400ee8e446ffeef08a94064c7a5a79ed90e5a3454e5c3a92dc38bab51eaf8a"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/shelf-entry-failure-ax.json",
+      "bytes": 121752,
+      "sha256": "ce78935c253d13b8e5a399cb2ce475740af9f4eb2d6d57bc6c5ee32bb04528a2"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/shelf-entry-failure.png",
+      "bytes": 35027,
+      "sha256": "ef97e00206fb3b293810a91eee9e4284ce4af67f84e3d7827a741963f5db8aec"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/shelf-entry-maestro-log.txt",
+      "bytes": 3488,
+      "sha256": "f5ac63b3fd094ed4793c3c90afa679e2fca37f280de12f6c22c4268c9323729a"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-navigation-before.yaml.txt",
+      "bytes": 3746,
+      "sha256": "42a6947e98ceda6e60e7073a486c5317f238f8e478763c30f4eed1e0dd39aeae"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/maestro-2.11.0-UiElement.kt.txt",
+      "bytes": 3928,
+      "sha256": "15d1a4c9380eaa3b03953b198dfd53a10b3e8c5042dd12cad89dbcca8d85bea7"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/maestro-2.11.0-ScrollDirection.kt.txt",
+      "bytes": 349,
+      "sha256": "761456db488b32a031d9a797afab0e589447c0deca37f4660ea112c094193269"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/shelf-entry-before.tap",
+      "bytes": 2720,
+      "sha256": "9cf7de7a9d5650400173a3acdcc7bee3e59bef3b04b13f03ed12ac3ce3fb88bb"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/shelf-entry-after.tap",
+      "bytes": 931,
+      "sha256": "40f9fb50e33a308ef700986a2cc83f6180b258acb4af459169c88c48c1e8d1cd"
+    }
+  ]
+}

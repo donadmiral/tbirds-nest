@@ -1,0 +1,65 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+const checkout = '/workspace/scratch/f9638ed3020b/platinum-circles-signed-qa-b5c9c82b';
+const publicPackage = '/tmp/platinum-eas-cli-cache/_npx/f7be299412af61a2/node_modules/@expo/eas-json';
+const { EasJsonAccessor, EasJsonUtils, Platform } = require(publicPackage);
+const expectedBackend = {qa: 'uaulhuelcfkjwojtymmw.supabase.co', production: 'prlkikhckbifseosbukl.supabase.co'};
+const base = JSON.parse(fs.readFileSync(path.join(checkout, 'app.json'), 'utf8')).expo;
+const appConfigSource = fs.readFileSync(path.join(checkout, 'app.config.js'), 'utf8');
+(async () => {
+  const accessor = EasJsonAccessor.fromProjectPath(checkout);
+  const cli = await EasJsonUtils.getCliConfigAsync(accessor);
+  const profiles = [];
+  for (const name of ['preview', 'production']) {
+    const ios = await EasJsonUtils.getBuildProfileAsync(accessor, Platform.IOS, name);
+    const android = await EasJsonUtils.getBuildProfileAsync(accessor, Platform.ANDROID, name);
+    const environment = ios.env.EXPO_PUBLIC_APP_ENV;
+    const backend = new URL(ios.env.EXPO_PUBLIC_SUPABASE_URL);
+    const mod = {exports: {}};
+    vm.runInNewContext(appConfigSource, {
+      module: mod, exports: mod.exports, require, URL,
+      process: {env: {
+        EAS_BUILD: 'true',
+        EXPO_PUBLIC_APP_ENV: environment,
+        EXPO_PUBLIC_SUPABASE_URL: ios.env.EXPO_PUBLIC_SUPABASE_URL,
+      }},
+    }, {filename: path.join(checkout, 'app.config.js')});
+    const config = mod.exports({config: structuredClone(base)});
+    const configured = {
+      name: config.name, slug: config.slug, owner: config.owner,
+      scheme: config.scheme, marketingVersion: config.version,
+      iosBundleIdentifier: config.ios.bundleIdentifier,
+      iosBuildNumber: config.ios.buildNumber,
+      androidPackage: config.android.package,
+      androidVersionCode: config.android.versionCode,
+      androidGoogleServicesFileConfigured: Boolean(config.android.googleServicesFile),
+      projectId: config.extra.eas.projectId,
+      environment,
+    };
+    profiles.push({
+      name, distribution: ios.distribution, environment: ios.environment,
+      channel: ios.channel ?? null, credentialsSource: ios.credentialsSource,
+      autoIncrement: ios.autoIncrement, iosSimulator: ios.simulator ?? null,
+      androidBuildType: android.buildType ?? null,
+      committedEnvironmentNames: Object.keys(ios.env).sort(),
+      privateMediaSessionsEnabled: ios.env.EXPO_PUBLIC_PRIVATE_MEDIA_SESSIONS_ENABLED,
+      matchingBackend: backend.protocol === 'https:' && backend.hostname === expectedBackend[environment] && !backend.port && backend.pathname === '/',
+      resolvedApp: configured,
+    });
+  }
+  const submitNames = await EasJsonUtils.getSubmitProfileNamesAsync(accessor);
+  const raw = JSON.parse(fs.readFileSync(path.join(checkout, 'eas.json'), 'utf8'));
+  console.log(JSON.stringify({
+    schemaValidatedWithInstalledPublicEasJson: true,
+    cli,
+    profiles,
+    submitProfileNames: submitNames,
+    productionSubmission: {
+      ascAppId: raw.submit.production.ios.ascAppId,
+      appleTeamId: raw.submit.production.ios.appleTeamId,
+      androidTrack: raw.submit.production.android.track,
+      androidReleaseStatus: raw.submit.production.android.releaseStatus,
+    },
+  }, null, 2));
+})().catch(error => { console.error(error.message); process.exitCode = 1; });

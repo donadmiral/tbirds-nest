@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "hosted_backend",
+  "recordedAtUtc": "2026-10-31 15:33:07 UTC",
+  "result": "Accepted as a locally verified empirical Android runner change. No source-review blocker remains; actual emulator and full-native acceptance are pending.",
+  "baseline": {
+    "head": "f4c35f32795be5f196840c37382143a2d7e33d55",
+    "merge": "6f3204cd44996dfe66ffe2dcf7192543805aa912",
+    "tree": "7699f995aa8e5192658f785258eb48f408af6a39"
+  },
+  "ownerReceipt": {
+    "path": "docs/quality/native-full-app-20261031/android-emulator-renderer-isolation-repair.json",
+    "sha256": "f40012bcdd342aeba5b1895e2d0503062f8cecc05c8bf0a85c6800933496f34a"
+  },
+  "priorFailure": {
+    "path": "docs/quality/native-full-app-20261031/android-full-app-f4c35f32-emulator-disappearance.json",
+    "sha256": "f2fee260970942b35bbd8adcbaed799f9ee62eadd97dc8ba4e1928273920ef2a",
+    "observation": "Authenticated completed job log establishes emulator PID6995 SIGSEGV with -gpu software; no crash stack or faulting component is retained."
+  },
+  "reviewedSourceSha256": {
+    "scripts/quality/test-android-app-ui.sh": "1cafb6dba876d9ee92288d7aa233ee41739fc2f271d4e1ca174f82c09620e12d",
+    "scripts/quality/native-ui-emulator-diagnostics.py": "0d02a6b446e4219757a17c0c52e4d5da0190a9800e92c547b629da6977bdc1e8",
+    "scripts/quality/prepare-native-ui.cjs": "b7b85afaf239d525bd8af01b5f180dc93acfd71610a963302a83817e01cec571",
+    "tests/quality/native-auth-diagnostics.cjs": "31e4d3ea874ff7b1090061a23b746c800a5e0e01a17f7588d41f9e724e1b4e78",
+    "tests/quality/native-emulator-diagnostics.cjs": "607adc77b1205b3ef07f445b57dad86e0110c3f39f134dacec60e69557c7db66"
+  },
+  "scopeVerification": {
+    "launchArgumentsDifferOnlyInGpuValue": true,
+    "afterLaunchBootInstallFlowsAndVerifiersByteIdentical": true,
+    "unchangedWorkflowAndFlowSha256": {
+      ".github/workflows/native-app-ui.yml": "893ef1c3c6ae5976337ab7ecb12d6f8080ad51ddfa3e80995745f409540cddca",
+      "tests/native/flows/navigation.yaml": "1a3bb92ad2f80bfe9ba0c1c81829c65edfa1118dbfe10942074deeb9fe51e1f8",
+      "tests/native/flows/memory-navigation.yaml": "afd1a9deb1842880ca237405019525e75a9787ce84bb8effc7ec870b037b0792",
+      "tests/native/flows/memory-capture.yaml": "1bb3e4fa89bf9bbc516c43efae25e989a1f8b6d719de58a7723ea896d6eb5bde"
+    },
+    "productionAndNativeFixtureSourceDiff": "",
+    "headStillBaseline": true
+  },
+  "rendererReview": {
+    "change": "-gpu software to -gpu swiftshader",
+    "officialSource": {
+      "url": "https://developer.android.com/studio/run/emulator-acceleration",
+      "reference": "turn65view0",
+      "independentlyOpened": true,
+      "reviewedDate": "2026-10-31"
+    },
+    "finding": "Official documentation describes software as adaptive selection and swiftshader as a supported software renderer for GLES and Vulkan. Selecting an explicit mode is a defensible empirical isolation step after the repeated host crash.",
+    "guestVulkanDisabled": false,
+    "apiImage": "android-35;default;x86_64",
+    "memoryMiB": 3072,
+    "limits": [
+      "No faulting component or proven crash cure is established.",
+      "Documented mode support does not prove complete feature equivalence or API35 acceptance. The actual installed binary must report its selected GLES/Vulkan backend on the next run.",
+      "The owner's current public upstream source review is not an attestation of installed emulator build16740729. This independent review relies on the documented mode contract and retains that binary-provenance limit."
+    ]
+  },
+  "collectorReview": {
+    "accepted": true,
+    "sourceBinding": "A single fresh regular emulator log identifies the actual launched PID, version and exact current-user/version crash-store path; eligible files are restricted to the launch/collection modification window.",
+    "protections": [
+      "Directory-descriptor traversal and O_NOFOLLOW for source and destination; no arbitrary /tmp scan.",
+      "Current-user ownership and single-link regular files only; symlinks, hardlinks, FIFOs and other special files are rejected.",
+      "Fresh output directory is mandatory; preexisting output and symlinked log/output directories are rejected.",
+      "File identity, size, mtime and ctime are checked before/after copy; incomplete copies are deleted and never marked complete.",
+      "Read budget includes failed copies; entry budget includes skipped files/directories; copied/skipped entries and hashes are recorded."
+    ],
+    "bounds": {
+      "logBytes": 1048576,
+      "perFileBytes": 16777216,
+      "totalReadBytes": 33554432,
+      "entries": 128,
+      "depth": 6,
+      "internalSeconds": 5,
+      "outerSeconds": 10
+    },
+    "limits": [
+      "The store directory is version/user based, not a unique per-PID namespace. Current run binding relies on the one-emulator disposable workflow, logged PID and file time window; it does not prove the producer of every byte if unrelated emulators share that host/user.",
+      "The collector is best effort. Missing, partial, rejected or interrupted diagnostics cannot establish acceptance.",
+      "The five-second cooperative bound and outer timeout do not promise diagnostic retention after SIGKILL or external host destruction."
+    ]
+  },
+  "gateAndCancellationReview": {
+    "requiredFlowsAndVerifiersUnchanged": true,
+    "workflowAndTimeoutsUnchanged": true,
+    "prelaunchDiagnosticsBestEffort": true,
+    "metadataWriteGuardVerified": true,
+    "ordinaryExitPreservation": "Actual extracted cleanup preserves incoming exits0 and7 when the collector exits77.",
+    "cancellation": {
+      "schemaVersion": 1,
+      "runnerSha256": "1cafb6dba876d9ee92288d7aa233ee41739fc2f271d4e1ca174f82c09620e12d",
+      "method": "Execute the frozen actual cleanup block with fake ADB/collector commands and real isolated sleep processes; send SIGTERM to only the fixture process group.",
+      "results": [
+        {
+          "signal": "SIGTERM",
+          "collectorExitCode": 0,
+          "actualProcessReturnCode": -15,
+          "collectorCleanupEntryStatus": 0,
+          "temporaryWorkRemoved": true,
+          "result": "pass"
+        },
+        {
+          "signal": "SIGTERM",
+          "collectorExitCode": 77,
+          "actualProcessReturnCode": -15,
+          "collectorCleanupEntryStatus": 0,
+          "temporaryWorkRemoved": true,
+          "result": "pass"
+        }
+      ],
+      "limits": [
+        "This is an actual-shell cancellation probe, not a GitHub cancellation or real emulator run.",
+        "The collector gate-exit argument is the incoming EXIT trap status. It can be zero during signal termination and does not establish the final process/workflow outcome.",
+        "SIGKILL cannot guarantee cleanup or diagnostic retention and was not claimed."
+      ]
+    },
+    "interpretation": "Both real process-group SIGTERM probes remain terminated by SIGTERM whether the collector returns0 or77. The incoming EXIT-trap status can nevertheless be0. The manifest field gateExitCode is raw cleanup-entry metadata, never a final process/workflow verdict.",
+    "acceptanceAuthority": "Existing mandatory navigation/capture exits, JUnit verification, movie decoder, full-app verifier and workflow conclusion remain authoritative."
+  },
+  "independentValidation": {
+    "command": "node tests/quality/native-emulator-diagnostics.cjs",
+    "execution": "Direct Node file execution using the actual Python helper and extracted shell blocks; synthetic diagnostic files/commands, not a real emulator.",
+    "runtime": {
+      "node": "v24.22.1",
+      "python": "3.12.14",
+      "platform": "Linux"
+    },
+    "exitCode": 0,
+    "counts": {
+      "tests": 37,
+      "suites": 0,
+      "pass": 37,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 1039.824853
+    },
+    "sourceHashesMatchedBeforeAndAfter": true,
+    "additionalTemporaryCancellationProbes": 2,
+    "countsNotCombined": "The two temporary signal probes and the owner's15 preparation/auth cases are reported separately; they are not additional cases in the37-case output.",
+    "historicalIndependentRun": {
+      "tests": 34,
+      "passed": 34,
+      "failed": 0,
+      "reasonForFinalRerun": "The owner added a necessary best-effort guard on metadata printf and three formal cases. The final37-case suite was then rerun once on the corrected frozen bytes.",
+      "runnerSha256": "69d98b69b2ee422632b4004079e8549120e31d15906b78702315f65e85cbe6f7",
+      "testSha256": "4b055ac5bffab0cd7679c160b04d3ace7b489097d60b33a088ddf957637943db"
+    },
+    "temporaryProbeDevelopment": "Initial probe assertions incorrectly expected process status143 and then cleanup status143. Observed OS signal return-15 and EXIT-trap status0 distinguished the two. Only the temporary probe's expectations were corrected; no production or runner change was made for this finding."
+  },
+  "retainedEvidence": [
+    {
+      "path": "docs/quality/native-full-app-20261031/android-emulator-renderer-isolation/independent-focused.log.txt",
+      "bytes": 2673,
+      "sha256": "15869412fb3d14eea81dafccf65fb2ebdfbf01b5104c8b25ddf8fc9327006951"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-emulator-renderer-isolation/independent-focused-before-metadata-guard.log.txt",
+      "bytes": 2388,
+      "sha256": "2002f53ef7244bb8a5bee4a29c15194e0445d103d12a7270b2ed965b52cf4682"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-emulator-renderer-isolation/independent-cancellation.json",
+      "bytes": 1092,
+      "sha256": "13b6dee6808638f1516a37d3f39bf714842b51f0b98b6bbfa27fabafc6a45ee2"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-emulator-renderer-isolation/independent-cancellation-probe.py.txt",
+      "bytes": 3687,
+      "sha256": "e0a279d5b514532f646149c5656ea2a6c4bcb31421a54bbb93e12a16c452e069"
+    }
+  ],
+  "remainingRuntimeGate": [
+    "Observe the actual emulator version/help and selected GLES/Vulkan backend.",
+    "Complete both unchanged full-native flows and all existing assertions/verifiers.",
+    "Recover and inspect real auth/account readback and independently decoded movie evidence.",
+    "Keep the active iPhone run and current publication untouched until the parent decides the next publication."
+  ],
+  "actions": {
+    "appSourceEdited": false,
+    "runnerOrTestsEditedByReviewer": false,
+    "fullRootSuiteRepeated": false,
+    "emulatorRunStarted": false,
+    "providerMutation": false,
+    "backendOrExpoOrAppleCall": false,
+    "refChange": false,
+    "push": false
+  }
+}

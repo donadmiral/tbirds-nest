@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+
 import { useRouter } from "next/navigation";
-import { ArrowLeft, AtSign } from "lucide-react";
+import { AtSign } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 type Check = "idle" | "checking" | "free" | "taken" | "invalid" | "error";
@@ -45,7 +45,7 @@ export default function ChangeUsernamePage() {
 
   const check = (v: string) => {
     if (saving.current) return;
-    const requestVersion = ++version.current;
+    const requestVersion = version.current += 1;
     available.current = null;
     const clean = v.trim().toLowerCase();
     setHandle(clean);

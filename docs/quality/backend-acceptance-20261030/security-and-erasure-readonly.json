@@ -1,0 +1,308 @@
+{
+  "capturedDate": "2026-10-30",
+  "scope": "Read-only QA and production catalog, access, worker health and provider advisory inspection",
+  "qa": {
+    "project": "uaulhuelcfkjwojtymmw",
+    "environment": {
+      "buckets": [
+        {
+          "id": "application-cvs",
+          "public": false
+        },
+        {
+          "id": "avatars",
+          "public": true
+        },
+        {
+          "id": "channel-media",
+          "public": false
+        },
+        {
+          "id": "chat-files",
+          "public": false
+        },
+        {
+          "id": "chat-media",
+          "public": false
+        },
+        {
+          "id": "market-media",
+          "public": true
+        },
+        {
+          "id": "media",
+          "public": false
+        },
+        {
+          "id": "post-media",
+          "public": false
+        },
+        {
+          "id": "story-media",
+          "public": false
+        }
+      ],
+      "captured_at": "2026-10-30T16:31:12.463421+00:00",
+      "pg_trgm_schema": "extensions",
+      "latest_migrations": [
+        {
+          "name": "reserve_business_provision_usernames",
+          "version": "20261030033815"
+        },
+        {
+          "name": "reserve_web_route_usernames",
+          "version": "20261030032528"
+        },
+        {
+          "name": "studio_editorial_and_partnership_workflows",
+          "version": "20261030032512"
+        },
+        {
+          "name": "staff_social_shells",
+          "version": "20261030013815"
+        },
+        {
+          "name": "account_erasure_admin_restore_guard",
+          "version": "20261030010956"
+        }
+      ]
+    },
+    "erasure": {
+      "queue": [],
+      "workerSeenAt": "2026-10-30T16:31:00.538607+00:00",
+      "privateTables": [
+        {
+          "rls": true,
+          "table": "events",
+          "appAccess": false,
+          "anonAccess": false,
+          "serviceDirectAccess": false
+        },
+        {
+          "rls": true,
+          "table": "jobs",
+          "appAccess": false,
+          "anonAccess": false,
+          "serviceDirectAccess": false
+        },
+        {
+          "rls": true,
+          "table": "objects",
+          "appAccess": false,
+          "anonAccess": false,
+          "serviceDirectAccess": false
+        },
+        {
+          "rls": true,
+          "table": "reviews",
+          "appAccess": false,
+          "anonAccess": false,
+          "serviceDirectAccess": false
+        },
+        {
+          "rls": true,
+          "table": "worker",
+          "appAccess": false,
+          "anonAccess": false,
+          "serviceDirectAccess": false
+        }
+      ],
+      "workerHealthy": true,
+      "workerConfigured": true,
+      "unfencedApplicationTables": 0
+    },
+    "assurance": {
+      "captured_at": "2026-10-30T16:31:57.109795+00:00",
+      "health_run_count": 0,
+      "latest_health_run": null,
+      "application_definers_missing_search_path": 0
+    },
+    "securityAdvisor": [
+      {
+        "name": "rls_enabled_no_policy",
+        "count": 86,
+        "level": "INFO",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy"
+      },
+      {
+        "name": "anon_security_definer_function_executable",
+        "count": 135,
+        "level": "WARN",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable"
+      },
+      {
+        "name": "authenticated_security_definer_function_executable",
+        "count": 335,
+        "level": "WARN",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable"
+      },
+      {
+        "name": "auth_leaked_password_protection",
+        "count": 1,
+        "level": "WARN",
+        "remediation": "https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection"
+      }
+    ]
+  },
+  "production": {
+    "project": "prlkikhckbifseosbukl",
+    "environment": {
+      "buckets": [
+        {
+          "id": "application-cvs",
+          "public": false
+        },
+        {
+          "id": "avatars",
+          "public": true
+        },
+        {
+          "id": "business-media",
+          "public": true
+        },
+        {
+          "id": "channel-media",
+          "public": false
+        },
+        {
+          "id": "chat-files",
+          "public": true
+        },
+        {
+          "id": "chat-media",
+          "public": true
+        },
+        {
+          "id": "identity-training-photos",
+          "public": false
+        },
+        {
+          "id": "market-media",
+          "public": true
+        },
+        {
+          "id": "media",
+          "public": true
+        },
+        {
+          "id": "mingle-images",
+          "public": true
+        },
+        {
+          "id": "mingle-media",
+          "public": true
+        },
+        {
+          "id": "post-media",
+          "public": true
+        },
+        {
+          "id": "startup-media",
+          "public": true
+        },
+        {
+          "id": "story-media",
+          "public": true
+        }
+      ],
+      "captured_at": "2026-10-30T16:31:52.2497+00:00",
+      "erasure_jobs": null,
+      "erasure_schema": null,
+      "erasure_worker": null,
+      "pg_trgm_schema": "public",
+      "latest_migrations": [
+        {
+          "name": "platinum_app_quality_admin_support_reviews_20261029",
+          "version": "20261029202457"
+        },
+        {
+          "name": "platinum_app_quality_redacted_client_diagnostics_20261029",
+          "version": "20261029192351"
+        },
+        {
+          "name": "platinum_app_quality_comment_author_highlights_20261029",
+          "version": "20261029190700"
+        },
+        {
+          "name": "platinum_app_quality_applicant_self_service_20261029",
+          "version": "20261029190648"
+        },
+        {
+          "name": "platinum_parity_user_20261029_u07_studio_draft_retry_identity",
+          "version": "20261029080950"
+        }
+      ],
+      "application_definers_missing_search_path": 26
+    },
+    "provider": {
+      "status": "ACTIVE_HEALTHY",
+      "databaseVersion": "17.6.1.104"
+    },
+    "exactHardeningPreflight": {
+      "functionDrift": [],
+      "helpersAbsent": true,
+      "extensionReady": true,
+      "trustedSchemas": true,
+      "closedTableDrift": [],
+      "oldHighlightPolicies": true
+    },
+    "securityAdvisor": [
+      {
+        "name": "rls_enabled_no_policy",
+        "count": 52,
+        "level": "INFO",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy"
+      },
+      {
+        "name": "function_search_path_mutable",
+        "count": 61,
+        "level": "WARN",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0011_function_search_path_mutable"
+      },
+      {
+        "name": "extension_in_public",
+        "count": 1,
+        "level": "WARN",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0014_extension_in_public"
+      },
+      {
+        "name": "anon_security_definer_function_executable",
+        "count": 216,
+        "level": "WARN",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable"
+      },
+      {
+        "name": "authenticated_security_definer_function_executable",
+        "count": 377,
+        "level": "WARN",
+        "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable"
+      },
+      {
+        "name": "auth_leaked_password_protection",
+        "count": 1,
+        "level": "WARN",
+        "remediation": "https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection"
+      }
+    ]
+  },
+  "notes": [
+    "The first QA search-path probe required an empty path. That is stricter than the mutable-search-path finding and is superseded by application_definers_missing_search_path:0. Configured trusted nonempty paths must not be counted as absent.",
+    "Production's 26 application security-definer functions without a configured path are a restricted subset of the advisor's 61 mutable-path functions. These are review findings, not counts of proven exploitable bugs.",
+    "RLS-without-policy findings include intentionally private tables. QA account_erasure tables have RLS and deny direct anon, authenticated and service_role access, as recorded.",
+    "QA health_runs has no records. The admin payment connection status correctly remains unverified. No synthetic provider check, payment or health alert was triggered.",
+    "The production hardening preflight still matches its exact reviewed baseline. No production migration, Edge rollout, setting change, bucket cutover or account erasure was attempted."
+  ],
+  "recoveryPrerequisites": [
+    "Recover the serialized QA business Auth migration transport, then fresh history/schema/lock/definition checks and exact candidate installation before the eight dependent Edge deployments.",
+    "Review production and QA as different schema histories. Production account_erasure schema is absent and the QA-only workers and helper migrations must not be assumed installed there.",
+    "For production hardening, repeat the exact preflight at rollout time, preserve source hashes, function identity/ACL checks and extension dependency checks, install sequentially, then run database-hardening postflight. A passing current preflight is not installation evidence.",
+    "Before production private-media cutover, verify installed-client compatibility, authorized and unauthorized known URLs, expired/revoked access and warmed caches. Preserve an identified compatible deployment for recovery and do not make public access a fallback.",
+    "Before production erasure acceptance, install the reviewed database and worker contracts, configure the authenticated worker credential and schedule, verify ownership/object completeness and retry-safe Storage/CDN/Auth acknowledgment using only an authorized disposable account.",
+    "Provider-managed database patch and leaked-password protection changes still need an authenticated provider workflow and post-change confirmation. Neither was changed here.",
+    "No use of blanket db push, history repair, branch reset/rebase, alternate execute_sql DDL or replay of rejected/excluded historical units."
+  ],
+  "productionChanged": false,
+  "paidActionsTaken": false,
+  "accountsDeleted": false,
+  "qaIdentitiesCreated": false
+}

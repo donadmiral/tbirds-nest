@@ -42,16 +42,26 @@ export default function WriteArticlePage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let alive = true, version = 0, currentOwner: string | null = null;
+    let alive = true, version = 0, currentOwner: string | null | undefined;
     const accept = (owner: string | null) => {
-      if (!alive) return;
+      if (!alive || currentOwner === owner) return;
       if (currentOwner !== owner) {
         currentOwner = owner;
         setTitle(""); setBody(""); setCover(null); setCoverPreview(null); setName(null);
         publication.current = null; publishedRef.current = false; setRestoredOwner(null);
         setPublicationStatus({ postId: null, uncertain: false, locked: false, published: false });
       }
-      setDraftOwner(owner);
+      if (owner && currentOwner === owner) {
+        try {
+          const raw = window.localStorage.getItem("pc:article-draft:" + owner);
+          const draft: unknown = raw ? JSON.parse(raw) : null;
+          if (draft && typeof draft === "object") {
+            if ("title" in draft && typeof draft.title === "string") setTitle(draft.title);
+            if ("body" in draft && typeof draft.body === "string") setBody(draft.body);
+          }
+        } catch { /* Keep the current in-memory draft when storage is unavailable. */ }
+      }
+      setDraftOwner(owner); setRestoredOwner(owner);
     };
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { version++; accept(session?.user.id ?? null); });
     const initial = version;
@@ -163,14 +173,6 @@ export default function WriteArticlePage() {
   }
 
   // The draft outlives the tab: closing it by accident no longer loses the piece.
-  useEffect(() => {
-    if (!draftOwner) return;
-    try {
-      const raw = window.localStorage.getItem(DRAFT_KEY);
-      if (raw) { const d = JSON.parse(raw) as { title?: string; body?: string }; if (d.title) setTitle(d.title); if (d.body) setBody(d.body); }
-    } catch { /* no draft */ }
-    setRestoredOwner(draftOwner);
-  }, [DRAFT_KEY, draftOwner]);
   useEffect(() => {
     if (!draftOwner || restoredOwner !== draftOwner) return;
     const t = setTimeout(() => {

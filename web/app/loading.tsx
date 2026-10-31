@@ -1,3 +1,5 @@
+import { NavigationLoading } from '@/components/NavigationLoading';
+
 /**
  * The app-wide loading fallback.
  *
@@ -7,7 +9,7 @@
  */
 export default function Loading() {
   return (
-    <div className="animate-pulse" aria-busy="true" aria-label="Loading">
+    <NavigationLoading><div className="animate-pulse" aria-busy="true" aria-label="Loading">
       <div className="mb-4">
         <div className="h-[26px] w-[180px] rounded-lg bg-surface" />
         <div className="mt-2 h-[14px] w-[280px] rounded bg-surface/70" />
@@ -25,6 +27,6 @@ export default function Loading() {
           <div className="mt-1.5 h-[13px] w-[75%] rounded bg-surface/70" />
         </div>
       ))}
-    </div>
+    </div></NavigationLoading>
   );
 }

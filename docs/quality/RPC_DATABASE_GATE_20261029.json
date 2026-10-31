@@ -1,0 +1,362 @@
+{
+  "date": "2026-10-29",
+  "scope": "Local synthetic database regressions; no production connection or provider action",
+  "runtime": {
+    "node": "24.22.1",
+    "pglite": "0.5.10",
+    "postgres": "18.6 WASM"
+  },
+  "root_database_suites": {
+    "files": 27,
+    "registered": 278,
+    "passed": 275,
+    "failed": 0,
+    "conditional_skips": 3,
+    "results": [
+      {
+        "file": "supabase/tests/account-export-db.test.cjs",
+        "exit": 0,
+        "tests": 6,
+        "pass": 6,
+        "fail": 0,
+        "skip": 0,
+        "seconds": 3.1,
+        "source_sha256": "377c7f0e9103d1b0feea93e545b62605f5a040f382028d843c835f0ddd7f6a40"
+      },
+      {
+        "file": "supabase/tests/admin-payment-reporting-db.test.cjs",
+        "exit": 0,
+        "tests": 3,
+        "pass": 3,
+        "fail": 0,
+        "skip": 0,
+        "seconds": 2.3,
+        "source_sha256": "94e64f30672e7e4dc96374c77c7e2a998cc75a1182a5028c56c166320916f05c"
+      },
+      {
+        "file": "supabase/tests/business-commerce-db.test.cjs",
+        "exit": 0,
+        "tests": 7,
+        "pass": 7,
+        "fail": 0,
+        "skip": 0,
+        "seconds": 11.9,
+        "source_sha256": "54dde1c8ba5a3310c513b059c7218d84a043c52238a8e8485be0b7ebb6ea0e26"
+      },
+      {
+        "file": "supabase/tests/chat-payment-recovery-db.test.mjs",
+        "exit": 0,
+        "tests": 11,
+        "pass": 11,
+        "fail": 0,
+        "skip": 0,
+        "seconds": 2.2,
+        "source_sha256": "c35fd6f64025980bc6488b6bc926b57d19a5cd86c73453d5711451021d417d20"
+      },
+      {
+        "file": "supabase/tests/chat-payment-recovery.test.ts",
+        "exit": 0,
+        "tests": 29,
+        "pass": 29,
+        "fail": 0,
+        "skip": 0,
+        "seconds": 0.2,
+        "source_sha256": "c2048ba1dc52c702ba6ceea21a7b9ff40814199ae6b4e269ee8f945f23d7fbbb"
+      },
+      {
+        "file": "supabase/tests/client-diagnostics-db.test.cjs",
+        "exit": 0,
+        "tests": 5,
+        "pass": 5,
+        "fail": 0,
+        "skip": 0,
+        "seconds": 2.2,
+        "source_sha256": "23fd55b9fb93fe12d33064dd7361b26654fdf1c231ac32814927bb4228d2f796"
+      },
+      {
+        "file": "supabase/tests/content-media-db.test.cjs",
+        "exit": 0,
+        "tests": 17,
+        "pass": 15,
+        "fail": 0,
+        "skip": 2,
+        "seconds": 2.9,
+        "source_sha256": "4218c34b4578fb4c1a5e42d8f3ce9767f6e181555209b0f24ec7f58ae90d9ed5"
+      },
+      {
+        "file": "supabase/tests/creator-commerce.test.cjs",
+        "exit": 0,
+        "tests": 9,
+        "pass": 9,
+        "fail": 0,
+        "skip": 0,
+        "seconds": 15.1,
+        "source_sha256": "badd8ede385260cef49aefb8e6af2225a0854dbd088f4e5d52b1cf38d799845c"
+      },
+      {
+        "file": "supabase/tests/creator-finance-operations.test.cjs",
+        "exit": 0,
+        "tests": 11,
+        "pass": 11,
+        "fail": 0,
+        "skip": 0,
+        "seconds": 17.1,
+        "source_sha256": "1a98caa7fd073b0c2c8547cd4ff8cb21978bf986b12460a9f9c84cb81150e6fe"
+      },
+      {
+        "file": "supabase/tests/creator-monetization-db.test.cjs",
+        "exit": 0,
+        "tests": 10,
+        "pass": 10,
+        "fail": 0,
+        "skip": 0,
+        "seconds": 13.9,
+        "source_sha256": "7c023107abe2b00d132cca22eec635a4dedea8acc414a4aff031ebe95a06f434"
+      },
+      {
+        "file": "supabase/tests/discover-media-projections.test.cjs",
+        "exit": 0,
+        "tests": 6,
+        "pass": 6,
+        "fail": 0,
+        "skip": 0,
+        "seconds": 3.8,
+        "source_sha256": "06a29b704913d4686bfc95f38a55618aed61e1ed82c6b7dac00e198b0c8c23f5"
+      },
+      {
+        "file": "supabase/tests/faststart-provenance-db.test.cjs",
+        "exit": 0,
+        "tests": 11,
+        "pass": 11,
+        "fail": 0,
+        "skip": 0,
+        "seconds": 2.0,
+        "source_sha256": "0501568eed03cfef91381b969ff45665dc27e285d4440cf9b0a42c484a5d07f8"
+      },
+      {
+        "file": "supabase/tests/feed-visibility-db.test.cjs",
+        "exit": 0,
+        "tests": 9,
+        "pass": 9,
+        "fail": 0,
+        "skip": 0,
+        "seconds": 2.1,
+        "source_sha256": "80fb03131ddec052cdba49d9197aa47dbf24f8c59f4e6f38a71ba3d4274ff25b"
+      },
+      {
+        "file": "supabase/tests/marketplace-orders-db.test.cjs",
+        "exit": 0,
+        "tests": 7,
+        "pass": 7,
+        "fail": 0,
+        "skip": 0,
+        "seconds": 10.9,
+        "source_sha256": "7812a06d94bfa03a1c22e8feea5fdbb82fbfcc1ed51492fbede1f720aa2093c8"
+      },
+      {
+        "file": "supabase/tests/marketplace-reviews-db.test.cjs",
+        "exit": 0,
+        "tests": 10,
+        "pass": 10,
+        "fail": 0,
+        "skip": 0,
+        "seconds": 13.8,
+        "source_sha256": "c7c665ea11a4e827d06ead977a6feb3c80bd9d80d09b2b6dc63a709035e8c8d0"
+      },
+      {
+        "file": "supabase/tests/memory-book-quality-db.test.cjs",
+        "exit": 0,
+        "tests": 17,
+        "pass": 17,
+        "fail": 0,
+        "skip": 0,
+        "seconds": 2.4,
+        "source_sha256": "3ed8b01dc42a19547b06d895cd681d2f989eb8560c6f4f407d7c0197ae565bd2"
+      },
+      {
+        "file": "supabase/tests/private-media-credential-db.test.cjs",
+        "exit": 0,
+        "tests": 1,
+        "pass": 1,
+        "fail": 0,
+        "skip": 0,
+        "seconds": 2.0,
+        "source_sha256": "cb65962caecc5aa0f02c4049b4299d467eb011eda86ad89ef186d0d32e5b38ae"
+      },
+      {
+        "file": "supabase/tests/private-media-session-db.test.cjs",
+        "exit": 0,
+        "tests": 16,
+        "pass": 16,
+        "fail": 0,
+        "skip": 0,
+        "seconds": 2.3,
+        "source_sha256": "5aa2cb7971740e5d759ba64b07a2cb6937591d4a31a776b89b9bab6aae1644db"
+      },
+      {
+        "file": "supabase/tests/single-owner-admin-db.test.cjs",
+        "exit": 0,
+        "tests": 9,
+        "pass": 9,
+        "fail": 0,
+        "skip": 0,
+        "seconds": 4.1,
+        "source_sha256": "6f73fb0ee20e753021463c64d2590c8c32effea783f04a84c8b36eba407d17b0"
+      },
+      {
+        "file": "supabase/tests/social-read-pages.test.cjs",
+        "exit": 0,
+        "tests": 9,
+        "pass": 9,
+        "fail": 0,
+        "skip": 0,
+        "seconds": 2.7,
+        "source_sha256": "6f121fc142715dbf59168cce5d2e429dd6923ec2f37cc04ada81f4cb860833db"
+      },
+      {
+        "file": "supabase/tests/soundtrack-rights-db.test.cjs",
+        "exit": 0,
+        "tests": 17,
+        "pass": 17,
+        "fail": 0,
+        "skip": 0,
+        "seconds": 2.4,
+        "source_sha256": "dc1b45402db03af89977310e2506f8c0d3288d7b10a48c2a59cc88fb876106d3"
+      },
+      {
+        "file": "supabase/tests/storage-bootstrap-db.test.cjs",
+        "exit": 0,
+        "tests": 6,
+        "pass": 6,
+        "fail": 0,
+        "skip": 0,
+        "seconds": 2.2,
+        "source_sha256": "35ab2eecef8c021dfc95dfe6be87f66987db5f45f1a88ed28ae0429b1047bb98"
+      },
+      {
+        "file": "supabase/tests/story-mention-reshare-db.test.cjs",
+        "exit": 0,
+        "tests": 33,
+        "pass": 32,
+        "fail": 0,
+        "skip": 1,
+        "seconds": 2.7,
+        "source_sha256": "6bd1792b80659caccd0449f972c82c30b3f923a7455bcbab7c6ef0572a4882c3"
+      },
+      {
+        "file": "supabase/tests/story-publication-db.test.cjs",
+        "exit": 0,
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "skip": 0,
+        "seconds": 1.9,
+        "source_sha256": "2a2a666291b1b918541f80109206f0f1d5f46559f2bf17d780d4a32d3c796303"
+      },
+      {
+        "file": "supabase/tests/story-soundtrack-db.test.cjs",
+        "exit": 0,
+        "tests": 6,
+        "pass": 6,
+        "fail": 0,
+        "skip": 0,
+        "seconds": 2.5,
+        "source_sha256": "4a342a9a6349d8cf37ba435883a34cee1c973d29878b6c2a8997f12700f67996"
+      },
+      {
+        "file": "supabase/tests/support-triage-db.test.cjs",
+        "exit": 0,
+        "tests": 3,
+        "pass": 3,
+        "fail": 0,
+        "skip": 0,
+        "seconds": 2.4,
+        "source_sha256": "32607b2620e2e58502e9bec9a581a9350d8c6a7687c19b14db37e20f6e63177f"
+      },
+      {
+        "file": "supabase/tests/trending-story-visibility-db.test.cjs",
+        "exit": 0,
+        "tests": 6,
+        "pass": 6,
+        "fail": 0,
+        "skip": 0,
+        "seconds": 2.5,
+        "source_sha256": "a7869788a7079b9f7220a51a63028d858bcc830be247467d66574a9eef8df341"
+      }
+    ]
+  },
+  "rpc_authorization_runner": {
+    "file": "supabase/tests/rpc-authorization/run-all.mjs",
+    "exit": 0,
+    "registered": 112,
+    "passed": 111,
+    "failed": 0,
+    "conditional_skips": 1,
+    "named_custom_checks": {
+      "push_authorization": 13,
+      "community_group_authorization": 19,
+      "combined_atomicity": 4,
+      "admin_commands_integrated": 22,
+      "verification_integrity": 8,
+      "parity_chain": 9,
+      "applicant_self_service": 16,
+      "redacted_diagnostics": 11,
+      "comment_author_highlights": 15
+    },
+    "other_gates": {
+      "pending_migrations_applied": 41,
+      "production_units_validated": 18,
+      "parity_units_validated": 7,
+      "postflight_role_denials": 6,
+      "postflight_definitions_and_acls": "pass"
+    },
+    "final_candidate_check": {
+      "script": "supabase/tests/rpc-authorization/test-admin-support-review-chain.mjs",
+      "registered": 16,
+      "passed": 16,
+      "skipped": 0,
+      "candidate_sha256": "db5e56166965decc7b9dd873c28b40cfa322e07e909297da03d8a6c10f0dd759",
+      "basis": "Full runner passed with the initial 15-case candidate; the final 16-case candidate rerun supersedes that script after the assignee cleanup fix."
+    }
+  },
+  "conditional_coverage": [
+    {
+      "case": "book signing uses the reader permission for explicit custom access and inactive accounts",
+      "passed_in": "RPC runner PLATINUM_VISUAL_RELEASE=1"
+    },
+    {
+      "case": "visual-only manifests do not bind or sign separate audio, and install no soundtrack authorization",
+      "passed_in": "RPC runner PLATINUM_VISUAL_RELEASE=1"
+    },
+    {
+      "case": "visual-only publisher works without audio infrastructure, rejects added sound, and preserves recorded video controls",
+      "passed_in": "RPC runner PLATINUM_VISUAL_RELEASE=1"
+    },
+    {
+      "case": "sound publication is owner-bound, attested and idempotent",
+      "passed_in": "root database suite default mode"
+    }
+  ],
+  "admin_capability_regressions": {
+    "command_contracts": {
+      "registered": 13,
+      "passed": 13
+    },
+    "missing_capabilities": {
+      "registered": 13,
+      "passed": 13
+    },
+    "typescript": "pass",
+    "production_backport": {
+      "registered": 10,
+      "passed": 10,
+      "note": "Subset on production-derived branch; overlaps the draft cases and is not counted twice."
+    }
+  },
+  "limitations": [
+    "PGlite fixtures are not a live PostgREST or provider integration test.",
+    "Some suites deliberately exercise held migrations locally; passing does not authorize or imply production deployment.",
+    "Counts describe executed cases in each runner; overlapping suites are not distinct user journeys.",
+    "No iPhone build, TestFlight action, real message, financial transaction, or account provisioning occurred."
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-31T04:29:42.767177Z",
+  "scope": "Independent review of the unpublished tab geometry repair on base 26e80ae9. No native runtime success is inferred from this source review.",
+  "baseHeadSha": "26e80ae96647884e7f2764bdbb1884fd5aabcff5",
+  "sourceSha256": {
+    "src/components/AdaptiveTabBar.tsx": "f2a34985aedaf394a0b3462809d7a20c7ecc01ad16bbd6f92eee65a358d8d32f",
+    "tests/quality/native-tab-bar.cjs": "1ee00af169ad674068b4760a5119b7ebb94f791de70a29fbb14dd6153e240ce7"
+  },
+  "verdict": "Accepted for the next native acceptance run. The measured absolute bar now lies inside its nonzero parent bounds, while natural-flow bars retain natural layout.",
+  "independentFocusedVerification": {
+    "command": "node tests/quality/native-tab-bar.cjs",
+    "tests": 12,
+    "pass": 12,
+    "fail": 0,
+    "skipped": 0,
+    "executed": "Earlier in this review session after the nonfloating fallback correction; final source hashes rechecked when recording this receipt.",
+    "mechanism": "Actual TSX component and installed React Native flattenStyle with controlled React effects/native hosts; not a UIKit/Android accessibility runtime."
+  },
+  "reviewedProperties": [
+    "Finite numeric floating height and nonnegative bottom give an absolute parent of height + bottom, retaining the shown bar screen position and full content height.",
+    "The descriptor is read for the focused route on every render; array flattening, safe-area and focused-style changes are covered.",
+    "keepVisible retains the same bounds while omitting animated transforms and resetting previous motion state.",
+    "pointerEvents remains box-none and BottomTabBar props, labels and event handlers remain unchanged.",
+    "Default or relative styles leave the wrapper frame undefined and preserve natural flow; only absolute unmeasurable styles use the full parent frame.",
+    "Scroll hide/reveal and effect cleanup use the existing native-driver animation configuration."
+  ],
+  "resolvedDuringReview": [
+    "Full-fill fallback initially also applied to default/relative bars; this would alter natural-flow layout. Owner restricted it to absolute custom styles and added a regression."
+  ],
+  "geometryEvidence": {
+    "ownerReceipt": "docs/quality/native-full-app-20261031/native-tab-wrapper-geometry-repair.json",
+    "description": "Owner compiled installed React Native Yoga source and reproduced zero-height before/nonzero enclosing after bounds for four viewport/safe-area cases. This is separate evidence, not independently repeated here."
+  },
+  "limitations": [
+    "The unchanged scale/translate configuration has a different pivot after parent height becomes nonzero; exact pixel motion trajectory is not preserved. At 108pt parent height and 0.92 scale, pivot contribution can differ by 4.32pt.",
+    "No completed post-repair Simulator/Emulator run is claimed. Next acceptance must discover and tap tabs through their existing semantic labels.",
+    "The full-frame fallback encloses unusual absolute custom bars but does not infer their exact dimensions."
+  ]
+}

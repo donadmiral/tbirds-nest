@@ -15,13 +15,15 @@ type Media = Parameters<typeof MediaGallery>[0]["media"];
  * video is fitted inside it so a portrait clip is not cropped on its own page.
  */
 export function PinnedMedia({ media, postId, viewsCount, aspect, post, topOffset = 0 }: { media: Media; postId: string; viewsCount?: number | null; aspect: number; post?: ViewerPost; topOffset?: number }) {
-  const [safeMedia,setSafeMedia]=useState(media);
+  const [mediaResult,setMediaResult]=useState<{ source: Media; safe: Media }>(()=>({source:media,safe:media}));
+  const safeMedia=mediaResult.source===media?mediaResult.safe:media;
   const [mediaError,setMediaError]=useState(false);
   const [attempt,setAttempt]=useState(0);
   useEffect(()=>{
     const client=createClient();let live=true,version=0;
+    const setSafeMedia=(safe: Media)=>setMediaResult({source:media,safe});
     const refresh=async()=>{const run=++version;try{const [safe]=await hydratePostMedia([{post_id:postId,media}],client);if(live&&run===version){setSafeMedia(safe.media);setMediaError(false);}}catch{if(live&&run===version){setSafeMedia([]);setMediaError(true);}}};
-    setSafeMedia(media);void refresh();
+    void refresh();
     const timer=setInterval(()=>void refresh(),240000);
     const visible=()=>{if(document.visibilityState==='visible')void refresh();};document.addEventListener('visibilitychange',visible);
     const {data}=client.auth.onAuthStateChange(()=>{version++;setSafeMedia([]);queueMicrotask(()=>{if(live)void refresh();});});

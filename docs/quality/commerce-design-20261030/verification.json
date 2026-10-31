@@ -1,0 +1,295 @@
+{
+  "recorded_at": "2026-10-30T04:22:36.990014+00:00",
+  "scope": "Actual web Jobs and Market UI with synthetic local Auth/database/navigation adapters. No hosted writes, charges, provider validation or physical-device acceptance.",
+  "baseline_ref": "32ee0a5373dd5ebcddae92ca5145f9bf7293c9c9",
+  "browser": {
+    "command": "node web/tests/browser/commerce-run.cjs",
+    "chrome_environment": "PLATINUM_CHROMIUM (then CHROME_BIN, then local fallback)",
+    "artifact_environment": "PLATINUM_COMMERCE_ARTIFACTS",
+    "passed": 24,
+    "runtime_errors": 0,
+    "receipt": "browser-receipt.json",
+    "log_path": "/tmp/platinum-final-verification/commerce-browser.log",
+    "log_sha256": "51542c5f103c9fe709b3e998baa73532b46c81af47a1e3b6dcfe1f22a0902005"
+  },
+  "focused_regressions": {
+    "processes": 8,
+    "counts": {
+      "tests": 97,
+      "pass": 97,
+      "fail": 0,
+      "skipped": 0
+    },
+    "runs": [
+      {
+        "file": "web/tests/applications-tracker-regressions.cjs",
+        "exit_code": 0,
+        "log": "/tmp/platinum-final-verification/commerce-unit__web__tests__applications-tracker-regressions.cjs.log",
+        "summaries": [
+          {
+            "tests": 9,
+            "suites": 0,
+            "pass": 9,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 76.696315
+          }
+        ],
+        "command": [
+          "node",
+          "web/tests/applications-tracker-regressions.cjs"
+        ],
+        "log_sha256": "d361ae77e8a544d3b3a3e8a20a72b676ca51c804ace9a6970db95f3431ee5f3b"
+      },
+      {
+        "file": "web/tests/application-cv-regressions.cjs",
+        "exit_code": 0,
+        "log": "/tmp/platinum-final-verification/commerce-unit__web__tests__application-cv-regressions.cjs.log",
+        "summaries": [
+          {
+            "tests": 12,
+            "suites": 0,
+            "pass": 12,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 3331.635183
+          }
+        ],
+        "command": [
+          "node",
+          "web/tests/application-cv-regressions.cjs"
+        ],
+        "log_sha256": "cb76f7ff25ede7572521499e30595f48cde5cafdc1dd5250201980d3ef14171c"
+      },
+      {
+        "file": "web/tests/market-orders-ui.test.cjs",
+        "exit_code": 0,
+        "log": "/tmp/platinum-final-verification/commerce-unit__web__tests__market-orders-ui.test.cjs.log",
+        "summaries": [
+          {
+            "tests": 5,
+            "suites": 0,
+            "pass": 5,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 572.230468
+          }
+        ],
+        "command": [
+          "node",
+          "web/tests/market-orders-ui.test.cjs"
+        ],
+        "log_sha256": "644fda9dc4529a68472f49d57eb8639c46947ded97583eceb49b2908b03307b4"
+      },
+      {
+        "file": "web/tests/market-reviews-ui.test.cjs",
+        "exit_code": 0,
+        "log": "/tmp/platinum-final-verification/commerce-unit__web__tests__market-reviews-ui.test.cjs.log",
+        "summaries": [
+          {
+            "tests": 5,
+            "suites": 0,
+            "pass": 5,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 621.199636
+          }
+        ],
+        "command": [
+          "node",
+          "web/tests/market-reviews-ui.test.cjs"
+        ],
+        "log_sha256": "fab271d1e814e9cedd0be71e072b6c8298246c44a7016014fdf6fc5bf8b701f1"
+      },
+      {
+        "file": "tests/quality/job-application-self-service.cjs",
+        "exit_code": 0,
+        "log": "/tmp/platinum-final-verification/commerce-unit__tests__quality__job-application-self-service.cjs.log",
+        "summaries": [
+          {
+            "tests": 3,
+            "suites": 0,
+            "pass": 3,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 4875.119622
+          }
+        ],
+        "command": [
+          "node",
+          "tests/quality/job-application-self-service.cjs"
+        ],
+        "log_sha256": "6f6ea4867b37b0a87e8dbc63d0f66a87e64849d53ff6624120aa07b7e9f7a473"
+      },
+      {
+        "file": "tests/quality/jobs-market-regressions.cjs",
+        "exit_code": 0,
+        "log": "/tmp/platinum-final-verification/commerce-unit__tests__quality__jobs-market-regressions.cjs.log",
+        "summaries": [
+          {
+            "tests": 50,
+            "suites": 0,
+            "pass": 50,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 794.530648
+          }
+        ],
+        "command": [
+          "node",
+          "tests/quality/jobs-market-regressions.cjs"
+        ],
+        "log_sha256": "14ec69e42afb82a66e77d2e358a3580b25233e5b55596a3a15fa2c8bf04063b8"
+      },
+      {
+        "file": "tests/quality/marketplace-refresh.cjs",
+        "exit_code": 0,
+        "log": "/tmp/platinum-final-verification/commerce-unit__tests__quality__marketplace-refresh.cjs.log",
+        "summaries": [
+          {
+            "tests": 5,
+            "suites": 0,
+            "pass": 5,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 485.496414
+          }
+        ],
+        "command": [
+          "node",
+          "tests/quality/marketplace-refresh.cjs"
+        ],
+        "log_sha256": "67e9249bd20a6cc2a0e5c8ac03844d7a57ad9463b37127b811839edd72dc16ed"
+      },
+      {
+        "file": "tests/quality/jobs-parity.cjs",
+        "exit_code": 0,
+        "log": "/tmp/platinum-final-verification/commerce-unit__tests__quality__jobs-parity.cjs.log",
+        "summaries": [
+          {
+            "tests": 8,
+            "suites": 0,
+            "pass": 8,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0,
+            "duration_ms": 686.63327
+          }
+        ],
+        "command": [
+          "node",
+          "tests/quality/jobs-parity.cjs"
+        ],
+        "log_sha256": "94a0ea06e427e1e8ace5478df5207f1be1968f7b0c6f713a472dfcd301cd63b3"
+      }
+    ]
+  },
+  "lint": {
+    "command_cwd": "web",
+    "command": [
+      "node",
+      "node_modules/eslint/bin/eslint.js",
+      "app/jobs/[id]/page.tsx",
+      "app/jobs/applications/page.tsx",
+      "app/jobs/layout.tsx",
+      "app/jobs/page.tsx",
+      "app/jobs/saved/page.tsx",
+      "app/market/[id]/page.tsx",
+      "app/market/layout.tsx",
+      "app/market/orders/page.tsx",
+      "app/market/page.tsx",
+      "app/market/saved/page.tsx",
+      "components/ApplyPanel.tsx",
+      "components/JobActions.tsx",
+      "components/JobCard.tsx",
+      "components/ListingCard.tsx",
+      "components/MarketAlerts.tsx",
+      "components/MarketOrders.tsx",
+      "components/MarketReportForm.tsx",
+      "components/ProductDialog.tsx",
+      "--format",
+      "json"
+    ],
+    "baseline_errors": 8,
+    "errors": 8,
+    "baseline_warnings": 4,
+    "warnings": 13,
+    "paths_with_new_errors": [],
+    "baseline_comparison": "eslint-comparison.json",
+    "strict_lint_clean": false
+  },
+  "visual_review": [
+    "jobs-desktop.png",
+    "product-desktop.png",
+    "market-dark.png",
+    "jobs-mobile.png",
+    "offer-review-mobile.png"
+  ],
+  "source_sha256": {
+    "tests/quality/jobs-market-regressions.cjs": "8bddfdd68a0941d8b974f69b1f6fd1effda804a44a2e9fc2c7d84b39ab3b10c7",
+    "tests/quality/jobs-parity.cjs": "72ae3d53f929255755de1aa6cc1e0d62853b49c5087fbd211be96939df5bc41b",
+    "web/app/jobs/JobsWorkspace.module.css": "bc3994edf675900e3bf89902dcdbc2771d39acca9a656a62086d743de83bc9da",
+    "web/app/jobs/[id]/page.tsx": "8fae4b51e181b57654032e10325390304024221914494320b981ae6417fd77be",
+    "web/app/jobs/applications/page.tsx": "f503a78bc0d83bcd4fe503af3d1e69c42e3b3add2c8e8747777a9747d421dcec",
+    "web/app/jobs/layout.tsx": "f36aaf747222fa54798cacf6950cd738c22e5ac57c9c03d190c81516b73897c8",
+    "web/app/jobs/page.tsx": "ad77799e2cce8b520b444ceb6a90e3daf270fc924a59a5baddd523b8c60bca66",
+    "web/app/jobs/saved/page.tsx": "296fec6383d13badd6c1e51d0aab59eeedb311e68092e828b354af23ca1c90cc",
+    "web/app/market/MarketWorkspace.module.css": "18bdab7d9910acdf1a0823333f9f653bc717ef12790c9587365ad94da48eb4c4",
+    "web/app/market/[id]/page.tsx": "a846827d85a661235fee66476eb75bfdbec813713b953215e4bb8234c77e04ed",
+    "web/app/market/layout.tsx": "dbb83be197fb5f9746bcad25dfb2beacda47e6240bbbcd3f874a63a8075448bd",
+    "web/app/market/orders/page.tsx": "20d0e78457217b69ec025c770144dd049968944af7bf0343b38d63e832febfe2",
+    "web/app/market/page.tsx": "f137600669e7cc6ec97db427c452aa30b6da5e29fc19c4ef79db9581f48a6ce5",
+    "web/app/market/saved/page.tsx": "fbc9b822aeca4d56ced7419b896a2e79be91beb830e9c11a8b2f712854125c72",
+    "web/components/ApplyPanel.tsx": "619a407de00f695949707566babe3c46bb56b93e4ce1edea5e3e93f47082ff43",
+    "web/components/JobActions.tsx": "6eb8cd035ca78b7379820e65cd9af137620d9839eebcfb14b263f20f03ee00d7",
+    "web/components/JobCard.tsx": "7de2e48675bd9c42dce213f5c2b9106367ec186a8e86350c007a3cceccd529e7",
+    "web/components/ListingCard.tsx": "31bf824f4645d812b595431947eceb29136134c88df21f56f2b7c3e75dcb2cfd",
+    "web/components/MarketAlerts.tsx": "c616cd3a5cf6e1e58372d7c1ff8b8a1d8f4587c9b8e51fbecef6e8dbc61554f6",
+    "web/components/MarketOrders.tsx": "074b0c091ac5bfd0c1e7f04ca87248a764832bbb53d5c01dd19a8e452f8b41d5",
+    "web/components/MarketReportForm.tsx": "5085eee6936adccba66704f3105767882ad27232c6c59954c4ca2be5f5e34198",
+    "web/components/ProductDialog.module.css": "94ead35dcaec640514f3156529a73fcda2cf61b232314cf1ad105d7117667f31",
+    "web/components/ProductDialog.tsx": "56071e752a1a28c5a142802422426d9ce74b3124290dbb5145d4ba2b067588b9",
+    "web/tests/application-cv-regressions.cjs": "07d8b0e0f5cff8161d5e8b3ab2c476a0a51f9d24736f8eb97238bc8e13961612",
+    "web/tests/applications-tracker-regressions.cjs": "c1bce22a884c7c18f5cae253c423632dc61f2ac8e092cc6c45b377283f72bdea",
+    "web/tests/browser/commerce-backend.ts": "9b2ba0a7cb2a5a32c80050066ef3771993d065bd09fc3e7eda4ed0ae4152697f",
+    "web/tests/browser/commerce-fixture.tsx": "e9b64b3d4dba7ff62be0ec7cc68c50be30a8c003e794c46369415a574b1fc5d3",
+    "web/tests/browser/commerce-run.cjs": "2597af96d81c5251228c51e4b2c64117870184125062bd257e0ec1c7cc0e30dd",
+    "web/tests/market-orders-ui.test.cjs": "12c8c83eca0e87f186c0f9994c7cdb7c4c0bdefb6b9e511f251a714758c10066",
+    "web/tests/market-reviews-ui.test.cjs": "59ad71764aa28dbd9537a4d9e76efeb06cb49cbe31e0e0b67f039631589d88ce"
+  },
+  "artifact_sha256": {
+    "application-review.png": "4036471cd8411bcc70820f77d02a0e9fa83c28c6e422f671a3a1d80e60814621",
+    "applications-desktop.png": "e1e7fe7765ec8dc936b450bdf24e731d8684336e11385d4ec0e9b931eadf568d",
+    "job-detail-desktop.png": "44454c11db03462f80dafb4512f7547f24502f8cdbd878d99a7222d1fe8c5b45",
+    "jobs-desktop.png": "6160382520388b57d51b800aa8d41194ae56020f36ed1f9824f0714fb4334f1e",
+    "jobs-mobile.png": "19df441ef24a3114abdb9a963cb30bfe721e3ec73f63a8d1f8430527e2b7e812",
+    "market-dark.png": "ce018d4b96adb9c04ff8c5199cee55d5ae02aa7d3291e863c997b2f36c4a0984",
+    "market-desktop.png": "89c6edd43d56711ca2dbf72085e08a48d25ad8f4b9c80bf32a0e37b1f6f10233",
+    "offer-review-mobile.png": "b286bfa90b8de965e5793687751b7ce703ed72af3c59ba527be986fa464a6b2f",
+    "order-request-review.png": "f0de04447d851db5023c233cd2e6f336cc8569747b4a9323c96f54008d286479",
+    "orders-desktop.png": "4f9f73aad927aef41cefd68344ac976345ac60d24ba42e677a1af017451ef7dd",
+    "product-desktop.png": "becdc0991f1c23bfb2e73c73d4e84ddfe2b356126535b9102dafbfb28eebcfb7",
+    "product-mobile.png": "0390118ce67ee8e3c0278a7c5725d0b08e582dc64f1240aefe2486ca84b7311d"
+  },
+  "limits": [
+    "External application, employer management, payment and shipping providers are not end-to-end verified by this fixture.",
+    "Product/order amounts shown by the app remain server data; local UI does not process a payment.",
+    "Physical iPhone/Safari/provider/production privacy/erasure and TestFlight acceptance remain separate.",
+    "Scoped strict ESLint still reports eight existing errors; no new errors were introduced."
+  ]
+}

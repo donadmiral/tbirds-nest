@@ -1,0 +1,121 @@
+{
+  "recordedAt": "2026-10-30T19:05:20.380380+00:00",
+  "status": "source_verified_not_installed",
+  "hostedMutations": false,
+  "contract": {
+    "response": "public.respond_offer(p_offer_id uuid,p_action text,p_counter_amount numeric default null) returns void",
+    "capability": "public.offer_response_capabilities() returns jsonb",
+    "capabilityValue": {
+      "version": 1,
+      "serialized": true,
+      "replay": false,
+      "fractionDigits": 2,
+      "maxAmount": "9999999999.99"
+    },
+    "staleResponse": {
+      "message": "OFFER_ALREADY_RESOLVED",
+      "sqlstate": "55000",
+      "replay": false,
+      "clientRecovery": "Read current server state; do not automatically replay."
+    }
+  },
+  "files": [
+    {
+      "path": "supabase/migrations/20261030181000_market_offer_response_serialization.sql",
+      "sha256": "b50b2e547fd23ac101b222270d348b036af737705a4b62fde8a239a3083d1407"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/test-offer-response-serialization.mjs",
+      "sha256": "8685d72eb02c79e358a3d81f496d14f8fd6905e233a0dcd82e4c27bc2096bf5c"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/run-all.mjs",
+      "sha256": "02504119dec31e75f2795e81fd13c3ebfee6dc402e4b06949ef3cf5f50f0cafa"
+    }
+  ],
+  "verification": {
+    "command": "node supabase/tests/rpc-authorization/test-offer-response-serialization.mjs",
+    "engine": "PGlite 0.5.10, captured live schema with synthetic Auth/session data",
+    "passed": 15,
+    "failed": 0,
+    "tested": [
+      "capability and authenticated-only ACLs",
+      "missing, malformed, substituted, expired and anonymous sessions",
+      "banned, deleted, deactivated and restricted actors",
+      "missing, null, false and true business session guard",
+      "nonparticipant and proposer authorization",
+      "corrupt participant tuples",
+      "positive finite two-decimal bounded amounts",
+      "canonical child offer and linked message",
+      "duplicate/lost-response retry rejected without duplicate writes",
+      "stale competing actions preserve the winning state",
+      "injected message failure rolls back transition, child and conversation",
+      "existing erasure fence honored",
+      "PostgreSQL LockRows query plan and source lock-before-state check"
+    ],
+    "notClaimed": "PGlite has a single connection. A real multi-session PostgreSQL lock contention test has not run; postgres/initdb/pg_ctl/psql binaries are absent."
+  },
+  "hostedBaseline": {
+    "qa": {
+      "project": "uaulhuelcfkjwojtymmw",
+      "checkedAt": "2026-10-30T17:24:16.444747+00:00",
+      "respondOfferDefinitionMd5": "ff552c77266afb38f9674d912028fb35",
+      "offerRows": 0,
+      "erasureWriteFence": true,
+      "businessSessionAllowed": false
+    },
+    "production": {
+      "project": "prlkikhckbifseosbukl",
+      "checkedAt": "2026-10-30T17:24:22.801367+00:00",
+      "respondOfferDefinitionMd5": "ff552c77266afb38f9674d912028fb35",
+      "offerRows": 2,
+      "offerStates": [
+        "accepted",
+        "declined"
+      ],
+      "erasureWriteFence": false,
+      "businessSessionAllowed": false
+    }
+  },
+  "installationGate": [
+    "No hosted migration was attempted for this repair because earlier authorized connector calls stalled.",
+    "New Counter UI must see the exact capability before enabling review/submission.",
+    "A future installation must freshly verify current function definition, grants, migration history and no pending transaction, then apply through the approved migration transport.",
+    "The migration aborts on definition drift or unknown grants. Existing legacy clients retain their exact signature after installation.",
+    "Business callers remain unavailable until the actual business session approval contract is installed and returns true.",
+    "No account erasure protection is claimed for a project where that workflow is absent."
+  ],
+  "independentReview": {
+    "reviewer": "music_infrastructure",
+    "reviewedAt": "2026-10-30T19:07:06.783832+00:00",
+    "result": "No blocking security or signature-compatibility findings in this scope.",
+    "independentTestsPassed": 15,
+    "independentTestsFailed": 0,
+    "verified": [
+      "Actual session and active profile before and after participant-filtered FOR UPDATE",
+      "Offer participant/proposer/status NOT NULL constraints match defensive conditions",
+      "Positive numeric(12,2) bounds and exact-cent validation",
+      "Optional erasure shared advisory fence before the row lock",
+      "Business approval helper fails closed on absent business contract, NULL or false",
+      "Existing legacy parameter names and void result retained",
+      "PGlite limitation is explicit; no real multi-session lock-contention claim"
+    ]
+  },
+  "frozen": true,
+  "runnerIntegrationUpdate": {
+    "recordedAt": "2026-10-30T19:25:46.589334+00:00",
+    "change": "Registered both existing original-music SQL dependency modes in the shared runner. Offer SQL and test bytes are unchanged.",
+    "musicChecks": [
+      {
+        "mode": "bootstrapWithPrivacyErasurePrerequisites",
+        "passed": 22,
+        "failed": 0
+      },
+      {
+        "mode": "existingMusicContracts",
+        "passed": 22,
+        "failed": 0
+      }
+    ]
+  }
+}

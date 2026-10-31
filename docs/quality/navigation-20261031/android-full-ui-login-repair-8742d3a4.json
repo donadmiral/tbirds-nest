@@ -1,0 +1,72 @@
+{
+  "recordedAt": "2026-10-31T01:50:38.832109+00:00",
+  "status": "Failed full bundled Android UI run diagnosed; narrow flow/fixture follow-up passes local regressions. Actual next full app navigation run required.",
+  "source": {
+    "head": "8742d3a43e54e0b8518cec308604289d089364cd",
+    "testedMerge": "34988df5f3b7e431836f1067aa72cd59c338dc39",
+    "tree": "0096dabaf209c6bf2be4e6192028bd0b657b98ca",
+    "sourceManifestSha256": "27fa2fa7ad27d99c208332840094b89d5f079391089d78532c1a9f8eaa8f5ccb",
+    "criticalPublishedHashesVerified": true
+  },
+  "workflow": {
+    "runId": 41155341785,
+    "jobId": 124401002286,
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41155341785/job/124401002286",
+    "conclusion": "failure"
+  },
+  "artifact": {
+    "id": 13025206984,
+    "name": "android-full-app-ui",
+    "sha256": "e0794d1041c04e7d5602a6d7824cc220d8dd206b902cb3255aeaec5f1dc68a21",
+    "screenshotSha256": "07735989068500d6b69a89a11625d541c8c3d2f10994df9b49dbf999fc0306cb",
+    "hierarchySha256": "2de31c209bd7fb86e6e0507a3b494005ab655a87c29a93f22be59b0f507bc048",
+    "fixtureReceiptSha256": "fd8fa124a5c74bd17a2a193e69724dda832b8f0267b62208c8d2952968eb321a",
+    "recordingSha256": "10a38b2c373e9ada80b2072c663bb5ff9ef5624e88ba86365894c7a074274226"
+  },
+  "observation": {
+    "fullProductionAppReachedLogin": true,
+    "emailInputSucceeded": true,
+    "passwordTapFailed": true,
+    "authTokenRequests": 0,
+    "healthRequests": 6,
+    "unsupportedHealthRequests": 6,
+    "networkForwarded": false,
+    "displayPixels": {
+      "width": 320,
+      "height": 640
+    },
+    "reason": "The open Android email keyboard covers the next field; the accessibility hierarchy contains the entered email and keyboard Next, but no visible Password field. No credentials submission reached the fixture."
+  },
+  "repairs": [
+    "Dismiss the email keyboard before tapping Password; all existing flow assertions and commands otherwise preserved.",
+    "Explicitly implement GET /auth/v1/health used by the production netStore. Other methods/endpoints and external origins remain recorded501 failures; the strict unmatched-request final gate is unchanged."
+  ],
+  "sourceSha256": {
+    "tests/native/flows/navigation.yaml": "fa5ff1f9335b0b0cc52b1ffd69c0045249bbc8f7443c55b351f681a3cf9a292f",
+    "tests/native/backend-fixture.cjs": "2e102604127be11d89fec0ceef06a80bbc1ee0c057e446ed895af2fc1cba886b",
+    "tests/quality/native-ui-fixture.cjs": "3044303d5fa3a8ec8a2bafeaf0eea28e818b974ac65ca0ecb262769d27797cdf"
+  },
+  "localValidation": {
+    "nativeUiFixtureCases": 5,
+    "passed": 5,
+    "failed": 0,
+    "logSha256": "82da4d3aafd9f6a30f5b88ff5efe74b7d846f9cceeace60a5c3ebe826ee5cc94",
+    "yamlParsed": true,
+    "everyPriorFlowCommandPreserved": true,
+    "verifiedProductionAppFilesNotChanged": [
+      "src/screens/auth/LoginScreen.tsx",
+      "App.tsx"
+    ],
+    "coverage": [
+      "Real Supabase SDK Auth/PostgREST with isolated transport",
+      "React Native lazy fetch materialization",
+      "Health success before auth plus abort/offline behavior",
+      "Unsupported operations remain recorded failures",
+      "Phoenix join/heartbeat fixture"
+    ]
+  },
+  "limits": [
+    "The failed flow stops before login and cannot establish Home/tab navigation success.",
+    "The full app uses a synthetic HTTP/Realtime transport; no provider or physical-device acceptance is claimed."
+  ]
+}

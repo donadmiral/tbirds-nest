@@ -1,3 +1,4 @@
+import { privateImageCachePolicy } from '../../../shared/mediaDelivery';
 /**
  * MediaViewer.tsx
  * Edge-to-edge fullscreen viewer for images, gifs, and videos.
@@ -5,10 +6,7 @@
  */
 import { themedSheet } from '../../theme/useTheme';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  View, Text, Modal, StyleSheet, Pressable, FlatList,
-  Dimensions, ActivityIndicator, StatusBar, Alert, Share, BackHandler,
-} from 'react-native';
+import { View, Text, Modal, Pressable, FlatList, Dimensions, ActivityIndicator, StatusBar, Alert, Share, BackHandler } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { VideoView, useVideoPlayer } from 'expo-video';
 import * as MediaLibrary from 'expo-media-library';
@@ -141,7 +139,7 @@ export default function MediaViewer({ visible, items, initialIndex, onClose }: P
                   source={{ uri: item.url }}
                   style={styles.media}
                   contentFit="contain"
-                  cachePolicy="memory-disk"
+                  cachePolicy={privateImageCachePolicy(item.url)}
                   transition={120}
                 />
               )}

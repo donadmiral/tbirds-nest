@@ -1,0 +1,55 @@
+{
+  "head": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+  "merge": "cddbe51a25efbb39b9e91fb822a9821957b9a2bd",
+  "tree": "d72a8c25e7b9e8890d3520a0c825a6175aecf3c6",
+  "workflowRun": "41218724056",
+  "originalSourceCount": 498,
+  "allOriginalHashesMatchPublishedGitBlobs": true,
+  "overlaysVerified": [
+    {
+      "file": "src/services/supabase.ts",
+      "before": "457ab3f8c8c54aa3a5e770dd1b43f4869a98c7471c9ccffcbe5f9e3901847fee",
+      "after": "dfb6b6cfe427b7e5abdb7f7bedbdb45536f9abca000d4a2d3305dd45da4cf2e5",
+      "reason": "Disposable QA-only lock and auth-storage timing observation. Original SDK processLock, timeouts, arguments, results and errors are preserved; no keys or session contents are recorded.",
+      "retained": "overlays/src__services__supabase.ts"
+    },
+    {
+      "file": "modules/boomerang/ios/BoomerangModule.swift",
+      "before": "6e31a63649cf96a87caa9abf33c31492fafd2ff4ef18602c21808803d1e57967",
+      "after": "e50ecc3027064c532f474784ac49299954f09ce1a00eb3ea5f45fc906878f6a8",
+      "reason": "Disposable QA-only declaration: exercise the independently accepted renderer through the real JS capability check.",
+      "retained": "overlays/modules__boomerang__ios__BoomerangModule.swift"
+    },
+    {
+      "file": "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt",
+      "before": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237",
+      "after": "33170373380d9c69afabe789dfd7862f212ba1732a1328a74d7d123b7699d617",
+      "reason": "Disposable QA-only declaration: exercise the independently accepted renderer through the real JS capability check.",
+      "retained": "overlays/modules__boomerang__android__src__main__java__expo__modules__boomerang__BoomerangModule.kt"
+    },
+    {
+      "file": "src/navigation/AppNavigator.tsx",
+      "before": "25901306b597b2a0fc93111f97636ef74beee216174df9937e5cf16ad3ffed70",
+      "after": "d7377b4164e5beb7e508f53a24ad03f944ca9126cc83966c5bb8a99617c6c62a",
+      "reason": "Register one synthetic capture route inside the unchanged production auth, call and safe-area providers.",
+      "retained": "overlays/src__navigation__AppNavigator.tsx"
+    },
+    {
+      "file": "metro.config.js",
+      "before": null,
+      "after": "d93f48605ead9e6d7b6fbc1cc210255bb653b227ac9daada78f69317a88c9534",
+      "reason": "Only packaged synthetic bytes for expo/fetch; production capture/export delegation records actual returned files. No network fallback.",
+      "retained": "overlays/metro.config.js"
+    },
+    {
+      "file": "index.js",
+      "before": "b6c80d0b280a2446862ee5a19cbfcaff39d551d353ac3a9abf090680570a11e0",
+      "after": "380861fc291a775b81d0891675f0bc4c632660ae44662ba370cb43052a1efa4c",
+      "reason": "Install the isolated synthetic HTTP/Realtime transport before the actual App imports.",
+      "retained": "overlays/index.js"
+    }
+  ],
+  "installedDependencyFileCount": 9,
+  "sourceMemoryCapability": 0,
+  "sourceManifestSha256": "47d327e6ce2e5d44800be93a2173ff9f90e79e07b48a80f1100250f5a4e26102"
+}

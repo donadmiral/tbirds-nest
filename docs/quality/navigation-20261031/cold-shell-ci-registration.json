@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-31T04:37:50.339362+00:00",
+  "status": "CI registration validated locally; first run containing the new step is pending.",
+  "baseHead": "26e80ae96647884e7f2764bdbb1884fd5aabcff5",
+  "sourceSha256": {
+    ".github/workflows/browser-quality.yml": "f70a018eb66aa51279290eedabca08992029d7880b26e5a852d3d2070c400f70",
+    "web/tests/browser/navigation-loading-next.cjs": "f84762786ccdd76de193d8a6e8590756632abb674498679f8107aebb55e93c46"
+  },
+  "frozenProductionSha256": {
+    "web/app/loading.tsx": "1a02b8100608be1ba059f996fbf800e68c7883698cdb4be46df4660c1bc9650e",
+    "web/components/AppShell.tsx": "4f213f270c045a835776cb1232190f1be7db7b3af3259deb58e13e951be10950",
+    "web/components/NavigationLoading.tsx": "7a51a46b81fea86c45714ae553b5d53682274d7266ef2b7dca2f40315a5ac27b",
+    "web/lib/navigationChromeMemory.ts": "c0c0459d141b300981ea3efb6fa56397993fbfcf6d2310071caeee282038d2ce"
+  },
+  "registration": {
+    "job": "real-browser",
+    "step": "Exercise real Next cold-route navigation and held server responses",
+    "command": "node web/tests/browser/navigation-loading-next.cjs",
+    "gate": "Same !cancelled() and successful checkout, Node setup, dependencies and browser-tools outcomes as every existing independent browser gate.",
+    "failureBehavior": "No continue-on-error; a failed probe fails the job while later independent gates can still run after successful setup.",
+    "artifactEnvironment": {
+      "PLATINUM_SHELL_ARTIFACTS": "/tmp/platinum-browser-evidence/shell"
+    },
+    "artifactPatterns": [
+      "/tmp/platinum-browser-evidence/shell/*.png",
+      "/tmp/platinum-browser-evidence/shell/*.json",
+      "/tmp/platinum-browser-evidence/shell/*.log"
+    ],
+    "uploadCondition": "always()",
+    "retentionDays": 7,
+    "jobTimeoutMinutes": 20,
+    "existingWorkflowBehaviorUnchanged": true
+  },
+  "validation": {
+    "yaml": "PyYAML 6.0.3 parsed the candidate. A structural comparison removing only the new step, environment entry and artifact paths equals the original workflow exactly.",
+    "runnerSyntax": "node --check web/tests/browser/navigation-loading-next.cjs passed.",
+    "installedDependencies": {
+      "@playwright/test": "1.63.0",
+      "next": "16.4.3",
+      "@supabase/ssr": "0.12.4",
+      "@supabase/supabase-js": "2.112.3"
+    },
+    "runnerAssumptions": [
+      "Module resolution from web/tests/browser finds installed web dependencies and Next CLI.",
+      "Existing browser-tools step installs Chromium and exports PLATINUM_CHROMIUM, which the frozen runner uses.",
+      "Runner starts Next and a synthetic Supabase HTTP backend on ephemeral 127.0.0.1 ports with explicit synthetic public env values.",
+      "Runner writes receipt.json and PNG screenshots into PLATINUM_SHELL_ARTIFACTS and writes next.log in finally after closing browser/server resources.",
+      "Production modules and runner hashes still equal the frozen locally accepted candidate; no assertions or timeouts changed."
+    ],
+    "existingBrowserEvidence": "docs/quality/navigation-20261031/cold-shell-next-browser.json",
+    "existingMobileEvidence": "docs/quality/navigation-20261031/cold-shell-mobile-independent.json",
+    "fullSuiteRerun": false
+  },
+  "priorCiTiming": {
+    "source": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/runs/41166954972/jobs",
+    "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41166954972/job/124436466364",
+    "headSha": "26e80ae96647884e7f2764bdbb1884fd5aabcff5",
+    "runId": 41166954972,
+    "jobId": 124436466364,
+    "conclusion": "success",
+    "startedAt": "2026-10-31T04:03:27Z",
+    "completedAt": "2026-10-31T04:09:16Z",
+    "elapsedSeconds": 349,
+    "headroomUnderUnchangedLimitSeconds": 851,
+    "interpretation": "The prior complete browser job used 5 min 49 s of its 20-minute limit, leaving 14 min 11 s. This supports retaining the existing timeout; it is not a measurement or guarantee for the new CI probe."
+  },
+  "limits": [
+    "Registration checks do not claim the new GitHub step has executed; that requires the next published source-bound run.",
+    "Existing real Next proof uses local synthetic Auth/database and development compilation. It proves visible navigation continuity while a server response is held, not production latency or hosted authentication.",
+    "No production source, frozen runner, existing assertion, existing gate or timeout was modified."
+  ]
+}

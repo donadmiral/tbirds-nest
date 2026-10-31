@@ -47,7 +47,7 @@ export default function SavedPage() {
 
   const load = useCallback(async (after: { created_at: string; post_id: string } | null = null) => {
     if (after && loadingRef.current) return;
-    const version = ++generation.current;
+    const version = generation.current += 1;
     loadingRef.current = true;
     setFailed(false);
     setLoadingMore(!!after);
@@ -104,13 +104,12 @@ export default function SavedPage() {
 
   useEffect(() => {
     const timer = setTimeout(() => { void load(); }, 0);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Cleanup deliberately invalidates the latest request counter.
-    return () => { clearTimeout(timer); generation.current++; loadingRef.current = false; };
+    return () => { clearTimeout(timer); generation.current += 1; loadingRef.current = false; };
   }, [load, tick]);
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_OUT" || event === "SIGNED_IN") {
-        generation.current++;
+        generation.current += 1;
         setUid(null); setPosts(null); setCols([]); setTotal(null); setColSel("all"); setActionError(null);
         setTick((value) => value + 1);
       }

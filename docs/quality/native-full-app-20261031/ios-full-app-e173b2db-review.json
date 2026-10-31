@@ -1,0 +1,212 @@
+{
+  "head": "e173b2dbcf253342be5683fa85f102aa38065411",
+  "testedMerge": "e6ca24e27b00207344eb7989ed53d2305cb04cf3",
+  "tree": "37ca8db90469d32a2a2d7b3069db54b522926530",
+  "runId": 41173170193,
+  "jobId": 124455216930,
+  "artifactId": 13033622896,
+  "artifactName": "ios-full-app-ui",
+  "artifactBytes": 36460491,
+  "artifactSha256": "06c1849b074c079ebc70b5032ed4b7f7289650064ef62408f06359921250b5b0",
+  "observedAt": "2026-10-31",
+  "conclusion": "failure",
+  "jobStartedAt": "2026-10-31T05:35:00Z",
+  "scriptStartedAt": "2026-10-31T05:38:02Z",
+  "scriptCompletedAt": "2026-10-31T06:35:38Z",
+  "jobCompletedAt": "2026-10-31T06:35:56Z",
+  "artifactUpload": "success",
+  "source": {
+    "manifestCommit": "e6ca24e27b00207344eb7989ed53d2305cb04cf3",
+    "manifestSha256": "0fec6c3859c429596d19932c87fd2c2472be9bd69e860f873ab8b1f5e64eeb48",
+    "retainedManifest": "android-full-app-e173b2db-source.json",
+    "retainedManifestIsByteIdenticalToThisIosArtifact": true,
+    "verifiedFiles": 495,
+    "mismatches": [],
+    "verifiedOverlays": [
+      {
+        "file": "src/services/supabase.ts",
+        "passed": true
+      },
+      {
+        "file": "modules/boomerang/ios/BoomerangModule.swift",
+        "passed": true
+      },
+      {
+        "file": "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt",
+        "passed": true
+      },
+      {
+        "file": "src/navigation/AppNavigator.tsx",
+        "passed": true
+      },
+      {
+        "file": "metro.config.js",
+        "passed": true
+      },
+      {
+        "file": "index.js",
+        "passed": true
+      }
+    ],
+    "productionMemoryCapability": 0,
+    "runtimeMode": "synthetic HTTP/Realtime fixture; actual production App/screens and native engines; QA capability overlay"
+  },
+  "requiredFlows": {
+    "results": {
+      "schemaVersion": 1,
+      "mode": "same-app-required-flows",
+      "flows": [
+        {
+          "name": "navigation",
+          "flow": "tests/native/flows/navigation.yaml",
+          "attempts": 1,
+          "exitCode": 1,
+          "junit": "maestro-navigation.xml"
+        },
+        {
+          "name": "memory-capture",
+          "flow": "tests/native/flows/memory-capture.yaml",
+          "attempts": 1,
+          "exitCode": 1,
+          "junit": "maestro-memory-capture.xml"
+        }
+      ]
+    },
+    "phases": {
+      "flows": 1,
+      "evidence": 1,
+      "memoryDecoder": 1,
+      "fullAppVerifier": 1
+    },
+    "navigationFailure": "Book settings is visible",
+    "navigationReview": {
+      "file": "ios-e173b2db-memory-navigation-review.json",
+      "sha256": "03c26fd1da464d1c70262fea28cc4489749879b4985e923439a50102e748dc29"
+    },
+    "captureFailure": "Native capture acceptance is visible",
+    "captureBlocker": "The exact iOS system Open in “Platinum QA”? confirmation remained visible after openLink. The route did not mount.",
+    "bothFlowsAttemptedOnce": true,
+    "strictVerificationPassed": false,
+    "memoryDecoderInvoked": true,
+    "memoryCaptureDirectoryPresent": false,
+    "encodedMoviePresent": false
+  },
+  "signing": {
+    "bundleIdentifier": "app.platinumcircles.mobile.qa",
+    "platform": "iOS Simulator",
+    "architecture": "x86_64",
+    "generatedSimulatedEntitlements": {
+      "application-identifier": "FAKETEAMID.app.platinumcircles.mobile.qa",
+      "aps-environment": "development"
+    },
+    "embeddedSections": {
+      "__entitlements": {
+        "bytes": 340,
+        "sha256": "6d1dfd62b996dd1f84cc806664d39024f50ddcc2975d9b2f59d9292aa0aa72b1"
+      },
+      "__ents_der": {
+        "bytes": 107,
+        "sha256": "b92d648550347034acaa7d932207f1b01919c3616c4bdfce06a08aecab2de9cd"
+      }
+    },
+    "embeddedEntitlementsUnchangedByResign": true,
+    "hostEntitlementMaps": {
+      "-before-resign": {},
+      "after": {}
+    },
+    "hostSignature": "adhoc; TeamIdentifier not set",
+    "codesignVerification": "valid on disk; satisfies its Designated Requirement",
+    "binaryRetained": false,
+    "derSemanticsDecoded": false,
+    "limits": "This review checks the source-bound CI parser metadata and codesign logs. It is not an independent parse of a retained app binary or proof of signed distribution."
+  },
+  "accountStorage": {
+    "observedIndexWriteCompletionCount": 2,
+    "indexWriteCompletionTimestamps": [
+      "2026-10-31 06:26:59.659",
+      "2026-10-31 06:26:59.661"
+    ],
+    "observedIndexOrAccountWriteFailure": false,
+    "readbackReceipt": [],
+    "dedicatedReadbackReached": false,
+    "keychainFullReadWriteAcceptance": false,
+    "reason": "Production writeIndex logs only after awaited SecureStore.setItemAsync; dedicated accountsStore.init readback is still not reached because the capture route never mounted."
+  },
+  "continuity": {
+    "appProcessIdsObserved": [
+      "66838"
+    ],
+    "fixtureRequestsRetained": 395,
+    "networkForwarded": false,
+    "unsupportedRequests": [],
+    "bookReads": 2,
+    "bookRevisions": [
+      0,
+      0
+    ],
+    "note": "The second flow reached the same app state and retained its cumulative fixture receipt. Full capture/readback acceptance is still blocked; no reset, sign-in or fresh launch was added."
+  },
+  "navigationVideo": {
+    "file": "navigation.mp4",
+    "sha256": "92e3cbc3b18f3a219ebfa6daf27d3a6dab27283c043cee664df5fae0579463df",
+    "metadata": {
+      "programs": [],
+      "streams": [
+        {
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 1179,
+          "height": 2556,
+          "r_frame_rate": "600/1",
+          "nb_frames": "1929"
+        }
+      ],
+      "format": {
+        "duration": "911.303333",
+        "size": "13217663"
+      }
+    },
+    "interpretation": "This is the retained Simulator screen recording, not an exported memory movie. r_frame_rate is a container rational for variable-rate screen capture and is not an application frame-rate claim. Metadata was independently read by ffprobe; no full movie decode is claimed."
+  },
+  "retainedFiles": {
+    "ios-e173b2db/flow-results.json": "ad60595633d62c1ad75e4e0a972fe90e11c6bbd66bd9396b2c5e24b812de4e85",
+    "ios-e173b2db/phase-results.json": "9488f7548883aadb3421cbedd6aa243cfc4a05c4fc03aad3b3792b1a871e4f1e",
+    "ios-e173b2db/flow-verification.json": "563b1fc2263772fab105ed01de4ef3fbadccc02cec744309682a392fb1cc83f6",
+    "ios-e173b2db/navigation-junit.xml": "398f609a94fbfa8b122f2666e9d36359253ffc49e25376a42bf67d84358f8f04",
+    "ios-e173b2db/maestro-memory-capture.xml": "55f48ed83dbba401c51d9ff9fff8f8e17ef9f8873f0fb4b93a96a433f07cc294",
+    "ios-e173b2db/native-ui-receipt.json": "e1dac86fd43457ef3e91840de0a35674a1f67838b12485b2689a2ca86f5d6459",
+    "ios-e173b2db/native-ui-auth-diagnostics.json": "0750d5b6a3f1dfe6eb3ea58edf8856389eab7257559be164a9ba48b14bb18772",
+    "ios-e173b2db/toolchain.log": "8d315d67a5517bc04b78c43c06e9ef5213bbb599704c907128dd3ad66b06ab29",
+    "ios-e173b2db/capture-commands.json": "52be8947bee672ebb6cb474e8b4f6c069d93ab4ecc7e40e9db2a09e29d2dc0b6",
+    "ios-e173b2db/capture-open-link-ax.json": "df636b1b3ce9ddcf2439db86478f543415a28e24f9e9ea487f0603edb7237696",
+    "ios-e173b2db/capture-open-link.png": "7a115edbd88951c3fd1e5da02b6e1a4bf2d52edd2f8b9a0056e3eae1c33c4c5d",
+    "ios-e173b2db/account-write-log-projection.json": "ea7811830a19c15f19523f9db0b84556e09f272a4086baf50582d02aa68b33f0"
+  },
+  "retainedSigningFiles": {
+    "ios-e173b2db-signing/simulator-entitlements-before-resign.json": "e5d99760ac25963889a44e3f83db998ce5d8946b012d98871a3006a7491fa946",
+    "ios-e173b2db-signing/simulator-entitlements.json": "5fcfeaa905f4dabc7a8d4aaeace8db269c247e819ab22a6768e40865571c4726",
+    "ios-e173b2db-signing/simulator-host-entitlements-before-resign.plist": "00491886daae07a5296c8bad50f116bf006b0004d7bf7338ad46669fbd903a4a",
+    "ios-e173b2db-signing/simulator-host-entitlements.plist": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "ios-e173b2db-signing/simulator-signature-before-resign.log": "c2aef88a86a8ff48fb8d055d177e78dfad8a7fc1d9d177397bdbf293d73c0acc",
+    "ios-e173b2db-signing/simulator-signature.log": "7c2b13a437f54af76fed8fe88768ef8c31e810492afcc8ddb9d89b6fa57907a2",
+    "ios-e173b2db-signing/simulator-signature-verification.log": "f0ccb9045d05b5def9c7ddf6c70864b92a59b61cdd39c431dd7b356ed1e5490e",
+    "ios-e173b2db-signing/simulator-signing.log": "072b72a1b428d4369dce58316e69aff87d3c6e34c017cd3e1226ddefdb2ee048"
+  },
+  "remainingAcceptance": [
+    "Actual saved-account readback after route mount",
+    "Real capture cancellation, retry, export decode and cleanup",
+    "Book settings editing and persisted revision reload",
+    "Physical-device and signed-distribution acceptance",
+    "Production capability activation remains disabled"
+  ],
+  "authRuntimeReview": {
+    "file": "ios-e173b2db-auth-runtime-review.json",
+    "sha256": "3be2a44e286115897439902214c13baf9bfe225801e8b9fc27c909618ce0b656",
+    "fullPerOperationCoverage": false
+  },
+  "capturePromptRepair": {
+    "file": "ios-capture-open-link-repair.json",
+    "sha256": "87da10e2ae81a3afb78fe9be7b5b97effb35f6450b7a918b708eb8544663a184",
+    "nativeRerunAccepted": false
+  }
+}

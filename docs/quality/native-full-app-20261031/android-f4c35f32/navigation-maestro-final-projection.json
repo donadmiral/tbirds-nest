@@ -1,0 +1,272 @@
+{
+  "sourceInArchive": "maestro/navigation/2026-10-31_150229/Full native app navigation/logs/maestro.log",
+  "sourceBytes": 24354,
+  "sourceSha256": "e473dec28a01057725a26b8df98d1ef98e5fb68316803856183c6d23abe2a6a7",
+  "selection": "Exact original lines119\u2013184, including Profile completion, first memory scroll, device-transport exception and failed error-artifact collection. Line numbers are 1-based.",
+  "lines": [
+    {
+      "line": 119,
+      "text": "15:03:25.211 [ INFO] maestro.Maestro.hierarchyBasedTap-ogj28Uc: Something has changed in the UI judging by view hierarchy. Proceed."
+    },
+    {
+      "line": 120,
+      "text": "15:03:25.212 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Tap on id: main-tab-profile COMPLETED"
+    },
+    {
+      "line": 121,
+      "text": "15:03:25.212 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Assert that \"Alex Rivera\" is visible RUNNING"
+    },
+    {
+      "line": 122,
+      "text": "15:03:25.319 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Assert that \"Alex Rivera\" is visible COMPLETED"
+    },
+    {
+      "line": 123,
+      "text": "15:03:25.319 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Assert that \"(?s)^(?:.*?, )?Edit profile$\" is visible RUNNING"
+    },
+    {
+      "line": 124,
+      "text": "15:03:25.464 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Assert that \"(?s)^(?:.*?, )?Edit profile$\" is visible COMPLETED"
+    },
+    {
+      "line": 125,
+      "text": "15:03:25.464 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Take screenshot profile RUNNING"
+    },
+    {
+      "line": 126,
+      "text": "15:03:25.465 [ INFO] maestro.Maestro.takeScreenshot: Taking screenshot"
+    },
+    {
+      "line": 127,
+      "text": "15:03:25.465 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to output sink"
+    },
+    {
+      "line": 128,
+      "text": "15:03:25.493 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Take screenshot profile COMPLETED"
+    },
+    {
+      "line": 129,
+      "text": "15:03:25.493 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Run memory-navigation.yaml RUNNING"
+    },
+    {
+      "line": 130,
+      "text": "15:03:25.494 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Apply configuration RUNNING"
+    },
+    {
+      "line": 131,
+      "text": "15:03:25.494 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Apply configuration COMPLETED"
+    },
+    {
+      "line": 132,
+      "text": "15:03:25.495 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandStart: Scrolling DOWN until \"View all memory books\" is visible with speed 40, visibility percentage 100%, timeout 20000 ms, with centering enabled RUNNING"
+    },
+    {
+      "line": 133,
+      "text": "15:03:26.209 [ WARN] maestro.orchestra.Orchestra.scrollUntilVisible: Error: maestro.MaestroException$ElementNotFound: Element not found: Text matching regex: View all memory books"
+    },
+    {
+      "line": 134,
+      "text": "15:03:26.253 [ INFO] maestro.Maestro.swipeFromCenter: Swiping UP from center"
+    },
+    {
+      "line": 135,
+      "text": "15:04:06.947 [ WARN] maestro.orchestra.debug.ArtifactsGenerator.captureStepHierarchy: Failed to capture step hierarchy"
+    },
+    {
+      "line": 136,
+      "text": "maestro.android.DeviceServerDiedException: Device server died during 'deviceInfo' on emulator-5556 (40680ms since last byte, connection age 91897ms): StatusRuntimeException: UNAVAILABLE"
+    },
+    {
+      "line": 137,
+      "text": "\tat maestro.android.AndroidDeviceConnection.onGrpcDeath(AndroidDeviceConnection.kt:319)"
+    },
+    {
+      "line": 138,
+      "text": "\tat maestro.android.AndroidDeviceConnection.mapTransport(AndroidDeviceConnection.kt:306)"
+    },
+    {
+      "line": 139,
+      "text": "\tat maestro.android.AndroidDeviceConnection.execute(AndroidDeviceConnection.kt:122)"
+    },
+    {
+      "line": 140,
+      "text": "\tat maestro.drivers.AndroidDriver.deviceInfo(AndroidDriver.kt:205)"
+    },
+    {
+      "line": 141,
+      "text": "\tat maestro.ViewHierarchy$Companion.from-8JJjmZI(ViewHierarchy.kt:28)"
+    },
+    {
+      "line": 142,
+      "text": "\tat maestro.Maestro$viewHierarchy$2.invoke-prqvCes(Maestro.kt:531)"
+    },
+    {
+      "line": 143,
+      "text": "\tat maestro.Maestro$viewHierarchy$2.invoke(Maestro.kt:530)"
+    },
+    {
+      "line": 144,
+      "text": "\tat kotlinx.coroutines.InterruptibleKt.runInterruptibleInExpectedContext(Interruptible.kt:48)"
+    },
+    {
+      "line": 145,
+      "text": "\tat kotlinx.coroutines.InterruptibleKt.access$runInterruptibleInExpectedContext(Interruptible.kt:1)"
+    },
+    {
+      "line": 146,
+      "text": "\tat kotlinx.coroutines.InterruptibleKt$runInterruptible$2.invokeSuspend(Interruptible.kt:40)"
+    },
+    {
+      "line": 147,
+      "text": "\tat kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)"
+    },
+    {
+      "line": 148,
+      "text": "\tat kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)"
+    },
+    {
+      "line": 149,
+      "text": "\tat kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:124)"
+    },
+    {
+      "line": 150,
+      "text": "\tat kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)"
+    },
+    {
+      "line": 151,
+      "text": "\tat kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)"
+    },
+    {
+      "line": 152,
+      "text": "\tat kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:820)"
+    },
+    {
+      "line": 153,
+      "text": "\tat kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)"
+    },
+    {
+      "line": 154,
+      "text": "\tat kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)"
+    },
+    {
+      "line": 155,
+      "text": "Caused by: io.grpc.StatusRuntimeException: UNAVAILABLE"
+    },
+    {
+      "line": 156,
+      "text": "\tat io.grpc.stub.ClientCalls.toStatusRuntimeException(ClientCalls.java:275)"
+    },
+    {
+      "line": 157,
+      "text": "\tat io.grpc.stub.ClientCalls.getUnchecked(ClientCalls.java:256)"
+    },
+    {
+      "line": 158,
+      "text": "\tat io.grpc.stub.ClientCalls.blockingUnaryCall(ClientCalls.java:169)"
+    },
+    {
+      "line": 159,
+      "text": "\tat maestro_android.MaestroDriverGrpc$MaestroDriverBlockingStub.deviceInfo(MaestroDriverGrpc.java:740)"
+    },
+    {
+      "line": 160,
+      "text": "\tat maestro.drivers.AndroidDriver.deviceInfo$lambda$4(AndroidDriver.kt:205)"
+    },
+    {
+      "line": 161,
+      "text": "\tat maestro.android.AndroidDeviceConnection.execute(AndroidDeviceConnection.kt:120)"
+    },
+    {
+      "line": 162,
+      "text": "\t... 15 more"
+    },
+    {
+      "line": 163,
+      "text": "Caused by: java.io.IOException: Command failed (host:transport:emulator-5556): device offline"
+    },
+    {
+      "line": 164,
+      "text": "\tat dadb.adbserver.AdbServer.send$dadb(AdbServer.kt:103)"
+    },
+    {
+      "line": 165,
+      "text": "\tat dadb.adbserver.AdbServerDadb.open(AdbServer.kt:148)"
+    },
+    {
+      "line": 166,
+      "text": "\tat maestro.android.AndroidDeviceConnection.buildChannel$lambda$2(AndroidDeviceConnection.kt:98)"
+    },
+    {
+      "line": 167,
+      "text": "\tat maestro.android.RawAdbSocket.connect(AdbSocketFactory.kt:206)"
+    },
+    {
+      "line": 168,
+      "text": "\tat java.base/java.net.Socket.connect(Socket.java:583)"
+    },
+    {
+      "line": 169,
+      "text": "\tat maestro.android.AdbSocketFactory.createSocket(AdbSocketFactory.kt:57)"
+    },
+    {
+      "line": 170,
+      "text": "\tat maestro.android.AdbSocketFactory.createSocket(AdbSocketFactory.kt:63)"
+    },
+    {
+      "line": 171,
+      "text": "\tat io.grpc.okhttp.OkHttpClientTransport$3.run(OkHttpClientTransport.java:535)"
+    },
+    {
+      "line": 172,
+      "text": "\tat io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:133)"
+    },
+    {
+      "line": 173,
+      "text": "\tat java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1136)"
+    },
+    {
+      "line": 174,
+      "text": "\tat java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:635)"
+    },
+    {
+      "line": 175,
+      "text": "\tat java.base/java.lang.Thread.run(Thread.java:840)"
+    },
+    {
+      "line": 176,
+      "text": "15:04:06.952 [ INFO] maestro.Maestro.takeScreenshot: Taking screenshot"
+    },
+    {
+      "line": 177,
+      "text": "15:04:06.953 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to output sink"
+    },
+    {
+      "line": 178,
+      "text": "15:04:06.955 [ WARN] maestro.orchestra.debug.ArtifactsGenerator.captureScreenshot: Failed to capture screenshot screenshots/step-038-scrollUntilVisible-View_all_memory_books.png"
+    },
+    {
+      "line": 179,
+      "text": "15:04:06.955 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Scrolling DOWN until \"View all memory books\" is visible with speed 40, visibility percentage 100%, timeout 20000 ms, with centering enabled FAILED"
+    },
+    {
+      "line": 180,
+      "text": "15:04:06.960 [ERROR] maestro.orchestra.Orchestra.executeCommands: [Command execution] CommandFailed: null"
+    },
+    {
+      "line": 181,
+      "text": "15:04:06.960 [ INFO] maestro.Maestro.takeScreenshot: Taking screenshot"
+    },
+    {
+      "line": 182,
+      "text": "15:04:06.961 [TRACE] maestro.utils.ScreenshotUtils.takeScreenshot: Taking screenshot to output sink"
+    },
+    {
+      "line": 183,
+      "text": "15:04:06.962 [ WARN] maestro.orchestra.debug.ArtifactsGenerator.captureScreenshot: Failed to capture screenshot screenshots/step-036-runFlow.png"
+    },
+    {
+      "line": 184,
+      "text": "15:04:06.963 [ INFO] maestro.cli.runner.CliConsoleListener.onCommandFinished: Run memory-navigation.yaml FAILED"
+    }
+  ]
+}

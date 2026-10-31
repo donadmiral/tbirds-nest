@@ -44,7 +44,7 @@ const snapshot = (name) => ({
 });
 function app(kind, api) {
   let cursor = 0,
-    tree;
+    tree, rootKey;
   const slots = [],
     effects = [];
   let props =
@@ -104,10 +104,12 @@ function app(kind, api) {
       console,
       require(id) {
         if (id === "react") return hooks;
+        if (id === "@/components/ProductDialog") return { ProductDialog: "Dialog" };
+        if (id.endsWith(".module.css")) return { default: new Proxy({}, { get: (_target, key) => String(key) }) };
         if (id === "react/jsx-runtime")
           return {
-            jsx: (type, props) => ({ type, props }),
-            jsxs: (type, props) => ({ type, props }),
+            jsx: (type, props, key) => ({ type, props, key }),
+            jsxs: (type, props, key) => ({ type, props, key }),
           };
         if (id === "@/lib/supabase/client") return { createClient: () => ({}) };
         if (id.endsWith("/marketReviews"))
@@ -124,6 +126,16 @@ function app(kind, api) {
   const render = () => {
     cursor = 0;
     tree = module.exports[kind](props);
+    if (typeof tree?.type === "function") {
+      if (tree.key !== rootKey) {
+        slots.forEach((slot) => slot?.cleanup?.());
+        slots.length = 0;
+        effects.length = 0;
+        cursor = 0;
+        rootKey = tree.key;
+      }
+      while (typeof tree?.type === "function") tree = tree.type(tree.props);
+    }
     effects.splice(0).forEach((fn) => fn());
   };
   const nodes = () => {

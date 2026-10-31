@@ -1,0 +1,309 @@
+{
+  "measuredAt": "2026-10-31T06:00:31.178809+00:00",
+  "headCommit": "e173b2dbcf253342be5683fa85f102aa38065411",
+  "testedMergeCommit": "e6ca24e27b00207344eb7989ed53d2305cb04cf3",
+  "tree": "37ca8db90469d32a2a2d7b3069db54b522926530",
+  "workflowRun": 41173170193,
+  "jobId": 124455217307,
+  "artifact": {
+    "id": 13031788334,
+    "bytes": 361732,
+    "sha256": "956045dfff3b2e9043d817aefa91b16aefd99bc3d8279966d5fcffb3ac7626b2",
+    "zipDigestVerified": true,
+    "name": "android-full-app-ui"
+  },
+  "result": {
+    "passed": false,
+    "nativeBuildSucceeded": true,
+    "reportedBuildDuration": "15m 41s",
+    "applicationInstalledAndLaunched": true,
+    "failureClass": "Host Android Emulator process SIGSEGV followed by device loss during navigation",
+    "hostEmulatorCauseReviewOwner": "hosted_backend",
+    "productCrashInferred": false,
+    "outOfMemoryCauseInferred": false
+  },
+  "sourceVerification": {
+    "manifestFiles": 495,
+    "selectedFlowSourceChecks": [
+      {
+        "path": "scripts/quality/run-native-ui-flows.sh",
+        "sha256": "814e406898cdbeb9335ec2445aa723aa9b89f344c4d36e7863106609a65de65a"
+      },
+      {
+        "path": "scripts/quality/native-ui-flow-results.py",
+        "sha256": "bd2ef2175adbdeb382898346c5c8195c4a45fb804491820946f00c830aa20efa"
+      },
+      {
+        "path": "scripts/quality/test-android-app-ui.sh",
+        "sha256": "b4b061b08be076c02d162dcf9db8f888afdab757b7bd694b3b76c4bf742de9dc"
+      },
+      {
+        "path": "scripts/quality/verify-native-ui.cjs",
+        "sha256": "ddec859c99aa6738dec36dca136e17802943c3f6b0761c8f8fc482eaabc6107b"
+      },
+      {
+        "path": "scripts/quality/verify-native-ui-memory.py",
+        "sha256": "a59f80c172b1bc9e82c5f0d73567f633e9b170d148b22633092fb382e3b5b9ca"
+      },
+      {
+        "path": "tests/native/flows/navigation.yaml",
+        "sha256": "1a3bb92ad2f80bfe9ba0c1c81829c65edfa1118dbfe10942074deeb9fe51e1f8"
+      },
+      {
+        "path": "tests/native/flows/memory-navigation.yaml",
+        "sha256": "42a6947e98ceda6e60e7073a486c5317f238f8e478763c30f4eed1e0dd39aeae"
+      },
+      {
+        "path": "tests/native/flows/memory-capture.yaml",
+        "sha256": "16966925346646f2280ca0ebdea7ce0c5f2e131d03e9dec3841c69a761f0ba91"
+      }
+    ],
+    "mismatches": 0,
+    "manifest": "docs/quality/native-full-app-20261031/android-full-app-e173b2db-source.json",
+    "manifestSha256": "0fec6c3859c429596d19932c87fd2c2472be9bd69e860f873ab8b1f5e64eeb48",
+    "overlayCount": 6,
+    "sourceMemoryCapability": 0,
+    "capabilityMode": "qa-capability-overlay",
+    "fullManifestReviewOwner": "native_acceptance",
+    "allManifestHashesMatched": 495,
+    "allOverlayChecks": [
+      {
+        "file": "src/services/supabase.ts",
+        "before": "457ab3f8c8c54aa3a5e770dd1b43f4869a98c7471c9ccffcbe5f9e3901847fee",
+        "after": "dfb6b6cfe427b7e5abdb7f7bedbdb45536f9abca000d4a2d3305dd45da4cf2e5",
+        "retainedSha256Verified": true
+      },
+      {
+        "file": "modules/boomerang/ios/BoomerangModule.swift",
+        "before": "6e31a63649cf96a87caa9abf33c31492fafd2ff4ef18602c21808803d1e57967",
+        "after": "e50ecc3027064c532f474784ac49299954f09ce1a00eb3ea5f45fc906878f6a8",
+        "retainedSha256Verified": true
+      },
+      {
+        "file": "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt",
+        "before": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237",
+        "after": "33170373380d9c69afabe789dfd7862f212ba1732a1328a74d7d123b7699d617",
+        "retainedSha256Verified": true
+      },
+      {
+        "file": "src/navigation/AppNavigator.tsx",
+        "before": "ee5ce00883df84956d2840d4d70f7f0ed7395797a7889abbb2970d6f7fa455fe",
+        "after": "7943987cda8b99c0a731d6965df634160a90dcfd8da109a4c099c9a09a4b80fa",
+        "retainedSha256Verified": true
+      },
+      {
+        "file": "metro.config.js",
+        "before": null,
+        "after": "d93f48605ead9e6d7b6fbc1cc210255bb653b227ac9daada78f69317a88c9534",
+        "retainedSha256Verified": true
+      },
+      {
+        "file": "index.js",
+        "before": "b6c80d0b280a2446862ee5a19cbfcaff39d551d353ac3a9abf090680570a11e0",
+        "after": "380861fc291a775b81d0891675f0bc4c632660ae44662ba370cb43052a1efa4c",
+        "retainedSha256Verified": true
+      }
+    ]
+  },
+  "navigation": {
+    "junitStatus": "ERROR",
+    "junitDurationSeconds": 82.314,
+    "passedScreens": [
+      "Home",
+      "Market",
+      "Jobs",
+      "Messages",
+      "Profile"
+    ],
+    "passedInitialFeedSwitches": [
+      "Latest",
+      "For You"
+    ],
+    "passedReturnToHome": true,
+    "lastCompletedUserAction": {
+      "sequenceNumber": 34,
+      "action": "takeScreenshot profile",
+      "completedAt": "2026-10-31T05:54:12.068Z"
+    },
+    "lastCompletedCommand": {
+      "sequenceNumber": 36,
+      "action": "apply memory-navigation configuration"
+    },
+    "currentCommandWhenDeviceWasLost": {
+      "sequenceNumber": 37,
+      "action": "scrollUntilVisible View all memory books",
+      "direction": "DOWN",
+      "startedAt": "2026-10-31T05:54:12.070Z",
+      "upwardSwipeStartedAt": "2026-10-31T05:54:12.785Z"
+    },
+    "laterMemoryAssertionsExecuted": false,
+    "screenshots": [
+      {
+        "path": "docs/quality/native-full-app-20261031/android-e173b2db/home.png",
+        "bytes": 51720,
+        "sha256": "864088a513e06bcaf01d1ceeb6133c0dfe6a4224633358d4bc8a0ca069e132c4"
+      },
+      {
+        "path": "docs/quality/native-full-app-20261031/android-e173b2db/market.png",
+        "bytes": 33533,
+        "sha256": "a1b13b9e0e74b4441af627c1d40f7f046442fc533c45166fb9df3bd50d481098"
+      },
+      {
+        "path": "docs/quality/native-full-app-20261031/android-e173b2db/jobs.png",
+        "bytes": 43474,
+        "sha256": "7484f2d936b5e4a1656fa221dba11af1db310f0bd76f11ce673a10a827c67403"
+      },
+      {
+        "path": "docs/quality/native-full-app-20261031/android-e173b2db/messages.png",
+        "bytes": 33698,
+        "sha256": "f8ba12f467879135c38a63cbbaf7a26bc9fa929e181856c2486e47342edd53db"
+      },
+      {
+        "path": "docs/quality/native-full-app-20261031/android-e173b2db/profile.png",
+        "bytes": 40662,
+        "sha256": "20f1a2fa28af209223effdcce4923d82f6170b8404fd27472b89b074f62b6721"
+      }
+    ]
+  },
+  "requiredFlowOrchestration": {
+    "flows": {
+      "schemaVersion": 1,
+      "mode": "same-app-required-flows",
+      "flows": [
+        {
+          "name": "navigation",
+          "flow": "tests/native/flows/navigation.yaml",
+          "attempts": 1,
+          "exitCode": 1,
+          "junit": "maestro-navigation.xml"
+        },
+        {
+          "name": "memory-capture",
+          "flow": "tests/native/flows/memory-capture.yaml",
+          "attempts": 1,
+          "exitCode": 1,
+          "junit": "maestro-memory-capture.xml"
+        }
+      ]
+    },
+    "phases": {
+      "flows": 1,
+      "evidence": 1,
+      "memoryDecoder": 1,
+      "fullAppVerifier": 1
+    },
+    "bothCliInvocationsAttemptedOnce": true,
+    "captureFlowCommandsStarted": false,
+    "captureFailure": "Device emulator-5556 was requested, but it is not connected.",
+    "captureJUnitPresent": false,
+    "bothExistingVerifiersAttempted": true,
+    "memoryDecoderFailure": "Required memory-capture/receipt.json was unavailable.",
+    "fullAppVerifierFailure": "Collected fixture receipt was empty; JSON parsing failed.",
+    "missingEvidenceRemainedFailure": true
+  },
+  "evidenceLimits": {
+    "zeroByteFiles": {
+      "native-ui-receipt.json": 0,
+      "native-ui-receipt-final.json": 0,
+      "native-ui-auth-diagnostics.json": 0,
+      "native-ui-auth-diagnostics-final.json": 0
+    },
+    "validFixtureReceiptAvailable": false,
+    "validAuthTimingTraceAvailable": false,
+    "accountReadbackAccepted": false,
+    "fullMemoryNavigationAccepted": false,
+    "captureDirectoryPresent": false,
+    "fullMovieCaptureAccepted": false,
+    "navigationVideoRetained": false,
+    "capturedNativeBridgeFatalLines": 0
+  },
+  "diagnosticLines": [
+    {
+      "line": 3369,
+      "text": "2026-10-31T05:52:33.8840301Z BUILD SUCCESSFUL in 15m 41s"
+    },
+    {
+      "line": 3407,
+      "text": "2026-10-31T05:54:52.4460591Z scripts/quality/test-android-app-ui.sh: line 102:  7041 Segmentation fault      (core dumped) \"$android_sdk/emulator/emulator\" -avd platinum_app_ui -port 5556 -no-window -no-audio -no-boot-anim -no-snapshot -gpu swiftshader_indirect -memory 3072 > native-ui-logs/emulator.log 2>&1"
+    },
+    {
+      "line": 3421,
+      "text": "2026-10-31T05:54:52.5465560Z FileNotFoundError: [Errno 2] No such file or directory: 'native-ui-logs/memory-capture/receipt.json'"
+    },
+    {
+      "line": 3425,
+      "text": "2026-10-31T05:54:52.5865060Z SyntaxError: Unexpected end of JSON input"
+    }
+  ],
+  "hostJobLogSha256": "71a01c7306dc52901ccf913f5dc9f6b5acb21faa705235f20c3f0e1db5f31b7b",
+  "appLogSha256": "da6fff291699c448ab5f0bb0d737ed78e9e3bf2969e6f53ba751c4b5d8ce3dbf",
+  "retainedFiles": [
+    {
+      "path": "docs/quality/native-full-app-20261031/android-e173b2db/flow-results.json",
+      "bytes": 351,
+      "sha256": "ad60595633d62c1ad75e4e0a972fe90e11c6bbd66bd9396b2c5e24b812de4e85"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-e173b2db/phase-results.json",
+      "bytes": 63,
+      "sha256": "9488f7548883aadb3421cbedd6aa243cfc4a05c4fc03aad3b3792b1a871e4f1e"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-e173b2db/flow-verification.json",
+      "bytes": 89,
+      "sha256": "563b1fc2263772fab105ed01de4ef3fbadccc02cec744309682a392fb1cc83f6"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-e173b2db/maestro-navigation.xml",
+      "bytes": 4385,
+      "sha256": "16b116fac22538e4db62c3c1168d55ea7428cbb19aa21dd6c9ea9d2f7c5a3f0e"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-e173b2db/maestro-navigation.log",
+      "bytes": 1441,
+      "sha256": "db236a97ec415255942cb4bf3e200aad163be72df462b5825c9d1d0c184ccec1"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-e173b2db/maestro-memory-capture.log",
+      "bytes": 62,
+      "sha256": "3e66cf2392dc12b00ab6dc4d9bf20c92711996aa761111a61d8abf079b296b02"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-e173b2db/navigation-commands.json",
+      "bytes": 67475,
+      "sha256": "c17c9a5ae8f4b1c20a8c190fe0b24c4c14750fd562010e3159a152e733843909"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-e173b2db/home.png",
+      "bytes": 51720,
+      "sha256": "864088a513e06bcaf01d1ceeb6133c0dfe6a4224633358d4bc8a0ca069e132c4"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-e173b2db/market.png",
+      "bytes": 33533,
+      "sha256": "a1b13b9e0e74b4441af627c1d40f7f046442fc533c45166fb9df3bd50d481098"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-e173b2db/jobs.png",
+      "bytes": 43474,
+      "sha256": "7484f2d936b5e4a1656fa221dba11af1db310f0bd76f11ce673a10a827c67403"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-e173b2db/messages.png",
+      "bytes": 33698,
+      "sha256": "f8ba12f467879135c38a63cbbaf7a26bc9fa929e181856c2486e47342edd53db"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-e173b2db/profile.png",
+      "bytes": 40662,
+      "sha256": "20f1a2fa28af209223effdcce4923d82f6170b8404fd27472b89b074f62b6721"
+    }
+  ],
+  "limits": [
+    "The emulator was lost during the first navigation invocation, before its teardown and before the independent capture command; separate CLI process continuity was not tested by this failed attempt.",
+    "Five native page assertions and screenshots passed, but saved-book navigation, dedicated SecureStore readback, export and cleanup did not run.",
+    "Zero-byte exports cannot support fixture request completeness, account reload, timer identity or lock-duration claims.",
+    "Maestro command timings include driver settling and are not app frame-rate or navigation-latency measurements.",
+    "The host SIGSEGV diagnosis does not establish a specific GPU, OOM or application cause. The iPhone sibling run was preserved."
+  ]
+}

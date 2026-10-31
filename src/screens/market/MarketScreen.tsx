@@ -7,7 +7,7 @@ import EmptyState from '../../components/EmptyState';
 import VerifiedBadge from '../../components/VerifiedBadge';
 import { useAuthStore } from '../../stores/authStore';
 import MarketFilterSheet, { MarketFilters, EMPTY_FILTERS } from '../../components/market/MarketFilterSheet';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import {
   ActivityIndicator, useWindowDimensions, FlatList, RefreshControl, StyleSheet,
   Text, TextInput, TouchableOpacity, View, Alert, Modal, ScrollView,
@@ -21,9 +21,13 @@ import { useFocusEffect } from '@react-navigation/native';
 import { handleTabBarScroll } from '../../components/AdaptiveTabBar';
 
 import { marketService, Listing, MARKET_CATEGORIES } from '../../services/marketService';
+import { navigationCache, navigationScope, subscribeNavigationScope } from '../../lib/navigationCache';
+import { emptyMarketDirectory, marketDirectoryKey, MARKET_PAGE_SIZE, mergeMarketDirectory, mutateDirectory, readMarketDirectory } from '../../services/navigationDirectory';
+import type { MarketDirectoryView, MarketSelection } from '../../services/navigationDirectory';
+import { supabase } from '../../services/supabase';
 
 const GUTTER = 12;
-const PAGE_SIZE = 30;
+type MarketControls = { search: string; category: string | null; filters: MarketFilters; tab: MarketSelection['tab'] };
 
 function priceLabel(item: Listing): string {
   const amount = Number(item.price);
@@ -35,108 +39,126 @@ export default function MarketScreen({ navigation }: any) {
   const { t, isDark } = useTheme();
   const { width } = useWindowDimensions();
   const cardWidth = (width - GUTTER * 3) / 2;
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [loading, setLoading] = useState(true);
+  const scope = useSyncExternalStore(subscribeNavigationScope, navigationScope, navigationScope);
+  const controlsScope = useRef(scope), controlsOwner = controlsScope.current;
+  const meProfile = useAuthStore(state => state.profile);
+  const [initialControls] = useState(() => navigationCache.read<MarketControls>(scope, 'market:controls'));
+  const [search, setSearch] = useState(initialControls?.search ?? '');
+  const [query, setQuery] = useState(search.trim());
+  const [category, setCategory] = useState<string | null>(initialControls?.category ?? null);
+  const [filters, setFilters] = useState<MarketFilters>(initialControls?.filters ?? EMPTY_FILTERS);
+  const [marketTab, setMarketTab] = useState<MarketSelection['tab']>(initialControls?.tab ?? 'browse');
+  const selection = useMemo<MarketSelection>(() => ({ tab: marketTab, search: query, category, filters, homeCity: meProfile?.location || null }), [marketTab, query, category, filters, meProfile?.location]);
+  const cacheKey = marketDirectoryKey(selection);
+  const saveContext = useMemo(() => ({ scope, cacheKey }), [scope, cacheKey]);
+  const saveContextRef = useRef(saveContext); saveContextRef.current = saveContext;
+  const [view, setView] = useState(() => navigationCache.read<MarketDirectoryView>(scope, cacheKey) ?? emptyMarketDirectory());
+  const viewRef = useRef(view);
+  const listings = view.rows, savedIds = useMemo(() => new Set(view.savedIds), [view.savedIds]);
+  const [loading, setLoading] = useState(!view.ready);
   const [loadFailed, setLoadFailed] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [search, setSearch] = useState('');
-  const [category, setCategory] = useState<string | null>(null);
-  const [filters, setFilters] = useState<MarketFilters>(EMPTY_FILTERS);
-  const [marketTab, setMarketTab] = useState<'browse' | 'saved' | 'selling'>('browse');
   const marketUnread = useUnreadStore(st => st.counts.market);
-  useFocusEffect(React.useCallback(() => { useUnreadStore.getState().refresh(); }, []));
-  const { profile: meProfile } = useAuthStore();
+  useFocusEffect(useCallback(() => { useUnreadStore.getState().refresh(); }, []));
   const [filterOpen, setFilterOpen] = useState(false);
   const [ordersOpen, setOrdersOpen] = useState(false);
-  const request = useRef(0);
-  const saveContext = useMemo(() => ({}), [marketTab, meProfile?.id]);
-  const saveContextRef = useRef(saveContext);
-  saveContextRef.current = saveContext;
-  useEffect(() => {
-    saveContextRef.current = saveContext;
-    return () => { saveContextRef.current = {}; };
-  }, [saveContext]);
-  const pendingSaves = useRef(new Map<string, { context: object }>());
-  const page = useRef({ offset: 0, hasMore: false, busy: false });
+  const activeRead = useRef<AbortController | null>(null);
+  const pendingSaves = useRef(new Map<string, object>());
+  const saveRevision = useRef(0);
+  const [savingIds, setSavingIds] = useState<Set<string>>(new Set());
   const [loadingMore, setLoadingMore] = useState(false);
   const [pageFailed, setPageFailed] = useState(false);
+  const commit = useCallback((next: MarketDirectoryView) => {
+    if (saveContextRef.current !== saveContext || navigationScope() !== scope) return;
+    viewRef.current = next; setView(next);
+    if (next.ready) navigationCache.save(scope, cacheKey, next);
+  }, [scope, cacheKey, saveContext]);
 
-  const load = useCallback(async (opts?: { silent?: boolean; append?: boolean }) => {
-    const append = opts?.append === true;
-    if (append && (page.current.busy || !page.current.hasMore || marketTab !== 'browse')) return;
-    const token = ++request.current;
-    const offset = append ? page.current.offset : 0;
-    page.current.busy = true;
-    setPageFailed(false);
-    if (append) setLoadingMore(true);
-    else {
-      setLoadingMore(false);
-      if (!opts?.silent) setLoading(true);
-      setLoadFailed(false);
+  // Only typing is debounced. A tab return or filter choice starts immediately.
+  useEffect(() => {
+    if (query === search.trim()) return;
+    const timer = setTimeout(() => setQuery(search.trim()), 250);
+    return () => clearTimeout(timer);
+  }, [search, query]);
+  useEffect(() => { if (controlsOwner === scope) navigationCache.save(scope, 'market:controls', { search, category, filters, tab: marketTab }); }, [scope, controlsOwner, search, category, filters, marketTab]);
+  useLayoutEffect(() => {
+    if (controlsScope.current !== scope) {
+      controlsScope.current = scope;
+      setSearch(''); setQuery(''); setCategory(null); setFilters(EMPTY_FILTERS); setMarketTab('browse'); setFilterOpen(false); setOrdersOpen(false);
     }
+    activeRead.current?.abort(); activeRead.current = null;
+    const cached = navigationCache.read<MarketDirectoryView>(scope, cacheKey) ?? emptyMarketDirectory();
+    viewRef.current = cached; setView(cached); setLoading(!cached.ready);
+    setLoadFailed(false); setPageFailed(false); setLoadingMore(false); setRefreshing(false); setSavingIds(new Set(pendingSaves.current.keys()));
+  }, [scope, cacheKey]);
+  useEffect(() => {
+    const contextRef = saveContextRef, work = activeRead;
+    return () => { contextRef.current = { scope: null, cacheKey: '' }; work.current?.abort(); };
+  }, []);
+
+  const load = useCallback(async (opts?: { append?: boolean; reset?: boolean }) => {
+    if (!scope || controlsOwner !== scope || saveContextRef.current !== saveContext || navigationScope() !== scope) return;
+    const append = opts?.append === true;
+    const previous = viewRef.current;
+    if (append && (activeRead.current || !previous.hasMore || marketTab !== 'browse')) return;
+    activeRead.current?.abort();
+    const controller = new AbortController(); activeRead.current = controller;
+    const current = () => activeRead.current === controller && !controller.signal.aborted && saveContextRef.current === saveContext && navigationScope() === scope;
+    const offset = append ? previous.offset : 0, savedVersion = saveRevision.current;
+    const preserve = !append && !opts?.reset && marketTab === 'browse' && previous.ready && (previous.top > 0 || previous.offset > MARKET_PAGE_SIZE);
+    setPageFailed(false);
+    if (append) setLoadingMore(true); else { setLoadingMore(false); setLoading(!previous.ready); setLoadFailed(false); }
     try {
-      let rows: Listing[];
-      if (marketTab === 'saved') {
-        rows = await marketService.getSavedListings();
-      } else if (marketTab === 'selling') {
-        rows = meProfile?.id ? await marketService.myListings(meProfile.id) : [];
-      } else {
-        const noExplicitFilters = !filters.minPrice && !filters.maxPrice && !filters.condition && !filters.city && (!filters.sort || filters.sort === 'recent');
-        rows = noExplicitFilters
-          ? await marketService.getMarketFeed({ search, category, city: (meProfile as any)?.location || null, limit: PAGE_SIZE + 1, offset })
-          : await marketService.listListings({ search, category, limit: PAGE_SIZE + 1, offset,
-              minPrice: filters.minPrice ? Number(filters.minPrice) : null,
-              maxPrice: filters.maxPrice ? Number(filters.maxPrice) : null,
-              condition: filters.condition, city: filters.city || null, sort: filters.sort });
-      }
-      const ids = append ? null : await marketService.getSavedIds();
-      if (token !== request.current) return;
-      const batch = marketTab === 'browse' ? rows.slice(0, PAGE_SIZE) : rows;
-      page.current = { offset: offset + batch.length, hasMore: marketTab === 'browse' && rows.length > PAGE_SIZE, busy: false };
-      setListings(previous => append ? [...new Map([...previous, ...batch].map(row => [row.id, row])).values()] : batch);
-      if (ids) setSavedIds(new Set(ids));
+      const result = await readMarketDirectory(scope, selection, offset, preserve ? previous.rows.map(row => row.id) : [], !append, controller.signal);
+      if (!current()) return;
+      if (savedVersion !== saveRevision.current) result.savedIds = null;
+      const next = mergeMarketDirectory(viewRef.current, result, append, preserve);
+      if (savedVersion !== saveRevision.current && marketTab === 'saved') next.rows = next.rows.filter(row => next.savedIds.includes(row.id));
+      commit(next);
     } catch {
-      if (token === request.current) append ? setPageFailed(true) : setLoadFailed(true);
+      if (current()) { if (append) setPageFailed(true); else setLoadFailed(true); }
     } finally {
-      if (token === request.current) {
-        page.current.busy = false;
+      if (current()) {
+        activeRead.current = null;
         setLoading(false); setRefreshing(false); setLoadingMore(false);
       }
     }
-  }, [search, category, filters, marketTab, meProfile?.id, meProfile?.location]);
+  }, [scope, controlsOwner, saveContext, marketTab, selection, commit]);
 
-  // One debounced request per focused query. Invalidate older results on filter changes or blur.
   useFocusEffect(useCallback(() => {
-    page.current = { offset: 0, hasMore: false, busy: true };
-    setLoading(true);
-    const timer = setTimeout(() => { void load(); }, 350);
-    return () => { clearTimeout(timer); request.current += 1; page.current.hasMore = false; page.current.busy = true; };
+    const work = activeRead;
+    void load();
+    return () => { work.current?.abort(); work.current = null; };
   }, [load]));
 
-  const onRefresh = () => { setRefreshing(true); load({ silent: true }); };
-
+  const onRefresh = () => { setRefreshing(true); void load({ reset: true }); };
   const categories = useMemo(() => ['All', ...MARKET_CATEGORIES], []);
-  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
   const toggleSave = useCallback(async (id: string) => {
-    if (pendingSaves.current.get(id)?.context === saveContext) return;
-    const operation = { context: saveContext };
+    if (saveContextRef.current !== saveContext || navigationScope() !== scope || pendingSaves.current.has(id)) return;
+    const operation = {};
     pendingSaves.current.set(id, operation);
-    const wasSaved = savedIds.has(id);
-    const next = !wasSaved;
-    setSavedIds(prev => { const n = new Set(prev); next ? n.add(id) : n.delete(id); return n; });
+    const next = !viewRef.current.savedIds.includes(id);
+    saveRevision.current++; setSavingIds(ids => new Set(ids).add(id));
     try {
-      await marketService.toggleSaved(id, next);
-      if (saveContextRef.current !== saveContext) return;
-      if (!next && marketTab === 'saved') setListings(rows => rows.filter(row => row.id !== id));
+      await mutateDirectory(scope, (pin, ownerId) => pin(next
+        ? supabase.from('saved_listings').upsert({ user_id: ownerId, listing_id: id })
+        : supabase.from('saved_listings').delete().eq('user_id', ownerId).eq('listing_id', id)));
+      if (saveContextRef.current !== saveContext || navigationScope() !== scope) return;
+      const latest = viewRef.current, ids = new Set(latest.savedIds);
+      if (next) ids.add(id); else ids.delete(id);
+      commit({ ...latest, savedIds: [...ids], rows: !next && marketTab === 'saved' ? latest.rows.filter(row => row.id !== id) : latest.rows });
     } catch {
-      if (saveContextRef.current !== saveContext) return;
-      setSavedIds(prev => { const n = new Set(prev); wasSaved ? n.add(id) : n.delete(id); return n; });
-      Alert.alert('Could not save listing', 'Please try again.');
-    } finally { if (pendingSaves.current.get(id) === operation) pendingSaves.current.delete(id); }
-  }, [savedIds, marketTab, saveContext]);
+      if (saveContextRef.current === saveContext && navigationScope() === scope) Alert.alert('Could not confirm saved listing', 'Refresh your saved listings before retrying.');
+    } finally {
+      saveRevision.current++;
+      if (pendingSaves.current.get(id) === operation) pendingSaves.current.delete(id);
+      if (saveContextRef.current.scope === scope && navigationScope() === scope) setSavingIds(ids => { const remaining = new Set(ids); remaining.delete(id); return remaining; });
+    }
+  }, [scope, saveContext, marketTab, commit]);
 
   const renderItem = ({ item }: { item: Listing }) => (
     <TouchableOpacity
+      accessibilityRole="button" accessibilityLabel={`View listing: ${item.title}`}
       style={[s.card, { width: cardWidth }]}
       activeOpacity={0.85}
       onPress={() => { prefetch('listing:' + item.id, () => marketService.getListing(item.id)); navigation.navigate('ListingDetail', { listingId: item.id }); }}
@@ -155,7 +177,7 @@ export default function MarketScreen({ navigation }: any) {
         </View>
       )}
       <TouchableOpacity
-        accessibilityRole="button" accessibilityLabel={savedIds.has(item.id) ? "Unsave listing" : "Save listing"} accessibilityState={{ selected: savedIds.has(item.id) }} onPress={() => toggleSave(item.id)} activeOpacity={0.8} hitSlop={{ top: 9, bottom: 9, left: 9, right: 9 }}
+        accessibilityRole="button" accessibilityLabel={savedIds.has(item.id) ? "Unsave listing" : "Save listing"} accessibilityState={{ selected: savedIds.has(item.id), busy: savingIds.has(item.id), disabled: savingIds.has(item.id) }} disabled={savingIds.has(item.id)} onPress={() => toggleSave(item.id)} activeOpacity={0.8} hitSlop={{ top: 9, bottom: 9, left: 9, right: 9 }}
         style={{ position: 'absolute', top: 8, right: 8, width: 30, height: 30, borderRadius: 15, backgroundColor: t.surface.raised, alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 3, shadowOffset: { width: 0, height: 1 }, elevation: 2 }}>
         <Ionicons name={savedIds.has(item.id) ? 'heart' : 'heart-outline'} size={17} color={savedIds.has(item.id) ? t.status.danger : t.ink.primary} />
       </TouchableOpacity>
@@ -223,6 +245,7 @@ export default function MarketScreen({ navigation }: any) {
         {(['browse', 'saved', 'selling'] as const).map(tab => (
           <TouchableOpacity
             key={tab}
+            accessibilityRole="tab" accessibilityState={{ selected: marketTab === tab }}
             style={{ marginRight: 22, paddingVertical: 11, borderBottomWidth: 2, borderBottomColor: marketTab === tab ? t.ink.primary : 'transparent' }}
             onPress={() => setMarketTab(tab)}
             activeOpacity={0.7}
@@ -233,7 +256,7 @@ export default function MarketScreen({ navigation }: any) {
           </TouchableOpacity>
         ))}
       </View>
-      <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', marginHorizontal: 14, marginBottom: 8, backgroundColor: t.surface.sunken, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 8 }} onPress={() => setFilterOpen(true)} activeOpacity={0.75}>
+      <TouchableOpacity accessibilityRole="button" accessibilityLabel="Market filters" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start', marginHorizontal: 14, marginBottom: 8, backgroundColor: t.surface.sunken, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 8 }} onPress={() => setFilterOpen(true)} activeOpacity={0.75}>
         <Feather name="sliders" size={13} color={t.ink.primary} />
         <Text style={{ fontSize: 13.5, fontWeight: '700', color: t.ink.primary }}>Filters</Text>
       </TouchableOpacity>
@@ -244,6 +267,7 @@ export default function MarketScreen({ navigation }: any) {
         <Feather name="search" size={16} color={t.ink.muted} style={{ marginRight: 8 }} />
         <TextInput
           style={s.searchInput}
+          accessibilityLabel="Search the market" maxLength={100}
           value={search}
           onChangeText={setSearch}
           placeholder="Search the market"
@@ -252,7 +276,7 @@ export default function MarketScreen({ navigation }: any) {
           autoCapitalize="none"
         />
         {search.length > 0 && (
-          <TouchableOpacity onPress={() => setSearch('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Clear market search" onPress={() => setSearch('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
             <Feather name="x" size={16} color={t.ink.muted} />
           </TouchableOpacity>
         )}
@@ -290,14 +314,16 @@ export default function MarketScreen({ navigation }: any) {
         <ListRowSkeleton />
       ) : listings.length === 0 && !loadFailed ? (
         <View style={s.center}>
-          <Feather name="shopping-bag" size={40} color="#E5E5EA" />
+          <Feather name="shopping-bag" size={40} color={t.ink.muted} />
           <Text style={s.emptyTitle}>Nothing here yet</Text>
           <Text style={s.emptyTxt}>Be the first to list something for sale.</Text>
         </View>
       ) : (
         <TapTopFlatList ListEmptyComponent={loadFailed ? null : <EmptyState icon="shopping-bag" title="Nothing listed yet" line="New listings appear here as people post them." />} automaticallyAdjustKeyboardInsets={true}
+          key={cacheKey}
           data={listings}
-          extraData={isDark}
+          extraData={{ isDark, savedIds, savingIds }}
+          contentOffset={{ x: 0, y: view.top }}
           onEndReached={() => { if (!pageFailed) void load({ append: true }); }}
           onEndReachedThreshold={0.5}
           ListFooterComponent={loadingMore ? <ActivityIndicator color={t.ink.primary} style={{ padding: 20 }} /> : pageFailed ? (
@@ -311,7 +337,13 @@ export default function MarketScreen({ navigation }: any) {
           contentContainerStyle={{ gap: GUTTER, paddingTop: 4, paddingBottom: TAB_BAR_CLEARANCE + 24 }}
           renderItem={renderItem}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.brand.base} />}
-          onScroll={handleTabBarScroll}
+          onScroll={(event: any) => {
+            handleTabBarScroll(event);
+            const top = event.nativeEvent.contentOffset.y;
+            if (saveContextRef.current !== saveContext || navigationScope() !== scope || !Number.isFinite(top) || top < 0 || !viewRef.current.ready) return;
+            viewRef.current = { ...viewRef.current, top };
+            navigationCache.save(scope, cacheKey, viewRef.current);
+          }}
           scrollEventThrottle={16}
         />
       )}

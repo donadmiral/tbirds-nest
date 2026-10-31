@@ -1,0 +1,246 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-10-31T16:00:17Z",
+  "status": "LOCAL_REPAIR_VERIFIED_NATIVE_ACCEPTANCE_PENDING",
+  "baseApplication": {
+    "head": "f4c35f32795be5f196840c37382143a2d7e33d55",
+    "mergeCommit": "6f3204cd44996dfe66ffe2dcf7192543805aa912",
+    "tree": "7699f995aa8e5192658f785258eb48f408af6a39"
+  },
+  "problem": {
+    "retainedRuntimeFinding": {
+      "path": "docs/quality/native-full-app-20261031/ios-f4c35f32-navigation-independent-review.json",
+      "sha256": "37a3ad282dd1d70e5bd6365cfea0293fd7fd3229d45973d951aef19b1a5d1157",
+      "finding": "The current iPhone passed main pages and centered private-shelf entry, then failed reader readiness with a full-page loading spinner in retained post-error AX/PNG."
+    },
+    "sourceDefect": "The f4 reader awaited optional story_reactions inside the required book/media try/catch/finally. Holding that read withheld the authorized reader; rejection cleared the already hydrated book. Functional component regressions reproduce both defects.",
+    "causalityLimit": "The optional-read defect is independently established from source and controlled component execution. The f4 artifact does not identify which promise caused its observed loading interval, and this repair is not claimed to cure that native failure."
+  },
+  "changes": [
+    "Required auth readiness, book read, media hydration and visibility checks remain prerequisites for the book. Optional reaction reads run after authorized publication without blocking reader loading completion.",
+    "Returned query errors and rejected optional promises settle only reaction status. They do not clear the authorized book or route into its required-read error screen.",
+    "Unknown initial reaction state disables only the reaction control and exposes loading/unavailable status. It never presents an actionable guessed Like/unlike state. Valid known membership remains usable during ordinary refreshes and optional refresh failure.",
+    "A per-book/account scope object invalidates old reads and mutation completions across route/account/unmount, including account ABA before React rerenders. New required loads retire old optional-read tickets and settle unknown pending state.",
+    "Confirmed per-story revision records override older optional-read membership while preserving fetched results for unrelated pages. Both successful react and unreact are protected; rejected mutations do not replace authoritative reads.",
+    "Fresh scopes clear known/liked state; authorized results prune removed or absent source IDs. Empty and source-less books cannot carry old likes into later pages.",
+    "Optional requests use a separate ticket from full-book loadGeneration: a soundtrack confirmation can still invalidate stale full-book metadata without discarding a valid reaction response. If it invalidates a held required refresh, the retired unknown reaction read is unavailable rather than stuck loading."
+  ],
+  "sourceFiles": [
+    {
+      "path": "src/screens/profile/MemoryAlbumScreen.tsx",
+      "bytes": 67979,
+      "sha256": "63cf58cdf501ef43c333c9cce04ba3620fb775f1de532e4d92ace987d0d8826f"
+    },
+    {
+      "path": "tests/quality/native-memory-album-loading.cjs",
+      "bytes": 24780,
+      "sha256": "9059608e3383c7fec254757f281655548a904ef6ed5f53c2bc6f314200a47691"
+    },
+    {
+      "path": "tests/quality/memory-media-regressions.cjs",
+      "bytes": 3734,
+      "sha256": "526f6a7657b3d7e0fac755da4412c290a48de8cdf03a2f70258b078b92f6749c"
+    }
+  ],
+  "tests": {
+    "actualComponentFile": "tests/quality/native-memory-album-loading.cjs",
+    "newComponentCases": 27,
+    "existingAuthorizationCases": 6,
+    "baseline": {
+      "command": "env -u NODE_TEST_CONTEXT PLATINUM_READER_SOURCE=<retained MemoryAlbumScreen-before.tsx.txt> node --test --test-isolation=none --test-reporter=tap tests/quality/native-memory-album-loading.cjs",
+      "source": {
+        "path": "docs/quality/native-full-app-20261031/native-reader-reactions-repair/MemoryAlbumScreen-before.tsx.txt",
+        "bytes": 64219,
+        "sha256": "437b2d5c52cf1ad00ce1d322367ac1e41da8857b6d2db6a1c7db263ad4e7f541"
+      },
+      "matchesLiteralF4Screen": true,
+      "result": {
+        "tests": 27,
+        "pass": 10,
+        "fail": 17,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 3771.45098,
+        "resultLines": [
+          "not ok 1 - held optional reactions do not block the actual authorized reader",
+          "not ok 2 - unknown initial reaction state cannot expose an actionable Like guess",
+          "not ok 3 - optional reaction reject cannot discard the authorized book",
+          "not ok 4 - optional reaction error-result cannot discard the authorized book",
+          "ok 5 - pending auth cannot dispatch required book or optional reaction reads",
+          "ok 6 - pending required book authorization keeps the reader gated",
+          "ok 7 - required book rejection still clears the reader and offers retry",
+          "ok 8 - required media rejection still clears the reader and offers retry",
+          "ok 9 - held required media hydration cannot publish a book or start optional reads",
+          "ok 10 - old optional read cannot affect a replacement route that shares a story ID",
+          "ok 11 - account ABA invalidates old optional reads before a replacement viewer commit",
+          "ok 12 - unmount invalidates a pending optional reaction result",
+          "ok 13 - a newer load result wins over the previous optional reaction read",
+          "not ok 14 - an older reaction read preserves a newer successful toggle and other page results",
+          "not ok 15 - a newer successful unreact removes the stale read membership",
+          "ok 16 - failed toggle leaves the optional authoritative reaction result usable",
+          "not ok 17 - fresh book identity cannot display old confirmed likes while its optional read is held",
+          "not ok 18 - empty refreshed book removes old likes before a source returns",
+          "not ok 19 - no-story refreshed book removes old likes before a source returns",
+          "not ok 20 - a successful old-route toggle cannot leak into a replacement book",
+          "not ok 21 - optional background reject retains confirmed known reaction state",
+          "not ok 22 - optional background error-result retains confirmed known reaction state",
+          "not ok 23 - an old-account mutation cannot apply after ABA before React rerenders",
+          "not ok 24 - unmounted confirmed reaction completion cannot publish state or errors",
+          "not ok 25 - unmounted rejected reaction completion cannot publish state or errors",
+          "not ok 26 - soundtrack confirmation does not discard a held optional reaction response",
+          "not ok 27 - soundtrack confirmation invalidating a held refresh cannot strand unknown reactions as loading"
+        ]
+      }
+    },
+    "reviewDiscoveredSoundtrackCases": {
+      "source": {
+        "path": "docs/quality/native-full-app-20261031/native-reader-reactions-repair/MemoryAlbumScreen-before-ticket.tsx.txt",
+        "bytes": 67403,
+        "sha256": "ef2eb453b79b16cdd30d5d3f5aeabc3863831d71e8cc0bf7a99545f7e9cf9f5c"
+      },
+      "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap --test-name-pattern=\"soundtrack confirmation\" tests/quality/native-memory-album-loading.cjs",
+      "result": {
+        "tests": 2,
+        "pass": 0,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 763.373128,
+        "resultLines": [
+          "not ok 1 - soundtrack confirmation does not discard a held optional reaction response",
+          "not ok 2 - soundtrack confirmation invalidating a held refresh cannot strand unknown reactions as loading"
+        ]
+      },
+      "mechanism": "Actual SoundtrackPicker parent callback and actual shared soundtrack-save hook perform a controlled save and verified get_memory_book read, invoking the real screen onConfirmed callback. Both held optional-read and held-refresh variants failed before the separate ticket."
+    },
+    "final": {
+      "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-memory-album-loading.cjs tests/quality/memory-media-regressions.cjs",
+      "result": {
+        "tests": 33,
+        "pass": 33,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 3580.913476,
+        "resultLines": [
+          "ok 1 - web album loader commits authorized media",
+          "ok 2 - web late album read cannot restore an old account's media",
+          "ok 3 - web failed album authorization clears media and offers retry",
+          "ok 4 - native album loader commits authorized media",
+          "ok 5 - native late album read cannot restore an old account's media",
+          "ok 6 - native failed album authorization clears media and offers retry",
+          "ok 7 - held optional reactions do not block the actual authorized reader",
+          "ok 8 - unknown initial reaction state cannot expose an actionable Like guess",
+          "ok 9 - optional reaction reject cannot discard the authorized book",
+          "ok 10 - optional reaction error-result cannot discard the authorized book",
+          "ok 11 - pending auth cannot dispatch required book or optional reaction reads",
+          "ok 12 - pending required book authorization keeps the reader gated",
+          "ok 13 - required book rejection still clears the reader and offers retry",
+          "ok 14 - required media rejection still clears the reader and offers retry",
+          "ok 15 - held required media hydration cannot publish a book or start optional reads",
+          "ok 16 - old optional read cannot affect a replacement route that shares a story ID",
+          "ok 17 - account ABA invalidates old optional reads before a replacement viewer commit",
+          "ok 18 - unmount invalidates a pending optional reaction result",
+          "ok 19 - a newer load result wins over the previous optional reaction read",
+          "ok 20 - an older reaction read preserves a newer successful toggle and other page results",
+          "ok 21 - a newer successful unreact removes the stale read membership",
+          "ok 22 - failed toggle leaves the optional authoritative reaction result usable",
+          "ok 23 - fresh book identity cannot display old confirmed likes while its optional read is held",
+          "ok 24 - empty refreshed book removes old likes before a source returns",
+          "ok 25 - no-story refreshed book removes old likes before a source returns",
+          "ok 26 - a successful old-route toggle cannot leak into a replacement book",
+          "ok 27 - optional background reject retains confirmed known reaction state",
+          "ok 28 - optional background error-result retains confirmed known reaction state",
+          "ok 29 - an old-account mutation cannot apply after ABA before React rerenders",
+          "ok 30 - unmounted confirmed reaction completion cannot publish state or errors",
+          "ok 31 - unmounted rejected reaction completion cannot publish state or errors",
+          "ok 32 - soundtrack confirmation does not discard a held optional reaction response",
+          "ok 33 - soundtrack confirmation invalidating a held refresh cannot strand unknown reactions as loading"
+        ]
+      }
+    },
+    "coverage": [
+      "Held/rejected/error-result optional reads",
+      "Unknown initial membership stays disabled, including a preexisting server like",
+      "Held auth/book/media gates and required book/media rejection",
+      "Route replacement with shared story IDs, account ABA before rerender, unmount and newer read ownership",
+      "Successful react/unreact merge with an older read while other pages receive fetched state",
+      "Failed mutation leaves optional authoritative results usable",
+      "Fresh/empty/no-source book state",
+      "Late old-route/old-account and unmounted confirmed/rejected mutation completions",
+      "Known state preserved after background optional rejection or returned error",
+      "Actual soundtrack confirmation plus superseded required-refresh interaction"
+    ],
+    "executionBoundary": "The complete production MemoryAlbumScreen TSX and pure shared helpers, including the real soundtrack-save hook, execute under a controlled dependency-faithful React hook host. State setters, memo dependencies and effect cleanup are exercised. Native views/animation acknowledgement, timers, child UI internals, auth sessions, queries and media delivery are controlled; this does not execute UIKit, Hermes networking, actual server authorization or a native renderer.",
+    "existingTestChange": "memory-media-regressions.cjs receives only the new ref/setter fixture values required by its extracted native callback. All six existing native/web authorization assertions remain unchanged."
+  },
+  "staticValidation": {
+    "typeScriptExitCode": 0,
+    "scopedEslintExitCode": 0,
+    "diffCheckExitCode": 0,
+    "receipt": {
+      "path": "docs/quality/native-full-app-20261031/native-reader-reactions-repair/checks.json",
+      "bytes": 1900,
+      "sha256": "9c4adf8de0b8ffc1fd295a451bcc9ef0e39ffd19ca0850f0432e6ae4c278c01a"
+    }
+  },
+  "reactReview": {
+    "skill": "c19/react-best-practices",
+    "findings": [
+      "Removed an optional async dependency from required content rendering; no required authorization await was relaxed.",
+      "Effect dependency identities remain primitive/stable; no new global listeners or timers were introduced.",
+      "Functional state updates preserve current known membership and confirmed mutations; transient request ownership stays local to refs.",
+      "Per-scope Map entries are pruned to current authorized source IDs and discarded on identity changes.",
+      "Unknown reaction controls communicate loading/unavailable state and are disabled; book reading remains available.",
+      "New state/helpers are typed, and the final TypeScript/ESLint checks pass."
+    ],
+    "scopeLimit": "This is a review of the changed native component behavior, not a broad React/Next refactor or new native accessibility-pixel acceptance."
+  },
+  "untouchedAcceptance": "Mandatory native navigation/capture commands and timeouts are unchanged by this repair. Supabase SDK authentication, server mutation semantics and native capture/encoder code are not changed here. Mutation tests establish UI-result ownership, not new server-side transport cancellation guarantees.",
+  "evidence": [
+    {
+      "path": "docs/quality/native-full-app-20261031/native-reader-reactions-repair/MemoryAlbumScreen-before-ticket.tsx.txt",
+      "bytes": 67403,
+      "sha256": "ef2eb453b79b16cdd30d5d3f5aeabc3863831d71e8cc0bf7a99545f7e9cf9f5c"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-reader-reactions-repair/MemoryAlbumScreen-before.tsx.txt",
+      "bytes": 64219,
+      "sha256": "437b2d5c52cf1ad00ce1d322367ac1e41da8857b6d2db6a1c7db263ad4e7f541"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-reader-reactions-repair/after.tap",
+      "bytes": 6904,
+      "sha256": "c02eacf9b6e4f5aa0cb5b287041f29db5e6f1311f0197e9d3e5de2c2565ecd1f"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-reader-reactions-repair/before-ticket.tap",
+      "bytes": 1894,
+      "sha256": "58f2c2474e7e5c0ddbb79bbe5c5199301d0109a1c7bd1f9d3e7fa8b795ef6987"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-reader-reactions-repair/before.tap",
+      "bytes": 17883,
+      "sha256": "72c9d88e08364bcfb5155b99ed4b9f35b274e8d40bba0ec97442037157488d5b"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-reader-reactions-repair/checks.json",
+      "bytes": 1900,
+      "sha256": "9c4adf8de0b8ffc1fd295a451bcc9ef0e39ffd19ca0850f0432e6ae4c278c01a"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-reader-reactions-repair/eslint.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-reader-reactions-repair/typescript.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "nextGate": "Independent source/focused review followed by the existing combined gate and an authorized fresh full native run; no new native acceptance result is claimed."
+}

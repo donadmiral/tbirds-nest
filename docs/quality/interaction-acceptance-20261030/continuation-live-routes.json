@@ -1,0 +1,155 @@
+{
+  "date": "2026-10-30",
+  "environment": "Existing isolated QA preview aliases, signed-in QA account",
+  "method": "Direct browser navigation and visible rendered data, plus selected real media and modal interactions",
+  "scope": "Route availability is distinct from completing every mutation or provider journey. Empty queues establish rendering and retrieval, not approval, payout, deletion or multi-account acceptance.",
+  "admin": [
+    {
+      "route": "/dashboard",
+      "result": "Overview, queues and populated activity charts loaded"
+    },
+    {
+      "route": "/analytics",
+      "result": "Initially empty. Rechecked after guarded repair: dated summary charts loaded from actual QA records"
+    },
+    {
+      "route": "/calls",
+      "result": "Call register and filters loaded; no QA sessions present"
+    },
+    {
+      "route": "/users",
+      "result": "User register, profile detail and filters loaded"
+    },
+    {
+      "route": "/users/deletions",
+      "result": "Deletion queue loaded; no irreversible deletion performed"
+    },
+    {
+      "route": "/businesses",
+      "result": "Business register and application queues loaded with empty QA data"
+    },
+    {
+      "route": "/organizations",
+      "result": "Search, archived filter, register and recent changes loaded"
+    },
+    {
+      "route": "/market",
+      "result": "Listing details, photo, seller, price, status, reports and charts loaded"
+    },
+    {
+      "route": "/market/orders",
+      "result": "Order investigation and status filters loaded with empty QA data"
+    },
+    {
+      "route": "/jobs",
+      "result": "Register, type/location filters and hiring summaries loaded with empty QA data"
+    },
+    {
+      "route": "/payments",
+      "result": "Transfer records and reports loaded. No verified provider connection was reported"
+    },
+    {
+      "route": "/payments/creators",
+      "result": "Enrollment records loaded. Approvals, payouts and final statements remain explicitly unavailable"
+    },
+    {
+      "route": "/ads",
+      "result": "Review, running-campaign and recorded-payment summaries loaded with empty QA data"
+    },
+    {
+      "route": "/content",
+      "result": "Photo review opened at natural resolution 1080x1920. Escape closed the lightbox and restored focus to its opener"
+    },
+    {
+      "route": "/content/[id]",
+      "result": "Selected photo opened in authenticated staff context with author, audience, scope and original image"
+    },
+    {
+      "route": "/stories",
+      "result": "Six retained stories loaded with media, details, audience, expiry and activity summaries"
+    },
+    {
+      "route": "/music",
+      "result": "Explicitly unavailable because the hosted music database contract is absent. Retry remains visible"
+    },
+    {
+      "route": "/reports",
+      "result": "Assigned-category report queue loaded with empty QA data"
+    },
+    {
+      "route": "/market/reviews",
+      "result": "Seller review report and restore views loaded with empty QA data"
+    },
+    {
+      "route": "/queue",
+      "result": "Verification register, filters and decision summaries loaded with empty QA data"
+    },
+    {
+      "route": "/support",
+      "result": "Inbox, status search and case summaries loaded with empty QA data"
+    },
+    {
+      "route": "/audit",
+      "result": "Existing immutable administrative event records and details loaded"
+    },
+    {
+      "route": "/staff",
+      "result": "Staff register, role controls and access summaries loaded. No access grants or credential changes performed"
+    },
+    {
+      "route": "/system",
+      "result": "Platform controls and received-client-error report panel loaded. No announcement or moderation policy changed"
+    },
+    {
+      "route": "/present",
+      "result": "Empty collection guidance and dashboard return link worked"
+    },
+    {
+      "route": "/security",
+      "result": "Current account-security state and operations return link loaded. No authenticator or credential change performed"
+    }
+  ],
+  "webVerifiedInteractions": [
+    "Home feed and existing media loaded",
+    "Own profile and both memory-book entries loaded",
+    "Memory collection modal opened, focused its close control and filtered by title",
+    "Four-page memory book opened and changed pages",
+    "Memory film played, paused, skipped to the next memory and closed",
+    "Discovery loaded current posts and its Music category produced the correct empty state",
+    "Watch opened the synthetic multi-video post in its viewer",
+    "Video metadata and actual playback reached readyState 4 with no media error",
+    "Playback speed changed to 1.5 and the second carousel video loaded and played",
+    "Marketplace loaded its existing listing",
+    "Messages finished loading and rendered the empty conversation state",
+    "Jobs finished loading and rendered the zero-result state with filter controls",
+    "Channels loaded the existing QA channel and its joined membership state",
+    "Communities completed its query and rendered the empty collection and creation entrypoint",
+    "Notifications completed its query and rendered the empty collection, filters and settings entrypoint",
+    "Creator Studio overview and partnerships completed their queries and displayed the current creator workspace",
+    "Creator earnings Overview, Earnings activity, Payouts and Payout account switched to their matching panels; empty records, unavailable payouts and an unconfirmed provider connection remained explicit",
+    "Messages Groups and Unread filters switched without stale loading or errors",
+    "Message requests completed its query and displayed the empty request state",
+    "Call history completed its query, showed the empty history, and returned to Messages through its visible link",
+    "The tested synthetic video playback preference was restored to 1x; actual video playbackRate=1, readyState=4 and error=null before closing the viewer"
+  ],
+  "observedTransientStates": [
+    "Client routes initially render loading states. Those states were not counted as successful data retrieval.",
+    "A browser-native media accessibility message briefly appeared while selecting the second video. The video subsequently loaded and played with error null, readyState 4 and the expected source. No persistent application playback error was established."
+  ],
+  "limits": [
+    "This live check does not claim all 4087 previously inventoried bindings were exercised.",
+    "Real provider payments, payouts, multi-account approvals, erasure and physical iPhone/Android journeys are not established.",
+    "No other person was messaged, no real payment was made, and no licence was activated.",
+    "Browser aliases can update while a tab retains older JavaScript. Exact-source automated browser and native receipts are recorded separately."
+  ],
+  "latestAdminPhotoRecheck": {
+    "previewCheckpoint": "ddc968bd11be40d37af7a5aeff1c134e53c397d8",
+    "result": "Full-screen image complete=true, naturalWidth=1080, naturalHeight=1920. Escape closed the media dialog; focus returned to the Open photo in full screen trigger.",
+    "evidenceBoundary": "Actual signed-in QA browser DOM; no production content or physical device claim.",
+    "observedUtcWindow": "2026-10-30T21:13Z to 2026-10-30T21:15Z"
+  },
+  "navigationFeedback": {
+    "implementationCheckpoint": "ddc968bd11be40d37af7a5aeff1c134e53c397d8",
+    "result": "Clicking Analytics produced an actual pending link and Opening Analytics status, then cleared after route completion and displayed the dated QA charts."
+  }
+}

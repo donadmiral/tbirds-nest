@@ -1,0 +1,168 @@
+{
+  "observedAt": "2026-10-31T05:48:57Z",
+  "headCommit": "e173b2dbcf253342be5683fa85f102aa38065411",
+  "testedMergeCommit": "e6ca24e27b00207344eb7989ed53d2305cb04cf3",
+  "tree": "37ca8db90469d32a2a2d7b3069db54b522926530",
+  "headAndMergeTreesEqual": true,
+  "compilerJobs": [
+    {
+      "runId": 41173170142,
+      "jobId": 124455216776,
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Read source",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Set Node 22",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Install locked dependencies",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Install the Expo 54 CocoaPods toolchain",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Compile the unsigned iOS Simulator target",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Keep compiler diagnostics only",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Post Set Node 22",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        },
+        {
+          "name": "Post Read source",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15
+        }
+      ],
+      "artifactMetadata": {
+        "id": 13032212594,
+        "name": "ios-native-compile-diagnostics",
+        "bytes": 999950,
+        "sha256": "c0f2e48ba5d837ae8eac83ddb794a3ffe5e5f19c4d80219dbfebc1afd12385b6",
+        "headCommit": "e173b2dbcf253342be5683fa85f102aa38065411"
+      },
+      "archiveDownloaded": false
+    },
+    {
+      "runId": 41173170124,
+      "jobId": 124455217127,
+      "status": "completed",
+      "conclusion": "success",
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Read source",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Set Node 22",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Use the runner's Java 17 toolchain",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Install locked dependencies",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Compile the unsigned Android QA target",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Keep compiler diagnostics only",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Post Set Node 22",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        },
+        {
+          "name": "Post Read source",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15
+        }
+      ],
+      "artifactMetadata": {
+        "id": 13032212892,
+        "name": "android-native-compile-diagnostics",
+        "bytes": 22644,
+        "sha256": "478963d9016c065cf0009cd4d118b14590b25fac3acbf1dc22e2df98a0b0b72f",
+        "headCommit": "e173b2dbcf253342be5683fa85f102aa38065411"
+      },
+      "archiveDownloaded": false
+    }
+  ],
+  "encoderCases": 58,
+  "encoderEvidence": "docs/quality/native-full-app-20261031/native-encoders-e173b2db-source-equivalence.json",
+  "limits": [
+    "Compiler results in this receipt are authenticated CI status and artifact metadata. The compiler archives were not downloaded or independently rehashed for this candidate.",
+    "The current encoder archives and source hashes are verified separately in the referenced receipt.",
+    "Full installed-app navigation, account readback and capture gates were still running at this observation."
+  ]
+}

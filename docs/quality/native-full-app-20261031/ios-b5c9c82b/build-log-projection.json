@@ -1,0 +1,54 @@
+{
+  "sha256": "467df29455b3d0a298f3510adfe19c6e64d98b51f5a3dcb1a250dc4260cc8b9f",
+  "bytes": 18155718,
+  "lines": 91339,
+  "success": [
+    {
+      "line": 91338,
+      "text": "** BUILD SUCCEEDED **"
+    }
+  ],
+  "archiveFileTimestampsWithoutOffset": {
+    "source.json": [
+      2026,
+      10,
+      31,
+      16,
+      17,
+      0
+    ],
+    "build.log": [
+      2026,
+      10,
+      31,
+      16,
+      52,
+      38
+    ],
+    "navigation.mp4": [
+      2026,
+      10,
+      31,
+      17,
+      10,
+      30
+    ],
+    "maestro-navigation.xml": [
+      2026,
+      10,
+      31,
+      17,
+      7,
+      34
+    ],
+    "maestro-memory-capture.xml": [
+      2026,
+      10,
+      31,
+      17,
+      10,
+      6
+    ]
+  },
+  "qualification": "Archive timestamps are retained as stored and are not a direct compiler-duration measurement."
+}

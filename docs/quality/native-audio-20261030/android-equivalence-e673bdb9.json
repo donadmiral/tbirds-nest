@@ -1,0 +1,140 @@
+{
+  "recordedAt": "2026-10-30T23:23:14Z",
+  "status": "Both automatic Android jobs passed after the iOS-only correction. The accepted Android source and recorded build inputs are unchanged.",
+  "candidate": {
+    "commit": "e673bdb97f77fc8f9763ef997f75fb805fe0f26f",
+    "testedMerge": "4b0cf24573e12e88c92a23abfcf298bbd788740c",
+    "sourceTree": "4c5be88ea0a505a065ba5a191325357978ed6870",
+    "headAndMergeTreesMatch": true,
+    "workflowRun": 41142738949,
+    "workflowUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41142738949"
+  },
+  "sourceEquivalence": {
+    "acceptedActivationCommit": "71aa363a5967d523a852516469a83ec163f93196",
+    "acceptedFullAppReceipt": "docs/quality/native-audio-20261030/android-full-integration-71aa363a.json",
+    "acceptedRuntimeReceipt": "docs/quality/native-audio-20261030/android-emulator-acceptance-71aa363a.json",
+    "nativeFilesAndRecordedBuildInputsVerified": 12,
+    "sha256": {
+      ".github/workflows/android-native-compile.yml": "b353e5d60a7a119153cb6b01d9ed56b096ca29604441a80ac2fd83a95f7d8b17",
+      "scripts/quality/compile-android-native.sh": "761690dabd2b15bca5088ec506d8532a780760460e7e7f40ae656e72bd53f2d9",
+      "scripts/quality/android-media-dependencies.init.gradle": "19537f9653fe95d4271c5cadc52e3363c3103b3e7dfdb79b70e37979593b005f",
+      "modules/boomerang/android/build.gradle": "1073ed103b08ff07f4f21f79d5914497ef03c990b11bb2be7eadcfe6e287dbb4",
+      "modules/boomerang/expo-module.config.json": "ba5f8cb49be7bc1f8f5e6e0770a6df48146627b03727e1fb263e15b32ac8ede3",
+      "package.json": "014a9716bc606c9ee6ca56e5762660ad26a3d3aa2760aaaa64585bec45001e35",
+      "package-lock.json": "c8cae4044365f61f34b5b3ae2876e2a1038f9861baacc6cfdabd627b752f0cb8",
+      "app.json": "129b756b7bf5e6e1b6b456bbe982f63923b83b0568fa41cac6721a892ea555c2",
+      "app.config.js": "b59c5ad8fca40e523557e3de9e23f296fc78b7b735d34084a31da6a579cee710",
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt": "1d807eab430a7ebf3d6830de1548e400b95de7eb13dfeb4fd795f6060ec545e8",
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": "3ce3a5c568a332468e064dd7b03c508fa2ee6d79ad94309a58adb14a54a24f4d",
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": "754eaa2052a1b48c527eb2a2f9ccfb94cdd88ed269aa1bb4933fdde3e066633e"
+    },
+    "changedFilesSinceAcceptedActivation": [
+      "docs/quality/MUSIC_ACCEPTANCE_CONTINUATION_20261030.md",
+      "docs/quality/interaction-acceptance-20261030/activation-type-backend-ci.json",
+      "docs/quality/interaction-acceptance-20261030/final-browser-ci.json",
+      "docs/quality/native-audio-20261030/android-emulator-acceptance-71aa363a.json",
+      "docs/quality/native-audio-20261030/android-full-integration-71aa363a.json",
+      "docs/quality/native-audio-20261030/ios-frame-timing-independent-71aa363a.json",
+      "docs/quality/native-audio-20261030/ios-pitch-cadence-failure.json",
+      "modules/boomerang/ios/StoryVideoComposition.swift"
+    ],
+    "androidImplementationOrHarnessChanged": false
+  },
+  "fullAppCompile": {
+    "jobId": 124360637987,
+    "jobConclusion": "success",
+    "artifactId": 13020372792,
+    "artifactZipSha256": "48e79c29e06add739468ca1815cc04f80b71f2d911fe30b1015cdc398a61a6e3",
+    "artifactDigestVerified": true,
+    "retainedReceiptSha256": "26a3bfeff421e0a1692141fd4ea053644ca160f5836fb52da15b39852dfa5d31",
+    "gradleLogSha256": "f24cef929f300cdfed374798edb827be56238fc4a7e2f6b6dac514c1a7425f4c",
+    "buildResult": "BUILD SUCCESSFUL in 11m 43s",
+    "allThreeNativeSourceHashesAndCompiledClassesMatchAcceptedActivation": true,
+    "expoModuleRegistrationVerified": true,
+    "advertisedStoryVideoVersion": 1,
+    "advertisedStoryAudioExportVersion": 1,
+    "media3RuntimeComponents": 16,
+    "media3Version": "1.8.1",
+    "applicationId": "app.platinumcircles.mobile.qa",
+    "abi": "arm64-v8a",
+    "apk": {
+      "path": "android/app/build/outputs/apk/debug/app-debug-unsigned.apk",
+      "sha256": "1b56d228effddb2c68f4cdde1a1bfd655c7df00b4e59c22d5d6398633f11124f",
+      "bytes": 134778080
+    },
+    "apkSigned": false,
+    "javascriptBundleIncluded": false
+  },
+  "emulatorRuntime": {
+    "workflowRun": 41142738949,
+    "jobId": 124360638340,
+    "jobConclusion": "success",
+    "artifactId": 13020430281,
+    "artifactZipSha256": "c2640ccdd000e119a2bc6f6a8eb9ae2ecf39078197d6917e8e4b01f22cc5e80f",
+    "artifactDigestVerified": true,
+    "retainedReceiptSha256": "00b3312df3cb6e4dc479ec74b3c579aa9f746b74af91aee5696d330d6e30ebc7",
+    "testedMerge": "4b0cf24573e12e88c92a23abfcf298bbd788740c",
+    "exactAcceptedProductionSourceHashes": {
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": "3ce3a5c568a332468e064dd7b03c508fa2ee6d79ad94309a58adb14a54a24f4d",
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": "754eaa2052a1b48c527eb2a2f9ccfb94cdd88ed269aa1bb4933fdde3e066633e"
+    },
+    "compiledSourceCopiesVerified": true,
+    "xmlSuites": [
+      {
+        "name": "expo.modules.boomerang.StoryAudioExportTest",
+        "tests": "23",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "67.422",
+        "timestamp": "2026-10-30T23:14:46",
+        "hostname": "localhost"
+      }
+    ],
+    "declaredAndExecutedMethods": 23,
+    "failed": 0,
+    "skipped": 0,
+    "measuredCases": 23,
+    "retainedMovieCount": 31,
+    "allMovieHashesVerified": true,
+    "media3Components": 10,
+    "media3Version": "1.8.1",
+    "manualMediaDecodeRepeated": false,
+    "selectedMeasurements": [
+      {
+        "duration": 1.003,
+        "videoFrames": 30,
+        "original330Hz": 0.08588911749117537,
+        "soundtrack440Hz": 0.049439106498743654,
+        "case": "trim speed and independent mix",
+        "passed": true
+      },
+      {
+        "milliseconds": 21,
+        "providerStillOpen": true,
+        "temporaryFilesRemoved": true,
+        "retryPassed": true,
+        "case": "blocked provider cancellation",
+        "passed": true
+      },
+      {
+        "duration": 4.395,
+        "videoFrames": 65,
+        "first440Hz": 0.09971127839359487,
+        "selected880Hz": 0.09969624615605852,
+        "repeated440Hz": 0.09958223242497176,
+        "finalPartial440Hz": 0.0996425111831132,
+        "finalTail880Hz": 0.09974909966026815,
+        "case": "slowed video and final partial soundtrack loop",
+        "passed": true
+      }
+    ]
+  },
+  "optionalLocalTestsRepeated": false,
+  "androidSourceChangedDuringThisVerification": false,
+  "scopeLimits": [
+    "The automatic CI jobs compiled the current candidate and repeated its 23 declared emulator cases. This check verifies the resulting artifacts and exact source/input equivalence; it does not introduce new implementation changes.",
+    "Source equivalence does not claim byte-identical APK archives. Each compiled artifact retains its own reported hash and source identity.",
+    "No physical-device, installed-product, hosted-backend, provider or store-release acceptance is inferred."
+  ]
+}

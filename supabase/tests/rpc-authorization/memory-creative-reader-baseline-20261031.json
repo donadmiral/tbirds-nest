@@ -1,0 +1,51 @@
+{
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "functions": [
+    {
+      "signature": "can_view_memory_book(uuid)",
+      "definition_md5": "67add15dee9af007b698f6bf84242da5",
+      "definition": "CREATE OR REPLACE FUNCTION public.can_view_memory_book(p_album uuid)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n SELECT auth.uid() IS NOT NULL AND EXISTS (\n SELECT 1 FROM public.memory_albums a JOIN public.profiles owner ON owner.id=a.user_id\n WHERE a.id=p_album AND owner.deactivated_at IS NULL\n AND EXISTS(SELECT 1 FROM public.profiles viewer WHERE viewer.id=auth.uid() AND viewer.deactivated_at IS NULL)\n AND (a.user_id=auth.uid() OR (\n NOT EXISTS(SELECT 1 FROM public.blocked_users b WHERE (b.blocker_id=a.user_id AND b.blocked_id=auth.uid()) OR (b.blocker_id=auth.uid() AND b.blocked_id=a.user_id))\n AND NOT EXISTS(SELECT 1 FROM public.memory_album_access x WHERE x.owner_id=a.user_id AND x.member_id=auth.uid() AND x.kind='block')\n AND CASE a.audience\n WHEN 'only_me' THEN false\n WHEN 'custom' THEN EXISTS(SELECT 1 FROM public.memory_album_access x WHERE x.owner_id=a.user_id AND x.member_id=auth.uid() AND x.kind='allow')\n WHEN 'followers' THEN EXISTS(SELECT 1 FROM public.follows f WHERE f.following_id=a.user_id AND f.follower_id=auth.uid())\n WHEN 'profile' THEN (coalesce(owner.profile_visibility,'public')<>'private' OR EXISTS(SELECT 1 FROM public.follows f WHERE f.following_id=a.user_id AND f.follower_id=auth.uid()))\n ELSE false END )));\n$function$\n",
+      "proacl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "prosecdef": true,
+      "proconfig": [
+        "search_path=\"\""
+      ]
+    },
+    {
+      "signature": "get_memory_album(uuid)",
+      "definition_md5": "b90b5cba83232e6687991683ea652fea",
+      "definition": "CREATE OR REPLACE FUNCTION public.get_memory_album(p_owner uuid)\n RETURNS jsonb\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n SELECT public.get_memory_book((SELECT a.id FROM public.memory_albums a WHERE a.user_id=p_owner AND a.is_default ORDER BY a.created_at,a.id LIMIT 1));\n$function$\n",
+      "proacl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "prosecdef": true,
+      "proconfig": [
+        "search_path=\"\""
+      ]
+    },
+    {
+      "signature": "get_memory_albums(uuid)",
+      "definition_md5": "61a93ac775d171c68447682f782c42a3",
+      "definition": "CREATE OR REPLACE FUNCTION public.get_memory_albums(p_owner uuid)\n RETURNS jsonb\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n  SELECT jsonb_build_object(\n    'is_owner', auth.uid() = p_owner,\n    'can_view', public.can_view_memory_album(p_owner),\n    'books', coalesce((\n      SELECT jsonb_agg(jsonb_build_object(\n        'id', a.id,\n        'title', a.title,\n        'subtitle', a.subtitle,\n        'cover_color', a.cover_color,\n        'cover_design', a.cover_design,\n        'cover_story_id', a.cover_story_id,\n        'audience', a.audience,\n        'is_default', a.is_default,\n        'count', (\n          SELECT count(*)\n          FROM public.memory_pages mp\n          JOIN public.stories s ON s.id = mp.story_id AND s.user_id = a.user_id\n          WHERE mp.album_id = a.id AND mp.user_id = a.user_id\n        ),\n        'cover_page', (\n          SELECT jsonb_build_object(\n            'id', mp.id,\n            'story_id', mp.story_id,\n            'media_url', coalesce(s.media_url, mp.media_url),\n            'media_type', coalesce(s.media_type, mp.media_type),\n            'thumbnail_url', coalesce(s.thumbnail_url, mp.thumbnail_url),\n            'caption', mp.caption,\n            'taken_at', mp.taken_at,\n            'stickers', s.stickers_json,\n            'media_transform', s.media_transform,\n            'filter_id', s.filter_id\n          )\n          FROM public.memory_pages mp\n          JOIN public.stories s ON s.id = mp.story_id AND s.user_id = a.user_id\n          WHERE mp.album_id = a.id AND mp.user_id = a.user_id\n          ORDER BY\n            (mp.story_id = a.cover_story_id) DESC NULLS LAST,\n            (coalesce(s.media_type, mp.media_type) IN ('image', 'video')) DESC NULLS LAST,\n            mp.sort_order, mp.created_at, mp.id\n          LIMIT 1\n        )\n      ) ORDER BY a.is_default DESC, a.created_at, a.id)\n      FROM public.memory_albums a\n      WHERE a.user_id = p_owner AND public.can_view_memory_book(a.id)\n    ), '[]'::jsonb)\n  );\n$function$\n",
+      "proacl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "prosecdef": true,
+      "proconfig": [
+        "search_path=\"\""
+      ]
+    },
+    {
+      "signature": "get_memory_book(uuid)",
+      "definition_md5": "e7fe26d8442d70810ef29a093c4831ca",
+      "definition": "CREATE OR REPLACE FUNCTION public.get_memory_book(p_album uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE\n  a public.memory_albums;\n  pgs jsonb;\n  cover_pg jsonb;\nBEGIN\n  SELECT * INTO a FROM public.memory_albums WHERE id = p_album;\n  IF NOT FOUND OR NOT public.can_view_memory_book(p_album) THEN\n    RETURN jsonb_build_object(\n      'can_view', false, 'is_owner', false, 'count', 0, 'pages', '[]'::jsonb\n    );\n  END IF;\n\n  SELECT coalesce(jsonb_agg(jsonb_build_object(\n    'id', mp.id,\n    'story_id', mp.story_id,\n    'sort_order', mp.sort_order,\n    'style', mp.style,\n    'media_url', coalesce(s.media_url, mp.media_url),\n    'media_type', coalesce(s.media_type, mp.media_type),\n    'thumbnail_url', coalesce(s.thumbnail_url, mp.thumbnail_url),\n    'caption', mp.caption,\n    'taken_at', mp.taken_at,\n    'story_caption', s.caption,\n    'text_background', s.text_background,\n    'stickers', s.stickers_json,\n    'media_transform', s.media_transform,\n    'filter_id', s.filter_id,\n    'duration_sec', s.duration_sec,\n    'dual_front_url', s.dual_front_url\n  ) ORDER BY mp.sort_order, mp.created_at, mp.id), '[]'::jsonb)\n  INTO pgs\n  FROM public.memory_pages mp\n  JOIN public.stories s ON s.id = mp.story_id AND s.user_id = a.user_id\n  WHERE mp.album_id = a.id AND mp.user_id = a.user_id;\n\n  -- Ordinality retains the same deterministic order as the page reader.\n  SELECT page INTO cover_pg\n  FROM jsonb_array_elements(pgs) WITH ORDINALITY AS pages(page, page_order)\n  ORDER BY\n    (page->>'story_id' = a.cover_story_id::text) DESC NULLS LAST,\n    (page->>'media_type' IN ('image', 'video')) DESC NULLS LAST,\n    page_order\n  LIMIT 1;\n\n  RETURN jsonb_build_object(\n    'id', a.id,\n    'user_id', a.user_id,\n    'is_default', a.is_default,\n    'title', a.title,\n    'subtitle', a.subtitle,\n    'cover_color', a.cover_color,\n    'cover_design', a.cover_design,\n    'cover_story_id', a.cover_story_id,\n    'cover_page', cover_pg,\n    'audience', a.audience,\n    'is_owner', a.user_id = auth.uid(),\n    'can_view', true,\n    'count', jsonb_array_length(pgs),\n    'pages', pgs\n  );\nEND;\n$function$\n",
+      "proacl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "prosecdef": true,
+      "proconfig": [
+        "search_path=\"\""
+      ]
+    }
+  ],
+  "capturedOn": "2026-10-31 UTC",
+  "exactObservationTimestampRequested": false
+}

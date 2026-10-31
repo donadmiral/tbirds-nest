@@ -67,9 +67,9 @@ test('native unavailable post clears retained media before any row fetch', async
 });
 function webEdits({ pending, fail = false } = {}) {
   const ast = source('web/components/MediaGallery.tsx');
-  const component = find(ast,n=>ts.isFunctionDeclaration(n)&&n.name?.text==='MediaGallery');
+  const component = find(ast,n=>ts.isFunctionDeclaration(n)&&n.name?.text==='PostMediaGallery');
   const effect = component.body.statements.find(n=>ts.isExpressionStatement(n)&&ts.isCallExpression(n.expression)&&n.expression.expression.getText(ast)==='useEffect').expression.arguments[0];
-  let edits, onAuth, readCount=0, hydrationCount=0, cleaned=false;
+  let edits={}, onAuth, readCount=0, hydrationCount=0, cleaned=false;
   const filters = {};
   const client = { auth:{onAuthStateChange(callback){onAuth=callback;return{data:{subscription:{unsubscribe(){cleaned=true;}}}};}}, from(){ const q={select(){return q;},eq(k,v){filters[k]=v;return q;},in(k,v){filters[k]=v;return q;},then(ok,bad){readCount++;return Promise.resolve(pending).then(()=>({data:[{id:mediaId,edit:{coverUrl:canonical}}],error:null})).then(ok,bad);}};return q;} };
   const context = { media:[{id:mediaId}],postId,UUID_ID:/^[0-9a-f-]{36}$/i,setEdits(value){edits=value;},createClient:()=>client,

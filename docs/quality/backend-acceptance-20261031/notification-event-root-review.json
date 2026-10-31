@@ -1,0 +1,39 @@
+{
+  "recordedAt": "2026-10-31T03:28:14.853339+00:00",
+  "reviewer": "root, independent of implementation agent",
+  "scope": "Source-only QA notification event-dispatch proposal; no installation or activation.",
+  "sourceSha256": {
+    "supabase/ops/qa/notification-event-dispatch/20261031022749_notification_event_dispatch_capabilities.sql": "9a5a7ea2d9acfc9c21185ac5b2654cfebd9d8f5aba29363cd5a5b5616f4bf081",
+    "supabase/ops/qa/notification-event-dispatch/handler.ts.template": "16c815d2b5ac0a9e48c21454b1f7922ce12cee5ca00f7b59825d01c08a9a27f6",
+    "supabase/ops/qa/notification-event-dispatch/index.ts.template": "c5486be58e068af37de3f4875234a87e13607e28449f0b494b7b7dab053e4745",
+    "supabase/tests/rpc-authorization/test-notification-event-dispatch.mjs": "a61ad88974d9f2aac680d992336f1c1ca47f543712ff563c201c24f797cf2100",
+    "tests/quality/notification-event-dispatch.cjs": "896d73b5c6714d4e9f29b7b952e2a837fa88b5f1615eebd7a5f31ecacaa7bdd0"
+  },
+  "verification": {
+    "actualSqlFixtureCases": 16,
+    "actualHandlerCases": 14,
+    "failures": 0,
+    "skips": 0,
+    "commands": [
+      "node supabase/tests/rpc-authorization/test-notification-event-dispatch.mjs",
+      "node tests/quality/notification-event-dispatch.cjs"
+    ]
+  },
+  "review": {
+    "canonicalAuthorization": "Only a private existing notification/call job selects the fixed QA destination and payload. Caller input cannot select a recipient, URL, credential, message or SQL.",
+    "privilegeBoundary": "Private settings/jobs have RLS with no app policies. Narrow public RPCs require both service-only EXECUTE grants and a service role claim.",
+    "oneUse": "A conditional UPDATE atomically consumes a matching unexpired queued capability, with claim-ID-fenced completion. No automatic replay follows uncertainty.",
+    "currentAuthorization": "The existing handler still performs current account, recipient, session, membership, preference and call checks before provider delivery.",
+    "modeSwitch": "Legacy-mode and enabled-state checks occur during enqueue, claim and immediately before forwarding. Terminal acknowledgement remains available while paused.",
+    "timeout": "45-second pg_net deadline exceeds the30-second dispatch plus3-second completion budget. A transport timeout never authorizes a replay.",
+    "queueVisibility": "The long-lived service credential is absent from the provider queue. Observers can advance only the canonical event; queue writers can still suppress attempts.",
+    "triggerOrder": "Existing aa_call_push_origin precedes notification_call_event_dispatch_queue; actual fixture inserts and group-call creation are covered.",
+    "confirmation": "Retention DELETE remains explicit. Candidate is outside automatic migrations and no alternative bridge or SQL confirmation bypass is used."
+  },
+  "deploymentDecision": "Retain as an uninstalled reviewed QA candidate. Outstanding migration-connector outcome and hosted acceptance must be resolved before any installation.",
+  "limits": [
+    "At-most-once forwarding can lose an attempt if the worker crashes after claim and before send.",
+    "A feature switch cannot retract a request already in progress; delivery-mode changes require draining and inspection.",
+    "Synthetic SQL/HTTP boundaries do not establish actual pg_net worker, Edge, provider or device acceptance."
+  ]
+}

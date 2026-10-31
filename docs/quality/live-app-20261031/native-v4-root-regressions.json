@@ -1,0 +1,2764 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-31T05:14:52.652017Z",
+  "scope": "Final combined local CI-selected root regression gate for the frozen native timer-bootstrap and tab-selector candidates.",
+  "outcome": "success",
+  "sourceBinding": {
+    "baseHeadSha": "ab281bcaab525331930f6238f97e46c169eee1ee",
+    "baseTreeSha": "8e03d00ee3cd707f4095134b5d5c0eec79f5ef19",
+    "isolatedHarnessValidationHead": "9622cf3076e5eecd8aa14621ee8f5ad6dcc59ff6",
+    "frozenSourceHashes": {
+      "index.js": "b6c80d0b280a2446862ee5a19cbfcaff39d551d353ac3a9abf090680570a11e0",
+      "tests/native/entry.js": "e54f0e6acfdc9d73d6b0e877d24432809798689b65c2c4fad5ce5a212e84304b",
+      "tests/quality/native-timer-bootstrap.cjs": "9b16fa0ee1f88d93387179ee8df8e87d8a29d81a47c698c523c1438fd64e1337",
+      "src/navigation/AppNavigator.tsx": "ee5ce00883df84956d2840d4d70f7f0ed7395797a7889abbb2970d6f7fa455fe",
+      "tests/native/flows/navigation.yaml": "f146d8c0db62cbc0b2683e5c0944b7ed604cf788ea1d7af25a76db2cbefbce91",
+      "tests/quality/native-tab-selectors.cjs": "c12f82a06ed0973e5ea58ca8af6aea6c6c0f8fbbd019c18403d342601dcf209e",
+      "tests/navigation-accessibility.test.cjs": "fe2e7e0b5190104ed6c2a2e8d18f4ab9c76d89c4ec5bfa880c604dd202dc9ae5"
+    },
+    "frozenSourcesUnchangedBeforeAndAfter": true,
+    "trackedSourceDiffSha256": "9875699e0af23bd2d72bd12f32f2a27ef6f1a9b1a3ce8e0b98b0d8bc46ab9734",
+    "trackedSourceDiffUnchangedBeforeAndAfter": true,
+    "diffHashMethod": "SHA256 of git diff --binary --no-ext-diff HEAD over application, tests, scripts, backend, web/admin, workflow and package/config scopes; docs excluded. New untracked test files are independently covered by the frozen source hashes and full test manifest.",
+    "allSelectedTestFileHashesRetained": true,
+    "allSelectedTestFilesUnchangedBeforeAndAfter": true,
+    "testSelectionUnchangedBeforeAndAfter": true
+  },
+  "selection": {
+    "workflowPath": ".github/workflows/typecheck.yml",
+    "workflowSha256": "dc41c9a035b84a2c562349a876b6e5805960ea1392e8bb0ad8e9244bfd50be0a",
+    "ciCommand": "node --test --test-concurrency=2 tests/*.cjs tests/quality/*.cjs",
+    "patterns": [
+      "tests/*.cjs",
+      "tests/quality/*.cjs"
+    ],
+    "filesSelected": 164,
+    "excludedSelectedFiles": []
+  },
+  "execution": {
+    "startedAt": "2026-10-31T05:12:46.999564+00:00",
+    "completedAt": "2026-10-31T05:13:37.574055+00:00",
+    "durationSeconds": 50.575,
+    "runtime": "v24.22.1",
+    "commandPerFile": "env -u NODE_TEST_CONTEXT node <file>",
+    "concurrency": 2,
+    "fileInvocations": 164,
+    "successfulFiles": 164,
+    "formalCounterFiles": 163,
+    "formalCounts": {
+      "tests": 1680,
+      "pass": 1680,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "standaloneReports": [
+      {
+        "file": "tests/quality/auth-regressions.cjs",
+        "exitCode": 0,
+        "reportedPassedChecks": 33,
+        "reportedTotalChecks": 33,
+        "observedSummary": "33/33 auth regression checks passed",
+        "sourceSha256": "621b5b4684c45d30fea839eb3c3dc133632f60e2f10df79eb77ded5358f98e64",
+        "logSha256": "48b85e06a4391eb6510c3ac1bef551afafad27a9e6b39a11c7b19a1d1e2d9334",
+        "countNote": "Standalone assertions are separate from formal Node test counters. Do not add file-wrapper cases or these 33 checks to the formal count."
+      }
+    ],
+    "newRegressionCases": [
+      {
+        "file": "tests/quality/native-tab-selectors.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.982,
+        "sourceSha256": "c12f82a06ed0973e5ea58ca8af6aea6c6c0f8fbbd019c18403d342601dcf209e",
+        "logSha256": "71a3399818b40762eb2314731f8aa4d4057234e65e6e87eca046a206fb62ee0d",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__native-tab-selectors.cjs.log",
+        "counters": {
+          "tests": 5,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/native-timer-bootstrap.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.31,
+        "sourceSha256": "9b16fa0ee1f88d93387179ee8df8e87d8a29d81a47c698c523c1438fd64e1337",
+        "logSha256": "8c19435cb078fd1c549823f199dd5e2017b21c7260cad5c51ef3987d6ee3a8d8",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__native-timer-bootstrap.cjs.log",
+        "counters": {
+          "tests": 6,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      }
+    ],
+    "testResults": [
+      {
+        "file": "tests/account-storage-erasure.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.386,
+        "sourceSha256": "e02389147932a9e688dca1525126e079943f2cceb1ff658803bcd1d2e1d73bbb",
+        "logSha256": "e36287815f55b846dda823a6ea5c8c04882615f57b35a81d30f37abf35622938",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__account-storage-erasure.test.cjs.log",
+        "counters": {
+          "tests": 10,
+          "pass": 10,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/call-media.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.496,
+        "sourceSha256": "92a32c8865f5c0f070aa9d3f0cad553df487a4e1f8e3aeb1eb4b8d6b4612e399",
+        "logSha256": "718f96e96fb498bf164958ccb2d31d06ff9c010ae88a7232ba891f35b69f1b58",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__call-media.test.cjs.log",
+        "counters": {
+          "tests": 8,
+          "pass": 8,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/call-transitions.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.547,
+        "sourceSha256": "55898a6895309e17f3d4033bd15888beb4b619d5ff3f172c4686b8949d1f6e63",
+        "logSha256": "cfca1513771f53245182580182fb22a5a31e9a9c0f4fc035ebc07bb262a12258",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__call-transitions.test.cjs.log",
+        "counters": {
+          "tests": 3,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/chat-media-cache.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.729,
+        "sourceSha256": "21ee736b4f3cb746e6096088356464d4506b5b1058355cc4228cc14b290a520e",
+        "logSha256": "13516e28f6eda1b3e3a987e2281134fd4a3e794626f59f651796bdffb760dc31",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__chat-media-cache.test.cjs.log",
+        "counters": {
+          "tests": 32,
+          "pass": 32,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/chat-quality.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.608,
+        "sourceSha256": "5083329cd5e2254e74acb0c6a2d79b9a69006dce2992604af5eb18870394f97e",
+        "logSha256": "2ba4945a17dd137b6f648be1c131d92cfa8f7c19e35fd356ef69c2e74baa6212",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__chat-quality.test.cjs.log",
+        "counters": {
+          "tests": 13,
+          "pass": 13,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/client-diagnostics.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.494,
+        "sourceSha256": "a84d330b45ce37ecfd6dab26822cfcc26e6b1dd40c440a9fda956065fe3cfd6e",
+        "logSha256": "d179c52f07fe2962b0982032fc843408311e1503b5234af0845c9a0d3e7d9594",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__client-diagnostics.test.cjs.log",
+        "counters": {
+          "tests": 8,
+          "pass": 8,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/commerce-domain.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.078,
+        "sourceSha256": "8a84dc425ba80f8ce262e3d5793b62c9a76e0ead4005af12607b0f885cc51add",
+        "logSha256": "99360e8362622a3ccca8e36c1d110a914ac36712c89c3ab3464cd959f08177fd",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__commerce-domain.test.cjs.log",
+        "counters": {
+          "tests": 4,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/creator-monetization.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.337,
+        "sourceSha256": "003bcf91152078c1a4c3f8948864fc996f6f8f12feb6059d41e9455ba209167a",
+        "logSha256": "7658075b97bc9a1584a67816c812b3528188620e4f1368a14db38bb597ba728e",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__creator-monetization.test.cjs.log",
+        "counters": {
+          "tests": 16,
+          "pass": 16,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/creator-payout-worker.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.363,
+        "sourceSha256": "353d1bfa96aebb3772c437e775ee32deac651b9546909ec18b0251402695ec29",
+        "logSha256": "27f70e58ba91a89aa0e11538e63806e8e54b5715c10908b3f2c5cc2f9025be22",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__creator-payout-worker.test.cjs.log",
+        "counters": {
+          "tests": 9,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/daily-call-access.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.755,
+        "sourceSha256": "8ba71f9032883a619a9554e635893a60e873e5d8840ecc686b15afb9087d3770",
+        "logSha256": "c382d938ad8cd9d08696090e57d092b26e5d07a6e0166554c3faf28e8b1a2e9b",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__daily-call-access.test.cjs.log",
+        "counters": {
+          "tests": 24,
+          "pass": 24,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/export-data.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.34,
+        "sourceSha256": "01f06aa7d957d70d4580adaf941ecb6cad10845a1701b9ee4181ef55246869dd",
+        "logSha256": "89d52dc74b2d352a5409e2a2a6296ef9423367c84c1d87a2a7df47332a3b96b9",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__export-data.test.cjs.log",
+        "counters": {
+          "tests": 7,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/faststart-video.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.352,
+        "sourceSha256": "8ab6317675c6bedfb24e03c0883d0d35d4e8a528bd779b8ae636c3b2226d1ba8",
+        "logSha256": "48dec48fb4d910893a84d9b94725c3503ec85ec921c36877b6b4631558c24a70",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__faststart-video.test.cjs.log",
+        "counters": {
+          "tests": 10,
+          "pass": 10,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/feed-capacity.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.698,
+        "sourceSha256": "695b833a0df9a737d5207c1c2fc5ade485f198972adbc4062de220e405b6d575",
+        "logSha256": "42a5c9fe68d77d0b617ed0820a705bac73c78914e8c1358832be8ae43e46e7cb",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__feed-capacity.test.cjs.log",
+        "counters": {
+          "tests": 23,
+          "pass": 23,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/feed-load-harness.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.138,
+        "sourceSha256": "8dd00a10d6c2108e4a34b3942cbf6c45cbfc70620fc20135b96ac92c1204f510",
+        "logSha256": "a2a8271c514f7a2b8228223a0b57be7fbaa7d99399444782e9a8bceee69b2bd7",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__feed-load-harness.test.cjs.log",
+        "counters": {
+          "tests": 3,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/feed-snapshot.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.291,
+        "sourceSha256": "fe8411dfbb33acb211752096a805ef92c22752e63c138016853c1bd45de35ca7",
+        "logSha256": "270185b3da65a06bd03075539176197c4fe1aca6e4bd2f912ed30e83257f7c40",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__feed-snapshot.test.cjs.log",
+        "counters": {
+          "tests": 9,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/fullscreen-video-accessibility.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.294,
+        "sourceSha256": "9607e6ed025d37b3e698bfcd694a12f277051797057cb9b09f461f9eb6dbb484",
+        "logSha256": "a3730f3951483e7e002fd717264689333ac34a1a9828113292092f99e63fa6d7",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__fullscreen-video-accessibility.test.cjs.log",
+        "counters": {
+          "tests": 5,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/group-call-service.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.523,
+        "sourceSha256": "fafdd9290b1f1b21f9cf72f3efe307faa78393540ced1364dbe84d54ede81b7f",
+        "logSha256": "9cfbccc498313856ce1b5af1c216c61c877a722dc28cfbd6b807b4bb2b389e53",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__group-call-service.test.cjs.log",
+        "counters": {
+          "tests": 8,
+          "pass": 8,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/intobank-link-sheet.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.35,
+        "sourceSha256": "8e0029c6fe125eafac9a5e8654d456427f3b0ab7e5a52258f33d02353983c13b",
+        "logSha256": "27be508222dbb5ccb8f7c9ae77b40764621e7a9d35cd4f034a4cdcde10a3dd88",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__intobank-link-sheet.test.cjs.log",
+        "counters": {
+          "tests": 4,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/intobank-link-state.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.09,
+        "sourceSha256": "39af194abc90c40bbf03897e0e702bb6a08ac62f41bc4db8c60d223f6500bbe5",
+        "logSha256": "6757277470042246467742fd80dbf4a89ce486ea71deed2e0163cccc1298ecde",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__intobank-link-state.test.cjs.log",
+        "counters": {
+          "tests": 10,
+          "pass": 10,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/link-preview.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.584,
+        "sourceSha256": "c63dfd319438212343a445cc691634397084098279ddddcef39412aa7d481333",
+        "logSha256": "2e83bfd7733182f9d821031dbc24fa3a963e04f0427ff595612aafdbe28d653e",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__link-preview.test.cjs.log",
+        "counters": {
+          "tests": 21,
+          "pass": 21,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/market-reviews.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.08,
+        "sourceSha256": "ddf3c4280052d50a38a5de836b3f0bb1f376c0bb647bb3b65708c0d43e8cdb09",
+        "logSha256": "2cb65f92fdd87dcfa07733b53f64feac1c96d7f15bc93e1c9b66b0fe650e0999",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__market-reviews.test.cjs.log",
+        "counters": {
+          "tests": 4,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/marketplace-recommendations.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.283,
+        "sourceSha256": "361740b63665f039846ab364aab6f228cbd11a56d18e108d58b0a410c095cd93",
+        "logSha256": "a6642d2d544527b3a0ab5b8add85a541661b66681f906c2be22679e5857c0025",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__marketplace-recommendations.test.cjs.log",
+        "counters": {
+          "tests": 4,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/media-delivery.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.385,
+        "sourceSha256": "2780737c2ff075bb154047ff3d7a5d67aa79ea8118896a7c7037172c0074a916",
+        "logSha256": "e140b7ad57d40dcb6ef9ddce8d05edfb2acd1bf08a60e0399470427a32ac6d3e",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__media-delivery.test.cjs.log",
+        "counters": {
+          "tests": 13,
+          "pass": 13,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/message-delivery.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.604,
+        "sourceSha256": "38fcfa3b561961347af2d898db6f6ee764f1f0c2197ba567324b0b157265c559",
+        "logSha256": "5ed25bbdcfbbe8ad63305bcd9c84ef0b4a729e2c5aec0eea4c50beb05ea5104c",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__message-delivery.test.cjs.log",
+        "counters": {
+          "tests": 11,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/message-outbox.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.393,
+        "sourceSha256": "90ddf392a746cb3e56b5bc8d58c0d13b072373f6380d131c565da564bb8c9765",
+        "logSha256": "55b9698da805cc6903a9cac77840f1f48daf525e7bef17151d7fc7dfdc4d260b",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__message-outbox.test.cjs.log",
+        "counters": {
+          "tests": 7,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/message-receipts.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.446,
+        "sourceSha256": "567a00a8b7e2cb150ef2700bf4399af9445603ae48d1bfd05e728c0f01da3f47",
+        "logSha256": "dfacf9fb5fe8e4ab0b190e04d3d634bd5ea9b1239496a909b34c7d893f90d4fd",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__message-receipts.test.cjs.log",
+        "counters": {
+          "tests": 5,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/native-call-reliability.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.845,
+        "sourceSha256": "54f178c4096ce8e22e0844e9aa395885ccdd38d80b77b34ea986629d67a504ae",
+        "logSha256": "02f5ab9ccf3375cf97de31eab739252b88ad0783b8948855246bc39d103c386a",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__native-call-reliability.test.cjs.log",
+        "counters": {
+          "tests": 23,
+          "pass": 23,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/native-quality-regressions.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 1.303,
+        "sourceSha256": "ca730c9d3c3492c356c98f2115558af2ae3735ed6e0fba84f421efaaa2bb4434",
+        "logSha256": "d70e48b7dd26b063af83d1a089b9d98e45314f7e3cb53d8214791ace77ae0290",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__native-quality-regressions.test.cjs.log",
+        "counters": {
+          "tests": 15,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/navigation-accessibility.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.717,
+        "sourceSha256": "fe2e7e0b5190104ed6c2a2e8d18f4ab9c76d89c4ec5bfa880c604dd202dc9ae5",
+        "logSha256": "eb911a4bff2034b7f1cf3a8e63dab4f69938459337f22639bca240864e68fce2",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__navigation-accessibility.test.cjs.log",
+        "counters": {
+          "tests": 7,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/order-request.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.084,
+        "sourceSha256": "7e17b3ba307554e881daeb29fba74b021a543428fb5b903901a2bf21483ccb23",
+        "logSha256": "8ff73b47a2c5128a3f948884ffc39fe987fd5c12fd448f4735f85de244372b2e",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__order-request.test.cjs.log",
+        "counters": {
+          "tests": 6,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/payment-intent.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.092,
+        "sourceSha256": "1cf1f929aafcf86febfae0aaa582289aac43f7a67c3bd7aaed9696b6c4399aaf",
+        "logSha256": "eaa4bd86c36fb3b0014b6a4c4c5a40390f27d194e277e5ef3810aa4e361ef05b",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__payment-intent.test.cjs.log",
+        "counters": {
+          "tests": 10,
+          "pass": 10,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/payment-provider-status.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.08,
+        "sourceSha256": "2fa1e73b252b54b5278663d15bdc1bd50ab7f4d1e2e2cc5ff331917cf5a34972",
+        "logSha256": "b5c24b8be57fd21d472d31a1fc100def49c3eac3c2fc90c89c0fa09eeb34fd02",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__payment-provider-status.test.cjs.log",
+        "counters": {
+          "tests": 3,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/payment-receipt.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.076,
+        "sourceSha256": "9e25ac80e43956468b954f1e3f1db56a4b707a3175c09bf876b189e8671d7ce8",
+        "logSha256": "f6849e57b7456e16ab4c9edbc498650c7020c4a7e49bdbacc5c2c494efb819b8",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__payment-receipt.test.cjs.log",
+        "counters": {
+          "tests": 3,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/payment-service.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.175,
+        "sourceSha256": "b3e0e8e1c5af9ec3c758e1ea50db6079abad580fb674e116f00f9896523d44d6",
+        "logSha256": "2064727dd4ed2ddf7286505250526f4d6eff0a0e05d8d1e60572b5c4965cdb13",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__payment-service.test.cjs.log",
+        "counters": {
+          "tests": 13,
+          "pass": 13,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/post-media-editing.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.264,
+        "sourceSha256": "8d09869f93ee56043e917bd2327761322d6fce43237ef4d34bdcbe70b2943fcc",
+        "logSha256": "250d06c79ed8571d9f0975c399f04210999151a034f30c8c1f230981a0b3de81",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__post-media-editing.test.cjs.log",
+        "counters": {
+          "tests": 7,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/post-sharing.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.638,
+        "sourceSha256": "cce07c6e865215ab82dab4f1ed9172df3276d08d2579d58662e2c6fd781a2224",
+        "logSha256": "cc38f3d57760f09fa8ea5b86b58af973df2b6c123ecc10f6fc139e6baea57fa7",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__post-sharing.test.cjs.log",
+        "counters": {
+          "tests": 14,
+          "pass": 14,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/post-voice-effects.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.263,
+        "sourceSha256": "e62d0289c7476afb3633df6c1c2501b4a74cc169a548bf4d23b23378e90c51b7",
+        "logSha256": "1e7a31c36c5bb448782b7e03fb64735e1557990eeafc4fc49179aa475e10ae18",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__post-voice-effects.test.cjs.log",
+        "counters": {
+          "tests": 4,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/private-media-cleanup.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.302,
+        "sourceSha256": "62bd9726c2381704de437e645ef5deb542c3db4671b4f5ba05ac7b00ee7b33da",
+        "logSha256": "0f6ae3a3d75d9177f23ba5f7340654039291edbb765cc7d44dda7a4e6c3e4737",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__private-media-cleanup.test.cjs.log",
+        "counters": {
+          "tests": 4,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/private-media-reader-regressions.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.439,
+        "sourceSha256": "dc55d75cd6e0cba3d7007051194a68d47e345a7785bef9df05f28d227d628d34",
+        "logSha256": "2aa8c65120f6a9902defd4890cfd9291e71e8f9a41c7fcae1168afd4bd1c4e3f",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__private-media-reader-regressions.test.cjs.log",
+        "counters": {
+          "tests": 6,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/private-media-session.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.344,
+        "sourceSha256": "62de1fe3f1993e9b4e6ac5ec9828058436823a8f967402f991d012d389e21a11",
+        "logSha256": "b698ec2021ed4aafd6ab528411f28dcd9603c79f6b6cda4c5cee4acce790377f",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__private-media-session.test.cjs.log",
+        "counters": {
+          "tests": 10,
+          "pass": 10,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/private-screen-capture.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.287,
+        "sourceSha256": "1e437169283a478c6590cb83ce8fb280e832795ece5e1fca1b39ec0d908a9837",
+        "logSha256": "b3c51ed7865a857f60cdf32e8080a1fc723660b53107c6f57d18bec7bf99ef7f",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__private-screen-capture.test.cjs.log",
+        "counters": {
+          "tests": 2,
+          "pass": 2,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/profile-mention-lookup.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 2.169,
+        "sourceSha256": "1d9bb840b184c77e3056a73364d19ac1931ccd31877cfba5a55ff03d4d5f608d",
+        "logSha256": "2dc71aee66c3a0d1b29e06d7e0810361bdf0d1c01e1afbbd8ade371a6ae91dc0",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__profile-mention-lookup.test.cjs.log",
+        "counters": {
+          "tests": 11,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/app-interaction-sweep.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.478,
+        "sourceSha256": "8232db8778891772b583064aaea5953d0f0042f1c796e4b95a8562c2c9063b5c",
+        "logSha256": "17110dd3ae59299d408896e827c2d21176478fd58d1171e954eb8a1e233ed6ae",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__app-interaction-sweep.cjs.log",
+        "counters": {
+          "tests": 6,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/apple-music-regressions.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.372,
+        "sourceSha256": "7cec870606e142c4c49f00543157ef53052f1c81039c209d6645ac9953199c64",
+        "logSha256": "0aea3a6f72f94bb07e2a48363da5d9a756c2df5e6e8fec662b6481da7a88de8d",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__apple-music-regressions.cjs.log",
+        "counters": {
+          "tests": 11,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/auth-callback-logging.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.472,
+        "sourceSha256": "cbbb48550242da0d122f8edcee8b746cb8870cfe25ae03cebcaea93dffd9fb17",
+        "logSha256": "8e0c4307bf73b7776d5523889cc88d4dbb56aa92fabcbfd7b9eb43bd6f0aca58",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__auth-callback-logging.cjs.log",
+        "counters": {
+          "tests": 4,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/auth-regressions.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.318,
+        "sourceSha256": "621b5b4684c45d30fea839eb3c3dc133632f60e2f10df79eb77ded5358f98e64",
+        "logSha256": "48b85e06a4391eb6510c3ac1bef551afafad27a9e6b39a11c7b19a1d1e2d9334",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__auth-regressions.cjs.log",
+        "counters": null
+      },
+      {
+        "file": "tests/quality/auth-service-recovery.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.356,
+        "sourceSha256": "34c86993e6099380c480e039625da76972329dfcfa64ab90e4768aa89ae7adae",
+        "logSha256": "21583570fe87069003217ad8c35b1e163759d2f5972075bae1015e4177cf6a85",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__auth-service-recovery.cjs.log",
+        "counters": {
+          "tests": 5,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/auth-transport-deadline.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.572,
+        "sourceSha256": "e97901dbb3fa187aa945e4e5f7412eebba61f0ea953425daa0a997508d160efe",
+        "logSha256": "e2e845ed84fd1ca5bf5367c46b392de74da1a4c91a4e8a25d3721144771efe24",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__auth-transport-deadline.cjs.log",
+        "counters": {
+          "tests": 17,
+          "pass": 17,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/boomerang-cancellation.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.252,
+        "sourceSha256": "32ebe15b4d88e7f94e0382551650a0edf058028b6055ae03510c3b52016d3493",
+        "logSha256": "e1b146e8780d0f099049c0de9581b35954ebe64aa1e137de5aff3b51e345c5f8",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__boomerang-cancellation.cjs.log",
+        "counters": {
+          "tests": 6,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/build-env-regressions.cjs",
+        "exitCode": 0,
+        "durationSeconds": 1.096,
+        "sourceSha256": "ab1d0aaa4754199e696fb7dd6e1e636b92f024c96cf41464092ea3798723ad85",
+        "logSha256": "1200462eb0cfe6dfec4f6caa065a1df69e9310f1a52617e7d3e69db8b1ad290f",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__build-env-regressions.cjs.log",
+        "counters": {
+          "tests": 14,
+          "pass": 14,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/business-access-rpc.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.619,
+        "sourceSha256": "4ce878affad2ac3ba5a2bc39c816558c4baa3984ee8397e0d65be24854620776",
+        "logSha256": "b8f94915fcb2e7c4df7dbd741023fc54d762d2f4ee2fd20f43c571be590e07cc",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__business-access-rpc.cjs.log",
+        "counters": {
+          "tests": 6,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/business-session-clients.cjs",
+        "exitCode": 0,
+        "durationSeconds": 2.043,
+        "sourceSha256": "73f0a03f646ade7d184a93fc205c91014e5c827ce92b111f70128161a6ac2389",
+        "logSha256": "7911737d157064d6363a98d5adfa045d4275a2e6beddd5dd16425860a8ac8d63",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__business-session-clients.cjs.log",
+        "counters": {
+          "tests": 48,
+          "pass": 48,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/call-membership-recovery.cjs",
+        "exitCode": 0,
+        "durationSeconds": 1.893,
+        "sourceSha256": "fd7b831b8825dfd7255031db1a07d4a34b2c12a7fcc9cf996fc7d1f7eac4adb5",
+        "logSha256": "be86ae62fe98bdd3210446f340af597ef5ad57be5f3e69169488bcbe6a8023d7",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__call-membership-recovery.cjs.log",
+        "counters": {
+          "tests": 1,
+          "pass": 1,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/call-revocation-worker.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.363,
+        "sourceSha256": "df99dadc87e6641c543ac9cce2f3a8297c81c75207ff930bb5fb16f34afe95e9",
+        "logSha256": "f70c65d75fbab3d112856a4bef2e902ff847bb2b7d031f20ed44d2805675e097",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__call-revocation-worker.cjs.log",
+        "counters": {
+          "tests": 6,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/call-worker-credential.cjs",
+        "exitCode": 0,
+        "durationSeconds": 1.946,
+        "sourceSha256": "2f7c0b0ba089ca05c5b440c280a5578d503b79c416fb2db0747f6af095dc6d9d",
+        "logSha256": "249e9f6268d91936027e5ba001918bb1210b58c62c108863f188a497e5f08457",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__call-worker-credential.cjs.log",
+        "counters": {
+          "tests": 1,
+          "pass": 1,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/catalogue-ingestion.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.483,
+        "sourceSha256": "bbeb021884e6cbe9f2b4c859ff23e64724dc01fd26e4467b547314146e50868d",
+        "logSha256": "6915374c86d40f8e46813bfe3246857cf8c3c59663295ca363def2f0c9ba40eb",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__catalogue-ingestion.cjs.log",
+        "counters": {
+          "tests": 11,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/channel-studio-desks.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.697,
+        "sourceSha256": "8d062d5a201f8b45c96a5234192cc05b3429baa9d9f5af2a56e8189d5cc2fadb",
+        "logSha256": "494573bef00847758e6c4fd36b7ea8f7e91f53cc0bf25350b5e6a76f92499187",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__channel-studio-desks.cjs.log",
+        "counters": {
+          "tests": 14,
+          "pass": 14,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/chat-attachment-cards.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.245,
+        "sourceSha256": "318e2aa390fb4aa5a21afaa49759e15608c3834d7e51a0b2dd927d88722125f3",
+        "logSha256": "0a9a2336ab8a690b3e3531947e345ae29e8841eb178d9aad5197098e75035c4b",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__chat-attachment-cards.cjs.log",
+        "counters": {
+          "tests": 5,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/chat-call-authorization.cjs",
+        "exitCode": 0,
+        "durationSeconds": 1.919,
+        "sourceSha256": "f826b4e1726199e04bf1997e9f1bc27aa1e4b5eb58590433694cd2d1d8e6dab8",
+        "logSha256": "6e1ea3ec60c86f401cc849f1e807d5ca59a6a584ca1593f56c667e6e6ff9057a",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__chat-call-authorization.cjs.log",
+        "counters": {
+          "tests": 1,
+          "pass": 1,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/chat-history-loading.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.403,
+        "sourceSha256": "ebe4afcb8c1959b61a80d8164301b76b81f4b012f17f5f39bb90d6466a040837",
+        "logSha256": "2341fff892367217d0d18c27a7258aa8be5f2baa28c561962e194bfc66394488",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__chat-history-loading.cjs.log",
+        "counters": {
+          "tests": 7,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/chat-media-signer.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.524,
+        "sourceSha256": "0a565a6f94e671d2c069b0e723d33c5c77c3c63d5fe04bafb7d3dd0568ffa761",
+        "logSha256": "f2d732a23aa551137ab8e42b86321bfee4cd2e7663966e963803dc49cbad7481",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__chat-media-signer.cjs.log",
+        "counters": {
+          "tests": 12,
+          "pass": 12,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/chat-storage-cutover.cjs",
+        "exitCode": 0,
+        "durationSeconds": 1.843,
+        "sourceSha256": "2c66584d1c49729ee631324a2b721ee9a245ac0335ec973abb568d8888c06f33",
+        "logSha256": "4e4887a256e7cd23cb783ae510d550bc9f18ccb56c905e53a644f7eff8d23c4a",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__chat-storage-cutover.cjs.log",
+        "counters": {
+          "tests": 1,
+          "pass": 1,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/content-media-concurrency.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.523,
+        "sourceSha256": "0b90503220a1a1479d65eb780a278bfa15970e306fb90c27f8b8caf78c2996b2",
+        "logSha256": "0736127a746120a470ef27ca32838c817275ea303f885fdebe3f25c4f08f39cb",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__content-media-concurrency.cjs.log",
+        "counters": {
+          "tests": 7,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/content-media-regressions.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.341,
+        "sourceSha256": "55d674c872bf0b26dfb068188a9834442e6b62b9472117a31c5443025e3bad69",
+        "logSha256": "60070eaa14105269c273fa420fff5f78227b8ae848671ef9b55ae5d64da113d7",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__content-media-regressions.cjs.log",
+        "counters": {
+          "tests": 16,
+          "pass": 16,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/conversation-targets.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.35,
+        "sourceSha256": "8f71a7b4abcde3d72386bdd59605c2c06771b3eab7564b528d03299ff2d15b46",
+        "logSha256": "bb9d8bc34365a1137f86603a68b99520afacae9c89bf826b91787f4f9da9a49e",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__conversation-targets.cjs.log",
+        "counters": {
+          "tests": 9,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/dark-surfaces-sweep.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.765,
+        "sourceSha256": "6a96c6625c9d169b0d311f3b0abb4226763e1b0f781ebe665f1176eafed565ff",
+        "logSha256": "c55b13f402460c9d36f42741f40bf067dedfaa57b99befb6f45fc76514ae7513",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__dark-surfaces-sweep.cjs.log",
+        "counters": {
+          "tests": 8,
+          "pass": 8,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/deep-link-security.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.372,
+        "sourceSha256": "3d1532714c88bf834804edb1f851d4d97c2074d94bffbfb1e8c0b01abb790f3b",
+        "logSha256": "5f46ed3df1f5df69360822fec270fdc19e41f89182fdec21038108305c74d5f3",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__deep-link-security.cjs.log",
+        "counters": {
+          "tests": 8,
+          "pass": 8,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/deployment-skip-regressions.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.516,
+        "sourceSha256": "f676fb9ca8f8ad21f967ab3e8466208bf7aa6b09cd114990556a6c553eabbe2b",
+        "logSha256": "cc7a620a5f9bbd007baa289f4afd28c20f944f81b23c587483920ad9cbbe17e3",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__deployment-skip-regressions.cjs.log",
+        "counters": {
+          "tests": 15,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/directory-media-sweep.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.537,
+        "sourceSha256": "9f9424dbb74ab54080cb751cf7c42819b5a8be717e66beaa92bab70ba4478555",
+        "logSha256": "b52c756e084bd929f9444da064ecbfe6b4f546cf98f299eda934c02249d638c3",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__directory-media-sweep.cjs.log",
+        "counters": {
+          "tests": 11,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/draft-soundtrack-interaction.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.885,
+        "sourceSha256": "e3c71ca3b6e64254e060dc011170229cdf81d8813356def73aae42d0b9f6c44e",
+        "logSha256": "6dee900d809b9bafd5882b6c1efb51b1868e292029c9937d5c6b1eb9c270b706",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__draft-soundtrack-interaction.cjs.log",
+        "counters": {
+          "tests": 21,
+          "pass": 21,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/edit-profile-save.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.309,
+        "sourceSha256": "58c4d6c7621e0ac1c1fbc9b394702044f7016d98a83104bd13a8c3c50d535e04",
+        "logSha256": "b9a9458099c3d494bb18c509e2fd889b0e9875ef409464678c711f1c9cd6a34f",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__edit-profile-save.cjs.log",
+        "counters": {
+          "tests": 4,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/finance-unavailable-release.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.39,
+        "sourceSha256": "242c674ee46c47764e1ef306e7bdb64f21800b44ecff962931e9b5550f440752",
+        "logSha256": "d7759fe5830f46df3c5d60ed291aa7267b8e4478fba09718fc3035db8b698b85",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__finance-unavailable-release.cjs.log",
+        "counters": {
+          "tests": 5,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/hiring-workflow.cjs",
+        "exitCode": 0,
+        "durationSeconds": 2.094,
+        "sourceSha256": "a214c52d94a79bb05bc5cc825175efb2bbefd87a60c9bcbd772a92021d242f2a",
+        "logSha256": "69a01d2641b48810f3b8161bd40a0a61b13a94e0d377352be080fc9f92d27304",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__hiring-workflow.cjs.log",
+        "counters": {
+          "tests": 2,
+          "pass": 2,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/incoming-call-access.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.997,
+        "sourceSha256": "427331ccd73a2f9435c3422e8eab4a652750995623b9a2765ae05fd85bb6c427",
+        "logSha256": "35bbc06f387a4460f8575b89bc8c20d3764f1e3357f345c0905d4a502afaa488",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__incoming-call-access.cjs.log",
+        "counters": {
+          "tests": 19,
+          "pass": 19,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/job-application-self-service.cjs",
+        "exitCode": 0,
+        "durationSeconds": 3.848,
+        "sourceSha256": "098296249eb9ebf79df100c32ee2843b3e2b1d4b04d152b88b9ed24f4c46f314",
+        "logSha256": "e179b34dd6c771993504dcfa4fad8c9596eab975b04a31e82e45e5a4f24b989f",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__job-application-self-service.cjs.log",
+        "counters": {
+          "tests": 3,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/jobs-market-regressions.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.968,
+        "sourceSha256": "e4e8007db3bb4851882193324f4292863a6de620a341242649afe4fe6f20dc96",
+        "logSha256": "720e5a6cc582d2a4aa59ff5cf1257527342991747e3045e5482231d7620fad50",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__jobs-market-regressions.cjs.log",
+        "counters": {
+          "tests": 50,
+          "pass": 50,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/jobs-navigation.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.975,
+        "sourceSha256": "5f1598be197042e0c4398bda9ccb3743c06e373d6e13c60bc7a8e97588676589",
+        "logSha256": "5a160169e1e084190cf32357cc09180947c5871a2552aa5965af42f30024e0b4",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__jobs-navigation.cjs.log",
+        "counters": {
+          "tests": 9,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/jobs-parity.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.834,
+        "sourceSha256": "6d9e6e1fcd9d2d80af2d177fb9dcfa0e8ed1db278b8f2bbcba6ae48e4e827291",
+        "logSha256": "8f662035954e01b9dc3b4cb877ce1bd1c32f2caf29104f09c4d48d482743c888",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__jobs-parity.cjs.log",
+        "counters": {
+          "tests": 8,
+          "pass": 8,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/legacy-limited-media.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.309,
+        "sourceSha256": "b995a8c892bf3a3425e40b5162eae9507da45516f3a3418b2cd0c59f65f506b6",
+        "logSha256": "9058c73e91bd0b84744544f37df25f01188e2f3accce66f9e297c112f292f35f",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__legacy-limited-media.cjs.log",
+        "counters": {
+          "tests": 5,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/lens-camera-interaction.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.601,
+        "sourceSha256": "e31263e0d98f44e92bbe31584ac49165f07d8eff113e6dd5a9d878df2f933362",
+        "logSha256": "a96ab43471840d9e3feabdc477ea66a2e063bc5482fe389f372c5bf36c73efd8",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__lens-camera-interaction.cjs.log",
+        "counters": {
+          "tests": 7,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/link-preview-publication.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.42,
+        "sourceSha256": "9d85b2c7b532d6e33c32919dff9de74f49a22840d09bd4114145553638466ecd",
+        "logSha256": "3e2037f27d5c3faccd42a0ea1071516d0104730372ab4d87cf297db08a13a67a",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__link-preview-publication.cjs.log",
+        "counters": {
+          "tests": 6,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/marketplace-refresh.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.499,
+        "sourceSha256": "de25cf5d8f20082b9f083c8ba09b49d0dfedab4e493a34da1f8ad0b8a4e6fda4",
+        "logSha256": "9b8bbd7cd7bf1541d53ac1ea592b62f473d2bfe7ebe1b3a425dcac3ed10d37fc",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__marketplace-refresh.cjs.log",
+        "counters": {
+          "tests": 5,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/memory-creative-plan.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.492,
+        "sourceSha256": "f0f9cde3b52b1d13ae88d64e003e2483da44111f8926d63bbb4bfae8e750e42f",
+        "logSha256": "31989582688db5d2901409f88afb796ee30d176e54e727d181490965b577ecf4",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__memory-creative-plan.cjs.log",
+        "counters": {
+          "tests": 23,
+          "pass": 23,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/memory-film-lifecycle.cjs",
+        "exitCode": 0,
+        "durationSeconds": 1.19,
+        "sourceSha256": "e1b332e7e732f7cdc3b0a15c3088a35ca5aa0a8786bd496794a84d4a44a48287",
+        "logSha256": "4b7fe8995174d8ba2dcf6e4b240d472607e3638936d56d74d2c49310c656338a",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__memory-film-lifecycle.cjs.log",
+        "counters": {
+          "tests": 8,
+          "pass": 8,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/memory-film.cjs",
+        "exitCode": 0,
+        "durationSeconds": 1.755,
+        "sourceSha256": "fcae5f48ed8eed6cb1ee47565c52b5ed84c9052064964abcf9111bccda2254c5",
+        "logSha256": "4482516ee28ee2069e40195eede9a3e8bf44b8c7a34676068c0794f28a909222",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__memory-film.cjs.log",
+        "counters": {
+          "tests": 14,
+          "pass": 14,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/memory-media-regressions.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.355,
+        "sourceSha256": "bf474c23e11a8f2856204daf6f234b97c39d64051c13241e7b23cea338c71bf4",
+        "logSha256": "d6b9026cdacc754657503b9e0fb55bb01546080ab14ca378b7b2abd0ee94ebed",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__memory-media-regressions.cjs.log",
+        "counters": {
+          "tests": 6,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/memory-page-turn.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.543,
+        "sourceSha256": "d305438c894b92a43770213bd47a8c43c5fa788ed05c07dacc8277d9fdb54e68",
+        "logSha256": "111766743bd1fe1f9c9aaf4d3be4155de9511504c400637b56c45d2c7537ca11",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__memory-page-turn.cjs.log",
+        "counters": {
+          "tests": 14,
+          "pass": 14,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/memory-picker-accessibility.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.423,
+        "sourceSha256": "20a522ac381aad71f8f83b74a14416e6ea7bd01374d8f3d3e0ae9100eb1844ef",
+        "logSha256": "410e9a5e50c768595783c2dc5c14ae270027b496868c466f5251c703a901f31e",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__memory-picker-accessibility.cjs.log",
+        "counters": {
+          "tests": 4,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/memory-playback.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.288,
+        "sourceSha256": "b88da98de000e676c731a3d68ab8d4bee5e6ca2c90a3fb6feac8afec1d15eae0",
+        "logSha256": "3ed281261faadfec9c6c13a77e27103240ab9166af2bb0862cc6a772db53bd5c",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__memory-playback.cjs.log",
+        "counters": {
+          "tests": 6,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/memory-soundtrack-save.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.685,
+        "sourceSha256": "f2548ca3a9986bd05a1d634a86373afdc4ed8badd2d31c42bdde94bf945dbc71",
+        "logSha256": "4b8f4057e6944938d1cf870aba25611d9bb9d2f3e7dece15953fcd6af635e368",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__memory-soundtrack-save.cjs.log",
+        "counters": {
+          "tests": 19,
+          "pass": 19,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/memory-stability-regressions.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.395,
+        "sourceSha256": "6c7496278a6534d27e45109d17032dc57a1af33a8c9bf1b8f481a1b252bdd457",
+        "logSha256": "aead349f68b1026d75c114990b846bf0a55f0100cf629d5c9e32fe1a11e2ddaa",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__memory-stability-regressions.cjs.log",
+        "counters": {
+          "tests": 14,
+          "pass": 14,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/memory-story-presentation.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.573,
+        "sourceSha256": "8db9e4aa34a3af91a1e7d271372fad3509e7417389a215ab688ee4686831220c",
+        "logSha256": "24e17c14deb7d25567d12d11a09fc7a6d57ec9b3a1e949c7c4c0db636a39c289",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__memory-story-presentation.cjs.log",
+        "counters": {
+          "tests": 18,
+          "pass": 18,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/music-catalogue-client.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.365,
+        "sourceSha256": "aeb82e2fb2d52ab1fdd6814a95cc33ec77089fe3fc160f53a2ec9e0e668458aa",
+        "logSha256": "6918b530a3b4ec56bcffd55450b379eff3ee2a01a9f042948b16085e6b4cb85a",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__music-catalogue-client.cjs.log",
+        "counters": {
+          "tests": 9,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/music-disabled-release.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.383,
+        "sourceSha256": "c0f6206c23b59b1d6582344b60133513f8a8abd7cf8ae8875bdc871278db253d",
+        "logSha256": "9df4e9462fa1e0929ae993d4274c95bfc80c8f13ae0bdf1f97c63ba5d91dd766",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__music-disabled-release.cjs.log",
+        "counters": {
+          "tests": 4,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/music-favorites.cjs",
+        "exitCode": 0,
+        "durationSeconds": 1.238,
+        "sourceSha256": "edbef5c2da9e811ca596669788a0fa824d1d16d81d7f9c5fb84cc5429e6c4506",
+        "logSha256": "0e43d83b45ebe5b2c9be18763e6cf67de31e41b2a4264efeea356fb9068f07cc",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__music-favorites.cjs.log",
+        "counters": {
+          "tests": 26,
+          "pass": 26,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/music-maintenance.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.347,
+        "sourceSha256": "cf2f0feb19d8d5b4f9f08e0e8dc96eb10ab0f00202a308e92b5e109ed3203437",
+        "logSha256": "4692de8952bfb095553b4d2a6bd4968fc51dd6092c8c9cdcae42986e6f23691e",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__music-maintenance.cjs.log",
+        "counters": {
+          "tests": 14,
+          "pass": 14,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/native-account-readback.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.361,
+        "sourceSha256": "e29c9448c6725e996ad71ccc0b9175c578a69d5011d10dd0ddd6de3912613856",
+        "logSha256": "158e1f09da75e941a1341feaf6a11784d1d3b4181d0869d04bf05145483422bf",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__native-account-readback.cjs.log",
+        "counters": {
+          "tests": 6,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/native-auth-diagnostics.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.177,
+        "sourceSha256": "ee11d2fc406136c0dda122818755f3db8f885862e0d0377b42929d6d6a1c692a",
+        "logSha256": "5b7f173e1a28effd16aa247763cf8bc0ef2382e18826f0faa83cf02b535eca50",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__native-auth-diagnostics.cjs.log",
+        "counters": {
+          "tests": 15,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/native-call-event-lifecycle.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.716,
+        "sourceSha256": "c803f75d62bab5f36a380da7a370c82fdf78d22378aa1b07fba4344da535fb3b",
+        "logSha256": "7711fc089910008ff89f4183a52521f292954cac3b32fd367e67621c3282c2d6",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__native-call-event-lifecycle.cjs.log",
+        "counters": {
+          "tests": 15,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/native-comment-actions.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.432,
+        "sourceSha256": "559a03befa095462011de53e7dfd27425735906e66b8db9b9831038734e84d92",
+        "logSha256": "cb5518a87efc5ef056914e127509cf6701bd61869eeb014cf94a933bc1228172",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__native-comment-actions.cjs.log",
+        "counters": {
+          "tests": 11,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/native-dependency-compat.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.681,
+        "sourceSha256": "532c680ab8487926e45f6121be8e19f9eeb60c42e6236c1f2159ff874a6d96cd",
+        "logSha256": "1f47a830f5be5cf197cb3e3f6d09af9ce7f4d66ddce8c979dee3baad7f6d5647",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__native-dependency-compat.cjs.log",
+        "counters": {
+          "tests": 11,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/native-draft-follow-reliability.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.915,
+        "sourceSha256": "793a7f5d844ca246a2f39dc312d3d59021881b0e20a6838fc67d6d57d9288ef0",
+        "logSha256": "aa6bdf36f32193942d0ae9a5818a4b3ae193173011acf47dbe8698bcf1b0aca2",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__native-draft-follow-reliability.cjs.log",
+        "counters": {
+          "tests": 14,
+          "pass": 14,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/native-environment.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.043,
+        "sourceSha256": "d923ecb81627d7992ab1ea7469b011ed4282bf8b38c7ba74c3363c9550a25a3d",
+        "logSha256": "fb5edc9999567a79f67473c17ffaa3d3552167303284d718b611ec078f0ee24d",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__native-environment.cjs.log",
+        "counters": {
+          "tests": 3,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/native-memory-export.cjs",
+        "exitCode": 0,
+        "durationSeconds": 1.314,
+        "sourceSha256": "7ca560610bd8dbc5b315e8fe40737df1c508a0f92ca424b9e08142eafa4e162a",
+        "logSha256": "f697f70693b12dde7484db1b10be47ae7e7b914d91e3865b8b919b18ba69a95a",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__native-memory-export.cjs.log",
+        "counters": {
+          "tests": 15,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/native-music-sheet.cjs",
+        "exitCode": 0,
+        "durationSeconds": 1.388,
+        "sourceSha256": "a7a62c7e847c1e7e4330c4e29da6a80218797f35fd8aadd58351aa08ddb69178",
+        "logSha256": "ac9bc916515b4b9274f4a3b6dbc9887aeb60511dc232bb20fc39fff8bfcc4da4",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__native-music-sheet.cjs.log",
+        "counters": {
+          "tests": 27,
+          "pass": 27,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/native-private-diagnostics.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.381,
+        "sourceSha256": "f1eb3050a9b5536e8472fa92f119a9c6e9659937b6e8ba7cf8124109e99a1aaf",
+        "logSha256": "4f7e14a3a39f13287784714f79e6173c40d7f9daf193cafec0a90274c39a1ae8",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__native-private-diagnostics.cjs.log",
+        "counters": {
+          "tests": 5,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/native-simulator-entitlements.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.236,
+        "sourceSha256": "408f6e9725a87bcab3b562abea30dbb5acaec5199c5321e3d79c24a228ac81ac",
+        "logSha256": "2d80f6668299c95b8414addb426bba9e4c48130f4ba768395c29e63605c89b76",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__native-simulator-entitlements.cjs.log",
+        "counters": {
+          "tests": 6,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/native-story-export-audio.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.882,
+        "sourceSha256": "baff235f2e3ff5ab409bdb0983f961f375af72b890379723540574ecebce2572",
+        "logSha256": "f44120f4fc1505d0cb45330828c1c5b353a8a2289c8e5f968391021ab2fe0d69",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__native-story-export-audio.cjs.log",
+        "counters": {
+          "tests": 10,
+          "pass": 10,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/native-story-interactions.cjs",
+        "exitCode": 0,
+        "durationSeconds": 1.007,
+        "sourceSha256": "250f3f45c33f77e412316feec6f12ef12b56ed0a65c8cca05d3772e9e78d3e1c",
+        "logSha256": "00d38a88493753640211654ad0e8f4273942b4a38bdf193bfe6bbf7dca50f53a",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__native-story-interactions.cjs.log",
+        "counters": {
+          "tests": 17,
+          "pass": 17,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/native-tab-bar.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.655,
+        "sourceSha256": "1ee00af169ad674068b4760a5119b7ebb94f791de70a29fbb14dd6153e240ce7",
+        "logSha256": "89cc0a6aae847b2da619734cf107a5714fbce89593aa0e2a98bf178aa8e94e3e",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__native-tab-bar.cjs.log",
+        "counters": {
+          "tests": 12,
+          "pass": 12,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/native-tab-selectors.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.982,
+        "sourceSha256": "c12f82a06ed0973e5ea58ca8af6aea6c6c0f8fbbd019c18403d342601dcf209e",
+        "logSha256": "71a3399818b40762eb2314731f8aa4d4057234e65e6e87eca046a206fb62ee0d",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__native-tab-selectors.cjs.log",
+        "counters": {
+          "tests": 5,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/native-theme-inputs.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.723,
+        "sourceSha256": "ed0ca276fbdcdefb2add06eed254c3c79505890f3b8a2931819e5f558c6a8b15",
+        "logSha256": "5743d01c36486afe60495a0ddda813b7bfb933615920df686bd1678553916cb1",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__native-theme-inputs.cjs.log",
+        "counters": {
+          "tests": 7,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/native-timer-bootstrap.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.31,
+        "sourceSha256": "9b16fa0ee1f88d93387179ee8df8e87d8a29d81a47c698c523c1438fd64e1337",
+        "logSha256": "8c19435cb078fd1c549823f199dd5e2017b21c7260cad5c51ef3987d6ee3a8d8",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__native-timer-bootstrap.cjs.log",
+        "counters": {
+          "tests": 6,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/native-ui-fixture.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.364,
+        "sourceSha256": "c62b06bc52b7a45fd0b28d0d7e2bbc799d20f90c7456df8584db8b7c30cbe790",
+        "logSha256": "4e4513c750b896baf210e9cb3b1571a2bfa2a3195876687c0133af9109e333e4",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__native-ui-fixture.cjs.log",
+        "counters": {
+          "tests": 10,
+          "pass": 10,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/native-ui-runtime-diagnostics.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.056,
+        "sourceSha256": "954c322808f72b77a4383c133edcfe191dade219f9326ddef67cc8255ac8cf5a",
+        "logSha256": "c72e6908be32e09c73e0795befe88cd8100513e39c288868832637533393db91",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__native-ui-runtime-diagnostics.cjs.log",
+        "counters": {
+          "tests": 3,
+          "pass": 3,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/native-vendor-compat.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.328,
+        "sourceSha256": "16ff6d660cc6fae15c80a78e569e864eb4b4e777f92268d7a3d0f9fdfcd108d6",
+        "logSha256": "5689673cbba146b326783118b9f82dce673b64ccd82340b79e60bd97762cae63",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__native-vendor-compat.cjs.log",
+        "counters": {
+          "tests": 7,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/native-verification-offers.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.806,
+        "sourceSha256": "9076a833ee0bace3c093de032b57f02ab64be4c7c88f1ab299837548f451d879",
+        "logSha256": "8dbb0dfb6523d1d74e49b3d54e62cfadb23eba7e7f9bff878f7a453bf689f7a1",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__native-verification-offers.cjs.log",
+        "counters": {
+          "tests": 14,
+          "pass": 14,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/navigation-cache.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.521,
+        "sourceSha256": "47c04c5035d50c750d1211861a8d4f04871986485f1c40baf179e015c7f7ac0e",
+        "logSha256": "998682dec66d21d91a2d5af0333b8693eae73568cec7b372f7f9c2d56261105a",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__navigation-cache.cjs.log",
+        "counters": {
+          "tests": 16,
+          "pass": 16,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/navigation-directory.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.986,
+        "sourceSha256": "52eb31c8fcff0f48e58a97094a735dc0780ef3ba2bb4f48d0d674aeb3c307002",
+        "logSha256": "c127a83968c86905904c1ebd8377db44d8e9fe3dbdea4ba44d950a59a0964605",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__navigation-directory.cjs.log",
+        "counters": {
+          "tests": 18,
+          "pass": 18,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/navigation-screens.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.351,
+        "sourceSha256": "7806be2bd776983eddb8e7ab3f17afeecf2c9c5aa2513621978743580e57057f",
+        "logSha256": "586f9d3f46a2ba2cf3d0e9cd33b18901161c73fff50ccc738f4dcce10e59acf6",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__navigation-screens.cjs.log",
+        "counters": {
+          "tests": 4,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/notification-event-dispatch.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.344,
+        "sourceSha256": "896d73b5c6714d4e9f29b7b952e2a837fa88b5f1615eebd7a5f31ecacaa7bdd0",
+        "logSha256": "f3388b7cc254bea0fef7a73a292ac8fd76a8eb34551010221942ac60f58cb60b",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__notification-event-dispatch.cjs.log",
+        "counters": {
+          "tests": 14,
+          "pass": 14,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/notification-loading.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.674,
+        "sourceSha256": "3895aae7ca21b2bad6de480cf67a9956dea3cbc7336a8b758234496b6c1df2e7",
+        "logSha256": "566e8ed5026b13abda4e55730945f028fe18e98c03888b3c5458196e1ae92833",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__notification-loading.cjs.log",
+        "counters": {
+          "tests": 14,
+          "pass": 14,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/notification-preferences.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.33,
+        "sourceSha256": "7123bddaf499e1d523ffd8c2109fe2ef0efdad7dcfc35e19a2c4fa04c8a18645",
+        "logSha256": "dbbb1e52f0b9100070cc8b2ca174b5311ee9631f9029a9dda4f4455e4f951c49",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__notification-preferences.cjs.log",
+        "counters": {
+          "tests": 11,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/notification-tap.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.562,
+        "sourceSha256": "d8ee60dcbb53a2af61ef1db2c9d04e6781eac3e1945d07e8dea873a494e00fb1",
+        "logSha256": "e1fbfbb6c0d32bd89eea2056b0b3d6cfd3e06f381af62782080b2105bd69fd99",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__notification-tap.cjs.log",
+        "counters": {
+          "tests": 15,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/original-audio-infrastructure.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.868,
+        "sourceSha256": "a6821868d5e5ce60d2806369d535cf364a5a96aeab190a0e8891bf97a4c00820",
+        "logSha256": "d5d1b3147b394b6796c354e8096af2e60a3d320f740826495162bd39a4f36d34",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__original-audio-infrastructure.cjs.log",
+        "counters": {
+          "tests": 19,
+          "pass": 19,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/original-audio-library-state.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.485,
+        "sourceSha256": "df8b02b15b94392a0829fa302e765d42885313ec137213da107f5da065d2a2b7",
+        "logSha256": "0b64f77e06638bd8dad3f8c56630cbd1ad6df582484f32ecfca147d4c6f88e69",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__original-audio-library-state.cjs.log",
+        "counters": {
+          "tests": 8,
+          "pass": 8,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/parity-navigation.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.441,
+        "sourceSha256": "35eb1dc319c249288b5d959a27c0bda582d83ae5055089f72c19403f22b795e7",
+        "logSha256": "47cfb2d9cd58c17546a7e29135bc761910126b72ff9c3774e5c747dff33cd7cf",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__parity-navigation.cjs.log",
+        "counters": {
+          "tests": 5,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/post-editor-interaction.cjs",
+        "exitCode": 0,
+        "durationSeconds": 1.258,
+        "sourceSha256": "358e5eb086e931995f197df9ca5959f9b4716cfb022cef9e85a542eea53decac",
+        "logSha256": "bd1dce06abf22bce5996fc7da39c7508cb2501fc1025ec013b01cddd80f325a1",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__post-editor-interaction.cjs.log",
+        "counters": {
+          "tests": 14,
+          "pass": 14,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/post-soundtrack-quality.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.426,
+        "sourceSha256": "4a46b7a1e5039c651cec37a4d781a58e79eb9b0c7a8c9a0d78df86d183fd0f32",
+        "logSha256": "093b44545e11bf8442490fdfff52dca37b8cee9bf42c2df3712c42324e4ef641",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__post-soundtrack-quality.cjs.log",
+        "counters": {
+          "tests": 10,
+          "pass": 10,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/post-upload-draft-ownership.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.581,
+        "sourceSha256": "e515641aef5a4ddc08b9adb9793b9faf893f5f02aa32a27a7c36b3b1b1494611",
+        "logSha256": "091be897cc00878d09940823276a33b4cc0c97a5805f9b34b34229319c2b421b",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__post-upload-draft-ownership.cjs.log",
+        "counters": {
+          "tests": 7,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/post-voice-viewer.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.324,
+        "sourceSha256": "70feef6f0f74d72661728ee0d94ba04fbcab544d0556ef0d7618be2637241c49",
+        "logSha256": "c34c8772c0799b6189b7a66e78e1c0e6fa5ca92e6880d4e0d296c6f5d7100a74",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__post-voice-viewer.cjs.log",
+        "counters": {
+          "tests": 2,
+          "pass": 2,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/private-reader-compat.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.359,
+        "sourceSha256": "e9a353dbf4b1072076c4fc990acf2c40244f361d8e7587c0d49c3cea4c9e1b7b",
+        "logSha256": "11047baf0faa6e14762a11320a9a88cf1aa47cc6e8f07ddb0aabd4115358011b",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__private-reader-compat.cjs.log",
+        "counters": {
+          "tests": 4,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/profile-content-regressions.cjs",
+        "exitCode": 0,
+        "durationSeconds": 1.966,
+        "sourceSha256": "3523648fd2d75fc102c4444c369fab83c87f4a3a475c084495ef65aa030f7be1",
+        "logSha256": "e93806baa4c1918f070400845560176849e21f9c4f3627f95e7563ab5a901954",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__profile-content-regressions.cjs.log",
+        "counters": {
+          "tests": 35,
+          "pass": 35,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/profile-media-renewal.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.545,
+        "sourceSha256": "9897532d48ed7a4b6383f78115867e4b55350c171762e2abe8c41e4f775ce5b9",
+        "logSha256": "0e631dc5e2c0305ddc0a597ee80a9d19157b2eed94c9f166036336df57312efc",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__profile-media-renewal.cjs.log",
+        "counters": {
+          "tests": 7,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/profile-shelf-lifecycle.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.502,
+        "sourceSha256": "8581f4dfdc223678d629543138114142bdbc41259e0d7a82471f439af0d0e448",
+        "logSha256": "1e579782a3029554ce6266a56d8795dde92f3f72e42adbed0bab9ab89a7670f9",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__profile-shelf-lifecycle.cjs.log",
+        "counters": {
+          "tests": 4,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/qa-notification-setup.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.336,
+        "sourceSha256": "b7cf3535654cc820a83585b74dc5b657fe06e65433bd2b5faa6c8cdef8056821",
+        "logSha256": "46e7de3f7d8e206df6f0c1a35c03e57ebbe127586dce3d625028fe6e0c17c4c4",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__qa-notification-setup.cjs.log",
+        "counters": {
+          "tests": 10,
+          "pass": 10,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/setup-profile-username.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.341,
+        "sourceSha256": "f59b1774be1e29709f9cbfec27b94d85f81b84d70d94cd1096b1a8c7838da73c",
+        "logSha256": "6093d0c92420c98a2140a4719dbbd970e03cad037aeeeaf0ae404820404c1420",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__setup-profile-username.cjs.log",
+        "counters": {
+          "tests": 6,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/social-interaction-regressions.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.375,
+        "sourceSha256": "96014c1508d3766fbc25b1b621cf4dc4614bf2df4fddeb9082c77bf6fc4ece5c",
+        "logSha256": "cc3a68699aad1808ba25af9c7eca170391f44cb668e1e1c80df224a8657e6382",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__social-interaction-regressions.cjs.log",
+        "counters": {
+          "tests": 10,
+          "pass": 10,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/soundtrack-playback.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.396,
+        "sourceSha256": "c43786893d51d924c3b15d87379c63478997d5d0a3fede0a7b5381474cbad96e",
+        "logSha256": "c50363134228b7b69da38f00a7d24c5d1ffc31fa1ef7f18a93c484af628a7599",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__soundtrack-playback.cjs.log",
+        "counters": {
+          "tests": 7,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/story-audio-playback-regressions.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.333,
+        "sourceSha256": "4225f8bf91806670378299981a8f83da326d1c70f38326b7688edea71fe4e54a",
+        "logSha256": "3995c92b3afb69bfc766a562cdeccf47587592c8642afd5e17009cc6afb2120c",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__story-audio-playback-regressions.cjs.log",
+        "counters": {
+          "tests": 14,
+          "pass": 14,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/story-audio-web-regressions.cjs",
+        "exitCode": 0,
+        "durationSeconds": 1.531,
+        "sourceSha256": "0c1ce13e6a805e758a2af2acb777e8d4439bb8c14a87a4cef2aac49ab6f7ede9",
+        "logSha256": "b44f0dd2146e08b061ed9916049df2ba471f5b56dfa4a06211e001646f0e4231",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__story-audio-web-regressions.cjs.log",
+        "counters": {
+          "tests": 10,
+          "pass": 10,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/story-capture-delivery.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.507,
+        "sourceSha256": "842856caa1ecdbc7cb73bfcbdba7c4f1078a64e9e63f3e3879b9333cf86d84bf",
+        "logSha256": "4b4d50258557e66d6ec67af1fda8bacf88651741ccf7fee805c36d65dce37fcc",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__story-capture-delivery.cjs.log",
+        "counters": {
+          "tests": 13,
+          "pass": 13,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/story-capture-lifecycle.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.737,
+        "sourceSha256": "1c9d0e1bd59df27ebefe1e2b16a8a39982376422b3c7ba1e22db3b14c92e9b82",
+        "logSha256": "4c8ebbf95a93c7414ed3a64cbadad40ad574c4a9753e24737409e684921a9d00",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__story-capture-lifecycle.cjs.log",
+        "counters": {
+          "tests": 15,
+          "pass": 15,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/story-dual-capture.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.349,
+        "sourceSha256": "faf8f93f6a15eed0c4c2c8af4e19d09b3edfe31a31f66097b2ef9d653f433ddf",
+        "logSha256": "c557e984b14c8c82b63f5a84ece1edbb21890778105fd1ca2a6048d58a04490c",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__story-dual-capture.test.cjs.log",
+        "counters": {
+          "tests": 7,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/story-editing-state.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.849,
+        "sourceSha256": "0378d023cff8ff21d519ab24a42aa05d88947637091471dc61d8cb35bacd3fb8",
+        "logSha256": "eefb40416ff2922ca49c4530e7ab7abccf34ef334cea8d1d6a0df510d8917437",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__story-editing-state.cjs.log",
+        "counters": {
+          "tests": 20,
+          "pass": 20,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/story-engagement-quality.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.405,
+        "sourceSha256": "689ac8965d7c00b5269afb75ab1f034d728e30ccb25ea53e34ed5146c6a34d39",
+        "logSha256": "7839b57a50b687d31aca33dd9f71ef2b2fe4f03d7bb7d4920ff5cb0890987301",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__story-engagement-quality.cjs.log",
+        "counters": {
+          "tests": 9,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/story-music-disabled-ui.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.388,
+        "sourceSha256": "c1ed5f0dc772c0d62128955ac402827ae4595c1ae2134fc80f4bac817378cef7",
+        "logSha256": "334c376aa8a9c5f72c1019bf9a4ed79a5bc539513ac47dc3282100dbffa92008",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__story-music-disabled-ui.cjs.log",
+        "counters": {
+          "tests": 2,
+          "pass": 2,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/story-photo-pixels.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.365,
+        "sourceSha256": "ef6e2810b829596fd6f43a8d697c316a94cf47a3047f7c0154ba913915558c71",
+        "logSha256": "6b604dc39817f821f8869c8687d164fa302fcddef30bf1be9dad220cc4781b3c",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__story-photo-pixels.cjs.log",
+        "counters": {
+          "tests": 7,
+          "pass": 7,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/story-publication-regressions.cjs",
+        "exitCode": 0,
+        "durationSeconds": 1.979,
+        "sourceSha256": "8d499380ad312344ecca87e12a8f099faa6622ba788ee771a4a3a8f877fccc3d",
+        "logSha256": "3f60167e91eb0f692f8c4090c573cd9f1be10a4dbb28e0afce1ff5b29ed4e855",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__story-publication-regressions.cjs.log",
+        "counters": {
+          "tests": 31,
+          "pass": 31,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/story-studio-interaction.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.693,
+        "sourceSha256": "ae4db139f03863cb2ac70423840b00b2d679ddb92da91c244d31aea4aafac4a7",
+        "logSha256": "84d2dae7d154af8c0a442f9909337a52fee3dc6f6659c8af8d19041fba75d6a8",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__story-studio-interaction.cjs.log",
+        "counters": {
+          "tests": 9,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/story-trending-canvas.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.328,
+        "sourceSha256": "a78d9317254bc0ff5db99868862671de2e941155eb56f3c558175b0e50b5a46f",
+        "logSha256": "0fb953039cd63826433a8a3f207dfcdd9689d108f66c6a07caa25212fa91a4ea",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__story-trending-canvas.test.cjs.log",
+        "counters": {
+          "tests": 8,
+          "pass": 8,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/story-video-composition.cjs",
+        "exitCode": 0,
+        "durationSeconds": 1.322,
+        "sourceSha256": "ededbaec50b4720cb49c3e0adad5823578f29e0e1eef9f180b1b32925acd1a01",
+        "logSha256": "9863df8668e47c5aa7717a63b01f5ead44c765e7cce7eb824cf88afa14fb1da0",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__story-video-composition.cjs.log",
+        "counters": {
+          "tests": 16,
+          "pass": 16,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/story-viewer-privacy-regressions.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.285,
+        "sourceSha256": "dccafc90113eb81fd4a7b2f4191d435a45f976f37367a02afbe7338fd45db6b7",
+        "logSha256": "d2444ce484b92798bdc9e6a910f333871d817a64c63497021882661e3e704c1c",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__story-viewer-privacy-regressions.cjs.log",
+        "counters": {
+          "tests": 6,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/theme-store-hydration.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.278,
+        "sourceSha256": "a0fe402c505e8e898255cbedcf63f10b96a0fbc65a33f4c00918e4c783f94698",
+        "logSha256": "872152e186e75930e4a47fbdc7f36ebfbf26655fb4b429afb6dbe3ffaeb98be2",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__theme-store-hydration.cjs.log",
+        "counters": {
+          "tests": 4,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/unread-session.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.388,
+        "sourceSha256": "592a190e41542765b7a0226c398304610fc31e9c834e71f2c344c944245023ed",
+        "logSha256": "147bb041a24bcd0af71c0c0ec5f322adc909c234fc8d649125bc65e075ffae16",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__unread-session.cjs.log",
+        "counters": {
+          "tests": 5,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/upload-preview-regressions.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.377,
+        "sourceSha256": "0a326769b3bfb4bd7918797b24aff16b7c2c6d97a53a91c4ff1d70a787f2118e",
+        "logSha256": "06b212408fc343a911d45294c5def2ccf98fb27fb0b89ef11491950c1367754e",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__upload-preview-regressions.cjs.log",
+        "counters": {
+          "tests": 6,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/upload-safe-regressions.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.297,
+        "sourceSha256": "3edebc6862d3afab6ce2445aaa0748580133fd970c49927b3e4d001e59acba8a",
+        "logSha256": "1644c061f36a96a76e40c9237c846633bcedd14a2179f0a579fc61a0e376096e",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__upload-safe-regressions.cjs.log",
+        "counters": {
+          "tests": 5,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/video-thumb-lifecycle.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.288,
+        "sourceSha256": "7fba4697458fb04546737f3e198aeec3be8d62e3907b2d078656ecdea654ff48",
+        "logSha256": "ee928023199e1f1b5b6e4379737acbe4c2ef37763bbcea94f0f1a24f539e78c5",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__video-thumb-lifecycle.cjs.log",
+        "counters": {
+          "tests": 4,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/voice-recorder-reliability.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.285,
+        "sourceSha256": "000305eb6f0a945a5e5d3b429d305cc1d117ea91bb414c03491c0d2df06c9f10",
+        "logSha256": "1b2104fd8e74b4a9e799d7a7f0f0dfbcadf0b3fd9eb8ae8b7a21c5f3482d5dda",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__voice-recorder-reliability.cjs.log",
+        "counters": {
+          "tests": 13,
+          "pass": 13,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/quality/web-message-outbox.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.355,
+        "sourceSha256": "fae32c1a1bfe22f937c57f5474d16f14277763f0f409cfc3e980e77b297f22d7",
+        "logSha256": "989ad0579420e166cb096c14888138dbb9eac33b365e7289893c659fa50ff83c",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__quality__web-message-outbox.cjs.log",
+        "counters": {
+          "tests": 4,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/send-money-sheet-context.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.714,
+        "sourceSha256": "df7249240245a66527fd6c1dbc56bd3e4f7797d37b01ebf735ea2d6b9cab91d2",
+        "logSha256": "e6a76aee8ecdfe3f2433c0573d92e7ee79cc2e810511930a12ea6eb8ec2dd16a",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__send-money-sheet-context.test.cjs.log",
+        "counters": {
+          "tests": 13,
+          "pass": 13,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/story-message-reference.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.303,
+        "sourceSha256": "950c1da00f05bdd683c34ea9f481ec70abbb93993be9ed74e0ee8599337a2340",
+        "logSha256": "1f5f38b5a7c715554cdce8300d4a8f48918a8260f91eda2758466f9a6299c744",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__story-message-reference.test.cjs.log",
+        "counters": {
+          "tests": 4,
+          "pass": 4,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/studio-reliability.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.403,
+        "sourceSha256": "fa2f87039befeba202c691dacc011fb854359477e52283b0dd5474e7a8811bca",
+        "logSha256": "6e0bb9cf4046ad9fcc8336d04d14a7749cc88e42ffea8567d93e29da049a9d7d",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__studio-reliability.test.cjs.log",
+        "counters": {
+          "tests": 9,
+          "pass": 9,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      },
+      {
+        "file": "tests/verification-integrity.test.cjs",
+        "exitCode": 0,
+        "durationSeconds": 0.276,
+        "sourceSha256": "f721925227e9f13ac66200be0ba1fb8d0dd9317c6a91c2d5c0506a000d525d12",
+        "logSha256": "349d8f85e16eb35573e59fe00da5430e61e9c49008f189c439a54f9e542356be",
+        "log": "/tmp/platinum-native-v4-root-isolated/tests__verification-integrity.test.cjs.log",
+        "counters": {
+          "tests": 5,
+          "pass": 5,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      }
+    ]
+  },
+  "evidence": {
+    "localRunnerPath": "/tmp/platinum-native-v4-root-isolated.py",
+    "localRunnerSha256": "2b37d2bcfe74765289ca664d8514e62121153ef97dbbeffb152fdd70e59996a0",
+    "rawReportPath": "/tmp/platinum-native-v4-root-isolated/receipt.json",
+    "rawReportSha256": "36d13322c8c4d30260c7a25468e87bc0ef6f8b4f4642a5093214816e01fee55a",
+    "supportingReceipts": [
+      {
+        "path": "docs/quality/native-full-app-20261031/native-tab-selector-repair.json",
+        "sha256": "88da28361243b5a4dcc71bbce90e5064b2dbad4a090005d13fb08e51009b603a"
+      },
+      {
+        "path": "docs/quality/live-app-20261031/native-auth-warning-ab281bca-investigation.json",
+        "sha256": "c857e58e1c53e520bf7ef042395b78b3fe34fb901540fa06042f5705ac7c6eda"
+      },
+      {
+        "path": "docs/quality/live-app-20261031/native-daily-timer-switch-repro.json",
+        "sha256": "c7ffcabe333dd0b7a1310a277e39dd7c28a9d2d86189ae2c147baffcbff88116"
+      },
+      {
+        "path": "docs/quality/live-app-20261031/ci-quality-9622cf30.json",
+        "sha256": "fa71dca1c6c9b361265a41b58eb83d316d8cef3a357601fd9c8631eb23903c81"
+      }
+    ]
+  },
+  "unchangedChecksNotRepeated": [
+    "Dedicated backend Node and RPC authorization jobs",
+    "Web and operations test suites",
+    "Browser automation suites"
+  ],
+  "publicationState": {
+    "candidatePublished": false,
+    "pushPerformed": false,
+    "refsMoved": false,
+    "hostedMutationPerformed": false
+  },
+  "limitations": [
+    "This is a local root gate using Node 24.22.1, while isolated PR 6 CI used Node 22.23.4. It is separate from a new CI/native run of this candidate.",
+    "Every CI-selected root test file ran in its own Node process with NODE_TEST_CONTEXT removed so actual internal counters are visible. The standalone auth program is reported separately instead of being counted as an extra file-wrapper test.",
+    "The isolated PR 6 green quality run verifies the earlier one-file harness fix. It does not itself verify these later timer-bootstrap/tab-selector source changes.",
+    "The root suite contains synthetic native host, transport and database fixtures. It does not establish full Simulator/Emulator accessibility exposure, physical-device behavior, hosted provider delivery or production performance.",
+    "A new full native app build and flow is still required for the changed candidate. The current iPhone run and original Android failure remain separately source-bound evidence."
+  ]
+}

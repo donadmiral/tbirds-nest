@@ -1,0 +1,62 @@
+import hashlib
+import json
+import os
+import pathlib
+import re
+import signal
+import subprocess
+import tempfile
+import time
+
+repo = pathlib.Path('/workspace/scratch/f9638ed3020b/platinum-circles')
+source = repo / 'scripts/quality/test-android-app-ui.sh'
+original = source.read_bytes()
+cleanup = re.search(r'cleanup\(\) \{[\s\S]*?\n\}\ntrap cleanup EXIT', original.decode()).group(0)
+results = []
+for collector_exit in (0, 77):
+    with tempfile.TemporaryDirectory(prefix='platinum-cancel-review-') as tmp:
+        root = pathlib.Path(tmp)
+        (root / 'native-ui-logs').mkdir()
+        (root / 'bin').mkdir()
+        (root / 'work').mkdir()
+        adb = root / 'bin/adb'
+        adb.write_text('#!/bin/sh\nexit 1\n')
+        adb.chmod(0o755)
+        python = root / 'bin/python3'
+        python.write_text('#!/bin/sh\nprintf \'%s\\n\' "$@" > "$DIAGNOSTIC_ARGS"\nexit ' + str(collector_exit) + '\n')
+        python.chmod(0o755)
+        script = ('set -euo pipefail\nadb_bin="$FAKE_ADB"\nwork_dir="$FAKE_WORK"\n'
+                  'emulator_pid=\'\'\nemulator_started_ns="$FAKE_STARTED"\nlog_pid=\'\'\nvideo_pid=\'\'\n'
+                  + cleanup + '\nsleep 30 &\nemulator_pid=$!\nprintf ready > "$READY"\n'
+                  'sleep 30 &\nwait "$!"\n')
+        args = root / 'diagnostic-args.txt'
+        ready = root / 'ready'
+        env = dict(os.environ, PATH=str(root / 'bin') + os.pathsep + os.environ['PATH'],
+                   FAKE_ADB=str(adb), FAKE_WORK=str(root / 'work'),
+                   FAKE_STARTED=str(time.time_ns()), DIAGNOSTIC_ARGS=str(args), READY=str(ready))
+        proc = subprocess.Popen(['bash', '-c', script], cwd=root, env=env,
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                                start_new_session=True)
+        deadline = time.monotonic() + 3
+        while not ready.exists() and proc.poll() is None and time.monotonic() < deadline:
+            time.sleep(0.01)
+        assert ready.exists(), 'Cancellation fixture did not become ready'
+        os.killpg(proc.pid, signal.SIGTERM)
+        try:
+            stdout, stderr = proc.communicate(timeout=3)
+        except subprocess.TimeoutExpired:
+            os.killpg(proc.pid, signal.SIGKILL)
+            stdout, stderr = proc.communicate()
+            raise AssertionError('Actual cleanup did not finish within the cancellation probe bound')
+        recorded = args.read_text().splitlines()
+        gate = recorded[recorded.index('--gate-exit') + 1]
+        assert proc.returncode in (-signal.SIGTERM, 143), (proc.returncode, stderr)
+        assert gate.isdigit() and 0 <= int(gate) <= 255, recorded
+        assert not (root / 'work').exists()
+        results.append({'signal': 'SIGTERM', 'collectorExitCode': collector_exit,
+                        'actualProcessReturnCode': proc.returncode, 'collectorCleanupEntryStatus': int(gate),
+                        'temporaryWorkRemoved': True, 'result': 'pass'})
+assert source.read_bytes() == original
+print(json.dumps({'schemaVersion': 1, 'runnerSha256': hashlib.sha256(original).hexdigest(),
+                  'method': 'Execute the frozen actual cleanup block with fake ADB/collector commands and real isolated sleep processes; send SIGTERM to only the fixture process group.',
+                  'results': results, 'limits': ['This is an actual-shell cancellation probe, not a GitHub cancellation or real emulator run.', 'The collector gate-exit argument is the incoming EXIT trap status. It can be zero during signal termination and does not establish the final process/workflow outcome.', 'SIGKILL cannot guarantee cleanup or diagnostic retention and was not claimed.']}, indent=2))

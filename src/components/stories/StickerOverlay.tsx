@@ -3,7 +3,7 @@ import { currentTextMentions } from '../../../shared/storyMentions';
 import ResultsStickerCard from './ResultsStickerCard';
 import React, { useRef, useState } from 'react';
 import { View, Text, StyleSheet, Linking, Dimensions } from 'react-native';
-import { stickerTextStyle } from '../../utils/stickerStyles';
+import '../../utils/stickerStyles';
 import StickerPill from './StickerPill';
 import PostStoryCard, { POST_CARD_W } from './PostStoryCard';
 import StoryReshareCard, { STORY_CARD_W } from './StoryReshareCard';

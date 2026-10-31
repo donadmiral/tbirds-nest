@@ -1,0 +1,50 @@
+{
+  "recordedAt": "2026-10-31T03:44:33.870526+00:00",
+  "parentCommit": "341395c68cfc0bf74527bcf23e0dced3813e9225",
+  "status": "source fix and focused execution passed; full-app emulator rerun pending",
+  "observedFailure": "Android full-app341395c6 showed the RECORD_AUDIO permission dialog immediately after sign-in, covering Home before any call action.",
+  "cause": "The pinned CallKeep4.6.1 Android setup wrapper calls checkPhoneAccountPermission, which requests RECORD_AUDIO and phone permissions. Auth hydration and IncomingCallListener both invoked this helper.",
+  "change": [
+    "Android initialization uses registerPhoneAccount, registerAndroidEvents and setAvailable. These do not request runtime permissions.",
+    "Background native fallback requires the quiet hasPhoneAccount check. If disabled, ungranted or rejected, the authoritative notification fallback remains available.",
+    "CallContext retains explicit microphone/camera permission checks before creating or accepting a call.",
+    "iOS retains CallKit setup and all native event replay behavior.",
+    "Subscribe to didLoadWithEvents on both platforms before native registration, so the Android cold queue is replayed before the library drains it. A queued hangup supersedes its answer and duplicate actions remain suppressed."
+  ],
+  "verification": [
+    {
+      "command": "node tests/quality/native-call-event-lifecycle.cjs",
+      "pass": 15,
+      "fail": 0,
+      "notes": "Seven new cases execute the installed CallKeep JavaScript facade and event dispatcher against a native boundary fixture, including the Android startObserving queue drain, in addition to eight lifecycle cases."
+    },
+    {
+      "command": "node tests/native-call-reliability.test.cjs",
+      "pass": 23,
+      "fail": 0
+    },
+    {
+      "command": "node tests/quality/incoming-call-access.cjs",
+      "pass": 19,
+      "fail": 0
+    },
+    {
+      "command": "./node_modules/.bin/tsc --noEmit --pretty false",
+      "exitCode": 0
+    }
+  ],
+  "sourceSha256": {
+    "src/services/nativeCallService.ts": "cdbdd19b02d852e6f1743b06d3be19f5b21614dd7d31741b728d043c09d93274",
+    "src/contexts/CallContext.tsx": "3cb5c882300a35d991a29ae69b1b7d78af630c9840460df2a402bf640a0bdc4a",
+    "src/services/callBackgroundTask.ts": "cc3ece1a8d0b77f71451a8f8a46bbebaf741fd4e5797bff36a9eae8098283afb",
+    "tests/quality/native-call-event-lifecycle.cjs": "c803f75d62bab5f36a380da7a370c82fdf78d22378aa1b07fba4344da535fb3b",
+    "node_modules/react-native-callkeep/index.js": "7e81a899deda3cb2963697f23c3578b2e83d32c6ae2c1feb57cb57bc4e7b1f22",
+    "node_modules/react-native-callkeep/android/src/main/java/io/wazo/callkeep/RNCallKeepModule.java": "0b75f76df13bcd202523e6505c430ff16c91570bebb95a1620e192944776ab12"
+  },
+  "limitations": [
+    "These cases do not prove Android OS behavior. The complete app rerun must confirm the sign-in permission dialog is absent.",
+    "A separate5-second Auth lock-acquisition warning was observed during the earlier synthetic cold startup. It is not explained or claimed fixed by this permission change.",
+    "Physical-device incoming-call delivery, lockscreen integration and microphone/camera permission choices still require device acceptance.",
+    "New Android installs continue to use the in-app and full-screen notification calling paths until the optional managed phone account and phone permissions are enabled. This change does not add an enabling flow or prompt for those phone permissions."
+  ]
+}

@@ -1,3 +1,4 @@
+import { privateImageCachePolicy } from '../../../shared/mediaDelivery';
 /**
  * HighlightRow — Memory atmosphere
  *
@@ -69,7 +70,7 @@ export default function HighlightRow({
                   source={{ uri: coverUri }}
                   style={s.coverImage}
                   contentFit="cover"
-                  cachePolicy="memory-disk"
+                  cachePolicy={privateImageCachePolicy(coverUri)}
                   transition={150}
                 />
               ) : (

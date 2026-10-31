@@ -1,0 +1,789 @@
+{
+  "schemaVersion": 5,
+  "recordedAt": "2026-10-31T14:57:34.287482+00:00",
+  "repository": "donadmiral/tbirds-nest",
+  "workflow": {
+    "id": 41211437263,
+    "name": "Browser interaction and video gates",
+    "status": "completed",
+    "conclusion": "success",
+    "head_sha": "f4c35f32795be5f196840c37382143a2d7e33d55",
+    "html_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41211437263",
+    "path": ".github/workflows/browser-quality.yml",
+    "run_number": 32,
+    "run_attempt": 1,
+    "created_at": "2026-10-31T14:43:18Z",
+    "updated_at": "2026-10-31T14:50:45Z",
+    "run_started_at": "2026-10-31T14:43:18Z"
+  },
+  "outcome": "success",
+  "sourceBinding": {
+    "headSha": "f4c35f32795be5f196840c37382143a2d7e33d55",
+    "checkoutMergeSha": "6f3204cd44996dfe66ffe2dcf7192543805aa912",
+    "headAndMergeTreeSha": "7699f995aa8e5192658f785258eb48f408af6a39",
+    "treesIdentical": true,
+    "artifactHeadSha": "f4c35f32795be5f196840c37382143a2d7e33d55",
+    "method": "Authenticated completed workflow/job/artifact metadata, exact merge checkout in job log, local literal-head tree, root authenticated merge/tree publication receipt, archive digest validation, and24 published-blob hashes including12 reported by CI. No mutable branch-ref assumption.",
+    "sourceFiles": [
+      {
+        "path": "shared/memoryCoverWriting.ts",
+        "sha256": "226edaf6737692c13c34c56e3d08aa716280b666b7baecf3c2a5f4d64dbea52d",
+        "workingFileMatchesPublishedGitBlob": true,
+        "reportedByCI": true,
+        "ciHashMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "shared/memoryBookPersistence.ts",
+        "sha256": "9e3b85448540a28e8910c4a74b5b3a853e94be358b36d5322c960733c12e7070",
+        "workingFileMatchesPublishedGitBlob": true,
+        "reportedByCI": true,
+        "ciHashMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "src/components/memory/MemoryBookCover.tsx",
+        "sha256": "50a86edb475b9a120d16e6fcda4a63494d4f6e1b5ee0e80e0cb68e52dbf163af",
+        "workingFileMatchesPublishedGitBlob": true,
+        "reportedByCI": true,
+        "ciHashMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "src/screens/profile/MemoryAlbumScreen.tsx",
+        "sha256": "437b2d5c52cf1ad00ce1d322367ac1e41da8857b6d2db6a1c7db263ad4e7f541",
+        "workingFileMatchesPublishedGitBlob": true,
+        "reportedByCI": true,
+        "ciHashMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "web/components/memory/MemoryBookCover.tsx",
+        "sha256": "ed608207e0325914948f3f929a4f15879a960ecff64e6f8be21d848d50c0bbb7",
+        "workingFileMatchesPublishedGitBlob": true,
+        "reportedByCI": true,
+        "ciHashMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "web/components/memory/MemoryBookCover.module.css",
+        "sha256": "569bc3a8b8bf67842e5838907a5e064b416941fd37c6caa8b1e68db0f0afb149",
+        "workingFileMatchesPublishedGitBlob": true,
+        "reportedByCI": true,
+        "ciHashMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "web/components/memory/MemoryCreativeControls.tsx",
+        "sha256": "ae1888dfc43ceac384e5f5540ecd9c2b46db3ab35f3acac81896a103a0aebc20",
+        "workingFileMatchesPublishedGitBlob": true,
+        "reportedByCI": true,
+        "ciHashMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "web/components/memory/MemoryBookDesigner.tsx",
+        "sha256": "c779935599da0f1f21df5e65e0c1f17c8a3799cd0bb09ccf77989a70c8ae7f52",
+        "workingFileMatchesPublishedGitBlob": true,
+        "reportedByCI": true,
+        "ciHashMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "web/components/MemoryAlbum.tsx",
+        "sha256": "4218bb2a9a1621f62e72984e8d62f8f9a9fe7abb198e473bddf6999c9fb829a4",
+        "workingFileMatchesPublishedGitBlob": true,
+        "reportedByCI": true,
+        "ciHashMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "web/tests/browser/memory-cover-adapter.ts",
+        "sha256": "faed035bacbea89dc1f4369ce6123e32c108d16db4d67c019d89061a59eeb947",
+        "workingFileMatchesPublishedGitBlob": true,
+        "reportedByCI": true,
+        "ciHashMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "web/tests/browser/memory-cover-fixture.tsx",
+        "sha256": "39fd7f08bf81c73b77eb1c917b3fbb2f696bbd18f8c18fb4c355191b0cd7fc89",
+        "workingFileMatchesPublishedGitBlob": true,
+        "reportedByCI": true,
+        "ciHashMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "web/tests/browser/memory-cover-run.cjs",
+        "sha256": "3f0f43a5ac19dc42ca60848674d9c42f94a77ca3a42af2ae0c7dfebee2292d1b",
+        "workingFileMatchesPublishedGitBlob": true,
+        "reportedByCI": true,
+        "ciHashMatchesPublishedGitBlob": true
+      },
+      {
+        "path": ".github/workflows/browser-quality.yml",
+        "sha256": "f70a018eb66aa51279290eedabca08992029d7880b26e5a852d3d2070c400f70",
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "web/tests/browser/navigation-loading-next.cjs",
+        "sha256": "f84762786ccdd76de193d8a6e8590756632abb674498679f8107aebb55e93c46",
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "web/app/loading.tsx",
+        "sha256": "1a02b8100608be1ba059f996fbf800e68c7883698cdb4be46df4660c1bc9650e",
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "web/components/AppShell.tsx",
+        "sha256": "4f213f270c045a835776cb1232190f1be7db7b3af3259deb58e13e951be10950",
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "web/components/NavigationLoading.tsx",
+        "sha256": "7a51a46b81fea86c45714ae553b5d53682274d7266ef2b7dca2f40315a5ac27b",
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "web/lib/navigationChromeMemory.ts",
+        "sha256": "c0c0459d141b300981ea3efb6fa56397993fbfcf6d2310071caeee282038d2ce",
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "web/lib/serverViewer.ts",
+        "sha256": "63fd078167f92716c7f258fdfe984bbf519588d7c4f9aac26230e5b77d0e9891",
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "web/proxy.ts",
+        "sha256": "312412090e5966dce693c633de8cb71306c2576bdb4d3fbb47298d3656f2d1f2",
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "web/package-lock.json",
+        "sha256": "1a0a029d06acb66ea43db5ef4f2def59c695736fd43e37258b2c2e327e8ee408",
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "admin-web/package-lock.json",
+        "sha256": "e587e53d2b1fe34364a3df6d8899615ee731a9973d8d202beb3463651320b7ce",
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "shared/navigationCache.ts",
+        "sha256": "3c96b45ecbc04af6c214423d83bca2564659906c1781acf1ab265df53e3969ba",
+        "workingFileMatchesPublishedGitBlob": true
+      },
+      {
+        "path": "web/lib/navigationCache.ts",
+        "sha256": "64260f2f9c45c7ed8b8f78d15592e6601ce5f4aa1ba6d197d62ad2a0742d3295",
+        "workingFileMatchesPublishedGitBlob": true
+      }
+    ],
+    "publicationReceipt": {
+      "path": "docs/quality/live-app-20261031/publication-f4c35f32.json",
+      "sha256": "ad3d8f5adc64e9ce2ebb40c93b599d45f1bc8cab563bec9c45d60828a999873b"
+    },
+    "unchangedDeploymentInputs": {
+      "path": "docs/quality/live-app-20261031/deployment-review-f4c35f32.json",
+      "sha256": "1ef82e334734c28adb1a7f1f24eb73e745188e35376007491c8c5421f7b430ea"
+    }
+  },
+  "job": {
+    "id": 124567097138,
+    "name": "Connected app, Studio, admin and encoded movies",
+    "status": "completed",
+    "conclusion": "success",
+    "head_sha": "f4c35f32795be5f196840c37382143a2d7e33d55",
+    "started_at": "2026-10-31T14:43:20Z",
+    "completed_at": "2026-10-31T14:50:44Z",
+    "html_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41211437263/job/124567097138",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-10-31T14:43:22Z",
+        "completed_at": "2026-10-31T14:43:22Z"
+      },
+      {
+        "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-10-31T14:43:22Z",
+        "completed_at": "2026-10-31T14:43:28Z"
+      },
+      {
+        "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-10-31T14:43:28Z",
+        "completed_at": "2026-10-31T14:43:33Z"
+      },
+      {
+        "name": "Install locked browser and admin dependencies",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4,
+        "started_at": "2026-10-31T14:43:33Z",
+        "completed_at": "2026-10-31T14:44:59Z"
+      },
+      {
+        "name": "Install browser and media verification tools",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5,
+        "started_at": "2026-10-31T14:44:59Z",
+        "completed_at": "2026-10-31T14:46:22Z"
+      },
+      {
+        "name": "Exercise actual admin components",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6,
+        "started_at": "2026-10-31T14:46:22Z",
+        "completed_at": "2026-10-31T14:46:35Z"
+      },
+      {
+        "name": "Exercise public-web navigation, account changes and recovery",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-10-31T14:46:35Z",
+        "completed_at": "2026-10-31T14:47:09Z"
+      },
+      {
+        "name": "Exercise real Next cold-route navigation and held server responses",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 8,
+        "started_at": "2026-10-31T14:47:09Z",
+        "completed_at": "2026-10-31T14:47:22Z"
+      },
+      {
+        "name": "Exercise jobs, application review, market offers and orders",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 9,
+        "started_at": "2026-10-31T14:47:22Z",
+        "completed_at": "2026-10-31T14:47:40Z"
+      },
+      {
+        "name": "Exercise Studio approval, campaign and creator journeys",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 10,
+        "started_at": "2026-10-31T14:47:40Z",
+        "completed_at": "2026-10-31T14:47:52Z"
+      },
+      {
+        "name": "Export and decode actual graded story video",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 11,
+        "started_at": "2026-10-31T14:47:52Z",
+        "completed_at": "2026-10-31T14:48:11Z"
+      },
+      {
+        "name": "Export and decode full memory movies and audio mixes",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 12,
+        "started_at": "2026-10-31T14:48:11Z",
+        "completed_at": "2026-10-31T14:49:56Z"
+      },
+      {
+        "name": "Exercise book design, persistence, conflicts and account changes",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 13,
+        "started_at": "2026-10-31T14:49:56Z",
+        "completed_at": "2026-10-31T14:50:11Z"
+      },
+      {
+        "name": "Verify private original uploads, microphone capture and retained music exports",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 14,
+        "started_at": "2026-10-31T14:50:11Z",
+        "completed_at": "2026-10-31T14:50:39Z"
+      },
+      {
+        "name": "Keep synthetic browser evidence",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 15,
+        "started_at": "2026-10-31T14:50:39Z",
+        "completed_at": "2026-10-31T14:50:42Z"
+      },
+      {
+        "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 29,
+        "started_at": "2026-10-31T14:50:42Z",
+        "completed_at": "2026-10-31T14:50:42Z"
+      },
+      {
+        "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 30,
+        "started_at": "2026-10-31T14:50:42Z",
+        "completed_at": "2026-10-31T14:50:42Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 31,
+        "started_at": "2026-10-31T14:50:42Z",
+        "completed_at": "2026-10-31T14:50:42Z"
+      }
+    ]
+  },
+  "elapsedSeconds": 444.0,
+  "jobTimeoutMinutes": 20,
+  "remainingTimeoutHeadroomSeconds": 756.0,
+  "realNextStepSeconds": 13.0,
+  "runtime": {
+    "node": "22.23.4",
+    "chromium": "153.0.8010.12",
+    "next": "16.4.3",
+    "platform": "GitHub ubuntu-latest; synthetic loopback services and actual compiled React/Next/browser components"
+  },
+  "artifact": {
+    "id": 13046507854,
+    "name": "browser-quality-evidence",
+    "bytes": 9285987,
+    "sha256": "2888832009eef785985eaedb43149f262576317b59554854f0ac4bbf47e404b0",
+    "digestVerified": true,
+    "fileCount": 76,
+    "fileTypes": {
+      ".json": 13,
+      ".png": 62,
+      ".log": 1
+    },
+    "localZip": "/tmp/browser-quality-f4c35f32.zip",
+    "localExtraction": "/tmp/browser-quality-f4c35f32-41211437263",
+    "retentionDays": 7,
+    "movieFilesRetained": false,
+    "manifest": {
+      "path": "docs/quality/browser-ci-f4c35f32/artifact-manifest.json",
+      "sha256": "94a61cbaf78fb7e569c4f9766d59289128f3fe91a7822e9e1d37d63c8f190711"
+    },
+    "retention": "All13 JSON reports, the Next log and two cold-shell PNGs are retained in the repository. Other60 PNGs remain in the verified archive; the manifest hashes all76 files."
+  },
+  "uiWorkflows": {
+    "admin": 37,
+    "web": 41,
+    "commerce": 25,
+    "studio": 25,
+    "realNext": 3
+  },
+  "uiWorkflowTotal": 131,
+  "realNextColdNavigation": {
+    "scope": "Real Next dev App Router, production proxy/getServerViewer/AppShell/root loading/Jobs/Profile/Notifications modules; synthetic local Supabase HTTP Auth/database. No Next routing adapter and no hosted requests.",
+    "checks": [
+      {
+        "name": "cold Jobs to own Profile retains visible passive navigation while actual server AppShell profile response is held",
+        "passed": true,
+        "heldResponses": 1,
+        "observedFrames": 43,
+        "totalTransitionFrames": 163,
+        "framesWithoutChrome": 0,
+        "extraUnreadRequests": 0,
+        "editableInputs": 0,
+        "signedAvatarLocators": 0
+      },
+      {
+        "name": "passive navigation interrupts the held route and late Profile completion does not replace Jobs",
+        "passed": true
+      },
+      {
+        "name": "collapsed sidebar and content geometry stay aligned during a real cold Notifications transition",
+        "passed": true,
+        "sidebarWidth": 76,
+        "sidebarRight": 76,
+        "mainLeft": 76
+      }
+    ],
+    "frames": 163,
+    "rawFramesWithoutChrome": 0,
+    "visualInspection": "Both current retained cold-shell screenshots were visually inspected: expanded Profile and76px collapsed Notifications retain aligned navigation and non-input loading content. The development badge is visible, not production UI.",
+    "limits": [
+      "Development compilation and localhost transport prevent production latency claims.",
+      "This proves visible navigation during held server response, not persistent DOM, GPU paint or faster network.",
+      "Auth/account replacement is covered by focused helper and actual-recorder tests, not a hosted account switch in this run."
+    ]
+  },
+  "warmNavigation": {
+    "scope": "Actual HomeFeed, MessagesApp, navigation cache and scroll logic in Chromium. Auth/database reads and Next routing are synthetic local adapters. requestAnimationFrame samples inspect layout and content paintability; this is not GPU frame-time, real-network or hosted Next-routing measurement.",
+    "probes": [
+      {
+        "destination": "/home",
+        "clickAt": 1231.5999999999767,
+        "stoppedAt": 2061.399999999965,
+        "firstDestinationFrameMs": 202.60000000003492,
+        "sampledFrames": 40,
+        "destinationFrames": 40,
+        "blankContentFrames": 0,
+        "expected": {
+          "posts": 16,
+          "top": 780
+        },
+        "maxFrameIntervalMs": 183.4000000000001
+      },
+      {
+        "destination": "/messages",
+        "clickAt": 2296.899999999965,
+        "stoppedAt": 3594.0999999999767,
+        "firstDestinationFrameMs": 55.800000000046566,
+        "sampledFrames": 77,
+        "destinationFrames": 77,
+        "blankContentFrames": 0,
+        "expected": {
+          "messages": 34,
+          "top": 247,
+          "draft": "A warm navigation draft stays with this account.",
+          "query": "Jordan",
+          "detailsOpen": false
+        },
+        "maxFrameIntervalMs": 33.40000000000009
+      }
+    ],
+    "limit": "These requestAnimationFrame DOM/layout samples use synthetic component routing, not device GPU frame-time or hosted network route latency. Home first observation202.6ms and maximum frame interval183.4ms are retained without rerunning to select faster samples."
+  },
+  "jobsAndProfileContinuity": {
+    "jobs": [
+      {
+        "name": "warm Jobs return retains the exact search/location/category/sort, eight loaded rows and scroll on every observed destination frame",
+        "passed": true,
+        "frames": 44,
+        "firstJobsFrameMs": 59,
+        "blankJobsFrames": 0,
+        "heldReads": 3,
+        "extraReadsAfterEightForegroundEvents": 0,
+        "tokenRefreshRetainsState": true
+      },
+      {
+        "name": "confirmed save survives a background response captured before the mutation",
+        "passed": true
+      },
+      {
+        "name": "unsaving on the real shortlist updates the remembered Discover bookmark before its refresh completes",
+        "passed": true
+      },
+      {
+        "name": "an already-dispatched same-session save confirms after route remount and fences the replacement screen older shortlist read",
+        "passed": true,
+        "pinnedWrite": true,
+        "cancellableWrite": true
+      },
+      {
+        "name": "failed warm refresh retains filtered rows and in-place retry recovers",
+        "passed": true
+      },
+      {
+        "name": "A to B to A clears prior filters/results and aborts old reads and a pending save before new-session data renders",
+        "passed": true,
+        "abortedReads": 3,
+        "pendingSaveNotPublished": true
+      },
+      {
+        "name": "a previously loaded empty Jobs dataset retains filters and its empty state on warm return",
+        "passed": true
+      }
+    ],
+    "profile": [
+      {
+        "name": "real book Back restores owner posts and four books on every sampled frame during held refreshes",
+        "passed": true,
+        "frames": 44,
+        "firstProfileFrameMs": 65.69999999995343,
+        "blankProfileFrames": 0,
+        "postsReads": 1,
+        "bookReads": 1
+      },
+      {
+        "name": "actual editor save invalidates off-route shelf revision and returns current title and private visibility",
+        "passed": true,
+        "revision": 1,
+        "audience": "only_me",
+        "pinnedSave": true
+      },
+      {
+        "name": "rapid successful shelf changes cancel the stale read and coalesce to the latest book revision",
+        "passed": true,
+        "mutations": 8,
+        "reads": 2,
+        "staleReadAborted": true
+      },
+      {
+        "name": "A to B to A clears warm content and cancels old transport before fresh results appear",
+        "passed": true,
+        "abortedReads": 2
+      },
+      {
+        "name": "visitor return waits for current visibility and removes revoked posts and books",
+        "passed": true
+      }
+    ],
+    "limit": "Jobs has8 loaded synthetic rows; Profile has4 books plus owner posts. Account/session mutations and held responses are modeled. These7 Jobs and5 Profile checks are included in the UI journey total, not added again."
+  },
+  "media": {
+    "video": {
+      "cases": 12,
+      "caseModes": [
+        "graded_audio",
+        "muted",
+        "added_audio",
+        "added_only",
+        "bad_added_audio",
+        "delayed_start",
+        "oversized_final_chunk",
+        "cancelled",
+        "unadjusted_no_webgl",
+        "framed_no_webgl",
+        "cover_no_webgl",
+        "graded_no_webgl"
+      ],
+      "encodedMovieOutputsReported": 8,
+      "encodedOutputModes": [
+        "graded_audio",
+        "muted",
+        "added_audio",
+        "added_only",
+        "delayed_start",
+        "unadjusted_no_webgl",
+        "framed_no_webgl",
+        "cover_no_webgl"
+      ]
+    },
+    "memory": {
+      "cases": 25,
+      "caseModes": [
+        "original",
+        "silent",
+        "score",
+        "local_once",
+        "local_loop",
+        "static_images",
+        "unadjusted_no_webgl",
+        "automatic",
+        "revoked",
+        "changed",
+        "account_roundtrip",
+        "cancel",
+        "call",
+        "hidden",
+        "unmount",
+        "missing",
+        "overflow",
+        "animated_primary",
+        "animated_sticker",
+        "animated_background",
+        "animated_data",
+        "image_inspection_cancel",
+        "graded_no_webgl",
+        "unsupported_composition",
+        "film_entry_exit"
+      ],
+      "encodedMovieOutputsReported": 8,
+      "encodedOutputModes": [
+        "original",
+        "silent",
+        "score",
+        "local_once",
+        "local_loop",
+        "static_images",
+        "unadjusted_no_webgl",
+        "automatic"
+      ]
+    },
+    "music": {
+      "cases": 5,
+      "caseModes": [
+        "book",
+        "retained",
+        "revoked_during_export",
+        "microphone_verified",
+        "recording_cancel"
+      ],
+      "encodedMovieOutputsReported": 2,
+      "encodedOutputModes": [
+        "book",
+        "retained"
+      ]
+    }
+  },
+  "encodedOutputCountReportedByCI": 18,
+  "memoryCover": {
+    "editorCases": 5,
+    "galleryLayouts": 288,
+    "sourceHashesIndependentlyMatched": 12,
+    "allGalleryOverflowAndOverlapValuesZero": true,
+    "cases": [
+      {
+        "name": "actual designer creates the chosen owned photo and complete creative documents",
+        "bookId": "a762c194-b4d4-4700-a138-e1ef2b756328",
+        "revision": 0,
+        "pinnedAuthorization": true,
+        "reloadCoverSha256": "3974e1cf9fa6fbb4ff4a68427f946994af2a7d73d398e0b98bc054633f0160a1"
+      },
+      {
+        "name": "actual editor persists revisions and protects the draft on a conflicting save",
+        "updatedRevision": 1,
+        "conflictPreservesDraft": true,
+        "savedDocumentUnchangedAfterConflict": true
+      },
+      {
+        "name": "saved cover and album controls fit the mobile viewport",
+        "width": 390,
+        "noHorizontalOverflow": true
+      },
+      {
+        "name": "actual text-only book editor omits photo framing while cover writing remains editable",
+        "pages": 1,
+        "photoFramingControls": 0,
+        "writingSaved": true
+      },
+      {
+        "name": "actual designer fences A to B to A during a pending create",
+        "oldDraftClosed": true,
+        "noLateCreatedBook": true
+      }
+    ]
+  },
+  "consoleReview": {
+    "nonemptyReportedBrowserOrConsoleErrors": 0,
+    "reportedErrorFieldsChecked": 11,
+    "scope": "Every retained browserErrors/consoleErrors field is empty; the story-video receipt has no separate consoleErrors field. All UI passed flags are true and the complete job gates succeeded.",
+    "retainedWarnings": [
+      "GitHub actions target deprecated Node20 and were forced by the runner onto Node24; test runtime remains22.23.4.",
+      "Action-runtime punycode and url.parse deprecation warnings.",
+      "Next dev reports deprecated Edge Runtime and experimental staleTimes."
+    ],
+    "assessment": "Existing toolchain/development warnings remain recorded. No new browser failure or source repair is indicated.",
+    "jobLogProjection": {
+      "path": "docs/quality/browser-ci-f4c35f32/job-log-projection.txt",
+      "sha256": "acc35497f6ba2825939240af700f4890748f560ea4c2451a5a9358fda2c49dfb",
+      "lines": 11
+    },
+    "fullJobLogLocalPath": "/tmp/browser-f4-job.log.txt",
+    "fullJobLogSha256": "c8e5001a00724d523dccd08dd4e3f0476c4aefa6c0ce5f0f99109d0faaa1849a"
+  },
+  "retainedEvidence": [
+    {
+      "path": "docs/quality/browser-ci-f4c35f32/admin/browser-receipt.json",
+      "artifactPath": "admin/browser-receipt.json",
+      "bytes": 4892,
+      "sha256": "bbcafe67dc52d27e1663bd59477f06e1d08f368a6a41703ea47b533677945ae9",
+      "retainedInRepository": true
+    },
+    {
+      "path": "docs/quality/browser-ci-f4c35f32/commerce/browser-receipt.json",
+      "artifactPath": "commerce/browser-receipt.json",
+      "bytes": 2570,
+      "sha256": "6c0682317cbe1995d66c320bafc08e88f8ecde1eff50a5a61ac68fbe3f660abb",
+      "retainedInRepository": true
+    },
+    {
+      "path": "docs/quality/browser-ci-f4c35f32/commerce/jobs-navigation-frames.json",
+      "artifactPath": "commerce/jobs-navigation-frames.json",
+      "bytes": 12395,
+      "sha256": "58551dd9a44c5be19fe1dd22608ff7adf94247e4acc2d1a3b68c61a4f4e19bbe",
+      "retainedInRepository": true
+    },
+    {
+      "path": "docs/quality/browser-ci-f4c35f32/memory/browser-receipt.json",
+      "artifactPath": "memory/browser-receipt.json",
+      "bytes": 9617,
+      "sha256": "97d4276a1379704e473c1819f4fd492f0b52e934ac2dce4713492686e0f7c71f",
+      "retainedInRepository": true
+    },
+    {
+      "path": "docs/quality/browser-ci-f4c35f32/memory-cover/browser-receipt.json",
+      "artifactPath": "memory-cover/browser-receipt.json",
+      "bytes": 187416,
+      "sha256": "816b9615f79ad3246cba093da1a20323f241bac43b4c6b5b99b416cbaa5ed72d",
+      "retainedInRepository": true
+    },
+    {
+      "path": "docs/quality/browser-ci-f4c35f32/memory-cover/latest-gallery.json",
+      "artifactPath": "memory-cover/latest-gallery.json",
+      "bytes": 3001,
+      "sha256": "3b8dfe77d6bed0e3a3818947e3147bcc5851ab6ea8e68caa509584abd2ef6e07",
+      "retainedInRepository": true
+    },
+    {
+      "path": "docs/quality/browser-ci-f4c35f32/music/browser-receipt.json",
+      "artifactPath": "music/browser-receipt.json",
+      "bytes": 5301,
+      "sha256": "a000ebd300dba7b3927d0501342e8f2ecdfc2621f6862ff4651aede9b382fa85",
+      "retainedInRepository": true
+    },
+    {
+      "path": "docs/quality/browser-ci-f4c35f32/shell/held-notifications-collapsed.png",
+      "artifactPath": "shell/held-notifications-collapsed.png",
+      "bytes": 29854,
+      "sha256": "d96ba03020629c3a346d767612985ff1589dc115206be7cbbf79147dc89162fa",
+      "retainedInRepository": true
+    },
+    {
+      "path": "docs/quality/browser-ci-f4c35f32/shell/held-profile-expanded.png",
+      "artifactPath": "shell/held-profile-expanded.png",
+      "bytes": 40836,
+      "sha256": "8936759c374fb1d0916e2a0da590275413b9bf6650aac13e36acfc2495f546f1",
+      "retainedInRepository": true
+    },
+    {
+      "path": "docs/quality/browser-ci-f4c35f32/shell/next.log",
+      "artifactPath": "shell/next.log",
+      "bytes": 809,
+      "sha256": "d1992b187d18b8b9372fe84be495aed4cfbe37a545b0ad07b5743322472e4445",
+      "retainedInRepository": true
+    },
+    {
+      "path": "docs/quality/browser-ci-f4c35f32/shell/receipt.json",
+      "artifactPath": "shell/receipt.json",
+      "bytes": 19565,
+      "sha256": "ea2ecb90b1695765418b724f08049ba11b08d3b0d23f7ddec6178065d8df03bf",
+      "retainedInRepository": true
+    },
+    {
+      "path": "docs/quality/browser-ci-f4c35f32/studio/browser-receipt.json",
+      "artifactPath": "studio/browser-receipt.json",
+      "bytes": 3911,
+      "sha256": "0425b301f813a04aac4e9570ad5bdfe122098d5c142478ae07bd646f66be8f1a",
+      "retainedInRepository": true
+    },
+    {
+      "path": "docs/quality/browser-ci-f4c35f32/video/browser-receipt.json",
+      "artifactPath": "video/browser-receipt.json",
+      "bytes": 6318,
+      "sha256": "b291683fdddfd42e6cccf132b52fb8c82724c82e84c056b1dedaba647efbb818",
+      "retainedInRepository": true
+    },
+    {
+      "path": "docs/quality/browser-ci-f4c35f32/web/browser-receipt.json",
+      "artifactPath": "web/browser-receipt.json",
+      "bytes": 5702,
+      "sha256": "29b97b681a51d4cd40e100945419c642d29a4d91585fc3a0cb027325bff02b50",
+      "retainedInRepository": true
+    },
+    {
+      "path": "docs/quality/browser-ci-f4c35f32/web/profile-navigation-frames.json",
+      "artifactPath": "web/profile-navigation-frames.json",
+      "bytes": 8724,
+      "sha256": "ce85bf9c1122910daa94a3de4313a4e396d3f1da58acb9eba200b742647cd40b",
+      "retainedInRepository": true
+    },
+    {
+      "path": "docs/quality/browser-ci-f4c35f32/web/warm-navigation-frames.json",
+      "artifactPath": "web/warm-navigation-frames.json",
+      "bytes": 59983,
+      "sha256": "3541bb7b80cf4998469c98fdeeffbc9d11c7a460690767f2a269c138367facca",
+      "retainedInRepository": true
+    }
+  ],
+  "limits": [
+    "This is fresh CI acceptance for the exact published source, not authenticated hosted, real-provider, payment or physical-device acceptance.",
+    "Movie outputs were encoded and decoded by the required CI runners. Current artifacts retain reports and screenshots rather than movie binaries, so the movies were not decoded independently again during this artifact review.",
+    "No application, tests, timeouts, CI/ref/deployment or frozen continuation-report files were changed for this receipt.",
+    "Full native application run41211437305 is owned separately; these browser results do not close native milestone6."
+  ]
+}

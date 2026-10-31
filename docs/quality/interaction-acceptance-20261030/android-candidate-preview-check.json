@@ -1,0 +1,72 @@
+{
+  "reviewHead": "aa7804d436a2b079770a5d2e122c159162af2610",
+  "testedMerge": "0c1fb9e30d875de7d93f15fcc63040b734222e22",
+  "sourceTree": "f394693bece5c0eb4ff78f73ab518fbc67a7cda6",
+  "context": "Signed-in QA previews reloaded after all four Vercel statuses for this head reported success. This records rendered behavior, not a byte-level attestation of every served browser asset.",
+  "deployments": {
+    "platinum-web": "6GQcBBDgXPTHCYSFfhr488rymCZ3",
+    "admin-web": "BYQPwPNvGanePB34C6qZQe4sTFkG",
+    "platinum-admin": "3w6SfeJGgKm9ZFC6rNEpZZecsywg",
+    "tbirds-nest": "4MGYk8TYE2TJAh66A9ePGJWjkY2Z"
+  },
+  "admin": {
+    "music": {
+      "url": "https://admin-web-git-codex-app-quality-20261029-intobank.vercel.app/music",
+      "result": "Explicit unavailable-contract state; installation still required."
+    },
+    "content": {
+      "url": "https://admin-web-git-codex-app-quality-20261029-intobank.vercel.app/content",
+      "loadedPosts": 7,
+      "selectedPostId": "dd607e75-0383-4f75-9301-c2f96aa8ae7d",
+      "fullScreenImage": {
+        "complete": true,
+        "naturalWidth": 1080,
+        "naturalHeight": 1920
+      },
+      "escapeClosedDialog": true,
+      "focusReturnedTo": "Open photo in full screen"
+    },
+    "authenticatedReview": {
+      "url": "https://admin-web-git-codex-app-quality-20261029-intobank.vercel.app/content/dd607e75-0383-4f75-9301-c2f96aa8ae7d",
+      "loaded": true,
+      "imageComplete": true,
+      "imageWidth": 1080,
+      "imageHeight": 1920,
+      "scope": "institution",
+      "audience": "everyone",
+      "staffSessionMediaNoticeVisible": true
+    }
+  },
+  "web": {
+    "url": "https://platinum-web-git-codex-app-quality-20261029-intobank.vercel.app/watch",
+    "loadedWatchCards": 3,
+    "syntheticPostId": "5e19ecba-5ec9-4ad4-96fb-096f178789fd",
+    "activeViewerVideo": {
+      "readyState": 4,
+      "durationSeconds": 12,
+      "currentTimeSeconds": 5.416715,
+      "playbackRate": 1,
+      "paused": false,
+      "mediaError": null
+    },
+    "viewerClosed": true,
+    "focusReturnedToOpeningCard": true
+  },
+  "consoleSample": {
+    "sinceUtc": "2026-10-30T21:59:00Z",
+    "sampleLimitPerTab": 30,
+    "unexpectedAdminErrors": [],
+    "unexpectedWebErrors": [],
+    "excluded": "Known browser extension metadata messages; no application code or security settings were changed to suppress them."
+  },
+  "limits": [
+    "Only the named paths were rechecked on this candidate.",
+    "No real payment, message, licensing activation, privileged access change or destructive mutation occurred.",
+    "No hosted music success or physical-device acceptance is inferred."
+  ],
+  "recordedAtUtc": "2026-10-30T22:06:19.098554+00:00",
+  "observedBetweenUtc": [
+    "2026-10-30T21:59:12Z",
+    "2026-10-30T22:01:10Z"
+  ]
+}

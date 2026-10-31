@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-31T16:58:41.332155+00:00",
+  "reviewer": "native_acceptance independent source and focused execution review",
+  "status": "Accepted for the bounded QA-only diagnostic purpose; no source blocker found.",
+  "ownerReceipt": {
+    "path": "docs/quality/native-full-app-20261031/native-emulator-host-diagnostics-preparation.json",
+    "sha256": "bfbcb8d003f06a36727ca68b0cbfa47b15d06646f57128d2850571ae5856bdeb"
+  },
+  "frozenHelperAndTest": {
+    "scripts/quality/native-ui-emulator-host-diagnostics.py": "8abae54231466496604aed4e1d83a1166b099da7da1c6f9f5a22adfb5bd2d8ef",
+    "tests/quality/native-emulator-host-diagnostics.cjs": "5d036d76a437cf022e76ea369cb8fa7798c6275b6afb22f11805b0ff85068f0a"
+  },
+  "reviewedIntegration": {
+    "runner": "scripts/quality/test-android-app-ui.sh",
+    "sha256": "e152bfa57b13fe9321703055769ee8f6bbf3ab7457440810a9e777832d15f355",
+    "boundary": "Source review of snapshot/collection placement and original exit preservation only; the separate host renderer candidate has another independent review."
+  },
+  "identityReview": [
+    "Requires Linux, CI=true, QA environment, numeric current run/PID and a launch timestamp no older than two hours.",
+    "The snapshot runs after emulator boot/app installation and before Maestro, so the captured executable is past the normal launcher-to-QEMU transition.",
+    "Reads fixed proc stat/status/exe and boot_id inputs only. Checks UID, live state, executable canonical path within the SDK allowlist, regular/executable inode identity and unchanged start ticks/executable across reads.",
+    "Collection validates the saved run/PID/launch/boot identity and snapshot timing. If the PID still exists, it rejects UID/start-tick/executable changes or a racing reuse; a departed process is an expected diagnostic case.",
+    "Saved JSON reads reject duplicate keys, symlinks, hardlinks, owner mismatch, oversize and observed file mutation. Output files are exclusively created through the owned, non-symlink log directory."
+  ],
+  "journalReview": {
+    "query": "One fixed noninteractive sudo command executes /usr/bin/timeout and /usr/bin/journalctl. No shell, dynamic command, coredump extraction, retry or privilege escalation beyond the approved journal read is exposed.",
+    "selection": "Exact coredump MESSAGE_ID, boot, crashed-process PID/UID/executable and current-run crash interval are selected and revalidated. The helper deliberately does not confuse coredump process fields with the journal emitter PID/UID.",
+    "fields": [
+      "MESSAGE_ID",
+      "COREDUMP_PID",
+      "COREDUMP_UID",
+      "COREDUMP_EXE",
+      "COREDUMP_SIGNAL",
+      "COREDUMP_SIGNAL_NAME",
+      "COREDUMP_TIMESTAMP",
+      "MESSAGE",
+      "_BOOT_ID",
+      "__REALTIME_TIMESTAMP",
+      "__MONOTONIC_TIMESTAMP"
+    ],
+    "limits": {
+      "snapshotSeconds": 1,
+      "collectionSeconds": 2,
+      "outerRunnerSeconds": 3,
+      "privilegedTimeoutSeconds": 1.5,
+      "privilegedKillAfterSeconds": 0.2,
+      "inputBytes": 65536,
+      "stdoutBytes": 131072,
+      "stderrBytes": 4096,
+      "records": 4,
+      "messageBytes": 32768
+    },
+    "privacy": "Only explicit metadata/message fields survive reconstruction. No raw stderr, environment, command-line, maps, process memory or core bytes are retained; query failure records an allowlisted reason and counts.",
+    "failureStates": "Absent/unsupported/denied/timed-out queries remain unavailable; output limits or rejected records are partial; multiple matching crash records are ambiguous. These states cannot pass an app gate."
+  },
+  "processAndExitReview": [
+    "The privileged command has its own absolute-path GNU timeout, so terminating the nonprivileged observer does not require permission to kill a root child to establish its intended query bound.",
+    "The controlled subprocess reader drains both pipes independently and records overflow/timeout, then terminates/kills and waits for the child. Raw output is discarded after parsing/selecting fields.",
+    "The runner saves the incoming gate status before cleanup, calls both diagnostics as best effort, and exits with that saved status. Existing flow/evidence/decoder verdicts remain authoritative.",
+    "The helper is included in the preparation source list, disposable preparation test fixture and existing native-ui workflow path glob. No review edit was made to these paths."
+  ],
+  "verification": {
+    "command": [
+      "node",
+      "--test",
+      "--test-isolation=none",
+      "--test-reporter=tap",
+      "tests/quality/native-emulator-host-diagnostics.cjs"
+    ],
+    "environmentChange": "NODE_TEST_CONTEXT omitted for this standalone focused run",
+    "exitCode": 0,
+    "counts": {
+      "tests": 47,
+      "pass": 47,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "sourceHashes": {
+      "scripts/quality/native-ui-emulator-host-diagnostics.py": "8abae54231466496604aed4e1d83a1166b099da7da1c6f9f5a22adfb5bd2d8ef",
+      "tests/quality/native-emulator-host-diagnostics.cjs": "5d036d76a437cf022e76ea369cb8fa7798c6275b6afb22f11805b0ff85068f0a"
+    },
+    "allSourceHashesUnchanged": true,
+    "log": "docs/quality/native-full-app-20261031/native-emulator-host-diagnostics/independent-focused.tap",
+    "logSha256": "5aafdeaa0d3969d5a5901c9b6e360d3224a66a8624a1684c62a43571ef6188d6"
+  },
+  "retainedEvidence": {
+    "docs/quality/native-full-app-20261031/native-emulator-host-diagnostics/independent-focused.tap": {
+      "sha256": "5aafdeaa0d3969d5a5901c9b6e360d3224a66a8624a1684c62a43571ef6188d6",
+      "bytes": 7997
+    },
+    "docs/quality/native-full-app-20261031/native-emulator-host-diagnostics/independent-focused-result.json": {
+      "sha256": "a6c5cbc12e58b1fb5beacee7052a4480aaf3df0fb099ebe2ec3e393fd80b7156",
+      "bytes": 888
+    }
+  },
+  "limits": [
+    "The 47 tests use synthetic proc/journal fixtures and real controlled ordinary subprocesses. No local sudo query, systemd-coredump capture, real emulator core processing or current native CI execution was performed for this review.",
+    "Journal coredump fields do not contain a start-tick equality proof. They correlate a saved identity and bounded interval; the receipt correctly retains this limitation.",
+    "The query runs after emulator cleanup. A later matching record cannot on its own establish that the crash caused an earlier UI failure; timestamps and the original gate result must be assessed together.",
+    "Existing journal availability, permissions and asynchronous crash-summary timing are unknown until the next CI run. No matching saved record does not imply there was no crash.",
+    "This diagnostic does not change or prove the proposed Mesa renderer isolation, fix the observed b5 SIGSEGV, or establish full native navigation/capture/movie acceptance."
+  ],
+  "mutations": {
+    "sourceEdits": 0,
+    "providerQueries": 0,
+    "ciReruns": 0,
+    "ciCancellations": 0,
+    "refChanges": 0
+  }
+}

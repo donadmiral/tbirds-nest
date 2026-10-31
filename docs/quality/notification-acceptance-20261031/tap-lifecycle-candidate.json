@@ -1,0 +1,39 @@
+{
+  "recordedAt": "2026-10-31T01:50:16.429618+00:00",
+  "baseCommit": "8742d3a43e54e0b8518cec308604289d089364cd",
+  "status": "Local verified candidate; bundled native follow-up pending",
+  "sourceSha256": {
+    "shared/notificationTap.ts": "6a6fb3ec278bc016ed81924a3334478589b1b77ffaea637a89759e61ad36ea42",
+    "src/navigation/AppNavigator.tsx": "00ec3a045a3ea75bab99c2d343b7de96502df7220f3b87248c34f5a178f92892",
+    "src/services/callService.ts": "bf747d316e404bb6dcc5384bd36c283c148618903c0542f6bc779709fc59a403",
+    "tests/quality/notification-tap.cjs": "2200ca2ebc927d8e0ef4f19e3b7f4c3c83b1d7f8a6e12da0b1730d8f4b2a2bb2"
+  },
+  "checks": {
+    "notificationResponseBehavioralCases": 15,
+    "passed": 15,
+    "failed": 0,
+    "existingCallAndDeepLinkFilesPassed": 4,
+    "nativeTypecheck": true,
+    "changedSourceStrictLint": {
+      "errors": 0,
+      "warnings": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "nativeTypecheckLogSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "behavior": [
+    "Cold/live duplicate response coalescing and acknowledgement.",
+    "Bounded Auth/navigation readiness and transport lifetime; cleanup aborts timers and pending work.",
+    "Fixed original-session Authorization on call reads and declines.",
+    "Account-switch and A-to-B-to-A late-result exclusion.",
+    "Current-account recipient check and strict UUID-only route metadata.",
+    "Direct and group declines follow the actual stored call kind.",
+    "Unread notification counts share bounded account-scoped requests and preserve last known values after failed reads.",
+    "Failed call lookup or decline leaves the OS notification retryable; only authoritative completion acknowledges it.",
+    "Direct decline returning false is rechecked against the stored status; an unresolved ringing call is never consumed.",
+    "Call navigation reservations release after aborted or failed preparation; current status is rechecked after recipient reads."
+  ],
+  "limits": [
+    "No physical phone, external calling provider or real push reception was exercised by these synthetic tests."
+  ]
+}

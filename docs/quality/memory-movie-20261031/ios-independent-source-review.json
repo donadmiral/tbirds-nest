@@ -1,0 +1,45 @@
+{
+  "recorded_at": "2026-10-31T01:19:40.630346+00:00",
+  "base_commit": "645fcb137bf32abf28bca176ee556982ed705540",
+  "scope": "Independent source review of the frozen iOS whole-book candidate; no iOS compilation or runtime was possible on this Linux host.",
+  "reviewer_lane": "frontend_acceptance (Android engine owner; no edits to reviewed iOS files)",
+  "source_sha256": {
+    "modules/boomerang/ios/MemoryMovieComposition.swift": "a4af3c2e497d803136e3fb9384e53529caa2949af6090e7dbe7639faa8b546d0",
+    "modules/boomerang/ios/StoryVideoComposition.swift": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+    "modules/boomerang/ios/BoomerangModule.swift": "6e31a63649cf96a87caa9abf33c31492fafd2ff4ef18602c21808803d1e57967",
+    "scripts/quality/MemoryMovieExportHarness.swift": "97702bb42ff08151a8d4104cf9e02ef9a4df8f9b824c6b49b7f7823b276c1fab",
+    "scripts/quality/test-ios-memory-movie.sh": "fa60a4db91552e78b6181943dd76d105a2354f2934969b95a8ed655985c3c90c",
+    "shared/memoryMovieComposition.ts": "f3c751e73060f83878cf55893eaa782684710bbfc3b72b7d2d5b923611a60d0b"
+  },
+  "review_result": "No remaining concrete source blocker found in the reviewed paths. Native memory capability remains 0 until actual hosted compilation and encoded-output acceptance pass.",
+  "resolved_findings": [
+    "Shared Story/memory encoder reservation now stays held until child movies and partial output are removed and decoder/reader/writer references unwind.",
+    "ImageIO normalization uses a bounded thumbnail without a framework disk cache, applies EXIF orientation, preserves alpha, and releases resources before reservation release.",
+    "Complete request preflight validates scene IDs, counts, total duration, timing, matrix/fit/volume/motion/fades and contiguous book gain windows before child encoders.",
+    "Unique still, background and timed-artwork inputs receive byte-level animation rejection plus ImageIO static-image/dimension preflight before any child encoder. Actual two-frame GIF/APNG/WebP assets exercise all four routes.",
+    "Only reserved memory child encoding accepts the shared 0.05-second endpoint minimum; ordinary Story minimum stays 0.1 seconds.",
+    "Cancellation test now sends an otherwise valid Story request and asserts the exact busy-reservation error, then verifies temp removal and same-ID retry.",
+    "Acceptance measures changing-tone source position across a page and gain boundary, slowed original pitch and finite audio coverage, actual EXIF color pixels and transparent/opaque pixels."
+  ],
+  "acceptance_inventory": {
+    "named_cases": 11,
+    "retained_movies": 7,
+    "retained_normalized_pngs": 2,
+    "actual_animated_fixtures": 3,
+    "runtime_status": "Not run locally; inventory and substantive assertions reviewed, not counted as passing encoded-file cases."
+  },
+  "local_checks": [
+    {
+      "command": "bash -n scripts/quality/test-ios-memory-movie.sh",
+      "exit_code": 0
+    },
+    {
+      "check": "Frozen source digests match the implementing lane's handoff",
+      "passed": true
+    }
+  ],
+  "limits": [
+    "Hosted simulator encoding and the complete unsigned iOS app compile remain required for these exact sources.",
+    "This receipt does not establish installed-device Photos, interruptions, real provider rights, production delivery or physical-device performance."
+  ]
+}

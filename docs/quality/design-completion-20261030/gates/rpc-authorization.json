@@ -1,0 +1,427 @@
+{
+  "gate": "rpc-authorization",
+  "started_at": "2026-10-30T04:11:29.728574+00:00",
+  "completed_at": "2026-10-30T04:14:11.397384+00:00",
+  "strategy": "Unmodified package npm test script",
+  "node_version": "v24.22.1",
+  "head": "32ee0a5373dd5ebcddae92ca5145f9bf7293c9c9",
+  "branch": "codex/app-quality-20261029",
+  "explicit_environment": {},
+  "processes": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0
+  },
+  "reported_case_totals": {
+    "tests": 667,
+    "pass": 666,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 1,
+    "todo": 0
+  },
+  "processes_without_case_summary": [],
+  "before_source_sha256": "319596a1b892015e32b1e80a6214fa3e5d250da36ea5b621a8730241edfdfca3",
+  "after_source_sha256": "a26544b724808ada500ed997bcab3cfea806061ead42e3e998610b28023d2de9",
+  "source_file_count": 621,
+  "source_changed_during_run": [
+    "tests/quality/business-session-clients.cjs"
+  ],
+  "before_manifest": "/tmp/platinum-final-verification/rpc-authorization.before-source.json",
+  "after_manifest": "/tmp/platinum-final-verification/rpc-authorization.after-source.json",
+  "results": [
+    {
+      "command": [
+        "npm",
+        "test",
+        "--prefix",
+        "supabase/tests/rpc-authorization"
+      ],
+      "cwd": "/workspace/scratch/d4753960f6a2/tbirds-nest",
+      "started_at": "2026-10-30T04:11:29.728754+00:00",
+      "completed_at": "2026-10-30T04:14:11.341702+00:00",
+      "duration_seconds": 161.613,
+      "exit_code": 0,
+      "log_path": "/tmp/platinum-final-verification/rpc-authorization.log",
+      "log_sha256": "740666de70ba974a7871380fc588a4beabc905f57826051b43743fab9e5a0e07",
+      "node_test_summaries": [
+        {
+          "tests": 16,
+          "suites": 0,
+          "pass": 16,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 4983.899816
+        },
+        {
+          "tests": 34,
+          "suites": 0,
+          "pass": 34,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 5623.808522
+        },
+        {
+          "tests": 36,
+          "suites": 0,
+          "pass": 36,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 5593.885447
+        },
+        {
+          "tests": 11,
+          "suites": 0,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 4805.270603
+        },
+        {
+          "tests": 14,
+          "suites": 0,
+          "pass": 14,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 5044.857427
+        },
+        {
+          "tests": 21,
+          "suites": 0,
+          "pass": 21,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 6260.772949
+        },
+        {
+          "tests": 21,
+          "suites": 0,
+          "pass": 21,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 6632.429293
+        },
+        {
+          "tests": 18,
+          "suites": 0,
+          "pass": 18,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 5278.010606
+        },
+        {
+          "tests": 18,
+          "suites": 0,
+          "pass": 18,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 4866.745118
+        },
+        {
+          "tests": 20,
+          "suites": 0,
+          "pass": 20,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 4775.443631
+        },
+        {
+          "tests": 20,
+          "suites": 0,
+          "pass": 20,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 4820.518892
+        },
+        {
+          "tests": 16,
+          "suites": 0,
+          "pass": 16,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 4175.089394
+        },
+        {
+          "tests": 16,
+          "suites": 0,
+          "pass": 16,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 4374.421432
+        },
+        {
+          "tests": 41,
+          "suites": 0,
+          "pass": 41,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 4661.148149
+        },
+        {
+          "tests": 41,
+          "suites": 0,
+          "pass": 41,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 5057.411463
+        },
+        {
+          "tests": 27,
+          "suites": 0,
+          "pass": 27,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 4307.436234
+        },
+        {
+          "tests": 27,
+          "suites": 0,
+          "pass": 27,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 4503.678127
+        },
+        {
+          "tests": 12,
+          "suites": 0,
+          "pass": 12,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 4744.140059
+        },
+        {
+          "tests": 12,
+          "suites": 0,
+          "pass": 12,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 4129.730632
+        },
+        {
+          "tests": 12,
+          "suites": 0,
+          "pass": 12,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 4460.763566
+        },
+        {
+          "tests": 21,
+          "suites": 0,
+          "pass": 21,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 279.080473
+        },
+        {
+          "tests": 11,
+          "suites": 0,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 3607.754853
+        },
+        {
+          "tests": 11,
+          "suites": 0,
+          "pass": 11,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 4764.456126
+        },
+        {
+          "tests": 16,
+          "suites": 0,
+          "pass": 16,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 4868.36449
+        },
+        {
+          "tests": 17,
+          "suites": 0,
+          "pass": 16,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 1,
+          "todo": 0,
+          "duration_ms": 2649.130655
+        },
+        {
+          "tests": 33,
+          "suites": 0,
+          "pass": 33,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 2863.394629
+        },
+        {
+          "tests": 6,
+          "suites": 0,
+          "pass": 6,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 3724.31663
+        },
+        {
+          "tests": 1,
+          "suites": 0,
+          "pass": 1,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 1980.505207
+        },
+        {
+          "tests": 1,
+          "suites": 0,
+          "pass": 1,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 2099.139528
+        }
+      ],
+      "custom_summaries": [
+        {
+          "kind": "RPC custom JSON check runner",
+          "suite": null,
+          "tests": 13,
+          "pass": 13,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "kind": "RPC custom JSON check runner",
+          "suite": "community_group_authorization",
+          "tests": 19,
+          "pass": 19,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "kind": "RPC custom JSON check runner",
+          "suite": null,
+          "tests": 4,
+          "pass": 4,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "kind": "RPC custom JSON check runner",
+          "suite": "admin-commands-integrated",
+          "tests": 22,
+          "pass": 22,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "kind": "RPC custom JSON check runner",
+          "suite": null,
+          "tests": 9,
+          "pass": 9,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "kind": "RPC custom JSON check runner",
+          "suite": "20261023185734_redacted_client_diagnostics",
+          "tests": 11,
+          "pass": 11,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "kind": "RPC custom JSON check runner",
+          "suite": "20261029190200_comment_author_highlights",
+          "tests": 15,
+          "pass": 15,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "kind": "RPC custom JSON check runner",
+          "suite": "20261025073234_applicant_self_service_quality",
+          "tests": 16,
+          "pass": 16,
+          "fail": 0,
+          "skipped": 0
+        },
+        {
+          "kind": "RPC verification integrity custom runner",
+          "tests": 8,
+          "pass": 8,
+          "fail": 0,
+          "skipped": 0
+        }
+      ],
+      "eprem_matches": 0,
+      "skip_lines": [
+        "\ufe63 sound publication is owner-bound, attested and idempotent (0.140732ms) # SKIP"
+      ]
+    }
+  ],
+  "counting_note": "Includes 550 Node test cases and 117 completed custom check scenarios. The separately successful migration compilation/postflight programs are not counted as test cases. Feature-variant executions may overlap other gates.",
+  "saved_before_manifest": "manifests/source-319596a1b892015e32b1e80a6214fa3e5d250da36ea5b621a8730241edfdfca3.json",
+  "saved_after_manifest": "manifests/source-a26544b724808ada500ed997bcab3cfea806061ead42e3e998610b28023d2de9.json",
+  "source_change_assessment": {
+    "changed_path": "tests/quality/business-session-clients.cjs",
+    "executed_by_this_gate": false,
+    "reason": "The RPC runner does not import or spawn this native UI test. Its SQL, Edge and shared inputs were unchanged during the run; the final native gate later executed the completed client test.",
+    "supabase_and_shared_changed_paths": []
+  }
+}

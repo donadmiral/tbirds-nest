@@ -1,0 +1,124 @@
+name: Full native application UI
+
+on:
+  pull_request:
+    paths:
+      - 'App.tsx'
+      - 'src/**'
+      - 'shared/**'
+      - 'modules/**'
+      - 'plugins/**'
+      - 'vendor/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'app.config.js'
+      - 'app.json'
+      - 'tests/native/**'
+      - 'scripts/quality/*native-ui*'
+      - 'scripts/quality/test-*-app-ui.sh'
+      - 'scripts/quality/verify-native-ui-memory.py'
+      - '.github/workflows/native-app-ui.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # The timing-enabled harness can run alongside the in-flight original iOS baseline.
+  # Keep this group stable: later source edits replace obsolete runs within v2.
+  group: native-app-ui-v2-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: 'true'
+  EXPO_NO_TELEMETRY: '1'
+  EXPO_PUBLIC_APP_ENV: qa
+  EXPO_PUBLIC_SUPABASE_URL: https://uaulhuelcfkjwojtymmw.supabase.co
+  EXPO_PUBLIC_SUPABASE_ANON_KEY: native-ui-synthetic-no-provider-key
+  MAESTRO_CLI_NO_ANALYTICS: 'true'
+
+jobs:
+  ios-app:
+    name: Tap through the full iPhone Simulator app
+    runs-on: macos-15-intel
+    timeout-minutes: 75
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_16.4.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        shell: bash
+        run: |
+          set -o pipefail
+          for install_attempt in 1 2; do
+            if npm ci --ignore-scripts --no-fund --color=false 2>&1 | tee "$RUNNER_TEMP/native-ui-npm-install.log"; then
+              exit 0
+            else
+              install_status=$?
+            fi
+            # Retry only the observed transport timeout, once. Integrity,
+            # dependency and configuration errors retain their original failure.
+            if [[ "$install_attempt" == 2 ]] || ! grep -Eq '^npm (error|ERR!) code ETIMEDOUT[[:space:]]*$' "$RUNNER_TEMP/native-ui-npm-install.log"; then
+              exit "$install_status"
+            fi
+            printf '%s\n' 'The dependency download timed out; retrying the same locked install once.'
+            sleep 3
+          done
+      - name: Use Java 17 and the locked CocoaPods version
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
+          gem install --user-install cocoapods --version 1.16.2 --no-document
+          ruby -e 'puts File.join(Gem.user_dir, "bin")' >> "$GITHUB_PATH"
+      - name: Ensure independent movie decoding is available
+        run: |
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then brew install ffmpeg; fi
+          ffmpeg -version
+      - run: bash scripts/quality/install-native-ui-tools.sh
+      - run: bash scripts/quality/test-ios-app-ui.sh
+      - name: Retain actual app UI evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ios-full-app-ui
+          path: native-ui-logs/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  android-app:
+    name: Tap through the full Android Emulator app
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+          cache: npm
+      - name: Use Java 17 and emulator host support
+        run: |
+          echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME_17_X64/bin" >> "$GITHUB_PATH"
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends libpulse0 ffmpeg xvfb mesa-utils libgl1-mesa-dri libglx-mesa0 libegl-mesa0
+          test -c /dev/kvm
+          sudo chmod a+rw /dev/kvm
+      - run: npm ci --ignore-scripts --no-fund
+      - run: bash scripts/quality/install-native-ui-tools.sh
+      - run: bash scripts/quality/test-android-app-ui.sh
+      - name: Retain actual app UI evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: android-full-app-ui
+          path: native-ui-logs/
+          if-no-files-found: ignore
+          retention-days: 7

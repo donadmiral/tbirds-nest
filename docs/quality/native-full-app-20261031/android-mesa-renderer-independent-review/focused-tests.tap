@@ -1,0 +1,161 @@
+TAP version 13
+# Subtest: graphics verification requires both the host and emulator LLVMpipe contexts
+ok 1 - graphics verification requires both the host and emulator LLVMpipe contexts
+  ---
+  duration_ms: 73.420775
+  type: 'test'
+  ...
+# Subtest: graphics verification rejects the actual b5 SwiftShader GLES signature
+ok 2 - graphics verification rejects the actual b5 SwiftShader GLES signature
+  ---
+  duration_ms: 37.392972
+  type: 'test'
+  ...
+# Subtest: graphics verification rejects a hardware host renderer
+ok 3 - graphics verification rejects a hardware host renderer
+  ---
+  duration_ms: 56.951582
+  type: 'test'
+  ...
+# Subtest: graphics verification rejects a missing host vendor
+ok 4 - graphics verification rejects a missing host vendor
+  ---
+  duration_ms: 32.527918
+  type: 'test'
+  ...
+# Subtest: graphics verification rejects an empty host renderer followed by unrelated LLVMpipe text
+ok 5 - graphics verification rejects an empty host renderer followed by unrelated LLVMpipe text
+  ---
+  duration_ms: 34.701269
+  type: 'test'
+  ...
+# Subtest: graphics verification rejects an empty host vendor followed by unrelated Mesa text
+ok 6 - graphics verification rejects an empty host vendor followed by unrelated Mesa text
+  ---
+  duration_ms: 34.912087
+  type: 'test'
+  ...
+# Subtest: graphics verification rejects an ambiguous host renderer
+ok 7 - graphics verification rejects an ambiguous host renderer
+  ---
+  duration_ms: 35.3656
+  type: 'test'
+  ...
+# Subtest: graphics verification rejects SwiftShader disguised by a llvmpipe substring
+ok 8 - graphics verification rejects SwiftShader disguised by a llvmpipe substring
+  ---
+  duration_ms: 40.277826
+  type: 'test'
+  ...
+# Subtest: graphics verification rejects missing emulator mode evidence
+ok 9 - graphics verification rejects missing emulator mode evidence
+  ---
+  duration_ms: 48.656572
+  type: 'test'
+  ...
+# Subtest: graphics verification rejects a mode field continued on another line
+ok 10 - graphics verification rejects a mode field continued on another line
+  ---
+  duration_ms: 37.559003
+  type: 'test'
+  ...
+# Subtest: graphics verification rejects an empty emulator vendor followed by unrelated Mesa text
+ok 11 - graphics verification rejects an empty emulator vendor followed by unrelated Mesa text
+  ---
+  duration_ms: 32.392153
+  type: 'test'
+  ...
+# Subtest: graphics verification rejects an empty emulator version followed by unrelated GLES text
+ok 12 - graphics verification rejects an empty emulator version followed by unrelated GLES text
+  ---
+  duration_ms: 32.990674
+  type: 'test'
+  ...
+# Subtest: graphics verification rejects a later automatic mode fallback
+ok 13 - graphics verification rejects a later automatic mode fallback
+  ---
+  duration_ms: 46.444165
+  type: 'test'
+  ...
+# Subtest: graphics verification rejects a non-LLVMpipe emulator context despite a good host probe
+ok 14 - graphics verification rejects a non-LLVMpipe emulator context despite a good host probe
+  ---
+  duration_ms: 34.335103
+  type: 'test'
+  ...
+# Subtest: graphics verification rejects an ambiguous emulator renderer
+ok 15 - graphics verification rejects an ambiguous emulator renderer
+  ---
+  duration_ms: 30.976637
+  type: 'test'
+  ...
+# Subtest: graphics verification rejects GLES below the existing 3.0 context
+ok 16 - graphics verification rejects GLES below the existing 3.0 context
+  ---
+  duration_ms: 36.160176
+  type: 'test'
+  ...
+# Subtest: graphics verification rejects a SwiftShader GLES version
+ok 17 - graphics verification rejects a SwiftShader GLES version
+  ---
+  duration_ms: 62.408764
+  type: 'test'
+  ...
+# Subtest: graphics verification rejects an empty log
+ok 18 - graphics verification rejects an empty log
+  ---
+  duration_ms: 47.219564
+  type: 'test'
+  ...
+# Subtest: graphics verification rejects an oversized log
+ok 19 - graphics verification rejects an oversized log
+  ---
+  duration_ms: 75.10136
+  type: 'test'
+  ...
+# Subtest: graphics verification rejects a symlinked log instead of reading another file
+ok 20 - graphics verification rejects a symlinked log instead of reading another file
+  ---
+  duration_ms: 33.589446
+  type: 'test'
+  ...
+# Subtest: an appended live log retains a verifiable prefix
+ok 21 - an appended live log retains a verifiable prefix
+  ---
+  duration_ms: 43.105078
+  type: 'test'
+  ...
+# Subtest: graphics verification replaces an earlier success with a failed receipt
+ok 22 - graphics verification replaces an earlier success with a failed receipt
+  ---
+  duration_ms: 70.585416
+  type: 'test'
+  ...
+# Subtest: Xvfb teardown remains bounded and preserves the original acceptance status
+    # Subtest: original exit 0
+    ok 1 - original exit 0
+      ---
+      duration_ms: 2111.193107
+      type: 'test'
+      ...
+    # Subtest: original exit 23
+    ok 2 - original exit 23
+      ---
+      duration_ms: 2109.758901
+      type: 'test'
+      ...
+    1..2
+ok 23 - Xvfb teardown remains bounded and preserves the original acceptance status
+  ---
+  duration_ms: 4221.752022
+  type: 'test'
+  ...
+1..23
+# tests 25
+# suites 0
+# pass 25
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5222.893573

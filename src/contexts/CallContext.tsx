@@ -33,7 +33,7 @@ import { Camera } from 'expo-camera';
 import Daily, {
   DailyCall, DailyEvent, DailyEventObjectParticipant, DailyParticipant,
 } from '@daily-co/react-native-daily-js';
-import { callService, CallStatus } from '../services/callService';
+import { callService } from '../services/callService';
 import { audioService } from '../services/audioService';
 import { nativeCallService } from '../services/nativeCallService';
 import { supabase } from '../services/supabase';

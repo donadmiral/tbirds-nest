@@ -1,0 +1,15 @@
+▲ Next.js 16.4.3 (Turbopack)
+- Local:         http://127.0.0.1:33437
+- Network:       http://127.0.0.1:33437
+✓ Ready in 408ms
+✓ Running next.config.ts took 39ms
+⚠ The Edge Runtime is deprecated. You can use the "nodejs" runtime instead. Learn more: https://nextjs.org/docs/messages/edge-runtime-deprecated
+- Experiments (use with caution):
+  · staleTimes
+
+○ Compiling /jobs ...
+ GET /jobs 200 in 4.4s (next.js: 3.7s, proxy.ts: 134ms, application-code: 597ms)
+ GET /shellfixture 200 in 3.0s (next.js: 1745ms, proxy.ts: 18ms, application-code: 1220ms)
+ GET /jobs 200 in 161ms (next.js: 22ms, proxy.ts: 8ms, application-code: 131ms)
+ GET /jobs 200 in 84ms (next.js: 5ms, proxy.ts: 13ms, application-code: 66ms)
+ GET /notifications 200 in 793ms (next.js: 554ms, proxy.ts: 9ms, application-code: 230ms)

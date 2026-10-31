@@ -6,10 +6,7 @@
  * All interactive elements: minimum 44px touch target.
  */
 import React from 'react';
-import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Keyboard, Platform, Dimensions,
-} from 'react-native';
+import { Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import ReAnimated, { SharedValue, useAnimatedStyle, interpolate } from 'react-native-reanimated';
 import { palette } from '../../constants/tokens';

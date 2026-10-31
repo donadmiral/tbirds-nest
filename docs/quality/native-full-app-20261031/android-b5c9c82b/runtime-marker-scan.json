@@ -1,0 +1,27 @@
+{
+  "patterns": {
+    "fatalOrStack": "Segmentation fault|core dumped|Fatal signal|FATAL EXCEPTION|abort message|assertion failed|panic|backtrace|stack trace",
+    "memoryPressure": "Out of memory|oom-kill|oom_reaper|Killed process|lowmemorykiller|lmkd.*kill|cannot allocate|bad_alloc"
+  },
+  "files": {
+    "emulator.log": {
+      "sha256": "57024b6dcf236fc2ecefb5f275d1ab4b2f4c97e3dc108fe6ccc2bd10d72c0c21",
+      "bytes": 8355,
+      "lines": 97,
+      "matches": {
+        "fatalOrStack": [],
+        "memoryPressure": []
+      }
+    },
+    "app.log": {
+      "sha256": "b50c38b638dbab43663ebfe185bddb586f47c8f0356c2aef91a493987f83f221",
+      "bytes": 1508553,
+      "lines": 4236,
+      "matches": {
+        "fatalOrStack": [],
+        "memoryPressure": []
+      }
+    }
+  },
+  "limits": "A bounded pattern scan describes retained logs only. It does not establish absence of unlogged failure, host memory pressure or a native/emulator component defect."
+}

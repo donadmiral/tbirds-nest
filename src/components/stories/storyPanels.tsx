@@ -1,11 +1,12 @@
+import { privateImageCachePolicy } from '../../../shared/mediaDelivery';
 /**
  * storyPanels — creative-engine sheets and layers: adjust, background,
  * sound mix, entity picker, and the composer's phone-frame preview.
  * All values persist as plain JSON inside media_transform so the web
  * viewer replays them from the same numbers.
  */
-import { MUSIC_CATALOG_ENABLED } from '../../../shared/musicAvailability';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { ORIGINAL_AUDIO_ENABLED } from '../../../shared/musicAvailability';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Modal, TouchableOpacity, StyleSheet, PanResponder, TextInput, ScrollView, ActivityIndicator, Dimensions, useWindowDimensions } from 'react-native';
 import { Image as ExpoImage } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -22,10 +23,8 @@ export type EntityPick = { entityType: 'profile' | 'listing' | 'job' | 'article'
 
 /* ── MiniSlider: dependency-free track used by every panel ── */
 export function MiniSlider({ value, min, max, onChange, width = 210, onDragStateChange, label = 'Adjustment' }: { label?: string; value: number; min: number; max: number; onChange: (v: number) => void; width?: number; onDragStateChange?: (dragging: boolean) => void }) {
-  // Stable slider: the thumb follows the finger from where it was grabbed (no
-  // jump on touch), the visual updates locally every frame, and the parent is
-  // committed at most every 60ms plus once on release, so the editor never
-  // re-renders per touch event.
+  // Taps seek directly to a value. Drags track the full width, with local
+  // feedback every frame and bounded parent updates plus a final commit.
   const wRef = useRef(width); wRef.current = width;
   const minRef = useRef(min); minRef.current = min;
   const maxRef = useRef(max); maxRef.current = max;
@@ -48,8 +47,6 @@ export function MiniSlider({ value, min, max, onChange, width = 210, onDragState
     lastCommitRef.current = now; lastSentRef.current = v; onChangeRef.current(v);
   };
   const pan = useRef(PanResponder.create({
-    // The slider must never steal a scroll. It claims the gesture only once
-    // the finger has clearly moved sideways, and a plain touch changes nothing.
     // A touch that begins on the track is meant for the slider. Claim it at once:
     // waiting for sideways movement lets the sheet's ScrollView take the gesture
     // natively first, and the thumb never moves. The panel disables its own
@@ -57,16 +54,16 @@ export function MiniSlider({ value, min, max, onChange, width = 210, onDragState
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: () => true,
     onPanResponderTerminationRequest: () => false,
-    onPanResponderGrant: () => {
+    onPanResponderGrant: e => {
       draggingRef.current = true; setDragging(true); onDragRef.current?.(true);
-      // Always start from the current value: the finger drags it relatively,
-      // so nothing jumps to where you happened to touch.
-      startValRef.current = liveRef.current;
+      // Tapping anywhere on the track applies that value immediately. The
+      // whole track owns touches so locationX never becomes thumb-relative.
+      const location = Number(e.nativeEvent.locationX);
+      const next = Number.isFinite(location) ? toVal(location) : liveRef.current;
+      startValRef.current = next; liveRef.current = next; setLive(next); commit(next, true);
     },
     onPanResponderMove: (_e, g) => {
-      // Half-speed travel: a full sweep of the track moves roughly half the
-      // range, which is what makes fine adjustment possible with a thumb.
-      const v = toVal(toX(startValRef.current) + g.dx * 0.55);
+      const v = toVal(toX(startValRef.current) + g.dx);
       if (v !== liveRef.current) { liveRef.current = v; setLive(v); commit(v, false); }
     },
     onPanResponderRelease: () => { draggingRef.current = false; setDragging(false); onDragRef.current?.(false); commit(liveRef.current, true); },
@@ -76,13 +73,13 @@ export function MiniSlider({ value, min, max, onChange, width = 210, onDragState
   const thumbLeft = Math.max(0, Math.min(width - 18, pct * width - 9));
   return (
     <View accessible accessibilityRole="adjustable" accessibilityLabel={label} accessibilityValue={{ min, max, now: value }} accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]} onAccessibilityAction={e => onChange(Math.max(min, Math.min(max, value + (e.nativeEvent.actionName === 'increment' ? 1 : -1))))} {...pan.panHandlers} style={[sl.track, { width }]} hitSlop={{ top: 14, bottom: 14, left: 8, right: 8 }}>
-      <View style={[sl.fill, { width: Math.max(4, pct * width) }]} />
+      <View pointerEvents="none" style={[sl.fill, { width: Math.max(4, pct * width) }]} />
       {dragging && (
         <View style={[sl.bubble, { left: Math.max(0, Math.min(width - 40, thumbLeft - 11)) }]} pointerEvents="none">
           <Text style={sl.bubbleTxt}>{live}</Text>
         </View>
       )}
-      <View style={[sl.thumb, dragging && sl.thumbActive, { left: thumbLeft }]} />
+      <View pointerEvents="none" style={[sl.thumb, dragging && sl.thumbActive, { left: thumbLeft }]} />
     </View>
   );
 }
@@ -172,11 +169,12 @@ const ADJ_FIELDS: { key: keyof StoryAdjust; label: string; min: number; max: num
   { key: 'vig', label: 'Vignette', min: 0, max: 100 },
 ];
 
-export function AdjustPanel({ visible, onClose, adjust, onChange, filterOn, filterAmt, onFilterAmt, onCompare, onCrop, onFilters, onDraw, onTiming }: {
+export function AdjustPanel({ visible, onClose, adjust, onChange, filterOn, filterAmt, onFilterAmt, onCompare, onCrop, onFilters, onDraw, onTiming, colorEditingUnavailable }: {
   visible: boolean; onClose: () => void;
   adjust: StoryAdjust; onChange: (a: StoryAdjust) => void;
   filterOn: boolean; filterAmt: number; onFilterAmt: (v: number) => void;
   onCompare?: (original: boolean) => void; onCrop?: () => void; onFilters?: () => void; onDraw?: () => void; onTiming?: () => void;
+  colorEditingUnavailable?: string;
 }) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
@@ -191,12 +189,13 @@ export function AdjustPanel({ visible, onClose, adjust, onChange, filterOn, filt
   return <View style={[StyleSheet.absoluteFill, { zIndex: 75 }]} pointerEvents="box-none" accessibilityViewIsModal>
     <View style={{ position: 'absolute', left: 16, right: 16, top: Math.max(insets.top, 12), flexDirection: 'row', alignItems: 'center' }}>
       <TouchableOpacity accessibilityRole="button" onPress={() => { onChange(original.current.adjust); onFilterAmt(original.current.filterAmt); onCompare?.(false); onClose(); }} style={{ minHeight: 44, minWidth: 64, justifyContent: 'center' }}><Text style={{ color: '#FFF', fontSize: 15 }}>Cancel</Text></TouchableOpacity>
-      <Text style={{ flex: 1, textAlign: 'center', color: '#FFF', fontWeight: '600', fontSize: 18 }}>Adjust</Text>
+      <Text style={{ flex: 1, textAlign: 'center', color: '#FFF', fontWeight: '600', fontSize: 18 }}>{colorEditingUnavailable ? 'Video tools' : 'Adjust'}</Text>
       <TouchableOpacity accessibilityRole="button" onPress={onClose} style={pp.dockDone}><Text style={pp.dockDoneTxt}>Done</Text></TouchableOpacity>
     </View>
     <View style={[pp.dockWrap, { paddingBottom: 0 }]}>
-      {onCompare ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Hold to compare original media" onPressIn={() => onCompare(true)} onPressOut={() => onCompare(false)} style={{ alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#171A1DBB', borderWidth: 1, borderColor: '#FFF5', borderRadius: 24, minHeight: 44, paddingHorizontal: 18, marginBottom: 14 }}><Feather name="copy" size={17} color="#FFF" /><Text style={{ color: '#FFF', fontSize: 13 }}>Hold to compare</Text></TouchableOpacity> : null}
+      {onCompare && !colorEditingUnavailable ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Hold to compare original media" onPressIn={() => onCompare(true)} onPressOut={() => onCompare(false)} style={{ alignSelf: 'center', flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#171A1DBB', borderWidth: 1, borderColor: '#FFF5', borderRadius: 24, minHeight: 44, paddingHorizontal: 18, marginBottom: 14 }}><Feather name="copy" size={17} color="#FFF" /><Text style={{ color: '#FFF', fontSize: 13 }}>Hold to compare</Text></TouchableOpacity> : null}
       <View style={[pp.dock, { paddingTop: 20, paddingBottom: Math.max(insets.bottom, 16), backgroundColor: '#15191DF5' }]}>
+        {colorEditingUnavailable ? <Text style={{ color: '#F3F0EB', fontSize: 14, lineHeight: 21, textAlign: 'center', marginHorizontal: 24, marginBottom: 20 }}>{colorEditingUnavailable}</Text> : <>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 19, paddingHorizontal: 24 }}>
           {fields.map(f => <TouchableOpacity accessibilityRole="button" accessibilityState={{ selected: f.key === selected }} accessibilityLabel={f.label} key={f.key} onPress={() => setSelected(f.key)} style={{ alignItems: 'center', gap: 9, minWidth: 62 }}><View style={{ width: 58, height: 58, borderRadius: 29, borderWidth: 1, borderColor: '#FFFFFF30', alignItems: 'center', justifyContent: 'center', backgroundColor: f.key === selected ? '#F1DFC5' : '#24282B' }}><Feather name={icons[f.key] || 'sliders'} size={25} color={f.key === selected ? '#17191B' : '#FFF'} /></View><Text style={{ color: '#F3F0EB', fontSize: 12 }}>{f.key === 'bri' ? 'Light' : f.key === 'sat' ? 'Color' : f.label}</Text></TouchableOpacity>)}
         </ScrollView>
@@ -204,8 +203,9 @@ export function AdjustPanel({ visible, onClose, adjust, onChange, filterOn, filt
         <View style={{ alignItems: 'center', paddingVertical: 12 }}><MiniSlider label={field.label} value={value} min={field.min} max={field.max} width={Math.max(180, width - 64)} onChange={v => onChange({ ...adjust, [field.key]: v === 0 ? undefined : v })} /></View>
         {filterOn ? <View style={{ paddingHorizontal: 32, marginTop: 12 }}><Text style={{ color: '#D2D0CB', fontSize: 12, marginBottom: 10 }}>Filter strength · {filterAmt}%</Text><MiniSlider label="Filter strength" value={filterAmt} min={0} max={100} width={Math.max(180, width - 64)} onChange={onFilterAmt} /></View> : null}
         <TouchableOpacity accessibilityRole="button" onPress={() => { onChange({}); onFilterAmt(100); }} style={{ minHeight: 50, marginTop: 12, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center' }}><Feather name="rotate-ccw" size={20} color="#FFF" /><Text style={{ color: '#FFF', fontSize: 14 }}>Reset</Text></TouchableOpacity>
+        </>}
         <View style={{ flexDirection: 'row', justifyContent: 'space-around', borderTopWidth: StyleSheet.hairlineWidth, borderColor: '#FFFFFF25', marginHorizontal: 14, paddingTop: 12 }}>
-          {([{ label: 'Crop', icon: 'crop', run: onCrop }, { label: 'Adjust', icon: 'sliders', run: () => {} }, { label: 'Filters', icon: 'aperture', run: onFilters }, { label: 'Draw', icon: 'edit-3', run: onDraw }, { label: 'Timing', icon: 'film', run: onTiming }] as const).filter(item => !!item.run).map(item => <TouchableOpacity key={item.label} accessibilityRole="button" accessibilityState={{ selected: item.label === 'Adjust' }} onPress={item.run} style={{ minHeight: 62, minWidth: 54, borderRadius: 20, alignItems: 'center', justifyContent: 'center', gap: 7, backgroundColor: item.label === 'Adjust' ? '#F1DFC5' : 'transparent' }}><Feather name={item.icon} size={22} color={item.label === 'Adjust' ? '#17191B' : '#FFF'} /><Text style={{ color: item.label === 'Adjust' ? '#17191B' : '#FFF', fontSize: 11 }}>{item.label}</Text></TouchableOpacity>)}
+          {([{ label: 'Crop', icon: 'crop', run: onCrop }, { label: 'Adjust', icon: 'sliders', run: colorEditingUnavailable ? undefined : () => {} }, { label: 'Filters', icon: 'aperture', run: colorEditingUnavailable ? undefined : onFilters }, { label: 'Draw', icon: 'edit-3', run: onDraw }, { label: 'Timing', icon: 'film', run: onTiming }] as const).filter(item => !!item.run).map(item => <TouchableOpacity key={item.label} accessibilityRole="button" accessibilityState={{ selected: item.label === 'Adjust' }} onPress={item.run} style={{ minHeight: 62, minWidth: 54, borderRadius: 20, alignItems: 'center', justifyContent: 'center', gap: 7, backgroundColor: item.label === 'Adjust' ? '#F1DFC5' : 'transparent' }}><Feather name={item.icon} size={22} color={item.label === 'Adjust' ? '#17191B' : '#FFF'} /><Text style={{ color: item.label === 'Adjust' ? '#17191B' : '#FFF', fontSize: 11 }}>{item.label}</Text></TouchableOpacity>)}
         </View>
       </View>
     </View>
@@ -224,7 +224,7 @@ export function BackgroundLayer({ bg, mediaUrl }: { bg: StoryBg | null | undefin
     if (!mediaUrl) return <View style={[StyleSheet.absoluteFill, { backgroundColor: '#000' }]} />;
     return (
       <View style={StyleSheet.absoluteFill}>
-        <ExpoImage source={{ uri: mediaUrl }} style={[StyleSheet.absoluteFill, { opacity: 0.22 }]} contentFit="cover" blurRadius={35} transition={0} cachePolicy="memory-disk" />
+        <ExpoImage source={{ uri: mediaUrl }} style={[StyleSheet.absoluteFill, { opacity: 0.22 }]} contentFit="cover" blurRadius={35} transition={0} cachePolicy={privateImageCachePolicy(mediaUrl)} />
       </View>
     );
   }
@@ -270,14 +270,14 @@ export function AudioMixSheet({ visible, onClose, isVideo, hasMusic, mix, onChan
   visible: boolean; onClose: () => void; isVideo: boolean; hasMusic: boolean;
   mix: StoryMix; onChange: (m: StoryMix) => void;
 }) {
-  if (!visible || (!MUSIC_CATALOG_ENABLED && !isVideo)) return null;
+  if (!visible || (!ORIGINAL_AUDIO_ENABLED && !isVideo)) return null;
   const orig = typeof mix.orig === 'number' ? mix.orig : 100;
   const music = typeof mix.music === 'number' ? mix.music : 100;
   return (
     <View style={pp.dockWrap} pointerEvents="box-none">
       <View style={pp.dock}>
         <View style={pp.dockHead}>
-          <Text style={pp.dockTitle}>{MUSIC_CATALOG_ENABLED ? 'Sound mix' : 'Video sound'}</Text>
+          <Text style={pp.dockTitle}>{ORIGINAL_AUDIO_ENABLED ? 'Sound mix' : 'Video sound'}</Text>
           <TouchableOpacity onPress={onClose} style={pp.dockDone} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
             <Text style={pp.dockDoneTxt}>Done</Text>
           </TouchableOpacity>
@@ -294,7 +294,7 @@ export function AudioMixSheet({ visible, onClose, isVideo, hasMusic, mix, onChan
         ) : (
           <Text style={pp.dockHint}>Photo story — only music plays.</Text>
         )}
-        {MUSIC_CATALOG_ENABLED && <View style={pp.row}>
+        {ORIGINAL_AUDIO_ENABLED && <View style={pp.row}>
           <TouchableOpacity onPress={() => onChange({ ...mix, music: music === 0 ? 100 : 0 })} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
             <Feather name={music === 0 ? 'volume-x' : 'music'} size={18} color="#FFF" />
           </TouchableOpacity>
@@ -302,7 +302,7 @@ export function AudioMixSheet({ visible, onClose, isVideo, hasMusic, mix, onChan
           <MiniSlider value={music} min={0} max={100} onChange={v => onChange({ ...mix, music: v })} width={170} />
           <Text style={pp.rowVal}>{music}</Text>
         </View>}
-        {MUSIC_CATALOG_ENABLED && !hasMusic && <Text style={pp.dockHint}>Add music from the tray to hear this channel.</Text>}
+        {ORIGINAL_AUDIO_ENABLED && !hasMusic && <Text style={pp.dockHint}>Add music from the tray to hear this channel.</Text>}
         <Text style={pp.dockHint}>Original audio is never deleted — the mix just sets playback volume.</Text>
       </View>
     </View>

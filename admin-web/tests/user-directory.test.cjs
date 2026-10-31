@@ -61,6 +61,7 @@ function harness({ rows = Array.from({ length: 25 }, (_, i) => member(i)), role 
     },
   });
   const page = load('app/users/page.tsx', {
+    '@/lib/requestTime': { requestTime: async () => Date.parse('2026-10-30T12:00:00Z') },
     'next/link': { default: 'Link' },
     'next/navigation': { redirect() { throw new Error('redirect'); } },
     '@/lib/adminAuth': { async requireDesk(desk) {

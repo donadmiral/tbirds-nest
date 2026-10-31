@@ -1,0 +1,40 @@
+{
+  "environment": "isolated QA",
+  "project": "uaulhuelcfkjwojtymmw",
+  "candidate": "supabase/migrations/20261030033214_reserve_business_provision_usernames.sql",
+  "sha256": "57313ea2c22c90d28f62933c757e178b93cae31958b557ada792429e4a690260",
+  "migration": {
+    "version": "20261030033815",
+    "name": "reserve_business_provision_usernames"
+  },
+  "verifiedAt": "2026-10-30T03:38:31.007Z",
+  "before": {
+    "acl": "{postgres=X/postgres,service_role=X/postgres}",
+    "hash": "def6cbc9557e3ec5fa22ce85b003a291",
+    "owner": "postgres",
+    "profiles": 1,
+    "authUsers": 1,
+    "routeGuard": false,
+    "searchPath": [
+      "search_path=\"\""
+    ],
+    "reservations": 0,
+    "reservedPending": 0
+  },
+  "post": {
+    "acl": "{postgres=X/postgres,service_role=X/postgres}",
+    "hash": "69d07d257bb8a9c59ae27d7a4e8e79cd",
+    "owner": "postgres",
+    "profiles": 1,
+    "authUsers": 1,
+    "routeGuard": true,
+    "searchPath": [
+      "search_path=\"\""
+    ],
+    "reservations": 0,
+    "reservedPending": 0
+  },
+  "exactTestedDefinition": true,
+  "countsUnchanged": true,
+  "providerIdentityActions": false
+}

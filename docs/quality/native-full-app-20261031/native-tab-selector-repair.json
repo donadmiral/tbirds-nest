@@ -1,0 +1,241 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-31T05:11:36.744665Z",
+  "scope": "Local candidate for stable native main-tab selectors after an artifact-proven system Home collision. No publication or ref changes.",
+  "diagnosis": {
+    "workflowRun": 41169456344,
+    "runUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41169456344",
+    "artifact": {
+      "id": 13030523360,
+      "name": "android-full-app-ui",
+      "sizeBytes": 2246114,
+      "createdAt": "2026-10-31T04:57:52Z",
+      "providerDigest": "sha256:a5b90f53abdb87955c5f2a84097e451dc2d6f4a3088b233635423ec4db841eff",
+      "downloadedZipSha256": "a5b90f53abdb87955c5f2a84097e451dc2d6f4a3088b233635423ec4db841eff",
+      "digestMatches": true
+    },
+    "headSha": "ab281bcaab525331930f6238f97e46c169eee1ee",
+    "checkoutMergeSha": "f033c50196f6f5f115f451247073ccdb357025d4",
+    "treeSha": "8e03d00ee3cd707f4095134b5d5c0eec79f5ef19",
+    "sourceManifestSha256": "0f223fb53f651869a1a5d9f392d0d89bfe987c03235c1dc013c9fa2ba427b6b0",
+    "originalNavigatorSha256": "00ec3a045a3ea75bab99c2d343b7de96502df7220f3b87248c34f5a178f92892",
+    "originalFlowSha256": "4355d5a8613e9a2db9c808222aa569293927577ce7b409ad274827ac2ac179a5",
+    "sourceHashesMatchPublishedBase": true,
+    "navigatorOverlay": {
+      "file": "src/navigation/AppNavigator.tsx",
+      "before": "00ec3a045a3ea75bab99c2d343b7de96502df7220f3b87248c34f5a178f92892",
+      "after": "52f2298a81d658e3cf777a19690bc24101ecc1326e3c3221366f4c0403f6acf5",
+      "reason": "Register one synthetic capture route inside the unchanged production auth, call and safe-area providers.",
+      "retained": "overlays/src__navigation__AppNavigator.tsx"
+    },
+    "retainedOverlayHashMatches": true,
+    "observedSequence": "Home, Latest, For You and Market/Travel journal checks completed. The following label-based Home tap selected Android resource-id com.android.launcher3:id/home at 04:57:27.522; ActivityTaskManager opened the system HOME launcher at 04:57:28.795; the next app-feed assertion failed on the launcher screen.",
+    "failureClass": "automation selected the system Home control",
+    "appLogCrashMarkerScan": {
+      "pattern": "FATAL EXCEPTION|Fatal signal [0-9]+|Fatal JS",
+      "matches": 0,
+      "note": "This bounded log scan supports the observed transition diagnosis; it is not a general device stability acceptance."
+    },
+    "evidencePath": "docs/quality/native-full-app-20261031/android-tab-selector-system-home-evidence.json",
+    "evidenceSha256": "ec17cde7483899b6ccf89e2f03e8c2f052751744bc327e9f6113e442a3d0ae57",
+    "screenshots": [
+      {
+        "path": "docs/quality/native-full-app-20261031/android-tab-selector-before-market.png",
+        "sha256": "2a7c6bac008e1862b2b98a35193f156b7395fb8783ef3f1fcf1d009f9243f64d",
+        "bytes": 33432,
+        "sourceArtifactPath": "maestro/2026-10-31_045649/Full native app navigation/takeScreenshot/market.png",
+        "unchangedCopy": true
+      },
+      {
+        "path": "docs/quality/native-full-app-20261031/android-tab-selector-system-home.png",
+        "sha256": "7acb8dc0dfddd91572d3862c5b35d9a844ec626a4d8e0dbcc6edb2cd5e8622b4",
+        "bytes": 172995,
+        "sourceArtifactPath": "maestro/2026-10-31_045649/Full native app navigation/screenshots/step-025-assertCondition-A_quiet_morning_in_the_d.png",
+        "unchangedCopy": true
+      }
+    ]
+  },
+  "candidate": {
+    "baseHeadSha": "ab281bcaab525331930f6238f97e46c169eee1ee",
+    "sources": [
+      {
+        "path": "src/navigation/AppNavigator.tsx",
+        "sha256": "ee5ce00883df84956d2840d4d70f7f0ed7395797a7889abbb2970d6f7fa455fe",
+        "baseSha256": "00ec3a045a3ea75bab99c2d343b7de96502df7220f3b87248c34f5a178f92892"
+      },
+      {
+        "path": "tests/native/flows/navigation.yaml",
+        "sha256": "f146d8c0db62cbc0b2683e5c0944b7ed604cf788ea1d7af25a76db2cbefbce91",
+        "baseSha256": "4355d5a8613e9a2db9c808222aa569293927577ce7b409ad274827ac2ac179a5"
+      },
+      {
+        "path": "tests/quality/native-tab-selectors.cjs",
+        "sha256": "c12f82a06ed0973e5ea58ca8af6aea6c6c0f8fbbd019c18403d342601dcf209e",
+        "baseSha256": null
+      }
+    ],
+    "option": "tabBarTestID",
+    "idTemplate": "main-tab-${route.name.toLowerCase()}",
+    "supportedIds": [
+      "main-tab-feed",
+      "main-tab-market",
+      "main-tab-jobs",
+      "main-tab-studio",
+      "main-tab-messages",
+      "main-tab-profile"
+    ],
+    "navigatorOnlyOneOptionLineChanged": true,
+    "changedTabTapCommands": 8,
+    "flowOnlyEightSelectorReplacements": true,
+    "allOtherFlowBytesPreserved": true,
+    "accessibilityLabelsUnchanged": true,
+    "timeoutsUnchanged": true,
+    "coordinatesAdded": false,
+    "unchangedOtherFlowFiles": [
+      {
+        "path": "tests/native/flows/memory-navigation.yaml",
+        "sha256": "42a6947e98ceda6e60e7073a486c5317f238f8e478763c30f4eed1e0dd39aeae"
+      },
+      {
+        "path": "tests/native/flows/memory-capture.yaml",
+        "sha256": "16966925346646f2280ca0ebdea7ce0c5f2e131d03e9dec3841c69a761f0ba91"
+      }
+    ],
+    "existingAccessibilityHarnessMatchesIsolatedPr6": true
+  },
+  "installedApiEvidence": {
+    "package": "@react-navigation/bottom-tabs",
+    "version": "6.6.1",
+    "lockVersionMatches": true,
+    "nativeEntry": "src/index.tsx",
+    "files": {
+      "package.json": "3664b1acd314c4ef5f5e368ec0f40cd858004411321c09fb340343387bb5b613",
+      "src/types.tsx": "71c2c2769cd706cd41040003d7fdaf5261870fef021119adff9efaafcaa7312c",
+      "src/views/BottomTabBar.tsx": "68aee98f2041e496d387ae1ff464b98dc77f838574aa43db9893d7c06d2f261f",
+      "src/views/BottomTabItem.tsx": "08102905f028d94ffabfeb04179db135bb00880ed020f52202fe2c2a45a3c06a"
+    },
+    "propagation": "BottomTabNavigationOptions.tabBarTestID \u2192 installed BottomTabBar item testID \u2192 installed BottomTabItem custom button testID \u2192 actual AppNavigator TabBarButton rest props \u2192 native Pressable testID.",
+    "versionNote": "tabBarButtonTestID is not the installed version-6 option; the supported pinned API is tabBarTestID.",
+    "maestroPrimaryDocs": [
+      "https://docs.maestro.dev/get-started/supported-platform/react-native",
+      "https://docs.maestro.dev/reference/selectors/core-selectors",
+      "https://docs.maestro.dev/reference/commands-available/tapon"
+    ]
+  },
+  "validation": {
+    "beforeRegression": {
+      "sourceHeadSha": "ab281bcaab525331930f6238f97e46c169eee1ee",
+      "newTestCases": {
+        "tests": 5,
+        "pass": 0,
+        "fail": 5,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "logPath": "/tmp/platinum-native-tab-selectors-before.log",
+      "logSha256": "2aae8fe13fd289ff0f0fa57d2371a91a9fd94d9594fedb370f02bf54dc4d1685",
+      "observedFailures": "All four actual-component variants had undefined tab IDs; the flow case found ambiguous label selectors."
+    },
+    "afterFocusedTests": {
+      "startedAt": "2026-10-31T05:10:01.797409+00:00",
+      "completedAt": "2026-10-31T05:10:04.249615+00:00",
+      "nodeVersion": "v24.22.1",
+      "files": [
+        {
+          "file": "tests/quality/native-tab-selectors.cjs",
+          "sourceSha256": "c12f82a06ed0973e5ea58ca8af6aea6c6c0f8fbbd019c18403d342601dcf209e",
+          "exitCode": 0,
+          "counts": {
+            "tests": 5,
+            "pass": 5,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          },
+          "durationSeconds": 0.874,
+          "log": "/tmp/platinum-native-tab-selector-tests/tests__quality__native-tab-selectors.cjs.log",
+          "logSha256": "403accc319e8d5282890e850fd5bd8599f5226745c6ec973f166e762e386436e"
+        },
+        {
+          "file": "tests/navigation-accessibility.test.cjs",
+          "sourceSha256": "fe2e7e0b5190104ed6c2a2e8d18f4ab9c76d89c4ec5bfa880c604dd202dc9ae5",
+          "exitCode": 0,
+          "counts": {
+            "tests": 7,
+            "pass": 7,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          },
+          "durationSeconds": 0.648,
+          "log": "/tmp/platinum-native-tab-selector-tests/tests__navigation-accessibility.test.cjs.log",
+          "logSha256": "b9e947de5547c41aa9d4bb76a6734152f96580f6b27173f34ebe2469c41d3036"
+        },
+        {
+          "file": "tests/quality/native-tab-bar.cjs",
+          "sourceSha256": "1ee00af169ad674068b4760a5119b7ebb94f791de70a29fbb14dd6153e240ce7",
+          "exitCode": 0,
+          "counts": {
+            "tests": 12,
+            "pass": 12,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          },
+          "durationSeconds": 0.612,
+          "log": "/tmp/platinum-native-tab-selector-tests/tests__quality__native-tab-bar.cjs.log",
+          "logSha256": "ddcd4ffa4c2ef5cf522616954d9774b460a564b679b300137d3e27b3f708fcbe"
+        },
+        {
+          "file": "tests/quality/native-ui-fixture.cjs",
+          "sourceSha256": "c62b06bc52b7a45fd0b28d0d7e2bbc799d20f90c7456df8584db8b7c30cbe790",
+          "exitCode": 0,
+          "counts": {
+            "tests": 10,
+            "pass": 10,
+            "fail": 0,
+            "cancelled": 0,
+            "skipped": 0,
+            "todo": 0
+          },
+          "durationSeconds": 0.318,
+          "log": "/tmp/platinum-native-tab-selector-tests/tests__quality__native-ui-fixture.cjs.log",
+          "logSha256": "c816d9fff9c8db58cba560bd37ef36c4b3e3a842cd216e90a2cc2777a5fd6e24"
+        }
+      ],
+      "counts": {
+        "tests": 34,
+        "pass": 34,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "typecheck": {
+      "command": "npx tsc --noEmit",
+      "exitCode": 0,
+      "logSha256": "7125f194612fcff2f454c05d848e7cb71facc1967b4d5017e25b34fdee3ba74f"
+    },
+    "lint": {
+      "command": "npx eslint src/navigation/AppNavigator.tsx tests/quality/native-tab-selectors.cjs --format json",
+      "exitCode": 0,
+      "errors": 0,
+      "warnings": 0,
+      "reportSha256": "7e4b3c2e3681e1b7366e7b7b86dcc5642d547c91710b49337678c3d973d4b5d7"
+    },
+    "whitespaceCheck": "passed",
+    "coverage": "Actual AppNavigator functions and installed BottomTabBar/BottomTabItem propagate unique IDs for iOS and Android, both personal and business branches; unchanged labels, selected states, press/long-press route targets and minimum 48-point hit targets are asserted. Parsed real native YAML selectors resolve to these IDs."
+  },
+  "limitations": [
+    "The local component contract tests simulate React hooks/native hosts and do not execute screen effects or Maestro on a device.",
+    "The source change still requires a new full native build/flow to prove native accessibility exposure and complete later page journeys. No repaired APK or iPhone acceptance is claimed here.",
+    "The failed artifact remains a failure; the explicit system Home selection explains this stop without changing or weakening the page assertions.",
+    "The successful isolated PR 6 quality run precedes this separate local candidate. Its green status is not claimed as CI verification for these new source/flow changes.",
+    "No production deployment, hosted data change, PR update, push, merge or ref movement was performed."
+  ]
+}

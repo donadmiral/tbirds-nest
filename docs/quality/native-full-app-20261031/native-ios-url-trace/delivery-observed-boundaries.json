@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "appLog": {
+    "archivePath": "app.log",
+    "bytes": 1707613,
+    "sha256": "23c92f2655d9ad0165fd5aa497b4a3b72b0dfb3552ec1ddf14da5ead7fb30c09"
+  },
+  "automationModeTransitions": [
+    {
+      "sourceLine": 9960,
+      "recordedNativeUtc": "2026-10-31T17:07:35.493Z",
+      "previous": 1,
+      "current": 0
+    },
+    {
+      "sourceLine": 10051,
+      "recordedNativeUtc": "2026-10-31T17:09:04.178Z",
+      "previous": 0,
+      "current": 1
+    },
+    {
+      "sourceLine": 11875,
+      "recordedNativeUtc": "2026-10-31T17:10:07.047Z",
+      "previous": 1,
+      "current": 0
+    }
+  ],
+  "urlArrivalStringScan": {
+    "matches": {
+      "RCTOpenURLNotification": 0,
+      "application:open": 0,
+      "openURL": 1,
+      "openurl": 1,
+      "URLContext": 0
+    },
+    "limit": "The collected native log has one UIOpenURLAction scene-update event, but no explicit AppDelegate URL entry/exit or payload-match diagnostic. Pattern absence is not proof that a native delegate was not invoked."
+  },
+  "captureCommands": {
+    "openLink": {
+      "sequence0": 2,
+      "step1": 3,
+      "depth": 0,
+      "kind": "openLinkCommand",
+      "status": "COMPLETED",
+      "start": "2026-10-31T17:09:10.525+00:00",
+      "durationMs": 5867,
+      "end": "2026-10-31T17:09:16.392+00:00"
+    },
+    "promptTap": {
+      "sequence0": 4,
+      "step1": 5,
+      "depth": 1,
+      "kind": "tapOnElement",
+      "status": "COMPLETED",
+      "start": "2026-10-31T17:09:20.648+00:00",
+      "durationMs": 4067,
+      "end": "2026-10-31T17:09:24.715+00:00"
+    },
+    "headingAssertion": {
+      "sequence0": 5,
+      "step1": 6,
+      "depth": 0,
+      "kind": "assertConditionCommand",
+      "status": "FAILED",
+      "start": "2026-10-31T17:09:24.716+00:00",
+      "durationMs": 32215,
+      "end": "2026-10-31T17:09:56.931+00:00",
+      "timeout": "30000"
+    }
+  },
+  "jsBoundaryEvents": [
+    {
+      "sequence": 1,
+      "phase": "received",
+      "atUnixMs": 1793466609991,
+      "matched": true,
+      "atUtc": "2026-10-31T17:10:09.991+00:00"
+    },
+    {
+      "sequence": 2,
+      "phase": "parsed",
+      "atUnixMs": 1793466609995,
+      "matched": true,
+      "expectedPath": true,
+      "atUtc": "2026-10-31T17:10:09.995+00:00"
+    },
+    {
+      "sequence": 3,
+      "phase": "action-produced",
+      "atUnixMs": 1793466609996,
+      "matched": true,
+      "reset": true,
+      "atUtc": "2026-10-31T17:10:09.996+00:00"
+    },
+    {
+      "sequence": 4,
+      "phase": "mounted",
+      "atUnixMs": 1793466610029,
+      "atUtc": "2026-10-31T17:10:10.029+00:00"
+    },
+    {
+      "sequence": 5,
+      "phase": "readback-start",
+      "atUnixMs": 1793466610029,
+      "atUtc": "2026-10-31T17:10:10.029+00:00"
+    },
+    {
+      "sequence": 6,
+      "phase": "readback-complete",
+      "atUnixMs": 1793466610051,
+      "fulfilled": true,
+      "passed": true,
+      "atUtc": "2026-10-31T17:10:10.051+00:00"
+    }
+  ],
+  "readback": [
+    {
+      "passed": true,
+      "reloaded": true,
+      "accountCount": 1
+    }
+  ],
+  "clockLimit": "Native simulator logs, JS Date values and host Maestro metadata are compared as recorded UTC values. No host/simulator clock calibration or causal timing experiment was performed.",
+  "finding": "A native scene-update UIOpenURLAction was recorded at17:10:09.985 and the expected JS receipt at17:10:09.991. Both follow the failed heading assertion. The6ms recorded difference is consistent with closely following native-to-JS handling at that late point, but the native scene log carries no URL match and the host/simulator clocks were not calibrated. The earlier automation-mode1to0 transition is a correlation, not a cause.",
+  "remainingGap": "The native scene event has no expected-URL match or AppDelegate entry/exit timing. The planned marker will distinguish exact handler entry/return from the existing JS receipt, but cannot by itself identify upstream OS scheduling, app-main-thread availability, or XCTest causality.",
+  "nativeSceneURLAction": [
+    {
+      "sourceLine": 11885,
+      "recordedNativeUtc": "2026-10-31T17:10:09.985Z",
+      "event": "Received action(s) in scene-update: UIOpenURLAction"
+    }
+  ],
+  "recordedJSReceiptMinusSceneActionMs": 6
+}

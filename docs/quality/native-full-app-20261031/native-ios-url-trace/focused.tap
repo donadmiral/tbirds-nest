@@ -1,0 +1,238 @@
+TAP version 13
+# Subtest: actual SDK locking keeps mutual exclusion and identifies the holder, waiter and pending storage span
+ok 1 - actual SDK locking keeps mutual exclusion and identifies the holder, waiter and pending storage span
+  ---
+  duration_ms: 12.452929
+  type: 'test'
+  ...
+# Subtest: lock wrapper preserves receiver, timeout arguments, callback arguments and result references
+ok 2 - lock wrapper preserves receiver, timeout arguments, callback arguments and result references
+  ---
+  duration_ms: 1.504323
+  type: 'test'
+  ...
+# Subtest: acquisition timeout retains the original error without invoking work or recording error content
+ok 3 - acquisition timeout retains the original error without invoking work or recording error content
+  ---
+  duration_ms: 0.840805
+  type: 'test'
+  ...
+# Subtest: callback and storage failures retain rejection identity and leave no false active operation
+ok 4 - callback and storage failures retain rejection identity and leave no false active operation
+  ---
+  duration_ms: 0.900314
+  type: 'test'
+  ...
+# Subtest: storage arguments, optional callbacks, receiver and resolved values survive observation
+ok 5 - storage arguments, optional callbacks, receiver and resolved values survive observation
+  ---
+  duration_ms: 0.585862
+  type: 'test'
+  ...
+# Subtest: event retention is bounded while preserving startup and recent observations
+ok 6 - event retention is bounded while preserving startup and recent observations
+  ---
+  duration_ms: 1.126434
+  type: 'test'
+  ...
+# Subtest: diagnostic clock and sink errors cannot change auth results
+ok 7 - diagnostic clock and sink errors cannot change auth results
+  ---
+  duration_ms: 0.428945
+  type: 'test'
+  ...
+# Subtest: timer descriptors identify lazy getters without invoking or changing them
+ok 8 - timer descriptors identify lazy getters without invoking or changing them
+  ---
+  duration_ms: 0.666994
+  type: 'test'
+  ...
+# Subtest: timer replacement is visible between lock phases and snapshot mutation cannot rewrite retained evidence
+ok 9 - timer replacement is visible between lock phases and snapshot mutation cannot rewrite retained evidence
+  ---
+  duration_ms: 0.461664
+  type: 'test'
+  ...
+# Subtest: timer descriptor failures and bounded identity overflow preserve auth behavior
+ok 10 - timer descriptor failures and bounded identity overflow preserve auth behavior
+  ---
+  duration_ms: 3.053314
+  type: 'test'
+  ...
+# Subtest: one finite wall-clock anchor pairs with the first monotonic observation without changing relative durations
+ok 11 - one finite wall-clock anchor pairs with the first monotonic observation without changing relative durations
+  ---
+  duration_ms: 0.487244
+  type: 'test'
+  ...
+# Subtest: native factory rejects production or real-provider configuration before filesystem access
+ok 12 - native factory rejects production or real-provider configuration before filesystem access
+  ---
+  duration_ms: 3.475719
+  type: 'test'
+  ...
+# Subtest: native trace writes are batched, serialized, isolated from storage and recover after failure
+ok 13 - native trace writes are batched, serialized, isolated from storage and recover after failure
+  ---
+  duration_ms: 8.731436
+  type: 'test'
+  ...
+# Subtest: disposable source overlay changes only the reviewed three anchors and retains SDK lock and storage
+ok 14 - disposable source overlay changes only the reviewed three anchors and retains SDK lock and storage
+  ---
+  duration_ms: 0.621175
+  type: 'test'
+  ...
+# Subtest: disposable preparation retains diagnostic source, original auth hash and exact overlay content
+ok 15 - disposable preparation retains diagnostic source, original auth hash and exact overlay content
+  ---
+  duration_ms: 96.494348
+  type: 'test'
+  ...
+# Subtest: actual URL patcher preserves complete original Swift: installed Expo template
+ok 16 - actual URL patcher preserves complete original Swift: installed Expo template
+  ---
+  duration_ms: 28.111623
+  type: 'test'
+  ...
+# Subtest: actual URL patcher preserves complete original Swift: installed template with actual VoIP plugin
+ok 17 - actual URL patcher preserves complete original Swift: installed template with actual VoIP plugin
+  ---
+  duration_ms: 33.233138
+  type: 'test'
+  ...
+# Subtest: actual URL patcher preserves complete original Swift: existing Foundation import
+ok 18 - actual URL patcher preserves complete original Swift: existing Foundation import
+  ---
+  duration_ms: 27.093051
+  type: 'test'
+  ...
+# Subtest: generated observer has bounded QA-only numeric log arguments and a defer without route side effects
+ok 19 - generated observer has bounded QA-only numeric log arguments and a defer without route side effects
+  ---
+  duration_ms: 27.245841
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: CI disabled
+ok 20 - actual URL patcher fails closed before source mutation: CI disabled
+  ---
+  duration_ms: 32.534587
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: production environment
+ok 21 - actual URL patcher fails closed before source mutation: production environment
+  ---
+  duration_ms: 26.957366
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: provider key
+ok 22 - actual URL patcher fails closed before source mutation: provider key
+  ---
+  duration_ms: 29.284027
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: missing commit
+ok 23 - actual URL patcher fails closed before source mutation: missing commit
+  ---
+  duration_ms: 25.388266
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: wrong commit
+ok 24 - actual URL patcher fails closed before source mutation: wrong commit
+  ---
+  duration_ms: 27.210737
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: wrong run
+ok 25 - actual URL patcher fails closed before source mutation: wrong run
+  ---
+  duration_ms: 26.210753
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: wrong helper hash
+ok 26 - actual URL patcher fails closed before source mutation: wrong helper hash
+  ---
+  duration_ms: 25.620916
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: malformed source manifest
+ok 27 - actual URL patcher fails closed before source mutation: malformed source manifest
+  ---
+  duration_ms: 27.407764
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: changed forwarding
+ok 28 - actual URL patcher fails closed before source mutation: changed forwarding
+  ---
+  duration_ms: 27.877581
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: changed method signature
+ok 29 - actual URL patcher fails closed before source mutation: changed method signature
+  ---
+  duration_ms: 30.2038
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: duplicate forwarding
+ok 30 - actual URL patcher fails closed before source mutation: duplicate forwarding
+  ---
+  duration_ms: 31.818781
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: duplicate class
+ok 31 - actual URL patcher fails closed before source mutation: duplicate class
+  ---
+  duration_ms: 35.026281
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: existing observer
+ok 32 - actual URL patcher fails closed before source mutation: existing observer
+  ---
+  duration_ms: 29.260552
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: unexpected imports
+ok 33 - actual URL patcher fails closed before source mutation: unexpected imports
+  ---
+  duration_ms: 28.702172
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: oversized source
+ok 34 - actual URL patcher fails closed before source mutation: oversized source
+  ---
+  duration_ms: 28.956264
+  type: 'test'
+  ...
+# Subtest: actual URL patcher rejects path overrides, symlinks and duplicate application
+ok 35 - actual URL patcher rejects path overrides, symlinks and duplicate application
+  ---
+  duration_ms: 112.420738
+  type: 'test'
+  ...
+# Subtest: actual URL patcher refuses preexisting evidence without replacing generated source
+ok 36 - actual URL patcher refuses preexisting evidence without replacing generated source
+  ---
+  duration_ms: 30.332073
+  type: 'test'
+  ...
+# Subtest: actual iOS shell runs generated-source check before CocoaPods: valid source proceeds
+ok 37 - actual iOS shell runs generated-source check before CocoaPods: valid source proceeds
+  ---
+  duration_ms: 83.720866
+  type: 'test'
+  ...
+# Subtest: actual iOS shell runs generated-source check before CocoaPods: mismatch stops build
+ok 38 - actual iOS shell runs generated-source check before CocoaPods: mismatch stops build
+  ---
+  duration_ms: 48.831651
+  type: 'test'
+  ...
+1..38
+# tests 38
+# suites 0
+# pass 38
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1037.990438

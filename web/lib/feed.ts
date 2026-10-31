@@ -1,3 +1,5 @@
+import type { PostMediaEditRecipe } from "@/components/VideoPlayer";
+
 // Mirrors the get_feed RPC return table (migration 0095).
 export type FeedRow = {
   post_id: string;
@@ -12,6 +14,9 @@ export type FeedRow = {
     width: number | null;
     height: number | null;
     sort_order: number | null;
+    alt_text?: string | null;
+    is_sensitive?: boolean | null;
+    edit?: (PostMediaEditRecipe & { sensitive?: boolean }) | null;
   }[];
   products: {
     id: string;

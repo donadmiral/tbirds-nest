@@ -1,0 +1,8 @@
+{
+  "url": "https://android.googlesource.com/platform/external/qemu/+/cf0f40a0aad1aa3fca68f2f89372525c8d28ca68/android/android-ui/modules/aemu-gl-init/src/android/opengl/emugl_config.cpp?format=TEXT",
+  "commit": "cf0f40a0aad1aa3fca68f2f89372525c8d28ca68",
+  "path": "android/android-ui/modules/aemu-gl-init/src/android/opengl/emugl_config.cpp",
+  "bytes": 53613,
+  "sha256": "d933892f59f9febf9796882e32390c8495a2bb757ed0a7f677af63a8e41ed935",
+  "gitBlob": "7e584e712925e31833b75fa3c173dc4f95b832b6"
+}

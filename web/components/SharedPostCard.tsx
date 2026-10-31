@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { RelativeTime } from "@/components/RelativeTime";
 
 export function SharedPostCard({ postId }: { postId: string }) {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [p, setP] = useState<{ content: string | null; body: string | null; created_at: string; author: { id?: string | null; full_name: string | null; username: string | null } | null; thumb: string | null; isVideo: boolean } | null | undefined>(undefined);
 
   useEffect(() => {

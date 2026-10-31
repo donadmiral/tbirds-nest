@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUpRight, Layers, Volume2, VolumeX } from "lucide-react";
 import { normalizePostPlayback, applyPostPlayback } from '../../shared/postVoiceEffects';
 import { postTrimWindow } from '../../shared/postMediaEditing';
 import { sharedPostFrame } from "../../shared/storyPresentation";
 import type { StoryTextSticker } from "@/lib/stories";
+import { StoryPixelGrade } from './StoryPixelGrade';
 
 /** Media URLs have already passed the story/post authorization hydrator. */
 export function SharedPostStory({ sticker, paused, preview = false }: { sticker: StoryTextSticker; paused: boolean; preview?: boolean }) {
@@ -15,8 +16,8 @@ export function SharedPostStory({ sticker, paused, preview = false }: { sticker:
   const [size, setSize] = useState({ width: sticker.postMediaWidth, height: sticker.postMediaHeight });
   const [muted, setMuted] = useState(true);
   const isVideo = sticker.postMediaType === "video";
-  const playback = normalizePostPlayback(sticker.postMediaPlayback);
-  useEffect(()=>{if(video.current)applyPostPlayback(video.current,playback);},[playback.speed,playback.voiceEffect,sticker.postMediaUrl]);
+  const playback = useMemo(()=>normalizePostPlayback(sticker.postMediaPlayback),[sticker.postMediaPlayback]);
+  useEffect(()=>{if(video.current)applyPostPlayback(video.current,playback);},[playback,sticker.postMediaUrl]);
   useEffect(() => {
     const parent = preview ? ref.current?.closest('[data-story-stage]') : ref.current?.parentElement;
     if (!parent) return;
@@ -43,15 +44,15 @@ export function SharedPostStory({ sticker, paused, preview = false }: { sticker:
   const href = preview ? undefined : "/post/" + sticker.postId;
   const Link = preview ? "span" : "a";
   return <div ref={ref} className={preview ? "pointer-events-none relative text-white" : "pointer-events-auto absolute text-white"} style={{ width: frame.width, ...(preview ? { minHeight: frame.height } : { left: Math.max(frame.width / 2 + 8, Math.min(sticker.nx * stage.width, stage.width - frame.width / 2 - 8)), top, transform: `translate(-50%,-50%) rotate(${sticker.rotation || 0}rad) scale(${sticker.scale || 1})`, opacity: sticker.opacity ?? 1 }) }}>
-    {sticker.postText || sticker.postArticleTitle ? <Link href={href} className="flex flex-col justify-end pb-3.5 text-center text-[16px] leading-[22px] text-white [text-shadow:0_2px_8px_#0008]" style={{ minHeight: frame.captionHeight }}>
+    {sticker.postText || sticker.postArticleTitle ? <Link href={href} className="flex flex-col justify-end pb-3.5 text-center text-[16px] leading-[22px] text-white [text-shadow:0_2px_8px_#0008]" style={{ minHeight: frame.captionHeight, ...(!sticker.postMediaUrl ? { padding: 20, borderRadius: 18, background: "rgba(0,0,0,.24)", border: "1px solid rgba(255,255,255,.18)" } : {}) }}>
       {sticker.postArticleTitle ? <span className="line-clamp-2 font-bold">{sticker.postArticleTitle}</span> : null}
-      {sticker.postText ? <span className="line-clamp-3 font-medium">{sticker.postText}</span> : null}
+      {sticker.postText ? <span className="line-clamp-3 font-medium" style={!sticker.postMediaUrl ? { WebkitLineClamp: 8 } : undefined}>{sticker.postText}</span> : null}
     </Link> : null}
     {sticker.postMediaUrl ? <div className="relative overflow-hidden rounded-2xl bg-black/10" style={{ height: frame.mediaHeight }}>
       <Link href={href} aria-label="Open shared post" className="block h-full w-full">
         {isVideo ? <video ref={video} src={sticker.postMediaUrl} playsInline muted={muted||playback.muted} loop preload="metadata" onLoadedMetadata={e => {const element=e.currentTarget;applyPostPlayback(element,playback);const window=postTrimWindow(element.duration,playback.trimStart,playback.trimEnd);element.currentTime=window.start;setSize({ width: element.videoWidth, height: element.videoHeight });}} onTimeUpdate={e=>{const element=e.currentTarget,window=postTrimWindow(element.duration,playback.trimStart,playback.trimEnd);if(window.duration&&(element.currentTime<window.start||element.currentTime>=window.end))element.currentTime=window.start;}} className="h-full w-full object-contain" /> :
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={sticker.postMediaUrl} alt="Shared post" onLoad={e => setSize({ width: e.currentTarget.naturalWidth, height: e.currentTarget.naturalHeight })} className="h-full w-full object-contain" />}
+          <StoryPixelGrade className="h-full w-full"><img src={sticker.postMediaUrl} alt="Shared post" onLoad={e => setSize({ width: e.currentTarget.naturalWidth, height: e.currentTarget.naturalHeight })} className="h-full w-full object-contain" /></StoryPixelGrade>}
       </Link>
       {(sticker.postMediaCount || 0) > 1 ? <span className="absolute right-2 top-2 flex items-center gap-1 rounded-lg bg-black/30 p-1.5 text-[10px]"><Layers size={18} />1/{sticker.postMediaCount}</span> : null}
       {isVideo && !preview && !playback.muted ? <button type="button" aria-label={muted ? "Unmute shared video" : "Mute shared video"} className="absolute bottom-2 right-2 flex h-11 w-11 items-center justify-center rounded-full bg-black/50" onClick={() => setMuted(v => !v)}>{muted ? <VolumeX size={17} /> : <Volume2 size={17} />}</button> : null}

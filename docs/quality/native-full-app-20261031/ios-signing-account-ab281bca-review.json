@@ -1,0 +1,188 @@
+{
+  "measuredAt": "2026-10-31T05:21:15.836290+00:00",
+  "headCommit": "ab281bcaab525331930f6238f97e46c169eee1ee",
+  "testedMergeCommit": "f033c50196f6f5f115f451247073ccdb357025d4",
+  "tree": "8e03d00ee3cd707f4095134b5d5c0eec79f5ef19",
+  "workflowRun": 41169456344,
+  "jobId": 124444050317,
+  "artifact": {
+    "id": 13031278233,
+    "bytes": 15510012,
+    "sha256": "56cf8b8b395cf928146290f9c120270ad5fd42556ae3a98a20a59dbe4452a2fd",
+    "zipDigestIndependentlyVerified": true
+  },
+  "sourceVerification": {
+    "selectedHashChecks": [
+      {
+        "path": "scripts/quality/test-ios-app-ui.sh",
+        "sha256": "f127d3c3d8d1c558d1c43196410b923e687a58eb348d52abd3517b262f5e83e7"
+      },
+      {
+        "path": "scripts/quality/native-ui-ios-entitlements.py",
+        "sha256": "ebec3f0271afaecb372710a2bdc6aa4eb43eec00c736a4923aaed0c317c1f65b"
+      },
+      {
+        "path": "src/stores/accountsStore.ts",
+        "sha256": "964d19720cad8c09bd3354d97372cbbca96c1a92d523a4cf61d1778836e8da71"
+      },
+      {
+        "path": "tests/native/account-readback.cjs",
+        "sha256": "32f49dba2d807f4db7e63a8474c1d5b1e429d05efe90f343c25a12b1aca3ab19"
+      },
+      {
+        "path": "tests/native/MemoryCaptureFixtureScreen.tsx",
+        "sha256": "2733bae6355e06851454cab5e73e7579bff585b23de5aa2b8259acae7f68de2d"
+      },
+      {
+        "path": "tests/native/flows/memory-capture.yaml",
+        "sha256": "16966925346646f2280ca0ebdea7ce0c5f2e131d03e9dec3841c69a761f0ba91"
+      },
+      {
+        "path": "scripts/quality/verify-native-ui.cjs",
+        "sha256": "9ef176d0aeb42e1505d19b5ff49e93042f48f102c9867dc331897a81bc13bbd8"
+      },
+      {
+        "path": "scripts/quality/verify-native-ui-memory.py",
+        "sha256": "a59f80c172b1bc9e82c5f0d73567f633e9b170d148b22633092fb382e3b5b9ca"
+      }
+    ],
+    "matched": 8,
+    "mismatches": 0,
+    "fullManifestReviewOwner": "navigation_performance"
+  },
+  "signing": {
+    "nativeBuildSucceeded": true,
+    "qaBundleIdentifier": "app.platinumcircles.mobile.qa",
+    "platform": "iOS Simulator",
+    "architecture": "x86_64",
+    "generatedApplicationIdentifier": "FAKETEAMID.app.platinumcircles.mobile.qa",
+    "identityOrigin": "Actual Xcode ProductPackaging and build environment generated the Simulator FAKETEAMID prefix; no real Apple team or profile was selected.",
+    "embeddedSectionsBeforeAndAfterIdentical": true,
+    "embeddedSections": {
+      "__entitlements": {
+        "bytes": 340,
+        "sha256": "6d1dfd62b996dd1f84cc806664d39024f50ddcc2975d9b2f59d9292aa0aa72b1"
+      },
+      "__ents_der": {
+        "bytes": 107,
+        "sha256": "b92d648550347034acaa7d932207f1b01919c3616c4bdfce06a08aecab2de9cd"
+      }
+    },
+    "decodedXmlEntitlementsUnchanged": true,
+    "derSectionPresent": true,
+    "derSemanticsIndependentlyDecoded": false,
+    "hostSignatureChecks": [
+      {
+        "phase": "before-resign",
+        "adHoc": true,
+        "teamIdentifierSet": false,
+        "hostEntitlements": {}
+      },
+      {
+        "phase": "after-resign",
+        "adHoc": true,
+        "teamIdentifierSet": false,
+        "hostEntitlements": {}
+      }
+    ],
+    "codesignValidOnDisk": true,
+    "codesignSatisfiesDesignatedRequirement": true,
+    "infoPlistUnchanged": true,
+    "buildEvidence": [
+      {
+        "line": 85802,
+        "text": "ProcessProductPackaging /Users/runner/work/tbirds-nest/tbirds-nest/ios/PlatinumQA/PlatinumQA.entitlements /Users/runner/work/tbirds-nest/tbirds-nest/native-ui-derived/Build/Intermediates.noindex/PlatinumQA.build/Release-iphonesimulator/PlatinumQA.build/PlatinumQA.app-Simulated.xcent (in target 'PlatinumQA' from project 'PlatinumQA')"
+      },
+      {
+        "line": 85808,
+        "text": "    \"application-identifier\" = \"FAKETEAMID.app.platinumcircles.mobile.qa\";"
+      }
+    ]
+  },
+  "accountStorage": {
+    "successfulIndexWriteLogCount": 2,
+    "successfulIndexWriteLines": [
+      {
+        "line": 4929,
+        "text": "2026-10-31 05:16:05.871 I  PlatinumQA[55761:28409] [com.facebook.react.log:javascript] '[accounts] index', 1"
+      },
+      {
+        "line": 4936,
+        "text": "2026-10-31 05:16:06.007 I  PlatinumQA[55761:28409] [com.facebook.react.log:javascript] '[accounts] index', 1"
+      }
+    ],
+    "indexLogOccursAfterAwaitedSecureStoreSetItem": true,
+    "accountSaveFailureLines": 0,
+    "accountIndexFailureLines": 0,
+    "missingEntitlementFailureLines": 0,
+    "dedicatedReadbackCount": 0,
+    "dedicatedReadbackAccepted": false,
+    "persistenceAcrossRestartAccepted": false,
+    "scope": "The actual production save path reached successful awaited SecureStore index writes with no captured account-item save errors; the dedicated later store.init readback route was not reached."
+  },
+  "capture": {
+    "bookReadCount": 0,
+    "mediaEvents": 0,
+    "captureDirectoryPresent": false,
+    "accountReadbacks": [],
+    "decodedMovieReceiptPresent": false,
+    "fullMovieCaptureAccepted": false,
+    "reason": "The navigation flow stopped on the earlier Travel journal accessibility assertion before book navigation and the QA capture route."
+  },
+  "productionMemoryCapability": 0,
+  "retainedSigningFiles": [
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-ab281bca-signing/simulator-entitlements-before-resign.json",
+      "bytes": 954,
+      "sha256": "c80980de643b3d7dbff407cc1307b78693e8a43f8184a964d683e55c91e23dae"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-ab281bca-signing/simulator-entitlements.json",
+      "bytes": 954,
+      "sha256": "d928c7008bcf9e717f667b6d39eabe2b5b9e30f8cee5d1679f47c66c0e9bd10a"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-ab281bca-signing/simulator-signature-before-resign.log",
+      "bytes": 950,
+      "sha256": "cbbed04053cee38b4615c41248b6244e6a1f9d98eceb1bd925ad3de56b539c3c"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-ab281bca-signing/simulator-signature.log",
+      "bytes": 950,
+      "sha256": "d0ee371f12bdaf3bcb2be2ce8577eee818b69359cda538409b706f6fdc1c971b"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-ab281bca-signing/simulator-signature-verification.log",
+      "bytes": 283,
+      "sha256": "f0ccb9045d05b5def9c7ddf6c70864b92a59b61cdd39c431dd7b356ed1e5490e"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-ab281bca-signing/simulator-host-entitlements-before-resign.plist",
+      "bytes": 184,
+      "sha256": "00491886daae07a5296c8bad50f116bf006b0004d7bf7338ad46669fbd903a4a"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-ab281bca-signing/simulator-host-entitlements.plist",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-ab281bca-signing/simulator-signing.log",
+      "bytes": 145,
+      "sha256": "072b72a1b428d4369dce58316e69aff87d3c6e34c017cd3e1226ddefdb2ee048"
+    }
+  ],
+  "otherEvidenceHashes": {
+    "source.json": "0f223fb53f651869a1a5d9f392d0d89bfe987c03235c1dc013c9fa2ba427b6b0",
+    "native-ui-receipt.json": "6751dabc3a35aa4c12bdfe22ee9f13d07abd6ac889999504ac08a81c417085c8",
+    "app.log": "e7e9888ea340a8947a79d73b4b197b72f41ed62b4693c0c2ece3d4a2a8fd1b19",
+    "build.log": "f7b62f803c4722f24d39e831db5b7fb78a08fd80656fc4141af5b9ccb79a9701",
+    "maestro.log": "ab2edf88b71baebc71c23abf0e6ceecdd15cf76f07b5bc28e4e5b20afaa1da54"
+  },
+  "limits": [
+    "This review validates retained, source-bound CI signing metadata and code-sign verification logs; the compiled app binary itself was not included in the artifact.",
+    "Embedded DER bytes are present and unchanged, but this review does not independently decode DER entitlement semantics.",
+    "Successful SecureStore writes do not substitute for the unreached account-store reload/readback, process restart persistence or full movie capture gate.",
+    "The local Simulator app uses synthetic transport and QA signing. No physical-device, Photos permission, provider or App Store distribution acceptance is inferred."
+  ]
+}

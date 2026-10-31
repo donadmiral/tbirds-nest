@@ -1,0 +1,195 @@
+{
+  "schemaVersion": 3,
+  "recordedAt": "2026-10-31T04:46:02.265770Z",
+  "repository": "donadmiral/tbirds-nest",
+  "workflow": {
+    "id": 41169456337,
+    "name": "Type and quality gates",
+    "status": "completed",
+    "conclusion": "failure",
+    "head_sha": "ab281bcaab525331930f6238f97e46c169eee1ee",
+    "path": ".github/workflows/typecheck.yml",
+    "run_number": 450,
+    "run_attempt": 1,
+    "event": "pull_request",
+    "created_at": "2026-10-31T04:39:28Z",
+    "updated_at": "2026-10-31T04:42:29Z",
+    "run_started_at": "2026-10-31T04:39:28Z",
+    "workflow_id": 345679496,
+    "html_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41169456337",
+    "jobs_url": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/runs/41169456337/jobs",
+    "logs_url": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/runs/41169456337/logs"
+  },
+  "runUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41169456337",
+  "sourceBinding": {
+    "headSha": "ab281bcaab525331930f6238f97e46c169eee1ee",
+    "checkoutMergeSha": "f033c50196f6f5f115f451247073ccdb357025d4",
+    "headTreeSha": "8e03d00ee3cd707f4095134b5d5c0eec79f5ef19",
+    "mergeTreeSha": "8e03d00ee3cd707f4095134b5d5c0eec79f5ef19",
+    "treesIdentical": true,
+    "method": "Raw commit-specific workflow metadata; exact checkout SHA in every retained job log; independently compared local git trees.",
+    "workflowPath": ".github/workflows/typecheck.yml",
+    "workflowSha256": "dc41c9a035b84a2c562349a876b6e5805960ea1392e8bb0ad8e9244bfd50be0a"
+  },
+  "outcome": "failure",
+  "jobs": [
+    {
+      "id": 124444050307,
+      "name": "Phone app",
+      "status": "completed",
+      "conclusion": "failure",
+      "started_at": "2026-10-31T04:39:30Z",
+      "completed_at": "2026-10-31T04:42:29Z",
+      "durationSeconds": 179.0,
+      "failedSteps": [
+        "Test phone, diagnostics, feed and call regressions"
+      ],
+      "skippedSteps": [
+        "Test payment recovery and database boundaries",
+        "Test RPC authorization",
+        "Post Run actions/setup-node@v4"
+      ]
+    },
+    {
+      "id": 124444050406,
+      "name": "Web app",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-31T04:39:30Z",
+      "completed_at": "2026-10-31T04:40:53Z",
+      "durationSeconds": 83.0,
+      "failedSteps": [],
+      "skippedSteps": []
+    },
+    {
+      "id": 124444050418,
+      "name": "Link preview Edge TLS",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-31T04:39:30Z",
+      "completed_at": "2026-10-31T04:39:42Z",
+      "durationSeconds": 12.0,
+      "failedSteps": [],
+      "skippedSteps": []
+    },
+    {
+      "id": 124444050425,
+      "name": "Operations app",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-10-31T04:39:30Z",
+      "completed_at": "2026-10-31T04:41:02Z",
+      "durationSeconds": 92.0,
+      "failedSteps": [],
+      "skippedSteps": []
+    }
+  ],
+  "testCounts": {
+    "root": {
+      "jobId": 124444050307,
+      "typecheck": "success",
+      "command": "node --test --test-concurrency=2 tests/*.cjs tests/quality/*.cjs",
+      "tests": 1670,
+      "pass": 1669,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "web": {
+      "jobId": 124444050406,
+      "typecheck": "success",
+      "tests": 683,
+      "pass": 683,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "admin": {
+      "jobId": 124444050425,
+      "typecheck": "success",
+      "tests": 195,
+      "pass": 195,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "edgeTls": {
+      "jobId": 124444050418,
+      "handlerTypecheck": "success",
+      "runtime": "Deno 2.1.4",
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0,
+      "elapsedReported": "159ms"
+    },
+    "backendNode": {
+      "jobId": 124444050307,
+      "workflowStep": "Test payment recovery and database boundaries",
+      "stepConclusion": "skipped",
+      "executed": false,
+      "testCounts": null,
+      "acceptance": "pending for this source commit"
+    },
+    "rpcAuthorization": {
+      "jobId": 124444050307,
+      "workflowStep": "Test RPC authorization",
+      "stepConclusion": "skipped",
+      "executed": false,
+      "testCounts": null,
+      "acceptance": "pending for this source commit"
+    }
+  },
+  "failure": {
+    "test": "accessible native navigation stays visible while the content scrolls",
+    "file": "tests/navigation-accessibility.test.cjs",
+    "line": 154,
+    "error": "Cannot read properties of undefined (reading 'flatten')",
+    "publishedTestSha256": "a7020e67bf9fa12a017cf461a7da9b251361956c7ac999fd7e4a4a5d4337a4ad",
+    "publishedComponentSha256": "f2a34985aedaf394a0b3462809d7a20c7ecc01ad16bbd6f92eee65a358d8d32f",
+    "sourceReview": "The legacy React Native test double omits StyleSheet. The component now uses the real RN StyleSheet.flatten API to enclose the tab bar. The same legacy test also supplies incomplete state/descriptors and assumes a direct or absent style rather than a flattened style array.",
+    "localCorrection": "Tracked in a separate unpublished test-only compatibility receipt. It does not change this failed CI result."
+  },
+  "testSkipInterpretation": "Executed root/web/admin/Edge suites report zero skipped cases. Two entire backend workflow steps were skipped after the root test failure; no backend pass/fail/test-skip totals can be claimed from this run.",
+  "logProvenance": {
+    "phone": {
+      "jobId": 124444050307,
+      "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41169456337/job/124444050307",
+      "checkedOutCommit": "f033c50196f6f5f115f451247073ccdb357025d4",
+      "normalizedLogSha256": "37eb347aa8328da1e30aa803997bd1e15e4c553fc241fbae5d6b8e293a2a3877",
+      "normalization": "UTF-8 body with timestamp prefixes, ANSI colors and initial BOM removed."
+    },
+    "web": {
+      "jobId": 124444050406,
+      "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41169456337/job/124444050406",
+      "checkedOutCommit": "f033c50196f6f5f115f451247073ccdb357025d4",
+      "normalizedLogSha256": "9d2b383678da66f6b8e9b84caf0e5c47d02163e7b31882f261308490629b7d2f",
+      "normalization": "UTF-8 body with timestamp prefixes, ANSI colors and initial BOM removed."
+    },
+    "admin": {
+      "jobId": 124444050425,
+      "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41169456337/job/124444050425",
+      "checkedOutCommit": "f033c50196f6f5f115f451247073ccdb357025d4",
+      "normalizedLogSha256": "567d7b8afe452426a100bfbf24569a5efa18e6798cd11222ab263ef48bd11534",
+      "normalization": "UTF-8 body with timestamp prefixes, ANSI colors and initial BOM removed."
+    },
+    "edge": {
+      "jobId": 124444050418,
+      "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41169456337/job/124444050418",
+      "checkedOutCommit": "f033c50196f6f5f115f451247073ccdb357025d4",
+      "normalizedLogSha256": "4e67632125e88b81af5c97d1185a483ffb3cf7863a019c9dbdb637b98586e28b",
+      "normalization": "UTF-8 body with timestamp prefixes, ANSI colors and initial BOM removed."
+    }
+  },
+  "artifacts": [],
+  "separateEvidence": "Browser/deployment evidence is owned by navigation_performance; native workflow evidence is owned by native_acceptance. No success is inferred here for either.",
+  "limitations": [
+    "Counts describe executed cases in this workflow, not unique features or physical-device acceptance.",
+    "Backend Node/RPC tests did not execute in this CI attempt. Earlier-source passes or later local fixture passes are separate evidence.",
+    "The fixture-based root tests and Edge local TLS tests do not establish hosted provider delivery, deployed backend acceptance or production concurrency performance.",
+    "No hosted writes, migration retries, app deployments or branch publication were performed while collecting this receipt."
+  ]
+}

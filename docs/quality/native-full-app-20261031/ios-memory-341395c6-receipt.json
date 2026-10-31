@@ -1,0 +1,360 @@
+{
+  "cases": [
+    {
+      "audio": {
+        "end": 4.497270833333333,
+        "firstPresentation": 0,
+        "frameInterval": 0,
+        "pcmFrames": 215869,
+        "sampleBuffers": 29
+      },
+      "name": "ordered scenes keep independent page audio and continuous ducked book music",
+      "pixels": [
+        [
+          255,
+          1,
+          0
+        ],
+        [
+          1,
+          0,
+          255
+        ]
+      ],
+      "reported": {
+        "bytes": 158806,
+        "duration": 4.5,
+        "height": 1280,
+        "sceneCount": 3,
+        "soundtrackMixed": true,
+        "uri": "file:///Users/runner/Library/Developer/CoreSimulator/Devices/ADC919DE-F56E-4AA7-BF95-4A6786E87BA3/data/Containers/Data/Application/ECE18665-9DE8-4EC8-A306-FA1C987F0B2E/Library/Caches/pc-memory-export-ordered.mp4",
+        "width": 720
+      },
+      "video": {
+        "end": 4.5,
+        "firstPresentation": 0,
+        "frameInterval": 0.033333333333333215,
+        "pcmFrames": 0,
+        "sampleBuffers": 135
+      },
+      "windows": [
+        {
+          "220": 0.00022363704062143287,
+          "330": 0.0001365999188394388,
+          "440": 9.791200526693402e-05,
+          "660": 0.023381798189228243,
+          "880": 0.09946285369096575,
+          "1100": 0.00046543375344764365,
+          "1540": 0.00014859018998416014,
+          "1760": 2.289426244790984e-05,
+          "rms": 0.07247992731501814,
+          "time": 0.3
+        },
+        {
+          "220": 0.00034700435614189423,
+          "330": 0.0003574939840819824,
+          "440": 0.09966544524077645,
+          "660": 0.0239492618632057,
+          "880": 0.0002582703385386487,
+          "1100": 0.00014400488811220155,
+          "1540": 6.165621994502917e-05,
+          "1760": 9.151740582025344e-05,
+          "rms": 0.07260487392063278,
+          "time": 1.8
+        },
+        {
+          "220": 0.0004969462992819349,
+          "330": 0.0005592108187973224,
+          "440": 0.0006153156177659031,
+          "660": 0.19932508378338124,
+          "880": 0.0006144294896479904,
+          "1100": 0.00046708671347587703,
+          "1540": 0.00011018168976184913,
+          "1760": 0.00010348820327895423,
+          "rms": 0.14117433929017045,
+          "time": 3.6
+        }
+      ]
+    },
+    {
+      "audio": {
+        "end": 4.347270833333333,
+        "firstPresentation": 0,
+        "frameInterval": 0,
+        "pcmFrames": 208669,
+        "sampleBuffers": 27
+      },
+      "name": "slow scenes preserve original pitch and fractional continuous loops",
+      "video": {
+        "end": 4.366666666666666,
+        "firstPresentation": 0,
+        "frameInterval": 0.033333333333333215,
+        "pcmFrames": 0,
+        "sampleBuffers": 131
+      },
+      "windows": [
+        {
+          "220": 0.0006906453731877802,
+          "330": 0.000816063276218571,
+          "440": 0.0991735306764821,
+          "660": 0.1990707972723257,
+          "880": 0.0008707572571909619,
+          "1100": 0.0005977712603177536,
+          "1540": 0.00014742010579304207,
+          "1760": 0.0002241336509254255,
+          "rms": 0.15768053267355583,
+          "time": 0.4
+        },
+        {
+          "220": 0.00069090246743415,
+          "330": 0.0008168639394408562,
+          "440": 0.09918552409602611,
+          "660": 0.19906705907516786,
+          "880": 0.0008712788589533093,
+          "1100": 0.000598295900884738,
+          "1540": 0.0001469940291512171,
+          "1760": 0.0002240536171959442,
+          "rms": 0.15768189427454588,
+          "time": 3.9
+        }
+      ]
+    },
+    {
+      "audio": {
+        "end": 3.1972708333333335,
+        "firstPresentation": 0,
+        "frameInterval": 0,
+        "pcmFrames": 153469,
+        "sampleBuffers": 20
+      },
+      "name": "changing music preserves excerpt position across a page and duck boundary",
+      "video": {
+        "end": 3.1999999999999997,
+        "firstPresentation": 0,
+        "frameInterval": 0.033333333333333326,
+        "pcmFrames": 0,
+        "sampleBuffers": 96
+      },
+      "windows": [
+        {
+          "220": 5.963898813774574e-05,
+          "330": 6.710611236690826e-05,
+          "440": 7.384359745591186e-05,
+          "660": 0.023919457641703112,
+          "880": 7.363237901323376e-05,
+          "1100": 5.6070642886100844e-05,
+          "1540": 1.3219667532269527e-05,
+          "1760": 1.2408588931915576e-05,
+          "rms": 0.01694123624787779,
+          "time": 0.2
+        },
+        {
+          "220": 0.0001823891311080159,
+          "330": 0.00026052636206976476,
+          "440": 0.0003435720291315858,
+          "660": 0.000504989917332535,
+          "880": 0.0006244794491880776,
+          "1100": 0.19933615350341632,
+          "1540": 0.000458591227763447,
+          "1760": 0.0002680384342192656,
+          "rms": 0.14118479964321398,
+          "time": 1.12
+        },
+        {
+          "220": 0.0004970788645616245,
+          "330": 0.0005592526323901688,
+          "440": 0.0006154201268760053,
+          "660": 0.19932172770488102,
+          "880": 0.000613543107317169,
+          "1100": 0.00046709643006427154,
+          "1540": 0.0001100803318623419,
+          "1760": 0.00010348652029970289,
+          "rms": 0.14117195859044948,
+          "time": 1.8
+        },
+        {
+          "220": 0.00018235537529168487,
+          "330": 0.00026039197956600547,
+          "440": 0.00034338756027358866,
+          "660": 0.0005046976245423539,
+          "880": 0.0006239468693337377,
+          "1100": 0.19931773988724874,
+          "1540": 0.0004584202967177836,
+          "1760": 0.00026777569862248857,
+          "rms": 0.14117175424878337,
+          "time": 2.65
+        }
+      ]
+    },
+    {
+      "early": {
+        "220": 0.0001727522310170504,
+        "330": 0.00024688147331692706,
+        "440": 0.00030761718178861833,
+        "660": 0.0003783664169161365,
+        "880": 0.09961749841525648,
+        "1100": 0.0003105120387527901,
+        "1540": 9.530732734625582e-05,
+        "1760": 1.0049808451525487e-05,
+        "rms": 0.07057279904536341,
+        "time": 0.2
+      },
+      "late": {
+        "hz": 0,
+        "rms": 0,
+        "samples": 0
+      },
+      "name": "one-pass page voiceover leaves later scenes silent"
+    },
+    {
+      "audio": {
+        "hz": 0,
+        "rms": 0,
+        "samples": 14400
+      },
+      "name": "muted original and zero-gain book music remain silent"
+    },
+    {
+      "name": "full scene fade and motion preserve timed artwork",
+      "pixels": [
+        [
+          0,
+          0,
+          0
+        ],
+        [
+          255,
+          1,
+          0
+        ],
+        [
+          0,
+          255,
+          1
+        ],
+        [
+          255,
+          1,
+          0
+        ]
+      ]
+    },
+    {
+      "alphaPixels": [
+        [
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          255,
+          0,
+          255
+        ]
+      ],
+      "name": "private photo normalization applies EXIF and preserves bounded transparent PNG",
+      "oriented": {
+        "bytes": 42128,
+        "height": 1920,
+        "uri": "file:///Users/runner/Library/Developer/CoreSimulator/Devices/ADC919DE-F56E-4AA7-BF95-4A6786E87BA3/data/Containers/Data/Application/ECE18665-9DE8-4EC8-A306-FA1C987F0B2E/Library/Caches/pc-memory-image-normalized.png",
+        "width": 1440
+      },
+      "orientedPixels": [
+        [
+          0,
+          0,
+          254,
+          255
+        ],
+        [
+          254,
+          0,
+          0,
+          255
+        ]
+      ],
+      "transparentBytes": 16755
+    },
+    {
+      "name": "animated photo bytes are rejected without a partial normalized file",
+      "twoFrameContainers": [
+        "gif",
+        "png",
+        "webp"
+      ]
+    },
+    {
+      "name": "invalid bounds and foreign output paths fail without partial movies"
+    },
+    {
+      "name": "cancellation excludes concurrent story work cleans files and permits same-ID retry"
+    },
+    {
+      "name": "an unreadable source cannot produce a partial book movie"
+    }
+  ],
+  "diagnostics": [],
+  "error": null,
+  "errorDetails": null,
+  "networkUsed": false,
+  "passed": true,
+  "photosWritten": false,
+  "physicalDevice": false,
+  "commit": "1ca98984eec5d0912d510da9e565a84a8d5aacfd",
+  "workflow_run": "41163537257",
+  "architecture": "arm64",
+  "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-26-2",
+  "sources": {
+    "modules/boomerang/ios/StoryVideoComposition.swift": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+    "modules/boomerang/ios/MemoryMovieComposition.swift": "920fc4a01277f3712863909ca8188ef7b3a7efa3b4e560d9caeba056addc0d11",
+    "scripts/quality/MemoryMovieExportHarness.swift": "515ec7ad6e1150a0e7035defb7fcde9699b96067637204137f16a2e5681f874f",
+    "scripts/quality/test-ios-memory-movie.sh": "fa60a4db91552e78b6181943dd76d105a2354f2934969b95a8ed655985c3c90c"
+  },
+  "fixtures": {
+    "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.gif": "fa09323d645946fc05e54d47d92c2d4171d67cbb93a4a9cc4225495cf00ae674",
+    "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.png": "296c54b04d0a9aa58171e9d22cff9b41b32a66116d3aa1d89bd67cd193082a77",
+    "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.webp": "417af2bcf554708ce2331d3c3558aa0148921e2231ab3e0b9e8989f6a19395f3"
+  },
+  "movies": {
+    "pc-memory-export-retry.mp4": {
+      "sha256": "531f652a3e7b391cf3fe4fd5eb14cca7558ab8fb4db4212e2a4c5dbdac39a8cb",
+      "bytes": 8592
+    },
+    "pc-memory-export-continuous-phase.mp4": {
+      "sha256": "ce6c710b782ee417b742a9eaee5a99be79844b9f0dd9cb33ced0047ac52848d6",
+      "bytes": 105763
+    },
+    "pc-memory-export-muted.mp4": {
+      "sha256": "bc4a579ff20e64bc1b2e320f52b3d2dc6f0ccaf39599859d6bee2b83e3d5a8c3",
+      "bytes": 9566
+    },
+    "pc-memory-export-voice-once.mp4": {
+      "sha256": "57a7c99d430acb15c2e7e8cfe47394362bdba674f23fe5e3a5856ee55686ce4a",
+      "bytes": 56886
+    },
+    "pc-memory-export-slow-fractional.mp4": {
+      "sha256": "f361ba83319737908f3b5d47ea9b50dbba1f6971703c052a6db7135082e35813",
+      "bytes": 152816
+    },
+    "pc-memory-export-motion.mp4": {
+      "sha256": "f666fcf920b8178163f9aedf6c406e92d020447e92846ccf805f36186e9575f8",
+      "bytes": 55998
+    },
+    "pc-memory-export-ordered.mp4": {
+      "sha256": "0d432152c35981211190e0052f4d0397dc43a2a6ee0cebaa71253ab625c48304",
+      "bytes": 158806
+    }
+  },
+  "images": {
+    "pc-memory-image-transparent.png": {
+      "sha256": "79b425574e99705eb363fc04b62fc8723d921fa47b4f4ec344a16b857d59c200",
+      "bytes": 16755
+    },
+    "pc-memory-image-normalized.png": {
+      "sha256": "7d44b3fb311c88598ea26d03d356d736853af96499362e015ea56125075ed48a",
+      "bytes": 42128
+    }
+  }
+}

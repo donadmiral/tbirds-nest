@@ -1,0 +1,88 @@
+{
+  "reviewedAt": "2026-10-30T17:21:13.386664+00:00",
+  "revision": 2,
+  "files": [
+    {
+      "path": "supabase/migrations/20261030153811_original_music_library_and_delivery.sql",
+      "sha256": "7d7449a59c4678c91985cada1d8b20ec035ce7fd8cb02c1dfbb0fc0cd94e04b8"
+    },
+    {
+      "path": "supabase/functions/music-asset-finalize/index.ts",
+      "sha256": "8baaa840b234476713a7b7f7f240762635ad1d2c92c885bd25b775a7c933299a"
+    },
+    {
+      "path": "supabase/functions/music-asset-finalize/handler.ts",
+      "sha256": "9377de1a11b0a67c02ff36aa6013513a49272b407cf4305c713f1bca9bd06c62"
+    },
+    {
+      "path": "shared/originalAudio.ts",
+      "sha256": "527377ecfb0f17c1805e8db06803bf7ecc4f9599e4239060f19c3c66bde8ea4a"
+    },
+    {
+      "path": "supabase/functions/content-media-sign/handler.ts",
+      "sha256": "9fc8a12d93641046a06ec122062e5817e9473f281a7c521e51e9b314781a7d3f"
+    },
+    {
+      "path": "supabase/functions/media-content/handler.ts",
+      "sha256": "3ebe70908160a5ded596284d43eb9ffa47f24bb7be277710d89bee95275c672a"
+    },
+    {
+      "path": "supabase/functions/account-storage-erasure/handler.ts",
+      "sha256": "1bc4d4e88886441d70cdb6671077e68166a51e861e0a41af68dfa7371333fee8"
+    }
+  ],
+  "decision": "Reviewed local candidate; hosted installation remains unverified and absent in latest QA postflight. No release approval.",
+  "independentTests": [
+    {
+      "command": "node supabase/tests/rpc-authorization/test-original-music-library.mjs",
+      "passed": 22,
+      "failed": 0,
+      "exitCode": 0
+    },
+    {
+      "command": "MUSIC_FIXTURE_PREEXISTING=1 node supabase/tests/rpc-authorization/test-original-music-library.mjs",
+      "passed": 22,
+      "failed": 0,
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/quality/original-audio-infrastructure.cjs",
+      "passed": 18,
+      "failed": 0,
+      "exitCode": 0,
+      "note": "Expanded final run includes all14 reviewed backend cases plus MP3 truncation, idempotent upload, initial Auth A-to-B-to-A race and account change during Storage transfer.",
+      "verifiedAt": "2026-10-30T17:21:46.927728+00:00",
+      "testFileSha256": "21e18ed9ef87c3bb60132380cfe9fb7fe81c267445924d2687e0d58509ed45c3"
+    }
+  ],
+  "reviewFindingsResolved": [
+    "Library list metadata now requires an actual current Auth session and approved business identity; missing business guard fails closed.",
+    "PostgreSQL function-rename OID dependency fixed by recreating the story_sounds SELECT policy against a guarded public metadata helper. Owner reads are also session-bound.",
+    "Finalizer applies one45-second deadline to Auth/RPC/download/digest/finish and request/audio stream reads; uncooperative cancellation cannot block cleanup.",
+    "New music tables carry account-erasure actor fences; service finalization explicitly locks and checks the real owner erasure state.",
+    "Required media/erasure contracts and exactly one erasure allowlist anchor are checked before schema changes.",
+    "Legacy unverified story-to-sound publication shortcut is retired with actionable error.",
+    "Internal story soundtrack resolver has explicit service-only execution ACL.",
+    "Indeterminate staff-session checks fail closed with IS DISTINCT FROM TRUE.",
+    "Upload readiness defaults false; only service credentials can change it with an audit reason; license/catalogue activation stays unavailable."
+  ],
+  "coverage": [
+    "Private bucket and restrictive Storage policies",
+    "Owner-bound idempotent upload reservations and content hash/version/size checks",
+    "Reuse consent separately from existing content audience playback",
+    "Warmed delivery-ticket revocation and preserved visual content authorization",
+    "Post, story and retained memory-book soundtrack authorization",
+    "Private license drafts without playback activation",
+    "False erasure acknowledgements, original object queueing, write fences and Auth cascade cleanup"
+  ],
+  "limits": [
+    "Container inspection verifies format/size/duration structure and hash; it does not certify music rights or guarantee every device decoder.",
+    "Local database tests use synthetic fixtures with installed privacy/erasure prerequisites. They do not imply the production dependencies are installed.",
+    "No actual uploaded audio or disposable-account Storage/CDN/Auth erasure was verified on the hosted QA environment because the migration connector did not complete.",
+    "Business Auth migration remains absent on QA; business audio safely rejects unapproved sessions.",
+    "Production has not been changed."
+  ],
+  "qaPreflight": "music-qa-preflight.json",
+  "qaBlockedPostflight": "music-qa-connector-blocker.json",
+  "genericErasureRegressionReceipt": "erasure-regressions.json"
+}

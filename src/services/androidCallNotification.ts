@@ -9,28 +9,14 @@
  * notification with actions is used instead, so nothing ever rings silently.
  */
 import { Platform } from 'react-native';
-import { callService } from './callService';
-
-export type IncomingCallPayload = { callId: string; callerName: string; callerAvatar?: string | null; isVideo?: boolean; conversationId?: string | null };
+import { declineIncomingCall, parseCallPayload, readIncomingCall, type IncomingCallPayload, type IncomingCallSession } from './incomingCallAccess';
+export { parseCallPayload, type IncomingCallPayload } from './incomingCallAccess';
 
 let notifee: any = null;
 try { notifee = require('@notifee/react-native').default; } catch { notifee = null; }
 
 export const CALL_CHANNEL_ID = 'calls';
 const RING_TIMEOUT_MS = 45000;
-
-export function parseCallPayload(data: any): IncomingCallPayload | null {
-  if (!data) return null;
-  const callId = data.callId || data.call_id || data.uuid;
-  if (!callId) return null;
-  return {
-    callId: String(callId),
-    callerName: String(data.callerName || data.caller_name || data.title || 'Incoming call'),
-    callerAvatar: data.callerAvatar || data.caller_avatar || null,
-    isVideo: data.isVideo === true || data.isVideo === 'true' || data.hasVideo === true || data.hasVideo === 'true' || data.is_video === true,
-    conversationId: data.conversationId || data.conversation_id || null,
-  };
-}
 
 export async function ensureCallChannel(): Promise<void> {
   if (Platform.OS !== 'android' || !notifee) return;
@@ -40,15 +26,24 @@ export async function ensureCallChannel(): Promise<void> {
 }
 
 /** Show the full-screen incoming call. Returns true when notifee handled it. */
-export async function showIncomingCall(p: IncomingCallPayload): Promise<boolean> {
-  if (Platform.OS !== 'android' || !notifee) return false;
+export async function showIncomingCall(payload: IncomingCallPayload, session: IncomingCallSession): Promise<boolean> {
+  if (Platform.OS !== 'android' || !notifee || !session.current()) return false;
   try {
     await ensureCallChannel();
+    session.ensure();
+    // OS channel setup can outlast the invitation or the caller's cancellation.
+    const resolved = await readIncomingCall(payload, session);
+    session.ensure();
+    if (!resolved) return false;
+    const p = resolved.payload;
+    const expiresAt = p.expiresAt ?? Date.now() + RING_TIMEOUT_MS;
+    const remaining = Math.min(RING_TIMEOUT_MS, expiresAt - Date.now());
+    if (remaining <= 0) return false;
     await notifee.displayNotification({
       id: 'call-' + p.callId,
       title: p.callerName,
       body: p.isVideo ? 'Incoming video call' : 'Incoming voice call',
-      data: { type: 'incoming_call', call_id: p.callId, callerName: p.callerName, isVideo: p.isVideo ? '1' : '0', conversation_id: p.conversationId || '' },
+      data: { type: 'incoming_call', call_id: p.callId, callerName: p.callerName, isVideo: p.isVideo ? '1' : '0', conversation_id: p.conversationId || '', recipient_id: p.recipientId || '' },
       android: {
         channelId: CALL_CHANNEL_ID,
         category: 'call',
@@ -57,7 +52,7 @@ export async function showIncomingCall(p: IncomingCallPayload): Promise<boolean>
         autoCancel: false,
         loopSound: true,
         sound: 'incallmanager_ringtone',
-        timeoutAfter: RING_TIMEOUT_MS,
+        timeoutAfter: Math.max(1, Math.floor(remaining)),
         largeIcon: p.callerAvatar || undefined,
         smallIcon: 'notification_icon',
         color: '#0B1E3D',
@@ -69,6 +64,7 @@ export async function showIncomingCall(p: IncomingCallPayload): Promise<boolean>
         ],
       },
     });
+    if (!session.current() || expiresAt <= Date.now()) { await dismissIncomingCall(p.callId); return false; }
     return true;
   } catch (e: any) {
     console.log('[AndroidCall] display failed:', e?.message);
@@ -88,14 +84,14 @@ export async function dismissIncomingCall(callId: string): Promise<void> {
 if (Platform.OS === 'android' && notifee) {
   try {
     notifee.onBackgroundEvent(async ({ type, detail }: any) => {
-      const id = detail?.notification?.data?.call_id;
-      const action = detail?.pressAction?.id;
-      if (!id) return;
-      if (action === 'decline') {
-        try { await callService.declineCall(String(id)); } catch {}
-        await dismissIncomingCall(String(id));
-      } else if (type === 2 /* DISMISSED */) {
-        await dismissIncomingCall(String(id));
+      const payload = parseCallPayload(detail?.notification?.data);
+      if (!payload) return;
+      if (type === 2 /* ACTION_PRESS */ && detail?.pressAction?.id === 'decline') {
+        try {
+          if (await declineIncomingCall(payload)) await dismissIncomingCall(payload.callId);
+        } catch { /* A failed network decline remains available to retry. */ }
+      } else if (type === 0 /* DISMISSED */) {
+        await dismissIncomingCall(payload.callId);
       }
     });
   } catch {}
@@ -110,8 +106,9 @@ export async function consumeInitialCallNotification(): Promise<{ payload: Incom
   try {
     const initial = await notifee.getInitialNotification();
     const p = parseCallPayload(initial?.notification?.data);
-    if (!p) return null;
-    return { payload: p, answer: initial?.pressAction?.id === 'answer' };
+    const action = initial?.pressAction?.id;
+    if (!p || !['incoming', 'answer', 'default'].includes(action)) return null;
+    return { payload: p, answer: action === 'answer' };
   } catch { return null; }
 }
 
@@ -123,8 +120,8 @@ export function listenForegroundCallActions(handler: (payload: IncomingCallPaylo
       const p = parseCallPayload(detail?.notification?.data);
       if (!p) return;
       const id = detail?.pressAction?.id;
-      if (type === 1 /* PRESS */) handler(p, 'open');
-      else if (type === 2 /* ACTION_PRESS */) handler(p, id === 'answer' ? 'answer' : id === 'decline' ? 'decline' : 'open');
+      if (type === 1 /* PRESS */ && ['incoming', 'default'].includes(id)) handler(p, 'open');
+      else if (type === 2 /* ACTION_PRESS */ && (id === 'answer' || id === 'decline')) handler(p, id);
     });
   } catch { return () => {}; }
 }

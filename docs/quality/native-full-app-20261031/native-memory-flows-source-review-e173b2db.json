@@ -1,0 +1,271 @@
+{
+  "review": "Memory navigation and capture source preflight after Android emulator loss",
+  "recordedAtUtc": "2026-10-31T06:04:07.951053+00:00",
+  "head": "e173b2dbcf253342be5683fa85f102aa38065411",
+  "outcome": "No demonstrated selector or fixture-semantic defect; iOS keyboard gesture geometry remains unobserved",
+  "scope": "Read-only review of both still-uncompleted memory flows against actual production components, isolated fixture contracts, installed RN 0.81.5 accessibility implementation, and previously blob-verified pinned Maestro 2.11.0 source. No flow, source, timeout, assertion, fixture, or workflow was changed; no test suite or native job was rerun.",
+  "sources": [
+    {
+      "path": "tests/native/flows/memory-navigation.yaml",
+      "sha256": "42a6947e98ceda6e60e7073a486c5317f238f8e478763c30f4eed1e0dd39aeae",
+      "matchesPublishedHead": true
+    },
+    {
+      "path": "tests/native/flows/memory-capture.yaml",
+      "sha256": "16966925346646f2280ca0ebdea7ce0c5f2e131d03e9dec3841c69a761f0ba91",
+      "matchesPublishedHead": true
+    },
+    {
+      "path": "src/components/MemoryAlbumCard.tsx",
+      "sha256": "e6974756880f972305f8afccce6b9df1ccb1db67c1dafac181802ee9a935d074",
+      "matchesPublishedHead": true
+    },
+    {
+      "path": "src/screens/profile/MemoryAlbumScreen.tsx",
+      "sha256": "437b2d5c52cf1ad00ce1d322367ac1e41da8857b6d2db6a1c7db263ad4e7f541",
+      "matchesPublishedHead": true
+    },
+    {
+      "path": "src/components/memory/MemoryBookCover.tsx",
+      "sha256": "50a86edb475b9a120d16e6fcda4a63494d4f6e1b5ee0e80e0cb68e52dbf163af",
+      "matchesPublishedHead": true
+    },
+    {
+      "path": "src/components/memory/MemoryCreativeControls.tsx",
+      "sha256": "9080cb32e86df784d25da04a7d8eebca048ec927c9c504366e8b89663b99f209",
+      "matchesPublishedHead": true
+    },
+    {
+      "path": "src/components/memory/MemoryPageTurn.tsx",
+      "sha256": "4b88a3ba0cf7fc4390787b871bb6794f1ae33119f7ddc16ca3d7909e138bddb2",
+      "matchesPublishedHead": true
+    },
+    {
+      "path": "src/components/memory/MemoryStoryFrame.tsx",
+      "sha256": "13d24cbf143ead49d5ed06acbc9b4a046108d0537a93942d9790ebca5b9db3cd",
+      "matchesPublishedHead": true
+    },
+    {
+      "path": "src/components/memory/MemoryFilm.tsx",
+      "sha256": "d79ae8d468f99fa8717f92d575a4db57f098173ac71fc7ed19309d9d0babeca4",
+      "matchesPublishedHead": true
+    },
+    {
+      "path": "src/components/memory/MemoryMovieExport.tsx",
+      "sha256": "4c607f98b44f10870c772a0efa0ae112514273f5270b747b86e62b68f280c696",
+      "matchesPublishedHead": true
+    },
+    {
+      "path": "src/services/memoryMovieExport.ts",
+      "sha256": "44947bc901323154ad9383a88c9eb715ccaacabfa0df1c3aa2aad5b05e0191fe",
+      "matchesPublishedHead": true
+    },
+    {
+      "path": "shared/memoryBookDesign.ts",
+      "sha256": "ece305ccc3149b57877c8227f78d4d21782474f1388a42b9178cf15a9f3d4197",
+      "matchesPublishedHead": true
+    },
+    {
+      "path": "tests/native/MemoryCaptureFixtureScreen.tsx",
+      "sha256": "2733bae6355e06851454cab5e73e7579bff585b23de5aa2b8259acae7f68de2d",
+      "matchesPublishedHead": true
+    },
+    {
+      "path": "tests/native/memory-fixture.cjs",
+      "sha256": "9368a168342678a62e4c5aee24bfa2cbeba8d6245c1ff2910fa1494e4724b7d7",
+      "matchesPublishedHead": true
+    },
+    {
+      "path": "tests/native/backend-fixture.cjs",
+      "sha256": "854cbd355bc8e02736997027fce630e22e298a62a3e1bcfb372d0648f0cf2eb9",
+      "matchesPublishedHead": true
+    },
+    {
+      "path": "tests/native/expo-fetch-fixture.cjs",
+      "sha256": "0a8eff17f9d4d1ac2d771e29a81620b79238759d459fffb75845ec91ead2f19c",
+      "matchesPublishedHead": true
+    },
+    {
+      "path": "tests/native/memory-capture-observer.cjs",
+      "sha256": "9f341201ee67393a29ac614afd3bf1e91b84430c46c27f784d54d84a43e6e6a4",
+      "matchesPublishedHead": true
+    },
+    {
+      "path": "tests/native/account-readback.cjs",
+      "sha256": "32f49dba2d807f4db7e63a8474c1d5b1e429d05efe90f343c25a12b1aca3ab19",
+      "matchesPublishedHead": true
+    }
+  ],
+  "reactNative": {
+    "installedVersion": "0.81.5",
+    "lockedVersion": "0.81.5",
+    "files": [
+      {
+        "path": "node_modules/react-native/Libraries/Components/Touchable/TouchableOpacity.js",
+        "sha256": "7e8b8eb3271f2c4dcd79ef3cc490172382a551343c1d298993d853646443fdbc"
+      },
+      {
+        "path": "node_modules/react-native/Libraries/Components/ScrollView/ScrollView.js",
+        "sha256": "d30c787e61c63577500424fbd3021528017ff09094bbfe633c526cdbc8625713"
+      },
+      {
+        "path": "node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm",
+        "sha256": "5d864bb59cc2ac795e5c5b5832d6d1b605b36ea9750e26e6026e4985148f3935"
+      },
+      {
+        "path": "node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTScrollViewComponentView.mm",
+        "sha256": "44016d7627431067edf374b9abf19936b9ec0766f496198e0cf5b70876c19121"
+      },
+      {
+        "path": "node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/uimanager/ReactAccessibilityDelegate.java",
+        "sha256": "cedf807e15424e3fef3d9d2ae888edf2548e164989e45ca8b6ff11cd882afa60"
+      }
+    ]
+  },
+  "maestro": {
+    "version": "2.11.0",
+    "tagCommit": "c8c361be1cc89b2e742f185466a302a22778be6b",
+    "priorLifecycleReceipt": {
+      "path": "docs/quality/native-full-app-20261031/maestro-2.11.0-lifecycle-review.json",
+      "sha256": "fc4125d587cef58996c89922dabd230737bd61f89def16e107ae773fb48bf94b"
+    },
+    "reviewedVerifiedSources": [
+      {
+        "path": "maestro-orchestra/src/main/java/maestro/orchestra/Orchestra.kt",
+        "upstreamBlobSha": "4127338828db0a14de0488873bac3bd5dfa6be66",
+        "retrievedGitBlobSha": "4127338828db0a14de0488873bac3bd5dfa6be66",
+        "gitBlobMatches": true,
+        "sha256": "06e8e2803af1c9704783452a22bf4a3652f89574f384e893afd97d5fcc9007b5",
+        "bytes": 77165,
+        "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-orchestra/src/main/java/maestro/orchestra/Orchestra.kt"
+      },
+      {
+        "path": "maestro-client/src/main/java/maestro/Maestro.kt",
+        "upstreamBlobSha": "1f850dce7dda23de26c7ea2a4108f29ce8a00462",
+        "retrievedGitBlobSha": "1f850dce7dda23de26c7ea2a4108f29ce8a00462",
+        "gitBlobMatches": true,
+        "sha256": "4b1b2f901f909d850970f3805e52e1b6ccf1895d28aa2b8d51ac054a8bb553fa",
+        "bytes": 31759,
+        "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-client/src/main/java/maestro/Maestro.kt"
+      },
+      {
+        "path": "maestro-client/src/main/java/maestro/drivers/IOSDriver.kt",
+        "upstreamBlobSha": "8af50e6b65d983437cdd3f81fe2c20dc0b1a6cb9",
+        "retrievedGitBlobSha": "8af50e6b65d983437cdd3f81fe2c20dc0b1a6cb9",
+        "gitBlobMatches": true,
+        "sha256": "f4b0990e891edf7401c0cc163f11247c3a095dcd9d45e8c1977ba605e245a4d3",
+        "bytes": 27889,
+        "url": "https://github.com/mobile-dev-inc/Maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-client/src/main/java/maestro/drivers/IOSDriver.kt"
+      }
+    ]
+  },
+  "observations": [
+    {
+      "area": "Profile shelf and collection",
+      "sourceReferences": [
+        "src/components/MemoryAlbumCard.tsx:66",
+        "src/components/MemoryAlbumCard.tsx:69",
+        "src/components/MemoryAlbumCard.tsx:76",
+        "src/components/MemoryAlbumCard.tsx:78",
+        "tests/native/memory-fixture.cjs:48"
+      ],
+      "finding": "View all memory books and each title/count card have explicit accessibility labels. Private is the single text child of its tab touchable; the fixture book uses only_me and two pages. iOS collection dismissal waits for onDismiss before navigation."
+    },
+    {
+      "area": "Reader and continuous film",
+      "sourceReferences": [
+        "src/screens/profile/MemoryAlbumScreen.tsx:224",
+        "src/screens/profile/MemoryAlbumScreen.tsx:363",
+        "src/screens/profile/MemoryAlbumScreen.tsx:383",
+        "src/screens/profile/MemoryAlbumScreen.tsx:435",
+        "src/components/memory/MemoryPageTurn.tsx:45",
+        "src/components/memory/MemoryFilm.tsx:99",
+        "src/components/memory/MemoryFilm.tsx:118"
+      ],
+      "finding": "Open book is the only text child of its button. Page status, next/previous, film, close and read controls have matching explicit labels. Both fixture captions match rendered plain Text. Page-turn previews are hidden from accessibility. Edge and pager Next memory labels perform the same one-page transition. Returning from film calls openBook without resetting idx, supporting the Page 2 assertion. The two text memories use full automatic reflective mode, then cinematic after the saved edit."
+    },
+    {
+      "area": "Cover edit and saved reload",
+      "sourceReferences": [
+        "src/screens/profile/MemoryAlbumScreen.tsx:521",
+        "src/screens/profile/MemoryAlbumScreen.tsx:527",
+        "src/screens/profile/MemoryAlbumScreen.tsx:534",
+        "src/screens/profile/MemoryAlbumScreen.tsx:546",
+        "src/screens/profile/MemoryAlbumScreen.tsx:549",
+        "src/screens/profile/MemoryAlbumScreen.tsx:554",
+        "src/components/memory/MemoryCreativeControls.tsx:9",
+        "src/components/memory/MemoryCreativeControls.tsx:17",
+        "src/components/memory/MemoryCreativeControls.tsx:19",
+        "src/components/memory/MemoryBookCover.tsx:38",
+        "shared/memoryBookDesign.ts:27"
+      ],
+      "finding": "Book title, sage cover color, Writing style: Simple, Mood: Cinematic, Save memory book, and both input testIDs match the actual components. Entered values fit their length limits and start from empty inscription/postmark fixtures. Postcard is first in MEMORY_FEATURED_DESIGNS, so the tested design needs no horizontal scroll. Its computed explicit cover label matches the complete expected title, retained subtitle, inscription and postmark. The surrounding cover touchable has no other text children, so RN recursive labeling does not append unrelated sibling labels."
+    },
+    {
+      "area": "Revisioned fixture contract",
+      "sourceReferences": [
+        "tests/native/backend-fixture.cjs:110",
+        "tests/native/backend-fixture.cjs:115",
+        "tests/native/backend-fixture.cjs:124",
+        "tests/native/backend-fixture.cjs:156",
+        "src/screens/profile/MemoryAlbumScreen.tsx:304"
+      ],
+      "finding": "The fixture validates the actual creative-save fields, owner/session and expected revision, persists the updated title/artwork/mood, increments revision, and serves it in a fresh shelf/read. The capture book is a distinct ID and is not changed by reader-book edits."
+    },
+    {
+      "area": "Capture and cleanup selectors",
+      "sourceReferences": [
+        "tests/native/MemoryCaptureFixtureScreen.tsx:19",
+        "tests/native/MemoryCaptureFixtureScreen.tsx:30",
+        "src/components/memory/MemoryMovieExport.tsx:71",
+        "src/components/memory/MemoryMovieExport.tsx:73",
+        "src/components/memory/MemoryMovieExport.tsx:82",
+        "src/services/memoryMovieExport.ts:86",
+        "tests/native/expo-fetch-fixture.cjs:42",
+        "tests/native/memory-capture-observer.cjs:37"
+      ],
+      "finding": "The deep link leads to the guarded fixture, whose account-readback status and two single-text-child buttons match the flow. Close movie export has an explicit label; Create memory movie and Save movie to Photos are single-text-child buttons. The held video read exposes the exact Reading the movie\u2019s video timing\u2026 text, with no parent explicit accessibility label overriding it. The two taps on that noninteractive status do not trigger an app action. Cleanup passed comes from actual observer file checks, not a hard-coded success screen. No keyboard is used in the capture flow."
+    },
+    {
+      "area": "Native accessibility and IDs",
+      "sourceReferences": [
+        "node_modules/react-native/Libraries/Components/Touchable/TouchableOpacity.js:303",
+        "node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm:1204",
+        "node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm:1226",
+        "node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm:463",
+        "node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/uimanager/ReactAccessibilityDelegate.java:234"
+      ],
+      "finding": "TouchableOpacity is accessible by default. Explicit labels override derived labels; otherwise the iOS implementation recursively derives child labels. Unlike the earlier Market defect, the reviewed implicit button labels each have a single relevant text child or a single explicitly labeled cover. RN maps testID to iOS accessibilityIdentifier and Android resource-id for the two edited cover text inputs."
+    }
+  ],
+  "demonstratedDefects": [],
+  "unresolvedGeometry": {
+    "platform": "iOS",
+    "status": "Candidate explanation only; not a proven failed gesture or product defect",
+    "flowLocations": [
+      "tests/native/flows/memory-navigation.yaml:46",
+      "tests/native/flows/memory-navigation.yaml:58",
+      "tests/native/flows/memory-navigation.yaml:73",
+      "tests/native/flows/memory-navigation.yaml:84"
+    ],
+    "sourceFacts": [
+      "The settings content uses KeyboardAvoidingView with padding on iOS, a centered sheet with maxHeight 82%, and fixed title/footer outside its ScrollView.",
+      "The settings ScrollView uses keyboardDismissMode=on-drag and keyboardShouldPersistTaps=handled. RN maps OnDrag to UIScrollViewKeyboardDismissModeOnDrag.",
+      "Pinned Maestro scrollUntilVisible first checks visibility and otherwise calls swipeFromCenter; Maestro.kt computes the start point as half the entire device width/height, not the modal ScrollView bounds.",
+      "When the keyboard shrinks the available modal area, the device-center start point may be below the scrollable content and over the fixed footer. The configured dismissal requires a drag that actually reaches the ScrollView."
+    ],
+    "missingEvidence": "No retained current-iPhone keyboard-open settings hierarchy/screenshot or failed-scroll command is available in this review. Android stopped before entering the memory shelf. Exact keyboard and ScrollView geometry is unobserved.",
+    "decision": "Keep the current flow and assertions unchanged pending actual iPhone evidence. No coordinate workaround, extra timeout, or speculative layout change is justified by source alone."
+  },
+  "existingTestsInspectedWithoutRerun": [
+    "tests/quality/native-ui-fixture.cjs (revisioned creative save/reload and cross-session rejection)",
+    "tests/quality/native-ui-flows.cjs (separate required capture and strict flow proof)",
+    "tests/quality/memory-page-turn.cjs (one-page transition lock, cancellation and preview isolation)",
+    "tests/quality/native-memory-export.cjs (blocked reader cancellation, cleanup and actual preparation contract)"
+  ],
+  "limits": [
+    "Source correspondence does not prove iOS/Android hierarchy visibility, exact keyboard geometry, hit targeting or animation settling.",
+    "No complete native reader-edit-reload or capture/decoder gate has passed from this review. Existing native gates remain required.",
+    "The current iPhone job remains useful and was not interrupted."
+  ]
+}

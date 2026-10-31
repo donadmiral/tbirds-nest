@@ -1,0 +1,28 @@
+{
+  "source": "8591b1a36f0a47d6493af6f8fa0a336d7421ec92",
+  "deployments": [
+    {
+      "host": "platinum-web-git-codex-app-quality-20261029-intobank.vercel.app",
+      "id": "dpl_2twDx1R3CdmRHTv4KdbGioPsVUjT",
+      "commit": "8591b1a36f0a47d6493af6f8fa0a336d7421ec92",
+      "state": "READY",
+      "url": "platinum-861d19zla-intobank.vercel.app",
+      "alias": [
+        "platinum-web-git-codex-app-quality-20261029-intobank.vercel.app"
+      ]
+    },
+    {
+      "host": "admin-web-git-codex-app-quality-20261029-intobank.vercel.app",
+      "id": "dpl_4XQ1CZ9q9vrkQu1PAgtkCrG6FVTu",
+      "commit": "b4af1f5f7f66c98437474cf8354638eaec6adb2d",
+      "state": "READY",
+      "url": "admin-owokbgu2c-intobank.vercel.app",
+      "alias": [
+        "admin-web-git-codex-app-quality-20261029-intobank.vercel.app"
+      ]
+    }
+  ],
+  "protectionPreserved": true,
+  "temporaryReviewLinkCreated": false,
+  "adminNote": "The latest published admin UI is b4af1f5. Later commits leave admin-web unchanged; its existing READY preview is retained."
+}

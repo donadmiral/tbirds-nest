@@ -1,0 +1,373 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-31T07:22:58.228963Z",
+  "repository": "donadmiral/tbirds-nest",
+  "sourceBinding": {
+    "headSha": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+    "pullRequestMergeSha": "ba8d659c4b6172c1c4930cd6d348d627bdb1470f",
+    "headTreeSha": "bebc0e7bfa5a9a6b17e477a29b17fcd41c2ae27d",
+    "mergeTreeSha": "bebc0e7bfa5a9a6b17e477a29b17fcd41c2ae27d",
+    "treesIdentical": true,
+    "verification": "Immutable GitHub Git commit metadata and local Git tree equality; run and every compiler job head metadata equals the published commit. Android checkout independently observed in its authenticated log. iOS log retrieval failed and is explicitly limited below."
+  },
+  "workflowOutcomes": [
+    {
+      "id": 41179235082,
+      "name": "Android native compile",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+      "head_branch": "codex/app-quality-20261029",
+      "path": ".github/workflows/android-native-compile.yml",
+      "event": "pull_request",
+      "run_attempt": 1,
+      "run_number": 18,
+      "run_started_at": "2026-10-31T07:05:55Z",
+      "created_at": "2026-10-31T07:05:55Z",
+      "updated_at": "2026-10-31T07:16:17Z",
+      "html_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41179235082"
+    },
+    {
+      "id": 41179235256,
+      "name": "iOS native compile",
+      "status": "completed",
+      "conclusion": "success",
+      "head_sha": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+      "head_branch": "codex/app-quality-20261029",
+      "path": ".github/workflows/ios-native-compile.yml",
+      "event": "pull_request",
+      "run_attempt": 1,
+      "run_number": 31,
+      "run_started_at": "2026-10-31T07:05:55Z",
+      "created_at": "2026-10-31T07:05:55Z",
+      "updated_at": "2026-10-31T07:21:54Z",
+      "html_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41179235256"
+    }
+  ],
+  "compilerJobs": [
+    {
+      "platform": "Android",
+      "workflowRun": 41179235082,
+      "jobId": 124473037191,
+      "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41179235082/job/124473037191",
+      "name": "Compile Kotlin and Android native integration",
+      "status": "completed",
+      "conclusion": "success",
+      "runAttempt": 1,
+      "runHeadSha": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+      "jobHeadSha": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+      "startedAt": "2026-10-31T07:05:57Z",
+      "completedAt": "2026-10-31T07:16:17Z",
+      "elapsedSeconds": 620.0,
+      "runnerLabels": [
+        "ubuntu-24.04"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T07:05:57Z",
+          "completedAt": "2026-10-31T07:05:58Z"
+        },
+        {
+          "name": "Read source",
+          "status": "completed",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T07:05:58Z",
+          "completedAt": "2026-10-31T07:06:02Z"
+        },
+        {
+          "name": "Set Node 22",
+          "status": "completed",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T07:06:02Z",
+          "completedAt": "2026-10-31T07:06:05Z"
+        },
+        {
+          "name": "Use the runner's Java 17 toolchain",
+          "status": "completed",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T07:06:05Z",
+          "completedAt": "2026-10-31T07:06:05Z"
+        },
+        {
+          "name": "Install locked dependencies",
+          "status": "completed",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T07:06:05Z",
+          "completedAt": "2026-10-31T07:06:18Z"
+        },
+        {
+          "name": "Compile the unsigned Android QA target",
+          "status": "completed",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T07:06:18Z",
+          "completedAt": "2026-10-31T07:16:13Z"
+        },
+        {
+          "name": "Keep compiler diagnostics only",
+          "status": "completed",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T07:16:13Z",
+          "completedAt": "2026-10-31T07:16:15Z"
+        },
+        {
+          "name": "Post Set Node 22",
+          "status": "completed",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T07:16:15Z",
+          "completedAt": "2026-10-31T07:16:15Z"
+        },
+        {
+          "name": "Post Read source",
+          "status": "completed",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T07:16:15Z",
+          "completedAt": "2026-10-31T07:16:15Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T07:16:15Z",
+          "completedAt": "2026-10-31T07:16:15Z"
+        }
+      ],
+      "publishedInputs": {
+        ".github/workflows/android-native-compile.yml": "b61803a86989169286d8af51814cb15a76329e070c5e000af46d328c1b796d84",
+        "scripts/quality/compile-android-native.sh": "d638f2dedd0026cd91b149354927899185cbdf4c55c3f3db7a1b61b566f6fbf7"
+      },
+      "artifactMetadata": {
+        "id": 13034013942,
+        "name": "android-native-compile-diagnostics",
+        "bytes": 22648,
+        "providerReportedDigest": "sha256:e92f32fbcf2903a452d26cdcad2d580713d0bc1d5516f215b24bcc5424852ca3",
+        "createdAt": "2026-10-31T07:16:14Z",
+        "expiresAt": "2026-11-07T07:16:14Z",
+        "archiveDownloaded": false,
+        "archiveDigestIndependentlyVerified": false,
+        "artifactReceiptContentsReviewed": false
+      },
+      "currentEvidenceLevel": "Authenticated job/step metadata plus checkout log and printed postflight receipt; native source hashes independently compared to published Git blobs.",
+      "logProvenance": {
+        "normalizedPath": "/tmp/platinum-native6878-124473037191.log",
+        "normalizedSha256": "446e1664dcbd263a3060b8532d81a345a4f9f2453ecd44587872a6e89d3c7db2",
+        "bytes": 183179,
+        "checkedOutCommit": "ba8d659c4b6172c1c4930cd6d348d627bdb1470f",
+        "normalization": "UTF-8 body with leading ISO timestamp prefixes, ANSI escape sequences and initial BOM removed; final newlines canonicalized to one LF."
+      },
+      "postflightFromAuthenticatedLog": {
+        "result": "unsigned Android QA native compile passed",
+        "nativeSourceChecks": [
+          {
+            "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt",
+            "reportedSha256": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237",
+            "publishedSha256": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237",
+            "matchesPublishedCommit": true,
+            "compiledClassesReported": 1
+          },
+          {
+            "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt",
+            "reportedSha256": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+            "publishedSha256": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+            "matchesPublishedCommit": true,
+            "compiledClassesReported": 1
+          },
+          {
+            "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt",
+            "reportedSha256": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab",
+            "publishedSha256": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab",
+            "matchesPublishedCommit": true,
+            "compiledClassesReported": 1
+          },
+          {
+            "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt",
+            "reportedSha256": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5",
+            "publishedSha256": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5",
+            "matchesPublishedCommit": true,
+            "compiledClassesReported": 1
+          }
+        ],
+        "expoModuleRegistrationVerified": true,
+        "architecture": "arm64-v8a",
+        "applicationId": "app.platinumcircles.mobile.qa",
+        "apkSigned": false,
+        "javascriptBundleIncluded": false,
+        "androidStoryEncoderCompiled": true,
+        "androidMemoryMovieEncoderCompiled": true,
+        "advertisedMemoryMovieVersion": 0,
+        "reportedApk": {
+          "path": "android/app/build/outputs/apk/debug/app-debug-unsigned.apk",
+          "sha256": "5869028d45dbf9e4614abbf4668059c3cb0d9ab018787702232187a340bd332d",
+          "bytes": 134810848
+        },
+        "reportedApkHashIndependentlyChecked": false,
+        "deviceOrProviderAcceptance": false,
+        "appInstalledUploadedOrSubmitted": false
+      }
+    },
+    {
+      "platform": "iOS Simulator",
+      "workflowRun": 41179235256,
+      "jobId": 124473037869,
+      "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41179235256/job/124473037869",
+      "name": "Compile Swift and native integration",
+      "status": "completed",
+      "conclusion": "success",
+      "runAttempt": 1,
+      "runHeadSha": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+      "jobHeadSha": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+      "startedAt": "2026-10-31T07:05:57Z",
+      "completedAt": "2026-10-31T07:21:54Z",
+      "elapsedSeconds": 957.0,
+      "runnerLabels": [
+        "macos-15"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T07:05:58Z",
+          "completedAt": "2026-10-31T07:05:59Z"
+        },
+        {
+          "name": "Read source",
+          "status": "completed",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T07:05:59Z",
+          "completedAt": "2026-10-31T07:06:06Z"
+        },
+        {
+          "name": "Set Node 22",
+          "status": "completed",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T07:06:06Z",
+          "completedAt": "2026-10-31T07:06:15Z"
+        },
+        {
+          "name": "Install locked dependencies",
+          "status": "completed",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T07:06:15Z",
+          "completedAt": "2026-10-31T07:06:51Z"
+        },
+        {
+          "name": "Install the Expo 54 CocoaPods toolchain",
+          "status": "completed",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T07:06:51Z",
+          "completedAt": "2026-10-31T07:06:53Z"
+        },
+        {
+          "name": "Compile the unsigned iOS Simulator target",
+          "status": "completed",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T07:06:53Z",
+          "completedAt": "2026-10-31T07:21:49Z"
+        },
+        {
+          "name": "Keep compiler diagnostics only",
+          "status": "completed",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T07:21:49Z",
+          "completedAt": "2026-10-31T07:21:51Z"
+        },
+        {
+          "name": "Post Set Node 22",
+          "status": "completed",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T07:21:51Z",
+          "completedAt": "2026-10-31T07:21:51Z"
+        },
+        {
+          "name": "Post Read source",
+          "status": "completed",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T07:21:51Z",
+          "completedAt": "2026-10-31T07:21:52Z"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T07:21:52Z",
+          "completedAt": "2026-10-31T07:21:52Z"
+        }
+      ],
+      "publishedInputs": {
+        ".github/workflows/ios-native-compile.yml": "41366d7673b2c4781c998cf80655fde1cc2041f19a607b10dc6dd088b5784510",
+        "scripts/quality/compile-ios-simulator.sh": "c920dab98837d4cb4397cd8bf7ac7e9ec078c29f2cf30639717be59257eaf898"
+      },
+      "artifactMetadata": {
+        "id": 13034039686,
+        "name": "ios-native-compile-diagnostics",
+        "bytes": 984861,
+        "providerReportedDigest": "sha256:2b403eaf2be538d0ad67fac54c3801ab99e9ea68a1bbe429a04daa23d008f328",
+        "createdAt": "2026-10-31T07:21:51Z",
+        "expiresAt": "2026-11-07T07:21:50Z",
+        "archiveDownloaded": false,
+        "archiveDigestIndependentlyVerified": false,
+        "artifactReceiptContentsReviewed": false
+      },
+      "currentEvidenceLevel": "Authenticated completed job/step status and artifact metadata, exact run/job head binding, verified equivalent PR merge tree, and unchanged published native inputs. Current compiler archive/receipt and checkout log were not retrieved.",
+      "logRetrieval": {
+        "jobId": 124473037869,
+        "attempts": 1,
+        "outcome": "tool_error",
+        "message": "tool call error: tool call failed for codex_apps/github.fetch_workflow_job_logs; Transport closed",
+        "logBodyReturned": false,
+        "retried": false
+      },
+      "publishedScriptGates": {
+        "source": "scripts/quality/compile-ios-simulator.sh",
+        "requiredCompiledObjects": [
+          "BoomerangModule.swift",
+          "StoryVideoView.swift",
+          "StoryVideoComposition.swift"
+        ],
+        "requiresNonemptyLinkedQaAppExecutable": true,
+        "requiresLipoArchitecture": "x86_64",
+        "skipBundling": true,
+        "unsignedSimulatorOnly": true,
+        "note": "These requirements are read from the exact published script whose completed CI step is success; current artifact contents were not independently inspected."
+      }
+    }
+  ],
+  "passedCompilerJobs": 2,
+  "failedCompilerJobs": 0,
+  "testCountRule": "Compiler jobs are build results, not additional test cases. The 58 named encoder cases and quality test counts are recorded separately and not added to a compiler total.",
+  "linkedEvidence": [
+    {
+      "path": "docs/quality/native-full-app-20261031/native-encoders-6878c384-status-and-source-equivalence.json",
+      "sha256": "9ecf723649e8c8746ce01bb5bbd665e86fdbb46cb06fb535118bfc2c03f7ad16",
+      "scope": "58 fresh standalone encoder passes, 65 unchanged source/config files and all 19 retained engine/fixture source hashes matched."
+    },
+    {
+      "path": "docs/quality/live-app-20261031/ci-quality-6878c384.json",
+      "sha256": "dd27d15963d16b2f3636691acb6bd877a8ee72f891de37f9b8313d33db364444",
+      "scope": "Fresh root/web/admin/backend/Edge test counts and source binding."
+    }
+  ],
+  "metadataProvenance": {
+    "path": "/tmp/native-6878-compile-metadata.json",
+    "sha256": "cc58a0561365cb79372b1a1221e6afa0447970cb7db122f4eb14393069d3dee3",
+    "observedAt": "2026-10-31T07:22:57.683Z"
+  },
+  "limits": [
+    "No compiler artifact archive or APK/app binary was downloaded or independently rehashed. Provider artifact digests and the Android runner-reported APK hash remain reported metadata.",
+    "The iOS workflow/job and every required step are green; the single read-only job-log retrieval returned Transport closed. No body or checkout log was obtained. This does not invalidate the authenticated successful job result, but it limits this reviewer to status/source-equivalence evidence for that compiler.",
+    "Native compiler workflows and their 65 compared inputs remain byte-identical to e173; this candidate changes JavaScript/TypeScript modal behavior and QA capture setup separately. Both compiler gates skip the JavaScript bundle.",
+    "Unsigned simulator/QA compile results do not establish installed-app UI/capture/account-readback acceptance, physical-device behavior, Apple signing, TestFlight upload or production feature activation. Those gates require separate evidence.",
+    "No workflow was retried/cancelled, no source/config/ref was changed, and no backend/auth/provider action was attempted during this verification."
+  ],
+  "actions": {
+    "sourceEdited": false,
+    "refsMoved": false,
+    "workflowsRetriedOrCancelled": false,
+    "providerWrites": false,
+    "archivesDownloaded": false,
+    "optionalLocalTestsRerun": false
+  }
+}

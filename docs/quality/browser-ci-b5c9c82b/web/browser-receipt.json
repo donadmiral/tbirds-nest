@@ -1,0 +1,172 @@
+{
+  "checkedAt": "2026-10-31T16:16:43.201Z",
+  "runtime": "153.0.8010.12",
+  "scope": "Actual public-web modules compiled with synthetic Auth/database, media and Next navigation adapters. No real-provider, hosted authentication or physical-device acceptance.",
+  "checks": [
+    {
+      "name": "Actual Home feed renders with its primary destinations and consistent outline icons",
+      "passed": true
+    },
+    {
+      "name": "Global keyboard search opens the encoded destination",
+      "passed": true
+    },
+    {
+      "name": "Create disclosure supports Escape and returns keyboard focus",
+      "passed": true
+    },
+    {
+      "name": "Create Post opens the actual composer and Cancel retains its caption",
+      "passed": true
+    },
+    {
+      "name": "Composer keeps keyboard focus inside and supports Review then Edit without resetting",
+      "passed": true
+    },
+    {
+      "name": "Desktop feed media uses the available card width after closing the composer",
+      "passed": true
+    },
+    {
+      "name": "Account menu changes appearance and the composer remains readable in Dim",
+      "passed": true
+    },
+    {
+      "name": "Settings search finds relevant destinations and offers a clear no-results exit",
+      "passed": true
+    },
+    {
+      "name": "Media preference switches are named, persist, and explain data-saver precedence",
+      "passed": true
+    },
+    {
+      "name": "A failed initial account check retries without a page reload or premature profile writes",
+      "passed": true
+    },
+    {
+      "name": "Edit profile opens the actual owner-bound editor",
+      "passed": true
+    },
+    {
+      "name": "A failed profile save retains the draft, and retry confirms exactly one owner",
+      "passed": true
+    },
+    {
+      "name": "Unsaved profile changes block an unrelated search when discard is declined",
+      "passed": true
+    },
+    {
+      "name": "Cancel offers a reviewable discard and returns to the owner profile",
+      "passed": true
+    },
+    {
+      "name": "Owner profile has working edit, private collection and draft destinations",
+      "passed": true
+    },
+    {
+      "name": "Invalid profile links and disguised image bytes stop before any write or upload",
+      "passed": true
+    },
+    {
+      "name": "Profile photo selection previews locally and Cancel makes no Storage write",
+      "passed": true
+    },
+    {
+      "name": "Browser Back preserves the owner draft and photo for explicit restoration on return",
+      "passed": true
+    },
+    {
+      "name": "Photo save retry reuses the verified owner path and keeps both local previews intact",
+      "passed": true
+    },
+    {
+      "name": "Repeated submit is deduplicated and a late save cannot overwrite a switched account",
+      "passed": true
+    },
+    {
+      "name": "Visitor profile surfaces conversation failure and recovers without duplicate actions",
+      "passed": true
+    },
+    {
+      "name": "Messages opens the actual conversation with profile, shared-media, details and exit actions",
+      "passed": true
+    },
+    {
+      "name": "Inbox table and unread RPC requests pin the current account and support cancellation",
+      "passed": true
+    },
+    {
+      "name": "Closing and reopening a conversation preserves its unsent draft",
+      "passed": true
+    },
+    {
+      "name": "New message has a keyboard exit and makes no conversation or message write on Cancel",
+      "passed": true
+    },
+    {
+      "name": "Recipient search and conversation failures retain review context and retry without sending a message",
+      "passed": true
+    },
+    {
+      "name": "Mobile messages keep search, requests, compose actions and Back reachable without losing the draft",
+      "passed": true
+    },
+    {
+      "name": "Communities search has a real clear-search exit and connected channel navigation",
+      "passed": true
+    },
+    {
+      "name": "Community creation contains focus, keeps a cancelled draft and preserves it on failure",
+      "passed": true
+    },
+    {
+      "name": "Community detail opens members and returns focus to its actual member control",
+      "passed": true
+    },
+    {
+      "name": "Community settings preview files locally and Cancel does not update Storage or community settings",
+      "passed": true
+    },
+    {
+      "name": "Community settings preserve an uncertain save and retry the same uploaded photo path",
+      "passed": true
+    },
+    {
+      "name": "Community layout and create dialog fit a narrow screen with all actions reachable",
+      "passed": true
+    },
+    {
+      "name": "Channel creation keeps its draft through Escape and reaches the confirmed channel",
+      "passed": true
+    },
+    {
+      "name": "Channel settings protect unsaved edits and reject a failed save without closing",
+      "passed": true
+    },
+    {
+      "name": "Offline and restored notices preserve the current composer caption without reloading",
+      "passed": true
+    },
+    {
+      "name": "Mobile all-destinations menu fits and contains every major journey",
+      "passed": true
+    },
+    {
+      "name": "320px viewport keeps the brand, top actions and post controls inside the viewport",
+      "passed": true
+    },
+    {
+      "name": "Failed sign-out remains visible and never reports a signed-out route",
+      "passed": true
+    },
+    {
+      "name": "Warm Home and Messages retain loaded content, scroll and drafts on every sampled frame during held refreshes",
+      "passed": true
+    },
+    {
+      "name": "Warm own-profile book returns preserve content and fence account changes, edits and revoked visitor visibility",
+      "passed": true
+    }
+  ],
+  "browserErrors": []
+}

@@ -1,0 +1,18 @@
+{
+  "command": [
+    "node_modules/.bin/eslint",
+    "tests/native/capture-boundary-trace.cjs",
+    "tests/native/backend-fixture.cjs",
+    "tests/native/entry.js",
+    "tests/native/MemoryCaptureFixtureScreen.tsx",
+    "tests/native/account-readback.cjs",
+    "tests/quality/native-capture-boundary-trace.cjs",
+    "tests/quality/native-capture-setup.cjs",
+    "tests/quality/native-account-readback.cjs",
+    "tests/quality/native-timer-bootstrap.cjs",
+    "tests/quality/native-ui-fixture.cjs"
+  ],
+  "exitCode": 0,
+  "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "sourceHashesUnchanged": true
+}

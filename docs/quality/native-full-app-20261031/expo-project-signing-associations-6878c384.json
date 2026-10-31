@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31 07:19:51 UTC",
+  "sourceHead": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+  "observedBy": "root",
+  "scope": "Read-only project signing association metadata in the already-authenticated Expo browser. Profile-category controls select an existing view; no credential or setting was changed.",
+  "project": {
+    "owner": "donadmiral",
+    "slug": "platinum-circles",
+    "id": "6962a2bb-3ebe-4ff8-8d35-e4fb58271259",
+    "appleTeamId": "6PHMSMFKSF"
+  },
+  "observations": [
+    {
+      "bundleIdentifier": "app.platinumcircles.mobile.qa",
+      "page": "https://expo.dev/accounts/donadmiral/projects/platinum-circles/credentials/ios/4745fdf6-2e2f-41af-8ca1-a3799ad8c72a",
+      "selectedCategory": "Ad-hoc",
+      "categoryVerifiedBy": "Clicked named category and inspected rendered screenshot with Ad-hoc selected.",
+      "distributionCertificateDisplayedStatus": "Valid",
+      "provisioningProfileDisplayedStatus": "Valid",
+      "teamMatchesRepository": true,
+      "provisioningProfileUploadedAtDisplayed": "Oct 25, 2026 1:08 AM",
+      "submissionKeyEntryPresent": true,
+      "pushKeyEntryPresent": true
+    },
+    {
+      "bundleIdentifier": "app.platinumcircles.mobile",
+      "page": "https://expo.dev/accounts/donadmiral/projects/platinum-circles/credentials/ios/e5e96de2-3606-44c9-be3b-646e693d7451",
+      "selectedCategory": "App Store",
+      "categoryVerifiedBy": "Clicked named category and inspected rendered screenshot with App Store selected.",
+      "distributionCertificateDisplayedStatus": "Valid",
+      "provisioningProfileDisplayedStatus": "Valid",
+      "teamMatchesRepository": true,
+      "provisioningProfileUploadedAtDisplayed": "May 2, 2026 12:20 AM",
+      "submissionKeyEntryPresent": true,
+      "pushKeyEntryPresent": true
+    }
+  ],
+  "conclusion": "Expo has existing QA Ad-hoc and production App Store signing associations for the configured bundles/team, and displays both profiles and their certificate as Valid. This narrows the earlier account-only metadata limitation.",
+  "limits": [
+    "Displayed timestamps have no stated timezone; no UTC conversion is inferred.",
+    "No profile was downloaded or decoded; the QA target device's inclusion was not inspected.",
+    "Displayed Valid status does not establish acceptance of a new build by Apple, successful signing, push delivery, submission processing or phone installation.",
+    "CLI remains signed out at this observation; browser authentication was not copied or extracted.",
+    "No QA TestFlight destination or submit profile is inferred from the presence of a QA submission-key entry."
+  ],
+  "actionBoundary": [
+    "Read only current project/bundle metadata and selected existing profile categories.",
+    "No credential material, token, cookie, password or OTP read or downloaded.",
+    "No credential/profile/key/certificate/device creation, replacement, revocation or permission change.",
+    "No Apple sign-in retry or Expo login.",
+    "No build, submission, promotion or source change."
+  ],
+  "timingLimit": "Recorded time is the clock read after these UI observations."
+}

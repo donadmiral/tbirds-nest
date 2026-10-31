@@ -1,0 +1,72 @@
+{
+  "verifiedAtUtc": "2026-10-30T22:47:41+00:00",
+  "reviewHead": "be95700a0cf2f015c5bc355b76be20729d12e3e4",
+  "testedMerge": "a793fb3c88ae568cf0ff924902920f72b46603d3",
+  "sourceTree": "5abe57e0cacf2494374f19fcf6e536da23cf81ea",
+  "mergeTreeMatchesHead": true,
+  "runId": 41139363904,
+  "runUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41139363904",
+  "jobId": 124349582476,
+  "jobConclusion": "failure",
+  "artifact": {
+    "id": 13018402587,
+    "name": "native-story-audio-export",
+    "bytes": 179695,
+    "sha256": "48f95142653561a0276d1c7333fba198ae9dbbf08fc3f042f22270d23c2bf1e3",
+    "downloadedAndDigestVerified": true
+  },
+  "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-26-2",
+  "architecture": "arm64",
+  "expectedCaseCount": 8,
+  "completedCaseCount": 3,
+  "completedCases": [
+    "video trim and speed keep looping excerpt and music pitch",
+    "voiceover stops while the remaining video stays present",
+    "original mix level and muted soundtrack are preserved"
+  ],
+  "error": "Mixed export has invalid sample timing",
+  "sources": {
+    "modules/boomerang/ios/StoryVideoComposition.swift": "1fd77c1eaa9f802caabc75c20534606d5d4dee219ca044629045f70895945a87",
+    "scripts/quality/StoryAudioExportHarness.swift": "a1cc3294098cc375369282357c744ea507ad0cdb1022a286cdd65e92f49800eb",
+    "scripts/quality/test-ios-story-audio.sh": "c024ac519360f68b3e2a9b30694439ab7e94fb6c34519ff1bc4d0309c8d61215"
+  },
+  "sourceHashesMatchTestedHead": true,
+  "retainedMovies": {
+    "pc-story-export-original.mp4": {
+      "sha256": "4a5e1cf05a6466b28d1c0cc0c136e9703f9000cd93d8e224794999efad9083ce",
+      "bytes": 99384
+    },
+    "pc-story-export-loop.mp4": {
+      "sha256": "98436740d367b8f806388a44179dff943938100f50b0b243b7384900ae2edf5f",
+      "bytes": 74608
+    },
+    "pc-story-export-voice.mp4": {
+      "sha256": "d7e815547ff1fdab2a20aa5a66b60ccc27503f97fef78ecd55ac87da0488f6d5",
+      "bytes": 53584
+    }
+  },
+  "allRetainedMovieHashesAndBytesVerified": true,
+  "finding": "The new raw compressed-track timing check rejected a sample. The combined check required a finite presentation timestamp and a finite, strictly positive compressed sample duration; the failed artifact does not identify which value failed. This receipt establishes neither an iOS production encoder defect nor an eight-case pass.",
+  "controlFlowInference": "The first 2x mixed movie reached trackCoverage after all three spectral windows and returned-duration assertions. Those window measurements were not retained in this failed artifact, so they are not reported as independent measured evidence.",
+  "repair": {
+    "file": "scripts/quality/StoryAudioExportHarness.swift",
+    "sha256": "f62d1d285283d6b45a2dc8ab9b55f2e1c47f18a8e44bc3b56631d3f90379d714",
+    "changes": [
+      "Decode video to image buffers; require finite timestamps, correct dimensions, 30fps frame count/spacing and first/end coverage.",
+      "Decode audio to PCM; require nonempty frame bytes and derive duration from actual frame count/sample rate.",
+      "Preserve 120ms first/end limits, all pitch/gain/excerpt assertions, eight exact named cases and six required output movies.",
+      "Retain new mixed movies before post-export assertions and preserve completed spectral diagnostics for any later failure."
+    ],
+    "productionRendererChanged": false,
+    "localSwiftSyntaxParse": "pass",
+    "localShellSyntax": "pass",
+    "scopedDiffCheck": "pass",
+    "nativeRuntimeRecheck": "pending",
+    "reason": "Remove the unverified assumption that every compressed sample supplies a positive duration; require independent decoded timing evidence instead."
+  },
+  "referenceUrls": [
+    "https://developer.apple.com/documentation/avfoundation/avassetreadertrackoutput/outputsettings",
+    "https://developer.apple.com/documentation/coremedia/cmsamplebuffergetduration(_:)"
+  ],
+  "scope": "Actual standalone production encoder in an iOS Simulator with synthetic local media. Historical failed harness acceptance; no physical device, Photos write, hosted backend or signed release evidence."
+}

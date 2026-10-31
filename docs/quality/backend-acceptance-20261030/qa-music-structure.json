@@ -1,0 +1,306 @@
+{
+  "tables": [
+    {
+      "acl": "{postgres=arwdDxtm/postgres,service_role=arwdDxtm/postgres}",
+      "rls": true,
+      "table": "music_asset_origins",
+      "columns": [
+        {
+          "name": "origin",
+          "type": "text",
+          "default": null,
+          "notNull": true
+        }
+      ],
+      "policies": [
+        {
+          "name": "music_asset_origins_service",
+          "check": "true",
+          "roles": [
+            "service_role"
+          ],
+          "using": "true"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "music_asset_origins_origin_check",
+          "definition": "CHECK ((origin ~ '^https://[a-zA-Z0-9.-]+(:[0-9]+)?$'::text))"
+        },
+        {
+          "name": "music_asset_origins_pkey",
+          "definition": "PRIMARY KEY (origin)"
+        }
+      ]
+    },
+    {
+      "acl": "{postgres=arwdDxtm/postgres,anon=rDxtm/postgres,authenticated=rDxtm/postgres,service_role=arwdDxtm/postgres}",
+      "rls": true,
+      "table": "story_sounds",
+      "columns": [
+        {
+          "name": "id",
+          "type": "uuid",
+          "default": "gen_random_uuid()",
+          "notNull": true
+        },
+        {
+          "name": "owner_id",
+          "type": "uuid",
+          "default": null,
+          "notNull": true
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "default": null,
+          "notNull": true
+        },
+        {
+          "name": "artist",
+          "type": "text",
+          "default": null,
+          "notNull": false
+        },
+        {
+          "name": "url",
+          "type": "text",
+          "default": null,
+          "notNull": true
+        },
+        {
+          "name": "duration_sec",
+          "type": "integer",
+          "default": null,
+          "notNull": false
+        },
+        {
+          "name": "source",
+          "type": "text",
+          "default": "'original'::text",
+          "notNull": true
+        },
+        {
+          "name": "use_count",
+          "type": "integer",
+          "default": "0",
+          "notNull": true
+        },
+        {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "default": "now()",
+          "notNull": true
+        },
+        {
+          "name": "rights_status",
+          "type": "text",
+          "default": "'unverified'::text",
+          "notNull": true
+        },
+        {
+          "name": "rights_attested_at",
+          "type": "timestamp with time zone",
+          "default": null,
+          "notNull": false
+        },
+        {
+          "name": "origin_story_id",
+          "type": "uuid",
+          "default": null,
+          "notNull": false
+        },
+        {
+          "name": "catalog_provider",
+          "type": "text",
+          "default": "'platinum'::text",
+          "notNull": true
+        },
+        {
+          "name": "provider_track_id",
+          "type": "text",
+          "default": null,
+          "notNull": false
+        },
+        {
+          "name": "license_ref",
+          "type": "text",
+          "default": null,
+          "notNull": false
+        },
+        {
+          "name": "licensor",
+          "type": "text",
+          "default": null,
+          "notNull": false
+        },
+        {
+          "name": "permitted_uses",
+          "type": "text[]",
+          "default": "ARRAY['story'::text, 'post'::text, 'memory_album'::text]",
+          "notNull": true
+        },
+        {
+          "name": "territories",
+          "type": "text[]",
+          "default": "ARRAY['*'::text]",
+          "notNull": true
+        },
+        {
+          "name": "rights_start",
+          "type": "timestamp with time zone",
+          "default": null,
+          "notNull": false
+        },
+        {
+          "name": "rights_end",
+          "type": "timestamp with time zone",
+          "default": null,
+          "notNull": false
+        },
+        {
+          "name": "revoked_at",
+          "type": "timestamp with time zone",
+          "default": null,
+          "notNull": false
+        },
+        {
+          "name": "max_excerpt_sec",
+          "type": "integer",
+          "default": "30",
+          "notNull": true
+        },
+        {
+          "name": "asset_sha256",
+          "type": "text",
+          "default": null,
+          "notNull": false
+        }
+      ],
+      "policies": [
+        {
+          "name": "story_sounds_delete",
+          "check": null,
+          "roles": [
+            "authenticated"
+          ],
+          "using": "(owner_id = auth.uid())"
+        },
+        {
+          "name": "story_sounds_select",
+          "check": null,
+          "roles": [
+            "authenticated"
+          ],
+          "using": "((owner_id = ( SELECT auth.uid() AS uid)) OR sound_rights_allow(id, 'story'::text) OR sound_rights_allow(id, 'post'::text) OR sound_rights_allow(id, 'memory_album'::text))"
+        }
+      ],
+      "constraints": [
+        {
+          "name": "sound_asset_digest",
+          "definition": "CHECK (((asset_sha256 IS NULL) OR (asset_sha256 ~ '^[a-f0-9]{64}$'::text)))"
+        },
+        {
+          "name": "sound_excerpt_bounds",
+          "definition": "CHECK (((max_excerpt_sec >= 1) AND (max_excerpt_sec <= 600)))"
+        },
+        {
+          "name": "sound_permitted_uses",
+          "definition": "CHECK (((permitted_uses <@ ARRAY['story'::text, 'post'::text, 'memory_album'::text, 'advertisement'::text]) AND (cardinality(permitted_uses) > 0) AND (array_position(permitted_uses, NULL::text) IS NULL)))"
+        },
+        {
+          "name": "sound_rights_window",
+          "definition": "CHECK (((rights_end IS NULL) OR (rights_start IS NULL) OR (rights_end > rights_start)))"
+        },
+        {
+          "name": "sound_territories",
+          "definition": "CHECK (((cardinality(territories) > 0) AND (array_position(territories, NULL::text) IS NULL) AND (array_to_string(territories, ','::text) ~ '^(\\*|[A-Z]{2})(,(\\*|[A-Z]{2}))*$'::text)))"
+        },
+        {
+          "name": "story_sounds_origin_story_id_fkey",
+          "definition": "FOREIGN KEY (origin_story_id) REFERENCES stories(id) ON DELETE SET NULL"
+        },
+        {
+          "name": "story_sounds_owner_id_fkey",
+          "definition": "FOREIGN KEY (owner_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+        },
+        {
+          "name": "story_sounds_pkey",
+          "definition": "PRIMARY KEY (id)"
+        },
+        {
+          "name": "story_sounds_rights_status_check",
+          "definition": "CHECK ((rights_status = ANY (ARRAY['unverified'::text, 'creator_attested'::text, 'licensed'::text, 'blocked'::text])))"
+        },
+        {
+          "name": "story_sounds_source_check",
+          "definition": "CHECK ((source = ANY (ARRAY['original'::text, 'library'::text])))"
+        }
+      ]
+    }
+  ],
+  "functions": [
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "signature": "publish_story_sound(uuid,boolean)",
+      "definition": "CREATE OR REPLACE FUNCTION public.publish_story_sound(p_story_id uuid, p_rights_attested boolean)\n RETURNS uuid\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare v_story public.stories; v_sound_id uuid;\nbegin\n  if auth.uid() is null or coalesce((auth.jwt()->>'is_anonymous')::boolean, false) then\n    raise exception 'Sign in to share an original sound' using errcode = '42501';\n  end if;\n  if p_rights_attested is distinct from true then\n    raise exception 'Confirm that you own and can license this original sound' using errcode = '22023';\n  end if;\n  select * into v_story from public.stories where id = p_story_id;\n  if not found or not public.can_act_as(v_story.user_id) then\n    raise exception 'You cannot share sound from this story' using errcode = '42501';\n  end if;\n  if v_story.audio_source is distinct from 'voiceover' or v_story.audio_url is null\n     or v_story.audio_duration_sec is null or v_story.audio_duration_sec not between 1 and 30 then\n    raise exception 'Record an original voiceover of 1 to 30 seconds first' using errcode = '22023';\n  end if;\n  insert into public.story_sounds(owner_id, title, url, duration_sec, source, rights_status, rights_attested_at, origin_story_id)\n    values (auth.uid(), coalesce(nullif(left(v_story.audio_title, 200), ''), 'Original sound'), v_story.audio_url,\n      v_story.audio_duration_sec, 'original', 'creator_attested', now(), p_story_id)\n    on conflict (origin_story_id) where origin_story_id is not null do nothing returning id into v_sound_id;\n  if v_sound_id is null then select id into v_sound_id from public.story_sounds where origin_story_id = p_story_id; end if;\n  return v_sound_id;\nend $function$\n"
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "signature": "sound_asset_origin_allowed(text)",
+      "definition": "CREATE OR REPLACE FUNCTION public.sound_asset_origin_allowed(p_url text)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n select coalesce(p_url ~ '^https://[^/]+/storage/v1/object/public/story-media/[^?#]+$'\n and split_part(p_url,'/story-media/',2) !~ '(%|\\\\|(^|/)\\.\\.?(/|$)|//)'\n and (\n  (split_part(p_url,'/storage/v1/object/public/',1)=regexp_replace(auth.jwt()->>'iss','/auth/v1/?$','')\n   and coalesce(auth.jwt()->>'iss','') ~ '^https://[^/]+/auth/v1/?$')\n  or exists(select 1 from public.music_asset_origins where origin=split_part(p_url,'/storage/v1/object/public/',1))\n ),false);\n$function$\n"
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "signature": "keep_sound_asset_immutable()",
+      "definition": "CREATE OR REPLACE FUNCTION public.keep_sound_asset_immutable()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\nbegin\n if new.url is distinct from old.url then raise exception 'SOUND_ASSET_IMMUTABLE_PUBLISH_NEW_VERSION'; end if;\n return new;\nend $function$\n"
+    }
+  ],
+  "observedAt": "2026-10-30T20:54:42.825979+00:00",
+  "indexes": [
+    "CREATE UNIQUE INDEX music_asset_origins_pkey ON public.music_asset_origins USING btree (origin)",
+    "CREATE INDEX story_sound_asset_lookup ON public.story_sounds USING btree (url)",
+    "CREATE UNIQUE INDEX story_sound_catalog_identity ON public.story_sounds USING btree (catalog_provider, provider_track_id) WHERE (provider_track_id IS NOT NULL)",
+    "CREATE INDEX story_sounds_available_popularity ON public.story_sounds USING btree (source, use_count DESC, id) WHERE (rights_status = ANY (ARRAY['creator_attested'::text, 'licensed'::text]))",
+    "CREATE UNIQUE INDEX story_sounds_origin_story_unique ON public.story_sounds USING btree (origin_story_id) WHERE (origin_story_id IS NOT NULL)",
+    "CREATE UNIQUE INDEX story_sounds_pkey ON public.story_sounds USING btree (id)"
+  ],
+  "policies": [
+    {
+      "cmd": "*",
+      "name": "music_asset_origins_service",
+      "check": "true",
+      "roles": [
+        "service_role"
+      ],
+      "table": "music_asset_origins",
+      "using": "true",
+      "permissive": true
+    },
+    {
+      "cmd": "d",
+      "name": "story_sounds_delete",
+      "check": null,
+      "roles": [
+        "authenticated"
+      ],
+      "table": "story_sounds",
+      "using": "(owner_id = auth.uid())",
+      "permissive": true
+    },
+    {
+      "cmd": "r",
+      "name": "story_sounds_select",
+      "check": null,
+      "roles": [
+        "authenticated"
+      ],
+      "table": "story_sounds",
+      "using": "((owner_id = ( SELECT auth.uid() AS uid)) OR sound_rights_allow(id, 'story'::text) OR sound_rights_allow(id, 'post'::text) OR sound_rights_allow(id, 'memory_album'::text))",
+      "permissive": true
+    }
+  ],
+  "triggers": [
+    "CREATE TRIGGER sound_asset_immutable BEFORE UPDATE OF url ON public.story_sounds FOR EACH ROW EXECUTE FUNCTION keep_sound_asset_immutable()"
+  ]
+}

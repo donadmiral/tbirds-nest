@@ -1,0 +1,229 @@
+{
+  "schemaVersion": 1,
+  "observedBy": "hosted_backend",
+  "recordedAfterQueriesAt": "2026-10-31 07:56:31 UTC",
+  "scope": "Bounded supported QA unified-log reads only. No Postgres execute_sql, migration call, retry, alternate DDL route, logging configuration change, production call or provider-request state mutation.",
+  "question": "Can existing QA logs positively identify completion, failure or cancellation of either ambiguous stage4 invocation?",
+  "result": "No binding terminal evidence returned. Both original invocation states remain unknown independently; this log line of investigation stops here.",
+  "projectId": "uaulhuelcfkjwojtymmw",
+  "exactInputIdentity": {
+    "migrationName": "qa_business_auth_04_private_member_signin_20261031",
+    "sqlPath": "supabase/ops/qa/business-auth-staged-20261031/04_private_member_signin.sql",
+    "sqlBytes": 7894,
+    "sqlSha256": "ba49c5c8b8545952288ac1885bcf3421d4b42bb21c054d87391b891ed7edb749"
+  },
+  "retainedAttempts": [
+    {
+      "identity": "earlier bounded invocation",
+      "startedAt": "2026-10-31T02:25:18Z",
+      "localObservation": "no_result_within_45000ms",
+      "remoteOutcome": "unknown",
+      "receipt": "docs/quality/backend-acceptance-20261031/business-auth-resume-postflight.json",
+      "receiptSha256": "1d00e4f4307b4250136c4e1b91de9160b1155cb7954cecc3afbf498285875394"
+    },
+    {
+      "identity": "later fully awaited invocation",
+      "reportedWaitSeconds": 2825.7,
+      "absoluteStartAndEnd": "Not retained in reviewed receipt",
+      "localObservation": "No terminal tool result, form or rejection before parent interruption",
+      "remoteOutcome": "unknown",
+      "receipt": "docs/quality/backend-acceptance-20261031/business-auth-retained-transport.json",
+      "receiptSha256": "92f5197d8417af290665625c5272f8958b4daa60929e3c4c80b281c292655fd4"
+    }
+  ],
+  "priorInspection": "No previous query_logs/get_logs/provider-Postgres log inspection was recorded in the reviewed backend acceptance and stage4 request-state receipts. This is a statement about retained evidence, not a claim that no observer ever inspected logs.",
+  "window": {
+    "start": "2026-10-31T02:25:00Z",
+    "end": "2026-10-31T03:24:00Z",
+    "rationale": "Includes the exact earlier start, subsequent reported fully awaited attempt, and retained 03:23:43 postflight. The later invocation has no retained absolute start/end, so this is a deliberately broad investigation interval rather than an exact wire-request interval."
+  },
+  "observations": {
+    "postgresEvents": 260,
+    "allSourceExactStage4MarkerRows": 0,
+    "postgresGuardOrTerminalErrorRows": 0,
+    "noToolError": true,
+    "providerRequestIdentifierFound": false
+  },
+  "queries": [
+    {
+      "purpose": "source_window",
+      "input": {
+        "project_id": "uaulhuelcfkjwojtymmw",
+        "iso_timestamp_start": "2026-10-31T02:25:00Z",
+        "iso_timestamp_end": "2026-10-31T03:24:00Z",
+        "sql": "select source, count() as row_count from logs group by source order by source"
+      },
+      "result": [
+        {
+          "row_count": 4,
+          "source": "auth_audit_logs"
+        },
+        {
+          "row_count": 195,
+          "source": "auth_logs"
+        },
+        {
+          "row_count": 3108,
+          "source": "edge_logs"
+        },
+        {
+          "row_count": 397,
+          "source": "function_edge_logs"
+        },
+        {
+          "row_count": 502,
+          "source": "function_logs"
+        },
+        {
+          "row_count": 411,
+          "source": "pgbouncer_logs"
+        },
+        {
+          "row_count": 260,
+          "source": "postgres_logs"
+        },
+        {
+          "row_count": 14,
+          "source": "postgrest_logs"
+        },
+        {
+          "row_count": 3,
+          "source": "realtime_logs"
+        },
+        {
+          "row_count": 182,
+          "source": "storage_logs"
+        }
+      ],
+      "toolResultIsError": false
+    },
+    {
+      "purpose": "keys",
+      "input": {
+        "project_id": "uaulhuelcfkjwojtymmw",
+        "iso_timestamp_start": "2026-10-31T02:25:00Z",
+        "iso_timestamp_end": "2026-10-31T03:24:00Z",
+        "sql": "select distinct mapKeys(log_attributes) as attribute_keys from logs where source = 'postgres_logs' limit 10"
+      },
+      "result": [
+        {
+          "attribute_keys": [
+            "env",
+            "host",
+            "identifier",
+            "parsed.backend_type",
+            "parsed.error_severity",
+            "parsed.process_id",
+            "parsed.query_id",
+            "parsed.session_id",
+            "parsed.session_line_num",
+            "parsed.session_start_time",
+            "parsed.sql_state_code",
+            "parsed.timestamp",
+            "parsed.transaction_id",
+            "path",
+            "project",
+            "region",
+            "source_type"
+          ]
+        },
+        {
+          "attribute_keys": [
+            "env",
+            "host",
+            "identifier",
+            "parsed.error_severity",
+            "parsed.internal_query_pos",
+            "parsed.leader_pid",
+            "parsed.process_id",
+            "parsed.query_id",
+            "parsed.query_pos",
+            "parsed.session_id",
+            "parsed.session_line_num",
+            "parsed.session_start_time",
+            "parsed.sql_state_code",
+            "parsed.timestamp",
+            "parsed.transaction_id",
+            "parsed.virtual_transaction_id",
+            "path",
+            "project",
+            "region",
+            "source_type"
+          ]
+        },
+        {
+          "attribute_keys": [
+            "env",
+            "host",
+            "identifier",
+            "parsed.backend_type",
+            "parsed.error_severity",
+            "parsed.process_id",
+            "parsed.query_id",
+            "parsed.session_id",
+            "parsed.session_line_num",
+            "parsed.session_start_time",
+            "parsed.sql_state_code",
+            "parsed.timestamp",
+            "parsed.transaction_id",
+            "parsed.virtual_transaction_id",
+            "path",
+            "project",
+            "region",
+            "source_type"
+          ]
+        }
+      ],
+      "toolResultIsError": false
+    },
+    {
+      "purpose": "exact_matches",
+      "input": {
+        "project_id": "uaulhuelcfkjwojtymmw",
+        "iso_timestamp_start": "2026-10-31T02:25:00Z",
+        "iso_timestamp_end": "2026-10-31T03:24:00Z",
+        "sql": "select id, timestamp, source, log_attributes['parsed.error_severity'] as severity, log_attributes['parsed.sql_state_code'] as sql_state, log_attributes['parsed.process_id'] as process_id, log_attributes['parsed.session_id'] as session_id, log_attributes['parsed.query_id'] as query_id, length(event_message) as message_length, left(event_message, 1800) as message_excerpt from logs where match(event_message, '(?i)qa_business_auth_04_private_member_signin_20261031|private_member_signin|triniti_business_signin_check|BUSINESS_AUTH_STAGE_ORDER|2b059ccdb6cfcc12bf8fe45e502c166c') order by timestamp asc limit 30"
+      },
+      "result": [],
+      "toolResultIsError": false
+    },
+    {
+      "purpose": "terminal_candidates",
+      "input": {
+        "project_id": "uaulhuelcfkjwojtymmw",
+        "iso_timestamp_start": "2026-10-31T02:25:00Z",
+        "iso_timestamp_end": "2026-10-31T03:24:00Z",
+        "sql": "select id, timestamp, log_attributes['parsed.error_severity'] as severity, log_attributes['parsed.sql_state_code'] as sql_state, log_attributes['parsed.process_id'] as process_id, log_attributes['parsed.session_id'] as session_id, log_attributes['parsed.query_id'] as query_id, length(event_message) as message_length, left(event_message, 1200) as message_excerpt from logs where source = 'postgres_logs' and (match(log_attributes['parsed.error_severity'], 'ERROR|FATAL|PANIC') or match(event_message, '(?i)BUSINESS_AUTH_|canceling statement|terminating connection|statement timeout|query canceled')) order by timestamp asc limit 30"
+      },
+      "result": [],
+      "toolResultIsError": false
+    }
+  ],
+  "toolCapabilitiesUsed": {
+    "tool": "supabase_query_logs",
+    "mode": "Read-only ClickHouse query over project-scoped unified logs",
+    "timeBounds": "Explicit ISO timestamps on every call; no polling loop",
+    "schemaDiscovery": "Source counts and Postgres attribute names only, followed by bounded marker/error queries.",
+    "requestResumeOrCancellationInvoked": false
+  },
+  "primaryDocumentation": {
+    "url": "https://supabase.com/docs/guides/observability/advanced-log-filtering",
+    "retrieval": "Supported Supabase search_docs",
+    "relevantFacts": [
+      "Hosted logs use one logs table with source, timestamp, id, event_message and log_attributes.",
+      "Postgres statement text and error details live in event_message; parsed.query and parsed.detail are usually empty.",
+      "Query/function/DDL auditing depends on pgAudit configuration. This investigation neither inspected nor changed the live logging configuration."
+    ]
+  },
+  "interpretationLimits": [
+    "Zero matching rows is not proof that no SQL executed, that a transaction was cancelled, that transport terminated, or that no approval/request remains queued.",
+    "No raw provider request ID, server confirmation state or original Postgres session identifier is available for either invocation. Generic database events cannot be assigned to them by time alone.",
+    "A positively matching database result for one execution would still not establish the independent connector/queue state of the other invocation.",
+    "The historical log window does not rule out delayed execution outside that interval, unlogged operations, log ingestion/retention limits, or a request that never reached Postgres.",
+    "The previously observed stage3 catalog/history and absence of active statements were point-in-time database observations, not connector cancellation or queue receipts.",
+    "No approval rejection or pending approval state is proven by these log results."
+  ],
+  "recommendedNextStep": "No migration retry is justified by this result. A supported connector/provider path must establish terminal state or explicit cancellation of both original invocations before reconsidering execution, followed by a refreshed read-only preflight. No alternate execution route or classifier/confirmation bypass.",
+  "relatedAssessment": "docs/quality/live-app-20261031/backend-stage4-request-state-assessment.json",
+  "sourceReportAndFixtureChanges": false
+}

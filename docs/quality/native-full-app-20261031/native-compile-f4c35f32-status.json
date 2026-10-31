@@ -1,0 +1,375 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-31 15:00:05 UTC",
+  "repository": "donadmiral/tbirds-nest",
+  "outcome": "Both fresh standalone native compiler workflows and compiler jobs passed.",
+  "sourceBinding": {
+    "head": "f4c35f32795be5f196840c37382143a2d7e33d55",
+    "pullRequestMerge": "6f3204cd44996dfe66ffe2dcf7192543805aa912",
+    "headAndMergeTree": "7699f995aa8e5192658f785258eb48f408af6a39",
+    "remoteMergeTreeIndependentlyVerified": true,
+    "localHeadTreeMatches": true,
+    "relatedNativeSourceEquivalence": {
+      "path": "docs/quality/native-full-app-20261031/native-encoders-f4c35f32-status-and-source-equivalence.json",
+      "bytes": 32829,
+      "sha256": "46d42e96cdaaf42895da3f4db9effe031aafdf8c4a78b0aa0f1c8c678eb1d35d"
+    }
+  },
+  "compilerJobs": [
+    {
+      "platform": "android",
+      "runId": 41211437311,
+      "jobId": 124567097519,
+      "artifactName": "android-native-compile-diagnostics",
+      "run": {
+        "id": 41211437311,
+        "name": "Android native compile",
+        "path": ".github/workflows/android-native-compile.yml",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "f4c35f32795be5f196840c37382143a2d7e33d55",
+        "tree": "7699f995aa8e5192658f785258eb48f408af6a39",
+        "attempt": 1,
+        "updated_at": "2026-10-31T14:55:22Z"
+      },
+      "job": {
+        "id": 124567097519,
+        "name": "Compile Kotlin and Android native integration",
+        "head_sha": "f4c35f32795be5f196840c37382143a2d7e33d55",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-10-31T14:43:20Z",
+        "completed_at": "2026-10-31T14:55:21Z",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-10-31T14:43:21Z",
+            "completed_at": "2026-10-31T14:43:21Z"
+          },
+          {
+            "name": "Read source",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-10-31T14:43:21Z",
+            "completed_at": "2026-10-31T14:43:26Z"
+          },
+          {
+            "name": "Set Node 22",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-10-31T14:43:26Z",
+            "completed_at": "2026-10-31T14:43:29Z"
+          },
+          {
+            "name": "Use the runner's Java 17 toolchain",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-10-31T14:43:29Z",
+            "completed_at": "2026-10-31T14:43:29Z"
+          },
+          {
+            "name": "Install locked dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-10-31T14:43:29Z",
+            "completed_at": "2026-10-31T14:43:45Z"
+          },
+          {
+            "name": "Compile the unsigned Android QA target",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-10-31T14:43:45Z",
+            "completed_at": "2026-10-31T14:55:18Z"
+          },
+          {
+            "name": "Keep compiler diagnostics only",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-10-31T14:55:18Z",
+            "completed_at": "2026-10-31T14:55:19Z"
+          },
+          {
+            "name": "Post Set Node 22",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-10-31T14:55:19Z",
+            "completed_at": "2026-10-31T14:55:19Z"
+          },
+          {
+            "name": "Post Read source",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-10-31T14:55:19Z",
+            "completed_at": "2026-10-31T14:55:19Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-10-31T14:55:19Z",
+            "completed_at": "2026-10-31T14:55:20Z"
+          }
+        ]
+      },
+      "artifact": {
+        "id": 13047145723,
+        "name": "android-native-compile-diagnostics",
+        "size_in_bytes": 22640,
+        "digest": "sha256:7fc83bed1c1df9f5e8817ec6631bfc9168fbbb8cef183e1b081fc346c51cc548",
+        "expired": false,
+        "created_at": "2026-10-31T14:55:19Z",
+        "updated_at": "2026-10-31T14:55:19Z",
+        "workflow_run": {
+          "id": 41211437311,
+          "repository_id": 1314826575,
+          "head_repository_id": 1314826575,
+          "head_branch": "codex/app-quality-20261029",
+          "head_sha": "f4c35f32795be5f196840c37382143a2d7e33d55"
+        }
+      },
+      "runtimeSeconds": 721.0
+    },
+    {
+      "platform": "ios",
+      "runId": 41211437309,
+      "jobId": 124567097450,
+      "artifactName": "ios-native-compile-diagnostics",
+      "run": {
+        "id": 41211437309,
+        "name": "iOS native compile",
+        "path": ".github/workflows/ios-native-compile.yml",
+        "status": "completed",
+        "conclusion": "success",
+        "head_sha": "f4c35f32795be5f196840c37382143a2d7e33d55",
+        "tree": "7699f995aa8e5192658f785258eb48f408af6a39",
+        "attempt": 1,
+        "updated_at": "2026-10-31T14:57:54Z"
+      },
+      "job": {
+        "id": 124567097450,
+        "name": "Compile Swift and native integration",
+        "head_sha": "f4c35f32795be5f196840c37382143a2d7e33d55",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-10-31T14:43:21Z",
+        "completed_at": "2026-10-31T14:57:53Z",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-10-31T14:43:22Z",
+            "completed_at": "2026-10-31T14:43:23Z"
+          },
+          {
+            "name": "Read source",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-10-31T14:43:23Z",
+            "completed_at": "2026-10-31T14:43:28Z"
+          },
+          {
+            "name": "Set Node 22",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-10-31T14:43:28Z",
+            "completed_at": "2026-10-31T14:43:38Z"
+          },
+          {
+            "name": "Install locked dependencies",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-10-31T14:43:38Z",
+            "completed_at": "2026-10-31T14:44:03Z"
+          },
+          {
+            "name": "Install the Expo 54 CocoaPods toolchain",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-10-31T14:44:03Z",
+            "completed_at": "2026-10-31T14:44:05Z"
+          },
+          {
+            "name": "Compile the unsigned iOS Simulator target",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-10-31T14:44:05Z",
+            "completed_at": "2026-10-31T14:57:45Z"
+          },
+          {
+            "name": "Keep compiler diagnostics only",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-10-31T14:57:45Z",
+            "completed_at": "2026-10-31T14:57:48Z"
+          },
+          {
+            "name": "Post Set Node 22",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-10-31T14:57:48Z",
+            "completed_at": "2026-10-31T14:57:48Z"
+          },
+          {
+            "name": "Post Read source",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-10-31T14:57:48Z",
+            "completed_at": "2026-10-31T14:57:49Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "started_at": "2026-10-31T14:57:49Z",
+            "completed_at": "2026-10-31T14:57:51Z"
+          }
+        ]
+      },
+      "artifact": {
+        "id": 13046831557,
+        "name": "ios-native-compile-diagnostics",
+        "size_in_bytes": 992534,
+        "digest": "sha256:742a14b0889cc9f6675df3e1f8ade79f29e6941007e789437b975f1da9676de6",
+        "expired": false,
+        "created_at": "2026-10-31T14:57:47Z",
+        "updated_at": "2026-10-31T14:57:47Z",
+        "workflow_run": {
+          "id": 41211437309,
+          "repository_id": 1314826575,
+          "head_repository_id": 1314826575,
+          "head_branch": "codex/app-quality-20261029",
+          "head_sha": "f4c35f32795be5f196840c37382143a2d7e33d55"
+        }
+      },
+      "runtimeSeconds": 872.0
+    }
+  ],
+  "androidEvidence": {
+    "checkedOutMergeSeenInAuthenticatedLog": "6f3204cd44996dfe66ffe2dcf7192543805aa912",
+    "printedFreshPostflight": {
+      "commit": "6f3204cd44996dfe66ffe2dcf7192543805aa912",
+      "workflow_run": "41211437311",
+      "result": "unsigned Android QA native compile passed",
+      "expo_module_registration_verified": true,
+      "android_abi": "arm64-v8a",
+      "apk": {
+        "path": "android/app/build/outputs/apk/debug/app-debug-unsigned.apk",
+        "sha256": "2234ca7d72da3edd935e214a0bcedc0b74aa00c77d729345295403847ec30b1e",
+        "bytes": 134810848
+      },
+      "application_id": "app.platinumcircles.mobile.qa",
+      "apk_signed": false,
+      "javascript_bundle_included": false,
+      "android_story_encoder_compiled": true,
+      "advertised_story_video_version": 1,
+      "advertised_story_audio_export_version": 1,
+      "android_memory_movie_encoder_compiled": true,
+      "advertised_memory_movie_version": 0,
+      "encoded_media_acceptance_inferred": false,
+      "device_or_provider_acceptance": false,
+      "app_installed_uploaded_or_submitted": false,
+      "media3Runtime": {
+        "expectedVersion": "1.8.1",
+        "aligned": true,
+        "components": 16
+      }
+    },
+    "nativeSourceHashMatches": [
+      {
+        "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt",
+        "reportedSha256": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237",
+        "publishedHeadSha256": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237",
+        "matches": true,
+        "compiledClassesReported": [
+          "modules/boomerang/android/build/tmp/kotlin-classes/debug/expo/modules/boomerang/BoomerangModule.class"
+        ]
+      },
+      {
+        "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt",
+        "reportedSha256": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+        "publishedHeadSha256": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+        "matches": true,
+        "compiledClassesReported": [
+          "modules/boomerang/android/build/tmp/kotlin-classes/debug/expo/modules/boomerang/StoryVideoComposition.class"
+        ]
+      },
+      {
+        "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt",
+        "reportedSha256": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab",
+        "publishedHeadSha256": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab",
+        "matches": true,
+        "compiledClassesReported": [
+          "modules/boomerang/android/build/tmp/kotlin-classes/debug/expo/modules/boomerang/StoryCanvasEffect.class"
+        ]
+      },
+      {
+        "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt",
+        "reportedSha256": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5",
+        "publishedHeadSha256": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5",
+        "matches": true,
+        "compiledClassesReported": [
+          "modules/boomerang/android/build/tmp/kotlin-classes/debug/expo/modules/boomerang/MemoryMovieComposition.class"
+        ]
+      }
+    ],
+    "rawJobLog": {
+      "path": "/tmp/platinum-ci-f4c35f32-android_compile.log",
+      "bytes": 248166,
+      "sha256": "d94005104e9ae702a10e23036f1812095716f071eb395b7b49aa45fb14d99ac5"
+    },
+    "normalizedJobLog": {
+      "path": "/tmp/platinum-ci-f4c35f32-android_compile-normalized.log",
+      "bytes": 183092,
+      "sha256": "33675b4da4f2337e36ee1f0230aac218bd334d125e4acf675772ee991184af22"
+    },
+    "extractedPostflight": {
+      "path": "/tmp/platinum-ci-f4c35f32-android-compiler-report.json",
+      "bytes": 4789,
+      "sha256": "2ee72cafba828664efd959b09710857daea7278cbf634a5f6314a2b680b1762f"
+    },
+    "apkDownloadedOrInstalledByReviewer": false
+  },
+  "iosEvidence": {
+    "basis": [
+      "Completed current workflow/job metadata on f4, with successful source checkout, dependency/toolchain, unsigned compile, diagnostic upload and cleanup steps.",
+      "The independently verified head/PR-merge tree and pinned unchanged compile workflow/script."
+    ],
+    "workflow": {
+      "path": ".github/workflows/ios-native-compile.yml",
+      "bytes": 4770,
+      "sha256": "41366d7673b2c4781c998cf80655fde1cc2041f19a607b10dc6dd088b5784510"
+    },
+    "compileScript": {
+      "path": "scripts/quality/compile-ios-simulator.sh",
+      "bytes": 3672,
+      "sha256": "c920dab98837d4cb4397cd8bf7ac7e9ec078c29f2cf30639717be59257eaf898"
+    },
+    "configuredAssertions": [
+      "Unsigned x86_64 generic iOS Simulator Debug build.",
+      "Code signing disabled; JS bundling skipped.",
+      "Required native objects must exist; app executable must be linked and pass lipo x86_64 verification."
+    ],
+    "currentJobLogFetched": false,
+    "reason": "The script tees the full Xcode build stream. Status and exact source-equivalence evidence suffice for this supporting gate; no large job log was fetched.",
+    "currentArtifactArchiveDownloaded": false,
+    "currentReceiptJsonInspected": false,
+    "freshCompiledObjectSourceHashesIndependentlyRead": false
+  },
+  "metadataProvenance": {
+    "path": "/tmp/platinum-f4-compiler-final-metadata.json",
+    "bytes": 8172,
+    "sha256": "e565f918c164f1f371ff32d406190bea737eff4004f01f284fe436a5bf1d5daf"
+  },
+  "counting": "These are two successful compiler jobs, not additional test scenarios. The separate 58-case encoder receipt supplies runtime encoder counts; Type/quality counts are separate.",
+  "limits": [
+    "Artifact IDs, sizes and SHA-256 digests are provider metadata; no archive bytes were downloaded or independently digest-verified in this review.",
+    "Android source postflight was read in the authenticated completed job log. Current iOS receipt/object hashes and executable were not independently opened; its evidence is completed metadata plus exact source/configuration binding.",
+    "Compilation without a bundled JavaScript app does not establish the repaired TypeScript bridge, complete navigation, auth/account readback, Photos save or installed-app performance.",
+    "These unsigned compile gates are not a signed iPhone build, TestFlight submission, Apple authentication or physical-device acceptance.",
+    "Native engine/harness/configuration source equivalence has one expected changed TypeScript bridge file; Swift/Kotlin engines and standalone harnesses are unchanged.",
+    "No local tests, repeated native build, workflow retry/cancellation, provider-data mutation, source edit or ref change was performed by this reviewer."
+  ]
+}

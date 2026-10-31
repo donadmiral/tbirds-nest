@@ -9,12 +9,12 @@ const KEY = process.env.NEXT_PUBLIC_GIPHY_KEY || "";
 export function GifPicker({ onPick, onClose, mode = 'gifs', busy = false }: { onPick: (g: Gif) => void; onClose: () => void; mode?: 'gifs' | 'stickers'; busy?: boolean }) {
   const [q, setQ] = useState("");
   const [gifs, setGifs] = useState<Gif[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(KEY));
   const [error, setError] = useState(false);
   const [retry, setRetry] = useState(0);
 
   useEffect(() => {
-    if (!KEY) { setLoading(false); return; }
+    if (!KEY) return;
     const controller = new AbortController();
     let current = true;
     const t = setTimeout(async () => {

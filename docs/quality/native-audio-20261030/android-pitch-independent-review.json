@@ -1,0 +1,173 @@
+{
+  "artifactId": 13017410971,
+  "zipSha256": "73482007111103f8e5e06f72d80d045319d9993559586607619b060bd0414c3a",
+  "failures": [
+    {
+      "case": "videoTrimSpeedAndOriginalMixStayAlignedWithIndependentSoundtrack",
+      "message": "java.lang.AssertionError: Original audio gain or pitch failed: 3.516586783696672E-6"
+    },
+    {
+      "case": "slowedVideoRepeatsOnlyTheSelectedExcerptThroughItsPartialFinalLoop",
+      "message": "java.lang.AssertionError: Original slow-motion pitch or volume changed"
+    }
+  ],
+  "outputs": [
+    {
+      "name": "trim-speed-original-mix.mp4",
+      "sha256": "f538a0c84e50c387b82e0525369f7b5e8bccaa61bb71b4a7f269e6f67d4fea77",
+      "bytes": 20903,
+      "streams": [
+        {
+          "index": 0,
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "avg_frame_rate": "0/0",
+          "duration": "1.002667",
+          "nb_frames": "47",
+          "tags": {}
+        },
+        {
+          "index": 1,
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 480,
+          "height": 320,
+          "avg_frame_rate": "30/1",
+          "duration": "1.000000",
+          "nb_frames": "30",
+          "tags": {},
+          "side_data_list": [
+            {
+              "rotation": -90
+            }
+          ],
+          "displayWidth": 320,
+          "displayHeight": 480
+        }
+      ],
+      "analysisWindowSeconds": [
+        0.2,
+        0.8
+      ],
+      "analysisSamples": 28800,
+      "toneAmplitudes": {
+        "165": 3.2826969915811486e-06,
+        "220": 3.6474339096175976e-06,
+        "330": 3.4719275731519485e-06,
+        "440": 0.049776682829870564,
+        "660": 0.09931426848692826,
+        "880": 3.880609948492639e-06,
+        "1760": 9.276383910755508e-07
+      },
+      "decodedFirstChannelSamples": 48128
+    },
+    {
+      "name": "slow-video-fractional-soundtrack-loop.mp4",
+      "sha256": "3660090b19c0abd37d19cf7a6629cbc1fa8766ab23d8e3806faba8d1e7d7ab50",
+      "bytes": 78718,
+      "streams": [
+        {
+          "index": 0,
+          "codec_name": "aac",
+          "codec_type": "audio",
+          "sample_rate": "48000",
+          "avg_frame_rate": "0/0",
+          "duration": "4.394667",
+          "nb_frames": "206",
+          "tags": {}
+        },
+        {
+          "index": 1,
+          "codec_name": "h264",
+          "codec_type": "video",
+          "width": 480,
+          "height": 320,
+          "avg_frame_rate": "15/1",
+          "duration": "4.333333",
+          "nb_frames": "65",
+          "tags": {},
+          "side_data_list": [
+            {
+              "rotation": -90
+            }
+          ],
+          "displayWidth": 320,
+          "displayHeight": 480
+        }
+      ],
+      "analysisWindowSeconds": [
+        2.2,
+        3.7
+      ],
+      "analysisSamples": 72000,
+      "toneAmplitudes": {
+        "165": 0.049636739170693354,
+        "220": 0.00021263561041125973,
+        "330": 8.512606059305921e-05,
+        "440": 0.06653210470775651,
+        "660": 3.4344665562924064e-05,
+        "880": 0.03330921829833377,
+        "1760": 1.048975706924169e-05
+      },
+      "decodedFirstChannelSamples": 210944
+    }
+  ],
+  "xmlSummary": {
+    "name": "expo.modules.boomerang.StoryAudioExportTest",
+    "tests": "23",
+    "failures": "2",
+    "errors": "0",
+    "skipped": "0",
+    "time": "52.967",
+    "timestamp": "2026-10-30T22:26:35",
+    "hostname": "localhost"
+  },
+  "audioAnalysis": "FFmpeg decoded the first channel at 48 kHz; no stereo-to-mono gain normalization.",
+  "candidateCommit": "00a516ae792009b287576f9ebc89b3b3e299b58e",
+  "workflowRun": 41137500687,
+  "artifactUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41137500687",
+  "preflight": {
+    "expo": "54.0.37",
+    "nativeToolchain": {
+      "agp": "8.11.0",
+      "kotlin": "2.1.20",
+      "compileSdk": "36",
+      "minSdk": "24"
+    },
+    "productionSources": {
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": "358bf67324e7228e688050d2e9a53470b433fc38de3942c722f620a30c59e221",
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": "754eaa2052a1b48c527eb2a2f9ccfb94cdd88ed269aa1bb4933fdde3e066633e"
+    },
+    "gradleWrapperSha256": "7d3a4ac4de1c32b59bc6a4eb8ecb8e612ccd0cf1ae1e99f66902da64df296172",
+    "scope": "Actual production engine sources in a standalone local-only Android instrumentation application."
+  },
+  "preflightProductionSourcesMatchPublishedCandidate": true,
+  "limits": [
+    "This is independent diagnosis of a failed candidate. It does not establish success of the subsequent Sonic pitch-preserving repair.",
+    "The two retained outputs passed timing attestation but failed the original-audio pitch assertions.",
+    "Physical-device and installed-product acceptance are not established."
+  ],
+  "observedAt": "2026-10-30T22:35:12Z",
+  "publishedProductionSourceSha256": {
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": "358bf67324e7228e688050d2e9a53470b433fc38de3942c722f620a30c59e221",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": "754eaa2052a1b48c527eb2a2f9ccfb94cdd88ed269aa1bb4933fdde3e066633e"
+  },
+  "scope": "Independent diagnosis of the failed 00a516ae Android instrumentation candidate; no successful repair or physical-device claim.",
+  "primarySource": {
+    "version": "1.8.1",
+    "archiveUrl": "https://dl.google.com/dl/android/maven2/androidx/media3/media3-common/1.8.1/media3-common-1.8.1-sources.jar",
+    "archiveSha256": "5bb29dd933bb9f8d5110d082db186068e6cf93f2aed648e9bd70ec180668aaa1",
+    "files": {
+      "androidx/media3/common/audio/SpeedChangingAudioProcessor.java": "9a90a5293a31a1a03a3ab92368f74a74ec3d29b5e2fcbe71da9fcb3fbe7d1639",
+      "androidx/media3/common/audio/SonicAudioProcessor.java": "a18633156e95a12a46b9ac4423d32d7cb36a4542a3f279bec95cf2fb759ce8a5"
+    }
+  },
+  "confirmedCause": "The exact pinned SpeedChangingAudioProcessor.updateSpeed implementation sets both speed and pitch to newSpeed. Decoded outputs retain original gain at 660 Hz for 2x and 165 Hz for 0.5x instead of the original 330 Hz.",
+  "constantSpeedAlternativeReview": {
+    "proposal": "Use SonicAudioProcessor with setSpeed(recipe.speed), explicit setPitch(1f) and the existing 48 kHz normalization; apply SpeedChangeEffect(recipe.speed) to video before frame limiting. Added soundtrack processors retain speed 1.",
+    "sourceContractCompatible": true,
+    "strictExistingAssertionsMustRemain": true,
+    "subsequentRuntimeAcceptanceVerified": false
+  }
+}

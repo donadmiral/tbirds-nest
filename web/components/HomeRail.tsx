@@ -11,44 +11,32 @@
  * hides itself rather than displaying zeroes, because an empty rail reads as
  * calm and a rail of zeroes reads as broken.
  */
-import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { useAccountResource } from "@/lib/useAccountResource";
 import { Eye, Heart, PenLine, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { DiscoveryRail } from "@/components/DiscoveryRail";
 import { Panel } from "@/components/ui";
 
+
+
 type Activity = { posts: number; views: number; engagement: number; followers: number };
 
+async function loadActivity(supabase: ReturnType<typeof createClient>, uid: string): Promise<Activity> {
+  const since=new Date(Date.now()-7*86400000).toISOString();
+  const [posts,mine,followers]=await Promise.all([
+    supabase.from("posts").select("id",{count:"exact",head:true}).eq("user_id",uid).gte("created_at",since),
+    supabase.from("posts").select("likes_count, comments_count, views_count").eq("user_id",uid).gte("created_at",since),
+    supabase.from("follows").select("follower_id",{count:"exact",head:true}).eq("following_id",uid).gte("created_at",since),
+  ]);
+  if(posts.error||mine.error||followers.error||posts.count===null||followers.count===null)throw new Error("Your activity could not load.");
+  const rows=(mine.data??[]) as {likes_count:number|null;comments_count:number|null;views_count:number|null}[];
+  if(rows.length!==posts.count)throw new Error("Your complete activity could not load. Please try again.");
+  return {posts:posts.count,views:rows.reduce((n,row)=>n+(row.views_count??0),0),engagement:rows.reduce((n,row)=>n+(row.likes_count??0)+(row.comments_count??0),0),followers:followers.count};
+}
 function YourActivity() {
-  const supabase = useRef(createClient()).current;
-  const [a, setA] = useState<Activity | null>(null);
-
-  useEffect(() => {
-    (async () => {
-      const { data: sess } = await supabase.auth.getSession();
-      const uid = sess.session?.user.id;
-      if (!uid) return;
-      const since = new Date(Date.now() - 7 * 86400000).toISOString();
-
-      // Counts only, no rows pulled back: head:true makes each of these a
-      // count query rather than a fetch.
-      const [posts, mine, followers] = await Promise.all([
-        supabase.from("posts").select("id", { count: "exact", head: true }).eq("user_id", uid).gte("created_at", since),
-        supabase.from("posts").select("likes_count, comments_count, views_count").eq("user_id", uid).gte("created_at", since),
-        supabase.from("follows").select("follower_id", { count: "exact", head: true }).eq("following_id", uid).gte("created_at", since),
-      ]);
-
-      const rows = (mine.data ?? []) as { likes_count: number | null; comments_count: number | null; views_count: number | null }[];
-      setA({
-        posts: posts.count ?? 0,
-        views: rows.reduce((n, r) => n + (r.views_count ?? 0), 0),
-        engagement: rows.reduce((n, r) => n + (r.likes_count ?? 0) + (r.comments_count ?? 0), 0),
-        followers: followers.count ?? 0,
-      });
-    })();
-  }, [supabase]);
-
+  const resource=useAccountResource<Activity|null>(loadActivity,null);
+  if(resource.error)return <Panel title="Your activity"><p className="text-sm text-muted" role="status">{resource.error}</p><button type="button" className="mt-2 min-h-11 text-sm font-semibold text-ink" onClick={resource.retry}>Try again</button></Panel>;
+  const a=resource.data;
   if (!a || (a.posts === 0 && a.views === 0 && a.engagement === 0 && a.followers === 0)) return null;
 
   const cells = [

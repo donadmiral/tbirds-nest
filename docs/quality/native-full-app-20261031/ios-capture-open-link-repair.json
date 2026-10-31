@@ -1,0 +1,87 @@
+{
+  "head": "e173b2dbcf253342be5683fa85f102aa38065411",
+  "testedMerge": "e6ca24e27b00207344eb7989ed53d2305cb04cf3",
+  "tree": "37ca8db90469d32a2a2d7b3069db54b522926530",
+  "runId": 41173170193,
+  "jobId": 124455216930,
+  "artifactId": 13033622896,
+  "artifactName": "ios-full-app-ui",
+  "artifactBytes": 36460491,
+  "artifactSha256": "06c1849b074c079ebc70b5032ed4b7f7289650064ef62408f06359921250b5b0",
+  "mode": "local correction, not a completed native rerun",
+  "observedPrompt": "Open in “Platinum QA”?",
+  "observedButton": "Open",
+  "observedButtonBounds": "[197,446][331,490]",
+  "boundsUsedAsTapCoordinates": false,
+  "retainedAx": {
+    "file": "ios-e173b2db/capture-open-link-ax.json",
+    "sha256": "df636b1b3ce9ddcf2439db86478f543415a28e24f9e9ea487f0603edb7237696"
+  },
+  "retainedScreenshot": {
+    "file": "ios-e173b2db/capture-open-link.png",
+    "sha256": "7a115edbd88951c3fd1e5da02b6e1a4bf2d52edd2f8b9a0056e3eae1c33c4c5d"
+  },
+  "pinnedMaestroVersion": "2.11.0",
+  "pinnedCommit": "c8c361be1cc89b2e742f185466a302a22778be6b",
+  "pinnedSource": [
+    {
+      "file": "maestro-client/src/main/java/maestro/drivers/IOSDriver.kt",
+      "lines": "451-456",
+      "gitBlob": "8af50e6b65d983437cdd3f81fe2c20dc0b1a6cb9",
+      "sha256": "f4b0990e891edf7401c0cc163f11247c3a095dcd9d45e8c1977ba605e245a4d3",
+      "url": "https://github.com/mobile-dev-inc/maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-client/src/main/java/maestro/drivers/IOSDriver.kt"
+    },
+    {
+      "file": "maestro-orchestra/src/main/java/maestro/orchestra/Orchestra.kt",
+      "lines": "1016-1070",
+      "gitBlob": "4127338828db0a14de0488873bac3bd5dfa6be66",
+      "sha256": "06e8e2803af1c9704783452a22bf4a3652f89574f384e893afd97d5fcc9007b5",
+      "url": "https://github.com/mobile-dev-inc/maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-orchestra/src/main/java/maestro/orchestra/Orchestra.kt"
+    },
+    {
+      "file": "maestro-ios-driver/src/main/kotlin/device/SimctlIOSDevice.kt",
+      "lines": "109-113",
+      "gitBlob": "2894584cb188ce39131a433a7280becee2c02676",
+      "sha256": "5e683075148b70ec2273c7b85a4f6f77c0b0fbdf228d9ed6eb0e38461f55cf4f",
+      "url": "https://github.com/mobile-dev-inc/maestro/blob/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-ios-driver/src/main/kotlin/device/SimctlIOSDevice.kt"
+    }
+  ],
+  "cause": "Pinned IOSDriver.openLink forwards the URL and ignores autoVerify. The first custom-scheme handoff remained behind the actual system confirmation.",
+  "change": "Immediately after the existing deep link, conditionally handle only the exact iOS QA-app prompt with a semantic Open tap. All existing assertions and timing remain mandatory.",
+  "sourceHashes": {
+    "tests/native/flows/memory-capture.yaml": "1bb3e4fa89bf9bbc516c43efae25e989a1f8b6d719de58a7723ea896d6eb5bde",
+    "tests/quality/native-capture-open-link.cjs": "8789514527b86f1a6a5caa89ef5f1f67798f85f2f51d4dab5ddcf114696e192f"
+  },
+  "baselineFlowSha256": "16966925346646f2280ca0ebdea7ce0c5f2e131d03e9dec3841c69a761f0ba91",
+  "all18ExistingCommandsUnchanged": true,
+  "insertedCommands": 1,
+  "tests": {
+    "command": "node --test --test-isolation=none tests/quality/native-capture-open-link.cjs tests/quality/native-ui-flows.cjs",
+    "formalPasses": 33,
+    "newRetainedAxCases": 5,
+    "existingActualShellCases": 28,
+    "failures": 0,
+    "skipped": 0,
+    "newTestScope": "Actual retained AX and parsed candidate YAML checked against pinned condition semantics; this is not execution of Maestro or a new native interaction.",
+    "negativeCases": [
+      "Android platform",
+      "Wrong app title",
+      "Missing literal question mark",
+      "Wrong punctuation or trailing prompt content",
+      "No dialog with an unrelated Open control"
+    ],
+    "eslint": "passed",
+    "gitDiffCheck": "passed"
+  },
+  "unchanged": [
+    "Deep-link URL",
+    "18 original capture commands",
+    "Route/readback/movie/cleanup assertions",
+    "All original timeouts",
+    "Single capture attempt",
+    "Existing authenticated app state",
+    "Production source and permissions",
+    "Strict JUnit and full verification gates"
+  ],
+  "remainingGate": "Next full native run must actually dismiss the observed system prompt, mount the route, reload the saved account, and complete capture/cancel/retry/decode/cleanup."
+}

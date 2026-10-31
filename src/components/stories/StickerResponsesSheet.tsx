@@ -1,7 +1,7 @@
 import { supabase } from '../../services/supabase';
 import VerifiedBadge from '../VerifiedBadge';
 import TierName from '../TierName';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Modal,
   FlatList, Image, ActivityIndicator, Dimensions,
@@ -58,21 +58,26 @@ export default function StickerResponsesSheet({
   const insets = useSafeAreaInsets();
   const [responses, setResponses] = useState<StickerResponse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const loadVersion = useRef(0);
 
   const loadResponses = useCallback(async () => {
-    setLoading(true);
+    const version = ++loadVersion.current;
+    setLoading(true); setLoadError(false); setResponses([]);
     try {
       const data = await storiesService.getStickerResponses(storyId, stickerId);
-      setResponses(data);
+      if (loadVersion.current === version) setResponses(data);
     } catch (e) {
       console.log('[StickerResponsesSheet.load]', e);
+      if (loadVersion.current === version) setLoadError(true);
     } finally {
-      setLoading(false);
+      if (loadVersion.current === version) setLoading(false);
     }
   }, [storyId, stickerId]);
 
   useEffect(() => {
     if (visible) loadResponses();
+    return () => { loadVersion.current++; };
   }, [visible, loadResponses]);
 
   const renderResponse = useCallback(({ item }: { item: StickerResponse }) => {
@@ -160,6 +165,8 @@ export default function StickerResponsesSheet({
             <View style={s.loader}>
               <ActivityIndicator color={NAVY} size="small" />
             </View>
+          ) : loadError ? (
+            <View style={s.empty}><Text style={s.emptyTxt}>Responses could not load.</Text><TouchableOpacity accessibilityRole="button" onPress={loadResponses} style={{ minHeight: 44, justifyContent: 'center', paddingHorizontal: 20 }}><Text style={{ color: NAVY, fontWeight: '700' }}>Retry</Text></TouchableOpacity></View>
           ) : responses.length === 0 ? (
             <View style={s.empty}>
               <Feather name="inbox" size={24} color="#D1D5DB" />

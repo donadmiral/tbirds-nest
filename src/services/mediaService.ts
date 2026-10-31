@@ -196,7 +196,7 @@ export async function uploadMedia(
       headers: {
         Authorization: `Bearer ${token}`,
         apikey: SUPABASE_ANON_KEY,
-        'x-upsert': ['post-media', 'chat-media', 'chat-files', 'channel-media'].includes(bucket) ? 'false' : 'true',
+        'x-upsert': ['post-media', 'story-media', 'media', 'chat-media', 'chat-files', 'channel-media'].includes(bucket) ? 'false' : 'true',
       },
       body: formData,
     }

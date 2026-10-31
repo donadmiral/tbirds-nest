@@ -1,12 +1,15 @@
+import Image from 'next/image';
+import { requestTime, measureRead } from '@/lib/requestTime';
+import AdminIcon from '@/components/AdminIcon';
 import { completeRead } from '@/lib/completeRead';
-import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { requireDesk } from '@/lib/adminAuth';
 import { allowedDesks, hasFullOverview, canPerform } from '@/lib/permissions';
 import { serviceClient } from '@/lib/supabaseAdmin';
 import Shell from '@/components/Shell';
+import RefreshDesk from '@/components/RefreshDesk';
 import Seal from '@/components/Seal';
-import { SeriesChart, Spark, Greeting, Empty } from '@/components/Viz';
+import { SeriesChart, Spark, Empty } from '@/components/Viz';
 import { fmt, ago } from '@/lib/fmt';
 import { pickMedia, resolveMedia, isVideoUrl } from '@/lib/media';
 import { resolveModerationMedia } from '@/lib/moderationMedia';
@@ -16,24 +19,24 @@ export const dynamic = 'force-dynamic';
 const TIER_LABEL: Record<string, string> = { public_figure: 'Green', business: 'Space grey', official: 'Platinum' };
 const ACTIVE_WINDOW_MIN = 5;
 
-const PANEL: React.CSSProperties = { minWidth: 0, borderRadius: 20, background: 'var(--panel)', border: '1px solid var(--line)', boxShadow: '0 6px 24px rgba(11,30,61,0.035)', overflow: 'hidden' };
+const PANEL: React.CSSProperties = { minWidth: 0, borderRadius: 12, background: 'var(--panel)', border: '1px solid var(--line)', boxShadow: '0 1px 2px rgba(11,30,61,0.025)', overflow: 'hidden' };
 const HEAD: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px 12px', borderBottom: '1px solid rgba(var(--on),0.10)' };
-const H_TITLE: React.CSSProperties = { fontSize: 13.5, fontWeight: 700, color: 'var(--txt)' };
+const H_TITLE: React.CSSProperties = { fontSize: 14, fontWeight: 700, color: 'var(--txt)' };
 const ROW: React.CSSProperties = { display: 'flex', alignItems: 'center', gap: 11, padding: '11px 16px', borderBottom: '1px solid rgba(var(--on),0.10)', textDecoration: 'none' };
-const LINK_SM: React.CSSProperties = { fontSize: 11.4, fontWeight: 600, color: 'var(--txt-muted)', textDecoration: 'none', whiteSpace: 'nowrap' };
+const LINK_SM: React.CSSProperties = { fontSize: 12, fontWeight: 600, color: 'var(--txt-muted)', textDecoration: 'none', whiteSpace: 'nowrap' };
 
 const IC = {
-  users: 'M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z',
-  pulse: 'M3 12h3.2l2.1-6 3.4 12 2.6-8 1.6 2h5.1v2h-6.1l-1.1-1.4-3.1 9.4L7.4 10 6.6 14H3v-2z',
-  flag: 'M12 2L1 21h22L12 2zm1 14h-2v2h2v-2zm0-6h-2v4h2v-4z',
-  seal: 'M12 2l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4L4.2 7.7l5.4-.8L12 2z',
-  ticket: 'M12 2a10 10 0 100 20 10 10 0 000-20zm0 4a6 6 0 016 6h-3a3 3 0 00-6 0H6a6 6 0 016-6zm-3 8h6a3 3 0 01-6 0z',
-  build: 'M4 21V5a2 2 0 012-2h7a2 2 0 012 2v16h-4v-4H8v4H4zm13-9h3a1 1 0 011 1v8h-4v-9z',
-  mega: 'M3 10a2 2 0 012-2h2l7-4v16l-7-4H5a2 2 0 01-2-2v-4zm14-4.8a7 7 0 010 9.6V5.2z',
-  list: 'M4 5h16v2H4V5zm0 6h16v2H4v-2zm0 6h10v2H4v-2z',
-  gear: 'M12 8a4 4 0 100 8 4 4 0 000-8zm8.6 4a6.6 6.6 0 00-.1-1.1l2-1.6-2-3.4-2.4 1a6.9 6.9 0 00-1.9-1.1L15.8 3h-4l-.4 2.8a6.9 6.9 0 00-1.9 1.1l-2.4-1-2 3.4 2 1.6a6.6 6.6 0 000 2.2l-2 1.6 2 3.4 2.4-1a6.9 6.9 0 001.9 1.1l.4 2.8h4l.4-2.8a6.9 6.9 0 001.9-1.1l2.4 1 2-3.4-2-1.6c.1-.4.1-.7.1-1.1z',
-  staff: 'M16 11c1.7 0 3-1.3 3-3s-1.3-3-3-3-3 1.3-3 3 1.3 3 3 3zm-8 0c1.7 0 3-1.3 3-3S9.7 5 8 5 5 6.3 5 8s1.3 3 3 3zm0 2c-2.3 0-7 1.2-7 3.5V19h14v-2.5C15 14.2 10.3 13 8 13zm8 0c-.3 0-.6 0-1 .1 1.2.8 2 1.9 2 3.4V19h6v-2.5c0-2.3-4.7-3.5-7-3.5z',
-};
+  users: 'users',
+  pulse: 'pulse',
+  flag: 'reports',
+  seal: 'verification',
+  ticket: 'support',
+  build: 'business',
+  mega: 'ads',
+  list: 'audit',
+  gear: 'controls',
+  staff: 'staff',
+} as const;
 
 function dayKey(d: Date) { return d.toISOString().slice(0, 10); }
 
@@ -63,7 +66,7 @@ export default async function DashboardPage() {
   }
   const svc = serviceClient();
 
-  const now = Date.now();
+  const now = await requestTime();
   const activeSince = new Date(now - ACTIVE_WINDOW_MIN * 60000).toISOString();
   const from30 = new Date(now - 30 * 86400000).toISOString();
   const from7 = new Date(now - 7 * 86400000).toISOString();
@@ -71,12 +74,11 @@ export default async function DashboardPage() {
   const from24h = new Date(now - 86400000).toISOString();
   const days30 = Array.from({ length: 30 }, (_, i) => dayKey(new Date(now - (29 - i) * 86400000)));
 
-  const readsStartedAt = Date.now();
-  const [
+  const { value: [
     users, verified, active, apps, pr, lr, ur, audit, tickets, bizApps, flags, daily,
     prAll, lrAll, urAll, appAll, recent, topPostsRes, locRes, cerr,
     vAll, vReview, vApproved, vRejected,
-  ] = await Promise.all([
+  ], elapsedMs: readsElapsedMs } = await measureRead(() => Promise.all([
     svc.from('profiles').select('id', { count: 'exact', head: true }),
     svc.from('profiles').select('id', { count: 'exact', head: true }).eq('is_verified', true),
     svc.from('profiles').select('id', { count: 'exact', head: true }).gte('last_seen', activeSince),
@@ -101,7 +103,7 @@ export default async function DashboardPage() {
     svc.from('verification_applications').select('id', { count: 'exact', head: true }).in('status', ['under_review', 'approved', 'rejected']),
     svc.from('verification_applications').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
     svc.from('verification_applications').select('id', { count: 'exact', head: true }).eq('status', 'rejected'),
-  ]);
+  ]));
 
   const dashboardResults = [users, verified, active, apps, pr, lr, ur, audit, tickets, bizApps, flags, daily,
     prAll, lrAll, urAll, appAll, recent, topPostsRes, locRes, cerr, vAll, vReview, vApproved, vRejected];
@@ -109,7 +111,6 @@ export default async function DashboardPage() {
   if ([users, verified, active, apps, pr, lr, ur, tickets, bizApps, cerr, vAll, vReview, vApproved, vRejected].some(result => result.count === null)) {
     throw new Error('Dashboard counts could not be confirmed.');
   }
-  const readsElapsedMs = Date.now() - readsStartedAt;
   for (const result of [prAll, lrAll, urAll, appAll, locRes]) completeRead(result, 'Dashboard aggregate');
   const members = users.count ?? 0;
   const appRows = apps.data ?? [];
@@ -130,7 +131,6 @@ export default async function DashboardPage() {
   const signupSeries = daysRows.map(r => Number(r.new_signups) || 0);
   const signups7 = signupSeries.slice(-7).reduce((a, b) => a + b, 0);
   const signupsPrev7 = signupSeries.slice(-14, -7).reduce((a, b) => a + b, 0);
-  const avgDau7 = dauSeries.length ? Math.round(dauSeries.slice(-7).reduce((a, b) => a + b, 0) / Math.min(7, dauSeries.length)) : 0;
 
   const reportRows = [...(prAll.data ?? []), ...(lrAll.data ?? []), ...(urAll.data ?? [])] as { created_at: string }[];
   const reportSeries = bucketByDay(reportRows, days30);
@@ -200,7 +200,7 @@ export default async function DashboardPage() {
   const errors24 = cerr.count ?? 0;
 
   const health = [
-    { label: 'Dashboard data reads', state: 'Succeeded', ok: true, meta: `current page queries completed in ${readsElapsedMs} ms; not a service-wide health check` },
+    { label: 'Dashboard data reads', state: 'Succeeded', ok: true, meta: `current page queries completed in ${Math.round(readsElapsedMs)} ms; not a service-wide health check` },
     { label: 'Daily activity summary', state: statsFresh ? 'Current' : 'Awaiting update', ok: statsFresh, meta: lastStatDay ? 'Last updated ' + lastStatDay : 'The first daily summary is not available yet' },
     { label: 'App errors, 24 hours', state: errors24 === 0 ? 'Clear' : String(errors24), ok: errors24 === 0, meta: 'Reported by the app' },
     { label: 'Enabled features', state: flagRows.filter(f => f.enabled).length + ' of ' + flagRows.length, ok: true, meta: 'Current feature settings' },
@@ -214,27 +214,25 @@ export default async function DashboardPage() {
   ];
   const funnelMax = Math.max(1, funnel[0].value);
 
-  const first = (admin.email.split('@')[0].split(/[._-]/)[0] || 'there');
-  const firstName = first.charAt(0).toUpperCase() + first.slice(1);
-
   return (
     <Shell admin={admin} active="/dashboard" crumb="Overview"
-      title={<Greeting name={firstName} />}
-      sub={'Here is what is happening across Platinum Circles. ' + fmt(members) + ' members on file, ' + (attention ? attention + ' items waiting on this desk.' : 'nothing waiting on this desk.')}>
+      title="Workspace overview"
+      sub={'Community activity and the work that needs your attention. ' + fmt(members) + ' members on file; ' + (attention ? attention + ' items waiting for review.' : 'no items waiting in the monitored queues.')}
+      pageActions={<><RefreshDesk /><Link className="pc-button pc-button-primary" href="/reports">Review reports <span aria-hidden="true">↗</span></Link></>}>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="pc-stat-strip" style={{ '--stat-count': cards.length } as React.CSSProperties}>
         {cards.map(c => (
           <Link key={c.label} href={c.href} className="pc-nav" style={{ ...PANEL, padding: '14px 15px 12px', display: 'block', textDecoration: 'none' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ flex: 1, fontSize: 11.3, fontWeight: 600, color: 'var(--txt-muted)' }}>{c.label}</span>
+              <span style={{ flex: 1, fontSize: 12, fontWeight: 600, color: 'var(--txt-muted)' }}>{c.label}</span>
               <span style={{ width: 26, height: 26, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(var(--on),0.05)' }}>
-                <svg width="13" height="13" viewBox="0 0 24 24" style={{ fill: c.color }}><path d={c.icon} /></svg>
+                <AdminIcon name={c.icon} size={19} style={{ color: c.color }} />
               </span>
             </div>
             <div className="pc-num" style={{ marginTop: 9, fontSize: 27, lineHeight: 1, color: 'var(--txt-strong)' }}>{fmt(c.value)}</div>
             <div style={{ marginTop: 9, display: 'flex', alignItems: 'baseline', gap: 7, whiteSpace: 'nowrap', overflow: 'hidden' }}>
-              <span className="pc-num" style={{ flex: '0 0 auto', fontSize: 10.5, fontWeight: 600, color: c.delta.fg }}>{c.delta.text}</span>
-              <span style={{ flex: 1, minWidth: 0, fontSize: 10, color: 'var(--txt-muted)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.note}</span>
+              <span className="pc-num" style={{ flex: '0 0 auto', fontSize: 11, fontWeight: 600, color: c.delta.fg }}>{c.delta.text}</span>
+              <span style={{ flex: 1, minWidth: 0, fontSize: 11, color: 'var(--txt-muted)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.note}</span>
             </div>
             <div style={{ marginTop: 9 }}><Spark values={c.spark} color={c.color} height={26} /></div>
           </Link>
@@ -264,17 +262,17 @@ export default async function DashboardPage() {
           <div style={HEAD}>
             <div style={{ flex: 1 }}>
               <div style={H_TITLE}>Needs attention</div>
-              <div style={{ fontSize: 11.3, color: 'var(--txt-muted)', marginTop: 3 }}>{attention ? attention + ' items across four desks' : 'Quiet is the goal'}</div>
+              <div style={{ fontSize: 12, color: 'var(--txt-muted)', marginTop: 3 }}>{attention ? attention + ' items across four desks' : 'Quiet is the goal'}</div>
             </div>
           </div>
           {needs.length === 0 ? <Empty note="Nothing is waiting. Every queue is clear." /> : needs.map(n => (
             <Link key={n.label} href={n.href} className="pc-nav" style={ROW}>
               <span style={{ width: 32, height: 32, flex: '0 0 32px', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(var(--on),0.05)' }}>
-                <svg width="15" height="15" viewBox="0 0 24 24" style={{ fill: n.color }}><path d={n.icon} /></svg>
+                <AdminIcon name={n.icon} size={19} style={{ color: n.color }} />
               </span>
               <span style={{ flex: 1, minWidth: 0 }}>
-                <span style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: 'var(--txt)' }}>{n.label}</span>
-                <span style={{ display: 'block', fontSize: 10.8, color: 'var(--txt-muted)', marginTop: 2 }}>{n.sub}</span>
+                <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--txt)' }}>{n.label}</span>
+                <span style={{ display: 'block', fontSize: 11, color: 'var(--txt-muted)', marginTop: 2 }}>{n.sub}</span>
               </span>
               <span className="pc-num" style={{ fontSize: 17, color: 'var(--txt-strong)' }}>{n.count}</span>
             </Link>
@@ -291,16 +289,16 @@ export default async function DashboardPage() {
           {(recent.data ?? []).length === 0 ? <Empty note="No profiles yet." /> : (recent.data ?? []).map((u: { id: string; full_name: string | null; username: string | null; avatar_url: string | null; is_verified: boolean; verified_tier: string | null; location: string | null; created_at: string }) => (
             <Link key={u.id} href={'/users/' + u.id} className="pc-nav" style={ROW}>
               {u.avatar_url
-                ? <img src={u.avatar_url} alt="" style={{ width: 30, height: 30, flex: '0 0 30px', borderRadius: '50%', objectFit: 'cover' }} />
+                ? <Image unoptimized width={30} height={30} src={u.avatar_url} alt="" style={{ width: 30, height: 30, flex: '0 0 30px', borderRadius: '50%', objectFit: 'cover' }} />
                 : <span style={{ width: 30, height: 30, flex: '0 0 30px', borderRadius: '50%', background: 'var(--chip-bg)', color: 'var(--chip-fg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700 }}>{String(u.full_name || u.username || '?').slice(0, 1).toUpperCase()}</span>}
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                  <span style={{ fontSize: 12.3, fontWeight: 600, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.full_name || 'Unnamed'}</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{u.full_name || 'Unnamed'}</span>
                   {u.is_verified ? <Seal tier={u.verified_tier || 'business'} size={12} /> : null}
                 </span>
-                <span style={{ display: 'block', fontSize: 10.8, color: 'var(--txt-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>@{u.username || 'member'}{u.location ? ' \u00b7 ' + u.location : ''}</span>
+                <span style={{ display: 'block', fontSize: 11, color: 'var(--txt-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>@{u.username || 'member'}{u.location ? ' \u00b7 ' + u.location : ''}</span>
               </span>
-              <span className="pc-num" style={{ flex: '0 0 auto', fontSize: 10.5, color: 'var(--txt-muted)' }}>{ago(u.created_at)}</span>
+              <span className="pc-num" style={{ flex: '0 0 auto', fontSize: 11, color: 'var(--txt-muted)' }}>{ago(u.created_at)}</span>
             </Link>
           ))}
         </div>
@@ -315,14 +313,14 @@ export default async function DashboardPage() {
             const url = rawUrl ? postUrls[rawUrl] || null : null;
             const video = isVideoUrl(rawUrl);
             return (
-            <Link key={p.id} href={'/p/' + p.id} className="pc-nav" style={ROW}>
+            <Link key={p.id} href={'/content/' + p.id} className="pc-nav" style={ROW}>
               <span style={{ width: 38, height: 38, flex: '0 0 38px', borderRadius: 9, overflow: 'hidden', background: 'rgba(var(--on),0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
                 {url
                   ? (video
                     ? <video src={url} muted playsInline preload="metadata" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />)
+                    : <Image unoptimized width={38} height={38} src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />)
                   : (postAuthors[p.user_id]?.avatar_url
-                    ? <img src={postAuthors[p.user_id]!.avatar_url as string} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ? <Image unoptimized width={38} height={38} src={postAuthors[p.user_id]!.avatar_url as string} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     : <svg width="14" height="14" viewBox="0 0 24 24" style={{ fill: 'rgba(var(--on),0.24)' }}><path d="M4 4h16v12H5.2L4 17.2V4zm2 3h12v2H6V7zm0 4h8v2H6v-2z" /></svg>)}
                 {video && url ? (
                   <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.28)' }}>
@@ -331,10 +329,10 @@ export default async function DashboardPage() {
                 ) : null}
               </span>
               <span style={{ flex: 1, minWidth: 0 }}>
-                <span style={{ display: 'block', fontSize: 12.3, fontWeight: 600, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.content || 'Media post'}</span>
-                <span style={{ display: 'block', fontSize: 10.8, color: 'var(--txt-muted)', marginTop: 2 }}>@{postAuthors[p.user_id]?.username || 'member'}</span>
+                <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.content || 'Media post'}</span>
+                <span style={{ display: 'block', fontSize: 11, color: 'var(--txt-muted)', marginTop: 2 }}>@{postAuthors[p.user_id]?.username || 'member'}</span>
               </span>
-              <span className="pc-num" style={{ flex: '0 0 auto', fontSize: 11.4, fontWeight: 600, color: 'var(--txt)' }}>{fmt(p.score)}</span>
+              <span className="pc-num" style={{ flex: '0 0 auto', fontSize: 12, fontWeight: 600, color: 'var(--txt)' }}>{fmt(p.score)}</span>
             </Link>
             );
           })}
@@ -352,8 +350,8 @@ export default async function DashboardPage() {
               <div key={l.label} style={{ marginBottom: 11 }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, marginBottom: 5 }}>
                   <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.label}</span>
-                  <span className="pc-num" style={{ fontSize: 11.4, fontWeight: 600, color: 'var(--txt)' }}>{l.n}</span>
-                  <span className="pc-num" style={{ fontSize: 10.5, color: 'var(--txt-muted)', width: 44, textAlign: 'right' }}>{located ? ((l.n / located) * 100).toFixed(1) + '%' : '-'}</span>
+                  <span className="pc-num" style={{ fontSize: 12, fontWeight: 600, color: 'var(--txt)' }}>{l.n}</span>
+                  <span className="pc-num" style={{ fontSize: 11, color: 'var(--txt-muted)', width: 44, textAlign: 'right' }}>{located ? ((l.n / located) * 100).toFixed(1) + '%' : '-'}</span>
                 </div>
                 <div style={{ height: 6, borderRadius: 4, background: 'rgba(var(--on),0.06)', overflow: 'hidden' }}>
                   <div style={{ height: '100%', width: Math.max(2, (l.n / Math.max(1, topLocations[0].n)) * 100) + '%', borderRadius: 4, background: 'var(--c1)' }} />
@@ -373,10 +371,10 @@ export default async function DashboardPage() {
           {(audit.data ?? []).length === 0 ? <Empty note="Every action lands here, permanently." /> : (audit.data ?? []).map((a: { action: string; reason: string | null; created_at: string }, i: number) => (
             <div key={i} style={ROW}>
               <span style={{ flex: 1, minWidth: 0 }}>
-                <span style={{ display: 'block', fontSize: 12.3, fontWeight: 600, color: 'var(--txt)' }}>{a.action.replace(/[._]/g, ' ')}</span>
-                <span style={{ display: 'block', fontSize: 10.8, color: 'var(--txt-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.reason || 'no note recorded'}</span>
+                <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--txt)' }}>{a.action.replace(/[._]/g, ' ')}</span>
+                <span style={{ display: 'block', fontSize: 11, color: 'var(--txt-muted)', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{a.reason || 'no note recorded'}</span>
               </span>
-              <span className="pc-num" style={{ flex: '0 0 auto', fontSize: 10.5, color: 'var(--txt-muted)' }}>{ago(a.created_at)}</span>
+              <span className="pc-num" style={{ flex: '0 0 auto', fontSize: 11, color: 'var(--txt-muted)' }}>{ago(a.created_at)}</span>
             </div>
           ))}
         </div>
@@ -390,8 +388,8 @@ export default async function DashboardPage() {
               <div key={h.label} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10.5px 16px', borderBottom: '1px solid rgba(var(--on),0.10)' }}>
                 <span className={h.ok ? 'pc-pulse' : ''} style={{ width: 6, height: 6, borderRadius: '50%', flex: '0 0 6px', background: h.ok ? 'var(--ok)' : 'var(--warn)' }} />
                 <span style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ display: 'block', fontSize: 12.2, color: 'rgba(var(--on),0.68)' }}>{h.label}</span>
-                  <span style={{ display: 'block', fontSize: 10.4, color: 'var(--txt-muted)', marginTop: 2 }}>{h.meta}</span>
+                  <span style={{ display: 'block', fontSize: 13, color: 'var(--txt-muted)' }}>{h.label}</span>
+                  <span style={{ display: 'block', fontSize: 11, color: 'var(--txt-muted)', marginTop: 2 }}>{h.meta}</span>
                 </span>
                 <span className="pc-num" style={{ fontSize: 11, fontWeight: 600, color: h.ok ? 'var(--ok)' : 'var(--warn)' }}>{h.state}</span>
               </div>
@@ -407,8 +405,8 @@ export default async function DashboardPage() {
                 { label: 'Audit log', href: '/audit', icon: IC.list },
                 { label: 'Controls', href: '/system', icon: IC.gear },
               ].map(q => (
-                <Link key={q.label} href={q.href} className="pc-nav" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 10px', borderRadius: 9, textDecoration: 'none', fontSize: 12.3, color: 'var(--txt)' }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" style={{ flex: '0 0 14px', fill: 'rgba(var(--on),0.4)' }}><path d={q.icon} /></svg>
+                <Link key={q.label} href={q.href} className="pc-nav" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 10px', borderRadius: 9, textDecoration: 'none', fontSize: 13, color: 'var(--txt)' }}>
+                  <AdminIcon name={q.icon} size={18} style={{ color: 'var(--txt-muted)' }} />
                   {q.label}
                 </Link>
               ))}
@@ -429,8 +427,8 @@ export default async function DashboardPage() {
             {funnel.map(f => (
               <div key={f.label} style={{ marginBottom: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 5 }}>
-                  <span style={{ fontSize: 12, color: 'rgba(var(--on),0.55)' }}>{f.label}</span>
-                  <span className="pc-num" style={{ fontSize: 11.8, fontWeight: 600, color: 'var(--txt)' }}>{fmt(f.value)}</span>
+                  <span style={{ fontSize: 12, color: 'var(--txt-muted)' }}>{f.label}</span>
+                  <span className="pc-num" style={{ fontSize: 12, fontWeight: 600, color: 'var(--txt)' }}>{fmt(f.value)}</span>
                 </div>
                 <div style={{ height: 6, borderRadius: 4, background: 'rgba(var(--on),0.06)', overflow: 'hidden' }}>
                   <div style={{ height: '100%', width: Math.max(2, (f.value / funnelMax) * 100) + '%', borderRadius: 4, background: 'var(--c4)' }} />
@@ -444,7 +442,7 @@ export default async function DashboardPage() {
           <div style={HEAD}>
             <div style={{ flex: 1 }}>
               <div style={H_TITLE}>Waiting on a decision</div>
-              <div style={{ fontSize: 11.3, color: 'var(--txt-muted)', marginTop: 3 }}>Oldest first, because waiting is the cost</div>
+              <div style={{ fontSize: 12, color: 'var(--txt-muted)', marginTop: 3 }}>Oldest first, because waiting is the cost</div>
             </div>
           </div>
           {appRows.length + openReports.length === 0 ? <Empty note="No application or report is waiting." /> : (
@@ -454,19 +452,19 @@ export default async function DashboardPage() {
                 return (
                   <Link key={a.id} href="/queue" className="pc-nav" style={ROW}>
                     <Seal tier={a.tier} size={16} />
-                    <span style={{ flex: 1, minWidth: 0, fontSize: 12.3, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <span style={{ flex: 1, minWidth: 0, fontSize: 13, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       <b style={{ fontWeight: 600 }}>{p.full_name || '@' + (p.username || 'member')}</b>
                       <span style={{ color: 'var(--txt-muted)' }}> applied for {TIER_LABEL[a.tier] || a.tier}{a.category ? ' \u00b7 ' + a.category : ''}</span>
                     </span>
-                    <span className="pc-num" style={{ flex: '0 0 auto', fontSize: 10.5, color: 'var(--txt-muted)' }}>{ago(a.created_at)}</span>
+                    <span className="pc-num" style={{ flex: '0 0 auto', fontSize: 11, color: 'var(--txt-muted)' }}>{ago(a.created_at)}</span>
                   </Link>
                 );
               })}
               {openReports.map(r => (
                 <Link key={r.kind + r.id} href="/reports" className="pc-nav" style={ROW}>
-                  <span style={{ flex: '0 0 auto', fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: 'rgba(var(--warn-rgb),0.12)', color: 'var(--warn)' }}>{r.kind}</span>
-                  <span style={{ flex: 1, minWidth: 0, fontSize: 12.3, color: 'rgba(var(--on),0.55)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Reported for {r.reason}</span>
-                  <span className="pc-num" style={{ flex: '0 0 auto', fontSize: 10.5, color: 'var(--txt-muted)' }}>{ago(r.created_at)}</span>
+                  <span style={{ flex: '0 0 auto', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 999, background: 'rgba(var(--warn-rgb),0.12)', color: 'var(--warn)' }}>{r.kind}</span>
+                  <span style={{ flex: 1, minWidth: 0, fontSize: 13, color: 'var(--txt-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Reported for {r.reason}</span>
+                  <span className="pc-num" style={{ flex: '0 0 auto', fontSize: 11, color: 'var(--txt-muted)' }}>{ago(r.created_at)}</span>
                 </Link>
               ))}
             </div>
@@ -484,10 +482,10 @@ export default async function DashboardPage() {
             {flagRows.map(f => (
               <div key={f.key} style={{ borderRadius: 10, border: '1px solid rgba(var(--on),0.10)', padding: '10px 12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ flex: 1, minWidth: 0, fontSize: 12.2, fontWeight: 600, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.key}</span>
+                  <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, color: 'var(--txt)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.key}</span>
                   <span style={{ width: 7, height: 7, borderRadius: '50%', flex: '0 0 7px', background: f.enabled ? 'var(--ok)' : 'rgba(var(--on),0.2)' }} />
                 </div>
-                {f.note ? <div style={{ fontSize: 10.4, color: 'var(--txt-muted)', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.note}</div> : null}
+                {f.note ? <div style={{ fontSize: 11, color: 'var(--txt-muted)', marginTop: 3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.note}</div> : null}
               </div>
             ))}
           </div>

@@ -11,9 +11,9 @@ export function createLegacyLimitedViewSession(options: {
   return {
     get closed() { return closed; },
     get mediaUrl() { return mediaUrl; },
-    // Storage already received a bounded capability. Do not forward the user's
-    // bearer token to its media decoder, or persist the capability in a cache.
-    headers: {} as Record<string, string>,
+    // Only the same-origin no-store byte proxy receives these headers. No Auth
+    // token is ever placed in a URL or forwarded to a third-party decoder host.
+    headers: { Authorization: `Bearer ${options.token}`, apikey: options.apiKey } as Record<string, string>,
     async open(): Promise<PrivateGrant | null> {
       if (closed || !options.current()) return null;
       const timer = setTimeout(() => controller.abort(), 20000);
@@ -21,7 +21,7 @@ export function createLegacyLimitedViewSession(options: {
         const response = await options.fetch(options.endpoint, {
           method: 'POST', signal: controller.signal,
           headers: { Authorization: `Bearer ${options.token}`, apikey: options.apiKey, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messageIds: [options.messageId], consume: true, requestId: options.requestId }),
+          body: JSON.stringify({ messageIds: [options.messageId], consume: true, requestId: options.requestId, delivery: 'no-store' }),
         });
         if (!response.ok) throw Error(response.status === 410 ? 'This attachment is no longer available.' : 'Could not open this attachment.');
         const value = await response.json();
@@ -29,8 +29,9 @@ export function createLegacyLimitedViewSession(options: {
         try { url = new URL(value.urls?.[options.messageId]); } catch { throw Error('This viewing grant is invalid.'); }
         const path = decodeURIComponent(url.pathname);
         const expiry = Date.parse(value.expiresAt);
-        if (url.origin !== origin || url.username || url.password || url.hash || !url.searchParams.get('token')
-          || !/^\/storage\/v1\/object\/sign\/(chat-media|chat-files)\/[0-9a-f-]{36}\/.+$/i.test(path)
+        if (url.origin !== origin || url.username || url.password || url.hash
+          || path !== '/functions/v1/limited-media-file'
+          || url.searchParams.get('messageId') !== options.messageId || url.searchParams.get('requestId') !== options.requestId
           || path.includes('\\') || path.includes('%') || path.split('/').some(part => part === '.' || part === '..')
           || value.requestId !== options.requestId || !['image', 'video'].includes(value.mediaType)
           || !Number.isInteger(value.remaining) || value.remaining < 0 || value.remaining > 1
@@ -42,6 +43,16 @@ export function createLegacyLimitedViewSession(options: {
     },
     async close(_reason: PrivateCloseReason = 'closed') {
       closed = true; controller.abort(); mediaUrl = ''; options.hide();
+      const closing = new AbortController();
+      const timer = setTimeout(() => closing.abort(), 10000);
+      try {
+        await options.fetch(`${origin}/functions/v1/limited-media-file`, {
+          method: 'POST', signal: closing.signal, keepalive: true,
+          headers: { Authorization: `Bearer ${options.token}`, apikey: options.apiKey, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'close', messageId: options.messageId, requestId: options.requestId }),
+        });
+      } catch { /* The original server deadline bounds an offline close. */ }
+      finally { clearTimeout(timer); }
     },
   };
 }

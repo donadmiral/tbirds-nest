@@ -6,7 +6,15 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const ts = require('typescript');
+const babel = require('@babel/core');
 const root = path.resolve(__dirname, '..');
+// Use the installed RN implementation so style arrays keep their native meaning.
+const flattenedModule = { exports: {} };
+vm.runInNewContext(babel.transformSync(fs.readFileSync(path.join(root,
+  'node_modules/react-native/Libraries/StyleSheet/flattenStyle.js'), 'utf8'), {
+  presets: [require.resolve('@react-native/babel-preset')], configFile: false, babelrc: false,
+}).code, { module: flattenedModule, exports: flattenedModule.exports });
+const flatten = flattenedModule.exports.default;
 const flush = () => new Promise(setImmediate);
 const deferred = () => { let resolve, reject; const promise = new Promise((yes, no) => { resolve = yes; reject = no; }); return { promise, resolve, reject }; };
 const plain = value => JSON.parse(JSON.stringify(value));
@@ -117,7 +125,9 @@ function tabHarness() {
   const Animated = { Value, View: 'AnimatedView' };
   for (const method of ['spring', 'timing']) Animated[method] = (value, config) => ({ start() { animations.push({ method, config }); value.value = config.toValue; } });
   const imports = {
-    react: r.react, 'react-native': { Animated, Pressable: 'Pressable' },
+    react: r.react, 'react-native': { Animated, Pressable: 'Pressable', StyleSheet: {
+      flatten, absoluteFillObject: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 },
+    } },
     'react/jsx-runtime': { jsx: r.jsx, jsxs: r.jsx },
     '@react-navigation/bottom-tabs': { BottomTabBar: 'BottomTabBar' },
   };
@@ -130,30 +140,41 @@ function tabHarness() {
 }
 
 test('custom native tabs preserve accessibility, disabled state and activation handlers', () => {
-  const h = tabHarness(); let presses = 0;
-  const tab = h.button({ children: 'Home', accessibilityLabel: 'Home', accessibilityRole: 'button', accessibilityState: { selected: true }, testID: 'home-tab', disabled: true, onPress: () => presses++, reduceMotion: true });
+  const h = tabHarness(); let presses = 0, warmups = 0;
+  const tab = h.button({ children: 'Home', accessibilityLabel: 'Home', accessibilityRole: 'button', accessibilityState: { selected: true }, testID: 'home-tab', disabled: true, onPress: () => presses++, onWarm: () => warmups++, reduceMotion: true });
   assert.equal(tab.props.accessibilityLabel, 'Home'); assert.equal(tab.props.accessibilityRole, 'button');
   assert.equal(tab.props.accessibilityState.selected, true); assert.equal(tab.props.disabled, true); assert.equal(tab.props.testID, 'home-tab');
   tab.props.onPress(); assert.equal(presses, 1);
   assert.equal(tab.props.style[1].minHeight, 48); assert.equal(tab.props.style[1].minWidth, 48);
-  tab.props.onPressIn(); tab.props.onPressOut(); assert.equal(h.animations.length, 0);
+  tab.props.onPressIn(); tab.props.onPressOut(); assert.equal(h.animations.length, 0); assert.equal(warmups, 1);
   h.unmount();
 });
 
 test('native press animation works normally and resets when reduced motion turns on', () => {
-  const h = tabHarness(); const tab = h.button({ children: 'Home', reduceMotion: false });
-  tab.props.onPressIn(); assert.equal(h.animations.length, 1);
-  const reduced = h.button({ children: 'Home', reduceMotion: true });
+  const h = tabHarness(); let warmups = 0;
+  const onWarm = () => warmups++;
+  const tab = h.button({ children: 'Home', reduceMotion: false, onWarm });
+  tab.props.onPressIn(); assert.equal(h.animations.length, 1); assert.equal(warmups, 1);
+  const reduced = h.button({ children: 'Home', reduceMotion: true, onWarm });
   assert.equal(reduced.props.children.props.style.transform[0].scale.value, 1);
-  reduced.props.onPressIn(); reduced.props.onPressOut(); assert.equal(h.animations.length, 1);
+  reduced.props.onPressIn(); reduced.props.onPressOut(); assert.equal(h.animations.length, 1); assert.equal(warmups, 2);
   h.unmount();
 });
 
 test('accessible native navigation stays visible while the content scrolls', () => {
-  const h = tabHarness(); const bar = h.bar({ keepVisible: true, state: {} });
-  assert.equal(bar.props.style, undefined); h.scroll(100); assert.equal(h.animations.length, 0);
-  const normal = h.bar({ keepVisible: false, state: {} });
-  assert.ok(normal.props.style.transform); h.scroll(100); assert.equal(h.animations.length, 1);
-  h.bar({ keepVisible: true, state: {} }); h.scroll(200); assert.equal(h.animations.length, 1);
+  const props = { state: { index: 0, routes: [{ key: 'home' }] },
+    descriptors: { home: { options: { tabBarStyle: [{ position: 'absolute', height: 64 }, { bottom: 44 }] } } },
+    navigation: {}, insets: { bottom: 34 } };
+  const h = tabHarness(); const bar = h.bar({ ...props, keepVisible: true });
+  const visibleStyle = flatten(bar.props.style);
+  assert.equal(visibleStyle.height, 108, 'accessible tabs retain their enclosing native bounds');
+  assert.equal(visibleStyle.transform, undefined); h.scroll(100); assert.equal(h.animations.length, 0);
+  const normal = h.bar({ ...props, keepVisible: false });
+  const normalStyle = flatten(normal.props.style);
+  assert.equal(normalStyle.height, visibleStyle.height); assert.ok(normalStyle.transform);
+  h.scroll(100); assert.equal(h.animations.length, 1);
+  const restored = h.bar({ ...props, keepVisible: true });
+  assert.equal(flatten(restored.props.style).transform, undefined);
+  h.scroll(200); assert.equal(h.animations.length, 1);
   h.unmount();
 });

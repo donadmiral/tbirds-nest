@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-31 16:35:33 UTC",
+  "repository": "donadmiral/tbirds-nest",
+  "outcome": "Both fresh unsigned native compiler jobs completed successfully for the published b5 source.",
+  "sourceBinding": {
+    "head": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+    "pullRequestMerge": "cddbe51a25efbb39b9e91fb822a9821957b9a2bd",
+    "headAndMergeTree": "d72a8c25e7b9e8890d3520a0c825a6175aecf3c6",
+    "remoteHeadAndMergeCommitTreesIndependentlyVerified": true,
+    "bothRunAndJobHeadShasMatch": true,
+    "frozenSelectedInputsMatchedPublishedGitBlobs": 1516,
+    "staticGateReceipt": {
+      "path": "docs/quality/native-full-app-20261031/native-v7-combined-static-gate.json",
+      "sha256": "7f043629c4c4e4ec119f20a10e199130465ae40c40fd4f0829bb1f0210a6f6bf"
+    },
+    "workflowBytesMatchedPublishedSource": true,
+    "localHeadAlignmentClaimed": false,
+    "compilerCheckoutLogsIndependentlyRead": false,
+    "basis": "Authenticated terminal run/job and artifact metadata bind the compiler results to b5. The reviewed published workflows use actions/checkout for the pull-request merge. The merge and head trees are independently equal; the individual compiler checkout logs and artifact receipt contents were not fetched.",
+    "relatedSourceEquivalence": {
+      "path": "docs/quality/native-full-app-20261031/native-encoders-b5c9c82b-status-and-source-equivalence.json",
+      "bytes": 12038,
+      "sha256": "ae93ae982cade31ed0ac7ef7db90d9529ad7cf95b1235a89f5b9fd26f947ab67"
+    },
+    "relatedQualityReceipt": {
+      "path": "docs/quality/live-app-20261031/ci-quality-b5c9c82b.json",
+      "bytes": 11269,
+      "sha256": "b885c94a9c4a616ffa3033539d0d9879cc447bf678ee271118be8b8495c541cb"
+    }
+  },
+  "compilerJobs": [
+    {
+      "platform": "android",
+      "runId": 41218724047,
+      "jobId": 124588620357,
+      "name": "Compile Kotlin and Android native integration",
+      "headSha": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-10-31T16:14:48Z",
+      "completedAt": "2026-10-31T16:28:47Z",
+      "runtimeSeconds": 839.0,
+      "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41218724047/job/124588620357",
+      "jobMetadataUrl": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/jobs/124588620357",
+      "workflowPath": ".github/workflows/android-native-compile.yml",
+      "workflowSha256": "b61803a86989169286d8af51814cb15a76329e070c5e000af46d328c1b796d84",
+      "compileStep": {
+        "name": "Compile the unsigned Android QA target",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-10-31T16:15:19Z",
+        "completed_at": "2026-10-31T16:28:44Z"
+      },
+      "artifact": {
+        "id": 13049810760,
+        "name": "android-native-compile-diagnostics",
+        "sizeInBytes": 22624,
+        "providerDigest": "sha256:43ebef09f102a3546a4d6853c7d85c9bd7a77105799a9f706c2a8ead27553ef8",
+        "expired": false,
+        "archiveIndependentlyDownloaded": false
+      }
+    },
+    {
+      "platform": "ios",
+      "runId": 41218724062,
+      "jobId": 124588621101,
+      "name": "Compile Swift and native integration",
+      "headSha": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-10-31T16:14:39Z",
+      "completedAt": "2026-10-31T16:35:09Z",
+      "runtimeSeconds": 1230.0,
+      "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41218724062/job/124588621101",
+      "jobMetadataUrl": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/jobs/124588621101",
+      "workflowPath": ".github/workflows/ios-native-compile.yml",
+      "workflowSha256": "41366d7673b2c4781c998cf80655fde1cc2041f19a607b10dc6dd088b5784510",
+      "compileStep": {
+        "name": "Compile the unsigned iOS Simulator target",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-10-31T16:15:40Z",
+        "completed_at": "2026-10-31T16:34:59Z"
+      },
+      "artifact": {
+        "id": 13049308890,
+        "name": "ios-native-compile-diagnostics",
+        "sizeInBytes": 992181,
+        "providerDigest": "sha256:1d54aab38a5a440041f856fdbb6d6c0b41b2dc395c6689c8032be7bdb42dde6c",
+        "expired": false,
+        "archiveIndependentlyDownloaded": false
+      }
+    }
+  ],
+  "counting": {
+    "compilerJobs": 2,
+    "successfulCompilerJobs": 2,
+    "failedCompilerJobs": 0,
+    "cancelledCompilerJobs": 0,
+    "skippedCompilerJobs": 0,
+    "unitTestCaseCount": null,
+    "note": "These are compiler gates, not test-case counters. The separate 58 standalone encoder cases and root/33-auth counts are not added here."
+  },
+  "evidence": {
+    "terminalMetadata": {
+      "path": "docs/quality/native-full-app-20261031/supporting-b5c9c82b/compiler-terminal-metadata.json",
+      "bytes": 6474,
+      "sha256": "eab317d498d36ed538d86bc2c4288dafd0526263cd9f4526bb7a56de923f80a8"
+    },
+    "compilerJobLogsFetched": 0,
+    "compilerArtifactArchivesDownloaded": 0,
+    "artifactDigestsIndependentlyVerified": false,
+    "observation": "Both compile steps and both enclosing workflows/jobs are completed/success. Artifact identities and digests are retained as provider metadata."
+  },
+  "limits": [
+    "This is a terminal status/source-equivalence receipt. No compiler artifact receipt JSON or large Xcode/Gradle log was independently opened in this observation; exact per-job source-copy/build-toolchain details are not newly asserted.",
+    "Artifact digests are GitHub-reported metadata. No downloaded ZIP byte hash or independent inspection of compiler output is claimed.",
+    "Unsigned QA Android and iOS Simulator compilation does not establish full-app navigation, reader/capture responsiveness, account/SecureStore readback, device permissions, Photos delivery or physical-device behavior.",
+    "These results are not Apple account authentication, signed device distribution, TestFlight upload or production backend acceptance.",
+    "No local tests, source changes, provider-data writes, authentication attempts, workflow retries/cancellation, branch/ref changes, or deployment actions were performed."
+  ]
+}

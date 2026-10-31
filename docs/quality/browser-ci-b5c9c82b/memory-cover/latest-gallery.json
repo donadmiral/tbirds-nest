@@ -1,0 +1,86 @@
+{
+  "text": "unbroken",
+  "font": "sans",
+  "position": "bottom",
+  "width": 230,
+  "covers": [
+    {
+      "design": "postcard",
+      "width": 230,
+      "height": 301.296875,
+      "noteFont": 7.475,
+      "noteLineHeight": 9.7175,
+      "noteText": "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+      "titleText": "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+      "outerOverflow": 0,
+      "textOverflow": 0,
+      "titleOverflow": 0,
+      "titleOverlap": 0
+    },
+    {
+      "design": "editorial",
+      "width": 230,
+      "height": 301.296875,
+      "noteFont": 7.475,
+      "noteLineHeight": 9.7175,
+      "noteText": "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+      "titleText": "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+      "outerOverflow": 0,
+      "textOverflow": 0,
+      "titleOverflow": 0,
+      "titleOverlap": 0
+    },
+    {
+      "design": "keepsake",
+      "width": 230,
+      "height": 301.296875,
+      "noteFont": 7.475,
+      "noteLineHeight": 9.7175,
+      "noteText": "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+      "titleText": "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+      "outerOverflow": 0,
+      "textOverflow": 0,
+      "titleOverflow": 0,
+      "titleOverlap": 0
+    },
+    {
+      "design": "field_notes",
+      "width": 230,
+      "height": 301.296875,
+      "noteFont": 6.0375,
+      "noteLineHeight": 7.84875,
+      "noteText": "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+      "titleText": "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+      "outerOverflow": 0,
+      "textOverflow": 0,
+      "titleOverflow": 0,
+      "titleOverlap": 0
+    },
+    {
+      "design": "night_film",
+      "width": 230,
+      "height": 301.296875,
+      "noteFont": 6.6125,
+      "noteLineHeight": 8.59625,
+      "noteText": "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+      "titleText": "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+      "outerOverflow": 0,
+      "textOverflow": 0,
+      "titleOverflow": 0,
+      "titleOverlap": 0
+    },
+    {
+      "design": "daybook",
+      "width": 230,
+      "height": 301.296875,
+      "noteFont": 7.475,
+      "noteLineHeight": 9.7175,
+      "noteText": "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+      "titleText": "WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",
+      "outerOverflow": 0,
+      "textOverflow": 0,
+      "titleOverflow": 0,
+      "titleOverlap": 0
+    }
+  ]
+}

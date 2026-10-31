@@ -1,10 +1,12 @@
+import NextImage from "next/image";
 import { profilePath } from "@/lib/profileLookup";
 import { cache } from "react";
 import { isJobId } from "../../../../shared/hiring";
 import type { Metadata } from "next";
 import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
-import { ArrowLeft, Users } from "lucide-react";
+import { ArrowLeft, ArrowRight, Users, Briefcase, Bookmark, Send } from "lucide-react";
+import styles from "../JobsWorkspace.module.css";
 import { createClient } from "@/lib/supabase/server";
 import { type JobRow, isJobDeadlinePassed } from "@/lib/jobs";
 import { ApplyPanel } from "@/components/ApplyPanel";
@@ -42,10 +44,7 @@ function daysLeft(deadline: string | null): number | null {
 function Fact({ label, value }: { label: string; value: string | null | undefined }) {
   if (!value) return null;
   return (
-    <div className="rounded-md bg-surface px-3 py-2">
-      <p className="text-[11px] uppercase tracking-wide text-muted">{label}</p>
-      <p className="mt-0.5 text-[14px] text-ink/90">{value}</p>
-    </div>
+    <div className={styles.fact}><dt>{label}</dt><dd>{value}</dd></div>
   );
 }
 
@@ -58,11 +57,11 @@ export default async function JobPage({ params }: Params) {
 
   if (!j) {
     return (
-      <main className="flex flex-col items-center justify-center gap-3 px-6 py-24 text-center">
+      <section className="flex flex-col items-center justify-center gap-3 px-6 py-24 text-center">
         <h1 className="font-display text-2xl text-porcelain">This job is not available</h1>
         <p className="text-sm text-muted">It may have been closed or removed.</p>
         <Link href="/jobs" className="mt-2 rounded-full bg-pearl px-5 py-2.5 text-sm font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90">Browse jobs</Link>
-      </main>
+      </section>
     );
   }
 
@@ -85,95 +84,32 @@ export default async function JobPage({ params }: Params) {
   const isOwn = viewerId === j.posted_by;
 
   return (
-    <div className="px-1">
-      <Link href="/jobs" aria-label="Back to Jobs" className="mb-5 inline-flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><ArrowLeft size={19} /></Link>
-      <header>
-        <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-semibold text-ink">{j.title}</h1>
-          {j.urgent ? <span className="rounded-sm bg-danger/20 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-danger">Urgent</span> : null}
+    <div className={styles.workspace}>
+      <Link href="/jobs" className={styles.back}><ArrowLeft size={17} aria-hidden /> Back to Jobs</Link>
+      <div className={styles.detail}>
+        <div className={styles.detailMain}>
+          <header className={styles.panel + " " + styles.hero}>
+            <div className={styles.actions + " mb-4"}><span className={styles.companyIcon} aria-hidden><Briefcase size={24} strokeWidth={1.7} /></span>{j.urgent ? <span className={styles.badge}>Urgent hiring</span> : null}</div>
+            <h1>{j.title}</h1><p className={styles.company}>{j.company}{j.verified ? <VerifiedBadge tier="business" size={16} /> : null}</p>
+            <p className={styles.meta}>Posted <RelativeTime dateTime={j.created_at} />{j.applications_count > 0 ? " · " + j.applications_count + " applicants" : ""}{dLeft !== null ? " · " + (deadlinePassed ? "Deadline passed" : dLeft === 0 ? "Closes today" : dLeft + " days left") : ""}</p>
+            <dl className={styles.facts}><Fact label="Workplace" value={place} /><Fact label="Type" value={catLabel} /><Fact label="Experience" value={expLabel} /><Fact label="Industry" value={j.industry} /><Fact label="Salary" value={j.salary_range} /><Fact label="Visa" value={j.visa_sponsorship ? "Sponsorship available" : null} /></dl>
+            <div className="mt-5"><JobActions jobId={j.id} posterId={j.posted_by} initiallySaved={!!savedRes.data} viewerId={viewerId} /></div>
+          </header>
+          <section className={styles.panel}><h2>Role overview</h2><article className={styles.body}>{j.description}</article></section>
+          {(j as JobRow & { benefits?: string | null }).benefits ? <section className={styles.panel}><h2>Benefits</h2><p className={styles.body}>{(j as JobRow & { benefits?: string | null }).benefits}</p></section> : null}
+          {poster ? <section className={styles.panel}><h2>Posted by</h2><Link href={profilePath(poster.username, j.posted_by)} className={styles.person}>
+            {poster.avatar_url ? <NextImage unoptimized width={64} height={64} src={displayImageUrl(poster.avatar_url, 200) ?? poster.avatar_url} alt="" /> : <span aria-hidden>{(poster.full_name ?? "?").charAt(0).toUpperCase()}</span>}
+            <span className="min-w-0 flex-1"><strong>{poster.full_name}{poster.is_verified ? <VerifiedBadge tier={poster.verified_tier} size={14} /> : null}</strong><small>{poster.username ? "@" + poster.username : "View profile"}</small></span><ArrowRight size={17} aria-hidden />
+          </Link></section> : null}
         </div>
-        <p className="mt-1 flex items-center gap-1 text-[16px] text-ink/80">
-          {j.company}
-          {j.verified ? <VerifiedBadge tier="business" size={15} /> : null}
-        </p>
-        <p className="mt-1 text-[13px] text-muted">
-          Posted <RelativeTime dateTime={j.created_at} />
-          {j.applications_count > 0 ? " · " + j.applications_count + " applicants" : ""}
-          {dLeft !== null ? " · " + (deadlinePassed ? "Deadline passed" : dLeft === 0 ? "Closes today" : dLeft + " days left") : ""}
-        </p>
-      </header>
-
-      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
-        <Fact label="Workplace" value={place} />
-        <Fact label="Type" value={catLabel} />
-        <Fact label="Experience" value={expLabel} />
-        <Fact label="Industry" value={j.industry} />
-        <Fact label="Salary" value={j.salary_range} />
-        <Fact label="Visa" value={j.visa_sponsorship ? "Sponsorship available" : null} />
+        <aside className={styles.detailSide} aria-label={isOwn ? "Hiring tools" : "Application and related roles"}>
+          <section className={styles.panel}><h2>{isOwn ? "Hiring workspace" : "Your application"}</h2>
+            {isOwn ? <><p>Review the people who have applied and manage their next steps.</p><Link href={"/jobs/" + j.id + "/applicants"} className={styles.primary + " mt-4"}><Users size={17} aria-hidden />Manage applicants{typeof applicantsRes.count === "number" ? " (" + applicantsRes.count + ")" : ""}</Link></> : deadlinePassed ? <p className={styles.notice}>The application deadline has passed.</p> : <ApplyPanel key={j.id} jobId={j.id} applyUrl={j.apply_url} deadline={j.deadline} jobTitle={j.title} company={j.company} />}
+          </section>
+          <section className={styles.panel}><h2>Keep your search moving</h2><Link className={styles.careerLink} href="/jobs/applications"><Send size={18} aria-hidden /><span><strong>My applications</strong><small>Check your application status</small></span><ArrowRight size={15} aria-hidden /></Link><Link className={styles.careerLink} href="/jobs/saved"><Bookmark size={18} aria-hidden /><span><strong>Saved jobs</strong><small>Return to your shortlist</small></span><ArrowRight size={15} aria-hidden /></Link></section>
+          {(relatedRes.data ?? []).length > 0 ? <section className={styles.panel}><h2>Similar roles</h2>{(relatedRes.data ?? []).map(role => <Link key={role.id} href={"/jobs/" + role.id} className={styles.careerLink}><span><strong>{role.title}</strong><small>{role.company}{role.location ? " · " + role.location : ""}</small></span><ArrowRight size={16} aria-hidden /></Link>)}</section> : null}
+        </aside>
       </div>
-
-      <div className="mt-4">
-        <JobActions jobId={j.id} posterId={j.posted_by} initiallySaved={!!savedRes.data} viewerId={viewerId} />
-      </div>
-
-      {isOwn ? (
-        <Link href={"/jobs/" + j.id + "/applicants"} className="mt-4 flex items-center gap-2 rounded-md border border-pearl/40 bg-pearl/10 px-4 py-3 text-[14px] font-semibold text-accent transition-colors duration-[140ms] hover:bg-pearl/20">
-          <Users size={17} /> Manage applicants{applicantsRes.count ? " (" + applicantsRes.count + ")" : ""}
-        </Link>
-      ) : (
-        <div className="mt-5">
-          {deadlinePassed ? (
-            <p className="rounded-md bg-surface px-4 py-3 text-[14px] text-ink/60">The application deadline has passed.</p>
-          ) : (
-            <ApplyPanel key={j.id} jobId={j.id} applyUrl={j.apply_url} deadline={j.deadline} />
-          )}
-        </div>
-      )}
-
-      <article className="mt-7 whitespace-pre-wrap border-t border-ink/10 pt-6 text-[15px] leading-relaxed text-ink/90">
-        {j.description}
-      </article>
-
-      {(j as JobRow & { benefits?: string | null }).benefits ? (
-        <section className="mt-6">
-          <h2 className="text-[15px] font-semibold text-ink">Benefits</h2>
-          <p className="mt-1 whitespace-pre-wrap text-[14px] text-ink/80">{(j as JobRow & { benefits?: string | null }).benefits}</p>
-        </section>
-      ) : null}
-
-      {poster ? (
-        <Link href={profilePath(poster.username, j.posted_by)} className="mt-7 flex items-center gap-3.5 rounded-lg border border-ink/10 p-4 transition-colors duration-[140ms] hover:bg-surface">
-          {poster.avatar_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={displayImageUrl(poster.avatar_url, 200) ?? poster.avatar_url} alt="" className="h-14 w-14 rounded-full object-cover" />
-          ) : (
-            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-navy text-[17px] font-semibold text-white">
-              {(poster.full_name ?? "?").charAt(0).toUpperCase()}
-            </span>
-          )}
-          <span className="min-w-0">
-            <span className="flex items-center gap-1 text-[15px] font-semibold text-ink">
-              {poster.full_name}
-              {poster.is_verified ? <VerifiedBadge tier={poster.verified_tier} size={14} /> : null}
-            </span>
-            <span className="block text-[13px] text-muted">Posted this role · @{poster.username}</span>
-          </span>
-        </Link>
-      ) : null}
-
-      {(relatedRes.data ?? []).length > 0 ? (
-        <section className="mt-7">
-          <h2 className="text-[15px] font-semibold text-ink">Similar roles</h2>
-          <div className="mt-2 flex flex-col gap-2">
-            {(relatedRes.data ?? []).map((r) => (
-              <Link key={r.id} href={"/jobs/" + r.id} className="rounded-md bg-surface px-4 py-3 transition-colors duration-[140ms] hover:bg-surface-elevated">
-                <span className="block text-[14px] font-medium text-ink">{r.title}</span>
-                <span className="block text-[13px] text-muted">{r.company}{r.location ? " · " + r.location : ""}</span>
-              </Link>
-            ))}
-          </div>
-        </section>
-      ) : null}
     </div>
   );
 }

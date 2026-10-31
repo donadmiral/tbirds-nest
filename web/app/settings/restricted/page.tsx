@@ -1,10 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import { useAccountResource } from "@/lib/useAccountResource";
+import { errorMessage } from "@/lib/errors";
+import { withTimeout } from "@/lib/withTimeout";
+import { ErrorState } from "@/components/ErrorState";
 import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { profilePath } from "@/lib/profileLookup";
-import { ArrowLeft, UserMinus } from "lucide-react";
+import { UserMinus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { PersonName } from "@/components/PersonName";
 
@@ -12,34 +16,38 @@ type Row = { user_id: string; created_at: string | null; full_name: string | nul
 
 // Restrict is the quiet alternative to a block: their comments on your posts wait for your approval,
 // their messages go to Message requests, nothing they do notifies you, and they are not told.
+async function fetchRows(supabase: ReturnType<typeof createClient>): Promise<Row[]> {
+  const { data, error } = await supabase.rpc("get_restricted_accounts");
+  if (error) throw error;
+  return (data ?? []) as Row[];
+}
+
 export default function RestrictedAccountsPage() {
-  const supabase = useRef(createClient()).current;
-  const [rows, setRows] = useState<Row[] | null>(null);
-  const [err, setErr] = useState<string | null>(null);
+  const { client: supabase, data: rows, setData: setRows, error: loadError, loading, retry, assertOwner } = useAccountResource<Row[]>(fetchRows, []);
+  const [actionError, setActionError] = useState("");
+  const err = actionError || loadError;
   const [busy, setBusy] = useState<Record<string, boolean>>({});
 
-  const load = useCallback(async () => {
-    const { data, error } = await supabase.rpc("get_restricted_accounts");
-    if (error) { setErr(error.message); return; }
-    setRows(((data ?? []) as Row[]));
-  }, [supabase]);
-  useEffect(() => { void load(); }, [load]);
 
   const unrestrict = async (row: Row) => {
     const name = row.full_name || (row.username ? "@" + row.username : "this person");
     if (!confirm(name + "'s comments will show on your posts as usual and their messages will come straight to your chats. Unrestrict?")) return;
-    setBusy(b => ({ ...b, [row.user_id]: true }));
-    const { error } = await supabase.rpc("set_restriction", { p_user: row.user_id, p_on: false });
-    setBusy(b => { const n = { ...b }; delete n[row.user_id]; return n; });
-    if (error) { alert("Could not unrestrict: " + error.message); return; }
-    setRows(r => (r ?? []).filter(x => x.user_id !== row.user_id));
+    if (busy[row.user_id]) return;
+    setBusy(previous => ({ ...previous, [row.user_id]: true })); setActionError("");
+    try {
+      await assertOwner();
+      const { error } = await withTimeout(supabase.rpc("set_restriction", { p_user: row.user_id, p_on: false }));
+      if (error) throw error;
+      setRows(previous => previous.filter(item => item.user_id !== row.user_id));
+    } catch (cause) { setActionError(errorMessage(cause, "This restriction could not be removed. Please try again.")); }
+    finally { setBusy(previous => ({ ...previous, [row.user_id]: false })); }
   };
 
   return (
     <div className="mx-auto max-w-[560px] px-1">
       <h1 className="flex items-center gap-2 pb-1 font-display text-xl text-porcelain"><UserMinus size={19} className="text-accent" /> Restricted accounts</h1>
-      <p className="pb-5 text-[13px] text-muted">A restricted person's comments on your posts wait for your approval, their messages go to Message requests, and nothing they do notifies you. They are not told. Restrict someone from their profile or from one of their comments.</p>
-      {err ? <p className="text-sm text-danger">{err}</p> : rows === null ? <p className="py-10 text-center text-sm text-muted">Loading</p>
+      <p className="pb-5 text-[13px] text-muted">Comments from a restricted person on your posts wait for your approval, their messages go to Message requests, and nothing they do notifies you. They are not told. Restrict someone from their profile or from one of their comments.</p>
+      {err ? <ErrorState title={err} onRetry={() => { setActionError(""); retry(); }} /> : loading ? <p className="py-10 text-center text-sm text-muted">Loading</p>
       : rows.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-ink/15 py-14 text-center">
           <UserMinus size={28} className="text-muted" />

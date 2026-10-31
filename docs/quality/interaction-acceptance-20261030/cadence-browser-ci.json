@@ -1,0 +1,136 @@
+{
+  "checkedAt": "2026-10-30T23:14:51.565134+00:00",
+  "sourceHead": "e673bdb97f77fc8f9763ef997f75fb805fe0f26f",
+  "testedMerge": "4b0cf24573e12e88c92a23abfcf298bbd788740c",
+  "sourceTree": "4c5be88ea0a505a065ba5a191325357978ed6870",
+  "independentlyVerifiedMergeTreeAndLogCheckout": true,
+  "workflowRunId": 41142738953,
+  "workflowRunUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41142738953",
+  "jobId": 124360638110,
+  "conclusion": "success",
+  "artifact": {
+    "id": 13019311949,
+    "name": "browser-quality-evidence",
+    "bytes": 7645315,
+    "sha256": "d7404438deba053f8a02a75c46d7f441d41eda049830cebb00f2e9fb28d01020",
+    "publishedDigestAndSizeMatched": true,
+    "retainedFiles": 56,
+    "jsonReceipts": 7,
+    "screenshots": 49,
+    "movieBytesRetained": false
+  },
+  "groups": {
+    "admin": {
+      "receiptSha256": "4512452840181aa8dccf425f3f40e666d01129948275bca5186543a1bf5b93ed",
+      "browser": "153.0.8010.12",
+      "uiChecks": 37,
+      "mediaModes": 0,
+      "encodedOutputs": 0,
+      "modes": [],
+      "reportedBrowserErrors": 0,
+      "fixtureScope": "Actual shared admin components, synthetic records and navigation adapter; not authenticated hosted acceptance"
+    },
+    "video": {
+      "receiptSha256": "a760c1341e70f61f93f9930e7174a8f3c1612f57ed90e9a4cae6e67e5532c59f",
+      "browser": "153.0.8010.12",
+      "uiChecks": 0,
+      "mediaModes": 8,
+      "encodedOutputs": 5,
+      "modes": [
+        "graded_audio",
+        "muted",
+        "added_audio",
+        "added_only",
+        "bad_added_audio",
+        "delayed_start",
+        "oversized_final_chunk",
+        "cancelled"
+      ],
+      "reportedBrowserErrors": null,
+      "fixtureScope": null
+    },
+    "memory": {
+      "receiptSha256": "00151b48fefcb93c91383913de77c07e316de6f3c27571dc1d753f2c4095023d",
+      "browser": "153.0.8010.12",
+      "uiChecks": 0,
+      "mediaModes": 19,
+      "encodedOutputs": 6,
+      "modes": [
+        "original",
+        "silent",
+        "score",
+        "local_once",
+        "local_loop",
+        "static_images",
+        "cancel",
+        "call",
+        "hidden",
+        "unmount",
+        "missing",
+        "overflow",
+        "animated_primary",
+        "animated_sticker",
+        "animated_background",
+        "animated_data",
+        "image_inspection_cancel",
+        "unsupported_composition",
+        "film_entry_exit"
+      ],
+      "reportedBrowserErrors": 0,
+      "fixtureScope": null
+    },
+    "music": {
+      "receiptSha256": "0458e018e2134d2ec98948726a92722329bec7f2dd590ed49c330aa6c07e783e",
+      "browser": "153.0.8010.12",
+      "uiChecks": 0,
+      "mediaModes": 5,
+      "encodedOutputs": 2,
+      "modes": [
+        "book",
+        "retained",
+        "revoked_during_export",
+        "microphone_verified",
+        "recording_cancel"
+      ],
+      "reportedBrowserErrors": 0,
+      "fixtureScope": null
+    },
+    "web": {
+      "receiptSha256": "70ff3eee2a716fb46088c151fb3f9af1f438754ea56e6c7375c1b2fbfe565bcd",
+      "browser": "153.0.8010.12",
+      "uiChecks": 38,
+      "mediaModes": 0,
+      "encodedOutputs": 0,
+      "modes": [],
+      "reportedBrowserErrors": 0,
+      "fixtureScope": "Actual public-web modules compiled with synthetic Auth/database, media and Next navigation adapters. No real-provider, hosted authentication or physical-device acceptance."
+    },
+    "commerce": {
+      "receiptSha256": "735d877eb119f8e42404207f9f93d6a61ba1648a4b14c4d47ee3b32e8f1011d3",
+      "browser": "153.0.8010.12",
+      "uiChecks": 24,
+      "mediaModes": 0,
+      "encodedOutputs": 0,
+      "modes": [],
+      "reportedBrowserErrors": 0,
+      "fixtureScope": "Actual Jobs/Market components with synthetic Auth/database and navigation adapters. No hosted authentication, real provider, payment, Storage, or physical-device acceptance."
+    },
+    "studio": {
+      "receiptSha256": "10541a3710461306b9a4cd8b216910dbcef8d541d0d0558c91a5212ceeaf6996",
+      "browser": "153.0.8010.12",
+      "uiChecks": 25,
+      "mediaModes": 0,
+      "encodedOutputs": 0,
+      "modes": [],
+      "reportedBrowserErrors": 0,
+      "fixtureScope": "Actual Studio components with synthetic records and RPC adapters. This does not establish authenticated QA, Storage, provider, publishing-worker or physical-device acceptance."
+    }
+  },
+  "sourceEquivalenceReference": "../native-audio-20261030/ios-cadence-source-equivalence.json",
+  "earlierDetailedBrowserReceipt": "final-browser-ci.json",
+  "limits": [
+    "This is a fresh run on e673 with actual Chromium encoders and decoded-media measurements. The browser archive retains receipts and screenshots, not movie bytes.",
+    "App modules are real; Auth, database, Storage transport, navigation, provider responses and microphone source are synthetic fixtures.",
+    "No hosted business/music installation, physical-device microphone or Photos export, real payment/provider behavior or production cutover is established."
+  ]
+}

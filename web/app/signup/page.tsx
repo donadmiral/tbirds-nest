@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 const input = "rounded-md bg-surface px-4 py-3 text-[15px] text-ink placeholder:text-muted outline-none focus:bg-surface-elevated";
 
 export default function SignUpPage() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

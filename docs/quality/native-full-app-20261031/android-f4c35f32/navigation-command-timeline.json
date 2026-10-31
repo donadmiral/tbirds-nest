@@ -1,0 +1,590 @@
+{
+  "sourcePath": "docs/quality/native-full-app-20261031/android-f4c35f32/navigation-commands.json",
+  "sourceSha256": "940c52966efb320a1795c13057a3fd423942975f4357f904dcfb552a6c05ea7b",
+  "note": "Projection omits text-entry values and nested runFlow bodies. Command duration includes driver/framework work and is not an application render latency measurement.",
+  "commands": [
+    {
+      "sequence0": 0,
+      "artifactStep1": 1,
+      "metadataSequenceNumber": 0,
+      "depth": 0,
+      "kind": "defineVariablesCommand",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458957592,
+      "startUtc": "2026-10-31T15:02:37.592Z",
+      "durationMs": 4,
+      "endUtcComputed": "2026-10-31T15:02:37.596Z"
+    },
+    {
+      "sequence0": 1,
+      "artifactStep1": 2,
+      "metadataSequenceNumber": 1,
+      "depth": 0,
+      "kind": "applyConfigurationCommand",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458957597,
+      "startUtc": "2026-10-31T15:02:37.597Z",
+      "durationMs": 1,
+      "endUtcComputed": "2026-10-31T15:02:37.598Z"
+    },
+    {
+      "sequence0": 2,
+      "artifactStep1": 3,
+      "metadataSequenceNumber": 2,
+      "depth": 0,
+      "kind": "launchAppCommand",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458957598,
+      "startUtc": "2026-10-31T15:02:37.598Z",
+      "durationMs": 200,
+      "endUtcComputed": "2026-10-31T15:02:37.798Z"
+    },
+    {
+      "sequence0": 3,
+      "artifactStep1": 4,
+      "metadataSequenceNumber": 3,
+      "depth": 0,
+      "kind": "assertConditionCommand",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458957798,
+      "startUtc": "2026-10-31T15:02:37.798Z",
+      "durationMs": 2866,
+      "endUtcComputed": "2026-10-31T15:02:40.664Z",
+      "condition": {
+        "visible": {
+          "textRegex": "Sign in",
+          "optional": false
+        }
+      },
+      "timeout": "30000"
+    },
+    {
+      "sequence0": 4,
+      "artifactStep1": 5,
+      "metadataSequenceNumber": 4,
+      "depth": 0,
+      "kind": "tapOnElement",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458960665,
+      "startUtc": "2026-10-31T15:02:40.665Z",
+      "durationMs": 3671,
+      "endUtcComputed": "2026-10-31T15:02:44.336Z",
+      "selector": {
+        "textRegex": "Username or email",
+        "optional": false
+      }
+    },
+    {
+      "sequence0": 5,
+      "artifactStep1": 6,
+      "metadataSequenceNumber": 5,
+      "depth": 0,
+      "kind": "inputTextCommand",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458964337,
+      "startUtc": "2026-10-31T15:02:44.337Z",
+      "durationMs": 3768,
+      "endUtcComputed": "2026-10-31T15:02:48.105Z"
+    },
+    {
+      "sequence0": 6,
+      "artifactStep1": 7,
+      "metadataSequenceNumber": 6,
+      "depth": 0,
+      "kind": "runFlowCommand",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458968105,
+      "startUtc": "2026-10-31T15:02:48.105Z",
+      "durationMs": 1227,
+      "endUtcComputed": "2026-10-31T15:02:49.332Z",
+      "condition": {
+        "platform": "ANDROID"
+      }
+    },
+    {
+      "sequence0": 7,
+      "artifactStep1": 8,
+      "metadataSequenceNumber": 7,
+      "depth": 1,
+      "kind": "hideKeyboardCommand",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458968106,
+      "startUtc": "2026-10-31T15:02:48.106Z",
+      "durationMs": 1225,
+      "endUtcComputed": "2026-10-31T15:02:49.331Z"
+    },
+    {
+      "sequence0": 8,
+      "artifactStep1": 9,
+      "metadataSequenceNumber": 8,
+      "depth": 0,
+      "kind": "tapOnElement",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458969332,
+      "startUtc": "2026-10-31T15:02:49.332Z",
+      "durationMs": 2370,
+      "endUtcComputed": "2026-10-31T15:02:51.702Z",
+      "selector": {
+        "textRegex": "Password",
+        "optional": false
+      }
+    },
+    {
+      "sequence0": 9,
+      "artifactStep1": 10,
+      "metadataSequenceNumber": 9,
+      "depth": 0,
+      "kind": "inputTextCommand",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458971702,
+      "startUtc": "2026-10-31T15:02:51.702Z",
+      "durationMs": 2852,
+      "endUtcComputed": "2026-10-31T15:02:54.554Z"
+    },
+    {
+      "sequence0": 10,
+      "artifactStep1": 11,
+      "metadataSequenceNumber": 10,
+      "depth": 0,
+      "kind": "runFlowCommand",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458974555,
+      "startUtc": "2026-10-31T15:02:54.555Z",
+      "durationMs": 1005,
+      "endUtcComputed": "2026-10-31T15:02:55.560Z",
+      "condition": {
+        "platform": "ANDROID"
+      }
+    },
+    {
+      "sequence0": 11,
+      "artifactStep1": 12,
+      "metadataSequenceNumber": 11,
+      "depth": 1,
+      "kind": "hideKeyboardCommand",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458974555,
+      "startUtc": "2026-10-31T15:02:54.555Z",
+      "durationMs": 1004,
+      "endUtcComputed": "2026-10-31T15:02:55.559Z"
+    },
+    {
+      "sequence0": 12,
+      "artifactStep1": 13,
+      "metadataSequenceNumber": 12,
+      "depth": 0,
+      "kind": "runFlowCommand",
+      "status": "SKIPPED",
+      "startEpochMs": 1793458975560,
+      "startUtc": "2026-10-31T15:02:55.560Z",
+      "durationMs": 0,
+      "endUtcComputed": "2026-10-31T15:02:55.560Z",
+      "condition": {
+        "platform": "IOS"
+      }
+    },
+    {
+      "sequence0": 13,
+      "artifactStep1": 14,
+      "metadataSequenceNumber": 13,
+      "depth": 0,
+      "kind": "tapOnElement",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458975560,
+      "startUtc": "2026-10-31T15:02:55.560Z",
+      "durationMs": 5429,
+      "endUtcComputed": "2026-10-31T15:03:00.989Z",
+      "selector": {
+        "textRegex": "Sign in",
+        "optional": false
+      }
+    },
+    {
+      "sequence0": 14,
+      "artifactStep1": 15,
+      "metadataSequenceNumber": 14,
+      "depth": 0,
+      "kind": "assertConditionCommand",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458980989,
+      "startUtc": "2026-10-31T15:03:00.989Z",
+      "durationMs": 357,
+      "endUtcComputed": "2026-10-31T15:03:01.346Z",
+      "condition": {
+        "visible": {
+          "textRegex": "A quiet morning in the desert. Small moments worth keeping.",
+          "optional": false
+        }
+      },
+      "timeout": "30000"
+    },
+    {
+      "sequence0": 15,
+      "artifactStep1": 16,
+      "metadataSequenceNumber": 15,
+      "depth": 0,
+      "kind": "takeScreenshotCommand",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458981346,
+      "startUtc": "2026-10-31T15:03:01.346Z",
+      "durationMs": 351,
+      "endUtcComputed": "2026-10-31T15:03:01.697Z",
+      "path": "home"
+    },
+    {
+      "sequence0": 16,
+      "artifactStep1": 17,
+      "metadataSequenceNumber": 16,
+      "depth": 0,
+      "kind": "tapOnElement",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458981697,
+      "startUtc": "2026-10-31T15:03:01.697Z",
+      "durationMs": 3418,
+      "endUtcComputed": "2026-10-31T15:03:05.115Z",
+      "selector": {
+        "textRegex": "Latest",
+        "optional": false
+      }
+    },
+    {
+      "sequence0": 17,
+      "artifactStep1": 18,
+      "metadataSequenceNumber": 17,
+      "depth": 0,
+      "kind": "assertConditionCommand",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458985115,
+      "startUtc": "2026-10-31T15:03:05.115Z",
+      "durationMs": 275,
+      "endUtcComputed": "2026-10-31T15:03:05.390Z",
+      "condition": {
+        "visible": {
+          "textRegex": "A quiet morning in the desert. Small moments worth keeping.",
+          "optional": false
+        }
+      }
+    },
+    {
+      "sequence0": 18,
+      "artifactStep1": 19,
+      "metadataSequenceNumber": 18,
+      "depth": 0,
+      "kind": "tapOnElement",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458985391,
+      "startUtc": "2026-10-31T15:03:05.391Z",
+      "durationMs": 4252,
+      "endUtcComputed": "2026-10-31T15:03:09.643Z",
+      "selector": {
+        "textRegex": "For You",
+        "optional": false
+      }
+    },
+    {
+      "sequence0": 19,
+      "artifactStep1": 20,
+      "metadataSequenceNumber": 19,
+      "depth": 0,
+      "kind": "assertConditionCommand",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458989644,
+      "startUtc": "2026-10-31T15:03:09.644Z",
+      "durationMs": 221,
+      "endUtcComputed": "2026-10-31T15:03:09.865Z",
+      "condition": {
+        "visible": {
+          "textRegex": "A quiet morning in the desert. Small moments worth keeping.",
+          "optional": false
+        }
+      }
+    },
+    {
+      "sequence0": 20,
+      "artifactStep1": 21,
+      "metadataSequenceNumber": 20,
+      "depth": 0,
+      "kind": "tapOnElement",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458989866,
+      "startUtc": "2026-10-31T15:03:09.866Z",
+      "durationMs": 3043,
+      "endUtcComputed": "2026-10-31T15:03:12.909Z",
+      "selector": {
+        "idRegex": "main-tab-market",
+        "optional": false
+      }
+    },
+    {
+      "sequence0": 21,
+      "artifactStep1": 22,
+      "metadataSequenceNumber": 21,
+      "depth": 0,
+      "kind": "assertConditionCommand",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458992909,
+      "startUtc": "2026-10-31T15:03:12.909Z",
+      "durationMs": 131,
+      "endUtcComputed": "2026-10-31T15:03:13.040Z",
+      "condition": {
+        "visible": {
+          "textRegex": "View listing: Travel journal",
+          "optional": false
+        }
+      },
+      "timeout": "15000"
+    },
+    {
+      "sequence0": 22,
+      "artifactStep1": 23,
+      "metadataSequenceNumber": 22,
+      "depth": 0,
+      "kind": "takeScreenshotCommand",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458993040,
+      "startUtc": "2026-10-31T15:03:13.040Z",
+      "durationMs": 54,
+      "endUtcComputed": "2026-10-31T15:03:13.094Z",
+      "path": "market"
+    },
+    {
+      "sequence0": 23,
+      "artifactStep1": 24,
+      "metadataSequenceNumber": 23,
+      "depth": 0,
+      "kind": "tapOnElement",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458993094,
+      "startUtc": "2026-10-31T15:03:13.094Z",
+      "durationMs": 2809,
+      "endUtcComputed": "2026-10-31T15:03:15.903Z",
+      "selector": {
+        "idRegex": "main-tab-feed",
+        "optional": false
+      }
+    },
+    {
+      "sequence0": 24,
+      "artifactStep1": 25,
+      "metadataSequenceNumber": 24,
+      "depth": 0,
+      "kind": "assertConditionCommand",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458995905,
+      "startUtc": "2026-10-31T15:03:15.905Z",
+      "durationMs": 223,
+      "endUtcComputed": "2026-10-31T15:03:16.128Z",
+      "condition": {
+        "visible": {
+          "textRegex": "A quiet morning in the desert. Small moments worth keeping.",
+          "optional": false
+        }
+      }
+    },
+    {
+      "sequence0": 25,
+      "artifactStep1": 26,
+      "metadataSequenceNumber": 25,
+      "depth": 0,
+      "kind": "tapOnElement",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458996128,
+      "startUtc": "2026-10-31T15:03:16.128Z",
+      "durationMs": 3178,
+      "endUtcComputed": "2026-10-31T15:03:19.306Z",
+      "selector": {
+        "idRegex": "main-tab-jobs",
+        "optional": false
+      }
+    },
+    {
+      "sequence0": 26,
+      "artifactStep1": 27,
+      "metadataSequenceNumber": 26,
+      "depth": 0,
+      "kind": "assertConditionCommand",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458999306,
+      "startUtc": "2026-10-31T15:03:19.306Z",
+      "durationMs": 163,
+      "endUtcComputed": "2026-10-31T15:03:19.469Z",
+      "condition": {
+        "visible": {
+          "textRegex": "(?s)^(?:Product designer|(?:.*?, )?Product designer, (?:.*?, )?Desert Studio(?:, .*)?)$",
+          "optional": false
+        }
+      },
+      "timeout": "15000"
+    },
+    {
+      "sequence0": 27,
+      "artifactStep1": 28,
+      "metadataSequenceNumber": 27,
+      "depth": 0,
+      "kind": "takeScreenshotCommand",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458999469,
+      "startUtc": "2026-10-31T15:03:19.469Z",
+      "durationMs": 33,
+      "endUtcComputed": "2026-10-31T15:03:19.502Z",
+      "path": "jobs"
+    },
+    {
+      "sequence0": 28,
+      "artifactStep1": 29,
+      "metadataSequenceNumber": 28,
+      "depth": 0,
+      "kind": "tapOnElement",
+      "status": "COMPLETED",
+      "startEpochMs": 1793458999502,
+      "startUtc": "2026-10-31T15:03:19.502Z",
+      "durationMs": 2690,
+      "endUtcComputed": "2026-10-31T15:03:22.192Z",
+      "selector": {
+        "idRegex": "main-tab-messages",
+        "optional": false
+      }
+    },
+    {
+      "sequence0": 29,
+      "artifactStep1": 30,
+      "metadataSequenceNumber": 29,
+      "depth": 0,
+      "kind": "assertConditionCommand",
+      "status": "COMPLETED",
+      "startEpochMs": 1793459002192,
+      "startUtc": "2026-10-31T15:03:22.192Z",
+      "durationMs": 99,
+      "endUtcComputed": "2026-10-31T15:03:22.291Z",
+      "condition": {
+        "visible": {
+          "textRegex": "(?s)^(?:Ready for our next adventure\\?|(?:.*?, )?Jordan Ellis, (?:.*?, )?Ready for our next adventure\\?(?:, .*)?)$",
+          "optional": false
+        }
+      },
+      "timeout": "15000"
+    },
+    {
+      "sequence0": 30,
+      "artifactStep1": 31,
+      "metadataSequenceNumber": 30,
+      "depth": 0,
+      "kind": "takeScreenshotCommand",
+      "status": "COMPLETED",
+      "startEpochMs": 1793459002292,
+      "startUtc": "2026-10-31T15:03:22.292Z",
+      "durationMs": 27,
+      "endUtcComputed": "2026-10-31T15:03:22.319Z",
+      "path": "messages"
+    },
+    {
+      "sequence0": 31,
+      "artifactStep1": 32,
+      "metadataSequenceNumber": 31,
+      "depth": 0,
+      "kind": "tapOnElement",
+      "status": "COMPLETED",
+      "startEpochMs": 1793459002319,
+      "startUtc": "2026-10-31T15:03:22.319Z",
+      "durationMs": 2892,
+      "endUtcComputed": "2026-10-31T15:03:25.211Z",
+      "selector": {
+        "idRegex": "main-tab-profile",
+        "optional": false
+      }
+    },
+    {
+      "sequence0": 32,
+      "artifactStep1": 33,
+      "metadataSequenceNumber": 32,
+      "depth": 0,
+      "kind": "assertConditionCommand",
+      "status": "COMPLETED",
+      "startEpochMs": 1793459005212,
+      "startUtc": "2026-10-31T15:03:25.212Z",
+      "durationMs": 107,
+      "endUtcComputed": "2026-10-31T15:03:25.319Z",
+      "condition": {
+        "visible": {
+          "textRegex": "Alex Rivera",
+          "optional": false
+        }
+      },
+      "timeout": "15000"
+    },
+    {
+      "sequence0": 33,
+      "artifactStep1": 34,
+      "metadataSequenceNumber": 33,
+      "depth": 0,
+      "kind": "assertConditionCommand",
+      "status": "COMPLETED",
+      "startEpochMs": 1793459005319,
+      "startUtc": "2026-10-31T15:03:25.319Z",
+      "durationMs": 144,
+      "endUtcComputed": "2026-10-31T15:03:25.463Z",
+      "condition": {
+        "visible": {
+          "textRegex": "(?s)^(?:.*?, )?Edit profile$",
+          "optional": false
+        }
+      }
+    },
+    {
+      "sequence0": 34,
+      "artifactStep1": 35,
+      "metadataSequenceNumber": 34,
+      "depth": 0,
+      "kind": "takeScreenshotCommand",
+      "status": "COMPLETED",
+      "startEpochMs": 1793459005464,
+      "startUtc": "2026-10-31T15:03:25.464Z",
+      "durationMs": 29,
+      "endUtcComputed": "2026-10-31T15:03:25.493Z",
+      "path": "profile"
+    },
+    {
+      "sequence0": 35,
+      "artifactStep1": 36,
+      "metadataSequenceNumber": 35,
+      "depth": 0,
+      "kind": "runFlowCommand",
+      "status": "FAILED",
+      "startEpochMs": 1793459005493,
+      "startUtc": "2026-10-31T15:03:25.493Z",
+      "durationMs": 41467,
+      "endUtcComputed": "2026-10-31T15:04:06.960Z"
+    },
+    {
+      "sequence0": 36,
+      "artifactStep1": 37,
+      "metadataSequenceNumber": 36,
+      "depth": 1,
+      "kind": "applyConfigurationCommand",
+      "status": "COMPLETED",
+      "startEpochMs": 1793459005494,
+      "startUtc": "2026-10-31T15:03:25.494Z",
+      "durationMs": 0,
+      "endUtcComputed": "2026-10-31T15:03:25.494Z"
+    },
+    {
+      "sequence0": 37,
+      "artifactStep1": 38,
+      "metadataSequenceNumber": 37,
+      "depth": 1,
+      "kind": "scrollUntilVisible",
+      "status": "FAILED",
+      "startEpochMs": 1793459005494,
+      "startUtc": "2026-10-31T15:03:25.494Z",
+      "durationMs": 41431,
+      "endUtcComputed": "2026-10-31T15:04:06.925Z",
+      "selector": {
+        "textRegex": "View all memory books",
+        "optional": false
+      },
+      "direction": "DOWN",
+      "timeout": "20000",
+      "centerElement": true
+    }
+  ]
+}

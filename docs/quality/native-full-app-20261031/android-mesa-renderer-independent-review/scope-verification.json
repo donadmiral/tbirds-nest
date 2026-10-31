@@ -1,0 +1,23 @@
+{
+  "baseHead": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+  "checks": {
+    "postRendererAppInstallAndGateTailIdenticalAfterRemovingDiagnosticSnapshot": true,
+    "flowEvidenceDecoderVerifierAndFinalStatusTailByteIdentical": true,
+    "snapshotExactlyOnceBestEffort3SecondsBeforeFlows": true,
+    "collectExactlyOnceBestEffort3SecondsAfterOwnedEmulatorWaitBeforeCrashpad": true,
+    "sameDisplaySoftwareDriverAndLocaleEnvironmentAtBothCommands": true,
+    "initialAdbWait180SecondsUnchanged": true,
+    "bootPoll120By2SecondsUnchanged": true,
+    "emulatorMemory3072Unchanged": true,
+    "workflowChangeOnlyRequiredHostPackageList": true,
+    "newRendererAndHostDiagnosticHelpersIncludedInPreparationAndRequiredFixture": true
+  },
+  "finalHashesAfterIndependentTest": {
+    "scripts/quality/native-ui-emulator-graphics.py": "7768c98ec1eb3f3afc770dda6f6ece99fe4467bf65ce7e714be9b8b8a7f8ca78",
+    "tests/quality/native-emulator-graphics.cjs": "c93c86747b01214dbe349b5f4e1d5bbd273993c0f4dd98fcb6a048b1c1defab3",
+    "scripts/quality/test-android-app-ui.sh": "e152bfa57b13fe9321703055769ee8f6bbf3ab7457440810a9e777832d15f355",
+    ".github/workflows/native-app-ui.yml": "f4c37d8f777628134b86ca91fa9476b59428150d4559d0848533f3e3cd8298f1",
+    "scripts/quality/prepare-native-ui.cjs": "3aaf404903272008f7f9479f21814981f58548df3366855b6382942af3ce2053",
+    "tests/quality/native-auth-diagnostics.cjs": "494fea44421e8e95f88f3b3c8eec1e464157650dc3eabcb5570c3084f407291c"
+  }
+}

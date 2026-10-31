@@ -1,7 +1,10 @@
 "use client";
+import NextImage from "next/image";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { profilePath } from "@/lib/profileLookup";
+import { useBrowserMediaQuery } from "@/lib/useBrowserMediaQuery";
 import { ChevronLeft, ChevronRight, X, Maximize2, Minimize2, Heart, MessageCircle, Repeat2 } from "lucide-react";
 import { carouselIndex, carouselSwipe, type TouchPoint } from '../../shared/carouselNavigation';
 import { postAspectRatio } from '../../shared/postMediaEditing';
@@ -12,7 +15,7 @@ import { VerifiedBadge, getTierColor } from "@/components/VerifiedBadge";
 import { Comments } from "@/components/Comments";
 import { PostMenu } from "@/components/PostMenu";
 import { RichText } from "@/components/RichText";
-import { displayImageUrl, srcSetFor } from "@/lib/media";
+import { displayImageUrl } from "@/lib/media";
 import { dataSaverEnabled } from "@/lib/mediaPrefs";
 import { createClient } from "@/lib/supabase/client";
 import { hydratePostMedia } from "@/lib/contentMedia";
@@ -23,6 +26,10 @@ import { COMMENT_COUNT_UPDATED, refreshCommentCount, type CommentCountUpdate } f
 import {PostSoundtrack} from "./PostSoundtrack";
 import {readSoundtrack} from "../../shared/soundtrack";
 import { discoverFrame } from "../../shared/discover";
+
+function publicImageLoader({ src, width }: { src: string; width: number }) {
+  return displayImageUrl(src, Math.min(width, 1440))!;
+}
 
 type MediaItem = { id: string; url: string; media_type: string | null; width?: number | null; height?: number | null; alt_text?: string | null; is_sensitive?: boolean | null; edit?: PostMediaEditRecipe | null };
 
@@ -64,7 +71,7 @@ function TagLayer({ tags, w, h, mode = "pins" }: { tags: MediaTag[]; w?: number;
   }
   const name = (t: MediaTag) => {
     const tier = getTierColor(t.verified_tier);
-    return (<><span className="truncate" style={tier ? { color: tier } : undefined}>{t.full_name || t.username || "Member"}</span>{t.verified_tier ? <VerifiedBadge userId={t.user_id} tier={t.verified_tier as any} size={12} /> : null}</>);
+    return (<><span className="truncate" style={tier ? { color: tier } : undefined}>{t.full_name || t.username || "Member"}</span>{t.verified_tier ? <VerifiedBadge userId={t.user_id} tier={t.verified_tier} size={12} /> : null}</>);
   };
   const badgeRight = placed.some((p) => p.y + PILL > H - 48 && p.x < 60) || tags.some((t) => t.ny > 0.84 && t.nx < 0.22);
   return (
@@ -72,7 +79,7 @@ function TagLayer({ tags, w, h, mode = "pins" }: { tags: MediaTag[]; w?: number;
       {open && mode === "pins" && W && H ? placed.map(({ t, ax, x, y, wpx, below }) => (
         <span key={t.user_id}>
           <span className="absolute h-0 w-0 border-x-[6px] border-x-transparent" style={below ? { left: ax - TIP, top: y - TIP, borderBottom: "6px solid #fff" } : { left: ax - TIP, top: y + PILL, borderTop: "6px solid #fff" }} />
-          <Link href={"/" + (t.username || "")} onClick={(e) => e.stopPropagation()} title={t.full_name || t.username || undefined}
+          <Link href={profilePath(t.username,t.user_id)} onClick={(e) => e.stopPropagation()} title={t.full_name || t.username || undefined}
             className="pointer-events-auto absolute flex h-[30px] items-center justify-center gap-1 rounded-lg bg-white px-2.5 text-[12.5px] font-bold text-[#0B1E3D] shadow-lg" style={{ left: x, top: y, width: wpx }}>
             {name(t)}
           </Link>
@@ -82,8 +89,8 @@ function TagLayer({ tags, w, h, mode = "pins" }: { tags: MediaTag[]; w?: number;
         <span className={"pointer-events-auto absolute bottom-12 z-10 w-56 overflow-hidden rounded-xl bg-white p-1.5 shadow-2xl " + (badgeRight ? "right-2.5" : "left-2.5")}>
           <span className="block px-2 pb-1 pt-0.5 text-[11px] font-bold uppercase tracking-wide text-[#0B1E3D]/50">In this video</span>
           {tags.map((t) => (
-            <Link key={t.user_id} href={"/" + (t.username || "")} onClick={(e) => e.stopPropagation()} className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] font-semibold text-[#0B1E3D] hover:bg-black/[0.04]">
-              {t.avatar_url ? <img src={t.avatar_url} alt="" className="h-7 w-7 rounded-full object-cover" /> : <span className="h-7 w-7 rounded-full bg-[#C9BFB0]" />}
+            <Link key={t.user_id} href={profilePath(t.username,t.user_id)} onClick={(e) => e.stopPropagation()} className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-[13px] font-semibold text-[#0B1E3D] hover:bg-black/[0.04]">
+              {t.avatar_url ? <NextImage unoptimized width={28} height={28} src={t.avatar_url} alt="" className="h-7 w-7 rounded-full object-cover" /> : <span className="h-7 w-7 rounded-full bg-[#C9BFB0]" />}
               <span className="flex min-w-0 flex-1 items-center gap-1">{name(t)}</span>
             </Link>
           ))}
@@ -140,11 +147,11 @@ function fitted(w: number | null | undefined, h: number | null | undefined, avai
   return { ...box, sourceW: source.width, sourceH: source.height };
 }
 
-export function MediaGallery({ media, postId, viewsCount, post, fullFrame = false, onDoubleClick: onFeedDoubleClick }: { media: MediaItem[]; postId: string; viewsCount?: number | null; post?: ViewerPost; fullFrame?: boolean; onDoubleClick?: (e: React.MouseEvent) => void }) {
+export function MediaGallery(props: Parameters<typeof PostMediaGallery>[0]) {return <PostMediaGallery key={props.postId} {...props}/>;}
+function PostMediaGallery({ media, postId, viewsCount, post, fullFrame = false, onDoubleClick: onFeedDoubleClick }: { media: MediaItem[]; postId: string; viewsCount?: number | null; post?: ViewerPost; fullFrame?: boolean; onDoubleClick?: (e: React.MouseEvent) => void }) {
   const [edits, setEdits] = useState<Record<string, PostMediaEditRecipe | null>>({});
   useEffect(() => {
     const need = media.filter(m => m.edit === undefined && UUID_ID.test(m.id)).map(m => m.id);
-    setEdits({});
     if (!need.length) return;
     const client = createClient();
     let live = true, version = 0;
@@ -157,7 +164,7 @@ export function MediaGallery({ media, postId, viewsCount, post, fullFrame = fals
         if (!live || run !== version) return;
         const next: Record<string, PostMediaEditRecipe | null> = {};
         need.forEach(id => { next[id] = null; });
-        safe.post_media.forEach((row: any) => { next[row.id] = row.edit ?? null; });
+        safe.post_media.forEach((row: {id:string;edit?:PostMediaEditRecipe|null}) => { next[row.id] = row.edit ?? null; });
         setEdits(next);
       } catch { if (live && run === version) setEdits({}); }
     };
@@ -170,9 +177,10 @@ export function MediaGallery({ media, postId, viewsCount, post, fullFrame = fals
   }, [media, postId]);
   const editOf = (m: MediaItem) => (m.edit !== undefined ? m.edit : edits[m.id]) ?? null;
   const [tags, setTags] = useState<Record<string, MediaTag[]>>({});
+  const [metadataSource,setMetadataSource]=useState(media);
+  if(metadataSource!==media){setMetadataSource(media);setEdits({});setTags({});}
   useEffect(() => {
     const need = media.filter(m => UUID_ID.test(m.id)).map(m => m.id);
-    setTags({});
     if (!need.length) return;
     const client = createClient();
     let live = true, version = 0;
@@ -184,7 +192,7 @@ export function MediaGallery({ media, postId, viewsCount, post, fullFrame = fals
         if (!live || run !== version) return;
         const next: Record<string, MediaTag[]> = {};
         need.forEach(id => { next[id] = []; });
-        (data ?? []).forEach((row: any) => { const profile = row.profile || {}; (next[row.media_id] ||= []).push({ user_id: row.user_id, nx: Number(row.nx) || 0.5, ny: Number(row.ny) || 0.5, full_name: profile.full_name ?? null, username: profile.username ?? null, avatar_url: profile.avatar_url ?? null, verified_tier: profile.verified_tier ?? null }); });
+        (data ?? []).forEach((row) => { const profile = (Array.isArray(row.profile)?row.profile[0]:row.profile) || {}; (next[row.media_id] ||= []).push({ user_id: row.user_id, nx: Number(row.nx) || 0.5, ny: Number(row.ny) || 0.5, full_name: profile.full_name ?? null, username: profile.username ?? null, avatar_url: profile.avatar_url ?? null, verified_tier: profile.verified_tier ?? null }); });
         setTags(next);
       } catch { if (live && run === version) setTags({}); }
     };
@@ -213,7 +221,7 @@ export function MediaGallery({ media, postId, viewsCount, post, fullFrame = fals
   const [mobileComments, setMobileComments] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [reduced, setReduced] = useState(false);
+  const reduced = useBrowserMediaQuery("(prefers-reduced-motion: reduce)");
   const [revealed, setRevealed] = useState<Record<string, boolean>>({});
   const social = usePostInteractions(post?.post_id ?? "", { liked: !!post?.viewer_liked, bookmarked: !!post?.viewer_bookmarked,
     likesCount: post?.likes_count ?? 0, bookmarksCount: post?.bookmarks_count });
@@ -238,8 +246,7 @@ export function MediaGallery({ media, postId, viewsCount, post, fullFrame = fals
     if (commentPostId && latestCommentUpdate.current?.postId === commentPostId) void refreshCommentCount(createClient(), commentPostId);
   }, [commentPostId, commentSeed]);
 
-  useEffect(() => {
-    setReduced(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  useLayoutEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
     setAvailW(Math.round(el.getBoundingClientRect().width) || 608);
@@ -476,9 +483,9 @@ export function MediaGallery({ media, postId, viewsCount, post, fullFrame = fals
             </div>
           ) : (
             <div className="relative flex items-center justify-center" style={dims ? { width: dims.w, height: dims.h } : undefined}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={displayImageUrl(item.url, dataSaverEnabled() ? 480 : 1200)!}
-              {...(dataSaverEnabled() ? {} : srcSetFor(item.url))}
+
+            <NextImage unoptimized={dataSaverEnabled() || !item.url.includes('/storage/v1/object/public/')} width={known?.w || 1200} height={known?.h || 900} src={dataSaverEnabled() ? displayImageUrl(item.url, 480)! : item.url}
+              loader={publicImageLoader} sizes="(max-width: 700px) 92vw, 640px"
               onError={(e) => { if (e.currentTarget.src !== item.url) { e.currentTarget.removeAttribute("srcset"); e.currentTarget.src = item.url; } }}
               onLoad={(e) => measure(item.id, e.currentTarget.naturalWidth, e.currentTarget.naturalHeight)}
               onClick={(e) => { e.preventDefault(); e.stopPropagation(); openViewer(idx, e.currentTarget); }}
@@ -542,15 +549,15 @@ export function MediaGallery({ media, postId, viewsCount, post, fullFrame = fals
           {/* Top bar, as in the reference: wordmark, author, Fit to screen, close. */}
           <div onClick={(e) => e.stopPropagation()} className="flex h-[56px] shrink-0 items-center gap-2 border-b border-white/10 px-3 md:h-[60px] md:gap-4 md:px-5">
             <span className="hidden items-center gap-2.5 md:flex">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.png" alt="" className="h-7 w-7 rounded-full" />
+
+              <NextImage unoptimized width={28} height={28} src="/logo.png" alt="" className="h-7 w-7 rounded-full" />
               <span className="text-[15px] leading-none text-white"><span className="font-bold">Platinum</span> <span className="font-normal text-white/70">Circles</span></span>
             </span>
             {post ? (
               <Link href={"/" + (post.author_username ?? "")} className="flex min-w-0 items-center gap-2 text-white md:ml-3 md:gap-2.5">
                 {post.author_avatar ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={post.author_avatar} alt="" className="h-8 w-8 rounded-full object-cover" />
+
+                  <NextImage unoptimized width={32} height={32} src={post.author_avatar} alt="" className="h-8 w-8 rounded-full object-cover" />
                 ) : null}
                 <span className="flex min-w-0 items-center gap-[3px] text-[14px] font-semibold md:text-[15px]"><span className="truncate">{post.author_name}</span>{post.author_verified ? <VerifiedBadge userId={post.author_id} tier={post.author_verified_tier ?? null} size={14} /> : null}</span>
                 <span className="hidden text-[13px] text-white/55 sm:inline">@{post.author_username}</span>
@@ -588,8 +595,8 @@ export function MediaGallery({ media, postId, viewsCount, post, fullFrame = fals
                 />
               </div>
             ) : (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={displayImageUrl(media[lightbox].url)!}
+
+              <NextImage unoptimized width={media[lightbox].width || 1200} height={media[lightbox].height || 900} src={displayImageUrl(media[lightbox].url)!}
                 onError={(e) => { if (e.currentTarget.src !== media[lightbox].url) e.currentTarget.src = media[lightbox].url; }}
                 onLoad={(e) => measure(media[lightbox].id, e.currentTarget.naturalWidth, e.currentTarget.naturalHeight)}
                 alt={altOf(media[lightbox], lightbox)}
@@ -620,20 +627,20 @@ export function MediaGallery({ media, postId, viewsCount, post, fullFrame = fals
           </div>
 
           {media[lightbox + 1]?.media_type === "image" ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={displayImageUrl(media[lightbox + 1].url, 1600)!} alt="" aria-hidden className="hidden" />
+
+            <NextImage unoptimized width={media[lightbox + 1].width || 1200} height={media[lightbox + 1].height || 900} loading="eager" src={displayImageUrl(media[lightbox + 1].url, 1600)!} alt="" aria-hidden className="hidden" />
           ) : null}
           {media[lightbox - 1]?.media_type === "image" ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={displayImageUrl(media[lightbox - 1].url, 1600)!} alt="" aria-hidden className="hidden" />
+
+            <NextImage unoptimized width={media[lightbox - 1].width || 1200} height={media[lightbox - 1].height || 900} loading="eager" src={displayImageUrl(media[lightbox - 1].url, 1600)!} alt="" aria-hidden className="hidden" />
           ) : null}
 
           {showPanel ? (
             <aside onClick={(e) => e.stopPropagation()} className="hidden w-[340px] shrink-0 flex-col overflow-y-auto border-l border-white/10 bg-navy p-5 lg:flex">
               <div className="flex items-center gap-2.5">
                 {post!.author_avatar ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={displayImageUrl(post!.author_avatar, 100)!} alt="" className="h-10 w-10 rounded-full object-cover" />
+
+                  <NextImage unoptimized width={40} height={40} src={displayImageUrl(post!.author_avatar, 100)!} alt="" className="h-10 w-10 rounded-full object-cover" />
                 ) : (
                   <span className="flex h-10 w-10 items-center justify-center rounded-full bg-surface text-sm font-semibold text-porcelain">{(post!.author_name ?? "?").charAt(0)}</span>
                 )}

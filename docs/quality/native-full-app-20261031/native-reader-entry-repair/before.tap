@@ -1,0 +1,282 @@
+TAP version 13
+# Subtest: held optional reactions do not block the actual authorized reader
+ok 1 - held optional reactions do not block the actual authorized reader
+  ---
+  duration_ms: 365.467648
+  type: 'test'
+  ...
+# Subtest: unknown initial reaction state cannot expose an actionable Like guess
+ok 2 - unknown initial reaction state cannot expose an actionable Like guess
+  ---
+  duration_ms: 191.744135
+  type: 'test'
+  ...
+# Subtest: optional reaction reject cannot discard the authorized book
+ok 3 - optional reaction reject cannot discard the authorized book
+  ---
+  duration_ms: 156.187628
+  type: 'test'
+  ...
+# Subtest: optional reaction error-result cannot discard the authorized book
+ok 4 - optional reaction error-result cannot discard the authorized book
+  ---
+  duration_ms: 144.253084
+  type: 'test'
+  ...
+# Subtest: pending auth cannot dispatch required book or optional reaction reads
+ok 5 - pending auth cannot dispatch required book or optional reaction reads
+  ---
+  duration_ms: 133.004842
+  type: 'test'
+  ...
+# Subtest: pending required book authorization keeps the reader gated
+ok 6 - pending required book authorization keeps the reader gated
+  ---
+  duration_ms: 110.920897
+  type: 'test'
+  ...
+# Subtest: required book rejection still clears the reader and offers retry
+ok 7 - required book rejection still clears the reader and offers retry
+  ---
+  duration_ms: 164.529204
+  type: 'test'
+  ...
+# Subtest: required media rejection still clears the reader and offers retry
+ok 8 - required media rejection still clears the reader and offers retry
+  ---
+  duration_ms: 107.531289
+  type: 'test'
+  ...
+# Subtest: held required media hydration cannot publish a book or start optional reads
+ok 9 - held required media hydration cannot publish a book or start optional reads
+  ---
+  duration_ms: 117.455825
+  type: 'test'
+  ...
+# Subtest: old optional read cannot affect a replacement route that shares a story ID
+ok 10 - old optional read cannot affect a replacement route that shares a story ID
+  ---
+  duration_ms: 129.316127
+  type: 'test'
+  ...
+# Subtest: account ABA invalidates old optional reads before a replacement viewer commit
+ok 11 - account ABA invalidates old optional reads before a replacement viewer commit
+  ---
+  duration_ms: 109.611057
+  type: 'test'
+  ...
+# Subtest: unmount invalidates a pending optional reaction result
+ok 12 - unmount invalidates a pending optional reaction result
+  ---
+  duration_ms: 100.100057
+  type: 'test'
+  ...
+# Subtest: a newer load result wins over the previous optional reaction read
+ok 13 - a newer load result wins over the previous optional reaction read
+  ---
+  duration_ms: 112.698636
+  type: 'test'
+  ...
+# Subtest: an older reaction read preserves a newer successful toggle and other page results
+ok 14 - an older reaction read preserves a newer successful toggle and other page results
+  ---
+  duration_ms: 92.035592
+  type: 'test'
+  ...
+# Subtest: a newer successful unreact removes the stale read membership
+ok 15 - a newer successful unreact removes the stale read membership
+  ---
+  duration_ms: 96.624975
+  type: 'test'
+  ...
+# Subtest: failed toggle leaves the optional authoritative reaction result usable
+ok 16 - failed toggle leaves the optional authoritative reaction result usable
+  ---
+  duration_ms: 77.695195
+  type: 'test'
+  ...
+# Subtest: fresh book identity cannot display old confirmed likes while its optional read is held
+ok 17 - fresh book identity cannot display old confirmed likes while its optional read is held
+  ---
+  duration_ms: 98.491222
+  type: 'test'
+  ...
+# Subtest: empty refreshed book removes old likes before a source returns
+ok 18 - empty refreshed book removes old likes before a source returns
+  ---
+  duration_ms: 105.614876
+  type: 'test'
+  ...
+# Subtest: no-story refreshed book removes old likes before a source returns
+ok 19 - no-story refreshed book removes old likes before a source returns
+  ---
+  duration_ms: 88.918585
+  type: 'test'
+  ...
+# Subtest: a successful old-route toggle cannot leak into a replacement book
+ok 20 - a successful old-route toggle cannot leak into a replacement book
+  ---
+  duration_ms: 121.477444
+  type: 'test'
+  ...
+# Subtest: optional background reject retains confirmed known reaction state
+ok 21 - optional background reject retains confirmed known reaction state
+  ---
+  duration_ms: 89.879831
+  type: 'test'
+  ...
+# Subtest: optional background error-result retains confirmed known reaction state
+ok 22 - optional background error-result retains confirmed known reaction state
+  ---
+  duration_ms: 102.684318
+  type: 'test'
+  ...
+# Subtest: an old-account mutation cannot apply after ABA before React rerenders
+ok 23 - an old-account mutation cannot apply after ABA before React rerenders
+  ---
+  duration_ms: 130.887296
+  type: 'test'
+  ...
+# Subtest: unmounted confirmed reaction completion cannot publish state or errors
+ok 24 - unmounted confirmed reaction completion cannot publish state or errors
+  ---
+  duration_ms: 109.22751
+  type: 'test'
+  ...
+# Subtest: unmounted rejected reaction completion cannot publish state or errors
+ok 25 - unmounted rejected reaction completion cannot publish state or errors
+  ---
+  duration_ms: 83.560672
+  type: 'test'
+  ...
+# Subtest: soundtrack confirmation does not discard a held optional reaction response
+ok 26 - soundtrack confirmation does not discard a held optional reaction response
+  ---
+  duration_ms: 104.091901
+  type: 'test'
+  ...
+# Subtest: soundtrack confirmation invalidating a held refresh cannot strand unknown reactions as loading
+ok 27 - soundtrack confirmation invalidating a held refresh cannot strand unknown reactions as loading
+  ---
+  duration_ms: 88.882761
+  type: 'test'
+  ...
+# Subtest: ios authorized reader entry does not wait for native animation completion
+not ok 28 - ios authorized reader entry does not wait for native animation completion
+  ---
+  duration_ms: 82.490267
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-album-loading.cjs:399:3'
+  failureType: 'testCodeFailure'
+  error: 'the first committed press renders the authorized page without an animation acknowledgement'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-album-loading.cjs:404:14)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: android authorized reader entry does not wait for native animation completion
+not ok 29 - android authorized reader entry does not wait for native animation completion
+  ---
+  duration_ms: 89.890442
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-album-loading.cjs:399:3'
+  failureType: 'testCodeFailure'
+  error: 'the first committed press renders the authorized page without an animation acknowledgement'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-album-loading.cjs:404:14)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: reduced-motion reader entry also needs no animation acknowledgement
+not ok 30 - reduced-motion reader entry also needs no animation acknowledgement
+  ---
+  duration_ms: 84.852564
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-album-loading.cjs:410:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(h.visible('Page 1 of 2'))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-album-loading.cjs:414:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: an interrupted decorative animation cannot prevent authorized reader entry
+not ok 31 - an interrupted decorative animation cannot prevent authorized reader entry
+  ---
+  duration_ms: 93.798154
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-album-loading.cjs:418:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The expression evaluated to a falsy value:
+    
+      assert.ok(h.visible('Page 1 of 2'))
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: true
+  actual: false
+  operator: '=='
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/native-memory-album-loading.cjs:423:12)
+    async Test.run (node:internal/test_runner/test:1409:7)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: explicit close returns to the cover and a later press opens the reader again
+ok 32 - explicit close returns to the cover and a later press opens the reader again
+  ---
+  duration_ms: 91.39898
+  type: 'test'
+  ...
+# Subtest: route replacement discards the previous reader entry and any delayed acknowledgement
+ok 33 - route replacement discards the previous reader entry and any delayed acknowledgement
+  ---
+  duration_ms: 91.334769
+  type: 'test'
+  ...
+# Subtest: account replacement hides the old reader until its new authorized book read
+ok 34 - account replacement hides the old reader until its new authorized book read
+  ---
+  duration_ms: 91.153115
+  type: 'test'
+  ...
+# Subtest: unmount rejects late reader-entry animation acknowledgement without a state write
+ok 35 - unmount rejects late reader-entry animation acknowledgement without a state write
+  ---
+  duration_ms: 93.755545
+  type: 'test'
+  ...
+# Subtest: ordinary same-book refresh preserves the already opened reader
+ok 36 - ordinary same-book refresh preserves the already opened reader
+  ---
+  duration_ms: 93.396796
+  type: 'test'
+  ...
+1..36
+# tests 36
+# suites 0
+# pass 32
+# fail 4
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 4350.294859

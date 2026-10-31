@@ -22,7 +22,7 @@ export default function MonetizationPage() {
   const linkRequest = useRef<AbortController | null>(null);
   const currentUser = useRef<string | null | undefined>(undefined);
   const reload = useCallback(async (owner: string, generation: number) => {
-    const request = ++requests.current;
+    const request = requests.current += 1;
     linkRequest.current?.abort();
     const controller = new AbortController(); linkRequest.current = controller;
     const timeout = setTimeout(() => controller.abort(), 15000);
@@ -39,8 +39,8 @@ export default function MonetizationPage() {
     let live = true;
     const update = (owner: string | null) => {
       if (!live || currentUser.current === owner) return;
-      currentUser.current = owner; const generation = ++identity.current;
-      requests.current++; mutation.current = false; linkRequest.current?.abort();
+      currentUser.current = owner; const generation = identity.current += 1;
+      requests.current += 1; mutation.current = false; linkRequest.current?.abort();
       setUid(owner); setSnapshot(null); setLinked(null); setError(null); setLinkError(null); setBusy(false); setAccepted(false);
       if (owner) void reload(owner, generation); else setLoading(false);
     };
@@ -55,7 +55,7 @@ export default function MonetizationPage() {
       if (!live || identity.current !== initialGeneration) return;
       if (error) sessionError(); else update(data.session?.user.id ?? null);
     }, sessionError);
-    return () => { live = false; identity.current++; requests.current++; linkRequest.current?.abort(); data.subscription.unsubscribe(); };
+    return () => { live = false; identity.current += 1; requests.current += 1; linkRequest.current?.abort(); data.subscription.unsubscribe(); };
   }, [client, reload]);
   async function enroll(apply: boolean) {
     if (!uid || mutation.current || !snapshot || (apply && (!accepted || !snapshot.program.terms_version))) return;

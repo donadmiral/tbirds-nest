@@ -1,0 +1,350 @@
+{
+  "review": "iPhone e173 first memory-navigation failure; independent evidence and repair proposal",
+  "recordedAtUtc": "2026-10-31T06:41:24.138623+00:00",
+  "candidate": {
+    "head": "e173b2dbcf253342be5683fa85f102aa38065411",
+    "merge": "e6ca24e27b00207344eb7989ed53d2305cb04cf3",
+    "tree": "37ca8db90469d32a2a2d7b3069db54b522926530",
+    "runId": 41173170193,
+    "jobId": 124455216930,
+    "artifactId": 13033622896,
+    "zipBytes": 36460491,
+    "zipSha256": "06c1849b074c079ebc70b5032ed4b7f7289650064ef62408f06359921250b5b0",
+    "zipReverified": true
+  },
+  "scope": "Shared verified extraction, no duplicate download. Native owner handles complete source/signing/auth/required-flow/capture evidence. This receipt reviews navigation and does not modify source or acceptance assertions.",
+  "firstFailure": {
+    "commandSequence": 67,
+    "artifactStepNumber": 68,
+    "assertion": "Book settings visible",
+    "durationMs": 19622,
+    "previousTapSequence": 66,
+    "target": "Edit memory book",
+    "targetBounds": "[335,69][379,113]",
+    "targetCenter": [
+      357,
+      91
+    ],
+    "tapDurationMs": 3449,
+    "keyboardWasExercised": false,
+    "settingsControlsInFailureHierarchy": false,
+    "underlyingCoverStillPresent": true,
+    "selectedHierarchy": [
+      {
+        "label": "Back to profile",
+        "bounds": "[14,69][58,113]",
+        "enabled": "true"
+      },
+      {
+        "label": "Edit memory book",
+        "bounds": "[335,69][379,113]",
+        "enabled": "true"
+      },
+      {
+        "label": "Keepsake book cover: THE SMALL ADVENTURES. A book from this week",
+        "bounds": "[28,183][365,624]",
+        "enabled": "true"
+      },
+      {
+        "label": "Open book",
+        "bounds": "[28,715][365,768]",
+        "enabled": "true"
+      }
+    ]
+  },
+  "passedBeforeFailure": [
+    "All five main-page assertions and screenshots.",
+    "Private memory shelf with two memories.",
+    "Page 1 and its expected caption, then Page 2 and its expected caption.",
+    "Reflective continuous film, pause control and two-memory summary.",
+    "Movie export entry with correct title/count and Create memory movie control.",
+    "Close export, return to paused film, Read memory book and retained Page 2.",
+    "Close memory book and locate the enabled Edit memory book control."
+  ],
+  "timeline": [
+    {
+      "sequence": 60,
+      "status": "COMPLETED",
+      "timestampEpochMs": 1793428180812,
+      "durationMs": 196,
+      "command": {
+        "takeScreenshotCommand": {
+          "path": "memory-export-entry",
+          "optional": false
+        }
+      }
+    },
+    {
+      "sequence": 61,
+      "status": "COMPLETED",
+      "timestampEpochMs": 1793428181008,
+      "durationMs": 3525,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Close movie export",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      }
+    },
+    {
+      "sequence": 62,
+      "status": "COMPLETED",
+      "timestampEpochMs": 1793428184533,
+      "durationMs": 708,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Play memory film",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      }
+    },
+    {
+      "sequence": 63,
+      "status": "COMPLETED",
+      "timestampEpochMs": 1793428185242,
+      "durationMs": 3747,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Read memory book",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      }
+    },
+    {
+      "sequence": 64,
+      "status": "COMPLETED",
+      "timestampEpochMs": 1793428188995,
+      "durationMs": 906,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Page 2 of 2",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      }
+    },
+    {
+      "sequence": 65,
+      "status": "COMPLETED",
+      "timestampEpochMs": 1793428189902,
+      "durationMs": 3852,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Close memory book",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      }
+    },
+    {
+      "sequence": 66,
+      "status": "COMPLETED",
+      "timestampEpochMs": 1793428193754,
+      "durationMs": 3449,
+      "command": {
+        "tapOnElement": {
+          "selector": {
+            "textRegex": "Edit memory book",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      }
+    },
+    {
+      "sequence": 67,
+      "status": "FAILED",
+      "timestampEpochMs": 1793428197203,
+      "durationMs": 19622,
+      "command": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Book settings",
+              "optional": false
+            }
+          },
+          "optional": false
+        }
+      }
+    }
+  ],
+  "reactMountEvidence": {
+    "fixtureReceipt": {
+      "path": "/tmp/ios-full-app-e173b2db-41173170193/native-ui-receipt.json",
+      "bytes": 39704,
+      "sha256": "e1dac86fd43457ef3e91840de0a35674a1f67838b12485b2689a2ca86f5d6459"
+    },
+    "audienceReads": [
+      {
+        "requestIndex": 247,
+        "method": "GET",
+        "path": "/rest/v1/memory_album_access"
+      }
+    ],
+    "source": "src/components/memory/MemoryAudienceEditor.tsx:7",
+    "interpretation": "The sole audience lookup is the settings editor mount effect on the executed path. It supports that settings React content mounted; it is not a native onShow/dismissal receipt and has no own event timestamp."
+  },
+  "visualEvidence": {
+    "retained": [
+      {
+        "path": "docs/quality/native-full-app-20261031/ios-e173b2db/navigation-commands.json",
+        "bytes": 89824,
+        "sha256": "f679686cffd74a045a577936869e81b15fd514baf3a5fde77c2dfd691a27160a"
+      },
+      {
+        "path": "docs/quality/native-full-app-20261031/ios-e173b2db/settings-failure-ax.json",
+        "bytes": 32392,
+        "sha256": "47094766e2eb4d1967f5ed81a612af9798529776d7a3c33fd57e6f028be736af"
+      },
+      {
+        "path": "docs/quality/native-full-app-20261031/ios-e173b2db/settings-failure.png",
+        "bytes": 693304,
+        "sha256": "98e0fe4ed00d54054f92ec4735b690746845da0290baa55df7176815de98492c"
+      },
+      {
+        "path": "docs/quality/native-full-app-20261031/ios-e173b2db/navigation-junit.xml",
+        "bytes": 587,
+        "sha256": "398f609a94fbfa8b122f2666e9d36359253ffc49e25376a42bf67d84358f8f04"
+      },
+      {
+        "path": "docs/quality/native-full-app-20261031/ios-e173b2db/memory-shelf.png",
+        "bytes": 312864,
+        "sha256": "99a70a89d21ab219c63149dcff288ccb01cab66293aac236028a332207eff8f4"
+      },
+      {
+        "path": "docs/quality/native-full-app-20261031/ios-e173b2db/memory-reader.png",
+        "bytes": 401922,
+        "sha256": "aa72fd2bffcd1cc5a70c28972ade9aee3d3644eb098e97a540a36687bfcc483f"
+      },
+      {
+        "path": "docs/quality/native-full-app-20261031/ios-e173b2db/memory-film.png",
+        "bytes": 113543,
+        "sha256": "133bc6f3462263c2ee2ff455279ceeaaa68043033751221591689e772a202e39"
+      },
+      {
+        "path": "docs/quality/native-full-app-20261031/ios-e173b2db/memory-export-entry.png",
+        "bytes": 144038,
+        "sha256": "f770e14e87e7971e80ce1b57221d77601f52acc0fa17cf32a695157510cea8c0"
+      }
+    ],
+    "video": {
+      "path": "/tmp/ios-full-app-e173b2db-41173170193/navigation.mp4",
+      "bytes": 13217663,
+      "sha256": "92e3cbc3b18f3a219ebfa6daf27d3a6dab27283c043cee664df5fae0579463df"
+    },
+    "videoMetadata": {
+      "durationSeconds": 911.303333,
+      "creationTime": "2026-10-31T06:20:06.000000Z",
+      "width": 1179,
+      "height": 2556
+    },
+    "derivedFrames": [
+      {
+        "mediaOffsetSeconds": 590,
+        "path": "docs/quality/native-full-app-20261031/ios-e173b2db/navigation-frame-590s.png",
+        "bytes": 155093,
+        "sha256": "daeae40988f25c9c76d47c0569df9e46fe4e31f5a0cdadd485284902d22cb7d2"
+      },
+      {
+        "mediaOffsetSeconds": 594,
+        "path": "docs/quality/native-full-app-20261031/ios-e173b2db/navigation-frame-594s.png",
+        "bytes": 204329,
+        "sha256": "7c5828dd4d60cc5de0ca2299d3071b3d87ca1529d78b17aa01cd457d783cf99f"
+      },
+      {
+        "mediaOffsetSeconds": 616,
+        "path": "docs/quality/native-full-app-20261031/ios-e173b2db/navigation-frame-616s.png",
+        "bytes": 204329,
+        "sha256": "7c5828dd4d60cc5de0ca2299d3071b3d87ca1529d78b17aa01cd457d783cf99f"
+      }
+    ],
+    "derivation": "ffmpeg -ss <offset> -i navigation.mp4 -frames:v 1 -vf scale=393:852; only representative frames retained. Media offsets are exact extraction requests, not asserted wall-clock event timestamps.",
+    "finding": "After a cover-only frame at 590 s, 594 s and 616 s show the Book settings sheet translucently overlapped with the previous cover. The direct failure PNG and hierarchy instead expose the cover only. This indicates inconsistent native presentation/capture state; exact UIKit/Fabric cause is not proven."
+  },
+  "logEvidence": {
+    "path": "docs/quality/native-full-app-20261031/ios-e173b2db/settings-tap-log-projection.json",
+    "bytes": 8594,
+    "sha256": "a3974822cb9d0d89cd5c3f4c66960448e37511f4c168dca11f6c4bb2f6968a42"
+  },
+  "source": [
+    {
+      "path": "tests/native/flows/memory-navigation.yaml",
+      "sha256": "42a6947e98ceda6e60e7073a486c5317f238f8e478763c30f4eed1e0dd39aeae",
+      "artifactMatchesPublishedHead": true
+    },
+    {
+      "path": "src/screens/profile/MemoryAlbumScreen.tsx",
+      "sha256": "437b2d5c52cf1ad00ce1d322367ac1e41da8857b6d2db6a1c7db263ad4e7f541",
+      "artifactMatchesPublishedHead": true
+    },
+    {
+      "path": "src/components/memory/MemoryFilm.tsx",
+      "sha256": "d79ae8d468f99fa8717f92d575a4db57f098173ac71fc7ed19309d9d0babeca4",
+      "artifactMatchesPublishedHead": true
+    },
+    {
+      "path": "src/components/memory/MemoryMovieExport.tsx",
+      "sha256": "4c607f98b44f10870c772a0efa0ae112514273f5270b747b86e62b68f280c696",
+      "artifactMatchesPublishedHead": true
+    },
+    {
+      "path": "src/components/memory/MemoryAudienceEditor.tsx",
+      "sha256": "62043da792efc749b5dfec8acb8a494a31ada9346eb5d30b6c83327944f74e49",
+      "artifactMatchesPublishedHead": true
+    }
+  ],
+  "excludedCandidate": "The earlier keyboard/device-center scroll risk was not exercised: failure precedes Book title tap and every text-input/hideKeyboard/scroll settings command.",
+  "repairProposal": {
+    "status": "Proposed to root; no source edit in this review",
+    "scope": [
+      "src/components/memory/MemoryFilm.tsx",
+      "src/components/memory/MemoryMovieExport.tsx"
+    ],
+    "change": "Use explicit iOS dismissal completion: set Modal visible=false while retaining the mounted component; stop playback/cancel export and release resources immediately; invoke parent close/read/post handoff only from onDismiss. Android can finalize immediately because onDismiss is iOS-only. Fence duplicate close and late/unmounted handoffs.",
+    "reason": "Both components currently render a visible Modal and are conditionally unmounted by their parent on close. Film-to-reader also updates the underlying book in the same commit. Retaining them until native dismissal completes avoids recycling modal/content views and beginning parent presentation work while UIKit is still dismissing.",
+    "proofLimit": "The artifact establishes a real settings presentation failure, correct targeting, mounted settings content, and no keyboard involvement. It does not uniquely prove early recycling as the cause. Focused actual-component lifecycle regression plus the next required native run must validate a repair; do not relax selectors/timeouts."
+  },
+  "otherFailure": "The separate capture flow reached the iOS Open in Platinum QA system dialog. Native owner handles that exact-prompt semantic correction and its evidence; no capture or readback acceptance is claimed here.",
+  "upstreamContextOnly": [
+    {
+      "url": "https://github.com/react/react-native/issues/58361",
+      "note": "First-party reported Fabric recycling/AX state problem on newer RN 0.86; this is related context, not evidence the same root cause applies to pinned 0.81.5."
+    },
+    {
+      "url": "https://github.com/react/react-native/issues/53276",
+      "note": "First-party reported fade-modal rendering problems on RN 0.78; not used to justify a blind animation switch."
+    }
+  ],
+  "sourceChanges": 0,
+  "testReruns": 0
+}

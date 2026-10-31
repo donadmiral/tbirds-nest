@@ -1,10 +1,9 @@
-// Same overlay definitions as the phone's StoryFilters.tsx - keep in sync.
+// Shared persisted filter catalogue for native and web story renderers.
 export type StoryFilterFamily = "platinum" | "classic" | "modern" | "film";
 export type StoryFilterDef = { id: string; label: string; family: StoryFilterFamily; layers: { color: string; opacity: number }[]; css?: string };
-// One catalogue for web and phone. `layers` render identically on both as
-// translucent colour planes. `css` is the extra grade web applies beneath,
-// contrast, saturation and black-and-white, which the phone approximates
-// with its layers alone. Ids are stored on stories.filter_id; never rename one.
+// Photo renderers combine `css` and `layers` into the same sRGB color matrix.
+// Legacy video/text rendering still uses the stored overlay definitions.
+// Ids are stored on stories.filter_id; never rename one.
 export const STORY_FILTERS: StoryFilterDef[] = [
   { id: "platinum_glow", label: "Pearl glow", family: "platinum", layers: [{ color: "#FFF1DB", opacity: 0.10 }, { color: "#FFC0AA", opacity: 0.035 }] },
   { id: "platinum_golden_hour", label: "Golden hour", family: "platinum", layers: [{ color: "#FFB866", opacity: 0.13 }, { color: "#6B2C14", opacity: 0.035 }] },

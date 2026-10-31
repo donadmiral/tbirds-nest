@@ -1,0 +1,636 @@
+{
+  "date": "2026-10-29",
+  "project": "uaulhuelcfkjwojtymmw",
+  "scope": "Read-only schema catalog, no row data or credentials",
+  "catalog": {
+    "tables": [
+      {
+        "acl": "{postgres=arwdDxtm/postgres}",
+        "rls": true,
+        "name": "commands",
+        "columns": [
+          {
+            "name": "command_key",
+            "type": "uuid",
+            "default": null,
+            "not_null": true
+          },
+          {
+            "name": "actor_id",
+            "type": "uuid",
+            "default": null,
+            "not_null": true
+          },
+          {
+            "name": "operation",
+            "type": "text",
+            "default": null,
+            "not_null": true
+          },
+          {
+            "name": "payload",
+            "type": "jsonb",
+            "default": null,
+            "not_null": true
+          },
+          {
+            "name": "result",
+            "type": "jsonb",
+            "default": null,
+            "not_null": false
+          },
+          {
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "not_null": true
+          }
+        ],
+        "indexes": [
+          "CREATE UNIQUE INDEX commands_pkey ON admin_ops.commands USING btree (command_key)"
+        ],
+        "constraints": [
+          "PRIMARY KEY (command_key)"
+        ]
+      },
+      {
+        "acl": "{postgres=arwdDxtm/postgres}",
+        "rls": true,
+        "name": "deletion_requests",
+        "columns": [
+          {
+            "name": "id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "not_null": true
+          },
+          {
+            "name": "user_id",
+            "type": "uuid",
+            "default": null,
+            "not_null": true
+          },
+          {
+            "name": "requested_by",
+            "type": "uuid",
+            "default": null,
+            "not_null": true
+          },
+          {
+            "name": "reason",
+            "type": "text",
+            "default": null,
+            "not_null": true
+          },
+          {
+            "name": "status",
+            "type": "text",
+            "default": "'retention_review'::text",
+            "not_null": true
+          },
+          {
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "not_null": true
+          },
+          {
+            "name": "completed_at",
+            "type": "timestamp with time zone",
+            "default": null,
+            "not_null": false
+          }
+        ],
+        "indexes": [
+          "CREATE INDEX deletion_requests_created ON admin_ops.deletion_requests USING btree (created_at DESC, id)",
+          "CREATE UNIQUE INDEX deletion_requests_pkey ON admin_ops.deletion_requests USING btree (id)",
+          "CREATE UNIQUE INDEX deletion_requests_user_id_key ON admin_ops.deletion_requests USING btree (user_id)"
+        ],
+        "constraints": [
+          "PRIMARY KEY (id)",
+          "CHECK ((status = ANY (ARRAY['retention_review'::text, 'erasing'::text, 'completed'::text, 'cancelled'::text])))",
+          "UNIQUE (user_id)"
+        ]
+      },
+      {
+        "acl": "{postgres=arwdDxtm/postgres}",
+        "rls": true,
+        "name": "provisions",
+        "columns": [
+          {
+            "name": "command_key",
+            "type": "uuid",
+            "default": null,
+            "not_null": true
+          },
+          {
+            "name": "actor_id",
+            "type": "uuid",
+            "default": null,
+            "not_null": true
+          },
+          {
+            "name": "kind",
+            "type": "text",
+            "default": null,
+            "not_null": true
+          },
+          {
+            "name": "payload",
+            "type": "jsonb",
+            "default": null,
+            "not_null": true
+          },
+          {
+            "name": "auth_user_id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "not_null": true
+          },
+          {
+            "name": "provision_id",
+            "type": "uuid",
+            "default": "gen_random_uuid()",
+            "not_null": true
+          },
+          {
+            "name": "email",
+            "type": "text",
+            "default": null,
+            "not_null": true
+          },
+          {
+            "name": "application_id",
+            "type": "uuid",
+            "default": null,
+            "not_null": false
+          },
+          {
+            "name": "completed_at",
+            "type": "timestamp with time zone",
+            "default": null,
+            "not_null": false
+          },
+          {
+            "name": "created_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "not_null": true
+          },
+          {
+            "name": "snapshot",
+            "type": "jsonb",
+            "default": "'{}'::jsonb",
+            "not_null": true
+          }
+        ],
+        "indexes": [
+          "CREATE UNIQUE INDEX admin_provisions_email ON admin_ops.provisions USING btree (lower(email))",
+          "CREATE UNIQUE INDEX admin_provisions_username ON admin_ops.provisions USING btree (lower((snapshot ->> 'desired_username'::text))) WHERE (kind = 'business'::text)",
+          "CREATE UNIQUE INDEX provisions_application_id_key ON admin_ops.provisions USING btree (application_id)",
+          "CREATE UNIQUE INDEX provisions_auth_user_id_key ON admin_ops.provisions USING btree (auth_user_id)",
+          "CREATE UNIQUE INDEX provisions_pkey ON admin_ops.provisions USING btree (command_key)",
+          "CREATE UNIQUE INDEX provisions_provision_id_key ON admin_ops.provisions USING btree (provision_id)"
+        ],
+        "constraints": [
+          "UNIQUE (application_id)",
+          "UNIQUE (auth_user_id)",
+          "CHECK ((kind = ANY (ARRAY['staff'::text, 'business'::text])))",
+          "PRIMARY KEY (command_key)",
+          "UNIQUE (provision_id)"
+        ]
+      },
+      {
+        "acl": "{postgres=arwdDxtm/postgres}",
+        "rls": true,
+        "name": "removals",
+        "columns": [
+          {
+            "name": "kind",
+            "type": "text",
+            "default": null,
+            "not_null": true
+          },
+          {
+            "name": "content_id",
+            "type": "uuid",
+            "default": null,
+            "not_null": true
+          },
+          {
+            "name": "audit_id",
+            "type": "uuid",
+            "default": null,
+            "not_null": true
+          },
+          {
+            "name": "removed_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "not_null": true
+          }
+        ],
+        "indexes": [
+          "CREATE UNIQUE INDEX removals_pkey ON admin_ops.removals USING btree (kind, content_id)"
+        ],
+        "constraints": [
+          "CHECK ((kind = ANY (ARRAY['post'::text, 'story'::text, 'comment'::text, 'listing'::text])))",
+          "PRIMARY KEY (kind, content_id)"
+        ]
+      },
+      {
+        "acl": "{postgres=arwdDxtm/postgres}",
+        "rls": true,
+        "name": "single_owner_qa_policy",
+        "columns": [
+          {
+            "name": "singleton",
+            "type": "boolean",
+            "default": "true",
+            "not_null": true
+          },
+          {
+            "name": "owner_id",
+            "type": "uuid",
+            "default": null,
+            "not_null": true
+          },
+          {
+            "name": "enabled",
+            "type": "boolean",
+            "default": "false",
+            "not_null": true
+          },
+          {
+            "name": "reason",
+            "type": "text",
+            "default": null,
+            "not_null": true
+          },
+          {
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "not_null": true
+          }
+        ],
+        "indexes": [
+          "CREATE UNIQUE INDEX single_owner_qa_policy_pkey ON admin_ops.single_owner_qa_policy USING btree (singleton)"
+        ],
+        "constraints": [
+          "FOREIGN KEY (owner_id) REFERENCES auth.users(id) ON DELETE CASCADE",
+          "PRIMARY KEY (singleton)",
+          "CHECK (((length(btrim(reason)) >= 1) AND (length(btrim(reason)) <= 500)))",
+          "CHECK (singleton)"
+        ]
+      },
+      {
+        "acl": "{postgres=arwdDxtm/postgres}",
+        "rls": true,
+        "name": "support_triage",
+        "columns": [
+          {
+            "name": "ticket_id",
+            "type": "uuid",
+            "default": null,
+            "not_null": true
+          },
+          {
+            "name": "assigned_to",
+            "type": "uuid",
+            "default": null,
+            "not_null": false
+          },
+          {
+            "name": "priority",
+            "type": "text",
+            "default": "'normal'::text",
+            "not_null": true
+          },
+          {
+            "name": "queue",
+            "type": "text",
+            "default": "'general'::text",
+            "not_null": true
+          },
+          {
+            "name": "escalated",
+            "type": "boolean",
+            "default": "false",
+            "not_null": true
+          },
+          {
+            "name": "version",
+            "type": "integer",
+            "default": "1",
+            "not_null": true
+          },
+          {
+            "name": "updated_at",
+            "type": "timestamp with time zone",
+            "default": "now()",
+            "not_null": true
+          }
+        ],
+        "indexes": [
+          "CREATE UNIQUE INDEX support_triage_pkey ON admin_ops.support_triage USING btree (ticket_id)"
+        ],
+        "constraints": [
+          "FOREIGN KEY (assigned_to) REFERENCES admin_users(user_id)",
+          "PRIMARY KEY (ticket_id)",
+          "CHECK ((priority = ANY (ARRAY['urgent'::text, 'high'::text, 'normal'::text, 'low'::text])))",
+          "CHECK ((queue = ANY (ARRAY['general'::text, 'account'::text, 'payments'::text, 'safety'::text, 'marketplace'::text])))",
+          "FOREIGN KEY (ticket_id) REFERENCES support_tickets(id) ON DELETE CASCADE"
+        ]
+      }
+    ],
+    "policies": [
+      {
+        "cmd": "SELECT",
+        "qual": "is_admin()",
+        "roles": [
+          "authenticated"
+        ],
+        "tablename": "admin_audit_log",
+        "permissive": "PERMISSIVE",
+        "policyname": "audit_select",
+        "schemaname": "public",
+        "with_check": null
+      },
+      {
+        "cmd": "SELECT",
+        "qual": "(user_id = auth.uid())",
+        "roles": [
+          "authenticated"
+        ],
+        "tablename": "admin_users",
+        "permissive": "PERMISSIVE",
+        "policyname": "admin_users_select",
+        "schemaname": "public",
+        "with_check": null
+      },
+      {
+        "cmd": "INSERT",
+        "qual": null,
+        "roles": [
+          "authenticated"
+        ],
+        "tablename": "user_reports",
+        "permissive": "PERMISSIVE",
+        "policyname": "user_reports_insert_own",
+        "schemaname": "public",
+        "with_check": "(reporter_id = auth.uid())"
+      },
+      {
+        "cmd": "SELECT",
+        "qual": "(reporter_id = auth.uid())",
+        "roles": [
+          "authenticated"
+        ],
+        "tablename": "user_reports",
+        "permissive": "PERMISSIVE",
+        "policyname": "user_reports_select_own",
+        "schemaname": "public",
+        "with_check": null
+      },
+      {
+        "cmd": "INSERT",
+        "qual": null,
+        "roles": [
+          "authenticated"
+        ],
+        "tablename": "user_reports",
+        "permissive": "RESTRICTIVE",
+        "policyname": "user_reports_submission_integrity",
+        "schemaname": "public",
+        "with_check": "((reporter_id = ( SELECT auth.uid() AS uid)) AND (status = 'open'::text) AND (resolved_by IS NULL) AND (resolved_at IS NULL) AND (char_length(COALESCE(details, ''::text)) <= 2000))"
+      },
+      {
+        "cmd": "INSERT",
+        "qual": null,
+        "roles": [
+          "authenticated"
+        ],
+        "tablename": "verification_applications",
+        "permissive": "PERMISSIVE",
+        "policyname": "vapps_insert_own",
+        "schemaname": "public",
+        "with_check": "(applicant_id = auth.uid())"
+      },
+      {
+        "cmd": "SELECT",
+        "qual": "(applicant_id = ( SELECT auth.uid() AS uid))",
+        "roles": [
+          "authenticated"
+        ],
+        "tablename": "verification_applications",
+        "permissive": "PERMISSIVE",
+        "policyname": "vapps_select",
+        "schemaname": "public",
+        "with_check": null
+      }
+    ],
+    "triggers": [
+      {
+        "name": "admin_removed_comment_guard",
+        "table": "post_comments",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER admin_removed_comment_guard BEFORE INSERT OR UPDATE ON public.post_comments FOR EACH ROW EXECUTE FUNCTION admin_ops.guard_removed_content()"
+      },
+      {
+        "name": "admin_removed_listing_guard",
+        "table": "marketplace_listings",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER admin_removed_listing_guard BEFORE INSERT OR DELETE OR UPDATE ON public.marketplace_listings FOR EACH ROW EXECUTE FUNCTION admin_ops.guard_removed_content()"
+      },
+      {
+        "name": "admin_removed_post_guard",
+        "table": "posts",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER admin_removed_post_guard BEFORE INSERT OR UPDATE ON public.posts FOR EACH ROW EXECUTE FUNCTION admin_ops.guard_removed_content()"
+      },
+      {
+        "name": "admin_removed_story_guard",
+        "table": "stories",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER admin_removed_story_guard BEFORE INSERT OR UPDATE ON public.stories FOR EACH ROW EXECUTE FUNCTION admin_ops.guard_removed_content()"
+      },
+      {
+        "name": "capture_admin_removal",
+        "table": "admin_audit_log",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER capture_admin_removal AFTER INSERT ON public.admin_audit_log FOR EACH ROW EXECUTE FUNCTION admin_ops.capture_removal()"
+      },
+      {
+        "name": "guard_profile_verification",
+        "table": "profiles",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER guard_profile_verification BEFORE INSERT OR UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION admin_ops.guard_profile_verification()"
+      },
+      {
+        "name": "guard_verification_application",
+        "table": "verification_applications",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER guard_verification_application BEFORE INSERT OR UPDATE ON public.verification_applications FOR EACH ROW EXECUTE FUNCTION admin_ops.guard_verification_application()"
+      },
+      {
+        "name": "lock_single_owner_governance",
+        "table": "admin_users",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER lock_single_owner_governance BEFORE INSERT OR DELETE OR UPDATE ON public.admin_users FOR EACH STATEMENT EXECUTE FUNCTION admin_ops.lock_staff_governance()"
+      },
+      {
+        "name": "retire_single_owner_governance",
+        "table": "admin_users",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER retire_single_owner_governance AFTER INSERT OR DELETE OR UPDATE ON public.admin_users FOR EACH STATEMENT EXECUTE FUNCTION admin_ops.retire_single_owner_access()"
+      },
+      {
+        "name": "sync_verification_revocation",
+        "table": "profiles",
+        "enabled": "O",
+        "definition": "CREATE TRIGGER sync_verification_revocation AFTER UPDATE OF is_verified ON public.profiles FOR EACH ROW EXECUTE FUNCTION admin_ops.sync_verification_revocation()"
+      }
+    ],
+    "functions": [
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "bf89643fce4a977f7de52ba97b865109",
+        "signature": "admin_ops.capture_removal()",
+        "definition": "CREATE OR REPLACE FUNCTION admin_ops.capture_removal()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare kind_value text; id_value uuid;\nbegin\n case new.action\n when 'adminRemovePost' then kind_value:='post';id_value:=(new.before->>'id')::uuid;\n when 'removeReportedPost' then kind_value:='post';id_value:=(new.before->>'post_id')::uuid;\n when 'adminRemoveStory' then kind_value:='story';id_value:=(new.before->>'id')::uuid;\n when 'adminRemoveComment' then kind_value:='comment';id_value:=(new.before->>'id')::uuid;\n when 'adminRemoveListing' then kind_value:='listing';id_value:=(new.before->>'id')::uuid;\n when 'removeReportedListing' then kind_value:='listing';id_value:=(new.before->>'listing_id')::uuid;\n else return new;\n end case;\n if id_value is not null then\n  insert into admin_ops.removals(kind,content_id,audit_id,removed_at)\n   values(kind_value,id_value,new.id,new.created_at) on conflict(kind,content_id) do nothing;\n end if;\n return new;\nend $function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "da38b04a1e00c632e71780ad9d345775",
+        "signature": "admin_ops.guard_profile_verification()",
+        "definition": "CREATE OR REPLACE FUNCTION admin_ops.guard_profile_verification()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare client_write boolean := current_setting('role',true) in ('anon','authenticated') or coalesce(auth.role(),'') in ('anon','authenticated');\nbegin\n if client_write then\n  if TG_OP='INSERT' then\n   if coalesce(new.is_verified,false) or new.verified_tier is not null or new.verified_category is not null then\n    raise exception 'VERIFICATION_STAFF_REVIEW_REQUIRED' using errcode='42501';\n   end if;\n  else\n   if new.is_verified is distinct from old.is_verified or new.verified_tier is distinct from old.verified_tier\n      or new.verified_category is distinct from old.verified_category then\n    raise exception 'VERIFICATION_STAFF_REVIEW_REQUIRED' using errcode='42501';\n   end if;\n   if old.is_verified and (new.username is distinct from old.username or new.full_name is distinct from old.full_name\n      or new.account_type is distinct from old.account_type) then\n    raise exception 'Verified identity changes require support review.' using errcode='42501';\n   end if;\n  end if;\n end if;\n return new;\nend $function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "c8c3e0d6501a7578b8938fc99a3583bf",
+        "signature": "admin_ops.guard_removed_content()",
+        "definition": "CREATE OR REPLACE FUNCTION admin_ops.guard_removed_content()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare id_value uuid; kind_value text;\nbegin\n -- Only trusted service workers may perform a separately reviewed restoration.\n -- A SECURITY DEFINER user RPC still carries the authenticated JWT role here.\n if coalesce(auth.role(),'')='service_role' then return coalesce(new,old); end if;\n kind_value:=case tg_table_name when 'posts' then 'post' when 'stories' then 'story'\n  when 'post_comments' then 'comment' when 'marketplace_listings' then 'listing' end;\n if tg_op='INSERT' then id_value:=new.id;else id_value:=old.id;end if;\n if exists(select 1 from admin_ops.removals where kind=kind_value and content_id=id_value) then\n  if tg_op='INSERT' or tg_op='DELETE' then raise exception 'CONTENT_REMOVED_BY_MODERATOR' using errcode='42501';end if;\n  if kind_value='listing' and (new.id is distinct from old.id or new.seller_id is distinct from old.seller_id\n   or new.status is distinct from 'removed' or new.hidden_at is null) then\n   raise exception 'CONTENT_REMOVED_BY_MODERATOR' using errcode='42501';\n  end if;\n end if;\n -- Owner-created hidden rows also cannot inherit a previously removed id.\n if tg_op='UPDATE' and new.id is distinct from old.id\n  and exists(select 1 from admin_ops.removals where kind=kind_value and content_id=new.id) then\n  raise exception 'CONTENT_REMOVED_BY_MODERATOR' using errcode='42501';\n end if;\n return coalesce(new,old);\nend $function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "4d4d16b1a6dd927221712611704c93dd",
+        "signature": "admin_ops.guard_verification_application()",
+        "definition": "CREATE OR REPLACE FUNCTION admin_ops.guard_verification_application()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare client_write boolean := current_setting('role',true) in ('anon','authenticated') or coalesce(auth.role(),'') in ('anon','authenticated');\n p public.profiles;\nbegin\n if client_write and TG_OP='UPDATE' then raise exception 'VERIFICATION_STAFF_REVIEW_REQUIRED' using errcode='42501'; end if;\n if TG_OP='INSERT' then\n  if client_write and (new.applicant_id is distinct from auth.uid() or new.status<>'submitted'\n    or new.reviewer_id is not null or new.decision_reason is not null or new.decided_at is not null or new.revoked_at is not null) then\n   raise exception 'VERIFICATION_STAFF_REVIEW_REQUIRED' using errcode='42501';\n  end if;\n  -- Serialize submissions per account; avoids duplicate pending applications, even across devices.\n  select * into p from public.profiles where id=new.applicant_id for update;\n  if not found or p.deactivated_at is not null then raise exception 'VERIFICATION_ACCOUNT_UNAVAILABLE'; end if;\n  if p.is_verified then raise exception 'VERIFICATION_ALREADY_ACTIVE'; end if;\n  if exists(select 1 from public.verification_applications where applicant_id=new.applicant_id and status in ('submitted','under_review')) then\n   raise exception 'VERIFICATION_ALREADY_PENDING';\n  end if;\n  perform admin_ops.validate_verification_evidence(new.tier,new.category,new.evidence);\n  if (new.tier='business') is distinct from (coalesce(p.account_type,'personal')='business') then raise exception 'VERIFICATION_ACCOUNT_TYPE_MISMATCH'; end if;\n  new.created_at := now();\n elsif new.status='approved' and old.status is distinct from 'approved' then\n  if old.status not in ('submitted','under_review') then raise exception 'VERIFICATION_DECISION_FINAL'; end if;\n  perform admin_ops.validate_verification_evidence(new.tier,new.category,new.evidence);\n  select * into p from public.profiles where id=new.applicant_id for update;\n  if not found or p.deactivated_at is not null then raise exception 'VERIFICATION_ACCOUNT_UNAVAILABLE'; end if;\n  if (new.tier='business') is distinct from (coalesce(p.account_type,'personal')='business') then raise exception 'VERIFICATION_ACCOUNT_TYPE_MISMATCH'; end if;\n  if new.reviewer_id is null or new.reviewer_id=new.applicant_id or new.decided_at is null\n    or length(btrim(coalesce(new.decision_reason,''))) not between 20 and 2000 then\n   raise exception 'VERIFICATION_REVIEW_BASIS_REQUIRED';\n  end if;\n  if not coalesce(p.is_verified,false) or p.verified_tier is distinct from new.tier then raise exception 'VERIFICATION_PROFILE_NOT_GRANTED'; end if;\n end if;\n return new;\nend $function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "1b7f11a1cbf1774df91fe6b9b4e3dbde",
+        "signature": "admin_ops.lock_staff_governance()",
+        "definition": "CREATE OR REPLACE FUNCTION admin_ops.lock_staff_governance()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nbegin\n perform pg_advisory_xact_lock(77123,1);\n return null;\nend $function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "2a59dac44760254e1f2e730c6154d9a9",
+        "signature": "admin_ops.require_session(uuid,uuid,text)",
+        "definition": "CREATE OR REPLACE FUNCTION admin_ops.require_session(p_actor_id uuid, p_session_id uuid, p_permission text)\n RETURNS text\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare r text;\nbegin\n -- The same native session used by the verified server token must still exist.\n if p_actor_id is null or p_session_id is null\n    or not public.triniti_admin_session_check(p_actor_id,p_session_id)\n    or not exists(select 1 from auth.sessions where id=p_session_id and user_id=p_actor_id and aal::text in ('aal1','aal2'))\n then raise exception 'ACTIVE_ADMIN_SESSION_REQUIRED' using errcode='42501'; end if;\n perform 1 from auth.sessions s join auth.users u on u.id=s.user_id\n where s.id=p_session_id and s.user_id=p_actor_id and s.aal::text in ('aal1','aal2')\n and (s.not_after is null or s.not_after>now()) and u.deleted_at is null\n and (u.banned_until is null or u.banned_until<=now()) for share of s,u;\n if not found then raise exception 'ACTIVE_ADMIN_SESSION_REQUIRED' using errcode='42501'; end if;\n select role into r from public.admin_users where user_id=p_actor_id and active for share;\n if not coalesce(case p_permission\n when 'verification' then r=any(array['super_admin','platform_admin','verification_reviewer'])\n when 'user_moderate' then r=any(array['super_admin','platform_admin','trust_safety'])\n when 'post_moderate' then r=any(array['super_admin','platform_admin','trust_safety'])\n when 'market_moderate' then r=any(array['super_admin','platform_admin','market_reviewer'])\n when 'report_post' then r=any(array['super_admin','platform_admin','trust_safety'])\n when 'report_listing' then r=any(array['super_admin','platform_admin','trust_safety','market_reviewer'])\n when 'report_user' then r=any(array['super_admin','platform_admin','trust_safety'])\n when 'support' then r=any(array['super_admin','platform_admin','trust_safety','support_agent'])\n when 'ads' then r=any(array['super_admin','platform_admin','market_reviewer','finance_admin'])\n when 'system' then r=any(array['super_admin','platform_admin','ops_engineer'])\n when 'business_manage' then r='super_admin'\n when 'organization_manage' then r='super_admin'\n when 'staff_manage' then r='super_admin'\n when 'account_delete' then r='super_admin'\n when 'comment_delete' then r='super_admin'\n else false end,false) then raise exception 'ADMIN_PERMISSION_DENIED' using errcode='42501'; end if;\n return r;\nend $function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "0265fc0e11a6d0883344834031322a52",
+        "signature": "admin_ops.retire_single_owner_access()",
+        "definition": "CREATE OR REPLACE FUNCTION admin_ops.retire_single_owner_access()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare affected_owner uuid;\nbegin\n update admin_ops.single_owner_qa_policy p set enabled=false,updated_at=now()\n where p.enabled and not admin_ops.single_owner_access(p.owner_id)\n returning p.owner_id into affected_owner;\n if affected_owner is not null then\n  insert into public.admin_audit_log(admin_id,action,target_kind,target_id,reason,after)\n  values(affected_owner,'singleOwnerModeRetired','staff',affected_owner::text,\n   'The active staff roster no longer has exactly the configured super administrator.',jsonb_build_object('enabled',false));\n end if;\n return null;\nend $function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "db2a58f26c3594cc97390083bbe87566",
+        "signature": "admin_ops.single_owner_access(uuid)",
+        "definition": "CREATE OR REPLACE FUNCTION admin_ops.single_owner_access(p_actor uuid)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n select coalesce(exists(\n  select 1 from admin_ops.single_owner_qa_policy p\n  join public.admin_users a on a.user_id=p.owner_id\n  where p.singleton and p.enabled and p.owner_id=p_actor\n   and a.active and a.role='super_admin'\n   and (select count(*) from public.admin_users where active)=1\n ),false);\n$function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "61fceb5d957ba77a9cb069c440d69a98",
+        "signature": "admin_ops.sync_verification_revocation()",
+        "definition": "CREATE OR REPLACE FUNCTION admin_ops.sync_verification_revocation()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nbegin\n if old.is_verified and not coalesce(new.is_verified,false) then\n  update public.verification_applications set status='revoked',revoked_at=now()\n  where applicant_id=new.id and status='approved';\n end if;\n return new;\nend $function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres}",
+        "md5": "f35f12d5375657ddd58b88c4073b3266",
+        "signature": "admin_ops.validate_verification_evidence(text,text,jsonb)",
+        "definition": "CREATE OR REPLACE FUNCTION admin_ops.validate_verification_evidence(p_tier text, p_category text, p_evidence jsonb)\n RETURNS void\n LANGUAGE plpgsql\n IMMUTABLE\n SET search_path TO ''\nAS $function$\ndeclare link jsonb; value text;\nbegin\n if p_tier is null or p_tier not in ('public_figure','business','official') then raise exception 'VERIFICATION_TIER_INVALID'; end if;\n if length(btrim(coalesce(p_category,''))) not between 2 and 120 then raise exception 'VERIFICATION_CATEGORY_REQUIRED'; end if;\n if jsonb_typeof(p_evidence) is distinct from 'object'\n   or jsonb_typeof(p_evidence->'statement') is distinct from 'string'\n   or length(btrim(p_evidence->>'statement')) not between 20 and 2000 then\n   raise exception 'VERIFICATION_STATEMENT_REQUIRED';\n end if;\n if jsonb_typeof(p_evidence->'links') is distinct from 'array' then raise exception 'VERIFICATION_EVIDENCE_LINK_REQUIRED'; end if;\n if jsonb_array_length(p_evidence->'links') not between 1 and 8 then raise exception 'VERIFICATION_EVIDENCE_LINK_REQUIRED'; end if;\n for link in select * from jsonb_array_elements(p_evidence->'links') loop\n  value := link #>> '{}';\n  if jsonb_typeof(link) <> 'string' or length(value)>2048\n    or value !~* '^https?://[^/@[:space:]]+([/?#][^[:space:]]*)?$'\n    or value ~ '[[:cntrl:]]' or value like '%\\%' then raise exception 'VERIFICATION_EVIDENCE_URL_INVALID'; end if;\n end loop;\n if p_tier='official' and (jsonb_typeof(p_evidence->'office') is distinct from 'string'\n   or length(btrim(p_evidence->>'office')) not between 3 and 200) then raise exception 'VERIFICATION_OFFICE_REQUIRED'; end if;\nend $function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "1d53c63fc9a4e88440c7b6ca4e302b4a",
+        "signature": "admin_seller_review_reports(uuid,uuid,timestamp with time zone,uuid,text)",
+        "definition": "CREATE OR REPLACE FUNCTION public.admin_seller_review_reports(p_actor_id uuid, p_session_id uuid, p_before_at timestamp with time zone DEFAULT NULL::timestamp with time zone, p_before_id uuid DEFAULT NULL::uuid, p_status text DEFAULT 'open'::text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare result jsonb;\nbegin\n perform admin_ops.require_session(p_actor_id,p_session_id,'report_listing');\n if p_status is null or p_status not in ('open','all') then raise exception 'INVALID_STATUS'; end if;\n if (p_before_at is null)<>(p_before_id is null) then raise exception 'INVALID_CURSOR'; end if;\n with page as(\n select t.*,r.seller_id,r.reviewer_id,r.rating,r.comment,r.moderation_status,r.order_id,r.content_version as current_version\n from public.seller_review_reports t left join public.seller_reviews r on r.id=t.review_id\n where (p_status='all' or t.status='open') and (p_before_at is null or (t.created_at,t.id)<(p_before_at,p_before_id)) order by t.created_at desc,t.id desc limit 51\n ), shown as(select * from page order by created_at desc,id desc limit 50)\n select jsonb_build_object('rows',coalesce((select jsonb_agg(to_jsonb(s) order by created_at desc,id desc) from shown s),'[]'::jsonb),\n 'has_more',(select count(*)>50 from page),'next_cursor',(select jsonb_build_object('created_at',created_at,'id',id) from shown order by created_at,id limit 1)) into result;\n return result;\nend $function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "86ae7abaa9f2bd5ff3fdfc6c86a29871",
+        "signature": "admin_support_triage_read(uuid[])",
+        "definition": "CREATE OR REPLACE FUNCTION public.admin_support_triage_read(p_ids uuid[])\n RETURNS jsonb\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n select coalesce(jsonb_agg(jsonb_build_object(\n  'ticket_id',t.id,'assigned_to',s.assigned_to,'assigned_name',p.full_name,\n  'priority',coalesce(s.priority,'normal'),'queue',coalesce(s.queue,'general'),\n  'escalated',coalesce(s.escalated,false),'version',coalesce(s.version,0),\n  'response_due_at',case when t.status='open' and coalesce(m.sender,'user')<>'ops' then\n   coalesce(m.created_at,t.created_at)+case coalesce(s.priority,'normal') when 'urgent' then interval '15 minutes' when 'high' then interval '1 hour' when 'low' then interval '72 hours' else interval '24 hours' end end\n )),'[]') from public.support_tickets t\n left join admin_ops.support_triage s on s.ticket_id=t.id\n left join public.profiles p on p.id=s.assigned_to\n left join lateral(select sender,created_at from public.support_messages where ticket_id=t.id order by created_at desc,id desc limit 1) m on true\n where t.id=any(p_ids) and cardinality(p_ids)<=100;\n$function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "78f68a7cd4804f5dc4235924fd62668c",
+        "signature": "admin_support_triage_update(uuid,uuid,uuid,uuid,integer,uuid,text,text,boolean,text)",
+        "definition": "CREATE OR REPLACE FUNCTION public.admin_support_triage_update(p_actor_id uuid, p_session_id uuid, p_key uuid, p_ticket_id uuid, p_version integer, p_assigned_to uuid, p_priority text, p_queue text, p_escalated boolean, p_reason text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare payload jsonb; saved admin_ops.commands%rowtype; previous jsonb; result_value jsonb; current_version integer;\nbegin\n perform admin_ops.require_session(p_actor_id,p_session_id,'support');\n if p_key is null or p_ticket_id is null or p_version is null or p_version<0\n   or p_priority is null or p_priority not in ('urgent','high','normal','low')\n   or p_queue is null or p_queue not in ('general','account','payments','safety','marketplace')\n   or p_escalated is null or coalesce(length(trim(p_reason)),0) not between 3 and 2000\n then raise exception 'INVALID_TRIAGE';end if;\n payload:=jsonb_build_object('ticket_id',p_ticket_id,'version',p_version,'assigned_to',p_assigned_to,'priority',p_priority,'queue',p_queue,'escalated',p_escalated,'reason',trim(p_reason));\n insert into admin_ops.commands(command_key,actor_id,operation,payload) values(p_key,p_actor_id,'supportTriage',payload) on conflict do nothing;\n select * into saved from admin_ops.commands where command_key=p_key for update;\n if saved.actor_id<>p_actor_id or saved.operation<>'supportTriage' or saved.payload<>payload then raise exception 'COMMAND_CONFLICT';end if;\n if saved.result is not null then return saved.result;end if;\n perform 1 from public.support_tickets where id=p_ticket_id for update;\n if not found then raise exception 'TARGET_NOT_FOUND';end if;\n if p_assigned_to is not null and not exists(select 1 from public.admin_users where user_id=p_assigned_to and active and role in ('super_admin','platform_admin','trust_safety','support_agent')) then raise exception 'INVALID_ASSIGNEE';end if;\n select to_jsonb(s),s.version into previous,current_version from admin_ops.support_triage s where ticket_id=p_ticket_id;\n if coalesce(current_version,0)<>p_version then raise exception 'TRIAGE_CHANGED';end if;\n insert into admin_ops.support_triage(ticket_id,assigned_to,priority,queue,escalated)\n values(p_ticket_id,p_assigned_to,p_priority,p_queue,p_escalated)\n on conflict(ticket_id) do update set assigned_to=excluded.assigned_to,priority=excluded.priority,queue=excluded.queue,escalated=excluded.escalated,version=admin_ops.support_triage.version+1,updated_at=now();\n select to_jsonb(s) into result_value from admin_ops.support_triage s where ticket_id=p_ticket_id;\n insert into public.admin_audit_log(admin_id,action,target_kind,target_id,reason,before,after)\n values(p_actor_id,'supportTriage','support_ticket',p_ticket_id::text,trim(p_reason),previous,result_value);\n result_value:=jsonb_build_object('success',true,'command_key',p_key,'version',(result_value->>'version')::integer);\n update admin_ops.commands set result=result_value where command_key=p_key;\n return result_value;\nend;$function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "b4d0a3bc989f29d8f8426ea490354014",
+        "signature": "moderate_seller_review(uuid,uuid,uuid,uuid,text,text,integer)",
+        "definition": "CREATE OR REPLACE FUNCTION public.moderate_seller_review(p_actor_id uuid, p_session_id uuid, p_key uuid, p_report_id uuid, p_action text, p_reason text, p_expected_version integer DEFAULT NULL::integer)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare t public.seller_review_reports; new_report public.seller_review_reports; old_review public.seller_reviews; new_review public.seller_reviews; c admin_ops.commands; payload jsonb; result jsonb;\nbegin\n perform admin_ops.require_session(p_actor_id,p_session_id,'report_listing');\n if p_key is null or p_action is null or p_action not in ('hide','dismiss','restore') or p_reason is null or length(btrim(p_reason))<3 or length(p_reason)>1000 then raise exception 'INVALID_MODERATION'; end if;\n payload:=jsonb_build_object('report_id',p_report_id,'action',p_action,'reason',btrim(p_reason),'version',p_expected_version);\n perform pg_advisory_xact_lock(hashtextextended(p_key::text,0));\n select * into c from admin_ops.commands where command_key=p_key;\n if found then\n  if c.actor_id<>p_actor_id or c.operation<>'moderate_seller_review' or c.payload<>payload then raise exception 'COMMAND_KEY_REUSED'; end if;\n  return c.result;\n end if;\n select * into t from public.seller_review_reports where id=p_report_id for update;\n if not found then raise exception 'REPORT_NOT_FOUND'; end if;\n select * into old_review from public.seller_reviews where id=t.review_id for update;\n if not found and p_action<>'dismiss' then raise exception 'REVIEW_UNAVAILABLE'; end if;\n if p_action<>'dismiss' and p_expected_version is distinct from old_review.content_version then raise exception 'REVIEW_CHANGED_REFRESH'; end if;\n if p_action in ('hide','dismiss') and t.status<>'open' then raise exception 'REPORT_ALREADY_RESOLVED'; end if;\n if p_action='restore' and old_review.moderation_status<>'hidden' then raise exception 'REVIEW_NOT_HIDDEN'; end if;\n if p_action<>'dismiss' then update public.seller_reviews set moderation_status=case when p_action='hide' then 'hidden' else 'visible' end,updated_at=now() where id=t.review_id; end if;\n select * into new_review from public.seller_reviews where id=t.review_id;\n update public.seller_review_reports set status=case p_action when 'hide' then 'hidden' when 'restore' then 'restored' else 'dismissed' end,resolved_by=p_actor_id,resolved_at=now() where id=t.id returning * into new_report;\n insert into public.admin_audit_log(admin_id,action,target_kind,target_id,reason,before,after)\n values(p_actor_id,'seller_review_'||p_action,'seller_review_report',t.id::text,btrim(p_reason),jsonb_build_object('report',to_jsonb(t),'review',to_jsonb(old_review)),jsonb_build_object('report',to_jsonb(new_report),'review',to_jsonb(new_review)));\n result:=jsonb_build_object('success',true,'command_key',p_key);\n insert into admin_ops.commands(command_key,actor_id,operation,payload,result) values(p_key,p_actor_id,'moderate_seller_review',payload,result);\n return result;\nend $function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres,=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "md5": "d2ec097054f70c24afe98fbcdea421fb",
+        "signature": "sync_post_comment_count()",
+        "definition": "CREATE OR REPLACE FUNCTION public.sync_post_comment_count()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\nbegin\n  if tg_op = 'INSERT' then\n    update public.posts\n    set comments_count = (\n      select count(*) from public.post_comments where post_id = new.post_id\n    )\n    where id = new.post_id;\n    return new;\n  elsif tg_op = 'DELETE' then\n    update public.posts\n    set comments_count = (\n      select count(*) from public.post_comments where post_id = old.post_id\n    )\n    where id = old.post_id;\n    return old;\n  end if;\n  return null;\nend;\n$function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres,=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "md5": "3ab906717a2fdc32cb379516b859d48b",
+        "signature": "sync_post_comments_count()",
+        "definition": "CREATE OR REPLACE FUNCTION public.sync_post_comments_count()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\nbegin\n  -- Only count top-level comments (not replies)\n  update public.posts set comments_count = (\n    select count(*) from public.post_comments\n    where post_id = coalesce(NEW.post_id, OLD.post_id)\n    and parent_comment_id is null\n  ) where id = coalesce(NEW.post_id, OLD.post_id);\n  return coalesce(NEW, OLD);\nend;\n$function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "88a277b95fa24808ceee76ceb57ef7c2",
+        "signature": "triniti_admin_deletion_requests(uuid,uuid,integer)",
+        "definition": "CREATE OR REPLACE FUNCTION public.triniti_admin_deletion_requests(p_actor_id uuid, p_session_id uuid, p_page integer DEFAULT 1)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare result jsonb;\nbegin\n perform admin_ops.require_session(p_actor_id,p_session_id,'account_delete');\n if p_page is null or p_page not between 1 and 10000 then raise exception 'INVALID_PAGE'; end if;\n select jsonb_build_object('rows',coalesce((\n  select jsonb_agg(to_jsonb(r)) from (\n   select d.id,d.user_id,d.reason,d.status,d.created_at,d.completed_at,p.full_name,p.username\n   from admin_ops.deletion_requests d left join public.profiles p on p.id=d.user_id\n   order by d.created_at desc,d.id limit 50 offset (p_page-1)*50\n  ) r),'[]'::jsonb),'total',(select count(*) from admin_ops.deletion_requests)) into result;\n return result;\nend $function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "7a9c7b0543fb78d555b2a7a1478c667c",
+        "signature": "triniti_admin_provision(uuid,uuid,uuid,text,jsonb,text)",
+        "definition": "CREATE OR REPLACE FUNCTION public.triniti_admin_provision(p_actor_id uuid, p_session_id uuid, p_key uuid, p_kind text, p_payload jsonb, p_phase text)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare j admin_ops.provisions%rowtype; application public.business_applications%rowtype;\n email_value text; username_value text; new_id uuid; snapshot_value jsonb:='{}'::jsonb;\n role_value text; result_value jsonb; auth_user auth.users%rowtype;\nbegin\n perform pg_advisory_xact_lock(77123,1);\n perform admin_ops.require_session(p_actor_id,p_session_id,case p_kind when 'staff' then 'staff_manage' when 'business' then 'business_manage' else '' end);\n if p_key is null or p_kind not in ('staff','business') or p_phase not in ('reserve','finish') or p_phase is null\n  or jsonb_typeof(p_payload) is distinct from 'object' or octet_length(p_payload::text)>4096 then raise exception 'INVALID_PROVISION'; end if;\n if p_kind='staff' then\n  if (select count(*) from jsonb_object_keys(p_payload))<>3 or not p_payload ?& array['email','role','password_digest']\n   or exists(select 1 from jsonb_each(p_payload) v where jsonb_typeof(v.value)<>'string') then raise exception 'INVALID_PROVISION'; end if;\n  email_value:=lower(btrim(p_payload->>'email')); role_value:=p_payload->>'role';\n  if email_value is null or length(email_value)>254 or email_value !~ '^[^[:space:]@]+@[^[:space:]@]+\\.[^[:space:]@]+$'\n   or p_payload->>'password_digest' !~ '^[0-9a-f]{64}$' then raise exception 'INVALID_PROVISION'; end if;\n  if role_value is null or role_value not in ('super_admin','platform_admin','trust_safety','support_agent','ops_engineer','market_reviewer','jobs_reviewer','verification_reviewer','finance_admin','analyst','auditor_readonly') then raise exception 'INVALID_STAFF_ROLE'; end if;\n else\n  if (select count(*) from jsonb_object_keys(p_payload))<>1 or jsonb_typeof(p_payload->'id') is distinct from 'string' then raise exception 'INVALID_PROVISION'; end if;\n end if;\n select * into j from admin_ops.provisions where command_key=p_key for update;\n if found then\n  if j.actor_id<>p_actor_id or j.kind<>p_kind or j.payload<>p_payload then raise exception 'COMMAND_KEY_REUSED'; end if;\n else\n  if p_phase<>'reserve' then raise exception 'PROVISION_NOT_RESERVED'; end if;\n  if p_kind='business' then\n   select * into application from public.business_applications where id=(p_payload->>'id')::uuid for update;\n   if not found then raise exception 'TARGET_NOT_FOUND'; end if;\n   if application.status<>'submitted' then raise exception 'APPLICATION_NOT_PENDING'; end if;\n   if application.applicant_id is null or not exists(select 1 from public.profiles where id=application.applicant_id and deactivated_at is null) then raise exception 'BUSINESS_OWNER_REQUIRED'; end if;\n   username_value:=lower(btrim(application.desired_username));\n   if username_value !~ '^[a-z0-9_]{3,32}$' then raise exception 'INVALID_BUSINESS_USERNAME'; end if;\n   if exists(select 1 from public.profiles where lower(username)=username_value) then raise exception 'USERNAME_ALREADY_IN_USE'; end if;\n   snapshot_value:=jsonb_build_object('applicant_id',application.applicant_id,'company_name',application.company_name,'desired_username',username_value,'category',application.category,'description',application.description);\n   -- Business identities are delegated, not extra passwords for the owner's email.\n   -- Their contact email stays on the application; the non-deliverable identity\n   -- cannot consume or take over an existing personal login.\n   new_id:=gen_random_uuid(); email_value:='business+'||new_id::text||'@accounts.platinumcircles.invalid';\n  else\n   if exists(select 1 from auth.users where lower(email)=email_value) then raise exception 'EMAIL_ALREADY_IN_USE'; end if;\n   new_id:=gen_random_uuid();\n  end if;\n  insert into admin_ops.provisions(command_key,actor_id,kind,payload,auth_user_id,email,application_id,snapshot)\n  values(p_key,p_actor_id,p_kind,p_payload,new_id,email_value,case when p_kind='business' then application.id else null end,snapshot_value) returning * into j;\n end if;\n result_value:=jsonb_build_object('success',true,'command_key',p_key,'provision_id',j.provision_id,'auth_user_id',j.auth_user_id,'email',j.email,'complete',j.completed_at is not null);\n if j.completed_at is not null or p_phase='reserve' then return result_value; end if;\n select * into auth_user from auth.users where id=j.auth_user_id for update;\n if not found or auth_user.raw_app_meta_data->>'triniti_provision_id' is distinct from j.provision_id::text\n  or lower(auth_user.email) is distinct from j.email or auth_user.deleted_at is not null then raise exception 'PROVISION_IDENTITY_MISMATCH'; end if;\n if j.kind='staff' then\n  insert into public.profiles(id,email,full_name,account_type) values(j.auth_user_id,j.email,'','personal') on conflict(id) do nothing;\n  insert into public.admin_users(user_id,role,created_by) values(j.auth_user_id,j.payload->>'role',p_actor_id);\n else\n  select * into application from public.business_applications where id=j.application_id for update;\n  if application.status<>'submitted' then raise exception 'APPLICATION_NOT_PENDING'; end if;\n  if application.applicant_id::text is distinct from j.snapshot->>'applicant_id'\n   or lower(btrim(application.desired_username)) is distinct from j.snapshot->>'desired_username' then raise exception 'APPLICATION_CHANGED'; end if;\n  if not exists(select 1 from public.profiles where id=application.applicant_id and deactivated_at is null) then raise exception 'BUSINESS_OWNER_REQUIRED'; end if;\n  insert into public.profiles(id,email,full_name,username,bio,account_type,account_class,is_verified,verified_tier,verified_category)\n  values(j.auth_user_id,j.email,j.snapshot->>'company_name',j.snapshot->>'desired_username',j.snapshot->>'description','business','organization',true,'business',j.snapshot->>'category')\n  on conflict(id) do update set full_name=excluded.full_name,username=excluded.username,bio=excluded.bio,account_type='business',account_class='organization',is_verified=true,verified_tier='business',verified_category=excluded.verified_category,updated_at=now();\n  insert into public.business_members(business_id,member_id,role) values(j.auth_user_id,application.applicant_id,'owner');\n  update public.business_applications set status='approved',decided_by=p_actor_id,decided_at=now(),decision_reason=null where id=application.id;\n  -- A business account is controlled through delegated membership, not sign-in.\n  update auth.users set banned_until='infinity',updated_at=now() where id=j.auth_user_id;\n end if;\n insert into public.admin_audit_log(admin_id,action,target_kind,target_id,after)\n values(p_actor_id,case when j.kind='staff' then 'inviteStaff' else 'approveBusinessApplication' end,j.kind,j.auth_user_id::text,\n  jsonb_build_object('provision_id',j.provision_id,'application_id',j.application_id,'role',j.payload->>'role'));\n update admin_ops.provisions set completed_at=now() where command_key=p_key;\n return result_value||jsonb_build_object('complete',true);\nend $function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "ba2e1c694288129ee94d8b6d06746eef",
+        "signature": "triniti_admin_session_check(uuid,uuid)",
+        "definition": "CREATE OR REPLACE FUNCTION public.triniti_admin_session_check(p_user_id uuid, p_session_id uuid)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\r\n  SELECT EXISTS (\r\n    SELECT 1\r\n    FROM auth.sessions s\r\n    JOIN auth.users u ON u.id = s.user_id\r\n    JOIN public.admin_users a ON a.user_id = s.user_id\r\n    WHERE s.id = p_session_id AND s.user_id = p_user_id\r\n      AND (s.not_after IS NULL OR s.not_after > now())\r\n      AND u.deleted_at IS NULL\r\n      AND (u.banned_until IS NULL OR u.banned_until <= now())\r\n      AND a.active IS TRUE\r\n      AND a.role IN ('super_admin','platform_admin','trust_safety','support_agent','ops_engineer',\r\n                     'market_reviewer','jobs_reviewer','verification_reviewer','finance_admin','analyst','auditor_readonly')\r\n  );\r\n$function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "5bb6dd8695914cf8fb4f460be6e663e0",
+        "signature": "triniti_admin_single_owner_access(uuid,uuid)",
+        "definition": "CREATE OR REPLACE FUNCTION public.triniti_admin_single_owner_access(p_actor_id uuid, p_session_id uuid)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n select coalesce(public.triniti_admin_session_check(p_actor_id,p_session_id),false)\n  and admin_ops.single_owner_access(p_actor_id)\n  and exists(select 1 from auth.sessions where id=p_session_id and user_id=p_actor_id and aal::text in ('aal1','aal2'));\n$function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres,service_role=X/postgres}",
+        "md5": "9db1e605fc51a9e2b7860abee91f1a43",
+        "signature": "triniti_platinum_admin_command(uuid,uuid,uuid,text,jsonb)",
+        "definition": "CREATE OR REPLACE FUNCTION public.triniti_platinum_admin_command(p_actor_id uuid, p_session_id uuid, p_key uuid, p_operation text, p_payload jsonb)\n RETURNS jsonb\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n#variable_conflict use_variable\ndeclare perm text; allowed text[]; id uuid; target uuid; old jsonb; after_row jsonb;\n c admin_ops.commands%rowtype; application_row public.verification_applications%rowtype;\n report jsonb; reason text:=nullif(btrim(p_payload->>'reason'),''); role_name text;\n target_kind text; target_text text; status_value text; changed integer; days integer;\n result_value jsonb; field_name text;\nbegin\n if p_key is null or jsonb_typeof(p_payload) is distinct from 'object' or octet_length(p_payload::text)>32768 then\n  raise exception 'INVALID_COMMAND' using errcode='22023'; end if;\n -- One staff-governance lock precedes actor row locks in every staff change.\n -- This prevents two simultaneous changes removing the last super administrator.\n if p_operation in ('setStaffRole','deactivateStaff','adminDeleteAccount','suspendUser','issueStrike') then\n  perform pg_advisory_xact_lock(77123,1);\n end if;\n case p_operation\n when 'approveApplication','rejectApplication','revokeVerification' then perm:='verification'; allowed:=array['id','reason'];\n when 'suspendUser','restoreUser' then perm:='user_moderate'; allowed:=array['id','reason'];\n when 'issueStrike','liftRestriction' then perm:='user_moderate'; allowed:=array['uid','level','days','reason'];\n when 'dismissReport' then\n  if p_payload->>'table' not in ('post_reports','listing_reports') or p_payload->>'table' is null then raise exception 'INVALID_REPORT_TABLE'; end if;\n  perm:=case when p_payload->>'table'='listing_reports' then 'report_listing' else 'report_post' end; allowed:=array['rid','table'];\n when 'removeReportedPost' then perm:='report_post'; allowed:=array['rid','pid'];\n when 'removeReportedListing' then perm:='report_listing'; allowed:=array['rid','lid'];\n when 'resolveUserReport' then perm:='report_user'; allowed:=array['rid','outcome'];\n when 'adminRemovePost' then perm:='post_moderate'; allowed:=array['pid'];\n when 'adminRemoveStory' then perm:='post_moderate'; allowed:=array['sid'];\n when 'adminRemoveListing' then perm:='market_moderate'; allowed:=array['lid'];\n when 'adminRemoveComment' then perm:='comment_delete'; allowed:=array['cid'];\n when 'resolveTicket' then perm:='support'; allowed:=array['tid','rid'];\n when 'setTicketStatus','sendTicketReply' then perm:='support'; allowed:=array['tid','status','body'];\n when 'approveCampaign','rejectCampaign','adminEndCampaign' then perm:='ads'; allowed:=array['id','reason'];\n when 'setStaffRole','deactivateStaff' then perm:='staff_manage'; allowed:=array['uid','role'];\n when 'toggleFlag' then perm:='system'; allowed:=array['key','to'];\n when 'publishAnnouncement' then perm:='system'; allowed:=array['title','body'];\n when 'retireAnnouncement' then perm:='system'; allowed:=array['id'];\n when 'addBlockedWord','removeBlockedWord' then perm:='system'; allowed:=array['word'];\n when 'rejectBusinessApplication' then perm:='business_manage'; allowed:=array['id','reason'];\n when 'archiveOrganization','restoreOrganization','adminTransferOwnership' then perm:='organization_manage'; allowed:=array['id','username'];\n when 'adminDeleteAccount' then perm:='account_delete'; allowed:=array['id','reason','confirm'];\n else raise exception 'UNKNOWN_ADMIN_OPERATION' using errcode='22023';\n end case;\n perform admin_ops.require_session(p_actor_id,p_session_id,perm);\n for field_name in select jsonb_object_keys(p_payload) loop\n  if not field_name=any(allowed) or jsonb_typeof(p_payload->field_name)<>'string' then raise exception 'INVALID_COMMAND_FIELD' using errcode='22023'; end if;\n end loop;\n insert into admin_ops.commands(command_key,actor_id,operation,payload)\n values(p_key,p_actor_id,p_operation,p_payload) on conflict do nothing;\n select * into c from admin_ops.commands where command_key=p_key for update;\n if c.actor_id<>p_actor_id or c.operation<>p_operation or c.payload<>p_payload then raise exception 'COMMAND_KEY_REUSED' using errcode='22023'; end if;\n if c.result is not null then return c.result; end if;\n target_kind:=perm;\n if p_operation in ('rejectApplication','suspendUser','issueStrike','rejectCampaign','rejectBusinessApplication','adminDeleteAccount') and (reason is null or length(reason)>2000) then raise exception 'REASON_REQUIRED' using errcode='22023'; end if;\n if p_payload ? 'id' then id:=(p_payload->>'id')::uuid;\n elsif p_payload ? 'uid' then id:=(p_payload->>'uid')::uuid;\n elsif p_payload ? 'rid' then id:=(p_payload->>'rid')::uuid;\n elsif p_payload ? 'pid' then id:=(p_payload->>'pid')::uuid;\n elsif p_payload ? 'lid' then id:=(p_payload->>'lid')::uuid;\n elsif p_payload ? 'sid' then id:=(p_payload->>'sid')::uuid;\n elsif p_payload ? 'cid' then id:=(p_payload->>'cid')::uuid;\n elsif p_payload ? 'tid' then id:=(p_payload->>'tid')::uuid;\n end if;\n target_text:=id::text;\n case\n when p_operation in ('approveApplication','rejectApplication') then\n  select * into application_row from public.verification_applications where verification_applications.id=id for update;\n  if not found then raise exception 'TARGET_NOT_FOUND'; end if;\n  if application_row.status not in ('submitted','under_review') then raise exception 'APPLICATION_NOT_PENDING'; end if;\n  old:=to_jsonb(application_row); target_kind:='verification_application';\n  if p_operation='approveApplication' then\n   update public.profiles set is_verified=true,verified_tier=application_row.tier,verified_category=application_row.category,updated_at=now() where profiles.id=application_row.applicant_id;\n   if not found then raise exception 'TARGET_NOT_FOUND'; end if;\n  end if;\n  update public.verification_applications set status=case when p_operation='approveApplication' then 'approved' else 'rejected' end,\n   reviewer_id=p_actor_id,decision_reason=reason,decided_at=now() where verification_applications.id=id returning to_jsonb(verification_applications.*) into after_row;\n when p_operation in ('suspendUser','restoreUser','revokeVerification','issueStrike','liftRestriction','adminDeleteAccount') then\n  select to_jsonb(p) into old from public.profiles p where p.id=id for update;\n  if old is null then raise exception 'TARGET_NOT_FOUND'; end if; target_kind:='profile';\n  if p_operation in ('suspendUser','issueStrike','adminDeleteAccount') and exists(select 1 from public.admin_users where user_id=id and active) then raise exception 'ACTIVE_STAFF_DELETION_FORBIDDEN'; end if;\n  if p_operation='revokeVerification' then\n   update public.profiles set is_verified=false,verified_tier=null,verified_category=null,updated_at=now() where profiles.id=id;\n  elsif p_operation in ('restoreUser','liftRestriction') then\n   if exists(select 1 from admin_ops.deletion_requests where user_id=id and status<>'cancelled') then raise exception 'DELETION_REVIEW_REQUIRED'; end if;\n   if p_operation='restoreUser' then\n    update public.profiles set deactivated_at=null,suspended_reason=null,suspended_by=null,updated_at=now() where profiles.id=id;\n    update auth.users set banned_until=null,updated_at=now() where users.id=id;\n   else update public.profiles set restricted_until=null,updated_at=now() where profiles.id=id; end if;\n  elsif p_operation='adminDeleteAccount' then\n   if p_payload->>'confirm' is distinct from 'DELETE' then raise exception 'DELETE_CONFIRMATION_REQUIRED'; end if;\n   if exists(select 1 from public.org_memberships where user_id=id and role='owner' and (expires_at is null or expires_at>now()))\n      or exists(select 1 from public.business_members where member_id=id and role='owner') then raise exception 'TRANSFER_ORGANIZATION_OWNERSHIP_FIRST'; end if;\n   insert into admin_ops.deletion_requests(user_id,requested_by,reason) values(id,p_actor_id,reason)\n    on conflict(user_id) do update set status='retention_review',requested_by=excluded.requested_by,reason=excluded.reason where deletion_requests.status='cancelled';\n   update public.profiles set deactivated_at=now(),suspended_reason=reason,suspended_by=p_actor_id,push_token=null,updated_at=now() where profiles.id=id;\n   update auth.users set banned_until='infinity',updated_at=now() where users.id=id;\n   delete from auth.sessions where user_id=id;\n  else\n   if p_operation='issueStrike' then\n    if p_payload->>'level' is null or p_payload->>'level' not in ('warn','restrict','suspend','ban') then raise exception 'INVALID_STRIKE_LEVEL'; end if;\n    if p_payload->>'level'='restrict' then\n     days:=(p_payload->>'days')::integer;\n     if days is null or days not between 1 and 90 then raise exception 'INVALID_RESTRICTION_DAYS'; end if;\n    end if;\n    insert into public.member_strikes(user_id,level,reason,issued_by,expires_at)\n    values(id,p_payload->>'level',reason,p_actor_id,case when days is not null then now()+make_interval(days=>days) else null end);\n   end if;\n   if p_operation='suspendUser' or p_payload->>'level' in ('suspend','ban') then\n    update public.profiles set deactivated_at=now(),suspended_reason=reason,suspended_by=p_actor_id,push_token=null,updated_at=now() where profiles.id=id;\n    update auth.users set banned_until='infinity',updated_at=now() where users.id=id;\n    delete from auth.sessions where user_id=id;\n   elsif p_payload->>'level'='restrict' then\n    update public.profiles set restricted_until=greatest(restricted_until,now()+make_interval(days=>days)),updated_at=now() where profiles.id=id;\n   end if;\n  end if;\n  select to_jsonb(p) into after_row from public.profiles p where p.id=id;\n when p_operation in ('dismissReport','removeReportedPost','removeReportedListing','resolveUserReport') then\n  if p_operation='removeReportedPost' or (p_operation='dismissReport' and p_payload->>'table'='post_reports') then\n   select to_jsonb(r) into report from public.post_reports r where r.id=id for update; target_kind:='post_report';\n  elsif p_operation='resolveUserReport' then\n   select to_jsonb(r) into report from public.user_reports r where r.id=id for update; target_kind:='user_report';\n  else select to_jsonb(r) into report from public.listing_reports r where r.id=id for update; target_kind:='listing_report'; end if;\n  if report is null then raise exception 'TARGET_NOT_FOUND'; end if;\n  if report->>'status'<>'open' then raise exception 'REPORT_NOT_OPEN'; end if; old:=report;\n  status_value:=case when p_operation='dismissReport' then 'dismissed' when p_operation='resolveUserReport' then p_payload->>'outcome' else 'actioned' end;\n  if status_value is null or status_value not in ('actioned','dismissed') then raise exception 'INVALID_REPORT_OUTCOME'; end if;\n  if p_operation='removeReportedPost' then\n   target:=(p_payload->>'pid')::uuid;\n   if target is null or target is distinct from (report->>'post_id')::uuid then raise exception 'REPORT_TARGET_MISMATCH'; end if;\n   delete from public.posts where posts.id=target;\n  elsif p_operation='removeReportedListing' then\n   target:=(p_payload->>'lid')::uuid;\n   if target is null or target is distinct from (report->>'listing_id')::uuid then raise exception 'REPORT_TARGET_MISMATCH'; end if;\n   update public.marketplace_listings set status='removed',hidden_at=now(),updated_at=now() where marketplace_listings.id=target;\n  end if;\n  if target_kind='post_report' then update public.post_reports set status=status_value,resolved_by=p_actor_id,resolved_at=now() where post_reports.id=id;\n  elsif target_kind='listing_report' then update public.listing_reports set status=status_value,resolved_by=p_actor_id,resolved_at=now() where listing_reports.id=id;\n  else update public.user_reports set status='closed',resolved_by=p_actor_id,resolved_at=now() where user_reports.id=id; end if;\n  after_row:=report||jsonb_build_object('status',case when target_kind='user_report' then 'closed' else status_value end,'resolution_outcome',status_value,'resolved_by',p_actor_id,'resolved_at',now());\n when p_operation in ('adminRemovePost','adminRemoveStory','adminRemoveListing','adminRemoveComment') then\n  if p_operation='adminRemovePost' then delete from public.posts where posts.id=id returning to_jsonb(posts.*) into old; target_kind:='post';\n  elsif p_operation='adminRemoveStory' then delete from public.stories where stories.id=id returning to_jsonb(stories.*) into old; target_kind:='story';\n  elsif p_operation='adminRemoveComment' then delete from public.post_comments where post_comments.id=id returning to_jsonb(post_comments.*) into old; target_kind:='comment';\n  else\n   select to_jsonb(l) into old from public.marketplace_listings l where l.id=id for update;\n   update public.marketplace_listings set status='removed',hidden_at=now(),updated_at=now() where marketplace_listings.id=id returning to_jsonb(marketplace_listings.*) into after_row; target_kind:='listing';\n  end if;\n  if old is null then raise exception 'TARGET_NOT_FOUND'; end if;\n when p_operation in ('resolveTicket','setTicketStatus','sendTicketReply') then\n  if p_payload ? 'tid' and p_payload ? 'rid' and p_payload->>'tid' is distinct from p_payload->>'rid' then raise exception 'INVALID_COMMAND_FIELD'; end if;\n  select to_jsonb(t) into old from public.support_tickets t where t.id=id for update;\n  if old is null then raise exception 'TARGET_NOT_FOUND'; end if; target_kind:='support_ticket';\n  if p_operation='sendTicketReply' then\n   if length(btrim(coalesce(p_payload->>'body',''))) not between 1 and 10000 then raise exception 'INVALID_REPLY'; end if;\n   insert into public.support_messages(ticket_id,sender,body,sender_id) values(id,'ops',btrim(p_payload->>'body'),p_actor_id);\n   status_value:='pending';\n  else status_value:=case when p_operation='resolveTicket' then 'solved' else p_payload->>'status' end; end if;\n  if status_value is null or status_value not in ('open','pending','solved') then raise exception 'INVALID_TICKET_STATUS'; end if;\n  update public.support_tickets set status=status_value,updated_at=now(),\n   resolved_by=case when status_value='solved' then p_actor_id else null end,\n   resolved_at=case when status_value='solved' then now() else null end\n   where support_tickets.id=id returning to_jsonb(support_tickets.*) into after_row;\n when p_operation in ('approveCampaign','rejectCampaign','adminEndCampaign') then\n  select to_jsonb(s) into old from public.studio_campaigns s where s.id=id for update;\n  if old is null then raise exception 'TARGET_NOT_FOUND'; end if; target_kind:='campaign';\n  if p_operation<>'adminEndCampaign' and old->>'status'<>'submitted' then raise exception 'APPLICATION_NOT_PENDING'; end if;\n  if p_operation='adminEndCampaign' and old->>'status' not in ('approved','live','paused') then raise exception 'CAMPAIGN_NOT_ACTIVE'; end if;\n  -- Content approval never manufactures payment evidence. Provider callbacks own funding.\n  update public.studio_campaigns set status=case p_operation when 'approveCampaign' then 'approved' when 'rejectCampaign' then 'rejected' else 'ended' end,\n   review_note=reason,reviewed_at=now(),updated_at=now() where studio_campaigns.id=id returning to_jsonb(studio_campaigns.*) into after_row;\n when p_operation in ('setStaffRole','deactivateStaff') then\n  select to_jsonb(u) into old from public.admin_users u where u.user_id=id for update;\n  if old is null then raise exception 'TARGET_NOT_FOUND'; end if; target_kind:='staff'; role_name:=p_payload->>'role';\n  if p_operation='setStaffRole' and (role_name is null or role_name not in ('super_admin','platform_admin','trust_safety','support_agent','ops_engineer','market_reviewer','jobs_reviewer','verification_reviewer','finance_admin','analyst','auditor_readonly')) then raise exception 'INVALID_STAFF_ROLE'; end if;\n  if (old->>'active')::boolean and old->>'role'='super_admin' and (p_operation='deactivateStaff' or role_name<>'super_admin')\n    and not exists(select 1 from public.admin_users where active and role='super_admin' and user_id<>id) then raise exception 'LAST_SUPER_ADMIN'; end if;\n  update public.admin_users set role=case when p_operation='setStaffRole' then role_name else role end,active=case when p_operation='deactivateStaff' then false else active end\n   where user_id=id returning to_jsonb(admin_users.*) into after_row;\n  if p_operation='deactivateStaff' then delete from auth.sessions where user_id=id; end if;\n when p_operation='toggleFlag' then\n  if p_payload->>'to' is null or p_payload->>'to' not in ('on','off') then raise exception 'INVALID_FLAG_VALUE'; end if;\n  target_kind:='feature_flag'; target_text:=p_payload->>'key';\n  select to_jsonb(f) into old from public.feature_flags f where key=target_text for update;\n  if old is null then raise exception 'TARGET_NOT_FOUND'; end if;\n  update public.feature_flags set enabled=p_payload->>'to'='on',updated_by=p_actor_id,updated_at=now() where key=target_text returning to_jsonb(feature_flags.*) into after_row;\n when p_operation='publishAnnouncement' then\n  if length(btrim(coalesce(p_payload->>'title',''))) not between 1 and 200 or length(btrim(coalesce(p_payload->>'body',''))) not between 1 and 5000 then raise exception 'INVALID_ANNOUNCEMENT'; end if;\n  insert into public.announcements(title,body,created_by) values(btrim(p_payload->>'title'),btrim(p_payload->>'body'),p_actor_id) returning to_jsonb(announcements.*),announcements.id into after_row,id;\n  target_kind:='announcement'; target_text:=id::text;\n when p_operation='retireAnnouncement' then\n  select to_jsonb(a) into old from public.announcements a where a.id=id for update;\n  if old is null then raise exception 'TARGET_NOT_FOUND'; end if;\n  update public.announcements set active=false where announcements.id=id returning to_jsonb(announcements.*) into after_row; target_kind:='announcement';\n when p_operation in ('addBlockedWord','removeBlockedWord') then\n  target_text:=lower(btrim(p_payload->>'word')); target_kind:='blocked_word';\n  if target_text is null or length(target_text) not between 2 and 200 then raise exception 'INVALID_BLOCKED_WORD'; end if;\n  select to_jsonb(w) into old from public.blocked_words w where word=target_text for update;\n  if p_operation='addBlockedWord' then insert into public.blocked_words(word,added_by) values(target_text,p_actor_id) on conflict(word) do nothing;\n   select to_jsonb(w) into after_row from public.blocked_words w where word=target_text;\n  else delete from public.blocked_words where word=target_text; if not found then raise exception 'TARGET_NOT_FOUND'; end if; end if;\n when p_operation='rejectBusinessApplication' then\n  select to_jsonb(b) into old from public.business_applications b where b.id=id for update;\n  if old is null then raise exception 'TARGET_NOT_FOUND'; end if; target_kind:='business_application';\n  if old->>'status'<>'submitted' then raise exception 'APPLICATION_NOT_PENDING'; end if;\n  if exists(select 1 from admin_ops.provisions where application_id=id) then raise exception 'APPLICATION_PROVISIONING'; end if;\n  update public.business_applications set status='rejected',decision_reason=reason,decided_by=p_actor_id,decided_at=now() where business_applications.id=id returning to_jsonb(business_applications.*) into after_row;\n when p_operation in ('archiveOrganization','restoreOrganization','adminTransferOwnership') then\n  select to_jsonb(o) into old from public.organizations o where o.id=id for update;\n  if old is null then raise exception 'TARGET_NOT_FOUND'; end if; target_kind:='organization';\n  if p_operation='adminTransferOwnership' then\n   select p.id into target from public.profiles p where lower(p.username)=lower(ltrim(btrim(p_payload->>'username'),'@')) and p.deactivated_at is null;\n   if target is null then raise exception 'TARGET_NOT_FOUND'; end if;\n   update public.org_memberships set role='admin' where org_id=id and role='owner' and user_id<>target;\n   insert into public.org_memberships(org_id,user_id,role,invited_by) values(id,target,'owner',p_actor_id)\n    on conflict(org_id,user_id) do update set role='owner',expires_at=null;\n   insert into public.org_audit_log(org_id,actor_id,action,target_type,target_id,meta)\n    values(id,p_actor_id,'ownership_transferred','user',target::text,jsonb_build_object('admin_override',true));\n   after_row:=old||jsonb_build_object('owner_id',target);\n  else\n   update public.organizations set archived_at=case when p_operation='archiveOrganization' then now() else null end where organizations.id=id returning to_jsonb(organizations.*) into after_row;\n   if p_operation='archiveOrganization' then delete from public.org_delegations where principal_org_id=id or client_org_id=id; end if;\n   insert into public.org_audit_log(org_id,actor_id,action,target_type,target_id) values(id,p_actor_id,p_operation,'organization',id::text);\n  end if;\n end case;\n insert into public.admin_audit_log(admin_id,action,target_kind,target_id,reason,before,after)\n values(p_actor_id,p_operation,target_kind,target_text,reason,old,after_row);\n result_value:=jsonb_build_object('success',true,'command_key',p_key,'target_id',target_text);\n if p_operation='adminDeleteAccount' then result_value:=result_value||jsonb_build_object('deletion_status','retention_review'); end if;\n update admin_ops.commands set result=result_value where command_key=p_key;\n return result_value;\nend $function$\n"
+      },
+      {
+        "acl": "{postgres=X/postgres,=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+        "md5": "008f18da2039b8c91219ed1ac989aafb",
+        "signature": "update_comment_count()",
+        "definition": "CREATE OR REPLACE FUNCTION public.update_comment_count()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\nbegin\n  if tg_op = 'INSERT' then\n    update public.posts set comments_count = comments_count + 1 where id = new.post_id;\n  elsif tg_op = 'DELETE' then\n    update public.posts set comments_count = comments_count - 1 where id = old.post_id;\n  end if;\n  return null;\nend;\n$function$\n"
+      }
+    ],
+    "preserved_counts": {
+      "profiles": 1,
+      "auth_users": 1,
+      "admin_users": 1,
+      "storage_objects": 15
+    }
+  }
+}

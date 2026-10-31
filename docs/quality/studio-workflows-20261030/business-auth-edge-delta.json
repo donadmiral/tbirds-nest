@@ -1,0 +1,135 @@
+{
+  "recordedAt": "2026-10-30T04:49:00.360779+00:00",
+  "scope": "Documentation-only preservation of existing final bounded-fetch delta checks; no test rerun or hosted mutation.",
+  "publishedSourceCommitReportedByRoot": "b7a37a7a1e271e1ec037798a39772e151fbcc318",
+  "baseline": "The full Supabase Node run registered 296 cases: 293 passed and three complementary release-variant cases were skipped. It included the earlier 18-case business-session file. It predates the four delta paths listed below.",
+  "interpretation": "The later 21-case targeted run covers the updated business-session file, including its earlier cases plus three network-deadline/cancellation tests. Do not sum 296 and 21 as distinct cases or describe the earlier full run as covering the later source.",
+  "targetedNode": {
+    "command": "node supabase/tests/business-session.test.cjs",
+    "exitCode": 0,
+    "tests": 21,
+    "passed": 21,
+    "failed": 0,
+    "skipped": 0,
+    "durationMs": 42.301467,
+    "log": "docs/quality/studio-workflows-20261030/business-auth-edge-delta-tests.txt",
+    "logSha256": "9682c2cb43788f5e026808ba4d83b59471a770617f2d1cfd3129a09c1afcc0c9",
+    "originalLogPath": "/tmp/business-session-edge-tests.log",
+    "originalLogModifiedAt": "2026-10-30T04:14:27.110297+00:00",
+    "provenance": "Original completed run output copied without modification from its existing file."
+  },
+  "denoTypecheck": {
+    "command": "DENO_DIR=/tmp/platinum-deno-deps /tmp/platinum-deno-2.1.4/deno check --node-modules-dir=none --no-lock supabase/functions/business-signin/index.ts supabase/functions/business-owner-access/index.ts supabase/functions/link-preview/index.ts supabase/functions/crisp-bridge/index.ts supabase/functions/daily-get-token/index.ts supabase/functions/apple-music/index.ts supabase/functions/replicate-proxy/index.ts supabase/functions/create-business/index.ts",
+    "exitCode": 0,
+    "entrypoints": [
+      "supabase/functions/business-signin/index.ts",
+      "supabase/functions/business-owner-access/index.ts",
+      "supabase/functions/link-preview/index.ts",
+      "supabase/functions/crisp-bridge/index.ts",
+      "supabase/functions/daily-get-token/index.ts",
+      "supabase/functions/apple-music/index.ts",
+      "supabase/functions/replicate-proxy/index.ts",
+      "supabase/functions/create-business/index.ts"
+    ],
+    "entrypointsPassed": 8,
+    "observedOutput": [
+      "Check file:///workspace/scratch/d4753960f6a2/tbirds-nest/supabase/functions/business-signin/index.ts",
+      "Check file:///workspace/scratch/d4753960f6a2/tbirds-nest/supabase/functions/business-owner-access/index.ts",
+      "Check file:///workspace/scratch/d4753960f6a2/tbirds-nest/supabase/functions/link-preview/index.ts",
+      "Check file:///workspace/scratch/d4753960f6a2/tbirds-nest/supabase/functions/crisp-bridge/index.ts",
+      "Check file:///workspace/scratch/d4753960f6a2/tbirds-nest/supabase/functions/daily-get-token/index.ts",
+      "Check file:///workspace/scratch/d4753960f6a2/tbirds-nest/supabase/functions/apple-music/index.ts",
+      "Check file:///workspace/scratch/d4753960f6a2/tbirds-nest/supabase/functions/replicate-proxy/index.ts",
+      "Check file:///workspace/scratch/d4753960f6a2/tbirds-nest/supabase/functions/create-business/index.ts"
+    ],
+    "provenance": "Observed completed exec_command tool result (chunk 258c86, exit_code 0, wall_time_seconds 0.508805468) after the bounded-fetch initSignal type fix. The output was retained in the conversation and is transcribed here; no standalone original Deno log was saved. No typecheck was rerun for this documentation update."
+  },
+  "frozenSourceManifest": "docs/quality/studio-workflows-20261030/business-auth-candidate.json",
+  "files": [
+    {
+      "path": "supabase/functions/_shared/serveBusinessRequest.ts",
+      "sha256": "3844186f8839915178b129481c649ca975417228e086fe494f53b4ad9facefed",
+      "matchesFrozenCandidateManifest": true,
+      "deltaPath": true
+    },
+    {
+      "path": "supabase/functions/business-session/runtime.ts",
+      "sha256": "e80f5b829184acc0dc2071a507c298f6418b64d53e75b37996b1c8ac733dacf9",
+      "matchesFrozenCandidateManifest": true,
+      "deltaPath": true
+    },
+    {
+      "path": "supabase/tests/business-session.test.cjs",
+      "sha256": "c58ea611b1b9ce45426d3e48ae473b003014eeab6137874178556a4a5c9950ac",
+      "matchesFrozenCandidateManifest": true,
+      "deltaPath": true
+    },
+    {
+      "path": "supabase/functions/_shared/boundedFetch.ts",
+      "sha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147",
+      "matchesFrozenCandidateManifest": true,
+      "deltaPath": true
+    },
+    {
+      "path": "supabase/functions/business-signin/index.ts",
+      "sha256": "9ce1cde6b74e99a5f8545bf3af043160943240c3d1c922b3c5eff7321a4174ba",
+      "matchesFrozenCandidateManifest": true,
+      "deltaPath": false
+    },
+    {
+      "path": "supabase/functions/business-owner-access/index.ts",
+      "sha256": "417ee201d011b8b59314363d72baa577be0ca266ee62d816342344f6c55a49c0",
+      "matchesFrozenCandidateManifest": true,
+      "deltaPath": false
+    },
+    {
+      "path": "supabase/functions/daily-get-token/index.ts",
+      "sha256": "31e7f5dfb9b6635f96d2a5231c1cab0436c9c4172778ac10fc4d3402ce5bcb8d",
+      "matchesFrozenCandidateManifest": true,
+      "deltaPath": false
+    },
+    {
+      "path": "supabase/functions/crisp-bridge/index.ts",
+      "sha256": "3ad65fba3f5aa66becbe0ed3d1df0ede623e2c91edee90380393c7da36b08197",
+      "matchesFrozenCandidateManifest": true,
+      "deltaPath": false
+    },
+    {
+      "path": "supabase/functions/link-preview/index.ts",
+      "sha256": "ba538924c931d806f4e2421667849e6b597f6e21fb82f60aebda94e3c711797f",
+      "matchesFrozenCandidateManifest": true,
+      "deltaPath": false
+    },
+    {
+      "path": "supabase/functions/apple-music/index.ts",
+      "sha256": "653b8f5b1be36ab226f48b56c7a4e71136093b8f98f6c525dee903ae42eda22c",
+      "matchesFrozenCandidateManifest": true,
+      "deltaPath": false
+    },
+    {
+      "path": "supabase/functions/replicate-proxy/index.ts",
+      "sha256": "487ddfd78f4eb098465fe3af9538e789b4ed10a11e9221ebabff732d6b56fbdf",
+      "matchesFrozenCandidateManifest": true,
+      "deltaPath": false
+    },
+    {
+      "path": "supabase/functions/create-business/index.ts",
+      "sha256": "c3453e54f045688887e8781d43999d4b8d75b7d0e512617a3c3c3fbf86f89581",
+      "matchesFrozenCandidateManifest": true,
+      "deltaPath": false
+    },
+    {
+      "path": "supabase/functions/business-session/handler.ts",
+      "sha256": "bb0eb68831fc5213d985d0348781fde9ded16f72a1cbeeb7a006970eb3ae353f",
+      "matchesFrozenCandidateManifest": true,
+      "deltaPath": false
+    },
+    {
+      "path": "supabase/functions/_shared/businessSessionGuard.ts",
+      "sha256": "eb9272e639582100a5a9111db9a63f0d36ed85968923556960ddfd1047a28c44",
+      "matchesFrozenCandidateManifest": true,
+      "deltaPath": false
+    }
+  ],
+  "hostedStatus": "Unchanged: new business Auth migration and eight functions remain uninstalled/undeployed after connector stalls; see business-auth-qa-connector-blocker.json."
+}

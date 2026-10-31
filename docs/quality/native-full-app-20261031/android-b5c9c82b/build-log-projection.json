@@ -1,0 +1,23 @@
+{
+  "sourceSha256": "4e071a14f2a9f18e7b449c9b6cbda5929237420bd13b124d90464aa87fba8030",
+  "sourceBytes": 189816,
+  "sourceLines": 2321,
+  "lines": [
+    {
+      "line": 2318,
+      "text": "For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation."
+    },
+    {
+      "line": 2319,
+      "text": ""
+    },
+    {
+      "line": 2320,
+      "text": "BUILD SUCCESSFUL in 16m 46s"
+    },
+    {
+      "line": 2321,
+      "text": "1403 actionable tasks: 1403 executed"
+    }
+  ]
+}

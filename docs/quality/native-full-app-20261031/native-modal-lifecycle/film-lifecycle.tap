@@ -1,0 +1,58 @@
+TAP version 13
+# Subtest: native initial loading deadline excludes manual pause and restarts on resume
+ok 1 - native initial loading deadline excludes manual pause and restarts on resume
+  ---
+  duration_ms: 367.914224
+  type: 'test'
+  ...
+# Subtest: native initial loading deadline excludes background and restarts on resume
+ok 2 - native initial loading deadline excludes background and restarts on resume
+  ---
+  duration_ms: 282.489879
+  type: 'test'
+  ...
+# Subtest: native initial loading deadline excludes active call and restarts on resume
+ok 3 - native initial loading deadline excludes active call and restarts on resume
+  ---
+  duration_ms: 172.016874
+  type: 'test'
+  ...
+# Subtest: native initial loading deadline excludes inactive film and restarts on resume
+ok 4 - native initial loading deadline excludes inactive film and restarts on resume
+  ---
+  duration_ms: 169.485216
+  type: 'test'
+  ...
+# Subtest: native late image readiness cannot replace the current ready page or satisfy a new loop
+ok 5 - native late image readiness cannot replace the current ready page or satisfy a new loop
+  ---
+  duration_ms: 179.224571
+  type: 'test'
+  ...
+# Subtest: native stale video callbacks cannot replace current progress, readiness, or an actionable failure
+ok 6 - native stale video callbacks cannot replace current progress, readiness, or an actionable failure
+  ---
+  duration_ms: 116.029413
+  type: 'test'
+  ...
+# Subtest: native video stall remains terminal across active and foreground changes until remount
+ok 7 - native video stall remains terminal across active and foreground changes until remount
+  ---
+  duration_ms: 117.688293
+  type: 'test'
+  ...
+# Subtest: native video provider error remains terminal across active and foreground changes until remount
+ok 8 - native video provider error remains terminal across active and foreground changes until remount
+  ---
+  duration_ms: 81.809781
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1492.170739

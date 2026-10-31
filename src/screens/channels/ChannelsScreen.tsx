@@ -1,14 +1,17 @@
 import { themedSheet, getTheme, useTheme } from '../../theme/useTheme';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ActivityIndicator, Modal, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ActivityIndicator, Modal, Alert, KeyboardAvoidingView, Platform, ScrollView, RefreshControl } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
 import { Image as ExpoImage } from 'expo-image';
 import { supabase } from '../../services/supabase';
 import { CATEGORIES } from '../../constants/categories';
 import { useAuthStore } from '../../stores/authStore';
 import { StudioLoadError } from '../../components/StudioLoadError';
+import { navigationCache, navigationScope, subscribeNavigationScope } from '../../lib/navigationCache';
+import { channelDirectoryKey, emptyChannelDirectory, mutateDirectory, readChannelDirectory } from '../../services/navigationDirectory';
+import type { ChannelDirectoryTab, ChannelDirectoryView } from '../../services/navigationDirectory';
 
 const NAVY = '#0B1E3D';
 export const COMM_COLORS: Record<string, string> = {
@@ -25,11 +28,19 @@ export default function ChannelsScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   const uid = useAuthStore(state => state.session?.user.id || '');
-  const [tab, setTab] = useState<'channels' | 'communities'>('channels');
-  const [query, setQuery] = useState('');
-  const [rows, setRows] = useState<any[]>([]);
-  const [commRows, setCommRows] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const scope = useSyncExternalStore(subscribeNavigationScope, navigationScope, navigationScope);
+  const controlsScope = useRef(scope), controlsOwner = controlsScope.current;
+  const [initialControls] = useState(() => navigationCache.read<{ tab: ChannelDirectoryTab; query: string }>(scope, 'channels:controls'));
+  const [tab, setTab] = useState<ChannelDirectoryTab>(initialControls?.tab ?? 'channels');
+  const [query, setQuery] = useState(initialControls?.query ?? '');
+  const [search, setSearch] = useState(query.trim());
+  const cacheKey = channelDirectoryKey(tab, search);
+  const context = useMemo(() => ({ scope, cacheKey, uid }), [scope, cacheKey, uid]);
+  const contextRef = useRef(context); contextRef.current = context;
+  const [view, setView] = useState(() => navigationCache.read<ChannelDirectoryView>(scope, cacheKey) ?? emptyChannelDirectory());
+  const viewRef = useRef(view);
+  const [loading, setLoading] = useState(!view.ready);
+  const [refreshing, setRefreshing] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [cName, setCName] = useState('');
   const [cDesc, setCDesc] = useState('');
@@ -43,51 +54,54 @@ export default function ChannelsScreen() {
   const [gColor, setGColor] = useState('sky');
   const [gCat, setGCat] = useState<string | null>(null);
   const [gBusy, setGBusy] = useState(false);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const request = useRef(0), mounted = useRef(true);
+  const mounted = useRef(true), activeRead = useRef<AbortController | null>(null);
   const locks = useRef(new Set<string>());
   const owner = useRef(uid); owner.current = uid;
-  const searchScope = useRef(''); searchScope.current = uid + ':' + tab + ':' + query.trim();
-  const currentAccount = () => mounted.current && owner.current === uid && !!uid && useAuthStore.getState().session?.user.id === uid;
-  useEffect(() => { mounted.current = true; return () => { mounted.current = false; ++request.current; }; }, []);
-  useEffect(() => { setCreateOpen(false); setCommOpen(false); setCName(''); setCDesc(''); setGName(''); setGDesc(''); setGRules(''); setCreating(false); setGBusy(false); }, [uid]);
-
-  const load = useCallback(async (q: string, which: 'channels' | 'communities') => {
-    const identity = uid + ':' + which + ':' + q;
-    if (!mounted.current || searchScope.current !== identity) return;
-    const run = ++request.current;
-    const current = () => mounted.current && run === request.current && searchScope.current === identity;
-    setLoading(true); setLoadError(null);
-    try {
-      if (which === 'channels') {
-        const { data, error } = await supabase.rpc('get_channels', { p_query: q || null, p_limit: 40 });
-        if (error) throw error;
-        if (current()) setRows(data || []);
-      } else {
-        const [{ data, error }, { data: inv, error: inviteError }] = await Promise.all([
-          supabase.rpc('get_communities', { p_query: q || null, p_limit: 40 }),
-          supabase.rpc('get_my_community_invites'),
-        ]);
-        if (error || inviteError) throw error || inviteError;
-        if (current()) {
-          // Invitations sit at the top of the directory; accepting one admits you even to an invite-only community.
-          const invited = new Set(((inv || []) as any[]).map((i: any) => i.id));
-          const base = ((data || []) as any[]).map((r: any) => ({ ...r, has_invite: invited.has(r.id) }));
-          const extra = ((inv || []) as any[]).filter((i: any) => !base.some((r: any) => r.id === i.id)).map((i: any) => ({ id: i.id, name: i.name, icon_url: i.icon_url, cover_color: i.cover_color, member_count: i.member_count, join_mode: 'invite', is_member: false, has_pending: false, has_invite: true, description: 'Invited by ' + (i.invited_by_name || i.invited_by_username || 'a moderator') }));
-          setCommRows([...extra, ...base].sort((x: any, y: any) => (y.has_invite ? 1 : 0) - (x.has_invite ? 1 : 0)));
-        }
-      }
-    } catch { if (current()) setLoadError('The directory could not be loaded. Please try again.'); }
-    finally { if (current()) setLoading(false); }
-  }, [uid]);
-
+  const currentAccount = () => mounted.current && contextRef.current === context && navigationScope() === scope && owner.current === uid && !!uid && useAuthStore.getState().session?.user.id === uid;
   useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    ++request.current; setRows([]); setCommRows([]); setLoadError(null); setLoading(true);
-    debounceRef.current = setTimeout(() => load(query.trim(), tab), 250);
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-  }, [query, tab, load]);
+    const work = activeRead;
+    mounted.current = true;
+    return () => { mounted.current = false; work.current?.abort(); };
+  }, []);
+  useEffect(() => { setCreateOpen(false); setCommOpen(false); setCName(''); setCDesc(''); setGName(''); setGDesc(''); setGRules(''); setCreating(false); setGBusy(false); }, [uid, scope]);
+  const commit = useCallback((next: ChannelDirectoryView) => {
+    if (!mounted.current || contextRef.current !== context || navigationScope() !== scope) return;
+    viewRef.current = next; setView(next);
+    if (next.ready) navigationCache.save(scope, cacheKey, next);
+  }, [scope, cacheKey, context]);
+  const updateRows = (update: (rows: any[]) => any[]) => commit({ ...viewRef.current, rows: update(viewRef.current.rows) });
+  useEffect(() => {
+    if (search === query.trim()) return;
+    const timer = setTimeout(() => setSearch(query.trim()), 250);
+    return () => clearTimeout(timer);
+  }, [query, search]);
+  useEffect(() => { if (controlsOwner === scope) navigationCache.save(scope, 'channels:controls', { tab, query }); }, [scope, controlsOwner, tab, query]);
+  useLayoutEffect(() => {
+    if (controlsScope.current !== scope) { controlsScope.current = scope; setTab('channels'); setQuery(''); setSearch(''); }
+    activeRead.current?.abort(); activeRead.current = null;
+    const cached = navigationCache.read<ChannelDirectoryView>(scope, cacheKey) ?? emptyChannelDirectory();
+    viewRef.current = cached; setView(cached); setLoading(!cached.ready); setLoadError(null); setRefreshing(false);
+  }, [scope, cacheKey]);
+
+  const load = useCallback(async (q: string, which: ChannelDirectoryTab) => {
+    if (!scope || controlsOwner !== scope || !mounted.current || contextRef.current !== context || channelDirectoryKey(which, q) !== cacheKey || navigationScope() !== scope) return;
+    activeRead.current?.abort();
+    const controller = new AbortController(); activeRead.current = controller;
+    const current = () => mounted.current && contextRef.current === context && activeRead.current === controller && !controller.signal.aborted && navigationScope() === scope;
+    setLoading(!viewRef.current.ready); setLoadError(null);
+    try {
+      const rows = await readChannelDirectory(scope, which, q, controller.signal);
+      if (current()) commit({ rows, top: viewRef.current.top, ready: true });
+    } catch { if (current()) setLoadError('The directory could not be loaded. Please try again.'); }
+    finally { if (current()) { activeRead.current = null; setLoading(false); setRefreshing(false); } }
+  }, [scope, controlsOwner, context, cacheKey, commit]);
+
+  useFocusEffect(useCallback(() => {
+    const work = activeRead;
+    void load(search, tab);
+    return () => { work.current?.abort(); work.current = null; };
+  }, [load, search, tab]));
 
   const openChannel = (item: any) => {
     navigation.navigate('Channel', {
@@ -101,10 +115,9 @@ export default function ChannelsScreen() {
     if (!currentAccount() || locks.current.has(key)) return;
     locks.current.add(key);
     try {
-      const { error } = await supabase.rpc('join_channel', { p_channel: item.id });
-      if (error) throw error;
+      await mutateDirectory(scope, pin => pin(supabase.rpc('join_channel', { p_channel: item.id })));
       if (!currentAccount()) return;
-      setRows(prev => prev.map(r => r.id === item.id ? { ...r, is_member: true, my_role: r.my_role || 'member', member_count: (r.member_count || 0) + 1 } : r));
+      updateRows(prev => prev.map(r => r.id === item.id ? { ...r, is_member: true, my_role: r.my_role || 'member', member_count: (r.member_count || 0) + 1 } : r));
       openChannel({ ...item, is_member: true, my_role: item.my_role || 'member', member_count: (item.member_count || 0) + 1 });
     } catch (e: any) { if (currentAccount()) Alert.alert('Could not join', e?.message || 'Please try again.'); }
     finally { locks.current.delete(key); }
@@ -116,8 +129,7 @@ export default function ChannelsScreen() {
     if (!nm || !currentAccount() || locks.current.has(key)) return;
     locks.current.add(key); setCreating(true);
     try {
-      const { data, error } = await supabase.rpc('create_channel', { p_name: nm, p_description: cDesc.trim() || null, p_audience: cAud });
-      if (error) throw error;
+      const data = await mutateDirectory<any>(scope, pin => pin(supabase.rpc('create_channel', { p_name: nm, p_description: cDesc.trim() || null, p_audience: cAud })));
       if (!currentAccount()) return;
       const channel = typeof data === 'string' ? { id: data, name: nm } : data;
       if (!channel?.id) throw new Error('Creation was not confirmed. Refresh the directory before retrying.');
@@ -141,15 +153,13 @@ export default function ChannelsScreen() {
     if (!currentAccount() || locks.current.has(key)) return;
     locks.current.add(key);
     try {
-      const { data, error } = await supabase.rpc('join_community', { p_community: item.id });
-      if (error) throw error;
+      const data = await mutateDirectory(scope, pin => pin(supabase.rpc('join_community', { p_community: item.id })));
       if (!currentAccount()) return;
       if (data === 'joined') {
-        setCommRows(prev => prev.map(r => r.id === item.id ? { ...r, is_member: true, my_role: r.my_role || 'member', member_count: (r.member_count || 0) + 1 } : r));
+        updateRows(prev => prev.map(r => r.id === item.id ? { ...r, is_member: true, my_role: r.my_role || 'member', member_count: (r.member_count || 0) + 1 } : r));
         openCommunity({ ...item, is_member: true, my_role: item.my_role || 'member' });
-      } else {
-        setCommRows(prev => prev.map(r => r.id === item.id ? { ...r, has_pending: true } : r));
-      }
+      } else if (data === 'requested') updateRows(prev => prev.map(r => r.id === item.id ? { ...r, has_pending: true } : r));
+      else throw new Error('The join request was not confirmed. Refresh the directory before retrying.');
     } catch (e: any) { if (currentAccount()) Alert.alert('Could not join', e?.message || 'Please try again.'); }
     finally { locks.current.delete(key); }
   };
@@ -160,11 +170,10 @@ export default function ChannelsScreen() {
     if (!nm || !currentAccount() || locks.current.has(key)) return;
     locks.current.add(key); setGBusy(true);
     try {
-      const { data, error } = await supabase.rpc('create_community', {
+      const data = await mutateDirectory(scope, pin => pin(supabase.rpc('create_community', {
         p_name: nm, p_description: gDesc.trim() || null, p_category: gCat,
         p_join_mode: gMode, p_cover_color: gColor, p_rules: gRules.trim() || null,
-      });
-      if (error) throw error;
+      })));
       if (!currentAccount()) return;
       if (!data || typeof data !== 'string') throw new Error('Creation was not confirmed. Refresh the directory before retrying.');
       setCommOpen(false); setGName(''); setGDesc(''); setGRules(''); setGMode('open'); setGColor('sky'); setGCat(null);
@@ -175,7 +184,7 @@ export default function ChannelsScreen() {
   };
 
   const renderRow = ({ item }: { item: any }) => (
-    <TouchableOpacity style={s.row} activeOpacity={0.85} onPress={() => openChannel(item)}>
+    <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Open channel: ${item.name}`} style={s.row} activeOpacity={0.85} onPress={() => openChannel(item)}>
       {item.icon_url ? (
         <ExpoImage source={{ uri: item.icon_url }} style={s.icon} contentFit="cover" />
       ) : (
@@ -189,7 +198,7 @@ export default function ChannelsScreen() {
       {item.is_member ? (
         <View style={s.joinedPill}><Text style={s.joinedTxt}>Joined</Text></View>
       ) : (
-        <TouchableOpacity style={s.joinPill} activeOpacity={0.85} onPress={() => joinAndOpen(item)}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Join channel: ${item.name}`} style={s.joinPill} activeOpacity={0.85} onPress={() => joinAndOpen(item)}>
           <Text style={s.joinTxt}>Join</Text>
         </TouchableOpacity>
       )}
@@ -197,7 +206,7 @@ export default function ChannelsScreen() {
   );
 
   const renderCommRow = ({ item }: { item: any }) => (
-    <TouchableOpacity style={s.row} activeOpacity={0.85} onPress={() => openCommunity(item)}>
+    <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Open community: ${item.name}`} style={s.row} activeOpacity={0.85} onPress={() => openCommunity(item)}>
       {item.icon_url ? (
         <ExpoImage source={{ uri: item.icon_url }} style={s.icon} contentFit="cover" />
       ) : (
@@ -216,7 +225,7 @@ export default function ChannelsScreen() {
       {item.is_member ? (
         <View style={s.joinedPill}><Text style={s.joinedTxt}>Joined</Text></View>
       ) : item.has_invite ? (
-        <TouchableOpacity style={s.joinPill} activeOpacity={0.85} onPress={() => joinCommunity(item)}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={`Accept invitation to ${item.name}`} style={s.joinPill} activeOpacity={0.85} onPress={() => joinCommunity(item)}>
           <Text style={s.joinTxt}>Accept invite</Text>
         </TouchableOpacity>
       ) : item.has_pending ? (
@@ -224,7 +233,7 @@ export default function ChannelsScreen() {
       ) : item.join_mode === 'invite' ? (
         <View style={s.invitePill}><Text style={s.inviteTxt}>Invite only</Text></View>
       ) : (
-        <TouchableOpacity style={s.joinPill} activeOpacity={0.85} onPress={() => joinCommunity(item)}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={`${item.join_mode === 'approval' ? 'Request to join' : 'Join'} community: ${item.name}`} style={s.joinPill} activeOpacity={0.85} onPress={() => joinCommunity(item)}>
           <Text style={s.joinTxt}>{item.join_mode === 'approval' ? 'Request' : 'Join'}</Text>
         </TouchableOpacity>
       )}
@@ -234,17 +243,17 @@ export default function ChannelsScreen() {
   return (
     <SafeAreaView style={s.safe} edges={['left', 'right']}>
       <View style={[s.header, { paddingTop: insets.top + 4 }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel="Back" onPress={() => navigation.goBack()} style={s.backBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
           <Feather name="chevron-left" size={26} color={NAVY} />
         </TouchableOpacity>
         <Text style={s.title}>{tab === 'channels' ? 'Channels' : 'Communities'}</Text>
-        <TouchableOpacity onPress={() => tab === 'channels' ? setCreateOpen(true) : setCommOpen(true)} style={s.backBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+        <TouchableOpacity accessibilityRole="button" accessibilityLabel={tab === 'channels' ? 'Create channel' : 'Create community'} onPress={() => tab === 'channels' ? setCreateOpen(true) : setCommOpen(true)} style={s.backBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
           <Feather name="plus" size={22} color={NAVY} />
         </TouchableOpacity>
       </View>
       <View style={s.tabsRow}>
         {(['channels', 'communities'] as const).map(t => (
-          <TouchableOpacity key={t} style={[s.tabChip, tab === t && s.tabChipOn]} onPress={() => setTab(t)} activeOpacity={0.85}>
+          <TouchableOpacity accessibilityRole="tab" accessibilityState={{ selected: tab === t }} key={t} style={[s.tabChip, tab === t && s.tabChipOn]} onPress={() => setTab(t)} activeOpacity={0.85}>
             <Feather name={t === 'channels' ? 'radio' : 'users'} size={14} color={tab === t ? '#FFF' : '#5B6B84'} />
             <Text style={[s.tabTxt, tab === t && s.tabTxtOn]}>{t === 'channels' ? 'Channels' : 'Communities'}</Text>
           </TouchableOpacity>
@@ -252,33 +261,27 @@ export default function ChannelsScreen() {
       </View>
       <View style={s.searchWrap}>
         <Feather name="search" size={15} color="#8E8E93" />
-        <TextInput style={s.searchInput} placeholder={tab === 'channels' ? 'Search channels' : 'Search communities'} placeholderTextColor={getTheme().ink.secondary} value={query} onChangeText={setQuery} autoCapitalize="none" autoCorrect={false} />
-        {query.length > 0 ? <TouchableOpacity onPress={() => setQuery('')}><Feather name="x-circle" size={16} color="#C7C7CC" /></TouchableOpacity> : null}
+        <TextInput accessibilityLabel={tab === 'channels' ? 'Search channels' : 'Search communities'} maxLength={100} style={s.searchInput} placeholder={tab === 'channels' ? 'Search channels' : 'Search communities'} placeholderTextColor={getTheme().ink.secondary} value={query} onChangeText={setQuery} autoCapitalize="none" autoCorrect={false} />
+        {query.length > 0 ? <TouchableOpacity accessibilityRole="button" accessibilityLabel="Clear directory search" onPress={() => setQuery('')}><Feather name="x-circle" size={16} color="#C7C7CC" /></TouchableOpacity> : null}
       </View>
-      {loadError ? <StudioLoadError message={loadError} onRetry={() => void load(query.trim(), tab)} busy={loading} /> : loading ? (
+      {loadError && view.ready ? <TouchableOpacity accessibilityRole="button" onPress={() => void load(search, tab)} style={{ padding: 12 }}><Text style={s.emptySub}>{loadError} Tap to retry.</Text></TouchableOpacity> : null}
+      {loadError && !view.ready ? <StudioLoadError message={loadError} onRetry={() => void load(search, tab)} busy={loading} /> : loading && !view.ready ? (
         <View style={s.center}><ActivityIndicator color={NAVY} /></View>
-      ) : tab === 'channels' ? (
-        rows.length === 0 ? (
-          <View style={s.center}>
-            <Feather name="radio" size={38} color="#E5E5EA" />
-            <Text style={s.emptyTitle}>{query ? 'No channels found' : 'No channels yet'}</Text>
-            <Text style={s.emptySub}>Create one and broadcast to your members.</Text>
-          </View>
-        ) : (
-          <FlatList data={rows} keyExtractor={r => r.id} renderItem={renderRow}
-            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: insets.bottom + 30 }} keyboardShouldPersistTaps="handled" />
-        )
       ) : (
-        commRows.length === 0 ? (
-          <View style={s.center}>
-            <Feather name="users" size={38} color="#E5E5EA" />
-            <Text style={s.emptyTitle}>{query ? 'No communities found' : 'No communities yet'}</Text>
-            <Text style={s.emptySub}>Create one. Every member can post inside it.</Text>
-          </View>
-        ) : (
-          <FlatList data={commRows} keyExtractor={r => r.id} renderItem={renderCommRow}
-            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: insets.bottom + 30 }} keyboardShouldPersistTaps="handled" />
-        )
+        <FlatList key={cacheKey} data={view.rows} keyExtractor={r => r.id} renderItem={tab === 'channels' ? renderRow : renderCommRow}
+          contentOffset={{ x: 0, y: view.top }}
+          onScroll={event => {
+            const top = event.nativeEvent.contentOffset.y;
+            if (!currentAccount() || !viewRef.current.ready || !Number.isFinite(top) || top < 0) return;
+            viewRef.current = { ...viewRef.current, top }; navigationCache.save(scope, cacheKey, viewRef.current);
+          }} scrollEventThrottle={16}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); void load(search, tab); }} tintColor={NAVY} />}
+          ListEmptyComponent={<View style={s.center}>
+            <Feather name={tab === 'channels' ? 'radio' : 'users'} size={38} color="#E5E5EA" />
+            <Text style={s.emptyTitle}>{search ? `No ${tab} found` : `No ${tab} yet`}</Text>
+            <Text style={s.emptySub}>{tab === 'channels' ? 'Create one and broadcast to your members.' : 'Create one. Every member can post inside it.'}</Text>
+          </View>}
+          contentContainerStyle={{ flexGrow: view.rows.length ? undefined : 1, paddingHorizontal: 16, paddingBottom: insets.bottom + 30 }} keyboardShouldPersistTaps="handled" />
       )}
 
       <Modal visible={createOpen} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { if (!creating) setCreateOpen(false); }}>
@@ -359,7 +362,7 @@ export default function ChannelsScreen() {
                 <Text style={s.fieldLabel}>Cover color</Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
                   {Object.entries(COMM_COLORS).map(([k, v]) => (
-                    <TouchableOpacity key={k} onPress={() => setGColor(k)} style={[s.colorDot, { backgroundColor: v }, gColor === k && s.colorDotOn]} activeOpacity={0.85} />
+                    <TouchableOpacity accessibilityRole="radio" accessibilityLabel={`${k} cover`} accessibilityState={{ checked: gColor === k }} key={k} onPress={() => setGColor(k)} style={[s.colorDot, { backgroundColor: v }, gColor === k && s.colorDotOn]} activeOpacity={0.85} />
                   ))}
                 </View>
               </View>

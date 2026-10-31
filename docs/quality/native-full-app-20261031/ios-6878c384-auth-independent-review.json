@@ -1,0 +1,287 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-31T08:16:10Z",
+  "reviewer": "hosted_backend",
+  "scope": "Independent auth, timer, account and bounded Profile-timeline review of the single verified iPhone Simulator artifact. No download, global source-manifest rerun, movie decode, provider call, source edit or test rerun.",
+  "candidate": {
+    "head": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+    "merge": "ba8d659c4b6172c1c4930cd6d348d627bdb1470f",
+    "tree": "bebc0e7bfa5a9a6b17e477a29b17fcd41c2ae27d"
+  },
+  "artifact": {
+    "runId": 41179235060,
+    "jobId": 124473036780,
+    "artifactId": 13036600139,
+    "zipBytes": 34433330,
+    "zipSha256": "3b547c1d320de3a5a1241d13466c0eb50208e8e587cf807f73b3480e88328544",
+    "sharedExtraction": "/tmp/ios-full-app-6878c384-41179235060",
+    "downloadAndGlobalSourceVerificationOwner": "native_acceptance",
+    "globalSourceCheck": "Native owner verified all 496 source hashes and six overlays against the published head/merge. The iPhone source manifest is byte-identical to the canonical Android source manifest.",
+    "sourceManifest": {
+      "path": "docs/quality/native-full-app-20261031/android-full-app-6878c384-source.json",
+      "bytes": 59282,
+      "sha256": "46316da9f904617b1c9f2ec5e56a65251795cf5c8d28b4bcaa8d2b3dcadbe2f3"
+    },
+    "downloadDuplicated": false
+  },
+  "verdict": "Recorded pre-Profile auth operations completed without recorded rejection or acquisition-timeout warning. Auth behavior during the subsequent Profile failure is not established; saved-account readback was not reached.",
+  "auth": {
+    "raw": {
+      "path": "docs/quality/native-full-app-20261031/ios-6878c384/native-ui-auth-diagnostics.json",
+      "bytes": 110967,
+      "sha256": "da95fd15113119b59332bbbd4dc52859e631a73a9d2b246f716f358b6ccd2f2e"
+    },
+    "snapshot": {
+      "schemaVersion": 1,
+      "mode": "synthetic-native-auth-timing",
+      "atMs": 233214.333,
+      "wallClockOriginMs": 1793433616546,
+      "timerApiIdentityCount": 2,
+      "timerApiIdentityLimitReached": false,
+      "totalOperations": 212,
+      "droppedEvents": 0,
+      "droppedTracking": 0,
+      "activeLocks": [],
+      "waitingLocks": [],
+      "activeStorage": []
+    },
+    "firstEventUtc": "2026-10-31T08:00:16.546034+00:00",
+    "lastEventUtc": "2026-10-31T08:04:09.497975+00:00",
+    "snapshotUtc": "2026-10-31T08:04:09.760333+00:00",
+    "eventCount": 586,
+    "uniqueOperations": 212,
+    "phaseCounts": {
+      "lock:requested": 81,
+      "lock:acquired": 81,
+      "storage:started": 131,
+      "storage:settled": 131,
+      "lock:released": 81,
+      "lock:settled": 81
+    },
+    "settledOperations": {
+      "lock": 81,
+      "storage": 131,
+      "fulfilled": 212,
+      "rejected": 0
+    },
+    "acquisitionTimeoutsMs": {
+      "5000": 73,
+      "0": 8
+    },
+    "timerSamples": {
+      "sampleCount": 324,
+      "setTimeout": {
+        "kind": "function",
+        "id": 1
+      },
+      "clearTimeout": {
+        "kind": "function",
+        "id": 2
+      },
+      "limit": "Function-descriptor identity samples do not attest every individual timer registration, clear, native delivery or post-snapshot timer state."
+    },
+    "maxAcquisitionWait": {
+      "kind": "lock",
+      "phase": "acquired",
+      "operationId": 44,
+      "lockId": 1,
+      "waitMs": 1378.698000000004,
+      "atMs": 112017.935,
+      "timerApis": {
+        "setTimeout": {
+          "kind": "function",
+          "id": 1
+        },
+        "clearTimeout": {
+          "kind": "function",
+          "id": 2
+        }
+      },
+      "utcFromAnchor": "2026-10-31T08:02:08.563935+00:00"
+    },
+    "maxLockHold": {
+      "kind": "lock",
+      "phase": "released",
+      "operationId": 32,
+      "lockId": 1,
+      "outcome": "fulfilled",
+      "holdMs": 911.0249999999942,
+      "atMs": 111903.222,
+      "timerApis": {
+        "setTimeout": {
+          "kind": "function",
+          "id": 1
+        },
+        "clearTimeout": {
+          "kind": "function",
+          "id": 2
+        }
+      },
+      "utcFromAnchor": "2026-10-31T08:02:08.449222+00:00"
+    },
+    "maxStorageDuration": {
+      "kind": "storage",
+      "phase": "settled",
+      "operationId": 54,
+      "storageId": 1,
+      "method": "getItem",
+      "outcome": "fulfilled",
+      "durationMs": 360.4579999999987,
+      "atMs": 111380.014,
+      "utcFromAnchor": "2026-10-31T08:02:07.926014+00:00"
+    },
+    "summaryMs": {
+      "maxWait": 1378.698,
+      "maxHold": 911.025,
+      "maxStorage": 360.458
+    },
+    "coverageLimit": "The snapshot precedes the start of the Profile tab tap by 1334.667ms. Zero dropped events proves completeness of retained recorded events only through that snapshot, not through the later assertion failure or capture-driver startup."
+  },
+  "savedFixtureReceipt": {
+    "raw": {
+      "path": "docs/quality/native-full-app-20261031/ios-6878c384/native-ui-receipt.json",
+      "bytes": 14862,
+      "sha256": "b6fc2fb5d64dd04100fc9563ff4b902c4c521a17c13fd5dbfc1c2537c9e0c817"
+    },
+    "mode": "synthetic-native-ui",
+    "networkForwarded": false,
+    "unhandled": [],
+    "requestCount": 159,
+    "pathCounts": {
+      "/auth/v1/health": 47,
+      "/auth/v1/token": 1,
+      "/rest/v1/profiles": 14,
+      "/rest/v1/user_presence": 1,
+      "/rest/v1/rpc/get_catchup_feed": 10,
+      "/rest/v1/notifications": 2,
+      "/rest/v1/follows": 1,
+      "/rest/v1/follow_requests": 1,
+      "/rest/v1/rpc/get_my_actors": 1,
+      "/rest/v1/rpc/get_feed": 3,
+      "/rest/v1/posts": 6,
+      "/rest/v1/post_reposts": 3,
+      "/rest/v1/post_bookmarks": 3,
+      "/rest/v1/post_collaborators": 3,
+      "/rest/v1/post_polls": 3,
+      "/rest/v1/rpc/get_feed_visibility": 4,
+      "/rest/v1/rpc/get_recent_likers": 3,
+      "/rest/v1/announcements": 3,
+      "/rest/v1/feature_flags": 1,
+      "/rest/v1/rpc/get_trending_topics": 3,
+      "/rest/v1/post_comments": 3,
+      "/rest/v1/rpc/get_trending_stories": 7,
+      "/rest/v1/rpc/home_marketplace_recommendations": 3,
+      "/rest/v1/rpc/get_active_promos": 1,
+      "/rest/v1/call_sessions": 1,
+      "/rest/v1/call_participants": 1,
+      "/rest/v1/rpc/get_context_unread": 4,
+      "/rest/v1/rpc/get_profile": 1,
+      "/rest/v1/conversations": 3,
+      "/rest/v1/conversation_members": 3,
+      "/rest/v1/conversation_settings": 3,
+      "/rest/v1/rpc/get_unread_counts": 3,
+      "/rest/v1/post_seen": 1,
+      "/rest/v1/saved_listings": 1,
+      "/rest/v1/rpc/get_market_feed": 1,
+      "/rest/v1/marketplace_listings": 1,
+      "/rest/v1/jobs": 1,
+      "/rest/v1/job_saves": 1,
+      "/rest/v1/job_applications": 1,
+      "/rest/v1/rpc/my_application_page": 1,
+      "/rest/v1/conversation_typing": 3,
+      "/rest/v1/message_mentions": 2
+    },
+    "profileRequests": 1,
+    "memoryShelfRequests": 0,
+    "accountReadbacks": [],
+    "timestampLimit": "Fixture request rows and the file have no recorded snapshot timestamp. These are saved counts, not demonstrated final totals after the Profile tap. They cannot be compared with Android final request totals as a platform performance result."
+  },
+  "accountAcceptance": {
+    "status": "not reached",
+    "observedIndexWrites": 2,
+    "accountInitLogs": 0,
+    "readbackResults": [],
+    "explanation": "Two account-index write success logs do not establish a later real SecureStore reload or equality of saved token/current account. The required readSavedAccount result is absent. Native owner confirms the separate capture CLI failed before any testcase and never opened the route where that helper runs.",
+    "limits": [
+      "No current iPhone account-readback pass is claimed.",
+      "No physical-device, restart, reboot, multiaccount or token-rotation persistence acceptance follows.",
+      "AsyncStorage operation timing does not time Expo SecureStore."
+    ]
+  },
+  "navigationCorrelation": {
+    "timingProjection": {
+      "path": "docs/quality/native-full-app-20261031/ios-6878c384/auth-profile-timeline-projection.json",
+      "bytes": 2840,
+      "sha256": "53ff52e7478ec6202b50aa31190cb519b1d381b47c346105517981997c07e328"
+    },
+    "profileTapStartUtc": "2026-10-31T08:04:11.095Z",
+    "profileAssertionStartUtc": "2026-10-31T08:04:13.679Z",
+    "profileAssertionDurationMs": 20133,
+    "sourceOwner": "navigation_performance",
+    "relatedReview": "docs/quality/native-full-app-20261031/ios-6878c384-navigation-independent-review.json",
+    "inferenceLimit": "Maestro reports one completed semantic Profile tab tap. The auth recorder has no subsequent focus-event trace. Later hierarchy/screenshot timing is evaluated by Navigation; this receipt does not diagnose a selector defect, a post-tap read storm, or a main-thread/JavaScript stall."
+  },
+  "logEvidence": {
+    "path": "docs/quality/native-full-app-20261031/ios-6878c384/auth-account-log-projection.json",
+    "bytes": 1463,
+    "sha256": "e9f06a646b6bb80b9f91de1ca1cb26ca467c5b435078a457bdef561484bfedad"
+  },
+  "persistenceSemantics": [
+    "The diagnostic writer is event-triggered and snapshots at a 250ms timer, with one file write in flight and one latest pending snapshot. It is not a heartbeat.",
+    "The fixture receipt writer uses a 100ms debounce and asynchronous file writes. It is also not a heartbeat and provides no snapshot timestamp.",
+    "The iOS script copies these canonical files after the two required flows and in cleanup. Copying a file later does not establish that its contents describe that later time.",
+    "The current evidence cannot distinguish no newly recorded operations from unflushed later state, a stalled JavaScript/native file path or another cause. No speculative persistence, auth or timeout change is proposed."
+  ],
+  "sourceFiles": [
+    {
+      "path": "tests/native/entry.js",
+      "bytes": 2705,
+      "sha256": "f2b85281d0355d80ff005627005d8fa07aa131ba2626a70c216d925669803f55",
+      "publishedSha256": "f2b85281d0355d80ff005627005d8fa07aa131ba2626a70c216d925669803f55",
+      "matchesPublished": true
+    },
+    {
+      "path": "tests/native/auth-diagnostics.cjs",
+      "bytes": 9178,
+      "sha256": "e7e62603147fda2f2f29e905876e5bd143e335e6a4a92a5d65063d422dc977a7",
+      "publishedSha256": "e7e62603147fda2f2f29e905876e5bd143e335e6a4a92a5d65063d422dc977a7",
+      "matchesPublished": true
+    },
+    {
+      "path": "tests/native/account-readback.cjs",
+      "bytes": 1280,
+      "sha256": "32f49dba2d807f4db7e63a8474c1d5b1e429d05efe90f343c25a12b1aca3ab19",
+      "publishedSha256": "32f49dba2d807f4db7e63a8474c1d5b1e429d05efe90f343c25a12b1aca3ab19",
+      "matchesPublished": true
+    },
+    {
+      "path": "src/stores/accountsStore.ts",
+      "bytes": 6719,
+      "sha256": "964d19720cad8c09bd3354d97372cbbca96c1a92d523a4cf61d1778836e8da71",
+      "publishedSha256": "964d19720cad8c09bd3354d97372cbbca96c1a92d523a4cf61d1778836e8da71",
+      "matchesPublished": true
+    },
+    {
+      "path": "scripts/quality/test-ios-app-ui.sh",
+      "bytes": 6889,
+      "sha256": "138f2ac2e8ed32e09f4b6b5ca6e4c4b07a6f1c93b7373767703dbfd97b3f8077",
+      "publishedSha256": "138f2ac2e8ed32e09f4b6b5ca6e4c4b07a6f1c93b7373767703dbfd97b3f8077",
+      "matchesPublished": true
+    }
+  ],
+  "existingRepair": {
+    "checkpointCommit": "f4c35f32795be5f196840c37382143a2d7e33d55",
+    "ownerReceipt": {
+      "path": "docs/quality/native-full-app-20261031/native-navigation-focus-feedback-repair.json",
+      "bytes": 12073,
+      "sha256": "b038ffbe722cd906e988939c9764af7163d20daa85a99eb6dd8a80176565d2a7"
+    },
+    "independentReview": {
+      "path": "docs/quality/native-full-app-20261031/native-navigation-focus-feedback-independent-review.json",
+      "bytes": 5919,
+      "sha256": "ca1d32ea78bef2df32b6e4c89d62aca207ae42dc08544c6fc0a84e1aaa23b8ec"
+    },
+    "status": "The callback-identity feedback repair is source-proven and locally verified from the prior Android investigation. This current 6878 iPhone artifact predates that candidate and cannot provide its runtime acceptance."
+  },
+  "nextAcceptance": "Retain the existing mandatory Profile, account-readback and capture checks. A subsequent installed-app run of the reviewed repair must provide successful journeys and a fresh trace spanning the relevant transitions. No deadline increase, assertion weakening, auth reset or warning suppression is supported by this evidence."
+}

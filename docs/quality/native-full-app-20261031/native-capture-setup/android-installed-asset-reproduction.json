@@ -1,0 +1,11 @@
+{
+  "platform": "android",
+  "expoUpdatesEnabled": false,
+  "releaseScriptUrl": "assets://index.android.bundle",
+  "actualInstalledResolverUri": "tests_native_assets_memorycapturephoto",
+  "actualAssetUri": "tests_native_assets_memorycapturephoto",
+  "actualAssetLocalUri": "tests_native_assets_memorycapturephoto",
+  "actualAssetDownloaded": true,
+  "nativeDownloadCalls": 0,
+  "actualAdapterError": "The packaged synthetic media is not a local file."
+}

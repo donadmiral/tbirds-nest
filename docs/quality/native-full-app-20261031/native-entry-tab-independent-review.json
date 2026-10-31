@@ -1,0 +1,74 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-31T05:14:35.774291+00:00",
+  "reviewer": "root independent review",
+  "baseHeadSha": "ab281bcaab525331930f6238f97e46c169eee1ee",
+  "status": "no issue found in narrow local candidate",
+  "method": "Read the complete new functional tests, both entry changes, the actual navigator functions, and the pinned dependency propagation paths. Reused the separately recorded focused and combined executions; no duplicate runtime run is claimed.",
+  "sourceFiles": [
+    {
+      "path": "index.js",
+      "sha256": "b6c80d0b280a2446862ee5a19cbfcaff39d551d353ac3a9abf090680570a11e0"
+    },
+    {
+      "path": "tests/native/entry.js",
+      "sha256": "e54f0e6acfdc9d73d6b0e877d24432809798689b65c2c4fad5ce5a212e84304b"
+    },
+    {
+      "path": "tests/quality/native-timer-bootstrap.cjs",
+      "sha256": "9b16fa0ee1f88d93387179ee8df8e87d8a29d81a47c698c523c1438fd64e1337"
+    },
+    {
+      "path": "src/navigation/AppNavigator.tsx",
+      "sha256": "ee5ce00883df84956d2840d4d70f7f0ed7395797a7889abbb2970d6f7fa455fe"
+    },
+    {
+      "path": "tests/native/flows/navigation.yaml",
+      "sha256": "f146d8c0db62cbc0b2683e5c0944b7ed604cf788ea1d7af25a76db2cbefbce91"
+    },
+    {
+      "path": "tests/quality/native-tab-selectors.cjs",
+      "sha256": "c12f82a06ed0973e5ea58ca8af6aea6c6c0f8fbbd019c18403d342601dcf209e"
+    },
+    {
+      "path": "tests/navigation-accessibility.test.cjs",
+      "sha256": "fe2e7e0b5190104ed6c2a2e8d18f4ab9c76d89c4ec5bfa880c604dd202dc9ae5"
+    }
+  ],
+  "findings": [
+    {
+      "area": "production bootstrap",
+      "result": "Existing Daily initialization moves ahead of all App imports, covering AppNavigator dependencies that can initialize Supabase before CallContext. CallContext already imported Daily first within its own module; moving only that internal import would not cover the earlier path. Module caching preserves one initialization."
+    },
+    {
+      "area": "isolated QA bootstrap",
+      "result": "The configuration guard, fixture runtime and transport installation remain ahead of Daily. Linking and App are required afterward. Both valid and rejected configurations execute through the actual entry-file regression harness."
+    },
+    {
+      "area": "timer mechanism",
+      "result": "Functional cases evaluate the installed SDK lock, Daily globals setup and BackgroundTimer callback registry in one isolated VM. The original order leaves an old-registry callback, and the corrected order removes it with the same authentication result. A genuinely contended acquisition still rejects at the configured deadline and emits its warning."
+    },
+    {
+      "area": "native identifiers",
+      "result": "Pinned bottom-tabs 6.6.1 accepts tabBarTestID. Its BottomTabBar forwards that field to BottomTabItem, which supplies testID to the custom TabBarButton. That button spreads it onto the native Pressable. Personal and business routes have distinct IDs while retaining human-readable labels."
+    },
+    {
+      "area": "flow fidelity",
+      "result": "Eight main-tab tap selectors use app IDs. The remaining flow bytes, page assertions, deadlines and memory flows are unchanged. No coordinate tap or optional assertion replaces the previously failing step."
+    },
+    {
+      "area": "change limits",
+      "result": "No dependency, provider credential, production auth lock, timeout, clock provider, capability flag or CI concurrency setting changes are part of this candidate."
+    }
+  ],
+  "verificationReceipts": [
+    "docs/quality/native-full-app-20261031/native-tab-selector-repair.json",
+    "docs/quality/live-app-20261031/native-auth-warning-ab281bca-investigation.json",
+    "docs/quality/live-app-20261031/native-v4-root-regressions.json"
+  ],
+  "limitations": [
+    "Native modules, timer delivery, React hooks and native hosts are simulated in the focused component/mechanism cases.",
+    "The running iPhone CI candidate predates these local changes; its result cannot establish acceptance of the new entry or tab selectors.",
+    "Fresh full native execution remains required, including Android timer identity stability, page navigation, saved-account readback and capture."
+  ]
+}

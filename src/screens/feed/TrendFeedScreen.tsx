@@ -1,6 +1,6 @@
 import { ListRowSkeleton } from '../../components/skeletons';
 import { themedSheet } from '../../theme/useTheme';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,10 @@ import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { supabase } from '../../services/supabase';
+import { navigationCache, navigationScope } from '../../lib/navigationCache';
+import { useAuthStore } from '../../stores/authStore';
+import { reconcileFeedVisibility } from '../../services/feedSnapshot';
+import { profileRead } from '../../utils/profileRead';
 
 const NAVY = '#0B1E3D';
 const PAGE_SIZE = 20;
@@ -67,6 +71,31 @@ function buildExactTagRegex(tag: string): RegExp {
   return new RegExp(escaped + '(?![A-Za-z0-9_])', 'i');
 }
 
+type TrendMemory = { rows: TrendPost[]; offset: number; hasMore: boolean; top: number };
+const trendRow = (p: any): TrendPost => ({
+  id: p.id, user_id: p.user_id, content: p.content || '', likes_count: p.likes_count || 0,
+  comments_count: p.comments_count || 0, reposts_count: p.reposts_count || 0, created_at: p.created_at,
+  author_name: p.author_name || 'User', author_avatar: p.author_avatar || null, author_username: p.author_username || null,
+});
+async function readTrendPage(tag: string, offset: number, signal: AbortSignal, token: string) {
+  const pin = (query: any) => query.setHeader('Authorization', `Bearer ${token}`).abortSignal(signal);
+  const result = await pin(supabase.rpc('get_posts_by_hashtag', { p_tag: tag, p_limit: PAGE_SIZE, p_offset: offset }));
+  if (!result.error) return { rows: (result.data ?? []).map(trendRow) as TrendPost[], scanned: (result.data ?? []).length };
+  // Only an absent RPC uses the compatibility query. Offline/auth failures
+  // must remain visible instead of being mistaken for an empty topic.
+  if (!['PGRST202', '42883'].includes(result.error.code)) throw new Error('Topic posts could not be refreshed.');
+  const raw = await pin(supabase.from('posts').select('id, user_id, content, likes_count, comments_count, reposts_count, created_at')
+    .ilike('content', `%${tag}%`).order('created_at', { ascending: false }).range(offset, offset + PAGE_SIZE - 1));
+  if (raw.error) throw new Error('Topic posts could not be refreshed.');
+  const exact = buildExactTagRegex(tag), rows = (raw.data ?? []).filter((row: any) => exact.test(row.content || ''));
+  const ids = [...new Set(rows.map((row: any) => row.user_id).filter(Boolean))];
+  const profiles = ids.length ? await pin(supabase.from('profiles').select('id, full_name, username, avatar_url').in('id', ids)) : { data: [], error: null };
+  if (profiles.error) throw new Error('Topic authors could not be refreshed.');
+  const people = new Map<string, any>((profiles.data ?? []).map((row: any) => [row.id, row]));
+  return { rows: rows.map((row: any) => trendRow({ ...row, author_name: people.get(row.user_id)?.full_name,
+    author_username: people.get(row.user_id)?.username, author_avatar: people.get(row.user_id)?.avatar_url })) as TrendPost[], scanned: (raw.data ?? []).length };
+}
+
 export default function TrendFeedScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
@@ -74,154 +103,86 @@ export default function TrendFeedScreen() {
   const rawTag = route.params?.tag || '';
   const tag = cleanTag(rawTag);
 
-  const [posts, setPosts] = useState<TrendPost[]>([]);
-  const [loading, setLoading] = useState(true);
+  const scope = navigationScope();
+  const cacheKey = `topic:${tag}`;
+  const [initial] = useState(() => navigationCache.read<TrendMemory>(scope, cacheKey));
+  const [posts, setPosts] = useState<TrendPost[]>(initial?.rows ?? []);
+  const postsRef = useRef(posts); postsRef.current = posts;
+  const [loading, setLoading] = useState(initial === null);
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const offsetRef = useRef(0);
-
-  const hydrateRaw = async (rawPosts: any[]): Promise<TrendPost[]> => {
-    if (rawPosts.length === 0) return [];
-
-    const uids = Array.from(new Set(rawPosts.map((p: any) => p.user_id).filter(Boolean)));
-    let pm: Record<string, any> = {};
-
-    if (uids.length > 0) {
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, full_name, username, avatar_url')
-        .in('id', uids);
-      (profiles || []).forEach((p: any) => { pm[p.id] = p; });
-    }
-
-    return rawPosts.map((p: any) => ({
-      id: p.id,
-      user_id: p.user_id,
-      content: p.content || '',
-      likes_count: p.likes_count || 0,
-      comments_count: p.comments_count || 0,
-      reposts_count: p.reposts_count || 0,
-      created_at: p.created_at,
-      author_name: pm[p.user_id]?.full_name || 'User',
-      author_avatar: pm[p.user_id]?.avatar_url || null,
-      author_username: pm[p.user_id]?.username || null,
-    }));
-  };
-
-  const fetchViaRpc = async (offset: number): Promise<TrendPost[] | null> => {
-    const { data, error: rpcErr } = await supabase.rpc('get_posts_by_hashtag', {
-      p_tag: tag,
-      p_limit: PAGE_SIZE,
-      p_offset: offset,
-    });
-
-    if (rpcErr) return null;
-    if (!data) return [];
-
-    return (data as any[]).map((p: any) => ({
-      id: p.id,
-      user_id: p.user_id,
-      content: p.content || '',
-      likes_count: p.likes_count || 0,
-      comments_count: p.comments_count || 0,
-      reposts_count: p.reposts_count || 0,
-      created_at: p.created_at,
-      author_name: p.author_name || 'User',
-      author_avatar: p.author_avatar || null,
-      author_username: p.author_username || null,
-    }));
-  };
-
-  const fetchViaFallback = async (offset: number): Promise<TrendPost[]> => {
-    const searchTerm = `%${tag}%`;
-
-    const { data: rawPosts, error: queryErr } = await supabase
-      .from('posts')
-      .select('id, user_id, content, likes_count, comments_count, reposts_count, created_at')
-      .ilike('content', searchTerm)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + PAGE_SIZE - 1);
-
-    if (queryErr || !rawPosts) return [];
-
-    const exactRegex = buildExactTagRegex(tag);
-    const filtered = rawPosts.filter((p: any) => {
-      const content = p.content || '';
-      return exactRegex.test(content);
-    });
-
-    return hydrateRaw(filtered);
-  };
+  const [hasMore, setHasMore] = useState(initial?.hasMore ?? true);
+  const hasMoreRef = useRef(hasMore); hasMoreRef.current = hasMore;
+  const offsetRef = useRef(initial?.offset ?? 0);
+  const scrollTop = useRef(initial?.top ?? 0);
+  const [restoredTop, setRestoredTop] = useState(initial?.top ?? 0);
+  const listRef = useRef<FlatList<TrendPost>>(null);
+  const requestRef = useRef(0), pendingMore = useRef(false);
+  const refreshPending = useRef(false);
+  const currentRoute = useRef({ scope, tag }); currentRoute.current = { scope, tag };
+  const visibleTag = useRef(tag);
 
   const load = useCallback(async (showLoader = true) => {
-    if (!tag) {
-      setLoading(false);
-      setRefreshing(false);
-      return;
-    }
-
+    if (!tag || !scope) { setLoading(false); setRefreshing(false); return; }
+    const request = ++requestRef.current;
+    const current = () => requestRef.current === request && currentRoute.current.tag === tag && navigationScope() === scope;
+    pendingMore.current = false; refreshPending.current = true; setLoadingMore(false);
+    setLoading(showLoader && postsRef.current.length === 0); setError(false);
+    const session = useAuthStore.getState().session;
+    if (!session) { refreshPending.current = false; setLoading(false); return; }
+    const retained = postsRef.current;
     try {
-      if (showLoader) setLoading(true);
-      setError(false);
-      offsetRef.current = 0;
-      setHasMore(true);
-
-      const rpcResult = await fetchViaRpc(0);
-
-      if (rpcResult === null) {
-        const fallbackResult = await fetchViaFallback(0);
-        setPosts(fallbackResult);
-        setHasMore(fallbackResult.length >= PAGE_SIZE);
-      } else {
-        setPosts(rpcResult);
-        setHasMore(rpcResult.length >= PAGE_SIZE);
-      }
-
-      offsetRef.current = PAGE_SIZE;
-    } catch {
-      setError(true);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [tag]);
+      const result = await navigationCache.load(scope, `${cacheKey}:first-page`, signal => readTrendPage(tag, 0, signal, session.access_token));
+      if (!current()) return;
+      const allowed = retained.length ? await profileRead(reconcileFeedVisibility(session.user.id, retained.map(row => row.id), current), 12000) : null;
+      if (!current()) return;
+      const fresh = new Map(result.rows.map(row => [row.id, row]));
+      const keepPosition = retained.length > 0;
+      const rows = keepPosition ? retained.filter(row => allowed?.has(row.id)).map(row => fresh.get(row.id) ?? row) : result.rows;
+      postsRef.current = rows; setPosts(rows);
+      if (!keepPosition) { offsetRef.current = result.scanned; setHasMore(result.scanned >= PAGE_SIZE); }
+      navigationCache.save(scope, cacheKey, { rows, offset: offsetRef.current, hasMore: keepPosition ? hasMoreRef.current : result.scanned >= PAGE_SIZE, top: scrollTop.current });
+    } catch { if (current()) setError(true); }
+    finally { if (current()) { refreshPending.current = false; setLoading(false); setRefreshing(false); } }
+  }, [scope, tag, cacheKey]);
 
   const loadMore = useCallback(async () => {
-    if (!tag || loadingMore || !hasMore) return;
-
-    setLoadingMore(true);
+    if (!tag || !scope || pendingMore.current || refreshPending.current || loading || !hasMoreRef.current) return;
+    const request = requestRef.current, offset = offsetRef.current;
+    const current = () => request === requestRef.current && currentRoute.current.tag === tag && navigationScope() === scope;
+    const session = useAuthStore.getState().session;
+    if (!session) return;
+    pendingMore.current = true; setLoadingMore(true); setError(false);
     try {
-      const offset = offsetRef.current;
+      const page = await navigationCache.load(scope, `${cacheKey}:page:${offset}`, signal => readTrendPage(tag, offset, signal, session.access_token));
+      if (!current()) return;
+      const rows = [...new Map([...postsRef.current, ...page.rows].map(row => [row.id, row])).values()];
+      postsRef.current = rows; setPosts(rows); offsetRef.current = offset + page.scanned;
+      setHasMore(page.scanned >= PAGE_SIZE);
+      navigationCache.save(scope, cacheKey, { rows, offset: offsetRef.current, hasMore: page.scanned >= PAGE_SIZE, top: scrollTop.current });
+    } catch { if (current()) setError(true); }
+    finally { if (current()) { pendingMore.current = false; setLoadingMore(false); } }
+  }, [scope, tag, cacheKey, loading]);
 
-      const rpcResult = await fetchViaRpc(offset);
-
-      let newPosts: TrendPost[];
-      if (rpcResult === null) {
-        newPosts = await fetchViaFallback(offset);
-      } else {
-        newPosts = rpcResult;
-      }
-
-      if (newPosts.length < PAGE_SIZE) {
-        setHasMore(false);
-      }
-
-      if (newPosts.length > 0) {
-        setPosts(prev => [...prev, ...newPosts]);
-        offsetRef.current = offset + newPosts.length;
-      }
-    } catch {
-      // Silent fail on pagination
-    } finally {
-      setLoadingMore(false);
-    }
-  }, [tag, loadingMore, hasMore]);
-
+  useLayoutEffect(() => {
+    if (visibleTag.current === tag) return;
+    visibleTag.current = tag;
+    const cached = navigationCache.read<TrendMemory>(scope, cacheKey);
+    postsRef.current = cached?.rows ?? []; setPosts(postsRef.current);
+    offsetRef.current = cached?.offset ?? 0; scrollTop.current = cached?.top ?? 0;
+    setRestoredTop(cached?.top ?? 0);
+    setHasMore(cached?.hasMore ?? true); setLoading(cached === null); setError(false);
+  }, [scope, tag, cacheKey]);
   useEffect(() => {
-    load(true);
+    void load(true);
+    const requests = requestRef;
+    return () => { requests.current++; };
   }, [load]);
+  useLayoutEffect(() => () => {
+    const cached = navigationCache.read<TrendMemory>(scope, cacheKey);
+    if (cached) navigationCache.save(scope, cacheKey, { ...cached, top: scrollTop.current });
+  }, [scope, cacheKey]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -233,7 +194,7 @@ export default function TrendFeedScreen() {
       <SafeAreaView style={st.safe} edges={['top', 'left', 'right']}>
         <StatusBar barStyle="dark-content" />
         <View style={st.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={st.backBtn} activeOpacity={0.7}>
+          <TouchableOpacity accessibilityRole="button" accessibilityLabel="Back" onPress={() => navigation.goBack()} style={st.backBtn} activeOpacity={0.7}>
             <Feather name="chevron-left" size={24} color={NAVY} />
           </TouchableOpacity>
           <View style={st.headerCenter}>
@@ -305,6 +266,7 @@ export default function TrendFeedScreen() {
 
       <View style={st.header}>
         <TouchableOpacity
+          accessibilityRole="button" accessibilityLabel="Back"
           onPress={() => navigation.goBack()}
           style={st.backBtn}
           activeOpacity={0.7}
@@ -323,9 +285,10 @@ export default function TrendFeedScreen() {
         <View style={{ width: 36 }} />
       </View>
 
-      {loading && !refreshing ? (
+      {error && posts.length > 0 ? <TouchableOpacity accessibilityRole="button" onPress={() => void load(false)} style={{ padding: 16 }}><Text accessibilityRole="alert">Topic posts could not be refreshed. Tap to retry.</Text></TouchableOpacity> : null}
+      {loading && !refreshing && posts.length === 0 ? (
         <ListRowSkeleton />
-      ) : error ? (
+      ) : error && posts.length === 0 ? (
         <ScrollView
           contentContainerStyle={st.center}
           refreshControl={
@@ -352,6 +315,11 @@ export default function TrendFeedScreen() {
         </ScrollView>
       ) : (
         <FlatList
+          key={tag}
+          ref={listRef}
+          contentOffset={{ x: 0, y: restoredTop }}
+          onScroll={event => { scrollTop.current = event.nativeEvent.contentOffset.y; }}
+          scrollEventThrottle={16}
           data={posts}
           keyExtractor={(p) => p.id}
           renderItem={renderItem}

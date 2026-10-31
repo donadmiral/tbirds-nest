@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites>
+  <testsuite name="Test Suite" device="Platinum full app UI 41211437305 - iOS 18.5 - AFD192DC-F4CE-4DE8-9F3F-8E53007105B7" tests="1" failures="1" time="60.604" timestamp="2026-10-31T15:32:07">
+    <testcase id="Actual native memory capture and encoding" name="Actual native memory capture and encoding" classname="Actual native memory capture and encoding" file="tests/native/flows/memory-capture.yaml" time="60.389" timestamp="2026-10-31T15:32:07" status="ERROR">
+      <failure>Assertion is false: "Native capture acceptance" is visible</failure>
+    </testcase>
+  </testsuite>
+</testsuites>

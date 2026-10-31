@@ -1,0 +1,33 @@
+{
+  "url": "https://android.googlesource.com/platform/external/qemu/+refs/heads?format=JSON",
+  "sha256": "d04bc5cf6e3624329ab55ac7301de8d9eea7a8fff9872a313c6af46905821165",
+  "selected": {
+    "emu-36-1-release": {
+      "value": "9f0811e72acfc46edc39d3d0baedd796f7d03309"
+    },
+    "emu-main-dev": {
+      "value": "cf0f40a0aad1aa3fca68f2f89372525c8d28ca68"
+    },
+    "emu-main-next": {
+      "value": "f8106989754c7c88558905f4bb6b17b57a90c85c"
+    },
+    "emu-main-next-v11.0": {
+      "value": "1168756ae144a090d1dfbd7a04ac7d58610a0eec"
+    },
+    "emu-master-dev": {
+      "value": "ae9d18d2b6261179fbd57fffec720a04f7bfb053"
+    },
+    "emu-master-qemu": {
+      "value": "a9edce171e3f86c9461de251daa4c790ea1e6ad5"
+    },
+    "emu-master-qemu-release": {
+      "value": "1e7574aeb3930fbae4ca266f80bfd6773970056f"
+    },
+    "incoming-emu-main-dev": {
+      "value": "4b78d359c07aeb822574a8bf1c96a86517991a71"
+    },
+    "qemu-master": {
+      "value": "4b0acfcb7b290584fe0172f5a35068e717d77176"
+    }
+  }
+}

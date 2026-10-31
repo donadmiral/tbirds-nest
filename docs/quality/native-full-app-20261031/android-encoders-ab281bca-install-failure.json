@@ -1,0 +1,101 @@
+{
+  "measuredAt": "2026-10-31T04:44:00.327909+00:00",
+  "workflowRun": 41169456380,
+  "attempt": 1,
+  "jobId": 124444050423,
+  "headCommit": "ab281bcaab525331930f6238f97e46c169eee1ee",
+  "testedMergeCommit": "f033c50196f6f5f115f451247073ccdb357025d4",
+  "tree": "8e03d00ee3cd707f4095134b5d5c0eec79f5ef19",
+  "headAndMergeTreesEqual": true,
+  "result": {
+    "passed": false,
+    "classification": "Android SDK emulator archive installation failure",
+    "phase": "sdkmanager Android Emulator download/unzip",
+    "nativeCompilationStarted": false,
+    "emulatorStarted": false,
+    "encoderTestsStarted": false,
+    "encodedMediaCreated": false,
+    "processExitCode": 1
+  },
+  "artifact": {
+    "id": 13029804877,
+    "name": "android-story-audio-export",
+    "bytes": 1627,
+    "sha256": "1ddcf4ba7aca02e9fe3b0a5cd4a2fb3520a932a1ef7f18a123bbd2341e337576",
+    "zipDigestVerified": true,
+    "files": [
+      {
+        "path": "preflight.json",
+        "bytes": 1868,
+        "sha256": "3665cab391b9bb9b27f35bc8189d07e23e0160cd75af5c47a23e8e0bfd131cb5"
+      },
+      {
+        "path": "sdk-install.log",
+        "bytes": 2294,
+        "sha256": "56c72f38dd8dce54da7bc7abfa06f15024a9789fad3a18806f726601dc2416fa"
+      },
+      {
+        "path": "toolchain.log",
+        "bytes": 198,
+        "sha256": "cbd59fa21670d186bfbdf479ad88c210e7cdc3e82775f2e0cc7c8513e6a43749"
+      }
+    ]
+  },
+  "sourceVerification": {
+    "matched": 9,
+    "mismatches": 0,
+    "checks": [
+      {
+        "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt",
+        "sha256": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633"
+      },
+      {
+        "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt",
+        "sha256": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab"
+      },
+      {
+        "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt",
+        "sha256": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5"
+      },
+      {
+        "path": "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.gif",
+        "sha256": "fa09323d645946fc05e54d47d92c2d4171d67cbb93a4a9cc4225495cf00ae674"
+      },
+      {
+        "path": "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.png",
+        "sha256": "296c54b04d0a9aa58171e9d22cff9b41b32a66116d3aa1d89bd67cd193082a77"
+      },
+      {
+        "path": "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.webp",
+        "sha256": "417af2bcf554708ce2331d3c3558aa0148921e2231ab3e0b9e8989f6a19395f3"
+      },
+      {
+        "path": "scripts/quality/android-story-export/src/androidTest/assets/memory-static.gif",
+        "sha256": "72d8dbe3283e3dbe380be331227f69cac8f86144e136fab17c320c43cd008ff9"
+      },
+      {
+        "path": "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/MemoryMovieExportTest.kt",
+        "sha256": "692e0629c6ee7a642ed17cd3b00cba8c64d6b6e56854839deabaf8261573bf51"
+      },
+      {
+        "path": "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/StoryAudioExportTest.kt",
+        "sha256": "8838f9ec96b6d297bbaa2cb7e80d6399731b53331d2dda4de2de54becd8f21f6"
+      }
+    ]
+  },
+  "diagnosticLines": [
+    "2026-10-31T04:39:36.2393545Z HEAD is now at f033c50 Merge ab281bcaab525331930f6238f97e46c169eee1ee into ce4f2f2ebbd7f7669b630caf650fd97cd59297b0",
+    "2026-10-31T04:40:26.3461192Z Warning: An error occurred while preparing SDK package Android Emulator: Error on ZipFile unknown archive.",
+    "2026-10-31T04:40:26.4108452Z ##[error]Process completed with exit code 1."
+  ],
+  "jobLogSha256": "e6a53217a79bf8aabacebee33b9a3ba0095222becac48a8a065904a483ec9b26",
+  "retry": {
+    "authorization": "Root authorized exactly one retry of this failed encoder job after its sibling job finishes, with identical source and no workflow-wide rerun.",
+    "status": "not yet invoked; standalone compile and full-native UI jobs remain active"
+  },
+  "limits": [
+    "No encoder runtime acceptance is inferred from this attempt.",
+    "The invalid emulator archive is an infrastructure failure before production app compilation, not an observed media engine defect.",
+    "The separate full Android and iPhone UI runs were preserved."
+  ]
+}

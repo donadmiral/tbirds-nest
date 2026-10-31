@@ -1,0 +1,963 @@
+{
+  "recordedAt": "2026-10-30T20:21:39.838Z",
+  "source": {
+    "repository": "donadmiral/tbirds-nest",
+    "branch": "codex/app-quality-20261029",
+    "pullRequest": 3,
+    "headSha": "8591b1a36f0a47d6493af6f8fa0a336d7421ec92",
+    "headTreeSha": "873614d8f4ac64815417e06208008a070274b658",
+    "checkedOutMergeSha": "af66ad4914cb039e9058292607509389afc43103",
+    "checkedOutMergeTreeSha": "873614d8f4ac64815417e06208008a070274b658",
+    "baseSha": "ce4f2f2ebbd7f7669b630caf650fd97cd59297b0",
+    "sameTestedTree": true
+  },
+  "quality": {
+    "runId": 41120017613,
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41120017613",
+    "status": "completed",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "id": 124284059322,
+        "name": "Link preview Edge TLS",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-10-30T20:01:50Z",
+        "completedAt": "2026-10-30T20:02:02Z",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-30T20:01:51Z",
+            "completed_at": "2026-10-30T20:01:53Z"
+          },
+          {
+            "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-30T20:01:53Z",
+            "completed_at": "2026-10-30T20:01:56Z"
+          },
+          {
+            "name": "Run denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-30T20:01:56Z",
+            "completed_at": "2026-10-30T20:01:57Z"
+          },
+          {
+            "name": "Verify Edge runtime version",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-30T20:01:57Z",
+            "completed_at": "2026-10-30T20:01:57Z"
+          },
+          {
+            "name": "Test actual pinned-IP HTTPS and cancellation",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-30T20:01:57Z",
+            "completed_at": "2026-10-30T20:01:59Z"
+          },
+          {
+            "name": "Post Run denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9,
+            "started_at": "2026-10-30T20:01:59Z",
+            "completed_at": "2026-10-30T20:01:59Z"
+          },
+          {
+            "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10,
+            "started_at": "2026-10-30T20:01:59Z",
+            "completed_at": "2026-10-30T20:01:59Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11,
+            "started_at": "2026-10-30T20:01:59Z",
+            "completed_at": "2026-10-30T20:01:59Z"
+          }
+        ]
+      },
+      {
+        "id": 124284059650,
+        "name": "Web app",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-10-30T20:01:50Z",
+        "completedAt": "2026-10-30T20:03:03Z",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-30T20:01:51Z",
+            "completed_at": "2026-10-30T20:01:52Z"
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-30T20:01:52Z",
+            "completed_at": "2026-10-30T20:01:55Z"
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-30T20:01:55Z",
+            "completed_at": "2026-10-30T20:01:58Z"
+          },
+          {
+            "name": "Run npm ci",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-30T20:01:58Z",
+            "completed_at": "2026-10-30T20:02:11Z"
+          },
+          {
+            "name": "Run npx tsc --noEmit",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-30T20:02:11Z",
+            "completed_at": "2026-10-30T20:02:31Z"
+          },
+          {
+            "name": "Run npm ci --prefix supabase/tests/rpc-authorization",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-30T20:02:31Z",
+            "completed_at": "2026-10-30T20:02:32Z"
+          },
+          {
+            "name": "Test web quality regressions",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-10-30T20:02:32Z",
+            "completed_at": "2026-10-30T20:03:01Z"
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13,
+            "started_at": "2026-10-30T20:03:01Z",
+            "completed_at": "2026-10-30T20:03:02Z"
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 14,
+            "started_at": "2026-10-30T20:03:02Z",
+            "completed_at": "2026-10-30T20:03:02Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 15,
+            "started_at": "2026-10-30T20:03:02Z",
+            "completed_at": "2026-10-30T20:03:02Z"
+          }
+        ]
+      },
+      {
+        "id": 124284059870,
+        "name": "Operations app",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-10-30T20:01:50Z",
+        "completedAt": "2026-10-30T20:02:34Z",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-30T20:01:51Z",
+            "completed_at": "2026-10-30T20:01:52Z"
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-30T20:01:52Z",
+            "completed_at": "2026-10-30T20:01:55Z"
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-30T20:01:55Z",
+            "completed_at": "2026-10-30T20:01:58Z"
+          },
+          {
+            "name": "Run npm ci",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-30T20:01:58Z",
+            "completed_at": "2026-10-30T20:02:10Z"
+          },
+          {
+            "name": "Run npx tsc --noEmit",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-30T20:02:10Z",
+            "completed_at": "2026-10-30T20:02:19Z"
+          },
+          {
+            "name": "Test operations quality regressions",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-30T20:02:19Z",
+            "completed_at": "2026-10-30T20:02:32Z"
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11,
+            "started_at": "2026-10-30T20:02:32Z",
+            "completed_at": "2026-10-30T20:02:32Z"
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 12,
+            "started_at": "2026-10-30T20:02:32Z",
+            "completed_at": "2026-10-30T20:02:32Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 13,
+            "started_at": "2026-10-30T20:02:32Z",
+            "completed_at": "2026-10-30T20:02:32Z"
+          }
+        ]
+      },
+      {
+        "id": 124284060003,
+        "name": "Phone app",
+        "status": "completed",
+        "conclusion": "success",
+        "startedAt": "2026-10-30T20:01:50Z",
+        "completedAt": "2026-10-30T20:09:11Z",
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1,
+            "started_at": "2026-10-30T20:01:51Z",
+            "completed_at": "2026-10-30T20:01:52Z"
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2,
+            "started_at": "2026-10-30T20:01:52Z",
+            "completed_at": "2026-10-30T20:01:56Z"
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3,
+            "started_at": "2026-10-30T20:01:56Z",
+            "completed_at": "2026-10-30T20:02:02Z"
+          },
+          {
+            "name": "Run npm ci",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4,
+            "started_at": "2026-10-30T20:02:02Z",
+            "completed_at": "2026-10-30T20:02:21Z"
+          },
+          {
+            "name": "Run npx tsc --noEmit",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5,
+            "started_at": "2026-10-30T20:02:21Z",
+            "completed_at": "2026-10-30T20:02:47Z"
+          },
+          {
+            "name": "Install dependencies for cross-app and database regressions",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6,
+            "started_at": "2026-10-30T20:02:47Z",
+            "completed_at": "2026-10-30T20:03:13Z"
+          },
+          {
+            "name": "Test phone, diagnostics, feed and call regressions",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7,
+            "started_at": "2026-10-30T20:03:13Z",
+            "completed_at": "2026-10-30T20:04:19Z"
+          },
+          {
+            "name": "Test payment recovery and database boundaries",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8,
+            "started_at": "2026-10-30T20:04:19Z",
+            "completed_at": "2026-10-30T20:06:05Z"
+          },
+          {
+            "name": "Test RPC authorization",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9,
+            "started_at": "2026-10-30T20:06:05Z",
+            "completed_at": "2026-10-30T20:09:08Z"
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 17,
+            "started_at": "2026-10-30T20:09:08Z",
+            "completed_at": "2026-10-30T20:09:08Z"
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 18,
+            "started_at": "2026-10-30T20:09:08Z",
+            "completed_at": "2026-10-30T20:09:09Z"
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 19,
+            "started_at": "2026-10-30T20:09:09Z",
+            "completed_at": "2026-10-30T20:09:09Z"
+          }
+        ]
+      }
+    ]
+  },
+  "browser": {
+    "runId": 41120017245,
+    "jobId": 124284059637,
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41120017245",
+    "status": "completed",
+    "conclusion": "success",
+    "receipt": "../music-infrastructure-20261030/final-browser-export.json"
+  },
+  "ios": {
+    "runId": 41120017251,
+    "jobId": 124284624133,
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41120017251",
+    "status": "completed",
+    "conclusion": "success",
+    "headSha": "8591b1a36f0a47d6493af6f8fa0a336d7421ec92",
+    "workflowUpdatedAt": "2026-10-30T20:20:04Z",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-10-30T20:03:04Z",
+        "completed_at": "2026-10-30T20:03:05Z"
+      },
+      {
+        "name": "Read source",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-10-30T20:03:05Z",
+        "completed_at": "2026-10-30T20:03:10Z"
+      },
+      {
+        "name": "Set Node 22",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-10-30T20:03:11Z",
+        "completed_at": "2026-10-30T20:03:16Z"
+      },
+      {
+        "name": "Install locked dependencies",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4,
+        "started_at": "2026-10-30T20:03:16Z",
+        "completed_at": "2026-10-30T20:03:38Z"
+      },
+      {
+        "name": "Install the Expo 54 CocoaPods toolchain",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5,
+        "started_at": "2026-10-30T20:03:38Z",
+        "completed_at": "2026-10-30T20:03:40Z"
+      },
+      {
+        "name": "Compile the unsigned iOS Simulator target",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6,
+        "started_at": "2026-10-30T20:03:40Z",
+        "completed_at": "2026-10-30T20:17:03Z"
+      },
+      {
+        "name": "Keep compiler diagnostics only",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-10-30T20:17:03Z",
+        "completed_at": "2026-10-30T20:17:04Z"
+      },
+      {
+        "name": "Post Set Node 22",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 13,
+        "started_at": "2026-10-30T20:17:04Z",
+        "completed_at": "2026-10-30T20:17:04Z"
+      },
+      {
+        "name": "Post Read source",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 14,
+        "started_at": "2026-10-30T20:17:04Z",
+        "completed_at": "2026-10-30T20:17:05Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 15,
+        "started_at": "2026-10-30T20:17:05Z",
+        "completed_at": "2026-10-30T20:17:07Z"
+      }
+    ],
+    "compilerReceipt": "final-ios-compile.json",
+    "artifact": {
+      "id": 13009071555,
+      "name": "ios-native-compile-diagnostics",
+      "size_in_bytes": 1052456,
+      "url": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/artifacts/13009071555",
+      "archive_download_url": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/artifacts/13009071555/zip",
+      "expired": false,
+      "created_at": "2026-10-30T20:17:04Z",
+      "expires_at": "2026-11-06T20:17:03Z",
+      "updated_at": "2026-10-30T20:17:04Z",
+      "digest": "sha256:c6e2928320392d7398e66edfea40836e77df67d021a3354e9edda343f2c41a6a",
+      "workflow_run": {
+        "id": 41120017251,
+        "repository_id": 1314826575,
+        "head_repository_id": 1314826575,
+        "head_branch": "codex/app-quality-20261029",
+        "head_sha": "8591b1a36f0a47d6493af6f8fa0a336d7421ec92"
+      }
+    },
+    "unsignedSimulatorOnly": true
+  },
+  "summaries": {
+    "typescript": {
+      "native": true,
+      "web": true,
+      "admin": true
+    },
+    "registeredNodeCases": {
+      "native": {
+        "tests": 1236,
+        "pass": 1236,
+        "fail": 0,
+        "skip": 0
+      },
+      "web": {
+        "tests": 621,
+        "pass": 621,
+        "fail": 0,
+        "skip": 0
+      },
+      "admin": {
+        "tests": 183,
+        "pass": 183,
+        "fail": 0,
+        "skip": 0
+      }
+    },
+    "edgeTls": {
+      "pass": 2,
+      "fail": 0
+    },
+    "supabaseBaseline": {
+      "tests": 299,
+      "pass": 296,
+      "fail": 0,
+      "skip": 3
+    },
+    "musicSqlModes": [
+      {
+        "mode": "prior privacy/erasure prerequisites",
+        "pass": 31,
+        "fail": 0,
+        "skip": 0
+      },
+      {
+        "mode": "preexisting sound-rights contracts",
+        "pass": 31,
+        "fail": 0,
+        "skip": 0
+      }
+    ],
+    "offerResponseSql": {
+      "pass": 15,
+      "fail": 0,
+      "skip": 0
+    },
+    "nativeJobAllNodeSummaryBlocks": [
+      {
+        "tests": 1236,
+        "at": "2026-10-30T20:04:19.3578463Z",
+        "suites": 0,
+        "pass": 1236,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 66265.126076
+      },
+      {
+        "tests": 299,
+        "at": "2026-10-30T20:06:05.3264742Z",
+        "suites": 0,
+        "pass": 296,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 3,
+        "todo": 0,
+        "duration_ms": 105916.955793
+      },
+      {
+        "tests": 16,
+        "at": "2026-10-30T20:06:42.2081780Z",
+        "suites": 0,
+        "pass": 16,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 5013.925107
+      },
+      {
+        "tests": 34,
+        "at": "2026-10-30T20:06:47.9154358Z",
+        "suites": 0,
+        "pass": 34,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 5541.412702
+      },
+      {
+        "tests": 36,
+        "at": "2026-10-30T20:06:53.8944100Z",
+        "suites": 0,
+        "pass": 36,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 5811.323171
+      },
+      {
+        "tests": 11,
+        "at": "2026-10-30T20:06:58.6117885Z",
+        "suites": 0,
+        "pass": 11,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 4551.609798
+      },
+      {
+        "tests": 14,
+        "at": "2026-10-30T20:07:03.1300404Z",
+        "suites": 0,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 4365.787406
+      },
+      {
+        "tests": 21,
+        "at": "2026-10-30T20:07:09.0622779Z",
+        "suites": 0,
+        "pass": 21,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 5771.380184
+      },
+      {
+        "tests": 21,
+        "at": "2026-10-30T20:07:15.2226020Z",
+        "suites": 0,
+        "pass": 21,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 5994.933989
+      },
+      {
+        "tests": 18,
+        "at": "2026-10-30T20:07:19.9285855Z",
+        "suites": 0,
+        "pass": 18,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 4554.291149
+      },
+      {
+        "tests": 18,
+        "at": "2026-10-30T20:07:25.3172959Z",
+        "suites": 0,
+        "pass": 18,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 5222.451153
+      },
+      {
+        "tests": 20,
+        "at": "2026-10-30T20:07:30.5983426Z",
+        "suites": 0,
+        "pass": 20,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 5117.929107
+      },
+      {
+        "tests": 20,
+        "at": "2026-10-30T20:07:36.4750524Z",
+        "suites": 0,
+        "pass": 20,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 5718.269924
+      },
+      {
+        "tests": 16,
+        "at": "2026-10-30T20:07:41.3330080Z",
+        "suites": 0,
+        "pass": 16,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 4699.54362
+      },
+      {
+        "tests": 16,
+        "at": "2026-10-30T20:07:46.7972274Z",
+        "suites": 0,
+        "pass": 16,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 5301.849043
+      },
+      {
+        "tests": 41,
+        "at": "2026-10-30T20:07:52.4480896Z",
+        "suites": 0,
+        "pass": 41,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 5490.717072
+      },
+      {
+        "tests": 41,
+        "at": "2026-10-30T20:07:58.5208645Z",
+        "suites": 0,
+        "pass": 41,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 5908.127947
+      },
+      {
+        "tests": 27,
+        "at": "2026-10-30T20:08:03.8475587Z",
+        "suites": 0,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 5167.417399
+      },
+      {
+        "tests": 27,
+        "at": "2026-10-30T20:08:09.6605295Z",
+        "suites": 0,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 5654.624009
+      },
+      {
+        "tests": 15,
+        "at": "2026-10-30T20:08:13.8611776Z",
+        "suites": 0,
+        "pass": 15,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 4044.526781
+      },
+      {
+        "tests": 31,
+        "at": "2026-10-30T20:08:19.7118238Z",
+        "suites": 0,
+        "pass": 31,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 5687.981967
+      },
+      {
+        "tests": 31,
+        "at": "2026-10-30T20:08:25.4537069Z",
+        "suites": 0,
+        "pass": 31,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 5587.094348
+      },
+      {
+        "tests": 12,
+        "at": "2026-10-30T20:08:29.8164822Z",
+        "suites": 0,
+        "pass": 12,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 4208.666795
+      },
+      {
+        "tests": 12,
+        "at": "2026-10-30T20:08:34.3562951Z",
+        "suites": 0,
+        "pass": 12,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 4383.937842
+      },
+      {
+        "tests": 12,
+        "at": "2026-10-30T20:08:39.3477640Z",
+        "suites": 0,
+        "pass": 12,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 4836.05222
+      },
+      {
+        "tests": 21,
+        "at": "2026-10-30T20:08:40.1258788Z",
+        "suites": 0,
+        "pass": 21,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 276.586895
+      },
+      {
+        "tests": 11,
+        "at": "2026-10-30T20:08:44.1371210Z",
+        "suites": 0,
+        "pass": 11,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3895.705143
+      },
+      {
+        "tests": 11,
+        "at": "2026-10-30T20:08:48.4686399Z",
+        "suites": 0,
+        "pass": 11,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 4179.322836
+      },
+      {
+        "tests": 16,
+        "at": "2026-10-30T20:08:52.8908978Z",
+        "suites": 0,
+        "pass": 16,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 4274.091314
+      },
+      {
+        "tests": 17,
+        "at": "2026-10-30T20:08:55.9238210Z",
+        "suites": 0,
+        "pass": 16,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 1,
+        "todo": 0,
+        "duration_ms": 2886.736284
+      },
+      {
+        "tests": 33,
+        "at": "2026-10-30T20:08:59.1515435Z",
+        "suites": 0,
+        "pass": 33,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3073.620561
+      },
+      {
+        "tests": 6,
+        "at": "2026-10-30T20:09:03.6037420Z",
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 4311.171428
+      },
+      {
+        "tests": 1,
+        "at": "2026-10-30T20:09:06.1383026Z",
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 2391.464147
+      },
+      {
+        "tests": 1,
+        "at": "2026-10-30T20:09:08.6707914Z",
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 2380.685341
+      }
+    ]
+  },
+  "registryInstallObservations": [
+    {
+      "scope": "native/root",
+      "result": "found 0 vulnerabilities in locked npm ci output",
+      "independentReviewOfLocalAdaptations": false
+    },
+    {
+      "scope": "web",
+      "result": "found 0 vulnerabilities in locked npm ci output",
+      "independentReviewOfLocalAdaptations": false
+    },
+    {
+      "scope": "admin",
+      "result": "found 0 vulnerabilities in locked npm ci output",
+      "independentReviewOfLocalAdaptations": false
+    },
+    {
+      "scope": "supabase/rpc-authorization",
+      "result": "found 0 vulnerabilities in locked npm ci output",
+      "independentReviewOfLocalAdaptations": false
+    }
+  ],
+  "evidenceLimits": [
+    "Registered case counts include fixture and component checks; they are not a count of unique live end-to-end journeys.",
+    "The database runner uses separate prerequisite modes and complementary visual/audio cases. Its three baseline skips and one visual-mode skip are retained rather than hidden.",
+    "Browser components, actual encoders and FFmpeg execute with synthetic Auth/Storage/RPC transport. Authenticated QA walkthroughs are recorded separately.",
+    "No physical iPhone/Android acceptance, hosted music installation, production media cutover, provider payment/payout, or TestFlight release is established.",
+    "Global lint is recorded separately: web/admin zero errors and warnings; native zero errors and 462 warnings."
+  ],
+  "related": {
+    "walkthrough": "live-qa-walkthrough.json",
+    "lint": "final-lint.json",
+    "deployments": "review-deployments.json",
+    "sourceComparison": "source-publication.json",
+    "backendCoverage": "../backend-acceptance-20261030/final-backend-coverage.json"
+  },
+  "allThreeWorkflowsPassed": true
+}

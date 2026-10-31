@@ -1,0 +1,26 @@
+{
+  "bundleIdentifier": "app.platinumcircles.mobile.qa",
+  "platform": "iOS Simulator",
+  "architecture": "x86_64",
+  "executableSha256": "97a771f18bd7b35c9ad7630315e14d3787418c0220e8f820f0ad0fef37ab1ffb",
+  "infoPlistSha256": "695880dfd2da619e68d6be176e80fbb2807123f68938733f5d94079e46672bdd",
+  "simulatedEntitlements": {
+    "application-identifier": "FAKETEAMID.app.platinumcircles.mobile.qa",
+    "aps-environment": "development"
+  },
+  "embeddedSections": {
+    "__entitlements": {
+      "bytes": 340,
+      "sha256": "6d1dfd62b996dd1f84cc806664d39024f50ddcc2975d9b2f59d9292aa0aa72b1"
+    },
+    "__ents_der": {
+      "bytes": 107,
+      "sha256": "b92d648550347034acaa7d932207f1b01919c3616c4bdfce06a08aecab2de9cd"
+    }
+  },
+  "defaultKeychainAccessGroup": "FAKETEAMID.app.platinumcircles.mobile.qa",
+  "hostSignatureEntitlementsAreSeparate": true,
+  "derSectionPresent": true,
+  "derSemanticsDecoded": false,
+  "keychainRuntimeAccepted": false
+}

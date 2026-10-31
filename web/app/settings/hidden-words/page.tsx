@@ -1,13 +1,13 @@
 "use client";
 // Hidden words: comments on your posts containing any of these are hidden the
-// moment they're written. Same rows the phone edits.
-import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, X } from "lucide-react";
+// moment they are written. Same rows the phone edits.
+import { useEffect, useState } from "react";
+
+import { X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function HiddenWordsPage() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [uid, setUid] = useState<string | null>(null);
   const [words, setWords] = useState<string[]>([]);
   const [draft, setDraft] = useState("");
@@ -33,7 +33,7 @@ export default function HiddenWordsPage() {
   return (
     <div className="mx-auto max-w-[640px] px-4 py-6">
       <h1 className="mt-4 font-display text-[24px] font-bold text-ink">Hidden words</h1>
-      <p className="mt-1 text-[13.5px] text-ink/60">Comments on your posts that contain any of these are hidden as soon as they're written. Only the person who wrote one can see it.</p>
+      <p className="mt-1 text-[13.5px] text-ink/60">Comments on your posts that contain any of these are hidden as soon as they are written. Only the person who wrote one can see it.</p>
       <div className="mt-5 flex gap-2">
         <input value={draft} onChange={(e) => setDraft(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") add(); }} placeholder="Add a word or phrase" className="flex-1 rounded-xl border border-ink/12 bg-white px-3 py-2.5 text-[14px] text-ink outline-none placeholder:text-muted focus:border-pearl" />
         <button type="button" onClick={add} className="rounded-xl bg-ink px-4 text-[14px] font-bold text-white hover:opacity-90">Add</button>

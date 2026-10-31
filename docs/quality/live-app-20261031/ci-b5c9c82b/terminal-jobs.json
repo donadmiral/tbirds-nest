@@ -1,0 +1,121 @@
+{
+  "recordedAt": "2026-10-31 16:25:02 UTC",
+  "jobs": [
+    {
+      "id": 124588620258,
+      "name": "Link preview Edge TLS",
+      "headSha": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-10-31T16:14:38Z",
+      "completedAt": "2026-10-31T16:14:55Z",
+      "runtimeSeconds": 17.0,
+      "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41218724145/job/124588620258",
+      "validationSteps": [
+        {
+          "name": "Check authenticated push handlers and their pinned dependencies",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T16:14:48Z",
+          "completedAt": "2026-10-31T16:14:50Z"
+        },
+        {
+          "name": "Test actual pinned-IP HTTPS and cancellation",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T16:14:50Z",
+          "completedAt": "2026-10-31T16:14:52Z"
+        }
+      ]
+    },
+    {
+      "id": 124588620473,
+      "name": "Phone app",
+      "headSha": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-10-31T16:14:38Z",
+      "completedAt": "2026-10-31T16:24:13Z",
+      "runtimeSeconds": 575.0,
+      "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41218724145/job/124588620473",
+      "validationSteps": [
+        {
+          "name": "Run npx tsc --noEmit",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T16:15:18Z",
+          "completedAt": "2026-10-31T16:15:49Z"
+        },
+        {
+          "name": "Test phone, diagnostics, feed and call regressions",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T16:16:26Z",
+          "completedAt": "2026-10-31T16:18:05Z"
+        },
+        {
+          "name": "Test payment recovery and database boundaries",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T16:18:05Z",
+          "completedAt": "2026-10-31T16:19:55Z"
+        },
+        {
+          "name": "Test RPC authorization",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T16:19:55Z",
+          "completedAt": "2026-10-31T16:24:09Z"
+        }
+      ]
+    },
+    {
+      "id": 124588620480,
+      "name": "Web app",
+      "headSha": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-10-31T16:14:38Z",
+      "completedAt": "2026-10-31T16:16:57Z",
+      "runtimeSeconds": 139.0,
+      "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41218724145/job/124588620480",
+      "validationSteps": [
+        {
+          "name": "Run npx tsc --noEmit",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T16:15:52Z",
+          "completedAt": "2026-10-31T16:16:16Z"
+        },
+        {
+          "name": "Test web quality regressions",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T16:16:16Z",
+          "completedAt": "2026-10-31T16:16:53Z"
+        }
+      ]
+    },
+    {
+      "id": 124588620644,
+      "name": "Operations app",
+      "headSha": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-10-31T16:14:38Z",
+      "completedAt": "2026-10-31T16:16:09Z",
+      "runtimeSeconds": 91.0,
+      "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41218724145/job/124588620644",
+      "validationSteps": [
+        {
+          "name": "Run npx tsc --noEmit",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T16:15:44Z",
+          "completedAt": "2026-10-31T16:15:53Z"
+        },
+        {
+          "name": "Test operations quality regressions",
+          "conclusion": "success",
+          "startedAt": "2026-10-31T16:15:53Z",
+          "completedAt": "2026-10-31T16:16:07Z"
+        }
+      ]
+    }
+  ],
+  "artifacts": {
+    "total_count": 0,
+    "artifacts": []
+  }
+}

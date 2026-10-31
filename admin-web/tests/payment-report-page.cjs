@@ -26,6 +26,7 @@ function harness(denied = false) {
   function load(file) {
     const module = { exports: {} };
     const requireModule = name => {
+      if (name === '@/lib/requestTime') return { requestTime: async () => Date.parse('2026-10-30T12:00:00Z') };
       if (name === 'react/jsx-runtime') return jsx;
       if (name === 'next/link' || name === '@/components/Shell') return { default: name, __esModule: true };
       if (name === '@/components/Desk') return { Desk: 'Desk', StatStrip: 'StatStrip' };

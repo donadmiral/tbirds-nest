@@ -1,0 +1,71 @@
+{
+  "browser": "156.0.8078.80",
+  "cases": [
+    {
+      "mode": "graded_audio",
+      "bytes": 44063,
+      "mime": "video/webm;codecs=vp9,opus",
+      "codec": "vp9",
+      "width": 1080,
+      "height": 1918,
+      "duration": 0.9824,
+      "hasAudio": true,
+      "audioRms": 0.049855721789768805,
+      "red": [
+        125,
+        0,
+        0
+      ],
+      "blue": [
+        0,
+        0,
+        126
+      ],
+      "tagBefore": [
+        9,
+        252,
+        0
+      ],
+      "tagAfter": [
+        16,
+        34,
+        50
+      ]
+    },
+    {
+      "mode": "muted",
+      "bytes": 25733,
+      "mime": "video/webm;codecs=vp9",
+      "codec": "vp9",
+      "width": 1080,
+      "height": 1918,
+      "duration": 1.0505,
+      "hasAudio": false,
+      "audioRms": null,
+      "red": [
+        125,
+        0,
+        0
+      ],
+      "blue": [
+        0,
+        0,
+        126
+      ],
+      "tagBefore": [
+        5,
+        253,
+        1
+      ],
+      "tagAfter": [
+        16,
+        34,
+        50
+      ]
+    },
+    {
+      "mode": "cancelled",
+      "cancelled": true
+    }
+  ]
+}

@@ -1,0 +1,192 @@
+{
+  "measuredAt": "2026-10-31T04:46:26.428964+00:00",
+  "workflowRun": 41169456330,
+  "headCommit": "ab281bcaab525331930f6238f97e46c169eee1ee",
+  "testedMergeCommit": "f033c50196f6f5f115f451247073ccdb357025d4",
+  "tree": "8e03d00ee3cd707f4095134b5d5c0eec79f5ef19",
+  "headAndMergeTreesEqual": true,
+  "artifacts": [
+    {
+      "kind": "ios-memory",
+      "jobId": 124444050354,
+      "artifactId": 13031150103,
+      "zipSha256": "5a33d0b0e25c6323c296c3006a661703d72062b9fde9f7361efcefb54e82f8eb",
+      "zipDigestVerified": true,
+      "passed": true,
+      "caseCount": 11,
+      "sourceHashesVerified": 7,
+      "sources": [
+        {
+          "path": "modules/boomerang/ios/StoryVideoComposition.swift",
+          "sha256": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+          "identicalTo26e80ae9": true
+        },
+        {
+          "path": "modules/boomerang/ios/MemoryMovieComposition.swift",
+          "sha256": "920fc4a01277f3712863909ca8188ef7b3a7efa3b4e560d9caeba056addc0d11",
+          "identicalTo26e80ae9": true
+        },
+        {
+          "path": "scripts/quality/MemoryMovieExportHarness.swift",
+          "sha256": "515ec7ad6e1150a0e7035defb7fcde9699b96067637204137f16a2e5681f874f",
+          "identicalTo26e80ae9": true
+        },
+        {
+          "path": "scripts/quality/test-ios-memory-movie.sh",
+          "sha256": "fa60a4db91552e78b6181943dd76d105a2354f2934969b95a8ed655985c3c90c",
+          "identicalTo26e80ae9": true
+        },
+        {
+          "path": "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.gif",
+          "sha256": "fa09323d645946fc05e54d47d92c2d4171d67cbb93a4a9cc4225495cf00ae674",
+          "identicalTo26e80ae9": true
+        },
+        {
+          "path": "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.png",
+          "sha256": "296c54b04d0a9aa58171e9d22cff9b41b32a66116d3aa1d89bd67cd193082a77",
+          "identicalTo26e80ae9": true
+        },
+        {
+          "path": "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.webp",
+          "sha256": "417af2bcf554708ce2331d3c3558aa0148921e2231ab3e0b9e8989f6a19395f3",
+          "identicalTo26e80ae9": true
+        }
+      ],
+      "mediaHashesVerified": 9,
+      "media": [
+        {
+          "path": "pc-memory-export-retry.mp4",
+          "sha256": "77d9de183a744d45e09d81f11b2c4ee19fe2dfb492c934e89dccf77acf99415b",
+          "bytes": 8592,
+          "identicalBytesTo26e80ae9": false
+        },
+        {
+          "path": "pc-memory-export-continuous-phase.mp4",
+          "sha256": "95f01ab6fcc142dc2559df7cfa06ca0a6bf3c8883e98e25c94d41dd43828a96c",
+          "bytes": 105763,
+          "identicalBytesTo26e80ae9": false
+        },
+        {
+          "path": "pc-memory-export-muted.mp4",
+          "sha256": "f8e97077cf2065c1edd02c2dd8dbf035305a5650294a108cff5c1e946f24d62c",
+          "bytes": 9566,
+          "identicalBytesTo26e80ae9": false
+        },
+        {
+          "path": "pc-memory-export-voice-once.mp4",
+          "sha256": "bbe716ed43c17060ffbcbb314711c9111d52843b5d507bd5d4297839b253f9c9",
+          "bytes": 56886,
+          "identicalBytesTo26e80ae9": false
+        },
+        {
+          "path": "pc-memory-export-slow-fractional.mp4",
+          "sha256": "4b8ece4d51cb5b6b2093c9e2747fbafd3278c5065ef011c943806c2725a5e25f",
+          "bytes": 152816,
+          "identicalBytesTo26e80ae9": false
+        },
+        {
+          "path": "pc-memory-export-motion.mp4",
+          "sha256": "a6cf311a07cbc4da15d990d8de901c6a35ff8096f85eda9d1718b40229ae82e9",
+          "bytes": 55998,
+          "identicalBytesTo26e80ae9": false
+        },
+        {
+          "path": "pc-memory-export-ordered.mp4",
+          "sha256": "143eb627fc91d223314c0ebd1da0fb40d797743504f56da7face1e5029595df2",
+          "bytes": 158806,
+          "identicalBytesTo26e80ae9": false
+        },
+        {
+          "path": "pc-memory-image-transparent.png",
+          "sha256": "79b425574e99705eb363fc04b62fc8723d921fa47b4f4ec344a16b857d59c200",
+          "bytes": 16755,
+          "identicalBytesTo26e80ae9": true
+        },
+        {
+          "path": "pc-memory-image-normalized.png",
+          "sha256": "7d44b3fb311c88598ea26d03d356d736853af96499362e015ea56125075ed48a",
+          "bytes": 42128,
+          "identicalBytesTo26e80ae9": true
+        }
+      ],
+      "retainedReceipt": "ios-memory-ab281bca-receipt.json",
+      "retainedReceiptSha256": "79802ab69d2bd31ce790243ec19f6315c73f20c34fffc7e1dfe6f97010e8c360",
+      "newIndependentDecodePerformed": false
+    },
+    {
+      "kind": "ios-story",
+      "jobId": 124444050611,
+      "artifactId": 13030179397,
+      "zipSha256": "5a089fa180462a4c91d192e4e25aca11633f0882b5b399e54f1ce156c10a48c5",
+      "zipDigestVerified": true,
+      "passed": true,
+      "caseCount": 8,
+      "sourceHashesVerified": 3,
+      "sources": [
+        {
+          "path": "modules/boomerang/ios/StoryVideoComposition.swift",
+          "sha256": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+          "identicalTo26e80ae9": true
+        },
+        {
+          "path": "scripts/quality/StoryAudioExportHarness.swift",
+          "sha256": "f62d1d285283d6b45a2dc8ab9b55f2e1c47f18a8e44bc3b56631d3f90379d714",
+          "identicalTo26e80ae9": true
+        },
+        {
+          "path": "scripts/quality/test-ios-story-audio.sh",
+          "sha256": "c024ac519360f68b3e2a9b30694439ab7e94fb6c34519ff1bc4d0309c8d61215",
+          "identicalTo26e80ae9": true
+        }
+      ],
+      "mediaHashesVerified": 6,
+      "media": [
+        {
+          "path": "pc-story-export-mixed-speed-2x.mp4",
+          "sha256": "79e20d8d1272406961e495930c9462e11783391926a36d984ef66abb9f6e58cc",
+          "bytes": 76009,
+          "identicalBytesTo26e80ae9": false
+        },
+        {
+          "path": "pc-story-export-original.mp4",
+          "sha256": "98212a3513a5bc72867ce4ef95308ae7fdb7d6cb7ada324f750e2ee08f2f2f99",
+          "bytes": 99384,
+          "identicalBytesTo26e80ae9": false
+        },
+        {
+          "path": "pc-story-export-still.mp4",
+          "sha256": "53ece5a0dbb0af83059a63fa7937d4627d8c8ae9a3efc6c8dff2f0c596973168",
+          "bytes": 66832,
+          "identicalBytesTo26e80ae9": false
+        },
+        {
+          "path": "pc-story-export-loop.mp4",
+          "sha256": "7c39d7935f8afff78c9d8124013a878e180d86db25d32d72059f0f76658e8d96",
+          "bytes": 66850,
+          "identicalBytesTo26e80ae9": false
+        },
+        {
+          "path": "pc-story-export-voice.mp4",
+          "sha256": "b3b4cb722588a7d22707d859d2f8100fb4eeab667c1adeef110a9de2a5e3a2b5",
+          "bytes": 53584,
+          "identicalBytesTo26e80ae9": false
+        },
+        {
+          "path": "pc-story-export-mixed-speed-0.5x.mp4",
+          "sha256": "fb1b9c3e7f32bd2542fba6a6f3b145237ba18f60c505c2b2b1a8e570f9786929",
+          "bytes": 115872,
+          "identicalBytesTo26e80ae9": false
+        }
+      ],
+      "retainedReceipt": "ios-story-ab281bca-receipt.json",
+      "retainedReceiptSha256": "25db7dfca7c74a08eb077f1735fdd491a9a949e49f4ccd6aed3b29c76b80644e",
+      "newIndependentDecodePerformed": false
+    }
+  ],
+  "limits": [
+    "These two actual standalone iOS encoder runs passed 19 cases on the current source; full-app UI capture/keychain acceptance is still running separately.",
+    "The engine and harness source hashes are identical to candidate 26e80ae9; source-equivalence links to separately retained independent decoding of candidate 341395c6.",
+    "Current media bytes were checked against fresh receipts. No claim that changed MP4 bytes equal prior output or that this check independently decoded the new outputs.",
+    "Synthetic local Simulator cases do not test physical-device Photos permissions, provider services, App Store signing or distribution."
+  ]
+}

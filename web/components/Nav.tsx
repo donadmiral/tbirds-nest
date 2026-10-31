@@ -1,179 +1,81 @@
 "use client";
+import NextImage from "next/image";
 
-import { PersonName } from "@/components/PersonName";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { NavigationLink as Link } from './NavigationLink';
+import { usePathname } from "next/navigation";
+import { BarChart3, PanelLeftClose, PanelLeftOpen, User } from "lucide-react";
 import { Wordmark } from "@/components/Wordmark";
-import {
-  PanelLeftClose,
-  PanelLeftOpen,
-  Home,
-  Compass,
-  Briefcase,
-  Store,
-  MessageCircle,
-  Bell,
-  Search,
-  Megaphone,
-  Radio,
-  Users,
-  LayoutDashboard,
-  Settings,
-  Bookmark,
-  User,
-  LogOut,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { PersonName } from "@/components/PersonName";
 import { useUnreadNotifications } from "@/lib/useUnreadNotifications";
+import { PRIMARY_DESTINATIONS, isDestinationActive } from "@/lib/navigation";
+import { CreateMenu, MoreMenu, NAV_ICONS } from "./NavigationActions";
 import chrome from "./NavigationChrome.module.css";
 
-type NavItem = {
-  href: string;
-  label: string;
-  icon: LucideIcon;
-  /** an unread count, shown as a quiet pill */
-  badge?: number;
-  /** a red dot for "something happened", where a number would be noise */
-  dot?: boolean;
-  /** a short word like New, for a surface that just launched */
-  tag?: string;
-};
-
-const items: NavItem[] = [
-  { href: "/home", label: "Home", icon: Home },
-  { href: "/discover", label: "Discover", icon: Compass },
-  { href: "/search", label: "Search", icon: Search },
-  { href: "/jobs", label: "Jobs", icon: Briefcase },
-  { href: "/market", label: "Market", icon: Store },
-  { href: "/messages", label: "Messages", icon: MessageCircle },
-  { href: "/channels", label: "Channels", icon: Radio },
-  { href: "/communities", label: "Communities", icon: Users },
-  { href: "/notifications", label: "Notifications", icon: Bell },
-  { href: "/saved", label: "Saved", icon: Bookmark },
-  { href: "/ads", label: "Ads", icon: Megaphone },
-  { href: "/settings", label: "Settings", icon: Settings },
-];
-
 const COLLAPSE_KEY = "pc:nav-collapsed";
+function savedCollapse(): boolean {
+  try { return window.localStorage.getItem(COLLAPSE_KEY) === "1"; }
+  catch { return false; }
+}
 
-export function Nav({ name, username, business = false, avatarUrl = null, verified = false, tier = null }: { name: string; username: string; business?: boolean; avatarUrl?: string | null; verified?: boolean; tier?: string | null }) {
+export function Nav({ name, username, business = false, avatarUrl = null, verified = false, tier = null }: {
+  name: string; username: string; business?: boolean; avatarUrl?: string | null; verified?: boolean; tier?: string | null;
+}) {
   const [collapsed, setCollapsed] = useState(false);
+  const [avatarFailed, setAvatarFailed] = useState<string | null>(null);
+  const pathname = usePathname();
+  const unread = useUnreadNotifications() ?? 0;
+  const profileHref = username ? "/" + encodeURIComponent(username) : "/settings/username";
   useEffect(() => {
-    const saved = window.localStorage.getItem(COLLAPSE_KEY) === "1";
-    setCollapsed(saved);
-    document.documentElement.classList.toggle("nav-collapsed", saved);
+    const restore = () => { const value = savedCollapse(); setCollapsed(value); document.documentElement.classList.toggle("nav-collapsed", value); };
+    restore();
+    const storage = (event: StorageEvent) => { if (event.key === COLLAPSE_KEY || event.key === null) restore(); };
+    window.addEventListener("storage", storage);
+    return () => { window.removeEventListener("storage", storage); document.documentElement.classList.remove("nav-collapsed"); };
   }, []);
   const toggle = () => {
-    setCollapsed((c) => {
-      const next = !c;
-      window.localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0");
-      document.documentElement.classList.toggle("nav-collapsed", next);
-      return next;
-    });
-  };
-  const profileHref = username ? "/" + encodeURIComponent(username) : "/settings/username";
-  const pathname = usePathname();
-  const router = useRouter();
-  // Inside Studio the grouped rail takes the left column, so the consumer nav
-  // folds to icons; leaving Studio restores whatever the person had saved.
-  const inStudio = pathname.startsWith("/studio");
-  useEffect(() => {
-    const saved = window.localStorage.getItem(COLLAPSE_KEY) === "1";
-    const next = inStudio ? true : saved;
+    const next = !collapsed;
     setCollapsed(next);
     document.documentElement.classList.toggle("nav-collapsed", next);
-  }, [inStudio]);
-  const supabase = createClient();
-  // One unread count from the server, live: the bell carries a dot and the number, and clears as rows are read anywhere.
-  const unreadNotifs = useUnreadNotifications() ?? 0;
-  const allItems: NavItem[] = [...items.map((it) => it.href === "/notifications" ? { ...it, dot: unreadNotifs > 0, badge: unreadNotifs > 0 ? unreadNotifs : undefined } : it), ...(business ? [{ href: "/studio", label: "Studio", icon: LayoutDashboard }] : []), { href: profileHref, label: "Profile", icon: User }];
+    try { window.localStorage.setItem(COLLAPSE_KEY, next ? "1" : "0"); } catch { /* Navigation remains available with storage blocked. */ }
+  };
+  const repeat = (event: React.MouseEvent, href: string) => {
+    if (pathname !== href || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  };
 
-  async function signOut() {
-    await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
-  }
-
-  return (
-    <aside className={chrome.surface + " fixed inset-y-0 left-0 z-30 hidden min-h-0 flex-col overflow-visible border-r py-5 transition-[width] duration-200 md:flex " + (collapsed ? "w-[76px] px-2" : "w-[260px] px-4")}>
-      <div className={"mb-5 flex shrink-0 items-center " + (collapsed ? "justify-center" : "justify-between px-3")}>
-        <Link href="/home" className="flex items-center gap-2.5" aria-label="Platinum Circles home">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="" className="h-9 w-9 rounded-xl" />
-          {!collapsed ? <Wordmark size={19} /> : null}
-        </Link>
-      </div>
-      {/* A tab on the sidebar's edge, so it is visible whatever the wordmark
-          width does and stays in the same place collapsed or expanded. */}
-      <button
-        onClick={toggle}
-        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        aria-expanded={!collapsed}
-        aria-controls="desktop-navigation"
-        title={collapsed ? "Expand" : "Collapse"}
-        className={chrome.control + " absolute -right-6 top-5 z-10 border border-ink/15 bg-white shadow-sm"}
-      >
-        {collapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
+  return <aside data-app-chrome className={chrome.sidebar + (collapsed ? " " + chrome.collapsed : "")}>
+    <div className={chrome.brandRow}>
+      <Link href="/home" aria-label="Platinum Circles home" className={chrome.brand}>
+        {collapsed ? <NextImage unoptimized  src="/logo.png" alt="" width={36} height={36} /> : <Wordmark size={21} />}
+      </Link>
+      <button type="button" onClick={toggle} className={chrome.collapseButton} aria-expanded={!collapsed} aria-controls="desktop-navigation" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Expand sidebar" : "Collapse sidebar"}>
+        {collapsed ? <PanelLeftOpen size={17} strokeWidth={1.8} aria-hidden /> : <PanelLeftClose size={17} strokeWidth={1.8} aria-hidden />}
       </button>
-      <nav id="desktop-navigation" aria-label="Primary" className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto overscroll-contain p-1 [scrollbar-width:thin]">
-        {allItems.map(({ href, label, icon: Icon, badge, dot, tag }) => {
-          const active = pathname === href || pathname.startsWith(href + "/");
-          return (
-            <Link key={label}
-              href={href}
-              aria-label={badge ? `${label}, ${badge} unread` : label}
-              aria-current={pathname === href ? "page" : undefined}
-              title={collapsed ? label : undefined}
-              onClick={(e) => {
-                // Tapping the item you are already on scrolls to the top rather
-                // than re-navigating, which is what every app of this shape
-                // does and what people reach for after a long scroll.
-                if (pathname !== href || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-                e.preventDefault();
-                window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
-              }}
-              className={
-                chrome.navItem + " flex items-center gap-3.5 rounded-full px-3 py-2.5 text-[15px] transition-colors duration-[140ms] " +
-                (active
-                  ? "bg-pearl/18 font-semibold text-ink"
-                  : "hover:bg-surface hover:text-ink")
-              }
-            >
-              <span className="relative flex shrink-0 items-center">
-                <Icon size={20} strokeWidth={active ? 2.2 : 1.8} aria-hidden />
-                {dot ? <span className="absolute -right-0.5 -top-0.5 h-[7px] w-[7px] rounded-full bg-danger ring-2 ring-white" aria-hidden /> : null}
-              </span>
-              {!collapsed ? <span className="min-w-0 flex-1 truncate">{label}</span> : null}
-              {tag && !collapsed ? (
-                <span className="shrink-0 rounded-full bg-pearl/20 px-1.5 py-[1px] text-[10px] font-semibold uppercase tracking-wide text-pearl-muted">{tag}</span>
-              ) : null}
-              {badge && !collapsed ? (
-                <span className="shrink-0 rounded-full bg-surface-elevated px-1.5 py-[1px] text-[11px] font-semibold tabular-nums text-ink/70">{badge}</span>
-              ) : null}
-            </Link>
-          );
-        })}
-      </nav>
-
-      <div className={"mt-3 flex shrink-0 items-center gap-2 border-t border-ink/10 pt-3 " + (collapsed ? "justify-center px-0" : "px-1")}>
-        <Link href={profileHref} title={name} aria-label="Your profile" className={chrome.control + " shrink-0"}>
-          {avatarUrl ? <img src={avatarUrl} alt="" className="h-9 w-9 rounded-full object-cover" /> : <span className="flex h-9 w-9 items-center justify-center rounded-full bg-navy text-sm font-semibold text-white">{name ? name.charAt(0).toUpperCase() : "?"}</span>}
-        </Link>
-        {!collapsed ? (
-          <span className="flex min-w-0 flex-1 flex-col">
-            <PersonName name={name} verified={verified} tier={tier} className="text-sm font-semibold text-ink" badgeSize={13} />
-            <span className={chrome.secondary + " truncate text-xs"}>{username ? "@" + username : "Set username"}</span>
-          </span>
-        ) : null}
-        {!collapsed ? (
-          <button onClick={signOut} title="Sign out" aria-label="Sign out" className={chrome.control + " shrink-0"}>
-            <LogOut size={18} aria-hidden />
-          </button>
-        ) : null}
-      </div>
-      {!collapsed ? <p className={chrome.secondary + " shrink-0 px-3 pt-3 text-[11px]"}>© {new Date().getFullYear()} Platinum Circles</p> : null}
-    </aside>
-  );
+    </div>
+    <nav id="desktop-navigation" aria-label="Primary" className={chrome.navigation}>
+      {PRIMARY_DESTINATIONS.map(item => {
+        const active = isDestinationActive(pathname, item.href), Icon = NAV_ICONS[item.icon];
+        const count = item.href === "/notifications" ? unread : 0;
+        return <Link key={item.href} href={item.href} onClick={event => repeat(event, item.href)} className={chrome.navItem}
+          aria-current={active ? "page" : undefined} aria-label={count ? `${item.label}, ${count} unread` : item.label} title={collapsed ? item.label : undefined}>
+          <span className={chrome.navIcon}><Icon size={22} strokeWidth={active ? 2.1 : 1.75} aria-hidden />{count > 0 && collapsed ? <i className={chrome.unreadDot} /> : null}</span>
+          {collapsed ? null : <><span>{item.label}</span>{count > 0 ? <b className={chrome.badge}>{count > 99 ? "99+" : count}</b> : null}</>}
+        </Link>;
+      })}
+      <Link href={profileHref} onClick={event => repeat(event, profileHref)} className={chrome.navItem} aria-current={isDestinationActive(pathname, profileHref) ? "page" : undefined} title={collapsed ? "Profile" : undefined} aria-label="Profile">
+        <User size={22} strokeWidth={1.75} aria-hidden />{collapsed ? null : <span>Profile</span>}
+      </Link>
+      <MoreMenu compact={collapsed} />
+      <div className={chrome.createSlot}><CreateMenu compact={collapsed} sidebar /></div>
+      <Link href="/studio" className={chrome.navItem} title={collapsed ? "Studio" : undefined} aria-label={business ? "Business Studio" : "Studio"}>
+        <BarChart3 size={22} strokeWidth={1.75} aria-hidden />{collapsed ? null : <span>Studio</span>}
+      </Link>
+    </nav>
+    <Link href={profileHref} className={chrome.sidebarAccount} aria-label="Your profile" title={collapsed ? name : undefined}>
+      {avatarUrl && avatarFailed !== avatarUrl ? <NextImage unoptimized width={36} height={36} src={avatarUrl} alt="" onError={() => setAvatarFailed(avatarUrl)} /> : <span className={chrome.avatar}>{name.trim().split(/\s+/).slice(0,2).map(value => value[0]).join("").toUpperCase() || "?"}</span>}
+      {collapsed ? null : <span className={chrome.accountCopy}><PersonName name={name} verified={verified} tier={tier} className="text-sm font-semibold text-ink" badgeSize={13} /><small>{username ? "@" + username : "Set your username"}</small></span>}
+    </Link>
+  </aside>;
 }

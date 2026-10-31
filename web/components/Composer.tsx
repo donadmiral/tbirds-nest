@@ -1,6 +1,8 @@
 "use client";
+import NextImage from "next/image";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useBrowserStorage } from "@/lib/useBrowserStorage";
 import { checkUploadableBytes } from "@/lib/media";
 import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
@@ -20,11 +22,11 @@ import { PublicationAttempt, publicationError } from "@/lib/publication";
 import SoundtrackPicker from "./SoundtrackPicker";
 import { postLookRecipe } from "../../shared/postMediaEditing";
 import type {SoundtrackSelection} from "../../shared/soundtrack";
-import { MUSIC_CATALOG_ENABLED } from "../../shared/musicAvailability";
+import { ORIGINAL_AUDIO_ENABLED } from "../../shared/musicAvailability";
 import { StoryCapture } from './StoryCapture';
 
 type Media = { file: File; preview: string; width: number; height: number; isVideo: boolean; alt: string; tags?: MediaTagDraft[]; edit?: PostMediaEditRecipe | null; coverFile?:File|null; coverPreview?:string|null };
-type MediaTagDraft = { user_id: string; nx: number; ny: number; full_name: string | null; username: string | null; avatar_url: string | null };
+type MediaTagDraft = { user_id: string; nx: number; ny: number; full_name: string | null; username: string | null; avatar_url: string | null; verified_tier?:string|null };
 type PostKind = "post" | "media" | "video" | "article" | "listing" | "poll" | "innovation";
 
 // The same row as the phone: Post, Article and Listing are kinds of thing;
@@ -57,14 +59,20 @@ const AUDIENCES = [
   { key: "verified", label: "Verified only", icon: BadgeCheck },
 ] as const;
 
-export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }: { ownerId: string; onPosted: (postId?: string) => void; quote?: QuoteTarget | null; onQuoteDone?: () => void; initialKind?: PostKind }) {
+export function Composer(props: Parameters<typeof OwnerComposer>[0]) {return <OwnerComposer key={props.ownerId} {...props}/>;}
+function OwnerComposer({ ownerId, onPosted, quote, onQuoteDone, initialKind, openRequest = 0 }: { ownerId: string; onPosted: (postId?: string) => void; quote?: QuoteTarget | null; onQuoteDone?: () => void; initialKind?: PostKind; openRequest?: number }) {
   const [supabase] = useState(() => createClient());
   const mounted = useRef(true), authenticatedOwner = useRef<string | undefined>(ownerId), renderedOwner = useRef(ownerId), ownerGeneration = useRef(0);
-  renderedOwner.current = ownerId;
+  useLayoutEffect(()=>{renderedOwner.current=ownerId;},[ownerId]);
   const draftKey = DRAFT_KEY + ':' + ownerId;
   const [draftLoaded, setDraftLoaded] = useState(false);
+  const captionEdited = useRef(false);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const taRef = useRef<HTMLTextAreaElement | null>(null);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const openerRef = useRef<HTMLElement | null>(null);
+  const collapsedRef = useRef<HTMLButtonElement | null>(null);
+  const [savedCaption,writeCaption]=useBrowserStorage(draftKey);
   const [pending, setPending] = useState(false);
   const [postConfirmed,setPostConfirmed]=useState(false);
   const publishing = useRef(false);
@@ -80,8 +88,9 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
   const [review,setReview]=useState(false);
   const [uploadProgress,setUploadProgress]=useState({completed:0,total:0,phase:""});
   const [text, setText] = useState("");
+  const captionSaved=Boolean(text.trim())&&savedCaption===JSON.stringify({text});
   const [items, setItems] = useState<Media[]>([]);
-  const itemsRef = useRef(items); itemsRef.current = items;
+  const itemsRef = useRef(items); useLayoutEffect(()=>{itemsRef.current=items;},[items]);
   const [audience, setAudience] = useState<(typeof AUDIENCES)[number]["key"]>("everyone");
   const [commentPolicy, setCommentPolicy] = useState<"everyone" | "following" | "followers" | "mentioned" | "off">("everyone");
   const [sensitiveMark, setSensitiveMark] = useState(false);
@@ -101,7 +110,7 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
   const [editIdx, setEditIdx] = useState<number | null>(null);
   const [tagAt, setTagAt] = useState<{ nx: number; ny: number } | null>(null);
   const [tagQ, setTagQ] = useState("");
-  const [tagHits, setTagHits] = useState<any[]>([]);
+  const [tagHits, setTagHits] = useState<(MentionHit & {is_verified?:boolean;verified_tier?:string|null})[]>([]);
   useEffect(() => {
     if (tagAt === null) return;
     const q = tagQ.trim().replace(/^@/, "");
@@ -114,32 +123,34 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
     }, 160);
     return () => { dead = true; window.clearTimeout(t); };
   }, [tagQ, tagAt]);
-  const addTag = (p: any) => {
+  const addTag = (p: MentionHit & {is_verified?:boolean;verified_tier?:string|null}) => {
     if (tagIdx === null || !tagAt) return;
-    setItems((prev) => prev.map((it, i) => i !== tagIdx ? it : { ...it, tags: [...(it.tags || []).filter((t) => t.user_id !== p.id), { user_id: p.id, nx: tagAt.nx, ny: tagAt.ny, full_name: p.full_name ?? null, username: p.username ?? null, avatar_url: p.avatar_url ?? null, ...(p.is_verified ? { verified_tier: p.verified_tier ?? null } : {}) } as any] }));
+    setItems((prev) => prev.map((it, i) => i !== tagIdx ? it : { ...it, tags: [...(it.tags || []).filter((t) => t.user_id !== p.id), { user_id: p.id, nx: tagAt.nx, ny: tagAt.ny, full_name: p.full_name ?? null, username: p.username ?? null, avatar_url: p.avatar_url ?? null, ...(p.is_verified ? { verified_tier: p.verified_tier ?? null } : {}) }] }));
     setTagAt(null); setTagQ(""); setTagHits([]);
   };
   const removeTag = (i: number, uid: string) => setItems((prev) => prev.map((it, x) => x !== i ? it : { ...it, tags: (it.tags || []).filter((t) => t.user_id !== uid) }));
   // "kind" is a view over the flags that already existed, not a new source of
   // truth: picking one sets the flags, so every downstream check still works.
   const [kind, setKindState] = useState<PostKind>("post");
-  const setKind = (k: PostKind) => {
+  const setKind = useCallback((k: PostKind) => {
     if (publicationLocked) return;
-    setKindState(k);
+    const normalized=k==="video"?"media":k;
+    setKindState(normalized);
     setPollOn(k === "poll");
     setInno(k === "innovation");
-    if (k === "video") setKind("media");
     // Picking media should do the obvious thing and ask for the files. The
     // timeout lets the dialog mount first, otherwise the click lands on
     // nothing on the first open.
-    if (k === "media" && items.length === 0) setTimeout(() => fileRef.current?.click(), 60);
+    if (normalized === "media" && items.length === 0) setTimeout(() => fileRef.current?.click(), 60);
     if (k !== "article") setArticleTitle("");
-  };
+  },[publicationLocked,items.length]);
   const [pollOpts, setPollOpts] = useState<string[]>(["", ""]);
   const [pollDays, setPollDays] = useState(1);
   const [postCategory, setPostCategory] = useState("");
-  const [preview, setPreview] = useState<{ url: string; domain?: string; title?: string; description?: string; image_url?: string } | null>(null);
-  const previewOff = useRef<string | null>(null);
+  const [previewResult, setPreview] = useState<{ url: string; domain?: string; title?: string; description?: string; image_url?: string } | null>(null);
+  const [previewOff,setPreviewOff] = useState<string|null>(null);
+  const previewUrl = (text.match(/https?:\/\/\S+/) || [])[0] ?? null;
+  const preview = previewResult?.url === previewUrl && previewOff !== previewUrl ? previewResult : null;
 
   useEffect(() => {
     function onThread(e: Event) { setThreadTo((e as CustomEvent).detail?.id ?? null); }
@@ -151,10 +162,10 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
     mounted.current = true;
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const next = session?.user.id;
-      if (next !== authenticatedOwner.current) { ownerGeneration.current++; authenticatedOwner.current = next; setOpen(false); setCameraOpen(false); }
+      if (next !== authenticatedOwner.current) { ownerGeneration.current += 1; authenticatedOwner.current = next; setOpen(false); setCameraOpen(false); }
     });
     return () => {
-      mounted.current = false; ownerGeneration.current++; subscription.unsubscribe();
+      mounted.current = false; ownerGeneration.current += 1; subscription.unsubscribe();
       itemsRef.current.forEach(item => { URL.revokeObjectURL(item.preview); if (item.coverPreview) URL.revokeObjectURL(item.coverPreview); });
     };
   }, [supabase]);
@@ -165,52 +176,55 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
   }, [supabase, ownerId]);
 
   useEffect(() => {
+    let active = true;
     const url = (text.match(/https?:\/\/\S+/) || [])[0] ?? null;
-    if (!url) { setPreview(null); return; }
-    if (previewOff.current === url || preview?.url === url) return;
+    if (!url) return;
+    if (previewOff === url) return;
+    if (preview?.url === url) return;
     const t = setTimeout(async () => {
       try {
         const { data, error: e } = await supabase.functions.invoke("link-preview", { body: { url } });
-        if (!e && data && !data.error) setPreview({ url, ...data });
+        if (active && mounted.current && authenticatedOwner.current === ownerId && previewOff !== url && !e && data && !data.error && data.url === url) setPreview(data);
       } catch { /* no preview, fine */ }
     }, 800);
-    return () => clearTimeout(t);
+    return () => { active = false; clearTimeout(t); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [text]);
+  }, [text, ownerId, previewOff, supabase]);
   const [mentions, setMentions] = useState<MentionHit[]>([]);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const quoteId=quote?.id??null;
+  const [previousQuote,setPreviousQuote]=useState<string|null>(null);
+  if(previousQuote!==quoteId){setPreviousQuote(quoteId);if(quoteId)setOpen(true);}
+  useEffect(()=>{if(quoteId&&open)taRef.current?.focus();},[quoteId,open]);
   useEffect(() => {
-    if (quote) { setOpen(true); taRef.current?.focus(); }
-  }, [quote]);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(draftKey);
-      if (raw) {
-        const d = JSON.parse(raw) as { text?: string };
-        if (d.text) { setText(d.text); setOpen(true); }
-      }
-    } catch { /* fresh start */ }
-    setDraftLoaded(true);
-  }, [draftKey]);
-  useEffect(() => {
-    if (!draftLoaded || authenticatedOwner.current !== ownerId) return;
-    try {
-      if (text.trim()) localStorage.setItem(draftKey, JSON.stringify({ text }));
-      else localStorage.removeItem(draftKey);
-    } catch { /* quota */ }
-  }, [text, draftLoaded, draftKey, ownerId]);
+    let active=true;
+    const generation=ownerGeneration.current;
+    void supabase.auth.getUser().then(({data,error})=>{
+      if(!active||!mounted.current||generation!==ownerGeneration.current||authenticatedOwner.current!==ownerId||error||data.user?.id!==ownerId)return;
+      try{
+        const raw=localStorage.getItem(draftKey);
+        const draft: unknown=raw?JSON.parse(raw):null;
+        if(!captionEdited.current&&draft&&typeof draft==='object'&&'text' in draft&&typeof draft.text==='string'&&draft.text){setText(draft.text);setOpen(true);}
+      }catch{ /* A fresh in-memory draft remains available. */ }
+      setDraftLoaded(true);
+    }).catch(()=>{ /* Keep the unsaved caption available when session verification fails. */ });
+    return()=>{active=false;};
+  },[draftKey,ownerId,supabase]);
+  useEffect(()=>{
+    if(draftLoaded&&authenticatedOwner.current===ownerId)writeCaption(text.trim()?JSON.stringify({text}):null);
+  },[text,draftLoaded,ownerId,writeCaption]);
 
   useEffect(() => {
     if (!open) return;
-    function onKey(e: KeyboardEvent) { if (e.key === "Escape" && !cameraOpen && editIdx===null && tagIdx===null && !publishing.current) { setOpen(false); if (!publication.current) setError(null); onQuoteDone?.(); } }
+    function onKey(e: KeyboardEvent) { if (e.defaultPrevented) return; if (e.key === "Escape" && tagIdx !== null) { e.preventDefault(); setTagIdx(null); setTagAt(null); return; } if (e.key === "Escape" && !cameraOpen && !musicOpen && editIdx===null && !publishing.current) { e.preventDefault(); setOpen(false); if (!publication.current) setError(null); onQuoteDone?.(); } }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, onQuoteDone, editIdx, tagIdx, cameraOpen]);
+  }, [open, onQuoteDone, editIdx, tagIdx, cameraOpen, musicOpen]);
 
   function onTextChange(v: string) {
+    captionEdited.current=true;
     const next = v.slice(0, MAX_CHARS);
     setText(next);
     const match = next.match(/@([\w.]*)$/);
@@ -223,6 +237,7 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
   }
 
   function pickMention(u: MentionHit) {
+    captionEdited.current=true;
     setText((t) => t.replace(/@([\w.]*)$/, "@" + (u.username ?? "") + " "));
     setMentions([]);
     taRef.current?.focus();
@@ -292,8 +307,8 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
       const tagIds = items.map(item => (item.tags || []).map(() => crypto.randomUUID()));
       const pollIds = pollOpts.map(() => crypto.randomUUID());
       const pollEnds = new Date(Date.now() + pollDays * 86400000).toISOString();
-      const saveRows = async (table: string, rows: any[], conflict = 'id') => {
-        const { error } = await supabase.from(table).upsert(rows, { onConflict: conflict, ignoreDuplicates: true });
+      const saveRows = async <T extends Record<string, unknown>>(table: string, rows: T[], conflict = 'id') => {
+        const { error } = await supabase.from(table).upsert(rows as Record<string,unknown>[], { onConflict: conflict, ignoreDuplicates: true });
         return { data: rows, error };
       };
       const progress = new PublicationAttempt(async () => {
@@ -314,7 +329,7 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
           const bad = await checkUploadableBytes(p.file);
           if (bad) throw new Error(bad);
           await progress.check();
-          const { error: upErr } = await supabase.storage.from("post-media").upload(path, p.file, { contentType: p.file.type, upsert: true });
+          const { error: upErr } = await supabase.storage.from("post-media").upload(path, p.file, { contentType: p.file.type, upsert: false });
           await progress.check();
           if (upErr) {
             throw new Error("Upload failed on \u201C" + p.file.name + "\u201D: " + upErr.message);
@@ -322,12 +337,12 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
           const { data: pub } = supabase.storage.from("post-media").getPublicUrl(path);
           const {soundtrack:previousSoundtrack,...savedRecipe}=p.edit??{};
           const chosenSoundtrack=i===0&&soundtrack?soundtrack:previousSoundtrack;
-          let recipe: PostMediaEditRecipe = {...savedRecipe,...(MUSIC_CATALOG_ENABLED&&chosenSoundtrack?{soundtrack:chosenSoundtrack}:{})};
+          let recipe: PostMediaEditRecipe = {...savedRecipe,...(ORIGINAL_AUDIO_ENABLED&&chosenSoundtrack?{soundtrack:chosenSoundtrack}:{})};
           if(p.isVideo) {
             const cover=p.coverFile?await prepareImageCover(p.coverFile):await capturePostCover(p.preview,recipe.coverAt??recipe.trimStart??0);
             const coverPath=uid+"/"+stablePostId+"_"+i+"_cover.jpg";
             await progress.check();
-            const {error:coverError}=await supabase.storage.from("post-media").upload(coverPath,cover,{contentType:"image/jpeg",upsert:true});
+            const {error:coverError}=await supabase.storage.from("post-media").upload(coverPath,cover,{contentType:"image/jpeg",upsert:false});
             await progress.check();
             if(coverError)throw new Error("The video cover could not upload. Retry this post.");
             recipe={...recipe,coverUrl:supabase.storage.from("post-media").getPublicUrl(coverPath).data.publicUrl};
@@ -336,7 +351,7 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
         }
 
         setUploadProgress({completed:items.length,total:items.length,phase:"Publishing your post"});
-        const insertData: Record<string, unknown> = {
+        const insertData: Record<string, unknown> & {id:string} = {
           id: stablePostId,
           user_id: uid,
           content: content || null,
@@ -357,21 +372,13 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
         if (quote) insertData.quoted_post_id = quote.id;
         if (threadTo) insertData.thread_parent_id = threadTo;
         if (postCategory) insertData.category = postCategory;
-        if (preview?.url) insertData.link_url = preview.url;
+        const currentLink = (text.match(/https?:\/\/\S+/) || [])[0] ?? null;
+        if (preview && preview.url === currentLink) insertData.link_url = preview.url;
 
         progress.postId = stablePostId;
         const [newPost] = await progress.writeIdempotent("post", () => saveRows("posts", [insertData]));
         if (!newPost) { progress.uncertain = true; throw new Error("Could not confirm the post."); }
         progress.postId = newPost.id;
-        if (preview?.url) {
-          await progress.writeIdempotent("link-preview", () => supabase.rpc("upsert_link_preview", {
-            p_url: preview.url,
-            p_title: preview.title ?? null,
-            p_description: preview.description ?? null,
-            p_image_url: preview.image_url ?? null,
-            p_domain: preview.domain ?? null,
-          }));
-        }
 
         if (products.length > 0) {
           await progress.writeIdempotent("products", () => supabase.rpc("set_post_products", {
@@ -393,8 +400,8 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
           if (!inserted || inserted.length !== media.length) { progress.uncertain = true; throw new Error("Could not confirm every media attachment."); }
           {
             // Tagged people, anchored to the media row each tag was placed on.
-            const tagRows: any[] = [];
-            items.forEach((it, i) => { const row = (inserted || []).find((r: any) => r.sort_order === i); (it.tags || []).forEach((t,j) => { if (row) tagRows.push({ id: tagIds[i][j], post_id: newPost.id, media_id: row.id, user_id: t.user_id, nx: t.nx, ny: t.ny }); }); });
+            const tagRows: {id:string;post_id:string;media_id:string;user_id:string;nx:number;ny:number}[] = [];
+            items.forEach((it, i) => { const row = (inserted || []).find(r => r.sort_order === i); (it.tags || []).forEach((t,j) => { if (row) tagRows.push({ id: tagIds[i][j], post_id: newPost.id, media_id: row.id, user_id: t.user_id, nx: t.nx, ny: t.ny }); }); });
             if (tagRows.length) await progress.writeIdempotent("media-tags", () => saveRows("post_media_tags", tagRows));
           }
         }
@@ -426,7 +433,7 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
       setOpen(false);
       setThreadTo(null);
       setPreview(null);
-      previewOff.current = null;
+      setPreviewOff(null);
       setPollOn(false);
       setPollOpts(["", ""]);
       setPollDays(1);
@@ -451,14 +458,71 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
 
   // A page can open the composer already set to a kind: the ads wizard's
   // format tiles land on home with ?compose=.
-  useEffect(() => {
-    if (!initialKind) return;
-    setOpen(true);
-    setKind(initialKind);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialKind]);
+  const requestedIntent=(initialKind??'')+':'+openRequest;
+  const [previousIntent,setPreviousIntent]=useState<string|null>(null);
+  if(previousIntent!==requestedIntent){
+    setPreviousIntent(requestedIntent);
+    if(initialKind){setOpen(true);if(!pending&&!publicationLocked){setKindState(initialKind==='video'?'media':initialKind);setPollOn(initialKind==='poll');setInno(initialKind==='innovation');}}
+  }
+  useEffect(()=>{
+    if(open&&(initialKind==='media'||initialKind==='video')&&!itemsRef.current.length&&!publishing.current&&!publication.current)fileRef.current?.click();
+  },[initialKind,openRequest,open]);
 
-  useEffect(()=>{if(!open)return;const before=document.body.style.overflow;document.body.style.overflow="hidden";return()=>{document.body.style.overflow=before;};},[open]);
+  useEffect(() => {
+    if (!open) return;
+    openerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const fallbackOpener=collapsedRef.current;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const frame = requestAnimationFrame(() => taRef.current?.focus({ preventScroll: true }));
+    const surface = () => {
+      const nested = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('[role="dialog"][aria-modal="true"]') ?? []).filter(node => node.getClientRects().length > 0);
+      return nested.at(-1) ?? dialogRef.current;
+    };
+    const controls = (node: HTMLElement) => Array.from(node.querySelectorAll<HTMLElement>('button:not(:disabled),a[href],input:not(:disabled):not([type="hidden"]),textarea:not(:disabled),select:not(:disabled),summary,[tabindex="0"]')).filter(element => element.getClientRects().length > 0 && !element.closest('[inert]'));
+    const contain = (event: FocusEvent) => {
+      const node = surface();
+      if (node && event.target instanceof Node && !node.contains(event.target)) (controls(node)[0] ?? node).focus({ preventScroll: true });
+    };
+    const key = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab' || event.defaultPrevented) return;
+      const node = surface(); if (!node) return;
+      const elements = controls(node), first = elements[0], last = elements.at(-1);
+      if (!first) { event.preventDefault(); node.focus(); return; }
+      if (event.shiftKey && (!node.contains(document.activeElement) || document.activeElement === first)) { event.preventDefault(); last?.focus(); }
+      else if (!event.shiftKey && (!node.contains(document.activeElement) || document.activeElement === last)) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('focusin', contain);
+    document.addEventListener('keydown', key);
+    return () => {
+      cancelAnimationFrame(frame); document.removeEventListener('focusin', contain); document.removeEventListener('keydown', key);
+      document.body.style.overflow = overflow;
+      (openerRef.current?.isConnected ? openerRef.current : fallbackOpener)?.focus({ preventScroll: true });
+    };
+  }, [open]);
+
+  // File attachments remain in this open feed. Warn before a route or reload can discard them.
+  useEffect(() => {
+    const hasUnsaved = items.length > 0 || pollOn || products.length > 0 || Boolean(soundtrack) || (Boolean(text.trim()) && !captionSaved) || publicationLocked;
+    if (!hasUnsaved) return;
+    const confirmLeave = () => window.confirm(publicationLocked
+      ? 'This post is not fully confirmed. Leaving can interrupt it. Stay here to finish or check its status. Leave this page?'
+      : 'Your attached media and post settings are kept in this feed. Leaving will discard those changes.' + (captionSaved ? ' Your caption is saved on this device.' : '') + ' Leave this page?');
+    const unload = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; };
+    const click = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const link = (event.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null;
+      if (!link || link.target === '_blank' || link.hasAttribute('download')) return;
+      const url = new URL(link.href, location.href);
+      if (url.origin === location.origin && url.pathname === location.pathname) return;
+      if (!confirmLeave()) { event.preventDefault(); event.stopPropagation(); }
+    };
+    const submit = (event: SubmitEvent) => {
+      if (!event.defaultPrevented && event.target instanceof HTMLFormElement && !dialogRef.current?.contains(event.target) && !confirmLeave()) { event.preventDefault(); event.stopPropagation(); }
+    };
+    window.addEventListener('beforeunload', unload); document.addEventListener('click', click, true); document.addEventListener('submit', submit, true);
+    return () => { window.removeEventListener('beforeunload', unload); document.removeEventListener('click', click, true); document.removeEventListener('submit', submit, true); };
+  }, [items.length, pollOn, products.length, soundtrack, text, captionSaved, publicationLocked]);
   const selected=items[Math.min(selectedMedia,Math.max(0,items.length-1))];
   const moveMedia=(direction:number)=>{const from=Math.min(selectedMedia,items.length-1),to=from+direction;if(to<0||to>=items.length)return;setItems(prev=>{const next=[...prev];[next[from],next[to]]=[next[to],next[from]];return next;});setSelectedMedia(to);};
   const removeMedia=()=>{const at=Math.min(selectedMedia,items.length-1);const item=items[at];if(item){URL.revokeObjectURL(item.preview);if(item.coverPreview)URL.revokeObjectURL(item.coverPreview);}setItems(prev=>prev.filter((_,i)=>i!==at));setSelectedMedia(Math.max(0,at-1));};
@@ -481,16 +545,16 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
     return (
       <div className="mb-4 rounded-2xl border border-ink/10 bg-white px-5 pb-3 pt-4">
         {postConfirmed?<div className={compose.posted} role="status"><span>Your post has been shared.</span><button type="button" aria-label="Dismiss post confirmation" onClick={()=>setPostConfirmed(false)}><X size={18}/></button></div>:null}
-        <button onClick={start()} className="flex w-full items-center gap-3 text-left">
+        <button ref={collapsedRef} onClick={start()} className="flex w-full items-center gap-3 text-left">
           {myAvatar ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={myAvatar} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" />
+
+            <NextImage unoptimized width={44} height={44} src={myAvatar} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" />
           ) : <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-navy text-white"><span className="h-2 w-2 rounded-full bg-pearl" /></span>}
-          <span className="text-[16px] text-muted">What&apos;s on your mind?</span>
+          <span className="flex min-h-11 flex-1 items-center rounded-xl border border-ink/10 px-3 text-[14px] text-muted">What would you like to share?</span>
         </button>
-        <div className="mt-3 grid grid-cols-5 items-center gap-1 border-t border-ink/8 pt-2.5">
+        <div className="mt-3 grid grid-cols-5 items-center gap-1 pt-1">
           <button onClick={start("media")} className={action}><ImageIcon size={16} className="text-pearl-muted" /> Photo</button>
-          <button onClick={()=>{setPostConfirmed(false);setOpen(true);setPollOn(false);setCameraOpen(true);}} className={action} aria-label="Open post camera and lenses"><Camera size={16} className="text-pearl-muted"/>Camera</button>
+          <button onClick={start("video")} className={action}><Video size={17} className="text-pearl-muted"/>Video</button>
           <button onClick={start("article")} className={action}><FileText size={16} className="text-pearl-muted" /> Article</button>
           <button onClick={start("poll")} className={action}><BarChart3 size={16} className="text-pearl-muted" /> Poll</button>
           <button onClick={start()} className="min-h-11 min-w-0 rounded-full bg-pearl px-2 py-1.5 text-[13px] font-bold text-on-pearl transition-opacity duration-[140ms] hover:opacity-90">Post</button>
@@ -501,13 +565,13 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
 
   return (
     <div className={compose.backdrop} onClick={(e) => { if (e.target === e.currentTarget && !publishing.current) { setOpen(false); if (!publication.current) setError(null); onQuoteDone?.(); } }}>
-      <div onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+      <div ref={dialogRef} tabIndex={-1} onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
         onDrop={onDrop}
         role="dialog" aria-modal="true" aria-label={review?"Review post":"New post"} className={compose.dialog}
       >
       <header className={compose.header}><button disabled={pending} className={compose.cancel} onClick={()=>{if(review&&!publicationLocked)setReview(false);else{setOpen(false);onQuoteDone?.();}}}>{review&&!publicationLocked?"Edit":"Cancel"}</button><h2>{pending?"Sharing your moment":review?"Review post":"New post"}</h2><button className={compose.primary} onClick={publishAction} disabled={!readyToPublish}>{pending?"Posting…":publicationLocked?"Retry":review?"Post":"Review"}</button></header>
-      {pending?<section aria-live="polite" className={compose.progress}><div className={compose.progressHeading}><span>{uploadProgress.phase||"Preparing your post"}</span>{uploadProgress.total>0?<span>{uploadProgress.completed}/{uploadProgress.total}</span>:null}</div><div className={compose.progressBar}><span style={{width:`${uploadProgress.total?uploadProgress.completed/uploadProgress.total*100:0}%`}}/></div><div className={compose.uploadFiles}>{items.map((item,index)=><div className={compose.uploadFile} key={item.preview}>{item.isVideo&&!item.coverPreview?<span className={compose.uploadThumb}>▶</span>:<img className={compose.uploadThumb} src={item.coverPreview||item.preview} alt=""/>}<span>{item.file.name||`${item.isVideo?'Video':'Photo'} ${index+1}`}</span><strong>{index<uploadProgress.completed?'Uploaded':index===uploadProgress.completed?'Uploading':'Waiting'}</strong></div>)}</div><p>Keep this feed open until your post is confirmed.</p><button type="button" className={compose.continue} onClick={()=>setOpen(false)}>Continue browsing this feed <ArrowRight size={17}/></button></section>:null}
+      {pending?<section aria-live="polite" className={compose.progress}><div className={compose.progressHeading}><span>{uploadProgress.phase||"Preparing your post"}</span>{uploadProgress.total>0?<span>{uploadProgress.completed}/{uploadProgress.total}</span>:null}</div><div className={compose.progressBar}><span style={{width:`${uploadProgress.total?uploadProgress.completed/uploadProgress.total*100:0}%`}}/></div><div className={compose.uploadFiles}>{items.map((item,index)=><div className={compose.uploadFile} key={item.preview}>{item.isVideo&&!item.coverPreview?<span className={compose.uploadThumb}>▶</span>:<NextImage unoptimized width={64} height={64} className={compose.uploadThumb} src={item.coverPreview||item.preview} alt=""/>}<span>{item.file.name||`${item.isVideo?'Video':'Photo'} ${index+1}`}</span><strong>{index<uploadProgress.completed?'Uploaded':index===uploadProgress.completed?'Uploading':'Waiting'}</strong></div>)}</div><p>Keep this feed open until your post is confirmed.</p><button type="button" className={compose.continue} onClick={()=>setOpen(false)}>Continue browsing this feed <ArrowRight size={17}/></button></section>:null}
       {review&&!pending?<p className={compose.reviewHint}>Ready to share with {AUDIENCES.find(a=>a.key===audience)?.label.toLowerCase()}? Check your photos, caption and settings, then select Post.</p>:null}
       <fieldset disabled={publicationLocked} className="contents">
       {/* What am I making? The kinds used to be icon-only toggles in the footer,
@@ -523,7 +587,7 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
               (gold
                 ? (on ? "border-pearl bg-pearl text-on-pearl" : "border-pearl bg-pearl/15 text-accent hover:bg-pearl/20")
                 : (on ? "border-navy bg-navy text-white" : "border-ink/10 bg-surface text-ink/70 hover:text-ink"));
-            if (k.href) return <a key={k.key} href={k.href} className={cls}><k.icon size={14} />{k.label}</a>;
+            if (k.href) return <Link key={k.key} href={k.href} className={cls}><k.icon size={14} />{k.label}</Link>;
             return (
               <button key={k.key} onClick={() => setKind(k.key)} className={cls}>
                 <k.icon size={14} />
@@ -554,16 +618,17 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
           <p className="mt-0.5 line-clamp-2 text-[13px] text-ink/70">{quote.text}</p>
         </div>
       ) : null}
-      <div className={compose.author}>{myAvatar?<img src={myAvatar} alt=""/>:<span className={compose.avatar}/>}<div><div className={compose.authorName}>{myName}</div><div className={compose.audience}><Globe size={12}/><select aria-label="Post audience" value={audience} onChange={e=>setAudience(e.target.value as typeof audience)}>{AUDIENCES.map(a=><option key={a.key} value={a.key}>{a.label}</option>)}</select></div></div></div>
-      {kind==="article"||inno?<input value={articleTitle} onChange={e=>setArticleTitle(e.target.value)} placeholder="Article title (optional)" className="mb-2 w-full rounded-xl bg-surface px-3 py-3 text-base font-semibold text-ink outline-none"/>:null}
-      <textarea ref={taRef} readOnly={review} value={text} onChange={e=>onTextChange(e.target.value)} onPaste={onPaste} placeholder={inno?"Share your innovation":"Write a caption…"} rows={3} autoFocus className={compose.caption}/>
+      <div className={compose.author}>{myAvatar?<NextImage unoptimized width={44} height={44} src={myAvatar} alt=""/>:<span className={compose.avatar}/>}<div><div className={compose.authorName}>{myName}</div><div className={compose.audience}><Globe size={12}/><select aria-label="Post audience" value={audience} onChange={e=>setAudience(e.target.value as typeof audience)}>{AUDIENCES.map(a=><option key={a.key} value={a.key}>{a.label}</option>)}</select></div></div></div>
+      {kind==="article"||inno?<input aria-label="Article title" value={articleTitle} onChange={e=>setArticleTitle(e.target.value)} placeholder="Article title (optional)" className="mb-2 w-full rounded-xl bg-surface px-3 py-3 text-base font-semibold text-ink outline-none"/>:null}
+      <textarea ref={taRef} aria-label="Post caption" readOnly={review} value={text} onChange={e=>onTextChange(e.target.value)} onPaste={onPaste} placeholder={inno?"Share your innovation":"Write a caption…"} rows={3} className={compose.caption}/>
+      <div className={compose.captionMeta}><span>{text.trim() ? (captionSaved ? 'Caption saved on this device' : 'Keep this draft open') : 'Make room for a moment worth sharing.'}</span><span aria-label="Caption character count">{text.length.toLocaleString()}/{MAX_CHARS.toLocaleString()}</span></div>
       {mentions.length > 0 ? (
         <div className="absolute z-20 w-64 overflow-hidden rounded-lg border border-ink/10 bg-navy shadow-2xl">
           {mentions.map((u) => (
             <button key={u.id} onClick={() => pickMention(u)} className="flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors duration-[140ms] hover:bg-surface-elevated">
               {u.avatar_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={displayImageUrl(u.avatar_url, 100) ?? u.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
+
+                <NextImage unoptimized width={32} height={32} src={displayImageUrl(u.avatar_url, 100) ?? u.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" />
               ) : (
                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-surface text-xs font-semibold text-porcelain">{(u.full_name ?? "?").charAt(0)}</span>
               )}
@@ -587,38 +652,39 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
           ))}
         </div>
       ) : null}
-      {selected?<section className={compose.media}><PostDraftPreview key={selected.preview+JSON.stringify(selected.edit)} item={selected} soundtrack={soundtrack} active={!cameraOpen&&!musicOpen&&editIdx===null}/><span className={compose.mediaCount}>{Math.min(selectedMedia+1,items.length)} / {items.length}</span>{!review?<><div className={compose.mediaActions}><button onClick={()=>setEditIdx(Math.min(selectedMedia,items.length-1))}><SlidersHorizontal size={16}/>Edit {selected.isVideo?'video':'photo'}</button>{!selected.isVideo?<button onClick={()=>setTagIdx(Math.min(selectedMedia,items.length-1))}><Users size={16}/>Tag people</button>:null}<button aria-label="Move media earlier" disabled={selectedMedia===0} onClick={()=>moveMedia(-1)}><ChevronLeft size={17}/></button><button aria-label="Move media later" disabled={selectedMedia>=items.length-1} onClick={()=>moveMedia(1)}><ChevronRight size={17}/></button><button aria-label="Remove selected media" onClick={removeMedia}><X size={17}/></button></div></>:null}<div className={compose.thumbs} style={{marginTop:review?12:0}}>{items.map((item,i)=><button key={item.preview} className={compose.thumb} aria-label={`Select media ${i+1}`} aria-pressed={selectedMedia===i} onClick={()=>setSelectedMedia(i)}>{item.isVideo?(item.coverPreview?<img src={item.coverPreview} alt=""/>:<video src={item.preview+'#t=0.1'} muted preload="metadata"/>):<img src={item.preview} alt=""/>}<span className={compose.number}>{i+1}</span></button>)}{!review&&items.length<MAX_MEDIA?<button className={compose.add} aria-label="Add more media" onClick={()=>fileRef.current?.click()}><Plus size={23}/></button>:null}</div></section>:null}
+      {selected?<section className={compose.media}><PostDraftPreview key={selected.preview+JSON.stringify(selected.edit)} item={selected} soundtrack={soundtrack} active={!cameraOpen&&!musicOpen&&editIdx===null}/><span className={compose.mediaCount}>{Math.min(selectedMedia+1,items.length)} / {items.length}</span>{!review?<><div className={compose.mediaActions}><button onClick={()=>setEditIdx(Math.min(selectedMedia,items.length-1))}><SlidersHorizontal size={16}/>Edit {selected.isVideo?'video':'photo'}</button>{!selected.isVideo?<button onClick={()=>setTagIdx(Math.min(selectedMedia,items.length-1))}><Users size={16}/>Tag people</button>:null}<button aria-label="Move media earlier" disabled={selectedMedia===0} onClick={()=>moveMedia(-1)}><ChevronLeft size={17}/></button><button aria-label="Move media later" disabled={selectedMedia>=items.length-1} onClick={()=>moveMedia(1)}><ChevronRight size={17}/></button><button aria-label="Remove selected media" onClick={removeMedia}><X size={17}/></button></div></>:null}<div className={compose.thumbs} style={{marginTop:review?12:0}}>{items.map((item,i)=><button key={item.preview} className={compose.thumb} aria-label={`Select media ${i+1}`} aria-pressed={selectedMedia===i} onClick={()=>setSelectedMedia(i)}>{item.isVideo?(item.coverPreview?<NextImage unoptimized width={82} height={88} src={item.coverPreview} alt=""/>:<video src={item.preview+'#t=0.1'} muted preload="metadata"/>):<NextImage unoptimized width={82} height={88} src={item.preview} alt=""/>}<span className={compose.number}>{i+1}</span></button>)}{!review&&items.length<MAX_MEDIA?<button className={compose.add} aria-label="Add more media" onClick={()=>fileRef.current?.click()}><Plus size={23}/></button>:null}</div></section>:null}
       {items.length?<button type="button" className={compose.soundtrack} onClick={()=>setMusicOpen(true)}><Music size={18}/><span>Music</span><span>{soundtrack?`${soundtrack.durationSec.toFixed(1)}s excerpt`:'Add a soundtrack'}</span><ChevronRight size={17}/></button>:null}
       {editIdx!==null&&items[editIdx]?<PostMediaEditor key={items[editIdx].preview} item={items[editIdx]} index={editIdx} total={items.length} onClose={()=>setEditIdx(null)} onSave={(edit,coverFile,coverPreview,applyAll)=>{setItems(prev=>prev.map((item,i)=>i===editIdx?{...item,edit,coverFile,coverPreview}:applyAll?{...item,edit:{...item.edit,...postLookRecipe(edit)}}:item));setEditIdx(null);}}/>:null}
       {tagIdx !== null && items[tagIdx] ? (
-        <div role="dialog" aria-modal="true" className="fixed inset-0 z-[70] flex items-center justify-center bg-black/85 p-4" onClick={() => { setTagIdx(null); setTagAt(null); }}>
+        <div role="dialog" aria-modal="true" aria-label="Tag people in this photo" tabIndex={-1} className="fixed inset-0 z-[70] flex items-center justify-center bg-black/85 p-4" onClick={() => { setTagIdx(null); setTagAt(null); }}>
           <div className="relative max-h-[92vh] max-w-[92vw]" onClick={(e) => e.stopPropagation()}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={items[tagIdx].preview} alt="" className="max-h-[80vh] max-w-[92vw] select-none rounded-xl object-contain" draggable={false}
+
+            <NextImage unoptimized width={items[tagIdx].width} height={items[tagIdx].height} src={items[tagIdx].preview} alt="" className="max-h-[80vh] max-w-[92vw] select-none rounded-xl object-contain" draggable={false}
               onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); setTagAt({ nx: Math.max(0.02, Math.min(0.98, (e.clientX - r.left) / r.width)), ny: Math.max(0.02, Math.min(0.98, (e.clientY - r.top) / r.height)) }); }} />
             <div className="pointer-events-none absolute left-1/2 top-3 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1.5 text-[12.5px] font-bold text-white">{tagAt ? "Who is this?" : "Click where the person is"}</div>
             {(items[tagIdx].tags || []).map((t) => (
               <span key={t.user_id} className="absolute" style={{ left: "calc(" + t.nx * 100 + "% - 5px)", top: "calc(" + t.ny * 100 + "% - 5px)" }}>
                 <span className="block h-2.5 w-2.5 rounded-full border-2 border-white bg-[#C9BFB0]" />
-                <span className="absolute left-[-6px] top-3.5 flex items-center gap-1.5 whitespace-nowrap rounded-xl bg-[#0B1E3D]/90 py-0.5 pl-2 pr-1 text-[12px] font-bold text-white">{t.full_name || t.username}{(t as any).verified_tier ? <VerifiedBadge tier={(t as any).verified_tier} size={12} /> : null}
+                <span className="absolute left-[-6px] top-3.5 flex items-center gap-1.5 whitespace-nowrap rounded-xl bg-[#0B1E3D]/90 py-0.5 pl-2 pr-1 text-[12px] font-bold text-white">{t.full_name || t.username}{t.verified_tier ? <VerifiedBadge tier={t.verified_tier} size={12} /> : null}
                   <button type="button" onClick={() => removeTag(tagIdx, t.user_id)} className="rounded-full p-0.5 hover:bg-white/20"><X size={12} /></button>
                 </span>
               </span>
             ))}
             {tagAt ? (
               <div className="absolute inset-x-0 bottom-0 max-h-[55%] overflow-auto rounded-b-xl bg-white p-3 shadow-2xl">
-                <input autoFocus value={tagQ} onChange={(e) => setTagQ(e.target.value)} placeholder="Search by name or handle" className="w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] outline-none focus:border-ink/40" />
+                <input aria-label="Search people to tag" autoFocus value={tagQ} onChange={(e) => setTagQ(e.target.value)} placeholder="Search by name or handle" className="w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] outline-none focus:border-ink/40" />
                 <div className="mt-1">
                   {tagHits.map((p) => (
                     <button key={p.id} type="button" onClick={() => addTag(p)} className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-ink/5">
-                      {p.avatar_url ? <img src={p.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" /> : <span className="h-8 w-8 rounded-full bg-ink/10" />}
+                      {p.avatar_url ? <NextImage unoptimized width={32} height={32} src={p.avatar_url} alt="" className="h-8 w-8 rounded-full object-cover" /> : <span className="h-8 w-8 rounded-full bg-ink/10" />}
                       <span className="min-w-0"><span className="flex items-center gap-1 text-[14px] font-bold text-ink"><span className="truncate" style={p.is_verified && getTierColor(p.verified_tier) ? { color: getTierColor(p.verified_tier) as string } : undefined}>{p.full_name || p.username}</span>{p.is_verified ? <VerifiedBadge tier={p.verified_tier} size={13} /> : null}</span>{p.username ? <span className="block text-[12px] text-muted">@{p.username}</span> : null}</span>
                     </button>
                   ))}
                 </div>
               </div>
             ) : null}
-            <button type="button" onClick={() => { setTagIdx(null); setTagAt(null); }} className="absolute -right-2 -top-2 rounded-full bg-white p-1.5 text-ink shadow"><X size={16} /></button>
+            {!tagAt ? <button type="button" className="absolute bottom-3 left-1/2 min-h-11 -translate-x-1/2 rounded-xl bg-white px-4 text-sm text-ink shadow" onClick={() => setTagAt({ nx: .5, ny: .5 })}>Choose a person</button> : null}
+            <button type="button" aria-label="Close photo tagging" onClick={() => { setTagIdx(null); setTagAt(null); }} className="absolute -right-2 -top-2 grid h-11 w-11 place-items-center rounded-full bg-white text-ink shadow"><X size={18} /></button>
           </div>
         </div>
       ) : null}
@@ -626,9 +692,9 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
         <details className={compose.alt}><summary>Accessibility · image descriptions</summary><div className="mt-3 flex flex-col gap-2">
           {items.map((m, i) => m.isVideo ? null : (
             <span key={m.preview} className="flex items-center gap-2">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={m.preview} alt="" className="h-9 w-9 shrink-0 rounded-md object-cover" />
-              <input value={m.alt}
+
+              <NextImage unoptimized width={36} height={36} src={m.preview} alt="" className="h-9 w-9 shrink-0 rounded-md object-cover" />
+              <input aria-label={`Description for image ${i + 1}`} value={m.alt}
                 onChange={(e) => setItems((list) => list.map((x, j) => (j === i ? { ...x, alt: e.target.value } : x)))}
                 placeholder="Describe this image, helps people using screen readers"
                 maxLength={500}
@@ -641,7 +707,7 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
       {pollOn ? (
         <div className="ml-14 mt-3 flex flex-col gap-1.5 rounded-lg border border-ink/10 p-3">
           {pollOpts.map((o, i) => (
-            <input key={i} value={o}
+            <input key={i} aria-label={`Poll option ${i + 1}`} value={o}
               onChange={(e) => setPollOpts((l) => l.map((x, j) => (j === i ? e.target.value : x)))}
               placeholder={"Option " + (i + 1) + (i > 1 ? ", optional" : "")}
               maxLength={60}
@@ -652,7 +718,7 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
             {pollOpts.length < 4 ? (
               <button onClick={() => setPollOpts((l) => [...l, ""])} className="text-[12px] font-semibold text-pearl-muted hover:underline">Add option</button>
             ) : null}
-            <select value={pollDays} onChange={(e) => setPollDays(Number(e.target.value))} className="ml-auto rounded-md bg-surface px-2 py-1 text-[12px] text-ink outline-none">
+            <select aria-label="Poll duration" value={pollDays} onChange={(e) => setPollDays(Number(e.target.value))} className="ml-auto rounded-md bg-surface px-2 py-1 text-[12px] text-ink outline-none">
               <option value={1} className="bg-navy">1 day</option>
               <option value={3} className="bg-navy">3 days</option>
               <option value={7} className="bg-navy">7 days</option>
@@ -670,14 +736,14 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
       {preview ? (
         <span className="ml-14 mt-3 flex items-center gap-3 overflow-hidden rounded-lg border border-ink/10 p-2.5">
           {preview.image_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={preview.image_url} alt="" className="h-12 w-12 shrink-0 rounded-md bg-surface object-cover" />
+
+            <NextImage unoptimized width={48} height={48} src={preview.image_url} alt="" className="h-12 w-12 shrink-0 rounded-md bg-surface object-cover" />
           ) : null}
           <span className="min-w-0 flex-1">
             <span className="block text-[10px] font-bold uppercase tracking-wide text-muted">{preview.domain ?? ""}</span>
             <span className="line-clamp-2 block text-[13px] font-semibold text-ink">{preview.title ?? preview.url}</span>
           </span>
-          <button onClick={() => { previewOff.current = preview.url; setPreview(null); }} title="Remove preview" className="shrink-0 rounded-full p-1 text-muted transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><X size={14} /></button>
+          <button onClick={() => { setPreviewOff(preview.url); setPreview(null); }} title="Remove preview" className="shrink-0 rounded-full p-1 text-muted transition-colors duration-[140ms] hover:bg-surface hover:text-ink"><X size={14} /></button>
         </span>
       ) : null}
       {pickerOpen ? <div className="ml-14 mt-3"><ProductPicker selected={products} onChange={setProducts} onClose={() => setPickerOpen(false)} /></div> : null}
@@ -699,13 +765,13 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
       {cameraOpen?<StoryCapture purpose="post" onCapture={async file=>{await addFiles([file]);}} onClose={()=>setCameraOpen(false)} onGallery={()=>{setCameraOpen(false);fileRef.current?.click();}}/>:null}
       {musicOpen?<SoundtrackPicker value={soundtrack} use="post" ownerId={ownerId} originalAudio={selected?.isVideo} onChange={setSoundtrack} onClose={()=>setMusicOpen(false)} renderPreview={(selection,active)=>selected?<PostDraftPreview item={selected} soundtrack={selection} active={active} autoPlay/>:null}/>:null}
       <div className={compose.settings}>
-        <select disabled={publicationLocked||review} value={postCategory} onChange={(e) => setPostCategory(e.target.value)} title="Category" className="max-w-[120px] rounded-full bg-surface px-3 py-1.5 text-[12.5px] text-ink/80 outline-none">
+        <select disabled={publicationLocked||review} value={postCategory} onChange={(e) => setPostCategory(e.target.value)} aria-label="Post category" className="max-w-[120px] rounded-full bg-surface px-3 py-1.5 text-[12.5px] text-ink/80 outline-none">
           <option value="" className="bg-navy">Category</option>
           {CATEGORIES.filter((c) => c.key !== "innovation").map((c) => (
             <option key={c.key} value={c.key} className="bg-navy">{c.label}</option>
           ))}
         </select>
-        <select disabled={publicationLocked||review} value={audience}
+        <select aria-label="Audience" disabled={publicationLocked||review} value={audience}
           onChange={(e) => setAudience(e.target.value as typeof audience)}
           className="rounded-full bg-surface px-3 py-1.5 text-[12.5px] text-ink/80 outline-none"
         >
@@ -713,13 +779,13 @@ export function Composer({ ownerId, onPosted, quote, onQuoteDone, initialKind }:
             <option key={a.key} value={a.key} className="bg-navy">{a.label}</option>
           ))}
         </select>
-        <select disabled={publicationLocked||review} value={commentPolicy} onChange={(e) => setCommentPolicy(e.target.value as typeof commentPolicy)} title="Who can comment" className="rounded-full bg-surface px-3 py-1.5 text-[12.5px] text-ink/80 outline-none">
+        <select disabled={publicationLocked||review} value={commentPolicy} onChange={(e) => setCommentPolicy(e.target.value as typeof commentPolicy)} aria-label="Who can comment" className="rounded-full bg-surface px-3 py-1.5 text-[12.5px] text-ink/80 outline-none">
           <option value="everyone" className="bg-navy">Comments: everyone</option>
           <option value="following" className="bg-navy">Comments: people I follow</option>
           <option value="followers" className="bg-navy">Comments: my followers</option>
           <option value="mentioned" className="bg-navy">Comments: mentioned only</option>
           <option value="off" className="bg-navy">Comments off</option>
-        </select><span className="ml-auto text-[11px] text-muted">{items.length?`${items.length} of ${MAX_MEDIA} files`:''}{remaining<=200?` · ${remaining} characters left`:''}</span>
+        </select>{items.length>0?<label className="flex min-h-11 items-center gap-2 text-[12.5px] text-ink/80"><input type="checkbox" checked={sensitiveMark} disabled={publicationLocked||review} onChange={event=>setSensitiveMark(event.target.checked)} />Sensitive media</label>:null}<span className="ml-auto text-[11px] text-muted">{items.length?`${items.length} of ${MAX_MEDIA} files`:''}{remaining<=200?` · ${remaining} characters left`:''}</span>
       </div>
       </div>
     </div>

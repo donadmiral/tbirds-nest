@@ -1,0 +1,90 @@
+{
+  "source": {
+    "path": "/tmp/ios-full-app-6878c384-41179235060/maestro/navigation/2026-10-31_075705/Full native app navigation/commands.json",
+    "bytes": 22616,
+    "sha256": "19271067c830400fbf1e49f7bc31402c16a7e64992218d805b6afebaf1086fb8"
+  },
+  "profileTap": {
+    "command": {
+      "tapOnElement": {
+        "selector": {
+          "idRegex": "main-tab-profile",
+          "optional": false
+        },
+        "retryIfNoChange": false,
+        "waitUntilVisible": false,
+        "longPress": false,
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "COMPLETED",
+      "timestamp": 1793433851095,
+      "duration": 2583,
+      "sequenceNumber": 30,
+      "depth": 0,
+      "evaluatedCommand": {
+        "tapOnElement": {
+          "selector": {
+            "idRegex": "main-tab-profile",
+            "optional": false
+          },
+          "retryIfNoChange": false,
+          "waitUntilVisible": false,
+          "longPress": false,
+          "optional": false
+        }
+      }
+    }
+  },
+  "profileAssertion": {
+    "command": {
+      "assertConditionCommand": {
+        "condition": {
+          "visible": {
+            "textRegex": "Alex Rivera",
+            "optional": false
+          }
+        },
+        "timeout": "15000",
+        "optional": false
+      }
+    },
+    "metadata": {
+      "status": "FAILED",
+      "timestamp": 1793433853679,
+      "duration": 20133,
+      "error": {
+        "message": "Assertion is false: \"Alex Rivera\" is visible",
+        "debugMessage": "Assertion '\"Alex Rivera\" is visible' failed. Check the UI hierarchy in debug artifacts to verify the element state and properties.\n\nPossible causes:\n- Element selector may be incorrect - check if there are similar elements with slightly different names/properties.\n- Element may be temporarily unavailable due to loading state\n- This could be a real regression that needs to be addressed"
+      },
+      "sequenceNumber": 31,
+      "depth": 0,
+      "evaluatedCommand": {
+        "assertConditionCommand": {
+          "condition": {
+            "visible": {
+              "textRegex": "Alex Rivera",
+              "optional": false
+            }
+          },
+          "timeout": "15000",
+          "optional": false
+        }
+      },
+      "artifacts": [
+        {
+          "type": "SCREEN_HIERARCHY",
+          "path": "screen-hierarchy/step-032-assertCondition-Alex_Rivera.json"
+        },
+        {
+          "type": "SCREENSHOT",
+          "path": "screenshots/step-032-assertCondition-Alex_Rivera.png"
+        }
+      ]
+    }
+  },
+  "authSnapshotUtc": "2026-10-31T08:04:09.760333+00:00",
+  "profileTapStartsAfterSavedAuthSnapshotMs": 1334.667,
+  "scope": "Only command timing is independently read here. Navigation owner evaluates the screenshot, hierarchy, selector and delayed driver responses."
+}

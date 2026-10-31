@@ -8,6 +8,8 @@ const root = path.resolve(__dirname, '../..');
 function compile(source) { return ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText; }
 const sound = {exports:{}};
 vm.runInNewContext(compile(fs.readFileSync(path.join(root,'shared/soundtrack.ts'),'utf8')), sound);
+const collaborators = { exports: {} };
+vm.runInNewContext(compile(fs.readFileSync(path.join(root, 'shared/collaborationPeople.ts'), 'utf8')), collaborators);
 const music=sound.exports, selection={soundId:'11111111-1111-4111-8111-111111111111',startSec:12,durationSec:8,volume:0.7,originalVolume:0};
 test('soundtrack parser rejects corrupt values and exposes only a bounded recipe',()=>{
  assert.equal(music.readSoundtrack({...selection,durationSec:Infinity}),null);
@@ -27,7 +29,7 @@ function publicationFixture({failTable,loseTable,failUpload=0,switchOnTable,musi
  const start=text.indexOf('  const createPost = async () => {'),end=text.indexOf('  const loadMore =',start);
  const rows={},calls=[],alerts=[],uploads=[];let id=0,failed=false,owner='owner',author='owner';
  const context={
-   MUSIC_CATALOG_ENABLED:musicAvailable,publicationBusy:{current:false},publicationAttempt:{current:null},userId:'owner',composerText:'Hello',
+   uniqueCollaborators:collaborators.exports.uniqueCollaborators,ORIGINAL_AUDIO_ENABLED:musicAvailable,publicationBusy:{current:false},publicationAttempt:{current:null},userId:'owner',composerText:'Hello',
    composerMedia:[{uri:'file://photo.jpg',type:'image',ext:'jpg',width:100,height:100,edit:{rotation:90,flipX:true,tags:[{user_id:'friend',nx:.3,ny:.7}]}}],
    composerSoundtrack:selection,exclusivePost:false,innovationPost:false,innoField:null,innoStage:null,
    postAudience:'everyone',commentPolicy:'everyone',postCategory:null,articleTitle:'',quotingPost:null,threadingPost:null,
@@ -79,6 +81,6 @@ test('a cover upload failure cannot publish a video with a broken preview, and r
  await h.context.publish();assert.equal(h.rows.posts.size,1);assert.equal([...h.rows.posts.values()][0].id,originalId);assert.equal(h.rows.post_media.size,1);assert.ok([...h.rows.post_media.values()][0].edit.coverUrl);
 });
 
-test('the non-music release omits selected and saved soundtrack metadata without changing original video edits',async()=>{
+test('an emergency original-audio capability shutdown omits selected and saved soundtrack metadata without changing original video edits',async()=>{
  const h=publicationFixture();h.context.pollOpts=null;h.context.composerMedia=[{uri:'file://video.mp4',type:'video',ext:'mp4',edit:{soundtrack:selection,muted:false,trimStart:2,trimEnd:8,speed:1.25,coverAt:2}}];await h.context.publish();assert.equal(h.alerts.length,0);const row=[...h.rows.post_media.values()][0];assert.equal(row.edit.soundtrack,undefined);assert.equal(row.edit.muted,false);assert.equal(row.edit.trimStart,2);assert.equal(row.edit.trimEnd,8);assert.equal(row.edit.speed,1.25);
 });

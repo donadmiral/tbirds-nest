@@ -8,7 +8,7 @@ import { Comments } from "@/components/Comments";
 import { PinnedMedia } from "@/components/PinnedMedia";
 import { PostCard } from "@/components/PostCard";
 import { FactCheckBanner } from "@/components/FactCheck";
-import { timeAgo, type FeedRow } from "@/lib/feed";
+import { type FeedRow } from "@/lib/feed";
 
 type Params = { params: Promise<{ id: string }> };
 

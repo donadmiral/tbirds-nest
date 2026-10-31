@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "reviewer": "hosted_backend",
+  "focusedSummaryObservedAtUtc": "2026-10-31T16:00:43Z",
+  "status": "INDEPENDENT_SOURCE_AND_FOCUSED_CASES_ACCEPTED_NATIVE_RUNTIME_PENDING",
+  "baseApplication": {
+    "head": "f4c35f32795be5f196840c37382143a2d7e33d55",
+    "mergeCommit": "6f3204cd44996dfe66ffe2dcf7192543805aa912",
+    "tree": "7699f995aa8e5192658f785258eb48f408af6a39"
+  },
+  "ownerReceipt": {
+    "path": "docs/quality/native-full-app-20261031/native-reader-reactions-repair.json",
+    "bytes": 16610,
+    "sha256": "43a21cdd9308fc6ab3f6f4805e4a226530933039239e9edae8eb91e9fce018fd"
+  },
+  "sourceFiles": [
+    {
+      "path": "src/screens/profile/MemoryAlbumScreen.tsx",
+      "bytes": 67979,
+      "sha256": "63cf58cdf501ef43c333c9cce04ba3620fb775f1de532e4d92ace987d0d8826f"
+    },
+    {
+      "path": "tests/quality/native-memory-album-loading.cjs",
+      "bytes": 24780,
+      "sha256": "9059608e3383c7fec254757f281655548a904ef6ed5f53c2bc6f314200a47691"
+    },
+    {
+      "path": "tests/quality/memory-media-regressions.cjs",
+      "bytes": 3734,
+      "sha256": "526f6a7657b3d7e0fac755da4412c290a48de8cdf03a2f70258b078b92f6749c"
+    }
+  ],
+  "hashGuard": {
+    "beforeTestMatchedFrozenOwnerHashes": true,
+    "afterTestMatchedFrozenOwnerHashes": true,
+    "beforeReceiptWriteMatchedFrozenOwnerHashes": true
+  },
+  "decision": {
+    "blockers": [],
+    "acceptedScope": "One native reader component plus its focused regression harness and the existing extracted authorization harness fixture values. The source repair removes optional reaction reads from required content readiness while preserving required auth, book and media gates.",
+    "publicationLimit": "This accepts the reviewed local candidate. It neither replaces the existing combined/native gates nor establishes the cause or resolution of the prior f4 iPhone reader/capture failure."
+  },
+  "reviewFindings": [
+    {
+      "area": "Required and optional content",
+      "finding": "The required loader still waits for auth identity, the authorized book RPC and media hydration. Only the story_reactions decoration query is detached. Both returned error shapes and rejected optional promises leave the authorized book intact."
+    },
+    {
+      "area": "Unknown mutation intent",
+      "finding": "Until reaction membership is known, the control is disabled and labeled Loading reaction status or Reaction status unavailable; direct handler invocation is also guarded. Server toggle semantics and existing mutation serialization remain unchanged. Valid known state survives an ordinary refresh or optional refresh failure."
+    },
+    {
+      "area": "Identity and lifecycle",
+      "finding": "A per-route/account scope object plus viewer checks fence optional reads and mutation publications. New reads advance a separate ticket; route/account changes and unmount replace the scope. The focused account ABA case invalidates the old scope even when the final user ID returns to its original value before React rerenders."
+    },
+    {
+      "area": "Confirmed mutation ordering",
+      "finding": "Per-story successful mutation revisions override a response from an older optional read, including unlike. Other fetched story memberships still update. Failed mutations do not replace authoritative membership. Removed story IDs and fresh scopes clear stale local membership."
+    },
+    {
+      "area": "Soundtrack confirmation interaction",
+      "finding": "The actual soundtrack save confirmation invalidates full-book generation without changing reaction membership. A separate optional read ticket preserves its still-valid response. Starting a replacement required read retires the prior optional ticket and settles pending status; if soundtrack confirmation then supersedes that required refresh, unknown reactions remain unavailable instead of indefinitely loading."
+    },
+    {
+      "area": "Existing authorization regression harness",
+      "finding": "The existing six native/web authorization cases retain their assertions. Only reactionScope and new setter fixture values were added to the extracted native callback host."
+    }
+  ],
+  "independentVerification": {
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none tests/quality/native-memory-album-loading.cjs tests/quality/memory-media-regressions.cjs",
+    "runtime": "Node.js v24.22.1",
+    "result": {
+      "tests": 33,
+      "actualComponentCases": 27,
+      "existingAuthorizationCases": 6,
+      "pass": 33,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "durationMs": 3198.749363
+    },
+    "output": {
+      "path": "docs/quality/native-full-app-20261031/native-reader-reactions-repair/independent-focused.txt",
+      "bytes": 2936,
+      "sha256": "8b3590f5f01508a4f2dd4cf9be143bcc02c2c3bcb40b57069f35cbf979de3f66"
+    },
+    "executionCount": 1,
+    "resultEvidence": "The retained Node reporter completed with the exact totals above. The original command response was lost from the active context; a separate process-exit receipt is not claimed. The completed reporter output was recovered without rerunning the tests."
+  },
+  "ownerVerificationReviewedNotRepeated": {
+    "finalFocusedCases": 33,
+    "typeScriptExitCode": 0,
+    "scopedEslintExitCode": 0,
+    "diffCheckExitCode": 0,
+    "baselineFinalTestFile": {
+      "tests": 27,
+      "pass": 10,
+      "fail": 17
+    },
+    "soundtrackPreTicketRegression": {
+      "tests": 2,
+      "pass": 0,
+      "fail": 2
+    },
+    "checks": {
+      "path": "docs/quality/native-full-app-20261031/native-reader-reactions-repair/checks.json",
+      "bytes": 1900,
+      "sha256": "9c4adf8de0b8ffc1fd295a451bcc9ef0e39ffd19ca0850f0432e6ae4c278c01a"
+    },
+    "basis": "The sealed owner receipt and retained outputs; these baseline and static commands were not independently repeated."
+  },
+  "boundaries": [
+    "The complete production TSX and actual shared soundtrack-save hook execute under manual React hook/effect scheduling with controlled native primitives, animation, auth, transport and media. This is not a native renderer, UIKit/Hermes performance run, or concurrent scheduler proof.",
+    "The component ABA case establishes result ownership under its auth-listener callbacks. It does not exercise a real SDK/provider reset or the complete navigator session-remount boundary.",
+    "Mutation cases verify UI result publication and local ordering. They do not introduce or claim new bearer pinning, network cancellation, server authorization or idempotency guarantees.",
+    "The f4 artifact does not identify which awaited operation caused its loading interval. No claim is made that this repair caused or fixes the observed native failure.",
+    "Native flow commands, timeouts, acceptance assertions, authentication deadlines, SDK locks, backend schema and provider settings are unchanged by this repair and were not modified by this review.",
+    "No broad test suite, provider/database call, native rerun, authentication action, commit, branch/ref change or deployment was performed in this independent review."
+  ]
+}

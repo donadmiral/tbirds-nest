@@ -1,0 +1,188 @@
+{
+  "recordedAt": "2026-10-31T01:20:57.591256+00:00",
+  "baseCommit": "645fcb137bf32abf28bca176ee556982ed705540",
+  "status": "Frozen disabled native candidate; real native movie execution and hosted creative persistence acceptance pending.",
+  "publicationFiles": [
+    "modules/boomerang/memoryComposition.ts",
+    "modules/boomerang/ios/BoomerangModule.swift",
+    "modules/boomerang/ios/StoryVideoComposition.swift",
+    "modules/boomerang/ios/MemoryMovieComposition.swift",
+    "scripts/quality/MemoryMovieExportHarness.swift",
+    "scripts/quality/test-ios-memory-movie.sh",
+    "shared/memoryBookCreative.ts",
+    "shared/memoryBookModels.ts",
+    "shared/memoryBookPersistence.ts",
+    "shared/memoryMovieAccess.ts",
+    "shared/memoryMovieComposition.ts",
+    "shared/memoryMoviePlan.ts",
+    "shared/memoryMovieSupport.ts",
+    "shared/staticExportImage.ts",
+    "src/components/MemoryAlbumCard.tsx",
+    "src/components/VideoThumb.tsx",
+    "src/components/memory/MemoryBookCover.tsx",
+    "src/components/memory/MemoryBookDesigner.tsx",
+    "src/components/memory/MemoryCreativeControls.tsx",
+    "src/components/memory/MemoryFilm.tsx",
+    "src/components/memory/MemoryMovieExport.tsx",
+    "src/components/memory/MemoryStoryFrame.tsx",
+    "src/components/stories/StoryReshareCard.tsx",
+    "src/components/stories/storyExtras.tsx",
+    "src/screens/profile/MemoryAlbumScreen.tsx",
+    "src/services/memoryMovieExport.ts",
+    "src/services/memoryMovieFiles.ts",
+    "src/services/storyExportAudio.ts",
+    "web/components/MemoryAlbum.tsx",
+    "web/components/MemoryAlbumBook.tsx",
+    "web/components/memory/MemoryBookCover.module.css",
+    "web/components/memory/MemoryBookCover.tsx",
+    "web/components/memory/MemoryBookDesigner.tsx",
+    "web/components/memory/MemoryCreativeControls.tsx",
+    "web/components/memory/MemoryFilm.module.css",
+    "web/components/memory/MemoryFilm.tsx",
+    "web/components/memory/MemoryMovieExport.module.css",
+    "web/components/memory/MemoryMovieExport.tsx",
+    "web/lib/exportImage.ts",
+    "web/lib/memoryAlbum.ts",
+    "web/lib/memoryFilmExport.ts",
+    "web/tests/browser/memory-movie-export.cjs",
+    "web/tests/browser/memory-movie-fixture.tsx",
+    "web/tests/browser/memory-movie-auth-adapter.ts",
+    "web/tests/export-image.cjs",
+    "tests/quality/memory-creative-plan.cjs",
+    "tests/quality/native-memory-export.cjs",
+    "tests/quality/memory-media-regressions.cjs",
+    "tests/quality/memory-story-presentation.cjs",
+    "docs/quality/memory-movie-20261031/README.md",
+    "docs/quality/memory-movie-20261031/browser-creative-receipt.json",
+    "docs/quality/memory-movie-20261031/android-independent-source-review.json",
+    "docs/quality/memory-movie-20261031/ios-independent-source-review.json",
+    "docs/quality/memory-movie-20261031/client-candidate.json"
+  ],
+  "sourceSha256": {
+    "modules/boomerang/memoryComposition.ts": "b3d85bf48e3923e8636aaa2eab00c9a73734f78a10314e350278948882687bf5",
+    "modules/boomerang/ios/BoomerangModule.swift": "6e31a63649cf96a87caa9abf33c31492fafd2ff4ef18602c21808803d1e57967",
+    "modules/boomerang/ios/StoryVideoComposition.swift": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+    "modules/boomerang/ios/MemoryMovieComposition.swift": "a4af3c2e497d803136e3fb9384e53529caa2949af6090e7dbe7639faa8b546d0",
+    "scripts/quality/MemoryMovieExportHarness.swift": "97702bb42ff08151a8d4104cf9e02ef9a4df8f9b824c6b49b7f7823b276c1fab",
+    "scripts/quality/test-ios-memory-movie.sh": "fa60a4db91552e78b6181943dd76d105a2354f2934969b95a8ed655985c3c90c",
+    "shared/memoryBookCreative.ts": "65155ea7003d9661c0a0bbbc81ac4c20ffebe58157545b77496b5d46b0f51bba",
+    "shared/memoryBookModels.ts": "c5e4c8116d84ee71c52d17df0dc9ca0eb9ddfe7720771b746d3c715096b84bf6",
+    "shared/memoryBookPersistence.ts": "9e3b85448540a28e8910c4a74b5b3a853e94be358b36d5322c960733c12e7070",
+    "shared/memoryMovieAccess.ts": "b209d555996ebb8cce13640740fcb67558ccbb543e1777bb300bc1b82149b5d0",
+    "shared/memoryMovieComposition.ts": "f3c751e73060f83878cf55893eaa782684710bbfc3b72b7d2d5b923611a60d0b",
+    "shared/memoryMoviePlan.ts": "09c0d301bb2f45fce4ca8a9ead27451d847a9f7f2ced31c23dc18ebad06f8377",
+    "shared/memoryMovieSupport.ts": "0969dc2d9713a931d05212cf99fa53329bfe4679673a7aea2260fdf481b0c398",
+    "shared/staticExportImage.ts": "69eebf10c9d6cb7bd65788e4b3de28b96b7b1557f278999b663c15580ad31091",
+    "src/components/MemoryAlbumCard.tsx": "e6974756880f972305f8afccce6b9df1ccb1db67c1dafac181802ee9a935d074",
+    "src/components/VideoThumb.tsx": "013ee4c979f54427ce9f7e29d2fe049c47f8bafdb0a8b14e875521c2e28d7116",
+    "src/components/memory/MemoryBookCover.tsx": "1ea842e115b942f7e9f0b158ac862e4948509aae505b4055953d72ee85807e13",
+    "src/components/memory/MemoryBookDesigner.tsx": "3f1707923d10ab3cd54382f3086f57ccc62897fadd143444c6917be27ef320df",
+    "src/components/memory/MemoryCreativeControls.tsx": "e92cbe93f2dc702437cb6cfc82a72ffe81a5b650e599270c7a3bdd036c0bf749",
+    "src/components/memory/MemoryFilm.tsx": "d79ae8d468f99fa8717f92d575a4db57f098173ac71fc7ed19309d9d0babeca4",
+    "src/components/memory/MemoryMovieExport.tsx": "4c607f98b44f10870c772a0efa0ae112514273f5270b747b86e62b68f280c696",
+    "src/components/memory/MemoryStoryFrame.tsx": "13d24cbf143ead49d5ed06acbc9b4a046108d0537a93942d9790ebca5b9db3cd",
+    "src/components/stories/StoryReshareCard.tsx": "88866cf3babb12dd4dbb894a6eb6b72744bf702ef5b27c4b66fd4161b4543457",
+    "src/components/stories/storyExtras.tsx": "d359708a0cd1614c583dc28971bf0a66110767dde290f4eeb161ace662ec14b0",
+    "src/screens/profile/MemoryAlbumScreen.tsx": "6473b017b856266db5a96d550f45d7186ed6b541c2f2fb86f3ebef8f4bf6a6b4",
+    "src/services/memoryMovieExport.ts": "44947bc901323154ad9383a88c9eb715ccaacabfa0df1c3aa2aad5b05e0191fe",
+    "src/services/memoryMovieFiles.ts": "51787a1e2a0a14dcc8459629156848e170eb134554369f1e6101f63e986cf4b5",
+    "src/services/storyExportAudio.ts": "c4ac2140a2eb48396085bf3d5152cc804264225ccd2fd8864d23385fd777dd2a",
+    "web/components/MemoryAlbum.tsx": "e4d0ec7b2cc6ec1101747abfca6baebd332f761a75722264b0ec264998e96476",
+    "web/components/MemoryAlbumBook.tsx": "5baae20d6fc38eed67c9b65b4d8e7805dcf1fabba0fef43e4cf3a3ac82d7f115",
+    "web/components/memory/MemoryBookCover.module.css": "a9a72df7e2bf03df04c2b2881d0d8b267a438ba8fa9b23db811e09a17448ca77",
+    "web/components/memory/MemoryBookCover.tsx": "73f2e5079bda3fff9891949e3c8e75b1783c50f619810110ebbccf5b4ac9b5d9",
+    "web/components/memory/MemoryBookDesigner.tsx": "a53f3f7f138bed99ff739dca214a1ba93083fe60291e7683c829c358182ee66e",
+    "web/components/memory/MemoryCreativeControls.tsx": "3ddcf9de1afebaa985c6171d539b69d5a974c1b0f701a8483b7995bb89f0916f",
+    "web/components/memory/MemoryFilm.module.css": "1df051080594e1ed86e4aad1ad42d06aaacfcc10b3896d0c8bc15e9adf6d9083",
+    "web/components/memory/MemoryFilm.tsx": "1d53fcfc43579afdbd95efb982a1be2f90ef72f24d6a3fdfebbc5c50c33d440c",
+    "web/components/memory/MemoryMovieExport.module.css": "3f880da00193900c1083cdf0e319b09e130e1ccf967d768f13e927fbcec8c8a9",
+    "web/components/memory/MemoryMovieExport.tsx": "f5a644299d05c54da00db0152fd59c4b7b00b189e6cedad67b3307c594de3e83",
+    "web/lib/exportImage.ts": "6b1652a9380fb5724d63d06214d30a33c37fd20b7a49a6cb844180ae85a403d8",
+    "web/lib/memoryAlbum.ts": "7a01be1cd64393278e29e042aa94db73f3773ea232b6a1f35866893fac34cd09",
+    "web/lib/memoryFilmExport.ts": "aa22856e5fbb0d948bddf72d3f009f391e123bac354360c12069bacbae392ade",
+    "web/tests/browser/memory-movie-export.cjs": "cfdf503c1438f3385107780edbc8e74764380137a9334b2400ade79c1dc55ede",
+    "web/tests/browser/memory-movie-fixture.tsx": "0dae3503ed60f4b2634af1b0e7e9fc04072394173cf97712b074bbf53118a74e",
+    "web/tests/browser/memory-movie-auth-adapter.ts": "59e1924c73288b00b3eeb4da6dad083307299e2de2e7f5c1c21df17df096dcbd",
+    "web/tests/export-image.cjs": "7d04326dfd3a42137f9655bce04209a32881c186bf7948d5d6330f901c24c0cc",
+    "tests/quality/memory-creative-plan.cjs": "f0f9cde3b52b1d13ae88d64e003e2483da44111f8926d63bbb4bfae8e750e42f",
+    "tests/quality/native-memory-export.cjs": "03dac577c42f07b85ad6ab76d6477e0a011f547730b74a00d6ab474a321f9c3b",
+    "tests/quality/memory-media-regressions.cjs": "bf474c23e11a8f2856204daf6f234b97c39d64051c13241e7b23cea338c71bf4",
+    "tests/quality/memory-story-presentation.cjs": "8db9e4aa34a3af91a1e7d271372fad3509e7417389a215ab688ee4686831220c"
+  },
+  "evidenceSha256": {
+    "docs/quality/memory-movie-20261031/README.md": "5812102c314a3bd697d11c6db652271a7f46209c87b8410c4b0e701d231e54ce",
+    "docs/quality/memory-movie-20261031/browser-creative-receipt.json": "4ac1e6c53cab118d3689b0124f307311d66f6f8f799b645fa797ff5783af824a",
+    "docs/quality/memory-movie-20261031/android-independent-source-review.json": "53d5b0abdb0d41533624166a870841dc35ab7a60793ab7764ebd353e505c7c35",
+    "docs/quality/memory-movie-20261031/ios-independent-source-review.json": "897251bb467eb56a1fb0a5ac1613283fb60a4439b87b57d4ea70dd933bdd39d4"
+  },
+  "localChecks": [
+    {
+      "name": "native/shared memory behavior",
+      "passed": 61,
+      "failed": 0,
+      "logSha256": "8b1714469cd40b1e83368ab89b89879d1d6ee8a8ff09592e2b1d4692b11aff06"
+    },
+    {
+      "name": "web focused memory behavior",
+      "passed": 32,
+      "failed": 0,
+      "logSha256": "fdee3da47dd6406adb8f66551b89975487c45db88b4407036b13cf4ff4a93def"
+    },
+    {
+      "name": "Skia decoded pixels",
+      "passed": 7,
+      "failed": 0,
+      "logSha256": "d983fb608da673c6ea874ecb617e2525553ce0617920a75d892aef968e2ff483"
+    }
+  ],
+  "typechecks": {
+    "native": true,
+    "web": true
+  },
+  "changedClientStrictLint": {
+    "errors": 0,
+    "warnings": 0
+  },
+  "browser": {
+    "cases": 7,
+    "consoleErrors": 0,
+    "sourceScope": "Synthetic Auth/RPC adapter; actual browser-generated media and independent FFmpeg decoding",
+    "retainedTemporaryArtifacts": {
+      "original.webm": {
+        "bytes": 157715,
+        "sha256": "735dff34cef370d4b540fcfc36434e5c26fcc65cab33535a2a8cfa41c9906826"
+      },
+      "automatic-ready.png": {
+        "bytes": 55430,
+        "sha256": "edbd78208dcbe87a9095384d35c30fed0d646435927494b9436f2ee9cacb9fb0"
+      },
+      "automatic.webm": {
+        "bytes": 2057160,
+        "sha256": "e2a7bd7e6d2b8091bf3ff994d31dda92cf5cf6ea418f55bc302c9c7d4855efc7"
+      },
+      "download-mobile.png": {
+        "bytes": 66153,
+        "sha256": "e5e10cbe0a832c8b377865cd50c1ab4bcb163837ffc561a5c9e489a3a6f97873"
+      }
+    }
+  },
+  "native": {
+    "memoryMovieVersion": 0,
+    "ios": {
+      "declaredCases": 11,
+      "expectedMovies": 7,
+      "expectedNormalizedImages": 2,
+      "execution": "pending hosted Apple SDK/Simulator"
+    },
+    "android": "See android-candidate-local.json and independent review. Compile/package succeeded; runtime pending."
+  },
+  "dependencies": [
+    "Backend-owned20261031001826_memory_book_creative_presentation.sql with actual installation/postflight; missing capability fails explicitly.",
+    "Root-owned iOS/Android CI workflow changes; Android source manifest is owned by frontend_acceptance."
+  ],
+  "limits": [
+    "Source/behavior checks do not establish bundled native UI capture, Photos save, physical device success, hosted persistence, production rollout or licensed provider rights.",
+    "Animated/nested-video/dual-camera composition, Android accurate color preview and camera Boomerang encoding remain requested follow-on implementation.",
+    "Cover visual/form round-trip acceptance remains pending; the persisted exact contract is covered by shared behavior tests and separate backend tests."
+  ]
+}

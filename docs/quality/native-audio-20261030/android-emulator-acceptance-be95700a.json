@@ -1,0 +1,591 @@
+{
+  "recordedAt": "2026-10-30T22:42:30Z",
+  "status": "All 23 actual-production Android encoder instrumentation cases passed; artifact source and movie hashes independently rechecked after download.",
+  "publishedCandidate": {
+    "commit": "be95700a0cf2f015c5bc355b76be20729d12e3e4",
+    "testedMerge": "a793fb3c88ae568cf0ff924902920f72b46603d3",
+    "sourceTree": "5abe57e0cacf2494374f19fcf6e536da23cf81ea",
+    "headAndMergeTreesMatch": true
+  },
+  "githubEvidence": {
+    "workflowRun": 41139363933,
+    "jobId": 124349582961,
+    "jobConclusion": "success",
+    "workflowUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41139363933",
+    "artifactId": 13018681786,
+    "artifactName": "android-story-audio-export",
+    "artifactZipSha256": "1f58825cde11fb9a28325273f6f529e7e9e4876d138544841d80b40184484b77",
+    "digestVerifiedBeforeExtraction": true,
+    "retainedReceiptSha256": "254e816ed359cc682b4621dcca01e90b1baf829b089ebbf88921b8070e1f774a"
+  },
+  "verification": {
+    "allDeclaredTestsExecuted": true,
+    "tests": 23,
+    "passed": 23,
+    "failed": 0,
+    "skipped": 0,
+    "measuredCases": 23,
+    "retainedMovieCount": 31,
+    "allMovieHashesVerified": true,
+    "publishedAndCompiledProductionSourcesMatch": true,
+    "harnessSourceSha256": "b044919dde2469f0b466d8eb1341b3414b75cfa522eb89925c5dec25488546a7",
+    "xmlReports": [
+      {
+        "path": "instrumentation-results/connected/debug/TEST-emulator-5556 - 15-_-.xml",
+        "sha256": "46bc1c663d2dd90c76404f916fec4b55eb3c013877c383089508fe033208b2cf",
+        "summary": {
+          "name": "expo.modules.boomerang.StoryAudioExportTest",
+          "tests": "23",
+          "failures": "0",
+          "errors": "0",
+          "skipped": "0",
+          "time": "38.09",
+          "timestamp": "2026-10-30T22:41:01",
+          "hostname": "localhost"
+        }
+      }
+    ]
+  },
+  "nativeCapabilitiesAtAcceptance": {
+    "storyVideoVersion": 0,
+    "storyAudioExportVersion": 0
+  },
+  "encodedMediaReceipt": {
+    "commit": "a793fb3c88ae568cf0ff924902920f72b46603d3",
+    "workflowRun": "41139363933",
+    "result": "Android production story encoder instrumentation passed",
+    "preflight": {
+      "expo": "54.0.37",
+      "nativeToolchain": {
+        "agp": "8.11.0",
+        "kotlin": "2.1.20",
+        "compileSdk": "36",
+        "minSdk": "24"
+      },
+      "productionSources": {
+        "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": "3ce3a5c568a332468e064dd7b03c508fa2ee6d79ad94309a58adb14a54a24f4d",
+        "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": "754eaa2052a1b48c527eb2a2f9ccfb94cdd88ed269aa1bb4933fdde3e066633e"
+      },
+      "gradleWrapperSha256": "7d3a4ac4de1c32b59bc6a4eb8ecb8e612ccd0cf1ae1e99f66902da64df296172",
+      "scope": "Actual production engine sources in a standalone local-only Android instrumentation application."
+    },
+    "compiledSourceCopiesVerified": true,
+    "media3Runtime": {
+      "project": ":",
+      "configuration": "debugRuntimeClasspath",
+      "expectedVersion": "1.8.1",
+      "aligned": true,
+      "components": [
+        {
+          "group": "androidx.media3",
+          "module": "media3-common",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-container",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-database",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-datasource",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-decoder",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-effect",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-exoplayer",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-extractor",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-muxer",
+          "version": "1.8.1"
+        },
+        {
+          "group": "androidx.media3",
+          "module": "media3-transformer",
+          "version": "1.8.1"
+        }
+      ],
+      "scope": "Resolved runtime version alignment; separate from security or encoded-media acceptance."
+    },
+    "emulatorBuild": "Android/sdk_phone64_x86_64/emu64x:15/AE3A.240806.019/12368160:userdebug/test-keys",
+    "instrumentationTests": [
+      {
+        "class": "expo.modules.boomerang.StoryAudioExportTest",
+        "name": "trimmingPastShortOriginalAudioProducesAValidSilentMovie",
+        "seconds": "2.291"
+      },
+      {
+        "class": "expo.modules.boomerang.StoryAudioExportTest",
+        "name": "matrixAlphaAndBiasAreNotDroppedByAFourByFourShortcut",
+        "seconds": "0.829"
+      },
+      {
+        "class": "expo.modules.boomerang.StoryAudioExportTest",
+        "name": "videoTrimSpeedAndOriginalMixStayAlignedWithIndependentSoundtrack",
+        "seconds": "2.437"
+      },
+      {
+        "class": "expo.modules.boomerang.StoryAudioExportTest",
+        "name": "cancellationAtTheCompletionBoundaryCannotLeaveARejectedOutput",
+        "seconds": "2.567"
+      },
+      {
+        "class": "expo.modules.boomerang.StoryAudioExportTest",
+        "name": "onePassVoiceoverEndsInSilenceWithoutShorteningVideo",
+        "seconds": "0.957"
+      },
+      {
+        "class": "expo.modules.boomerang.StoryAudioExportTest",
+        "name": "invalidInputsCannotOverwriteOrEscapeTheCache",
+        "seconds": "0.028"
+      },
+      {
+        "class": "expo.modules.boomerang.StoryAudioExportTest",
+        "name": "backgroundCancellationSettlesOnceAndPreservesTheDraftInputs",
+        "seconds": "0.001"
+      },
+      {
+        "class": "expo.modules.boomerang.StoryAudioExportTest",
+        "name": "soundtrackVolumeAndZeroGainAreEncoded",
+        "seconds": "1.835"
+      },
+      {
+        "class": "expo.modules.boomerang.StoryAudioExportTest",
+        "name": "fullColorMatrixScaleAndTranslationMatchPixels",
+        "seconds": "0.855"
+      },
+      {
+        "class": "expo.modules.boomerang.StoryAudioExportTest",
+        "name": "selectedExcerptLoopsThroughActualStillMovie",
+        "seconds": "1.034"
+      },
+      {
+        "class": "expo.modules.boomerang.StoryAudioExportTest",
+        "name": "originalOnlyAudioIsPreservedAndMeasured",
+        "seconds": "2.541"
+      },
+      {
+        "class": "expo.modules.boomerang.StoryAudioExportTest",
+        "name": "mutedOriginalDoesNotLeakIntoTheMovie",
+        "seconds": "2.551"
+      },
+      {
+        "class": "expo.modules.boomerang.StoryAudioExportTest",
+        "name": "unknownLengthContentAndReadableExternalVideoAreStagedAndRemoved",
+        "seconds": "3.595"
+      },
+      {
+        "class": "expo.modules.boomerang.StoryAudioExportTest",
+        "name": "oversizedUnknownLengthProviderCannotConsumeUnboundedDisk",
+        "seconds": "0.377"
+      },
+      {
+        "class": "expo.modules.boomerang.StoryAudioExportTest",
+        "name": "verticalTextureOrientationAndBothTranslationDirectionsMatchTheCanvas",
+        "seconds": "1.808"
+      },
+      {
+        "class": "expo.modules.boomerang.StoryAudioExportTest",
+        "name": "canvasBackgroundAndTimedArtworkMatchDecodedPixels",
+        "seconds": "1.03"
+      },
+      {
+        "class": "expo.modules.boomerang.StoryAudioExportTest",
+        "name": "cancellationStopsTheWriterCleansThePartialAndAllowsRetry",
+        "seconds": "1.036"
+      },
+      {
+        "class": "expo.modules.boomerang.StoryAudioExportTest",
+        "name": "fullPortraitResolutionProducesActualVideoAndSoundtrack",
+        "seconds": "2.147"
+      },
+      {
+        "class": "expo.modules.boomerang.StoryAudioExportTest",
+        "name": "knownLengthProviderDoesNotNeedEofAndCannotHideAnEarlyEnd",
+        "seconds": "3.19"
+      },
+      {
+        "class": "expo.modules.boomerang.StoryAudioExportTest",
+        "name": "longVoiceoverIsClippedToTheOutputMovie",
+        "seconds": "0.758"
+      },
+      {
+        "class": "expo.modules.boomerang.StoryAudioExportTest",
+        "name": "blockedContentProviderCanBeCancelledWithoutWaitingForAnotherChunk",
+        "seconds": "0.604"
+      },
+      {
+        "class": "expo.modules.boomerang.StoryAudioExportTest",
+        "name": "trimmedAndAcceleratedVideoUsesOutputTimeForArtwork",
+        "seconds": "2.543"
+      },
+      {
+        "class": "expo.modules.boomerang.StoryAudioExportTest",
+        "name": "slowedVideoRepeatsOnlyTheSelectedExcerptThroughItsPartialFinalLoop",
+        "seconds": "2.849"
+      }
+    ],
+    "measuredReceipt": {
+      "sdk": 35,
+      "model": "Android SDK built for x86_64",
+      "abis": [
+        "x86_64"
+      ],
+      "renderer": "Actual production StoryVideoComposition.kt and StoryVideoEffects.kt",
+      "media3Version": "1.8.1",
+      "cases": [
+        {
+          "duration": 0.967,
+          "silentTrim": true,
+          "case": "no-overlap original audio",
+          "passed": true
+        },
+        {
+          "left": -226304,
+          "right": -8352385,
+          "case": "matrix alpha and fifth-column bias",
+          "passed": true
+        },
+        {
+          "duration": 1.003,
+          "videoFrames": 30,
+          "original330Hz": 0.08588911749117537,
+          "soundtrack440Hz": 0.049439106498743654,
+          "case": "trim speed and independent mix",
+          "passed": true
+        },
+        {
+          "attempts": 4,
+          "rejectedAndCleaned": 4,
+          "completedBeforeCancellation": 0,
+          "case": "completion cancellation race",
+          "passed": true
+        },
+        {
+          "firstRms": 0.14106004488780305,
+          "tailRms": 0,
+          "case": "one-pass voiceover",
+          "passed": true
+        },
+        {
+          "rejected": 5,
+          "case": "bounded local inputs and no overwrite",
+          "passed": true
+        },
+        {
+          "inputPreserved": true,
+          "partialRemoved": true,
+          "case": "background cancellation",
+          "passed": true
+        },
+        {
+          "quarterAmplitude": 0.049764843579242234,
+          "zeroRms": 0,
+          "case": "soundtrack gain",
+          "passed": true
+        },
+        {
+          "background": -262400,
+          "left": -16711427,
+          "right": -196608,
+          "case": "color matrix and geometry",
+          "passed": true
+        },
+        {
+          "amplitudes440Hz": [
+            0.19943957417656788,
+            0.1996638343570099,
+            0.1995742666875842
+          ],
+          "duration": 2.987,
+          "case": "selected excerpt and repeated loops",
+          "passed": true
+        },
+        {
+          "amplitude330Hz": 0.07954627556150017,
+          "case": "original-only audio",
+          "passed": true
+        },
+        {
+          "original330Hz": 7.928795552606054e-07,
+          "soundtrack440Hz": 0.09972189661023517,
+          "case": "original mute",
+          "passed": true
+        },
+        {
+          "unknownLengthProvider": true,
+          "externalSourcePreserved": true,
+          "temporaryFilesRemoved": true,
+          "case": "bounded source staging",
+          "passed": true
+        },
+        {
+          "peakTemporaryBytes": 536870912,
+          "providerWrittenBytes": 537001984,
+          "limitBytes": 536870912,
+          "case": "unknown-size byte ceiling",
+          "passed": true
+        },
+        {
+          "positiveTop": -196608,
+          "positiveBottom": -16711427,
+          "negativeTop": -196608,
+          "case": "vertical orientation and signed y translation",
+          "passed": true
+        },
+        {
+          "before": -262400,
+          "during": -16711936,
+          "after": -196864,
+          "case": "background framing and timed layers",
+          "passed": true
+        },
+        {
+          "partialRemoved": true,
+          "singleJobEnforced": true,
+          "retryDuration": 0.967,
+          "case": "real cancellation cleanup and retry",
+          "passed": true
+        },
+        {
+          "width": 1080,
+          "height": 1920,
+          "amplitude440Hz": 0.19948664862259247,
+          "case": "full portrait encode",
+          "passed": true
+        },
+        {
+          "succeededWithoutEof": true,
+          "earlyEndRejected": true,
+          "seekableOffsetAccepted": true,
+          "streamedOffsetRejectedMilliseconds": 1,
+          "temporaryFilesRemoved": true,
+          "case": "declared-length provider boundary",
+          "passed": true
+        },
+        {
+          "duration": 1.493,
+          "case": "voiceover cannot extend video",
+          "passed": true
+        },
+        {
+          "milliseconds": 20,
+          "providerStillOpen": true,
+          "temporaryFilesRemoved": true,
+          "retryPassed": true,
+          "case": "blocked provider cancellation",
+          "passed": true
+        },
+        {
+          "before": -16777216,
+          "during": -16711936,
+          "after": -16777216,
+          "case": "output-time artwork after trim and speed",
+          "passed": true
+        },
+        {
+          "duration": 4.395,
+          "videoFrames": 65,
+          "first440Hz": 0.09971127839359487,
+          "selected880Hz": 0.09969624615605852,
+          "repeated440Hz": 0.09958223242497176,
+          "finalPartial440Hz": 0.0996425111831132,
+          "finalTail880Hz": 0.09974909966026815,
+          "case": "slowed video and final partial soundtrack loop",
+          "passed": true
+        }
+      ],
+      "physicalDeviceAcceptance": false
+    },
+    "movies": [
+      {
+        "name": "canvas-and-timed-artwork.mp4",
+        "bytes": 8888,
+        "sha256": "238b6235161cf69fc7b028c7703f5679f50320c9b84356facf3c1c4bfa95b94f"
+      },
+      {
+        "name": "full-1080x1920-portrait.mp4",
+        "bytes": 50354,
+        "sha256": "1dad912c5e1fdf14559f7941e3c53653d0f94401039e315f4d57708fcac28215"
+      },
+      {
+        "name": "known-length-open-provider.mp4",
+        "bytes": 4464,
+        "sha256": "81a001789e82e35c8ef8d2dc405be3c178bccce00b3882d48eb40aa3d7e2f2f3"
+      },
+      {
+        "name": "known-provider-source-original-330hz.mp4",
+        "bytes": 73554,
+        "sha256": "c8b172afbeab2dd4a561e717f7bedb5d75373461f21e6ba895bbd8d0b8976a29"
+      },
+      {
+        "name": "matrix-alpha-bias.mp4",
+        "bytes": 6990,
+        "sha256": "2ef3cf89bd851fe19e8155ab28b30f1d65fce0d95594b425c2c9a139261c319c"
+      },
+      {
+        "name": "matrix-scale-translation.mp4",
+        "bytes": 7628,
+        "sha256": "c945ecf7f1bdd2c3952617fe39a3a97ca19cfa7b8b2a093404ab37aca780c610"
+      },
+      {
+        "name": "mute-source-original-330hz.mp4",
+        "bytes": 73554,
+        "sha256": "0dea356717f1d73f513c1da551e07dd3fb3fd930492ab1826c5a329a5449eddf"
+      },
+      {
+        "name": "muted-original.mp4",
+        "bytes": 38214,
+        "sha256": "0955addb37b3f8851d394431dc6ce342f01eda37d6e0e84d47d48c1829f2f599"
+      },
+      {
+        "name": "negative-y-orientation.mp4",
+        "bytes": 5758,
+        "sha256": "e55016012a6cf5f33eaa5a2d552a4e25b22206ad42e96dd6d0a3749f86f6ec5b"
+      },
+      {
+        "name": "one-pass-voiceover.mp4",
+        "bytes": 23027,
+        "sha256": "e12e7912b96fc7feb8d0c416cf136aac31c8a207a905aeb0e67db84f3b09759d"
+      },
+      {
+        "name": "original-only-mix.mp4",
+        "bytes": 38564,
+        "sha256": "2b521ef0d7d86c07ab17fc59ab079b2b4ded0176824884b41b44ee4d8a401573"
+      },
+      {
+        "name": "original-only-source-original-330hz.mp4",
+        "bytes": 73554,
+        "sha256": "8c2a26da2240bc97420919484dcf22b34d4165d27c8824cd51d1df639b38a3f2"
+      },
+      {
+        "name": "positive-y-orientation.mp4",
+        "bytes": 5753,
+        "sha256": "7d381dab9ed0e577e709c0e067d07a0cd327c21f888c1550bcc7a38cc411c49c"
+      },
+      {
+        "name": "provider-source-original-330hz.mp4",
+        "bytes": 73554,
+        "sha256": "00277fbb1c9c765de0750349a0dcd5b92f89f032341d72a8f117dcc28983e315"
+      },
+      {
+        "name": "quarter-volume.mp4",
+        "bytes": 38211,
+        "sha256": "4ed445a864b5583539d7483e58fffebc896bdfa41e18a039af5b2fefd14490b6"
+      },
+      {
+        "name": "readable-external-input.mp4",
+        "bytes": 4464,
+        "sha256": "5a632c295bd96d5a09a5cc271952043c3e73dd51efa1f985295dd9dad10e7c59"
+      },
+      {
+        "name": "retry-after-blocked-provider.mp4",
+        "bytes": 4463,
+        "sha256": "749ea7f7187e2327b7307086ace5bb5cd4788e6d04d1d5575662aaff7f57fa0a"
+      },
+      {
+        "name": "retry-after-cancel.mp4",
+        "bytes": 4463,
+        "sha256": "484f45923c5df97cbf3253627b7d1f919e50d59e197e26efa897dfe712f056e4"
+      },
+      {
+        "name": "seekable-provider-range.mp4",
+        "bytes": 4464,
+        "sha256": "007f1f34f58f200b07d199d5594e2724c7dc25eeb5ae7237d301d394ea19c7a8"
+      },
+      {
+        "name": "selected-excerpt-loop.mp4",
+        "bytes": 55882,
+        "sha256": "cfad586423262a16a63221469a847c4523c5831a001d049e45bb24f018ae7694"
+      },
+      {
+        "name": "slow-mix-source-original-330hz.mp4",
+        "bytes": 73554,
+        "sha256": "db5cb734788f06fefb27413266e4e81575ce4432bb7d05e63767c1584b27597a"
+      },
+      {
+        "name": "slow-video-fractional-soundtrack-loop.mp4",
+        "bytes": 78734,
+        "sha256": "7863dbb16d3daa9ea8f9f41f46dc1f05567338f7f014e1401f9649057106b43c"
+      },
+      {
+        "name": "source-original-330hz.mp4",
+        "bytes": 73554,
+        "sha256": "75ac7b4f4f393efefd9eb836de40202aadea3d5a4cd2bacc58b40ae1dc33ade3"
+      },
+      {
+        "name": "source-with-short-audio.mp4",
+        "bytes": 23027,
+        "sha256": "31d552250e4987d20c6bd101f1534e3be837c4b8debf9468140b5d749e45114e"
+      },
+      {
+        "name": "timed-video-source-original-330hz.mp4",
+        "bytes": 73554,
+        "sha256": "4a50093394939628d7653e717a26bc16c3d25be3663930c47921caded0b779af"
+      },
+      {
+        "name": "trim-after-original-audio.mp4",
+        "bytes": 4464,
+        "sha256": "f060ec8374bdef318a9ec43573cb75f547998ddcff9f251e716f1080e6dc74d5"
+      },
+      {
+        "name": "trim-speed-original-mix.mp4",
+        "bytes": 20903,
+        "sha256": "0e82748d6c6ab7f24c7d5e2d5a0501481169caa945743525a5e67c68e914d469"
+      },
+      {
+        "name": "unknown-length-provider-input.mp4",
+        "bytes": 38564,
+        "sha256": "e63c116f46958a591f77395183252b5139072769aaa047810941165697bea146"
+      },
+      {
+        "name": "video-output-time-artwork.mp4",
+        "bytes": 22216,
+        "sha256": "0e9a55ecbfd882a0cb9aff0a8ab1496a421f38369c8b992fd417c124afbd6bfd"
+      },
+      {
+        "name": "voiceover-clipped-to-movie.mp4",
+        "bytes": 29992,
+        "sha256": "7652ec412b5139195daeead9c2ec4ab49eea76c38b4f31b4786ac6e3471e73ae"
+      },
+      {
+        "name": "zero-volume.mp4",
+        "bytes": 38211,
+        "sha256": "7e3a34ba2d7c8313b1c32a9e9547ea5f21b55facf224cb69dfab69719a2156f2"
+      }
+    ],
+    "physicalDeviceAcceptance": false,
+    "installedProductAcceptance": false,
+    "qaOrProductionDataAccessed": false,
+    "storeReleaseOrUpload": false
+  },
+  "scopeLimits": [
+    "The standalone app compiled the exact production encoder/effect source bytes. It did not install the Platinum Circles product or exercise its Auth, Photos/Gallery permission and publication UI.",
+    "The disposable API 35 x86_64 emulator used software GLES. Physical-device camera, HDR/HEIC inputs, vendor codecs, accessibility and interruptions outside these declared cases still require installed-device acceptance.",
+    "The complete Expo application build is tracked in a separate exact-source receipt; a previous successful build is not automatically success for this candidate.",
+    "Nested video, animated sticker and dual-camera composition remain outside the existing supported single-story export contract.",
+    "These local synthetic media checks do not establish hosted backend installation or commercial music rights."
+  ]
+}

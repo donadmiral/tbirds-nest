@@ -17,15 +17,29 @@ function harness(file, rpc) {
     useCallback(fn, deps) { return hooks.useMemo(() => fn, deps); },
     useEffect(fn, deps) { const i = cursor++; if (!slots[i] || !same(slots[i].deps, deps)) { slots[i]?.cleanup?.(); slots[i] = { deps }; effects.push(() => { slots[i].cleanup = fn(); }); } },
   };
-  const client = { rpc };
+  let sessionOwner = 'synthetic-owner';
+  const alerts = [];
+  const client = { rpc, auth:{getSession:async()=>({data:{session:{user:{id:sessionOwner}}},error:null})} };
   const runtime = { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }), Fragment: 'Fragment' };
   const stubs = new Proxy({}, { get: (_, key) => String(key) });
   function requireMock(id) {
     if (id === 'react') return hooks;
     if (id === 'react/jsx-runtime') return runtime;
     if (id === '@/lib/supabase/client') return { createClient: () => client };
-    if (id === '@/components/StudioShell') return { useStudio: () => ({ me: { role: 'owner' } }) };
+    if (id === '@/components/StudioShell') return { useStudio: () => ({ me: { role: 'owner' },accountId:'synthetic-owner' }) };
+    if (id === '@/lib/errors' || id === '@/lib/withTimeout') {
+      const mod={exports:{}};
+      const file=id.endsWith('withTimeout')?'withTimeout.ts':'errors.ts';
+      vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname,'../lib',file),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,{module:mod,exports:mod.exports,setTimeout,clearTimeout,Error});
+      return mod.exports;
+    }
     if (id === '@/lib/studio') return { can: () => true };
+    if (id === '@/lib/useUploadPreview') return { useUploadPreview: value => ({ preview: value, error: null, retry() {} }) };
+    if (id === '@/lib/studioPresentation') {
+      const mod={exports:{}};
+      vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../lib/studioPresentation.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,{module:mod,exports:mod.exports,URL});
+      return mod.exports;
+    }
     if (id === '@/lib/profileLookup') {
       const mod={exports:{}};
       vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname, '../lib/profileLookup.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{module:mod,exports:mod.exports});
@@ -36,20 +50,21 @@ function harness(file, rpc) {
     if (id === '@/lib/media') return { displayImageUrl: x => x };
     if (id.endsWith('/LoadError')) return { StudioLoadError: 'StudioLoadError' };
     if (id === 'next/link') return { default: 'Link' };
+    if (id === 'next/image') return 'img';
     return stubs;
   }
   const moduleObject = { exports: {} };
   const output = ts.transpileModule(fs.readFileSync(path.join(__dirname, '..', file), 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2020, esModuleInterop: true },
   }).outputText;
-  vm.runInNewContext(output, { require: requireMock, module: moduleObject, exports: moduleObject.exports, alert() {}, confirm: () => true,
+  vm.runInNewContext(output, { require: requireMock, module: moduleObject, exports: moduleObject.exports, alert(message) {alerts.push(message);}, confirm: () => true,
     setTimeout: fn => { const id = ++nextTimer; timers.set(id, fn); return id; }, clearTimeout: id => timers.delete(id), console });
   const render = () => { cursor = 0; tree = moduleObject.exports.default(); const pending = effects; effects = []; pending.forEach(fn => fn()); return tree; };
   const nodes = () => { const out = []; const walk = node => { if (!node || typeof node !== 'object') return; if (Array.isArray(node)) return node.forEach(walk); out.push(node); walk(node.props?.children); }; walk(tree); return out; };
   const flush = async () => { for (let i = 0; i < 5; i++) await new Promise(resolve => setImmediate(resolve)); render(); };
   const find = predicate => nodes().find(predicate);
   const runTimers = () => { const pending = [...timers.values()]; timers.clear(); pending.forEach(fn => fn()); };
-  return { render, flush, find, nodes, runTimers, get tree() { return tree; } };
+  return { render, flush, find, nodes, runTimers, alerts, setSessionOwner(id){sessionOwner=id;}, get tree() { return tree; } };
 }
 const text = node => typeof node === 'string' || typeof node === 'number' ? String(node) : Array.isArray(node) ? node.map(text).join('') : text(node?.props?.children ?? '');
 
@@ -96,6 +111,11 @@ const text = node => typeof node === 'string' || typeof node === 'number' ? Stri
   assert.equal(writes.length, 1);
   assert.equal(writes[0].p_body, '', 'remove must not resubmit the stale draft');
   assert.equal(writes[0].p_review, review.id);
+  reviews.find(n => n.type === 'button' && text(n) === 'Edit reply').props.onClick(); reviews.render();
+  reviews.setSessionOwner('different-account');
+  reviews.find(n => n.type === 'button' && text(n) === 'Remove reply').props.onClick(); await reviews.flush();
+  assert.equal(writes.length,1,'a stale review cannot be changed using another account');
+  assert.match(reviews.alerts.at(-1),/account changed/i);
 
   let releaseOld;
   const person = name => ({ id: name, name, username: name, followed_at: '2026-10-01', paid: 0, messages: 0 });

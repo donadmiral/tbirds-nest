@@ -29,7 +29,7 @@ export default function AccountTypePage() {
       const { data } = await sb.from("profiles").select("account_class, account_type").eq("id", id).maybeSingle();
       if (data) setCurrent(data.account_type === "business" ? "business" : data.account_class === "creator" ? "creator" : "personal");
     })();
-  }, []);
+  }, [sb]);
 
   async function choose(c: AccountClass) {
     if (!uid || saving) return;

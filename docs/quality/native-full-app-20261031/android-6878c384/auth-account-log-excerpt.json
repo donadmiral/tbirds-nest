@@ -1,0 +1,58 @@
+{
+  "source": {
+    "path": "/tmp/android-full-app-6878c384-41179235060/app.log",
+    "bytes": 9834734,
+    "sha256": "9c1db8077b4eb0e9e48652a098a78f878bd81ebfda9156740ded67a653889f5d"
+  },
+  "totalLines": 23864,
+  "redactions": [
+    "Raw auth storage lock name replaced with <auth-storage-lock>.",
+    "Synthetic account prefix replaced with <synthetic-account-prefix>."
+  ],
+  "lines": [
+    {
+      "originalLine": 3041,
+      "text": "10-31 07:22:13.719  2514  2559 I ReactNativeJS: '[accounts] index', 1"
+    },
+    {
+      "originalLine": 3070,
+      "text": "10-31 07:22:13.895  2514  2559 I ReactNativeJS: '[accounts] index', 1"
+    },
+    {
+      "originalLine": 4844,
+      "text": "10-31 07:22:40.013  2514  2559 W ReactNativeJS: @supabase/gotrue-js: Lock \"<auth-storage-lock>\" acquisition timed out after 5000ms. This may be caused by another operation holding the lock. Consider increasing lockAcquireTimeout or checking for stuck operations."
+    },
+    {
+      "originalLine": 4845,
+      "text": "10-31 07:22:40.013  2514  2559 W ReactNativeJS: @supabase/gotrue-js: Lock \"<auth-storage-lock>\" acquisition timed out after 5000ms. This may be caused by another operation holding the lock. Consider increasing lockAcquireTimeout or checking for stuck operations."
+    },
+    {
+      "originalLine": 4846,
+      "text": "10-31 07:22:40.013  2514  2559 W ReactNativeJS: @supabase/gotrue-js: Lock \"<auth-storage-lock>\" acquisition timed out after 5000ms. This may be caused by another operation holding the lock. Consider increasing lockAcquireTimeout or checking for stuck operations."
+    },
+    {
+      "originalLine": 4847,
+      "text": "10-31 07:22:40.015  2514  2559 W ReactNativeJS: @supabase/gotrue-js: Lock \"<auth-storage-lock>\" acquisition timed out after 5000ms. This may be caused by another operation holding the lock. Consider increasing lockAcquireTimeout or checking for stuck operations."
+    },
+    {
+      "originalLine": 4849,
+      "text": "10-31 07:22:40.090  2514  2559 W ReactNativeJS: @supabase/gotrue-js: Lock \"<auth-storage-lock>\" acquisition timed out after 5000ms. This may be caused by another operation holding the lock. Consider increasing lockAcquireTimeout or checking for stuck operations."
+    },
+    {
+      "originalLine": 4850,
+      "text": "10-31 07:22:40.090  2514  2559 W ReactNativeJS: @supabase/gotrue-js: Lock \"<auth-storage-lock>\" acquisition timed out after 5000ms. This may be caused by another operation holding the lock. Consider increasing lockAcquireTimeout or checking for stuck operations."
+    },
+    {
+      "originalLine": 4851,
+      "text": "10-31 07:22:40.090  2514  2559 W ReactNativeJS: @supabase/gotrue-js: Lock \"<auth-storage-lock>\" acquisition timed out after 5000ms. This may be caused by another operation holding the lock. Consider increasing lockAcquireTimeout or checking for stuck operations."
+    },
+    {
+      "originalLine": 4852,
+      "text": "10-31 07:22:40.090  2514  2559 W ReactNativeJS: @supabase/gotrue-js: Lock \"<auth-storage-lock>\" acquisition timed out after 5000ms. This may be caused by another operation holding the lock. Consider increasing lockAcquireTimeout or checking for stuck operations."
+    },
+    {
+      "originalLine": 9254,
+      "text": "10-31 07:23:06.548  2514  2559 I ReactNativeJS: '[accounts] init', 1, 'stored:', 1, 'current:', '<synthetic-account-prefix>'"
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "verifiedAtUtc": "2026-10-30T21:33:11.165062+00:00",
+  "baseCommit": "f25a0263ee08dee8e589feee6479f0e357085c45",
+  "kind": "Local component and transport regressions; no hosted mutation or physical-device acceptance",
+  "sourceSha256": {
+    "src/components/SoundtrackPicker.tsx": "7ea59aeadc58c0092df0e100ecb0554553cf85c4091557cfa8ec133fa26d3f8f",
+    "web/lib/originalAudio.ts": "6f47b07059cf06067fdf83c8386e45cb0c35bb925b2cbe275dfb9169ad96132c",
+    "web/components/SoundtrackPicker.tsx": "6472725c20a811a4de6b2066a8b70be52d6113ca8364a4f15233e0ee11a02c33",
+    "web/components/StoryAudioEditor.tsx": "2d6cd5def8e0671986c72bb62542706b702eb7f6c34ba425752c3859f6432d68",
+    "shared/soundtrackPicker.ts": "31658b8e58c756896bd42b004029c16f111e5fe3d2be6516b3485289af56b456",
+    "tests/quality/music-favorites.cjs": "edbef5c2da9e811ca596669788a0fa824d1d16d81d7f9c5fb84cc5429e6c4506",
+    "tests/quality/draft-soundtrack-interaction.cjs": "e3c71ca3b6e64254e060dc011170229cdf81d8813356def73aae42d0b9f6c44e",
+    "tests/quality/story-music-disabled-ui.cjs": "c1ed5f0dc772c0d62128955ac402827ae4595c1ae2134fc80f4bac817378cef7"
+  },
+  "checks": [
+    {
+      "command": "node tests/quality/music-favorites.cjs",
+      "exitCode": 0,
+      "passed": 26,
+      "failed": 0,
+      "receiptSha256": "b2e70bc41e507be84da6218c95f3f8a0d0d68c388d13a2d7f4138e1c1340acac"
+    },
+    {
+      "command": "node tests/quality/draft-soundtrack-interaction.cjs",
+      "exitCode": 0,
+      "passed": 21,
+      "failed": 0,
+      "receiptSha256": "a4198b65bd2e7bc80eb3664ac294a319ff1e582c15bd59f9f69e0cb4f76da7a6"
+    },
+    {
+      "command": "node tests/quality/story-music-disabled-ui.cjs",
+      "exitCode": 0,
+      "passed": 2,
+      "failed": 0,
+      "receiptSha256": "f0f3737a350c869f15c024d0f0ff410fb8009311ddedc699e241662c37aa3c92"
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc --noEmit",
+      "cwd": ".",
+      "exitCode": 0
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc --noEmit",
+      "cwd": "web",
+      "exitCode": 0
+    },
+    {
+      "command": "node node_modules/eslint/bin/eslint.js src/components/SoundtrackPicker.tsx shared/soundtrackPicker.ts --max-warnings 0",
+      "cwd": ".",
+      "exitCode": 0
+    },
+    {
+      "command": "node node_modules/eslint/bin/eslint.js components/SoundtrackPicker.tsx components/StoryAudioEditor.tsx lib/originalAudio.ts --max-warnings 0",
+      "cwd": "web",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "verifiedBehavior": [
+    "Current owner is passed for native/web saved reads and writes. Web helper subscribes before session lookup, observes identity for legacy client-only calls, pins RPC Authorization to captured JWT, rejects account round trips and unsubscribes after completion.",
+    "Synchronous bookmark locks prevent repeated dispatch before React renders. Baselines update only after exact server acknowledgement. Uncertain writes disable replay and recover through actual saved-status read.",
+    "Auth transitions, close and unmount suppress late state, selection and busy callbacks. StoryAudioEditor keeps its own in-flight selection alive when parent onBusyChange temporarily disables controls.",
+    "All valid server favorites through the 200-ID contract are retained. Saved choices reauthorize outside the first browse page with four workers and one common 20-second deadline; partial failures remain visible.",
+    "Selecting the same sound again on native/web starts a fresh authorization request and releases checking before Use/Done.",
+    "Emergency-disabled story music still avoids audio/Auth initialization."
+  ],
+  "limits": [
+    "Behavior fixtures execute source components with synthetic transport; they do not prove hosted schema installation or a live account mutation.",
+    "Native favorite transport is implemented and independently tested in the frontend agent lane; this receipt hashes only the files owned by this lane.",
+    "Global strict lint is not claimed.",
+    "Licensed catalogue activation and device acceptance remain separate recorded gates."
+  ]
+}

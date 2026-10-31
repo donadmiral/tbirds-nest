@@ -1,0 +1,329 @@
+{
+  "version": 1,
+  "mode": "full-production-memory-capture",
+  "networkForwarded": false,
+  "nativeMemoryVersion": 1,
+  "attempts": [
+    {
+      "number": 1,
+      "baseline": [],
+      "captureUris": [],
+      "captures": [],
+      "progress": [
+        {
+          "message": "Reading the movie’s video timing…",
+          "percent": 0
+        }
+      ],
+      "started": 1793431391968,
+      "status": "cancelled",
+      "error": "Synthetic media request was cancelled.",
+      "finished": 1793431397878,
+      "media": [
+        {
+          "key": "story-media/10000000-0000-4000-8000-000000000001/native-memory-capture/video.mp4",
+          "phase": "opened",
+          "bytes": 0,
+          "mode": "cancel",
+          "owner": "10000000-0000-4000-8000-000000000001"
+        },
+        {
+          "key": "story-media/10000000-0000-4000-8000-000000000001/native-memory-capture/video.mp4",
+          "phase": "chunk",
+          "bytes": 1024,
+          "mode": "cancel",
+          "owner": "10000000-0000-4000-8000-000000000001"
+        },
+        {
+          "key": "story-media/10000000-0000-4000-8000-000000000001/native-memory-capture/video.mp4",
+          "phase": "cancelled",
+          "bytes": 1024,
+          "mode": "cancel",
+          "owner": "10000000-0000-4000-8000-000000000001"
+        }
+      ],
+      "cleanup": {
+        "passed": true,
+        "workFiles": 0,
+        "captureFiles": 0
+      }
+    },
+    {
+      "number": 2,
+      "baseline": [],
+      "captureUris": [
+        "file:///data/user/0/app.platinumcircles.mobile.qa/cache/ReactNative-snapshot-image8324428764219559055.png",
+        "file:///data/user/0/app.platinumcircles.mobile.qa/cache/ReactNative-snapshot-image7343589668604862259.png",
+        "file:///data/user/0/app.platinumcircles.mobile.qa/cache/ReactNative-snapshot-image4147108429043849618.png",
+        "file:///data/user/0/app.platinumcircles.mobile.qa/cache/ReactNative-snapshot-image1455747205223053865.png",
+        "file:///data/user/0/app.platinumcircles.mobile.qa/cache/ReactNative-snapshot-image1774117177986464659.png",
+        "file:///data/user/0/app.platinumcircles.mobile.qa/cache/ReactNative-snapshot-image8655424789677771746.png",
+        "file:///data/user/0/app.platinumcircles.mobile.qa/cache/ReactNative-snapshot-image1499807351499191487.png",
+        "file:///data/user/0/app.platinumcircles.mobile.qa/cache/ReactNative-snapshot-image2595084803742335461.png",
+        "file:///data/user/0/app.platinumcircles.mobile.qa/cache/ReactNative-snapshot-image3554630957820423349.png",
+        "file:///data/user/0/app.platinumcircles.mobile.qa/cache/ReactNative-snapshot-image444519074348080901.png",
+        "file:///data/user/0/app.platinumcircles.mobile.qa/cache/ReactNative-snapshot-image930566240830391882.png",
+        "file:///data/user/0/app.platinumcircles.mobile.qa/cache/ReactNative-snapshot-image5403145832746811785.png"
+      ],
+      "captures": [
+        {
+          "file": "attempt-2-capture-00.png",
+          "bytes": 51507,
+          "sha256": "aeaa6b5ad3552fdca3f9889fab4f0fe265861f9c2deab5469d0bc64becc9ba64",
+          "page": "memory-movie-opening",
+          "kind": "text",
+          "card": "opening",
+          "layer": "background",
+          "clock": 0,
+          "duration": 2.4
+        },
+        {
+          "file": "attempt-2-capture-01.png",
+          "bytes": 3682,
+          "sha256": "8bcdfdd04b44f0b305054026856ec884353e9113a4c02689c191d27c9c8b8899",
+          "page": "memory-movie-opening",
+          "kind": "text",
+          "card": "opening",
+          "layer": "overlay",
+          "clock": 1.2,
+          "duration": 2.4
+        },
+        {
+          "file": "attempt-2-capture-02.png",
+          "bytes": 29156,
+          "sha256": "640cc29c1ee90e88514af38625a694c0f4727df249bbee7e57b05c6004b59a16",
+          "page": "a1000000-0000-4000-8000-000000000001",
+          "kind": "image",
+          "card": null,
+          "layer": "background",
+          "clock": 0,
+          "duration": 3.2
+        },
+        {
+          "file": "attempt-2-capture-03.png",
+          "bytes": 25920,
+          "sha256": "a4c3e48e9171ab80ae02b3268d6f8840f4d9e48f53eddc715cd3aac084dca30c",
+          "page": "a1000000-0000-4000-8000-000000000001",
+          "kind": "image",
+          "card": null,
+          "layer": "overlay",
+          "clock": 0.5,
+          "duration": 3.2
+        },
+        {
+          "file": "attempt-2-capture-04.png",
+          "bytes": 31276,
+          "sha256": "73cee8956fc630885d928992cc209a7d1c0e89ef54796092e828e36e4982a885",
+          "page": "a1000000-0000-4000-8000-000000000001",
+          "kind": "image",
+          "card": null,
+          "layer": "overlay",
+          "clock": 1.5,
+          "duration": 3.2
+        },
+        {
+          "file": "attempt-2-capture-05.png",
+          "bytes": 25920,
+          "sha256": "a4c3e48e9171ab80ae02b3268d6f8840f4d9e48f53eddc715cd3aac084dca30c",
+          "page": "a1000000-0000-4000-8000-000000000001",
+          "kind": "image",
+          "card": null,
+          "layer": "overlay",
+          "clock": 2.6,
+          "duration": 3.2
+        },
+        {
+          "file": "attempt-2-capture-06.png",
+          "bytes": 6363,
+          "sha256": "a03bcb57307b71892ab0dec56bb41d90a30cf678d4bf2e0f6e3d271ea44a39df",
+          "page": "a1000000-0000-4000-8000-000000000002",
+          "kind": "video",
+          "card": null,
+          "layer": "background",
+          "clock": 0.5,
+          "duration": 1.5
+        },
+        {
+          "file": "attempt-2-capture-07.png",
+          "bytes": 23373,
+          "sha256": "1807d6b35db779381358d183ad5a4c77a33afe7999e78d151fa5a09cdfd28803",
+          "page": "a1000000-0000-4000-8000-000000000002",
+          "kind": "video",
+          "card": null,
+          "layer": "overlay",
+          "clock": 1.25,
+          "duration": 1.5
+        },
+        {
+          "file": "attempt-2-capture-08.png",
+          "bytes": 37037,
+          "sha256": "7218605432415de41b38bb68ac330186b4102d22899d61f88118d378ce943354",
+          "page": "a1000000-0000-4000-8000-000000000003",
+          "kind": "text",
+          "card": null,
+          "layer": "background",
+          "clock": 0,
+          "duration": 3
+        },
+        {
+          "file": "attempt-2-capture-09.png",
+          "bytes": 3682,
+          "sha256": "8bcdfdd04b44f0b305054026856ec884353e9113a4c02689c191d27c9c8b8899",
+          "page": "a1000000-0000-4000-8000-000000000003",
+          "kind": "text",
+          "card": null,
+          "layer": "overlay",
+          "clock": 1.5,
+          "duration": 3
+        },
+        {
+          "file": "attempt-2-capture-10.png",
+          "bytes": 76163,
+          "sha256": "03081613e7cba8374d570d7803cbb378a56c07bed86b06f0c865618d74cf27b7",
+          "page": "memory-movie-closing",
+          "kind": "text",
+          "card": "closing",
+          "layer": "background",
+          "clock": 0,
+          "duration": 1.6
+        },
+        {
+          "file": "attempt-2-capture-11.png",
+          "bytes": 3682,
+          "sha256": "8bcdfdd04b44f0b305054026856ec884353e9113a4c02689c191d27c9c8b8899",
+          "page": "memory-movie-closing",
+          "kind": "text",
+          "card": "closing",
+          "layer": "overlay",
+          "clock": 0.8,
+          "duration": 1.6
+        }
+      ],
+      "progress": [
+        {
+          "message": "Reading the movie’s video timing…",
+          "percent": 0
+        },
+        {
+          "message": "Preparing scene 1 of 5…",
+          "percent": 0
+        },
+        {
+          "message": "Preparing scene 2 of 5…",
+          "percent": 14
+        },
+        {
+          "message": "Preparing scene 3 of 5…",
+          "percent": 28
+        },
+        {
+          "message": "Preparing scene 4 of 5…",
+          "percent": 42
+        },
+        {
+          "message": "Preparing scene 5 of 5…",
+          "percent": 56
+        },
+        {
+          "message": "Encoding your memory movie…",
+          "percent": 75
+        }
+      ],
+      "started": 1793431402751,
+      "status": "failed",
+      "error": "[composeMemoryMovie] Cannot convert '[object Object]' to a Kotlin type.",
+      "finished": 1793431405661,
+      "media": [
+        {
+          "key": "story-media/10000000-0000-4000-8000-000000000001/native-memory-capture/video.mp4",
+          "phase": "opened",
+          "bytes": 0,
+          "mode": "cancel",
+          "owner": "10000000-0000-4000-8000-000000000001"
+        },
+        {
+          "key": "story-media/10000000-0000-4000-8000-000000000001/native-memory-capture/video.mp4",
+          "phase": "chunk",
+          "bytes": 1024,
+          "mode": "cancel",
+          "owner": "10000000-0000-4000-8000-000000000001"
+        },
+        {
+          "key": "story-media/10000000-0000-4000-8000-000000000001/native-memory-capture/video.mp4",
+          "phase": "cancelled",
+          "bytes": 1024,
+          "mode": "cancel",
+          "owner": "10000000-0000-4000-8000-000000000001"
+        },
+        {
+          "key": "story-media/10000000-0000-4000-8000-000000000001/native-memory-capture/video.mp4",
+          "phase": "opened",
+          "bytes": 0,
+          "mode": "normal",
+          "owner": "10000000-0000-4000-8000-000000000001"
+        },
+        {
+          "key": "story-media/10000000-0000-4000-8000-000000000001/native-memory-capture/video.mp4",
+          "phase": "chunk",
+          "bytes": 54300,
+          "mode": "normal",
+          "owner": "10000000-0000-4000-8000-000000000001"
+        },
+        {
+          "key": "story-media/10000000-0000-4000-8000-000000000001/native-memory-capture/video.mp4",
+          "phase": "complete",
+          "bytes": 54300,
+          "mode": "normal",
+          "owner": "10000000-0000-4000-8000-000000000001"
+        },
+        {
+          "key": "story-media/10000000-0000-4000-8000-000000000001/native-memory-capture/sticker.png",
+          "phase": "opened",
+          "bytes": 0,
+          "mode": "normal",
+          "owner": "10000000-0000-4000-8000-000000000001"
+        },
+        {
+          "key": "story-media/10000000-0000-4000-8000-000000000001/native-memory-capture/sticker.png",
+          "phase": "chunk",
+          "bytes": 101,
+          "mode": "normal",
+          "owner": "10000000-0000-4000-8000-000000000001"
+        },
+        {
+          "key": "story-media/10000000-0000-4000-8000-000000000001/native-memory-capture/sticker.png",
+          "phase": "complete",
+          "bytes": 101,
+          "mode": "normal",
+          "owner": "10000000-0000-4000-8000-000000000001"
+        },
+        {
+          "key": "story-media/10000000-0000-4000-8000-000000000001/native-memory-capture/photo.png",
+          "phase": "opened",
+          "bytes": 0,
+          "mode": "normal",
+          "owner": "10000000-0000-4000-8000-000000000001"
+        },
+        {
+          "key": "story-media/10000000-0000-4000-8000-000000000001/native-memory-capture/photo.png",
+          "phase": "chunk",
+          "bytes": 1121,
+          "mode": "normal",
+          "owner": "10000000-0000-4000-8000-000000000001"
+        },
+        {
+          "key": "story-media/10000000-0000-4000-8000-000000000001/native-memory-capture/photo.png",
+          "phase": "complete",
+          "bytes": 1121,
+          "mode": "normal",
+          "owner": "10000000-0000-4000-8000-000000000001"
+        }
+      ],
+      "cleanup": {
+        "passed": true,
+        "workFiles": 0,
+        "captureFiles": 0
+      }
+    }
+  ]
+}

@@ -1,11 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 export function EditPostModal({ postId, initialText, onClose }: { postId: string; initialText: string; onClose: () => void }) {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [text, setText] = useState(initialText);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);

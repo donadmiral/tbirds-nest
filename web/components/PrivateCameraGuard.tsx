@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { loadPrivateCameraModel } from "@/lib/privateCameraGuard";
 import { PRIVATE_CAMERA_SCORE } from "../../shared/privateCameraModel";
 export function PrivateCameraGuard({
@@ -9,9 +9,10 @@ export function PrivateCameraGuard({
 }) {
   const video = useRef<HTMLVideoElement>(null),
     callback = useRef(onStatus);
-  callback.current = onStatus;
+  useLayoutEffect(() => { callback.current = onStatus; }, [onStatus]);
   const [ready, setReady] = useState(false);
   useEffect(() => {
+    const element=video.current;
     let live = true,
       stream: MediaStream | null = null,
       timer: ReturnType<typeof setTimeout> | undefined,
@@ -85,7 +86,7 @@ export function PrivateCameraGuard({
     return () => {
       live = false;
       stop();
-      if (video.current) video.current.srcObject = null;
+      if (element) element.srcObject = null;
     };
   }, []);
   return (

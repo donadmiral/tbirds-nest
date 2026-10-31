@@ -2,7 +2,7 @@ import { ListRowSkeleton } from '../../components/skeletons';
 import { themedSheet } from '../../theme/useTheme';
 import TierName from '../../components/TierName';
 import VerifiedBadge from '../../components/VerifiedBadge';
-import { TextInput } from 'react-native';
+import { TextInput , View, Text, StyleSheet, TouchableOpacity, FlatList, StatusBar, Image, RefreshControl } from 'react-native';
 import EmptyState from '../../components/EmptyState';
 /**
  * StarredMessagesScreen.tsx
@@ -10,10 +10,7 @@ import EmptyState from '../../components/EmptyState';
  * Tap a row to open the chat. Tap the star to unstar.
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator,
-  StatusBar, Image, RefreshControl,
-} from 'react-native';
+
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { TAB_BAR_CLEARANCE } from '../../constants/layout';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';

@@ -1,0 +1,102 @@
+{
+  "applicationHead": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+  "reportedCheckpoint": "58309ba8f01e6ff115deea5f59f9199a77b4c698",
+  "checkpointContainsNewGraphicsHelper": false,
+  "candidateBinding": "Exact local file hashes, not the reported checkpoint commit.",
+  "hashChecks": [
+    {
+      "path": "scripts/quality/native-ui-emulator-graphics.py",
+      "bytes": 5358,
+      "sha256": "7768c98ec1eb3f3afc770dda6f6ece99fe4467bf65ce7e714be9b8b8a7f8ca78",
+      "scope": "frozen_candidate",
+      "afterSha256": "7768c98ec1eb3f3afc770dda6f6ece99fe4467bf65ce7e714be9b8b8a7f8ca78",
+      "unchanged": true
+    },
+    {
+      "path": "tests/quality/native-emulator-graphics.cjs",
+      "bytes": 7951,
+      "sha256": "c93c86747b01214dbe349b5f4e1d5bbd273993c0f4dd98fcb6a048b1c1defab3",
+      "scope": "frozen_candidate",
+      "afterSha256": "c93c86747b01214dbe349b5f4e1d5bbd273993c0f4dd98fcb6a048b1c1defab3",
+      "unchanged": true
+    },
+    {
+      "path": "scripts/quality/native-ui-emulator-host-diagnostics.py",
+      "bytes": 21145,
+      "sha256": "8abae54231466496604aed4e1d83a1166b099da7da1c6f9f5a22adfb5bd2d8ef",
+      "scope": "frozen_candidate",
+      "afterSha256": "8abae54231466496604aed4e1d83a1166b099da7da1c6f9f5a22adfb5bd2d8ef",
+      "unchanged": true
+    },
+    {
+      "path": "tests/quality/native-emulator-host-diagnostics.cjs",
+      "bytes": 20363,
+      "sha256": "5d036d76a437cf022e76ea369cb8fa7798c6275b6afb22f11805b0ff85068f0a",
+      "scope": "frozen_candidate",
+      "afterSha256": "5d036d76a437cf022e76ea369cb8fa7798c6275b6afb22f11805b0ff85068f0a",
+      "unchanged": true
+    },
+    {
+      "path": "scripts/quality/test-android-app-ui.sh",
+      "bytes": 9513,
+      "sha256": "e152bfa57b13fe9321703055769ee8f6bbf3ab7457440810a9e777832d15f355",
+      "scope": "frozen_candidate",
+      "afterSha256": "e152bfa57b13fe9321703055769ee8f6bbf3ab7457440810a9e777832d15f355",
+      "unchanged": true
+    },
+    {
+      "path": "scripts/quality/prepare-native-ui.cjs",
+      "bytes": 7007,
+      "sha256": "3aaf404903272008f7f9479f21814981f58548df3366855b6382942af3ce2053",
+      "scope": "frozen_candidate",
+      "afterSha256": "3aaf404903272008f7f9479f21814981f58548df3366855b6382942af3ce2053",
+      "unchanged": true
+    },
+    {
+      "path": "tests/quality/native-auth-diagnostics.cjs",
+      "bytes": 19961,
+      "sha256": "494fea44421e8e95f88f3b3c8eec1e464157650dc3eabcb5570c3084f407291c",
+      "scope": "frozen_candidate",
+      "afterSha256": "494fea44421e8e95f88f3b3c8eec1e464157650dc3eabcb5570c3084f407291c",
+      "unchanged": true
+    },
+    {
+      "path": ".github/workflows/native-app-ui.yml",
+      "bytes": 4595,
+      "sha256": "f4c37d8f777628134b86ca91fa9476b59428150d4559d0848533f3e3cd8298f1",
+      "scope": "frozen_candidate",
+      "afterSha256": "f4c37d8f777628134b86ca91fa9476b59428150d4559d0848533f3e3cd8298f1",
+      "unchanged": true
+    },
+    {
+      "path": "scripts/quality/native-ui-emulator-diagnostics.py",
+      "bytes": 12872,
+      "sha256": "0d02a6b446e4219757a17c0c52e4d5da0190a9800e92c547b629da6977bdc1e8",
+      "scope": "existing_crashpad_dependency",
+      "afterSha256": "0d02a6b446e4219757a17c0c52e4d5da0190a9800e92c547b629da6977bdc1e8",
+      "unchanged": true
+    },
+    {
+      "path": "tests/quality/native-emulator-diagnostics.cjs",
+      "bytes": 15245,
+      "sha256": "607adc77b1205b3ef07f445b57dad86e0110c3f39f134dacec60e69557c7db66",
+      "scope": "existing_crashpad_dependency",
+      "afterSha256": "607adc77b1205b3ef07f445b57dad86e0110c3f39f134dacec60e69557c7db66",
+      "unchanged": true
+    }
+  ],
+  "strictWhitespaceViolations": [],
+  "nonDocumentationSourceChangesVsB5": [
+    ".github/workflows/native-app-ui.yml",
+    "scripts/quality/native-ui-emulator-graphics.py",
+    "scripts/quality/native-ui-emulator-host-diagnostics.py",
+    "scripts/quality/prepare-native-ui.cjs",
+    "scripts/quality/test-android-app-ui.sh",
+    "tests/quality/native-auth-diagnostics.cjs",
+    "tests/quality/native-emulator-graphics.cjs",
+    "tests/quality/native-emulator-host-diagnostics.cjs"
+  ],
+  "otherGeneratedFiles": [],
+  "onlyEightFrozenQaSourcePaths": true,
+  "gitNoIndexWhitespaceInterpretation": "New files differ from /dev/null, so no-index returned 1 with empty diagnostic output. The independent strict whitespace scan additionally checks all eight full files."
+}

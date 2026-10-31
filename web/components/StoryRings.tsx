@@ -1,25 +1,20 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { Fragment, useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { displayImageUrl } from "@/lib/media";
-import { getCatchupFeed, type CatchupUser } from "@/lib/stories";
-import { createClient } from "@/lib/supabase/client";
+import type { CatchupUser } from "@/lib/stories";
+import { getNavigationStore } from "@/lib/navigationCache";
+import { loadStoryNavigation, storyNavigationMemory } from "@/lib/storyNavigation";
 import { StoryViewer } from "@/components/StoryViewer";
-import { hydrateStoryMedia } from "@/lib/contentMedia";
-import { loadTrendingStories } from "../../shared/trendingStories";
 
-// Port of the phone's PlatinumRing: platinum gradient base circle plus a
-// rotating pale-glow arc (19% of the circumference) while unseen stories
-// exist; a still platinum hairline once everything is seen.
-const PLATINUM_GLOW = "#F5F0E8";
+// Match the phone's platinum gradient ring, subdued after stories are seen.
 const PLATINUM_START = "#C9BFB0";
 const PLATINUM_END = "#A89F91";
 
 function PlatinumRingWeb({ userId, size, active }: { userId: string; size: number; active: boolean }) {
   const center = size / 2;
   const radius = center - 2;
-  const circumference = 2 * Math.PI * radius;
-  const arcDash = circumference * 0.19;
   const gid = "platg_" + userId.replace(/[^a-zA-Z0-9_]/g, "_");
   return (
     <svg width={size} height={size} viewBox={"0 0 " + size + " " + size} className="absolute inset-0" aria-hidden="true">
@@ -35,80 +30,51 @@ function PlatinumRingWeb({ userId, size, active }: { userId: string; size: numbe
 }
 
 export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
-  const [users, setUsers] = useState<CatchupUser[]>([]);
-  const [spot, setSpot] = useState<CatchupUser[]>([]);
-  const [viewer, setViewer] = useState<{ users: CatchupUser[]; index: number; initialStoryId?: string } | null>(null);
-  const [supabase] = useState(() => createClient());
+  const [store] = useState(getNavigationStore);
+  const session = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getServerSnapshot);
+  const [memory, setMemory] = useState(() => storyNavigationMemory(mode));
+  const currentMemory = memory?.scope === session.scope && memory.mode === mode ? memory : storyNavigationMemory(mode);
+  const users = currentMemory?.users.slice(0, 30) ?? [], spot = currentMemory?.spot ?? [];
+  const myId = session.owner, myAvatar = currentMemory?.avatar ?? null;
+  const [viewer, setViewer] = useState<{ scope: string; users: CatchupUser[]; index: number; initialStoryId?: string } | null>(null);
+  const [error, setError] = useState<{ scope: string; mode: string } | null>(null);
   const refreshRef = useRef<() => void>(() => {});
-  const [myAvatar, setMyAvatar] = useState<string | null>(null);
-  const [myId, setMyId] = useState<string | null>(null);
-  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    let alive = true;
-    let generation = 0;
-    let owner: string | null | undefined;
-    setUsers([]); setSpot([]); setReady(false); setViewer(null);
+    if (!session.scope || !session.owner || session.changed) return;
+    const scope = session.scope;
+    let alive = true, generation = 0;
     const refresh = async () => {
       const request = ++generation;
-      const current = () => alive && generation === request;
+      const current = () => alive && generation === request && store.getSnapshot().scope === scope;
       try {
-        const { data: session, error: sessionError } = await supabase.auth.getSession();
-        const me = session.session?.user.id ?? null;
-        if (!current()) return;
-        if (sessionError || !me) { setUsers([]); setSpot([]); setMyId(null); setMyAvatar(null); setReady(true); return; }
-        const [u, hot, profile] = await Promise.all([
-          getCatchupFeed(30, mode),
-          loadTrendingStories({
-            session: () => supabase.auth.getSession(),
-            ranked: limit => supabase.rpc('get_trending_stories', { p_limit: limit }),
-            stories: ids => supabase.from('stories').select('id,user_id,media_url,thumbnail_url,media_type,expires_at,created_at').in('id', ids),
-          }, rows => hydrateStoryMedia(rows, supabase), 12).catch(() => []),
-          supabase.from("profiles").select("avatar_url").eq("id", me).maybeSingle(),
-        ]);
-        const latest = await supabase.auth.getSession();
-        if (!current() || latest.error || latest.data.session?.user.id !== me) return;
-        const known = new Set(u.map(x => x.user_id)); known.add(me);
-        setUsers(u); setMyId(me); setMyAvatar(profile.data?.avatar_url ?? null);
-        setSpot(hot.filter(h => !known.has(h.user_id)).map(h => ({
-          user_id: h.user_id, full_name: h.full_name, username: h.username, avatar_url: h.avatar_url,
-          story_count: 1, unseen_count: 1, latest_story_at: h.created_at!, latest_story_id: h.story_id, has_unseen: true,
-        })));
-        setReady(true);
+        const result = await loadStoryNavigation(mode, true);
+        if (current()) { setMemory(result); setError(null); }
       } catch {
-        if (current()) { setUsers([]); setSpot([]); setReady(true); }
+        if (current()) setError({ scope, mode });
       }
     };
     refreshRef.current = () => { void refresh(); };
     void refresh();
     const visible = () => { if (!document.hidden) void refresh(); };
     const timer = window.setInterval(visible, 30000);
-    const visibility = () => {
-      if (document.hidden) { generation++; setSpot([]); }
-      else void refresh();
-    };
     window.addEventListener("focus", visible);
-    document.addEventListener("visibilitychange", visibility);
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      const next = session?.user.id ?? null;
-      if (owner === next) return;
-      owner = next; generation++;
-      setUsers([]); setSpot([]); setMyId(null); setMyAvatar(null); setViewer(null);
-      queueMicrotask(() => { if (alive) void refresh(); });
-    });
+    document.addEventListener("visibilitychange", visible);
     return () => {
-      alive = false; generation++; clearInterval(timer); subscription.unsubscribe();
+      alive = false; generation++; clearInterval(timer);
       window.removeEventListener("focus", visible);
-      document.removeEventListener("visibilitychange", visibility);
+      document.removeEventListener("visibilitychange", visible);
     };
-  }, [mode, supabase]);
+  }, [mode, session.scope, session.owner, session.changed, store]);
 
   // Capture the selected sequence: a background rank refresh must not move the
   // open viewer to another person's story while someone is watching.
-  const openAt = (index: number) => setViewer({ users: [...users, ...spot], index, initialStoryId: index >= users.length ? spot[index - users.length]?.latest_story_id : undefined });
+  const openAt = (index: number) => {
+    if (!session.scope || store.getSnapshot().scope !== session.scope) return;
+    setViewer({ scope: session.scope, users: [...users, ...spot], index, initialStoryId: index >= users.length ? spot[index - users.length]?.latest_story_id : undefined });
+  };
   const closeViewer = useCallback(() => { setViewer(null); refreshRef.current(); }, []);
 
-  if (!ready) return null;
   // Your own stories live under Your story, not as a second person in the row.
   const mineIdx = myId ? users.findIndex((u) => u.user_id === myId) : -1;
   const mine = mineIdx >= 0 ? users[mineIdx] : null;
@@ -124,16 +90,17 @@ export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
 
   return (
     <>
-      <div className="mb-4 flex gap-4 overflow-x-auto rounded-2xl border border-ink/10 bg-white px-4 py-4">
+      <div className="relative mb-4 flex min-h-[118px] gap-4 overflow-x-auto rounded-2xl border border-ink/10 bg-white px-4 py-4" aria-label="Stories">
+        {error?.scope === session.scope && error.mode === mode ? <button type="button" onClick={() => refreshRef.current()} className="absolute right-2 top-1 rounded bg-surface px-2 py-1 text-[10px] text-muted" aria-label="Retry story refresh">Stories could not refresh · Retry</button> : null}
         <div className="relative w-16 shrink-0">
           {mine ? <button type="button" onClick={() => openAt(mineIdx)} aria-label="View your story" className="flex w-full flex-col items-center gap-1.5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current">
             {ownAvatar}
             <span className="w-full truncate text-center text-[11px] text-muted">Your story</span>
-          </button> : <a href="/story/new" aria-label="Add to your story" className="flex w-full flex-col items-center gap-1.5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current">
+          </button> : <Link href="/story/new" aria-label="Add to your story" className="flex w-full flex-col items-center gap-1.5 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current">
             {ownAvatar}
             <span className="w-full truncate text-center text-[11px] text-muted">Your story</span>
-          </a>}
-          <a href="/story/new" aria-label="Create a story" className="absolute -right-3 top-[31px] flex h-11 w-11 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"><span className="flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-white bg-pearl text-[15px] leading-none text-on-pearl" aria-hidden="true">+</span></a>
+          </Link>}
+          <Link href="/story/new" aria-label="Create a story" className="absolute -right-3 top-[31px] flex h-11 w-11 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"><span className="flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-white bg-pearl text-[15px] leading-none text-on-pearl" aria-hidden="true">+</span></Link>
         </div>
         {[...users, ...spot].map((u, i) => (u.user_id === myId ? null : (
           <Fragment key={u.user_id}>
@@ -160,7 +127,7 @@ export function StoryRings({ mode = "all" }: { mode?: string } = {}) {
           </Fragment>
         )))}
       </div>
-      {viewer ? (
+      {viewer && viewer.scope === session.scope ? (
         <StoryViewer users={viewer.users} startIndex={viewer.index} initialStoryId={viewer.initialStoryId} onClose={closeViewer} />
       ) : null}
     </>

@@ -1,5 +1,5 @@
-import { takePrefetched } from '../../lib/screenTransition';
-import { useAfterTransition } from '../../lib/screenTransition';
+import { useIsFocused , useNavigation, useRoute } from '@react-navigation/native';
+import { takePrefetched, awaitPrefetched } from '../../lib/screenTransition';
 import { ProfileSkeleton } from '../../components/skeletons';
 import TierName from '../../components/TierName';
 import { themedSheet, useTheme } from '../../theme/useTheme';
@@ -9,22 +9,19 @@ import VideoThumb from '../../components/VideoThumb';
  * Design A — Classic iOS Style contact info, Clean Premium language.
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView, Image,
-  ActivityIndicator, StatusBar, Alert, Share, RefreshControl, useWindowDimensions,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, StatusBar, Alert, Share, RefreshControl, useWindowDimensions } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from '../../components/SafeArea';
 import { Feather } from '@expo/vector-icons';
-import { useNavigation, useRoute } from '@react-navigation/native';
 import ProfileHeader from '../../components/ProfileHeader';
 import { BusinessProducts, BusinessReviews, SellerListings } from '../../components/BusinessTabs';
 import { supabase } from '../../services/supabase';
 import { hydratePostMedia, withoutPrivateMedia } from '../../services/contentMedia';
 import { profileRead } from '../../utils/profileRead';
+import { useProfileMediaRefresh } from '../../hooks/useProfileMediaRefresh';
 import { normalizeProfilePost } from '../../utils/profilePost';
 import MemoryAlbumCard from '../../components/MemoryAlbumCard';
 import { useAuthStore } from '../../stores/authStore';
-import MediaRenderer, { PostMedia } from '../../components/MediaRenderer';
+import { PostMedia } from '../../components/MediaRenderer';
 import { Image as ExpoImage } from 'expo-image';
 import VerifiedBadge from '../../components/VerifiedBadge';
 
@@ -51,13 +48,10 @@ type Post = {
   media_url: string | null;
   media: PostMedia[];
   mediaUnavailable?: boolean;
+  mediaPending?: boolean;
 };
 
-function initials(n?: string | null) {
-  if (!n) return 'U';
-  const p = n.trim().split(' ').filter(Boolean);
-  return p.length === 1 ? p[0][0].toUpperCase() : `${p[0][0]}${p[1][0]}`.toUpperCase();
-}
+
 function relTime(d?: string | null) {
   if (!d) return '';
   const diff = Date.now() - new Date(d).getTime();
@@ -86,16 +80,16 @@ export default function UserProfileScreen() {
   const [contentError, setContentError] = useState<string | null>(null);
   const [contentLoading, setContentLoading] = useState(false);
 
-  const [profile, setProfile] = useState<UserProfile | null>(route.params?.user ?? null);
+  const [profile, setProfile] = useState<UserProfile | null>(() => takePrefetched<UserProfile>('profile:' + targetId) ?? route.params?.user ?? null);
+  const knownProfile = useRef(profile); knownProfile.current = profile;
   const [stats, setStats] = useState<Stats>({ posts: 0, followers: 0 });
   const [posts, setPosts] = useState<Post[]>([]);
   const [following, setFollowing] = useState(false);
   const [followRequested, setFollowRequested] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [bizTab, setBizTab] = useState('posts');
-  const [listingCount, setListingCount] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const afterSlide = useAfterTransition();
+  const [listingCount] = useState(0);
+  const [loading, setLoading] = useState(!profile);
   const [refreshing, setRefreshing] = useState(false);
   const [actionBusy, setActionBusy] = useState(false);
   // Restrict (Instagram's model): quieter than a block, and the person is not told.
@@ -140,6 +134,10 @@ export default function UserProfileScreen() {
     ]);
   };
 
+  const profileFocused = useIsFocused();
+  useProfileMediaRefresh(posts, setPosts, `${myId}:${targetId}`, profileFocused, setContentError);
+
+  const prefetchedTarget = useRef<string | null>(null);
   const load = useCallback(async () => {
     const owner = scope.current, request = ++loadRequest.current;
     const current = () => mounted.current && scope.current === owner && request === loadRequest.current;
@@ -148,8 +146,9 @@ export default function UserProfileScreen() {
     let headerLoaded = false;
     try {
       // The tap that brought us here may have started this call already; use its result when it has landed.
-    const pre = takePrefetched<any>('profile:' + targetId);
-    const { data: pj, error: pErr } = pre ? { data: pre, error: null as any } : await profileRead(supabase.rpc('get_profile', { p_profile_id: targetId }));
+      const usePrefetch = prefetchedTarget.current !== targetId; prefetchedTarget.current = targetId;
+      const pre = usePrefetch ? takePrefetched<any>('profile:' + targetId) ?? await awaitPrefetched<any>('profile:' + targetId) : null;
+      const { data: pj, error: pErr } = pre ? { data: pre, error: null as any } : await profileRead(supabase.rpc('get_profile', { p_profile_id: targetId }));
       if (!current()) return;
       if (pErr) throw pErr;
       if (!pj || (pj as any).id !== targetId) throw new Error('Profile is unavailable. Please retry.');
@@ -185,7 +184,7 @@ export default function UserProfileScreen() {
       if (result.error) throw result.error;
       if (!current()) return;
       const rows = (result.data || []).filter((row: any) => !row.archived_at);
-      setPosts(previous => previous.length && rows.length ? previous : withoutPrivateMedia(rows).map(normalizeProfilePost));
+      setPosts(previous => previous.length && rows.length ? previous : withoutPrivateMedia(rows.map(row => ({ ...row, _mediaPending: true, _mediaExpected: !!(row.post_media?.length || row.media_url || row.image_url) }))).map(normalizeProfilePost));
       setContentLoading(false);
       const authorized = await profileRead(hydratePostMedia(rows), 25000);
       if (!current()) return;
@@ -193,16 +192,18 @@ export default function UserProfileScreen() {
       // get_profile already returns viewer_follows/viewer_requested. Repeating
       // those queries after media added another dependency to the loading gate.
 
-    } catch (e: any) { if (current()) { if (!headerLoaded) setLoadError(e?.message || 'Could not load this profile. Please retry.'); setContentError(e?.message || 'Could not load posts. Please retry.'); } }
+    } catch (e: any) { if (current()) { setPosts(previous => previous.map(post => ({ ...post, mediaPending: false, mediaUnavailable: post.mediaPending ? true : post.mediaUnavailable }))); if (!headerLoaded) setLoadError(e?.message || 'Could not load this profile. Please retry.'); setContentError(e?.message || 'Could not load posts. Please retry.'); } }
     finally { if (current()) { setLoading(false); setContentLoading(false); setRefreshing(false); } }
   }, [targetId, myId]);
 
   useEffect(() => {
-    setProfile(null); setPosts([]); setFollowing(false); setFollowRequested(false);
-    setLoadError(null); setContentError(null); setLoading(!!targetId);
+    const retained = knownProfile.current?.id === targetId ? knownProfile.current : takePrefetched<UserProfile>('profile:' + targetId);
+    setProfile(retained); setPosts([]); setFollowing(false); setFollowRequested(false);
+    setLoadError(null); setContentError(null); setLoading(!!targetId && !retained);
     void load();
-    return () => { loadRequest.current++; };
-  }, [load]);
+    const requests = loadRequest;
+    return () => { requests.current++; };
+  }, [load, targetId]);
   const [hasStory, setHasStory] = useState(false);
   useEffect(() => {
     let alive = true;
@@ -266,10 +267,9 @@ export default function UserProfileScreen() {
   };
 
   const isOwnProfile = myId === targetId;
-  const isPrivate = profile?.profile_visibility === 'private';
   const canViewContent = isOwnProfile || profile?.can_view_content === true;
 
-  if (loading || !afterSlide || (profile && profile.id !== targetId)) return (
+  if (loading || (profile && profile.id !== targetId)) return (
     <SafeAreaView style={s.safe} edges={['top', 'left', 'right', 'bottom']}>
       <ProfileSkeleton />
     </SafeAreaView>
@@ -446,7 +446,7 @@ export default function UserProfileScreen() {
                           buttons.push({
                             text: 'Share post',
                             onPress: async () => {
-                              await Share.share({ message: post.content || 'Check out this post on PlatinumCircles' });
+                              try { await Share.share({ message: (post.content ? post.content + '\n\n' : '') + 'https://platinumcircles.app/post/' + post.id }); } catch { Alert.alert('Could not share', 'The share sheet could not open. Please try again.'); }
                             },
                           });
                           buttons.push({ text: 'Cancel', style: 'cancel' as const });
@@ -459,7 +459,7 @@ export default function UserProfileScreen() {
                       </TouchableOpacity>
                     </View>
                     <TouchableOpacity activeOpacity={0.85} onPress={() => navigation.navigate('Post', { postId: post.id })}>
-                      {post.mediaUnavailable ? <Text style={{color:t.ink.muted,paddingVertical:12}}>Some media is unavailable.</Text> : null}
+                      {post.mediaPending ? <View accessibilityRole="progressbar" accessibilityLabel="Loading photos and videos" style={{height:150,alignItems:'center',justifyContent:'center',backgroundColor:t.surface.sunken}}><ActivityIndicator color={t.ink.muted}/><Text style={{color:t.ink.muted,marginTop:8}}>Loading media…</Text></View> : post.mediaUnavailable ? <TouchableOpacity accessibilityRole="button" onPress={() => void load()} style={{paddingVertical:12}}><Text style={{color:t.ink.muted}}>A photo or video could not load. Tap to retry.</Text></TouchableOpacity> : null}
                     {post.media.length > 0 ? (
                         <View style={{ marginBottom: 10 }}>
                           <ScrollView horizontal directionalLockEnabled showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>

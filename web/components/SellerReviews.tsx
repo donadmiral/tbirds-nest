@@ -12,7 +12,11 @@ import {
   type ReviewCursor,
 } from "../../shared/marketReviews";
 import { MarketReportForm } from "./MarketReportForm";
-export function SellerReviews({
+export function SellerReviews(props: Parameters<typeof SellerReviewList>[0]) {
+  return <SellerReviewList key={`${props.sellerId}:${props.listingId ?? ""}:${props.viewerId ?? ""}`} {...props} />;
+}
+
+function SellerReviewList({
   sellerId,
   listingId,
   viewerId,
@@ -23,7 +27,7 @@ export function SellerReviews({
 }) {
   const [storedPage, setPage] = useState<ReviewPage | null>(null);
   const [busy, setBusy] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(!!viewerId);
   const [error, setError] = useState("");
   const [order, setOrder] = useState("");
   const [rating, setRating] = useState(0);
@@ -33,9 +37,7 @@ export function SellerReviews({
   const generation = useRef(0);
   const inFlight = useRef(false);
   const saving = useRef(false);
-  const scope = `${sellerId}:${listingId || ""}:${viewerId || ""}`;
-  const loadedScope = useRef("");
-  const page = loadedScope.current === scope ? storedPage : null;
+  const page = storedPage;
   const load = useCallback(
     async (cursor?: ReviewCursor) => {
       const version = generation.current;
@@ -51,7 +53,7 @@ export function SellerReviews({
           cursor,
         );
         if (version !== generation.current) return;
-        loadedScope.current = scope;
+
         setPage((old) =>
           cursor && old
             ? {
@@ -74,26 +76,20 @@ export function SellerReviews({
         }
       }
     },
-    [sellerId, listingId, scope],
+    [sellerId, listingId],
   );
   useEffect(() => {
-    generation.current++;
-    inFlight.current = false;
-    saving.current = false;
-    setPage(null);
-    setBusy(false);
-    setLoading(false);
-    setError("");
-    setOrder("");
-    setRating(0);
-    setComment("");
-    setReport(null);
-    setSaved(false);
-    if (viewerId) void load();
-    return () => {
-      generation.current++;
-    };
-  }, [load, viewerId]);
+    const version = generation.current += 1;
+    if (viewerId) {
+      inFlight.current = true;
+      void getSellerReviewPage(createClient(), sellerId, listingId).then(data => {
+        if (version === generation.current) setPage(data);
+      }).catch(cause => { if (version === generation.current) setError(reviewError(cause)); })
+        .finally(() => { if (version === generation.current) { inFlight.current = false; setLoading(false); } });
+    }
+    return () => { generation.current += 1; inFlight.current = false; saving.current = false; };
+  }, [sellerId, listingId, viewerId]);
+
   if (!viewerId)
     return (
       <p className="mt-5 text-sm text-muted">

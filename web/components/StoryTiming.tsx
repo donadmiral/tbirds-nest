@@ -1,4 +1,5 @@
 "use client";
+import NextImage from "next/image";
 
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Music, Pause, Play } from "lucide-react";
@@ -7,7 +8,7 @@ import { storyLayerWindow } from "../../shared/storyPresentation";
 import studio from "./StoryStudio.module.css";
 
 function useFrames(url: string | null, duration: number) {
-  const [frames, setFrames] = useState<string[]>([]);
+  const [frameResult, setFrameResult] = useState<{ url: string; duration: number; frames: string[] } | null>(null);
   useEffect(() => {
     if (!url) return;
     let cancelled = false; const video = document.createElement("video"), canvas = document.createElement("canvas");
@@ -18,19 +19,18 @@ function useFrames(url: string | null, duration: number) {
       const ready = () => finish(true), fail = () => finish(false), timer = setTimeout(fail, 2500);
       cancelWait = fail; video.addEventListener(event, ready, { once: true }); video.addEventListener("error", fail, { once: true }); action?.();
     });
-    setFrames([]);
     void (async () => {
       if (!await wait("loadeddata", () => { video.src = url; video.load(); }) || cancelled) return;
       const actual = Number.isFinite(video.duration) ? video.duration : duration, result: string[] = [];
       for (let i = 0; i < 8 && !cancelled; i++) {
         const time = Math.min(Math.max(0, actual - .1), (i + .15) / 8 * Math.max(.25, actual));
         if (!await wait("seeked", () => { video.currentTime = time; }) || cancelled) break;
-        try { const context = canvas.getContext("2d"); if (!context) break; const scale = Math.max(canvas.width / video.videoWidth, canvas.height / video.videoHeight), w = video.videoWidth * scale, h = video.videoHeight * scale; context.drawImage(video, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h); result.push(canvas.toDataURL("image/jpeg", .55)); setFrames([...result]); } catch { break; }
+        try { const context = canvas.getContext("2d"); if (!context) break; const scale = Math.max(canvas.width / video.videoWidth, canvas.height / video.videoHeight), w = video.videoWidth * scale, h = video.videoHeight * scale; context.drawImage(video, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h); result.push(canvas.toDataURL("image/jpeg", .55)); setFrameResult({ url, duration, frames: [...result] }); } catch { break; }
       }
     })();
     return () => { cancelled = true; cancelWait?.(); video.pause(); video.removeAttribute("src"); video.load(); };
   }, [url, duration]);
-  return frames;
+  return frameResult?.url === url && frameResult.duration === duration ? frameResult.frames : [];
 }
 
 function LayerRange({ title, label, start, end, duration, color, children, onChange, onSeek, minLength = .25, maxLength = duration }: {
@@ -70,7 +70,7 @@ export function StoryTiming({ url, duration, start, end, clock, playing, sticker
       <div className={studio.timingPlayback}><button type="button" className={studio.icon} aria-label={playing ? 'Pause timeline preview' : 'Play timeline preview'} onClick={onToggle}>{playing ? <Pause size={20} /> : <Play size={20} />}</button><span>{format(clock)} / {format(duration)}</span><input aria-label="Preview time" type="range" min={0} max={duration} step={.05} value={clock} onChange={e => onSeek(Number(e.target.value))} /></div>
       <div className={studio.timingRuler}>{[0,.25,.5,.75,1].map(p => <span key={p}>{Math.round(duration * p)}s</span>)}</div>
       <div className={studio.timingLayers}>
-        <LayerRange title="Video" label="Video" start={start} end={end} duration={duration} color="transparent" minLength={Math.min(1,duration)} maxLength={60} onChange={onTrim} onSeek={onSeek}><div className={studio.timingFrames}>{frames.length ? frames.map((src, index) => <img key={index} src={src} alt="" />) : <span>Preparing video frames…</span>}</div></LayerRange>
+        <LayerRange title="Video" label="Video" start={start} end={end} duration={duration} color="transparent" minLength={Math.min(1,duration)} maxLength={60} onChange={onTrim} onSeek={onSeek}><div className={studio.timingFrames}>{frames.length ? frames.map((src, index) => <NextImage unoptimized width={96} height={128} key={index} src={src} alt="" />) : <span>Preparing video frames…</span>}</div></LayerRange>
         {stickers.filter(sticker => sticker.kind !== 'drawing').map(sticker => { const window = storyLayerWindow(sticker.startSec, sticker.endSec, duration); return <LayerRange key={sticker.id} title={!sticker.kind || sticker.kind === 'text' ? 'Text' : 'Sticker'} label={sticker.text || sticker.kind || 'Text'} start={window.start} end={window.end} duration={duration} color={!sticker.kind || sticker.kind === 'text' ? '#cdbba2' : '#9ba58e'} onSeek={onSeek} onChange={(from,to) => onChange(stickers.map(s => s.id === sticker.id ? { ...s, startSec: from, endSec: to } : s))} />; })}
         {audioTitle ? <div className={studio.timingRow}><span className={studio.timingLabel}>Music</span><div className={studio.timingAudio}><Music size={17} />{audioTitle}</div></div> : null}
       </div>

@@ -15,7 +15,8 @@ export function ThemeToggle() {
   const { theme, choose } = useThemePreference();
   const opts: { key: Theme; label: string; icon: typeof Sun }[] = [
     { key: "light", label: "Light", icon: Sun },
-    { key: "dark", label: "Dark", icon: Moon },
+    { key: "dark", label: "Dim", icon: Moon },
+    { key: "lightsOut", label: "Lights out", icon: Moon },
     { key: "system", label: "System", icon: Monitor },
   ];
   return (

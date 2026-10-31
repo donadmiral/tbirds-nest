@@ -35,7 +35,7 @@ const DURATIONS = [
 ];
 
 export default function AdWizardPage() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [goal, setGoal] = useState<string | null>(null);
@@ -57,7 +57,7 @@ export default function AdWizardPage() {
   const offsets = useRef({ posts: 0, listings: 0, jobs: 0 }); const loadVersion = useRef(0);
 
   useEffect(() => {
-    const version = ++loadVersion.current;
+    const version = loadVersion.current += 1;
     (async () => {
       try {
         const { data: sess, error: sessionError } = await supabase.auth.getSession();
@@ -82,7 +82,7 @@ export default function AdWizardPage() {
         }
       } catch (e: unknown) { if (version === loadVersion.current) setError(e instanceof Error ? e.message : 'Could not load content. Refresh and try again.'); }
     })();
-    return () => { loadVersion.current++; };
+    return () => { loadVersion.current += 1; };
   }, [supabase, router]);
 
   async function more(kind: 'posts' | 'listings' | 'jobs') {
@@ -90,7 +90,7 @@ export default function AdWizardPage() {
     const version = loadVersion.current;
     try {
       const { data: session } = await supabase.auth.getSession(); if (session.session?.user.id !== me.id) throw new Error('Your account changed. Refresh to continue.');
-      let query = kind === 'posts' ? supabase.from('posts').select('id, content, created_at').eq('user_id', me.id).eq('audience', 'everyone').eq('is_exclusive', false)
+      const query = kind === 'posts' ? supabase.from('posts').select('id, content, created_at').eq('user_id', me.id).eq('audience', 'everyone').eq('is_exclusive', false)
         : kind === 'listings' ? supabase.from('marketplace_listings').select('*').eq('seller_id', me.id).eq('status', 'available')
         : supabase.from('jobs').select('id, title, company, location').eq('posted_by', me.id);
       const offset = offsets.current[kind]; const result = await query.order('created_at', { ascending: false }).order('id').range(offset, offset + 20);

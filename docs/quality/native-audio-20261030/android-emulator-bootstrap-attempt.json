@@ -1,0 +1,42 @@
+{
+  "recordedAt": "2026-10-30T22:00:06Z",
+  "candidateCommit": "aa7804d436a2b079770a5d2e122c159162af2610",
+  "pullRequestMergeCommit": "0c1fb9e30d875de7d93f15fcc63040b734222e22",
+  "sourceTree": "f394693bece5c0eb4ff78f73ab518fbc67a7cda6",
+  "workflowRun": 41134795962,
+  "jobId": 124334480577,
+  "workflowUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41134795962",
+  "status": "Failed before emulator boot or instrumentation; no native runtime acceptance was performed.",
+  "artifact": {
+    "id": 13016530052,
+    "name": "android-story-audio-export",
+    "zipSha256": "b47d4300f10c33a348380998ebd1cdfcac2b2f1590c08e16967e8e245e5307b2",
+    "digestVerified": true,
+    "files": [
+      "preflight.json",
+      "sdk-install.log",
+      "toolchain.log"
+    ]
+  },
+  "failure": "qemu-system-x86_64 cannot load libpulse.so.0 on the Ubuntu 24.04 hosted runner.",
+  "repair": "Install the Ubuntu libpulse0 package in the disposable emulator runner bootstrap. The -no-audio argument does not remove this dynamic link requirement.",
+  "preflight": {
+    "expo": "54.0.37",
+    "nativeToolchain": {
+      "agp": "8.11.0",
+      "kotlin": "2.1.20",
+      "compileSdk": "36",
+      "minSdk": "24"
+    },
+    "productionSources": {
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": "9ae63531a14a68d1f258ac568215858ac3b0dd78b5a56c43a469c9b6c7ecf908",
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": "754eaa2052a1b48c527eb2a2f9ccfb94cdd88ed269aa1bb4933fdde3e066633e"
+    },
+    "gradleWrapperSha256": "7d3a4ac4de1c32b59bc6a4eb8ecb8e612ccd0cf1ae1e99f66902da64df296172",
+    "scope": "Actual production engine sources in a standalone local-only Android instrumentation application."
+  },
+  "productionSourceHashesMatchPublishedCandidate": true,
+  "instrumentationCasesExecuted": 0,
+  "nativeCapabilitiesEnabled": false,
+  "repairRerunVerified": false
+}

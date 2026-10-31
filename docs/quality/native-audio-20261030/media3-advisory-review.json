@@ -1,0 +1,59 @@
+{
+  "checkedAt": "2026-10-30T21:42:10.069042+00:00",
+  "source": "https://api.osv.dev/v1/querybatch",
+  "queries": [
+    {
+      "package": {
+        "ecosystem": "Maven",
+        "name": "androidx.media3:media3-transformer"
+      },
+      "version": "1.8.0"
+    },
+    {
+      "package": {
+        "ecosystem": "Maven",
+        "name": "androidx.media3:media3-effect"
+      },
+      "version": "1.8.0"
+    },
+    {
+      "package": {
+        "ecosystem": "Maven",
+        "name": "androidx.media3:media3-common"
+      },
+      "version": "1.8.0"
+    },
+    {
+      "package": {
+        "ecosystem": "Maven",
+        "name": "androidx.media3:media3-transformer"
+      },
+      "version": "1.8.1"
+    },
+    {
+      "package": {
+        "ecosystem": "Maven",
+        "name": "androidx.media3:media3-effect"
+      },
+      "version": "1.8.1"
+    },
+    {
+      "package": {
+        "ecosystem": "Maven",
+        "name": "androidx.media3:media3-common"
+      },
+      "version": "1.8.1"
+    }
+  ],
+  "response": {
+    "results": [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ]
+  },
+  "scope": "OSV direct-coordinate advisory lookup only. This does not assess the whole Gradle dependency graph, platform codecs, renderer correctness or private adaptations."
+}

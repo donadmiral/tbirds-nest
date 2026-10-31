@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31T06:58:15.959Z",
+  "reviewer": "hosted_backend independent modal dismissal review",
+  "baseHead": "e173b2dbcf253342be5683fa85f102aa38065411",
+  "conclusion": "Accepted for the next combined gate; no remaining source-review blocker. Actual UIKit presentation and full native navigation/capture acceptance remain pending.",
+  "scope": "Frozen modal-dismissal hook, MemoryFilm, MemoryMovieExport and their actual-component test/harness changes. No source edits, broader refactor, CI invocation, backend/Apple/Expo action or ref change.",
+  "reviewedSources": {
+    "src/hooks/useNativeModalDismissal.ts": "3cece062691b5407cec3a2a9f45c01fc12f5a42e2eea25972de7f7e6b2053974",
+    "src/components/memory/MemoryFilm.tsx": "3b144c45ce8f5b85ef890806c2f3e0752b1e77950f7cfa9b357fb6e1c46971b4",
+    "src/components/memory/MemoryMovieExport.tsx": "f08a34b3f5ebf06a43cabf717e6e8b0cf3eda145a5ecfa38ccd99eb4823bae3a",
+    "tests/helpers/memoryFilmHarness.cjs": "af11d4804b94848a01716915190a0c6f1996bec131b7f51fbdc203ecd3464157",
+    "tests/quality/memory-film.cjs": "a2a698622f7ad99004ae8f2a624f8060e1470344474b7aab2aadb95aad9b36fa",
+    "tests/quality/native-memory-modal-lifecycle.cjs": "703472667f28470092ef471688b7bd5aaf95e1de79d5e78d16ff011603052687"
+  },
+  "additionalSourceAndReceiptHashes": {
+    "src/screens/profile/MemoryAlbumScreen.tsx": "437b2d5c52cf1ad00ce1d322367ac1e41da8857b6d2db6a1c7db263ad4e7f541",
+    "src/lib/navigationCache.ts": "fa5c62b6cd32c5e7eedb8ecc0dd0e8614242e93f1d83bf0f1d0d65de7f05046a",
+    "shared/navigationCache.ts": "3c96b45ecbc04af6c214423d83bca2564659906c1781acf1ab265df53e3969ba",
+    "node_modules/react-native/Libraries/Modal/Modal.js": "b0c2f8783681c61601ce915d1acc447977503c1231ddc20595d9c3743de21e6f",
+    "docs/quality/native-full-app-20261031/native-memory-modal-dismissal-repair.json": "06654a7a4789ae3d211373f3f15f2bfcf8a923522f4a24b8381ed12c943bb33a",
+    "docs/quality/native-full-app-20261031/ios-e173b2db-memory-navigation-review.json": "03c26fd1da464d1c70262fea28cc4489749879b4985e923439a50102e748dc29"
+  },
+  "sourceReview": {
+    "committedIdentity": "The visit object depends only on bookId and the existing navigation session scope. It is published to the callback ref in useLayoutEffect, so an uncommitted render does not replace the active visit. Film's existing items/index/key/allowed ref is likewise published in a layout effect; immediate stopForDismissal still sets allowed=false synchronously.",
+    "sameBookRefresh": "New page arrays, renewed media URLs, title/revision and export content-stamp changes do not create a new dismissal visit. The existing close/read intent remains valid for the same committed book and session. A post handoff additionally requires the selected page/post pair to remain in the committed current Film items.",
+    "sessionAba": "Every dispatch and completion rereads navigationScope. The existing navigationCache module subscribes to auth changes outside screen mounting and increments a revision for session-identity changes. Same-owner replacement and A-to-B-to-A therefore cannot reuse the old scope even if React batches the render.",
+    "bookIdentity": "A committed book replacement changes the visit object. An old pending action is discarded after native dismissal; a stale control cannot initiate a close of the replacement. The actual production Film caller also keys the component by bookId:viewerId.",
+    "singleCompletion": "The pending ticket is compared by object identity and cleared before invoking its callback. closing blocks repeated dispatch. Layout cleanup clears pending state and marks the hook unmounted, preventing duplicate, late or unmounted acknowledgements from navigating.",
+    "ios": "Close/read/post set Modal visible=false while retaining the component until onDismiss. Playback is stopped or export work aborted/released at the request; there is no elapsed-time substitute for acknowledgement.",
+    "android": "The same cleanup runs, then finish(request) completes immediately because the pinned React Native onDismiss implementation is iOS-only. Duplicate controls or later manually delivered acknowledgement cannot complete twice.",
+    "exportWork": "Creation and Photos actions first check isDismissing. Abort/result-release ownership remains in the existing dispose/live checks; a late export result is released after cancellation and cannot reopen the dismissed modal.",
+    "actualCallerBoundary": "MemoryAlbumScreen renders Film only when filmVisible && pages.length > 0, with key bookId:viewerId. A zero-page removal intentionally unmounts the entire Film and invalidates pending work. It must not retain removed/revoked content merely to replay a stale action.",
+    "nativeEvidenceLimit": "The retained e173 artifact proves the Book settings presentation failure after film/export interactions, not a unique UIKit/Fabric root cause. This review accepts the bounded lifecycle repair; the next native run must demonstrate the actual result."
+  },
+  "exploratoryCallerCheck": {
+    "observation": "A direct component harness can keep Film mounted while replacing pages with an empty array, after which its internal item guard removes the Modal.",
+    "resolution": "Reviewed against the actual production caller and the owner's explicit boundary: that same-mounted empty-page scenario omits the caller's pages.length > 0 condition. Real removal unmounts Film and triggers invalidation. No parent/retention change is requested.",
+    "countedAsFormalFailure": false
+  },
+  "focusedIndependentExecution": {
+    "command": "node --test --test-isolation=none --test-reporter=tap tests/quality/native-memory-modal-lifecycle.cjs",
+    "node": "v24.22.1",
+    "exitCode": 0,
+    "tests": 21,
+    "passed": 21,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0,
+    "tapDurationMs": 1664.024498,
+    "retainedTap": "TAP version 13\n# Subtest: iOS Close memory film pauses immediately and waits for one native dismissal\nok 1 - iOS Close memory film pauses immediately and waits for one native dismissal\n  ---\n  duration_ms: 268.418797\n  type: 'test'\n  ...\n# Subtest: iOS Read memory book pauses immediately and waits for one native dismissal\nok 2 - iOS Read memory book pauses immediately and waits for one native dismissal\n  ---\n  duration_ms: 123.635904\n  type: 'test'\n  ...\n# Subtest: iOS native close request uses the same deferred film lifecycle\nok 3 - iOS native close request uses the same deferred film lifecycle\n  ---\n  duration_ms: 100.103394\n  type: 'test'\n  ...\n# Subtest: film unmount invalidates a retained native dismissal callback\nok 4 - film unmount invalidates a retained native dismissal callback\n  ---\n  duration_ms: 90.605531\n  type: 'test'\n  ...\n# Subtest: film same-owner replacement invalidates dismissal before React renders the replacement session\nok 5 - film same-owner replacement invalidates dismissal before React renders the replacement session\n  ---\n  duration_ms: 103.267091\n  type: 'test'\n  ...\n# Subtest: film account ABA invalidates dismissal before React renders the replacement session\nok 6 - film account ABA invalidates dismissal before React renders the replacement session\n  ---\n  duration_ms: 79.118224\n  type: 'test'\n  ...\n# Subtest: film book replacement discards the old action and late acknowledgements cannot close the replacement\nok 7 - film book replacement discards the old action and late acknowledgements cannot close the replacement\n  ---\n  duration_ms: 89.727921\n  type: 'test'\n  ...\n# Subtest: a stale film control cannot start dismissal of a replacement book\nok 8 - a stale film control cannot start dismissal of a replacement book\n  ---\n  duration_ms: 81.608617\n  type: 'test'\n  ...\n# Subtest: same-book page and delivery refresh preserves the intended film close\nok 9 - same-book page and delivery refresh preserves the intended film close\n  ---\n  duration_ms: 96.939438\n  type: 'test'\n  ...\n# Subtest: film post handoff waits for native dismissal and retains a refreshed identical source\nok 10 - film post handoff waits for native dismissal and retains a refreshed identical source\n  ---\n  duration_ms: 75.758818\n  type: 'test'\n  ...\n# Subtest: a removed or changed film source cannot dispatch its stale post navigation\nok 11 - a removed or changed film source cannot dispatch its stale post navigation\n  ---\n  duration_ms: 87.617199\n  type: 'test'\n  ...\n# Subtest: Android Close memory film completes once without an unavailable onDismiss event\nok 12 - Android Close memory film completes once without an unavailable onDismiss event\n  ---\n  duration_ms: 83.865054\n  type: 'test'\n  ...\n# Subtest: Android Read memory book completes once without an unavailable onDismiss event\nok 13 - Android Read memory book completes once without an unavailable onDismiss event\n  ---\n  duration_ms: 63.814391\n  type: 'test'\n  ...\n# Subtest: iOS export cancellation aborts immediately, retains its subtree, and notifies parent once after dismissal\nok 14 - iOS export cancellation aborts immediately, retains its subtree, and notifies parent once after dismissal\n  ---\n  duration_ms: 22.707673\n  type: 'test'\n  ...\n# Subtest: closing a ready iOS movie releases its result before native acknowledgement and blocks stale Photos actions\nok 15 - closing a ready iOS movie releases its result before native acknowledgement and blocks stale Photos actions\n  ---\n  duration_ms: 18.161636\n  type: 'test'\n  ...\n# Subtest: export unmount invalidates its pending native close acknowledgement\nok 16 - export unmount invalidates its pending native close acknowledgement\n  ---\n  duration_ms: 16.927427\n  type: 'test'\n  ...\n# Subtest: export same-owner replacement cannot dispatch an old close or restart old work\nok 17 - export same-owner replacement cannot dispatch an old close or restart old work\n  ---\n  duration_ms: 16.492164\n  type: 'test'\n  ...\n# Subtest: export account ABA cannot dispatch an old close or restart old work\nok 18 - export account ABA cannot dispatch an old close or restart old work\n  ---\n  duration_ms: 27.441865\n  type: 'test'\n  ...\n# Subtest: export book replacement waits for old dismissal and ignores old callbacks during the replacement close\nok 19 - export book replacement waits for old dismissal and ignores old callbacks during the replacement close\n  ---\n  duration_ms: 16.742394\n  type: 'test'\n  ...\n# Subtest: same-book export presentation refresh preserves its legitimate close\nok 20 - same-book export presentation refresh preserves its legitimate close\n  ---\n  duration_ms: 15.959349\n  type: 'test'\n  ...\n# Subtest: Android export cancellation remains immediate and exactly once without onDismiss\nok 21 - Android export cancellation remains immediate and exactly once without onDismiss\n  ---\n  duration_ms: 20.35377\n  type: 'test'\n  ...\n1..21\n# tests 21\n# suites 0\n# pass 21\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 1664.024498\n",
+    "coverage": [
+      "iOS film Close, Read and native close request; immediate pause, subtree retention and no timer-based completion",
+      "Repeated callbacks and controls, unmount, same-owner session replacement and account ABA before a replacement render",
+      "Defensive same-mount book replacement, stale controls and stale acknowledgement during a replacement close",
+      "Same-book page/delivery refresh, identical refreshed post source and rejected changed post association",
+      "Export immediate abort, ready-result release, stale Photos control and late-result release",
+      "Export unmount/session/book replacement and ordinary same-book presentation refresh",
+      "Android film Close/Read and export cancellation complete once without onDismiss"
+    ],
+    "testLimits": [
+      "The actual TSX components and actual dismissal hook run; React hooks, native hosts, native acknowledgement, transport/encoder and Photos are controlled adapters.",
+      "The harness does not execute UIKit animation, accessibility/GPU presentation or physical Photos behavior.",
+      "Abandoned concurrent React renders are not simulated by this harness; committed-ref publication was source-reviewed.",
+      "Same-mount book replacement cases test defensive hook behavior; the real Film caller also remounts by book/viewer key."
+    ]
+  },
+  "otherValidation": {
+    "ownerReceipt": "docs/quality/native-full-app-20261031/native-memory-modal-dismissal-repair.json",
+    "ownerReported": "43 focused/affected cases passed: 21 dismissal, 14 Film and 8 Film lifecycle; exact-file lint, native TypeScript and diff-check passed. Its two selected e173 counterexample cases fail at the prior immediate parent completion as intended.",
+    "independentScope": "Only the 21 relevant lifecycle cases were independently rerun. Owner results and independent reruns overlap and are not added together.",
+    "retainedEvidenceRename": "The owner's evidence-maintenance record identifies the retained TypeScript source as .ts.txt rather than an active compilation input."
+  },
+  "unchangedBoundaries": [
+    "Native animation types and presentation style",
+    "Existing labels, original required flow assertions and timeouts",
+    "Export rights checks, cleanup/cancellation ownership and feature flags",
+    "Existing parent removal/revocation behavior",
+    "No new network requests, global listener or timer-based completion",
+    "No production capability activation or signed distribution action"
+  ],
+  "remainingGate": "Run the parent's combined source-bound gate after all owners freeze, then the complete native workflows. Confirm Book settings presentation, unchanged book editing/reload, account readback, cancellation and successful capture/decode/cleanup; do not replace those with this local pass.",
+  "writeBoundary": "Only this new independent documentation receipt is written. Root-owned report and all source/test/configuration files remain untouched by this reviewer."
+}

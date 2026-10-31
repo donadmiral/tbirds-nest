@@ -1,0 +1,529 @@
+{
+  "recordedAt": "2026-10-31T02:15:26.691551+00:00",
+  "reviewer": "backend_installation",
+  "scope": "Independent retained-file/source inventory and FFmpeg/FFprobe/Pillow decode of the successful iOS memory renderer baseline; no source edits or rerun.",
+  "head": "6c3586a712e5dae7ca57517f1fb059e641e1f6f2",
+  "testedMerge": "e1e31e39280576c9802f14f496483b0e253fe24f",
+  "workflowRun": 41158146241,
+  "job": 124409592287,
+  "artifact": {
+    "id": 13026057389,
+    "sha256": "5602eaee6eca1eb981509b9c5b2bfe9b272644021e02e6e03debb3724b22726e",
+    "bytes": 411499
+  },
+  "runtime": {
+    "architecture": "arm64",
+    "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-26-2"
+  },
+  "receiptSha256": "3de18852ffb43c01aae887410c2c29d1dcb0b4c38eaf0fd4cff0db8c374709e0",
+  "caseInventory": [
+    "ordered scenes keep independent page audio and continuous ducked book music",
+    "slow scenes preserve original pitch and fractional continuous loops",
+    "changing music preserves excerpt position across a page and duck boundary",
+    "one-pass page voiceover leaves later scenes silent",
+    "muted original and zero-gain book music remain silent",
+    "full scene fade and motion preserve timed artwork",
+    "private photo normalization applies EXIF and preserves bounded transparent PNG",
+    "animated photo bytes are rejected without a partial normalized file",
+    "invalid bounds and foreign output paths fail without partial movies",
+    "cancellation excludes concurrent story work cleans files and permits same-ID retry",
+    "an unreadable source cannot produce a partial book movie"
+  ],
+  "sourceIdentity": {
+    "modules/boomerang/ios/StoryVideoComposition.swift": {
+      "sha256": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+      "matchesTestedHead": true,
+      "matchesCurrentWorkingFile": true
+    },
+    "modules/boomerang/ios/MemoryMovieComposition.swift": {
+      "sha256": "920fc4a01277f3712863909ca8188ef7b3a7efa3b4e560d9caeba056addc0d11",
+      "matchesTestedHead": true,
+      "matchesCurrentWorkingFile": true
+    },
+    "scripts/quality/MemoryMovieExportHarness.swift": {
+      "sha256": "515ec7ad6e1150a0e7035defb7fcde9699b96067637204137f16a2e5681f874f",
+      "matchesTestedHead": true,
+      "matchesCurrentWorkingFile": true
+    },
+    "scripts/quality/test-ios-memory-movie.sh": {
+      "sha256": "fa60a4db91552e78b6181943dd76d105a2354f2934969b95a8ed655985c3c90c",
+      "matchesTestedHead": true,
+      "matchesCurrentWorkingFile": true
+    },
+    "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.gif": {
+      "sha256": "fa09323d645946fc05e54d47d92c2d4171d67cbb93a4a9cc4225495cf00ae674",
+      "matchesTestedHead": true,
+      "matchesCurrentWorkingFile": true
+    },
+    "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.png": {
+      "sha256": "296c54b04d0a9aa58171e9d22cff9b41b32a66116d3aa1d89bd67cd193082a77",
+      "matchesTestedHead": true,
+      "matchesCurrentWorkingFile": true
+    },
+    "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.webp": {
+      "sha256": "417af2bcf554708ce2331d3c3558aa0148921e2231ab3e0b9e8989f6a19395f3",
+      "matchesTestedHead": true,
+      "matchesCurrentWorkingFile": true
+    }
+  },
+  "artifactInventory": [
+    {
+      "type": "movies",
+      "file": "pc-memory-export-retry.mp4",
+      "sha256": "965e202b37a529b9b242da47d3fcf7d92fd67a7060c3660e51a2a6535910e06f",
+      "bytes": 8592
+    },
+    {
+      "type": "movies",
+      "file": "pc-memory-export-continuous-phase.mp4",
+      "sha256": "97d68a118f300d2756abea44aa34fdee59033b7240cdfef651b224be4fad9231",
+      "bytes": 105763
+    },
+    {
+      "type": "movies",
+      "file": "pc-memory-export-muted.mp4",
+      "sha256": "a1c15a510052df4e06c9bbe4e334c533f5916991b5f4a0c248079b1fd120f318",
+      "bytes": 9566
+    },
+    {
+      "type": "movies",
+      "file": "pc-memory-export-voice-once.mp4",
+      "sha256": "f0bb7c81c0c7c17438d8f6df07031f7deae1f890b5419f59ea8512e9599cf868",
+      "bytes": 56886
+    },
+    {
+      "type": "movies",
+      "file": "pc-memory-export-slow-fractional.mp4",
+      "sha256": "075f1226140401ef8c2370e7fc3b03d3e0a796303f11c547516e82047dc75101",
+      "bytes": 152816
+    },
+    {
+      "type": "movies",
+      "file": "pc-memory-export-motion.mp4",
+      "sha256": "304841acdaffa16f0fb3d056ba2510da481d6979a39db865af609d299ac9ab2b",
+      "bytes": 55998
+    },
+    {
+      "type": "movies",
+      "file": "pc-memory-export-ordered.mp4",
+      "sha256": "f0cdeeb4a7f28f7048e96eabf231110072e5ed8971ebfeb7b75459933fb7d8f6",
+      "bytes": 158806
+    },
+    {
+      "type": "images",
+      "file": "pc-memory-image-transparent.png",
+      "sha256": "79b425574e99705eb363fc04b62fc8723d921fa47b4f4ec344a16b857d59c200",
+      "bytes": 16755
+    },
+    {
+      "type": "images",
+      "file": "pc-memory-image-normalized.png",
+      "sha256": "7d44b3fb311c88598ea26d03d356d736853af96499362e015ea56125075ed48a",
+      "bytes": 42128
+    }
+  ],
+  "movies": [
+    {
+      "file": "pc-memory-export-ordered.mp4",
+      "sha256": "f0cdeeb4a7f28f7048e96eabf231110072e5ed8971ebfeb7b75459933fb7d8f6",
+      "display": [
+        720,
+        1280
+      ],
+      "duration": 4.5,
+      "frames": 135,
+      "firstPts": 0.0,
+      "lastPts": 4.466667,
+      "tailWithFrame": 4.500000333333333,
+      "medianInterval": 0.03333300000000006,
+      "minStepUs": 33333,
+      "maxStepUs": 33334,
+      "audioStreams": 1,
+      "audioTrackSeconds": [
+        4.498345
+      ],
+      "expectedDuration": 4.5,
+      "decodedAudioSeconds": 4.503219954648526
+    },
+    {
+      "file": "pc-memory-export-slow-fractional.mp4",
+      "sha256": "075f1226140401ef8c2370e7fc3b03d3e0a796303f11c547516e82047dc75101",
+      "display": [
+        720,
+        1280
+      ],
+      "duration": 4.35,
+      "frames": 131,
+      "firstPts": 0.0,
+      "lastPts": 4.333333,
+      "tailWithFrame": 4.366666333333333,
+      "medianInterval": 0.03333300000000006,
+      "minStepUs": 33333,
+      "maxStepUs": 33334,
+      "audioStreams": 1,
+      "audioTrackSeconds": [
+        4.348345
+      ],
+      "expectedDuration": 4.35,
+      "decodedAudioSeconds": 4.363900226757369
+    },
+    {
+      "file": "pc-memory-export-continuous-phase.mp4",
+      "sha256": "97d68a118f300d2756abea44aa34fdee59033b7240cdfef651b224be4fad9231",
+      "display": [
+        720,
+        1280
+      ],
+      "duration": 3.2,
+      "frames": 96,
+      "firstPts": 0.0,
+      "lastPts": 3.166667,
+      "tailWithFrame": 3.200000333333333,
+      "medianInterval": 0.03333300000000006,
+      "minStepUs": 33333,
+      "maxStepUs": 33334,
+      "audioStreams": 1,
+      "audioTrackSeconds": [
+        3.198345
+      ],
+      "expectedDuration": 3.2,
+      "decodedAudioSeconds": 3.2029024943310658
+    },
+    {
+      "file": "pc-memory-export-voice-once.mp4",
+      "sha256": "f0bb7c81c0c7c17438d8f6df07031f7deae1f890b5419f59ea8512e9599cf868",
+      "display": [
+        720,
+        1280
+      ],
+      "duration": 4.2,
+      "frames": 126,
+      "firstPts": 0.0,
+      "lastPts": 4.166667,
+      "tailWithFrame": 4.200000333333334,
+      "medianInterval": 0.03333300000000006,
+      "minStepUs": 33333,
+      "maxStepUs": 33334,
+      "audioStreams": 1,
+      "audioTrackSeconds": [
+        0.998345
+      ],
+      "expectedDuration": 4.2,
+      "decodedAudioSeconds": 1.0202267573696144
+    },
+    {
+      "file": "pc-memory-export-muted.mp4",
+      "sha256": "a1c15a510052df4e06c9bbe4e334c533f5916991b5f4a0c248079b1fd120f318",
+      "display": [
+        720,
+        1280
+      ],
+      "duration": 1.2,
+      "frames": 36,
+      "firstPts": 0.0,
+      "lastPts": 1.166667,
+      "tailWithFrame": 1.2000003333333333,
+      "medianInterval": 0.03333300000000006,
+      "minStepUs": 33333,
+      "maxStepUs": 33334,
+      "audioStreams": 1,
+      "audioTrackSeconds": [
+        1.198345
+      ],
+      "expectedDuration": 1.2,
+      "decodedAudioSeconds": 1.205986394557823
+    },
+    {
+      "file": "pc-memory-export-motion.mp4",
+      "sha256": "304841acdaffa16f0fb3d056ba2510da481d6979a39db865af609d299ac9ab2b",
+      "display": [
+        720,
+        1280
+      ],
+      "duration": 3.2,
+      "frames": 96,
+      "firstPts": 0.0,
+      "lastPts": 3.166667,
+      "tailWithFrame": 3.200000333333333,
+      "medianInterval": 0.03333300000000006,
+      "minStepUs": 33333,
+      "maxStepUs": 33334,
+      "audioStreams": 0,
+      "audioTrackSeconds": [],
+      "expectedDuration": 3.2,
+      "decodedAudioSeconds": 0.0
+    },
+    {
+      "file": "pc-memory-export-retry.mp4",
+      "sha256": "965e202b37a529b9b242da47d3fcf7d92fd67a7060c3660e51a2a6535910e06f",
+      "display": [
+        720,
+        1280
+      ],
+      "duration": 1.2,
+      "frames": 36,
+      "firstPts": 0.0,
+      "lastPts": 1.166667,
+      "tailWithFrame": 1.2000003333333333,
+      "medianInterval": 0.03333300000000006,
+      "minStepUs": 33333,
+      "maxStepUs": 33334,
+      "audioStreams": 0,
+      "audioTrackSeconds": [],
+      "expectedDuration": 1.2,
+      "decodedAudioSeconds": 0.0
+    }
+  ],
+  "motionPixels": [
+    {
+      "file": "pc-memory-export-motion.mp4",
+      "time": 0,
+      "point": [
+        360,
+        640
+      ],
+      "rgb": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "file": "pc-memory-export-motion.mp4",
+      "time": 0.7,
+      "point": [
+        360,
+        640
+      ],
+      "rgb": [
+        254,
+        0,
+        0
+      ]
+    },
+    {
+      "file": "pc-memory-export-motion.mp4",
+      "time": 0.7,
+      "point": [
+        130,
+        160
+      ],
+      "rgb": [
+        0,
+        254,
+        0
+      ]
+    },
+    {
+      "file": "pc-memory-export-motion.mp4",
+      "time": 1.5,
+      "point": [
+        130,
+        220
+      ],
+      "rgb": [
+        254,
+        0,
+        0
+      ]
+    }
+  ],
+  "normalizedImages": [
+    {
+      "file": "pc-memory-image-normalized.png",
+      "sha256": "7d44b3fb311c88598ea26d03d356d736853af96499362e015ea56125075ed48a",
+      "size": [
+        1440,
+        1920
+      ],
+      "pixels": [
+        {
+          "point": [
+            360,
+            960
+          ],
+          "rgba": [
+            0,
+            0,
+            254,
+            255
+          ]
+        },
+        {
+          "point": [
+            1080,
+            960
+          ],
+          "rgba": [
+            254,
+            0,
+            0,
+            255
+          ]
+        }
+      ]
+    },
+    {
+      "file": "pc-memory-image-transparent.png",
+      "sha256": "79b425574e99705eb363fc04b62fc8723d921fa47b4f4ec344a16b857d59c200",
+      "size": [
+        720,
+        1280
+      ],
+      "pixels": [
+        {
+          "point": [
+            350,
+            600
+          ],
+          "rgba": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "point": [
+            130,
+            220
+          ],
+          "rgba": [
+            0,
+            255,
+            0,
+            255
+          ]
+        }
+      ]
+    }
+  ],
+  "spectralWindows": {
+    "continuous-phase": [
+      {
+        "start": 0.2,
+        "end": 0.45,
+        "rms": 0.01696895348171764,
+        "decodedSamples": 11025,
+        "amplitudes": {
+          "660": 0.02399780918197616,
+          "1100": 3.191659663558309e-08,
+          "1540": 1.4849874220152092e-08,
+          "1760": 2.1222330762876648e-09
+        }
+      },
+      {
+        "start": 1.12,
+        "end": 1.37,
+        "rms": 0.14141689382053665,
+        "decodedSamples": 11025,
+        "amplitudes": {
+          "660": 1.904055303136339e-08,
+          "1100": 0.1999815532830165,
+          "1540": 1.5653120397674218e-06,
+          "1760": 2.774564861700422e-07
+        }
+      },
+      {
+        "start": 1.8,
+        "end": 2.05,
+        "rms": 0.14140342977311154,
+        "decodedSamples": 11025,
+        "amplitudes": {
+          "660": 0.19996245317335948,
+          "1100": 3.6264780479964295e-07,
+          "1540": 1.0817339095863843e-07,
+          "1760": 3.6528395626571756e-08
+        }
+      },
+      {
+        "start": 2.65,
+        "end": 2.9,
+        "rms": 0.1413989851502603,
+        "decodedSamples": 11025,
+        "amplitudes": {
+          "660": 6.011501118662162e-09,
+          "1100": 0.19996873443806648,
+          "1540": 1.6646341582308814e-06,
+          "1760": 1.4158345874286597e-07
+        }
+      }
+    ],
+    "slow-fractional": [
+      {
+        "start": 0.4,
+        "end": 0.65,
+        "rms": 0.15809838197905046,
+        "decodedSamples": 11025,
+        "amplitudes": {
+          "220": 5.945422182269802e-07,
+          "330": 1.0907542488843177e-06,
+          "440": 0.10000579243872348,
+          "660": 0.1999622683492009,
+          "880": 4.036582867657757e-06,
+          "1100": 2.8360056597249623e-06,
+          "1540": 6.678432211514826e-07,
+          "1760": 2.5282726790894625e-07
+        }
+      },
+      {
+        "start": 3.9,
+        "end": 4.15,
+        "rms": 0.15809993426730756,
+        "decodedSamples": 11025,
+        "amplitudes": {
+          "220": 1.8897236614943145e-07,
+          "330": 1.2339712482164149e-06,
+          "440": 0.10004452916918148,
+          "660": 0.19998714794923828,
+          "880": 4.498765026856755e-07,
+          "1100": 7.848005631822628e-07,
+          "1540": 1.0928851399022587e-07,
+          "1760": 9.885933065074891e-08
+        }
+      }
+    ],
+    "voice-once": [
+      {
+        "start": 0.2,
+        "end": 0.45,
+        "rms": 0.07070585366377082,
+        "decodedSamples": 11025,
+        "amplitudes": {
+          "440": 1.2721373364662019e-08,
+          "880": 0.09999198360680134
+        }
+      },
+      {
+        "start": 1.5,
+        "end": 1.8,
+        "rms": 0.0,
+        "decodedSamples": 0,
+        "amplitudes": {
+          "440": 0.0,
+          "880": 0.0
+        }
+      }
+    ],
+    "muted": [
+      {
+        "start": 0.4,
+        "end": 0.7,
+        "rms": 0.0,
+        "decodedSamples": 13230,
+        "amplitudes": {
+          "440": 0.0,
+          "660": 0.0,
+          "880": 0.0
+        }
+      }
+    ]
+  },
+  "method": "Full video PTS inspection and actual RGB frames; native-rate floating PCM with explicit stereo averaging and Hann-windowed exact-frequency projection; actual RGBA pixels read from both retained PNGs. Silent movies may have no audio track; one-pass voiceover may end before a valid silent video tail.",
+  "result": "All independent assertions passed.",
+  "limits": [
+    "Standalone arm64 iOS26.2 simulator rendering is not physical iPhone, Photos export, bundled React Native capture or installed-product acceptance.",
+    "Retained files cannot independently prove every cancellation/cleanup/security event; those remain separately asserted by the11-case native receipt.",
+    "No backend installation, licensing, publishing, camera, push or calls acceptance is implied."
+  ]
+}

@@ -1,0 +1,208 @@
+TAP version 13
+# Subtest: web album loader commits authorized media
+ok 1 - web album loader commits authorized media
+  ---
+  duration_ms: 6.141616
+  type: 'test'
+  ...
+# Subtest: web late album read cannot restore an old account's media
+ok 2 - web late album read cannot restore an old account's media
+  ---
+  duration_ms: 2.871037
+  type: 'test'
+  ...
+# Subtest: web failed album authorization clears media and offers retry
+ok 3 - web failed album authorization clears media and offers retry
+  ---
+  duration_ms: 3.583455
+  type: 'test'
+  ...
+# Subtest: native album loader commits authorized media
+ok 4 - native album loader commits authorized media
+  ---
+  duration_ms: 15.356755
+  type: 'test'
+  ...
+# Subtest: native late album read cannot restore an old account's media
+ok 5 - native late album read cannot restore an old account's media
+  ---
+  duration_ms: 10.147901
+  type: 'test'
+  ...
+# Subtest: native failed album authorization clears media and offers retry
+ok 6 - native failed album authorization clears media and offers retry
+  ---
+  duration_ms: 8.70364
+  type: 'test'
+  ...
+# Subtest: held optional reactions do not block the actual authorized reader
+ok 7 - held optional reactions do not block the actual authorized reader
+  ---
+  duration_ms: 228.511324
+  type: 'test'
+  ...
+# Subtest: unknown initial reaction state cannot expose an actionable Like guess
+ok 8 - unknown initial reaction state cannot expose an actionable Like guess
+  ---
+  duration_ms: 149.257526
+  type: 'test'
+  ...
+# Subtest: optional reaction reject cannot discard the authorized book
+ok 9 - optional reaction reject cannot discard the authorized book
+  ---
+  duration_ms: 129.843419
+  type: 'test'
+  ...
+# Subtest: optional reaction error-result cannot discard the authorized book
+ok 10 - optional reaction error-result cannot discard the authorized book
+  ---
+  duration_ms: 139.961786
+  type: 'test'
+  ...
+# Subtest: pending auth cannot dispatch required book or optional reaction reads
+ok 11 - pending auth cannot dispatch required book or optional reaction reads
+  ---
+  duration_ms: 131.200166
+  type: 'test'
+  ...
+# Subtest: pending required book authorization keeps the reader gated
+ok 12 - pending required book authorization keeps the reader gated
+  ---
+  duration_ms: 140.292363
+  type: 'test'
+  ...
+# Subtest: required book rejection still clears the reader and offers retry
+ok 13 - required book rejection still clears the reader and offers retry
+  ---
+  duration_ms: 114.968003
+  type: 'test'
+  ...
+# Subtest: required media rejection still clears the reader and offers retry
+ok 14 - required media rejection still clears the reader and offers retry
+  ---
+  duration_ms: 204.086993
+  type: 'test'
+  ...
+# Subtest: held required media hydration cannot publish a book or start optional reads
+ok 15 - held required media hydration cannot publish a book or start optional reads
+  ---
+  duration_ms: 195.871344
+  type: 'test'
+  ...
+# Subtest: old optional read cannot affect a replacement route that shares a story ID
+ok 16 - old optional read cannot affect a replacement route that shares a story ID
+  ---
+  duration_ms: 129.882207
+  type: 'test'
+  ...
+# Subtest: account ABA invalidates old optional reads before a replacement viewer commit
+ok 17 - account ABA invalidates old optional reads before a replacement viewer commit
+  ---
+  duration_ms: 126.135013
+  type: 'test'
+  ...
+# Subtest: unmount invalidates a pending optional reaction result
+ok 18 - unmount invalidates a pending optional reaction result
+  ---
+  duration_ms: 97.929985
+  type: 'test'
+  ...
+# Subtest: a newer load result wins over the previous optional reaction read
+ok 19 - a newer load result wins over the previous optional reaction read
+  ---
+  duration_ms: 88.799724
+  type: 'test'
+  ...
+# Subtest: an older reaction read preserves a newer successful toggle and other page results
+ok 20 - an older reaction read preserves a newer successful toggle and other page results
+  ---
+  duration_ms: 120.389491
+  type: 'test'
+  ...
+# Subtest: a newer successful unreact removes the stale read membership
+ok 21 - a newer successful unreact removes the stale read membership
+  ---
+  duration_ms: 101.940862
+  type: 'test'
+  ...
+# Subtest: failed toggle leaves the optional authoritative reaction result usable
+ok 22 - failed toggle leaves the optional authoritative reaction result usable
+  ---
+  duration_ms: 97.007403
+  type: 'test'
+  ...
+# Subtest: fresh book identity cannot display old confirmed likes while its optional read is held
+ok 23 - fresh book identity cannot display old confirmed likes while its optional read is held
+  ---
+  duration_ms: 102.190291
+  type: 'test'
+  ...
+# Subtest: empty refreshed book removes old likes before a source returns
+ok 24 - empty refreshed book removes old likes before a source returns
+  ---
+  duration_ms: 90.774495
+  type: 'test'
+  ...
+# Subtest: no-story refreshed book removes old likes before a source returns
+ok 25 - no-story refreshed book removes old likes before a source returns
+  ---
+  duration_ms: 97.984637
+  type: 'test'
+  ...
+# Subtest: a successful old-route toggle cannot leak into a replacement book
+ok 26 - a successful old-route toggle cannot leak into a replacement book
+  ---
+  duration_ms: 83.411321
+  type: 'test'
+  ...
+# Subtest: optional background reject retains confirmed known reaction state
+ok 27 - optional background reject retains confirmed known reaction state
+  ---
+  duration_ms: 98.240172
+  type: 'test'
+  ...
+# Subtest: optional background error-result retains confirmed known reaction state
+ok 28 - optional background error-result retains confirmed known reaction state
+  ---
+  duration_ms: 101.116648
+  type: 'test'
+  ...
+# Subtest: an old-account mutation cannot apply after ABA before React rerenders
+ok 29 - an old-account mutation cannot apply after ABA before React rerenders
+  ---
+  duration_ms: 82.458728
+  type: 'test'
+  ...
+# Subtest: unmounted confirmed reaction completion cannot publish state or errors
+ok 30 - unmounted confirmed reaction completion cannot publish state or errors
+  ---
+  duration_ms: 88.581196
+  type: 'test'
+  ...
+# Subtest: unmounted rejected reaction completion cannot publish state or errors
+ok 31 - unmounted rejected reaction completion cannot publish state or errors
+  ---
+  duration_ms: 96.208941
+  type: 'test'
+  ...
+# Subtest: soundtrack confirmation does not discard a held optional reaction response
+ok 32 - soundtrack confirmation does not discard a held optional reaction response
+  ---
+  duration_ms: 106.879624
+  type: 'test'
+  ...
+# Subtest: soundtrack confirmation invalidating a held refresh cannot strand unknown reactions as loading
+ok 33 - soundtrack confirmation invalidating a held refresh cannot strand unknown reactions as loading
+  ---
+  duration_ms: 95.257666
+  type: 'test'
+  ...
+1..33
+# tests 33
+# suites 0
+# pass 33
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3580.913476

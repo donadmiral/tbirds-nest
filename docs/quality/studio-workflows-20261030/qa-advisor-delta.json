@@ -1,0 +1,244 @@
+[
+  {
+    "name": "rls_enabled_no_policy",
+    "level": "INFO",
+    "before_count": 80,
+    "after_count": 86,
+    "change": 6,
+    "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy",
+    "added": [
+      {
+        "detail": "Table \\`studio_workflow.access_events\\` has RLS enabled, but no policies exist",
+        "metadata": {
+          "name": "access_events",
+          "type": "table",
+          "schema": "studio_workflow"
+        }
+      },
+      {
+        "detail": "Table \\`studio_workflow.commands\\` has RLS enabled, but no policies exist",
+        "metadata": {
+          "name": "commands",
+          "type": "table",
+          "schema": "studio_workflow"
+        }
+      },
+      {
+        "detail": "Table \\`studio_workflow.deliverables\\` has RLS enabled, but no policies exist",
+        "metadata": {
+          "name": "deliverables",
+          "type": "table",
+          "schema": "studio_workflow"
+        }
+      },
+      {
+        "detail": "Table \\`studio_workflow.events\\` has RLS enabled, but no policies exist",
+        "metadata": {
+          "name": "events",
+          "type": "table",
+          "schema": "studio_workflow"
+        }
+      },
+      {
+        "detail": "Table \\`studio_workflow.newsroom\\` has RLS enabled, but no policies exist",
+        "metadata": {
+          "name": "newsroom",
+          "type": "table",
+          "schema": "studio_workflow"
+        }
+      },
+      {
+        "detail": "Table \\`studio_workflow.partnerships\\` has RLS enabled, but no policies exist",
+        "metadata": {
+          "name": "partnerships",
+          "type": "table",
+          "schema": "studio_workflow"
+        }
+      }
+    ],
+    "removed": []
+  },
+  {
+    "name": "anon_security_definer_function_executable",
+    "level": "WARN",
+    "before_count": 137,
+    "after_count": 135,
+    "change": -2,
+    "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable",
+    "added": [],
+    "removed": [
+      {
+        "detail": "Function `public.create_business_access_member(p_name text)` can be executed by the `anon` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/create_business_access_member`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+        "metadata": {
+          "name": "create_business_access_member",
+          "schema": "public",
+          "language": "plpgsql",
+          "arguments": "p_name text",
+          "security_definer": true
+        }
+      },
+      {
+        "detail": "Function `public.studio_create_member(p_name text, p_role text)` can be executed by the `anon` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/studio_create_member`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+        "metadata": {
+          "name": "studio_create_member",
+          "schema": "public",
+          "language": "plpgsql",
+          "arguments": "p_name text, p_role text",
+          "security_definer": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "authenticated_security_definer_function_executable",
+    "level": "WARN",
+    "before_count": 324,
+    "after_count": 335,
+    "change": 11,
+    "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable",
+    "added": [
+      {
+        "detail": "Function `public.studio_create_member(p_expected_user uuid, p_name text, p_role text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/studio_create_member`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+        "metadata": {
+          "name": "studio_create_member",
+          "schema": "public",
+          "language": "plpgsql",
+          "arguments": "p_expected_user uuid, p_name text, p_role text",
+          "security_definer": true
+        }
+      },
+      {
+        "detail": "Function `public.studio_get_business()` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/studio_get_business`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+        "metadata": {
+          "name": "studio_get_business",
+          "schema": "public",
+          "language": "plpgsql",
+          "arguments": "",
+          "security_definer": true
+        }
+      },
+      {
+        "detail": "Function `public.studio_newsroom_get(p_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/studio_newsroom_get`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+        "metadata": {
+          "name": "studio_newsroom_get",
+          "schema": "public",
+          "language": "plpgsql",
+          "arguments": "p_id uuid",
+          "security_definer": true
+        }
+      },
+      {
+        "detail": "Function `public.studio_newsroom_list(p_limit integer, p_before_at timestamp with time zone, p_before_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/studio_newsroom_list`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+        "metadata": {
+          "name": "studio_newsroom_list",
+          "schema": "public",
+          "language": "plpgsql",
+          "arguments": "p_limit integer, p_before_at timestamp with time zone, p_before_id uuid",
+          "security_definer": true
+        }
+      },
+      {
+        "detail": "Function `public.studio_newsroom_save(p_expected_user uuid, p_request_key uuid, p_id uuid, p_version integer, p_input jsonb)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/studio_newsroom_save`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+        "metadata": {
+          "name": "studio_newsroom_save",
+          "schema": "public",
+          "language": "plpgsql",
+          "arguments": "p_expected_user uuid, p_request_key uuid, p_id uuid, p_version integer, p_input jsonb",
+          "security_definer": true
+        }
+      },
+      {
+        "detail": "Function `public.studio_newsroom_transition(p_expected_user uuid, p_request_key uuid, p_id uuid, p_version integer, p_action text, p_note text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/studio_newsroom_transition`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+        "metadata": {
+          "name": "studio_newsroom_transition",
+          "schema": "public",
+          "language": "plpgsql",
+          "arguments": "p_expected_user uuid, p_request_key uuid, p_id uuid, p_version integer, p_action text, p_note text",
+          "security_definer": true
+        }
+      },
+      {
+        "detail": "Function `public.studio_partnership_deliver(p_expected_user uuid, p_request_key uuid, p_id uuid, p_version integer, p_content text, p_post_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/studio_partnership_deliver`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+        "metadata": {
+          "name": "studio_partnership_deliver",
+          "schema": "public",
+          "language": "plpgsql",
+          "arguments": "p_expected_user uuid, p_request_key uuid, p_id uuid, p_version integer, p_content text, p_post_id uuid",
+          "security_definer": true
+        }
+      },
+      {
+        "detail": "Function `public.studio_partnership_get(p_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/studio_partnership_get`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+        "metadata": {
+          "name": "studio_partnership_get",
+          "schema": "public",
+          "language": "plpgsql",
+          "arguments": "p_id uuid",
+          "security_definer": true
+        }
+      },
+      {
+        "detail": "Function `public.studio_partnership_permission(p_expected_user uuid, p_request_key uuid, p_id uuid, p_version integer, p_permission text, p_granted boolean, p_expires_at timestamp with time zone)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/studio_partnership_permission`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+        "metadata": {
+          "name": "studio_partnership_permission",
+          "schema": "public",
+          "language": "plpgsql",
+          "arguments": "p_expected_user uuid, p_request_key uuid, p_id uuid, p_version integer, p_permission text, p_granted boolean, p_expires_at timestamp with time zone",
+          "security_definer": true
+        }
+      },
+      {
+        "detail": "Function `public.studio_partnership_save(p_expected_user uuid, p_request_key uuid, p_id uuid, p_version integer, p_input jsonb)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/studio_partnership_save`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+        "metadata": {
+          "name": "studio_partnership_save",
+          "schema": "public",
+          "language": "plpgsql",
+          "arguments": "p_expected_user uuid, p_request_key uuid, p_id uuid, p_version integer, p_input jsonb",
+          "security_definer": true
+        }
+      },
+      {
+        "detail": "Function `public.studio_partnership_transition(p_expected_user uuid, p_request_key uuid, p_id uuid, p_version integer, p_action text, p_note text)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/studio_partnership_transition`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+        "metadata": {
+          "name": "studio_partnership_transition",
+          "schema": "public",
+          "language": "plpgsql",
+          "arguments": "p_expected_user uuid, p_request_key uuid, p_id uuid, p_version integer, p_action text, p_note text",
+          "security_definer": true
+        }
+      },
+      {
+        "detail": "Function `public.studio_partnerships_list(p_limit integer, p_before_at timestamp with time zone, p_before_id uuid)` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/studio_partnerships_list`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+        "metadata": {
+          "name": "studio_partnerships_list",
+          "schema": "public",
+          "language": "plpgsql",
+          "arguments": "p_limit integer, p_before_at timestamp with time zone, p_before_id uuid",
+          "security_definer": true
+        }
+      }
+    ],
+    "removed": [
+      {
+        "detail": "Function `public.studio_get_business()` can be executed by the `authenticated` role as a `SECURITY DEFINER` function via `/rest/v1/rpc/studio_get_business`. Revoke `EXECUTE` or switch it to `SECURITY INVOKER` if that is not intentional.",
+        "metadata": {
+          "name": "studio_get_business",
+          "schema": "public",
+          "language": "sql",
+          "arguments": "",
+          "security_definer": true
+        }
+      }
+    ]
+  },
+  {
+    "name": "auth_leaked_password_protection",
+    "level": "WARN",
+    "before_count": 1,
+    "after_count": 1,
+    "change": 0,
+    "remediation": "https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection",
+    "added": [],
+    "removed": []
+  }
+]

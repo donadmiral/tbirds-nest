@@ -29,12 +29,11 @@ import {
   TouchableOpacity,
   NativeSyntheticEvent,
   NativeScrollEvent,
-} from 'react-native';
+ Animated as RNAnimated } from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { FilterLayer } from './stories/StoryFilters';
 import { useNavigation } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
-import { Animated as RNAnimated } from 'react-native';
 import { supabase } from '../services/supabase';
 const looksLikeUuid = (v: any) => typeof v === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 import TierName from './TierName';
@@ -348,8 +347,8 @@ function SingleImage({
         style={{ width, height, transform: editStyle(item, width, height).transform }}
         resizeMode={editStyle(item, width, height).fit}
         onLoad={() => setStatus('ok')}
-        onError={(e) => {
-          console.log('[IMG_ERR]', item.url, e.nativeEvent.error);
+        onError={() => {
+          console.log('[IMG_ERR]');
           setStatus('error');
         }}
       />
@@ -457,7 +456,7 @@ function CarouselImageItem({
         source={{ uri: item.url }}
         style={{ width, height, transform: editStyle(item,width,height).transform }}
         resizeMode={editStyle(item,width,height).fit}
-        onError={(e: any) => console.log('[CAROUSEL_IMG_ERR]', item.url, e.nativeEvent.error)}
+        onError={() => console.log('[CAROUSEL_IMG_ERR]')}
       />
       <EditOverlays item={item} />
     </View>

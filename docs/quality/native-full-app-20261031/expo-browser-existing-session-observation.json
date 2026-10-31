@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31T06:46:06Z",
+  "observedBy": "root",
+  "scope": "Read-only verification of the existing Expo browser session and the configured Platinum Circles project. This is separate from the earlier signed-out local EAS CLI observation.",
+  "applicationHead": "e173b2dbcf253342be5683fa85f102aa38065411",
+  "observations": {
+    "initialNavigation": "https://expo.dev",
+    "signedInAccountUrl": "https://expo.dev/accounts/donadmiral",
+    "accountSelector": "Switch account: donadmiral",
+    "projectUrl": "https://expo.dev/accounts/donadmiral/projects/platinum-circles",
+    "projectTitle": "@donadmiral/platinum-circles — Expo",
+    "detailsDrawer": {
+      "slug": "platinum-circles",
+      "owner": "donadmiral",
+      "projectId": "6962a2bb-3ebe-4ff8-8d35-e4fb58271259"
+    },
+    "projectIdentityMatchesRepository": true,
+    "latestVisibleProductionBuild": {
+      "status": "Succeeded",
+      "platform": "iOS App Store build",
+      "shortSource": "1bb8246",
+      "id": "86c48f11-76b2-4d8a-95b8-a8cc1e9bac3a",
+      "limit": "Overview metadata only. The build details and source archive were not opened in this check. This is not the current e173 candidate."
+    },
+    "latestVisibleSubmission": {
+      "status": "Succeeded",
+      "platform": "iOS App Store submission",
+      "version": "1.1.0",
+      "buildShortId": "86c48f11",
+      "id": "ba5d0313-eef8-4e46-ab72-dd57be307875",
+      "limit": "Expo overview metadata does not verify current Apple processing, TestFlight installation, or a new submission."
+    }
+  },
+  "conclusions": {
+    "browserSession": "Existing authenticated access is available for the expected Expo account and project.",
+    "cliSession": "Unchanged from the earlier supported whoami result: Not logged in. Browser cookies were not extracted or copied to the CLI.",
+    "signingCredentials": "Current remote validity remains unverified; no credential values were opened or inspected.",
+    "releaseGate": "Full installed-app acceptance is still incomplete. No build, submission, promotion, or production capability change was performed."
+  },
+  "authenticationBoundary": "The browser was already signed in. No password, OTP, API key, session token, cookie or credential file was read; no Expo login or Apple sign-in retry was attempted.",
+  "timingLimit": "recordedAtUtc is the clock read after these observations, not a claimed timestamp for each individual browser action."
+}

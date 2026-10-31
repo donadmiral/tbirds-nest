@@ -1,0 +1,155 @@
+{
+  "verifiedAt": "2026-10-30T21:00:45.226248+00:00",
+  "scope": "Source and synthetic database/transport execution. Hosted installation and provider acceptance are not established.",
+  "hostedInstalled": false,
+  "catalogueActivated": false,
+  "schemaDefaults": {
+    "originalUploadReadiness": "unchanged from original migration, false on installation",
+    "catalogueIngestionEnabled": false,
+    "cataloguePlaybackEnabled": false,
+    "maintenanceEnabled": false,
+    "providerCredentials": 0,
+    "signedGrants": 0
+  },
+  "cases": [
+    {
+      "command": "node supabase/tests/rpc-authorization/test-music-operations.mjs",
+      "tests": 19,
+      "passed": 19,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "node supabase/tests/rpc-authorization/test-licensed-catalogue.mjs",
+      "tests": 22,
+      "passed": 22,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "MUSIC_PIPELINE_FIXTURE=1 node supabase/tests/rpc-authorization/test-original-music-library.mjs",
+      "tests": 31,
+      "passed": 31,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "node tests/quality/catalogue-ingestion.cjs",
+      "tests": 11,
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "node tests/quality/music-maintenance.cjs",
+      "tests": 14,
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "node admin-web/tests/music-operations.cjs",
+      "tests": 6,
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0
+    }
+  ],
+  "compilerChecks": [
+    {
+      "command": "npx tsc --noEmit (admin-web)",
+      "result": "passed"
+    },
+    {
+      "command": "node node_modules/eslint/bin/eslint.js app/music app/api/music/report/route.ts lib/musicReport.ts --max-warnings 0 (admin-web)",
+      "result": "passed, zero errors or warnings"
+    },
+    {
+      "command": "tsc --noEmit --skipLibCheck --target ES2022 --module ESNext --moduleResolution bundler --allowImportingTsExtensions <both new handler.ts files>",
+      "result": "passed"
+    },
+    {
+      "command": "DENO_TLS_CA_STORE=system npx --yes deno@2.1.4 check --node-modules-dir=none --no-lock supabase/functions/music-maintenance/index.ts supabase/functions/music-catalogue-ingest/index.ts",
+      "result": "passed, actual pinned runtime and npm:@supabase/supabase-js@2.112.3 dependency graph",
+      "certificateHandling": "Used operating-system trusted certificate store after default embedded store did not trust environment proxy. TLS verification was retained."
+    }
+  ],
+  "sourceFiles": [
+    {
+      "path": "supabase/migrations/20261030203619_music_catalogue_operations_and_cleanup.sql",
+      "sha256": "36500836cd925af7aade1a6bff7d85e547fab9c00c5306fb0130cbca9ce7d0bd"
+    },
+    {
+      "path": "supabase/migrations/20261030204339_licensed_catalogue_pipeline.sql",
+      "sha256": "25914fee9c333ab9802793c4737ad467d0b7d712e603e71769a384350046a849"
+    },
+    {
+      "path": "supabase/functions/music-maintenance/index.ts",
+      "sha256": "80709e750f339de4984ee509b8454b3bab02d540b3aebd3d297193e61ded230e"
+    },
+    {
+      "path": "supabase/functions/music-maintenance/handler.ts",
+      "sha256": "d111e7a50e852dc952263aab1afeeed9a3d034d5845f5de5a34a0b6f97fabe3f"
+    },
+    {
+      "path": "supabase/functions/music-catalogue-ingest/index.ts",
+      "sha256": "449fec2818d6b8401be14aebc6b79523a12f7f8e5c1deb786a2c08918e98d198"
+    },
+    {
+      "path": "supabase/functions/music-catalogue-ingest/handler.ts",
+      "sha256": "a239a2e8dfa8d31ccf95e31df04a67766c6c9d3b1e6fa1a066858fef8dc594f6"
+    },
+    {
+      "path": "admin-web/app/music/actions.ts",
+      "sha256": "0ce4155d9c4d8888868e73887e1daee3fcdbc94233ff4ccd4103d00173d58804"
+    },
+    {
+      "path": "admin-web/app/music/page.tsx",
+      "sha256": "9776a2540870014fed763b8e9f4ff2b2f2b526b22135e6ff0df179d0f22eaf0a"
+    },
+    {
+      "path": "admin-web/app/music/OperationsPanel.tsx",
+      "sha256": "511289ccca2d16436ec8883458dae73f37876d5cf8a63da783ee230023221998"
+    },
+    {
+      "path": "admin-web/app/api/music/report/route.ts",
+      "sha256": "e8100524b380ff06ff5ecf5b6bf6605e775c982eed61ed222c29679bde9cc825"
+    },
+    {
+      "path": "admin-web/lib/musicReport.ts",
+      "sha256": "4b17a981cd381b6428b515fec5a6e3db838472362e62370d75413c2498177258"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/test-music-operations.mjs",
+      "sha256": "723631d7d96a511478935557dc1077668e9a284cde7ff42a52d186b8db873825"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/test-licensed-catalogue.mjs",
+      "sha256": "26a5499396705b9a84cddfd34d5cfd99ba13fe4541e8e526e27b8a14b0a8a6af"
+    },
+    {
+      "path": "tests/quality/music-maintenance.cjs",
+      "sha256": "cf2f0feb19d8d5b4f9f08e0e8dc96eb10ab0f00202a308e92b5e109ed3203437"
+    },
+    {
+      "path": "tests/quality/catalogue-ingestion.cjs",
+      "sha256": "bbeb021884e6cbe9f2b4c859ff23e64724dc01fd26e4467b547314146e50868d"
+    },
+    {
+      "path": "admin-web/tests/music-operations.cjs",
+      "sha256": "945a2df8b7010df0e48214ace35b107eb4469cd8c4bd6898166c655e01c4ed9a"
+    },
+    {
+      "path": "supabase/ops/check-music-operations-postflight.sql",
+      "sha256": "048fdc41fdb4f889cc67a4e18c40516a7150b19faae6c489fd5f479c82347fd5"
+    }
+  ],
+  "independentReview": "../backend-acceptance-20261030/music-pipeline-independent-review.json",
+  "remainingLimits": [
+    "Hosted supported migration connector remains stalled. No installation or activation inferred.",
+    "Single-connection PGlite tests verify SQL/state/permissions but not concurrent hosted contention.",
+    "Synthetic Storage metadata represents Storage API results. Actual provider byte erasure and managed-trigger compatibility remain acceptance work.",
+    "Selected provider adapter, agreement mapping, verified territory source and royalty-qualified reporting depend on the actual licensed-provider contract.",
+    "No physical device behavior inferred."
+  ]
+}

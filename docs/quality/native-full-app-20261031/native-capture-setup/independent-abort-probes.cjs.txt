@@ -1,0 +1,43 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+const assert = require('node:assert/strict');
+const { createRequire } = require('node:module');
+const root = process.cwd();
+const filename = path.join(root, 'tests/quality/native-capture-setup.cjs');
+const actualRequire = createRequire(filename);
+let source = fs.readFileSync(filename, 'utf8');
+const anchor = 'downloads.push({ uri, hash, type });';
+assert.equal(source.split(anchor).length, 2);
+// Hold only the already-mocked native Asset bridge. Production adapter,
+// installed Asset/resolver, authority fixture and byte handling stay exact.
+source = source.replace(anchor, anchor + ' await options.beforeDownload?.();');
+source += '\nmodule.exports = { assetsRuntime };';
+const moduleRecord = { exports: {} };
+vm.runInNewContext(source, {
+  module: moduleRecord, exports: moduleRecord.exports,
+  require: Object.assign(name => name === 'node:test' ? () => {} : actualRequire(name), { resolve: actualRequire.resolve }),
+  __dirname: path.dirname(filename), __filename: filename,
+  Buffer, Headers, Request, Response, URL, AbortController, console, setTimeout, clearTimeout,
+}, { filename });
+(async () => {
+  const outcomes = [];
+  const first = await moduleRecord.exports.assetsRuntime('android');
+  const pre = new AbortController(); pre.abort();
+  await assert.rejects(first.adapter.fetch(first.urls[0].url, { credentials: 'omit', redirect: 'error', signal: pre.signal }), error => error.name === 'AbortError');
+  assert.equal(first.downloads.length, 0); assert.equal(first.handles.length, 0);
+  outcomes.push({ check: 'already-aborted Android request', passed: true, nativeMaterializations: 0, handlesOpened: 0 });
+  let release, signalStart;
+  const started = new Promise(resolve => { signalStart = resolve; });
+  const held = new Promise(resolve => { release = resolve; });
+  const second = await moduleRecord.exports.assetsRuntime('android', { beforeDownload: () => { signalStart(); return held; } });
+  const abort = new AbortController();
+  const request = second.adapter.fetch(second.urls[2].url, { credentials: 'omit', redirect: 'error', signal: abort.signal });
+  const rejected = assert.rejects(request, error => error.name === 'AbortError');
+  await started; abort.abort(); release(); await rejected;
+  assert.equal(second.downloads.length, 1); assert.equal(second.handles.length, 1); assert.equal(second.handles[0].closed, 1);
+  const last = second.fixture.receipt.media.at(-1);
+  assert.equal(last.phase, 'cancelled'); assert.equal(last.bytes, 0);
+  outcomes.push({ check: 'Android abort during local materialization', passed: true, nativeMaterializations: 1, handlesOpened: 1, handlesClosed: 1, streamedBytes: 0, finalPhase: last.phase });
+  process.stdout.write(JSON.stringify({ cases: 2, passed: 2, failed: 0, boundaries: 'No actual Android bridge executes. A pending public Asset native call cannot be cancelled by this adapter; when it resolves, the actual adapter immediately closes its handle and rejects without streaming bytes. Production downloader deadlines are unchanged.', outcomes }, null, 2) + '\n');
+})().catch(error => { console.error(error); process.exitCode = 1; });

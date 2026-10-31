@@ -1,11 +1,19 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { ArrowLeft, ArrowRight, CheckCircle2, ExternalLink, FileText, ShieldCheck } from "lucide-react";
+import { ProductDialog } from "@/components/ProductDialog";
+import styles from "@/app/jobs/JobsWorkspace.module.css";
 import { createClient } from "@/lib/supabase/client";
 import { isJobDeadlinePassed, STATUS_META, type ApplicationStatus } from "@/lib/jobs";
 import { APPLICATION_CV_BUCKET, applicationCvFile } from "../../shared/applicationCv";
 
-export function ApplyPanel({ jobId, applyUrl, deadline }: { jobId: string; applyUrl: string | null; deadline: string | null }) {
+export function ApplyPanel(props: Parameters<typeof ApplyPanelContent>[0]) {
+  return <ApplyPanelContent key={props.jobId} {...props} />;
+}
+
+function ApplyPanelContent({ jobId, applyUrl, deadline, jobTitle, company }: { jobId: string; applyUrl: string | null; deadline: string | null; jobTitle?: string; company?: string }) {
   const [supabase] = useState(createClient);
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const [applied, setApplied] = useState<ApplicationStatus | null>(null);
@@ -13,6 +21,7 @@ export function ApplyPanel({ jobId, applyUrl, deadline }: { jobId: string; apply
   const [retry, setRetry] = useState(0);
   const sending = useRef(false);
   const [open, setOpen] = useState(false);
+  const [review, setReview] = useState(false);
   const [coverNote, setCoverNote] = useState("");
   const [phone, setPhone] = useState("");
   const [portfolio, setPortfolio] = useState("");
@@ -23,14 +32,11 @@ export function ApplyPanel({ jobId, applyUrl, deadline }: { jobId: string; apply
   const generation = useRef(0);
   const account = useRef<string | null>(null);
 
-  useEffect(() => {
-    uploaded.current = null;
-    setCv(null); setOpen(false); setCoverNote(""); setPhone(""); setPortfolio("");
-  }, [jobId]);
+
 
   useEffect(() => {
     let cancelled = false;
-    const requestGeneration = ++generation.current;
+    const requestGeneration = generation.current += 1;
     const current = () => !cancelled && requestGeneration === generation.current;
     async function checkApplication() {
       setChecking(true);
@@ -62,7 +68,7 @@ export function ApplyPanel({ jobId, applyUrl, deadline }: { jobId: string; apply
         account.current = next;
         generation.current += 1;
         uploaded.current = null;
-        setCv(null); setOpen(false); setApplied(null); setCoverNote(""); setPhone(""); setPortfolio(""); setRetry(n => n + 1);
+        setCv(null); setOpen(false); setReview(false); setApplied(null); setCoverNote(""); setPhone(""); setPortfolio(""); setRetry(n => n + 1);
       }
     });
     return () => { cancelled = true; generation.current += 1; listener.subscription.unsubscribe(); };
@@ -132,7 +138,7 @@ export function ApplyPanel({ jobId, applyUrl, deadline }: { jobId: string; apply
       }
       if (token !== generation.current) return;
       setApplied(status);
-      setOpen(false);
+      setOpen(false); setReview(false);
     } catch (reason) {
       if (token === generation.current) setError(reason && typeof reason === "object" && "message" in reason ? String(reason.message) : "Could not send application. Please try again.");
     } finally {
@@ -141,73 +147,63 @@ export function ApplyPanel({ jobId, applyUrl, deadline }: { jobId: string; apply
     }
   }
 
-  if (applied) {
-    return <p className="rounded-md bg-success/15 px-4 py-3 text-[14px] text-success">{applied === "applied" ? "Application sent. The recruiter will see it in their applicants list." : "Application status: " + (STATUS_META[applied]?.label ?? applied) + "."}</p>;
+  function reviewApplication() {
+    setError(null);
+    try {
+      if (isJobDeadlinePassed(deadline)) throw new Error("The application deadline has passed.");
+      if (portfolio.trim()) {
+        let url: URL;
+        try { url = new URL(portfolio.trim()); } catch { throw new Error("Enter a complete portfolio URL starting with https://."); }
+        if (!["http:", "https:"].includes(url.protocol)) throw new Error("Use an http or https portfolio URL.");
+      }
+      if (cv) applicationCvFile(cv.name, cv.size);
+      setReview(true);
+    } catch (reason) { setError(reason instanceof Error ? reason.message : "Check your application details."); }
   }
 
-  if (isJobDeadlinePassed(deadline)) return <p className="rounded-md bg-surface px-4 py-3 text-[14px] text-ink/60">The application deadline has passed.</p>;
-
+  if (applied) return <div className={styles.form}><div className={styles.notice}><CheckCircle2 size={20} aria-hidden /><div>{applied === "applied" ? "Application sent. The recruiter will see it in their applicants list." : "Application status: " + (STATUS_META[applied]?.label ?? applied) + "."}</div></div><Link href="/jobs/applications" className={styles.button}>Track your application <ArrowRight size={16} aria-hidden /></Link></div>;
+  if (isJobDeadlinePassed(deadline)) return <p className={styles.notice}>The application deadline has passed.</p>;
   if (applyUrl) {
-    return (
-      <a href={applyUrl} target="_blank" rel="noopener noreferrer" className="inline-block rounded-md bg-pearl px-6 py-3 text-[15px] font-semibold text-on-pearl transition-opacity hover:opacity-90">
-        Apply on company site
-      </a>
-    );
+    let safeUrl: string | null = null;
+    try { const url = new URL(applyUrl); if (["https:", "http:"].includes(url.protocol)) safeUrl = url.href; } catch { /* Invalid external destinations cannot be opened. */ }
+    return safeUrl ? <div className={styles.form}><a href={safeUrl} target="_blank" rel="noopener noreferrer" className={styles.primary}>Apply on company site <ExternalLink size={16} aria-hidden /></a><p className={styles.help}>Opens the employer’s application site in a new tab. Your application is managed there.</p></div> : <p role="alert" className={styles.error}>The employer’s application link is unavailable. Message the employer for the correct link.</p>;
   }
-
-  if (!open) {
-    return (
-      <div>
-        <button disabled={checking || !!error} onClick={() => setOpen(true)} className="rounded-md bg-pearl px-6 py-3 text-[15px] font-semibold text-on-pearl transition-opacity hover:opacity-90">
-          Apply
-        </button>
-        {error ? <p role="alert" className="mt-2 text-[13px] text-danger">{error} <button onClick={() => setRetry((n) => n + 1)} className="underline">Retry</button></p> : null}
-        {signedIn === false ? <p className="mt-2 text-[13px] text-muted">You will need to sign in to send the application.</p> : null}
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-3 rounded-lg border border-ink/10 p-4">
-      <label htmlFor="application-cover" className="text-sm font-semibold text-ink">Cover note (optional)</label>
-      <textarea id="application-cover" value={coverNote} disabled={pending}
-        onChange={(e) => setCoverNote(e.target.value)}
-        placeholder="Cover note (optional)"
-        rows={4}
-        className="rounded-md bg-surface px-4 py-3 text-[14px] text-ink placeholder:text-muted outline-none focus:bg-surface-elevated"
-      />
-      <label htmlFor="application-phone" className="text-sm font-semibold text-ink">Phone (optional)</label>
-      <input id="application-phone" type="tel" autoComplete="tel" value={phone} disabled={pending}
-        onChange={(e) => setPhone(e.target.value)}
-        placeholder="Phone (optional)"
-        className="rounded-md bg-surface px-4 py-3 text-[14px] text-ink placeholder:text-muted outline-none focus:bg-surface-elevated"
-      />
-      <label htmlFor="application-portfolio" className="text-sm font-semibold text-ink">Portfolio URL (optional)</label>
-      <input id="application-portfolio" type="url" value={portfolio} disabled={pending}
-        onChange={(e) => setPortfolio(e.target.value)}
-        placeholder="Portfolio URL (optional)"
-        className="rounded-md bg-surface px-4 py-3 text-[14px] text-ink placeholder:text-muted outline-none focus:bg-surface-elevated"
-      />
-      <label htmlFor="application-cv" className="text-sm font-semibold text-ink">CV (optional)</label>
-      <input id="application-cv" type="file" accept=".pdf,.doc,.docx,.txt" disabled={pending}
-        aria-describedby="application-cv-help" className="rounded-md bg-surface p-3 text-sm text-ink"
-        onChange={e => {
-          const file = e.target.files?.[0] ?? null;
-          try { if (file) applicationCvFile(file.name, file.size); setCv(file); uploaded.current = null; setError(null); }
-          catch (reason) { e.target.value = ""; setCv(null); setError(reason instanceof Error ? reason.message : "Choose another CV."); }
-        }} />
-      <p id="application-cv-help" className="text-[12px] text-muted">PDF, Word or text, up to 8 MB. Your CV is shared with this job’s hiring team.</p>
-      {cv ? <button type="button" disabled={pending} className="self-start text-sm text-accent underline" onClick={() => { setCv(null); uploaded.current = null; const input = document.getElementById("application-cv") as HTMLInputElement | null; if (input) input.value = ""; }}>Remove CV</button> : null}
-      {error ? <p role="alert" className="text-[13px] text-danger">{error}</p> : null}
-      <div className="flex gap-2">
-        <button onClick={submit} disabled={pending} className="rounded-md bg-pearl px-6 py-2.5 text-[14px] font-semibold text-on-pearl disabled:opacity-40">
-          {pending ? "Sending" : "Send application"}
-        </button>
-        <button disabled={pending} onClick={() => setOpen(false)} className="rounded-md bg-surface px-4 py-2.5 text-[14px] text-ink">
-          Cancel
-        </button>
-      </div>
-      <p className="text-[12px] text-muted">Recruiters also see your Platinum profile with the application.</p>
-    </div>
-  );
+  if (!open) return <div className={styles.form}>
+    {signedIn === false ? <Link href="/login" className={styles.primary}>Sign in to apply</Link> : <button disabled={checking || !!error} onClick={() => setOpen(true)} className={styles.primary}>{checking ? "Checking application…" : "Apply"}<ArrowRight size={16} aria-hidden /></button>}
+    {error ? <p role="alert" className={styles.error}>{error} <button onClick={() => setRetry(n => n + 1)} className="underline">Retry</button></p> : <p className={styles.help}>Review your profile, résumé and details before you send.</p>}
+  </div>;
+  return <>
+    <form className={styles.form} onSubmit={event => { event.preventDefault(); reviewApplication(); }}>
+      <label htmlFor="application-cover">Cover note <span className={styles.help}>(optional)</span></label>
+      <textarea id="application-cover" value={coverNote} disabled={pending} onChange={e => setCoverNote(e.target.value)} placeholder="Tell the hiring team why this role interests you" rows={4} maxLength={10000} />
+      <label htmlFor="application-phone">Phone <span className={styles.help}>(optional)</span></label>
+      <input id="application-phone" type="tel" autoComplete="tel" value={phone} disabled={pending} onChange={e => setPhone(e.target.value)} maxLength={80} />
+      <label htmlFor="application-portfolio">Portfolio URL <span className={styles.help}>(optional)</span></label>
+      <input id="application-portfolio" type="url" value={portfolio} disabled={pending} onChange={e => setPortfolio(e.target.value)} placeholder="https://" maxLength={2048} />
+      <label htmlFor="application-cv">Résumé / CV <span className={styles.help}>(optional)</span></label>
+      <input id="application-cv" type="file" accept=".pdf,.doc,.docx,.txt" disabled={pending} aria-describedby="application-cv-help" onChange={e => {
+        const file = e.target.files?.[0] ?? null;
+        try { if (file) applicationCvFile(file.name, file.size); setCv(file); uploaded.current = null; setError(null); }
+        catch (reason) { e.target.value = ""; setCv(null); setError(reason instanceof Error ? reason.message : "Choose another CV."); }
+      }} />
+      <p id="application-cv-help" className={styles.help}>PDF, Word or text, up to 8 MB. Your CV is shared with this job’s hiring team.</p>
+      {cv ? <div className={styles.notice}><FileText size={18} aria-hidden /><span className="min-w-0 flex-1 break-words">{cv.name}</span><button type="button" disabled={pending} className="text-sm underline" onClick={() => { setCv(null); uploaded.current = null; const input = document.getElementById("application-cv") as HTMLInputElement | null; if (input) input.value = ""; }}>Remove CV</button></div> : null}
+      {error && !review ? <p role="alert" className={styles.error}>{error}</p> : null}
+      <div className={styles.actions}><button type="submit" disabled={pending} className={styles.primary}>Review application <ArrowRight size={16} aria-hidden /></button><button type="button" disabled={pending} onClick={() => setOpen(false)} className={styles.button}>Cancel</button></div>
+      <p className={styles.help}>Recruiters also see your Platinum profile with the application. Nothing is sent until you confirm.</p>
+    </form>
+    <ProductDialog open={review} title="Review application" description="Check your details before sending them to the hiring team." busy={pending} onClose={() => setReview(false)}>
+      {jobTitle ? <div className={styles.notice}><BriefcaseReview /><div><strong>{jobTitle}</strong>{company ? <p className={styles.help}>{company}</p> : null}</div></div> : null}
+      <dl className={styles.review}>
+        <div><dt>Résumé / CV</dt><dd>{cv ? cv.name : "Apply with your Platinum profile"}</dd></div>
+        <div><dt>Cover note</dt><dd>{coverNote.trim() || "No cover note added"}</dd></div>
+        {phone.trim() ? <div><dt>Phone</dt><dd>{phone.trim()}</dd></div> : null}
+        {portfolio.trim() ? <div><dt>Portfolio</dt><dd>{portfolio.trim()}</dd></div> : null}
+      </dl>
+      <p className={styles.notice}><ShieldCheck size={19} aria-hidden />Your profile and the details shown here will be shared with this job’s hiring team.</p>
+      {error ? <p role="alert" className={styles.error + " mt-3"}>{error}</p> : null}
+      <div className={styles.actions + " mt-5"}><button type="button" disabled={pending} onClick={() => setReview(false)} className={styles.button}><ArrowLeft size={16} aria-hidden /> Edit application</button><button type="button" disabled={pending} onClick={submit} className={styles.primary}>{pending ? "Sending…" : "Submit application"}</button></div>
+    </ProductDialog>
+  </>;
 }
+function BriefcaseReview() { return <FileText size={21} aria-hidden />; }

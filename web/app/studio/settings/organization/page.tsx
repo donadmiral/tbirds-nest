@@ -19,9 +19,12 @@ import { ArrowLeft, Building2, Clock, Crown, MapPin, Plus, Shield, Trash2, UserP
 import { createClient } from "@/lib/supabase/client";
 import { Panel, PillTabs } from "@/components/ui";
 import { ErrorState } from "@/components/ErrorState";
+import { useStudio } from "@/components/StudioShell";
+import { useCurrentTime } from "@/lib/useCurrentTime";
+import { withTimeout } from "@/lib/withTimeout";
 import {
   ORG_ROLES, SURFACES, type OrgRole, type Surface, type OrgNode,
-  orgTree, createChild, addMember, removeMember, transferOwnership, setSurface, grantDelegation, revokeDelegation,
+  createChild, addMember, removeMember, transferOwnership, setSurface, grantDelegation, revokeDelegation,
 } from "@/lib/org";
 
 type Org = { id: string; kind: string; name: string; slug: string | null; profile_id: string | null; parent_id: string | null };
@@ -53,7 +56,9 @@ function when(s: string | null) {
 }
 
 export default function OrganizationPage() {
-  const supabase = useRef(createClient()).current;
+  const { accountId } = useStudio();
+  const now = useCurrentTime();
+  const [supabase] = useState(createClient);
   const [tab, setTab] = useState("team");
   const [uid, setUid] = useState<string | null>(null);
   const [org, setOrg] = useState<Org | null>(null);
@@ -66,6 +71,8 @@ export default function OrganizationPage() {
   const [failed, setFailed] = useState<string | false>(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const mounted = useRef(false), generation = useRef(0), working = useRef(false);
+  const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // add-member form
   const [newUser, setNewUser] = useState("");
@@ -79,74 +86,90 @@ export default function OrganizationPage() {
   const [agencyScopes, setAgencyScopes] = useState<Surface[]>(["content"]);
   const [agencyExpiry, setAgencyExpiry] = useState("");
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setFailed(false);
-    try {
-      const { data: sess } = await supabase.auth.getSession();
+  const load = useCallback(() => {
+    const version = ++generation.current;
+    const read = async () => {
+      const { data: sess, error: sessionError } = await supabase.auth.getSession();
       const me = sess.session?.user.id ?? null;
-      setUid(me);
-      if (!me) throw new Error("no session");
+      if (sessionError || me !== accountId) throw new Error("Your account changed. Reopen Team and access.");
+      if (!mounted.current || version !== generation.current) return null;
 
       const { data: o, error } = await supabase.from("organizations").select("id, kind, name, slug, profile_id, parent_id").eq("profile_id", me).maybeSingle();
       if (error) throw new Error(error.message + (error.code ? " (" + error.code + ")" : ""));
-      if (!o) throw new Error("No organization row has profile_id = " + me + ". Only a business account has one.");
-      setOrg(o as Org);
-
+      if (!o) throw new Error("This account does not have an organization workspace yet. Open a business account or contact support.");
       const [m, t, s, d, a] = await Promise.all([
         supabase.from("org_memberships").select("id, user_id, role, expires_at, created_at, profile:profiles!org_memberships_user_id_fkey(full_name, username, avatar_url)").eq("org_id", o.id).order("created_at"),
-        orgTree(o.id),
+        supabase.rpc("org_tree", { p_root: o.id }),
         supabase.from("org_surfaces").select("surface, enabled").eq("org_id", o.id),
         supabase.from("org_delegations").select("id, principal_org_id, client_org_id, scopes, expires_at, principal:organizations!org_delegations_principal_org_id_fkey(name, slug), client:organizations!org_delegations_client_org_id_fkey(name, slug)").or("client_org_id.eq." + o.id + ",principal_org_id.eq." + o.id),
         supabase.from("org_audit_log").select("id, action, target_type, target_id, meta, created_at, actor:profiles!org_audit_log_actor_id_fkey(full_name, username)").eq("org_id", o.id).order("created_at", { ascending: false }).limit(60),
       ]);
+      for (const result of [m, t, s, d, a]) if (result.error) throw new Error("Organization data could not be loaded. Please try again.");
+      return { me, o, m, t, s, d, a };
+    };
+    return withTimeout(read()).then(result => {
+      if (!result || !mounted.current || version !== generation.current) return;
+      const { me, o, m, t, s, d, a } = result;
+      setUid(me);
+      setOrg(o as Org);
       setMembers(((m.data ?? []) as unknown) as Member[]);
-      setTree(t);
+      setTree((t.data ?? []) as OrgNode[]);
       setSurfaces(Object.fromEntries(((s.data ?? []) as { surface: string; enabled: boolean }[]).map((r) => [r.surface, r.enabled])));
       setDelegations(((d.data ?? []) as unknown) as Delegation[]);
       setAudit(((a.data ?? []) as unknown) as Audit[]);
-    } catch (e) {
-      setFailed(e instanceof Error ? e.message : "Unknown error");
-    } finally {
-      setLoading(false);
-    }
-  }, [supabase]);
+      setFailed(false);
+    }).catch((e: unknown) => {
+      if (mounted.current && version === generation.current) setFailed(e instanceof Error ? e.message : "Organization could not be loaded.");
+    }).finally(() => {
+      if (mounted.current && version === generation.current) setLoading(false);
+    });
+  }, [supabase, accountId]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { const requests = generation; mounted.current = true; void load(); return () => { mounted.current = false; requests.current++; if (noticeTimer.current) clearTimeout(noticeTimer.current); }; }, [load]);
 
   const myRole = useMemo(() => members.find((m) => m.user_id === uid)?.role ?? null, [members, uid]);
   const canManage = myRole === "owner" || myRole === "admin";
-  const flash = (t: string) => { setNotice(t); setTimeout(() => setNotice(null), 2800); };
+  const flash = (t: string) => { if (!mounted.current) return; setNotice(t); if (noticeTimer.current) clearTimeout(noticeTimer.current); noticeTimer.current = setTimeout(() => { if (mounted.current) setNotice(null); }, 5000); };
 
   async function run(label: string, fn: () => Promise<{ ok: boolean; error?: string } | boolean | string | null>) {
+    if (working.current) return;
+    working.current = true;
     setBusy(true);
     try {
+      const current = await supabase.auth.getSession();
+      if (!mounted.current) return;
+      if (current.error || current.data.session?.user.id !== accountId) throw new Error("Your account changed. Reopen Team and access.");
       const r = await fn();
+      if (!mounted.current) return;
       const ok = typeof r === "object" && r !== null ? r.ok : !!r;
       const err = typeof r === "object" && r !== null ? r.error : undefined;
       flash(ok ? label : err ?? "That did not go through");
       if (ok) await load();
+    } catch (error) {
+      flash(error instanceof Error ? error.message : "This action was not confirmed. Refresh before trying again.");
     } finally {
-      setBusy(false);
+      working.current = false;
+      if (mounted.current) setBusy(false);
     }
   }
 
   if (loading) return <p className="py-14 text-center text-sm text-muted">Loading</p>;
-  if (failed || !org) return <ErrorState title="Could not load your organization" line={failed || "No organization found for this account."} onRetry={() => void load()} />;
+  if (failed || !org) return <ErrorState title="Could not load your organization" line={failed || "No organization found for this account."} onRetry={() => { setLoading(true); void load(); }} />;
 
   return (
     <div>
       <div className="mb-4 flex items-start gap-3">
         <Link href="/studio/settings" className="mt-1 rounded-full p-1.5 text-muted transition-colors duration-[140ms] hover:bg-surface hover:text-ink" aria-label="Back to settings"><ArrowLeft size={18} /></Link>
         <div className="min-w-0 flex-1">
-          <h1 className="font-display text-[21px] leading-tight text-porcelain">{org.name}</h1>
+          <h1 className="font-display text-[21px] leading-tight text-porcelain">Team & access</h1>
           <p className="mt-1 text-[13px] text-muted">
-            {org.kind} {org.slug ? "· @" + org.slug : ""} · your role: <span className="font-semibold text-ink">{myRole ? ROLE_LABEL[myRole] : "member"}</span>
+            {org.name} · {org.kind} {org.slug ? "· @" + org.slug : ""} · your role: <span className="font-semibold text-ink">{myRole ? ROLE_LABEL[myRole] : "member"}</span>
           </p>
         </div>
       </div>
 
-      {notice ? <div className="mb-3 rounded-xl bg-pearl/12 px-4 py-2.5 text-[13px] text-ink">{notice}</div> : null}
+      <Link href="/studio/settings#business-access-team" className="mb-4 inline-flex min-h-10 items-center gap-2 rounded-lg border border-ink/15 px-4 py-2 text-sm font-semibold">Manage business sign-in codes and devices <ArrowLeft size={14} className="rotate-180" /></Link>
+      {notice ? <div role="status" className="mb-3 rounded-xl bg-pearl/12 px-4 py-2.5 text-[13px] text-ink">{notice}</div> : null}
 
       <div className="mb-4"><PillTabs tabs={TABS.map((t) => ({ key: t.key, label: t.label }))} active={tab} onSelect={setTab} /></div>
 
@@ -155,7 +178,7 @@ export default function OrganizationPage() {
           <Panel title="People" icon={<Users size={15} />}>
             <div className="flex flex-col">
               {members.map((m) => {
-                const expired = m.expires_at ? new Date(m.expires_at).getTime() < Date.now() : false;
+                const expired = m.expires_at && now !== null ? new Date(m.expires_at).getTime() < now : false;
                 return (
                   <div key={m.id} className="flex items-center gap-3 border-b border-ink/8 py-2.5 last:border-0">
                     {m.profile?.avatar_url ? (
@@ -193,11 +216,11 @@ export default function OrganizationPage() {
             <div className="mt-4">
               <Panel title="Add someone" icon={<UserPlus size={15} />}>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_180px_160px_auto]">
-                  <input value={newUser} onChange={(e) => setNewUser(e.target.value)} placeholder="@username" className="rounded-xl border border-ink/15 px-3 py-2 text-[13.5px] outline-none focus:border-pearl" />
-                  <select value={newRole} onChange={(e) => setNewRole(e.target.value as OrgRole)} className="rounded-xl border border-ink/15 px-3 py-2 text-[13.5px]">
+                  <input aria-label="Member username" value={newUser} onChange={(e) => setNewUser(e.target.value)} placeholder="@username" className="rounded-xl border border-ink/15 px-3 py-2 text-[13.5px] outline-none focus:border-pearl" />
+                  <select aria-label="Organization role" value={newRole} onChange={(e) => setNewRole(e.target.value as OrgRole)} className="rounded-xl border border-ink/15 px-3 py-2 text-[13.5px]">
                     {ORG_ROLES.filter((r) => myRole === "owner" || r !== "owner").map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
                   </select>
-                  <input type="date" value={newExpiry} onChange={(e) => setNewExpiry(e.target.value)} title="Access ends on this date, optional" className="rounded-xl border border-ink/15 px-3 py-2 text-[13.5px]" />
+                  <input aria-label="Member access expiry" type="date" value={newExpiry} onChange={(e) => setNewExpiry(e.target.value)} title="Access ends on this date, optional" className="rounded-xl border border-ink/15 px-3 py-2 text-[13.5px]" />
                   <button disabled={busy || !newUser.trim()} onClick={() => void run("Added", async () => { const r = await addMember(org.id, newUser.replace(/^@/, ""), newRole, newExpiry ? new Date(newExpiry).toISOString() : null); if (r.ok) { setNewUser(""); setNewExpiry(""); } return r; })}
                     className="rounded-full bg-ink px-4 py-2 text-[13px] font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40">Add</button>
                 </div>
@@ -230,11 +253,11 @@ export default function OrganizationPage() {
             <div className="mt-4">
               <Panel title="Add beneath this organization" icon={<Plus size={15} />}>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-[160px_1fr_auto]">
-                  <select value={childKind} onChange={(e) => setChildKind(e.target.value as "brand" | "location")} className="rounded-xl border border-ink/15 px-3 py-2 text-[13.5px]">
+                  <select aria-label="Organization unit type" value={childKind} onChange={(e) => setChildKind(e.target.value as "brand" | "location")} className="rounded-xl border border-ink/15 px-3 py-2 text-[13.5px]">
                     <option value="brand">Brand</option>
                     <option value="location">Location</option>
                   </select>
-                  <input value={childName} onChange={(e) => setChildName(e.target.value)} placeholder={childKind === "brand" ? "Brand name" : "Branch or store name"} className="rounded-xl border border-ink/15 px-3 py-2 text-[13.5px] outline-none focus:border-pearl" />
+                  <input aria-label="Organization unit name" value={childName} onChange={(e) => setChildName(e.target.value)} placeholder={childKind === "brand" ? "Brand name" : "Branch or store name"} className="rounded-xl border border-ink/15 px-3 py-2 text-[13.5px] outline-none focus:border-pearl" />
                   <button disabled={busy || !childName.trim()} onClick={() => void run("Added", async () => { const id = await createChild(org.id, childKind, childName.trim()); if (id) setChildName(""); return !!id; })}
                     className="rounded-full bg-ink px-4 py-2 text-[13px] font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40">Add</button>
                 </div>
@@ -258,7 +281,7 @@ export default function OrganizationPage() {
               );
             })}
           </div>
-          <p className="mt-3 text-[12px] text-muted">A desk switched off disappears from Studio's tabs for everyone in this organization. Settings cannot be switched off.</p>
+          <p className="mt-3 text-[12px] text-muted">A desk switched off disappears from Studio tabs for everyone in this organization. Settings cannot be switched off.</p>
         </Panel>
       ) : null}
 
@@ -299,7 +322,7 @@ export default function OrganizationPage() {
             <div className="mt-4">
               <Panel title="Grant an agency access" icon={<Clock size={15} />}>
                 <div className="flex flex-col gap-2">
-                  <input value={agencySlug} onChange={(e) => setAgencySlug(e.target.value)} placeholder="Agency's @username" className="rounded-xl border border-ink/15 px-3 py-2 text-[13.5px] outline-none focus:border-pearl" />
+                  <input aria-label="Agency username" value={agencySlug} onChange={(e) => setAgencySlug(e.target.value)} placeholder="Agency's @username" className="rounded-xl border border-ink/15 px-3 py-2 text-[13.5px] outline-none focus:border-pearl" />
                   <div className="flex flex-wrap gap-1.5">
                     {SURFACES.filter((s) => s !== "settings").map((s) => {
                       const on = agencyScopes.includes(s);
@@ -310,7 +333,7 @@ export default function OrganizationPage() {
                     })}
                   </div>
                   <div className="flex gap-2">
-                    <input type="date" value={agencyExpiry} onChange={(e) => setAgencyExpiry(e.target.value)} title="Access ends on this date, optional" className="rounded-xl border border-ink/15 px-3 py-2 text-[13.5px]" />
+                    <input aria-label="Agency access expiry" type="date" value={agencyExpiry} onChange={(e) => setAgencyExpiry(e.target.value)} title="Access ends on this date, optional" className="rounded-xl border border-ink/15 px-3 py-2 text-[13.5px]" />
                     <button disabled={busy || !agencySlug.trim() || agencyScopes.length === 0} onClick={() => void run("Access granted", async () => { const r = await grantDelegation(org.id, agencySlug.replace(/^@/, ""), agencyScopes, agencyExpiry ? new Date(agencyExpiry).toISOString() : null); if (r.ok) { setAgencySlug(""); setAgencyExpiry(""); } return r; })}
                       className="rounded-full bg-ink px-4 py-2 text-[13px] font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40">Grant</button>
                   </div>

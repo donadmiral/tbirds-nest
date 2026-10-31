@@ -1,0 +1,78 @@
+{
+  "buildLog": {
+    "bytes": 189944,
+    "sha256": "83a68339eeae2a4732196be46e059c7b4f4429d8e33fa79e8b949a571c8689b2",
+    "success": [
+      {
+        "line": 2321,
+        "text": "BUILD SUCCESSFUL in 16m 14s"
+      }
+    ]
+  },
+  "emulatorLog": {
+    "bytes": 8469,
+    "sha256": "3d4d27fed5e91cb0c201f6d536322ded52d50509b067dfbb97691117ab3c4f57",
+    "lines": [
+      {
+        "line": 1,
+        "text": "INFO         | Android emulator version 37.2.13.0 (build_id 16740729) (CL:N/A)"
+      },
+      {
+        "line": 2,
+        "text": "INFO         | Graphics backend: gfxstream"
+      },
+      {
+        "line": 6,
+        "text": "INFO         | emuglConfig_init: vulkan_mode_selected:lavapipe gles_mode_selected:swangle"
+      },
+      {
+        "line": 15,
+        "text": "INFO         | Storing crashdata in: /tmp/android-runner/emu-crash-37.2.13.db, detection is enabled for process: 6995"
+      },
+      {
+        "line": 19,
+        "text": "INFO         | initIcdPaths: ICD set to 'lavapipe', using Lavapipe ICD"
+      },
+      {
+        "line": 25,
+        "text": "INFO         | Selecting Vulkan device: llvmpipe (LLVM 21.0.0, 256 bits), Version: 1.4.318"
+      },
+      {
+        "line": 48,
+        "text": "INFO         | Graphics Adapter Vendor Google (Google Inc.)"
+      },
+      {
+        "line": 49,
+        "text": "INFO         | Graphics Adapter Android Emulator OpenGL ES Translator (Google SwiftShader)"
+      },
+      {
+        "line": 50,
+        "text": "INFO         | Graphics API Version OpenGL ES 3.0 (OpenGL ES 3.0 SwiftShader 4.0.0.1)"
+      },
+      {
+        "line": 87,
+        "text": "WARNING: cannnot unmap ptr 0x7f0ade001000 as it is in the protected range from 0x7f0a1e000000 to 0x7f0ade200000"
+      },
+      {
+        "line": 97,
+        "text": "INFO         | Boot completed in 31171 ms"
+      },
+      {
+        "line": 99,
+        "text": "WARNING      | adb command '/usr/local/lib/android/sdk/platform-tools/adb -s emulator-5556 shell logcat -G 2M ' failed: 'adb: device 'emulator-5556' not found'"
+      }
+    ]
+  },
+  "configuredGpuFlag": "software",
+  "observedVersion": "37.2.13.0",
+  "buildId": "16740729",
+  "graphicsBackend": "gfxstream",
+  "vulkanMode": "lavapipe",
+  "glesMode": "swangle",
+  "vulkanDevice": "llvmpipe (LLVM21.0.0,256bits), Vulkan1.4.318",
+  "openGlAdapter": "Android Emulator OpenGL ES Translator (Google SwiftShader)",
+  "openGlVersion": "OpenGL ES3.0 / SwiftShader4.0.0.1",
+  "crashDatabaseAdvertised": "/tmp/android-runner/emu-crash-37.2.13.db",
+  "crashDatabaseOrCoreRetained": false,
+  "faultingRendererComponentProven": false
+}

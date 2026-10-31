@@ -116,6 +116,7 @@ function transport(fetcher) {
       if(name==='react-native')return{Platform:{OS:'web'},AppState:{addEventListener(){throw Error('web transport fixture must not add native listeners');}}};
       if(name==='@react-native-async-storage/async-storage')return{};
       if(name==='react-native-url-polyfill/auto')return{};
+      if(name==='../../shared/authFetch')return compile('shared/authFetch.ts');
       throw Error(name);
     },
   });

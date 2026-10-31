@@ -1,0 +1,266 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-31T05:54:15.611590+00:00",
+  "scope": "Persisted bounded read-only assessment of retained stage4 SQL and request/transport evidence. The assessment and persistence made no new database call or migration attempt.",
+  "assessment": "SQL guards could support a later controlled retry after request-state resolution, but current evidence does not establish safe retry now. No SQL failure, access denial, pending approval form or approval rejection is proven for the retained stage4 invocation.",
+  "sourceContext": {
+    "publishedHead": "e173b2dbcf253342be5683fa85f102aa38065411",
+    "tree": "37ca8db90469d32a2a2d7b3069db54b522926530",
+    "stage4MatchesPublishedGitBlob": true,
+    "hashAlgorithm": "SHA-256",
+    "reviewedFiles": [
+      {
+        "path": "supabase/ops/qa/business-auth-staged-20261031/04_private_member_signin.sql",
+        "sha256": "ba49c5c8b8545952288ac1885bcf3421d4b42bb21c054d87391b891ed7edb749",
+        "bytes": 7894
+      },
+      {
+        "path": "supabase/ops/qa/business-auth-staged-20261031/candidate.json",
+        "sha256": "3e00d6077293257f71a31bef51c681a6fbc0b09bb247a0a00b07dcae881f7d94",
+        "bytes": 23549
+      },
+      {
+        "path": "supabase/ops/qa/business-auth-staged-20261031/README.md",
+        "sha256": "4a172ed43f6830bfe562a6ba62bf4b3a2c5201d37249ac7c9a0fd5dd71ff658d",
+        "bytes": 9862
+      },
+      {
+        "path": "supabase/tests/rpc-authorization/test-business-auth-staged.mjs",
+        "sha256": "6cd6721727e74dd13669b63900747fe9b4dbb71f7471fdcbc079c1fc9576c767",
+        "bytes": 12414
+      },
+      {
+        "path": "docs/quality/backend-acceptance-20261031/business-auth-retained-transport.json",
+        "sha256": "92f5197d8417af290665625c5272f8958b4daa60929e3c4c80b281c292655fd4",
+        "bytes": 2378
+      },
+      {
+        "path": "docs/quality/backend-acceptance-20261031/business-auth-resume-postflight.json",
+        "sha256": "1d00e4f4307b4250136c4e1b91de9160b1155cb7954cecc3afbf498285875394",
+        "bytes": 2447
+      },
+      {
+        "path": "docs/quality/backend-acceptance-20261031/installation-recovery.json",
+        "sha256": "679eb8cf059dafcf2231c53cfc774865242006c5f9c53abad8173e5f6f7ec6ff",
+        "bytes": 5178
+      },
+      {
+        "path": "docs/quality/live-app-20261031/backend-stage3-postflight-e173b2db.json",
+        "sha256": "2cf94400cefcf06a4b54abcd17ca9d448ac9452c8ff657a4d880280e1849605a",
+        "bytes": 7271
+      },
+      {
+        "path": "/tmp/supabase-mcp-source-20261031/packages/mcp-server-supabase/src/tools/database-operation-tools.ts",
+        "sha256": "50af8557251196298d95d3f00e7c1f3498bff1ed9eaade67cd4b149c8ed58197",
+        "bytes": 20416
+      },
+      {
+        "path": "/tmp/business-auth-child-transport-error.json",
+        "sha256": "5303e5e1f3f5b8d035c4cf1cf4ec87bfb22f26722771cc45fbd29883e7e8965e",
+        "bytes": 1530
+      }
+    ]
+  },
+  "exactInputIdentity": {
+    "tool": "supabase_apply_migration",
+    "projectId": "uaulhuelcfkjwojtymmw",
+    "migrationName": "qa_business_auth_04_private_member_signin_20261031",
+    "sqlPath": "supabase/ops/qa/business-auth-staged-20261031/04_private_member_signin.sql",
+    "sqlBytes": 7894,
+    "sqlSha256": "ba49c5c8b8545952288ac1885bcf3421d4b42bb21c054d87391b891ed7edb749",
+    "reconstructedCanonicalArgumentsSha256": "0a2175d8501d87c5dc837e6f83778550e715a67711e20895673ba86e7246874c",
+    "canonicalArgumentsEncoding": "UTF-8 JSON with lexicographically sorted keys name/project_id/query, no extra whitespace, unchanged source text including its trailing newline.",
+    "hashLimit": "This hashes the semantic arguments reconstructed from retained invocation identity and exact source. A raw original wire request was not retained; this hash is not a provider request ID, idempotency key or confirmation token.",
+    "requiresDestructiveConfirmation": true,
+    "originalStatementIndices": [
+      29
+    ],
+    "publicActivation": false,
+    "expectedBeforeFingerprint": "2f92a9d038364736fa2413bb6d05a160",
+    "expectedAfterFingerprint": "2b059ccdb6cfcc12bf8fe45e502c166c"
+  },
+  "sqlSafeguards": [
+    {
+      "mechanism": "Explicit BEGIN/COMMIT",
+      "protection": "Function creation, private RLS/privilege enforcement and stage-marker update are grouped in one SQL transaction.",
+      "limit": "Does not establish connector completion or the provider migration-journal transaction boundary."
+    },
+    {
+      "mechanism": "Exact predecessor marker and full catalog fingerprint",
+      "protection": "Requires stage3 and exact reviewed schema/function/owner/ACL/relation/column/constraint/index/trigger/policy/hook state. A sequential replay after committed stage4 fails BUSINESS_AUTH_STAGE_ORDER.",
+      "limit": "Fails closed rather than returning idempotent success; preconditions are not protected by a migration-level serialization lock."
+    },
+    {
+      "mechanism": "Role, data and exposure checks",
+      "protection": "Requires postgres, empty staged tables, no eligible unfenced authenticated-access tables and no existing business Auth sessions needing cutover.",
+      "limit": "These checks are not a durable request lease or execution-once record."
+    },
+    {
+      "mechanism": "Plain CREATE FUNCTION",
+      "protection": "Does not silently replace an already present function.",
+      "limit": "Name collision protection does not prove complete provider-operation deduplication."
+    },
+    {
+      "mechanism": "Private-state enforcement",
+      "protection": "Re-enables private-table RLS and revokes schema/table/function access from PUBLIC, anon, authenticated and service_role before commit.",
+      "limit": "Intermediate stage only; no public business-auth activation."
+    },
+    {
+      "mechanism": "Transaction-local lock_timeout 3s and statement_timeout 60s",
+      "protection": "Bounds database lock waits and statement execution once reached.",
+      "limit": "Does not bound MCP confirmation, queued request or response transport lifetime."
+    }
+  ],
+  "advisoryLockAndRetrySemantics": {
+    "migrationLevelAdvisoryLockPresent": false,
+    "soleAdvisoryLockLocation": "Inside the newly defined business_auth.triniti_business_signin_check function, keyed by studio-access plus business ID.",
+    "functionBodyInvokedByInstallation": false,
+    "cleanupStatementsExecutedByInstallation": false,
+    "classificationPreservedDespiteDefinitionOnlyInstallation": true,
+    "sqlRequestIdempotencyKeyPresent": false,
+    "concurrentAttemptLimit": "Two requests can both observe stage3 before either commits. The script has no explicit guard-and-install serialization lock; it does not establish safe concurrent provider retries.",
+    "providerDeduplicationLimit": "Reviewed wrapper delegates to database.applyMigration. Provider-internal migration-name/journal deduplication semantics were not established from the retained source.",
+    "retainedTestScope": "Existing PGlite tests cover wrong ordering, catalog/ACL/data drift, private-state enforcement and rollback. They do not establish concurrent hosted requests or lost MCP response recovery. No tests were rerun for this assessment."
+  },
+  "retainedOutcomes": {
+    "earlierStage4BoundedAttempt": {
+      "receiptPath": "docs/quality/backend-acceptance-20261031/business-auth-resume-postflight.json",
+      "source": "supabase/ops/qa/business-auth-staged-20261031/04_private_member_signin.sql",
+      "sourceSha256": "ba49c5c8b8545952288ac1885bcf3421d4b42bb21c054d87391b891ed7edb749",
+      "sourceBytes": 7894,
+      "classifierRequiresConfirmation": true,
+      "started": {
+        "current_time": "2026-10-31 02:25:18 UTC"
+      },
+      "status": "no_result_within_45000ms",
+      "remoteOutcome": "unknown",
+      "serverCancellationConfirmed": false,
+      "approvalFormReceived": false,
+      "approvalRejectionReceived": false
+    },
+    "fullyAwaitedStage4Attempt": {
+      "receiptPath": "docs/quality/backend-acceptance-20261031/business-auth-retained-transport.json",
+      "tool": "supabase_apply_migration",
+      "name": "qa_business_auth_04_private_member_signin_20261031",
+      "timeoutRaceUsed": false,
+      "initialYieldMs": 1000,
+      "waitRequestedMs": 10000,
+      "reportedWaitSecondsBeforeInterruption": 2825.7,
+      "terminalToolResultReceived": false,
+      "approvalFormReceived": false,
+      "approvalRejectionReceived": false,
+      "interruptedByParentToRecoverWork": true,
+      "serverCancellationConfirmed": false,
+      "remoteOutcome": "unknown"
+    },
+    "exposedStage4ProviderRequestId": null,
+    "exposedStage4RequestState": null,
+    "exposedStage4InputRequiredResponse": null,
+    "exposedStage4ExecutionCellId": null,
+    "identifierSearchLimit": "No such identifier was present in the reviewed retained stage4 receipts or saved tool evidence. This does not prove the provider has no internal identifier or pending request.",
+    "olderCellIdentifier": {
+      "value": "g2:31",
+      "receiptPath": "docs/quality/backend-acceptance-20261031/installation-recovery.json",
+      "scope": "Earlier monolithic 33277-byte business migration; local execution-cell ID, not a stage4 or provider request ID.",
+      "terminalResultForStage4": false
+    },
+    "olderInternalError": {
+      "path": "/tmp/business-auth-child-transport-error.json",
+      "startedAt": "2026-10-31 02:18:17 UTC",
+      "error": "MCP -32603 Internal error",
+      "affectedSavedOperations": [
+        "apply_migration",
+        "execute_sql postflight"
+      ],
+      "limit": "Predates retained stage4 attempt and lacks its query/name/hash binding; cannot be treated as that invocation terminal result."
+    },
+    "stage4TerminalOutcome": "unknown",
+    "approvalRejectionProven": false,
+    "pendingApprovalProven": false,
+    "serverCancellationProven": false,
+    "sqlExecutionFailureProven": false,
+    "accessDenialProven": false
+  },
+  "toolCapabilitiesReviewed": {
+    "currentExposedInputFields": [
+      "name",
+      "project_id",
+      "query"
+    ],
+    "separateApprovalTokenInputExposed": false,
+    "resumeOrRequestStatusToolExposedInReviewedCapabilities": false,
+    "pinnedPrimarySource": {
+      "path": "/tmp/supabase-mcp-source-20261031/packages/mcp-server-supabase/src/tools/database-operation-tools.ts",
+      "commit": "ed5084d1957541c5130f551d5f7e0fee5e3ddfeb",
+      "sha256": "50af8557251196298d95d3f00e7c1f3498bff1ed9eaade67cd4b149c8ed58197",
+      "applyMigrationIdempotentHint": false
+    },
+    "confirmationBehavior": "When configured and form-capable, the reviewed wrapper can return inputRequired with confirm_destructive and server-minted requestState bound to tool, project, name, query hash and issuance time; a gated result returns before database.applyMigration.",
+    "readOnlyBehavior": "Reviewed apply_migration implementation throws a read-only-mode error; no such stage4 result was retained.",
+    "missingPromptLimit": "Official documentation says unavailable or unsupported form elicitation can retain existing SQL execution behavior without an additional prompt. Destructive classification plus missing UI does not prove pending approval.",
+    "documentationReviewedDuringCompletedAudit": "https://supabase.com/kb/troubleshooting/sql-confirmations-do-not-appear-in-your-mcp-client-sQf7Kp",
+    "noSettingOrCapabilityChanged": true
+  },
+  "retainedStage3Observation": {
+    "receiptPath": "docs/quality/live-app-20261031/backend-stage3-postflight-e173b2db.json",
+    "receiptSha256": "2cf94400cefcf06a4b54abcd17ca9d448ac9452c8ff657a4d880280e1849605a",
+    "catalogObservedAt": "2026-10-31T05:44:32.403744+00:00",
+    "metadataObservedAt": "2026-10-31T05:44:47.354729+00:00",
+    "fingerprint": "2f92a9d038364736fa2413bb6d05a160",
+    "catalogRecords": 99,
+    "stage4PrivateFunction": null,
+    "historyEntries": 3,
+    "activeMatchingStatements": 0,
+    "limits": [
+      "Committed catalog/history state is a timestamped snapshot, not a terminal request receipt.",
+      "The active-statement query counts state=active rows matching selected query patterns. It does not inspect an MCP approval queue, prove provider request termination, or rule out every idle transaction or differently submitted statement.",
+      "The postflight does not authorize or prove safe cancellation/retry of an earlier request."
+    ]
+  },
+  "recommendedResolution": {
+    "currentAction": "Keep exact safe stage3 and resolve original connector request state before another apply is considered.",
+    "correlationFields": [
+      "QA project ref",
+      "migration name",
+      "exact SQL SHA-256",
+      "retained attempt timestamps"
+    ],
+    "conditionalSteps": [
+      {
+        "condition": "A recoverable pending confirmation form for the original request is found.",
+        "step": "Resume that original request through the supported confirmation flow; preserve classifier, SQL and input binding."
+      },
+      {
+        "condition": "A terminal failure/cancellation is established and no earlier matching request can execute later.",
+        "step": "Re-observe exact stage/catalog/data/session preconditions, then consider one separately reviewed fully awaited unchanged invocation through the supported tool and its normal approval path."
+      },
+      {
+        "condition": "No recoverable state or terminal evidence can be obtained.",
+        "step": "Retain stage3 and escalate the connector diagnostic evidence through the client/provider support path; no retry is justified by this audit alone."
+      }
+    ],
+    "blockerClassification": "Unresolved tool outcome with an unproven confirmation-handoff hypothesis. Root cause remains unclassified; no SQL failure or access/approval rejection is established.",
+    "prohibitedWorkarounds": [
+      "No classifier/guard/SQL rewriting to avoid confirmation",
+      "No skip_elicitations or other approval bypass",
+      "No execute_sql DDL substitute or alternate execution route",
+      "No invented requestState, token or cancellation outcome"
+    ]
+  },
+  "actionsDuringAssessmentAndPersistence": {
+    "databaseCalls": 0,
+    "migrationRetries": 0,
+    "credentialProbes": 0,
+    "testsRerun": 0,
+    "sourceOrConfigEdits": 0,
+    "refChanges": 0,
+    "externalMessages": 0,
+    "newResearchDuringPersistence": false,
+    "onlyRepositoryWrite": "docs/quality/live-app-20261031/backend-stage4-request-state-assessment.json"
+  },
+  "limitations": [
+    "The primary MCP wrapper snapshot is pinned reviewed source, not an attestation of the exact deployed connector implementation for the ambiguous call.",
+    "Some saved diagnostic source files live in transient scratch; their identities and relevant observations are retained here by hash.",
+    "This receipt neither changes backend readiness nor proves that any future mutation is authorized by a provider confirmation."
+  ]
+}

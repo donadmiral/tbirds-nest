@@ -71,40 +71,44 @@ function formHarness({upload=async()=>({error:null}),insert=async()=>({data:{id:
   storage:{from(bucket){return{upload(filePath,file,options){calls.uploads.push({bucket,filePath,file,options});return upload();}};}},
   from(table){let payload;const q={select:()=>q,eq:()=>q,maybeSingle:async()=>table==='jobs'?jobResult():({data:null,error:null}),insert(value){payload=value;calls.inserts.push(value);return q;},single:()=>insert(payload)};return q;},
  };
- const jsx=(type,props)=>({type,props});const module={exports:{}};
+ const jsx=(type,props)=>({type,props:type==='Dialog'?{...props,children:props.open?props.children:null}:props});const module={exports:{}};
  const source=ts.transpileModule(fs.readFileSync(path.join(root,'web/components/ApplyPanel.tsx'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,jsx:ts.JsxEmit.ReactJSX}}).outputText;
- vm.runInNewContext(source,{module,exports:module.exports,URL,crypto:{randomUUID:()=> '50000000-0000-0000-0000-000000000005'},require(id){if(id==='react')return hooks;if(id==='react/jsx-runtime')return{jsx,jsxs:jsx};if(id==='@/lib/supabase/client')return{createClient:()=>client};if(id==='@/lib/jobs')return{isJobDeadlinePassed:()=>false,STATUS_META:{applied:{label:'Applied'}}};if(id.endsWith('shared/applicationCv'))return cv;throw Error(id);}});
+ vm.runInNewContext(source,{module,exports:module.exports,URL,crypto:{randomUUID:()=> '50000000-0000-0000-0000-000000000005'},require(id){if(id==='react')return hooks;if(id==='next/link')return{default:'a'};if(id==='lucide-react')return new Proxy({},{get:(_t,key)=>String(key)});if(id==='@/components/ProductDialog')return{ProductDialog:'Dialog'};if(id.endsWith('.module.css'))return{default:new Proxy({},{get:(_t,key)=>String(key)})};if(id==='react/jsx-runtime')return{jsx,jsxs:jsx};if(id==='@/lib/supabase/client')return{createClient:()=>client};if(id==='@/lib/jobs')return{isJobDeadlinePassed:()=>false,STATUS_META:{applied:{label:'Applied'}}};if(id.endsWith('shared/applicationCv'))return cv;throw Error(id);}});
  const content=node=>typeof node==='string'?node:Array.isArray(node)?node.map(content).join(''):node&&typeof node==='object'?content(node.props?.children):'';
  const nodes=node=>!node||typeof node!=='object'?[]:Array.isArray(node)?node.flatMap(nodes):[node,...nodes(node.props?.children)];
- const render=()=>{cursor=0;tree=module.exports.ApplyPanel({jobId:job,applyUrl:null,deadline:null});while(effects.length)effects.shift()();return tree;};
- const button=label=>nodes(render()).find(n=>n.type==='button'&&content(n)===label);
+ const render=()=>{cursor=0;tree=module.exports.ApplyPanel({jobId:job,applyUrl:null,deadline:null});while(typeof tree?.type==='function')tree=tree.type(tree.props);while(effects.length)effects.shift()();return tree;};
+ const button=label=>nodes(render()).find(n=>n.type==='button'&&content(n).trim()===label);
  const flush=async()=>{for(let i=0;i<5;i++)await new Promise(r=>setImmediate(r));render();};
- return{calls,render,flush,button,get text(){return content(tree);},file(){nodes(render()).find(n=>n.props?.type==='file').props.onChange({target:{files:[{name:'CV.pdf',size:1234}]}});render();},auth(next){uid=next;authCallback?.('SIGNED_OUT',next?{user:{id:next}}:null);render();}};
+ return{calls,render,flush,button,review(){nodes(render()).find(n=>n.type==='form').props.onSubmit({preventDefault(){}});render();},get text(){return content(tree);},file(){nodes(render()).find(n=>n.props?.type==='file').props.onChange({target:{files:[{name:'CV.pdf',size:1234}]}});render();},auth(next){uid=next;authCallback?.('SIGNED_OUT',next?{user:{id:next}}:null);render();}};
 }
 test('web applications upload one private CV and persist its durable reference',async()=>{
- const h=formHarness();h.render();await h.flush();h.button('Apply').props.onClick();h.file();
- const send=h.button('Send application');await Promise.all([send.props.onClick(),send.props.onClick()]);h.render();
+ const h=formHarness();h.render();await h.flush();h.button('Apply').props.onClick();h.file();h.review();
+ const send=h.button('Submit application');await Promise.all([send.props.onClick(),send.props.onClick()]);h.render();
  assert.equal(h.calls.uploads.length,1);assert.equal(h.calls.inserts.length,1);
  const upload=h.calls.uploads[0];assert.equal(upload.bucket,'application-cvs');assert.equal(upload.filePath,objectPath);assert.equal(upload.options.upsert,false);assert.equal(upload.options.contentType,'application/pdf');
  assert.equal(h.calls.inserts[0].cv_url,reference);assert.equal(h.calls.inserts[0].cv_name,'CV.pdf');assert.match(h.text,/Application sent/);
 });
 test('failed upload never submits or claims success and can be retried',async()=>{
- let failed=true;const h=formHarness({upload:async()=>({error:failed?{message:'offline'}:null})});h.render();await h.flush();h.button('Apply').props.onClick();h.file();await h.button('Send application').props.onClick();h.render();
+ let failed=true;const h=formHarness({upload:async()=>({error:failed?{message:'offline'}:null})});h.render();await h.flush();h.button('Apply').props.onClick();h.file();h.review();await h.button('Submit application').props.onClick();h.render();
  assert.equal(h.calls.inserts.length,0);assert.match(h.text,/could not be uploaded securely/);
- failed=false;await h.button('Send application').props.onClick();h.render();assert.equal(h.calls.inserts.length,1);assert.match(h.text,/Application sent/);
+ failed=false;await h.button('Submit application').props.onClick();h.render();assert.equal(h.calls.inserts.length,1);assert.match(h.text,/Application sent/);
 });
 test('failed application write reuses its private uploaded file on retry',async()=>{
- let failed=true;const h=formHarness({insert:async()=>failed?{data:null,error:{message:'Write failed'}}:{data:{id:'application'},error:null}});h.render();await h.flush();h.button('Apply').props.onClick();h.file();await h.button('Send application').props.onClick();h.render();assert.match(h.text,/Write failed/);
- failed=false;await h.button('Send application').props.onClick();h.render();assert.equal(h.calls.uploads.length,1);assert.equal(h.calls.inserts.length,2);assert.match(h.text,/Application sent/);
+ let failed=true;const h=formHarness({insert:async()=>failed?{data:null,error:{message:'Write failed'}}:{data:{id:'application'},error:null}});h.render();await h.flush();h.button('Apply').props.onClick();h.file();h.review();await h.button('Submit application').props.onClick();h.render();assert.match(h.text,/Write failed/);
+ failed=false;await h.button('Submit application').props.onClick();h.render();assert.equal(h.calls.uploads.length,1);assert.equal(h.calls.inserts.length,2);assert.match(h.text,/Application sent/);
 });
 test('sign-out during a CV upload prevents the pending application write',async()=>{
- let finish;const h=formHarness({upload:()=>new Promise(resolve=>{finish=()=>resolve({error:null});})});h.render();await h.flush();h.button('Apply').props.onClick();h.file();const task=h.button('Send application').props.onClick();await h.flush();h.auth(null);finish();await task;await h.flush();assert.equal(h.calls.inserts.length,0);assert.doesNotMatch(h.text,/Application sent/);
+ let finish;const h=formHarness({upload:()=>new Promise(resolve=>{finish=()=>resolve({error:null});})});h.render();await h.flush();h.button('Apply').props.onClick();h.file();h.review();const task=h.button('Submit application').props.onClick();await h.flush();h.auth(null);finish();await task;await h.flush();assert.equal(h.calls.inserts.length,0);assert.doesNotMatch(h.text,/Application sent/);
 });
 test('a removed job is checked before uploading a CV or sending an application',async()=>{
- const h=formHarness({jobResult:async()=>({data:null,error:null})});h.render();await h.flush();h.button('Apply').props.onClick();h.file();await h.button('Send application').props.onClick();h.render();
+ const h=formHarness({jobResult:async()=>({data:null,error:null})});h.render();await h.flush();h.button('Apply').props.onClick();h.file();h.review();await h.button('Submit application').props.onClick();h.render();
  assert.equal(h.calls.uploads.length,0);assert.equal(h.calls.inserts.length,0);assert.match(h.text,/closed for new applications/);
 });
 test('a failed availability check remains retryable and never sends an application',async()=>{
- const h=formHarness({jobResult:async()=>({data:null,error:{message:'Could not check job'}})});h.render();await h.flush();h.button('Apply').props.onClick();h.file();await h.button('Send application').props.onClick();h.render();
+ const h=formHarness({jobResult:async()=>({data:null,error:{message:'Could not check job'}})});h.render();await h.flush();h.button('Apply').props.onClick();h.file();h.review();await h.button('Submit application').props.onClick();h.render();
  assert.equal(h.calls.uploads.length,0);assert.equal(h.calls.inserts.length,0);assert.match(h.text,/Could not check job/);
+});
+
+test('review and edit keep the application local until explicit confirmation',async()=>{
+ const h=formHarness();h.render();await h.flush();h.button('Apply').props.onClick();h.file();h.review();assert.equal(h.calls.uploads.length,0);assert.equal(h.calls.inserts.length,0);assert.match(h.text,/CV.pdf/);h.button('Edit application').props.onClick();h.render();assert.equal(h.calls.uploads.length,0);assert.equal(h.calls.inserts.length,0);assert.match(h.text,/CV.pdf/);
 });

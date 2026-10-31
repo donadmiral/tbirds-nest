@@ -1,0 +1,213 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-30 05:26:02 UTC",
+  "status": "authenticated_read_only_walkthrough_completed_with_explicit_provider_and_feature_limits",
+  "repository": "donadmiral/tbirds-nest",
+  "source": {
+    "commit": "b7a37a7a1e271e1ec037798a39772e151fbcc318",
+    "tree": "82d5e6c1fc437746459703f9578b72cf1627d098",
+    "parent": "32ee0a5373dd5ebcddae92ca5145f9bf7293c9c9",
+    "follow_up_scope": "Documentation and evidence only; no implementation changes after the tested source."
+  },
+  "environment": "Isolated QA",
+  "deployments": [
+    {
+      "id": "dpl_2co81LMCrmaq9Bc2ZYR3XFjQ2Fid",
+      "url": "admin-fopoftjyg-intobank.vercel.app",
+      "readyState": "READY",
+      "sha": "b7a37a7a1e271e1ec037798a39772e151fbcc318",
+      "preview": "https://admin-fopoftjyg-intobank.vercel.app/dashboard",
+      "surface": "admin"
+    },
+    {
+      "id": "dpl_3B3LGhoTS1eNvMwapoMuFPz8fRxU",
+      "url": "platinum-o4c94mgb4-intobank.vercel.app",
+      "readyState": "READY",
+      "sha": "b7a37a7a1e271e1ec037798a39772e151fbcc318",
+      "preview": "https://platinum-o4c94mgb4-intobank.vercel.app/home",
+      "surface": "web"
+    }
+  ],
+  "authentication": {
+    "admin": "Existing authorized staff session verified by actual dashboard and role-scoped pages.",
+    "web": "Normal protected-preview navigation followed by secure browserAuth sign-in; a fresh page observation verified the authenticated Home destination.",
+    "preview_protection_changed": false,
+    "temporary_share_link_created": false,
+    "secrets_copied_or_recorded": false,
+    "earlier_authentication_blocker_resolved": true
+  },
+  "admin_observations": [
+    {
+      "area": "Dashboard",
+      "result": "pass",
+      "observed": "Actual dashboard reads loaded, including one existing member and empty monitored queues."
+    },
+    {
+      "area": "All operations tools",
+      "result": "pass",
+      "observed": "Opened the role-filtered directory; filtered for deletion; followed the deletion-request link."
+    },
+    {
+      "area": "Deletion requests",
+      "result": "pass",
+      "observed": "Actual empty queue and retention/erasure wording loaded; Back to Users reached the users directory.",
+      "limit": "No request was approved and no account was erased."
+    },
+    {
+      "area": "Staff and role guide",
+      "result": "pass",
+      "observed": "Selected staff role was Super Admin; new-account default was Read-only Auditor. Opened the separate role guide, selected Support Agent in that guide, then closed with Escape and observed focus return.",
+      "limit": "No credentials were entered, actual staff role changed, account created or invitation sent."
+    },
+    {
+      "area": "Support",
+      "result": "pass",
+      "observed": "Loaded the actual empty ticket queue with search, status and paging controls.",
+      "limit": "No ticket assignment, reply or status mutation was submitted."
+    },
+    {
+      "area": "Businesses",
+      "result": "pass",
+      "observed": "Loaded actual empty application and business queues.",
+      "limit": "Actual reserve/create/finish was not exercised."
+    },
+    {
+      "area": "Seller review reports",
+      "result": "pass",
+      "observed": "Loaded the actual empty queue and followed the All reports / restore reviews filter to status=all.",
+      "limit": "No review was hidden or restored."
+    },
+    {
+      "area": "Account menu",
+      "result": "pass",
+      "observed": "Security, presentation and sign-out destinations were present; Escape closed the menu and restored focus.",
+      "limit": "Did not sign out or change security settings."
+    },
+    {
+      "area": "Navigation layout",
+      "result": "pass",
+      "observed": "Collapsed navigation, opened the tools directory for a privacy-safe screenshot, then restored expanded navigation."
+    },
+    {
+      "area": "Final destination",
+      "result": "pass_after_fresh_observation",
+      "observed": "One dashboard URL wait timed out. A fresh URL and DOM observation showed the dashboard loaded without another navigation or reload; final page was retained for review."
+    }
+  ],
+  "web_observations": [
+    {
+      "area": "Home and media",
+      "result": "pass",
+      "observed": "Actual QA feed loaded. Edited portrait media decoded at 720 by 1280. The media viewer opened the first image and moved to an existing trimmed video; the video reported readyState 4, no media error, and advancing playback. Close viewer returned to the feed.",
+      "limit": "This is one existing QA example, not the previously failing physical-iPhone file set."
+    },
+    {
+      "area": "Composer",
+      "result": "pass",
+      "observed": "Opened New post with empty caption and disabled Review; Cancel closed the composer.",
+      "limit": "No post was created or published."
+    },
+    {
+      "area": "Owner profile editor",
+      "result": "pass",
+      "observed": "Owner profile and memory books loaded; Edit profile opened the actual current owner's fields, All changes saved and disabled Save. Back to profile returned successfully.",
+      "limit": "No profile field or photo was changed."
+    },
+    {
+      "area": "Memory reader and continuous film",
+      "result": "pass",
+      "observed": "Opened an existing four-memory book, entered its page reader and continuous film, and observed progress advance. Quiet light original-score controls were enabled at 32 percent. Read memory book returned to the reader.",
+      "limit": "UI/playback observations do not measure acoustic output or physical-device behavior."
+    },
+    {
+      "area": "Existing memory movie preflight",
+      "result": "expected_unsupported_composition_refusal",
+      "observed": "Download memory movie correctly refused the first memory's animated sticker and disabled creation with recovery guidance. Back to memories and Read memory book exited cleanly.",
+      "limit": "No movie was produced for this unsupported book. Supported whole-book encoding is covered by separate synthetic fixtures."
+    },
+    {
+      "area": "Messages",
+      "result": "pass",
+      "observed": "The actual empty inbox loaded. New message opened with recipient search; Cancel closed it.",
+      "limit": "No message was sent, conversation created, payment initiated or call started."
+    },
+    {
+      "area": "Communities",
+      "result": "pass",
+      "observed": "Actual empty directory loaded. New community exposed purpose, membership, category and rules controls; Cancel closed it.",
+      "limit": "No community was created or membership changed."
+    },
+    {
+      "area": "Channels",
+      "result": "pass",
+      "observed": "The existing QA channel opened from the directory and loaded owner announcements, reply controls and a disabled empty Post action.",
+      "limit": "No announcement, reply, prompt, poll or reaction was submitted."
+    },
+    {
+      "area": "Jobs",
+      "result": "pass",
+      "observed": "Jobs loaded its actual empty results with search, location/sort/type filters, saved and application destinations.",
+      "limit": "No live applicant/employer transaction or resume-access test was performed."
+    },
+    {
+      "area": "Market",
+      "result": "pass",
+      "observed": "Loaded one actual listing, its detail/seller/order region and the Back to Market return path.",
+      "limit": "No offer, order, listing-status change, purchase or payment was submitted."
+    },
+    {
+      "area": "Creator Studio and partnerships",
+      "result": "pass",
+      "observed": "Creator overview and scoped navigation loaded; Partnerships returned the actual empty collaboration queue.",
+      "limit": "No business account was provisioned, brief accepted, content approved or paid-use permission changed."
+    },
+    {
+      "area": "Earnings and provider readiness",
+      "result": "page_loaded_provider_unconfirmed",
+      "observed": "Earnings showed no recorded balances, unavailable creator enrollment/payouts and an Unconfirmed IntoBank connection with an explicit retry alert.",
+      "limit": "Provider connection, creator enrollment and payout acceptance remain unverified."
+    },
+    {
+      "area": "Studio return",
+      "result": "pass",
+      "observed": "Back to Platinum Circles reached Home; a fresh observation confirmed the Home heading and the tab was retained for review."
+    }
+  ],
+  "console_sampling": {
+    "admin": {
+      "sampled_error_entries": 100,
+      "browser_extension_metadata_errors": 100
+    },
+    "web": {
+      "sampled_error_or_warning_entries": 57,
+      "browser_extension_metadata_errors": 57,
+      "other_sampled_entries": 0
+    },
+    "interpretation": "Limited samples include extension-source errors. This live walkthrough is not described as a zero-console-error gate. Synthetic browser receipts remain separate."
+  },
+  "screenshot": {
+    "path": "docs/quality/design-completion-20261030/live-admin-tools.jpg",
+    "sha256": "5ef26ab9aba996d67d00ee434464b674b6c3ec5d69bac0d67345bd390d725cd9",
+    "provenance": "Actual authenticated QA admin, collapsed account rail and empty seller-review page behind tools dialog.",
+    "private_records_or_contact_details_visible": false
+  },
+  "hosted_ci_receipt": "docs/quality/design-completion-20261030/hosted-ci-b7a37a7.json",
+  "business_auth_installation": {
+    "status": "connector_blocked_not_installed_at_last_read",
+    "last_read": "2026-10-30 04:42:50 UTC",
+    "schema_present": false,
+    "owner_contract_present": false,
+    "latest_hosted_migration": "20261030033815",
+    "attempts": 2,
+    "associated_edge_deployments_started": 0,
+    "automatic_approval_rejection": false,
+    "receipt": "docs/quality/studio-workflows-20261030/business-auth-qa-connector-blocker.json"
+  },
+  "limits": [
+    "Read-only authenticated review of the available QA account does not establish all role-specific mutations or multi-account/provider journeys.",
+    "No production privacy cutover, production database hardening, permanent account erasure, provider setting change, payment, message send, publication or TestFlight release was performed.",
+    "Production cache/revocation compatibility and actual disposable-account Storage/CDN/Auth erasure remain open.",
+    "Physical iPhone media, Photos, camera, gestures, push/calls/audio/interruption/offline/accessibility acceptance remains open.",
+    "Licensed music, unsupported animated/nested/dual-camera composition and the other capabilities listed in the delivery report remain explicit implementation/provider boundaries."
+  ]
+}

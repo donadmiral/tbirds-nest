@@ -1,6 +1,6 @@
 import { themedSheet } from '../../theme/useTheme';
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image } from 'react-native';
 import { avatarColor, initials } from '../../utils/helpers';
 
 type Props = { name: string; url?: string | null; size?: number };

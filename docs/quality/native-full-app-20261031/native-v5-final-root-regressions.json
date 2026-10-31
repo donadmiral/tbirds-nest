@@ -1,0 +1,3308 @@
+{
+  "schemaVersion": 1,
+  "scope": "Full local root regression gate using the same selected file globs and concurrency as phone CI. Each file runs directly in its own Node process to expose its internal counters, matching the preceding verified local gate method.",
+  "basedOnApplicationHead": "e173b2dbcf253342be5683fa85f102aa38065411",
+  "savedFollowupParent": "a042acc7cf2ea2efaa690069162b2a2276414912",
+  "startedAtUtc": "2026-10-31T07:02:57.097730+00:00",
+  "finishedAtUtc": "2026-10-31T07:03:50.277696+00:00",
+  "elapsedSeconds": 53.179940923000686,
+  "nodeVersion": "v24.22.1",
+  "commandPerFile": "env -u NODE_TEST_CONTEXT node <file>",
+  "concurrency": 2,
+  "selectedFiles": 169,
+  "selection": [
+    "tests/account-storage-erasure.test.cjs",
+    "tests/call-media.test.cjs",
+    "tests/call-transitions.test.cjs",
+    "tests/chat-media-cache.test.cjs",
+    "tests/chat-quality.test.cjs",
+    "tests/client-diagnostics.test.cjs",
+    "tests/commerce-domain.test.cjs",
+    "tests/creator-monetization.test.cjs",
+    "tests/creator-payout-worker.test.cjs",
+    "tests/daily-call-access.test.cjs",
+    "tests/export-data.test.cjs",
+    "tests/faststart-video.test.cjs",
+    "tests/feed-capacity.test.cjs",
+    "tests/feed-load-harness.test.cjs",
+    "tests/feed-snapshot.test.cjs",
+    "tests/fullscreen-video-accessibility.test.cjs",
+    "tests/group-call-service.test.cjs",
+    "tests/intobank-link-sheet.test.cjs",
+    "tests/intobank-link-state.test.cjs",
+    "tests/link-preview.test.cjs",
+    "tests/market-reviews.test.cjs",
+    "tests/marketplace-recommendations.test.cjs",
+    "tests/media-delivery.test.cjs",
+    "tests/message-delivery.test.cjs",
+    "tests/message-outbox.test.cjs",
+    "tests/message-receipts.test.cjs",
+    "tests/native-call-reliability.test.cjs",
+    "tests/native-quality-regressions.test.cjs",
+    "tests/navigation-accessibility.test.cjs",
+    "tests/order-request.test.cjs",
+    "tests/payment-intent.test.cjs",
+    "tests/payment-provider-status.test.cjs",
+    "tests/payment-receipt.test.cjs",
+    "tests/payment-service.test.cjs",
+    "tests/post-media-editing.test.cjs",
+    "tests/post-sharing.test.cjs",
+    "tests/post-voice-effects.test.cjs",
+    "tests/private-media-cleanup.test.cjs",
+    "tests/private-media-reader-regressions.test.cjs",
+    "tests/private-media-session.test.cjs",
+    "tests/private-screen-capture.test.cjs",
+    "tests/profile-mention-lookup.test.cjs",
+    "tests/quality/app-interaction-sweep.cjs",
+    "tests/quality/apple-music-regressions.cjs",
+    "tests/quality/auth-callback-logging.cjs",
+    "tests/quality/auth-regressions.cjs",
+    "tests/quality/auth-service-recovery.cjs",
+    "tests/quality/auth-transport-deadline.cjs",
+    "tests/quality/boomerang-cancellation.cjs",
+    "tests/quality/build-env-regressions.cjs",
+    "tests/quality/business-access-rpc.cjs",
+    "tests/quality/business-session-clients.cjs",
+    "tests/quality/call-membership-recovery.cjs",
+    "tests/quality/call-revocation-worker.cjs",
+    "tests/quality/call-worker-credential.cjs",
+    "tests/quality/catalogue-ingestion.cjs",
+    "tests/quality/channel-studio-desks.cjs",
+    "tests/quality/chat-attachment-cards.cjs",
+    "tests/quality/chat-call-authorization.cjs",
+    "tests/quality/chat-history-loading.cjs",
+    "tests/quality/chat-media-signer.cjs",
+    "tests/quality/chat-storage-cutover.cjs",
+    "tests/quality/content-media-concurrency.cjs",
+    "tests/quality/content-media-regressions.cjs",
+    "tests/quality/conversation-targets.cjs",
+    "tests/quality/dark-surfaces-sweep.cjs",
+    "tests/quality/deep-link-security.cjs",
+    "tests/quality/deployment-skip-regressions.cjs",
+    "tests/quality/directory-media-sweep.cjs",
+    "tests/quality/draft-soundtrack-interaction.cjs",
+    "tests/quality/edit-profile-save.cjs",
+    "tests/quality/finance-unavailable-release.cjs",
+    "tests/quality/hiring-workflow.cjs",
+    "tests/quality/incoming-call-access.cjs",
+    "tests/quality/job-application-self-service.cjs",
+    "tests/quality/jobs-market-regressions.cjs",
+    "tests/quality/jobs-navigation.cjs",
+    "tests/quality/jobs-parity.cjs",
+    "tests/quality/legacy-limited-media.cjs",
+    "tests/quality/lens-camera-interaction.cjs",
+    "tests/quality/link-preview-publication.cjs",
+    "tests/quality/marketplace-refresh.cjs",
+    "tests/quality/memory-creative-plan.cjs",
+    "tests/quality/memory-film-lifecycle.cjs",
+    "tests/quality/memory-film.cjs",
+    "tests/quality/memory-media-regressions.cjs",
+    "tests/quality/memory-page-turn.cjs",
+    "tests/quality/memory-picker-accessibility.cjs",
+    "tests/quality/memory-playback.cjs",
+    "tests/quality/memory-soundtrack-save.cjs",
+    "tests/quality/memory-stability-regressions.cjs",
+    "tests/quality/memory-story-presentation.cjs",
+    "tests/quality/music-catalogue-client.cjs",
+    "tests/quality/music-disabled-release.cjs",
+    "tests/quality/music-favorites.cjs",
+    "tests/quality/music-maintenance.cjs",
+    "tests/quality/native-account-readback.cjs",
+    "tests/quality/native-auth-diagnostics.cjs",
+    "tests/quality/native-call-event-lifecycle.cjs",
+    "tests/quality/native-capture-open-link.cjs",
+    "tests/quality/native-capture-setup.cjs",
+    "tests/quality/native-comment-actions.cjs",
+    "tests/quality/native-dependency-compat.cjs",
+    "tests/quality/native-draft-follow-reliability.cjs",
+    "tests/quality/native-environment.cjs",
+    "tests/quality/native-flow-content-selectors.cjs",
+    "tests/quality/native-memory-export.cjs",
+    "tests/quality/native-memory-modal-lifecycle.cjs",
+    "tests/quality/native-music-sheet.cjs",
+    "tests/quality/native-private-diagnostics.cjs",
+    "tests/quality/native-simulator-entitlements.cjs",
+    "tests/quality/native-story-export-audio.cjs",
+    "tests/quality/native-story-interactions.cjs",
+    "tests/quality/native-tab-bar.cjs",
+    "tests/quality/native-tab-selectors.cjs",
+    "tests/quality/native-theme-inputs.cjs",
+    "tests/quality/native-timer-bootstrap.cjs",
+    "tests/quality/native-ui-fixture.cjs",
+    "tests/quality/native-ui-flows.cjs",
+    "tests/quality/native-ui-runtime-diagnostics.cjs",
+    "tests/quality/native-vendor-compat.cjs",
+    "tests/quality/native-verification-offers.cjs",
+    "tests/quality/navigation-cache.cjs",
+    "tests/quality/navigation-directory.cjs",
+    "tests/quality/navigation-screens.cjs",
+    "tests/quality/notification-event-dispatch.cjs",
+    "tests/quality/notification-loading.cjs",
+    "tests/quality/notification-preferences.cjs",
+    "tests/quality/notification-tap.cjs",
+    "tests/quality/original-audio-infrastructure.cjs",
+    "tests/quality/original-audio-library-state.cjs",
+    "tests/quality/parity-navigation.cjs",
+    "tests/quality/post-editor-interaction.cjs",
+    "tests/quality/post-soundtrack-quality.cjs",
+    "tests/quality/post-upload-draft-ownership.cjs",
+    "tests/quality/post-voice-viewer.cjs",
+    "tests/quality/private-reader-compat.cjs",
+    "tests/quality/profile-content-regressions.cjs",
+    "tests/quality/profile-media-renewal.cjs",
+    "tests/quality/profile-shelf-lifecycle.cjs",
+    "tests/quality/qa-notification-setup.cjs",
+    "tests/quality/setup-profile-username.cjs",
+    "tests/quality/social-interaction-regressions.cjs",
+    "tests/quality/soundtrack-playback.cjs",
+    "tests/quality/story-audio-playback-regressions.cjs",
+    "tests/quality/story-audio-web-regressions.cjs",
+    "tests/quality/story-capture-delivery.cjs",
+    "tests/quality/story-capture-lifecycle.cjs",
+    "tests/quality/story-dual-capture.test.cjs",
+    "tests/quality/story-editing-state.cjs",
+    "tests/quality/story-engagement-quality.cjs",
+    "tests/quality/story-music-disabled-ui.cjs",
+    "tests/quality/story-photo-pixels.cjs",
+    "tests/quality/story-publication-regressions.cjs",
+    "tests/quality/story-studio-interaction.cjs",
+    "tests/quality/story-trending-canvas.test.cjs",
+    "tests/quality/story-video-composition.cjs",
+    "tests/quality/story-viewer-privacy-regressions.cjs",
+    "tests/quality/theme-store-hydration.cjs",
+    "tests/quality/unread-session.cjs",
+    "tests/quality/upload-preview-regressions.cjs",
+    "tests/quality/upload-safe-regressions.cjs",
+    "tests/quality/video-thumb-lifecycle.cjs",
+    "tests/quality/voice-recorder-reliability.cjs",
+    "tests/quality/web-message-outbox.cjs",
+    "tests/send-money-sheet-context.test.cjs",
+    "tests/story-message-reference.test.cjs",
+    "tests/studio-reliability.test.cjs",
+    "tests/verification-integrity.test.cjs"
+  ],
+  "exitCode": 0,
+  "formalSummary": {
+    "tests": 1751,
+    "pass": 1751,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "formalCounterFiles": 168,
+  "successfulFiles": 169,
+  "failedFiles": [],
+  "missingCounterFiles": [],
+  "testResults": [
+    {
+      "file": "tests/account-storage-erasure.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.31434438299766043,
+      "sourceSha256": "e02389147932a9e688dca1525126e079943f2cceb1ff658803bcd1d2e1d73bbb",
+      "outputSha256": "a313f61ba536efbc55d3d62dda239675341f48f3f9e84b0a8b45812da7ec4345",
+      "counts": {
+        "tests": 10,
+        "suites": 0,
+        "pass": 10,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 27.202728
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/call-media.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.4647876999952132,
+      "sourceSha256": "92a32c8865f5c0f070aa9d3f0cad553df487a4e1f8e3aeb1eb4b8d6b4612e399",
+      "outputSha256": "c8e12c362b1a8901430f7fd6bfacfba1b731ccc06b022bd0abd60d19fb60276e",
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 259.252507
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/call-transitions.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.46214384099585004,
+      "sourceSha256": "55898a6895309e17f3d4033bd15888beb4b619d5ff3f172c4686b8949d1f6e63",
+      "outputSha256": "d55b7ad17bcdd059bb2fbe8977fabe72ec1bc9bfa5f8fe7c68b77960c87c496e",
+      "counts": {
+        "tests": 3,
+        "suites": 0,
+        "pass": 3,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 249.146292
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/chat-media-cache.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.7209074080019491,
+      "sourceSha256": "21ee736b4f3cb746e6096088356464d4506b5b1058355cc4228cc14b290a520e",
+      "outputSha256": "7f3cddbe15ef1c0ffc79e8b5de070b03fcf4a67ea48113514a0d30a3bb68a582",
+      "counts": {
+        "tests": 32,
+        "suites": 0,
+        "pass": 32,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 465.543784
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/chat-quality.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.5737028769945027,
+      "sourceSha256": "5083329cd5e2254e74acb0c6a2d79b9a69006dce2992604af5eb18870394f97e",
+      "outputSha256": "cd94bc652831505bfcbafd92a21d9002edeab7768b408681eb0bf07676a7b27a",
+      "counts": {
+        "tests": 13,
+        "suites": 0,
+        "pass": 13,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 198.103536
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/client-diagnostics.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.44474156700016465,
+      "sourceSha256": "a84d330b45ce37ecfd6dab26822cfcc26e6b1dd40c440a9fda956065fe3cfd6e",
+      "outputSha256": "b23cfdaad9805d2698881552042e5be1d4ac6593a3342708930b4bf812186a69",
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 144.961447
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/commerce-domain.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.09130605700192973,
+      "sourceSha256": "8a84dc425ba80f8ce262e3d5793b62c9a76e0ead4005af12607b0f885cc51add",
+      "outputSha256": "c7869644cfa204384d24d75d60602acdaaad29711cac36087a972629b0e59046",
+      "counts": {
+        "tests": 4,
+        "suites": 0,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 10.890841
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/creator-monetization.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.352070538996486,
+      "sourceSha256": "003bcf91152078c1a4c3f8948864fc996f6f8f12feb6059d41e9455ba209167a",
+      "outputSha256": "311f3929989a1664dc077112d57bc0d6662ef64728331dfd7d3e10e3c2868868",
+      "counts": {
+        "tests": 16,
+        "suites": 0,
+        "pass": 16,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 15.998764
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/creator-payout-worker.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.35870656299812254,
+      "sourceSha256": "353d1bfa96aebb3772c437e775ee32deac651b9546909ec18b0251402695ec29",
+      "outputSha256": "201b41ed658b632385fe51bc910cd52623903f96c5b2bc34f39add8360287d9e",
+      "counts": {
+        "tests": 9,
+        "suites": 0,
+        "pass": 9,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 43.115271
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/daily-call-access.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.8051402820055955,
+      "sourceSha256": "8ba71f9032883a619a9554e635893a60e873e5d8840ecc686b15afb9087d3770",
+      "outputSha256": "82ecf90b3eb7bc88cb0b0926197630d87489a0a945e04498045db6552095da2e",
+      "counts": {
+        "tests": 24,
+        "suites": 0,
+        "pass": 24,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 602.129111
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/export-data.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.31793798499711556,
+      "sourceSha256": "01f06aa7d957d70d4580adaf941ecb6cad10845a1701b9ee4181ef55246869dd",
+      "outputSha256": "4f03d0f9d640d32b6c74805624b7b66ae5b67728f0eaed75b524cd03468d6670",
+      "counts": {
+        "tests": 7,
+        "suites": 0,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 47.907493
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/faststart-video.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.3383480150005198,
+      "sourceSha256": "8ab6317675c6bedfb24e03c0883d0d35d4e8a528bd779b8ae636c3b2226d1ba8",
+      "outputSha256": "055760c337ace9fa18855529927cd66114df20e73af285baeebe65aed47781f1",
+      "counts": {
+        "tests": 10,
+        "suites": 0,
+        "pass": 10,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 41.373834
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/feed-capacity.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.7118544869954349,
+      "sourceSha256": "695b833a0df9a737d5207c1c2fc5ade485f198972adbc4062de220e405b6d575",
+      "outputSha256": "e66cdb4748c0ac8a5dbdf3156b691cb9e6ef51e0221da5fac978e9b8a18f37d6",
+      "counts": {
+        "tests": 23,
+        "suites": 0,
+        "pass": 23,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 256.383162
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/feed-load-harness.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.1297854379954515,
+      "sourceSha256": "8dd00a10d6c2108e4a34b3942cbf6c45cbfc70620fc20135b96ac92c1204f510",
+      "outputSha256": "e47b399b7b4c9add64359f365bfae0f25a596f5d8a6c49788fd7c02c032eb7bc",
+      "counts": {
+        "tests": 3,
+        "suites": 0,
+        "pass": 3,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 61.059835
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/feed-snapshot.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.36739903499983484,
+      "sourceSha256": "fe8411dfbb33acb211752096a805ef92c22752e63c138016853c1bd45de35ca7",
+      "outputSha256": "b8057a4997f308e033849bee70b2d7509f745a9668d41e7e028a00cb17a020dc",
+      "counts": {
+        "tests": 9,
+        "suites": 0,
+        "pass": 9,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 12.675282
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/fullscreen-video-accessibility.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.28679840200493345,
+      "sourceSha256": "9607e6ed025d37b3e698bfcd694a12f277051797057cb9b09f461f9eb6dbb484",
+      "outputSha256": "01c0f797708cdb5258c4511b7b08356bb11ed42b42604abfedabcd606643aa18",
+      "counts": {
+        "tests": 5,
+        "suites": 0,
+        "pass": 5,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 14.774926
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/group-call-service.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.467554442002438,
+      "sourceSha256": "fafdd9290b1f1b21f9cf72f3efe307faa78393540ced1364dbe84d54ede81b7f",
+      "outputSha256": "1e6c1fadfdc2ff5eed7a6a7ec4937d6b264b0c0f96fafcd8e29413cddf59e2a9",
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 264.350597
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/intobank-link-sheet.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.4353551120002521,
+      "sourceSha256": "8e0029c6fe125eafac9a5e8654d456427f3b0ab7e5a52258f33d02353983c13b",
+      "outputSha256": "20346d0fbaafb1dc27fda2a98dca588b90927bce4644ac746eb8eaff96672d0d",
+      "counts": {
+        "tests": 4,
+        "suites": 0,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 179.405742
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/intobank-link-state.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.08624565199716017,
+      "sourceSha256": "39af194abc90c40bbf03897e0e702bb6a08ac62f41bc4db8c60d223f6500bbe5",
+      "outputSha256": "8420f6e08ddf1b5223ed27ff45e2cb32a92c030cc22d3d54ac637dcd787e1907",
+      "counts": {
+        "tests": 10,
+        "suites": 0,
+        "pass": 10,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 15.269603
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/link-preview.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.6345223209937103,
+      "sourceSha256": "c63dfd319438212343a445cc691634397084098279ddddcef39412aa7d481333",
+      "outputSha256": "624b2037c7839896d5215a262aecb6325f3c60f07c39df3a2c8919572ee3c12e",
+      "counts": {
+        "tests": 21,
+        "suites": 0,
+        "pass": 21,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 273.168282
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/market-reviews.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.0957858670008136,
+      "sourceSha256": "ddf3c4280052d50a38a5de836b3f0bb1f376c0bb647bb3b65708c0d43e8cdb09",
+      "outputSha256": "cd1cfd20dcd0ebf2d48f42f1ebabc7f31e55e7140a8d37e3345ee6bb6493a5df",
+      "counts": {
+        "tests": 4,
+        "suites": 0,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 12.423041
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/marketplace-recommendations.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.2838675359962508,
+      "sourceSha256": "361740b63665f039846ab364aab6f228cbd11a56d18e108d58b0a410c095cd93",
+      "outputSha256": "02e8cf741f5a38da873bea33e199e60d8222348f7906b0b024e40dc7ca29796a",
+      "counts": {
+        "tests": 4,
+        "suites": 0,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 20.626573
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/media-delivery.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.3813879410008667,
+      "sourceSha256": "2780737c2ff075bb154047ff3d7a5d67aa79ea8118896a7c7037172c0074a916",
+      "outputSha256": "4ab39716795e169bbc29c434ab04d532a28623695ef085e614ace83fa4dc17e4",
+      "counts": {
+        "tests": 13,
+        "suites": 0,
+        "pass": 13,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 26.240562
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/message-delivery.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.6211160800012294,
+      "sourceSha256": "38fcfa3b561961347af2d898db6f6ee764f1f0c2197ba567324b0b157265c559",
+      "outputSha256": "394cc9c9b673cd887eeb85eb88b911f9519a097d10bd6143857ed5ca25f4f619",
+      "counts": {
+        "tests": 11,
+        "suites": 0,
+        "pass": 11,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 362.905113
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/message-outbox.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.42331391100015026,
+      "sourceSha256": "90ddf392a746cb3e56b5bc8d58c0d13b072373f6380d131c565da564bb8c9765",
+      "outputSha256": "59d211b7a07b5b2e52093a77ca650809d40ea0160998773875fc84fd2bd0007a",
+      "counts": {
+        "tests": 7,
+        "suites": 0,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 239.374695
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/message-receipts.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.4506680740014417,
+      "sourceSha256": "567a00a8b7e2cb150ef2700bf4399af9445603ae48d1bfd05e728c0f01da3f47",
+      "outputSha256": "e49fa6b244dc2054f1409a9a081401ff3402274f0249bfa1d87e5232b1fa6201",
+      "counts": {
+        "tests": 5,
+        "suites": 0,
+        "pass": 5,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 209.617086
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/native-call-reliability.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.816025794003508,
+      "sourceSha256": "54f178c4096ce8e22e0844e9aa395885ccdd38d80b77b34ea986629d67a504ae",
+      "outputSha256": "214c2c7982334ee7dded85d09ddeefa915a085ff4afff208b8aeb1a77d6a3fec",
+      "counts": {
+        "tests": 23,
+        "suites": 0,
+        "pass": 23,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 632.395366
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/native-quality-regressions.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 1.3043364879995352,
+      "sourceSha256": "ca730c9d3c3492c356c98f2115558af2ae3735ed6e0fba84f421efaaa2bb4434",
+      "outputSha256": "c527bd4da1511ab9ebd438f15ddf1daf7323a124805891e38700c5e8b1593199",
+      "counts": {
+        "tests": 15,
+        "suites": 0,
+        "pass": 15,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 1030.705806
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/navigation-accessibility.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.6681820840021828,
+      "sourceSha256": "fe2e7e0b5190104ed6c2a2e8d18f4ab9c76d89c4ec5bfa880c604dd202dc9ae5",
+      "outputSha256": "d3941c7d0f142b3d68daa6bb7266730a72d97692717a938ee310e0d9bfb2e520",
+      "counts": {
+        "tests": 7,
+        "suites": 0,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 189.320621
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/order-request.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.0993437979996088,
+      "sourceSha256": "7e17b3ba307554e881daeb29fba74b021a543428fb5b903901a2bf21483ccb23",
+      "outputSha256": "231fc659bec8b5dcd73eaef240386fa1aa53359d5d1886dd86cb29cae6f5fddb",
+      "counts": {
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 14.920856
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/payment-intent.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.08650821500486927,
+      "sourceSha256": "1cf1f929aafcf86febfae0aaa582289aac43f7a67c3bd7aaed9696b6c4399aaf",
+      "outputSha256": "bf6a27ce9f8b431071e8bfad54dbe050b9bd01be6a047154bac5711c06bec0cc",
+      "counts": {
+        "tests": 10,
+        "suites": 0,
+        "pass": 10,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 15.051478
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/payment-provider-status.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.07634263199724955,
+      "sourceSha256": "2fa1e73b252b54b5278663d15bdc1bd50ab7f4d1e2e2cc5ff331917cf5a34972",
+      "outputSha256": "3ca818fc59553b7229093bdec6fe4ea78a802f82bf1b3c9ad30862c8b488c6f7",
+      "counts": {
+        "tests": 3,
+        "suites": 0,
+        "pass": 3,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 8.284074
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/payment-receipt.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.07951236500230152,
+      "sourceSha256": "9e25ac80e43956468b954f1e3f1db56a4b707a3175c09bf876b189e8671d7ce8",
+      "outputSha256": "74de2e330bfc17f14cffb3beeaf032a3c75d2dbdbe652e1a57fc83bf3c9bd377",
+      "counts": {
+        "tests": 3,
+        "suites": 0,
+        "pass": 3,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 12.634874
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/payment-service.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.1797453620019951,
+      "sourceSha256": "b3e0e8e1c5af9ec3c758e1ea50db6079abad580fb674e116f00f9896523d44d6",
+      "outputSha256": "5a38c9085a921d01c900e76ec2b452909e8e860971eff1b65d49f71d5364dbcf",
+      "counts": {
+        "tests": 13,
+        "suites": 0,
+        "pass": 13,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 100.159939
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/post-media-editing.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.2767886060028104,
+      "sourceSha256": "8d09869f93ee56043e917bd2327761322d6fce43237ef4d34bdcbe70b2943fcc",
+      "outputSha256": "f31b3a5c2b2b028670459e6ad8ab7eb33534c0c91ff407ec2ecea2e4241c0f79",
+      "counts": {
+        "tests": 7,
+        "suites": 0,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 9.553782
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/post-sharing.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.6576151019980898,
+      "sourceSha256": "cce07c6e865215ab82dab4f1ed9172df3276d08d2579d58662e2c6fd781a2224",
+      "outputSha256": "1668e4917acc3a6d29de491f794c2f7b7f3d47e2ae359729530b5f5144746e47",
+      "counts": {
+        "tests": 14,
+        "suites": 0,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 460.427876
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/post-voice-effects.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.23748890400020173,
+      "sourceSha256": "e62d0289c7476afb3633df6c1c2501b4a74cc169a548bf4d23b23378e90c51b7",
+      "outputSha256": "a668e40ce1ed86c6ce33b95f7ad13ad6048a5ab295e057aff876c3bbdd6e00b2",
+      "counts": {
+        "tests": 4,
+        "suites": 0,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 6.950803
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/private-media-cleanup.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.28011671700369334,
+      "sourceSha256": "62bd9726c2381704de437e645ef5deb542c3db4671b4f5ba05ac7b00ee7b33da",
+      "outputSha256": "3d996806e1625db782a415d2192870cd130637a0266f1ec9fc8674cc637b86a3",
+      "counts": {
+        "tests": 4,
+        "suites": 0,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 12.698518
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/private-media-reader-regressions.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.42691813899728004,
+      "sourceSha256": "dc55d75cd6e0cba3d7007051194a68d47e345a7785bef9df05f28d227d628d34",
+      "outputSha256": "36d8943b9093c8f038908b17f7d2206ab991862ed12c055811a7e6fcb52ebfd0",
+      "counts": {
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 243.500195
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/private-media-session.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.3094636320020072,
+      "sourceSha256": "62de1fe3f1993e9b4e6ac5ec9828058436823a8f967402f991d012d389e21a11",
+      "outputSha256": "c5b3b050883c206366df4a1c70ed75e236e9fd260141eccba1bed3759e468edb",
+      "counts": {
+        "tests": 10,
+        "suites": 0,
+        "pass": 10,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 38.59746
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/private-screen-capture.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.2690697430007276,
+      "sourceSha256": "1e437169283a478c6590cb83ce8fb280e832795ece5e1fca1b39ec0d908a9837",
+      "outputSha256": "10b8a742b7de655859d7c1d94f4ab3afcd493a60c90baa0bc291abb81ae987e7",
+      "counts": {
+        "tests": 2,
+        "suites": 0,
+        "pass": 2,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 82.894905
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/profile-mention-lookup.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 2.1631569349992787,
+      "sourceSha256": "1d9bb840b184c77e3056a73364d19ac1931ccd31877cfba5a55ff03d4d5f608d",
+      "outputSha256": "c408975015b4ad4b47646cc7d5483eb9ef0f2e900788f0fd730171de094231b9",
+      "counts": {
+        "tests": 11,
+        "suites": 0,
+        "pass": 11,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 1883.428357
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/app-interaction-sweep.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.4607151789969066,
+      "sourceSha256": "8232db8778891772b583064aaea5953d0f0042f1c796e4b95a8562c2c9063b5c",
+      "outputSha256": "59e34a04d1286c425fdbb0d080e99be688b08062e8013a8250bfe387c120047d",
+      "counts": {
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 210.029259
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/apple-music-regressions.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.336530362998019,
+      "sourceSha256": "7cec870606e142c4c49f00543157ef53052f1c81039c209d6645ac9953199c64",
+      "outputSha256": "64f781978cb7dbb5c4951681548cf657773cf13696e2e6e67990c1a9b36992df",
+      "counts": {
+        "tests": 11,
+        "suites": 0,
+        "pass": 11,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 31.072102
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/auth-callback-logging.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.43052568299754057,
+      "sourceSha256": "cbbb48550242da0d122f8edcee8b746cb8870cfe25ae03cebcaea93dffd9fb17",
+      "outputSha256": "6eb89a2da930ffe0dd06bf16406e6462d48d1f5e1365376d34221807a3233bd1",
+      "counts": {
+        "tests": 4,
+        "suites": 0,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 221.756946
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/auth-regressions.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.27474398400227074,
+      "sourceSha256": "621b5b4684c45d30fea839eb3c3dc133632f60e2f10df79eb77ded5358f98e64",
+      "outputSha256": "48b85e06a4391eb6510c3ac1bef551afafad27a9e6b39a11c7b19a1d1e2d9334",
+      "counts": {},
+      "standaloneAuthChecks": {
+        "passed": 33,
+        "total": 33
+      }
+    },
+    {
+      "file": "tests/quality/auth-service-recovery.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.38224658299441217,
+      "sourceSha256": "34c86993e6099380c480e039625da76972329dfcfa64ab90e4768aa89ae7adae",
+      "outputSha256": "1c114c7fe17915b4257bb520aa6d1d3c20370e5646ff03ad9892501d78a072cf",
+      "counts": {
+        "tests": 5,
+        "suites": 0,
+        "pass": 5,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 180.0988
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/auth-transport-deadline.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.6151323960002628,
+      "sourceSha256": "e97901dbb3fa187aa945e4e5f7412eebba61f0ea953425daa0a997508d160efe",
+      "outputSha256": "1d896874e1c4a3bd476571e432d77c0623ef92383add3e7efe803d4c6ccb4a44",
+      "counts": {
+        "tests": 17,
+        "suites": 0,
+        "pass": 17,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 409.21025
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/boomerang-cancellation.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.2808622340016882,
+      "sourceSha256": "32ebe15b4d88e7f94e0382551650a0edf058028b6055ae03510c3b52016d3493",
+      "outputSha256": "6c588746bc8d3b3c0937a0b1b80f4bd7d9693381ec8e5c68fbd34757a2b8d048",
+      "counts": {
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 18.138527
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/build-env-regressions.cjs",
+      "exitCode": 0,
+      "durationSeconds": 1.144599309998739,
+      "sourceSha256": "ab1d0aaa4754199e696fb7dd6e1e636b92f024c96cf41464092ea3798723ad85",
+      "outputSha256": "2738810b14c8f2172ca9cc02c381fb95d9a272efdd90fb6def60ea0bd1f345d2",
+      "counts": {
+        "tests": 14,
+        "suites": 0,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 1108.912344
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/business-access-rpc.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.5744455060048494,
+      "sourceSha256": "4ce878affad2ac3ba5a2bc39c816558c4baa3984ee8397e0d65be24854620776",
+      "outputSha256": "c43aebd65e432573a8602b2b92548ffbcca95b13cd9cf0116055c53d2658c3b5",
+      "counts": {
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 390.023568
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/business-session-clients.cjs",
+      "exitCode": 0,
+      "durationSeconds": 1.9667265730022336,
+      "sourceSha256": "73f0a03f646ade7d184a93fc205c91014e5c827ce92b111f70128161a6ac2389",
+      "outputSha256": "3ab7bac151d753f82f4e10ae00858cf6eed45d9e0d89820d2c2e4e54cd667c4b",
+      "counts": {
+        "tests": 48,
+        "suites": 0,
+        "pass": 48,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 1735.600049
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/call-membership-recovery.cjs",
+      "exitCode": 0,
+      "durationSeconds": 1.9211577409951133,
+      "sourceSha256": "fd7b831b8825dfd7255031db1a07d4a34b2c12a7fcc9cf996fc7d1f7eac4adb5",
+      "outputSha256": "8df23a4a9fecda9f2eb31acc1d06a3de8e08298a5326fdf8f3bb7cff178de009",
+      "counts": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 1810.256518
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/call-revocation-worker.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.3612400320052984,
+      "sourceSha256": "df99dadc87e6641c543ac9cce2f3a8297c81c75207ff930bb5fb16f34afe95e9",
+      "outputSha256": "38ed25fa010b471330091cad8337cfa656c7ed86ac4da0ed8ab18ff9f737f3e0",
+      "counts": {
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 174.029033
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/call-worker-credential.cjs",
+      "exitCode": 0,
+      "durationSeconds": 2.044030819000909,
+      "sourceSha256": "2f7c0b0ba089ca05c5b440c280a5578d503b79c416fb2db0747f6af095dc6d9d",
+      "outputSha256": "45181800ecefbba14a41e42a4a57432477467c641987f3369736b8e063efa7ed",
+      "counts": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 1944.557272
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/catalogue-ingestion.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.5447333269985393,
+      "sourceSha256": "bbeb021884e6cbe9f2b4c859ff23e64724dc01fd26e4467b547314146e50868d",
+      "outputSha256": "7e30f76742fc46917812fcc96f3d96b9774f1aa218c8dd280ab7af36729fa6da",
+      "counts": {
+        "tests": 11,
+        "suites": 0,
+        "pass": 11,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 327.555622
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/channel-studio-desks.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.7495139250022476,
+      "sourceSha256": "8d062d5a201f8b45c96a5234192cc05b3429baa9d9f5af2a56e8189d5cc2fadb",
+      "outputSha256": "23f2cd987e9f7b0b7078b7f8f3a15dedb6d54332a5c7ba64ed7fec4ac431f988",
+      "counts": {
+        "tests": 14,
+        "suites": 0,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 535.626346
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/chat-attachment-cards.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.24418991600396112,
+      "sourceSha256": "318e2aa390fb4aa5a21afaa49759e15608c3834d7e51a0b2dd927d88722125f3",
+      "outputSha256": "7429cfe8fe969ae36d2a6abb972bf6b6387bc9d481549ec09b673682b3161a1b",
+      "counts": {
+        "tests": 5,
+        "suites": 0,
+        "pass": 5,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 9.024497
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/chat-call-authorization.cjs",
+      "exitCode": 0,
+      "durationSeconds": 1.8056013530003838,
+      "sourceSha256": "f826b4e1726199e04bf1997e9f1bc27aa1e4b5eb58590433694cd2d1d8e6dab8",
+      "outputSha256": "1b2991607c664c0e31069809e9070a73e7af30b1a59e46502b408a84271490ed",
+      "counts": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 1704.099471
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/chat-history-loading.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.3877273550024256,
+      "sourceSha256": "ebe4afcb8c1959b61a80d8164301b76b81f4b012f17f5f39bb90d6466a040837",
+      "outputSha256": "afc2d3329859fbedebc7bc5c958b67b7753e3ffbb163f02d2b02772cab9fa383",
+      "counts": {
+        "tests": 7,
+        "suites": 0,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 70.710217
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/chat-media-signer.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.5470056150006712,
+      "sourceSha256": "0a565a6f94e671d2c069b0e723d33c5c77c3c63d5fe04bafb7d3dd0568ffa761",
+      "outputSha256": "0360c21862f1ff7c51f34dbf3e683c0b3f564bd5b79ccebaefb1fc045283e62f",
+      "counts": {
+        "tests": 12,
+        "suites": 0,
+        "pass": 12,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 337.82546
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/chat-storage-cutover.cjs",
+      "exitCode": 0,
+      "durationSeconds": 1.9437798700018902,
+      "sourceSha256": "2c66584d1c49729ee631324a2b721ee9a245ac0335ec973abb568d8888c06f33",
+      "outputSha256": "adcef544a0c1709dc7150455fa476419319a7e3c8b04f2db3ab8eadedf57bc5d",
+      "counts": {
+        "tests": 1,
+        "suites": 0,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 1840.59121
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/content-media-concurrency.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.47869784900103696,
+      "sourceSha256": "0b90503220a1a1479d65eb780a278bfa15970e306fb90c27f8b8caf78c2996b2",
+      "outputSha256": "e9b010ad41b51e09ae855938ace35d69a093d40f70b1e1a9efd729e3bd0a38a0",
+      "counts": {
+        "tests": 7,
+        "suites": 0,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 144.227404
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/content-media-regressions.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.33275848899938865,
+      "sourceSha256": "55d674c872bf0b26dfb068188a9834442e6b62b9472117a31c5443025e3bad69",
+      "outputSha256": "d3cfe7ff4c3743161f34133daf1f08c6f30b5ccaf9a48f338bbe813a4f8306f7",
+      "counts": {
+        "tests": 16,
+        "suites": 0,
+        "pass": 16,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 25.381328
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/conversation-targets.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.32551259900355944,
+      "sourceSha256": "8f71a7b4abcde3d72386bdd59605c2c06771b3eab7564b528d03299ff2d15b46",
+      "outputSha256": "8a3cc2fdd2f259c4d713335d44d6ec9959b6d169ce1b1879ae9e8272cfd866f6",
+      "counts": {
+        "tests": 9,
+        "suites": 0,
+        "pass": 9,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 46.311594
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/dark-surfaces-sweep.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.8058543200022541,
+      "sourceSha256": "6a96c6625c9d169b0d311f3b0abb4226763e1b0f781ebe665f1176eafed565ff",
+      "outputSha256": "5ff04842036c80e77267b35c622d496e7260d0ffeb124c253c00a09ea749db36",
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 528.008542
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/deep-link-security.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.29255418100365205,
+      "sourceSha256": "3d1532714c88bf834804edb1f851d4d97c2074d94bffbfb1e8c0b01abb790f3b",
+      "outputSha256": "34f5254449e8a241e6d95053bd1dbdc8504b30edfab0d2042cb7936f93411dc5",
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 103.938162
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/deployment-skip-regressions.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.5371958540054038,
+      "sourceSha256": "f676fb9ca8f8ad21f967ab3e8466208bf7aa6b09cd114990556a6c553eabbe2b",
+      "outputSha256": "9bd1a89d18069017b5cc343d67583fcd39ce0d8bfb68202e1dd5b4d5163d2959",
+      "counts": {
+        "tests": 15,
+        "suites": 0,
+        "pass": 15,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 493.530266
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/directory-media-sweep.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.5375347189983586,
+      "sourceSha256": "9f9424dbb74ab54080cb751cf7c42819b5a8be717e66beaa92bab70ba4478555",
+      "outputSha256": "d56174ed22a1c4aa1eed8ecd985bfe0d738f7282c598a6fb545a02d77afd25c9",
+      "counts": {
+        "tests": 11,
+        "suites": 0,
+        "pass": 11,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 245.617503
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/draft-soundtrack-interaction.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.949415355004021,
+      "sourceSha256": "e3c71ca3b6e64254e060dc011170229cdf81d8813356def73aae42d0b9f6c44e",
+      "outputSha256": "e085cf019669c236950ad9845eaae6bf2e37b4b0f7fc9f9b43b4fcd1fa79f970",
+      "counts": {
+        "tests": 21,
+        "suites": 0,
+        "pass": 21,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 661.273273
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/edit-profile-save.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.3529012139988481,
+      "sourceSha256": "58c4d6c7621e0ac1c1fbc9b394702044f7016d98a83104bd13a8c3c50d535e04",
+      "outputSha256": "b15cdf3968ab85e7d6587d45c5c6703026759b63117478711fd69b8434de1be0",
+      "counts": {
+        "tests": 4,
+        "suites": 0,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 122.55626
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/finance-unavailable-release.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.39137902299989946,
+      "sourceSha256": "242c674ee46c47764e1ef306e7bdb64f21800b44ecff962931e9b5550f440752",
+      "outputSha256": "cc39ecaf075aedaac5c76780668faf201f2e18452dd743ce241ef1bed004cd97",
+      "counts": {
+        "tests": 5,
+        "suites": 0,
+        "pass": 5,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 75.326541
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/hiring-workflow.cjs",
+      "exitCode": 0,
+      "durationSeconds": 2.030182276997948,
+      "sourceSha256": "a214c52d94a79bb05bc5cc825175efb2bbefd87a60c9bcbd772a92021d242f2a",
+      "outputSha256": "3fb9c5df9a02f1ac3eaa3590a4e543f5799d09ed7b05b04fe98468a55042f5ab",
+      "counts": {
+        "tests": 2,
+        "suites": 0,
+        "pass": 2,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 1798.325233
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/incoming-call-access.cjs",
+      "exitCode": 0,
+      "durationSeconds": 1.0439065110040247,
+      "sourceSha256": "427331ccd73a2f9435c3422e8eab4a652750995623b9a2765ae05fd85bb6c427",
+      "outputSha256": "c552e848de071510273d5b3a50c9dd724e8be8af408255321f71c0b1f184dd07",
+      "counts": {
+        "tests": 19,
+        "suites": 0,
+        "pass": 19,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 835.111971
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/job-application-self-service.cjs",
+      "exitCode": 0,
+      "durationSeconds": 3.567146651999792,
+      "sourceSha256": "098296249eb9ebf79df100c32ee2843b3e2b1d4b04d152b88b9ed24f4c46f314",
+      "outputSha256": "d1dd971f9a120d51a1d8eb6ef1c5bcf08bd53415d37ab9e5c3f676c70206b29a",
+      "counts": {
+        "tests": 3,
+        "suites": 0,
+        "pass": 3,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 3266.902079
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/jobs-market-regressions.cjs",
+      "exitCode": 0,
+      "durationSeconds": 1.0008668930022395,
+      "sourceSha256": "e4e8007db3bb4851882193324f4292863a6de620a341242649afe4fe6f20dc96",
+      "outputSha256": "8617b1c9b63de4868f89f61681d4d09019ad9d076a1fcbad4c0cfeff75befb5a",
+      "counts": {
+        "tests": 50,
+        "suites": 0,
+        "pass": 50,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 801.7804
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/jobs-navigation.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.8665446629966027,
+      "sourceSha256": "5f1598be197042e0c4398bda9ccb3743c06e373d6e13c60bc7a8e97588676589",
+      "outputSha256": "0169fdb3dd4eb4c215fcb182c5e22a892447d08b7dfe2937f12ca45da01025cf",
+      "counts": {
+        "tests": 9,
+        "suites": 0,
+        "pass": 9,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 652.379425
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/jobs-parity.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.7442116910024197,
+      "sourceSha256": "6d9e6e1fcd9d2d80af2d177fb9dcfa0e8ed1db278b8f2bbcba6ae48e4e827291",
+      "outputSha256": "be240e3ccda619dbf78639abf6d616c602538d6b115454c15333a565767e15b6",
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 511.302714
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/legacy-limited-media.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.2656551610052702,
+      "sourceSha256": "b995a8c892bf3a3425e40b5162eae9507da45516f3a3418b2cd0c59f65f506b6",
+      "outputSha256": "09b4596fc8255f9a5f96240851b271b455ec15a10f5d91cae67ff74496a4f546",
+      "counts": {
+        "tests": 5,
+        "suites": 0,
+        "pass": 5,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 32.325851
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/lens-camera-interaction.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.6119305600004736,
+      "sourceSha256": "e31263e0d98f44e92bbe31584ac49165f07d8eff113e6dd5a9d878df2f933362",
+      "outputSha256": "9e6d32814da2e1a32fbfd38189568fb9e8557dadfbe627d76a2ea15ed5ff9ebd",
+      "counts": {
+        "tests": 7,
+        "suites": 0,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 423.600022
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/link-preview-publication.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.4375157440008479,
+      "sourceSha256": "9d85b2c7b532d6e33c32919dff9de74f49a22840d09bd4114145553638466ecd",
+      "outputSha256": "5585bbbaf82b1e5da5e48a249cc2f98c10627641f4c27e96ddc7d86e254d3fbd",
+      "counts": {
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 130.047842
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/marketplace-refresh.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.4968849849974504,
+      "sourceSha256": "de25cf5d8f20082b9f083c8ba09b49d0dfedab4e493a34da1f8ad0b8a4e6fda4",
+      "outputSha256": "e7449a60981975237c74709f679542bfcfe7fa7a391aebcb0a138dbcb49fc840",
+      "counts": {
+        "tests": 5,
+        "suites": 0,
+        "pass": 5,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 305.883158
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/memory-creative-plan.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.4640819189953618,
+      "sourceSha256": "f0f9cde3b52b1d13ae88d64e003e2483da44111f8926d63bbb4bfae8e750e42f",
+      "outputSha256": "16bf6829c6325a6fc3817b49dc2cf9e954332cb0c22e8294377133b4ccbe1d97",
+      "counts": {
+        "tests": 23,
+        "suites": 0,
+        "pass": 23,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 113.977668
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/memory-film-lifecycle.cjs",
+      "exitCode": 0,
+      "durationSeconds": 1.032654761998856,
+      "sourceSha256": "e1b332e7e732f7cdc3b0a15c3088a35ca5aa0a8786bd496794a84d4a44a48287",
+      "outputSha256": "9dbe8f067bbfbe28caa8c80eec1f3b5e3aad885dd423112cbeafcaeffe4a9433",
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 835.785504
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/memory-film.cjs",
+      "exitCode": 0,
+      "durationSeconds": 1.9148572459962452,
+      "sourceSha256": "a2a698622f7ad99004ae8f2a624f8060e1470344474b7aab2aadb95aad9b36fa",
+      "outputSha256": "06d653ebc2163e5511eb00e36df586dbee3db71ba2100c72a28a749ab6de65b6",
+      "counts": {
+        "tests": 14,
+        "suites": 0,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 1700.743621
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/memory-media-regressions.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.31685183399531525,
+      "sourceSha256": "bf474c23e11a8f2856204daf6f234b97c39d64051c13241e7b23cea338c71bf4",
+      "outputSha256": "8a64b159f9d406abb204517eb0b1c4f086548a63babf9bd15000fd226de03b34",
+      "counts": {
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 39.240261
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/memory-page-turn.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.4918621249962598,
+      "sourceSha256": "d305438c894b92a43770213bd47a8c43c5fa788ed05c07dacc8277d9fdb54e68",
+      "outputSha256": "763bd2bc7385bbe4b42b3b9005e9cd26db23dcd80d887ffc4d51283e607e450b",
+      "counts": {
+        "tests": 14,
+        "suites": 0,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 214.11362
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/memory-picker-accessibility.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.3579189470037818,
+      "sourceSha256": "20a522ac381aad71f8f83b74a14416e6ea7bd01374d8f3d3e0ae9100eb1844ef",
+      "outputSha256": "f3a83c227ba1f45d234fd797ba23a47ab1d06205d3828f158935dae1239982fe",
+      "counts": {
+        "tests": 4,
+        "suites": 0,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 176.037155
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/memory-playback.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.2809094200056279,
+      "sourceSha256": "b88da98de000e676c731a3d68ab8d4bee5e6ca2c90a3fb6feac8afec1d15eae0",
+      "outputSha256": "87e49588b5ccf8b572a77087bec603b8fd9154e73347b5c5343d17584afff5cc",
+      "counts": {
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 38.913329
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/memory-soundtrack-save.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.6186554730011267,
+      "sourceSha256": "f2548ca3a9986bd05a1d634a86373afdc4ed8badd2d31c42bdde94bf945dbc71",
+      "outputSha256": "98581900f7b7cca298aeff9ad42d4d4dc938c893efdfd1fe5fbd0fbfbc1f880c",
+      "counts": {
+        "tests": 19,
+        "suites": 0,
+        "pass": 19,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 351.854738
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/memory-stability-regressions.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.32500211400474655,
+      "sourceSha256": "6c7496278a6534d27e45109d17032dc57a1af33a8c9bf1b8f481a1b252bdd457",
+      "outputSha256": "5f14d5188e7269c96db3b254af477a1bb4a0f1d061b9d4cf584a0421f2b25370",
+      "counts": {
+        "tests": 14,
+        "suites": 0,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 142.950006
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/memory-story-presentation.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.5317855929970392,
+      "sourceSha256": "8db9e4aa34a3af91a1e7d271372fad3509e7417389a215ab688ee4686831220c",
+      "outputSha256": "6cf6700ab7fac7bbd5a99406575cd8e7150bb17c1664dc9edf9ce579e25d3baf",
+      "counts": {
+        "tests": 18,
+        "suites": 0,
+        "pass": 18,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 295.787413
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/music-catalogue-client.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.31607965099829016,
+      "sourceSha256": "aeb82e2fb2d52ab1fdd6814a95cc33ec77089fe3fc160f53a2ec9e0e668458aa",
+      "outputSha256": "59344a7b42ddb2c37f407500edf55918273d8128428850ec0e98a409ea8a49a9",
+      "counts": {
+        "tests": 9,
+        "suites": 0,
+        "pass": 9,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 33.707574
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/music-disabled-release.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.4415017830033321,
+      "sourceSha256": "c0f6206c23b59b1d6582344b60133513f8a8abd7cf8ae8875bdc871278db253d",
+      "outputSha256": "369eb7d93ca319170f9739cd6c9d30eb89a841ae4fb4ce64b46c5b5398a339c3",
+      "counts": {
+        "tests": 4,
+        "suites": 0,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 222.36229
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/music-favorites.cjs",
+      "exitCode": 0,
+      "durationSeconds": 1.247206127998652,
+      "sourceSha256": "edbef5c2da9e811ca596669788a0fa824d1d16d81d7f9c5fb84cc5429e6c4506",
+      "outputSha256": "56448d147d66ad6ce85b6c9da0a655005a6d5b3227c4e2b0eeb6ff86fdb530c2",
+      "counts": {
+        "tests": 26,
+        "suites": 0,
+        "pass": 26,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 1048.88354
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/music-maintenance.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.34708573700481793,
+      "sourceSha256": "cf2f0feb19d8d5b4f9f08e0e8dc96eb10ab0f00202a308e92b5e109ed3203437",
+      "outputSha256": "27622a0879d958e196f32af0af77ec39ffbd22c9ce46681bb5eed29e8d325a10",
+      "counts": {
+        "tests": 14,
+        "suites": 0,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 69.984105
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/native-account-readback.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.34893195900076535,
+      "sourceSha256": "e29c9448c6725e996ad71ccc0b9175c578a69d5011d10dd0ddd6de3912613856",
+      "outputSha256": "c6c3b8c60b6970911db4af7ad801c107c98405b2a48376d77e3bece189591b20",
+      "counts": {
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 152.310034
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/native-auth-diagnostics.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.19387995400029467,
+      "sourceSha256": "9c1edc8e6f79a9afeeb89440384ed909ac1eb50bf034962155032cf519176ba9",
+      "outputSha256": "30501767f16b7f2f9000db47ecd40e8adabf35b297702aeaa43c13b3a9f47c32",
+      "counts": {
+        "tests": 15,
+        "suites": 0,
+        "pass": 15,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 111.815473
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/native-call-event-lifecycle.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.7452343540062429,
+      "sourceSha256": "c803f75d62bab5f36a380da7a370c82fdf78d22378aa1b07fba4344da535fb3b",
+      "outputSha256": "ec602cf2b990fb6004a4ec00c84911eb86efee70a85e84446535087d9e709299",
+      "counts": {
+        "tests": 15,
+        "suites": 0,
+        "pass": 15,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 547.797195
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/native-capture-open-link.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.07498881599894958,
+      "sourceSha256": "8789514527b86f1a6a5caa89ef5f1f67798f85f2f51d4dab5ddcf114696e192f",
+      "outputSha256": "be8d2b75b818cc278444107a6e4bd23dc267372ef2cb4f4e5de919d691a2896a",
+      "counts": {
+        "tests": 5,
+        "suites": 0,
+        "pass": 5,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 8.125349
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/native-capture-setup.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.8186036510014674,
+      "sourceSha256": "3acca49540381734d53e55f954ddea6eabe7175bf363b51e81a4ba963c112547",
+      "outputSha256": "3649021c3fe1f0799a7b61e658774168cf5d7320a9393be0149ccf3245a17563",
+      "counts": {
+        "tests": 13,
+        "suites": 0,
+        "pass": 13,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 566.724273
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/native-comment-actions.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.4349745990039082,
+      "sourceSha256": "559a03befa095462011de53e7dfd27425735906e66b8db9b9831038734e84d92",
+      "outputSha256": "cce7fed122628accee4bcd5bb15326484b3e34f3efc5d10e862ee551bf8c10d3",
+      "counts": {
+        "tests": 11,
+        "suites": 0,
+        "pass": 11,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 204.213634
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/native-dependency-compat.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.7058030890038935,
+      "sourceSha256": "532c680ab8487926e45f6121be8e19f9eeb60c42e6236c1f2159ff874a6d96cd",
+      "outputSha256": "d9e771c8170e540d80ab4e1059cbacb87ebe633caede4b0474bba3fa1fff1b94",
+      "counts": {
+        "tests": 11,
+        "suites": 0,
+        "pass": 11,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 652.523274
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/native-draft-follow-reliability.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.8672162060029223,
+      "sourceSha256": "793a7f5d844ca246a2f39dc312d3d59021881b0e20a6838fc67d6d57d9288ef0",
+      "outputSha256": "0b414e20662ee211670a745aa2b779559bb5c1334824418ec5213744f270b9fc",
+      "counts": {
+        "tests": 14,
+        "suites": 0,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 686.394913
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/native-environment.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.049325268002576195,
+      "sourceSha256": "d923ecb81627d7992ab1ea7469b011ed4282bf8b38c7ba74c3363c9550a25a3d",
+      "outputSha256": "ca9e517b00401e52298acdf77a2e70a6e906811293a9f8a7ed9e3d967eec3417",
+      "counts": {
+        "tests": 3,
+        "suites": 0,
+        "pass": 3,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 11.580554
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/native-flow-content-selectors.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.6120376760009094,
+      "sourceSha256": "31b91899c5b86b28eb6412b9d349bba1b68a4bbda1c2e49df77fabddab58b5b7",
+      "outputSha256": "f6c921c7ed126b6323278c54e1a1408a343557903e3d4c5da9d03455aad844b9",
+      "counts": {
+        "tests": 4,
+        "suites": 0,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 239.00114
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/native-memory-export.cjs",
+      "exitCode": 0,
+      "durationSeconds": 1.20295220099797,
+      "sourceSha256": "7ca560610bd8dbc5b315e8fe40737df1c508a0f92ca424b9e08142eafa4e162a",
+      "outputSha256": "9ae2be681016bb0c1498ccc4ae104436fab45a0fad40143cf0d7c9a325717399",
+      "counts": {
+        "tests": 15,
+        "suites": 0,
+        "pass": 15,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 1012.068779
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/native-memory-modal-lifecycle.cjs",
+      "exitCode": 0,
+      "durationSeconds": 1.6713555729947984,
+      "sourceSha256": "703472667f28470092ef471688b7bd5aaf95e1de79d5e78d16ff011603052687",
+      "outputSha256": "911c1b892de526d0342f685440ac374e88ff50d86b8e84c325ed09ebd9e93d72",
+      "counts": {
+        "tests": 21,
+        "suites": 0,
+        "pass": 21,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 1465.038995
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/native-music-sheet.cjs",
+      "exitCode": 0,
+      "durationSeconds": 1.383881248999387,
+      "sourceSha256": "a7a62c7e847c1e7e4330c4e29da6a80218797f35fd8aadd58351aa08ddb69178",
+      "outputSha256": "f384109b0c498950b272e6b427337f7dfed77e6e23e1910b7672fea0b2eedd32",
+      "counts": {
+        "tests": 27,
+        "suites": 0,
+        "pass": 27,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 1178.199044
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/native-private-diagnostics.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.358308450995537,
+      "sourceSha256": "f1eb3050a9b5536e8472fa92f119a9c6e9659937b6e8ba7cf8124109e99a1aaf",
+      "outputSha256": "a8dcd549c6c9b65d256fc8ee1d659f6368a9abbdbcb2526c5e374ac171c0c022",
+      "counts": {
+        "tests": 5,
+        "suites": 0,
+        "pass": 5,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 160.572366
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/native-simulator-entitlements.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.24668956799723674,
+      "sourceSha256": "408f6e9725a87bcab3b562abea30dbb5acaec5199c5321e3d79c24a228ac81ac",
+      "outputSha256": "26dcc9e4a6139a64e2dc7b96255f8949655cb4ee4fd8010da9d2e427dd9e35f5",
+      "counts": {
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 211.810139
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/native-story-export-audio.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.8087797810003394,
+      "sourceSha256": "baff235f2e3ff5ab409bdb0983f961f375af72b890379723540574ecebce2572",
+      "outputSha256": "3399cc047069c31c011cb46f3d783b2e0a12a248bf4508b93e2e675d8b6a46fb",
+      "counts": {
+        "tests": 10,
+        "suites": 0,
+        "pass": 10,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 622.292633
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/native-story-interactions.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.9394527969998308,
+      "sourceSha256": "250f3f45c33f77e412316feec6f12ef12b56ed0a65c8cca05d3772e9e78d3e1c",
+      "outputSha256": "ab346493df6b316452f8bc24757380c782f617e14283f8e0c8f38a9e2bb5ab73",
+      "counts": {
+        "tests": 17,
+        "suites": 0,
+        "pass": 17,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 672.187343
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/native-tab-bar.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.6605566409998573,
+      "sourceSha256": "1ee00af169ad674068b4760a5119b7ebb94f791de70a29fbb14dd6153e240ce7",
+      "outputSha256": "1e5275a0b4ef92a0adb9146b36fb0b83d4426a968e9f0265a786ef82be7c1588",
+      "counts": {
+        "tests": 12,
+        "suites": 0,
+        "pass": 12,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 149.999457
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/native-tab-selectors.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.8929367970049498,
+      "sourceSha256": "c12f82a06ed0973e5ea58ca8af6aea6c6c0f8fbbd019c18403d342601dcf209e",
+      "outputSha256": "cdc67a228666a05690f5cc6eb79a13d000134856dfd808f64e13e4d9edfc8b37",
+      "counts": {
+        "tests": 5,
+        "suites": 0,
+        "pass": 5,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 396.592678
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/native-theme-inputs.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.6876282119992538,
+      "sourceSha256": "ed0ca276fbdcdefb2add06eed254c3c79505890f3b8a2931819e5f558c6a8b15",
+      "outputSha256": "144499732175b311a3f04c7e6660b73fdcb7f2d09f56f8b9b0c77e8c87f2e29b",
+      "counts": {
+        "tests": 7,
+        "suites": 0,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 451.173791
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/native-timer-bootstrap.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.3287534730043262,
+      "sourceSha256": "f9527e61f00a4c0e400e7a759121df6e0b7f4a01eae7df3b8620bf400a9ced2c",
+      "outputSha256": "68a8af6677b61a446f4d8f6b7f26092c0b2a849c85378a45f68d70584c50a7a1",
+      "counts": {
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 52.262813
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/native-ui-fixture.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.3486186970039853,
+      "sourceSha256": "c62b06bc52b7a45fd0b28d0d7e2bbc799d20f90c7456df8584db8b7c30cbe790",
+      "outputSha256": "5103e27bb49ebf504d6ea20f445b66b1927f02aa2e0b4f0a8510f58f38aaeb3f",
+      "counts": {
+        "tests": 10,
+        "suites": 0,
+        "pass": 10,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 280.54856
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/native-ui-flows.cjs",
+      "exitCode": 0,
+      "durationSeconds": 4.078349559000344,
+      "sourceSha256": "e9068722cd01b3c42dd153f62d7fa021739249bce7e912d4c043bbea9f983a19",
+      "outputSha256": "17b8f86ef61c70f57cd5fc6b6f326c9e9d367898b9efdd926ba8c5bc46ececff",
+      "counts": {
+        "tests": 28,
+        "suites": 0,
+        "pass": 28,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 4040.542102
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/native-ui-runtime-diagnostics.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.05150701499951538,
+      "sourceSha256": "954c322808f72b77a4383c133edcfe191dade219f9326ddef67cc8255ac8cf5a",
+      "outputSha256": "59e1cfe4daf987e5cb9b93210285f2496c4f2d57406850062775a54bcc246625",
+      "counts": {
+        "tests": 3,
+        "suites": 0,
+        "pass": 3,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 17.138899
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/native-vendor-compat.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.3340607430000091,
+      "sourceSha256": "16ff6d660cc6fae15c80a78e569e864eb4b4e777f92268d7a3d0f9fdfcd108d6",
+      "outputSha256": "2ea8f59e489cd8a490bd2080e902ed5a86f480ef97b87d9f740cdafb6ac4fb47",
+      "counts": {
+        "tests": 7,
+        "suites": 0,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 281.126827
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/native-verification-offers.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.7740971220046049,
+      "sourceSha256": "9076a833ee0bace3c093de032b57f02ab64be4c7c88f1ab299837548f451d879",
+      "outputSha256": "42d0de4f29d0407da601425bb8747ca088b46d80f350d26f539355060495a79d",
+      "counts": {
+        "tests": 14,
+        "suites": 0,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 572.135045
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/navigation-cache.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.47062964100041427,
+      "sourceSha256": "47c04c5035d50c750d1211861a8d4f04871986485f1c40baf179e015c7f7ac0e",
+      "outputSha256": "6d7d699f3480a40ed1960a980ee848c5caede4e6482d2d8fa341d115eba394ff",
+      "counts": {
+        "tests": 16,
+        "suites": 0,
+        "pass": 16,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 203.351628
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/navigation-directory.cjs",
+      "exitCode": 0,
+      "durationSeconds": 1.0692541300013545,
+      "sourceSha256": "52eb31c8fcff0f48e58a97094a735dc0780ef3ba2bb4f48d0d674aeb3c307002",
+      "outputSha256": "be86a8163c0254d7a3373245c8ac5ae6e82944db610ce1df3abb14376b6fbb8d",
+      "counts": {
+        "tests": 18,
+        "suites": 0,
+        "pass": 18,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 806.028971
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/navigation-screens.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.3047684859993751,
+      "sourceSha256": "7806be2bd776983eddb8e7ab3f17afeecf2c9c5aa2513621978743580e57057f",
+      "outputSha256": "bf8fdade6d4620774b2757134f480045bce934cfa9d5256b76d32538e8293f73",
+      "counts": {
+        "tests": 4,
+        "suites": 0,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 86.007318
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/notification-event-dispatch.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.3063891429992509,
+      "sourceSha256": "896d73b5c6714d4e9f29b7b952e2a837fa88b5f1615eebd7a5f31ecacaa7bdd0",
+      "outputSha256": "511a56ec08c5f90ef7aac1ce7abd131e7da1f24d921b527eb06a3a0a9f59a64f",
+      "counts": {
+        "tests": 14,
+        "suites": 0,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 40.550081
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/notification-loading.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.6343550269957632,
+      "sourceSha256": "3895aae7ca21b2bad6de480cf67a9956dea3cbc7336a8b758234496b6c1df2e7",
+      "outputSha256": "a5a3c79ab81f6b18749f940b284e79ec00350b2071c008efe967b8425e39240b",
+      "counts": {
+        "tests": 14,
+        "suites": 0,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 333.31517
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/notification-preferences.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.3248820890003117,
+      "sourceSha256": "7123bddaf499e1d523ffd8c2109fe2ef0efdad7dcfc35e19a2c4fa04c8a18645",
+      "outputSha256": "5b624b7f4cfa405297c9fc5acf54f4281c82716c8817c8570089ca35c2d02737",
+      "counts": {
+        "tests": 11,
+        "suites": 0,
+        "pass": 11,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 27.348152
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/notification-tap.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.5556632480002008,
+      "sourceSha256": "d8ee60dcbb53a2af61ef1db2c9d04e6781eac3e1945d07e8dea873a494e00fb1",
+      "outputSha256": "b760a0afb899ed846218bcc287d415ec5d86b2e3b27a4a9b3eaad4599ef6343d",
+      "counts": {
+        "tests": 15,
+        "suites": 0,
+        "pass": 15,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 356.327739
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/original-audio-infrastructure.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.8418732379941503,
+      "sourceSha256": "a6821868d5e5ce60d2806369d535cf364a5a96aeab190a0e8891bf97a4c00820",
+      "outputSha256": "a9e4369213744e72e579b56050a9bf104a4e9e3bb6da6a05f6cc87ea5209b549",
+      "counts": {
+        "tests": 19,
+        "suites": 0,
+        "pass": 19,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 473.508821
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/original-audio-library-state.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.467359401001886,
+      "sourceSha256": "df8b02b15b94392a0829fa302e765d42885313ec137213da107f5da065d2a2b7",
+      "outputSha256": "9dd45694949a2e9a4fee2a60f8b17c3c02fad72cf10a6910a14b5d8d2c6c065b",
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 280.509931
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/parity-navigation.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.4270217520024744,
+      "sourceSha256": "35eb1dc319c249288b5d959a27c0bda582d83ae5055089f72c19403f22b795e7",
+      "outputSha256": "a6d6aade51580667b991177040de4a1b5259f6749992ba80311c4d6539f5fc62",
+      "counts": {
+        "tests": 5,
+        "suites": 0,
+        "pass": 5,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 173.468
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/post-editor-interaction.cjs",
+      "exitCode": 0,
+      "durationSeconds": 1.300997696002014,
+      "sourceSha256": "358e5eb086e931995f197df9ca5959f9b4716cfb022cef9e85a542eea53decac",
+      "outputSha256": "da09b5497d618958e6831960b85c91a382263bde96e948c42e28827532210ae2",
+      "counts": {
+        "tests": 14,
+        "suites": 0,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 1066.863176
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/post-soundtrack-quality.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.4539123340000515,
+      "sourceSha256": "4a46b7a1e5039c651cec37a4d781a58e79eb9b0c7a8c9a0d78df86d183fd0f32",
+      "outputSha256": "f9f9729ba8cbd11efbe0d96f88faf7b54323df3c8984ee5ee4cb79e6b30bb170",
+      "counts": {
+        "tests": 10,
+        "suites": 0,
+        "pass": 10,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 174.174762
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/post-upload-draft-ownership.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.460939567994501,
+      "sourceSha256": "e515641aef5a4ddc08b9adb9793b9faf893f5f02aa32a27a7c36b3b1b1494611",
+      "outputSha256": "6abc071ce22eb8d1ee66e1cb439a7ba49788022b861c765405dee65cdd0ccec4",
+      "counts": {
+        "tests": 7,
+        "suites": 0,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 173.876357
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/post-voice-viewer.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.3419721579994075,
+      "sourceSha256": "70feef6f0f74d72661728ee0d94ba04fbcab544d0556ef0d7618be2637241c49",
+      "outputSha256": "8f8c031ebe46b9f62155afb0f865dab5b93084c0d6259e5f782a90ca71a751be",
+      "counts": {
+        "tests": 2,
+        "suites": 0,
+        "pass": 2,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 133.064564
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/private-reader-compat.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.3475843759952113,
+      "sourceSha256": "e9a353dbf4b1072076c4fc990acf2c40244f361d8e7587c0d49c3cea4c9e1b7b",
+      "outputSha256": "d5771ae547ae2d3db86d90f81e15bcd262e6f4cfc1282ca31854575b34a57547",
+      "counts": {
+        "tests": 4,
+        "suites": 0,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 153.15303
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/profile-content-regressions.cjs",
+      "exitCode": 0,
+      "durationSeconds": 1.9082118919977802,
+      "sourceSha256": "3523648fd2d75fc102c4444c369fab83c87f4a3a475c084495ef65aa030f7be1",
+      "outputSha256": "bfdc27a294cf983381fc732d692dc2a218ba460e9ff2585b0a45cad31b953eaa",
+      "counts": {
+        "tests": 35,
+        "suites": 0,
+        "pass": 35,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 1605.003353
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/profile-media-renewal.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.5063038389998837,
+      "sourceSha256": "9897532d48ed7a4b6383f78115867e4b55350c171762e2abe8c41e4f775ce5b9",
+      "outputSha256": "9719b5effc0ace87f959583f49f5c784537a72255b430952497b4f7fd6df140a",
+      "counts": {
+        "tests": 7,
+        "suites": 0,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 247.397616
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/profile-shelf-lifecycle.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.46015837600134546,
+      "sourceSha256": "8581f4dfdc223678d629543138114142bdbc41259e0d7a82471f439af0d0e448",
+      "outputSha256": "5620ff4e6cbcff7c139677f157ec66b25bcdae5d75a99d77c8bd8ddfa91d36c9",
+      "counts": {
+        "tests": 4,
+        "suites": 0,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 139.420348
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/qa-notification-setup.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.31390813200414414,
+      "sourceSha256": "b7cf3535654cc820a83585b74dc5b657fe06e65433bd2b5faa6c8cdef8056821",
+      "outputSha256": "01c3728488bfd7d2c5616d0c4d53aef540145b3c88a57e98ea93cc13198d80f3",
+      "counts": {
+        "tests": 10,
+        "suites": 0,
+        "pass": 10,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 59.355498
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/setup-profile-username.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.3393043169999146,
+      "sourceSha256": "f59b1774be1e29709f9cbfec27b94d85f81b84d70d94cd1096b1a8c7838da73c",
+      "outputSha256": "7f030b31674924f425328367c1af9919083881f25612aa82a5a9d930b844e130",
+      "counts": {
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 23.766846
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/social-interaction-regressions.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.41594096399785485,
+      "sourceSha256": "96014c1508d3766fbc25b1b621cf4dc4614bf2df4fddeb9082c77bf6fc4ece5c",
+      "outputSha256": "941cf33bc88cf34432d5e7664ad8d5cd921391f1442b80f6e1afd926fd77e9b0",
+      "counts": {
+        "tests": 10,
+        "suites": 0,
+        "pass": 10,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 190.915498
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/soundtrack-playback.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.3926227449992439,
+      "sourceSha256": "c43786893d51d924c3b15d87379c63478997d5d0a3fede0a7b5381474cbad96e",
+      "outputSha256": "de26b6234b30abe14fcc9ad366b4fd159a7d58a92d0686aa6dfd935c8d883683",
+      "counts": {
+        "tests": 7,
+        "suites": 0,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 135.028662
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/story-audio-playback-regressions.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.3443180800022674,
+      "sourceSha256": "4225f8bf91806670378299981a8f83da326d1c70f38326b7688edea71fe4e54a",
+      "outputSha256": "031fac39cbe2616e810d90e245531015f000a96339fbddaa4c83b785b9cd4421",
+      "counts": {
+        "tests": 14,
+        "suites": 0,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 67.865352
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/story-audio-web-regressions.cjs",
+      "exitCode": 0,
+      "durationSeconds": 1.4464178039997933,
+      "sourceSha256": "0c1ce13e6a805e758a2af2acb777e8d4439bb8c14a87a4cef2aac49ab6f7ede9",
+      "outputSha256": "0037609b2aafb0ee0466c8aed5d931ca9fc44a27aa9c81fa8aa46aa69bd54e15",
+      "counts": {
+        "tests": 10,
+        "suites": 0,
+        "pass": 10,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 1243.337121
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/story-capture-delivery.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.48944632100028684,
+      "sourceSha256": "842856caa1ecdbc7cb73bfcbdba7c4f1078a64e9e63f3e3879b9333cf86d84bf",
+      "outputSha256": "6fa7a0eefdd0db6fbf16d12657db7db2e597fab0698a87e08c81c29604e7cfe2",
+      "counts": {
+        "tests": 13,
+        "suites": 0,
+        "pass": 13,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 301.369551
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/story-capture-lifecycle.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.7234347920020809,
+      "sourceSha256": "1c9d0e1bd59df27ebefe1e2b16a8a39982376422b3c7ba1e22db3b14c92e9b82",
+      "outputSha256": "b0072060b022411dccf9489a06340436205581d1493445a5ed18b35618ec436e",
+      "counts": {
+        "tests": 15,
+        "suites": 0,
+        "pass": 15,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 523.597379
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/story-dual-capture.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.3450892010005191,
+      "sourceSha256": "faf8f93f6a15eed0c4c2c8af4e19d09b3edfe31a31f66097b2ef9d653f433ddf",
+      "outputSha256": "deeaeccb28643e82fedec37911504b60ee814e8a6c8feda3d9de15698ccffd24",
+      "counts": {
+        "tests": 7,
+        "suites": 0,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 19.342136
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/story-editing-state.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.8196411620010622,
+      "sourceSha256": "0378d023cff8ff21d519ab24a42aa05d88947637091471dc61d8cb35bacd3fb8",
+      "outputSha256": "37742cf0a5304a75964a5fd11a2efdf8a32ea9f86c88d60313200e35401d99a5",
+      "counts": {
+        "tests": 20,
+        "suites": 0,
+        "pass": 20,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 472.462893
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/story-engagement-quality.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.3995056339990697,
+      "sourceSha256": "689ac8965d7c00b5269afb75ab1f034d728e30ccb25ea53e34ed5146c6a34d39",
+      "outputSha256": "c23f933caab22989d0728407783671138d16aaf81fe080fbde35abec6faba2eb",
+      "counts": {
+        "tests": 9,
+        "suites": 0,
+        "pass": 9,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 140.686892
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/story-music-disabled-ui.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.337429149003583,
+      "sourceSha256": "c1ed5f0dc772c0d62128955ac402827ae4595c1ae2134fc80f4bac817378cef7",
+      "outputSha256": "65267850a5a925c60767f8bc5f3417a74c3085116dc1f0baf7afdc71083c6823",
+      "counts": {
+        "tests": 2,
+        "suites": 0,
+        "pass": 2,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 120.109767
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/story-photo-pixels.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.3647453840021626,
+      "sourceSha256": "ef6e2810b829596fd6f43a8d697c316a94cf47a3047f7c0154ba913915558c71",
+      "outputSha256": "a8344e3970f4db237cd0e90d4e9e63042c8f19345bc6c9396078c8742e8757fd",
+      "counts": {
+        "tests": 7,
+        "suites": 0,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 85.894195
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/story-publication-regressions.cjs",
+      "exitCode": 0,
+      "durationSeconds": 1.8753762369960896,
+      "sourceSha256": "8d499380ad312344ecca87e12a8f099faa6622ba788ee771a4a3a8f877fccc3d",
+      "outputSha256": "aef893476f6e63a02c5574e86c6222dce3bc0ddabd14b34fff6689ac330f42c9",
+      "counts": {
+        "tests": 31,
+        "suites": 0,
+        "pass": 31,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 1665.547645
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/story-studio-interaction.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.6357402479989105,
+      "sourceSha256": "ae4db139f03863cb2ac70423840b00b2d679ddb92da91c244d31aea4aafac4a7",
+      "outputSha256": "d661caccf5b78d11686fc42016ec9d23bd69d65d83927e9ed0a94412f862b9eb",
+      "counts": {
+        "tests": 9,
+        "suites": 0,
+        "pass": 9,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 454.385955
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/story-trending-canvas.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.3093118099932326,
+      "sourceSha256": "a78d9317254bc0ff5db99868862671de2e941155eb56f3c558175b0e50b5a46f",
+      "outputSha256": "b70adc54ee367ad832471e8ec65c234369bf0102488e0ead54a7eda578f3ad13",
+      "counts": {
+        "tests": 8,
+        "suites": 0,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 41.080153
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/story-video-composition.cjs",
+      "exitCode": 0,
+      "durationSeconds": 1.2376018970026053,
+      "sourceSha256": "ededbaec50b4720cb49c3e0adad5823578f29e0e1eef9f180b1b32925acd1a01",
+      "outputSha256": "9a809f85d6c48deb249d3686df4024a06d6914221be6c4fea1840d5b1cd7990e",
+      "counts": {
+        "tests": 16,
+        "suites": 0,
+        "pass": 16,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 947.091704
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/story-viewer-privacy-regressions.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.2566571400020621,
+      "sourceSha256": "dccafc90113eb81fd4a7b2f4191d435a45f976f37367a02afbe7338fd45db6b7",
+      "outputSha256": "718c9ff88b61788119dbb1162f3495189046a8a24a29316191665a18394e73a4",
+      "counts": {
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 14.796817
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/theme-store-hydration.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.2839248470045277,
+      "sourceSha256": "a0fe402c505e8e898255cbedcf63f10b96a0fbc65a33f4c00918e4c783f94698",
+      "outputSha256": "ab2d6175dae53e90c0080e19204403a56893ad9abf618810c1554c5b6ac5147f",
+      "counts": {
+        "tests": 4,
+        "suites": 0,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 10.164257
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/unread-session.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.37210800299362745,
+      "sourceSha256": "592a190e41542765b7a0226c398304610fc31e9c834e71f2c344c944245023ed",
+      "outputSha256": "e780825056ad107a0c72a3779b5eec15e5acaeb4b7511702c2b3923a439d503f",
+      "counts": {
+        "tests": 5,
+        "suites": 0,
+        "pass": 5,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 182.750123
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/upload-preview-regressions.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.38399229300557636,
+      "sourceSha256": "0a326769b3bfb4bd7918797b24aff16b7c2c6d97a53a91c4ff1d70a787f2118e",
+      "outputSha256": "bfab72c144fc65c67d820bcfd647cc656e008c0a9b4ac720c99a303677ddef8f",
+      "counts": {
+        "tests": 6,
+        "suites": 0,
+        "pass": 6,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 71.710557
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/upload-safe-regressions.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.29808692799997516,
+      "sourceSha256": "3edebc6862d3afab6ce2445aaa0748580133fd970c49927b3e4d001e59acba8a",
+      "outputSha256": "7d2009acc369f6ca221de1bcd60c21eed53ef93268acaa2e36ad739700a337a1",
+      "counts": {
+        "tests": 5,
+        "suites": 0,
+        "pass": 5,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 14.811394
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/video-thumb-lifecycle.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.26456826199864736,
+      "sourceSha256": "7fba4697458fb04546737f3e198aeec3be8d62e3907b2d078656ecdea654ff48",
+      "outputSha256": "40fd4adcf8d45b923eb57eff98ae47e39fef14bc4bd872174f7c9033885c6a62",
+      "counts": {
+        "tests": 4,
+        "suites": 0,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 10.770762
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/voice-recorder-reliability.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.31371022399980575,
+      "sourceSha256": "000305eb6f0a945a5e5d3b429d305cc1d117ea91bb414c03491c0d2df06c9f10",
+      "outputSha256": "e81252caeefe5f655a9e8fc9494e1fd7b774a47623ffe5f02115489164816270",
+      "counts": {
+        "tests": 13,
+        "suites": 0,
+        "pass": 13,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 24.932878
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/quality/web-message-outbox.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.39445982799952617,
+      "sourceSha256": "fae32c1a1bfe22f937c57f5474d16f14277763f0f409cfc3e980e77b297f22d7",
+      "outputSha256": "a439f63f0123550911624886888bf0af4fef98f64da31437e3a0026e22b49f6c",
+      "counts": {
+        "tests": 4,
+        "suites": 0,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 177.891017
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/send-money-sheet-context.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.7113575360053801,
+      "sourceSha256": "df7249240245a66527fd6c1dbc56bd3e4f7797d37b01ebf735ea2d6b9cab91d2",
+      "outputSha256": "12b576cb998eee1f193a89f649b5c4d8f12a6662929aa202d02aeef47240227f",
+      "counts": {
+        "tests": 13,
+        "suites": 0,
+        "pass": 13,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 508.924625
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/story-message-reference.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.24757215900172014,
+      "sourceSha256": "950c1da00f05bdd683c34ea9f481ec70abbb93993be9ed74e0ee8599337a2340",
+      "outputSha256": "207b8f5caba67162c4ca7e2cd5e6bd49cfea49ac83b12e598f76709dbb896687",
+      "counts": {
+        "tests": 4,
+        "suites": 0,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 8.983084
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/studio-reliability.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.373818667998421,
+      "sourceSha256": "fa2f87039befeba202c691dacc011fb854359477e52283b0dd5474e7a8811bca",
+      "outputSha256": "9384b12e13e9979009711502b59e547cd185d5aa773fd23b276967222b1ad93f",
+      "counts": {
+        "tests": 9,
+        "suites": 0,
+        "pass": 9,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 107.398753
+      },
+      "standaloneAuthChecks": null
+    },
+    {
+      "file": "tests/verification-integrity.test.cjs",
+      "exitCode": 0,
+      "durationSeconds": 0.27140096299990546,
+      "sourceSha256": "f721925227e9f13ac66200be0ba1fb8d0dd9317c6a91c2d5c0506a000d525d12",
+      "outputSha256": "6a56d7264af609e42c2ee167374f281ea5d50b21519fd9904fa69aedfac424d0",
+      "counts": {
+        "tests": 5,
+        "suites": 0,
+        "pass": 5,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "duration_ms": 10.957414
+      },
+      "standaloneAuthChecks": null
+    }
+  ],
+  "inputSnapshot": {
+    "files": 2016,
+    "sha256": "21b4d38b51fe5c8e942dce5d3ecf03d48798a9a1e63a9be494574a6736979bff",
+    "unchangedAcrossRun": true,
+    "changedPaths": []
+  },
+  "candidateInputs": [
+    {
+      "path": "scripts/quality/test-android-app-ui.sh",
+      "sha256": "6d9ea96189108721634a31bd0650b0e068a8403d64bf9cbeb108836aef795fe6"
+    },
+    {
+      "path": "src/hooks/useNativeModalDismissal.ts",
+      "sha256": "3cece062691b5407cec3a2a9f45c01fc12f5a42e2eea25972de7f7e6b2053974"
+    },
+    {
+      "path": "src/components/memory/MemoryFilm.tsx",
+      "sha256": "3b144c45ce8f5b85ef890806c2f3e0752b1e77950f7cfa9b357fb6e1c46971b4"
+    },
+    {
+      "path": "src/components/memory/MemoryMovieExport.tsx",
+      "sha256": "f08a34b3f5ebf06a43cabf717e6e8b0cf3eda145a5ecfa38ccd99eb4823bae3a"
+    },
+    {
+      "path": "tests/helpers/memoryFilmHarness.cjs",
+      "sha256": "af11d4804b94848a01716915190a0c6f1996bec131b7f51fbdc203ecd3464157"
+    },
+    {
+      "path": "tests/native/entry.js",
+      "sha256": "f2b85281d0355d80ff005627005d8fa07aa131ba2626a70c216d925669803f55"
+    },
+    {
+      "path": "tests/native/expo-fetch-fixture.cjs",
+      "sha256": "581958e6f71da21d7707863ad3b30062a9c47682eb2611c697055e03f3f7beec"
+    },
+    {
+      "path": "tests/native/flows/memory-capture.yaml",
+      "sha256": "1bb3e4fa89bf9bbc516c43efae25e989a1f8b6d719de58a7723ea896d6eb5bde"
+    },
+    {
+      "path": "tests/quality/memory-film.cjs",
+      "sha256": "a2a698622f7ad99004ae8f2a624f8060e1470344474b7aab2aadb95aad9b36fa"
+    },
+    {
+      "path": "tests/quality/native-memory-modal-lifecycle.cjs",
+      "sha256": "703472667f28470092ef471688b7bd5aaf95e1de79d5e78d16ff011603052687"
+    },
+    {
+      "path": "tests/quality/native-capture-setup.cjs",
+      "sha256": "3acca49540381734d53e55f954ddea6eabe7175bf363b51e81a4ba963c112547"
+    },
+    {
+      "path": "tests/quality/native-timer-bootstrap.cjs",
+      "sha256": "f9527e61f00a4c0e400e7a759121df6e0b7f4a01eae7df3b8620bf400a9ced2c"
+    },
+    {
+      "path": "tests/quality/native-capture-open-link.cjs",
+      "sha256": "8789514527b86f1a6a5caa89ef5f1f67798f85f2f51d4dab5ddcf114696e192f"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db/capture-open-link-ax.json",
+      "sha256": "df636b1b3ce9ddcf2439db86478f543415a28e24f9e9ea487f0603edb7237696"
+    }
+  ],
+  "log": {
+    "path": "docs/quality/native-full-app-20261031/native-v5-local/root-isolated.txt",
+    "bytes": 202420,
+    "sha256": "4b478086109ce4dceac1680c4bf41c4d4d835281db2954be5b910d838b004034"
+  },
+  "countingRule": "Formal per-file counters are summed. The standalone auth program is reported separately; its checks are not added to formal counts or the single wrapper case used by CI.",
+  "initialAttempt": "docs/quality/native-full-app-20261031/native-v5-root-sandbox-attempt.json",
+  "executionContext": "Approved execution for subprocess and loopback fixture operations; source and assertions unchanged from the initial restricted attempt.",
+  "limit": "This local Node regression run does not verify native UIKit rendering, an Android emulator process, physical device speed, Photos, or signed release processing."
+}

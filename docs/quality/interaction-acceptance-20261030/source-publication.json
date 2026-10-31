@@ -1,0 +1,28 @@
+{
+  "commit": "8591b1a36f0a47d6493af6f8fa0a336d7421ec92",
+  "tree": "873614d8f4ac64815417e06208008a070274b658",
+  "publishedFiles": 2060,
+  "localFiles": 2063,
+  "mismatch": [
+    {
+      "path": "docs/quality/INTERACTION_MUSIC_DELIVERY_20261030.md",
+      "kind": "unpublished"
+    },
+    {
+      "path": "docs/quality/interaction-acceptance-20261030/final-lint.json",
+      "kind": "unpublished"
+    },
+    {
+      "path": "docs/quality/interaction-acceptance-20261030/live-qa-walkthrough.json",
+      "kind": "modified"
+    },
+    {
+      "path": "docs/quality/interaction-acceptance-20261030/web-authenticated-home.jpg",
+      "kind": "unpublished"
+    }
+  ],
+  "missing": [],
+  "recordedAt": "2026-10-30T20:05:46.113877+00:00",
+  "implementationMatchesPublishedTree": true,
+  "note": "All implementation files match the 2,060-file published tree. Listed differences were the evidence-only files being prepared at the observation."
+}

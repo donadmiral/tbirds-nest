@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31T17:27:12.562362+00:00",
+  "status": "REVIEWED_COMPONENT_REPAIR_PENDING_FULL_NATIVE_ACCEPTANCE",
+  "publishedBaseline": {
+    "head": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+    "componentSha256": "4b88a3ba0cf7fc4390787b871bb6794f1ae33119f7ddc16ca3d7909e138bddb2",
+    "componentBytes": 9162
+  },
+  "frozenSources": {
+    "src/components/memory/MemoryPageTurn.tsx": "ddf7a604b0a6ecdd1b75910ff393a76c0404bb66ce19c52f0e4597731a502881",
+    "tests/quality/memory-page-turn.cjs": "dc56fe7ee45c59ca07d0d8271d2bab199ddaee7c553b79a4f1ef03b075850a58"
+  },
+  "motivation": {
+    "observedNativeFailure": "The b5 iPhone artifact shows blank cover artwork with closed-book controls, then a later screenshot shows the first page. The published entry handler waits for native animation completion before opening. That supports the handoff weakness but does not timestamp a callback or establish its scheduler cause. The device flow did not reach Next/Previous page turning.",
+    "separateControlledReproduction": "The actual MemoryPageTurn component also waits indefinitely for native completion: withheld callbacks strand a tap, committed swipe and cancelled swipe. Additional controlled tests reproduce completion between an inactive/size/reduced-motion/unmount commit and passive cleanup, plus a delimiter collision in content identity. These eight controlled failures are not eight observed device failures."
+  },
+  "changes": [
+    "Retain the existing memoryTurnDuration and visual native animation; a JavaScript timer at that same intended duration can finish settlement when native completion is missing.",
+    "Timer and native completion share first-result disposal. Retire callback ownership and the timer before stopping native work, whose interruption callback can be synchronous.",
+    "Keep machine token and live checks; retain the committed turn lock until React acknowledges its selected index.",
+    "Cancel settlement in layout-phase identity, active-state, geometry, reduced-motion and unmount handling, before passive-effect cleanup can lag behind another completion.",
+    "Use JSON-encoded content identity: equal fresh arrays preserve the turn, while distinct IDs containing delimiters invalidate old work.",
+    "Keep one live media child, static preview behavior, user interruption/cancel semantics and immediate reduced-motion navigation."
+  ],
+  "verification": {
+    "publishedCounterfactual": {
+      "command": "env -u NODE_TEST_CONTEXT node --require /tmp/native-page-turn-b5-preload.cjs --test --test-isolation=none --test-reporter=tap tests/quality/memory-page-turn.cjs",
+      "exitCode": 1,
+      "result": {
+        "tests": 30,
+        "pass": 22,
+        "fail": 8,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 682.679141,
+        "failedCases": [
+          "not ok 9 - native turn reaches its requested page when the native completion callback never arrives",
+          "not ok 11 - native cancelled swipe unlocks at its settling duration even without native completion",
+          "not ok 12 - native committed swipe uses its remaining duration and preserves one live media child",
+          "not ok 20 - native inactive route rejects completion before passive effects flush",
+          "not ok 21 - native resized book rejects completion before passive effects flush",
+          "not ok 22 - native reduced motion rejects completion before passive effects flush",
+          "not ok 23 - native unmount rejects completion before passive cleanup flushes",
+          "not ok 24 - native equivalent page arrays preserve the active turn while distinct identities cancel it"
+        ]
+      },
+      "method": "Final frozen test file executed unchanged; a controlled local fs.readFileSync preloader substitutes only the exact component path with literal published b5 bytes. No checkout source or installed dependency is changed."
+    },
+    "repaired": {
+      "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/memory-page-turn.cjs",
+      "exitCode": 0,
+      "result": {
+        "tests": 30,
+        "pass": 30,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "durationMs": 762.083769,
+        "failedCases": []
+      }
+    },
+    "testModel": "Actual transpiled React component and shared machine execute with controlled hook/native hosts, a deterministic JS clock and explicitly deferred passive cleanup. Native animation completion can be delivered, withheld or late.",
+    "scopedEslint": {
+      "paths": [
+        "src/components/memory/MemoryPageTurn.tsx",
+        "tests/quality/memory-page-turn.cjs"
+      ],
+      "exitCode": 0,
+      "errors": 0,
+      "warnings": 0
+    },
+    "whitespace": {
+      "command": "git diff --check -- src/components/memory/MemoryPageTurn.tsx tests/quality/memory-page-turn.cjs",
+      "exitCode": 0
+    },
+    "fullFrozenCandidateTypecheck": "Deferred to final combined gate after all candidate source changes are frozen."
+  },
+  "independentReview": {
+    "path": "docs/quality/native-full-app-20261031/native-page-turn-independent-review.json",
+    "sha256": "2d553c9c55ecae3b43d25b2b2e5b0d392c1f44f7afeb1c19d33cb8c73037cedd",
+    "formalCases": 30,
+    "pass": 30,
+    "durationMs": 748.000039,
+    "counting": "Same 30 cases repeated independently; not added as new unique cases."
+  },
+  "retainedEvidence": [
+    {
+      "path": "docs/quality/native-full-app-20261031/native-page-turn-completion-repair/baseline-preloader.cjs.txt",
+      "bytes": 542,
+      "sha256": "5130b273ac01fba968c5b38e82df33c98f9e016350daea4df1efba8a7a1cf7ff"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-page-turn-completion-repair/published-baseline-final-tests.tap",
+      "bytes": 13941,
+      "sha256": "670af717cf03004558c1000270b7407d9c772ae9ea29b4daadf67e1da1248f28"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-page-turn-completion-repair/published-baseline-source.tsx.txt",
+      "bytes": 9162,
+      "sha256": "4b88a3ba0cf7fc4390787b871bb6794f1ae33119f7ddc16ca3d7909e138bddb2"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-page-turn-completion-repair/repair.patch.txt",
+      "bytes": 15745,
+      "sha256": "26d01f5c3b6b2f710b00c78b5fc98fcb190ad7cbf3287a4fbd3bfc6a25e55283"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-page-turn-completion-repair/repaired-final-tests.tap",
+      "bytes": 6965,
+      "sha256": "fef56edf45b0bd1f7b606d9b57b6ff1daf44cf04af4e3347949a1e8d697c5fc3"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-page-turn-completion-repair/historical-before-25.tap",
+      "bytes": 8463,
+      "sha256": "4187dccb8f6baa3342e94b8cffd7c778574f55debe97d8425ba42af4079fd66c",
+      "role": "Historical intermediate run referenced by the independent review; final direct baseline comparison above is authoritative for the frozen30-case file."
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-page-turn-completion-repair/historical-review-regressions.tap",
+      "bytes": 11361,
+      "sha256": "69ea19b7d893d460b44adb98d84251a7e20b24011688c06831d5df1e87935b06",
+      "role": "Historical intermediate run referenced by the independent review; final direct baseline comparison above is authoritative for the frozen30-case file."
+    }
+  ],
+  "limits": [
+    "A JS timer bounds settlement once JavaScript can run; it cannot guarantee a wall-clock deadline while the JS thread is blocked or suspended.",
+    "No fresh iPhone Simulator or Android Emulator has executed this repair. The previous b5 full-native acceptance remains failed.",
+    "The native callback and capture-URL delay mechanism is not established. This change does not patch URL forwarding, auth, event delivery, native test assertions or deadlines.",
+    "Controlled component timings are not physical-device or native GPU performance measurements."
+  ]
+}

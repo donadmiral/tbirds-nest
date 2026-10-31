@@ -1,0 +1,23 @@
+{
+  "recordedAt": "2026-10-31T03:14:43.363590+00:00",
+  "baseCommit": "103a4d38351ae2fb87c975c32c8027e4f4fef234",
+  "change": "Begin the saved-profile read in parallel with authentication. Await its existing bounded result after authentication and publish only for the current matching owner.",
+  "sourceSha256": {
+    "src/stores/authStore.ts": "9c5950ee56445bad08c7c89f9672f00077220222b6f04499033f1dcee5af13d3",
+    "tests/quality/auth-regressions.cjs": "621b5b4684c45d30fea839eb3c3dc133632f60e2f10df79eb77ded5358f98e64"
+  },
+  "verification": {
+    "command": "node tests/quality/auth-regressions.cjs",
+    "passed": 33,
+    "failed": 0,
+    "newCases": [
+      "Cache read begins while authentication is pending and remains private until its owner is established.",
+      "A late initial authentication result and cached profile cannot overwrite a newer account."
+    ],
+    "typescriptExitCode": 0,
+    "scopedEslintExitCode": 0
+  },
+  "limits": [
+    "Controlled asynchronous regression harness. No physical-device launch timing claimed."
+  ]
+}

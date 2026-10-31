@@ -1,0 +1,148 @@
+TAP version 13
+# Subtest: actual URL patcher preserves complete original Swift: installed Expo template
+ok 1 - actual URL patcher preserves complete original Swift: installed Expo template
+  ---
+  duration_ms: 30.978672
+  type: 'test'
+  ...
+# Subtest: actual URL patcher preserves complete original Swift: installed template with actual VoIP plugin
+ok 2 - actual URL patcher preserves complete original Swift: installed template with actual VoIP plugin
+  ---
+  duration_ms: 31.037991
+  type: 'test'
+  ...
+# Subtest: actual URL patcher preserves complete original Swift: existing Foundation import
+ok 3 - actual URL patcher preserves complete original Swift: existing Foundation import
+  ---
+  duration_ms: 26.33765
+  type: 'test'
+  ...
+# Subtest: generated observer has bounded QA-only numeric log arguments and a defer without route side effects
+ok 4 - generated observer has bounded QA-only numeric log arguments and a defer without route side effects
+  ---
+  duration_ms: 28.557054
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: CI disabled
+ok 5 - actual URL patcher fails closed before source mutation: CI disabled
+  ---
+  duration_ms: 30.136369
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: production environment
+ok 6 - actual URL patcher fails closed before source mutation: production environment
+  ---
+  duration_ms: 26.528897
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: provider key
+ok 7 - actual URL patcher fails closed before source mutation: provider key
+  ---
+  duration_ms: 27.471365
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: missing commit
+ok 8 - actual URL patcher fails closed before source mutation: missing commit
+  ---
+  duration_ms: 27.719955
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: wrong commit
+ok 9 - actual URL patcher fails closed before source mutation: wrong commit
+  ---
+  duration_ms: 27.170387
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: wrong run
+ok 10 - actual URL patcher fails closed before source mutation: wrong run
+  ---
+  duration_ms: 31.373031
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: wrong helper hash
+ok 11 - actual URL patcher fails closed before source mutation: wrong helper hash
+  ---
+  duration_ms: 27.420299
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: malformed source manifest
+ok 12 - actual URL patcher fails closed before source mutation: malformed source manifest
+  ---
+  duration_ms: 26.74984
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: changed forwarding
+ok 13 - actual URL patcher fails closed before source mutation: changed forwarding
+  ---
+  duration_ms: 30.66501
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: changed method signature
+ok 14 - actual URL patcher fails closed before source mutation: changed method signature
+  ---
+  duration_ms: 31.575926
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: duplicate forwarding
+ok 15 - actual URL patcher fails closed before source mutation: duplicate forwarding
+  ---
+  duration_ms: 30.299761
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: duplicate class
+ok 16 - actual URL patcher fails closed before source mutation: duplicate class
+  ---
+  duration_ms: 28.085219
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: existing observer
+ok 17 - actual URL patcher fails closed before source mutation: existing observer
+  ---
+  duration_ms: 29.815603
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: unexpected imports
+ok 18 - actual URL patcher fails closed before source mutation: unexpected imports
+  ---
+  duration_ms: 27.581332
+  type: 'test'
+  ...
+# Subtest: actual URL patcher fails closed before source mutation: oversized source
+ok 19 - actual URL patcher fails closed before source mutation: oversized source
+  ---
+  duration_ms: 26.552364
+  type: 'test'
+  ...
+# Subtest: actual URL patcher rejects path overrides, symlinks and duplicate application
+ok 20 - actual URL patcher rejects path overrides, symlinks and duplicate application
+  ---
+  duration_ms: 106.264705
+  type: 'test'
+  ...
+# Subtest: actual URL patcher refuses preexisting evidence without replacing generated source
+ok 21 - actual URL patcher refuses preexisting evidence without replacing generated source
+  ---
+  duration_ms: 26.751129
+  type: 'test'
+  ...
+# Subtest: actual iOS shell runs generated-source check before CocoaPods: valid source proceeds
+ok 22 - actual iOS shell runs generated-source check before CocoaPods: valid source proceeds
+  ---
+  duration_ms: 78.749972
+  type: 'test'
+  ...
+# Subtest: actual iOS shell runs generated-source check before CocoaPods: mismatch stops build
+ok 23 - actual iOS shell runs generated-source check before CocoaPods: mismatch stops build
+  ---
+  duration_ms: 48.216918
+  type: 'test'
+  ...
+1..23
+# tests 23
+# suites 0
+# pass 23
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 865.373705

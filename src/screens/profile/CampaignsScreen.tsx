@@ -1,6 +1,9 @@
 import { ListRowSkeleton } from '../../components/skeletons';
 import { themedSheet } from '../../theme/useTheme';
-import { KeyboardAvoidingView, Platform } from 'react-native';
+import { KeyboardAvoidingView, Platform ,
+  View, Text, FlatList, TouchableOpacity, StyleSheet, Alert,
+  ActivityIndicator, StatusBar, Modal, TextInput, ScrollView,
+} from 'react-native';
 /**
  * CampaignsScreen — a business's sponsored placements.
  * Lists promoted_posts with live counters; pause/resume/end; New campaign
@@ -8,10 +11,6 @@ import { KeyboardAvoidingView, Platform } from 'react-native';
  * get_active_promos serves into the feed. RLS (can_act_as) is the gate.
  */
 import React, { useCallback, useMemo, useState } from 'react';
-import {
-  View, Text, FlatList, TouchableOpacity, StyleSheet, Alert,
-  ActivityIndicator, StatusBar, Modal, TextInput, ScrollView,
-} from 'react-native';
 import { SafeAreaView } from '../../components/SafeArea';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';

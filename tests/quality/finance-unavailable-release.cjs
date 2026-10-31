@@ -16,7 +16,7 @@ test('excluded statement, product and commerce services issue zero reads or writ
 });
 for(const platform of ['native','web'])test(`${platform} creator product panel immediately explains unavailability without a spinner, form or missing RPC`,async()=>{
  const effects=[];let requests=0;
- const react={useState:value=>[typeof value==='function'?value():value,()=>{}],useRef:value=>({current:value}),useEffect:fn=>effects.push(fn)};
+ const react={useState:value=>[typeof value==='function'?value():value,()=>{}],useRef:value=>({current:value}),useEffect:fn=>effects.push(fn),useCallback:fn=>fn};
  const module=load(platform==='native'?'src/components/CreatorCommercePanel.tsx':'web/components/CreatorCommercePanel.tsx',name=>{
   if(name==='react')return react;if(name==='react/jsx-runtime')return jsx;if(name==='react-native')return{View:'View',Text:'Text',TextInput:'Input',TouchableOpacity:'Button',ActivityIndicator:'Spinner'};
   if(name.endsWith('/availability'))return availability;if(name.endsWith('/commerce'))return{readCreatorCommerce:()=>{requests++;return Promise.reject(Error());},saveCreatorProduct:()=>{requests++;return Promise.reject(Error());}};
@@ -34,11 +34,8 @@ function adminModule(file,role='finance_admin'){
   if(name.endsWith('/availability'))return availability;return{};
  });return{mod,get checks(){return checks;},get service(){return service;}};
 }
-// The existing transfer report is read-only and is covered by the operations
-// payment-reporting suite. Creator finance commands remain unavailable.
-for(const file of ['admin-web/app/payments/creators/page.tsx'])test(`${file} preserves staff authorization and renders unavailable without financial queries`,async()=>{
- const h=adminModule(file);const tree=await h.mod.default({searchParams:Promise.resolve({})});assert.equal(h.checks,1);assert.equal(h.service,0);assert.equal(tree.type,'Shell');assert.match(words(tree),/unavailable in this release/);assert.ok(walk(tree).some(n=>n.type==='Link'&&n.props.href==='/dashboard'));
-});
+// Read-only transfer and creator reports have their own authorization,
+// completeness and precision suites in admin-web/tests. Commands stay gated.
 test('creator review action remains unavailable even if an old client submits its form',async()=>{
  const h=adminModule('admin-web/app/payments/creators/actions.ts');const result=await h.mod.reviewCreator(null,{get:()=>{throw Error('No submitted financial command should be processed');}});assert.match(result.error,/unavailable in this release/);assert.equal(h.checks,1);assert.equal(h.service,0);
  const denied=adminModule('admin-web/app/payments/creators/actions.ts','support_agent');await assert.rejects(()=>denied.mod.reviewCreator(null,{}),/Finance permission/);assert.equal(denied.service,0);

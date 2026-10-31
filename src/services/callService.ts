@@ -18,6 +18,7 @@ export type CallRecord = {
 };
 
 export type DailyTokenResult = { roomName: string; roomUrl: string; token: string };
+export type CallRequestOptions = { accessToken?: string; signal?: AbortSignal; throwOnError?: boolean };
 
 type CallSessionRow = {
   id: string; initiator_id: string; receiver_id: string | null;
@@ -115,9 +116,12 @@ export const callService = {
     if (error) throw error;
   },
 
-  async declineGroupCall(callId: string, userId: string): Promise<void> {
+  async declineGroupCall(callId: string, userId: string, options?: CallRequestOptions): Promise<void> {
     if (!callId || !userId) return;
-    const { error } = await supabase.rpc('decline_group_call', { p_session_id: callId });
+    const query = supabase.rpc('decline_group_call', { p_session_id: callId });
+    if (options?.accessToken) query.setHeader('Authorization', `Bearer ${options.accessToken}`);
+    if (options?.signal) query.abortSignal(options.signal);
+    const { error } = await query;
     if (error) throw error;
   },
 
@@ -132,11 +136,14 @@ export const callService = {
     return ((data as any[]) || []).length > 0;
   },
 
-  async declineCall(callId: string): Promise<boolean> {
+  async declineCall(callId: string, options?: CallRequestOptions): Promise<boolean> {
     if (!callId) return false;
-    const { data, error } = await supabase.from('call_sessions')
+    const query = supabase.from('call_sessions')
       .update({ status: 'declined', ended_at: new Date().toISOString() }).eq('id', callId).eq('is_group_call', false).eq('status', 'ringing').select('id');
-    if (error) return false;
+    if (options?.accessToken) query.setHeader('Authorization', `Bearer ${options.accessToken}`);
+    if (options?.signal) query.abortSignal(options.signal);
+    const { data, error } = await query;
+    if (error) { if (options?.throwOnError) throw error; return false; }
     return ((data as any[]) || []).length > 0;
   },
 
@@ -157,9 +164,13 @@ export const callService = {
     return ((data as any[]) || []).length > 0;
   },
 
-  async getCall(callId: string): Promise<CallRecord | null> {
+  async getCall(callId: string, options?: CallRequestOptions): Promise<CallRecord | null> {
     if (!callId) return null;
-    const { data } = await supabase.from('call_sessions').select('*').eq('id', callId).maybeSingle();
+    const query = supabase.from('call_sessions').select('*').eq('id', callId);
+    if (options?.accessToken) query.setHeader('Authorization', `Bearer ${options.accessToken}`);
+    if (options?.signal) query.abortSignal(options.signal);
+    const { data, error } = await query.maybeSingle();
+    if (error && options?.throwOnError) throw error;
     return toRecord(data as CallSessionRow | null);
   },
 
@@ -184,11 +195,14 @@ export const callService = {
     }
   },
 
-  async listRingingCalls(userId: string): Promise<CallRecord[]> {
-    const { data, error } = await supabase.from('call_sessions').select('*')
+  async listRingingCalls(userId: string, options?: CallRequestOptions): Promise<CallRecord[]> {
+    const query = supabase.from('call_sessions').select('*')
       .eq('receiver_id', userId).eq('status', 'ringing')
       .gt('created_at', new Date(Date.now() - 45000).toISOString())
       .order('created_at', { ascending: false }).limit(10);
+    if (options?.accessToken) query.setHeader('Authorization', `Bearer ${options.accessToken}`);
+    if (options?.signal) query.abortSignal(options.signal);
+    const { data, error } = await query;
     if (error) throw error;
     return ((data || []) as CallSessionRow[]).map(row => toRecord(row)!).filter(Boolean);
   },

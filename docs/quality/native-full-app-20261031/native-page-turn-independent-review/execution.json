@@ -1,0 +1,43 @@
+{
+  "startedAt": "2026-10-31T17:23:15.732407+00:00",
+  "completedAt": "2026-10-31T17:23:16.527581+00:00",
+  "command": [
+    "env",
+    "-u",
+    "NODE_TEST_CONTEXT",
+    "node",
+    "--test",
+    "--test-isolation=none",
+    "--test-reporter=tap",
+    "tests/quality/memory-page-turn.cjs"
+  ],
+  "exitCode": 0,
+  "wallSeconds": 0.795182392001152,
+  "nodeVersion": "v24.22.1",
+  "before": {
+    "src/components/memory/MemoryPageTurn.tsx": "ddf7a604b0a6ecdd1b75910ff393a76c0404bb66ce19c52f0e4597731a502881",
+    "tests/quality/memory-page-turn.cjs": "dc56fe7ee45c59ca07d0d8271d2bab199ddaee7c553b79a4f1ef03b075850a58",
+    "shared/memoryBookTurn.ts": "0a75a513c2b5f9aa3a7fd7cfb28f12cb584251f27227d13a0b1d9a9b46bd8429",
+    "shared/memoryBookDesign.ts": "ece305ccc3149b57877c8227f78d4d21782474f1388a42b9178cf15a9f3d4197",
+    "web/components/memory/MemoryPageTurn.tsx": "b5a070dea2a066f067f7fe3ae0de3d4facc7d8cc31c51f0c2441744f3c692254",
+    "node_modules/react-native/Libraries/Animated/animations/TimingAnimation.js": "66e54aaac5dc31dbdf27069252105a3a9545f12b25b7c9b827da6d5c508cdf23",
+    "node_modules/react-native/Libraries/Animated/animations/Animation.js": "1407c16f0bd0d4856b5215f705a6d8cc971bdf9cd1d6098b70c36c9e01ec44d6",
+    "node_modules/react-native/Libraries/Animated/nodes/AnimatedValue.js": "b2d1c98aecbbb1bf087a6a1cb990d9e706e6b0efb7ae6f4abd526b29d78df2f4"
+  },
+  "after": {
+    "src/components/memory/MemoryPageTurn.tsx": "ddf7a604b0a6ecdd1b75910ff393a76c0404bb66ce19c52f0e4597731a502881",
+    "tests/quality/memory-page-turn.cjs": "dc56fe7ee45c59ca07d0d8271d2bab199ddaee7c553b79a4f1ef03b075850a58",
+    "shared/memoryBookTurn.ts": "0a75a513c2b5f9aa3a7fd7cfb28f12cb584251f27227d13a0b1d9a9b46bd8429",
+    "shared/memoryBookDesign.ts": "ece305ccc3149b57877c8227f78d4d21782474f1388a42b9178cf15a9f3d4197",
+    "web/components/memory/MemoryPageTurn.tsx": "b5a070dea2a066f067f7fe3ae0de3d4facc7d8cc31c51f0c2441744f3c692254",
+    "node_modules/react-native/Libraries/Animated/animations/TimingAnimation.js": "66e54aaac5dc31dbdf27069252105a3a9545f12b25b7c9b827da6d5c508cdf23",
+    "node_modules/react-native/Libraries/Animated/animations/Animation.js": "1407c16f0bd0d4856b5215f705a6d8cc971bdf9cd1d6098b70c36c9e01ec44d6",
+    "node_modules/react-native/Libraries/Animated/nodes/AnimatedValue.js": "b2d1c98aecbbb1bf087a6a1cb990d9e706e6b0efb7ae6f4abd526b29d78df2f4"
+  },
+  "allHashesUnchanged": true,
+  "tap": {
+    "path": "docs/quality/native-full-app-20261031/native-page-turn-independent-review/focused-tests.tap",
+    "bytes": 6967,
+    "sha256": "79c746267631bbd886f42f295823bb297bb10ff0e9218106edd2ffd740e45aaa"
+  }
+}

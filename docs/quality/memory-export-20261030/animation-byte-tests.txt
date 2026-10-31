@@ -1,0 +1,20 @@
+✔ real static PNG and WebP remain supported, including nonzero byte offsets (1.464082ms)
+✔ real APNG, animated WebP and both GIF versions are refused by their bytes (0.539231ms)
+✔ animation-like text in static PNG/WebP metadata is not treated as an animation chunk (0.553473ms)
+✔ WebP animation flags and frame chunks are refused even without other animation metadata (0.381553ms)
+✔ PNG frame chunks cannot masquerade as static when the animation-control chunk is absent (0.304889ms)
+✔ truncated or oversized container chunks fail closed instead of skipping unknown bytes (0.322255ms)
+✔ untrusted MIME labels and ordinary photo filenames cannot hide animated bytes (90.290262ms)
+✔ data and blob URLs receive the same byte inspection as remote image assets (11.295224ms)
+✔ the declared size is rejected before opening a response reader (20.351572ms)
+✔ streamed bytes enforce the size cap even when Content-Length is missing or dishonest (51.773281ms)
+✔ cancelling a partially received image cancels the reader and produces no accepted blob (16.77194ms)
+✔ the overall image deadline aborts a stalled fetch (23.148899ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 222.348074

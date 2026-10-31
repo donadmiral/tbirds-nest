@@ -18,13 +18,17 @@ function initials(name?: string | null) {
 }
 
 export default function FollowsPage() {
-  const supabase = useMemo(createClient, []);
   const params = useParams<{ username: string }>();
   const sp = useSearchParams();
   const username = String(params.username || "");
+  const initialTab=sp.get("tab")==="following"?"following":"followers";
+  return <ProfileConnections key={username+":"+initialTab} username={username} initialTab={initialTab}/>;
+}
+function ProfileConnections({username,initialTab}:{username:string;initialTab:"followers"|"following"}){
+  const [supabase]=useState(createClient);
   const [target, setTarget] = useState<Person | null>(null);
   const [me, setMe] = useState<string | null>(null);
-  const [tab, setTab] = useState<"followers" | "following">(sp.get("tab") === "following" ? "following" : "followers");
+  const [tab, setTab] = useState<"followers" | "following">(initialTab);
   const [query, setQuery] = useState("");
   const [people, setPeople] = useState<Person[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,7 +47,6 @@ export default function FollowsPage() {
   useEffect(() => {
     let cancelled = false;
     listGeneration.current += 1;
-    setTarget(null); setPeople([]); setHasMore(false); setLoading(true); setProfileError(null); setListError(null);
     (async () => {
       try {
         const { data: sess, error: sessionError } = await supabase.auth.getSession();
@@ -80,7 +83,7 @@ export default function FollowsPage() {
       const { data: rows, error } = await supabase.from("follows").select(col).eq(eqCol, target.id).neq(col, target.id)
         .order("created_at", { ascending: false }).order(col, { ascending: false }).range(from, from + PAGE - 1);
       if (error) throw error;
-      const ids = ((rows ?? []) as any[]).map(r => r[col]).filter(Boolean);
+      const ids = ((rows ?? []) as unknown as Partial<Record<"follower_id"|"following_id",string>>[]).map(row=>row[col]).filter((id):id is string=>typeof id==='string');
       let found: Person[] = [];
       if (ids.length > 0) {
         const { data: profs, error: profileReadError } = await supabase.from("profiles").select("id, full_name, username, avatar_url, is_verified, verified_tier").in("id", ids);
@@ -100,9 +103,10 @@ export default function FollowsPage() {
   }, [target, supabase]);
 
   useEffect(() => {
-    if (target) { setPeople([]); setPage(0); setHasMore(false); void load(tab, 0, true); }
-    return () => { listGeneration.current += 1; pageInFlight.current = false; };
-  }, [tab, target, load]);
+    let active=true;
+    if(target)void supabase.auth.getSession().then(()=>{if(active)void load(tab,0,true);});
+    return () => { active=false;listGeneration.current += 1; pageInFlight.current = false; };
+  }, [tab, target, load,supabase]);
 
   const removeFollower = async (p: Person) => {
     if (removingId.current) return;
@@ -139,7 +143,7 @@ export default function FollowsPage() {
       </div>
       <div className="mb-4 flex border-b border-ink/10">
         {(["followers", "following"] as const).map(k => (
-          <button key={k} aria-pressed={tab === k} onClick={() => setTab(k)}
+          <button key={k} aria-pressed={tab === k} onClick={() => {if(k===tab)return;listGeneration.current += 1;setPeople([]);setPage(0);setHasMore(false);setLoading(true);setListError(null);setTab(k);}}
             className={"flex-1 pb-2.5 text-[14px] font-semibold " + (tab === k ? "border-b-2 border-ink text-ink" : "text-muted")}>
             {k === "followers" ? "Followers" : "Following"}
           </button>
@@ -153,7 +157,7 @@ export default function FollowsPage() {
       </div>
       {profileError || listError ? <div role="alert" className="mb-4 text-sm text-danger">
         <p>{profileError || listError}</p>
-        <button disabled={loading || loadingMore} onClick={() => profileError ? setProfileRetry(n => n + 1) : void load(tab, listRetry.current.pageN, listRetry.current.replace)}
+        <button disabled={loading || loadingMore} onClick={() => {if(profileError){setTarget(null);setPeople([]);setHasMore(false);setLoading(true);setProfileError(null);setListError(null);setProfileRetry(n=>n+1);}else void load(tab,listRetry.current.pageN,listRetry.current.replace);}}
           className="mt-2 min-h-10 rounded-full bg-ink/5 px-4 font-semibold text-ink">Try again</button>
       </div> : null}
       {loading ? (

@@ -1,0 +1,106 @@
+{
+  "sourceInArchive": "maestro/navigation/2026-10-31_165830/Full native app navigation/logs/device-xctest.log",
+  "sourceSHA256": "1fefe3ae326de101208b95872a619a377add4f0dadbb34f69ccc3d0ed37c31f1",
+  "sourceBytes": 244144,
+  "sourceLines": 2222,
+  "selection": "Only the explicit failure/post-error seconds 17:07:28, 17:07:29, 17:07:30",
+  "lines": [
+    {
+      "line": 2186,
+      "text": "2026-10-31 17:07:28.095172+0000 maestro-driver-iosUITests-Runner[73761:210290] [ViewHierarchyHandler] Successfully retrieved element hierarchy."
+    },
+    {
+      "line": 2187,
+      "text": "2026-10-31 17:07:28.095635+0000 maestro-driver-iosUITests-Runner[73761:210290] Foreground app is not springboard skipping auto tapping on permissions"
+    },
+    {
+      "line": 2188,
+      "text": "2026-10-31 17:07:28.095866+0000 maestro-driver-iosUITests-Runner[73761:210290] [ViewHierarchyHandler] Fetch status bar hierarchy - start"
+    },
+    {
+      "line": 2193,
+      "text": "2026-10-31 17:07:28.630567+0000 maestro-driver-iosUITests-Runner[73761:210290] Fetch status bar hierarchy - duration 0.5346500873565674"
+    },
+    {
+      "line": 2194,
+      "text": "2026-10-31 17:07:28.630846+0000 maestro-driver-iosUITests-Runner[73761:210290] [ViewHierarchyHandler] Fetch Safari WebView hierarchy - start"
+    },
+    {
+      "line": 2195,
+      "text": "2026-10-31 17:07:28.631119+0000 maestro-driver-iosUITests-Runner[73761:210290] Fetch Safari WebView hierarchy - duration 0.00022900104522705078"
+    },
+    {
+      "line": 2197,
+      "text": "2026-10-31 17:07:28.749551+0000 maestro-driver-iosUITests-Runner[73761:210290] [Done] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa' "
+    },
+    {
+      "line": 2198,
+      "text": "2026-10-31 17:07:28.761870+0000 maestro-driver-iosUITests-Runner[73761:211063] [FlyingFox] <127.0.0.1> request: POST /deviceInfo"
+    },
+    {
+      "line": 2200,
+      "text": "2026-10-31 17:07:28.777200+0000 maestro-driver-iosUITests-Runner[73761:210290] Detected running apps: [\"app.platinumcircles.mobile.qa\"]"
+    },
+    {
+      "line": 2202,
+      "text": "2026-10-31 17:07:28.783899+0000 maestro-driver-iosUITests-Runner[73761:210290] Returning cached screen size"
+    },
+    {
+      "line": 2203,
+      "text": "2026-10-31 17:07:28.784252+0000 maestro-driver-iosUITests-Runner[73761:210290] Device orientation is 1"
+    },
+    {
+      "line": 2204,
+      "text": "2026-10-31 17:07:28.790891+0000 maestro-driver-iosUITests-Runner[73761:210812] [FlyingFox] <127.0.0.1> request: POST /viewHierarchy"
+    },
+    {
+      "line": 2205,
+      "text": "2026-10-31 17:07:28.802970+0000 maestro-driver-iosUITests-Runner[73761:210290] Detected running apps: [\"app.platinumcircles.mobile.qa\"]"
+    },
+    {
+      "line": 2206,
+      "text": "2026-10-31 17:07:28.805165+0000 maestro-driver-iosUITests-Runner[73761:210290] [Start] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa'"
+    },
+    {
+      "line": 2207,
+      "text": "2026-10-31 17:07:28.805448+0000 maestro-driver-iosUITests-Runner[73761:210290] [ViewHierarchyHandler] Starting getHierarchyWithFallback for element."
+    },
+    {
+      "line": 2209,
+      "text": "2026-10-31 17:07:28.953801+0000 maestro-driver-iosUITests-Runner[73761:210290] [ViewHierarchyHandler] Successfully retrieved element hierarchy."
+    },
+    {
+      "line": 2210,
+      "text": "2026-10-31 17:07:28.954432+0000 maestro-driver-iosUITests-Runner[73761:210290] Foreground app is not springboard skipping auto tapping on permissions"
+    },
+    {
+      "line": 2211,
+      "text": "2026-10-31 17:07:28.954664+0000 maestro-driver-iosUITests-Runner[73761:210290] [ViewHierarchyHandler] Fetch status bar hierarchy - start"
+    },
+    {
+      "line": 2216,
+      "text": "2026-10-31 17:07:29.571655+0000 maestro-driver-iosUITests-Runner[73761:210290] Fetch status bar hierarchy - duration 0.6169410943984985"
+    },
+    {
+      "line": 2217,
+      "text": "2026-10-31 17:07:29.571921+0000 maestro-driver-iosUITests-Runner[73761:210290] [ViewHierarchyHandler] Fetch Safari WebView hierarchy - start"
+    },
+    {
+      "line": 2218,
+      "text": "2026-10-31 17:07:29.572182+0000 maestro-driver-iosUITests-Runner[73761:210290] Fetch Safari WebView hierarchy - duration 0.00021910667419433594"
+    },
+    {
+      "line": 2220,
+      "text": "2026-10-31 17:07:29.729435+0000 maestro-driver-iosUITests-Runner[73761:210290] [Done] View hierarchy snapshot for Application 'app.platinumcircles.mobile.qa' "
+    },
+    {
+      "line": 2221,
+      "text": "2026-10-31 17:07:30.031256+0000 maestro-driver-iosUITests-Runner[73761:220143] [FlyingFox] <127.0.0.1> request: GET /screenshot"
+    },
+    {
+      "line": 2222,
+      "text": "2026-10-31 17:07:30.237634+0000 maestro-driver-iosUITests-Runner[73761:210819] [FlyingFox] <127.0.0.1> request: GET /screenshot"
+    }
+  ],
+  "limit": "These driver events bound saved error-artifact timing. They do not retain all preceding matching-poll payloads or measure continuous app latency."
+}

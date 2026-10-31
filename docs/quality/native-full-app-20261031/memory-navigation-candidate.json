@@ -1,0 +1,71 @@
+{
+  "measuredAt": "2026-10-31T02:41:57.500253+00:00",
+  "baseCommit": "6c3586a712e5dae7ca57517f1fb059e641e1f6f2",
+  "status": "candidate-ready-for-simulator-and-emulator",
+  "scope": "Actual production Profile shelf, memory reader, film and cover editor using an explicitly synthetic owner-scoped backend. No production transport or renderer replacement.",
+  "sourceHashes": {
+    "src/screens/profile/MemoryAlbumScreen.tsx": "437b2d5c52cf1ad00ce1d322367ac1e41da8857b6d2db6a1c7db263ad4e7f541",
+    "src/components/memory/MemoryCreativeControls.tsx": "9080cb32e86df784d25da04a7d8eebca048ec927c9c504366e8b89663b99f209",
+    "tests/native/memory-fixture.cjs": "9368a168342678a62e4c5aee24bfa2cbeba8d6245c1ff2910fa1494e4724b7d7",
+    "tests/native/backend-fixture.cjs": "012424e3a3a8edb4da39628e153dfb0b313b54aa13e055aea89c086a166819ba",
+    "tests/native/flows/memory-navigation.yaml": "9689a16c84c01e0235c74fb0da6e26a82b0202e28da13bc9a6a77f4c076f76d4",
+    "tests/native/flows/navigation.yaml": "4355d5a8613e9a2db9c808222aa569293927577ce7b409ad274827ac2ac179a5",
+    "tests/quality/native-ui-fixture.cjs": "e119039138917601970fb485818d6475ebd8252e67d5e7d05cc33a03dc4c77a7",
+    "scripts/quality/verify-native-ui.cjs": "32dacc3874d785baf7da0f9e219ad5c15f21e376a9e74dd1aa5957b3e9e9e7e0"
+  },
+  "nativeFlow": [
+    "Profile memory shelf",
+    "Private collection filter",
+    "Open saved book",
+    "Turn to the second memory",
+    "Play and pause the automatic reflective film",
+    "Open and close the real movie export screen",
+    "Return to the reader and cover",
+    "Edit title, tint, writing style, inscription, postcard stamp, cover design and cinematic mood",
+    "Confirm one owner save at revision one",
+    "Leave the book and open it again from the refreshed Profile shelf",
+    "Read persisted cover writing and play the cinematic film"
+  ],
+  "productionFixes": [
+    "The closed-book cover scrolls on compact screens so all its actions remain reachable.",
+    "Book back, edit, cancel and save controls have explicit accessible names and at least 44-point targets.",
+    "Dragging the settings list dismisses the keyboard.",
+    "Photo framing controls appear only when the selected cover has photo or video media."
+  ],
+  "localVerification": {
+    "focusedTests": {
+      "command": "node --test --test-isolation=none tests/quality/native-ui-fixture.cjs tests/quality/native-memory-export.cjs tests/quality/memory-creative-plan.cjs",
+      "passed": 45,
+      "failed": 0,
+      "logSha256": "f4b0061e010fb5854ad044a844523a61b763b6bb798e9fd2a0b93cabf0cef346"
+    },
+    "yaml": "Main flow 40 commands, memory navigation 69 commands, capture flow 17 commands; all parse successfully.",
+    "typescript": "Root TypeScript --noEmit passed on the final candidate.",
+    "eslint": "Scoped ESLint passed on the final native components.",
+    "review": "React review: no new effects, subscriptions or asynchronous product state; existing owner, revision and media access checks retained.",
+    "checkLogsSha256": {
+      "native-memory-navigation-tsc.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "native-memory-navigation-lint.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "fixtureChecks": [
+    "No external network forwarding.",
+    "Private books return no pages or shelf entries to the other signed-in actor.",
+    "Creative saves require the current owner session and exact revision.",
+    "Unknown artwork keys and stale revisions fail without mutations.",
+    "Old owner-session tokens fail after an account round trip.",
+    "Navigation edits do not modify the independently decoded capture book."
+  ],
+  "requiredRuntimeEvidence": [
+    "Six real screenshots: shelf, reader, film, export entry, edited cover, reopened cinematic film.",
+    "One expected creative save and at least two saved-revision book reads.",
+    "Main navigation and full native byte capture/decoder gates still pass.",
+    "No ReactNativeJS HostObject or TurboModule bridge crash."
+  ],
+  "notVerified": [
+    "This new flow has not yet run in iPhone Simulator or Android Emulator.",
+    "No physical iPhone or Android device acceptance.",
+    "No hosted member data, push-provider, Apple signing, Photos save permission or TestFlight installation is exercised by this synthetic UI path.",
+    "Production native memoryMovieVersion remains disabled pending complete capture acceptance."
+  ]
+}

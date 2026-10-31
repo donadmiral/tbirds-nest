@@ -1,0 +1,392 @@
+{
+  "version": 1,
+  "scope": "QA and read-only production pg_net queue privacy preflight",
+  "qaProjectRef": "uaulhuelcfkjwojtymmw",
+  "productionProjectRef": "prlkikhckbifseosbukl",
+  "qaBefore": {
+    "roles": [
+      {
+        "role": "authenticated",
+        "super": false,
+        "inherit": true
+      },
+      {
+        "role": "anon",
+        "super": false,
+        "inherit": true
+      },
+      {
+        "role": "service_role",
+        "super": false,
+        "inherit": true
+      }
+    ],
+    "tables": [
+      {
+        "acl": [
+          "supabase_admin=arwdDxtm/supabase_admin",
+          "=arwdDxtm/supabase_admin"
+        ],
+        "owner": "supabase_admin",
+        "table": "_http_response",
+        "schema": "net",
+        "app_select": true,
+        "anon_select": true,
+        "service_select": true,
+        "postgres_select": true
+      },
+      {
+        "acl": [
+          "supabase_admin=arwdDxtm/supabase_admin",
+          "=arwdDxtm/supabase_admin"
+        ],
+        "owner": "supabase_admin",
+        "table": "http_request_queue",
+        "schema": "net",
+        "app_select": true,
+        "anon_select": true,
+        "service_select": true,
+        "postgres_select": true
+      }
+    ],
+    "functions": [
+      {
+        "acl": null,
+        "app": true,
+        "anon": true,
+        "name": "net.check_worker_is_up()",
+        "owner": "supabase_admin",
+        "definer": false,
+        "service": true
+      },
+      {
+        "acl": null,
+        "app": true,
+        "anon": true,
+        "name": "net._await_response(bigint)",
+        "owner": "supabase_admin",
+        "definer": false,
+        "service": true
+      },
+      {
+        "acl": null,
+        "app": true,
+        "anon": true,
+        "name": "net._urlencode_string(character varying)",
+        "owner": "supabase_admin",
+        "definer": false,
+        "service": true
+      },
+      {
+        "acl": null,
+        "app": true,
+        "anon": true,
+        "name": "net._encode_url_with_params_array(text,text[])",
+        "owner": "supabase_admin",
+        "definer": false,
+        "service": true
+      },
+      {
+        "acl": null,
+        "app": true,
+        "anon": true,
+        "name": "net.worker_restart()",
+        "owner": "supabase_admin",
+        "definer": false,
+        "service": true
+      },
+      {
+        "acl": null,
+        "app": true,
+        "anon": true,
+        "name": "net.wait_until_running()",
+        "owner": "supabase_admin",
+        "definer": false,
+        "service": true
+      },
+      {
+        "acl": null,
+        "app": true,
+        "anon": true,
+        "name": "net.wake()",
+        "owner": "supabase_admin",
+        "definer": false,
+        "service": true
+      },
+      {
+        "acl": null,
+        "app": true,
+        "anon": true,
+        "name": "net.http_get(text,jsonb,jsonb,integer)",
+        "owner": "supabase_admin",
+        "definer": false,
+        "service": true
+      },
+      {
+        "acl": null,
+        "app": true,
+        "anon": true,
+        "name": "net.http_post(text,jsonb,jsonb,jsonb,integer)",
+        "owner": "supabase_admin",
+        "definer": false,
+        "service": true
+      },
+      {
+        "acl": null,
+        "app": true,
+        "anon": true,
+        "name": "net.http_delete(text,jsonb,jsonb,integer,jsonb)",
+        "owner": "supabase_admin",
+        "definer": false,
+        "service": true
+      },
+      {
+        "acl": null,
+        "app": true,
+        "anon": true,
+        "name": "net._http_collect_response(bigint,boolean)",
+        "owner": "supabase_admin",
+        "definer": false,
+        "service": true
+      },
+      {
+        "acl": null,
+        "app": true,
+        "anon": true,
+        "name": "net.http_collect_response(bigint,boolean)",
+        "owner": "supabase_admin",
+        "definer": false,
+        "service": true
+      }
+    ],
+    "observed_at": "2026-10-31T01:18:57.278862+00:00"
+  },
+  "productionReadOnly": {
+    "roles": [
+      {
+        "role": "authenticated",
+        "super": false,
+        "inherit": true
+      },
+      {
+        "role": "anon",
+        "super": false,
+        "inherit": true
+      },
+      {
+        "role": "service_role",
+        "super": false,
+        "inherit": true
+      }
+    ],
+    "tables": [
+      {
+        "acl": [
+          "supabase_admin=arwdDxtm/supabase_admin",
+          "=arwdDxtm/supabase_admin"
+        ],
+        "owner": "supabase_admin",
+        "table": "_http_response",
+        "schema": "net",
+        "app_select": true,
+        "anon_select": true,
+        "service_select": true,
+        "postgres_select": true
+      },
+      {
+        "acl": [
+          "supabase_admin=arwdDxtm/supabase_admin",
+          "=arwdDxtm/supabase_admin"
+        ],
+        "owner": "supabase_admin",
+        "table": "http_request_queue",
+        "schema": "net",
+        "app_select": true,
+        "anon_select": true,
+        "service_select": true,
+        "postgres_select": true
+      }
+    ],
+    "functions": [
+      {
+        "acl": null,
+        "app": true,
+        "anon": true,
+        "name": "net.check_worker_is_up()",
+        "owner": "supabase_admin",
+        "definer": false,
+        "service": true
+      },
+      {
+        "acl": null,
+        "app": true,
+        "anon": true,
+        "name": "net._await_response(bigint)",
+        "owner": "supabase_admin",
+        "definer": false,
+        "service": true
+      },
+      {
+        "acl": null,
+        "app": true,
+        "anon": true,
+        "name": "net._urlencode_string(character varying)",
+        "owner": "supabase_admin",
+        "definer": false,
+        "service": true
+      },
+      {
+        "acl": null,
+        "app": true,
+        "anon": true,
+        "name": "net._encode_url_with_params_array(text,text[])",
+        "owner": "supabase_admin",
+        "definer": false,
+        "service": true
+      },
+      {
+        "acl": null,
+        "app": true,
+        "anon": true,
+        "name": "net.worker_restart()",
+        "owner": "supabase_admin",
+        "definer": false,
+        "service": true
+      },
+      {
+        "acl": null,
+        "app": true,
+        "anon": true,
+        "name": "net.wait_until_running()",
+        "owner": "supabase_admin",
+        "definer": false,
+        "service": true
+      },
+      {
+        "acl": null,
+        "app": true,
+        "anon": true,
+        "name": "net.wake()",
+        "owner": "supabase_admin",
+        "definer": false,
+        "service": true
+      },
+      {
+        "acl": null,
+        "app": true,
+        "anon": true,
+        "name": "net.http_get(text,jsonb,jsonb,integer)",
+        "owner": "supabase_admin",
+        "definer": false,
+        "service": true
+      },
+      {
+        "acl": null,
+        "app": true,
+        "anon": true,
+        "name": "net.http_post(text,jsonb,jsonb,jsonb,integer)",
+        "owner": "supabase_admin",
+        "definer": false,
+        "service": true
+      },
+      {
+        "acl": null,
+        "app": true,
+        "anon": true,
+        "name": "net.http_delete(text,jsonb,jsonb,integer,jsonb)",
+        "owner": "supabase_admin",
+        "definer": false,
+        "service": true
+      },
+      {
+        "acl": null,
+        "app": true,
+        "anon": true,
+        "name": "net._http_collect_response(bigint,boolean)",
+        "owner": "supabase_admin",
+        "definer": false,
+        "service": true
+      },
+      {
+        "acl": null,
+        "app": true,
+        "anon": true,
+        "name": "net.http_collect_response(bigint,boolean)",
+        "owner": "supabase_admin",
+        "definer": false,
+        "service": true
+      }
+    ],
+    "observed_at": "2026-10-31T01:19:01.979392+00:00"
+  },
+  "attempt": {
+    "source": "supabase/ops/provider-review/20261031012101_pg_net_private_dispatch_queues.sql",
+    "started": {
+      "current_time": "2026-10-31 01:21:42 UTC"
+    },
+    "result": {
+      "status": "returned",
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "{\"error\":{\"name\":\"HttpException\",\"message\":\"Failed to apply database migration: ERROR:  P0001: PG_NET_APP_PRIVILEGES_REMAIN\\nCONTEXT:  PL/pgSQL function inline_code_block line 7 at RAISE\\n\"}}"
+          }
+        ],
+        "structuredContent": {
+          "error_code": "INVALID_ARGUMENT"
+        },
+        "isError": true
+      }
+    },
+    "sha256": "6e3f0174e2e4257537ad923fef26683718f0b13bcd323ea46c83d797a8a20122",
+    "bytes": 1446,
+    "notInAutomaticMigrationDirectory": true
+  },
+  "qaPostflight": {
+    "tables": [
+      {
+        "acl": [
+          "supabase_admin=arwdDxtm/supabase_admin",
+          "=arwdDxtm/supabase_admin"
+        ],
+        "owner": "supabase_admin",
+        "table": "_http_response",
+        "app_select": true,
+        "anon_select": true
+      },
+      {
+        "acl": [
+          "supabase_admin=arwdDxtm/supabase_admin",
+          "=arwdDxtm/supabase_admin"
+        ],
+        "owner": "supabase_admin",
+        "table": "http_request_queue",
+        "app_select": true,
+        "anon_select": true
+      }
+    ],
+    "observed_at": "2026-10-31T01:22:22.482454+00:00",
+    "settings_absent": true,
+    "dispatch_key_absent": true,
+    "migration_installed": false,
+    "setup_installer_absent": true
+  },
+  "localTests": {
+    "command": "node supabase/tests/rpc-authorization/test-notification-dispatch-setup.mjs",
+    "passed": 14,
+    "failed": 0,
+    "skipped": 0,
+    "scope": "Synthetic extension tables; actual table reads/inserts/deletes under app and server roles, plus setup/Vault/dispatch behavior. Does not establish managed-worker permissions."
+  },
+  "conclusion": "The supported migration returned PG_NET_APP_PRIVILEGES_REMAIN and its transaction rolled back. The connected postgres role has no membership in supabase_admin and no table grant option. Existing PUBLIC privileges on supabase_admin-owned tables remain; this is a provider-owned permission boundary, not an approval rejection.",
+  "activation": {
+    "hooksInstalled": false,
+    "credentialInstalled": false,
+    "setupRpcInstalled": false,
+    "setupEndpointDeployed": false,
+    "testPushesSent": 0,
+    "productionWrites": false
+  },
+  "requiredNextStep": "Obtain an authorized provider-owner table-ACL repair, or review an alternative per-event authorization design that never places the long-lived server credential in pg_net. No role escalation, provider configuration bypass, or secret reads were attempted."
+}

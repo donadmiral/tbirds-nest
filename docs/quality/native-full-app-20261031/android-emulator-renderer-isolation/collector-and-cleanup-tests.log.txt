@@ -1,0 +1,52 @@
+✔ copies only current-run regular bytes with hashes and preserves original gate metadata (36.70196ms)
+✔ missing advertised store yields explicit unavailable evidence without a gate result (33.236976ms)
+✔ skips files outside the current run window while accepting a fresh empty metadata file (32.418978ms)
+✔ does not follow file/directory symlinks, hardlinks or FIFOs (35.691041ms)
+✔ rejects a symlink in the advertised store path (34.550338ms)
+✔ refuses a symlinked log directory without writing through it (37.480838ms)
+▶ refuses a preexisting output directory or symlink
+  ✔ directory (28.912103ms)
+  ✔ symlink (31.670604ms)
+✔ refuses a preexisting output directory or symlink (61.365011ms)
+▶ rejects a mismatched PID, different path/version or ambiguous process marker
+  ✔ pid (32.552614ms)
+  ✔ path (33.578624ms)
+  ✔ version (35.793575ms)
+  ✔ longVersion (38.142142ms)
+  ✔ duplicate (30.180306ms)
+✔ rejects a mismatched PID, different path/version or ambiguous process marker (171.374815ms)
+▶ requires current CI/QA/run identity and a plausible launch boundary
+  ✔ 0 (45.520785ms)
+  ✔ 1 (37.394719ms)
+  ✔ 2 (30.367888ms)
+  ✔ 3 (28.656599ms)
+  ✔ 4 (30.757412ms)
+✔ requires current CI/QA/run identity and a plausible launch boundary (173.778667ms)
+▶ rejects stale, symlinked and oversized emulator logs before reading a store
+  ✔ stale (35.518091ms)
+  ✔ symlink (30.764022ms)
+  ✔ oversized (29.063219ms)
+✔ rejects stale, symlinked and oversized emulator logs before reading a store (96.228119ms)
+✔ per-file limit rejects an oversized sparse file without reading it (30.214918ms)
+✔ total bytes are bounded across multiple individually valid files (65.425638ms)
+▶ entry and nesting bounds prevent unbounded enumeration
+  ✔ entries (49.695619ms)
+  ✔ depth (32.64709ms)
+✔ entry and nesting bounds prevent unbounded enumeration (82.760647ms)
+✔ a real source mutation during read discards the partial copy and consumes its read budget (33.874524ms)
+▶ actual prelaunch diagnostics remain best effort when the CLI or metadata output fails
+  ✔ CLI failures retained (12.552858ms)
+  ✔ metadata output unavailable (7.157076ms)
+✔ actual prelaunch diagnostics remain best effort when the CLI or metadata output fails (20.502394ms)
+▶ the actual runner cleanup preserves success and failure when diagnostic collection fails
+  ✔ gate 0 (13.721073ms)
+  ✔ gate 7 (12.891097ms)
+✔ the actual runner cleanup preserves success and failure when diagnostic collection fails (27.128925ms)
+ℹ tests 37
+ℹ suites 0
+ℹ pass 37
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 980.873131

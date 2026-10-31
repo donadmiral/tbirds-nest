@@ -1,0 +1,1193 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-31T03:42:15.013907Z",
+  "repository": "donadmiral/tbirds-nest",
+  "workflow": {
+    "id": 41163537349,
+    "name": "Type and quality gates",
+    "status": "completed",
+    "conclusion": "success",
+    "run_number": 448,
+    "jobs_url": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/runs/41163537349/jobs",
+    "logs_url": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/runs/41163537349/logs",
+    "workflow_id": 345679496
+  },
+  "runUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41163537349",
+  "sourceBinding": {
+    "headSha": "341395c68cfc0bf74527bcf23e0dced3813e9225",
+    "checkoutMergeSha": "1ca98984eec5d0912d510da9e565a84a8d5aacfd",
+    "headTreeSha": "ca36583e931756f2d9ea98fdaf3c9869ee4daf8f",
+    "mergeTreeSha": "ca36583e931756f2d9ea98fdaf3c9869ee4daf8f",
+    "treesIdentical": true,
+    "method": "Commit-specific GitHub workflow discovery; checkout SHA in every job log; independent git object tree comparison.",
+    "workflowPath": ".github/workflows/typecheck.yml",
+    "workflowSha256": "dc41c9a035b84a2c562349a876b6e5805960ea1392e8bb0ad8e9244bfd50be0a"
+  },
+  "outcome": "success",
+  "jobs": [
+    {
+      "id": 124426099172,
+      "name": "Operations app",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41163537349,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Run npm ci",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Run npx tsc --noEmit",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Test operations quality regressions",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        }
+      ]
+    },
+    {
+      "id": 124426099300,
+      "name": "Link preview Edge TLS",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41163537349,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Verify Edge runtime version",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Check authenticated push handlers and their pinned dependencies",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Test actual pinned-IP HTTPS and cancellation",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Post Run denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 11
+        },
+        {
+          "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 12
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        }
+      ]
+    },
+    {
+      "id": 124426099313,
+      "name": "Web app",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41163537349,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Run npm ci",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Run npx tsc --noEmit",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Run npm ci --prefix supabase/tests/rpc-authorization",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Test web quality regressions",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 13
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 14
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 15
+        }
+      ]
+    },
+    {
+      "id": 124426099342,
+      "name": "Phone app",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41163537349,
+      "logs_url": null,
+      "steps": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 1
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 2
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 3
+        },
+        {
+          "name": "Run npm ci",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 4
+        },
+        {
+          "name": "Run npx tsc --noEmit",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 5
+        },
+        {
+          "name": "Install dependencies for cross-app and database regressions",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 6
+        },
+        {
+          "name": "Test phone, diagnostics, feed and call regressions",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 7
+        },
+        {
+          "name": "Test payment recovery and database boundaries",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 8
+        },
+        {
+          "name": "Test RPC authorization",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 9
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 17
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 18
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success",
+          "number": 19
+        }
+      ]
+    }
+  ],
+  "testCounts": {
+    "root": {
+      "jobId": 124426099342,
+      "typecheck": "passed",
+      "command": "node --test --test-concurrency=2 tests/*.cjs tests/quality/*.cjs",
+      "tests": 1604,
+      "pass": 1604,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "web": {
+      "jobId": 124426099313,
+      "typecheck": "passed",
+      "command": "node --test --test-concurrency=2 tests/*.cjs tests/quality/*.cjs",
+      "tests": 647,
+      "pass": 647,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "admin": {
+      "jobId": 124426099172,
+      "typecheck": "passed",
+      "command": "node --test --test-concurrency=2 tests/*.cjs",
+      "tests": 195,
+      "pass": 195,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "backendNode": {
+      "jobId": 124426099342,
+      "command": "node --experimental-strip-types --test --test-concurrency=2 supabase/tests/*.test.*",
+      "tests": 317,
+      "pass": 314,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 3,
+      "todo": 0
+    },
+    "rpcAuthorization": {
+      "jobId": 124426099342,
+      "command": "npm test --prefix supabase/tests/rpc-authorization",
+      "totalIsolatedChildInvocations": 45,
+      "tapChildInvocations": 42,
+      "nonTapChildInvocations": 3,
+      "runnerSha256": "bc191546ef55910cd22fd27d0e5bc41431bca74693e4471bf7db623386ae7eea",
+      "tests": 870,
+      "pass": 867,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 3,
+      "todo": 0
+    },
+    "edgeTls": {
+      "jobId": 124426099300,
+      "runtime": "Deno 2.1.4",
+      "handlerTypecheck": "passed",
+      "tests": 2,
+      "pass": 2,
+      "fail": 0,
+      "skipped": 0,
+      "elapsedReported": "161ms",
+      "cases": [
+        "Deno real HTTPS pins the IP, sends the original Host/SNI and validates that certificate name",
+        "Deno real HTTPS cancellation closes an unfinished response"
+      ]
+    }
+  },
+  "rpcTapInvocations": [
+    {
+      "isolatedInvocation": 4,
+      "script": "./test-admin-support-review-chain.mjs",
+      "environment": {},
+      "tests": 16,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 5,
+      "script": "./test-admin-completion-chain.mjs",
+      "environment": {},
+      "tests": 34,
+      "pass": 34,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 6,
+      "script": "./test-qa-admin-completion-chain.mjs",
+      "environment": {},
+      "tests": 36,
+      "pass": 36,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 7,
+      "script": "./test-account-storage-erasure-chain.mjs",
+      "environment": {},
+      "tests": 11,
+      "pass": 11,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 8,
+      "script": "./test-private-media-cutover-chain.mjs",
+      "environment": {},
+      "tests": 14,
+      "pass": 14,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 9,
+      "script": "./test-bounded-media-delivery-chain.mjs",
+      "environment": {},
+      "tests": 21,
+      "pass": 21,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 10,
+      "script": "./test-bounded-media-delivery-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_MEDIA_UPGRADE": "1"
+      },
+      "tests": 21,
+      "pass": 21,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 11,
+      "script": "./test-database-hardening-chain.mjs",
+      "environment": {},
+      "tests": 18,
+      "pass": 18,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 12,
+      "script": "./test-database-hardening-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_DATABASE_HARDENING": "1"
+      },
+      "tests": 18,
+      "pass": 18,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 13,
+      "script": "./test-erasure-operator-chain.mjs",
+      "environment": {},
+      "tests": 20,
+      "pass": 20,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 14,
+      "script": "./test-erasure-operator-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_ERASURE_OPERATOR": "1"
+      },
+      "tests": 20,
+      "pass": 20,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 15,
+      "script": "./test-staff-social-shells-chain.mjs",
+      "environment": {},
+      "tests": 16,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 16,
+      "script": "./test-staff-social-shells-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_STAFF_SHELLS": "1"
+      },
+      "tests": 16,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 17,
+      "script": "./test-studio-workflow-chain.mjs",
+      "environment": {},
+      "tests": 41,
+      "pass": 41,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 18,
+      "script": "./test-studio-workflow-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_STUDIO_WORKFLOWS": "1"
+      },
+      "tests": 41,
+      "pass": 41,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 19,
+      "script": "./test-business-auth-chain.mjs",
+      "environment": {},
+      "tests": 27,
+      "pass": 27,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 20,
+      "script": "./test-business-auth-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_BUSINESS_AUTH": "1"
+      },
+      "tests": 27,
+      "pass": 27,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 21,
+      "script": "./test-notification-preferences.mjs",
+      "environment": {},
+      "tests": 33,
+      "pass": 32,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 1,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 22,
+      "script": "./test-notification-preferences.mjs",
+      "environment": {
+        "NOTIFICATION_BUSINESS_FIXTURE": "1"
+      },
+      "tests": 33,
+      "pass": 33,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 23,
+      "script": "./test-offer-response-serialization.mjs",
+      "environment": {},
+      "tests": 15,
+      "pass": 15,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 24,
+      "script": "./test-original-music-library.mjs",
+      "environment": {},
+      "tests": 31,
+      "pass": 31,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 25,
+      "script": "./test-original-music-library.mjs",
+      "environment": {
+        "MUSIC_FIXTURE_PREEXISTING": "1"
+      },
+      "tests": 31,
+      "pass": 31,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 26,
+      "script": "./test-original-music-library.mjs",
+      "environment": {
+        "MUSIC_PIPELINE_FIXTURE": "1"
+      },
+      "tests": 31,
+      "pass": 31,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 27,
+      "script": "./test-music-operations.mjs",
+      "environment": {},
+      "tests": 19,
+      "pass": 19,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 28,
+      "script": "./test-licensed-catalogue.mjs",
+      "environment": {},
+      "tests": 22,
+      "pass": 22,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 29,
+      "script": "./test-business-music-integration.mjs",
+      "environment": {},
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 30,
+      "script": "./test-business-music-integration.mjs",
+      "environment": {
+        "PLATINUM_QA_BUSINESS_AUTH": "1"
+      },
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 31,
+      "script": "./test-link-preview-chain.mjs",
+      "environment": {
+        "PLATINUM_CURRENT_PRODUCTION_LINK_PREVIEW": "1"
+      },
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 32,
+      "script": "./test-link-preview-chain.mjs",
+      "environment": {},
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 33,
+      "script": "./test-link-preview-chain.mjs",
+      "environment": {
+        "PLATINUM_QA_LINK_PREVIEW": "1"
+      },
+      "tests": 12,
+      "pass": 12,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 34,
+      "script": "../../../tests/link-preview.test.cjs",
+      "environment": {},
+      "tests": 21,
+      "pass": 21,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 35,
+      "script": "./test-legacy-chat-media-compatibility.mjs",
+      "environment": {},
+      "tests": 11,
+      "pass": 11,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 36,
+      "script": "./test-legacy-public-media-snapshots.mjs",
+      "environment": {},
+      "tests": 11,
+      "pass": 11,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 37,
+      "script": "./test-memory-book-visual-presentation.mjs",
+      "environment": {},
+      "tests": 16,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 38,
+      "script": "./test-memory-book-creative.mjs",
+      "environment": {},
+      "tests": 31,
+      "pass": 30,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 1,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 39,
+      "script": "./test-memory-book-creative.mjs",
+      "environment": {
+        "MEMORY_CREATIVE_MUSIC_ORDER": "before"
+      },
+      "tests": 31,
+      "pass": 31,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 40,
+      "script": "./test-memory-book-creative.mjs",
+      "environment": {
+        "MEMORY_CREATIVE_MUSIC_ORDER": "after"
+      },
+      "tests": 31,
+      "pass": 31,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 41,
+      "script": "../content-media-db.test.cjs",
+      "environment": {
+        "PLATINUM_VISUAL_RELEASE": "1"
+      },
+      "tests": 17,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 1,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 42,
+      "script": "../story-mention-reshare-db.test.cjs",
+      "environment": {
+        "PLATINUM_VISUAL_RELEASE": "1"
+      },
+      "tests": 33,
+      "pass": 33,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 43,
+      "script": "../discover-media-projections.test.cjs",
+      "environment": {
+        "PLATINUM_VISUAL_RELEASE": "1"
+      },
+      "tests": 6,
+      "pass": 6,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 44,
+      "script": "../../../tests/quality/chat-call-authorization.cjs",
+      "environment": {},
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    {
+      "isolatedInvocation": 45,
+      "script": "../../../tests/quality/call-membership-recovery.cjs",
+      "environment": {},
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    }
+  ],
+  "nonTapBackendReports": [
+    {
+      "suite": "test-push-authorization.mjs",
+      "reportedTestCount": 13,
+      "outcome": "passed",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "suite": "community-group-tests.mjs",
+      "reportedChecks": 19,
+      "reportedPassedChecks": 19,
+      "outcome": "passed",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "suite": "test-combined-atomicity.mjs",
+      "reportedTestCount": 4,
+      "outcome": "passed",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "suite": "test-postflight.mjs",
+      "reportedExpectedRoleDenials": 6,
+      "outcome": "passed",
+      "countNote": "Also verifies exact definitions and ACLs; no formal total scenario count emitted.",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "suite": "test-admin-commands.mjs",
+      "reportedPassed": 22,
+      "outcome": "passed",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "suite": "test-verification-integrity.mjs",
+      "reportedPassedScenarios": 8,
+      "outcome": "passed",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "suite": "test-pending-migration-chain.mjs",
+      "reportedPassed": 41,
+      "countUnit": "applied migration files, not test scenarios",
+      "outcome": "passed",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "suite": "test-production-rollout-chain.mjs",
+      "reportedUnits": 18,
+      "reportedSourceFiles": 19,
+      "countUnit": "migration units and source files, not test scenarios",
+      "outcome": "passed",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "suite": "test-parity-release-chain.mjs",
+      "reportedChecks": 9,
+      "outcome": "passed",
+      "failureOrSkipCounterEmitted": false
+    },
+    {
+      "suite": "test-app-quality-hiring-chain.mjs",
+      "outcome": "passed",
+      "reports": [
+        {
+          "candidate": "20261023185734_redacted_client_diagnostics",
+          "reportedChecks": 11
+        },
+        {
+          "candidate": "20261029190200_comment_author_highlights",
+          "reportedChecks": 15
+        },
+        {
+          "candidate": "20261025073234_applicant_self_service_quality",
+          "reportedChecks": 16
+        }
+      ],
+      "failureOrSkipCounterEmitted": false
+    }
+  ],
+  "conditionalSkipsWithPassingCounterparts": [
+    {
+      "name": "book signing uses the reader permission for explicit custom access and inactive accounts",
+      "step": "backendNode",
+      "reasonFromTap": null,
+      "passingCounterparts": [
+        {
+          "step": "rpcAuthorization",
+          "isolatedInvocation": 41,
+          "script": "../content-media-db.test.cjs",
+          "environment": {
+            "PLATINUM_VISUAL_RELEASE": "1"
+          },
+          "tests": 17,
+          "pass": 16,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 1,
+          "todo": 0
+        }
+      ]
+    },
+    {
+      "name": "visual-only manifests do not bind or sign separate audio, and install no soundtrack authorization",
+      "step": "backendNode",
+      "reasonFromTap": null,
+      "passingCounterparts": [
+        {
+          "step": "rpcAuthorization",
+          "isolatedInvocation": 41,
+          "script": "../content-media-db.test.cjs",
+          "environment": {
+            "PLATINUM_VISUAL_RELEASE": "1"
+          },
+          "tests": 17,
+          "pass": 16,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 1,
+          "todo": 0
+        }
+      ]
+    },
+    {
+      "name": "visual-only publisher works without audio infrastructure, rejects added sound, and preserves recorded video controls",
+      "step": "backendNode",
+      "reasonFromTap": null,
+      "passingCounterparts": [
+        {
+          "step": "rpcAuthorization",
+          "isolatedInvocation": 42,
+          "script": "../story-mention-reshare-db.test.cjs",
+          "environment": {
+            "PLATINUM_VISUAL_RELEASE": "1"
+          },
+          "tests": 33,
+          "pass": 33,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ]
+    },
+    {
+      "name": "a real bound business session works until device revocation",
+      "step": "rpcAuthorization",
+      "reasonFromTap": null,
+      "skippedIn": {
+        "isolatedInvocation": 21,
+        "script": "./test-notification-preferences.mjs",
+        "environment": {},
+        "tests": 33,
+        "pass": 32,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 1,
+        "todo": 0
+      },
+      "passingCounterparts": [
+        {
+          "step": "rpcAuthorization",
+          "isolatedInvocation": 22,
+          "script": "./test-notification-preferences.mjs",
+          "environment": {
+            "NOTIFICATION_BUSINESS_FIXTURE": "1"
+          },
+          "tests": 33,
+          "pass": 33,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ]
+    },
+    {
+      "name": "a current exact business binding supports creative persistence and revoked devices stop it",
+      "step": "rpcAuthorization",
+      "reasonFromTap": "Paired combined-music fixture exercises actual business issuance.",
+      "skippedIn": {
+        "isolatedInvocation": 38,
+        "script": "./test-memory-book-creative.mjs",
+        "environment": {},
+        "tests": 31,
+        "pass": 30,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 1,
+        "todo": 0
+      },
+      "passingCounterparts": [
+        {
+          "step": "rpcAuthorization",
+          "isolatedInvocation": 39,
+          "script": "./test-memory-book-creative.mjs",
+          "environment": {
+            "MEMORY_CREATIVE_MUSIC_ORDER": "before"
+          },
+          "tests": 31,
+          "pass": 31,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        {
+          "step": "rpcAuthorization",
+          "isolatedInvocation": 40,
+          "script": "./test-memory-book-creative.mjs",
+          "environment": {
+            "MEMORY_CREATIVE_MUSIC_ORDER": "after"
+          },
+          "tests": 31,
+          "pass": 31,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        }
+      ]
+    },
+    {
+      "name": "sound publication is owner-bound, attested and idempotent",
+      "step": "rpcAuthorization",
+      "reasonFromTap": null,
+      "skippedIn": {
+        "isolatedInvocation": 41,
+        "script": "../content-media-db.test.cjs",
+        "environment": {
+          "PLATINUM_VISUAL_RELEASE": "1"
+        },
+        "tests": 17,
+        "pass": 16,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 1,
+        "todo": 0
+      },
+      "passingCounterparts": [
+        {
+          "step": "backendNode"
+        }
+      ]
+    }
+  ],
+  "logProvenance": {
+    "admin": {
+      "jobId": 124426099172,
+      "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41163537349/job/124426099172",
+      "logsApiUrl": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/jobs/124426099172/logs",
+      "checkedOutCommit": "1ca98984eec5d0912d510da9e565a84a8d5aacfd",
+      "normalizedLogSha256": "a363b6c7c746aa9b3e29478b40fb1da87a79885809e4ed9e9aafa5730e1159f0",
+      "normalization": "Locally saved UTF-8 log body after removing timestamp prefixes, ANSI color codes and BOM."
+    },
+    "web": {
+      "jobId": 124426099313,
+      "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41163537349/job/124426099313",
+      "logsApiUrl": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/jobs/124426099313/logs",
+      "checkedOutCommit": "1ca98984eec5d0912d510da9e565a84a8d5aacfd",
+      "normalizedLogSha256": "74a1e1e3174c719e347595f4e124e7449324edd2f906abb92336445050424c00",
+      "normalization": "Locally saved UTF-8 log body after removing timestamp prefixes, ANSI color codes and BOM."
+    },
+    "phone": {
+      "jobId": 124426099342,
+      "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41163537349/job/124426099342",
+      "logsApiUrl": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/jobs/124426099342/logs",
+      "checkedOutCommit": "1ca98984eec5d0912d510da9e565a84a8d5aacfd",
+      "normalizedLogSha256": "ed69526ec302b5c0e34ccfc435f12cbf101d886bbca12a61f11f5e34705682a7",
+      "normalization": "Locally saved UTF-8 log body after removing timestamp prefixes, ANSI color codes and BOM."
+    },
+    "edge": {
+      "jobId": 124426099300,
+      "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41163537349/job/124426099300",
+      "logsApiUrl": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/jobs/124426099300/logs",
+      "checkedOutCommit": "1ca98984eec5d0912d510da9e565a84a8d5aacfd",
+      "normalizedLogSha256": "cb99ecc69eb2ceec88741f32d5a49c1b1ab1e6423e060180cb8317bbec600325",
+      "normalization": "Locally saved UTF-8 log body after removing timestamp prefixes, ANSI color codes and BOM."
+    }
+  },
+  "artifacts": [],
+  "reportedDeploymentStatuses": [
+    {
+      "context": "Vercel \u2013 platinum-admin",
+      "state": "success",
+      "target_url": "https://vercel.com/donadmirals-projects/platinum-admin/FLZbbKDS4pxBnV1HAP9zkL3ehhJc"
+    },
+    {
+      "context": "Vercel \u2013 tbirds-nest",
+      "state": "success",
+      "target_url": "https://vercel.com/donadmirals-projects/tbirds-nest/4HHwQyXywzwWuu6YKtbjF5mEEXUh"
+    },
+    {
+      "context": "Vercel \u2013 platinum-web",
+      "state": "success",
+      "target_url": "https://vercel.com/intobank/platinum-web/3PoFFnVTvLM5tR1jB536Vzbm5aqT"
+    },
+    {
+      "context": "Vercel \u2013 admin-web",
+      "state": "success",
+      "target_url": "https://vercel.com/intobank/admin-web/5P3Ubu5VxybhNXjbCGimZTLZjsbs"
+    }
+  ],
+  "limitations": [
+    "Counts describe executed TAP cases and reported suite checks, not unique product features. Fixture modes repeat tests. No combined unique-test total is asserted.",
+    "Non-TAP check, scenario, source-file and migration-unit counts are preserved separately; their reports do not emit formal fail/skip counters.",
+    "Backend authorization and migration tests use local PostgreSQL 18.6 via PGlite 0.5.10 and synthetic managed Auth/Storage/Vault. They do not establish hosted PostgreSQL/PostgREST, real-user or production migration acceptance.",
+    "PGlite serializes queries; these tests do not establish multi-backend lock/deadlock performance or production concurrency latency.",
+    "Edge TLS tests exercise actual local TLS/IP pinning and cancellation, not a deployed Edge function or APNs/FCM delivery.",
+    "Vercel success statuses are associated with this commit; live signed-in functionality is recorded separately by the parent acceptance work.",
+    "This receipt covers only the two named CI areas. Native compilation, native encoder decoding and full-application emulator journeys have separate receipts.",
+    "The source-only notification-event capability candidate added after this head is outside these run results."
+  ]
+}

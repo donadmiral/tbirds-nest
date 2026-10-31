@@ -1,0 +1,49 @@
+{
+  "scope": "Controlled VM evaluation of the actual QA observer with Date.now initially selected and performance.now installed before acquisition; no real timer wait or RN runtime is represented.",
+  "logicalElapsedMs": 5500,
+  "result": 7,
+  "wallClockOriginMs": 1700000000000,
+  "recordedWaitMs": 0,
+  "finalAtMs": 0,
+  "phases": [
+    {
+      "phase": "requested",
+      "atMs": 0
+    },
+    {
+      "phase": "acquired",
+      "atMs": 0
+    },
+    {
+      "phase": "released",
+      "atMs": 0
+    },
+    {
+      "phase": "settled",
+      "atMs": 0
+    }
+  ],
+  "recordedAt": "2026-10-31T04:56:09.416326+00:00",
+  "candidateHead": "ab281bcaab525331930f6238f97e46c169eee1ee",
+  "nodeVersion": "v24.22.1",
+  "reactNativeVersion": "0.81.5",
+  "sourceSha256": {
+    "tests/native/auth-diagnostics.cjs": "e7e62603147fda2f2f29e905876e5bd143e335e6a4a92a5d65063d422dc977a7",
+    "node_modules/react-native/Libraries/Core/setUpPerformance.js": "721190ad77843c6a68ee6f17aac3fb15de6d0514a5adf31427af8cbdc7843ffd",
+    "node_modules/react-native/src/private/setup/setUpDefaultReactNativeEnvironment.js": "7a7c8a9f4807ef06dcd4c75ec15540867519022b4a1320fbca7b6c565d4092cd",
+    "node_modules/react-native/src/private/webapis/performance/Performance.js": "d22942f7bb7a2a3319af263e961794b11b77812955ec2d224c3245311bf0b413"
+  },
+  "observerMatchesPublishedHead": true,
+  "reproductionRecipe": [
+    "Evaluate the actual unchanged tests/native/auth-diagnostics.cjs in a fresh Node VM with Date.now returning 1700000000000 and no performance property.",
+    "Create the diagnostic with its default reader and request a lock whose callback waits on an externally controlled promise.",
+    "Advance the synthetic wall clock by 5500 ms and install performance.now returning 5500 before resolving the lock gate.",
+    "Read the recorded acquired wait and final timestamp: both are 0, while the original callback result remains 7. No real timer wait is performed."
+  ],
+  "interpretation": "The observer can silently clamp an origin-changing clock-provider switch. This characterizes a measurement boundary; it does not establish a React Native runtime switch or explain the SDK warning.",
+  "applicability": [
+    "Pinned RN initializes Performance synchronously before timers and AppRegistry. Its main Performance implementation captures its timestamp provider at module evaluation.",
+    "A Date-epoch to performance-origin switch would freeze subsequent relative values near startup; a reverse epoch jump would make values huge. Inspect actual trace progression before treating this scenario as applicable.",
+    "No production or currently building diagnostic source was changed. No build restart is justified by this controlled example alone."
+  ]
+}

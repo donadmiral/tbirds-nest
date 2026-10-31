@@ -1,0 +1,41 @@
+{
+  "source": "Existing QA-only entitlement helper and table column catalog. Local fixture dependency; no rights, finance or provider feature is enabled.",
+  "columns": [
+    {
+      "name": "order_id",
+      "type": "uuid",
+      "notNull": true
+    },
+    {
+      "name": "buyer_id",
+      "type": "uuid",
+      "notNull": true
+    },
+    {
+      "name": "creator_id",
+      "type": "uuid",
+      "notNull": true
+    },
+    {
+      "name": "starts_at",
+      "type": "timestamp with time zone",
+      "notNull": true
+    },
+    {
+      "name": "ends_at",
+      "type": "timestamp with time zone",
+      "notNull": true
+    },
+    {
+      "name": "revoked_at",
+      "type": "timestamp with time zone",
+      "notNull": false
+    }
+  ],
+  "function": {
+    "acl": "{postgres=X/postgres,authenticated=X/postgres}",
+    "md5": "01948c94fed778b07ed32a5d4df2c663",
+    "signature": "creator_has_active_subscription(uuid,uuid)",
+    "definition": "CREATE OR REPLACE FUNCTION public.creator_has_active_subscription(p_creator uuid, p_viewer uuid)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n  select p_viewer=auth.uid() and exists(select 1 from creator_finance.subscription_periods s\n    join creator_finance.enrollments e on e.user_id=s.creator_id and e.status='approved'\n    join auth.users u on u.id=s.buyer_id and u.deleted_at is null and (u.banned_until is null or u.banned_until<=now())\n    where s.creator_id=p_creator and s.buyer_id=p_viewer and s.revoked_at is null and s.starts_at<=now() and s.ends_at>now());\n$function$\n"
+  }
+}

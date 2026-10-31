@@ -27,8 +27,8 @@ function scenario(options={}) {
  const context={exports,require:name=>{if(name==='react')return react;if(name==='expo-audio')return audio;throw Error(name);},Date:{now:()=>now},setInterval:fn=>{const id=++sequence;timers.set(id,fn);return id;},clearInterval:id=>timers.delete(id)};
  vm.runInNewContext(source,context);
  const render=()=>{cursor=0;const api=exports.useVoiceRecorder();while(effects.length)effects.shift()();return api;};
- let api=render();
- return{get api(){return api=render();},recorder,counts,modes,records,timers,exports,
+ render();
+ return{get api(){return render();},recorder,counts,modes,records,timers,exports,
   advance:seconds=>{now+=seconds*1000;for(const fn of [...timers.values()])fn();},
   unmount:()=>{for(const slot of slots)slot?.cleanup?.();unmounted=true;},
  };

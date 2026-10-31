@@ -1,0 +1,1645 @@
+{
+  "measuredAt": "2026-10-29T19:39:27.107Z",
+  "scope": "Static source inventory; registration coverage is not physical-device click-through evidence.",
+  "nativeScreenFiles": [
+    "src/screens/auth/AuthCallbackScreen.tsx",
+    "src/screens/auth/BusinessSignInScreen.tsx",
+    "src/screens/auth/LoginScreen.tsx",
+    "src/screens/auth/SetupProfileScreen.tsx",
+    "src/screens/auth/SignUpScreen.tsx",
+    "src/screens/auth/VerifyEmailScreen.tsx",
+    "src/screens/channels/ChannelScreen.tsx",
+    "src/screens/channels/ChannelsScreen.tsx",
+    "src/screens/channels/CommunityScreen.tsx",
+    "src/screens/feed/ArticleComposeScreen.tsx",
+    "src/screens/feed/ArticleReaderScreen.tsx",
+    "src/screens/feed/FeedScreen.tsx",
+    "src/screens/feed/PostScreen.tsx",
+    "src/screens/feed/SavedPostsScreen.tsx",
+    "src/screens/feed/SearchScreen.tsx",
+    "src/screens/feed/TrendFeedScreen.tsx",
+    "src/screens/jobs/ApplicantsScreen.tsx",
+    "src/screens/jobs/JobDetailScreen.tsx",
+    "src/screens/jobs/JobsScreen.tsx",
+    "src/screens/jobs/MyApplicationsScreen.tsx",
+    "src/screens/jobs/SavedJobsScreen.tsx",
+    "src/screens/market/CreateListingScreen.tsx",
+    "src/screens/market/ListingDetailScreen.tsx",
+    "src/screens/market/MarketScreen.tsx",
+    "src/screens/messages/CallLogScreen.tsx",
+    "src/screens/messages/CallScreen.tsx",
+    "src/screens/messages/ChatScreen.tsx",
+    "src/screens/messages/ContextInboxScreen.tsx",
+    "src/screens/messages/ConversationsScreen.tsx",
+    "src/screens/messages/CreateGroupScreen.tsx",
+    "src/screens/messages/GroupManagementScreen.tsx",
+    "src/screens/messages/IncomingCallScreen.tsx",
+    "src/screens/messages/MessageRequestsScreen.tsx",
+    "src/screens/messages/NewMessageScreen.tsx",
+    "src/screens/messages/SavedMessagesScreen.tsx",
+    "src/screens/messages/StarredMessagesScreen.tsx",
+    "src/screens/network/NetworkScreen.tsx",
+    "src/screens/notifications/NotificationsScreen.tsx",
+    "src/screens/profile/AboutScreen.tsx",
+    "src/screens/profile/AccountStandingScreen.tsx",
+    "src/screens/profile/ApplyVerificationScreen.tsx",
+    "src/screens/profile/ArchiveScreen.tsx",
+    "src/screens/profile/BlockedAccountsScreen.tsx",
+    "src/screens/profile/BusinessAccessScreen.tsx",
+    "src/screens/profile/BusinessApplyScreen.tsx",
+    "src/screens/profile/BusinessInboxScreen.tsx",
+    "src/screens/profile/BusinessManageScreen.tsx",
+    "src/screens/profile/BusinessesScreen.tsx",
+    "src/screens/profile/CampaignsScreen.tsx",
+    "src/screens/profile/ChangeUsernameScreen.tsx",
+    "src/screens/profile/ContactSupportScreen.tsx",
+    "src/screens/profile/CreateBusinessScreen.tsx",
+    "src/screens/profile/EditProfileScreen.tsx",
+    "src/screens/profile/FollowListScreen.tsx",
+    "src/screens/profile/FollowRequestsScreen.tsx",
+    "src/screens/profile/HelpSupportScreen.tsx",
+    "src/screens/profile/HiddenWordsScreen.tsx",
+    "src/screens/profile/LoginActivityScreen.tsx",
+    "src/screens/profile/MemoryAlbumScreen.tsx",
+    "src/screens/profile/MonetizationScreen.tsx",
+    "src/screens/profile/MutedStoriesScreen.tsx",
+    "src/screens/profile/MutedWordsScreen.tsx",
+    "src/screens/profile/PrivacyPolicyScreen.tsx",
+    "src/screens/profile/ProfileScreen.tsx",
+    "src/screens/profile/RestrictedAccountsScreen.tsx",
+    "src/screens/profile/SettingsScreen.tsx",
+    "src/screens/profile/TermsScreen.tsx",
+    "src/screens/profile/TicketScreen.tsx",
+    "src/screens/profile/TwoFactorScreen.tsx",
+    "src/screens/profile/UserProfileScreen.tsx",
+    "src/screens/profile/YourActivityScreen.tsx",
+    "src/screens/stories/BoomerangWeb.tsx",
+    "src/screens/stories/CameraKitLensView.tsx",
+    "src/screens/stories/MemoryArrangementScreen.tsx",
+    "src/screens/stories/StoryBoomerangScreen.tsx",
+    "src/screens/stories/StoryCameraScreen.tsx",
+    "src/screens/stories/StoryComposerScreen.tsx",
+    "src/screens/stories/StoryCreationMenuScreen.tsx",
+    "src/screens/stories/StoryDualCaptureScreen.tsx",
+    "src/screens/stories/StoryFunCameraScreen.tsx",
+    "src/screens/stories/StoryLayoutScreen.tsx",
+    "src/screens/stories/StoryViewerScreen.tsx",
+    "src/screens/studio/StudioHiringAdsSegs.tsx",
+    "src/screens/studio/StudioMoreSegs.tsx",
+    "src/screens/studio/StudioScreen.tsx"
+  ],
+  "registeredNativeRouteNames": [
+    "AccountStanding",
+    "Applicants",
+    "ApplyVerification",
+    "Archive",
+    "ArticleCompose",
+    "ArticleReader",
+    "AuthCallback",
+    "BlockedAccounts",
+    "BusinessAccess",
+    "BusinessApply",
+    "BusinessInbox",
+    "BusinessManage",
+    "BusinessSignIn",
+    "Businesses",
+    "Call",
+    "CallLog",
+    "Campaigns",
+    "ChangeUsername",
+    "Channel",
+    "Channels",
+    "Chat",
+    "Community",
+    "ContactSupport",
+    "Conversations",
+    "CreateBusiness",
+    "CreateGroup",
+    "CreateListing",
+    "EditProfile",
+    "Feed",
+    "FeedMain",
+    "FindPeople",
+    "FollowList",
+    "FollowRequests",
+    "GroupManagement",
+    "HelpSupport",
+    "HiddenWords",
+    "IncomingCall",
+    "JobDetail",
+    "Jobs",
+    "JobsInbox",
+    "JobsMain",
+    "ListingDetail",
+    "Login",
+    "LoginActivity",
+    "Main",
+    "Market",
+    "MarketInbox",
+    "MarketMain",
+    "MemoryAlbum",
+    "MemoryArrangement",
+    "MessageRequests",
+    "Messages",
+    "Monetization",
+    "MutedStories",
+    "MutedWords",
+    "MyApplications",
+    "MyNetwork",
+    "Notifications",
+    "Post",
+    "PostTop",
+    "PrivacyPolicy",
+    "Profile",
+    "ProfileMain",
+    "RestrictedAccounts",
+    "SavedJobs",
+    "SavedMessages",
+    "SavedPosts",
+    "Search",
+    "Settings",
+    "SetupProfile",
+    "SignUp",
+    "StarredMessages",
+    "StoryBoomerang",
+    "StoryCamera",
+    "StoryComposer",
+    "StoryCreationMenu",
+    "StoryDualCapture",
+    "StoryFunCamera",
+    "StoryLayout",
+    "StoryViewer",
+    "Studio",
+    "Terms",
+    "Ticket",
+    "TrendFeed",
+    "TwoFactor",
+    "UserProfile",
+    "UserProfileTop",
+    "VerifyEmail",
+    "YourActivity"
+  ],
+  "literalNavigationCalls": [
+    {
+      "file": "src/components/BusinessTabs.tsx",
+      "method": "navigate",
+      "route": "Market"
+    },
+    {
+      "file": "src/components/BusinessTabs.tsx",
+      "method": "navigate",
+      "route": "Market"
+    },
+    {
+      "file": "src/components/ChatInfoSections.tsx",
+      "method": "navigate",
+      "route": "Chat"
+    },
+    {
+      "file": "src/components/CollaboratorsSheet.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/components/IncomingCallListener.tsx",
+      "method": "navigate",
+      "route": "Call"
+    },
+    {
+      "file": "src/components/IncomingCallListener.tsx",
+      "method": "navigate",
+      "route": "IncomingCall"
+    },
+    {
+      "file": "src/components/IncomingCallListener.tsx",
+      "method": "navigate",
+      "route": "Call"
+    },
+    {
+      "file": "src/components/IncomingCallListener.tsx",
+      "method": "navigate",
+      "route": "IncomingCall"
+    },
+    {
+      "file": "src/components/IncomingCallListener.tsx",
+      "method": "navigate",
+      "route": "Call"
+    },
+    {
+      "file": "src/components/MediaRenderer.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/components/MemoryAlbumCard.tsx",
+      "method": "navigate",
+      "route": "MemoryAlbum"
+    },
+    {
+      "file": "src/components/MemoryAlbumCard.tsx",
+      "method": "navigate",
+      "route": "MemoryAlbum"
+    },
+    {
+      "file": "src/components/MemoryAlbumCard.tsx",
+      "method": "navigate",
+      "route": "MemoryAlbum"
+    },
+    {
+      "file": "src/components/MiniCallBar.tsx",
+      "method": "navigate",
+      "route": "Call"
+    },
+    {
+      "file": "src/components/ProductCarousel.tsx",
+      "method": "navigate",
+      "route": "ListingDetail"
+    },
+    {
+      "file": "src/components/ProductCarousel.tsx",
+      "method": "navigate",
+      "route": "JobDetail"
+    },
+    {
+      "file": "src/components/TrendingStoriesRail.tsx",
+      "method": "navigate",
+      "route": "StoryViewer"
+    },
+    {
+      "file": "src/components/TrendingTopicsStrip.tsx",
+      "method": "navigate",
+      "route": "TrendFeed"
+    },
+    {
+      "file": "src/components/feed/CommentsPanel.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/components/feed/CommentsPanel.tsx",
+      "method": "navigate",
+      "route": "Search"
+    },
+    {
+      "file": "src/components/feed/CommentsPanel.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/components/stories/StoryStrip.tsx",
+      "method": "navigate",
+      "route": "StoryCamera"
+    },
+    {
+      "file": "src/components/stories/StoryStrip.tsx",
+      "method": "navigate",
+      "route": "StoryViewer"
+    },
+    {
+      "file": "src/components/stories/StoryStrip.tsx",
+      "method": "navigate",
+      "route": "StoryViewer"
+    },
+    {
+      "file": "src/navigation/AppNavigator.tsx",
+      "method": "navigate",
+      "route": "StoryViewer"
+    },
+    {
+      "file": "src/navigation/AppNavigator.tsx",
+      "method": "navigate",
+      "route": "Chat"
+    },
+    {
+      "file": "src/navigation/AppNavigator.tsx",
+      "method": "navigate",
+      "route": "Post"
+    },
+    {
+      "file": "src/navigation/AppNavigator.tsx",
+      "method": "navigate",
+      "route": "Main"
+    },
+    {
+      "file": "src/navigation/AppNavigator.tsx",
+      "method": "navigate",
+      "route": "Main"
+    },
+    {
+      "file": "src/navigation/AppNavigator.tsx",
+      "method": "navigate",
+      "route": "Main"
+    },
+    {
+      "file": "src/navigation/AppNavigator.tsx",
+      "method": "navigate",
+      "route": "Main"
+    },
+    {
+      "file": "src/navigation/AppNavigator.tsx",
+      "method": "navigate",
+      "route": "IncomingCall"
+    },
+    {
+      "file": "src/navigation/jobsNavigation.ts",
+      "method": "navigate",
+      "route": "Main"
+    },
+    {
+      "file": "src/navigation/messagesNavigation.ts",
+      "method": "navigate",
+      "route": "Main"
+    },
+    {
+      "file": "src/navigation/messagesNavigation.ts",
+      "method": "navigate",
+      "route": "Chat"
+    },
+    {
+      "file": "src/navigation/settingsNavigation.ts",
+      "method": "navigate",
+      "route": "ProfileMain"
+    },
+    {
+      "file": "src/screens/auth/BusinessSignInScreen.tsx",
+      "method": "navigate",
+      "route": "BusinessApply"
+    },
+    {
+      "file": "src/screens/auth/LoginScreen.tsx",
+      "method": "navigate",
+      "route": "SignUp"
+    },
+    {
+      "file": "src/screens/auth/LoginScreen.tsx",
+      "method": "navigate",
+      "route": "BusinessSignIn"
+    },
+    {
+      "file": "src/screens/auth/SignUpScreen.tsx",
+      "method": "navigate",
+      "route": "VerifyEmail"
+    },
+    {
+      "file": "src/screens/auth/VerifyEmailScreen.tsx",
+      "method": "navigate",
+      "route": "Login"
+    },
+    {
+      "file": "src/screens/channels/ChannelsScreen.tsx",
+      "method": "navigate",
+      "route": "Channel"
+    },
+    {
+      "file": "src/screens/channels/ChannelsScreen.tsx",
+      "method": "navigate",
+      "route": "Channel"
+    },
+    {
+      "file": "src/screens/channels/ChannelsScreen.tsx",
+      "method": "navigate",
+      "route": "Community"
+    },
+    {
+      "file": "src/screens/channels/ChannelsScreen.tsx",
+      "method": "navigate",
+      "route": "Community"
+    },
+    {
+      "file": "src/screens/channels/CommunityScreen.tsx",
+      "method": "navigate",
+      "route": "Community"
+    },
+    {
+      "file": "src/screens/channels/CommunityScreen.tsx",
+      "method": "navigate",
+      "route": "Chat"
+    },
+    {
+      "file": "src/screens/channels/CommunityScreen.tsx",
+      "method": "navigate",
+      "route": "Community"
+    },
+    {
+      "file": "src/screens/channels/CommunityScreen.tsx",
+      "method": "navigate",
+      "route": "Community"
+    },
+    {
+      "file": "src/screens/feed/FeedScreen.tsx",
+      "method": "navigate",
+      "route": "StoryComposer"
+    },
+    {
+      "file": "src/screens/feed/FeedScreen.tsx",
+      "method": "navigate",
+      "route": "StoryFunCamera"
+    },
+    {
+      "file": "src/screens/feed/FeedScreen.tsx",
+      "method": "navigate",
+      "route": "TrendFeed"
+    },
+    {
+      "file": "src/screens/feed/FeedScreen.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/feed/FeedScreen.tsx",
+      "method": "navigate",
+      "route": "Market"
+    },
+    {
+      "file": "src/screens/feed/FeedScreen.tsx",
+      "method": "navigate",
+      "route": "Market"
+    },
+    {
+      "file": "src/screens/feed/FeedScreen.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/feed/FeedScreen.tsx",
+      "method": "navigate",
+      "route": "Post"
+    },
+    {
+      "file": "src/screens/feed/FeedScreen.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/feed/FeedScreen.tsx",
+      "method": "navigate",
+      "route": "StoryViewer"
+    },
+    {
+      "file": "src/screens/feed/FeedScreen.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/feed/FeedScreen.tsx",
+      "method": "navigate",
+      "route": "ArticleReader"
+    },
+    {
+      "file": "src/screens/feed/FeedScreen.tsx",
+      "method": "navigate",
+      "route": "Post"
+    },
+    {
+      "file": "src/screens/feed/FeedScreen.tsx",
+      "method": "navigate",
+      "route": "Market"
+    },
+    {
+      "file": "src/screens/feed/FeedScreen.tsx",
+      "method": "navigate",
+      "route": "Search"
+    },
+    {
+      "file": "src/screens/feed/FeedScreen.tsx",
+      "method": "navigate",
+      "route": "Notifications"
+    },
+    {
+      "file": "src/screens/feed/FeedScreen.tsx",
+      "method": "navigate",
+      "route": "ArticleCompose"
+    },
+    {
+      "file": "src/screens/feed/FeedScreen.tsx",
+      "method": "navigate",
+      "route": "Market"
+    },
+    {
+      "file": "src/screens/feed/FeedScreen.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/feed/FeedScreen.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/feed/FeedScreen.tsx",
+      "method": "navigate",
+      "route": "Post"
+    },
+    {
+      "file": "src/screens/feed/FeedScreen.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/feed/FeedScreen.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/feed/PostScreen.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/feed/PostScreen.tsx",
+      "method": "navigate",
+      "route": "Search"
+    },
+    {
+      "file": "src/screens/feed/PostScreen.tsx",
+      "method": "push",
+      "route": "Post"
+    },
+    {
+      "file": "src/screens/feed/PostScreen.tsx",
+      "method": "navigate",
+      "route": "Post"
+    },
+    {
+      "file": "src/screens/feed/PostScreen.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/feed/PostScreen.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/feed/PostScreen.tsx",
+      "method": "navigate",
+      "route": "Market"
+    },
+    {
+      "file": "src/screens/feed/SavedPostsScreen.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/feed/SavedPostsScreen.tsx",
+      "method": "navigate",
+      "route": "Post"
+    },
+    {
+      "file": "src/screens/feed/SavedPostsScreen.tsx",
+      "method": "navigate",
+      "route": "Main"
+    },
+    {
+      "file": "src/screens/feed/SearchScreen.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/feed/SearchScreen.tsx",
+      "method": "navigate",
+      "route": "Post"
+    },
+    {
+      "file": "src/screens/feed/SearchScreen.tsx",
+      "method": "navigate",
+      "route": "JobDetail"
+    },
+    {
+      "file": "src/screens/feed/SearchScreen.tsx",
+      "method": "navigate",
+      "route": "Market"
+    },
+    {
+      "file": "src/screens/feed/SearchScreen.tsx",
+      "method": "navigate",
+      "route": "Main"
+    },
+    {
+      "file": "src/screens/feed/SearchScreen.tsx",
+      "method": "navigate",
+      "route": "TrendFeed"
+    },
+    {
+      "file": "src/screens/feed/TrendFeedScreen.tsx",
+      "method": "navigate",
+      "route": "Post"
+    },
+    {
+      "file": "src/screens/jobs/ApplicantsScreen.tsx",
+      "method": "navigate",
+      "route": "Chat"
+    },
+    {
+      "file": "src/screens/jobs/ApplicantsScreen.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/jobs/ApplicantsScreen.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/jobs/JobDetailScreen.tsx",
+      "method": "navigate",
+      "route": "Chat"
+    },
+    {
+      "file": "src/screens/jobs/JobDetailScreen.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/jobs/JobDetailScreen.tsx",
+      "method": "push",
+      "route": "JobDetail"
+    },
+    {
+      "file": "src/screens/jobs/JobDetailScreen.tsx",
+      "method": "navigate",
+      "route": "Applicants"
+    },
+    {
+      "file": "src/screens/jobs/JobsScreen.tsx",
+      "method": "navigate",
+      "route": "Chat"
+    },
+    {
+      "file": "src/screens/jobs/JobsScreen.tsx",
+      "method": "navigate",
+      "route": "JobDetail"
+    },
+    {
+      "file": "src/screens/jobs/JobsScreen.tsx",
+      "method": "navigate",
+      "route": "JobDetail"
+    },
+    {
+      "file": "src/screens/jobs/JobsScreen.tsx",
+      "method": "navigate",
+      "route": "Applicants"
+    },
+    {
+      "file": "src/screens/jobs/JobsScreen.tsx",
+      "method": "navigate",
+      "route": "JobsInbox"
+    },
+    {
+      "file": "src/screens/jobs/JobsScreen.tsx",
+      "method": "navigate",
+      "route": "SavedJobs"
+    },
+    {
+      "file": "src/screens/jobs/JobsScreen.tsx",
+      "method": "navigate",
+      "route": "MyApplications"
+    },
+    {
+      "file": "src/screens/jobs/MyApplicationsScreen.tsx",
+      "method": "navigate",
+      "route": "JobDetail"
+    },
+    {
+      "file": "src/screens/jobs/SavedJobsScreen.tsx",
+      "method": "navigate",
+      "route": "JobDetail"
+    },
+    {
+      "file": "src/screens/market/ListingDetailScreen.tsx",
+      "method": "navigate",
+      "route": "Chat"
+    },
+    {
+      "file": "src/screens/market/ListingDetailScreen.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/market/ListingDetailScreen.tsx",
+      "method": "navigate",
+      "route": "Chat"
+    },
+    {
+      "file": "src/screens/market/MarketScreen.tsx",
+      "method": "navigate",
+      "route": "ListingDetail"
+    },
+    {
+      "file": "src/screens/market/MarketScreen.tsx",
+      "method": "navigate",
+      "route": "MarketInbox"
+    },
+    {
+      "file": "src/screens/market/MarketScreen.tsx",
+      "method": "navigate",
+      "route": "CreateListing"
+    },
+    {
+      "file": "src/screens/market/MarketScreen.tsx",
+      "method": "navigate",
+      "route": "Chat"
+    },
+    {
+      "file": "src/screens/messages/CallLogScreen.tsx",
+      "method": "navigate",
+      "route": "Call"
+    },
+    {
+      "file": "src/screens/messages/CallScreen.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/messages/CallScreen.tsx",
+      "method": "navigate",
+      "route": "CallLog"
+    },
+    {
+      "file": "src/screens/messages/ChatScreen.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/messages/ChatScreen.tsx",
+      "method": "navigate",
+      "route": "Community"
+    },
+    {
+      "file": "src/screens/messages/ChatScreen.tsx",
+      "method": "navigate",
+      "route": "Call"
+    },
+    {
+      "file": "src/screens/messages/ChatScreen.tsx",
+      "method": "navigate",
+      "route": "StoryFunCamera"
+    },
+    {
+      "file": "src/screens/messages/ChatScreen.tsx",
+      "method": "navigate",
+      "route": "Call"
+    },
+    {
+      "file": "src/screens/messages/ChatScreen.tsx",
+      "method": "navigate",
+      "route": "Call"
+    },
+    {
+      "file": "src/screens/messages/ChatScreen.tsx",
+      "method": "navigate",
+      "route": "StoryViewer"
+    },
+    {
+      "file": "src/screens/messages/ChatScreen.tsx",
+      "method": "navigate",
+      "route": "Post"
+    },
+    {
+      "file": "src/screens/messages/ChatScreen.tsx",
+      "method": "navigate",
+      "route": "Market"
+    },
+    {
+      "file": "src/screens/messages/ChatScreen.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/messages/ChatScreen.tsx",
+      "method": "navigate",
+      "route": "GroupManagement"
+    },
+    {
+      "file": "src/screens/messages/ChatScreen.tsx",
+      "method": "navigate",
+      "route": "GroupManagement"
+    },
+    {
+      "file": "src/screens/messages/ContextInboxScreen.tsx",
+      "method": "navigate",
+      "route": "Chat"
+    },
+    {
+      "file": "src/screens/messages/ConversationsScreen.tsx",
+      "method": "navigate",
+      "route": "Chat"
+    },
+    {
+      "file": "src/screens/messages/ConversationsScreen.tsx",
+      "method": "navigate",
+      "route": "StoryViewer"
+    },
+    {
+      "file": "src/screens/messages/ConversationsScreen.tsx",
+      "method": "navigate",
+      "route": "Channels"
+    },
+    {
+      "file": "src/screens/messages/ConversationsScreen.tsx",
+      "method": "navigate",
+      "route": "CallLog"
+    },
+    {
+      "file": "src/screens/messages/ConversationsScreen.tsx",
+      "method": "navigate",
+      "route": "StarredMessages"
+    },
+    {
+      "file": "src/screens/messages/ConversationsScreen.tsx",
+      "method": "navigate",
+      "route": "FindPeople"
+    },
+    {
+      "file": "src/screens/messages/ConversationsScreen.tsx",
+      "method": "navigate",
+      "route": "FindPeople"
+    },
+    {
+      "file": "src/screens/messages/GroupManagementScreen.tsx",
+      "method": "navigate",
+      "route": "StarredMessages"
+    },
+    {
+      "file": "src/screens/messages/IncomingCallScreen.tsx",
+      "method": "replace",
+      "route": "Call"
+    },
+    {
+      "file": "src/screens/messages/MessageRequestsScreen.tsx",
+      "method": "replace",
+      "route": "Chat"
+    },
+    {
+      "file": "src/screens/messages/NewMessageScreen.tsx",
+      "method": "navigate",
+      "route": "CreateGroup"
+    },
+    {
+      "file": "src/screens/messages/SavedMessagesScreen.tsx",
+      "method": "navigate",
+      "route": "Chat"
+    },
+    {
+      "file": "src/screens/messages/StarredMessagesScreen.tsx",
+      "method": "navigate",
+      "route": "Chat"
+    },
+    {
+      "file": "src/screens/messages/StarredMessagesScreen.tsx",
+      "method": "navigate",
+      "route": "Chat"
+    },
+    {
+      "file": "src/screens/network/NetworkScreen.tsx",
+      "method": "navigate",
+      "route": "Community"
+    },
+    {
+      "file": "src/screens/network/NetworkScreen.tsx",
+      "method": "navigate",
+      "route": "Community"
+    },
+    {
+      "file": "src/screens/network/NetworkScreen.tsx",
+      "method": "push",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/network/NetworkScreen.tsx",
+      "method": "navigate",
+      "route": "Messages"
+    },
+    {
+      "file": "src/screens/notifications/NotificationsScreen.tsx",
+      "method": "navigate",
+      "route": "StoryComposer"
+    },
+    {
+      "file": "src/screens/notifications/NotificationsScreen.tsx",
+      "method": "navigate",
+      "route": "Post"
+    },
+    {
+      "file": "src/screens/notifications/NotificationsScreen.tsx",
+      "method": "navigate",
+      "route": "StoryViewer"
+    },
+    {
+      "file": "src/screens/notifications/NotificationsScreen.tsx",
+      "method": "navigate",
+      "route": "StoryViewer"
+    },
+    {
+      "file": "src/screens/notifications/NotificationsScreen.tsx",
+      "method": "navigate",
+      "route": "StoryViewer"
+    },
+    {
+      "file": "src/screens/notifications/NotificationsScreen.tsx",
+      "method": "navigate",
+      "route": "ListingDetail"
+    },
+    {
+      "file": "src/screens/notifications/NotificationsScreen.tsx",
+      "method": "navigate",
+      "route": "Messages"
+    },
+    {
+      "file": "src/screens/notifications/NotificationsScreen.tsx",
+      "method": "navigate",
+      "route": "Applicants"
+    },
+    {
+      "file": "src/screens/notifications/NotificationsScreen.tsx",
+      "method": "navigate",
+      "route": "MyApplications"
+    },
+    {
+      "file": "src/screens/notifications/NotificationsScreen.tsx",
+      "method": "navigate",
+      "route": "Community"
+    },
+    {
+      "file": "src/screens/notifications/NotificationsScreen.tsx",
+      "method": "navigate",
+      "route": "Profile"
+    },
+    {
+      "file": "src/screens/notifications/NotificationsScreen.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/notifications/NotificationsScreen.tsx",
+      "method": "navigate",
+      "route": "Community"
+    },
+    {
+      "file": "src/screens/notifications/NotificationsScreen.tsx",
+      "method": "navigate",
+      "route": "Feed"
+    },
+    {
+      "file": "src/screens/notifications/NotificationsScreen.tsx",
+      "method": "navigate",
+      "route": "FollowRequests"
+    },
+    {
+      "file": "src/screens/profile/BusinessInboxScreen.tsx",
+      "method": "navigate",
+      "route": "Chat"
+    },
+    {
+      "file": "src/screens/profile/BusinessManageScreen.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/profile/BusinessManageScreen.tsx",
+      "method": "navigate",
+      "route": "BusinessInbox"
+    },
+    {
+      "file": "src/screens/profile/BusinessManageScreen.tsx",
+      "method": "navigate",
+      "route": "Campaigns"
+    },
+    {
+      "file": "src/screens/profile/BusinessesScreen.tsx",
+      "method": "navigate",
+      "route": "CreateBusiness"
+    },
+    {
+      "file": "src/screens/profile/BusinessesScreen.tsx",
+      "method": "navigate",
+      "route": "CreateBusiness"
+    },
+    {
+      "file": "src/screens/profile/BusinessesScreen.tsx",
+      "method": "navigate",
+      "route": "BusinessManage"
+    },
+    {
+      "file": "src/screens/profile/ContactSupportScreen.tsx",
+      "method": "navigate",
+      "route": "Ticket"
+    },
+    {
+      "file": "src/screens/profile/FollowListScreen.tsx",
+      "method": "push",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/profile/FollowRequestsScreen.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/profile/MemoryAlbumScreen.tsx",
+      "method": "push",
+      "route": "PostTop"
+    },
+    {
+      "file": "src/screens/profile/MemoryAlbumScreen.tsx",
+      "method": "replace",
+      "route": "MemoryAlbum"
+    },
+    {
+      "file": "src/screens/profile/MemoryAlbumScreen.tsx",
+      "method": "navigate",
+      "route": "Chat"
+    },
+    {
+      "file": "src/screens/profile/MonetizationScreen.tsx",
+      "method": "navigate",
+      "route": "ContactSupport"
+    },
+    {
+      "file": "src/screens/profile/ProfileScreen.tsx",
+      "method": "navigate",
+      "route": "EditProfile"
+    },
+    {
+      "file": "src/screens/profile/ProfileScreen.tsx",
+      "method": "navigate",
+      "route": "StoryViewer"
+    },
+    {
+      "file": "src/screens/profile/ProfileScreen.tsx",
+      "method": "navigate",
+      "route": "Post"
+    },
+    {
+      "file": "src/screens/profile/ProfileScreen.tsx",
+      "method": "navigate",
+      "route": "Post"
+    },
+    {
+      "file": "src/screens/profile/ProfileScreen.tsx",
+      "method": "navigate",
+      "route": "Settings"
+    },
+    {
+      "file": "src/screens/profile/ProfileScreen.tsx",
+      "method": "navigate",
+      "route": "FollowList"
+    },
+    {
+      "file": "src/screens/profile/ProfileScreen.tsx",
+      "method": "navigate",
+      "route": "StoryViewer"
+    },
+    {
+      "file": "src/screens/profile/ProfileScreen.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/profile/RestrictedAccountsScreen.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "method": "navigate",
+      "route": "Monetization"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "method": "navigate",
+      "route": "TwoFactor"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "method": "navigate",
+      "route": "LoginActivity"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "method": "navigate",
+      "route": "FollowRequests"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "method": "navigate",
+      "route": "MutedWords"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "method": "navigate",
+      "route": "SavedPosts"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "method": "navigate",
+      "route": "Archive"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "method": "navigate",
+      "route": "YourActivity"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "method": "navigate",
+      "route": "BlockedAccounts"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "method": "navigate",
+      "route": "RestrictedAccounts"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "method": "navigate",
+      "route": "Businesses"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "method": "navigate",
+      "route": "MessageRequests"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "method": "navigate",
+      "route": "ApplyVerification"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "method": "navigate",
+      "route": "ContactSupport"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "method": "navigate",
+      "route": "BusinessApply"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "method": "navigate",
+      "route": "ChangeUsername"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "method": "navigate",
+      "route": "BusinessAccess"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "method": "navigate",
+      "route": "AccountStanding"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "method": "navigate",
+      "route": "Campaigns"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "method": "navigate",
+      "route": "ArticleCompose"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "method": "navigate",
+      "route": "HelpSupport"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "method": "navigate",
+      "route": "Terms"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "method": "navigate",
+      "route": "PrivacyPolicy"
+    },
+    {
+      "file": "src/screens/profile/SettingsScreen.tsx",
+      "method": "navigate",
+      "route": "EditProfile"
+    },
+    {
+      "file": "src/screens/profile/UserProfileScreen.tsx",
+      "method": "navigate",
+      "route": "Chat"
+    },
+    {
+      "file": "src/screens/profile/UserProfileScreen.tsx",
+      "method": "navigate",
+      "route": "FollowList"
+    },
+    {
+      "file": "src/screens/profile/UserProfileScreen.tsx",
+      "method": "navigate",
+      "route": "StoryViewer"
+    },
+    {
+      "file": "src/screens/profile/UserProfileScreen.tsx",
+      "method": "navigate",
+      "route": "Profile"
+    },
+    {
+      "file": "src/screens/profile/UserProfileScreen.tsx",
+      "method": "navigate",
+      "route": "Post"
+    },
+    {
+      "file": "src/screens/profile/UserProfileScreen.tsx",
+      "method": "navigate",
+      "route": "Post"
+    },
+    {
+      "file": "src/screens/profile/YourActivityScreen.tsx",
+      "method": "navigate",
+      "route": "Post"
+    },
+    {
+      "file": "src/screens/stories/MemoryArrangementScreen.tsx",
+      "method": "navigate",
+      "route": "StoryComposer"
+    },
+    {
+      "file": "src/screens/stories/MemoryArrangementScreen.tsx",
+      "method": "navigate",
+      "route": "StoryComposer"
+    },
+    {
+      "file": "src/screens/stories/StoryBoomerangScreen.tsx",
+      "method": "navigate",
+      "route": "StoryComposer"
+    },
+    {
+      "file": "src/screens/stories/StoryCameraScreen.tsx",
+      "method": "navigate",
+      "route": "StoryComposer"
+    },
+    {
+      "file": "src/screens/stories/StoryCameraScreen.tsx",
+      "method": "navigate",
+      "route": "StoryComposer"
+    },
+    {
+      "file": "src/screens/stories/StoryCameraScreen.tsx",
+      "method": "navigate",
+      "route": "StoryComposer"
+    },
+    {
+      "file": "src/screens/stories/StoryCameraScreen.tsx",
+      "method": "navigate",
+      "route": "StoryComposer"
+    },
+    {
+      "file": "src/screens/stories/StoryCameraScreen.tsx",
+      "method": "navigate",
+      "route": "StoryDualCapture"
+    },
+    {
+      "file": "src/screens/stories/StoryCameraScreen.tsx",
+      "method": "navigate",
+      "route": "StoryFunCamera"
+    },
+    {
+      "file": "src/screens/stories/StoryCameraScreen.tsx",
+      "method": "navigate",
+      "route": "StoryLayout"
+    },
+    {
+      "file": "src/screens/stories/StoryCameraScreen.tsx",
+      "method": "navigate",
+      "route": "StoryBoomerang"
+    },
+    {
+      "file": "src/screens/stories/StoryCreationMenuScreen.tsx",
+      "method": "navigate",
+      "route": "StoryComposer"
+    },
+    {
+      "file": "src/screens/stories/StoryCreationMenuScreen.tsx",
+      "method": "navigate",
+      "route": "StoryComposer"
+    },
+    {
+      "file": "src/screens/stories/StoryCreationMenuScreen.tsx",
+      "method": "navigate",
+      "route": "StoryComposer"
+    },
+    {
+      "file": "src/screens/stories/StoryCreationMenuScreen.tsx",
+      "method": "navigate",
+      "route": "StoryCamera"
+    },
+    {
+      "file": "src/screens/stories/StoryCreationMenuScreen.tsx",
+      "method": "navigate",
+      "route": "StoryDualCapture"
+    },
+    {
+      "file": "src/screens/stories/StoryCreationMenuScreen.tsx",
+      "method": "navigate",
+      "route": "StoryLayout"
+    },
+    {
+      "file": "src/screens/stories/StoryDualCaptureScreen.tsx",
+      "method": "navigate",
+      "route": "StoryCamera"
+    },
+    {
+      "file": "src/screens/stories/StoryDualCaptureScreen.tsx",
+      "method": "navigate",
+      "route": "StoryComposer"
+    },
+    {
+      "file": "src/screens/stories/StoryDualCaptureScreen.tsx",
+      "method": "navigate",
+      "route": "MemoryArrangement"
+    },
+    {
+      "file": "src/screens/stories/StoryFunCameraScreen.tsx",
+      "method": "navigate",
+      "route": "Chat"
+    },
+    {
+      "file": "src/screens/stories/StoryFunCameraScreen.tsx",
+      "method": "navigate",
+      "route": "StoryComposer"
+    },
+    {
+      "file": "src/screens/stories/StoryLayoutScreen.tsx",
+      "method": "replace",
+      "route": "StoryComposer"
+    },
+    {
+      "file": "src/screens/stories/StoryViewerScreen.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/stories/StoryViewerScreen.tsx",
+      "method": "navigate",
+      "route": "StoryComposer"
+    },
+    {
+      "file": "src/screens/stories/StoryViewerScreen.tsx",
+      "method": "navigate",
+      "route": "StoryComposer"
+    },
+    {
+      "file": "src/screens/stories/StoryViewerScreen.tsx",
+      "method": "navigate",
+      "route": "StoryComposer"
+    },
+    {
+      "file": "src/screens/stories/StoryViewerScreen.tsx",
+      "method": "navigate",
+      "route": "Messages"
+    },
+    {
+      "file": "src/screens/stories/StoryViewerScreen.tsx",
+      "method": "navigate",
+      "route": "StoryComposer"
+    },
+    {
+      "file": "src/screens/stories/StoryViewerScreen.tsx",
+      "method": "push",
+      "route": "UserProfileTop"
+    },
+    {
+      "file": "src/screens/stories/StoryViewerScreen.tsx",
+      "method": "push",
+      "route": "PostTop"
+    },
+    {
+      "file": "src/screens/stories/StoryViewerScreen.tsx",
+      "method": "push",
+      "route": "UserProfileTop"
+    },
+    {
+      "file": "src/screens/stories/StoryViewerScreen.tsx",
+      "method": "push",
+      "route": "StoryViewer"
+    },
+    {
+      "file": "src/screens/stories/StoryViewerScreen.tsx",
+      "method": "push",
+      "route": "UserProfileTop"
+    },
+    {
+      "file": "src/screens/stories/StoryViewerScreen.tsx",
+      "method": "push",
+      "route": "JobDetail"
+    },
+    {
+      "file": "src/screens/stories/StoryViewerScreen.tsx",
+      "method": "push",
+      "route": "PostTop"
+    },
+    {
+      "file": "src/screens/stories/StoryViewerScreen.tsx",
+      "method": "navigate",
+      "route": "ListingDetail"
+    },
+    {
+      "file": "src/screens/stories/StoryViewerScreen.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/stories/StoryViewerScreen.tsx",
+      "method": "navigate",
+      "route": "StoryViewer"
+    },
+    {
+      "file": "src/screens/studio/StudioHiringAdsSegs.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/studio/StudioHiringAdsSegs.tsx",
+      "method": "navigate",
+      "route": "Post"
+    },
+    {
+      "file": "src/screens/studio/StudioMoreSegs.tsx",
+      "method": "navigate",
+      "route": "UserProfile"
+    },
+    {
+      "file": "src/screens/studio/StudioMoreSegs.tsx",
+      "method": "navigate",
+      "route": "Market"
+    },
+    {
+      "file": "src/screens/studio/StudioMoreSegs.tsx",
+      "method": "navigate",
+      "route": "Chat"
+    },
+    {
+      "file": "src/screens/studio/StudioScreen.tsx",
+      "method": "navigate",
+      "route": "Settings"
+    },
+    {
+      "file": "src/screens/studio/StudioScreen.tsx",
+      "method": "navigate",
+      "route": "BusinessSignIn"
+    },
+    {
+      "file": "src/screens/studio/StudioScreen.tsx",
+      "method": "navigate",
+      "route": "Profile"
+    },
+    {
+      "file": "src/screens/studio/StudioScreen.tsx",
+      "method": "navigate",
+      "route": "Messages"
+    },
+    {
+      "file": "src/screens/studio/StudioScreen.tsx",
+      "method": "navigate",
+      "route": "Messages"
+    },
+    {
+      "file": "src/screens/studio/StudioScreen.tsx",
+      "method": "navigate",
+      "route": "Post"
+    },
+    {
+      "file": "src/screens/studio/StudioScreen.tsx",
+      "method": "navigate",
+      "route": "Chat"
+    },
+    {
+      "file": "src/screens/studio/StudioScreen.tsx",
+      "method": "navigate",
+      "route": "Market"
+    },
+    {
+      "file": "src/screens/studio/StudioScreen.tsx",
+      "method": "navigate",
+      "route": "Post"
+    }
+  ],
+  "unresolvedLiteralRoutes": [],
+  "webPageRoutes": [
+    "web/app/[username]/follows/page.tsx",
+    "web/app/[username]/page.tsx",
+    "web/app/about/page.tsx",
+    "web/app/ads/new/page.tsx",
+    "web/app/ads/page.tsx",
+    "web/app/album/[id]/page.tsx",
+    "web/app/archive/page.tsx",
+    "web/app/business-login/page.tsx",
+    "web/app/businesses/apply/page.tsx",
+    "web/app/businesses/new/page.tsx",
+    "web/app/businesses/page.tsx",
+    "web/app/calls/page.tsx",
+    "web/app/channels/[id]/page.tsx",
+    "web/app/channels/page.tsx",
+    "web/app/communities/[id]/page.tsx",
+    "web/app/communities/join/[token]/page.tsx",
+    "web/app/communities/page.tsx",
+    "web/app/discover/page.tsx",
+    "web/app/explore/page.tsx",
+    "web/app/forgot-password/page.tsx",
+    "web/app/home/page.tsx",
+    "web/app/jobs/[id]/applicants/page.tsx",
+    "web/app/jobs/[id]/page.tsx",
+    "web/app/jobs/applications/page.tsx",
+    "web/app/jobs/messages/page.tsx",
+    "web/app/jobs/new/page.tsx",
+    "web/app/jobs/page.tsx",
+    "web/app/jobs/saved/page.tsx",
+    "web/app/login/page.tsx",
+    "web/app/market/[id]/page.tsx",
+    "web/app/market/messages/page.tsx",
+    "web/app/market/new/page.tsx",
+    "web/app/market/orders/page.tsx",
+    "web/app/market/page.tsx",
+    "web/app/market/saved/page.tsx",
+    "web/app/messages/page.tsx",
+    "web/app/messages/requests/page.tsx",
+    "web/app/monetization/page.tsx",
+    "web/app/music/page.tsx",
+    "web/app/notifications/page.tsx",
+    "web/app/page.tsx",
+    "web/app/post/[id]/page.tsx",
+    "web/app/privacy/page.tsx",
+    "web/app/reset-password/page.tsx",
+    "web/app/saved/page.tsx",
+    "web/app/search/page.tsx",
+    "web/app/settings/account-type/page.tsx",
+    "web/app/settings/activity/page.tsx",
+    "web/app/settings/archive/page.tsx",
+    "web/app/settings/blocked/page.tsx",
+    "web/app/settings/download/page.tsx",
+    "web/app/settings/follow-requests/page.tsx",
+    "web/app/settings/help/page.tsx",
+    "web/app/settings/hidden-words/page.tsx",
+    "web/app/settings/login-activity/page.tsx",
+    "web/app/settings/muted/page.tsx",
+    "web/app/settings/muted-words/page.tsx",
+    "web/app/settings/notifications/page.tsx",
+    "web/app/settings/page.tsx",
+    "web/app/settings/restricted/page.tsx",
+    "web/app/settings/standing/page.tsx",
+    "web/app/settings/support/[id]/page.tsx",
+    "web/app/settings/support/page.tsx",
+    "web/app/settings/two-factor/page.tsx",
+    "web/app/settings/username/page.tsx",
+    "web/app/settings/verification/page.tsx",
+    "web/app/signup/page.tsx",
+    "web/app/story/[id]/page.tsx",
+    "web/app/story/new/page.tsx",
+    "web/app/studio/ads/page.tsx",
+    "web/app/studio/audience/page.tsx",
+    "web/app/studio/commerce/page.tsx",
+    "web/app/studio/content/page.tsx",
+    "web/app/studio/inbox/page.tsx",
+    "web/app/studio/insights/page.tsx",
+    "web/app/studio/page.tsx",
+    "web/app/studio/planner/page.tsx",
+    "web/app/studio/recruiter/page.tsx",
+    "web/app/studio/reviews/page.tsx",
+    "web/app/studio/settings/organization/page.tsx",
+    "web/app/studio/settings/page.tsx",
+    "web/app/terms/page.tsx",
+    "web/app/topic/[tag]/page.tsx",
+    "web/app/write/page.tsx"
+  ],
+  "adminPageRoutes": [
+    "admin-web/app/ads/page.tsx",
+    "admin-web/app/analytics/page.tsx",
+    "admin-web/app/audit/page.tsx",
+    "admin-web/app/businesses/page.tsx",
+    "admin-web/app/calls/page.tsx",
+    "admin-web/app/content/page.tsx",
+    "admin-web/app/dashboard/page.tsx",
+    "admin-web/app/jobs/page.tsx",
+    "admin-web/app/market/orders/[id]/page.tsx",
+    "admin-web/app/market/orders/page.tsx",
+    "admin-web/app/market/page.tsx",
+    "admin-web/app/market/reviews/page.tsx",
+    "admin-web/app/organizations/page.tsx",
+    "admin-web/app/p/[id]/page.tsx",
+    "admin-web/app/page.tsx",
+    "admin-web/app/payments/creators/page.tsx",
+    "admin-web/app/payments/page.tsx",
+    "admin-web/app/present/page.tsx",
+    "admin-web/app/queue/page.tsx",
+    "admin-web/app/reports/page.tsx",
+    "admin-web/app/reset-password/page.tsx",
+    "admin-web/app/reset-password/request/page.tsx",
+    "admin-web/app/security/page.tsx",
+    "admin-web/app/signin/page.tsx",
+    "admin-web/app/staff/page.tsx",
+    "admin-web/app/stories/page.tsx",
+    "admin-web/app/support/[tid]/page.tsx",
+    "admin-web/app/support/page.tsx",
+    "admin-web/app/system/page.tsx",
+    "admin-web/app/users/[uid]/page.tsx",
+    "admin-web/app/users/deletions/page.tsx",
+    "admin-web/app/users/page.tsx"
+  ]
+}

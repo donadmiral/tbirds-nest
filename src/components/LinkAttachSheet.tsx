@@ -2,17 +2,12 @@
  * LinkAttachSheet
  *
  * Lets a post composer attach an external link (YouTube, TikTok, any
- * website). Fetches the page on-device, pulls Open Graph tags, and hands
- * the composer a preview to attach. This sheet only previews and confirms
- * -- the composer owns attaching the url to the post and, after the post
- * exists, calling cacheLinkPreview once to warm the shared cache.
+ * website). Requests a server-verified preview and hands it to the composer.
+ * The composer owns attaching the URL; the server owns the shared cache.
  */
 import { themedSheet } from '../theme/useTheme';
-import React, { useState } from 'react';
-import {
-  View, Text, StyleSheet, Modal, TouchableOpacity, TextInput,
-  ActivityIndicator, Image, Keyboard, KeyboardAvoidingView, Platform,
-} from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, Modal, TouchableOpacity, TextInput, ActivityIndicator, Image, Keyboard, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from './SafeArea';
 import { Feather } from '@expo/vector-icons';
 import { fetchLinkPreview, normalizeUrl, deriveDomain, type LinkPreview } from '../services/linkPreview';
@@ -33,23 +28,32 @@ export default function LinkAttachSheet({ visible, onClose, onAttach, initialUrl
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<LinkPreview | null>(null);
   const [failed, setFailed] = useState(false);
+  const requestGeneration = useRef(0);
+  useEffect(() => {
+    requestGeneration.current++;
+    if (visible) { setUrl(initialUrl || ''); setPreview(null); setFailed(false); setLoading(false); }
+    return () => { requestGeneration.current++; };
+  }, [visible, initialUrl]);
 
-  const reset = () => { setUrl(initialUrl || ''); setPreview(null); setFailed(false); setLoading(false); };
+  const reset = () => { requestGeneration.current++; setUrl(initialUrl || ''); setPreview(null); setFailed(false); setLoading(false); };
   const close = () => { reset(); onClose(); };
 
   const doPreview = async () => {
     const trimmed = url.trim();
     if (!trimmed) return;
+    const generation = ++requestGeneration.current;
     Keyboard.dismiss();
     setLoading(true);
     setFailed(false);
     const p = await fetchLinkPreview(trimmed);
+    if (generation !== requestGeneration.current) return;
     setLoading(false);
     setPreview(p);
     if (!p.title && !p.image_url) setFailed(true);
   };
 
   const attachPlain = () => {
+    requestGeneration.current++; setLoading(false);
     const u = normalizeUrl(url);
     setPreview({ url: u, title: null, description: null, image_url: null, domain: deriveDomain(u) });
   };
@@ -77,7 +81,7 @@ export default function LinkAttachSheet({ visible, onClose, onAttach, initialUrl
           <View style={sh.inputRow}>
             <TextInput
               value={url}
-              onChangeText={(t) => { setUrl(t); setPreview(null); setFailed(false); }}
+              onChangeText={(t) => { requestGeneration.current++; setUrl(t); setPreview(null); setFailed(false); setLoading(false); }}
               placeholder="Paste a YouTube, TikTok or website link"
               placeholderTextColor="rgba(11,30,61,0.35)"
               style={sh.input}

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "path": "app.log",
+    "sha256": "b219a3e99c9c44b72d8dda6bc7a0a8c30f9f25f67ef4a3e7576931b8eb29e60c",
+    "bytes": 1413943,
+    "lines": 9902
+  },
+  "patterns": {
+    "acquisitionWarning": "lock.*acquisit.*timed|processLock.*timed|acquir.*lock.*timed|lock.*timed.*acquir|LockAcquisitionTimeout",
+    "authClientError": "GoTrue|AuthApiError|AuthRetryableFetchError",
+    "keychainError": "-34018|errSec|SecureStore.*(error|failed)|keychain.*(error|failed)|NSOSStatusErrorDomain",
+    "accountIndex": "\\[accounts\\] index",
+    "accountInit": "\\[accounts\\] init",
+    "accountFailure": "\\[accounts\\].*(failed|refused)",
+    "maximumRenderDepth": "Maximum update depth|Too many re-renders"
+  },
+  "observedCounts": {
+    "acquisitionWarning": 0,
+    "authClientError": 0,
+    "keychainError": 0,
+    "accountIndex": 2,
+    "accountInit": 0,
+    "accountFailure": 0,
+    "maximumRenderDepth": 0
+  },
+  "accountLogLines": [
+    {
+      "line": 5222,
+      "text": "2026-10-31 15:26:20.828 I  PlatinumQA[83985:39e6a] [com.facebook.react.log:javascript] '[accounts] index', 1"
+    },
+    {
+      "line": 5253,
+      "text": "2026-10-31 15:26:21.271 I  PlatinumQA[83985:39e6a] [com.facebook.react.log:javascript] '[accounts] index', 1"
+    }
+  ],
+  "limits": [
+    "Absence of a matching warning is limited to this retained application log.",
+    "Successful index-write logs are not evidence of a subsequent SecureStore reread or successful capture-route account assertion."
+  ]
+}

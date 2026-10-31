@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "path": "app.log",
+    "bytes": 1508553,
+    "sha256": "b50c38b638dbab43663ebfe185bddb586f47c8f0356c2aef91a493987f83f221"
+  },
+  "lineCount": 4236,
+  "timestampFormat": "Native logcat MM-DD HH:MM:SS.mmm, on the 2026-10-31 CI run. No new independent device/host clock calibration is claimed.",
+  "firstTimedLine": {
+    "line": 2,
+    "text": "10-31 16:34:15.493  1319  1405 D SessionCommitReceiver: Removing PromiseIcon for package: app.platinumcircles.mobile.qa, install reason: 0, alreadyAddedPromiseIcon: false"
+  },
+  "lastTimedLine": {
+    "line": 4236,
+    "text": "10-31 16:35:12.422  2541  2541 I Choreographer: Skipped 38 frames!  The application may be doing too much work on its main thread."
+  },
+  "reactNativeJsLineCount": 12,
+  "reactNativeJsLines": [
+    {
+      "line": 1648,
+      "text": "10-31 16:34:27.040  2541  2589 I ReactNativeJS: MediaDevices _registerEvents invoked"
+    },
+    {
+      "line": 1650,
+      "text": "10-31 16:34:27.047  2541  2589 W ReactNativeJS: `new NativeEventEmitter()` was called with a non-null argument without the required `addListener` method."
+    },
+    {
+      "line": 1651,
+      "text": "10-31 16:34:27.047  2541  2589 W ReactNativeJS: `new NativeEventEmitter()` was called with a non-null argument without the required `removeListeners` method."
+    },
+    {
+      "line": 1652,
+      "text": "10-31 16:34:27.047  2541  2589 W ReactNativeJS: `new NativeEventEmitter()` was called with a non-null argument without the required `addListener` method."
+    },
+    {
+      "line": 1653,
+      "text": "10-31 16:34:27.048  2541  2589 W ReactNativeJS: `new NativeEventEmitter()` was called with a non-null argument without the required `removeListeners` method."
+    },
+    {
+      "line": 1658,
+      "text": "10-31 16:34:27.112  2541  2589 I ReactNativeJS: '[NativeCalls] gate', '{\"build\":0,\"expoGo\":false,\"enabled\":true}'"
+    },
+    {
+      "line": 1668,
+      "text": "10-31 16:34:27.189  2541  2589 W ReactNativeJS: [expo-av]: Expo AV has been deprecated and will be removed in SDK 54. Use the `expo-audio` and `expo-video` packages to replace the required functionality."
+    },
+    {
+      "line": 1669,
+      "text": "10-31 16:34:27.217  2541  2589 I ReactNativeJS: Running \"main\""
+    },
+    {
+      "line": 1670,
+      "text": "10-31 16:34:27.218  2541  2589 I ReactNativeJS: MediaDevices => mediaDevicesOnDeviceChange"
+    },
+    {
+      "line": 2486,
+      "text": "10-31 16:34:43.737  2541  2589 I ReactNativeJS: Must use physical device for push notifications"
+    },
+    {
+      "line": 2516,
+      "text": "10-31 16:34:43.965  2541  2589 I ReactNativeJS: '[accounts] index', 1"
+    },
+    {
+      "line": 2518,
+      "text": "10-31 16:34:44.036  2541  2589 I ReactNativeJS: '[accounts] index', 1"
+    }
+  ],
+  "searches": {
+    "sdkLockAcquisitionWarning": {
+      "pattern": "@supabase/gotrue-js.*(?:acquisition timed out|not released within)|ProcessLockAcquireTimeoutError|NavigatorLockAcquireTimeoutError|Acquiring process lock",
+      "matches": []
+    },
+    "sdkAuthError": {
+      "pattern": "AuthApiError|AuthSessionMissingError|AuthRetryableFetchError",
+      "matches": []
+    },
+    "accountInit": {
+      "pattern": "ReactNativeJS:.*\\[accounts\\] init",
+      "matches": []
+    },
+    "accountFailures": {
+      "pattern": "ReactNativeJS:.*\\[accounts\\].*(?:index failed|save failed|switch refused)",
+      "matches": []
+    }
+  },
+  "successfulAccountIndexWriteLines": [
+    {
+      "line": 2516,
+      "text": "10-31 16:34:43.965  2541  2589 I ReactNativeJS: '[accounts] index', 1"
+    },
+    {
+      "line": 2518,
+      "text": "10-31 16:34:44.036  2541  2589 I ReactNativeJS: '[accounts] index', 1"
+    }
+  ],
+  "scope": "Only exact SDK/account patterns and the retained ReactNativeJS subset are interpreted. Android system lock/keychain messages are not classified as application-auth events. Absence of a matching warning in this retained file does not establish absent waits, stable timer identity or complete auth coverage."
+}

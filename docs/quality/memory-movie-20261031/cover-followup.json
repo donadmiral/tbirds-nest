@@ -1,0 +1,109 @@
+{
+  "recorded_at": "2026-10-31T01:55:24.153781+00:00",
+  "base_commit": "98d065f3c6c0086565dcc0e50a45553188302a49",
+  "scope": "Cover typography and populated-field accessibility repair; actual designer/editor fixture acceptance. No native encoder or capability change.",
+  "source_sha256": {
+    "shared/memoryCoverWriting.ts": "226edaf6737692c13c34c56e3d08aa716280b666b7baecf3c2a5f4d64dbea52d",
+    "src/components/memory/MemoryBookCover.tsx": "50a86edb475b9a120d16e6fcda4a63494d4f6e1b5ee0e80e0cb68e52dbf163af",
+    "src/screens/profile/MemoryAlbumScreen.tsx": "5cea901dd97028928b408ca0ca7bd4b9abf424180e999fd147b44df71df6ac53",
+    "web/components/MemoryAlbum.tsx": "7d1170fe779b9adda2bf3639c6c1e449e123acbbd66c268baa7b2becd484637e",
+    "web/components/memory/MemoryBookCover.module.css": "569bc3a8b8bf67842e5838907a5e064b416941fd37c6caa8b1e68db0f0afb149",
+    "web/components/memory/MemoryBookCover.tsx": "ed608207e0325914948f3f929a4f15879a960ecff64e6f8be21d848d50c0bbb7",
+    "web/components/memory/MemoryBookDesigner.tsx": "bebf65115c4489cda22bf0fac2b2e6f58daad90c0826c5161b17f94fb2aa8bd5",
+    "web/components/memory/MemoryCreativeControls.tsx": "ae1888dfc43ceac384e5f5540ecd9c2b46db3ab35f3acac81896a103a0aebc20",
+    "web/tests/browser/memory-cover-adapter.ts": "372807d579480fcffeb318c71b030a94f27ab41f8b497ec69e728f54b8e19367",
+    "web/tests/browser/memory-cover-fixture.tsx": "3e9f19a52f7d6c1f7d000e1757e990504c6b3b0384740e0eac86585bb8ad27fa",
+    "web/tests/browser/memory-cover-run.cjs": "bf5aff49b5f55708b0c65911017568ed1dae16914798279cf236adf5a76f9055"
+  },
+  "evidence_sha256": {
+    "docs/quality/memory-movie-20261031/README.md": "71a928e3c4fbf32bb7e67dfbf8ab2e07b8616601b0d41f49757bdef095e9e6d6",
+    "docs/quality/memory-movie-20261031/cover-browser-receipt.json": "a04e7ac7be7489fbff7072050deb94b3e71cd1b4ef5f4d64735291324a116448"
+  },
+  "publicationFiles": [
+    "shared/memoryCoverWriting.ts",
+    "src/components/memory/MemoryBookCover.tsx",
+    "src/screens/profile/MemoryAlbumScreen.tsx",
+    "web/components/MemoryAlbum.tsx",
+    "web/components/memory/MemoryBookCover.module.css",
+    "web/components/memory/MemoryBookCover.tsx",
+    "web/components/memory/MemoryBookDesigner.tsx",
+    "web/components/memory/MemoryCreativeControls.tsx",
+    "web/tests/browser/memory-cover-adapter.ts",
+    "web/tests/browser/memory-cover-fixture.tsx",
+    "web/tests/browser/memory-cover-run.cjs",
+    "docs/quality/memory-movie-20261031/README.md",
+    "docs/quality/memory-movie-20261031/cover-browser-receipt.json",
+    "docs/quality/memory-movie-20261031/cover-followup.json"
+  ],
+  "changes": [
+    "Shared bounded cover layout preserves saved writing while flowing its displayed paragraph, leaving separate regions for titles and postcard stamps. It fits long words at character boundaries and includes font and physical-border space.",
+    "Title sizing and glyph padding keep the complete title inside its design region on web and native. Photo framing remains controlled by the persisted version-1 document.",
+    "Populated writing has an explicit text-only label associated with its textarea. Stamp, title and subtitle fields have explicit web label associations, and the native book title has its missing accessibility label.",
+    "Test-only fixture mounts actual MemoryBookDesigner and MemoryAlbum editor components without introducing a production route or bypass."
+  ],
+  "checks": {
+    "native_behavior": {
+      "command": "node --test tests/quality/memory-creative-plan.cjs tests/quality/native-memory-export.cjs tests/quality/memory-media-regressions.cjs tests/quality/memory-story-presentation.cjs",
+      "passed": 61,
+      "failed": 0
+    },
+    "web_behavior": {
+      "command": "node --test tests/export-image.cjs tests/memory-film.cjs tests/memory-film-lifecycle.cjs tests/memory-book-shelf-refresh.cjs tests/memory-hook-boundary.cjs",
+      "passed": 32,
+      "failed": 0
+    },
+    "types": {
+      "native": "passed",
+      "web": "passed"
+    },
+    "strict_scoped_lint": {
+      "errors": 0,
+      "warnings": 0
+    },
+    "actual_browser": {
+      "command": "STORY_QA_CHROME=<Chromium path> node web/tests/browser/memory-cover-run.cjs",
+      "version": "153.0.8010.12",
+      "gallery_configurations": 48,
+      "measured_covers": 288,
+      "journeys": [
+        {
+          "name": "actual designer creates the chosen owned photo and complete creative documents",
+          "bookId": "1535daab-375c-4724-a964-4df90a9d42a1",
+          "revision": 0,
+          "pinnedAuthorization": true,
+          "reloadCoverSha256": "44adf0bfd37f2fc4af57e18453d9306317aaf42edf3851276dfbe89abbc45c66"
+        },
+        {
+          "name": "actual editor persists revisions and protects the draft on a conflicting save",
+          "updatedRevision": 1,
+          "conflictPreservesDraft": true,
+          "savedDocumentUnchangedAfterConflict": true
+        },
+        {
+          "name": "saved cover and album controls fit the mobile viewport",
+          "width": 390,
+          "noHorizontalOverflow": true
+        },
+        {
+          "name": "actual designer fences A to B to A during a pending create",
+          "oldDraftClosed": true,
+          "noLateCreatedBook": true
+        }
+      ],
+      "console_errors": [],
+      "unchanged_source_verified_after_run": true
+    }
+  },
+  "screenshot_sha256": {
+    "created-cover.png": "44adf0bfd37f2fc4af57e18453d9306317aaf42edf3851276dfbe89abbc45c66",
+    "covers-normal.png": "3c2d462ab51976f84de56856522aedcababa9c7e20e0daa657558bf1ecd6351e",
+    "covers-wide.png": "ede66c87d074116df6ca6ffbb9204466f427bf4fd390a156beff3968485f3343",
+    "designer-custom-cover.png": "b593d1c116d309b362cfab9769ec70c50633409f4f8aff28d58e78df1dfc7860",
+    "saved-book-mobile.png": "5f09b6012ee635703eb2f6fae4ffcca2992984413b00cf15a9295727b2f8d097"
+  },
+  "limits": [
+    "Browser RPC/persistence uses a synthetic local adapter; hosted QA save/reload is recorded independently in hosted-creative-book-roundtrip.json.",
+    "Native shared layout and type integration are verified in source; this fixture does not claim native screenshot acceptance.",
+    "Whole-book encoder capabilities remain 0 while actual runtime and bundled capture acceptance continue."
+  ]
+}

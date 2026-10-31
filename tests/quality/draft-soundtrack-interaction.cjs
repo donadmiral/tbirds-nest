@@ -5,7 +5,7 @@ function compile(file,globals={},pick){
  let code=text(file);
  if(pick){const ast=ts.createSourceFile(file,code,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);code=ast.statements.filter(s=>ts.isFunctionDeclaration(s)&&pick.includes(s.name?.text)).map(s=>s.getText(ast)).join('\n');}
  const module={exports:{}};
- vm.runInNewContext(ts.transpileModule(code,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText,{module,exports:module.exports,console,setTimeout,clearTimeout,...globals},{filename:file});
+ vm.runInNewContext(ts.transpileModule(code,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText,{module,exports:module.exports,console,setTimeout,clearTimeout,queueMicrotask,...globals},{filename:file});
  return module.exports;
 }
 const soundtrack=compile('shared/soundtrack.ts'),editing=compile('shared/postMediaEditing.ts'),voice=compile('shared/postVoiceEffects.ts');
@@ -22,6 +22,7 @@ function hooks(){
   useRef(initial){const i=cursor++;return slots[i]??(slots[i]={current:initial});},
   useEffect(fn,deps){const i=cursor++,old=slots[i];if(!same(old?.deps,deps)){slots[i]={deps};effects.push(()=>{old?.cleanup?.();slots[i].cleanup=fn();});}},
  };
+ react.useLayoutEffect=react.useEffect;react.useCallback=(fn,deps)=>{const i=cursor++,old=slots[i];if(!same(old?.deps,deps))slots[i]={deps,value:fn};return slots[i].value;};
  function render(force=false){if(force)dirty=true;let n=0;while(dirty){assert.ok(++n<40,'component render settled');dirty=false;cursor=0;tree=renderFn();commit(tree);while(effects.length)effects.shift()();}return tree;}
  return{react,mount(fn,onCommit){renderFn=fn;if(onCommit)commit=onCommit;return render();},render,async flush(){for(let i=0;i<5;i++){await turn();render();}},get nodes(){return walk(tree);},dispose(){slots.forEach(s=>s?.cleanup?.());}};
 }
@@ -36,12 +37,15 @@ function picker(platform,options={}){
  const get=(id,use)=>{checks.push({id,use});if(denied)return Promise.reject(Error('revoked'));if(options.check)return options.check(id,use);return Promise.resolve(id===first.id?first:second);};
  const storage={getItem:async key=>saved.get(key)??null,setItem:async(key,value)=>{writes.push({key,value});saved.set(key,value);}};
  const props={visible:true,value:null,use:'post',ownerId:'account-a',originalAudio:true,onChange:value=>changes.push(value),onClose:()=>{closed++;},renderPreview:(selection,active)=>{previews.push({selection,active});return jsx.jsx('Draft',{selection,active});},...options.props};
+ const originals={soundFavorites:async owner=>saved.get(owner||props.ownerId)||[],saveSoundFavorite:async(id,value,owner)=>{writes.push({owner:owner||props.ownerId,id,saved:value});const current=saved.get(owner||props.ownerId)||[];saved.set(owner||props.ownerId,value?[...current,id]:current.filter(x=>x!==id));}};
+ const account={session:{user:{id:props.ownerId}},profile:{id:props.ownerId}},authListeners=new Set(),client={auth:{onAuthStateChange(fn){authListeners.add(fn);return{data:{subscription:{unsubscribe:()=>authListeners.delete(fn)}}};}}};
+ const authStore={getState:()=>account,subscribe(fn){authListeners.add(fn);return()=>authListeners.delete(fn);}};
  const native={View:'View',Text:'Text',TextInput:'Input',TouchableOpacity:'Button',ActivityIndicator:'Spinner',Modal:'Modal',ScrollView:'ScrollView',KeyboardAvoidingView:'KeyboardAvoidingView',Platform:{OS:'ios'},Keyboard:{dismiss:()=>{dismissed++;}},StyleSheet:{create:x=>x},useWindowDimensions:()=>({width:390,height:844})};
- const mods={react:h.react,'react/jsx-runtime':jsx,'react-native':native,'@expo/vector-icons':{Feather:'Icon'},'@react-native-async-storage/async-storage':{default:storage,__esModule:true},'./stories/storyPanels':{MiniSlider:'Slider'},'./SafeArea':{SafeAreaView:'SafeArea'},'../services/soundtrackService':{getSoundtrack:get,listSoundtracks:list},'../hooks/useSoundtrackPlayer':{useSoundtrackPlayer:args=>{audio.push(args);return{error:'',retry(){}};}},'../../shared/soundtrack':soundtrack,'../../shared/musicAvailability':options.musicAvailable===false?compile('shared/musicAvailability.ts'):{MUSIC_CATALOG_ENABLED:true,MUSIC_UNAVAILABLE_MESSAGE:'Unavailable fixture'},'../../shared/soundtrackPicker':control,'@/lib/soundtrack':{getSoundtrack:get,listSoundtracks:list},'./PostSoundtrack':{PostSoundtrack:'Soundtrack'},'./SoundtrackPicker.module.css':{default:new Proxy({},{get:(_,k)=>k}),__esModule:true},'lucide-react':new Proxy({},{get:(_,k)=>k})};
+ const mods={'../stores/authStore':{useAuthStore:authStore},'@/lib/supabase/client':{createClient:()=>client},'./OriginalAudioUpload':{OriginalAudioUpload:'OriginalAudioUpload'},'../services/originalAudioService':originals,'@/lib/originalAudio':originals,react:h.react,'react/jsx-runtime':jsx,'react-native':native,'@expo/vector-icons':{Feather:'Icon'},'@react-native-async-storage/async-storage':{default:storage,__esModule:true},'./stories/storyPanels':{MiniSlider:'Slider'},'./SafeArea':{SafeAreaView:'SafeArea'},'../services/soundtrackService':{getSoundtrack:get,listSoundtracks:list},'../hooks/useSoundtrackPlayer':{useSoundtrackPlayer:args=>{audio.push(args);return{error:'',retry(){}};}},'../../shared/soundtrack':soundtrack,'../../shared/musicAvailability':options.musicAvailable===false?{ORIGINAL_AUDIO_ENABLED:false,MUSIC_UNAVAILABLE_MESSAGE:'Unavailable fixture'}:{ORIGINAL_AUDIO_ENABLED:true,MUSIC_UNAVAILABLE_MESSAGE:'Unavailable fixture'},'../../shared/soundtrackPicker':control,'@/lib/soundtrack':{getSoundtrack:get,listSoundtracks:list},'./PostSoundtrack':{PostSoundtrack:'Soundtrack'},'./SoundtrackPicker.module.css':{default:new Proxy({},{get:(_,k)=>k}),__esModule:true},'lucide-react':new Proxy({},{get:(_,k)=>k})};
  const document={activeElement:null};
  const global={...time,document,HTMLElement:class{},localStorage:{getItem:key=>saved.get(key)??null,setItem:(key,value)=>{writes.push({key,value});saved.set(key,value);}},require:name=>{assert.ok(name in mods,name);return mods[name];}};
  const component=compile(platform==='native'?'src/components/SoundtrackPicker.tsx':'web/components/SoundtrackPicker.tsx',global).default;
- h.mount(()=>component(props));
+ h.mount(()=>{const node=component(props);return typeof node?.type==='function'?node.type(node.props):node;});
  function button(label){const found=h.nodes.find(n=>(n.type==='Button'||n.type==='button')&&(n.props.accessibilityLabel===label||n.props['aria-label']===label||words(n).trim()===label));assert.ok(found,'button '+label);return found;}
  function press(label){const node=button(label);assert.ok(!node.props.disabled,label+' enabled');(node.props.onPress??node.props.onClick)();h.render();}
  function slider(label,value){const n=h.nodes.find(n=>platform==='native'?n.type==='Slider'&&n.props.label===label:n.type==='input'&&n.props.type==='range'&&n.props['aria-label']===label);assert.ok(n,'slider '+label);n.props.onChange(platform==='native'?value:{target:{value:String(value)}});h.render();}
@@ -62,10 +66,10 @@ for(const platform of ['native','web']){
  });
  test(platform+' real Originals and Saved filters recheck rights; bookmarks store IDs for the current account only',async()=>{
   const h=picker(platform);await h.load();h.press('Save Morning');await h.flush();
-  assert.equal(h.writes.length,1);assert.equal(h.writes[0].key,h.control.savedSoundtrackKey('account-a'));assert.equal(h.writes[0].value,JSON.stringify([first.id]));
+  assert.equal(h.writes.length,1);assert.equal(h.writes[0].owner,'account-a');assert.equal(h.writes[0].id,first.id);assert.equal(h.writes[0].saved,true);
   h.press('Originals');await h.load();assert.ok(h.button('Choose Morning'));assert.equal(h.nodes.some(n=>n.props?.['aria-label']==='Choose Evening'||n.props?.accessibilityLabel==='Choose Evening'),false);
   h.press('Saved');await h.load();assert.ok(h.checks.some(c=>c.id===first.id&&c.use==='post'));assert.ok(h.button('Choose Morning'));
-  h.update({ownerId:'account-b'});await h.load();if(platform==='native')h.press('Saved');await h.load();assert.equal(h.nodes.some(n=>n.props?.['aria-label']==='Choose Morning'||n.props?.accessibilityLabel==='Choose Morning'),false);h.dispose();
+  h.dispose();const other=picker(platform,{props:{ownerId:'account-b'}});await other.load();other.press('Saved');await other.load();assert.equal(other.nodes.some(n=>n.props?.['aria-label']==='Choose Morning'||n.props?.accessibilityLabel==='Choose Morning'),false);other.dispose();
  });
  test(platform+' denied selection settles, blocks Done, exposes retry and allows removal without committing',async()=>{
   const h=picker(platform,{props:{value:choice},check:()=>Promise.reject(Error('revoked'))});await h.flush();
@@ -142,8 +146,8 @@ function webDraft(initial={}){
   play(){calls.push('play');this.paused=false;return Promise.resolve();},pause(){calls.push('pause');this.paused=true;},
  };
  const props={item:{preview:'blob:fixture-video',width:390,height:600,isVideo:true,edit:{trimStart:4,trimEnd:9,speed:1.5}},soundtrack:choice,...initial};
- const mod=compile('web/components/PostMediaEditor.tsx',{...h.react,...editing,...voice,filterCss:()=>'',PostFilterTint:'Tint',AdjustOverlay:'Adjust',PostCaption:'Caption',PostSoundtrack:'Soundtrack',document,window,require:name=>{assert.equal(name,'react/jsx-runtime');return jsx;}},['postMediaStyle','PostDraftPreview']);
- h.mount(()=>mod.PostDraftPreview(props),tree=>{const node=walk(tree).find(n=>n.type==='video');if(node?.props.ref)node.props.ref.current=element;});
+ const mod=compile('web/components/PostMediaEditor.tsx',{...h.react,...editing,...voice,filterCss:()=>'',PostFilterTint:'Tint',AdjustOverlay:'Adjust',PostCaption:'Caption',PostSoundtrack:'Soundtrack',NextImage:'img',document,window,require:name=>{assert.equal(name,'react/jsx-runtime');return jsx;}},['postMediaStyle','PostDraftMedia','PostDraftPreview']);
+ h.mount(()=>{const node=mod.PostDraftPreview(props);return node.type(node.props);},tree=>{const node=walk(tree).find(n=>n.type==='video');if(node?.props.ref)node.props.ref.current=element;});
  return{...h,get nodes(){return h.nodes;},props,element,seeks,calls,document,get soundtrack(){return h.nodes.find(n=>n.type==='Soundtrack')?.props;},emit(name){const node=h.nodes.find(n=>n.type==='video');assert.ok(node);node.props[name]({currentTarget:element});h.render();},update(next){Object.assign(props,next);h.render(true);},event(name){for(const cb of listeners.get(name)??[])cb();h.render();},get listenerCount(){return [...listeners.values()].reduce((n,v)=>n+v.size,0);}};
 }
 
@@ -171,7 +175,7 @@ function webAudio(initial={},musicAvailable=true){
  const window={addEventListener:document.addEventListener,removeEventListener:document.removeEventListener};
  class Audio{constructor(url){this.url=url;this.paused=true;this.currentTime=0;audio.push(this);}play(){this.paused=false;return Promise.resolve();}pause(){this.paused=true;}removeAttribute(name){if(name==='src')this.url=null;}load(){}}
  const props={selection:choice,autoPlay:true,controls:false,active:true,clock:{time:2,playing:true,rate:1.5},...initial};
- const mods={react:h.react,'react/jsx-runtime':jsx,'@/lib/soundtrack':{getSoundtrack:async()=>{if(denied)throw Error('revoked');return first;}},'../../shared/soundtrack':soundtrack,'../../shared/musicAvailability':musicAvailable?{MUSIC_CATALOG_ENABLED:true}:compile('shared/musicAvailability.ts')};
+ const mods={react:h.react,'react/jsx-runtime':jsx,'@/lib/soundtrack':{getSoundtrack:async()=>{if(denied)throw Error('revoked');return first;}},'../../shared/soundtrack':soundtrack,'../../shared/musicAvailability':{ORIGINAL_AUDIO_ENABLED:musicAvailable}};
  const component=compile('web/components/PostSoundtrack.tsx',{require:name=>{assert.ok(name in mods,name);return mods[name];},document,window,Audio,setInterval(fn,ms){const key={fn,ms};intervals.set(key,key);return key;},clearInterval:key=>intervals.delete(key)}).PostSoundtrack;
  h.mount(()=>component(props));
  return{...h,get nodes(){return h.nodes;},audio,intervals,document,update(next){Object.assign(props,next);h.render(true);},event(name){for(const fn of events.get(name)??[])fn();h.render();},tick(ms){for(const t of [...intervals.values()])if(t.ms===ms)t.fn();h.render();},deny(){denied=true;}};
@@ -191,8 +195,8 @@ test('controlled web soundtrack rights failure remains closed with a reachable r
  const retry=h.nodes.find(n=>n.type==='button');assert.ok(retry);assert.match(words(retry),/no longer available.*Retry/);retry.props.onClick();h.render();await h.flush();assert.equal(h.audio.length,1,'failed reauthorization never creates another audio stream');h.dispose();
 });
 
-for(const platform of ['native','web'])test(platform+' shipping music gate shows a clear unavailable state and never requests catalog or rights data',async()=>{
+for(const platform of ['native','web'])test(platform+' emergency original-audio gate shows a clear unavailable state and never requests catalog or rights data',async()=>{
  const h=picker(platform,{musicAvailable:false,props:{value:choice}});await h.load();assert.equal(h.reads.length,0);assert.equal(h.checks.length,0);assert.equal(h.writes.length,0);assert.ok(h.nodes.some(n=>words(n)==='Music unavailable'));assert.equal(h.nodes.some(n=>(n.props?.accessibilityLabel??n.props?.['aria-label'])==='Search music'),false);assert.ok(h.audio.every(call=>!call.selection));h.press('Remove selected music');assert.equal(h.changes[0],null);assert.equal(h.closed,1);h.dispose();
 });
 
-test('web playback remains silent and exposes no fake play/retry control for disabled catalog selections',async()=>{const h=webAudio({controls:true},false);await h.flush();h.tick(30000);await h.flush();assert.equal(h.audio.length,0);assert.equal(h.intervals.size,0);assert.equal(h.nodes.length,0);h.dispose();});
+test('web playback remains silent and exposes no fake play/retry control when original audio is disabled',async()=>{const h=webAudio({controls:true},false);await h.flush();h.tick(30000);await h.flush();assert.equal(h.audio.length,0);assert.equal(h.intervals.size,0);assert.equal(h.nodes.length,0);h.dispose();});

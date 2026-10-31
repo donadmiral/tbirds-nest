@@ -1,0 +1,14 @@
+✔ QA readback runs the unchanged production account save and reload path, returning no stored contents (87.263404ms)
+✔ an account left only in memory after a caught storage-write failure cannot pass readback (21.739902ms)
+✔ persisted refresh contents must match the active synthetic session (14.626592ms)
+✔ a session changing during readback cannot pass for the previous account (14.59899ms)
+✔ production configuration and a different actor are rejected before storage reads (14.877729ms)
+✔ fixture readback receipts retain only booleans and a count even if extra fields are supplied (0.250447ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 159.775349

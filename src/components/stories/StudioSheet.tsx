@@ -83,12 +83,12 @@ export default function StudioSheet({ visible, onClose, tiles, extra, bottomInse
   const query = q.trim().toLowerCase();
   const matches = (t: StudioTile) => !query || t.label.toLowerCase().includes(query) || t.id.includes(query);
   const renderTile = (t: StudioTile) => (
-    <TouchableOpacity accessibilityRole="button" accessibilityLabel={t.label} accessibilityHint="Double tap to add. Long press to change favorites." accessibilityState={{ selected: t.on }} key={t.id} style={[ss.tile, { width: Math.max(44, (Math.min(windowWidth, 560) - 46) / 2) }]} activeOpacity={0.75} onPress={() => pick(t)} onLongPress={() => toggleFav(t)} delayLongPress={350}>
+    <TouchableOpacity accessibilityRole="button" accessibilityLabel={t.label} accessibilityHint="Double tap to add. Long press to change favorites." accessibilityState={{ selected: t.on }} key={t.id} style={[ss.tile, { width: Math.max(44, Math.floor((Math.min(windowWidth, 560) - 48) / 2)) }]} activeOpacity={0.75} onPress={() => pick(t)} onLongPress={() => toggleFav(t)} delayLongPress={350}>
       <View style={ss.tilePreview}><StickerGalleryPreview id={t.id} label={t.label} /></View>
       <View style={ss.tileCaption}><Text style={ss.tileLabel} numberOfLines={1}>{t.label}</Text>{favs.includes(t.id) ? <Feather name="star" size={12} color="#E8D3B6" /> : null}{t.on ? <Feather name="check-circle" size={12} color="#C4CFB5" /> : null}</View>
     </TouchableOpacity>
   );
-  const renderGrid = (list: StudioTile[]) => <View style={ss.grid}>{list.map(renderTile)}</View>;
+  const renderGrid = (list: StudioTile[]) => <View style={ss.grid}>{Array.from({ length: Math.ceil(list.length / 2) }, (_, row) => <View key={list[row * 2].id} style={ss.gridRow}>{list.slice(row * 2, row * 2 + 2).map(renderTile)}{row * 2 + 1 === list.length ? <View style={{ flex: 1 }} /> : null}</View>)}</View>;
   const featured = FEATURED.map(id => byId[id]).filter(Boolean).filter(matches);
   const rest = tiles.filter(t => !FEATURED.includes(t.id)).filter(matches);
   const availableHeight = studioSheetHeight(windowHeight, kb, Platform.OS === 'ios');
@@ -160,8 +160,9 @@ const ss = StyleSheet.create({
   search: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, height: 46, borderRadius: 15, paddingHorizontal: 12, backgroundColor: 'rgba(255,255,255,0.08)' },
   searchInput: { flex: 1, height: 46, color: '#FFF', fontSize: 14, paddingVertical: 0, includeFontPadding: false, textAlignVertical: 'center' },
   section: { color: '#B8BEC5', fontSize: 14, fontWeight: '600', marginTop: 14, marginBottom: 14 },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, marginBottom: 10 },
-  tile: { alignItems: 'center', justifyContent: 'center', minHeight: 116, paddingVertical: 4, borderRadius: 18 },
+  grid: { gap: 14, marginBottom: 10 },
+  gridRow: { flexDirection: 'row', gap: 14 },
+  tile: { flex: 1, minWidth: 0, alignItems: 'center', justifyContent: 'center', minHeight: 116, paddingVertical: 4, borderRadius: 18 },
   tilePreview: { width: '100%', flex: 1, alignItems: 'center', justifyContent: 'center' },
   tileCaption: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 24, marginTop: 4 },
   tileIcon: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.06)', marginBottom: 6 },

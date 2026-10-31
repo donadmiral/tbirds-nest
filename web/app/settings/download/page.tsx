@@ -1,17 +1,18 @@
 "use client";
 // Download your data: one JSON of everything on the account.
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, Download } from "lucide-react";
+
+import { Download } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function DownloadPage() {
-  const supabase = useRef(createClient()).current;
+  const [supabase] = useState(createClient);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const guard = useRef({ alive: true, generation: 0, owner: null as string | null, busy: false });
   useEffect(() => {
-    guard.current.alive = true;
+    const state = guard.current;
+    state.alive = true;
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const owner = session?.user.id ?? null;
       if (owner !== guard.current.owner) {
@@ -22,7 +23,7 @@ export default function DownloadPage() {
         setMsg(null);
       }
     });
-    return () => { guard.current.alive = false; guard.current.generation++; subscription.unsubscribe(); };
+    return () => { state.alive = false; state.generation++; subscription.unsubscribe(); };
   }, [supabase]);
   const run = async () => {
     if (guard.current.busy) return;

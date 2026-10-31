@@ -15,7 +15,7 @@
 
 import { themedSheet, useTheme } from '../theme/useTheme';
 import React, { useEffect, useRef } from 'react';
-import { View, Animated, StyleSheet } from 'react-native';
+import { View, Animated } from 'react-native';
 
 const PULSE_MIN = 0.3;
 const PULSE_MAX = 0.6;

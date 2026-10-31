@@ -1,0 +1,271 @@
+{
+  "observedAt": "2026-10-30T23:18:04.179992+00:00",
+  "source": {
+    "head": "e673bdb97f77fc8f9763ef997f75fb805fe0f26f",
+    "testedPrMerge": "4b0cf24573e12e88c92a23abfcf298bbd788740c",
+    "tree": "4c5be88ea0a505a065ba5a191325357978ed6870",
+    "treeEqualityVerified": true,
+    "checkoutVerifiedInEveryJobLog": true
+  },
+  "run": {
+    "id": 41142738970,
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41142738970",
+    "attempt": 1,
+    "event": "pull_request",
+    "status": "completed",
+    "conclusion": "success",
+    "runUpdatedAt": "2026-10-30T23:15:42Z"
+  },
+  "jobs": [
+    {
+      "id": 124360637544,
+      "name": "Operations app",
+      "status": "completed",
+      "conclusion": "success",
+      "typescriptStep": "passed"
+    },
+    {
+      "id": 124360637788,
+      "name": "Link preview Edge TLS",
+      "status": "completed",
+      "conclusion": "success",
+      "typescriptStep": "not part of this job"
+    },
+    {
+      "id": 124360637847,
+      "name": "Web app",
+      "status": "completed",
+      "conclusion": "success",
+      "typescriptStep": "passed"
+    },
+    {
+      "id": 124360637860,
+      "name": "Phone app",
+      "status": "completed",
+      "conclusion": "success",
+      "typescriptStep": "passed"
+    }
+  ],
+  "runtime": {
+    "node": "22.23.4",
+    "deno": "2.1.4",
+    "database": "PostgreSQL 18.6 / PGlite 0.5.10, local WASM fixtures"
+  },
+  "typechecks": {
+    "phone": "passed",
+    "web": "passed",
+    "operations": "passed"
+  },
+  "nodeSuites": {
+    "nativeRoot": {
+      "tests": 1390,
+      "suites": 0,
+      "pass": 1390,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 54801.556595
+    },
+    "web": {
+      "tests": 621,
+      "suites": 0,
+      "pass": 621,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 23474.149535
+    },
+    "operations": {
+      "tests": 189,
+      "suites": 0,
+      "pass": 189,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 12050.504794
+    },
+    "supabaseDefault": {
+      "tests": 299,
+      "suites": 0,
+      "pass": 296,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 3,
+      "todo": 0,
+      "duration_ms": 84446.560026
+    }
+  },
+  "rpcExecution": {
+    "isolatedInvocations": 40,
+    "tapReporters": 37,
+    "tests": 711,
+    "pass": 710,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 1,
+    "todo": 0,
+    "countsInRunnerOrder": [
+      16,
+      34,
+      36,
+      11,
+      14,
+      21,
+      21,
+      18,
+      18,
+      20,
+      20,
+      16,
+      16,
+      41,
+      41,
+      27,
+      27,
+      15,
+      31,
+      31,
+      31,
+      19,
+      22,
+      6,
+      6,
+      12,
+      12,
+      12,
+      21,
+      11,
+      11,
+      16,
+      17,
+      33,
+      6,
+      1,
+      1
+    ],
+    "inventorySource": "The unchanged run-all.mjs defines 40 isolated invocations; this final successful run emitted 37 TAP summaries. All 37 per-invocation counts were freshly parsed and matched the referenced inventory."
+  },
+  "customRpcEvidence": [
+    {
+      "index": 0,
+      "hostedWrites": false,
+      "testCount": 13
+    },
+    {
+      "index": 1,
+      "suite": "community_group_authorization",
+      "checks": 19
+    },
+    {
+      "index": 2,
+      "hostedWrites": false,
+      "testCount": 4
+    },
+    {
+      "index": 3,
+      "suite": "admin-commands-integrated",
+      "passed": 22,
+      "hostedWrites": false
+    },
+    {
+      "index": 4,
+      "suite": "pending-migration-chain",
+      "passed": 41,
+      "hostedWrites": false
+    },
+    {
+      "index": 5,
+      "ok": true,
+      "units": 18,
+      "sourceFiles": 19,
+      "alreadyAppliedUnits": 7,
+      "remainingUnits": 11,
+      "heldMigrations": 34
+    },
+    {
+      "index": 6,
+      "ok": true,
+      "baselineUnits": 18,
+      "candidateUnits": 7,
+      "checks": 9
+    },
+    {
+      "index": 7,
+      "success": true,
+      "candidate": "20261023185734_redacted_client_diagnostics",
+      "checks": 11
+    },
+    {
+      "index": 8,
+      "success": true,
+      "candidate": "20261029190200_comment_author_highlights",
+      "checks": 15
+    },
+    {
+      "index": 9,
+      "success": true,
+      "baselineUnits": 25,
+      "candidate": "20261025073234_applicant_self_service_quality",
+      "checks": 16
+    }
+  ],
+  "additionalRpcChecks": {
+    "postflight": "Exact definitions/ACLs and six expected role denials passed in this run.",
+    "verificationIntegrityScenarios": 8
+  },
+  "complementarySkips": [
+    {
+      "name": "book signing uses the reader permission for explicit custom access and inactive accounts",
+      "passOccurrences": 1,
+      "skipOccurrences": 1
+    },
+    {
+      "name": "visual-only manifests do not bind or sign separate audio, and install no soundtrack authorization",
+      "passOccurrences": 1,
+      "skipOccurrences": 1
+    },
+    {
+      "name": "visual-only publisher works without audio infrastructure, rejects added sound, and preserves recorded video controls",
+      "passOccurrences": 1,
+      "skipOccurrences": 1
+    },
+    {
+      "name": "sound publication is owner-bound, attested and idempotent",
+      "passOccurrences": 1,
+      "skipOccurrences": 1
+    }
+  ],
+  "edgeTls": {
+    "tests": 2,
+    "passed": 2,
+    "failed": 0,
+    "scope": "Actual local HTTPS pinned IP, original Host/SNI, certificate-name validation and cancellation."
+  },
+  "sourceEquivalenceReference": {
+    "path": "docs/quality/native-audio-20261030/ios-cadence-source-equivalence.json",
+    "sha256": "eb43442e029f41ed21e4abf64c7909b961343f086c1c2f0203d49cfa96b41385",
+    "equalTrackedEntries": 1844,
+    "gitObjectInventorySha256": "6405d5a51ba7c206ab927cc1220fc287530efad84169ccac42ce37cedf03a190",
+    "scope": "All repository inputs outside docs/ and the reviewed iOS Swift timing fix are identical to accepted activation71aa. Current run statuses and counts were retrieved afresh."
+  },
+  "rpcInventoryReference": {
+    "path": "docs/quality/interaction-acceptance-20261030/candidate-type-backend-ci.json",
+    "sha256": "fbb66d3d017a56c72e166541b55be357da256088bd82436ef066a80951cc623b",
+    "note": "Contains the exact unchanged 40 script/environment entries. Current log counts were independently parsed and compared per invocation; this is not a reuse of the earlier run status."
+  },
+  "sourceSha256": {
+    ".github/workflows/typecheck.yml": "9cf76a697c8476aa41ea63bab3f3a3da25c8edb15549208a1d6c07cfcdcfc46d",
+    "supabase/tests/rpc-authorization/run-all.mjs": "6a476ee1d9c3cefd84d35041ee32db38fdb67e69912666d7d35a91972b1ac2e3",
+    "docs/quality/music-operations-20261030/candidate.json": "202531fe22d0bc7cdebcd195f4608138d7e81a75d719c3d0308658583ffb7344"
+  },
+  "limits": [
+    "Database suites run synthetic local PostgreSQL fixtures, not hosted QA or production Supabase. No migration installation, Edge rollout, Auth/Storage/provider journey or readiness change is established.",
+    "Each of the four skipped case names has one current pass and one complementary skip across fixture modes. Repeated fixture shapes and overlapping entrypoints are not unique end-to-end journeys.",
+    "Pending-chain and production-rollout unit counts measure DDL compatibility and are not behavioral test totals.",
+    "This workflow verifies types, behavioral/database regressions and TLS. Native compile/encoded-media acceptance, browser acceptance and strict lint use separate receipts.",
+    "No physical device, installed-product, production activation or release submission is established."
+  ]
+}

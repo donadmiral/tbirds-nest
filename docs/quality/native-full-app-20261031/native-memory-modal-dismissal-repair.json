@@ -1,0 +1,193 @@
+{
+  "review": "Native memory film/export dismissal lifecycle repair candidate",
+  "recordedAtUtc": "2026-10-31T06:55:59.145242+00:00",
+  "baseHead": "e173b2dbcf253342be5683fa85f102aa38065411",
+  "status": "Source frozen; focused checks passed; actual new iPhone/Android acceptance remains required.",
+  "evidence": {
+    "diagnosis": {
+      "path": "docs/quality/native-full-app-20261031/ios-e173b2db-memory-navigation-review.json",
+      "sha256": "03c26fd1da464d1c70262fea28cc4489749879b4985e923439a50102e748dc29"
+    },
+    "observation": "The e173 iPhone first failed Book settings visibility after successful film/export close and return to the book. Settings issued its audience read and later appears behind the capture-open-link prompt. This is evidence of a presentation/lifecycle problem, not proof of a unique cause. No keyboard step was reached.",
+    "candidateMechanism": "Prior close handlers synchronously removed the native Modal subtree through parent callbacks. The repair lets the same iOS Modal receive visible=false and remain mounted until native onDismiss before invoking the parent handoff.",
+    "installedReactNative": {
+      "version": "0.81.5",
+      "source": "node_modules/react-native/Libraries/Modal/Modal.js",
+      "sha256": "b0c2f8783681c61601ce915d1acc447977503c1231ddc20595d9c3743de21e6f",
+      "semantics": "iOS _shouldShowModal checks visible or internal isRendered; onDismiss clears isRendered and invokes the current callback. Android has no corresponding onDismiss guarantee and keeps immediate completion."
+    }
+  },
+  "changes": [
+    "Use a shared dismissal hook with one pending request ticket, synchronous close cleanup, native acknowledgement, and exactly-once completion.",
+    "Commit book/session visit identity in a layout effect. Unmount invalidates pending callbacks in layout cleanup. Recheck current navigationScope before dispatch and completion, including same-owner replacement and A-to-B-to-A session changes.",
+    "Use bookId plus existing navigation scope only. Do not cancel a legitimate close for new page-array objects, renewed media URLs, title/revision or export content-stamp refresh.",
+    "For post navigation, require the committed current items to retain the selected page/post association. Publish the existing Film event-state ref in a layout effect; stopForDismissal still immediately disallows playback.",
+    "Stop film playback and abort/release export at the close request. Guard export creation and Photos actions from a stale control after close. Late export results remain subject to existing cancellation/release ownership.",
+    "Preserve existing labels, native animation types, presentation style, media deadlines, export rights checks and feature flags. No new network work, global listeners or fallback timer.",
+    "Production MemoryAlbumScreen already keys Film by bookId:viewerId and unmounts when no pages remain. Do not retain removed/revoked page content or change that parent behavior."
+  ],
+  "sources": [
+    {
+      "path": "src/hooks/useNativeModalDismissal.ts",
+      "sha256": "3cece062691b5407cec3a2a9f45c01fc12f5a42e2eea25972de7f7e6b2053974"
+    },
+    {
+      "path": "src/components/memory/MemoryFilm.tsx",
+      "sha256": "3b144c45ce8f5b85ef890806c2f3e0752b1e77950f7cfa9b357fb6e1c46971b4"
+    },
+    {
+      "path": "src/components/memory/MemoryMovieExport.tsx",
+      "sha256": "f08a34b3f5ebf06a43cabf717e6e8b0cf3eda145a5ecfa38ccd99eb4823bae3a"
+    },
+    {
+      "path": "tests/helpers/memoryFilmHarness.cjs",
+      "sha256": "af11d4804b94848a01716915190a0c6f1996bec131b7f51fbdc203ecd3464157"
+    },
+    {
+      "path": "tests/quality/memory-film.cjs",
+      "sha256": "a2a698622f7ad99004ae8f2a624f8060e1470344474b7aab2aadb95aad9b36fa"
+    },
+    {
+      "path": "tests/quality/native-memory-modal-lifecycle.cjs",
+      "sha256": "703472667f28470092ef471688b7bd5aaf95e1de79d5e78d16ff011603052687"
+    }
+  ],
+  "additionalSourceBindings": [
+    {
+      "path": "src/screens/profile/MemoryAlbumScreen.tsx",
+      "sha256": "437b2d5c52cf1ad00ce1d322367ac1e41da8857b6d2db6a1c7db263ad4e7f541"
+    },
+    {
+      "path": "src/lib/navigationCache.ts",
+      "sha256": "fa5c62b6cd32c5e7eedb8ecc0dd0e8614242e93f1d83bf0f1d0d65de7f05046a"
+    },
+    {
+      "path": "tests/quality/memory-film-lifecycle.cjs",
+      "sha256": "e1b332e7e732f7cdc3b0a15c3088a35ca5aa0a8786bd496794a84d4a44a48287"
+    }
+  ],
+  "verification": {
+    "focusedAndAffected": [
+      {
+        "name": "dismissal",
+        "receipt": "docs/quality/native-full-app-20261031/native-modal-lifecycle/dismissal.tap",
+        "sha256": "d99c2ebf23c80db90cacd7367a3181eda69f4127eb0817649062d13a6cde693b",
+        "counts": {
+          "tests": 21,
+          "pass": 21,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "exitCode": 0
+      },
+      {
+        "name": "film",
+        "receipt": "docs/quality/native-full-app-20261031/native-modal-lifecycle/film.tap",
+        "sha256": "9130365f53cbccf844386192cd9aaabf371b3dda1749749a45aaab1097380019",
+        "counts": {
+          "tests": 14,
+          "pass": 14,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "exitCode": 0
+      },
+      {
+        "name": "film-lifecycle",
+        "receipt": "docs/quality/native-full-app-20261031/native-modal-lifecycle/film-lifecycle.tap",
+        "sha256": "b320b35c28f0907ca2a90fc1871950cab615d612df5aac400ce39b8bfe3003a1",
+        "counts": {
+          "tests": 8,
+          "pass": 8,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0
+        },
+        "exitCode": 0
+      }
+    ],
+    "totalFormalPassed": 43,
+    "exactFileEslint": {
+      "exitCode": 0,
+      "command": "./node_modules/.bin/eslint src/hooks/useNativeModalDismissal.ts src/components/memory/MemoryFilm.tsx src/components/memory/MemoryMovieExport.tsx",
+      "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "nativeTypeScript": {
+      "exitCode": 0,
+      "command": "./node_modules/.bin/tsc --noEmit",
+      "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "diffCheck": {
+      "exitCode": 0
+    },
+    "counterexample": {
+      "name": "e173-negative",
+      "receipt": "docs/quality/native-full-app-20261031/native-modal-lifecycle/e173-negative.tap",
+      "sha256": "57afee6f4ac114fab5894fee8a923d990649a789a3301c150e8464c840de74e1",
+      "counts": {
+        "tests": 2,
+        "pass": 0,
+        "fail": 2,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "exitCode": 1,
+      "method": "A Node preload replaced only fs reads of the two production TSX files with git show e173b2db versions. Hook/test/harness and all other reads used current source. The two selected tests fail at immediate parent completion assertions. No working-tree source was replaced.",
+      "selection": "^iOS (Close memory film pauses immediately|export cancellation aborts immediately)",
+      "baselineSources": [
+        {
+          "path": "src/components/memory/MemoryFilm.tsx",
+          "sha256": "d79ae8d468f99fa8717f92d575a4db57f098173ac71fc7ed19309d9d0babeca4"
+        },
+        {
+          "path": "src/components/memory/MemoryMovieExport.tsx",
+          "sha256": "4c607f98b44f10870c772a0efa0ae112514273f5270b747b86e62b68f280c696"
+        }
+      ]
+    },
+    "sourceHashesUnchangedAcrossFinalChecks": true,
+    "coverage": [
+      "iOS Close/Read/native-request transitions and subtree retention until acknowledged, including 30 seconds of virtual time with no substitute callback",
+      "Repeated control/native callbacks, unmount, same-owner session replacement and account ABA before a replacement render",
+      "Book replacement during dismissal, stale controls and old native acknowledgements; these are defensive shared-hook checks, while production Film also remounts by book/viewer key",
+      "Same-book page/delivery/presentation refresh without cancelling legitimate close; changed source suppresses stale onPost",
+      "Immediate export abort, ready-result release, late-result disposal and stale Photos guard",
+      "Android Close/Read/export immediate completion without onDismiss",
+      "Existing media readiness, looping, progress, playback pause/background/call boundaries, video terminal/deadline behavior and private media caching"
+    ],
+    "testBoundaries": [
+      "Actual MemoryFilm/MemoryMovieExport TSX and the actual dismissal hook execute. React hooks, native UI, UIKit acknowledgement, transport/encoder and Photos are controlled adapters.",
+      "No actual UIKit animation, GPU drawing, accessibility hierarchy or Photos permission dialog is exercised by the local component cases.",
+      "The controlled harness does not simulate abandoned concurrent React renders; committed-ref publication is source-reviewed.",
+      "These results establish ownership/state behavior and a regression against prior immediate callbacks. They do not prove the e173 native presentation failure is cured."
+    ]
+  },
+  "reactBestPracticesReview": {
+    "skill": "c19/react-best-practices",
+    "result": "No remaining issue within the changed scope after review.",
+    "findings": [
+      "Interaction cleanup stays in event handlers, with refs for pending ownership and one state value for visible dismissal. No derived-state effect loop.",
+      "Layout effects only publish committed identities/event state or invalidate unmounted requests; they do not fetch, set routine derived state or delay native acknowledgement.",
+      "The visit memo retains a request-ownership identity for primitive book/session dependencies; ordinary content refresh cannot invalidate the handoff.",
+      "Direct imports, unchanged hooks order and explicit boolean predicate types. Full native TypeScript and exact-file ESLint pass.",
+      "No additional global listeners, network waterfalls or package dependencies. Existing accessibility labels and controls remain unchanged.",
+      "Web/server-only recommendations are inapplicable to these native components."
+    ]
+  },
+  "requiredNextGate": "New complete iPhone and Android native runs must pass navigation through Book settings plus the separately mandatory actual-capture/encoding/readback/cleanup flow. Do not reduce assertions or timeouts.",
+  "evidenceMaintenance": {
+    "reason": "Retained raw source with a .ts suffix was accidentally included by native TypeScript and cannot resolve its original relative imports from docs. Rename the evidence copy only, preserving bytes.",
+    "deletedPath": "docs/quality/native-full-app-20261031/android-e173b2db/overlays/src__services__supabase.ts",
+    "replacementPath": "docs/quality/native-full-app-20261031/android-e173b2db/overlays/src__services__supabase.ts.txt",
+    "replacementSha256": "dfb6b6cfe427b7e5abdb7f7bedbdb45536f9abca000d4a2d3305dd45da4cf2e5",
+    "updatedReceipt": "docs/quality/native-full-app-20261031/android-e173b2db-auth-independent-review.json",
+    "updatedReceiptSha256": "982643486cf0b04d60b69c6f14cb6ee4187bef0c1e84482b47c819271d232c58",
+    "originalSourceManifest": "Unchanged: artifact-relative retained filenames remain recorded exactly as produced."
+  }
+}

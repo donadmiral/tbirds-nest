@@ -1,0 +1,124 @@
+{
+  "recordedAt": "2026-10-30T22:11:25Z",
+  "candidateCommit": "aa7804d436a2b079770a5d2e122c159162af2610",
+  "pullRequestMergeCommit": "0c1fb9e30d875de7d93f15fcc63040b734222e22",
+  "sourceTree": "f394693bece5c0eb4ff78f73ab518fbc67a7cda6",
+  "workflowRun": 41134795962,
+  "jobId": 124334480834,
+  "status": "Cancelled by the replacement bootstrap-fix workflow before the complete application build finished. No full-app success is inferred.",
+  "artifact": {
+    "id": 13015992829,
+    "name": "android-native-compile-diagnostics",
+    "zipSha256": "e02ec6594c95900238525f8b8f007cfc89985cbf8d647c7514062e1b60a8473d",
+    "digestVerified": true,
+    "fileHashes": {
+      "autolinking.log": "aa426f75876a1102352b68b241a1afb35c4fdfbf4245b5123c8afd3d56459a0b",
+      "gradle.log": "cb83db5a1508fb3b0cbecda1ce8d7e6347db06b8422d04aa9c60bd4589e49f50",
+      "media3-runtime.json": "e7497daa9b1cc36080a84fcc67f6d210fc7f57c0cfadf738a1bdaff119c1666b",
+      "prebuild.log": "d5e4be0a0c10691bffa446716505e068d943d1fca32f0d93d5af6f817e29c4e4",
+      "preflight.log": "0cf970a57a00b458d2486d34e05ca529f499ffaa614607a379b428d6169a6dbb",
+      "sdk-install.log": "3536cc14036e25ef48b76f673d962a0ce1ddd3c4abd4ad7f047ba1a81b3cf4a4",
+      "sdk-packages.log": "4606b5394efa3c07916c1b7a97706fa12620e8bb2d4938ca9f30d4725d6e5a3f",
+      "toolchain.log": "2b65777abc16ba4f3fa64856448c59cbfc9f15c0bd6920b9121b992d0682a90c"
+    }
+  },
+  "observedCompletedIntegration": [
+    "Boomerang Kotlin compilation and Java compilation",
+    "Boomerang compile/runtime JAR bundling",
+    "Application Kotlin compilation"
+  ],
+  "boomerangDiagnostic": "Expo Constants(vararg) deprecation warning; no reported Kotlin compilation error.",
+  "interruptedWork": "C++/Ninja native compilation was still active when the job was cancelled.",
+  "fullApplicationCompileVerified": false,
+  "nativeCapabilitiesEnabled": false,
+  "replacementWorkflowRun": 41136108612,
+  "resolvedFullApplicationMedia3": {
+    "project": ":app",
+    "configuration": "debugRuntimeClasspath",
+    "expectedVersion": "1.8.1",
+    "aligned": true,
+    "components": [
+      {
+        "group": "androidx.media3",
+        "module": "media3-common",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-container",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-database",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-datasource",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-datasource-okhttp",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-decoder",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-effect",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-exoplayer",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-exoplayer-dash",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-exoplayer-hls",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-exoplayer-smoothstreaming",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-extractor",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-muxer",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-session",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-transformer",
+        "version": "1.8.1"
+      },
+      {
+        "group": "androidx.media3",
+        "module": "media3-ui",
+        "version": "1.8.1"
+      }
+    ],
+    "scope": "Resolved runtime version alignment; separate from security or encoded-media acceptance."
+  }
+}

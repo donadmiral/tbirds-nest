@@ -1,16 +1,19 @@
 "use client";
 
-import { createHomeFeedController, type FeedSeed, type FeedMode } from "@/lib/homeFeedController";
+import { createHomeFeedController, type FeedSeed, type FeedMode, type HomeFeedMemory } from "@/lib/homeFeedController";
+import { getNavigationStore } from "@/lib/navigationCache";
+import { restoreHomeFeedScroll } from "@/lib/homeFeedScroll";
 import { hydratePostMedia } from "@/lib/contentMedia";
 import { getFeedCache } from "@/lib/feedCache";
 import { feedPrefetchUrls } from "../../shared/feedSnapshot";
 import { renewFeedMedia } from "../../shared/feedMedia";
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { ArrowUp } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
-import type { FeedRow } from "@/lib/feed";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+
 import { PostCard } from "@/components/PostCard";
 import { StoryRings } from "@/components/StoryRings";
 import { Composer } from "@/components/Composer";
@@ -51,30 +54,51 @@ function Skeleton() {
 
 export default function HomeFeed({ seed }: { seed: FeedSeed }) {
   const [supabase] = useState(createClient);
+  const [navigationStore] = useState(getNavigationStore);
   const [controller] = useState(() => createHomeFeedController(supabase, seed, getFeedCache(), value => {
     window.dispatchEvent(new CustomEvent('pc-performance', { detail: { event: 'feed', ...value } }));
-  }, rows => renewFeedMedia(rows, value => hydratePostMedia(value))));
+  }, rows => renewFeedMedia(rows, value => hydratePostMedia(value)),
+    navigationStore.getSnapshot().owner === seed.owner
+      ? navigationStore.cache.read<HomeFeedMemory>(navigationStore.getSnapshot().scope, 'home:personal') : null));
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot, controller.getSnapshot);
   const { mode, rows: posts, loading, loadingMore, hasMore, error, pending: pendingNew } = state;
   const uidRef = useRef<string | null>(seed.owner);
   const load = useCallback((more = false, background = false) => controller.load(more, background), [controller]);
-  const setMode = (value: FeedMode) => controller.setMode(value);
+  const setMode = (value: FeedMode) => controller.setMode(value, window.scrollY);
   const [quote, setQuote] = useState<{ id: string; author: string; text: string } | null>(null);
   const [composerGeneration, setComposerGeneration] = useState(0);
   const router = useRouter();
+  const searchParams = useSearchParams();
   // The ads wizard's format tiles land here: open the composer set to the
   // chosen kind, and after posting go back to the wizard with the post picked.
-  const [composeKind, setComposeKind] = useState<"media" | "video" | undefined>(undefined);
-  const thenPromote = useRef(false);
+  const [composeKind, setComposeKind] = useState<"post" | "media" | "video" | "poll" | undefined>(undefined);
+  const [composeRequest, setComposeRequest] = useState(0);
+  const [thenPromote,setThenPromote] = useState(false);
+  const requestedCompose = searchParams.get("compose");
+  const requestedNext = searchParams.get("then");
+  const composeUrl = requestedCompose + ":" + requestedNext;
+  const [previousComposeUrl,setPreviousComposeUrl]=useState<string|null>(null);
+  if(previousComposeUrl!==composeUrl){
+    setPreviousComposeUrl(composeUrl);
+    const ck=requestedCompose;
+    if(ck&&['post','photo','carousel','video','poll'].includes(ck)){
+      setComposeKind(ck==='photo'||ck==='carousel'?'media':ck as 'post'|'video'|'poll');
+      setComposeRequest(value=>value+1);setThenPromote(requestedNext==='promote');
+    }
+  }
   useEffect(() => {
-    try {
-      const sp = new URLSearchParams(window.location.search);
-      const ck = sp.get("compose");
-      if (ck === "video") setComposeKind("video"); else if (ck === "photo" || ck === "carousel") setComposeKind("media");
-      thenPromote.current = sp.get("then") === "promote";
-    } catch { /* fine */ }
+    const open = (event: Event) => {
+      const intent = (event as CustomEvent<{ intent?: string }>).detail?.intent;
+      if (!intent || !['post', 'photo', 'video', 'poll'].includes(intent)) return;
+      setThenPromote(false);
+      setComposeKind(intent === 'photo' ? 'media' : intent as 'post' | 'video' | 'poll');
+      setComposeRequest(value => value + 1);
+    };
+    window.addEventListener('pc-compose', open);
+    return () => window.removeEventListener('pc-compose', open);
   }, []);
-  const [promos, setPromos] = useState<PromoRow[]>([]);
+  const [promoResult, setPromos] = useState<{owner:string;items:PromoRow[]}|null>(null);
+  const promos=mode==="for_you"&&promoResult?.owner===state.owner?promoResult.items:[];
   const [marketplace, setMarketplace] = useState<{ owner: string; items: MarketplaceRecommendation[] } | null>(null);
   const [marketplaceRefresh, setMarketplaceRefresh] = useState(0);
   const marketplaceRequest = useRef<AbortController | null>(null);
@@ -83,25 +107,36 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
     if (sellerId) setMarketplace(current => current ? { ...current, items: current.items.filter(item => item.seller_id !== sellerId) } : current);
     setMarketplaceRefresh(value => value + 1);
   }, []);
-  const marketplaceItems = marketplace?.owner === state.owner ? marketplace.items : [];
+  const marketplaceItems = mode === 'for_you' && marketplace?.owner === state.owner ? marketplace.items : [];
   const seenPendingRef = useRef<Set<string>>(new Set());
   const seenSentRef = useRef<Set<string>>(new Set());
   const seenObserverRef = useRef<IntersectionObserver | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
+  const feedRef = useRef<HTMLDivElement | null>(null);
   // Variable-height posts stay in document flow. Window virtualization was
   // correcting scroll offsets as media loaded and cards changed height,
   // causing the page to jump underneath a normal wheel/touch gesture.
   // Infinite paging and lazy media still bound network and decoding work.
   const newDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastFeedScroll = useRef(0);
+
+  useLayoutEffect(() => {
+    if (!state.scrollRestore) return;
+    return restoreHomeFeedScroll(controller, () => feedRef.current, state.scrollRestore);
+  }, [controller, state.scrollRestore]);
 
   useEffect(() => {
+    const cacheScope = navigationStore.getSnapshot().owner === seed.owner ? navigationStore.getSnapshot().scope : null;
+    lastFeedScroll.current = controller.getSnapshot().scrollRestore?.top ?? window.scrollY;
+    const rememberScroll = () => { if (window.location.pathname === '/home') lastFeedScroll.current = window.scrollY; };
+    window.addEventListener('scroll', rememberScroll, { passive: true });
     void controller.start();
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const next = session?.user.id ?? null;
       if (next !== uidRef.current) {
         uidRef.current = next; seenPendingRef.current.clear(); seenSentRef.current.clear();
-        setComposerGeneration(value => value + 1); setQuote(null); setComposeKind(undefined); thenPromote.current = false;
+        setComposerGeneration(value => value + 1); setQuote(null); setComposeKind(undefined); setThenPromote(false);
         controller.setOwner(next);
         queueMicrotask(() => { if (next) router.refresh(); else router.replace('/login'); });
       }
@@ -122,25 +157,30 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
     document.addEventListener('visibilitychange', onVisibility);
     const mediaRefresh = setInterval(onVisibility, 240_000);
     return () => {
+      const memory = controller.remember(lastFeedScroll.current);
+      const session = navigationStore.getSnapshot();
+      const initialScope = !session.changed && session.owner === seed.owner ? session.scope : null;
+      if (memory) navigationStore.cache.save(cacheScope ?? initialScope, 'home:personal', memory);
+      window.removeEventListener('scroll', rememberScroll);
       clearInterval(mediaRefresh); subscription.unsubscribe(); controller.dispose();
       window.removeEventListener('pc-refresh-feed', onRefresh); window.removeEventListener('pc-feed-hidden', onHidden);
       window.removeEventListener('pc-feed-author-hidden', onAuthorHidden);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [controller, load, router, supabase, refreshMarketplace]);
+  }, [controller, load, router, supabase, refreshMarketplace, navigationStore, seed.owner]);
 
   useEffect(() => {
     let active = true;
-    setPromos([]);
-    if (mode === "for_you" && state.owner) void getActivePromos(3).then(value => {
-      if (active) setPromos(value.filter(post => !isMarketplacePost(post)));
-    }).catch(() => { if (active) setPromos([]); });
+    const owner=state.owner;
+    if (mode === "for_you" && owner) void getActivePromos(3).then(value => {
+      if (active) setPromos({owner,items:value.filter(post => !isMarketplacePost(post))});
+    }).catch(() => { if (active) setPromos(null); });
     return () => { active = false; };
   }, [mode, state.owner]);
 
   useEffect(() => {
     const owner = state.owner;
-    if (!owner || mode !== 'for_you') { setMarketplace(null); return; }
+    if (!owner || mode !== 'for_you') return;
     let active = true;
     const request = new AbortController();
     marketplaceRequest.current = request;
@@ -165,6 +205,7 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
 
   // Seen reporting: the phone's exact batch semantics - 6s flush, retry on failure.
   useEffect(() => {
+    const pendingSeen=seenPendingRef.current;
     seenObserverRef.current = new IntersectionObserver((entries) => {
       entries.forEach((e) => {
         const pid2 = (e.target as HTMLElement).dataset.pid;
@@ -189,7 +230,7 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
       } finally { sending = false; }
     };
     const timer = setInterval(flushSeen, 6000);
-    return () => { active = false; clearInterval(timer); seenPendingRef.current.clear(); seenObserverRef.current?.disconnect(); };
+    return () => { active = false; clearInterval(timer); pendingSeen.clear(); seenObserverRef.current?.disconnect(); };
   }, [supabase]);
 
   const observeSeen = useCallback((el: HTMLDivElement | null) => {
@@ -226,22 +267,21 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
   }, []);
 
   function showNewPosts() {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
     load(false);
   }
 
   return (
-    <div>
+    <div ref={feedRef} data-feed-owner={state.owner ?? ''} data-feed-mode={mode}>
       <AnnouncementBanner />
-      <StoryRings />
-      {state.owner ? <Composer key={state.owner + ':' + composerGeneration} ownerId={state.owner} initialKind={composeKind} onPosted={(id) => { load(false); if (id && thenPromote.current) router.push("/ads/new?post=" + id); }} quote={quote} onQuoteDone={() => setQuote(null)} /> : null}
+      <header className="mb-3 flex items-center justify-between gap-4"><h1 className="font-display text-[30px] font-bold tracking-[-0.04em] text-ink">Home</h1><Link href="/discover" className="text-xs font-semibold text-muted hover:text-ink">Find your circles</Link></header>
 
       {/* Mode tabs: the active indicator is a pearl set in a ring, echoing the
           mark itself, instead of a plain underline. */}
       {/* The tab row is its own card and sticks under the top bar, so switching
           feeds never scrolls out of reach. The gold underline marks the active
           feed; the dot-in-a-ring read as decoration at this size. */}
-      <div className="sticky top-[72px] z-10 mb-4 rounded-2xl border border-ink/10 bg-white/95 px-2 backdrop-blur">
+      <div className="pc-feed-tabs sticky top-[112px] z-10 mb-4 border-b border-ink/10 bg-[var(--canvas)] md:top-[68px]">
         <div className="flex items-center gap-1 overflow-x-auto overflow-y-hidden">
           {MODES.map((m) => {
             const active = mode === m.key;
@@ -267,6 +307,9 @@ export default function HomeFeed({ seed }: { seed: FeedSeed }) {
           })}
         </div>
       </div>
+
+      <StoryRings />
+      {state.owner ? <Composer key={state.owner + ':' + composerGeneration} ownerId={state.owner} initialKind={composeKind} openRequest={composeRequest} onPosted={(id) => { load(false); if (id && thenPromote) router.push("/ads/new?post=" + id); }} quote={quote} onQuoteDone={() => setQuote(null)} /> : null}
 
       {mode === "trending" ? <div className="pt-3"><StoryRings mode="global" /></div> : null}
       {pendingNew > 0 && !loading ? (

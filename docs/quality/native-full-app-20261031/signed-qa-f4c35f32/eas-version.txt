@@ -1,0 +1,1 @@
+eas-cli/27.2.0 linux-x64 node-v24.22.1

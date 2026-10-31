@@ -1,0 +1,25 @@
+{
+  "snapshots": [
+    {
+      "file": "native-ui-auth-diagnostics.json",
+      "bytes": 196352,
+      "sha256": "c54b35a1cedb7b13dc9241b9d6abe4267f2a091d1b70c72a85f3b612d7a5ae52",
+      "state": "parsed"
+    },
+    {
+      "file": "native-ui-auth-diagnostics-final.json",
+      "state": "missing"
+    },
+    {
+      "file": "native-ui-receipt.json",
+      "bytes": 29938,
+      "sha256": "011f94165c1073c2168aafedded7a3c4015c38c080c504d269264e17b0beb48f",
+      "state": "parsed"
+    },
+    {
+      "file": "native-ui-receipt-final.json",
+      "state": "missing"
+    }
+  ],
+  "missingFinalFilesInterpretation": "No -final JSON exports are present in this artifact. The two populated normal files are analyzed as their own persisted snapshots, not treated as complete run history."
+}

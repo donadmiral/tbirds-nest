@@ -1,0 +1,150 @@
+{
+  "recordedAt": "2026-10-31T00:41:51.016422+00:00",
+  "baseCommit": "46dabf3e13b189fbc3e2db3a740b7b9bf07d2a8c",
+  "status": "navigation source frozen for publication; device and real browser timing acceptance remains separate",
+  "sourceSha256": {
+    "App.tsx": "bb3803e3848df6381de83d3e9fe08eb34c3c5aede3f95c456b659b292f9eb4dd",
+    "shared/navigationCache.ts": "3c96b45ecbc04af6c214423d83bca2564659906c1781acf1ab265df53e3969ba",
+    "shared/feedTabCache.ts": "70138e2f943a80618a2b868552d42286383c59819360b739d1b70b91bc80b90b",
+    "src/lib/navigationCache.ts": "fa5c62b6cd32c5e7eedb8ecc0dd0e8614242e93f1d83bf0f1d0d65de7f05046a",
+    "src/lib/screenTransition.ts": "99bdc97888e10aeed4aca45182d393d55df2c2968cf180ef3a8c7a57d8f9e8ef",
+    "src/services/navigationInbox.ts": "a57af040468d24fb2c889b466d7c43a1b2bdc83b3cf86a1dfb456e3d491c7f96",
+    "src/navigation/AppNavigator.tsx": "aac024846148a7ca191acf33418e9c103531a80d2a74f50333daefd28422afe0",
+    "src/screens/feed/FeedScreen.tsx": "63716b02d5d188293b1995a89fc4d3b08f26097bb7ad56aebf4728224f296f17",
+    "src/screens/feed/TrendFeedScreen.tsx": "303a18d4847fcfd5c07ac7262e5cc994cc1722d9b5559efb8b9ec182a66c3abc",
+    "src/screens/market/ListingDetailScreen.tsx": "9b7ea5dc6d3c6a741bbdee9edb67142299b2fa67f53244a29f352fe942147ad3",
+    "src/screens/profile/ProfileScreen.tsx": "2e2e1e71ec87f663377553da60e50772817a28ed93f32970450316dc60bc25a3",
+    "src/screens/profile/UserProfileScreen.tsx": "65a3addfc5c8c7f6bcb7c612e18b95124482e959318db626081521a4b05902cc",
+    "src/screens/messages/ConversationsScreen.tsx": "6145eb0aea042e3f09f08615a84de01cbddf0cc705a7bce096bf03d8ba390f7d",
+    "web/app/layout.tsx": "1d9ca63f06ac5c3f2af064cbdd90aabbc5fba48b008b1bc23361602550adc811",
+    "web/next.config.ts": "187e1df815d6b95d6d047870866bbc912d6654372705df087b20772736582b57",
+    "web/components/HomeFeed.tsx": "813b0c26c2d2f0e781793b5b3533f26950c1d8de841e385b9083175966f688b6",
+    "web/components/MessagesApp.tsx": "807789168a00ac0cfd2e0e9dda7d23ed8198acf5e036d49260910406ff33c0a3",
+    "web/components/Nav.tsx": "587a676715e2d592547ec1e6711ec4a137d879ee7d91ea048c2270739b5aa397",
+    "web/components/MobileTabBar.tsx": "ce47efa602487c41e46ced7d072bb87a383b0e238b2c82749ed32e3aceab3c50",
+    "web/components/ScrollMemory.tsx": "40a452861f21aa5b1d8cff33e8de2f1bd5207ce92bac0745207e1ed5c6717913",
+    "web/components/NavigationLink.tsx": "4a47846d88d9f740a98e16f1e7a6192055db155e6741702b935c4a0b7ad7dca9",
+    "web/components/NavigationSessionBoundary.tsx": "3f20fc9b6f0ddeb2421210ae06cd6d327a2d674b6f4660670d30280f3fc8572f",
+    "web/lib/homeFeedController.ts": "49ec99aacd306f377f58fbabf31be9d77f110ca840bfa08bb8c098705d58af5a",
+    "web/lib/messages.ts": "a34df05afd0964c6989186caf8a5a77d790aa227be248267947a11f0d467f8d8",
+    "web/lib/messageNavigationMemory.ts": "8e74753dfc0b4f6c42efa4c3dc01f144c6dbfb4828c8c92a2b6ed8ee5d218412",
+    "web/lib/navigationCache.ts": "64260f2f9c45c7ed8b8f78d15592e6601ce5f4aa1ba6d197d62ad2a0742d3295"
+  },
+  "tests": [
+    {
+      "command": "node tests/quality/navigation-cache.cjs",
+      "exitCode": 0,
+      "tests": 16,
+      "passed": 16,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 373.570402,
+      "testSha256": "47c04c5035d50c750d1211861a8d4f04871986485f1c40baf179e015c7f7ac0e",
+      "log": "docs/quality/navigation-20261031/navigation-cache-tests.log",
+      "logSha256": "faf38c733e122a99e2ea535970b8241557f72f4b4350c4280eaac8708ba3152b"
+    },
+    {
+      "command": "node tests/quality/navigation-screens.cjs",
+      "exitCode": 0,
+      "tests": 4,
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 170.32116,
+      "testSha256": "7806be2bd776983eddb8e7ab3f17afeecf2c9c5aa2513621978743580e57057f",
+      "log": "docs/quality/navigation-20261031/navigation-screens-tests.log",
+      "logSha256": "2f5127ef685c67a06e68eb06f9bdb7b96a9b60472ba0bb25c8bad08f80c778f6"
+    },
+    {
+      "command": "node tests/quality/app-interaction-sweep.cjs",
+      "exitCode": 0,
+      "tests": 6,
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 334.254654,
+      "testSha256": "8232db8778891772b583064aaea5953d0f0042f1c796e4b95a8562c2c9063b5c",
+      "log": "docs/quality/navigation-20261031/navigation-feed-tests.log",
+      "logSha256": "bc7f7e68a6f85d08848fab5034ebf11737d076eb9323739ec294ed0161b76b9d"
+    },
+    {
+      "command": "node tests/quality/profile-content-regressions.cjs",
+      "exitCode": 0,
+      "tests": 16,
+      "passed": 16,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 578.59492,
+      "testSha256": "67d3d2462eadc6401b887541f9d4831a3e542f49eaa8ab7d5170fed9b8d4f01b",
+      "log": "docs/quality/navigation-20261031/navigation-profile-tests.log",
+      "logSha256": "ae879680a1ea78d3d2130372850957ae3f62eab745894d5264c54a93a0018dd2"
+    },
+    {
+      "command": "node web/tests/home-feed-quality.cjs",
+      "exitCode": 0,
+      "tests": 16,
+      "passed": 16,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 321.439162,
+      "testSha256": "94d5855cbd23e32ac8e4736b423c9600f66f54f3ca05c8b301a3198df41ead09",
+      "log": "docs/quality/navigation-20261031/navigation-web-feed-tests.log",
+      "logSha256": "37cc189133a3ef62d2d219c3f92592614e593de43352a3a2f922bab08b57c3ae"
+    },
+    {
+      "command": "node web/tests/messages-quality-regressions.cjs",
+      "exitCode": 0,
+      "tests": 30,
+      "passed": 30,
+      "failed": 0,
+      "skipped": 0,
+      "durationMs": 385.455102,
+      "testSha256": "371212c5088f7119580cc561d0248136b66f733d9706b763e7400469de88c333",
+      "log": "docs/quality/navigation-20261031/navigation-web-messages-tests.log",
+      "logSha256": "903975dbd622edf42cdc2953158ff23f3d60698a4f7bde380ee374e4647075f8"
+    }
+  ],
+  "totalBehaviorCases": 88,
+  "typeChecks": {
+    "native": {
+      "command": "node_modules/.bin/tsc --noEmit --pretty false",
+      "exitCode": 0
+    },
+    "web": {
+      "command": "cd web && node_modules/.bin/tsc --noEmit --pretty false",
+      "exitCode": 0
+    }
+  },
+  "lint": {
+    "native": {
+      "scope": "navigation-owned source files only",
+      "files": 13,
+      "errors": 0,
+      "warnings": 0,
+      "exitCode": 0,
+      "strict": true
+    },
+    "web": {
+      "scope": "navigation-owned source files only",
+      "files": 13,
+      "errors": 0,
+      "warnings": 0,
+      "exitCode": 0,
+      "strict": true
+    }
+  },
+  "implemented": [
+    "Synchronous account/session-scoped navigation memory, bounded LRU/TTL and abortable deduplicated refreshes; sticky A\u2192B\u2192A invalidation.",
+    "Native React Query and feed snapshots cleared at every real session change, mounted tab views retained, no artificial450ms screen or500ms inbox loading delay.",
+    "Feed mode restoration before paint; profile/listing known headers remain visible; profile prefetch used only for initial loading; topic and inbox rows persist during refresh/error.",
+    "Web Home and Messages retain loaded pages, mode, drafts, pagination and scroll; retained message pages revalidated, limited-view media capabilities excluded.",
+    "Web client route stale time300s, intent-only prefetch, route/query scroll memory; real Auth session changes hide old tree and replace document to discard Next route cache.",
+    "Touched native/shared and web source lint clean without rule suppressions; Notifications and Create a post accessible labels added."
+  ],
+  "limits": [
+    "These behavior tests use actual source with controlled transport/React fixtures; they do not measure physical iPhone/Android or real browser rendering latency.",
+    "Full bundled app Simulator/Emulator and warmed deployed-browser route acceptance are owned by the parent lane and are not claimed by this receipt.",
+    "No live Supabase mutation, provider action, production rollout or new database migration was performed in this navigation lane.",
+    "Whole-repository lint and full test globs are separate gates; this receipt attests only the listed source and focused suites."
+  ]
+}

@@ -1,0 +1,543 @@
+{
+  "recorded_at": "2026-10-31T02:04:52.163524+00:00",
+  "status": "Actual Chromium-generated Story and memory movies pass with WebGL API unavailable; hosted QA download remains to be repeated after publication.",
+  "problem": "The video renderer required WebGL even when the complete color matrix was the exact identity, blocking unadjusted videos in the live QA browser.",
+  "change": [
+    "Use Canvas2D for an exact identity color matrix, preserving contain/cover framing, scale, translation, trim, speed, original sound and timed artwork.",
+    "Require every matrix entry to match the identity exactly. Color edits still need the GPU renderer and fail explicitly if WebGL is absent.",
+    "Validate the origin-clean source once before drawing its video into the export canvas; release the neutral canvas on disposal.",
+    "Initialize the Story video renderer before artwork capture so an unsupported color edit fails before capture work.",
+    "Add the existing shared static-image checker to the standalone Story browser fixture dependency bundle."
+  ],
+  "source_sha256": {
+    "web/lib/storyVideoExport.ts": "d5cc7fcd4351457e12608deb9ed327e74078aea225de08962f2a9942483e5951",
+    "web/tests/browser/story-video-export.cjs": "26d7c27f75030668683b53a0d95d771f0ff0ec672f95c1bccd31df381fef273e",
+    "web/tests/browser/memory-movie-export.cjs": "a235cc67690c87da07f04a98bed1080043b5eef68278e05d6df4e26b6c65e1ce",
+    "web/tests/browser/memory-movie-fixture.tsx": "6d4ed7e5a0c2cde555b99e128c0ff285e71f1c8e8711fdfebb66898705ca90a2"
+  },
+  "story_runtime": {
+    "browser": "153.0.8010.12",
+    "cases": [
+      {
+        "mode": "graded_audio",
+        "bytes": 39259,
+        "mime": "video/webm;codecs=vp9,opus",
+        "codec": "vp9",
+        "width": 1080,
+        "height": 1918,
+        "duration": 1.075399,
+        "encodedVideoEnd": 0.946,
+        "trimmedFirstPixel": [
+          125,
+          0,
+          0
+        ],
+        "hasAudio": true,
+        "audioRms": 0.04858377889018368,
+        "red": [
+          125,
+          0,
+          0
+        ],
+        "blue": [
+          0,
+          0,
+          126
+        ],
+        "tagBefore": [
+          5,
+          253,
+          1
+        ],
+        "tagAfter": [
+          16,
+          34,
+          50
+        ],
+        "gradedImageSticker": [
+          1,
+          127,
+          126
+        ],
+        "webGLDisabled": false,
+        "webGLRequests": 0
+      },
+      {
+        "mode": "muted",
+        "bytes": 26067,
+        "mime": "video/webm;codecs=vp9",
+        "codec": "vp9",
+        "width": 1080,
+        "height": 1918,
+        "duration": 1.0922,
+        "encodedVideoEnd": 0.954,
+        "trimmedFirstPixel": [
+          125,
+          0,
+          0
+        ],
+        "hasAudio": false,
+        "audioRms": null,
+        "red": [
+          125,
+          0,
+          0
+        ],
+        "blue": [
+          0,
+          0,
+          127
+        ],
+        "tagBefore": [
+          6,
+          253,
+          1
+        ],
+        "tagAfter": [
+          16,
+          34,
+          48
+        ],
+        "gradedImageSticker": [
+          1,
+          127,
+          126
+        ],
+        "webGLDisabled": false,
+        "webGLRequests": 0
+      },
+      {
+        "mode": "added_audio",
+        "bytes": 40718,
+        "mime": "video/webm;codecs=vp9,opus",
+        "codec": "vp9",
+        "width": 1080,
+        "height": 1918,
+        "duration": 1.0532,
+        "encodedVideoEnd": 0.936,
+        "trimmedFirstPixel": [
+          125,
+          0,
+          0
+        ],
+        "hasAudio": true,
+        "audioRms": 0.09934700481593581,
+        "red": [
+          125,
+          0,
+          0
+        ],
+        "blue": [
+          0,
+          0,
+          127
+        ],
+        "tagBefore": [
+          6,
+          253,
+          1
+        ],
+        "tagAfter": [
+          16,
+          34,
+          50
+        ],
+        "gradedImageSticker": [
+          1,
+          127,
+          126
+        ],
+        "webGLDisabled": false,
+        "webGLRequests": 0
+      },
+      {
+        "mode": "added_only",
+        "bytes": 41618,
+        "mime": "video/webm;codecs=vp9,opus",
+        "codec": "vp9",
+        "width": 1080,
+        "height": 1918,
+        "duration": 1.072099,
+        "encodedVideoEnd": 0.973,
+        "trimmedFirstPixel": [
+          125,
+          0,
+          0
+        ],
+        "hasAudio": true,
+        "audioRms": 0.08638099597472702,
+        "red": [
+          125,
+          0,
+          0
+        ],
+        "blue": [
+          0,
+          0,
+          126
+        ],
+        "tagBefore": [
+          5,
+          253,
+          1
+        ],
+        "tagAfter": [
+          16,
+          34,
+          50
+        ],
+        "gradedImageSticker": [
+          1,
+          127,
+          126
+        ],
+        "webGLDisabled": false,
+        "webGLRequests": 0
+      },
+      {
+        "mode": "bad_added_audio",
+        "rejected": true
+      },
+      {
+        "mode": "delayed_start",
+        "bytes": 39360,
+        "mime": "video/webm;codecs=vp9,opus",
+        "codec": "vp9",
+        "width": 1080,
+        "height": 1918,
+        "duration": 1.08,
+        "encodedVideoEnd": 0.954,
+        "trimmedFirstPixel": [
+          125,
+          0,
+          0
+        ],
+        "hasAudio": true,
+        "audioRms": 0.04841932846938271,
+        "red": [
+          125,
+          0,
+          0
+        ],
+        "blue": [
+          0,
+          0,
+          127
+        ],
+        "tagBefore": [
+          6,
+          253,
+          1
+        ],
+        "tagAfter": [
+          16,
+          34,
+          50
+        ],
+        "gradedImageSticker": [
+          1,
+          127,
+          126
+        ],
+        "webGLDisabled": false,
+        "webGLRequests": 0
+      },
+      {
+        "mode": "oversized_final_chunk",
+        "rejected": true
+      },
+      {
+        "mode": "cancelled",
+        "cancelled": true
+      },
+      {
+        "mode": "unadjusted_no_webgl",
+        "bytes": 49093,
+        "mime": "video/webm;codecs=vp9,opus",
+        "codec": "vp9",
+        "width": 1080,
+        "height": 1918,
+        "duration": 1.0226,
+        "encodedVideoEnd": 1.002,
+        "trimmedFirstPixel": [
+          252,
+          0,
+          2
+        ],
+        "hasAudio": true,
+        "audioRms": 0.049408392718019174,
+        "red": [
+          252,
+          0,
+          2
+        ],
+        "blue": [
+          0,
+          0,
+          252
+        ],
+        "tagBefore": [
+          0,
+          255,
+          0
+        ],
+        "tagAfter": [
+          16,
+          34,
+          50
+        ],
+        "gradedImageSticker": [
+          0,
+          127,
+          126
+        ],
+        "webGLDisabled": true,
+        "webGLRequests": 0
+      },
+      {
+        "mode": "framed_no_webgl",
+        "bytes": 49331,
+        "mime": "video/webm;codecs=vp9,opus",
+        "codec": "vp9",
+        "width": 1080,
+        "height": 1918,
+        "duration": 1.0128,
+        "encodedVideoEnd": 0.976,
+        "trimmedFirstPixel": [
+          254,
+          0,
+          2
+        ],
+        "hasAudio": true,
+        "audioRms": 0.04938351265273337,
+        "red": [
+          254,
+          0,
+          0
+        ],
+        "blue": [
+          0,
+          0,
+          250
+        ],
+        "tagBefore": [
+          0,
+          255,
+          0
+        ],
+        "tagAfter": [
+          16,
+          34,
+          50
+        ],
+        "gradedImageSticker": [
+          0,
+          127,
+          126
+        ],
+        "webGLDisabled": true,
+        "webGLRequests": 0
+      },
+      {
+        "mode": "cover_no_webgl",
+        "bytes": 51770,
+        "mime": "video/webm;codecs=vp9,opus",
+        "codec": "vp9",
+        "width": 1080,
+        "height": 1918,
+        "duration": 1.022399,
+        "encodedVideoEnd": 0.969,
+        "trimmedFirstPixel": [
+          255,
+          0,
+          3
+        ],
+        "hasAudio": true,
+        "audioRms": 0.04926981648452924,
+        "red": [
+          254,
+          0,
+          0
+        ],
+        "blue": [
+          0,
+          0,
+          252
+        ],
+        "tagBefore": [
+          0,
+          255,
+          0
+        ],
+        "tagAfter": [
+          254,
+          0,
+          0
+        ],
+        "gradedImageSticker": [
+          0,
+          127,
+          126
+        ],
+        "webGLDisabled": true,
+        "webGLRequests": 0
+      },
+      {
+        "mode": "graded_no_webgl",
+        "rejected": true,
+        "noSilentGradeLoss": true,
+        "failedBeforeCapture": true
+      }
+    ]
+  },
+  "story_receipt_sha256": "837d57b7e196ca9e7730004a783e668bbecf40aaf37217e93e88f1f0193057fe",
+  "memory_runtime": {
+    "browser": "153.0.8010.12",
+    "cases": [
+      {
+        "mode": "unadjusted_no_webgl",
+        "bytes": 157182,
+        "codec": "vp9",
+        "duration": 7.013099,
+        "dimensions": [
+          720,
+          1280
+        ],
+        "trimmed": [
+          254,
+          0,
+          0
+        ],
+        "first": [
+          237,
+          179,
+          67
+        ],
+        "timed": [
+          0,
+          254,
+          0
+        ],
+        "untimed": [
+          237,
+          179,
+          67
+        ],
+        "red": [
+          254,
+          0,
+          0
+        ],
+        "blue": [
+          0,
+          0,
+          252
+        ],
+        "last": [
+          21,
+          68,
+          92
+        ],
+        "sound": {
+          "before": 0,
+          "during": 0.03522200891611174,
+          "after": 0,
+          "voiceBefore": 0,
+          "voiceAfter": 0,
+          "originalDuring": 0.049753545384531514
+        },
+        "audioClosed": true,
+        "tracksEnded": true
+      },
+      {
+        "mode": "graded_no_webgl",
+        "noPartialDownload": true,
+        "resourcesClosed": true,
+        "rejectedBeforeRecording": true
+      },
+      {
+        "mode": "unsupported_composition",
+        "limits": {
+          "gif": "Memory 1: Animated GIF export is not available yet. Remove the GIF to export this edited video.",
+          "animated": "Memory 1: Animated sticker export is not available yet. Set sticker animations to None to export this edited video.",
+          "nested": "Memory 1: a shared-post card layered over another memory cannot be exported yet. The card will not be left out.",
+          "dual": "Memory 1: dual-camera composition cannot be exported yet. The second camera will not be discarded.",
+          "savedAudio": "Memory 1: this older added audio needs verification. Upload the original and select it again before exporting.",
+          "soundtrack": "Choose the book soundtrack again before exporting.",
+          "missing": "Memory 1: the original media is unavailable. Refresh the book and try again.",
+          "tooMany": "A memory movie can contain up to 80 memories. Create a shorter book before exporting."
+        }
+      },
+      {
+        "mode": "film_entry_exit",
+        "keepsPaused": true,
+        "mobileNoOverflow": true
+      }
+    ],
+    "consoleErrors": []
+  },
+  "memory_receipt_sha256": "4005d72d16b7c46f62917fdff6758339788e8c1ceec6b678570cd6bddd698001",
+  "browser_files": {
+    "platinum-video-canvas-qa/delayed_start.webm": {
+      "sha256": "c33f1bbc4a62bac6d4b697e1b76d78e63843a38b63f9954b8268de2bfe21942a",
+      "bytes": 39360
+    },
+    "platinum-video-canvas-qa/graded_audio.webm": {
+      "sha256": "dbf4924dc070405fb1938668c0b0e8f0108bd9ace860ad5a2d43b07e5eb8b024",
+      "bytes": 39259
+    },
+    "platinum-video-canvas-qa/unadjusted_no_webgl.webm": {
+      "sha256": "da30a2d9d11a1d23167eb4ea45dd665015943f76cc5b70dfd25b631d9b46f56f",
+      "bytes": 49093
+    },
+    "platinum-video-canvas-qa/framed_no_webgl.webm": {
+      "sha256": "0252d0b13c7951f75f4bbbde510c9f605e4d0735d634069e87205d55f3c2a6d3",
+      "bytes": 49331
+    },
+    "platinum-video-canvas-qa/muted.webm": {
+      "sha256": "72bfc4488dcdb887c95678e739ce0fe628f6f741a9b36b573a3ff3be07529d88",
+      "bytes": 26067
+    },
+    "platinum-video-canvas-qa/cover_no_webgl.webm": {
+      "sha256": "453dd25b2211b9ffcb815660b431f76a4e8847c067832f3b865f9d5ee9bce3c0",
+      "bytes": 51770
+    },
+    "platinum-video-canvas-qa/added_only.webm": {
+      "sha256": "02e6766cfcbd28f63dd4fe7178ed494dde75fcf691cc639b93080611217063db",
+      "bytes": 41618
+    },
+    "platinum-video-canvas-qa/added_audio.webm": {
+      "sha256": "f4144c24fc87329480a0ac7fe084ac358a6cdcc4d3d8f7f05946b12fe9738879",
+      "bytes": 40718
+    },
+    "platinum-memory-canvas-qa/unadjusted_no_webgl.webm": {
+      "sha256": "c57ff5d8abeccf2f7b77b8223a6b44dd9c6f5ef4484a506c591ba73ed4ab2540",
+      "bytes": 157182
+    }
+  },
+  "validation": {
+    "story_cases": 12,
+    "story_generated_movies": 8,
+    "memory_focused_cases": 4,
+    "memory_generated_movies": 1,
+    "web_typecheck": "passed",
+    "scoped_strict_lint": "0 errors and 0 warnings",
+    "syntax_checks": "both changed browser runners pass node --check",
+    "physical_device_tested": false,
+    "hosted_download_after_fix": "pending publication and repeat of actual signed-in QA flow",
+    "licensing_activated": false
+  },
+  "commands": [
+    "STORY_QA_CHROME=/tmp/platinum-gate-chrome/chrome-linux64/chrome STORY_QA_OUTPUT=/tmp/platinum-video-canvas-qa node web/tests/browser/story-video-export.cjs",
+    "STORY_QA_CHROME=/tmp/platinum-gate-chrome/chrome-linux64/chrome MEMORY_QA_OUTPUT=/tmp/platinum-memory-canvas-qa MEMORY_QA_CASES=unadjusted_no_webgl,graded_no_webgl node web/tests/browser/memory-movie-export.cjs",
+    "cd web && npx tsc --noEmit --pretty false",
+    "cd web && npx eslint lib/storyVideoExport.ts tests/browser/memory-movie-fixture.tsx --max-warnings 0"
+  ],
+  "publication_files": [
+    "web/lib/storyVideoExport.ts",
+    "web/tests/browser/story-video-export.cjs",
+    "web/tests/browser/memory-movie-export.cjs",
+    "web/tests/browser/memory-movie-fixture.tsx",
+    "docs/quality/memory-movie-20261031/browser-unadjusted-video-export.json"
+  ]
+}

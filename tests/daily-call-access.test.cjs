@@ -8,11 +8,12 @@ const ts = require('typescript');
 const sessionId = 'a0000000-0000-4000-8000-000000000001';
 const now = Date.now();
 function harness(options = {}) {
-  let handler; const reads = [], provider = [];
+  let handler; const reads = [], provider = [];let businessAllowed=!options.revokedBusiness;
   let partIdentity = options.partIdentity ?? 'membership-generation';
   const session = { id: sessionId, initiator_id: 'owner', receiver_id: 'receiver', conversation_id: 'group',
     is_group_call: false, is_video: true, status: 'active', created_at: new Date(now - 30000).toISOString(), ...options.session };
   const client = {
+    rpc: async name => ({data:name==='business_session_allowed'&&businessAllowed,error:null}),
     auth: { getUser: async () => ({ data: { user: options.unauthenticated ? null : { id: options.user ?? 'owner' } }, error: null }) },
     from(table) {
       const read = { table, filters: {} }; reads.push(read);
@@ -30,13 +31,16 @@ function harness(options = {}) {
   const source = fs.readFileSync(path.join(__dirname, '../supabase/functions/daily-get-token/index.ts'), 'utf8');
   const code = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   const module = { exports: {} };
+  const guardModule={exports:{}};
+  vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname,'../supabase/functions/_shared/businessSessionGuard.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module:guardModule,exports:guardModule.exports,Response,JSON});
   vm.runInNewContext(code, {
     module, exports: module.exports, Request, Response, Date, AbortSignal,
     Deno: { env: { get: () => 'synthetic-placeholder' }, serve: value => { handler = value; } },
-    require: () => ({ createClient: () => client }),
+    require: name => name.endsWith('/businessSessionGuard.ts')?guardModule.exports:name.endsWith('/serveBusinessRequest.ts')?{serveBusinessRequest:value=>{handler=guardModule.exports.guardBusinessRequest(value,()=>client);}}:({ createClient: () => client }),
     fetch: async (url, init = {}) => {
       const call = { url, method: init.method ?? 'GET', body: init.body ? JSON.parse(init.body) : null }; provider.push(call);
       if (url.endsWith('/meeting-tokens')) {
+        if(options.revokeBusinessAtToken)businessAllowed=false;
         if (options.rotateIdentityAtToken) partIdentity = options.rotateIdentityAtToken;
         return Response.json(options.badToken ? {} : { token: 'synthetic-meeting-token' }, { status: options.tokenError ? 500 : 200 });
       }
@@ -55,6 +59,12 @@ for (const user of ['owner', 'receiver']) test(`direct ${user} can obtain a toke
   const h = harness({ user }); const result = await h.run({ callSessionId: sessionId.toUpperCase(), isOwner: user !== 'owner' });
   assert.equal(result.status, 200); const token = h.provider.find(call => call.url.endsWith('/meeting-tokens')).body.properties;
   assert.equal(token.room_name, sessionId); assert.equal(token.user_id, user); assert.equal(token.is_owner, user === 'owner');
+});
+test('revoked business sessions cannot reach Daily even with a still-valid signed Auth JWT',async()=>{
+ const h=harness({revokedBusiness:true});assert.equal((await h.run()).status,401);assert.equal(h.provider.length,0);assert.equal(h.reads.length,0);
+});
+test('business revocation during provider issuance prevents returning the meeting credential',async()=>{
+ const h=harness({revokeBusinessAtToken:true});const result=await h.run();assert.equal(result.status,409);assert.equal(result.body.token,undefined);
 });
 test('unauthenticated and unrelated callers cannot contact the room provider', async () => {
   for (const options of [{ unauthenticated: true }, { user: 'outsider' }]) {

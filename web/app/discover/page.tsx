@@ -37,7 +37,6 @@ function TrendingCreators() {
   const [retry, setRetry] = useState(0);
   useEffect(() => {
     let alive = true;
-    setLoading(true); setFailed(false);
     supabase.rpc("get_trending_creators", { p_limit: 10 }).then(({ data, error }) => {
       if (!alive) return;
       if (error) setFailed(true);
@@ -47,7 +46,7 @@ function TrendingCreators() {
     return () => { alive = false; };
   }, [supabase, retry]);
 
-  if (failed) return <ErrorState title="Could not load trending creators" onRetry={() => setRetry((n) => n + 1)} />;
+  if (failed) return <ErrorState title="Could not load trending creators" onRetry={() => {setLoading(true);setFailed(false);setRetry((n) => n + 1);}} />;
   if (loading) return <p className="py-4 text-sm text-muted">Loading creators…</p>;
   if (people.length === 0) return null;
 

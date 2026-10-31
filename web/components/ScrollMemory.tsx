@@ -1,69 +1,53 @@
-"use client";
+'use client';
 
-/**
- * Scroll position memory.
- *
- * Opening a post and coming back used to land at the top of the feed, which
- * on a long scroll meant finding your place again. The position is saved per
- * route as you scroll and restored on return, for the life of the tab.
- */
-import { useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { useLayoutEffect, useState, useSyncExternalStore } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { getNavigationStore } from '@/lib/navigationCache';
 
-const KEY = "pc:scroll:";
-
+/** Route offsets live in the same account/session-scoped memory as route data. */
 export function ScrollMemory() {
   const pathname = usePathname();
+  const search = useSearchParams().toString();
+  const [store] = useState(getNavigationStore);
+  const session = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getServerSnapshot);
 
-  useEffect(() => {
-    const k = KEY + pathname;
-    let saved = 0;
-    try { saved = Number(window.sessionStorage.getItem(k) || "0"); }
-    catch { /* Browsers may disable storage; navigation must still work. */ }
-    let active = true;
-    let restoring = Number.isFinite(saved) && saved > 0;
-    let restoreTimer: ReturnType<typeof setTimeout> | undefined;
-    const stopRestoring = () => {
-      restoring = false;
-      if (restoreTimer !== undefined) clearTimeout(restoreTimer);
-      restoreTimer = undefined;
+  useLayoutEffect(() => {
+    const scope = session.scope;
+    if (!scope || session.changed) return;
+    const key = `scroll:${pathname}?${search}`;
+    const stored = store.cache.read<number>(scope, key);
+    const saved = typeof stored === 'number' && Number.isFinite(stored) && stored >= 0 ? stored : 0;
+    let lastTop = saved, active = true, restoring = saved > 0, frame = 0;
+    const started = performance.now();
+    const sameRoute = () => window.location.pathname === pathname && new URLSearchParams(window.location.search).toString() === search;
+    const stop = () => { restoring = false; cancelAnimationFrame(frame); };
+    const intentEvents = ['pointerdown', 'touchstart', 'wheel', 'keydown'] as const;
+    intentEvents.forEach(event => window.addEventListener(event, stop, { capture: true, passive: true }));
+    const restore = () => {
+      if (!active || !restoring || !sameRoute() || store.getSnapshot().scope !== scope) return;
+      const available = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+      if (available >= saved || performance.now() - started > 2000) {
+        stop();
+        window.scrollTo({ top: Math.min(saved, available), left: window.scrollX, behavior: 'instant' });
+        lastTop = window.scrollY;
+      } else frame = requestAnimationFrame(restore);
     };
-    // A tap, gesture or key means the member has taken control. A delayed
-    // restoration must never move the page underneath that interaction.
-    const intentEvents = ["pointerdown", "touchstart", "wheel", "keydown"] as const;
-    intentEvents.forEach(event => window.addEventListener(event, stopRestoring, { capture: true, passive: true }));
-    if (restoring) {
-      // The feed renders after its data arrives; retry briefly until the page
-      // is tall enough to reach the saved offset.
-      let tries = 0;
-      const tick = () => {
-        if (!active || !restoring) return;
-        if (document.documentElement.scrollHeight - window.innerHeight >= saved || tries >= 20) {
-          stopRestoring();
-          window.scrollTo(0, saved);
-        } else { tries += 1; restoreTimer = setTimeout(tick, 100); }
-      };
-      tick();
-    }
-    let raf = 0;
+    // A resolved page restores before paint; only a genuinely shorter/loading
+    // page needs another frame. A gesture cancels those pending restorations.
+    if (restoring) restore();
     const onScroll = () => {
-      if (restoring) return;
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        if (!active) return;
-        try { window.sessionStorage.setItem(k, String(window.scrollY)); }
-        catch { /* Scroll memory is optional when storage is unavailable. */ }
-      });
+      if (!active || restoring || !sameRoute()) return;
+      lastTop = window.scrollY;
+      store.cache.save(scope, key, lastTop);
     };
-    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener('scroll', onScroll, { passive: true });
     return () => {
-      active = false;
-      stopRestoring();
-      intentEvents.forEach(event => window.removeEventListener(event, stopRestoring, true));
-      window.removeEventListener("scroll", onScroll);
-      cancelAnimationFrame(raf);
+      store.cache.save(scope, key, lastTop);
+      active = false; stop();
+      intentEvents.forEach(event => window.removeEventListener(event, stop, true));
+      window.removeEventListener('scroll', onScroll);
     };
-  }, [pathname]);
+  }, [pathname, search, session.scope, session.changed, store]);
 
   return null;
 }

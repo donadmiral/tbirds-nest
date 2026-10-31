@@ -2,6 +2,7 @@ import { ClientDiagnostics } from "@/components/ClientDiagnostics";
 import type { Metadata } from "next";
 import { ConnectionBanner } from "@/components/ConnectionBanner";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { NavigationSessionBoundary } from "@/components/NavigationSessionBoundary";
 import { Manrope, Inter } from "next/font/google";
 import "./globals.css";
 
@@ -38,12 +39,12 @@ export default function RootLayout({
         {/* Applies the saved appearance before paint so dark users see no flash. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: "(function(){var t='system';try{var s=localStorage.getItem('pc:theme');if(s==='dark'||s==='light')t=s}catch(e){}document.documentElement.classList.toggle('dark',t==='dark'||(t==='system'&&matchMedia('(prefers-color-scheme: dark)').matches))})()",
+            __html: "(function(){var t='system';try{var s=localStorage.getItem('pc:theme');if(s==='dark'||s==='light'||s==='lightsOut')t=s}catch(e){}document.documentElement.classList.toggle('dark',t==='dark'||t==='lightsOut'||(t==='system'&&matchMedia('(prefers-color-scheme: dark)').matches));document.documentElement.classList.toggle('lights-out',t==='lightsOut')})()",
           }}
         />
       </head>
       <body suppressHydrationWarning>
-        <ThemeProvider>{children}</ThemeProvider><ClientDiagnostics />
+        <ThemeProvider><NavigationSessionBoundary>{children}</NavigationSessionBoundary></ThemeProvider><ClientDiagnostics />
         {/* Global, so a dropped connection is reported on every route. */}
         <ConnectionBanner />
       </body>

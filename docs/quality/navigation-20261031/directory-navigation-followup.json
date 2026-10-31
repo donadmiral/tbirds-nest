@@ -1,0 +1,80 @@
+{
+  "recordedAt": "2026-10-31T01:48:56.694871+00:00",
+  "status": "Frozen Market and Channels navigation follow-up; focused behavioral cases pass, no scoped lint findings. Physical navigation timing remains a separate acceptance gate.",
+  "sourceSha256": {
+    "src/services/navigationDirectory.ts": "60edd15ac276f2a626af2f2b9e71f0ef99ea96ca42fc70888ce2dd33309721d0",
+    "src/screens/market/MarketScreen.tsx": "393eb4c223d1463ffe416a9c86043f7a78f1d38e0779b191cc8742978f67767b",
+    "src/screens/channels/ChannelsScreen.tsx": "547be545a169e6f786125bd6fb458a528a75fc8b587c120ab23bdbd7423f3463",
+    "tests/quality/navigation-directory.cjs": "52eb31c8fcff0f48e58a97094a735dc0780ef3ba2bb4f48d0d674aeb3c307002",
+    "tests/native-quality-regressions.test.cjs": "ca730c9d3c3492c356c98f2115558af2ae3735ed6e0fba84f421efaaa2bb4434",
+    "tests/quality/channel-studio-desks.cjs": "8d062d5a201f8b45c96a5234192cc05b3429baa9d9f5af2a56e8189d5cc2fadb"
+  },
+  "tests": [
+    {
+      "name": "directory",
+      "command": "node tests/quality/navigation-directory.cjs",
+      "summary": {
+        "tests": 18,
+        "suites": 0,
+        "pass": 18,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "logSha256": "e349eba6be2d6f04401c0aef0e47ba3befcda7f12a41756273d1656c1451be4f"
+    },
+    {
+      "name": "native-quality",
+      "command": "node tests/native-quality-regressions.test.cjs",
+      "summary": {
+        "tests": 15,
+        "suites": 0,
+        "pass": 15,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "logSha256": "cf0237c5fa92780c8e46d2288bfa3848b51a8d55b9e21d008e292908780c73cf"
+    },
+    {
+      "name": "channel-studio",
+      "command": "node tests/quality/channel-studio-desks.cjs",
+      "summary": {
+        "tests": 14,
+        "suites": 0,
+        "pass": 14,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "logSha256": "fc95e52637d4be743ec6475ad070c572a029cdee256b8a42f77fd446bd93b0c9"
+    }
+  ],
+  "totalNamedCases": 47,
+  "lint": {
+    "command": "node node_modules/eslint/bin/eslint.js src/services/navigationDirectory.ts src/screens/market/MarketScreen.tsx src/screens/channels/ChannelsScreen.tsx --max-warnings 0 --format json",
+    "files": 3,
+    "errors": 0,
+    "warnings": 0,
+    "receiptSha256": "bc6ff024efb14053f3e0bc2a03d02421e6825eb25b2066364624dcbdc2cd14e7"
+  },
+  "changes": [
+    "Warm focus preserves loaded rows, resolved empty views, scroll offsets and current tab/query selection while refreshing in the background.",
+    "Account/session revision invalidates snapshots and requests synchronously, including A-to-B-to-A; screen layout restoration resets stale controls before paint.",
+    "Retained Market pages are re-authorized through current RLS in at most two concurrent100-ID requests; an overall12-second deadline stops later batches and cancels outstanding transport.",
+    "Query changes, blur, late reads and failed refreshes cannot replace the visible current view. Errors remain visible without clearing loaded rows.",
+    "Market pagination consumes ranked rows even when RLS filters hydration; saved mutations are owner-token pinned, single-flight and confirmed-only.",
+    "Channels keeps separate views for tabs/search, refreshes invitation eligibility and fences joined/created callbacks to the initiating context."
+  ],
+  "coverage": [
+    "Actual compiled service logic, including real Supabase SDK query builder transport headers/abort signals.",
+    "Actual TSX hook lifecycle and rendered props under a synthetic RN/test transport; this does not measure device frame timings."
+  ],
+  "limits": [
+    "No universal speed claim. Full bundled app UI and deployed browser timing are separate evidence.",
+    "Profile retention remains an independent active change and is excluded from this frozen source manifest."
+  ]
+}

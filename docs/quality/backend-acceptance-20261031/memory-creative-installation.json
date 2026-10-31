@@ -1,0 +1,788 @@
+{
+  "version": 1,
+  "recordedAt": "2026-10-31 01:44:04 UTC",
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "environment": "QA only",
+  "status": "installed and contract-verified",
+  "sourceHeadAtWork": "8742d3a43e54e0b8518cec308604289d089364cd",
+  "sourceScope": "The new SQL/tests/ops files were uncommitted at installation; exact file hashes below bind the installed candidate, not the earlier Git commit.",
+  "units": [
+    {
+      "path": "supabase/migrations/20261031001826_memory_book_creative_presentation.sql",
+      "bytes": 9338,
+      "sha256": "bdd9d58a950e85ed1c0a7d085001e1b5fafbab922e30d3963eb8afc97f381854",
+      "sqlMd5": "b6352ad83332b615556bebaf3e718660",
+      "functions": [
+        {
+          "name": "memory_creative.valid_text",
+          "bodyMd5": "0af4917ceae550b57f42a96ded090ec4"
+        },
+        {
+          "name": "memory_creative.cover",
+          "bodyMd5": "e37cdc8ba8212f9b15b24141133add44"
+        },
+        {
+          "name": "memory_creative.film",
+          "bodyMd5": "8e5eb2bc1d3f32657d71cc28a7a8f147"
+        },
+        {
+          "name": "memory_creative.actor",
+          "bodyMd5": "76ef6d116bdc54a8c765cfbfab10c241"
+        },
+        {
+          "name": "memory_creative.validate_presentation",
+          "bodyMd5": "bbb0dbb7f64fd90d0f524b049b4aaf04"
+        }
+      ]
+    },
+    {
+      "path": "supabase/migrations/20261031012445_memory_book_creative_mutations.sql",
+      "bytes": 6300,
+      "sha256": "5aec957cdf50b5133f7c6bb9be37954aa4cad15a826e7cfc055aeeef250e74c7",
+      "sqlMd5": "96f2ba10d62062fdfe2d6560b24a2814",
+      "functions": [
+        {
+          "name": "memory_creative.settings",
+          "bodyMd5": "351733340a6e4f66e86eada067cbd127"
+        },
+        {
+          "name": "memory_creative.ack",
+          "bodyMd5": "931d710b6ea2a87c5e2c7251dde94680"
+        },
+        {
+          "name": "memory_creative.save_book",
+          "bodyMd5": "490fcc635d74995ce4ca4bd685a7ab7a"
+        },
+        {
+          "name": "memory_creative.create_book",
+          "bodyMd5": "a1661e57d9250ef7e4981591a70ac500"
+        }
+      ]
+    },
+    {
+      "path": "supabase/migrations/20261031012805_memory_book_creative_public_contracts.sql",
+      "bytes": 6888,
+      "sha256": "859fc5cb0b020d06f2321ce0bc9108cd8cfaf68b8a497fe5453b83b8cdd13469",
+      "sqlMd5": "c56ed90cf07548263ed75c76054e4fc4",
+      "functions": [
+        {
+          "name": "public.get_memory_book",
+          "bodyMd5": "343111d28623f179cee3887522d5f42f"
+        },
+        {
+          "name": "public.get_memory_albums",
+          "bodyMd5": "96f566e2009808a0ff6e7c8cf5825b13"
+        },
+        {
+          "name": "public.get_memory_book_creative_capabilities",
+          "bodyMd5": "330473ec1a7192b6775e61f636cb2a0e"
+        },
+        {
+          "name": "public.save_memory_book_creative_presentation",
+          "bodyMd5": "f4e9a1b184649c9c3571cf4fdf4e956d"
+        },
+        {
+          "name": "public.create_memory_book_creative_presentation",
+          "bodyMd5": "c937c2fa2c896dab9d3f70db4b8730eb"
+        }
+      ]
+    }
+  ],
+  "supportingFiles": [
+    {
+      "path": "supabase/tests/rpc-authorization/test-memory-book-creative.mjs",
+      "sha256": "d46e8454733ad216d19dd767edde87bb13a76ea336a3a7ef289217d3271e324c"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/memory-creative-reader-baseline-20261031.json",
+      "sha256": "d3ccbcdc27cc3b20f4fbe6134bbb418485c518b1a4d7b2b716109a1ae571efe0"
+    },
+    {
+      "path": "supabase/tests/rpc-authorization/run-all.mjs",
+      "sha256": "bc191546ef55910cd22fd27d0e5bc41431bca74693e4471bf7db623386ae7eea"
+    },
+    {
+      "path": "shared/memoryBookCreative.ts",
+      "sha256": "65155ea7003d9661c0a0bbbc81ac4c20ffebe58157545b77496b5d46b0f51bba"
+    },
+    {
+      "path": "supabase/ops/memory-creative-20261031/postflight.sql",
+      "sha256": "9fe3090cb081530ed045c0a0e1dffaec0653547d666910d2e98e4c10fe0cbca3"
+    }
+  ],
+  "testRuns": [
+    {
+      "order": "none",
+      "logSha256": "e0b4fc189122f9bbbc6e9387e67058e68704f18a6424115847f96d9d5a388756",
+      "tests": 31,
+      "pass": 30,
+      "fail": 0,
+      "skipped": 1
+    },
+    {
+      "order": "before",
+      "logSha256": "ccdfe579c6b8075dfa89e8d93148bb577a50c96d977b06403fa6821998c51df5",
+      "tests": 31,
+      "pass": 31,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "order": "after",
+      "logSha256": "f28cec13ab18a3f309dd81206ccc8013d18ba6c0964393281d95d9afd9754e67",
+      "tests": 31,
+      "pass": 31,
+      "fail": 0,
+      "skipped": 0
+    }
+  ],
+  "anonymousHttp": {
+    "authentication": "QA publishable key only; no user session",
+    "status": 401,
+    "code": "42501",
+    "message": "permission denied for function get_memory_book_creative_capabilities",
+    "serverDate": "Sat, 31 Oct 2026 01:42:28 GMT"
+  },
+  "preflight": {
+    "page_count": 5,
+    "album_count": 2,
+    "observed_at": "2026-10-31T01:39:12.815523+00:00",
+    "page_data_md5": "f7b92153d7999b989421a9c1792b7bc7",
+    "reader_bodies": {
+      "get_memory_book": "e81581dd9ed47c8f11705fdd8d62b1a5",
+      "get_memory_albums": "2ff77aa54267e0e31f96757d5c220487",
+      "validate_memory_book_cover": "c564cf37800f4b0ecb26ade7fcab3bb8"
+    },
+    "music_installed": false,
+    "business_installed": false,
+    "creative_schema_absent": true,
+    "album_existing_data_md5": "9d17eef5c0171e40434b584c986a10c2",
+    "creative_contract_absent": true
+  },
+  "stages": [
+    {
+      "stage": 1,
+      "started": "2026-10-31 01:39:32 UTC",
+      "applyResult": {
+        "success": true
+      },
+      "postflight": {
+        "stage": 1,
+        "history": [
+          {
+            "name": "memory_book_creative_presentation",
+            "sql_md5": "b6352ad83332b615556bebaf3e718660",
+            "version": "20261031013937"
+          }
+        ],
+        "requests": 0,
+        "functions": [
+          {
+            "app": false,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "definer": true,
+            "service": false,
+            "body_md5": "76ef6d116bdc54a8c765cfbfab10c241",
+            "signature": "memory_creative.actor(boolean)",
+            "definition_md5": "f841afbf6711d5c0371a1897231e4f08"
+          },
+          {
+            "app": false,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "definer": false,
+            "service": false,
+            "body_md5": "e37cdc8ba8212f9b15b24141133add44",
+            "signature": "memory_creative.cover(jsonb)",
+            "definition_md5": "e26e33c42856feecfeb3f790689b2525"
+          },
+          {
+            "app": false,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "definer": false,
+            "service": false,
+            "body_md5": "8e5eb2bc1d3f32657d71cc28a7a8f147",
+            "signature": "memory_creative.film(jsonb)",
+            "definition_md5": "2a1fe1d0aef8e1266e68f9c18fef0873"
+          },
+          {
+            "app": false,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "definer": false,
+            "service": false,
+            "body_md5": "0af4917ceae550b57f42a96ded090ec4",
+            "signature": "memory_creative.valid_text(text,integer)",
+            "definition_md5": "0df4bacdba90e2067a8d3d102c0f1a5b"
+          },
+          {
+            "app": false,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "definer": true,
+            "service": false,
+            "body_md5": "bbb0dbb7f64fd90d0f524b049b4aaf04",
+            "signature": "memory_creative.validate_presentation()",
+            "definition_md5": "08723888c1501653e6c0f6b31bcb51f4"
+          }
+        ],
+        "album_count": 2,
+        "observed_at": "2026-10-31T01:39:49.51341+00:00",
+        "page_data_md5": "f7b92153d7999b989421a9c1792b7bc7",
+        "private_tables": [
+          {
+            "app": false,
+            "rls": true,
+            "anon": false,
+            "name": "installation",
+            "service": false
+          },
+          {
+            "app": false,
+            "rls": true,
+            "anon": false,
+            "name": "create_requests",
+            "service": false
+          }
+        ],
+        "legacy_defaults": true,
+        "capability_absent": true,
+        "album_existing_data_md5": "9d17eef5c0171e40434b584c986a10c2"
+      }
+    },
+    {
+      "stage": 2,
+      "started": "2026-10-31 01:39:57 UTC",
+      "applyResult": {
+        "success": true
+      },
+      "postflight": {
+        "stage": 2,
+        "history": [
+          {
+            "name": "memory_book_creative_mutations",
+            "sql_md5": "96f2ba10d62062fdfe2d6560b24a2814",
+            "version": "20261031014002"
+          }
+        ],
+        "requests": 0,
+        "functions": [
+          {
+            "app": false,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "definer": false,
+            "service": false,
+            "body_md5": "931d710b6ea2a87c5e2c7251dde94680",
+            "signature": "memory_creative.ack(memory_albums)",
+            "definition_md5": "fa613bdb485651158f63f60485488744"
+          },
+          {
+            "app": false,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "definer": true,
+            "service": false,
+            "body_md5": "76ef6d116bdc54a8c765cfbfab10c241",
+            "signature": "memory_creative.actor(boolean)",
+            "definition_md5": "f841afbf6711d5c0371a1897231e4f08"
+          },
+          {
+            "app": false,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "definer": false,
+            "service": false,
+            "body_md5": "e37cdc8ba8212f9b15b24141133add44",
+            "signature": "memory_creative.cover(jsonb)",
+            "definition_md5": "e26e33c42856feecfeb3f790689b2525"
+          },
+          {
+            "app": false,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "definer": true,
+            "service": false,
+            "body_md5": "a1661e57d9250ef7e4981591a70ac500",
+            "signature": "memory_creative.create_book(uuid,text,text,text,text,uuid[],uuid,jsonb,jsonb)",
+            "definition_md5": "f80065a07830483c77021855ed05b3d7"
+          },
+          {
+            "app": false,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "definer": false,
+            "service": false,
+            "body_md5": "8e5eb2bc1d3f32657d71cc28a7a8f147",
+            "signature": "memory_creative.film(jsonb)",
+            "definition_md5": "2a1fe1d0aef8e1266e68f9c18fef0873"
+          },
+          {
+            "app": false,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "definer": true,
+            "service": false,
+            "body_md5": "490fcc635d74995ce4ca4bd685a7ab7a",
+            "signature": "memory_creative.save_book(uuid,integer,text,text,text,text,text,uuid,jsonb,jsonb)",
+            "definition_md5": "2dfa03a4d08ebc1cb9c4baede18b5f96"
+          },
+          {
+            "app": false,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "definer": false,
+            "service": false,
+            "body_md5": "351733340a6e4f66e86eada067cbd127",
+            "signature": "memory_creative.settings(text,text,text,text,text)",
+            "definition_md5": "6a6337b44572f66478edf0b3d4cf3383"
+          },
+          {
+            "app": false,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "definer": false,
+            "service": false,
+            "body_md5": "0af4917ceae550b57f42a96ded090ec4",
+            "signature": "memory_creative.valid_text(text,integer)",
+            "definition_md5": "0df4bacdba90e2067a8d3d102c0f1a5b"
+          },
+          {
+            "app": false,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "definer": true,
+            "service": false,
+            "body_md5": "bbb0dbb7f64fd90d0f524b049b4aaf04",
+            "signature": "memory_creative.validate_presentation()",
+            "definition_md5": "08723888c1501653e6c0f6b31bcb51f4"
+          }
+        ],
+        "observed_at": "2026-10-31T01:40:09.64409+00:00",
+        "capability_absent": true
+      }
+    },
+    {
+      "stage": 3,
+      "started": "2026-10-31 01:40:15 UTC",
+      "applyResult": {
+        "success": true
+      },
+      "postflight": {
+        "stage": 3,
+        "columns": [
+          {
+            "name": "cover_artwork",
+            "type": "jsonb",
+            "default": "'{\"photo\": {\"x\": 0.5, \"y\": 0.5, \"scale\": 1}, \"version\": 1, \"postmark\": \"\", \"showDate\": true, \"inscription\": \"\", \"inscriptionStyle\": \"handwritten\", \"inscriptionPosition\": \"bottom\"}'::jsonb",
+            "nullable": "NO"
+          },
+          {
+            "name": "film_settings",
+            "type": "jsonb",
+            "default": "'{\"mode\": \"original\", \"order\": \"book\", \"style\": \"reflective\", \"length\": \"full\", \"version\": 1, \"titleCard\": false, \"originalAudio\": true}'::jsonb",
+            "nullable": "NO"
+          },
+          {
+            "name": "presentation_revision",
+            "type": "integer",
+            "default": "0",
+            "nullable": "NO"
+          }
+        ],
+        "history": [
+          {
+            "name": "memory_book_creative_presentation",
+            "sql_md5": "b6352ad83332b615556bebaf3e718660",
+            "version": "20261031013937"
+          },
+          {
+            "name": "memory_book_creative_mutations",
+            "sql_md5": "96f2ba10d62062fdfe2d6560b24a2814",
+            "version": "20261031014002"
+          },
+          {
+            "name": "memory_book_creative_public_contracts",
+            "sql_md5": "c56ed90cf07548263ed75c76054e4fc4",
+            "version": "20261031014022"
+          }
+        ],
+        "requests": 0,
+        "triggers": [
+          {
+            "name": "memory_book_cover",
+            "type": 23,
+            "enabled": "O",
+            "definition": "CREATE TRIGGER memory_book_cover BEFORE INSERT OR UPDATE OF cover_story_id, user_id ON public.memory_albums FOR EACH ROW EXECUTE FUNCTION validate_memory_book_cover()",
+            "function_body_md5": "c564cf37800f4b0ecb26ade7fcab3bb8"
+          },
+          {
+            "name": "memory_creative_presentation",
+            "type": 31,
+            "enabled": "O",
+            "definition": "CREATE TRIGGER memory_creative_presentation BEFORE INSERT OR DELETE OR UPDATE ON public.memory_albums FOR EACH ROW EXECUTE FUNCTION memory_creative.validate_presentation()",
+            "function_body_md5": "bbb0dbb7f64fd90d0f524b049b4aaf04"
+          }
+        ],
+        "functions": [
+          {
+            "app": false,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "memory_creative",
+            "definer": false,
+            "service": false,
+            "body_md5": "931d710b6ea2a87c5e2c7251dde94680",
+            "signature": "memory_creative.ack(memory_albums)",
+            "definition_md5": "fa613bdb485651158f63f60485488744",
+            "public_execute": false
+          },
+          {
+            "app": false,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "memory_creative",
+            "definer": true,
+            "service": false,
+            "body_md5": "76ef6d116bdc54a8c765cfbfab10c241",
+            "signature": "memory_creative.actor(boolean)",
+            "definition_md5": "f841afbf6711d5c0371a1897231e4f08",
+            "public_execute": false
+          },
+          {
+            "app": false,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "memory_creative",
+            "definer": true,
+            "service": false,
+            "body_md5": "e81581dd9ed47c8f11705fdd8d62b1a5",
+            "signature": "memory_creative.base_book(uuid)",
+            "definition_md5": "c5197fdc8155195738d0c2c157bca196",
+            "public_execute": false
+          },
+          {
+            "app": false,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "memory_creative",
+            "definer": true,
+            "service": false,
+            "body_md5": "2ff77aa54267e0e31f96757d5c220487",
+            "signature": "memory_creative.base_shelf(uuid)",
+            "definition_md5": "e063fa27534e566ce8a400bdce10e09a",
+            "public_execute": false
+          },
+          {
+            "app": false,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "memory_creative",
+            "definer": false,
+            "service": false,
+            "body_md5": "e37cdc8ba8212f9b15b24141133add44",
+            "signature": "memory_creative.cover(jsonb)",
+            "definition_md5": "e26e33c42856feecfeb3f790689b2525",
+            "public_execute": false
+          },
+          {
+            "app": false,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "memory_creative",
+            "definer": true,
+            "service": false,
+            "body_md5": "a1661e57d9250ef7e4981591a70ac500",
+            "signature": "memory_creative.create_book(uuid,text,text,text,text,uuid[],uuid,jsonb,jsonb)",
+            "definition_md5": "f80065a07830483c77021855ed05b3d7",
+            "public_execute": false
+          },
+          {
+            "app": false,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "memory_creative",
+            "definer": false,
+            "service": false,
+            "body_md5": "8e5eb2bc1d3f32657d71cc28a7a8f147",
+            "signature": "memory_creative.film(jsonb)",
+            "definition_md5": "2a1fe1d0aef8e1266e68f9c18fef0873",
+            "public_execute": false
+          },
+          {
+            "app": false,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "memory_creative",
+            "definer": true,
+            "service": false,
+            "body_md5": "490fcc635d74995ce4ca4bd685a7ab7a",
+            "signature": "memory_creative.save_book(uuid,integer,text,text,text,text,text,uuid,jsonb,jsonb)",
+            "definition_md5": "2dfa03a4d08ebc1cb9c4baede18b5f96",
+            "public_execute": false
+          },
+          {
+            "app": false,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "memory_creative",
+            "definer": false,
+            "service": false,
+            "body_md5": "351733340a6e4f66e86eada067cbd127",
+            "signature": "memory_creative.settings(text,text,text,text,text)",
+            "definition_md5": "6a6337b44572f66478edf0b3d4cf3383",
+            "public_execute": false
+          },
+          {
+            "app": false,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "memory_creative",
+            "definer": false,
+            "service": false,
+            "body_md5": "0af4917ceae550b57f42a96ded090ec4",
+            "signature": "memory_creative.valid_text(text,integer)",
+            "definition_md5": "0df4bacdba90e2067a8d3d102c0f1a5b",
+            "public_execute": false
+          },
+          {
+            "app": false,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "memory_creative",
+            "definer": true,
+            "service": false,
+            "body_md5": "bbb0dbb7f64fd90d0f524b049b4aaf04",
+            "signature": "memory_creative.validate_presentation()",
+            "definition_md5": "08723888c1501653e6c0f6b31bcb51f4",
+            "public_execute": false
+          },
+          {
+            "app": true,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "definer": true,
+            "service": false,
+            "body_md5": "c937c2fa2c896dab9d3f70db4b8730eb",
+            "signature": "create_memory_book_creative_presentation(uuid,text,text,text,text,uuid[],uuid,jsonb,jsonb)",
+            "definition_md5": "a82d8153ca388676f09ba602b3ab5d63",
+            "public_execute": false
+          },
+          {
+            "app": true,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "definer": true,
+            "service": false,
+            "body_md5": "9a8cb39301b1d683b2049fe90b03c44d",
+            "signature": "get_memory_album(uuid)",
+            "definition_md5": "b90b5cba83232e6687991683ea652fea",
+            "public_execute": false
+          },
+          {
+            "app": true,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "definer": true,
+            "service": false,
+            "body_md5": "96f566e2009808a0ff6e7c8cf5825b13",
+            "signature": "get_memory_albums(uuid)",
+            "definition_md5": "203334e2c59155dc2f55d52b5ea23ad3",
+            "public_execute": false
+          },
+          {
+            "app": true,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "definer": true,
+            "service": false,
+            "body_md5": "343111d28623f179cee3887522d5f42f",
+            "signature": "get_memory_book(uuid)",
+            "definition_md5": "cdabfd5673986b0957a5607a2b87a31d",
+            "public_execute": false
+          },
+          {
+            "app": true,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "definer": true,
+            "service": false,
+            "body_md5": "330473ec1a7192b6775e61f636cb2a0e",
+            "signature": "get_memory_book_creative_capabilities()",
+            "definition_md5": "c7d3272ef20e6e01d1a436dcbf850ab7",
+            "public_execute": false
+          },
+          {
+            "app": true,
+            "anon": false,
+            "owner": "postgres",
+            "config": [
+              "search_path=\"\""
+            ],
+            "schema": "public",
+            "definer": true,
+            "service": false,
+            "body_md5": "f4e9a1b184649c9c3571cf4fdf4e956d",
+            "signature": "save_memory_book_creative_presentation(uuid,integer,text,text,text,text,text,uuid,jsonb,jsonb)",
+            "definition_md5": "b820bd93cae0577dd0e29a48e8b059f4",
+            "public_execute": false
+          }
+        ],
+        "page_count": 5,
+        "album_count": 2,
+        "observed_at": "2026-10-31T01:40:59.913959+00:00",
+        "page_data_md5": "f7b92153d7999b989421a9c1792b7bc7",
+        "private_tables": [
+          {
+            "app": false,
+            "rls": true,
+            "anon": false,
+            "name": "installation",
+            "owner": "postgres",
+            "service": false,
+            "policy_count": 0
+          },
+          {
+            "app": false,
+            "rls": true,
+            "anon": false,
+            "name": "create_requests",
+            "owner": "postgres",
+            "service": false,
+            "policy_count": 0
+          }
+        ],
+        "legacy_defaults": true,
+        "music_installed": false,
+        "business_installed": false,
+        "owner_erasure_cascade": true,
+        "album_existing_data_md5": "9d17eef5c0171e40434b584c986a10c2"
+      }
+    }
+  ],
+  "verification": {
+    "all17FunctionBodiesMatched": true,
+    "allMigrationSqlMd5Matched": true,
+    "allPrivateFunctionAndTableAclDenied": true,
+    "publicContractAuthenticatedOnly": true,
+    "coverGuardBodyMd5": "c564cf37800f4b0ecb26ade7fcab3bb8",
+    "activeRevisionGuard": true,
+    "profileErasureCascade": true,
+    "oldAlbumAndPageFingerprintsUnchanged": true,
+    "legacyModeOriginalAndTitleCardFalse": true,
+    "createRequests": 0,
+    "fixtureCases": 31,
+    "fixtureInvocations": 93,
+    "fixturePasses": 92,
+    "pairedSkips": 1,
+    "uniqueCasesNotInvocations": 31
+  },
+  "limits": {
+    "authenticatedHostedMutationNotClaimed": true,
+    "realSignedInBrowserAcceptance": "Owned by the parent acceptance lane after this installation.",
+    "physicalDeviceAcceptanceNotClaimed": true,
+    "productionApplied": false,
+    "businessSchemaInstalled": false,
+    "musicSchemaInstalled": false,
+    "licensedCatalogueEnabled": false,
+    "notificationHooksActivated": false
+  },
+  "networkObservation": "A direct Node fetch hit environment DNS EAI_AGAIN. The configured-proxy HTTPS curl request then reached PostgREST and returned the recorded expected 401/42501; TLS verification remained enabled."
+}

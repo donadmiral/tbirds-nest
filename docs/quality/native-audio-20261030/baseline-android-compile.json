@@ -1,0 +1,51 @@
+{
+  "checkedAt": "2026-10-30T21:37:43.752410+00:00",
+  "repository": "donadmiral/tbirds-nest",
+  "headCommit": "f25a0263ee08dee8e589feee6479f0e357085c45",
+  "workflowRun": 41130166018,
+  "job": 124318739898,
+  "jobConclusion": "success",
+  "runUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41130166018",
+  "artifact": {
+    "id": 13012619947,
+    "sha256": "79dd2df96ca3885d99bd88fd684e94a129500a868ab7a44bf8454d466d448769",
+    "digestVerified": true
+  },
+  "nativeModuleHashMatchesHead": true,
+  "compilerSuccessMarker": "BUILD SUCCESSFUL",
+  "toolchain": [
+    "openjdk version \"17.0.21\" 2026-10-20",
+    "OpenJDK Runtime Environment Temurin-17.0.21+9 (build 17.0.21+9)",
+    "OpenJDK 64-Bit Server VM Temurin-17.0.21+9 (build 17.0.21+9, mixed mode, sharing)",
+    "javac 17.0.21",
+    "v22.23.4",
+    "10.9.9",
+    "12.0"
+  ],
+  "compileReceipt": {
+    "commit": "6b113710435e96b03dd5f9c15413d2ef6f211e26",
+    "workflow_run": "41130166018",
+    "result": "unsigned Android QA native compile passed",
+    "native_source": {
+      "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt",
+      "sha256": "9bbe8f9a5a40c241d9aecd3d46bb0f2dd53bf15b4bf1ef5265fdf199b556e8a6",
+      "compiled_classes": [
+        "modules/boomerang/android/build/tmp/kotlin-classes/debug/expo/modules/boomerang/BoomerangModule.class"
+      ]
+    },
+    "expo_module_registration_verified": true,
+    "android_abi": "arm64-v8a",
+    "apk": {
+      "path": "android/app/build/outputs/apk/debug/app-debug-unsigned.apk",
+      "sha256": "69075e4f1bca7db0817ec8af7361dbb3380c57c06162813a34056506760e0e59",
+      "bytes": 134433470
+    },
+    "application_id": "app.platinumcircles.mobile.qa",
+    "apk_signed": false,
+    "javascript_bundle_included": false,
+    "android_story_composition_implemented": false,
+    "device_or_provider_acceptance": false,
+    "app_installed_uploaded_or_submitted": false
+  },
+  "scope": "Baseline actual ARM64 full-application compilation, before the new Android story renderer. The linked module at this commit still reports story encoding unavailable. No emulator, physical device, new encoder or provider behavior is inferred."
+}

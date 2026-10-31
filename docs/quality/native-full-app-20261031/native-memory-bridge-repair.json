@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "recordedAtUtc": "2026-10-31T07:34:56.604842+00:00",
+  "owner": "root",
+  "scope": "Schema-exact native memory-movie request serialization and stable operation identity; next real installed-app acceptance remains pending.",
+  "baseline": {
+    "head": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+    "merge": "ba8d659c4b6172c1c4930cd6d348d627bdb1470f",
+    "tree": "bebc0e7bfa5a9a6b17e477a29b17fcd41c2ae27d"
+  },
+  "runtimeEvidence": {
+    "runId": 41179235060,
+    "jobId": 124473036936,
+    "artifactId": 13035220059,
+    "zipSha256": "b869c6611030a06c9d7ced04e4c72050f164677738c43537e5019c3e5ade57c1",
+    "sourceManifestEntries": 496,
+    "retainedOverlays": 6,
+    "sourceVerificationOwner": "native_acceptance",
+    "actualError": "[composeMemoryMovie] Cannot convert '[object Object]' to a Kotlin type.",
+    "phase": "Second required capture attempt reached Encoding your memory movie after 12 real PNG captures; no MP4 was produced. Cancellation/cleanup and three registered media deliveries were observed separately."
+  },
+  "diagnosis": {
+    "installedExpoModulesCore": "3.0.30",
+    "nativeSignature": "Map<String, Any?>",
+    "converterChain": "MapFrontendConverter uses nullable Any for the outer request values. AnyFrontendConvert recursively converts nested arrays/maps using itself; a nested undefined or null reaches value.asObject() and throws. MethodMetadata replaces the lower-level exception with the observed function/object conversion message.",
+    "producer": "The actual src/services/memoryMovieExport.ts scene construction creates enumerable backgroundUri:undefined for image scenes and audio:undefined when page audio is absent.",
+    "inferenceLimit": "The runtime message does not name the nested field. The installed source and actual producer establish a sufficient concrete representability defect; the local controlled boundary catches that actual producer at request.scenes.0.backgroundUri."
+  },
+  "repair": {
+    "productionFile": "modules/boomerang/memoryComposition.ts",
+    "behavior": [
+      "Validate the original complete request before any projection, preserving unsupported-animation rejection and all bounds.",
+      "Copy only the current native schema into a new request; omit absent optional background/audio/soundtrack properties.",
+      "Retain every supported field, timing, matrix, transition, motion, layer, gain, URI, zero and false value.",
+      "Copy every nested object/array so later caller edits cannot change the submitted operation.",
+      "Bind cancellation ID and result verification to the submitted snapshot.",
+      "Preserve capability checks, pre-abort/late-result rejection, listener cleanup, access/rights checks and file cleanup."
+    ],
+    "nativeEngineOrDependencyChanged": false,
+    "productionCapabilityActivated": false
+  },
+  "verification": {
+    "focusedCommand": "node tests/quality/native-memory-export.cjs",
+    "logs": {
+      "before": {
+        "path": "docs/quality/native-full-app-20261031/native-memory-bridge-repair/before.txt",
+        "sha256": "d996d3dce0152fc0d08281a527ffe9b3d4d7e33b5effe136b069e8a91813b185",
+        "tests": 21,
+        "pass": 15,
+        "fail": 6,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      },
+      "after": {
+        "path": "docs/quality/native-full-app-20261031/native-memory-bridge-repair/after.txt",
+        "sha256": "72d9b3bed786e939dd56cdeba9c5334a8f98775dd80513efbdc8ad9dc1c2e6b1",
+        "tests": 21,
+        "pass": 21,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0
+      }
+    },
+    "newCases": 6,
+    "preexistingCases": 15,
+    "newCasesFailBefore": 6,
+    "scopedEslint": {
+      "command": "node node_modules/eslint/bin/eslint.js modules/boomerang/memoryComposition.ts tests/quality/native-memory-export.cjs",
+      "exitCode": 0
+    },
+    "realCodeExecuted": [
+      "Actual TypeScript bridge",
+      "Actual native memory export preparation service",
+      "Actual shared request/result validators and movie planning"
+    ],
+    "controlledBoundary": "The native module/file/transport boundary is controlled. The native-value checker is an explicit contract double based on the pinned converter; it does not execute Hermes, JNI or Kotlin."
+  },
+  "sourceInputs": {
+    "modules/boomerang/memoryComposition.ts": {
+      "beforeSha256": "b3d85bf48e3923e8636aaa2eab00c9a73734f78a10314e350278948882687bf5",
+      "afterSha256": "38debdfe443ebdc3b728cb5a3f8605f203866a8dfc7c56daab14896686e9eead"
+    },
+    "tests/quality/native-memory-export.cjs": {
+      "beforeSha256": "4a40c71e24d7f23aa9f4995d5a29edacac116b7976bb7a6dcd25780498a80696",
+      "afterSha256": "4a40c71e24d7f23aa9f4995d5a29edacac116b7976bb7a6dcd25780498a80696"
+    }
+  },
+  "installedConverterSourceSha256": {
+    "node_modules/expo-modules-core/android/src/main/cpp/types/FrontendConverter.cpp": "8e0a9e6fed1f50a0aea6d9c502b9378a01b00c9e7bb48c35c5ec0178a026fef9",
+    "node_modules/expo-modules-core/android/src/main/cpp/types/FrontendConverterProvider.cpp": "53f872ef7959ebb939b94a681ce8b8b3780dbcbd9a1cfd852622fdd0c6bd23e6",
+    "node_modules/expo-modules-core/android/src/main/cpp/MethodMetadata.cpp": "06f8a8dafe007ff45849a89ad45eb3abed96dfd098d52737d4b7e2f452a72861",
+    "node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/MapTypeConverter.kt": "db0112bcec967e6db22d51b384ab2f72b6fed9ffbaf0c3f27373a7b8a4e3677e",
+    "node_modules/expo-modules-core/android/src/main/java/expo/modules/kotlin/types/AnyTypeConverter.kt": "374a7798136184e7793d68c1cb9cb474b5ee07ed16d77377278458e3f6f310ba"
+  },
+  "sourceExtract": {
+    "path": "docs/quality/native-full-app-20261031/native-memory-bridge-repair/installed-expo-converter-extract.txt",
+    "sha256": "8b3557653bb208e0d89a575d44eec99d9637c48071bfb0bf91272e4ab8578bb3"
+  },
+  "independentReview": {
+    "path": "docs/quality/native-full-app-20261031/native-memory-bridge-independent-review.json",
+    "sha256": "661fb9136ed6fd63e4e74726bb4deff508aee42d861f49ed4de86cc492e5757d",
+    "result": "Accepted; independent 21/21 focused cases pass, no edits."
+  },
+  "reference": "https://docs.expo.dev/modules/module-api/#argument-types",
+  "limitations": [
+    "No fresh native bridge/encoder run or playable output is claimed by these local tests.",
+    "No provider rights, Photos save, physical-device or performance benchmark is inferred.",
+    "The current iPhone baseline run continues on the older published source and was not interrupted.",
+    "No source branch/ref/workflow or hosted-state mutation was performed for this local repair."
+  ]
+}

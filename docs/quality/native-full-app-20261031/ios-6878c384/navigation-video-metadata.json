@@ -1,0 +1,26 @@
+{
+  "sourceArtifactPath": "navigation.mp4",
+  "bytes": 21506684,
+  "sha256": "cd3f1933cbcbfc9d7d53c9d997c7231a6ecf406e60c4241c4f631a710929df2a",
+  "ffprobe": {
+    "programs": [],
+    "streams": [
+      {
+        "codec_name": "h264",
+        "width": 1179,
+        "height": 2556,
+        "r_frame_rate": "600/1",
+        "avg_frame_rate": "1155900/277511",
+        "duration": "925.036667",
+        "nb_frames": "3853"
+      }
+    ],
+    "format": {
+      "duration": "925.036667",
+      "size": "21506684"
+    }
+  },
+  "kind": "Variable-frame-rate Simulator screen recording, not a memory movie. Frame-rate metadata is not app FPS.",
+  "decodedInThisReview": false,
+  "retention": "The full verified archive and extracted video remain in the local workspace; representative Home PNG is retained in the repository unchanged."
+}

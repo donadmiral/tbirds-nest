@@ -422,3 +422,47 @@ verify_jwt = false
 
 [functions.private-media-cleanup]
 verify_jwt = false
+
+[functions.account-storage-erasure]
+verify_jwt = false
+
+[functions.media-content]
+verify_jwt = false
+
+[functions.limited-media-file]
+verify_jwt = false
+
+[functions.content-media-sign]
+verify_jwt = false
+
+[functions.chat-media-sign]
+verify_jwt = false
+
+# POST verifies the real Auth user inside the handler. GET serves only a
+# service-created preview-image token and never accepts an arbitrary image URL.
+[functions.link-preview]
+verify_jwt = false
+[functions.business-signin]
+verify_jwt = false
+
+[functions.business-owner-access]
+verify_jwt = false
+
+# The upload verifier checks the real owner and active session in its handler.
+[functions.music-asset-finalize]
+verify_jwt = false
+
+[functions.music-maintenance]
+verify_jwt = false
+
+[functions.music-catalogue-ingest]
+verify_jwt = false
+
+# Push handlers authenticate before any privileged lookup or provider request.
+# Ordinary pushes require the Vault-held server credential. Call pushes verify
+# Auth plus live call/session authorization, or that exact server credential.
+[functions.send-push-notification]
+verify_jwt = false
+
+[functions.send-voip-push]
+verify_jwt = false

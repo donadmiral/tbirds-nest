@@ -1,0 +1,263 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-31T15:13:27.254393+00:00",
+  "status": "failed full-native acceptance after confirmed host emulator SIGSEGV; no capture or account-readback result",
+  "binding": {
+    "head": "f4c35f32795be5f196840c37382143a2d7e33d55",
+    "testedMerge": "6f3204cd44996dfe66ffe2dcf7192543805aa912",
+    "tree": "7699f995aa8e5192658f785258eb48f408af6a39",
+    "run": 41211437305,
+    "job": 124567097694,
+    "attempt": 1,
+    "artifact": 13046647489,
+    "artifactName": "android-full-app-ui",
+    "artifactBytes": 363323,
+    "artifactSHA256": "8d524a19d2704cb80f0ee35088b1eaed23b49abeed837e61e3b714215be9d2fa",
+    "verifiedExtraction": "/tmp/android-full-app-f4c35f32-41211437305",
+    "sourceManifest": {
+      "path": "docs/quality/native-full-app-20261031/android-full-app-f4c35f32-source.json",
+      "sha256": "13d9a02ebc361cbd6626cabaaa25bd18f691550fc68fcd7b0b216ccb4651f1a6",
+      "bytes": 59282
+    },
+    "archiveDownloadedOnce": true
+  },
+  "timing": {
+    "jobStarted": "2026-10-31T14:43:21Z",
+    "scriptStarted": "2026-10-31T14:44:31Z",
+    "scriptCompleted": "2026-10-31T15:04:12Z",
+    "jobCompleted": "2026-10-31T15:04:16Z",
+    "jobTimeoutMinutes": 75,
+    "buildResult": "BUILD SUCCESSFUL in16m14s"
+  },
+  "sourceVerification": {
+    "exactSourceHashSet": 496,
+    "matchedPublishedGitBlobs": 496,
+    "retainedOverlaysBeforeAfterVerified": 6,
+    "installedDependencyFileHashesMatched": 9,
+    "sourceMemoryCapability": 0,
+    "testCapabilityMode": "qa-capability-overlay",
+    "testedNativeMemoryVersion": 1,
+    "productionCapabilityActivated": false
+  },
+  "hostFailure": {
+    "confirmedSignal": "SIGSEGV",
+    "emulatorPID": 6995,
+    "shellReportedAt": "2026-10-31T15:04:12.2863567Z",
+    "shellText": "Segmentation fault (core dumped)",
+    "commandGpuFlag": "software",
+    "commandMemoryMB": 3072,
+    "observedRenderer": "gfxstream; Vulkanlavapipe; GLESswangle",
+    "independentReview": {
+      "path": "docs/quality/native-full-app-20261031/android-full-app-f4c35f32-emulator-disappearance.json",
+      "sha256": "f2fee260970942b35bbd8adcbaed799f9ee62eadd97dc8ba4e1928273920ef2a",
+      "bytes": 7664
+    },
+    "bounds": [
+      "The shell reporting timestamp is not established as the exact crash instant.",
+      "No crash database/core/backtrace is present in the verified artifact.",
+      "The renderer component, memory-pressure cause, or a particular upstream defect is unproven.",
+      "A host process SIGSEGV is distinct from an observed app assertion or app process exception."
+    ]
+  },
+  "requiredFlows": {
+    "navigation": {
+      "attempts": 1,
+      "exitCode": 1,
+      "junitStatus": "ERROR",
+      "junitFailure": "Unknown error",
+      "lastCompleted": "Profile screenshot at15:03:25.493UTC, after Alex Rivera and Edit profile assertions passed",
+      "failedCommand": "First memory scrollUntilVisible for View all memory books; centerElement:true; existing20000ms command timeout",
+      "failureDetails": "DeviceServerDiedException while reading deviceInfo; underlying UNAVAILABLE/device offline,40680ms since last received byte. Failure AX/PNG retrieval also failed.",
+      "shelfTapReached": false,
+      "privateShelfBookFilmSettingsReached": false,
+      "independentReview": {
+        "path": "docs/quality/native-full-app-20261031/android-f4c35f32-navigation-independent-review.json",
+        "sha256": "b1ba4708ca3c920b0ab0551707e8add1f38fef1b6acad5a56dbd6a683ab9dc32",
+        "bytes": 13338
+      }
+    },
+    "memoryCapture": {
+      "attempts": 1,
+      "exitCode": 1,
+      "junitPresent": false,
+      "failure": "Device emulator-5556 was requested, but it is not connected.",
+      "testcaseStarted": false,
+      "captureRouteReached": false,
+      "savedAccountReadbackReached": false,
+      "movieProduced": false,
+      "movieDecoded": false
+    }
+  },
+  "phaseExitCodes": {
+    "flows": 1,
+    "evidence": 1,
+    "memoryDecoder": 1,
+    "fullAppVerifier": 1
+  },
+  "authAndAccountLimits": {
+    "authAndFixtureExports": [
+      {
+        "artifactMember": "native-ui-receipt.json",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "artifactMember": "native-ui-receipt-final.json",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "artifactMember": "native-ui-auth-diagnostics.json",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "artifactMember": "native-ui-auth-diagnostics-final.json",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ],
+    "recordedMetricsAvailable": false,
+    "readbackAccepted": false,
+    "independentReview": {
+      "path": "docs/quality/native-full-app-20261031/android-full-app-f4c35f32-emulator-disappearance.json",
+      "sha256": "f2fee260970942b35bbd8adcbaed799f9ee62eadd97dc8ba4e1928273920ef2a",
+      "bytes": 7664
+    },
+    "logObservation": "The independent review found zero acquisition-warning matches in12 retained JavaScript log lines and two account-index writes/no init. This does not establish full timing, callback-fix acceptance or saved-account reload."
+  },
+  "visualEvidence": {
+    "retainedPageScreenshots": [
+      "home.png",
+      "market.png",
+      "jobs.png",
+      "messages.png",
+      "profile.png"
+    ],
+    "owner": "navigation_performance",
+    "navigationReview": {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32-navigation-independent-review.json",
+      "sha256": "b1ba4708ca3c920b0ab0551707e8add1f38fef1b6acad5a56dbd6a683ab9dc32",
+      "bytes": 13338
+    },
+    "screenRecordingAvailable": false,
+    "failureScreenshotOrAXAvailable": false
+  },
+  "acceptance": {
+    "fullAppPassed": false,
+    "moviePassed": false,
+    "savedAccountReadbackPassed": false,
+    "memoryShelfSettingsNavigationPassed": false,
+    "physicalDevice": false,
+    "hostedProviderAcceptance": false,
+    "photosLibraryWrite": false,
+    "testGatesWeakened": false
+  },
+  "retainedOwnerFiles": [
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/job.json",
+      "sha256": "eb0323cd69d3508257cf285f6fa0d71fb421ced65846dc4e6a94b3fbc00064ad",
+      "bytes": 3743
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/artifact.json",
+      "sha256": "60a69fac4a61d3c1078d5950d042a0c3cf0f5f3edbcfcdabebfbfb97e83ec46e",
+      "bytes": 747
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/flow-results.json",
+      "sha256": "ad60595633d62c1ad75e4e0a972fe90e11c6bbd66bd9396b2c5e24b812de4e85",
+      "bytes": 351
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/phase-results.json",
+      "sha256": "9488f7548883aadb3421cbedd6aa243cfc4a05c4fc03aad3b3792b1a871e4f1e",
+      "bytes": 63
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/flow-verification.json",
+      "sha256": "563b1fc2263772fab105ed01de4ef3fbadccc02cec744309682a392fb1cc83f6",
+      "bytes": 89
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/toolchain.log.txt",
+      "sha256": "ce4d3a9267e0a3cc61da7b1fd7540dc0033332a025f10970aa0aa5994c36b252",
+      "bytes": 199
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/emulator.log.txt",
+      "sha256": "3d4d27fed5e91cb0c201f6d536322ded52d50509b067dfbb97691117ab3c4f57",
+      "bytes": 8469
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/capture-device-unavailable.log.txt",
+      "sha256": "3e66cf2392dc12b00ab6dc4d9bf20c92711996aa761111a61d8abf079b296b02",
+      "bytes": 62
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/overlays/src__services__supabase.ts.txt",
+      "sha256": "dfb6b6cfe427b7e5abdb7f7bedbdb45536f9abca000d4a2d3305dd45da4cf2e5",
+      "bytes": 5251
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/overlays/modules__boomerang__ios__BoomerangModule.swift.txt",
+      "sha256": "e50ecc3027064c532f474784ac49299954f09ce1a00eb3ea5f45fc906878f6a8",
+      "bytes": 16619
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/overlays/modules__boomerang__android__src__main__java__expo__modules__boomerang__BoomerangModule.kt.txt",
+      "sha256": "33170373380d9c69afabe789dfd7862f212ba1732a1328a74d7d123b7699d617",
+      "bytes": 2990
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/overlays/src__navigation__AppNavigator.tsx.txt",
+      "sha256": "d7377b4164e5beb7e508f53a24ad03f944ca9126cc83966c5bb8a99617c6c62a",
+      "bytes": 38123
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/overlays/metro.config.js.txt",
+      "sha256": "d93f48605ead9e6d7b6fbc1cc210255bb653b227ac9daada78f69317a88c9534",
+      "bytes": 72
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/overlays/index.js.txt",
+      "sha256": "380861fc291a775b81d0891675f0bc4c632660ae44662ba370cb43052a1efa4c",
+      "bytes": 33
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/source-verification.json",
+      "sha256": "803f92315540799aa78dc19d8f6897d7da7e638c860ef4df7870a35942e0d02d",
+      "bytes": 5175
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/build-renderer-projection.json",
+      "sha256": "e89983c1acbc8798ab2192c4dbdafb26c73ecd5fb59636f0852d0766049a84f1",
+      "bytes": 2620
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32/capture-evidence-limits.json",
+      "sha256": "ecfea3239a3853353798f9630e854eeb72bfab1ce91e7a0f1d33d0a604b45ba3",
+      "bytes": 1570
+    }
+  ],
+  "relatedReviews": [
+    {
+      "path": "docs/quality/native-full-app-20261031/android-f4c35f32-navigation-independent-review.json",
+      "sha256": "b1ba4708ca3c920b0ab0551707e8add1f38fef1b6acad5a56dbd6a683ab9dc32",
+      "bytes": 13338
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-full-app-f4c35f32-emulator-disappearance.json",
+      "sha256": "f2fee260970942b35bbd8adcbaed799f9ee62eadd97dc8ba4e1928273920ef2a",
+      "bytes": 7664
+    }
+  ],
+  "nextGate": "A stable emulator must complete both unchanged mandatory journeys, actual saved-account readback and independent native movie decoding. The current iPhone job remains separate and was not interrupted. Any renderer follow-up requires its own source-bound runtime acceptance.",
+  "actions": {
+    "sourceOrTestEditsForThisReview": false,
+    "ciRerunsOrCancellations": false,
+    "refMutationsOrPushes": false,
+    "duplicateArtifactDownload": false,
+    "liveIPhoneJobLogsRequested": false
+  }
+}

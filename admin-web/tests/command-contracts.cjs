@@ -73,7 +73,7 @@ function provisionMock({mismatch=false,createRace=false,finishError=false}={}){
  let created=false;const calls=[];
  const user={id:userId,email:'staff@example.test',app_metadata:{triniti_provision_id:mismatch?'wrong':provisionId}};
  return {calls,svc:{
-  rpc:async(name,args)=>{calls.push({name,args});return args.p_phase==='reserve'?{data:{success:true,auth_user_id:userId,email:user.email,provision_id:provisionId},error:null}:{data:{success:true,complete:!finishError},error:finishError?{message:'failure'}:null};},
+  rpc:async(name,args)=>{calls.push({name,args});return args.p_phase==='reserve'?{data:{success:true,command_key:key,complete:false,auth_user_id:userId,email:user.email,provision_id:provisionId},error:null}:{data:{success:true,command_key:key,auth_user_id:userId,email:user.email,provision_id:provisionId,complete:!finishError},error:finishError?{message:'failure'}:null};},
   auth:{admin:{getUserById:async()=>mismatch||created?{data:{user},error:null}:{data:{user:null},error:{status:404}},createUser:async(args)=>{calls.push({create:args});created=true;return createRace?{data:{user:null},error:{status:422}}:{data:{user},error:null};}}}
  }};
 }
@@ -100,4 +100,58 @@ test('incomplete setup and password truncation are explicit errors',async()=>{
  const previous=mock.calls.length;
  assert.equal((await provisionAccount('staff',form({email:'staff@example.test',role:'support_agent',password:'é'.repeat(40)}))).success,false);
  assert.equal(mock.calls.length,previous);
+});
+
+test('missing provisioning reports unavailable before any account identity is created', async () => {
+ for (const error of [
+  {code:'PGRST202',message:'Could not find the function public.triniti_admin_provision(p_actor_id, p_phase) in the schema cache'},
+  {code:'42883',message:'function public.triniti_admin_provision(uuid, text) does not exist'},
+ ]) {
+  const calls=[];
+  const {provisionAccount}=load('adminProvision', {rpc:async(name,args)=>{calls.push({name,args});return {data:null,error};},auth:{admin:{createUser(){throw new Error('must not create an account');},getUserById(){throw new Error('must not read an account');}}}});
+  const result=await provisionAccount('staff',form({email:'staff@example.test',role:'support_agent',password:'unique-test-password'}));
+  assert.equal(result.success,false);assert.match(result.error,/unavailable on this deployment/);assert.match(result.error,/No account was created/);assert.doesNotMatch(result.error,/retry/i);assert.equal(calls.length,1);
+ }
+});
+test('a provisioning endpoint lost after reservation preserves the partial-setup warning', async () => {
+ const mock=provisionMock();const rpc=mock.svc.rpc;
+ mock.svc.rpc=async(name,args)=>{const result=await rpc(name,args);return args.p_phase==='finish'?{data:null,error:{code:'PGRST202',message:'Could not find the function public.triniti_admin_provision() in the schema cache'}}:result;};
+ const {provisionAccount}=load('adminProvision',mock.svc);
+ const result=await provisionAccount('staff',form({email:'staff@example.test',role:'support_agent',password:'unique-test-password'}));
+ assert.equal(result.success,false);assert.match(result.error,/reserved account identity may already exist/);assert.doesNotMatch(result.error,/No account was created/);assert.equal(mock.calls.filter(c=>c.create).length,1);
+});
+test('provisioning permission and dependency errors retain uncertainty instead of claiming endpoint absence', async () => {
+ for (const error of [{code:'42501',message:'permission denied'},{code:'42883',message:'function private_dependency(uuid) does not exist'},{code:'PGRST003',message:'Pool timeout'}]) {
+  const {provisionAccount}=load('adminProvision',{rpc:async()=>({data:null,error})});
+  const result=await provisionAccount('staff',form({email:'staff@example.test',role:'support_agent',password:'unique-test-password'}));
+  assert.equal(result.success,false);assert.doesNotMatch(result.error,/unavailable on this deployment|No account was created/);
+ }
+});
+
+test('provisioning rejects incomplete or mismatched reservation receipts before creating an identity',async()=>{
+ const valid={success:true,command_key:key,complete:false,auth_user_id:userId,email:'staff@example.test',provision_id:provisionId};
+ for(const change of [{command_key:crypto.randomUUID()},{complete:undefined},{complete:true,auth_user_id:undefined},{email:'other@example.test'}]){
+  let providerCalls=0;
+  const {provisionAccount}=load('adminProvision',{rpc:async()=>({data:{...valid,...change},error:null}),auth:{admin:{getUserById:async()=>{providerCalls++;return {data:{user:null},error:{status:404}};},createUser:async()=>{providerCalls++;return {data:{user:null},error:{status:400}};}}}});
+  const result=await provisionAccount('staff',form({email:'staff@example.test',role:'support_agent',password:'unique-test-password'}));
+  assert.equal(result.success,false);assert.equal(providerCalls,0);
+ }
+});
+
+test('provisioning confirms completion only for the reserved request and identity',async()=>{
+ for(const change of [{command_key:crypto.randomUUID()},{auth_user_id:crypto.randomUUID()},{provision_id:crypto.randomUUID()},{email:'other@example.test'}]){
+  const mock=provisionMock();const rpc=mock.svc.rpc;
+  mock.svc.rpc=async(name,args)=>{const response=await rpc(name,args);return args.p_phase==='finish'?{...response,data:{...response.data,...change}}:response;};
+  const {provisionAccount}=load('adminProvision',mock.svc);
+  const result=await provisionAccount('staff',form({email:'staff@example.test',role:'support_agent',password:'unique-test-password'}));
+  assert.equal(result.success,false);assert.match(result.error,/pending|not confirmed|review/i);
+ }
+});
+
+test('a provider identity without trusted reservation metadata fails without crashing',async()=>{
+ const mock=provisionMock();mock.svc.auth.admin.getUserById=async()=>({data:{user:{id:userId,email:'staff@example.test',app_metadata:null}},error:null});
+ const {provisionAccount}=load('adminProvision',mock.svc);
+ const result=await provisionAccount('staff',form({email:'staff@example.test',role:'support_agent',password:'unique-test-password'}));
+ assert.equal(result.success,false);assert.match(result.error,/requires review/);
+ assert.equal(mock.calls.length,1);
 });

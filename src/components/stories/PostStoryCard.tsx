@@ -1,5 +1,6 @@
 /** Shared posts retain their original proportions, with the caption above and a
  * small author / View post footer below, as in the approved viewing reference. */
+import StoryPixelImage from './StoryPixelImage';
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, Pressable, StyleSheet, Dimensions, useWindowDimensions } from 'react-native';
 import { Feather } from '@expo/vector-icons';
@@ -40,12 +41,12 @@ export default function PostStoryCard({ sticker, onPress, interactive, onOpenPos
   const hold = { onLongPress: onHoldStart, onPressOut: onHoldEnd, delayLongPress: 160 };
   const mediaCount = Math.max(1, Number(sticker.postMediaCount) || 1);
   const inner = <View style={[st.card, { width: frame.width }]}>
-    {sticker.postArticleTitle || sticker.postText ? <Pressable {...hold} disabled={!interactive || !openPost} onPress={go(openPost)} style={[st.caption, { minHeight: frame.captionHeight }]}>
+    {sticker.postArticleTitle || sticker.postText ? <Pressable {...hold} disabled={!interactive || !openPost} onPress={go(openPost)} style={[st.caption, !sticker.postMediaUrl && st.textCard, { minHeight: frame.captionHeight }]}>
       {sticker.postArticleTitle ? <Text style={st.title} numberOfLines={2}>{sticker.postArticleTitle}</Text> : null}
-      {sticker.postText ? <Text style={st.body} numberOfLines={3}>{sticker.postText}</Text> : null}
+      {sticker.postText ? <Text style={st.body} numberOfLines={sticker.postMediaUrl ? 3 : 8}>{sticker.postText}</Text> : null}
     </Pressable> : null}
     {sticker.postMediaUrl ? <View style={[st.mediaWrap, { height: frame.mediaHeight }]}>
-      {isVideo ? <VideoView pointerEvents="none" player={player} style={st.media} contentFit="contain" nativeControls={false} /> : <Image source={{ uri: sticker.postMediaUrl }} style={st.media} resizeMode="contain" />}
+      {isVideo ? <VideoView pointerEvents="none" player={player} style={st.media} contentFit="contain" nativeControls={false} /> : <StoryPixelImage uri={sticker.postMediaUrl} style={st.media} fit="contain" />}
       {interactive ? <Pressable {...hold} accessibilityRole="button" accessibilityLabel="Open shared post" style={StyleSheet.absoluteFill} onPress={go(openPost)} /> : null}
       {mediaCount > 1 ? <View pointerEvents="none" style={st.carousel}><Feather name="layers" size={17} color="#FFFFFF" /><Text style={st.carouselText}>1/{mediaCount}</Text></View> : null}
       {isVideo && !playback.muted ? <Pressable {...hold} accessibilityRole="button" disabled={!interactive} accessibilityLabel={muted ? 'Unmute shared video' : 'Mute shared video'} style={st.soundChip} onPress={() => setMuted(value => { const next = !value; try { player.muted = next; } catch {} return next; })}><Feather name={muted ? 'volume-x' : 'volume-2'} size={17} color="#FFF" /></Pressable> : null}
@@ -66,6 +67,7 @@ export default function PostStoryCard({ sticker, onPress, interactive, onOpenPos
 const st = StyleSheet.create({
   card: { backgroundColor: 'transparent' },
   caption: { paddingBottom: 14, justifyContent: 'flex-end' },
+  textCard: { padding: 20, paddingBottom: 20, borderRadius: 18, backgroundColor: 'rgba(0,0,0,.24)', borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,.18)' },
   title: { fontSize: 17, lineHeight: 22, fontWeight: '700', color: '#FFFFFF', textAlign: 'center', textShadowColor: '#0008', textShadowRadius: 8 },
   body: { color: '#FFFFFF', fontSize: 16, lineHeight: 22, textAlign: 'center', fontWeight: '500', textShadowColor: '#0008', textShadowRadius: 8 },
   mediaWrap: { width: '100%', borderRadius: 16, overflow: 'hidden', backgroundColor: 'rgba(0,0,0,.12)' },
