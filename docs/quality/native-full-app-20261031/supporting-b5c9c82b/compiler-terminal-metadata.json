@@ -1,0 +1,200 @@
+{
+  "observedAt": "2026-10-31 16:35:33 UTC",
+  "repository": "donadmiral/tbirds-nest",
+  "runs": [
+    {
+      "id": 41218724047,
+      "name": "Android native compile",
+      "path": ".github/workflows/android-native-compile.yml",
+      "head_sha": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "created_at": "2026-10-31T16:14:35Z",
+      "run_started_at": "2026-10-31T16:14:35Z",
+      "updated_at": "2026-10-31T16:28:47Z",
+      "html_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41218724047"
+    },
+    {
+      "id": 41218724062,
+      "name": "iOS native compile",
+      "path": ".github/workflows/ios-native-compile.yml",
+      "head_sha": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "created_at": "2026-10-31T16:14:35Z",
+      "run_started_at": "2026-10-31T16:14:35Z",
+      "updated_at": "2026-10-31T16:35:10Z",
+      "html_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41218724062"
+    }
+  ],
+  "jobs": [
+    {
+      "platform": "android",
+      "runId": 41218724047,
+      "jobId": 124588620357,
+      "name": "Compile Kotlin and Android native integration",
+      "headSha": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-10-31T16:14:48Z",
+      "completedAt": "2026-10-31T16:28:47Z",
+      "runtimeSeconds": 839.0,
+      "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41218724047/job/124588620357",
+      "jobMetadataUrl": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/jobs/124588620357",
+      "workflowPath": ".github/workflows/android-native-compile.yml",
+      "workflowSha256": "b61803a86989169286d8af51814cb15a76329e070c5e000af46d328c1b796d84",
+      "compileStep": {
+        "name": "Compile the unsigned Android QA target",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-10-31T16:15:19Z",
+        "completed_at": "2026-10-31T16:28:44Z"
+      },
+      "allStepConclusions": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Read source",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Set Node 22",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Use the runner's Java 17 toolchain",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install locked dependencies",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Compile the unsigned Android QA target",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Keep compiler diagnostics only",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Set Node 22",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Read source",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ],
+      "artifact": {
+        "id": 13049810760,
+        "name": "android-native-compile-diagnostics",
+        "sizeInBytes": 22624,
+        "providerDigest": "sha256:43ebef09f102a3546a4d6853c7d85c9bd7a77105799a9f706c2a8ead27553ef8",
+        "expired": false,
+        "archiveIndependentlyDownloaded": false
+      }
+    },
+    {
+      "platform": "ios",
+      "runId": 41218724062,
+      "jobId": 124588621101,
+      "name": "Compile Swift and native integration",
+      "headSha": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+      "status": "completed",
+      "conclusion": "success",
+      "startedAt": "2026-10-31T16:14:39Z",
+      "completedAt": "2026-10-31T16:35:09Z",
+      "runtimeSeconds": 1230.0,
+      "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41218724062/job/124588621101",
+      "jobMetadataUrl": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/jobs/124588621101",
+      "workflowPath": ".github/workflows/ios-native-compile.yml",
+      "workflowSha256": "41366d7673b2c4781c998cf80655fde1cc2041f19a607b10dc6dd088b5784510",
+      "compileStep": {
+        "name": "Compile the unsigned iOS Simulator target",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-10-31T16:15:40Z",
+        "completed_at": "2026-10-31T16:34:59Z"
+      },
+      "allStepConclusions": [
+        {
+          "name": "Set up job",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Read source",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Set Node 22",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install locked dependencies",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install the Expo 54 CocoaPods toolchain",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Compile the unsigned iOS Simulator target",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Keep compiler diagnostics only",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Set Node 22",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Read source",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ],
+      "artifact": {
+        "id": 13049308890,
+        "name": "ios-native-compile-diagnostics",
+        "sizeInBytes": 992181,
+        "providerDigest": "sha256:1d54aab38a5a440041f856fdbb6d6c0b41b2dc395c6689c8032be7bdb42dde6c",
+        "expired": false,
+        "archiveIndependentlyDownloaded": false
+      }
+    }
+  ]
+}

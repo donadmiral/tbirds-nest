@@ -41,15 +41,16 @@ provenance, fixture and test changes. Workflow files, native flow commands,
 assertions, deadlines, native encoders and production movie capability remain
 unchanged.
 
-Fresh validation was launched for this exact source:
+All four supporting workflows now pass on this exact source. The full
+installed-app run remains active:
 
-| Gate | Current-source run |
-| --- | --- |
-| Type and quality | [41218724145](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724145) |
-| Browser interaction and media | [41218724100](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724100) |
-| iOS compilation and encoders | [41218724062](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724062) |
-| Android compilation and encoders | [41218724047](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724047) |
-| Complete installed native apps | [41218724056](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724056) |
+| Gate | Current-source run | Result |
+| --- | --- | --- |
+| Type and quality | [41218724145](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724145) | Passed |
+| Browser interaction and media | [41218724100](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724100) | Passed |
+| iOS compilation and encoders | [41218724062](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724062) | Passed |
+| Android compilation and encoders | [41218724047](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724047) | Passed |
+| Complete installed native apps | [41218724056](https://github.com/donadmiral/tbirds-nest/actions/runs/41218724056) | Both device jobs active at 16:35:22 UTC |
 
 The fresh type/quality workflow passed: 1,853 root tests, 683 web tests,
 195 operations tests and two Edge TLS cases. Backend Node/RPC fixtures passed
@@ -81,10 +82,17 @@ checkout logs match the verified PR merge; all 65 scoped engine/harness/config
 files are unchanged from `f4c35f32`, and nine printed Android source hashes
 match. These are engine-harness passes, not full-app capture acceptance. Fresh
 artifact IDs and provider digests are retained, but the three encoder ZIPs
-were not independently downloaded or decoded again. Quality and compiler
-reviews remain separate.
+were not independently downloaded or decoded again.
 
-At the native owner's 16:26:58 UTC observation, both full-app scripts were
+Both standalone unsigned compiler jobs and their required steps passed:
+Android in 839 seconds and iOS in 1,230 seconds. Terminal run/job/artifact
+metadata identifies `b5c9c82b`, with independently equal head/merge trees and
+verified published workflow bytes. Compiler logs and archives were not fetched
+for this review, so current per-job source-copy manifests, internal build
+details and artifact byte digests were not independently verified. These
+compilation gates do not establish installed-app or signed-device acceptance.
+
+At the native owner's 16:35:22 UTC observation, both full-app scripts were
 running with no failed step or artifact upload; that step metadata does not
 distinguish their internal compile and UI phases. The expected original-source
 manifest contains 498 files, calculated from the published Git tree. Actual
@@ -112,6 +120,7 @@ was performed. The earlier f4 CLI login observation below remains historical.
 [Fresh quality verification](live-app-20261031/ci-quality-b5c9c82b.json) ·
 [Fresh browser verification](live-app-20261031/browser-quality-b5c9c82b.json) ·
 [Fresh native encoder verification](native-full-app-20261031/native-encoders-b5c9c82b-status-and-source-equivalence.json) ·
+[Fresh compiler verification](native-full-app-20261031/native-compile-b5c9c82b-status.json) ·
 [Current-source signed-QA preparation](native-full-app-20261031/ios-signed-qa-preparation-b5c9c82b.json)
 
 ## Previous published repair candidate: f4c35f32 (v6)
