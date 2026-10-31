@@ -36,6 +36,27 @@ class RecoveryTests(unittest.TestCase):
   result=m.verify_compatibility(app,self.manifest(),'selected',read=read,host_system='Darwin')
   self.assertTrue(result['codeSignatureVerified']);self.assertFalse(result['guestUnameInvoked'])
   self.assertFalse(any('spawn' in row for row in calls));self.assertTrue(any('lipo' in row for row in calls))
+ def test_setup_compatibility_uses_normal_budget_and_records_every_actual_read(self):
+  app=self.app();read,calls=self.reader(app);records=[];output=self.root/'setup.json';budgets=[]
+  def execute(args,timeout,**kwargs):
+   budgets.append(timeout);result=subprocess.CompletedProcess(args,0,read(args).encode(),b'');result.elapsed_seconds=6 if args[0]=='xcodebuild' else .01;result.leader_completed_before_pipe_eof=False;return result
+  with mock.patch.object(m,'bounded_command',side_effect=execute):
+   proof=m.verify_setup_compatibility(app,self.manifest(),'selected',records,output,host_system='Darwin')
+  self.assertTrue(proof['codeSignatureVerified']);self.assertEqual(budgets,[30]*7)
+  retained=json.loads(output.read_text())['commands'];self.assertEqual(len(retained),7)
+  self.assertEqual(retained[1]['stage'],'compatibility-xcode-version');self.assertEqual(retained[1]['elapsedSeconds'],6)
+  self.assertTrue(all(row['status']=='completed' and row['exitCode']==0 for row in retained))
+  self.assertEqual({row['stage'] for row in retained},{'compatibility-host-architecture','compatibility-xcode-version','compatibility-simulator-sdk','compatibility-actual-mach-o','compatibility-app-signature','compatibility-available-runtimes','compatibility-selected-device'})
+ def test_setup_compatibility_timeout_preserves_error_and_bounded_partial_evidence(self):
+  app=self.app();records=[];output=self.root/'setup.json';failure=subprocess.TimeoutExpired(['xcodebuild','-version'],30,output=b'Xcode startup',stderr=b'partial warning');failure.leader_exit_code=None;failure.elapsed_seconds=30.1
+  def execute(args,timeout,**kwargs):
+   self.assertEqual(timeout,30)
+   if args[0]=='xcodebuild':raise failure
+   result=subprocess.CompletedProcess(args,0,b'x86_64',b'');result.elapsed_seconds=.01;result.leader_completed_before_pipe_eof=False;return result
+  with mock.patch.object(m,'bounded_command',side_effect=execute):
+   with self.assertRaises(subprocess.TimeoutExpired) as caught:m.verify_setup_compatibility(app,self.manifest(),'selected',records,output,host_system='Darwin')
+  self.assertIs(caught.exception,failure);retained=json.loads(output.read_text())['commands'];self.assertEqual(len(retained),2)
+  self.assertEqual(retained[-1]['stage'],'compatibility-xcode-version');self.assertEqual(retained[-1]['status'],'timed-out');self.assertEqual(retained[-1]['stdoutTail'],'Xcode startup');self.assertEqual(retained[-1]['stderrTail'],'partial warning')
  def test_incompatible_host_binary_toolchain_and_runtime_fail_closed(self):
   app=self.app()
   changes=[{('/usr/bin/uname','-m'):'arm64'},{('xcodebuild','-version'):'Xcode 17'},
@@ -201,7 +222,7 @@ unittest.main(argv=['recovery-tests'],verbosity=2)
 `;
   const result = spawnSync('python3', ['-c', code, helper], { encoding: 'utf8', timeout: 30000 });
   assert.equal(result.status, 0, result.stdout + result.stderr);
-  assert.match(result.stderr, /Ran 19 tests/);
+  assert.match(result.stderr, /Ran 21 tests/);
 });
 
 test('recovery workflow consumes the exact existing app and separates helper provenance', () => {

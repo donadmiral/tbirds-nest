@@ -203,6 +203,27 @@ def verify_compatibility(app, manifest, device, read=read_command, host_system=N
     return compatibility_module.verify_compatibility(app, manifest, device, read, host_system)
 
 
+def verify_setup_compatibility(app, manifest, device, records, output, host_system=None):
+    """Use the normal runner's 30s metadata-read budget and retain each boundary."""
+    stages = {
+        ('/usr/bin/uname', '-m'): 'host-architecture',
+        ('xcodebuild', '-version'): 'xcode-version',
+        ('xcrun', '--sdk', 'iphonesimulator', '--show-sdk-version'): 'simulator-sdk',
+        ('xcrun', 'simctl', 'list', 'runtimes', '--json'): 'available-runtimes',
+        ('xcrun', 'simctl', 'list', 'devices', '--json'): 'selected-device',
+    }
+    def read(args):
+        stage = stages.get(tuple(args))
+        if args[:2] == ['xcrun', 'lipo'] and len(args) == 4 and args[-1] == '-archs':
+            stage = 'actual-mach-o'
+        elif args == ['codesign', '--verify', '--deep', '--strict', str(app)]:
+            stage = 'app-signature'
+        if stage is None:
+            raise ValueError('Unexpected compatibility metadata command')
+        return setup_read(args, 'compatibility-' + stage, 30, records, output)
+    return verify_compatibility(app, manifest, device, read=read, host_system=host_system)
+
+
 def stable_json_bytes(path):
     path = Path(path)
     if path.parent.is_symlink():
@@ -531,7 +552,8 @@ def main():
                             setup_records, output / 'setup-commands.json')
         setup_read(['xcrun', 'simctl', 'boot', device], 'boot', 120, setup_records, output / 'setup-commands.json')
         setup_read(['xcrun', 'simctl', 'bootstatus', device, '-b'], 'bootstatus', 300, setup_records, output / 'setup-commands.json')
-        provenance['compatibilityVerification'] = verify_compatibility(app, manifest, device)
+        provenance['compatibilityVerification'] = verify_setup_compatibility(
+            app, manifest, device, setup_records, output / 'setup-commands.json')
         provenance['device'] = device
         atomic_json(output / 'recovery-provenance.json', provenance)
         read_command(['xcrun', 'simctl', 'install', device, str(app)], timeout=120)
