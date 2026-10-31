@@ -11,6 +11,7 @@ const picture=(sky:string,land:string)=>'data:image/svg+xml,'+encodeURIComponent
 export const stories=[
  {id:'11111111-1111-4111-8111-111111111111',media_type:'image',media_url:picture('#9cae92','#ead9b7'),thumbnail_url:null,caption:'A summer morning',created_at:'2026-08-30T12:00:00Z'},
  {id:'22222222-2222-4222-8222-222222222222',media_type:'image',media_url:picture('#829fbb','#d39a87'),thumbnail_url:null,caption:'The evening walk',created_at:'2026-08-31T12:00:00Z'},
+ {id:'33333333-3333-4333-8333-333333333333',media_type:'text',media_url:null,thumbnail_url:null,caption:'Words worth keeping',created_at:'2026-09-01T12:00:00Z'},
 ];
 type Session={user:{id:string};access_token:string};
 type Row={name:string;args:Record<string,unknown>;authorization:string|null};

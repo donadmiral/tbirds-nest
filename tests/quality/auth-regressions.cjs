@@ -100,6 +100,28 @@ test('cached launch opens while the profile request is slow', async () => {
   const init = h.state.initialize(); await flush(); await init;
   assert.equal(h.state.loading, false); assert.equal(h.state.profile.id, 'a');
 });
+test('profile-cache reading starts while Auth is pending and publishes only for the resolved owner', async () => {
+  const auth = deferred(), cache = deferred(), reads = [];
+  const h = harness({ getSession: () => auth.promise, getItem: key => {
+    reads.push(key); return key === 'pc-profile-cache' ? cache.promise : Promise.resolve(null);
+  } });
+  h.responses.push(deferred().promise);
+  const init = h.state.initialize(); await flush();
+  assert.ok(reads.includes('pc-profile-cache'));
+  cache.resolve(JSON.stringify(profile('a'))); await flush();
+  assert.equal(h.state.profile, null, 'local profile must remain hidden before session resolution');
+  auth.resolve({ data: { session: session('a') } }); await init;
+  assert.equal(h.state.profile.id, 'a'); assert.equal(h.state.loading, false);
+  assert.equal(reads.filter(key => key === 'pc-profile-cache').length, 1);
+});
+test('parallel cached profile cannot cross an account change while initial Auth is pending', async () => {
+  const auth = deferred();
+  const h = harness({ getSession: () => auth.promise, cached: profile('a') });
+  const init = h.state.initialize(); await flush();
+  h.emit('SIGNED_IN', session('b')); await h.tick();
+  auth.resolve({ data: { session: session('a') } }); await init;
+  assert.equal(h.state.session.user.id, 'b'); assert.equal(h.state.profile.id, 'b');
+});
 test('token refresh preserves the current profile on a returned network error', async () => {
   const h = await ready(); h.responses.push({ data: null, error: { message: 'offline' } });
   h.emit('TOKEN_REFRESHED', session('a', 'new')); await h.tick();

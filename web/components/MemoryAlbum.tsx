@@ -413,6 +413,7 @@ function ManageAlbum({ album, ownerId, onClose }: { album: MemoryAlbum; ownerId:
   const [design,setDesign]=useState(album.cover_design??'keepsake');
   const [subtitle,setSubtitle]=useState(album.subtitle??'');
   const [coverStoryId,setCoverStoryId]=useState<string|null>(album.cover_story_id??null);
+  const draftCoverMedia=memoryCoverMedia(memoryCoverPage(album.pages,coverStoryId));
   const [error,setError]=useState('');
   const [busy,setBusy]=useState(false);
   const [color, setColor] = useState(album.cover_color);
@@ -463,7 +464,7 @@ function ManageAlbum({ album, ownerId, onClose }: { album: MemoryAlbum; ownerId:
 
         <p className="mb-2 text-xs font-semibold uppercase text-muted">Cover design</p>
         <div className="mb-4 flex gap-4 overflow-x-auto p-2">{MEMORY_DESIGNS.map(d=><button key={d.id} aria-label={`${d.label} cover design`} aria-pressed={design===d.id} onClick={()=>setDesign(d.id)} className={design===d.id?'':'opacity-45'}><MemoryBookCover artwork={coverArtwork} title={title||'Memories'} subtitle={subtitle} color={color} design={d.id} {...memoryCoverMedia(memoryCoverPage(album.pages,coverStoryId))} width={74} height={97}/><span className="mt-2 block whitespace-nowrap text-xs">{d.label}</span></button>)}</div>
-        <MemoryCoverControls value={coverArtwork} onChange={setCoverArtwork} hasPhoto={!!memoryCoverPage(album.pages,coverStoryId)} disabled={busy}/><MemoryFilmControls value={filmSettings} onChange={setFilmSettings} disabled={busy}/>
+        <MemoryCoverControls value={coverArtwork} onChange={setCoverArtwork} hasPhoto={!!(draftCoverMedia.photoUrl||draftCoverMedia.videoUrl)} disabled={busy}/><MemoryFilmControls value={filmSettings} onChange={setFilmSettings} disabled={busy}/>
         <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted">Who can open it</p>
         <div className="mb-4 flex flex-col gap-1.5">
           {AUDIENCES.map((a) => (

@@ -240,6 +240,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
       });
       try {
         // Fetch the session alongside local link/cache metadata, not after it.
+        const profileCacheWork = AsyncStorage.getItem('pc-profile-cache').catch(() => null);
         const sessionWork = Promise.race([
           supabase.auth.getSession().then(({ data: auth }) => auth.session), initialSession,
         ]);
@@ -258,7 +259,7 @@ export const useAuthStore = create<AuthState>((set, get) => {
         if (!session) { clearSession(false); return; }
         let cachedProfile: Profile | null = null;
         try {
-          const raw = await withTimeout(AsyncStorage.getItem('pc-profile-cache'), 1000, null);
+          const raw = await withTimeout(profileCacheWork, 1000, null);
           const cached = raw ? JSON.parse(raw) : null;
           if (cached?.id === session.user.id) cachedProfile = cached;
         } catch {}

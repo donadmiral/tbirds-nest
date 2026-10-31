@@ -25,9 +25,9 @@ permissions:
 
 concurrency:
   group: native-app-ui-${{ github.event.pull_request.number || github.ref }}
-  # Retain the running full-app acceptance result while a newer candidate waits.
-  # Native encoder fixes must not repeatedly cancel a nearly completed app build.
-  cancel-in-progress: false
+  # A repaired app must not wait behind a build with a known startup failure.
+  # Source edits replace obsolete full-app runs; documentation-only commits do not trigger this workflow.
+  cancel-in-progress: true
 
 env:
   CI: 'true'
