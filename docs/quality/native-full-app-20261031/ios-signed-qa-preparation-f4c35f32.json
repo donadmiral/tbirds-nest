@@ -1,0 +1,247 @@
+{
+  "schemaVersion": 1,
+  "observedBy": "hosted_backend",
+  "recordedAtUtc": "2026-10-31 15:10:30 UTC",
+  "status": "Source and read-only CLI preparation complete; no signed build initiated",
+  "source": {
+    "repository": "donadmiral/tbirds-nest",
+    "head": "f4c35f32795be5f196840c37382143a2d7e33d55",
+    "prMerge": "6f3204cd44996dfe66ffe2dcf7192543805aa912",
+    "tree": "7699f995aa8e5192658f785258eb48f408af6a39",
+    "mainWorktree": "/workspace/scratch/f9638ed3020b/platinum-circles",
+    "detachedWorktree": "/workspace/scratch/f9638ed3020b/platinum-circles-signed-qa-f4c35f32",
+    "creationCommand": "git worktree add --detach /workspace/scratch/f9638ed3020b/platinum-circles-signed-qa-f4c35f32 f4c35f32795be5f196840c37382143a2d7e33d55",
+    "detached": true,
+    "clean": true,
+    "sourceProjection": {
+      "head": "f4c35f32795be5f196840c37382143a2d7e33d55",
+      "tree": "7699f995aa8e5192658f785258eb48f408af6a39",
+      "detached": true,
+      "gitStatus": "",
+      "projectDependenciesInstalled": false,
+      "resolvedConfig": {
+        "name": "Platinum QA",
+        "slug": "platinum-circles",
+        "owner": "donadmiral",
+        "scheme": "platinum-circles-qa",
+        "marketingVersion": "1.1.0",
+        "iosBundleIdentifier": "app.platinumcircles.mobile.qa",
+        "androidPackage": "app.platinumcircles.mobile.qa",
+        "projectId": "6962a2bb-3ebe-4ff8-8d35-e4fb58271259",
+        "environment": "qa",
+        "qaBackendMatches": true,
+        "qaFirebaseFileSelected": false
+      },
+      "profile": {
+        "name": "preview",
+        "distribution": "internal",
+        "channel": "qa-preview",
+        "environment": "preview",
+        "autoIncrement": true,
+        "iosSimulator": false,
+        "androidBuildType": "apk",
+        "committedEnvNames": [
+          "EXPO_PUBLIC_APP_ENV",
+          "EXPO_PUBLIC_GIPHY_KEY",
+          "EXPO_PUBLIC_PRIVATE_MEDIA_SESSIONS_ENABLED",
+          "EXPO_PUBLIC_SUPABASE_ANON_KEY",
+          "EXPO_PUBLIC_SUPABASE_URL"
+        ],
+        "privateMediaSessionsEnabled": "false"
+      },
+      "version": {
+        "marketingVersion": "1.1.0",
+        "localIosBuildNumber": "1",
+        "appVersionSource": "remote",
+        "remoteNextBuildNumberObserved": false
+      },
+      "submitProfileNames": [
+        "production"
+      ],
+      "sha256": {
+        "app.json": "129b756b7bf5e6e1b6b456bbe982f63923b83b0568fa41cac6721a892ea555c2",
+        "app.config.js": "b59c5ad8fca40e523557e3de9e23f296fc78b7b735d34084a31da6a579cee710",
+        "eas.json": "2743117e9493cb0e2ef3eb452f3c7bf166700adf0ac4088a3dcc5ba89e85efd7",
+        "package.json": "ff7c1c59d4c9d435eb97c5b0fb328b3c02871de6e5c210a0ce848bff84b132bd",
+        "package-lock.json": "647ee46e04dee88a568cafb274dfc3172795efca34eaf8407cd86a8fe3a7ca40",
+        ".easignore": "9c57368cd63ca32d8cce18c532b4f9275192edc6bb61209c40dec13715f82ae1",
+        "index.js": "b6c80d0b280a2446862ee5a19cbfcaff39d551d353ac3a9abf090680570a11e0",
+        "modules/boomerang/ios/BoomerangModule.swift": "6e31a63649cf96a87caa9abf33c31492fafd2ff4ef18602c21808803d1e57967",
+        "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237",
+        "shared/musicAvailability.ts": "4d5685745d2ddfc3941fbee61e404a5f05b3620ff30b4c8c928af968205af157"
+      }
+    }
+  },
+  "cli": {
+    "package": "eas-cli",
+    "version": "27.2.0",
+    "cache": "/tmp/platinum-eas-cli-cache",
+    "versionOutput": "eas-cli/27.2.0 linux-x64 node-v24.22.1",
+    "node": "v24.22.1",
+    "npm": "11.9.0",
+    "installation": {
+      "initialRestrictedAttempt": "Registry connection failed with EPERM; its final exit code was not retained. The original process was no longer available before the supported retry.",
+      "scopedNetworkPermissionAttemptExitCode": 0,
+      "scope": "Pinned public CLI package in the temporary cache only; no project dependency or lockfile changes"
+    },
+    "publicSourceSha256": {
+      "package.json": "a2a0e5b817c9d976029d27c56903455e3ab5b24c0ba38cedc32f993cecfe303c",
+      "build/commands/account/view.js": "2168e00374d3275018dce52234d7d5e2c5081afb6b15e7fe7a3b10493930d25b",
+      "build/commands/build/index.js": "06eeef607d832af939cca680061b8a61c7b39e2680425a8a39a9b07e598e66e1",
+      "build/commands/build/inspect.js": "24bc0d76b90274576d1e108376028f3160c938bf46cfe29856235e0813fe733c"
+    },
+    "rawCommandOutputMetadata": {
+      "version": {
+        "path": "/tmp/platinum-eas-cli-version.txt",
+        "bytes": 2060,
+        "sha256": "84df3c356683957344f12b63c8842def1ffd2a76a80c965c3aba684fceb8b735"
+      },
+      "whoamiHelp": {
+        "path": "/tmp/platinum-eas-whoami-help.txt",
+        "bytes": 239,
+        "sha256": "c11dc3745b14cbe234b2f575899f5f43c60c0fb0879ee630d016b1770c3b35af"
+      },
+      "buildHelp": {
+        "path": "/tmp/platinum-eas-build-help.txt",
+        "bytes": 4241,
+        "sha256": "1c54bf81781cc4c63cc4d473557196b8c34acd62c9d8a07df2d1147a725968fa"
+      },
+      "whoami": {
+        "path": "/tmp/platinum-eas-whoami-f4.txt",
+        "bytes": 113,
+        "sha256": "1791caa832e1a06bea425af9314f75d7fc92ab39e8a65335e3c4b7833b74d408"
+      }
+    },
+    "helpReviewed": [
+      "whoami --help",
+      "build --help"
+    ],
+    "publicSourceReviewed": [
+      "build/commands/account/view.js",
+      "build/commands/build/index.js",
+      "build/commands/build/inspect.js"
+    ],
+    "whoamiBehavior": "Public implementation uses MaybeLoggedIn with nonInteractive:true; absent actor logs Not logged in and exits 1.",
+    "buildFlagsVerified": [
+      "--platform ios",
+      "--profile preview",
+      "--non-interactive",
+      "--freeze-credentials",
+      "--no-wait",
+      "--json"
+    ],
+    "archiveBoundary": "build:inspect requests LoggedIn and DynamicProjectConfig before its archive branch. It and its internals were not invoked.",
+    "retainedPublicOutputs": [
+      {
+        "path": "docs/quality/native-full-app-20261031/signed-qa-f4c35f32/eas-build-help.txt",
+        "bytes": 4241,
+        "sha256": "1c54bf81781cc4c63cc4d473557196b8c34acd62c9d8a07df2d1147a725968fa"
+      },
+      {
+        "path": "docs/quality/native-full-app-20261031/signed-qa-f4c35f32/eas-version.txt",
+        "bytes": 39,
+        "sha256": "ba4630599e8f02cfc5706dd1cd21844c9b13d3040c0c0ca98dbd53e69a36f070"
+      },
+      {
+        "path": "docs/quality/native-full-app-20261031/signed-qa-f4c35f32/eas-whoami-help.txt",
+        "bytes": 239,
+        "sha256": "c11dc3745b14cbe234b2f575899f5f43c60c0fb0879ee630d016b1770c3b35af"
+      },
+      {
+        "path": "docs/quality/native-full-app-20261031/signed-qa-f4c35f32/eas-whoami.txt",
+        "bytes": 113,
+        "sha256": "1791caa832e1a06bea425af9314f75d7fc92ab39e8a65335e3c4b7833b74d408"
+      }
+    ]
+  },
+  "authentication": {
+    "command": "npm exec --offline --yes --cache /tmp/platinum-eas-cli-cache --package=eas-cli@27.2.0 -- eas whoami",
+    "exitCode": 1,
+    "accountResult": "Not logged in",
+    "observedWindowUtc": {
+      "after": "2026-10-31T15:07:00Z",
+      "before": "2026-10-31T15:07:52Z",
+      "precision": "Window enclosing invocation and terminal-result observation; exact command start/end were not separately recorded"
+    },
+    "additionalOutput": "npm warning about the http-proxy configuration key; no configuration values printed",
+    "interpretation": "No usable Expo CLI account session was observed in this environment. Browser sign-in and remote credential validity are separate and were not rechecked.",
+    "loginInvoked": false,
+    "pairingInvoked": false,
+    "appleSignInRetried": false,
+    "credentialFilesInspected": false
+  },
+  "configVerification": {
+    "method": "Read committed JSON and invoke the committed pure app.config.js function in a child process with only PATH, EAS_BUILD=true, and the committed preview APP_ENV/backend URL. Output was restricted to public identifiers and booleans.",
+    "owner": "donadmiral",
+    "projectId": "6962a2bb-3ebe-4ff8-8d35-e4fb58271259",
+    "profile": "preview",
+    "distribution": "internal",
+    "bundleIdentifier": "app.platinumcircles.mobile.qa",
+    "qaBackendVerified": true,
+    "remoteEnvironmentInspected": false,
+    "qaFirebaseFileInSanitizedEvaluation": false,
+    "limits": [
+      "This is tracked-source resolution, not authenticated EAS project access or full Expo config-plugin/archive validation.",
+      "The sanitized evaluation did not select any optional Firebase file and makes no claim about remote environment file variables.",
+      "Remote appVersionSource and autoIncrement are configured; local iOS buildNumber 1 does not establish the next hosted build number.",
+      "Preview is an internal QA device build, not a TestFlight submission; only a production submit profile is present."
+    ]
+  },
+  "dependencies": {
+    "projectNodeModulesInstalled": false,
+    "reason": "The read-only CLI check and committed config resolver do not need project dependencies. No optional tests or full plugin/archive inspection was requested.",
+    "lockedInstallIfNeededBeforeALaterAuthorizedBuild": "npm ci --ignore-scripts --no-fund --no-audit",
+    "lockfileSha256": "647ee46e04dee88a568cafb274dfc3172795efca34eaf8407cd86a8fe3a7ca40",
+    "note": "A later build preparation may require locked local dependencies for config-plugin resolution. That dependency restoration and resolution have not been attested here."
+  },
+  "preparedBuild": {
+    "cwd": "/workspace/scratch/f9638ed3020b/platinum-circles-signed-qa-f4c35f32",
+    "command": "npm exec --offline --yes --cache /tmp/platinum-eas-cli-cache --package=eas-cli@27.2.0 -- eas build --platform ios --profile preview --non-interactive --freeze-credentials --no-wait --json",
+    "executed": false,
+    "purpose": "Eventual signed internal QA iPhone build using the existing preview profile",
+    "constraints": [
+      "Obtain a supported authorized Expo CLI session first; no authentication was initiated by this task.",
+      "Complete or explicitly resolve current full-native acceptance before releasing this candidate.",
+      "Remote credentials and target-device membership must already support the QA ad-hoc profile; these were not inspected here.",
+      "The command does not request credential refresh or auto-submit. --freeze-credentials prevents credential updates in non-interactive mode but does not prove existing credentials remain valid.",
+      "Starting this command would queue a provider build and may advance the remote build version; it remains unexecuted."
+    ]
+  },
+  "gates": {
+    "productionMemoryMovieVersion": {
+      "ios": 0,
+      "android": 0
+    },
+    "commercialMusicLicensingChanged": false,
+    "privateMediaSessionsEnabled": false,
+    "currentFullNativeAcceptance": "Incomplete. The current f4 Android job failed after an emulator-process segmentation fault; the current iPhone result was not yet available to this review.",
+    "sourceConfigurationOrCapabilityChanged": false
+  },
+  "actionsNotPerformed": [
+    "login or device pairing",
+    "Apple sign-in",
+    "remote project or environment lookup",
+    "archive or logged-in archive internals",
+    "build or submission",
+    "credential creation, refresh, or revocation",
+    "profile/environment/capability changes",
+    "backend provider calls",
+    "branch ref movement or push"
+  ],
+  "officialDocumentation": [
+    {
+      "url": "https://docs.expo.dev/eas/cli/",
+      "reference": "turn58view0",
+      "basis": "Current official CLI documentation and supported account-view/whoami alias; installed pinned public help/code was separately reviewed."
+    }
+  ],
+  "finalLocalIntegrity": {
+    "mainHead": "f4c35f32795be5f196840c37382143a2d7e33d55",
+    "mainTree": "7699f995aa8e5192658f785258eb48f408af6a39",
+    "mainTrackedApplicationSourceDiff": "",
+    "detachedHead": "f4c35f32795be5f196840c37382143a2d7e33d55",
+    "detachedGitStatus": "",
+    "dependencyLockChanged": false,
+    "reportEditedByThisTask": false
+  }
+}

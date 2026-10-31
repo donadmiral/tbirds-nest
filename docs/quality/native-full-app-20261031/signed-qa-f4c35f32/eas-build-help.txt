@@ -1,0 +1,75 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+start a build
+
+USAGE
+  $ eas build [-p android|ios|all] [-e PROFILE_NAME] [--local]
+    [--output <value>] [--wait] [--clear-cache] [-s | --auto-submit-with-profile
+    PROFILE_NAME] [--what-to-test <value>] [-m <value>] [--build-logger-level
+    trace|debug|info|warn|error|fatal] [--freeze-credentials]
+    [--refresh-ad-hoc-provisioning-profile] [--verbose-logs] [--json]
+    [--non-interactive]
+
+FLAGS
+  -e, --profile=PROFILE_NAME                   Name of the build profile from
+                                               eas.json. Defaults to
+                                               "production" if defined in
+                                               eas.json.
+  -m, --message=<value>                        A short message describing the
+                                               build
+  -p, --platform=<option>                      <options: android|ios|all>
+  -s, --auto-submit                            Submit on build complete using
+                                               the submit profile with the same
+                                               name as the build profile
+      --auto-submit-with-profile=PROFILE_NAME  Submit on build complete using
+                                               the submit profile with provided
+                                               name
+      --build-logger-level=<option>            The level of logs to output
+                                               during the build process.
+                                               Defaults to "info".
+                                               <options: trace|debug|info|warn|e
+                                               rror|fatal>
+      --clear-cache                            Clear cache before the build
+      --freeze-credentials                     Prevent the build from updating
+                                               credentials in non-interactive
+                                               mode
+      --json                                   Enable JSON output, non-JSON
+                                               messages will be printed to
+                                               stderr. Implies
+                                               --non-interactive.
+      --local                                  Run build locally [experimental]
+      --non-interactive                        Run the command in
+                                               non-interactive mode.
+      --output=<value>                         Output path for local build
+      --refresh-ad-hoc-provisioning-profile    Refresh managed ad-hoc
+                                               provisioning profiles from App
+                                               Store Connect before gathering
+                                               build credentials
+      --verbose-logs                           Use verbose logs for the build
+                                               process
+      --[no-]wait                              Wait for build(s) to complete
+      --what-to-test=<value>                   Specify the "What to Test"
+                                               information for the build in
+                                               TestFlight (iOS-only). To be used
+                                               with the `auto-submit` flag
+
+DESCRIPTION
+  start a build
+
+TOPICS
+  build:version  get the latest version from EAS servers
+
+COMMANDS
+  build:cancel     cancel a build
+  build:configure  configure the project to support EAS Build
+  build:delete     delete a build
+  build:dev        run dev client simulator/emulator build with matching
+                   fingerprint or create a new one
+  build:download   download a simulator/emulator build by build ID or
+                   fingerprint hash
+  build:inspect    inspect the state of the project at specific build stages,
+                   useful for troubleshooting
+  build:list       list all builds for your project
+  build:resign     re-sign a build archive
+  build:run        run simulator/emulator builds from eas-cli
+  build:view       view a build for your project
+

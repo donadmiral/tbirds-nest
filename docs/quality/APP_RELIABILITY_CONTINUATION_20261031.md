@@ -21,14 +21,95 @@ verified tree `7699f995aa8e5192658f785258eb48f408af6a39`. The four repairs below
 are included in that source. The earlier isolated checkpoint is preserved in
 its history; it is no longer merely a proposed follow-up.
 
-Fresh [complete-native run 41211437305](https://github.com/donadmiral/tbirds-nest/actions/runs/41211437305),
-[browser run 41211437263](https://github.com/donadmiral/tbirds-nest/actions/runs/41211437263)
-and [type/quality run 41211437271](https://github.com/donadmiral/tbirds-nest/actions/runs/41211437271)
-were launched on this source. At the **14:50 UTC** read-only status snapshot,
-the new acceptance work remains in progress. No new native pass is claimed.
-The observations immediately below belong to the preceding `6878c384`
-application, whose Android and iPhone complete-app jobs both finished with
-failed acceptance.
+All four supporting workflows on this published source have now completed
+successfully: [type/quality](https://github.com/donadmiral/tbirds-nest/actions/runs/41211437271),
+[browser interaction/media](https://github.com/donadmiral/tbirds-nest/actions/runs/41211437263),
+[Android compilation/encoders](https://github.com/donadmiral/tbirds-nest/actions/runs/41211437311)
+and [iOS compilation/encoders](https://github.com/donadmiral/tbirds-nest/actions/runs/41211437309).
+The Android job in
+[complete-native run 41211437305](https://github.com/donadmiral/tbirds-nest/actions/runs/41211437305)
+has now finished with **failed acceptance after emulator host loss**. Its
+16-minute-14-second native build succeeded. Home, Market, Jobs, Messages and both
+Profile content assertions passed, with five actual page screenshots retained.
+The first scroll toward View all memory books then lost the device transport;
+no shelf-link tap, film, book settings or export acceptance was reached. The
+host shell explicitly reported an emulator-process **SIGSEGV**. The retained
+logs do not identify the faulting component or establish an application cause.
+
+The new centering option was present in the executed scroll command, but the
+lost device prevented testing the subsequent tap. All four exported auth and
+fixture snapshots are empty, and no failure hierarchy or screenshot could be
+captured after transport loss. This run supplies no fresh timer, request-count,
+saved-account-readback or capture-cleanup acceptance. The separate required
+capture invocation was attempted and reported that the emulator was not
+connected; no capture or movie resulted. The failure gates remain intact.
+
+At the native owner's **15:13:43 UTC** observation, the current iPhone job was
+still executing its full-app script. Complete installed-app acceptance and
+milestone 6 remain open. The earlier `6878c384` Android and iPhone failures are
+retained below under their own source identity.
+
+### Fresh supporting verification on published f4c35f32
+
+| Gate on the current source | Observed result |
+| --- | --- |
+| Root regression CI | **1,771 passed**, zero failures, cancellations, skips or todos |
+| Web and operations regressions | **683 and 195 passed**, with no failures or skips |
+| TypeScript and Edge | All three TypeScript stages passed; two Edge TLS cases passed |
+| Backend fixtures | **314 Node and 883 RPC cases passed**, with three conditional skips in each mode; all six skipped cases have passing counterparts |
+| Browser UI | **131 journeys passed**: 37 admin, 41 web, 25 commerce, 25 Studio and three real-Next journeys |
+| Browser media and layouts | 12 story, 25 memory, five music and five cover-editor cases passed; 288 layouts had no measured overflow or overlap; CI reported 18 encoded outputs |
+| Standalone native encoders | **58 passed**: 39 Android, eight iOS story and 11 iOS memory cases |
+| Standalone unsigned native compiler jobs | Android and iOS passed in **721 and 872 seconds** respectively |
+| Complete installed native apps | Android failed after confirmed emulator-process SIGSEGV; iPhone remained active at 15:13:43 UTC; milestone 6 remains open |
+
+The root CI total includes one file-level wrapper for the standalone auth
+program. It therefore reports **1,771 cases**, while the unchanged final local
+gate records **1,770 formal cases plus the separate 33-check auth program**.
+Those counts use different reporting methods and are not added together.
+
+The fresh browser archive digest and 24 source hashes were verified. The actual
+Next route probe retained navigation across **163 sampled frames**, including
+43 fallback frames, with zero frames without navigation. Warm Home, Messages,
+Jobs and Profile fixtures reported zero blank-content frames. Home's first
+observed destination frame was **202.6 ms**, with a maximum sampled interval of
+183.4 ms in this CI run. These retained values are scoped to synthetic component
+routing or the local development App Router; they do not measure production
+network latency, device GPU frame times or universal app speed. The browser job
+completed in 444 seconds and its real-Next step in 13 seconds. Its movie binaries
+were not retained in the archive, so this review did not independently decode
+the 18 CI outputs again.
+
+Fresh standalone encoder counts come from the completed authenticated job logs
+and their required harnesses. Their current archives were not downloaded or
+independently decoded by the reviewer. Of 65 compared native engine, harness,
+dependency and configuration files, 64 match `6878c384`; the sole change is the
+reviewed TypeScript movie-request bridge. The Swift/Kotlin engines and standalone
+harnesses are unchanged, and their successful direct tests do not establish the
+repaired installed-app JavaScript-to-native handoff.
+
+Both unsigned compiler jobs also passed. The Android log supplies the current
+checkout and native-source postflight. The iOS result is bound to completed
+workflow/job metadata and the exact source/configuration; its current archive,
+receipt and compiled-object hashes were not independently opened. Compiler and
+encoder gates do not establish complete app navigation, saved-account readback,
+Photos save, a signed release build or physical-device acceptance.
+
+The fresh hosted QA checks at **14:53:56 and 14:54:01 UTC** still show the exact
+stage-3 catalogue and migration history. They do not resolve either original
+stage-4 invocation's unknown terminal outcome. Dependent activation remains held,
+and commercial music licensing remains disabled, as described in the hosted
+backend section.
+
+[Current publication and source binding](live-app-20261031/publication-f4c35f32.json) ·
+[Fresh quality receipt](live-app-20261031/ci-quality-f4c35f32.json) ·
+[Fresh browser receipt](live-app-20261031/browser-quality-f4c35f32.json) ·
+[Fresh standalone encoder evidence](native-full-app-20261031/native-encoders-f4c35f32-status-and-source-equivalence.json) ·
+[Fresh compiler evidence](native-full-app-20261031/native-compile-f4c35f32-status.json) ·
+[Current hosted postflight](live-app-20261031/backend-stage3-postflight-f4c35f32.json) ·
+[Current Android full-app result](native-full-app-20261031/android-full-app-f4c35f32-review.json) ·
+[Current Android navigation evidence](native-full-app-20261031/android-f4c35f32-navigation-independent-review.json) ·
+[Current emulator host-loss investigation](native-full-app-20261031/android-full-app-f4c35f32-emulator-disappearance.json)
 
 ### What the Android baseline established
 
@@ -1016,7 +1097,7 @@ controlled Maestro responses verify orchestration rather than native runtime.
 ## Hosted backend status
 
 The latest saved read-only QA business-auth postflight observed private stage 3.
-The catalogue check at 07:22:04 UTC and migration-history check at 07:22:01 UTC
+The catalogue check at 14:54:01 UTC and migration-history check at 14:53:56 UTC
 on 2026-10-31 still matched the expected catalogue fingerprint
 `2f92a9d038364736fa2413bb6d05a160`.
 
@@ -1024,23 +1105,24 @@ It verified 99 catalogue records, unchanged migration names/versions/SQL hashes,
 no stage 4 private function, no music schema, no notification-event jobs or claim
 function, and no active matching business-auth statement.
 
-[Current read-only postflight](live-app-20261031/backend-stage3-postflight-6878c384.json) ·
-[Previous read-only observation](live-app-20261031/backend-stage3-postflight-e173b2db.json)
+[Current read-only postflight](live-app-20261031/backend-stage3-postflight-f4c35f32.json) ·
+[Previous read-only observation](live-app-20261031/backend-stage3-postflight-6878c384.json) ·
+[Earlier read-only observation](live-app-20261031/backend-stage3-postflight-e173b2db.json)
 
-The next migration invocation never returned a success, error, approval form or
-rejection. Interrupting the local wait did not prove remote cancellation. The
-independent postflight found no stage 4 installation. No alternate SQL bridge,
-confirmation bypass or downstream activation followed.
+Neither retained original stage-4 migration invocation has an independently
+established terminal outcome. Interrupting a local wait did not prove remote
+cancellation. The new independent postflight again found no stage 4 installation.
+No alternate SQL bridge, confirmation bypass or downstream activation followed.
 
 The unchanged catalogue and zero matching active statements establish the
 observed database state, not a terminal connector outcome or the absence of a
-queued request. The retained attempt has no provider request ID, recoverable
+queued request. Neither retained attempt exposes a provider request ID, recoverable
 confirmation state, terminal result, or confirmed remote cancellation. The
 exposed migration tool has no request-state/resume parameter. No approval
 rejection or pending approval is established. The exact stage-4 SQL retains its
 transaction and stage/fingerprint safeguards, but those do not demonstrate safe
 concurrent retry. Another invocation is held pending resolution of the original
-request state; the detailed assessment preserves the conditional next steps.
+request states; the detailed assessment preserves the conditional next steps.
 
 [Request-state and retry-safety assessment](live-app-20261031/backend-stage4-request-state-assessment.json)
 

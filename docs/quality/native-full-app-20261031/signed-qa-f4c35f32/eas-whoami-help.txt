@@ -1,0 +1,12 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+show the username you are logged in as
+
+USAGE
+  $ eas whoami
+
+DESCRIPTION
+  show the username you are logged in as
+
+ALIASES
+  $ eas whoami
+

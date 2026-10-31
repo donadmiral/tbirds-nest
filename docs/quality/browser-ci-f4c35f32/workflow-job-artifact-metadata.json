@@ -1,0 +1,191 @@
+{
+  "workflow": {
+    "id": 41211437263,
+    "name": "Browser interaction and video gates",
+    "status": "completed",
+    "conclusion": "success",
+    "head_sha": "f4c35f32795be5f196840c37382143a2d7e33d55",
+    "html_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41211437263",
+    "path": ".github/workflows/browser-quality.yml",
+    "run_number": 32,
+    "run_attempt": 1,
+    "created_at": "2026-10-31T14:43:18Z",
+    "updated_at": "2026-10-31T14:50:45Z",
+    "run_started_at": "2026-10-31T14:43:18Z"
+  },
+  "job": {
+    "id": 124567097138,
+    "name": "Connected app, Studio, admin and encoded movies",
+    "status": "completed",
+    "conclusion": "success",
+    "head_sha": "f4c35f32795be5f196840c37382143a2d7e33d55",
+    "started_at": "2026-10-31T14:43:20Z",
+    "completed_at": "2026-10-31T14:50:44Z",
+    "html_url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41211437263/job/124567097138",
+    "steps": [
+      {
+        "name": "Set up job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 1,
+        "started_at": "2026-10-31T14:43:22Z",
+        "completed_at": "2026-10-31T14:43:22Z"
+      },
+      {
+        "name": "Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 2,
+        "started_at": "2026-10-31T14:43:22Z",
+        "completed_at": "2026-10-31T14:43:28Z"
+      },
+      {
+        "name": "Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 3,
+        "started_at": "2026-10-31T14:43:28Z",
+        "completed_at": "2026-10-31T14:43:33Z"
+      },
+      {
+        "name": "Install locked browser and admin dependencies",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 4,
+        "started_at": "2026-10-31T14:43:33Z",
+        "completed_at": "2026-10-31T14:44:59Z"
+      },
+      {
+        "name": "Install browser and media verification tools",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 5,
+        "started_at": "2026-10-31T14:44:59Z",
+        "completed_at": "2026-10-31T14:46:22Z"
+      },
+      {
+        "name": "Exercise actual admin components",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 6,
+        "started_at": "2026-10-31T14:46:22Z",
+        "completed_at": "2026-10-31T14:46:35Z"
+      },
+      {
+        "name": "Exercise public-web navigation, account changes and recovery",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 7,
+        "started_at": "2026-10-31T14:46:35Z",
+        "completed_at": "2026-10-31T14:47:09Z"
+      },
+      {
+        "name": "Exercise real Next cold-route navigation and held server responses",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 8,
+        "started_at": "2026-10-31T14:47:09Z",
+        "completed_at": "2026-10-31T14:47:22Z"
+      },
+      {
+        "name": "Exercise jobs, application review, market offers and orders",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 9,
+        "started_at": "2026-10-31T14:47:22Z",
+        "completed_at": "2026-10-31T14:47:40Z"
+      },
+      {
+        "name": "Exercise Studio approval, campaign and creator journeys",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 10,
+        "started_at": "2026-10-31T14:47:40Z",
+        "completed_at": "2026-10-31T14:47:52Z"
+      },
+      {
+        "name": "Export and decode actual graded story video",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 11,
+        "started_at": "2026-10-31T14:47:52Z",
+        "completed_at": "2026-10-31T14:48:11Z"
+      },
+      {
+        "name": "Export and decode full memory movies and audio mixes",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 12,
+        "started_at": "2026-10-31T14:48:11Z",
+        "completed_at": "2026-10-31T14:49:56Z"
+      },
+      {
+        "name": "Exercise book design, persistence, conflicts and account changes",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 13,
+        "started_at": "2026-10-31T14:49:56Z",
+        "completed_at": "2026-10-31T14:50:11Z"
+      },
+      {
+        "name": "Verify private original uploads, microphone capture and retained music exports",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 14,
+        "started_at": "2026-10-31T14:50:11Z",
+        "completed_at": "2026-10-31T14:50:39Z"
+      },
+      {
+        "name": "Keep synthetic browser evidence",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 15,
+        "started_at": "2026-10-31T14:50:39Z",
+        "completed_at": "2026-10-31T14:50:42Z"
+      },
+      {
+        "name": "Post Run actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 29,
+        "started_at": "2026-10-31T14:50:42Z",
+        "completed_at": "2026-10-31T14:50:42Z"
+      },
+      {
+        "name": "Post Run actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 30,
+        "started_at": "2026-10-31T14:50:42Z",
+        "completed_at": "2026-10-31T14:50:42Z"
+      },
+      {
+        "name": "Complete job",
+        "status": "completed",
+        "conclusion": "success",
+        "number": 31,
+        "started_at": "2026-10-31T14:50:42Z",
+        "completed_at": "2026-10-31T14:50:42Z"
+      }
+    ]
+  },
+  "artifact": {
+    "id": 13046507854,
+    "name": "browser-quality-evidence",
+    "size_in_bytes": 9285987,
+    "url": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/artifacts/13046507854",
+    "archive_download_url": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/artifacts/13046507854/zip",
+    "expired": false,
+    "created_at": "2026-10-31T14:50:41Z",
+    "expires_at": "2026-11-07T14:50:39Z",
+    "updated_at": "2026-10-31T14:50:41Z",
+    "digest": "sha256:2888832009eef785985eaedb43149f262576317b59554854f0ac4bbf47e404b0",
+    "workflow_run": {
+      "id": 41211437263,
+      "repository_id": 1314826575,
+      "head_repository_id": 1314826575,
+      "head_branch": "codex/app-quality-20261029",
+      "head_sha": "f4c35f32795be5f196840c37382143a2d7e33d55"
+    }
+  }
+}

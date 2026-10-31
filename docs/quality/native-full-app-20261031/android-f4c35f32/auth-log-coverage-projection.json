@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "sourceAppLog": {
+    "artifactRelativePath": "app.log",
+    "bytes": 1479730,
+    "sha256": "3cc4172ad7ab6da0d4e3447b98294e0dddfc2f4a5db9fc6c4e19da664dbf7905",
+    "lineCount": 4144
+  },
+  "allReactNativeJsLines": [
+    {
+      "line": 1580,
+      "text": "10-31 15:02:39.200  2559  2612 I ReactNativeJS: MediaDevices _registerEvents invoked"
+    },
+    {
+      "line": 1582,
+      "text": "10-31 15:02:39.206  2559  2612 W ReactNativeJS: `new NativeEventEmitter()` was called with a non-null argument without the required `addListener` method."
+    },
+    {
+      "line": 1583,
+      "text": "10-31 15:02:39.207  2559  2612 W ReactNativeJS: `new NativeEventEmitter()` was called with a non-null argument without the required `removeListeners` method."
+    },
+    {
+      "line": 1584,
+      "text": "10-31 15:02:39.208  2559  2612 W ReactNativeJS: `new NativeEventEmitter()` was called with a non-null argument without the required `addListener` method."
+    },
+    {
+      "line": 1585,
+      "text": "10-31 15:02:39.208  2559  2612 W ReactNativeJS: `new NativeEventEmitter()` was called with a non-null argument without the required `removeListeners` method."
+    },
+    {
+      "line": 1590,
+      "text": "10-31 15:02:39.278  2559  2612 I ReactNativeJS: '[NativeCalls] gate', '{\"build\":0,\"expoGo\":false,\"enabled\":true}'"
+    },
+    {
+      "line": 1601,
+      "text": "10-31 15:02:39.364  2559  2612 W ReactNativeJS: [expo-av]: Expo AV has been deprecated and will be removed in SDK 54. Use the `expo-audio` and `expo-video` packages to replace the required functionality."
+    },
+    {
+      "line": 1602,
+      "text": "10-31 15:02:39.389  2559  2612 I ReactNativeJS: Running \"main\""
+    },
+    {
+      "line": 1603,
+      "text": "10-31 15:02:39.390  2559  2612 I ReactNativeJS: MediaDevices => mediaDevicesOnDeviceChange"
+    },
+    {
+      "line": 2429,
+      "text": "10-31 15:02:56.960  2559  2612 I ReactNativeJS: Must use physical device for push notifications"
+    },
+    {
+      "line": 2442,
+      "text": "10-31 15:02:57.081  2559  2612 I ReactNativeJS: '[accounts] index', 1"
+    },
+    {
+      "line": 2445,
+      "text": "10-31 15:02:57.116  2559  2612 I ReactNativeJS: '[accounts] index', 1"
+    }
+  ],
+  "searchPatterns": {
+    "processLockAcquisitionTimeout": "processLock.*timed out|lock.*acquisition.*timed out|acquire.*lock.*timed out|LockAcquisitionTimeout|Acquiring an exclusive Navigator LockManager lock",
+    "multipleAuthClientWarning": "Multiple GoTrueClient",
+    "appFatalOrAnr": "FATAL EXCEPTION|Fatal signal|ANR in app.platinumcircles",
+    "accountsInit": "\\[accounts\\] init",
+    "accountsIndex": "\\[accounts\\] index"
+  },
+  "observedCounts": {
+    "processLockAcquisitionTimeout": 0,
+    "multipleAuthClientWarning": 0,
+    "appFatalOrAnr": 0,
+    "accountsInit": 0,
+    "accountsIndex": 2
+  },
+  "lastLogLine": {
+    "line": 4144,
+    "text": "10-31 15:03:27.050  2559  2559 I Choreographer: Skipped 41 frames!  The application may be doing too much work on its main thread."
+  },
+  "limits": [
+    "The four diagnostic/fixture extracts are empty because the device was unavailable during collection. No JSON timeline, lock durations, timer identities, request counts, or saved-account readback can be derived.",
+    "No matching acquisition warning in this truncated app log is not proof that the focus-loop repair has full runtime acceptance.",
+    "The two account-index log writes do not establish a SecureStore reread."
+  ]
+}

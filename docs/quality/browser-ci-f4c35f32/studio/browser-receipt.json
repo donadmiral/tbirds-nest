@@ -1,0 +1,119 @@
+{
+  "checkedAt": "2026-10-31T14:47:52.066Z",
+  "runtime": "153.0.8010.12",
+  "scope": "Actual Studio components with synthetic records and RPC adapters. This does not establish authenticated QA, Storage, provider, publishing-worker or physical-device acceptance.",
+  "checks": [
+    {
+      "name": "Professional shell uses a dedicated rail with a real return to the public app",
+      "passed": true
+    },
+    {
+      "name": "Tool search focuses, filters actual destinations and restores focus on Escape",
+      "passed": true
+    },
+    {
+      "name": "Overview publishing queue opens the exact draft and failed-upload destination",
+      "passed": true
+    },
+    {
+      "name": "Campaign filtering cannot leave an actionable hidden campaign selected",
+      "passed": true
+    },
+    {
+      "name": "Campaign creation validates the budget and saves a draft after a review step",
+      "passed": true
+    },
+    {
+      "name": "Advertising review keeps submission blocked until creative is present",
+      "passed": true
+    },
+    {
+      "name": "Failed ad-picker loading is shown with retry and retains the current campaign",
+      "passed": true
+    },
+    {
+      "name": "Insights separates organic and paid reports and exposes exact daily chart values",
+      "passed": true
+    },
+    {
+      "name": "A failed Insights period change retains and labels the last confirmed report",
+      "passed": true
+    },
+    {
+      "name": "Planner deep link opens the intended draft and guards Cancel against unsaved changes",
+      "passed": true
+    },
+    {
+      "name": "Newsroom reads the linked draft before review and requires feedback for requested changes",
+      "passed": true
+    },
+    {
+      "name": "Ambiguous workflow submission preserves one exact request and safely retries it",
+      "passed": true
+    },
+    {
+      "name": "Scheduling requires a separate confirmation with the approved publication time",
+      "passed": true
+    },
+    {
+      "name": "Business deliverable approval does not grant either creator permission",
+      "passed": true
+    },
+    {
+      "name": "Switching to the named creator exposes permission controls with expiry and explicit consent",
+      "passed": true
+    },
+    {
+      "name": "A changed source invalidates displayed consent and still allows revoking the recorded grant",
+      "passed": true
+    },
+    {
+      "name": "Creator permission can be revoked without accidentally granting paid promotion",
+      "passed": true
+    },
+    {
+      "name": "Earnings preserves provider restrictions and does not turn absent balances into invented totals",
+      "passed": true
+    },
+    {
+      "name": "Creator routes remain available and business-only tools have an intentional return path",
+      "passed": true
+    },
+    {
+      "name": "Team navigation opens real organization members and links to protected business codes",
+      "passed": true
+    },
+    {
+      "name": "Member creation binds the submitted identity and uses least privilege by default",
+      "passed": true
+    },
+    {
+      "name": "Dark Studio inherits readable surfaces while retaining professional navigation",
+      "passed": true
+    },
+    {
+      "name": "Studio fits a 390-pixel viewport without horizontal page overflow",
+      "passed": true
+    },
+    {
+      "name": "Mobile navigation opens, traps focus, closes on Escape and restores its trigger",
+      "passed": true
+    },
+    {
+      "name": "Mobile assignment creation preserves text when closing is cancelled",
+      "passed": true
+    }
+  ],
+  "browserErrors": [],
+  "screenshots": [
+    "studio-overview-desktop.png",
+    "studio-ads-desktop.png",
+    "studio-insights-desktop.png",
+    "studio-newsroom-desktop.png",
+    "studio-partnerships-desktop.png",
+    "studio-earnings-desktop.png",
+    "studio-team-desktop.png",
+    "studio-newsroom-dark.png",
+    "studio-newsroom-mobile.png"
+  ]
+}
