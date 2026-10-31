@@ -1,0 +1,390 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-31T07:40:14.659956+00:00",
+  "status": "failed full-app acceptance; useful partial runtime gates retained",
+  "binding": {
+    "head": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+    "testedMerge": "ba8d659c4b6172c1c4930cd6d348d627bdb1470f",
+    "tree": "bebc0e7bfa5a9a6b17e477a29b17fcd41c2ae27d",
+    "run": 41179235060,
+    "job": 124473036936,
+    "attempt": 1,
+    "artifact": 13035220059,
+    "artifactName": "android-full-app-ui",
+    "artifactBytes": 3215162,
+    "artifactSHA256": "b869c6611030a06c9d7ced04e4c72050f164677738c43537e5019c3e5ade57c1",
+    "verifiedExtraction": "/tmp/android-full-app-6878c384-41179235060",
+    "sourceManifestSHA256": "46316da9f904617b1c9f2ec5e56a65251795cf5c8d28b4bcaa8d2b3dcadbe2f3"
+  },
+  "timing": {
+    "jobStarted": "2026-10-31T07:05:57Z",
+    "scriptStarted": "2026-10-31T07:06:46Z",
+    "scriptCompleted": "2026-10-31T07:26:27Z",
+    "jobCompleted": "2026-10-31T07:26:32Z",
+    "jobTimeoutMinutes": 75,
+    "buildResult": "BUILD SUCCESSFUL in 13m 29s"
+  },
+  "sourceVerification": {
+    "exactSourceHashSet": 496,
+    "matchedPublishedGitBlobs": 496,
+    "retainedOverlaysBeforeAfterVerified": 6,
+    "installedDependencyFileHashesMatched": 9,
+    "sourceMemoryCapability": 0,
+    "testCapabilityMode": "qa-capability-overlay",
+    "testedNativeMemoryVersion": 1,
+    "productionCapabilityActivated": false
+  },
+  "requiredFlows": {
+    "navigation": {
+      "attempts": 1,
+      "exitCode": 1,
+      "junitStatus": "ERROR",
+      "error": "Element not found: Text matching regex: Private",
+      "diagnosis": "The preceding View all memory books tap targeted y605 inside the Android system navigation band. The failed image/AX remained on Profile; shelf/book/settings were not reached."
+    },
+    "memoryCapture": {
+      "attempts": 1,
+      "exitCode": 1,
+      "junitStatus": "ERROR",
+      "error": "Assertion is false: Save movie to Photos is visible",
+      "diagnosis": "The independent capture route mounted, account readback passed, cancellation completed and retry captured all layers. The native bridge rejected the movie request before returning an MP4."
+    }
+  },
+  "phaseExitCodes": {
+    "flows": 1,
+    "evidence": 0,
+    "memoryDecoder": 1,
+    "fullAppVerifier": 1
+  },
+  "emulator": {
+    "observedVersion": "37.2.13.0",
+    "buildId": "16740729",
+    "configuredGpuFlag": "software",
+    "graphicsBackend": "gfxstream",
+    "vulkanMode": "lavapipe",
+    "glesMode": "swangle",
+    "vulkanDevice": "llvmpipe (LLVM 21.0.0, 256 bits), Vulkan 1.4.318",
+    "openGlAdapter": "Android Emulator OpenGL ES Translator (Google SwiftShader)",
+    "openGlVersion": "OpenGL ES 3.0 / SwiftShader 4.0.0.1",
+    "hostLossObserved": false,
+    "evidence": "Both Maestro invocations returned ordinary failed assertions, the final artifact pulls succeeded, and the emulator log records graceful shutdown. No segmentation-fault/core-dump/fatal-signal signature appears in its retained log.",
+    "limit": "This run did not reproduce the previous host SIGSEGV. It does not establish the precise cause of that prior crash or guarantee future host stability."
+  },
+  "capture": {
+    "attempts": [
+      {
+        "number": 1,
+        "status": "cancelled",
+        "error": "Synthetic media request was cancelled.",
+        "cleanup": {
+          "passed": true,
+          "workFiles": 0,
+          "captureFiles": 0
+        },
+        "baselineEmpty": true
+      },
+      {
+        "number": 2,
+        "status": "failed",
+        "error": "[composeMemoryMovie] Cannot convert '[object Object]' to a Kotlin type.",
+        "cleanup": {
+          "passed": true,
+          "workFiles": 0,
+          "captureFiles": 0
+        },
+        "baselineEmpty": true
+      }
+    ],
+    "cancelledReaderBytes": 1024,
+    "cancelledReaderClosed": true,
+    "registeredMediaCompleted": [
+      {
+        "file": "memory-capture-video.mp4",
+        "bytes": 54300
+      },
+      {
+        "file": "memory-capture-sticker.png",
+        "bytes": 101
+      },
+      {
+        "file": "memory-capture-photo.png",
+        "bytes": 1121
+      }
+    ],
+    "pngCapturesHashSizeAndDimensionVerified": 12,
+    "pngPixelsDecoded": 12,
+    "captureDimensions": [
+      720,
+      1280
+    ],
+    "backgroundCaptures": 5,
+    "overlayCaptures": 7,
+    "sceneOrder": [
+      "opening",
+      "photo",
+      "video",
+      "text",
+      "closing"
+    ],
+    "plannedDurationSeconds": 11.7,
+    "nativeBridgeError": "[composeMemoryMovie] Cannot convert '[object Object]' to a Kotlin type.",
+    "movieProduced": false,
+    "memoryMovieDecoded": false,
+    "bothAttemptTemporaryFileCleanupsPassed": true,
+    "additionalObservedColorFailure": "The photo and timed image sticker were captured during the native image fade. The retained green sticker has zero pixels meeting the unchanged green>180 condition. This is separately diagnosed and repaired in the linked source receipt; fresh native output is still required."
+  },
+  "accountAndAuth": {
+    "actualSavedAccountReadback": {
+      "passed": true,
+      "reloaded": true,
+      "accountCount": 1
+    },
+    "providerDataUsed": false,
+    "networkForwarded": false,
+    "independentOwner": {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384-auth-independent-review.json",
+      "sha256": "95b58f6f821cd7c29905ae917f4f677e100554496eafd1eeabdbdbb5c450dae0"
+    },
+    "runtimeFinding": "Stable timer function identities coexist with eight genuine acquisition warnings and a 31.5 s held lock while repeated profile/memory reads drain. A source-proven navigation focus feedback correction is separate from these failed-run observations; its native cure remains pending."
+  },
+  "visualEvidence": {
+    "representativeHome": "docs/quality/native-full-app-20261031/android-6878c384/home.png",
+    "captureErrorScreenshot": "docs/quality/native-full-app-20261031/android-6878c384/capture-failure.png",
+    "screenRecording": {
+      "localArtifactPath": "/tmp/android-full-app-6878c384-41179235060/navigation.mp4",
+      "sha256": "8a7d871dfc05a472f13d4224723fa95579c080ff744ac07a04e346c5f475e8c8",
+      "codec": "H264",
+      "width": 320,
+      "height": 640,
+      "durationSeconds": 218.161511,
+      "framesInMetadata": 1959,
+      "bytes": 2946742,
+      "kind": "Variable-frame-rate screen recording, not the memory movie. Its frame-rate fields are not app FPS.",
+      "decodeCaveat": "ffmpeg conversion exited0 with output-DTS warnings; no clean timing verification is claimed."
+    }
+  },
+  "acceptance": {
+    "fullAppPassed": false,
+    "memoryCaptureAndMoviePassed": false,
+    "savedAccountReadbackPassed": true,
+    "physicalDevice": false,
+    "hostedProviderAcceptance": false,
+    "photosLibraryWrite": false,
+    "filmSettingsNavigationReached": false
+  },
+  "relatedReviewsAndRepairs": {
+    "navigationRepair": {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384-shelf-entry-repair.json",
+      "sha256": "c6b6cdb936238d0b97e40a56cc4f32856f0a189c417671792da91bb60b571eb8"
+    },
+    "navigationIndependentReview": {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384-shelf-entry-independent-review.json",
+      "sha256": "ab01633496a55e675df2ba0be182c91fad405eb1871e0b5f39f9fca15e869457"
+    },
+    "authReadbackIndependentReview": {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384-auth-independent-review.json",
+      "sha256": "95b58f6f821cd7c29905ae917f4f677e100554496eafd1eeabdbdbb5c450dae0"
+    },
+    "focusFeedbackRepair": {
+      "path": "docs/quality/native-full-app-20261031/native-navigation-focus-feedback-repair.json",
+      "sha256": "b038ffbe722cd906e988939c9764af7163d20daa85a99eb6dd8a80176565d2a7"
+    },
+    "captureFadeRepair": {
+      "path": "docs/quality/native-full-app-20261031/native-memory-capture-fade-repair.json",
+      "sha256": "5787b5d67a0198b1cb74025042651d9d03c87dbd5d83db1e9439af97f6390ac2"
+    },
+    "captureFadeIndependentReview": {
+      "path": "docs/quality/native-full-app-20261031/native-memory-capture-fade-independent-review.json",
+      "sha256": "39348eb35b336e230d6d5d5c6c7272e635c2294e35d8f429c57a5153eeaf8859"
+    },
+    "nativeBridgeIndependentReview": {
+      "path": "docs/quality/native-full-app-20261031/native-memory-bridge-independent-review.json",
+      "sha256": "661fb9136ed6fd63e4e74726bb4deff508aee42d861f49ed4de86cc492e5757d"
+    },
+    "nativeBridgeRepair": {
+      "path": "docs/quality/native-full-app-20261031/native-memory-bridge-repair.json",
+      "sha256": "fe4f1aa73719a502011ade51a98b6f2fc8f5027f55adb6528cdc8cfcce307c86"
+    },
+    "focusFeedbackIndependentReview": {
+      "path": "docs/quality/native-full-app-20261031/native-navigation-focus-feedback-independent-review.json",
+      "sha256": "ca1d32ea78bef2df32b6e4c89d62aca207ae42dc08544c6fc0a84e1aaa23b8ec"
+    }
+  },
+  "retainedOwnerFiles": [
+    {
+      "path": "docs/quality/native-full-app-20261031/android-full-app-6878c384-source.json",
+      "sha256": "46316da9f904617b1c9f2ec5e56a65251795cf5c8d28b4bcaa8d2b3dcadbe2f3",
+      "bytes": 59282
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/artifact.json",
+      "sha256": "cce1c95a1f8f93cc81f62c4f6ffa37a8d6471a4442cf864a987e4516a3664585",
+      "bytes": 748
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/job.json",
+      "sha256": "e78aa7aa3be1a9f538d8c66dad6e6e539279b6114db9fea021fac22a9582e825",
+      "bytes": 3743
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/flow-results.json",
+      "sha256": "ad60595633d62c1ad75e4e0a972fe90e11c6bbd66bd9396b2c5e24b812de4e85",
+      "bytes": 351
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/phase-results.json",
+      "sha256": "d3388f807e9264bbef275e0947dce5f7a6c88bef6b45a0bfafdfb3932febd89c",
+      "bytes": 63
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/flow-verification.json",
+      "sha256": "563b1fc2263772fab105ed01de4ef3fbadccc02cec744309682a392fb1cc83f6",
+      "bytes": 89
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/capture-junit.xml",
+      "sha256": "e809a919c569ff51a31316c32219f078f9ce6940ae0cba3536e47b267143687f",
+      "bytes": 574
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/capture-commands.json",
+      "sha256": "4d29c9491fec731255977a359a50d22b5898ec09ddcf20ef0b0636aa71947fa7",
+      "bytes": 13909
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/capture-failure-ax.json",
+      "sha256": "7acdf6b7cacbbe2c70cc382ebc7c270eb30562bb2aa09a8509233d54c3d4c81b",
+      "bytes": 45588
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/capture-failure.png",
+      "sha256": "64297d5aec57ab156a9710da6d923cb40bfed9fea9668098daf962069d7e8da7",
+      "bytes": 35416
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/emulator.log.txt",
+      "sha256": "17d6245c5d24a1744adb55ce4b52fe29c41a5cd2462a1a0f5e1d2cd6e62cbc23",
+      "bytes": 9409
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/toolchain.log.txt",
+      "sha256": "ce4d3a9267e0a3cc61da7b1fd7540dc0033332a025f10970aa0aa5994c36b252",
+      "bytes": 199
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/build-renderer-projection.json",
+      "sha256": "6a13e3145ce09dd2b17bc289c0ee2ed16ba1af575fb5dca1aab079c520d42a8d",
+      "bytes": 1661
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/source-verification.json",
+      "sha256": "afec5293edeb4e9f428bfc29bd0a08ace1a96704a8a37cfce1b6def5302a7fe2",
+      "bytes": 1906
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/capture-verification.json",
+      "sha256": "21fb4a22633d055d03e98fb1d109025e8ee10c930b4caa39cde7ddb0a9487712",
+      "bytes": 6329
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/capture-color-measurements.json",
+      "sha256": "c472844d39f1639067969a2bb4a1f81ea2918faf6d6b7cc824e5cccc88f9339d",
+      "bytes": 3380
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/navigation-video-verification.json",
+      "sha256": "fe09a9faba7e2d3b94667a817c5b42b858fe7e7a3cdf2a2a458746d47b476a36",
+      "bytes": 2180
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/home.png",
+      "sha256": "0f81e2a840c35d6276d1eb31de2b86b1e5e2e5b8335f35e802cc8c1ef86898c5",
+      "bytes": 51604
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-00.png",
+      "sha256": "aeaa6b5ad3552fdca3f9889fab4f0fe265861f9c2deab5469d0bc64becc9ba64",
+      "bytes": 51507
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-01.png",
+      "sha256": "8bcdfdd04b44f0b305054026856ec884353e9113a4c02689c191d27c9c8b8899",
+      "bytes": 3682
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-02.png",
+      "sha256": "640cc29c1ee90e88514af38625a694c0f4727df249bbee7e57b05c6004b59a16",
+      "bytes": 29156
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-03.png",
+      "sha256": "a4c3e48e9171ab80ae02b3268d6f8840f4d9e48f53eddc715cd3aac084dca30c",
+      "bytes": 25920
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-04.png",
+      "sha256": "73cee8956fc630885d928992cc209a7d1c0e89ef54796092e828e36e4982a885",
+      "bytes": 31276
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-05.png",
+      "sha256": "a4c3e48e9171ab80ae02b3268d6f8840f4d9e48f53eddc715cd3aac084dca30c",
+      "bytes": 25920
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-06.png",
+      "sha256": "a03bcb57307b71892ab0dec56bb41d90a30cf678d4bf2e0f6e3d271ea44a39df",
+      "bytes": 6363
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-07.png",
+      "sha256": "1807d6b35db779381358d183ad5a4c77a33afe7999e78d151fa5a09cdfd28803",
+      "bytes": 23373
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-08.png",
+      "sha256": "7218605432415de41b38bb68ac330186b4102d22899d61f88118d378ce943354",
+      "bytes": 37037
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-09.png",
+      "sha256": "8bcdfdd04b44f0b305054026856ec884353e9113a4c02689c191d27c9c8b8899",
+      "bytes": 3682
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-10.png",
+      "sha256": "03081613e7cba8374d570d7803cbb378a56c07bed86b06f0c865618d74cf27b7",
+      "bytes": 76163
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-11.png",
+      "sha256": "8bcdfdd04b44f0b305054026856ec884353e9113a4c02689c191d27c9c8b8899",
+      "bytes": 3682
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/receipt.json",
+      "sha256": "2707c98b8e09e8b13c2abfa53fcb3a688a4ef1fcf356c38884b95dce5a611632",
+      "bytes": 11498
+    }
+  ],
+  "sharedNavigationEvidence": [
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/navigation-junit.xml",
+      "sha256": "12400ee8e446ffeef08a94064c7a5a79ed90e5a3454e5c3a92dc38bab51eaf8a"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/navigation-commands.json",
+      "sha256": "885ed3ac2bd57a877cabecbafb1790c0dddce091988c98e7bbfd324d17848af7"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/shelf-entry-failure-ax.json",
+      "sha256": "ce78935c253d13b8e5a399cb2ce475740af9f4eb2d6d57bc6c5ee32bb04528a2"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/shelf-entry-failure.png",
+      "sha256": "ef97e00206fb3b293810a91eee9e4284ce4af67f84e3d7827a741963f5db8aec"
+    }
+  ],
+  "nextGate": "Keep the current iPhone baseline intact. After coordinated source publication, the next native run must pass both flows and unchanged strict verifiers, produce and independently decode the actual movie, show full-opacity captures and verify bounded auth behavior.",
+  "actions": "One authenticated GitHub artifact download, byte/digest verification and one local extraction. Sandbox network retrieval required authorized escalation after a blocked socket; it succeeded. No workflow rerun, cancellation, timeout/threshold/capability change or Git-ref mutation by this review."
+}

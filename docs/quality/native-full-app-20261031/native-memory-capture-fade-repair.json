@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-31T07:35:57.929367+00:00",
+  "status": "focused correction passed; actual new native pixels and encoded movie remain pending",
+  "observedRun": {
+    "head": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+    "merge": "ba8d659c4b6172c1c4930cd6d348d627bdb1470f",
+    "tree": "bebc0e7bfa5a9a6b17e477a29b17fcd41c2ae27d",
+    "run": 41179235060,
+    "job": 124473036936,
+    "artifact": 13035220059,
+    "artifactSHA256": "b869c6611030a06c9d7ced04e4c72050f164677738c43537e5019c3e5ade57c1",
+    "sourceManifest": "docs/quality/native-full-app-20261031/android-full-app-6878c384-source.json",
+    "sourceManifestSHA256": "46316da9f904617b1c9f2ec5e56a65251795cf5c8d28b4bcaa8d2b3dcadbe2f3"
+  },
+  "finding": "Captured photo and timed sticker image pixels are partially faded even though their ready callbacks completed. The image source colors are preserved by a source-over-background model while native Text and sticker border pixels remain white. This would cause the existing timed green artwork gate to fail after the separate native bridge error is repaired.",
+  "diagnosis": "Installed RN 0.81.5 gives local file URI Images the same 300 ms fade as other nonresource images. onLoad reports decode/image-set completion, not fade completion. The export captures after its existing paint waits while that fade is still visible.",
+  "change": {
+    "path": "src/components/stories/StoryPixelImage.tsx",
+    "beforeSHA256": "85aa78b7c3d8f05fb4736c58b0a3477125682e624dbe4dad280ee5e6ac3d5313",
+    "sha256": "e1063b3d571d3823eac5b5fcaca2d167d3990df0988fde1b99ccb1c3f1697e6e",
+    "behavior": "Set fadeDuration=0 only for raw Image elements with the existing capture-readiness context. This includes the memory capture canvas and the StoryComposer visible snapshot/export-artwork canvases. Ordinary viewer/feed playback without that context keeps the native default. The graded Skia path, image data, authored look, error/readiness callbacks, retries and cancellation are unchanged."
+  },
+  "test": {
+    "path": "tests/quality/native-memory-capture-image-readiness.cjs",
+    "sha256": "730ccd2d07e8d9c8c1a34bcb50da7b1595d6e7514001ca9b1a5e34fd30e45171",
+    "newCases": 5,
+    "redBeforeCorrection": {
+      "passed": 3,
+      "failed": 2,
+      "failures": "Actual base-photo and actual PhotoStickerView image props had undefined fade duration instead of 0."
+    },
+    "finalCommand": "node --test --test-isolation=none tests/quality/native-memory-capture-image-readiness.cjs tests/quality/story-photo-pixels.cjs",
+    "finalPassed": 12,
+    "existingSkiaPixelCases": 7,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "scope": "Actual TSX base/sticker components and callbacks execute under a controlled React/native host harness. pngjs decodes retained real Android PNGs. Existing CanvasKit cases independently render saved grade matrices. New native Image rendering is not simulated as passing."
+  },
+  "staticChecks": {
+    "scopedESLintExit": 0,
+    "scopedDiffCheckExit": 0
+  },
+  "installedAndApplicationContracts": [
+    {
+      "path": "node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/image/ReactImageView.kt",
+      "sha256": "e86cb436eaa2fc353d05674c5c1ae2dce5cb462855b9c99c33be7ba3f4c3998e",
+      "contract": "Explicit nonnegative fadeDuration overrides; resources default to 0; all other images default to 300 ms. onFinalImageSet forwards load/load-end without waiting for fade completion."
+    },
+    {
+      "path": "node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/imagehelper/ImageSource.kt",
+      "sha256": "1e2264bcadf3fd519f6eb97f25a945fa58c93e87746fd9b127634e4bf2d8aaa2",
+      "contract": "file:// has a scheme and does not use computeLocalUri, so isResource stays false."
+    },
+    {
+      "path": "node_modules/react-native/Libraries/Image/ImageProps.js",
+      "sha256": "1c73c662bf249cbdbfa214eb816dfe5f3e542626da62f69d7dca5ba16a7f665e",
+      "contract": "fadeDuration is a supported public Image property."
+    },
+    {
+      "path": "src/components/stories/storyExtras.tsx",
+      "sha256": "d359708a0cd1614c583dc28971bf0a66110767dde290f4eeb161ace662ec14b0",
+      "contract": "PhotoStickerView uses StoryPixelImage with look=null and #111 backing; its border remains white."
+    },
+    {
+      "path": "src/components/memory/MemoryStoryFrame.tsx",
+      "sha256": "13d24cbf143ead49d5ed06acbc9b4a046108d0537a93942d9790ebca5b9db3cd",
+      "contract": "Ungraded photo background is #0B1E3D and only saved photo look is inherited."
+    },
+    {
+      "path": "src/components/memory/MemoryMovieExport.tsx",
+      "sha256": "f08a34b3f5ebf06a43cabf717e6e8b0cf3eda145a5ecfa38ccd99eb4823bae3a",
+      "contract": "Existing readiness context surrounds the memory capture canvas; its deadlines and two animation-frame waits are unchanged."
+    },
+    {
+      "path": "src/screens/stories/StoryComposerScreen.tsx",
+      "sha256": "35c2237cd27d5867b9c6a16cbbbf29f7883275782c3eaf9f5b179bf955888da1",
+      "contract": "The existing context also surrounds the visible story snapshot canvas and export-artwork canvas, so these capture-aware image surfaces also disable the native fade."
+    }
+  ],
+  "decoderUnchanged": {
+    "path": "scripts/quality/verify-native-ui-memory.py",
+    "sha256": "a59f80c172b1bc9e82c5f0d73567f633e9b170d148b22633092fb382e3b5b9ca",
+    "greenPredicate": "r<50,g>180,b<50; during>100 pixels, before/after<20"
+  },
+  "retainedMeasurements": {
+    "path": "docs/quality/native-full-app-20261031/android-6878c384/capture-color-measurements.json",
+    "sha256": "c472844d39f1639067969a2bb4a1f81ea2918faf6d6b7cc824e5cccc88f9339d",
+    "photoAlpha": 0.2130220149942536,
+    "maximumChannelResidual": 1,
+    "timedStickerFullGreenPixels": 0
+  },
+  "remainingBoundary": "The failed current run contains no MP4. All 12 retained PNGs were hash/size/dimension checked and decoded; a fresh native run must prove full-opacity image captures and complete movie output against the unchanged decoder. No timeout, polling delay, test threshold, renderer capability or auth behavior was relaxed."
+}

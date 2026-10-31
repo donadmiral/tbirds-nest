@@ -1,0 +1,40 @@
+TAP version 13
+# Subtest: actual navigation containers retain one unhandled-action handler across profile refresh and recovery branches
+ok 1 - actual navigation containers retain one unhandled-action handler across profile refresh and recovery branches
+  ---
+  duration_ms: 178.04474
+  type: 'test'
+  ...
+# Subtest: actual Profile completion cannot restart installed Navigation focus reads through the container callback
+ok 2 - actual Profile completion cannot restart installed Navigation focus reads through the container callback
+  ---
+  duration_ms: 150.214602
+  type: 'test'
+  ...
+# Subtest: stable callback preserves genuine blur/refocus refresh and duplicate focus suppression
+ok 3 - stable callback preserves genuine blur/refocus refresh and duplicate focus suppression
+  ---
+  duration_ms: 81.922401
+  type: 'test'
+  ...
+# Subtest: unhandled behavior still ignores GO_BACK and logs only the unexpected action type
+ok 4 - unhandled behavior still ignores GO_BACK and logs only the unexpected action type
+  ---
+  duration_ms: 41.448942
+  type: 'test'
+  ...
+# Subtest: callback stability does not remove the actual root navigator session/ABA keys
+ok 5 - callback stability does not remove the actual root navigator session/ABA keys
+  ---
+  duration_ms: 42.705162
+  type: 'test'
+  ...
+1..5
+# tests 5
+# suites 0
+# pass 5
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 676.347175

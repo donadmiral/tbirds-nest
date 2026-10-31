@@ -145,6 +145,13 @@ type IoniconName = ComponentProps<typeof Ionicons>['name'];
 
 const navigationRef = React.createRef<any>();
 
+// Navigation 6 includes this context callback in its helpers' identity. Keep it
+// stable so publishing a refreshed profile cannot restart focused-screen reads.
+function handleUnhandledNavigationAction(action: any) {
+  if (action?.type === 'GO_BACK') return;
+  console.log('[nav] unhandled action', action?.type);
+}
+
 function FeedStackNav() {
   return (
     <FeedStack.Navigator screenOptions={{ headerShown: false }}>
@@ -590,7 +597,7 @@ export default function AppNavigator() {
       <CallProvider>
         <NavigationContainer ref={navigationRef} linking={linking} fallback={<SplashLoader />}
           theme={navTheme}
-          onUnhandledAction={(action: any) => { if (action?.type === 'GO_BACK') return; console.log('[nav] unhandled action', action?.type); }}>
+          onUnhandledAction={handleUnhandledNavigationAction}>
           <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
           <AccountSwitcherSheet />
           <AddAccountSheet />
@@ -615,7 +622,7 @@ export default function AppNavigator() {
     <CallProvider>
       <NavigationContainer ref={navigationRef} linking={linking} fallback={<SplashLoader />}
         theme={navTheme}
-          onUnhandledAction={(action: any) => { if (action?.type === 'GO_BACK') return; console.log('[nav] unhandled action', action?.type); }}>
+          onUnhandledAction={handleUnhandledNavigationAction}>
           <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
           <AccountSwitcherSheet />
           <AddAccountSheet />

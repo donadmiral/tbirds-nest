@@ -181,5 +181,13 @@
     "No version-counter write",
     "No profile/certificate/key/device/permission mutation",
     "No app-source or production-capability change"
-  ]
+  ],
+  "archiveInspectionPreflight": {
+    "installedCommandHelpChecked": true,
+    "commandSourceSha256": "24bc0d76b90274576d1e108376028f3160c938bf46cfe29856235e0813fe733c",
+    "supportedCommand": "eas build:inspect --platform ios --profile preview --stage archive --output <new-temporary-output-directory>",
+    "authenticationRequirement": "The installed command includes ContextOptions.LoggedIn and resolves that context with nonInteractive:false before its archive branch. The help does not advertise --non-interactive.",
+    "archiveCommandInvoked": false,
+    "reasonNotInvoked": "The known CLI session is signed out. No login prompt, unsupported flag or authentication bypass was attempted. The exact Git source and archive rules are already frozen."
+  }
 }

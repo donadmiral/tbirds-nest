@@ -1,0 +1,205 @@
+{
+  "reviewedAt": "2026-10-31T07:36:55.476102+00:00",
+  "reviewer": "navigation_performance",
+  "verdict": "Accepted. No source review objection; actual native fade-free capture acceptance remains pending.",
+  "scope": "Read-only review and independent focused execution of readiness-aware native image fade suppression; no source edits, native/CI rerun or test weakening.",
+  "artifact": {
+    "head": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+    "merge": "ba8d659c4b6172c1c4930cd6d348d627bdb1470f",
+    "runId": 41179235060,
+    "jobId": 124473036936,
+    "artifactId": 13035220059,
+    "zipSha256": "b869c6611030a06c9d7ced04e4c72050f164677738c43537e5019c3e5ade57c1"
+  },
+  "sourceFindings": [
+    "Installed React Native 0.81.5 ReactImageView.kt:423\u2013427 uses explicit fadeDurationMs when nonnegative, 0 for resource images, otherwise REMOTE_IMAGE_FADE_DURATION_MS=300 at 616. The JS fadeDuration prop reaches setFadeDuration via ReactImageManager.kt:216\u2013218.",
+    "ReactImageView reports load/loadEnd from onFinalImageSet, independently of the hierarchy fade duration. The existing capture pipeline waits for decode/readiness and two animation frames; that does not explicitly wait for the native hierarchy fade to complete.",
+    "StoryPixelImage sets fadeDuration=0 only when its existing StoryPhotoReadinessContext reporter is present. Otherwise its prop remains undefined. Source/fit/key/style and load/error callbacks are unchanged.",
+    "That context is active in both the visible StoryComposer canvas/export artwork and the MemoryMovieExport preview/capture tree. The scope is readiness-aware capture surfaces, not solely an offscreen renderer. Ordinary viewer/feed playback without the context retains the native default.",
+    "The graded-photo branch still selects GradedPhoto and its existing Skia decode/layout/readiness path. Photo stickers explicitly opt out of the inherited image grade and now receive the same nonfading native Image prop during capture.",
+    "No delay, timeout, retry, encoded-media verifier tolerance, capability flag, source permission or cancellation behavior was changed."
+  ],
+  "retainedImageReview": {
+    "photoSize": [
+      720,
+      1280
+    ],
+    "samples": [
+      {
+        "positionFraction": [
+          0.25,
+          0.25
+        ],
+        "source": [
+          237,
+          179,
+          67,
+          255
+        ],
+        "captured": [
+          59,
+          62,
+          62,
+          255
+        ],
+        "fittedRgb": [
+          59,
+          62,
+          62
+        ]
+      },
+      {
+        "positionFraction": [
+          0.75,
+          0.25
+        ],
+        "source": [
+          36,
+          93,
+          194,
+          255
+        ],
+        "captured": [
+          16,
+          43,
+          89,
+          255
+        ],
+        "fittedRgb": [
+          16,
+          43,
+          89
+        ]
+      },
+      {
+        "positionFraction": [
+          0.25,
+          0.75
+        ],
+        "source": [
+          206,
+          71,
+          59,
+          255
+        ],
+        "captured": [
+          53,
+          39,
+          60,
+          255
+        ],
+        "fittedRgb": [
+          53,
+          39,
+          61
+        ]
+      },
+      {
+        "positionFraction": [
+          0.75,
+          0.75
+        ],
+        "source": [
+          139,
+          70,
+          182,
+          255
+        ],
+        "captured": [
+          38,
+          38,
+          87,
+          255
+        ],
+        "fittedRgb": [
+          38,
+          39,
+          87
+        ]
+      }
+    ],
+    "backgroundRgb": [
+      11,
+      30,
+      61
+    ],
+    "sourceOverLeastSquaresAlpha": 0.2130220149942536,
+    "maxRoundedRgbResidual": 1,
+    "visualInspection": "The retained photo has darkened four quadrants; the sticker is dark green while its white frame remains opaque. Both PNGs were opened and inspected.",
+    "interpretation": "The common-alpha fit and installed image fade source strongly support a capture taken during presentation fade. They do not prove a later native run is corrected."
+  },
+  "verification": {
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-memory-capture-image-readiness.cjs tests/quality/story-photo-pixels.cjs",
+    "tests": 12,
+    "passed": 12,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "exitCode": 0,
+    "newReadinessCases": 5,
+    "existingPixelCases": 7,
+    "sourcesIdenticalBeforeAndAfter": true,
+    "raw": {
+      "path": "docs/quality/native-full-app-20261031/native-memory-capture-fade-independent.tap",
+      "sha256": "2d3ee03337cc450fcac1e7f55a81607afd426217c4b0497d50d80476ccb3f583"
+    }
+  },
+  "limits": [
+    "The component harness executes actual production TSX with controlled React hooks/native Image/Skia hosts. It verifies props and callback routing, not an Android image animation or new on-device capture.",
+    "Existing pixel cases exercise real color-matrix calculations; the new graded-path case verifies branch selection and callback preservation, not a new Skia GPU screenshot.",
+    "The numerical projection uses four interior quadrant samples and the known fixture background. It is a source-over fit, not a measurement of the native animation clock.",
+    "Full native capture/encode/decode/save/cleanup acceptance remains mandatory."
+  ],
+  "sourceFiles": [
+    {
+      "path": "src/components/stories/StoryPixelImage.tsx",
+      "sha256": "e1063b3d571d3823eac5b5fcaca2d167d3990df0988fde1b99ccb1c3f1697e6e"
+    },
+    {
+      "path": "tests/quality/native-memory-capture-image-readiness.cjs",
+      "sha256": "730ccd2d07e8d9c8c1a34bcb50da7b1595d6e7514001ca9b1a5e34fd30e45171"
+    },
+    {
+      "path": "tests/quality/story-photo-pixels.cjs",
+      "sha256": "ef6e2810b829596fd6f43a8d697c316a94cf47a3047f7c0154ba913915558c71"
+    },
+    {
+      "path": "src/components/stories/storyExtras.tsx",
+      "sha256": "d359708a0cd1614c583dc28971bf0a66110767dde290f4eeb161ace662ec14b0"
+    },
+    {
+      "path": "src/components/memory/MemoryMovieExport.tsx",
+      "sha256": "f08a34b3f5ebf06a43cabf717e6e8b0cf3eda145a5ecfa38ccd99eb4823bae3a"
+    },
+    {
+      "path": "src/screens/stories/StoryComposerScreen.tsx",
+      "sha256": "35c2237cd27d5867b9c6a16cbbbf29f7883275782c3eaf9f5b179bf955888da1"
+    },
+    {
+      "path": "node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/image/ReactImageView.kt",
+      "sha256": "e86cb436eaa2fc353d05674c5c1ae2dce5cb462855b9c99c33be7ba3f4c3998e"
+    },
+    {
+      "path": "node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/image/ReactImageManager.kt",
+      "sha256": "b0dc3da5b920cf2392eb90170899cf3b252c27830a68178822c45387608b4ddf"
+    }
+  ],
+  "imageEvidence": [
+    {
+      "path": "tests/native/assets/memory-capture-photo.png",
+      "sha256": "3b9a7aeedbf62a83256e320ad4472fb50d32ceb9f3ff62fc98f903d4fae9cd65"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-02.png",
+      "sha256": "640cc29c1ee90e88514af38625a694c0f4727df249bbee7e57b05c6004b59a16"
+    },
+    {
+      "path": "tests/native/assets/memory-capture-sticker.png",
+      "sha256": "1eb3f1a983c7a13e77c00ffdc1d89f44e1bd01b5ac94131c6c6026a0d2836fdb"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-04.png",
+      "sha256": "73cee8956fc630885d928992cc209a7d1c0e89ef54796092e828e36e4982a885"
+    }
+  ]
+}

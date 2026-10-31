@@ -5,7 +5,7 @@ native acceptance work. It separates implemented changes, observed results and
 remaining release gates. It does not claim that every product feature or every
 physical-device flow is complete.
 
-## Current follow-up candidate
+## Current follow-up checkpoint: v6
 
 Repair-cycle progress: **5 of 6 milestones complete**. The remaining milestone
 is complete installed-app acceptance on iPhone Simulator and Android Emulator.
@@ -14,7 +14,89 @@ This is a milestone count, not a whole-product completion percentage. The
 [workflow history](https://github.com/donadmiral/tbirds-nest/actions/workflows/native-app-ui.yml)
 remain available independently of the chat connection.
 
-The follow-up is published at
+This follow-up is prepared for the isolated
+`codex/native-v6-followup-20261031` checkpoint. The application/PR source remains
+`6878c384f4f2de8b4bcf2cf49e6597b250bd9bde`; the new repairs have not launched a
+replacement native run. At the latest read-only status, **07:39:15 UTC**, the
+iPhone job in
+[complete-native run 41179235060](https://github.com/donadmiral/tbirds-nest/actions/runs/41179235060)
+is still running on that published baseline. Its actual settings, film/export
+handoff, capture and save results remain pending.
+
+### What the Android baseline established
+
+The Android job completed with **failed acceptance** at 07:26:32 UTC. The
+emulator remained available through both required Maestro flows and evidence
+collection, and then shut down normally. This run does not repeat the earlier
+emulator-process SIGSEGV. All 496 source-manifest entries, six overlays and nine
+installed dependency hashes were checked against the published baseline.
+
+Home, Market, Jobs, Messages and Profile content checks passed. The memory-shelf
+entry then failed: Maestro tapped the exact View all memory books control at
+`(282, 605)` on a 320×640 screen, inside the Android system navigation container
+at y592–640. Its raw visibility check had accepted the obscured control. The
+screen stayed on Profile, so the following Private tab was absent. That
+establishes a masked tap target; it does not exclude the separate request storm
+observed during the same interval.
+
+The auth trace retained stable timer API identities, but it also recorded a
+31.5-second lock hold and eight real five-second acquisition warnings. The
+fixture recorded 280 profile reads and 279 shelf reads. Installed Navigation
+hooks and the actual Profile completion callback reproduce a feedback path:
+publishing a profile changed the inline unhandled-action callback, recreated
+navigation helpers and restarted focused reads. Stable timer identities do not
+make these warnings harmless, and the bounded trace does not cover every event.
+The existing saved-account readback did pass for one reloaded QA account.
+
+The independently required capture flow also ran and failed. Its cancellation
+cycle stopped an actual 1,024-byte media read and cleaned its owned files; the
+retry produced 12 real PNG captures, then failed at `composeMemoryMovie` with
+`Cannot convert '[object Object]' to a Kotlin type`. No MP4 was produced. The
+installed Expo converter and actual request factory identify a concrete nested
+`undefined` representability defect. Retained photo and sticker pixels also
+show partial image fading during capture; the photo's four interior quadrants
+fit a common opacity of about 0.213 over their background, with at most one RGB
+level of residual. The required flow and media verifiers remain failed.
+
+[Android flow, source and capture receipt](native-full-app-20261031/android-full-app-6878c384-review.json) ·
+[Independent auth and account-readback review](native-full-app-20261031/android-6878c384-auth-independent-review.json)
+
+### Four reviewed repairs awaiting installed-app acceptance
+
+| Repair | Resulting behavior and retained boundaries |
+| --- | --- |
+| Stable navigation callback | A stateless module-level handler prevents profile publication from changing Navigation's helper identity. Genuine blur/refocus refresh, session/ABA root keys and the original type-only diagnostic behavior remain. SDK locks and deadlines are unchanged. |
+| Schema-exact movie request snapshot | The original request is validated, then every supported field is copied into a new native payload. Absent optional properties are omitted; zero/false values and artwork/timing/audio fields are preserved. Cancellation and result verification use that submitted snapshot. Unsupported animation and rights checks remain. |
+| Full-opacity capture-aware images | Native images use `fadeDuration=0` when the existing readiness context is present. This includes the memory export preview and the StoryComposer visible snapshot/export-artwork canvases. Ordinary viewer/feed playback without that context and the graded Skia path retain their existing behavior. No wait or decoder threshold was relaxed. |
+| Centered semantic shelf entry | The existing View all memory books scroll requests Maestro's `centerElement` behavior before the same named tap. Every prior command, selector, assertion, timeout and account-lifecycle operation is preserved; no coordinate tap was added. |
+
+The final combined local gate passed **all 172 selected files: 1,770 formal
+cases, zero failures, cancellations, skips or todos**, plus the separate
+successful **33-check auth program**. The 19 new formal cases comprise six
+bridge, five navigation-handler, five capture-readiness and three shelf-entry
+cases. All 2,025 snapshotted inputs stayed unchanged through the 58.7-second
+run. Full native TypeScript and the scoped lint checks passed.
+
+Independent reviews accepted all four repairs. The focused tests execute
+production components, the actual request/preparation code and installed
+Navigation hooks using documented controlled hosts; the pixel checks decode
+retained real Android images. They do not establish a new UIKit presentation,
+full-opacity native capture, playable movie, Photos save, device speed or
+warning-free auth trace. Milestone 6 remains open.
+
+[Final v6 combined local gate](native-full-app-20261031/native-v6-final-root-regressions.json) ·
+[Navigation feedback repair](native-full-app-20261031/native-navigation-focus-feedback-repair.json) ·
+[Independent navigation review](native-full-app-20261031/native-navigation-focus-feedback-independent-review.json) ·
+[Native bridge repair](native-full-app-20261031/native-memory-bridge-repair.json) ·
+[Independent bridge review](native-full-app-20261031/native-memory-bridge-independent-review.json) ·
+[Capture fade repair](native-full-app-20261031/native-memory-capture-fade-repair.json) ·
+[Independent capture fade review](native-full-app-20261031/native-memory-capture-fade-independent-review.json) ·
+[Shelf-entry repair](native-full-app-20261031/android-6878c384-shelf-entry-repair.json) ·
+[Independent shelf-entry review](native-full-app-20261031/android-6878c384-shelf-entry-independent-review.json)
+
+## Published supporting baseline: 6878c384
+
+The preceding follow-up is published at
 `6878c384f4f2de8b4bcf2cf49e6597b250bd9bde`. Its tested PR merge is
 `ba8d659c4b6172c1c4930cd6d348d627bdb1470f`; both have the verified tree
 `bebc0e7bfa5a9a6b17e477a29b17fcd41c2ae27d`.
@@ -24,8 +106,8 @@ QA capture setup repairs. It follows application head
 `e173b2dbcf253342be5683fa85f102aa38065411` through the saved follow-up checkpoint
 `a042acc7cf2ea2efaa690069162b2a2276414912`.
 
-The production change is confined to the film, movie-export component and their
-shared dismissal hook. iOS retains each native modal while closing and completes
+That baseline’s production change is confined to the film, movie-export
+component and their shared dismissal hook. iOS retains each native modal while closing and completes
 the parent handoff only after native acknowledgement. Playback/export cleanup
 starts immediately. Duplicate, unmounted and old-account callbacks cannot
 complete a later visit. Ordinary same-book refreshes preserve a legitimate
@@ -40,7 +122,7 @@ Actual installed JavaScript/router tests reproduce both previous mismatches.
 No application/auth reset, new sign-in, network fallback, relaxed assertion,
 longer deadline or production capability activation was added.
 
-The final local gate passed **all 169 selected files: 1,751 formal cases, zero
+The baseline’s final local gate passed **all 169 selected files: 1,751 formal cases, zero
 failures or skips**, plus the separate successful 33-check auth program. Its
 formal cases include 21 new modal lifecycle, 13 new capture setup and five new
 confirmation cases. The selected files and all snapshotted inputs stayed
@@ -57,13 +139,13 @@ one file-level wrapper for the standalone auth program. The local **1,751
 formal passes plus 33 standalone auth checks** and the CI count describe
 different reporting methods; they are not added together.
 
-### Current verification on 6878c384
+### Supporting verification on published 6878c384
 
 The fresh [type and quality run](https://github.com/donadmiral/tbirds-nest/actions/runs/41179235474)
 and [browser run](https://github.com/donadmiral/tbirds-nest/actions/runs/41179235074)
 both completed successfully on the published source above.
 
-| Gate on the current source | Observed result |
+| Gate on the published baseline | Observed result |
 | --- | --- |
 | Root regression CI | 1,752 passed; no failures or skips |
 | Web and operations CI | 683 and 195 passed; no failures or skips |
@@ -72,7 +154,8 @@ both completed successfully on the published source above.
 | Browser UI | 131 journeys passed: 37 admin, 41 web, 25 commerce, 25 Studio and three real-Next journeys |
 | Browser media and layouts | 12 story, 25 memory, five music and five cover-editor cases passed; 288 layouts had zero measured overflow or overlap; CI reported 18 encoded outputs |
 | Standalone native encoders | 58 passed, zero failures or skips: 39 Android, eight iOS story and 11 iOS memory cases |
-| Complete installed native apps | Milestone 6 remains open in [run 41179235060](https://github.com/donadmiral/tbirds-nest/actions/runs/41179235060); no complete current-source runtime acceptance is claimed |
+| Standalone native compilation | Android and iOS Simulator passed in 620 and 957 seconds respectively |
+| Complete installed native apps | Android failed as described above; iPhone remains running in [run 41179235060](https://github.com/donadmiral/tbirds-nest/actions/runs/41179235060). Milestone 6 remains open |
 
 The browser artifact ZIP digest and 24 source hashes were checked. The real
 Next cold-route probe retained navigation across all 124 sampled frames,
@@ -89,23 +172,32 @@ independently rehashed. All 65 compared engine, integration, dependency and
 harness/configuration inputs match the earlier source, supporting reuse of the
 previous independent decoder evidence without claiming fresh binary equivalence.
 
+Both standalone native compiler workflows also completed successfully. The
+Android compiler log binds its checkout and postflight hashes to this source.
+The single iOS compiler-log request returned `Transport closed`; its current
+receipt therefore uses completed job/step status, exact run/head/tree binding,
+unchanged-input checks and artifact metadata. It does not claim inspection of
+the current iOS compiler archive.
+
 Both current-source web/admin builds were intentionally ignored by the existing
 build step. Their aliases still point to the READY web `ab281bca` and admin
 `26e80ae9` deployments, with complete relevant application/shared/dependency
 inputs equal to this candidate. The earlier hosted observations retain their
 original scope; no repeated hosted journey was performed.
 
-The complete iPhone and Android runs still must establish native settings
-presentation, real packaged resource/file access, account readback, movie
-generation, cancellation/retry, cleanup and independent decoding. Passing
+The published Android run now supplies real packaged-resource delivery,
+saved-account readback and partial capture/cancellation evidence as described
+above. Complete native settings/navigation, movie generation/save and
+independent decoding still require successful installed-app acceptance. Passing
 quality, browser and standalone encoder gates does not close that milestone.
-The preceding complete-native failure below remains bound to its earlier source.
+The previous two-platform attempt below remains bound to its earlier source.
 
 [Published source binding](live-app-20261031/publication-6878c384.json) ·
 [Current quality receipt](live-app-20261031/ci-quality-6878c384.json) ·
 [Current browser receipt](live-app-20261031/browser-quality-6878c384.json) ·
 [Current deployment binding](live-app-20261031/deployment-review-6878c384.json) ·
-[Current standalone encoder evidence](native-full-app-20261031/native-encoders-6878c384-status-and-source-equivalence.json)
+[Current standalone encoder evidence](native-full-app-20261031/native-encoders-6878c384-status-and-source-equivalence.json) ·
+[Current native compilation evidence](native-full-app-20261031/native-compile-6878c384-status.json)
 
 [Final combined local gate](native-full-app-20261031/native-v5-final-root-regressions.json) ·
 [Retained restricted-run result](native-full-app-20261031/native-v5-root-sandbox-attempt.json) ·
@@ -114,7 +206,7 @@ The preceding complete-native failure below remains bound to its earlier source.
 [Capture setup repairs](native-full-app-20261031/native-capture-setup-repair.json) ·
 [Independent capture setup review](native-full-app-20261031/native-capture-setup-independent-review.json)
 
-## Last completed native acceptance attempt: e173b2db
+## Previous complete two-platform attempt: e173b2db
 
 Status snapshot: **2026-10-31 06:43 UTC**. Both complete-native jobs have
 finished with failed acceptance. Android lost its host emulator process during
@@ -860,7 +952,7 @@ controlled Maestro responses verify orchestration rather than native runtime.
 ## Hosted backend status
 
 The latest saved read-only QA business-auth postflight observed private stage 3.
-The catalogue check at 05:44:32 UTC and migration-history follow-up at 05:44:47 UTC
+The catalogue check at 07:22:04 UTC and migration-history check at 07:22:01 UTC
 on 2026-10-31 still matched the expected catalogue fingerprint
 `2f92a9d038364736fa2413bb6d05a160`.
 
@@ -868,7 +960,8 @@ It verified 99 catalogue records, unchanged migration names/versions/SQL hashes,
 no stage 4 private function, no music schema, no notification-event jobs or claim
 function, and no active matching business-auth statement.
 
-[Current read-only postflight](live-app-20261031/backend-stage3-postflight-e173b2db.json)
+[Current read-only postflight](live-app-20261031/backend-stage3-postflight-6878c384.json) ·
+[Previous read-only observation](live-app-20261031/backend-stage3-postflight-e173b2db.json)
 
 The next migration invocation never returned a success, error, approval form or
 rejection. Interrupting the local wait did not prove remote cancellation. The

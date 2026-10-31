@@ -1,0 +1,184 @@
+TAP version 13
+# Subtest: native chrome starts still, opaque and readable while preferences load
+ok 1 - native chrome starts still, opaque and readable while preferences load
+  ---
+  duration_ms: 65.159096
+  type: 'test'
+  ...
+# Subtest: a preference event cannot be overwritten by a stale initial read
+ok 2 - a preference event cannot be overwritten by a stale initial read
+  ---
+  duration_ms: 13.395439
+  type: 'test'
+  ...
+# Subtest: Android keeps opacity and listens to its own contrast setting
+ok 3 - Android keeps opacity and listens to its own contrast setting
+  ---
+  duration_ms: 7.139201
+  type: 'test'
+  ...
+# Subtest: native query failures retain usable chrome and unmount removes listeners
+ok 4 - native query failures retain usable chrome and unmount removes listeners
+  ---
+  duration_ms: 15.589096
+  type: 'test'
+  ...
+# Subtest: custom native tabs preserve accessibility, disabled state and activation handlers
+ok 5 - custom native tabs preserve accessibility, disabled state and activation handlers
+  ---
+  duration_ms: 40.445722
+  type: 'test'
+  ...
+# Subtest: native press animation works normally and resets when reduced motion turns on
+ok 6 - native press animation works normally and resets when reduced motion turns on
+  ---
+  duration_ms: 23.782201
+  type: 'test'
+  ...
+# Subtest: accessible native navigation stays visible while the content scrolls
+ok 7 - accessible native navigation stays visible while the content scrolls
+  ---
+  duration_ms: 24.666636
+  type: 'test'
+  ...
+# Subtest: actual navigation containers retain one unhandled-action handler across profile refresh and recovery branches
+ok 8 - actual navigation containers retain one unhandled-action handler across profile refresh and recovery branches
+  ---
+  duration_ms: 62.02274
+  type: 'test'
+  ...
+# Subtest: actual Profile completion cannot restart installed Navigation focus reads through the container callback
+ok 9 - actual Profile completion cannot restart installed Navigation focus reads through the container callback
+  ---
+  duration_ms: 96.591193
+  type: 'test'
+  ...
+# Subtest: stable callback preserves genuine blur/refocus refresh and duplicate focus suppression
+ok 10 - stable callback preserves genuine blur/refocus refresh and duplicate focus suppression
+  ---
+  duration_ms: 55.004748
+  type: 'test'
+  ...
+# Subtest: unhandled behavior still ignores GO_BACK and logs only the unexpected action type
+ok 11 - unhandled behavior still ignores GO_BACK and logs only the unexpected action type
+  ---
+  duration_ms: 36.461044
+  type: 'test'
+  ...
+# Subtest: callback stability does not remove the actual root navigator session/ABA keys
+ok 12 - callback stability does not remove the actual root navigator session/ABA keys
+  ---
+  duration_ms: 53.039658
+  type: 'test'
+  ...
+# Subtest: iPhone portrait safe area encloses native tab buttons with keepVisible=false
+ok 13 - iPhone portrait safe area encloses native tab buttons with keepVisible=false
+  ---
+  duration_ms: 5.826875
+  type: 'test'
+  ...
+# Subtest: iPhone portrait safe area encloses native tab buttons with keepVisible=true
+ok 14 - iPhone portrait safe area encloses native tab buttons with keepVisible=true
+  ---
+  duration_ms: 4.258051
+  type: 'test'
+  ...
+# Subtest: iPhone landscape safe area encloses native tab buttons with keepVisible=false
+ok 15 - iPhone landscape safe area encloses native tab buttons with keepVisible=false
+  ---
+  duration_ms: 3.537759
+  type: 'test'
+  ...
+# Subtest: iPhone landscape safe area encloses native tab buttons with keepVisible=true
+ok 16 - iPhone landscape safe area encloses native tab buttons with keepVisible=true
+  ---
+  duration_ms: 4.083264
+  type: 'test'
+  ...
+# Subtest: Android compact minimum inset encloses native tab buttons with keepVisible=false
+ok 17 - Android compact minimum inset encloses native tab buttons with keepVisible=false
+  ---
+  duration_ms: 2.930984
+  type: 'test'
+  ...
+# Subtest: Android compact minimum inset encloses native tab buttons with keepVisible=true
+ok 18 - Android compact minimum inset encloses native tab buttons with keepVisible=true
+  ---
+  duration_ms: 3.873274
+  type: 'test'
+  ...
+# Subtest: Android gesture inset encloses native tab buttons with keepVisible=false
+ok 19 - Android gesture inset encloses native tab buttons with keepVisible=false
+  ---
+  duration_ms: 3.709282
+  type: 'test'
+  ...
+# Subtest: Android gesture inset encloses native tab buttons with keepVisible=true
+ok 20 - Android gesture inset encloses native tab buttons with keepVisible=true
+  ---
+  duration_ms: 4.196931
+  type: 'test'
+  ...
+# Subtest: focused descriptor and safe-area style changes recompute the native container using installed style flattening
+ok 21 - focused descriptor and safe-area style changes recompute the native container using installed style flattening
+  ---
+  duration_ms: 3.233359
+  type: 'test'
+  ...
+# Subtest: nonnumeric or invalid dimensions use native parent bounds without invented sizes
+ok 22 - nonnumeric or invalid dimensions use native parent bounds without invented sizes
+  ---
+  duration_ms: 3.384994
+  type: 'test'
+  ...
+# Subtest: default and nonabsolute tab bars retain their natural parent sizing and bottom placement
+ok 23 - default and nonabsolute tab bars retain their natural parent sizing and bottom placement
+  ---
+  duration_ms: 3.605138
+  type: 'test'
+  ...
+# Subtest: scroll hide/reveal remains active normally and stops when reduced-motion or screen-reader visibility is requested
+ok 24 - scroll hide/reveal remains active normally and stops when reduced-motion or screen-reader visibility is requested
+  ---
+  duration_ms: 3.346376
+  type: 'test'
+  ...
+# Subtest: ios personal tabs keep stable native IDs, labels and activation through the installed navigator
+ok 25 - ios personal tabs keep stable native IDs, labels and activation through the installed navigator
+  ---
+  duration_ms: 50.792124
+  type: 'test'
+  ...
+# Subtest: ios business tabs keep stable native IDs, labels and activation through the installed navigator
+ok 26 - ios business tabs keep stable native IDs, labels and activation through the installed navigator
+  ---
+  duration_ms: 30.260968
+  type: 'test'
+  ...
+# Subtest: android personal tabs keep stable native IDs, labels and activation through the installed navigator
+ok 27 - android personal tabs keep stable native IDs, labels and activation through the installed navigator
+  ---
+  duration_ms: 26.421144
+  type: 'test'
+  ...
+# Subtest: android business tabs keep stable native IDs, labels and activation through the installed navigator
+ok 28 - android business tabs keep stable native IDs, labels and activation through the installed navigator
+  ---
+  duration_ms: 25.060286
+  type: 'test'
+  ...
+# Subtest: native flows select all main tabs by their rendered IDs and preserve the navigation sequence
+ok 29 - native flows select all main tabs by their rendered IDs and preserve the navigation sequence
+  ---
+  duration_ms: 72.077262
+  type: 'test'
+  ...
+1..29
+# tests 29
+# suites 0
+# pass 29
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1295.940363

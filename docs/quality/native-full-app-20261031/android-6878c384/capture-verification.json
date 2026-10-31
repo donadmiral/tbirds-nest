@@ -1,0 +1,286 @@
+{
+  "captures": [
+    {
+      "file": "attempt-2-capture-00.png",
+      "sha256": "aeaa6b5ad3552fdca3f9889fab4f0fe265861f9c2deab5469d0bc64becc9ba64",
+      "bytes": 51507,
+      "dimensions": [
+        720,
+        1280
+      ],
+      "layer": "background",
+      "kind": "text",
+      "card": "opening",
+      "duration": 2.4
+    },
+    {
+      "file": "attempt-2-capture-01.png",
+      "sha256": "8bcdfdd04b44f0b305054026856ec884353e9113a4c02689c191d27c9c8b8899",
+      "bytes": 3682,
+      "dimensions": [
+        720,
+        1280
+      ],
+      "layer": "overlay",
+      "kind": "text",
+      "card": "opening",
+      "duration": 2.4
+    },
+    {
+      "file": "attempt-2-capture-02.png",
+      "sha256": "640cc29c1ee90e88514af38625a694c0f4727df249bbee7e57b05c6004b59a16",
+      "bytes": 29156,
+      "dimensions": [
+        720,
+        1280
+      ],
+      "layer": "background",
+      "kind": "image",
+      "card": null,
+      "duration": 3.2
+    },
+    {
+      "file": "attempt-2-capture-03.png",
+      "sha256": "a4c3e48e9171ab80ae02b3268d6f8840f4d9e48f53eddc715cd3aac084dca30c",
+      "bytes": 25920,
+      "dimensions": [
+        720,
+        1280
+      ],
+      "layer": "overlay",
+      "kind": "image",
+      "card": null,
+      "duration": 3.2
+    },
+    {
+      "file": "attempt-2-capture-04.png",
+      "sha256": "73cee8956fc630885d928992cc209a7d1c0e89ef54796092e828e36e4982a885",
+      "bytes": 31276,
+      "dimensions": [
+        720,
+        1280
+      ],
+      "layer": "overlay",
+      "kind": "image",
+      "card": null,
+      "duration": 3.2
+    },
+    {
+      "file": "attempt-2-capture-05.png",
+      "sha256": "a4c3e48e9171ab80ae02b3268d6f8840f4d9e48f53eddc715cd3aac084dca30c",
+      "bytes": 25920,
+      "dimensions": [
+        720,
+        1280
+      ],
+      "layer": "overlay",
+      "kind": "image",
+      "card": null,
+      "duration": 3.2
+    },
+    {
+      "file": "attempt-2-capture-06.png",
+      "sha256": "a03bcb57307b71892ab0dec56bb41d90a30cf678d4bf2e0f6e3d271ea44a39df",
+      "bytes": 6363,
+      "dimensions": [
+        720,
+        1280
+      ],
+      "layer": "background",
+      "kind": "video",
+      "card": null,
+      "duration": 1.5
+    },
+    {
+      "file": "attempt-2-capture-07.png",
+      "sha256": "1807d6b35db779381358d183ad5a4c77a33afe7999e78d151fa5a09cdfd28803",
+      "bytes": 23373,
+      "dimensions": [
+        720,
+        1280
+      ],
+      "layer": "overlay",
+      "kind": "video",
+      "card": null,
+      "duration": 1.5
+    },
+    {
+      "file": "attempt-2-capture-08.png",
+      "sha256": "7218605432415de41b38bb68ac330186b4102d22899d61f88118d378ce943354",
+      "bytes": 37037,
+      "dimensions": [
+        720,
+        1280
+      ],
+      "layer": "background",
+      "kind": "text",
+      "card": null,
+      "duration": 3
+    },
+    {
+      "file": "attempt-2-capture-09.png",
+      "sha256": "8bcdfdd04b44f0b305054026856ec884353e9113a4c02689c191d27c9c8b8899",
+      "bytes": 3682,
+      "dimensions": [
+        720,
+        1280
+      ],
+      "layer": "overlay",
+      "kind": "text",
+      "card": null,
+      "duration": 3
+    },
+    {
+      "file": "attempt-2-capture-10.png",
+      "sha256": "03081613e7cba8374d570d7803cbb378a56c07bed86b06f0c865618d74cf27b7",
+      "bytes": 76163,
+      "dimensions": [
+        720,
+        1280
+      ],
+      "layer": "background",
+      "kind": "text",
+      "card": "closing",
+      "duration": 1.6
+    },
+    {
+      "file": "attempt-2-capture-11.png",
+      "sha256": "8bcdfdd04b44f0b305054026856ec884353e9113a4c02689c191d27c9c8b8899",
+      "bytes": 3682,
+      "dimensions": [
+        720,
+        1280
+      ],
+      "layer": "overlay",
+      "kind": "text",
+      "card": "closing",
+      "duration": 1.6
+    }
+  ],
+  "movieDecoded": false,
+  "reason": "The actual export failed at native Kotlin argument conversion before returning a movie.",
+  "capturedPngMeasurements": [
+    {
+      "file": "attempt-2-capture-00.png",
+      "layer": "background",
+      "kind": "text",
+      "clock": 0,
+      "brightPixels": 370,
+      "greenPixels": 0
+    },
+    {
+      "file": "attempt-2-capture-01.png",
+      "layer": "overlay",
+      "kind": "text",
+      "clock": 1.2,
+      "brightPixels": 0,
+      "greenPixels": 0
+    },
+    {
+      "file": "attempt-2-capture-02.png",
+      "layer": "background",
+      "kind": "image",
+      "clock": 0,
+      "brightPixels": 0,
+      "greenPixels": 0,
+      "quadrants": [
+        [
+          59,
+          62,
+          62,
+          255
+        ],
+        [
+          16,
+          43,
+          89,
+          255
+        ],
+        [
+          53,
+          39,
+          60,
+          255
+        ],
+        [
+          38,
+          38,
+          87,
+          255
+        ]
+      ]
+    },
+    {
+      "file": "attempt-2-capture-03.png",
+      "layer": "overlay",
+      "kind": "image",
+      "clock": 0.5,
+      "brightPixels": 61,
+      "greenPixels": 0
+    },
+    {
+      "file": "attempt-2-capture-04.png",
+      "layer": "overlay",
+      "kind": "image",
+      "clock": 1.5,
+      "brightPixels": 349,
+      "greenPixels": 0
+    },
+    {
+      "file": "attempt-2-capture-05.png",
+      "layer": "overlay",
+      "kind": "image",
+      "clock": 2.6,
+      "brightPixels": 61,
+      "greenPixels": 0
+    },
+    {
+      "file": "attempt-2-capture-06.png",
+      "layer": "background",
+      "kind": "video",
+      "clock": 0.5,
+      "brightPixels": 0,
+      "greenPixels": 0
+    },
+    {
+      "file": "attempt-2-capture-07.png",
+      "layer": "overlay",
+      "kind": "video",
+      "clock": 1.25,
+      "brightPixels": 63,
+      "greenPixels": 0
+    },
+    {
+      "file": "attempt-2-capture-08.png",
+      "layer": "background",
+      "kind": "text",
+      "clock": 0,
+      "brightPixels": 217,
+      "greenPixels": 0
+    },
+    {
+      "file": "attempt-2-capture-09.png",
+      "layer": "overlay",
+      "kind": "text",
+      "clock": 1.5,
+      "brightPixels": 0,
+      "greenPixels": 0
+    },
+    {
+      "file": "attempt-2-capture-10.png",
+      "layer": "background",
+      "kind": "text",
+      "clock": 0,
+      "brightPixels": 574,
+      "greenPixels": 0
+    },
+    {
+      "file": "attempt-2-capture-11.png",
+      "layer": "overlay",
+      "kind": "text",
+      "clock": 0.8,
+      "brightPixels": 0,
+      "greenPixels": 0
+    }
+  ]
+}

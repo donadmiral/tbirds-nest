@@ -1,0 +1,57 @@
+{
+  "sourceFiles": {
+    "build.log": {
+      "sha256": "af8b8e9d775856813e7693994c19c9195fd736aba0ea65c947188ef10353ad06",
+      "bytes": 189389
+    },
+    "emulator.log": {
+      "sha256": "17d6245c5d24a1744adb55ce4b52fe29c41a5cd2462a1a0f5e1d2cd6e62cbc23",
+      "bytes": 9409
+    }
+  },
+  "build": [
+    {
+      "line": 2314,
+      "text": "BUILD SUCCESSFUL in 13m 29s"
+    }
+  ],
+  "rendererAndShutdown": [
+    {
+      "line": 1,
+      "text": "INFO         | Android emulator version 37.2.13.0 (build_id 16740729) (CL:N/A)"
+    },
+    {
+      "line": 2,
+      "text": "INFO         | Graphics backend: gfxstream"
+    },
+    {
+      "line": 6,
+      "text": "INFO         | emuglConfig_init: vulkan_mode_selected:lavapipe gles_mode_selected:swangle"
+    },
+    {
+      "line": 25,
+      "text": "INFO         | Selecting Vulkan device: llvmpipe (LLVM 21.0.0, 256 bits), Version: 1.4.318"
+    },
+    {
+      "line": 48,
+      "text": "INFO         | Graphics Adapter Vendor Google (Google Inc.)"
+    },
+    {
+      "line": 49,
+      "text": "INFO         | Graphics Adapter Android Emulator OpenGL ES Translator (Google SwiftShader)"
+    },
+    {
+      "line": 50,
+      "text": "INFO         | Graphics API Version OpenGL ES 3.0 (OpenGL ES 3.0 SwiftShader 4.0.0.1)"
+    },
+    {
+      "line": 107,
+      "text": "INFO         | Wait for emulator (pid 6796) 20 seconds to shutdown gracefully before kill;you can set environment variable ANDROID_EMULATOR_WAIT_TIME_BEFORE_KILL(in seconds) to change the default value (20 seconds)"
+    },
+    {
+      "line": 111,
+      "text": "ERROR        | stop: Not implemented"
+    }
+  ],
+  "fatalSignatureMatches": []
+}

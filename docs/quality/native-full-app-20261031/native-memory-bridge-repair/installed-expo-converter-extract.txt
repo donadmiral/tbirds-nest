@@ -1,0 +1,154 @@
+node_modules/expo-modules-core/android/src/main/cpp/types/FrontendConverter.cpp, lines 477-518, whole-file SHA-256 8e0a9e6fed1f50a0aea6d9c502b9378a01b00c9e7bb48c35c5ec0178a026fef9
+MapFrontendConverter::MapFrontendConverter(
+  jni::local_ref<SingleType::javaobject> expectedType
+) : valueConverter(
+  FrontendConverterProvider::instance()->obtainConverter(
+    expectedType->getFirstParameterType()
+  )
+) {}
+
+jobject MapFrontendConverter::convert(
+  jsi::Runtime &rt,
+  JNIEnv *env,
+  const jsi::Value &value
+) const {
+  auto jsObject = value.asObject(rt);
+  auto propertyNames = jsObject.getPropertyNames(rt);
+  size_t size = propertyNames.size(rt);
+  auto map = java::LinkedHashMap<jobject, jobject>::create(size);
+
+  for (size_t i = 0; i < size; i++) {
+    auto key = propertyNames.getValueAtIndex(rt, i).getString(rt);
+    auto jsValue = jsObject.getProperty(rt, key);
+
+    auto convertedKey = env->NewStringUTF(key.utf8(rt).c_str());
+
+    auto convertedValue = valueConverter->convert(
+      rt, env, jsValue
+    );
+
+    map->put(convertedKey, convertedValue);
+
+    env->DeleteLocalRef(convertedKey);
+    env->DeleteLocalRef(convertedValue);
+  }
+
+  return map.release();
+}
+
+bool MapFrontendConverter::canConvert(
+  jsi::Runtime &rt,
+  const jsi::Value &value
+) const {
+  return value.isObject();
+
+node_modules/expo-modules-core/android/src/main/cpp/types/FrontendConverter.cpp, lines 559-649, whole-file SHA-256 8e0a9e6fed1f50a0aea6d9c502b9378a01b00c9e7bb48c35c5ec0178a026fef9
+jobject AnyFrontendConvert::convert(
+  jsi::Runtime &rt,
+  JNIEnv *env,
+  const jsi::Value &value
+) const {
+  if (booleanConverter.canConvert(rt, value)) {
+    return booleanConverter.convert(rt, env, value);
+  }
+
+  if (doubleConverter.canConvert(rt, value)) {
+    return doubleConverter.convert(rt, env, value);
+  }
+
+  if (stringConverter.canConvert(rt, value)) {
+    return stringConverter.convert(rt, env, value);
+  }
+
+  const jsi::Object &obj = value.asObject(rt);
+
+  if (obj.isArray(rt)) {
+    const jsi::Array &jsArray = obj.asArray(rt);
+    size_t size = jsArray.size(rt);
+
+    auto arrayList = java::ArrayList<jobject>::create(size);
+    for (size_t i = 0; i < size; i++) {
+      auto jsValue = jsArray.getValueAtIndex(rt, i);
+
+      auto convertedElement = this->convert(
+        rt, env, jsValue
+      );
+      arrayList->add(convertedElement);
+      env->DeleteLocalRef(convertedElement);
+    }
+
+    return arrayList.release();
+  }
+
+  // it's object, so we're going to convert it to LinkedHashMap
+  auto propertyNames = obj.getPropertyNames(rt);
+  size_t size = propertyNames.size(rt);
+  auto map = java::LinkedHashMap<jobject, jobject>::create(size);
+
+  for (size_t i = 0; i < size; i++) {
+    auto key = propertyNames.getValueAtIndex(rt, i).getString(rt);
+    auto jsValue = obj.getProperty(rt, key);
+
+    auto convertedKey = env->NewStringUTF(key.utf8(rt).c_str());
+    auto convertedValue = this->convert(
+      rt, env, jsValue
+    );
+
+    map->put(convertedKey, convertedValue);
+
+    env->DeleteLocalRef(convertedKey);
+    env->DeleteLocalRef(convertedValue);
+  }
+
+  return map.release();
+}
+
+bool AnyFrontendConvert::canConvert(jsi::Runtime &rt, const jsi::Value &value) const {
+  return true;
+}
+
+NullableFrontendConverter::NullableFrontendConverter(
+  jni::local_ref<SingleType::javaobject> expectedType
+) : parameterConverter(
+  FrontendConverterProvider::instance()->obtainConverter(
+    expectedType->getFirstParameterType()
+  )
+) {}
+
+bool NullableFrontendConverter::canConvert(
+  jsi::Runtime &rt,
+  const jsi::Value &value
+) const {
+  return value.isNull() || value.isUndefined() ||
+         parameterConverter->canConvert(rt, value);
+}
+
+jobject NullableFrontendConverter::convert(
+  jsi::Runtime &rt,
+  JNIEnv *env,
+  const jsi::Value &value
+) const {
+  if (value.isNull() || value.isUndefined()) {
+    return nullptr;
+  }
+
+  return parameterConverter->convert(rt, env, value);
+}
+
+node_modules/expo-modules-core/android/src/main/cpp/MethodMetadata.cpp, lines 74-89, whole-file SHA-256 06f8a8dafe007ff45849a89ad45eb3abed96dfd098d52737d4b7e2f452a72861
+    nullptr
+  );
+
+#define CONVERT(arg, type, index) \
+try {                             \
+  auto converterValue = type->converter->convert(rt, env, arg); \
+  env->SetObjectArrayElement(argumentArray, index, converterValue); \
+  env->DeleteLocalRef(converterValue);                          \
+} catch (std::exception &exception) {                           \
+  auto stringRepresentation = arg.toString(rt).utf8(rt);        \
+  throwNewJavaException(                                       \
+    UnexpectedException::create(                               \
+      "[" + this->info.name + "] Cannot convert '" + stringRepresentation + \
+      "' to a Kotlin type.").get()                             \
+  );                              \
+}

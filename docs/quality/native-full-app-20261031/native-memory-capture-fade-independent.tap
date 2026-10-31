@@ -1,0 +1,82 @@
+TAP version 13
+# Subtest: actual capture photo disables the native fade while retaining readiness and errors
+ok 1 - actual capture photo disables the native fade while retaining readiness and errors
+  ---
+  duration_ms: 92.162041
+  type: 'test'
+  ...
+# Subtest: actual photo sticker uses the same nonfading capture path and keeps its independent color look
+ok 2 - actual photo sticker uses the same nonfading capture path and keeps its independent color look
+  ---
+  duration_ms: 99.844003
+  type: 'test'
+  ...
+# Subtest: ordinary photo playback keeps the native fade default and caller callbacks
+ok 3 - ordinary photo playback keeps the native fade default and caller callbacks
+  ---
+  duration_ms: 32.260659
+  type: 'test'
+  ...
+# Subtest: graded captures retain the existing Skia path and its readiness callbacks
+ok 4 - graded captures retain the existing Skia path and its readiness callbacks
+  ---
+  duration_ms: 34.765854
+  type: 'test'
+  ...
+# Subtest: retained Android captures show a partial image fade while the sticker border stays opaque
+ok 5 - retained Android captures show a partial image fade while the sticker border stays opaque
+  ---
+  duration_ms: 129.274077
+  type: 'test'
+  ...
+# Subtest: neutral edits and zero filter intensity leave the decoded pixels unchanged
+ok 6 - neutral edits and zero filter intensity leave the decoded pixels unchanged
+  ---
+  duration_ms: 4.87421
+  type: 'test'
+  ...
+# Subtest: brightness increases and decreases real channel values, retaining alpha
+ok 7 - brightness increases and decreases real channel values, retaining alpha
+  ---
+  duration_ms: 0.919756
+  type: 'test'
+  ...
+# Subtest: saturation and monochrome presets change pixel chroma rather than tinting it
+ok 8 - saturation and monochrome presets change pixel chroma rather than tinting it
+  ---
+  duration_ms: 1.113993
+  type: 'test'
+  ...
+# Subtest: contrast, warmth, tint, fade and each tonal slider alter the actual photo
+ok 9 - contrast, warmth, tint, fade and each tonal slider alter the actual photo
+  ---
+  duration_ms: 1.571399
+  type: 'test'
+  ...
+# Subtest: highlights and shadows depend on pixel luminance, not location on the canvas
+ok 10 - highlights and shadows depend on pixel luminance, not location on the canvas
+  ---
+  duration_ms: 0.715896
+  type: 'test'
+  ...
+# Subtest: every saved filter has finite Skia output and partial intensity changes its result
+ok 11 - every saved filter has finite Skia output and partial intensity changes its result
+  ---
+  duration_ms: 11.118651
+  type: 'test'
+  ...
+# Subtest: photo playback retains only spatial grain and vignette overlays, avoiding a second color grade
+ok 12 - photo playback retains only spatial grain and vignette overlays, avoiding a second color grade
+  ---
+  duration_ms: 0.282767
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 684.052567

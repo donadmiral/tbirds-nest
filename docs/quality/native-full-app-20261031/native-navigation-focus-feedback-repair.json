@@ -1,0 +1,249 @@
+{
+  "reviewedAt": "2026-10-31T07:37:39Z",
+  "owner": "hosted_backend",
+  "verdict": "Source-proven focus-read feedback repair accepted locally; installed-app performance/lock acceptance remains pending.",
+  "baseline": {
+    "head": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+    "merge": "ba8d659c4b6172c1c4930cd6d348d627bdb1470f",
+    "tree": "bebc0e7bfa5a9a6b17e477a29b17fcd41c2ae27d",
+    "appNavigatorSha256": "ee5ce00883df84956d2840d4d70f7f0ed7395797a7889abbb2970d6f7fa455fe"
+  },
+  "runtimeTrigger": {
+    "review": {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384-auth-independent-review.json",
+      "bytes": 18665,
+      "sha256": "95b58f6f821cd7c29905ae917f4f677e100554496eafd1eeabdbdbb5c450dae0"
+    },
+    "finding": "Verified Android artifact recorded 280 profile RPCs, 279 memory-album RPCs, a 31,482.659ms outer auth lock hold and eight five-second lock warnings. Sampled timer identities stayed stable."
+  },
+  "sourceMechanism": [
+    {
+      "source": "src/screens/profile/ProfileScreen.tsx:126-166",
+      "finding": "The actual successful load merges profile data through setAuthProfile. AppNavigator subscribes to that store profile and rerenders."
+    },
+    {
+      "source": "src/navigation/AppNavigator.tsx, both NavigationContainer branches in published baseline",
+      "finding": "An inline onUnhandledAction function was newly allocated on each render, including profile-only refreshes."
+    },
+    {
+      "source": "node_modules/@react-navigation/core/src/BaseNavigationContainer.tsx:430-434; useNavigationHelpers.tsx:43,108-114",
+      "finding": "The callback is provided in UnhandledActionContext and included in the navigation helpers memo dependency list."
+    },
+    {
+      "source": "node_modules/@react-navigation/core/src/useNavigationCache.tsx; useFocusEffect.tsx",
+      "finding": "Per-screen navigation cache depends on the helper object and the focus effect depends on navigation. Changed callback identity therefore restarts a focused screen effect even without a real focus transition."
+    },
+    {
+      "source": "src/screens/profile/ProfileScreen.tsx:324-330; src/components/MemoryAlbumCard.tsx:57",
+      "finding": "Both Profile loading and memory-album refreshing are focus effects, consistent with their nearly equal repeated request counts."
+    },
+    {
+      "source": "node_modules/@supabase/supabase-js/src/lib/fetch.ts:23-32; SupabaseClient.ts:533-544; node_modules/@supabase/auth-js/src/GoTrueClient.ts:2623-2679",
+      "finding": "REST fetch obtains the access token/session before checking an explicit Authorization header. Auth calls queue while lockAcquired and the outer lock drains pendingInLock until empty, so ongoing focus reads can prolong one outer lock. Per-read runtime queue attribution is inferred from these pinned sources and the retained trace, not directly logged."
+    }
+  ],
+  "change": {
+    "path": "src/navigation/AppNavigator.tsx",
+    "description": "Hoist the existing stateless unhandled-action body to one module-level function and pass the same function to both normal and recovery NavigationContainers.",
+    "unchangedBehavior": [
+      "GO_BACK remains ignored. Other actions log only the optional action type with the existing prefix.",
+      "The handler captures no account, profile, theme or lifecycle state.",
+      "Session revision subscription, root account/session key, recovery/setup gates, routes, providers and real blur/refocus behavior remain unchanged.",
+      "No auth SDK, lock deadline, timer, storage, retry, capability or CI setting was changed by this repair."
+    ],
+    "productionDiff": "One function/comment addition and two inline-prop replacements only."
+  },
+  "verification": {
+    "runtime": {
+      "node": "v24.22.1",
+      "platform": "linux"
+    },
+    "before": {
+      "evidence": {
+        "path": "docs/quality/native-full-app-20261031/android-6878c384/navigation-handler-before.tap",
+        "bytes": 4723,
+        "sha256": "772265c5f76654923f6a4cb1dd9f7f058d6fbf548a01b27bac9ebaf3a97ddb0c"
+      },
+      "tests": 5,
+      "suites": 0,
+      "pass": 1,
+      "fail": 4,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 603.403646,
+      "command": "node --test --test-isolation=none --test-reporter=tap tests/quality/native-navigation-handler.cjs",
+      "exitCode": 1,
+      "actualProfileCallsAfterInitialFocusAndSixPublicationTurns": 7,
+      "expectedProfileCalls": 1
+    },
+    "after": {
+      "evidence": {
+        "path": "docs/quality/native-full-app-20261031/android-6878c384/navigation-handler-after.tap",
+        "bytes": 7071,
+        "sha256": "3bccd374d98170b192fdac62c9620b8f6784356bb091fa400560b4b1518c320d"
+      },
+      "tests": 29,
+      "suites": 0,
+      "pass": 29,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 1295.940363,
+      "command": "node --test --test-isolation=none --test-reporter=tap tests/quality/native-navigation-handler.cjs tests/navigation-accessibility.test.cjs tests/quality/native-tab-selectors.cjs tests/quality/native-tab-bar.cjs",
+      "exitCode": 0,
+      "actualProfileCallsAfterInitialFocusAndSixPublicationTurns": 1,
+      "breakdown": {
+        "newNavigationHandler": 5,
+        "existingNavigationAccessibility": 7,
+        "existingTabSelectors": 5,
+        "existingTabGeometry": 12
+      }
+    },
+    "typecheck": {
+      "command": "./node_modules/.bin/tsc --noEmit",
+      "exitCode": 0,
+      "outputBytes": 0,
+      "note": "Previously observed completed check on these frozen source bytes; not rerun while sealing."
+    },
+    "lint": {
+      "command": "./node_modules/.bin/eslint src/navigation/AppNavigator.tsx tests/quality/native-navigation-handler.cjs",
+      "exitCode": 0,
+      "outputBytes": 0,
+      "note": "Previously observed completed scoped check on these frozen bytes."
+    },
+    "whitespace": {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "note": "Previously observed at source freeze."
+    },
+    "independentReview": {
+      "path": "docs/quality/native-full-app-20261031/native-navigation-focus-feedback-independent-review.json",
+      "bytes": 5919,
+      "sha256": "ca1d32ea78bef2df32b6e4c89d62aca207ae42dc08544c6fc0a84e1aaa23b8ec"
+    },
+    "testSemantics": [
+      "Actual AppNavigator TSX provides the callback and root key. Installed Navigation helper/cache/focus hooks and real StackRouter execute.",
+      "Actual ProfileScreen load callback is extracted via TypeScript AST and executed with a bounded successful synthetic RPC/auth-store host. The baseline produces seven reads across the initial focus plus six publication turns; fixed source produces one.",
+      "Separate cases cover normal/recovery handler identity, real blur/refocus with duplicate-focus suppression, GO_BACK/type-only diagnostic behavior, and A-to-B-to-A root key distinction."
+    ]
+  },
+  "sourceFiles": [
+    {
+      "path": "src/navigation/AppNavigator.tsx",
+      "bytes": 37975,
+      "sha256": "25901306b597b2a0fc93111f97636ef74beee216174df9937e5cf16ad3ffed70",
+      "publishedSha256": "ee5ce00883df84956d2840d4d70f7f0ed7395797a7889abbb2970d6f7fa455fe",
+      "matchesPublished": false
+    },
+    {
+      "path": "tests/quality/native-navigation-handler.cjs",
+      "bytes": 13217,
+      "sha256": "583b51e9b3eba3471ebfc612a44a3045203b5843682bf4d235a2c5084a1a0add"
+    },
+    {
+      "path": "src/screens/profile/ProfileScreen.tsx",
+      "bytes": 48999,
+      "sha256": "8054af477bbdbd0a17bb7ad417107490b1c1f457c9182fa4e80f3a51bd5e2d20",
+      "publishedSha256": "8054af477bbdbd0a17bb7ad417107490b1c1f457c9182fa4e80f3a51bd5e2d20",
+      "matchesPublished": true
+    },
+    {
+      "path": "src/components/MemoryAlbumCard.tsx",
+      "bytes": 10085,
+      "sha256": "e6974756880f972305f8afccce6b9df1ccb1db67c1dafac181802ee9a935d074",
+      "publishedSha256": "e6974756880f972305f8afccce6b9df1ccb1db67c1dafac181802ee9a935d074",
+      "matchesPublished": true
+    },
+    {
+      "path": "src/services/supabase.ts",
+      "bytes": 5093,
+      "sha256": "457ab3f8c8c54aa3a5e770dd1b43f4869a98c7471c9ccffcbe5f9e3901847fee",
+      "publishedSha256": "457ab3f8c8c54aa3a5e770dd1b43f4869a98c7471c9ccffcbe5f9e3901847fee",
+      "matchesPublished": true
+    }
+  ],
+  "installedVersions": {
+    "@react-navigation/core": "6.4.17",
+    "@react-navigation/native": "6.1.18",
+    "@react-navigation/routers": "6.1.9",
+    "@supabase/supabase-js": "2.103.0",
+    "@supabase/auth-js": "2.103.0"
+  },
+  "pinnedPrimarySourceFiles": [
+    {
+      "path": "node_modules/@react-navigation/core/package.json",
+      "bytes": 1742,
+      "sha256": "8e58c26a70ad855affdb1ac5db5d68894f11bc26fea35e29cbef46d51465dd09"
+    },
+    {
+      "path": "node_modules/@react-navigation/native/package.json",
+      "bytes": 1788,
+      "sha256": "7be33a8f810a611ade552bf5e7dc88a2e1275f4848c3ba383b09f1a412a492a1"
+    },
+    {
+      "path": "node_modules/@react-navigation/routers/package.json",
+      "bytes": 1374,
+      "sha256": "ec52ba614c8931860760357d873decc83d087f75c03fdb3cd9731594d576f981"
+    },
+    {
+      "path": "node_modules/@react-navigation/core/src/BaseNavigationContainer.tsx",
+      "bytes": 14717,
+      "sha256": "780847062cd0a5e9d911e78364c02e18a90ab8858c15472f86b9bee8ba53ee19"
+    },
+    {
+      "path": "node_modules/@react-navigation/core/src/useNavigationHelpers.tsx",
+      "bytes": 3245,
+      "sha256": "7102ce8c413221f299fbb206847d9857376613187492c025f3e44d34594428e6"
+    },
+    {
+      "path": "node_modules/@react-navigation/core/src/useNavigationCache.tsx",
+      "bytes": 5080,
+      "sha256": "a880bca9fd84be387e2161930ab7e7ade806e45f5abd471910c18b431544ec5f"
+    },
+    {
+      "path": "node_modules/@react-navigation/core/src/useFocusEffect.tsx",
+      "bytes": 3623,
+      "sha256": "72215f66cc658a41114bd06eef79ee9d26ff555abe6c4830c82021aef65aa7bf"
+    },
+    {
+      "path": "node_modules/@supabase/supabase-js/package.json",
+      "bytes": 4509,
+      "sha256": "697dd1bfd66925a5b586c52e0324517979a6650c45bdba8e03014b197e87304e"
+    },
+    {
+      "path": "node_modules/@supabase/supabase-js/src/lib/fetch.ts",
+      "bytes": 941,
+      "sha256": "07cd17d5fcf6eb4e7c13e515ffdf5ac79da89deb960d756baa3455a19d975757"
+    },
+    {
+      "path": "node_modules/@supabase/supabase-js/src/SupabaseClient.ts",
+      "bytes": 22416,
+      "sha256": "ebd3ab841c152b079e9bd7ee0c08afd2ce34f18ca49037e2d911888fdaa56f88"
+    },
+    {
+      "path": "node_modules/@supabase/auth-js/package.json",
+      "bytes": 1212,
+      "sha256": "35ad1a61ad02fb70467db0ae2238f3d8fd7009729be73207bacc8f3ac07e4b93"
+    },
+    {
+      "path": "node_modules/@supabase/auth-js/src/GoTrueClient.ts",
+      "bytes": 207269,
+      "sha256": "0e93e288647c1b47c3935c99896a73cdd6d027adbf3c91c78af5bec5cf69a1ae"
+    },
+    {
+      "path": "node_modules/@supabase/auth-js/src/lib/locks.ts",
+      "bytes": 14457,
+      "sha256": "6d1ec3ee482d09c887d4212de582b13128af365a85f5b64893a25d09bc6c8668"
+    }
+  ],
+  "sourceProvenanceLimit": "Installed SDK version and recorded SDK provenance are consistent with the verified native manifest; local Navigation hooks are pinned by package lock. Local source hashes do not independently attest each final Metro bundle instruction.",
+  "limits": [
+    "React scheduling, native hosts, auth state and contexts/listeners are controlled doubles. This focused harness is not a fully mounted native application.",
+    "Six deterministic settled render turns demonstrate feedback, not production throughput or latency.",
+    "The A-to-B-to-A case proves preservation of the actual root session key; it does not itself prove native destruction/provider reset.",
+    "This repair removes one concrete request feedback path. A subsequent installed-app artifact must show actual profile/shelf request counts and lock timing; no warning suppression or deadline relaxation is permitted.",
+    "Other agents own the independently evidenced shelf-centering and native media repairs. Their source/tests are outside this focused result."
+  ]
+}

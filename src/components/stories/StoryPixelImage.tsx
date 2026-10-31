@@ -52,8 +52,11 @@ export default function StoryPixelImage(props: StoryPixelImageProps) {
   useEffect(() => { setFailed(false); report?.(id, 'loading'); return () => report?.(id, 'removed'); }, [props.uri, graded, retry, report, id]);
   const loaded = useCallback(() => { report?.(id, 'ready'); callbacks.current.onLoad?.(); }, [id, report]);
   const errored = useCallback(() => { setFailed(true); report?.(id, 'error'); callbacks.current.onError?.(); }, [id, report]);
+  // Android fades file images for 300 ms after onLoad. A capture needs the
+  // decoded pixels at full opacity; ordinary playback keeps its native default.
+  const fadeDuration = report ? 0 : undefined;
   return <View style={props.style}>
-    {graded ? <GradedPhoto key={props.uri + ':' + retry} {...props} style={StyleSheet.absoluteFill} look={look} onLoad={loaded} onError={errored} /> : <Image key={props.uri + ':' + retry} source={{ uri: props.uri }} resizeMode={props.fit || 'cover'} style={StyleSheet.absoluteFill} onLoad={loaded} onError={errored} />}
+    {graded ? <GradedPhoto key={props.uri + ':' + retry} {...props} style={StyleSheet.absoluteFill} look={look} onLoad={loaded} onError={errored} /> : <Image key={props.uri + ':' + retry} source={{ uri: props.uri }} resizeMode={props.fit || 'cover'} style={StyleSheet.absoluteFill} fadeDuration={fadeDuration} onLoad={loaded} onError={errored} />}
     {failed ? <View style={[StyleSheet.absoluteFill, styles.error]}><Text style={styles.errorText}>This photo could not load.</Text><TouchableOpacity accessibilityRole="button" accessibilityLabel="Retry photo" style={styles.retry} onPress={() => { setFailed(false); setRetry(value => value+1); }}><Text style={styles.errorText}>Retry</Text></TouchableOpacity></View> : null}
   </View>;
 }

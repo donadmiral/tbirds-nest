@@ -124,6 +124,86 @@ function bridgeFixture(platform = 'android', version = 1) {
   const load = loader({ 'react-native': { Platform: { OS: platform } }, 'expo-modules-core': { requireOptionalNativeModule: () => native } });
   return { native, calls, ...load('modules/boomerang/memoryComposition.ts') };
 }
+
+// Expo's installed Android AnyFrontendConvert recursively handles primitives,
+// arrays and objects. Nested null/undefined reach value.asObject() and throw;
+// only the outer Map<String, Any?> values have the nullable converter. This is
+// a boundary contract double, not an execution of Hermes/JNI or the encoder.
+function requireNativeValues(value, location = 'request') {
+  if (typeof value === 'string' || typeof value === 'boolean') return;
+  if (typeof value === 'number' && Number.isFinite(value)) return;
+  if (value == null || typeof value !== 'object') throw new Error(`Unsupported native bridge value at ${location}`);
+  for (const [key, child] of Object.entries(value)) requireNativeValues(child, `${location}.${key}`);
+}
+
+test('optional scene fields are omitted at the native boundary without mutating the caller', async () => {
+  for (const platform of ['android', 'ios']) {
+    const f = bridgeFixture(platform), value = plain(request());
+    value.soundtrack = undefined; value.scenes[0].backgroundUri = undefined; value.scenes[0].audio = undefined;
+    let submitted;
+    f.native.composeMemoryMovie = async payload => {
+      requireNativeValues(payload); submitted = payload;
+      return { uri: payload.outputUri, width: 720, height: 1280, duration: 2, bytes: 4000, sceneCount: 1, soundtrackMixed: false };
+    };
+    await f.composeMemoryMovie(value);
+    for (const key of ['backgroundUri', 'audio']) {
+      assert.equal(Object.hasOwn(submitted.scenes[0], key), false);
+      assert.equal(Object.hasOwn(value.scenes[0], key), true);
+    }
+    assert.equal(Object.hasOwn(submitted, 'soundtrack'), false);
+    assert.equal(Object.hasOwn(value, 'soundtrack'), true);
+    assert.deepEqual(plain(submitted), plain(value));
+  }
+});
+
+test('present native movie artwork and audio preserve zero, false and the exact timeline', async () => {
+  const f = bridgeFixture(), value = plain(request());
+  value.scenes[0].backgroundUri = 'file:///cache/background.png';
+  value.scenes[0].layers = [{ uri: 'file:///cache/writing.png', start: 0, end: 2 }];
+  value.scenes[0].audio = { uri: 'file:///cache/page.m4a', start: 0, duration: 2, volume: 0, loop: false };
+  value.soundtrack = { uri: 'file:///cache/score.m4a', start: 0, duration: 2, volume: 0, loop: false, gain: [{ start: 0, end: 2, volume: 0 }] };
+  f.native.composeMemoryMovie = async payload => {
+    requireNativeValues(payload); assert.deepEqual(plain(payload), value);
+    assert.notEqual(payload, value); assert.notEqual(payload.scenes[0], value.scenes[0]);
+    assert.notEqual(payload.scenes[0].recipe.matrix, value.scenes[0].recipe.matrix);
+    assert.notEqual(payload.scenes[0].layers[0], value.scenes[0].layers[0]);
+    assert.notEqual(payload.scenes[0].audio, value.scenes[0].audio);
+    assert.notEqual(payload.soundtrack.gain[0], value.soundtrack.gain[0]);
+    return { uri: payload.outputUri, width: 720, height: 1280, duration: 2, bytes: 4000, sceneCount: 1, soundtrackMixed: true };
+  };
+  assert.equal((await f.composeMemoryMovie(value)).soundtrackMixed, true);
+});
+
+test('nullable absent native movie options cannot leak into nested Android values', async () => {
+  const f = bridgeFixture(), value = plain(request());
+  value.scenes[0].backgroundUri = null; value.scenes[0].audio = null; value.soundtrack = null;
+  f.native.composeMemoryMovie = async payload => {
+    requireNativeValues(payload);
+    return { uri: payload.outputUri, width: 720, height: 1280, duration: 2, bytes: 4000, sceneCount: 1, soundtrackMixed: false };
+  };
+  await f.composeMemoryMovie(value);
+});
+
+test('native result verification uses the submitted request snapshot after caller edits', async () => {
+  const f = bridgeFixture(), value = plain(request()), expected = plain(value); let finish, submitted;
+  f.native.composeMemoryMovie = payload => new Promise(resolve => {
+    submitted = payload;
+    finish = () => resolve({ uri: expected.outputUri, width: 720, height: 1280, duration: 2, bytes: 4000, sceneCount: 1, soundtrackMixed: false });
+  });
+  const work = f.composeMemoryMovie(value);
+  value.outputUri = 'file:///cache/replacement.mp4'; value.scenes[0].recipe.trimEnd = 9; value.scenes[0].recipe.matrix[0] = 0;
+  finish(); assert.equal((await work).uri, expected.outputUri); assert.deepEqual(plain(submitted), expected);
+});
+
+test('cancellation keeps the submitted native job identity after caller replacement', async () => {
+  const f = bridgeFixture(), value = plain(request()), controller = new AbortController(); let finish;
+  f.native.composeMemoryMovie = payload => new Promise(resolve => {
+    const uri = payload.outputUri;
+    finish = () => resolve({ uri, width: 720, height: 1280, duration: 2, bytes: 4000, sceneCount: 1, soundtrackMixed: false });
+  });
+  const work = f.composeMemoryMovie(value, controller.signal); value.id = 'replacement-job'; controller.abort(); finish();
+  await assert.rejects(work, /cancelled/); assert.deepEqual(f.calls, [['cancel', 'memory-request-1']]);
+});
 test('whole-book capability requires the complete supported native contract on each phone platform', () => {
   for (const platform of ['ios', 'android']) { assert.equal(bridgeFixture(platform, 1).memoryMovieCompositionAvailable, true); for (const version of [0, 2, undefined]) assert.equal(bridgeFixture(platform, version === undefined ? null : version).memoryMovieCompositionAvailable, false); }
   assert.equal(bridgeFixture('web').memoryMovieCompositionAvailable, false);
@@ -152,7 +232,7 @@ test('unimplemented animated native artwork cannot silently export as a static l
   assert.equal(f.calls.length, 0);
 });
 
-function pipelineFixture() {
+function pipelineFixture({ realBridge = false } = {}) {
   const system = fileSystem(), controller = new AbortController(), events = [], stopped = { value: false };
   const page = { id: 'story-id-0001', story_id: 'story-id-0001', media_type: 'image', media_url: privateURI(), caption: 'Visible memory writing' };
   const book = { id: 'book-id-0001', title: 'Our days', can_view: true, pages: [page], presentation_revision: 1 };
@@ -170,6 +250,16 @@ function pipelineFixture() {
       composeMemoryMovie: async value => { events.push(['encode']); lastRequest = value; system.files.set(value.outputUri, Buffer.alloc(4000)); return { uri: value.outputUri, width: 720, height: 1280, duration: 6, bytes: 4000, sceneCount: value.scenes.length, soundtrackMixed: !!value.soundtrack }; },
     },
   };
+  if (realBridge) {
+    const implementation = dependencies[path.join(root, 'modules/boomerang/memoryComposition.ts')];
+    const compose = implementation.composeMemoryMovie;
+    const native = { ...implementation, memoryMovieVersion: 1, cancelMemoryMovie: async () => {},
+      composeMemoryMovie: async payload => { requireNativeValues(payload); return compose(payload); },
+    };
+    dependencies['expo-modules-core'] = { requireOptionalNativeModule: () => native };
+    dependencies['react-native'] = { Platform: { OS: 'android' } };
+    delete dependencies[path.join(root, 'modules/boomerang/memoryComposition.ts')];
+  }
   const load = loader(dependencies), service = load('src/services/memoryMovieExport.ts');
   const options = { bookId: book.id, expected: { title: book.title, pages: book.pages, revision: 1 }, signal: controller.signal, originalAudio: true, scoreVolume: null, reduceMotion: false,
     capture: async value => { events.push(['capture', value]); if (captureFailure) throw new Error('Artwork did not render'); const uri = 'file:///cache/capture-' + events.length + '.png'; system.files.set(uri, Buffer.alloc(80)); return uri; }, progress() {}, onInvalid() {},
@@ -177,6 +267,15 @@ function pipelineFixture() {
   return { ...system, controller, events, stopped, options, service, request: () => lastRequest,
     failCapture: () => { captureFailure = true; }, revoke: () => { accessFailure = true; } };
 }
+test('actual native preparation reaches the real bridge with a representable movie request', async () => {
+  const f = pipelineFixture({ realBridge: true });
+  const movie = await f.service.exportNativeMemoryMovie(f.options);
+  assert.ok(f.events.some(event => event[0] === 'encode'));
+  requireNativeValues(f.request());
+  assert.equal(Object.hasOwn(f.request().scenes[0], 'backgroundUri'), false);
+  assert.equal(Object.hasOwn(f.request().scenes[0], 'audio'), false);
+  movie.release(); assert.equal(f.files.size, 0); assert.equal(f.stopped.value, true);
+});
 test('native preparation captures writing and every artwork layer from authorized private sources', async () => {
   const f = pipelineFixture(), movie = await f.service.exportNativeMemoryMovie(f.options), request = f.request();
   assert.equal(request.scenes.length, 1); assert.equal(request.scenes[0].inputKind, 'image'); assert.equal(request.scenes[0].layers.length, 1);

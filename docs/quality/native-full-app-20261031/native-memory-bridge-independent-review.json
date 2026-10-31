@@ -1,0 +1,125 @@
+{
+  "reviewedAt": "2026-10-31T07:33:51.836475+00:00",
+  "reviewer": "navigation_performance",
+  "scope": "Read-only independent review of native movie request snapshot and optional-field normalization; no app source edits or native/CI rerun.",
+  "verdict": "Accepted. No remaining source review objection to the bounded payload repair.",
+  "artifactContext": {
+    "head": "6878c384f4f2de8b4bcf2cf49e6597b250bd9bde",
+    "merge": "ba8d659c4b6172c1c4930cd6d348d627bdb1470f",
+    "runId": 41179235060,
+    "jobId": 124473036936,
+    "artifactId": 13035220059,
+    "zipSha256": "b869c6611030a06c9d7ced04e4c72050f164677738c43537e5019c3e5ade57c1",
+    "reportedFailure": "Actual Android capture reached composeMemoryMovie and failed with Cannot convert object; root owns the detailed failure diagnosis and owner receipt."
+  },
+  "findings": [
+    {
+      "topic": "Installed bridge contract",
+      "result": "Expo Modules Core 3.0.30 AnyFrontendConvert::convert at FrontendConverter.cpp:559\u2013617 recurses with itself for array/object values. After bool/number/string checks it calls asObject. Nested null/undefined do not use the separate NullableFrontendConverter at632\u2013649. The native method accepts Map<String,Any?> at BoomerangModule.kt:34; that outer nullable map value does not recursively make nested Any nullable."
+    },
+    {
+      "topic": "Actual producer",
+      "result": "memoryMovieExport.ts:116 constructs each scene with backgroundUri undefined for non-video scenes and audio pageAudio, which can be undefined. The top request at 129 includes optional soundtrack. This matches the nested-absent-value boundary being repaired."
+    },
+    {
+      "topic": "Validation and fields",
+      "result": "composeMemoryMovie still validates the original request before projection and dispatch. Explicit projection covers every current request, scene, StoryVideoRecipe, motion, transition, artwork-window, audio and soundtrack-gain field. No type-defined field is discarded. Invalid artwork animation is rejected before a projection could remove it."
+    },
+    {
+      "topic": "Absence versus falsy values",
+      "result": "Only null/undefined optional scene.backgroundUri, scene.audio and request.soundtrack are omitted. Present typed fields are copied directly, preserving 0 volume/start/offset/fade, false loop, negative offsets/matrix coefficients and original array order."
+    },
+    {
+      "topic": "Snapshot isolation",
+      "result": "A new request object, scenes array/objects, recipe/matrix, layers, transition, motion, audio, soundtrack and gain windows are allocated. No original request mutation occurs. Cancellation identity and result validation use the submitted snapshot, so caller edits while native work is pending cannot redirect cancel or change the expected output/timeline."
+    },
+    {
+      "topic": "Lifecycle and authorization",
+      "result": "Capability gate, original request validator, pre-aborted rejection, single abort listener/removal, native cancellation and late-success rejection remain. Export access/rights checks before and after compose and before saving are unchanged upstream; native validation and unsupported animation restrictions remain intact."
+    }
+  ],
+  "focusedVerification": {
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-memory-export.cjs",
+    "independentRun": {
+      "tests": 21,
+      "passed": 21,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "exitCode": 0,
+      "sourcesIdenticalBeforeAndAfter": true
+    },
+    "ownerBaselineObservedInRetainedOutput": {
+      "tests": 21,
+      "pass": 15,
+      "fail": 6,
+      "skipped": 0
+    },
+    "raw": {
+      "path": "docs/quality/native-full-app-20261031/native-memory-bridge-repair/independent-focused.tap",
+      "sha256": "0d0684e8cdba79f0650295ed6c293b567f8dbc0905f769d9cb772eca726d08c5"
+    },
+    "caseCoverage": [
+      "omitted optional scene fields on Android and iOS bridge fixture",
+      "present audio/artwork preserves zero and false",
+      "nullable absence omitted",
+      "result snapshot after caller output/timeline edits",
+      "cancel original job after caller identity edit",
+      "actual preparation service and real JS bridge with boundary double",
+      "existing invalid result/animation, pre-abort, late success, authorization failure and cleanup cases"
+    ]
+  },
+  "limits": [
+    "The boundary double is a recursive JS representability check, not Hermes, JNI, the actual C++ converter or the native encoder. It intentionally rejects absent values at any level; outer nullable top-level values are stricter in the double than the installed native map contract, which does not affect this schema-normalized payload.",
+    "The test executes real TypeScript production preparation/bridge/validators with controlled native, file, download, capture and access adapters. Access guards in the fixture are doubles; it is not new hosted authorization or account continuity evidence.",
+    "The projected-safe audio/video payload is not a new playable movie. Full native capture, encoder/decode, save and cleanup acceptance remain pending.",
+    "No production timeouts, SDK locks, native capability flags, supported animation set, licensing permissions or native implementation changed in this repair."
+  ],
+  "sourceFiles": [
+    {
+      "path": "modules/boomerang/memoryComposition.ts",
+      "sha256": "38debdfe443ebdc3b728cb5a3f8605f203866a8dfc7c56daab14896686e9eead",
+      "bytes": 4733
+    },
+    {
+      "path": "tests/quality/native-memory-export.cjs",
+      "sha256": "4a40c71e24d7f23aa9f4995d5a29edacac116b7976bb7a6dcd25780498a80696",
+      "bytes": 23120
+    },
+    {
+      "path": "shared/memoryMovieComposition.ts",
+      "sha256": "08b1accdc205e5b80f55d06201bb9b2abfbf692d643cb37601ab5544a42d0e82",
+      "bytes": 4930
+    },
+    {
+      "path": "shared/storyVideoComposition.ts",
+      "sha256": "cc3016616f2ad31ff4cd725b2160773c40605b8903bc21a46cf31ac147aca5a1",
+      "bytes": 5193
+    },
+    {
+      "path": "src/services/memoryMovieExport.ts",
+      "sha256": "44947bc901323154ad9383a88c9eb715ccaacabfa0df1c3aa2aad5b05e0191fe",
+      "bytes": 13657
+    },
+    {
+      "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt",
+      "sha256": "71fb89957210d6ef01fc5bace8e029468de9b172fb58d74a2d2814e7240ba237",
+      "bytes": 2990
+    },
+    {
+      "path": "node_modules/expo-modules-core/android/src/main/cpp/types/FrontendConverter.cpp",
+      "sha256": "8e0a9e6fed1f50a0aea6d9c502b9378a01b00c9e7bb48c35c5ec0178a026fef9",
+      "bytes": 18851
+    },
+    {
+      "path": "node_modules/expo-modules-core/android/src/main/cpp/types/FrontendConverterProvider.cpp",
+      "sha256": "53f872ef7959ebb939b94a681ce8b8b3780dbcbd9a1cfd852622fdd0c6bd23e6",
+      "bytes": 4870
+    },
+    {
+      "path": "node_modules/expo-modules-core/package.json",
+      "sha256": "3a82321af932334fb7fc4976b49786ddfcf30fbc4fe067924775d2491c9e12d6",
+      "bytes": 1753
+    }
+  ]
+}

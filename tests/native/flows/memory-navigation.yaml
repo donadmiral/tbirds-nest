@@ -6,6 +6,7 @@ name: Saved memory book, automatic film and cover editing
 - scrollUntilVisible:
     element: View all memory books
     direction: DOWN
+    centerElement: true
 - tapOn: View all memory books
 - tapOn: Private
 - assertVisible: THE SMALL ADVENTURES, 2 memories

@@ -1,0 +1,136 @@
+TAP version 13
+# Subtest: private downloads stream in bounded writes and dispose only their own workspace
+ok 1 - private downloads stream in bounded writes and dispose only their own workspace
+  ---
+  duration_ms: 130.337745
+  type: 'test'
+  ...
+# Subtest: unknown-length downloads enforce the byte ceiling before a chunk reaches disk
+ok 2 - unknown-length downloads enforce the byte ceiling before a chunk reaches disk
+  ---
+  duration_ms: 38.0903
+  type: 'test'
+  ...
+# Subtest: cancelling a blocked media reader closes it and removes the partial file
+ok 3 - cancelling a blocked media reader closes it and removes the partial file
+  ---
+  duration_ms: 32.448188
+  type: 'test'
+  ...
+# Subtest: foreign links and unapproved public objects never start a download
+ok 4 - foreign links and unapproved public objects never start a download
+  ---
+  duration_ms: 30.349096
+  type: 'test'
+  ...
+# Subtest: local copies validate size and retain their source through export cleanup
+ok 5 - local copies validate size and retain their source through export cleanup
+  ---
+  duration_ms: 36.012847
+  type: 'test'
+  ...
+# Subtest: a low-space constructor allocates no workspace and timed steps release their listener
+ok 6 - a low-space constructor allocates no workspace and timed steps release their listener
+  ---
+  duration_ms: 26.331945
+  type: 'test'
+  ...
+# Subtest: optional scene fields are omitted at the native boundary without mutating the caller
+ok 7 - optional scene fields are omitted at the native boundary without mutating the caller
+  ---
+  duration_ms: 35.271002
+  type: 'test'
+  ...
+# Subtest: present native movie artwork and audio preserve zero, false and the exact timeline
+ok 8 - present native movie artwork and audio preserve zero, false and the exact timeline
+  ---
+  duration_ms: 15.115949
+  type: 'test'
+  ...
+# Subtest: nullable absent native movie options cannot leak into nested Android values
+ok 9 - nullable absent native movie options cannot leak into nested Android values
+  ---
+  duration_ms: 14.918638
+  type: 'test'
+  ...
+# Subtest: native result verification uses the submitted request snapshot after caller edits
+ok 10 - native result verification uses the submitted request snapshot after caller edits
+  ---
+  duration_ms: 15.292338
+  type: 'test'
+  ...
+# Subtest: cancellation keeps the submitted native job identity after caller replacement
+ok 11 - cancellation keeps the submitted native job identity after caller replacement
+  ---
+  duration_ms: 17.216124
+  type: 'test'
+  ...
+# Subtest: whole-book capability requires the complete supported native contract on each phone platform
+ok 12 - whole-book capability requires the complete supported native contract on each phone platform
+  ---
+  duration_ms: 111.432896
+  type: 'test'
+  ...
+# Subtest: invalid scene and normalized-image acknowledgements cannot become saved files
+ok 13 - invalid scene and normalized-image acknowledgements cannot become saved files
+  ---
+  duration_ms: 12.814482
+  type: 'test'
+  ...
+# Subtest: abort reaches the native job and rejects a late successful encoder response
+ok 14 - abort reaches the native job and rejects a late successful encoder response
+  ---
+  duration_ms: 18.628779
+  type: 'test'
+  ...
+# Subtest: pre-aborted exports and unavailable builds never invoke native encoding
+ok 15 - pre-aborted exports and unavailable builds never invoke native encoding
+  ---
+  duration_ms: 33.545986
+  type: 'test'
+  ...
+# Subtest: unimplemented animated native artwork cannot silently export as a static layer
+ok 16 - unimplemented animated native artwork cannot silently export as a static layer
+  ---
+  duration_ms: 13.277295
+  type: 'test'
+  ...
+# Subtest: actual native preparation reaches the real bridge with a representable movie request
+ok 17 - actual native preparation reaches the real bridge with a representable movie request
+  ---
+  duration_ms: 175.733045
+  type: 'test'
+  ...
+# Subtest: native preparation captures writing and every artwork layer from authorized private sources
+ok 18 - native preparation captures writing and every artwork layer from authorized private sources
+  ---
+  duration_ms: 128.344636
+  type: 'test'
+  ...
+# Subtest: capture errors and revoked artwork links fail the whole native preparation and clean temporary bytes
+ok 19 - capture errors and revoked artwork links fail the whole native preparation and clean temporary bytes
+  ---
+  duration_ms: 239.238153
+  type: 'test'
+  ...
+# Subtest: cancelling during capture cannot submit a partial native scene and removes captured files
+ok 20 - cancelling during capture cannot submit a partial native scene and removes captured files
+  ---
+  duration_ms: 97.101206
+  type: 'test'
+  ...
+# Subtest: reduced-motion preparation emits a still transform and zero fade in the actual native request
+ok 21 - reduced-motion preparation emits a still transform and zero fade in the actual native request
+  ---
+  duration_ms: 99.846207
+  type: 'test'
+  ...
+1..21
+# tests 21
+# suites 0
+# pass 21
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1504.313818

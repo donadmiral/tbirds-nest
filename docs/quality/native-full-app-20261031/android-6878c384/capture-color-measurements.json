@@ -1,0 +1,185 @@
+{
+  "photo": {
+    "actualBackground": [
+      11,
+      30,
+      61
+    ],
+    "fittedAlpha": 0.2130220149942536,
+    "maximumChannelResidual": 1,
+    "quadrants": [
+      {
+        "fraction": [
+          0.25,
+          0.25
+        ],
+        "source": [
+          237,
+          179,
+          67,
+          255
+        ],
+        "captured": [
+          59,
+          62,
+          62,
+          255
+        ],
+        "predictedBySourceOverBackground": [
+          59,
+          62,
+          62,
+          255
+        ]
+      },
+      {
+        "fraction": [
+          0.75,
+          0.25
+        ],
+        "source": [
+          36,
+          93,
+          194,
+          255
+        ],
+        "captured": [
+          16,
+          43,
+          89,
+          255
+        ],
+        "predictedBySourceOverBackground": [
+          16,
+          43,
+          89,
+          255
+        ]
+      },
+      {
+        "fraction": [
+          0.25,
+          0.75
+        ],
+        "source": [
+          206,
+          71,
+          59,
+          255
+        ],
+        "captured": [
+          53,
+          39,
+          60,
+          255
+        ],
+        "predictedBySourceOverBackground": [
+          53,
+          39,
+          61,
+          255
+        ]
+      },
+      {
+        "fraction": [
+          0.75,
+          0.75
+        ],
+        "source": [
+          139,
+          70,
+          182,
+          255
+        ],
+        "captured": [
+          38,
+          38,
+          87,
+          255
+        ],
+        "predictedBySourceOverBackground": [
+          38,
+          39,
+          87,
+          255
+        ]
+      }
+    ]
+  },
+  "sticker": {
+    "sourcePixel": [
+      0,
+      255,
+      0,
+      255
+    ],
+    "actualBackground": [
+      17,
+      17,
+      17
+    ],
+    "mostCommonGreenPixels": [
+      {
+        "count": 8944,
+        "rgba": [
+          12,
+          89,
+          12,
+          255
+        ]
+      },
+      {
+        "count": 2762,
+        "rgba": [
+          12,
+          90,
+          12,
+          255
+        ]
+      },
+      {
+        "count": 81,
+        "rgba": [
+          103,
+          151,
+          103,
+          255
+        ]
+      },
+      {
+        "count": 81,
+        "rgba": [
+          57,
+          120,
+          57,
+          255
+        ]
+      }
+    ],
+    "pixelsPassingUnchangedGreenThreshold": 0,
+    "opaqueWhitePixels": 1280
+  },
+  "files": [
+    {
+      "path": "tests/native/assets/memory-capture-photo.png",
+      "sha256": "3b9a7aeedbf62a83256e320ad4472fb50d32ceb9f3ff62fc98f903d4fae9cd65",
+      "bytes": 1590
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-02.png",
+      "sha256": "640cc29c1ee90e88514af38625a694c0f4727df249bbee7e57b05c6004b59a16",
+      "bytes": 29156
+    },
+    {
+      "path": "tests/native/assets/memory-capture-sticker.png",
+      "sha256": "1eb3f1a983c7a13e77c00ffdc1d89f44e1bd01b5ac94131c6c6026a0d2836fdb",
+      "bytes": 180
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/android-6878c384/memory-capture/attempt-2-capture-04.png",
+      "sha256": "73cee8956fc630885d928992cc209a7d1c0e89ef54796092e828e36e4982a885",
+      "bytes": 31276
+    }
+  ],
+  "timingLimit": "Alpha fitting is an explanation of captured colors, not a measured frame or native fade duration benchmark."
+}
