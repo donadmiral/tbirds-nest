@@ -53,6 +53,9 @@ const AUDIENCES = [
   { key: 'only_me', label: 'Only me' },
 ];
 
+function emptyReactionScope() {
+  return { revision: 0, readRevision: 0, changes: new Map<string, { revision: number; reacted: boolean }>() };
+}
 
 export default function MemoryAlbumScreen({ route, navigation }: NativeStackScreenProps<ParamListBase,'MemoryAlbum'>) {
   const { t, isDark } = useTheme();
@@ -88,6 +91,7 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
   const [ownerProfile, setOwnerProfile] = useState<{ full_name: string | null; username: string | null; avatar_url: string | null } | null>(null);
   const viewerRef = useRef<string | null>(null);
   const loadGeneration = useRef(0);
+  const reactionScope = useRef(emptyReactionScope());
   const [loadError, setLoadError] = useState<string | null>(null);
   useEffect(() => {
     let alive = true, authVersion = 0;
@@ -95,6 +99,8 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
     const apply = (next: string | null) => {
       if (!alive) return;
       if (viewerRef.current !== next) {
+        reactionScope.current = emptyReactionScope();
+        setReactionRead({ known: new Set(), pending: !!next });
         loadGeneration.current++; setAlbum(null); setMyStories([]); setPlayingUrl(null); setPicker(false); setSettings(false); setPageActions(null); pendingPageAction.current=null; setCaptionFor(null); setLikedPages(new Set());
       }
       viewerRef.current = next; setViewerId(next); setAuthReady(true);
@@ -103,7 +109,7 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { authVersion++; apply(session?.user.id ?? null); });
     const initial = authVersion;
     void supabase.auth.getSession().then(({ data }) => { if (initial === authVersion) apply(data.session?.user.id ?? null); }).catch(() => { if (alive) setLoadError('Your account could not load. Please retry.'); });
-    return () => { alive = false; loadGeneration.current++; subscription.unsubscribe(); };
+    return () => { alive = false; loadGeneration.current++; reactionScope.current = emptyReactionScope(); subscription.unsubscribe(); };
   }, [authAttempt]);
   useEffect(() => { if (!ownerId) return; (async () => { try { const { data } = await supabase.from('profiles').select('full_name, username, avatar_url').eq('id', ownerId).maybeSingle(); if (data) setOwnerProfile(data); } catch {} })(); }, [ownerId]);
   const ownerName = ownerProfile?.full_name ?? null; const ownerUsername = ownerProfile?.username ?? null; const ownerAvatar = ownerProfile?.avatar_url ?? null;
@@ -134,6 +140,7 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
   const [captionText, setCaptionText] = useState('');
   const [playingUrl, setPlayingUrl] = useState<string | null>(null);
   const [likedPages, setLikedPages] = useState<Set<string>>(new Set());
+  const [reactionRead, setReactionRead] = useState(() => ({ known: new Set<string>(), pending: true }));
 
   const coverAnim = useRef(new Animated.Value(0)).current;
   const pageTurn=useRef<MemoryPageTurnHandle>(null);
@@ -151,6 +158,12 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
 
   const load = useCallback(async () => {
     const generation = ++loadGeneration.current;
+    const scope = reactionScope.current;
+    const readRevision = ++scope.readRevision;
+    // A new required read retires the old optional request. If a confirmed
+    // soundtrack edit later supersedes this refresh, unknown reactions must
+    // remain unavailable rather than wait forever for a discarded response.
+    setReactionRead(previous => previous.pending ? { ...previous, pending: false } : previous);
     if (!ownerId || !viewerId) { setAlbum(null); setLoading(!authReady); if(authReady)setLoadError(!ownerId?'This album is unavailable.':'Sign in to view this album.'); return; }
     try {
       const { data, error } = albumIdParam
@@ -158,7 +171,7 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
         : await supabase.rpc('get_memory_album', { p_owner: ownerId });
       if (error) throw error;
       const [hydrated] = data ? await hydrateMemoryAlbumMedia([memoryAlbumStoryLayers(data)]) : [];
-      if (generation !== loadGeneration.current || viewerRef.current !== viewerId) return;
+      if (generation !== loadGeneration.current || viewerRef.current !== viewerId || reactionScope.current !== scope) return;
       setAlbum(hydrated ?? null); setLoadError(null);
       // A successful refresh may remove a page or revoke its source. Do not
       // keep its former signed URL alive in the expanded player.
@@ -171,9 +184,34 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
         if (data.id) setBookId(data.id);
       }
       const ids = ((data?.pages ?? []) as MemoryBookPage[]).map((pg:MemoryBookPage) => pg.story_id).filter((id):id is string=>!!id);
+      const validIds = new Set(ids);
+      for (const id of scope.changes.keys()) if (!validIds.has(id)) scope.changes.delete(id);
+      setLikedPages(previous => new Set([...previous].filter(id => validIds.has(id))));
+      setReactionRead(previous => ({ known: new Set([...previous.known].filter(id => validIds.has(id))), pending: ids.length > 0 }));
       if (ids.length) {
-        const { data: mine } = await supabase.from('story_reactions').select('story_id').eq('user_id', viewerId).in('story_id', ids);
-        if (generation === loadGeneration.current && viewerRef.current === viewerId) setLikedPages(new Set((mine ?? []).map((r) => String(r.story_id))));
+        // Reactions decorate an already authorized book. They must not hold its
+        // reader behind a spinner or turn an optional failure into lost content.
+        const revision = scope.revision;
+        // A soundtrack confirmation invalidates full-book reads but does not
+        // change reaction membership. Optional reads own a separate ticket.
+        const current = () => readRevision === scope.readRevision && viewerRef.current === viewerId && reactionScope.current === scope;
+        void (async () => {
+          try {
+            const { data: mine, error } = await supabase.from('story_reactions').select('story_id').eq('user_id', viewerId).in('story_id', ids);
+            if (!current()) return;
+            if (error || !Array.isArray(mine)) { setReactionRead(previous => ({ ...previous, pending: false })); return; }
+            const next = new Set(mine.map(row => String(row.story_id)).filter(id => validIds.has(id)));
+            // A successful toggle after this read began remains authoritative;
+            // other pages still receive their independently fetched membership.
+            for (const [id, change] of scope.changes) if (change.revision > revision && validIds.has(id)) {
+              if (change.reacted) next.add(id); else next.delete(id);
+            }
+            setLikedPages(next);
+            setReactionRead({ known: validIds, pending: false });
+          } catch {
+            if (current()) setReactionRead(previous => ({ ...previous, pending: false }));
+          }
+        })();
       }
     } catch {
       if (generation === loadGeneration.current) { setAlbum(null); setPlayingUrl(null); setLoadError('The album could not load. Please retry.'); }
@@ -183,12 +221,14 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
   useEffect(() => {
     // A route/account change invalidates pending flips and picker responses.
     bookGeneration.current++; loadGeneration.current++;
+    reactionScope.current = emptyReactionScope();
+    setLikedPages(new Set()); setReactionRead({ known: new Set(), pending: true });
     coverAnim.stopAnimation(); pageTurn.current?.cancel();
     coverAnim.setValue(0); idxRef.current=0;
     setOpened(false); setGrid(false); setPlayMode(false); setPlaying(false); setFilmVisible(false); setIdx(0); setAlbum(null); setBookId(albumIdParam);
     setPlayingUrl(null); setPicker(false); setSettings(false); setPageActions(null); pendingPageAction.current=null; setCaptionFor(null);
     setMyStories([]); setChosen(new Set()); setAdding(false); setStoriesLoading(false); setMutationError(''); setLoadError(null); setLoading(true);
-    const invalidate=()=>{bookGeneration.current++;coverAnim.stopAnimation();pageTurn.current?.cancel();};
+    const invalidate=()=>{bookGeneration.current++;reactionScope.current=emptyReactionScope();coverAnim.stopAnimation();pageTurn.current?.cancel();};
     return invalidate;
   }, [ownerId, albumIdParam, viewerId, coverAnim]);
 
@@ -352,6 +392,9 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
   const bookH = bookW * 1.31;
   const pageHeight = Math.max(160, Math.min(screenHeight*.64, screenHeight-Math.max(insets.top,12)-insets.bottom-160-(nextBook?44:0)));
   const page = pages[Math.min(idx, Math.max(pages.length - 1, 0))];
+  const renderedReactionScope = reactionScope.current;
+  const reactionKnown = !!page?.story_id && reactionRead.known.has(page.story_id);
+  const reactionStatus = reactionRead.pending ? 'Loading reaction status' : 'Reaction status unavailable';
   const pageWidth=Math.min(screenWidth-40,440,pageHeight*.78);
   const coverScale = coverAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.07] });
   const coverFade = coverAnim.interpolate({ inputRange: [0, 0.55, 1], outputRange: [1, 0, 0] });
@@ -430,7 +473,21 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
                     <Text numberOfLines={2} style={st.handCaption}>{page?.caption || ' '}</Text>
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 }}>
                       <Text style={st.handDate}>{fmtDate(page?.taken_at)}</Text>
-                      <TouchableOpacity hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} activeOpacity={0.8} onPress={async () => {if(!page?.story_id||reactionLock.current)return;reactionLock.current=true;const sid=page.story_id,viewer=viewerRef.current;try{const {data,error}=await supabase.rpc('toggle_story_reaction',{p_story_id:sid,p_emoji:'❤️'});if(error)throw error;if(viewerRef.current===viewer)setLikedPages(prev=>{const next=new Set(prev);if(data?.reacted)next.add(sid);else next.delete(sid);return next;});}catch{setMutationError('Your reaction could not save. Try again.');}finally{reactionLock.current=false;}}} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: likedPages.has(page?.story_id??'') ? 'rgba(224,36,94,0.14)' : 'rgba(11,30,61,0.06)' }}><Feather name="heart" size={15} color={likedPages.has(page?.story_id??'') ? '#E0245E' : 'rgba(11,30,61,0.7)'} /><Text style={{ fontSize: 12, fontWeight: '700', color: likedPages.has(page?.story_id??'') ? '#E0245E' : 'rgba(11,30,61,0.7)' }}>{likedPages.has(page?.story_id??'') ? 'Liked' : 'Like'}</Text></TouchableOpacity>
+                      <TouchableOpacity accessibilityRole="button" accessibilityLabel={reactionKnown ? undefined : reactionStatus} disabled={!reactionKnown} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} activeOpacity={0.8} onPress={async () => {
+                        if(!page?.story_id||!reactionKnown||reactionLock.current||reactionScope.current!==renderedReactionScope)return;
+                        reactionLock.current=true;
+                        const sid=page.story_id,viewer=viewerRef.current;
+                        const current=()=>viewerRef.current===viewer&&reactionScope.current===renderedReactionScope;
+                        try {
+                          const {data,error}=await supabase.rpc('toggle_story_reaction',{p_story_id:sid,p_emoji:'❤️'});
+                          if(error)throw error;
+                          if(current()) {
+                            renderedReactionScope.changes.set(sid,{revision:++renderedReactionScope.revision,reacted:!!data?.reacted});
+                            setLikedPages(prev=>{const next=new Set(prev);if(data?.reacted)next.add(sid);else next.delete(sid);return next;});
+                          }
+                        } catch { if(current())setMutationError('Your reaction could not save. Try again.'); }
+                        finally { reactionLock.current=false; }
+                      }} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: likedPages.has(page?.story_id??'') ? 'rgba(224,36,94,0.14)' : 'rgba(11,30,61,0.06)' }}><Feather name="heart" size={15} color={likedPages.has(page?.story_id??'') ? '#E0245E' : 'rgba(11,30,61,0.7)'} /><Text style={{ fontSize: 12, fontWeight: '700', color: likedPages.has(page?.story_id??'') ? '#E0245E' : 'rgba(11,30,61,0.7)' }}>{reactionKnown ? likedPages.has(page?.story_id??'') ? 'Liked' : 'Like' : reactionRead.pending ? 'Loading…' : 'Unavailable'}</Text></TouchableOpacity>
                     </View>
                   </View>
                 </View>

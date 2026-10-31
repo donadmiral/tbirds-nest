@@ -20,10 +20,10 @@ function scenario(platform) {
     memoryAlbumStoryLayers:presentationModule.exports.memoryAlbumStoryLayers,
     ...creativeModule.exports,settingsOpen:{current:false},setDesign(){},setCoverArtwork(){},setFilmSettings(){},setPresentationRevision(){},
     useCallback: fn => fn, authReady: true, ownerId: 'album-owner', uid: 'viewer', viewerId: 'viewer', albumIdParam: 'album-id',
-    loadGeneration: { current: 0 }, viewerRef: { current: 'viewer' },
+    loadGeneration: { current: 0 }, viewerRef: { current: 'viewer' }, reactionScope: { current: { revision: 0, readRevision: 0, changes: new Map() } },
     getMemoryBook: () => request.promise,
     supabase: { rpc: () => request.promise }, hydrateMemoryAlbumMedia: async rows => rows.map(row => ({...row, signed: true})),
-    setAlbum: value => albums.push(value), setLoadError: value => errors.push(value), setLoading() {}, setPlayingUrl() {},
+    setAlbum: value => albums.push(value), setLoadError: value => errors.push(value), setLoading() {}, setPlayingUrl() {}, setLikedPages() {}, setReactionRead() {},
     setTitle() {}, setSubtitle() {}, setCoverStoryId() {}, setColor() {}, setAud() {}, setBookId() {},
   };
   const compiled = ts.transpileModule(source.slice(start, end) + '\nthis.load = load;', { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;

@@ -1,0 +1,66 @@
+{
+  "recordedAtUtc": "2026-10-31T16:00:17Z",
+  "frozenSources": [
+    {
+      "path": "src/screens/profile/MemoryAlbumScreen.tsx",
+      "bytes": 67979,
+      "sha256": "63cf58cdf501ef43c333c9cce04ba3620fb775f1de532e4d92ace987d0d8826f"
+    },
+    {
+      "path": "tests/quality/native-memory-album-loading.cjs",
+      "bytes": 24780,
+      "sha256": "9059608e3383c7fec254757f281655548a904ef6ed5f53c2bc6f314200a47691"
+    },
+    {
+      "path": "tests/quality/memory-media-regressions.cjs",
+      "bytes": 3734,
+      "sha256": "526f6a7657b3d7e0fac755da4412c290a48de8cdf03a2f70258b078b92f6749c"
+    }
+  ],
+  "checks": [
+    {
+      "command": [
+        "node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--pretty",
+        "false"
+      ],
+      "exitCode": 0,
+      "output": {
+        "path": "docs/quality/native-full-app-20261031/native-reader-reactions-repair/typescript.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "src/screens/profile/MemoryAlbumScreen.tsx",
+        "tests/quality/native-memory-album-loading.cjs",
+        "tests/quality/memory-media-regressions.cjs"
+      ],
+      "exitCode": 0,
+      "output": {
+        "path": "docs/quality/native-full-app-20261031/native-reader-reactions-repair/eslint.txt",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "src/screens/profile/MemoryAlbumScreen.tsx",
+        "tests/quality/native-memory-album-loading.cjs",
+        "tests/quality/memory-media-regressions.cjs"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "nodeVersion": "v24.22.1",
+  "typescriptVersion": "5.9.3"
+}
