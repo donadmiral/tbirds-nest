@@ -1,0 +1,419 @@
+--- a/src/screens/profile/MemoryAlbumScreen.tsx
++++ b/src/screens/profile/MemoryAlbumScreen.tsx
+@@ -43,6 +43,7 @@
+ import { useMemoryPlayback } from '../../hooks/useMemoryPlayback';
+ import { useSoundtrackPlayer } from '../../hooks/useSoundtrackPlayer';
+ import { createMemorySoundtrackSaveHook } from '../../../shared/useMemorySoundtrackSave';
++import { createMemoryReaderRequest } from '../../../shared/memoryReaderRequest';
+ const useMemorySoundtrackSave = createMemorySoundtrackSaveHook({ useEffect, useRef, useState });
+ const PAGE_CREAM = '#FBF6EC';
+ 
+@@ -86,19 +87,26 @@
+   // Who is looking, and who owns the album: the Message button on a video memory DMs the owner.
+   const [viewerId, setViewerId] = useState<string | null>(null);
+   const [authReady, setAuthReady] = useState(false);
++  const [authScopeRevision, setAuthScopeRevision] = useState(0);
+   const [authAttempt, setAuthAttempt] = useState(0);
+   const [mediaAttempt, setMediaAttempt] = useState(0);
+   const [ownerProfile, setOwnerProfile] = useState<{ full_name: string | null; username: string | null; avatar_url: string | null } | null>(null);
+   const viewerRef = useRef<string | null>(null);
+   const loadGeneration = useRef(0);
++  const readerRequest = useRef<ReturnType<typeof createMemoryReaderRequest> | null>(null);
+   const reactionScope = useRef(emptyReactionScope());
+   const [loadError, setLoadError] = useState<string | null>(null);
+   useEffect(() => {
+     let alive = true, authVersion = 0;
++    const initial = authVersion;
++    const initialRead = createMemoryReaderRequest();
+     setLoadError(null);
++    if (!viewerRef.current) setLoading(true);
+     const apply = (next: string | null) => {
+       if (!alive) return;
+       if (viewerRef.current !== next) {
++        readerRequest.current?.cancel();
++        setAuthScopeRevision(revision => revision + 1);
+         reactionScope.current = emptyReactionScope();
+         setReactionRead({ known: new Set(), pending: !!next });
+         loadGeneration.current++; setAlbum(null); setMyStories([]); setPlayingUrl(null); setPicker(false); setSettings(false); setPageActions(null); pendingPageAction.current=null; setCaptionFor(null); setLikedPages(new Set());
+@@ -106,10 +114,15 @@
+       viewerRef.current = next; setViewerId(next); setAuthReady(true);
+       if(!next){setLoadError('Sign in to view this album.');setLoading(false);}
+     };
+-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { authVersion++; apply(session?.user.id ?? null); });
+-    const initial = authVersion;
+-    void supabase.auth.getSession().then(({ data }) => { if (initial === authVersion) apply(data.session?.user.id ?? null); }).catch(() => { if (alive) setLoadError('Your account could not load. Please retry.'); });
+-    return () => { alive = false; loadGeneration.current++; reactionScope.current = emptyReactionScope(); subscription.unsubscribe(); };
++    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { authVersion++; initialRead.cancel(); apply(session?.user.id ?? null); });
++    // Bound this screen's local wait, not the shared refresh/session operation.
++    void initialRead.read(() => supabase.auth.getSession(), 12000).then(({ data, error }) => {
++      if (error) throw error;
++      if (initial === authVersion) apply(data.session?.user.id ?? null);
++    }).catch(() => {
++      if (alive && initial === authVersion) { setLoadError('Your account could not load. Please retry.'); setLoading(false); }
++    });
++    return () => { alive = false; initialRead.cancel(); readerRequest.current?.cancel(); loadGeneration.current++; reactionScope.current = emptyReactionScope(); subscription.unsubscribe(); };
+   }, [authAttempt]);
+   useEffect(() => { if (!ownerId) return; (async () => { try { const { data } = await supabase.from('profiles').select('full_name, username, avatar_url').eq('id', ownerId).maybeSingle(); if (data) setOwnerProfile(data); } catch {} })(); }, [ownerId]);
+   const ownerName = ownerProfile?.full_name ?? null; const ownerUsername = ownerProfile?.username ?? null; const ownerAvatar = ownerProfile?.avatar_url ?? null;
+@@ -152,25 +165,33 @@
+     route: `${ownerId}:${albumIdParam ?? 'default'}`, canEdit: album?.is_owner === true,
+     onConfirmed: (id, selection) => {
+       loadGeneration.current += 1;
++      readerRequest.current?.cancel();
+       setAlbum((previous) => previous?.id === id && previous.is_owner ? { ...previous, soundtrack: selection } : previous);
+     },
+   });
+ 
+   const load = useCallback(async () => {
+     const generation = ++loadGeneration.current;
++    readerRequest.current?.cancel();
++    const request = createMemoryReaderRequest();
++    readerRequest.current = request;
+     const scope = reactionScope.current;
+     const readRevision = ++scope.readRevision;
+     // A new required read retires the old optional request. If a confirmed
+     // soundtrack edit later supersedes this refresh, unknown reactions must
+     // remain unavailable rather than wait forever for a discarded response.
+     setReactionRead(previous => previous.pending ? { ...previous, pending: false } : previous);
+-    if (!ownerId || !viewerId) { setAlbum(null); setLoading(!authReady); if(authReady)setLoadError(!ownerId?'This album is unavailable.':'Sign in to view this album.'); return; }
++    if (!ownerId || !viewerId) { request.cancel(); setAlbum(null); setLoading(!authReady); if(authReady)setLoadError(!ownerId?'This album is unavailable.':'Sign in to view this album.'); return; }
++    setLoadError(null);
+     try {
+-      const { data, error } = albumIdParam
+-        ? await supabase.rpc('get_memory_book', { p_album: albumIdParam })
+-        : await supabase.rpc('get_memory_album', { p_owner: ownerId });
++      // Includes SDK session acquisition and response parsing, before fetch starts.
++      const { data, error } = await request.read(() => (albumIdParam
++        ? supabase.rpc('get_memory_book', { p_album: albumIdParam })
++        : supabase.rpc('get_memory_album', { p_owner: ownerId })).abortSignal(request.signal), 15000);
+       if (error) throw error;
+-      const [hydrated] = data ? await hydrateMemoryAlbumMedia([memoryAlbumStoryLayers(data)]) : [];
++      // Keep media authorization's existing 20s-per-stage allowances. Cancellation
++      // retires this screen's result; shared auth/media operations remain intact.
++      const [hydrated] = data ? await request.read(() => hydrateMemoryAlbumMedia([memoryAlbumStoryLayers(data)])) : [];
+       if (generation !== loadGeneration.current || viewerRef.current !== viewerId || reactionScope.current !== scope) return;
+       setAlbum(hydrated ?? null); setLoadError(null);
+       // A successful refresh may remove a page or revoke its source. Do not
+@@ -215,12 +236,12 @@
+       }
+     } catch {
+       if (generation === loadGeneration.current) { setAlbum(null); setPlayingUrl(null); setLoadError('The album could not load. Please retry.'); }
+-    } finally { if (generation === loadGeneration.current) setLoading(false); }
++    } finally { request.cancel(); if (readerRequest.current === request) readerRequest.current = null; if (generation === loadGeneration.current) setLoading(false); }
+   }, [ownerId, albumIdParam, viewerId, authReady]);
+ 
+   useEffect(() => {
+     // A route/account change invalidates pending flips and picker responses.
+-    bookGeneration.current++; loadGeneration.current++;
++    bookGeneration.current++; loadGeneration.current++; readerRequest.current?.cancel();
+     reactionScope.current = emptyReactionScope();
+     setLikedPages(new Set()); setReactionRead({ known: new Set(), pending: true });
+     coverAnim.stopAnimation(); pageTurn.current?.cancel();
+@@ -230,15 +251,15 @@
+     setMyStories([]); setChosen(new Set()); setAdding(false); setStoriesLoading(false); setMutationError(''); setLoadError(null); setLoading(true);
+     const invalidate=()=>{bookGeneration.current++;reactionScope.current=emptyReactionScope();coverAnim.stopAnimation();pageTurn.current?.cancel();};
+     return invalidate;
+-  }, [ownerId, albumIdParam, viewerId, coverAnim]);
++  }, [ownerId, albumIdParam, viewerId, authScopeRevision, coverAnim]);
+ 
+   useEffect(() => {
+     void load();
+     const refresh = () => { if (AppState.currentState === 'active') void load(); };
+     const sub = AppState.addEventListener('change', state => { if (state === 'active') refresh(); });
+     const timer = setInterval(refresh, 240000);
+-    return () => { loadGeneration.current++; clearInterval(timer); sub.remove(); };
+-  }, [load]);
++    return () => { loadGeneration.current++; readerRequest.current?.cancel(); clearInterval(timer); sub.remove(); };
++  }, [load, authScopeRevision]);
+ 
+   const openSettings=useCallback(()=>{if(!album?.is_owner)return;setTitle(album.title);setSubtitle(album.subtitle??'');setColor(album.cover_color);setDesign(album.cover_design??'keepsake');setCoverStoryId(album.cover_story_id??null);setAud(album.audience);setCoverArtwork(memoryCoverArtwork(album.cover_artwork));setFilmSettings(memoryFilmSettings(album.film_settings));setPresentationRevision(album.presentation_revision);setMutationError('');setSettings(true);},[album]);
+   useEffect(() => { let alive=true; setNextBook(null); if (!viewerId || !bookId) return; void supabase.rpc('get_memory_albums',{p_owner:ownerId}).then(({data,error})=>{if(!alive||error)return;const list=((data as MemoryBookshelf|null)?.books??[]).filter((b)=>data?.is_owner||b.count>0);const index=list.findIndex((b)=>b.id===bookId);if(index>=0&&index+1<list.length)setNextBook(list[index+1].id);});return()=>{alive=false;};},[ownerId,bookId,viewerId]);
+@@ -361,7 +382,7 @@
+ 
+   const retryMedia = () => { setMediaAttempt(value=>value+1); void load(); };
+ 
+-  if (loadError) return <SafeAreaView style={[st.safe, { alignItems: 'center', justifyContent: 'center', padding: 24 }]}><Text style={{color:t.ink.primary,textAlign:'center'}}>{loadError}</Text><TouchableOpacity accessibilityRole="button" onPress={() => {if(!viewerId)setAuthAttempt(value=>value+1);else void load();}} style={{ padding:16 }}><Text style={{color:t.ink.primary,fontWeight:'700'}}>Retry</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={()=>navigation.goBack()} style={{padding:12}}><Text style={{color:t.ink.secondary}}>Back to profile</Text></TouchableOpacity></SafeAreaView>;
++  if (loadError) return <SafeAreaView style={[st.safe, { alignItems: 'center', justifyContent: 'center', padding: 24 }]}><Text style={{color:t.ink.primary,textAlign:'center'}}>{loadError}</Text><TouchableOpacity accessibilityRole="button" onPress={() => {if(!viewerId)setAuthAttempt(value=>value+1);else {setLoading(true);void load();}}} style={{ padding:16 }}><Text style={{color:t.ink.primary,fontWeight:'700'}}>Retry</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={()=>navigation.goBack()} style={{padding:12}}><Text style={{color:t.ink.secondary}}>Back to profile</Text></TouchableOpacity></SafeAreaView>;
+ 
+   if (loading) {
+     return (
+--- /dev/null
++++ b/shared/memoryReaderRequest.ts
+@@ -0,0 +1,42 @@
++/** Local read ownership only. Cancelling this wait must never sign out or
++ * cancel Supabase's shared auth/refresh operation. */
++export function createMemoryReaderRequest() {
++  const controller = new AbortController();
++  let retired = false;
++  let cancelWait: (() => void) | undefined;
++  const cancelled = () => Object.assign(new Error('The reader request was cancelled.'), { name: 'AbortError' });
++  return {
++    signal: controller.signal,
++    read<T>(start: () => PromiseLike<T>, milliseconds?: number): Promise<T> {
++      if (retired) return Promise.reject(cancelled());
++      if (cancelWait) return Promise.reject(new Error('Reader stages must run sequentially.'));
++      return new Promise<T>((resolve, reject) => {
++        let complete = false;
++        let timer: ReturnType<typeof setTimeout> | undefined;
++        const finish = (accepted: boolean, value: T | unknown) => {
++          if (complete) return;
++          complete = true;
++          if (timer !== undefined) clearTimeout(timer);
++          cancelWait = undefined;
++          if (accepted) resolve(value as T); else reject(value);
++        };
++        cancelWait = () => finish(false, cancelled());
++        if (milliseconds !== undefined) timer = setTimeout(() => {
++          retired = true;
++          controller.abort();
++          finish(false, Object.assign(new Error('Loading took too long. Please retry.'), { name: 'TimeoutError' }));
++        }, milliseconds);
++        void Promise.resolve().then(() => {
++          if (retired) throw cancelled();
++          return start();
++        }).then(value => finish(true, value), error => finish(false, error));
++      });
++    },
++    cancel() {
++      if (retired) return;
++      retired = true;
++      controller.abort();
++      cancelWait?.();
++    },
++  };
++}
+--- a/tests/quality/native-memory-album-loading.cjs
++++ b/tests/quality/native-memory-album-loading.cjs
+@@ -25,12 +25,16 @@
+  * scheduling, native primitives/animation acknowledgement, auth, transport and
+  * media delivery are controlled. This proves component state/ownership; it is
+  * not a native-pixel test or a diagnosis of the retained iPhone loading delay. */
+-function harness({ heldAuth = false, heldMedia = false, heldAnimation = false, reducedMotion = true, platform = 'ios' } = {}) {
++function harness({ heldAuth = false, heldMedia = false, heldBody = false, actualMedia = false, fakeClock = false, heldAnimation = false, reducedMotion = true, platform = 'ios' } = {}) {
+   const slots = [], effects = [], books = [], reactions = [], toggles = [], media = [], soundtrackSaves = [], authListeners = new Set(), appListeners = new Set();
+-  const animationAcknowledgements = [];
++  const animationAcknowledgements = [], sessions = [], bodies = [];
++  const timers = new Map(); let clock = 0, timerId = 0;
++  const schedule = fakeClock ? (fn, ms = 0) => { const id = ++timerId; timers.set(id, { fn, at: clock + ms }); return id; } : setTimeout;
++  const unschedule = fakeClock ? id => timers.delete(id) : clearTimeout;
+   let cursor = 0, dirty = true, mounted = true, tree, owner = OWNER, postUnmountWrites = 0;
+   const session = deferred();
+-  if (!heldAuth) session.resolve({ data: { session: { user: { id: owner }, access_token: 'synthetic-test-token' } }, error: null });
++  const sessionResult = () => ({ data: { session: { user: { id: owner }, access_token: 'synthetic-test-token' } }, error: null });
++  if (!heldAuth) session.resolve(sessionResult());
+   const props = { route: { params: { ownerId: OWNER, albumId: 'book-a' } }, navigation: { goBack() {}, push() {}, navigate() {}, replace() {} } };
+   const react = {
+     useRef(value) { const i = cursor++; return slots[i] || (slots[i] = { current: value }); },
+@@ -82,11 +86,24 @@
+   }
+   const supabase = {
+     auth: {
+-      getSession: () => session.promise,
++      getSession: () => {
++        const task = sessions.length ? deferred() : session;
++        if (!heldAuth) task.resolve(sessionResult());
++        sessions.push(task); return task.promise;
++      },
+       onAuthStateChange(callback) { authListeners.add(callback); return { data: { subscription: { unsubscribe: () => authListeners.delete(callback) } } }; },
+     },
+     rpc(name, args) {
+-      if (name === 'get_memory_book') return queued(books, { args, owner });
++      if (name === 'get_memory_book') {
++        if (!heldBody) return queued(books, { args, owner });
++        // Execute the installed PostgREST parser while response.text is held.
++        const { PostgrestClient } = require('@supabase/postgrest-js');
++        return new PostgrestClient('https://reader.invalid/rest/v1', { fetch: async (_url, init) => {
++          await queued(books, { args, owner, signal: init.signal });
++          return { ok: true, status: 200, statusText: 'OK', headers: new Headers({ 'content-type': 'application/json' }),
++            text: () => queued(bodies, {}) };
++        } }).rpc(name, args);
++      }
+       if (name === 'get_memory_albums') return Promise.resolve({ data: { is_owner: true, books: [] }, error: null });
+       if (name === 'toggle_story_reaction') return queued(toggles, { args, owner });
+       if (name === 'save_memory_book_soundtrack') return queued(soundtrackSaves, { args, owner });
+@@ -108,7 +125,13 @@
+     '@react-navigation/native': { useIsFocused: () => true }, '@expo/vector-icons': { Feather: 'Feather' }, 'expo-image': { Image: 'ExpoImage' },
+     'src/services/supabase': { supabase },
+     'src/services/contentMedia': {
+-      hydrateMemoryAlbumMedia: rows => heldMedia ? queued(media, { rows }) : Promise.resolve(rows),
++      hydrateMemoryAlbumMedia: rows => {
++        if (actualMedia) return load('shared/contentMedia.ts').hydrateContentMedia({
++          auth: { getSession: () => queued(media, { rows, phase: 'hydration-session' }), getUser: async () => { throw Error('Held hydration session must prevent verification'); } },
++          functions: { invoke: async () => { throw Error('Held hydration session must prevent signing'); } },
++        }, 'https://reader.invalid', rows, 'memory_album');
++        return heldMedia ? queued(media, { rows }) : Promise.resolve(rows);
++      },
+       hydrateStoryMedia: async rows => rows,
+     },
+     'src/theme/useTheme': { useTheme: () => ({ t: palette, isDark: false }), themedSheet: fn => fn(palette) },
+@@ -136,7 +159,7 @@
+       throw Error(`Unhandled import ${name} in ${file}`);
+     };
+     vm.runInNewContext(ts.transpileModule(source, { fileName: absolute, compilerOptions: { jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText,
+-      { module, exports: module.exports, require: requireModule, console, Promise, Date, Set, Map, URL, AbortController, setTimeout, clearTimeout,
++      { module, exports: module.exports, require: requireModule, console, Promise, Date, Set, Map, URL, AbortController, setTimeout: schedule, clearTimeout: unschedule,
+         setInterval: fn => ({ fn }), clearInterval() {}, requestAnimationFrame: fn => fn() }, { filename: file });
+     cache.set(file, module.exports); return module.exports;
+   }
+@@ -153,7 +176,9 @@
+   }
+   async function flush() { for (let i = 0; i < 5; i++) { render(); await turn(); } render(); }
+   const h = {
+-    books, reactions, toggles, media, soundtrackSaves, session, flush,
++    books, reactions, toggles, media, soundtrackSaves, session, sessions, bodies, flush,
++    async tick(ms) { clock += ms; for (const [id, timer] of [...timers]) if (timer.at <= clock) { timers.delete(id); timer.fn(); } await flush(); },
++    get timerCount() { return timers.size; },
+     commit: render,
+     acknowledgeAnimations(finished = true) { animationAcknowledgements.splice(0).forEach(callback => callback({ finished })); },
+     visible(label) { return nodes(tree).some(node => node.props?.accessibilityLabel === label || node.type === 'Text' && words(node) === label); },
+@@ -360,7 +385,8 @@
+     await h.flush(); await h.authorize(); h.reactions[0].resolve({ data: [], error: null }); await h.flush(); await h.open(); const toggling = h.press('Like'); await h.flush();
+     h.account('other'); h.account(OWNER);
+     h.toggles[0].resolve({ data: { reacted: true }, error: null }); await toggling;
+-    await h.flush(); h.refresh(); await h.flush(); await h.authorize();
++    await h.flush(); assert.equal(h.books.length, 2, 'the changed auth scope starts its own fresh authorization'); await h.authorize();
++    assert.ok(h.visible('Open book')); await h.open();
+     assert.ok(!h.visible('Liked')); assert.equal(h.button('Loading reaction status').props.disabled, true);
+   } finally { h.dispose(); }
+ });
+@@ -479,3 +505,119 @@
+     assert.ok(h.visible('Page 1 of 2')); assert.match(h.text(), /Updated same book/);
+   } finally { h.dispose(); }
+ });
++
++
++// Required-read recoverability: these clocks control JS only, not UIKit stalls.
++test('held initial session has a bounded reader wait and Retry starts a fresh attempt', async () => {
++  const h = harness({ heldAuth: true, fakeClock: true });
++  try {
++    await h.flush(); await h.tick(12001);
++    assert.equal(h.loading(), false); assert.ok(h.visible('Retry')); assert.equal(h.books.length, 0);
++    h.press('Retry'); await h.flush(); assert.equal(h.sessions.length, 2); assert.ok(h.loading());
++    h.sessions[0].resolve({ data: { session: { user: { id: OWNER } } }, error: null }); await h.flush();
++    assert.equal(h.books.length, 0, 'expired attempt cannot publish a late session');
++    h.sessions[1].resolve({ data: { session: { user: { id: OWNER } } }, error: null }); await h.flush(); await h.authorize();
++    assert.ok(h.visible('Edit memory book')); assert.equal(h.timerCount, 0);
++  } finally { h.dispose(); }
++});
++
++test('authoritative auth event retires initial read timeout and stale rejection', async () => {
++  const h = harness({ heldAuth: true, fakeClock: true });
++  try {
++    await h.flush(); h.account(OWNER); await h.flush(); await h.authorize();
++    h.session.reject(Error('obsolete session failure')); await h.tick(12001);
++    assert.ok(h.visible('Edit memory book')); assert.ok(!h.visible('Retry')); assert.equal(h.timerCount, 0);
++  } finally { h.dispose(); }
++});
++
++test('a later authoritative auth event can recover a timed-out reader', async () => {
++  const h = harness({ heldAuth: true, fakeClock: true });
++  try { await h.flush(); await h.tick(12001); assert.ok(h.visible('Retry')); h.account(OWNER); await h.flush(); await h.authorize(); assert.ok(h.visible('Edit memory book')); }
++  finally { h.dispose(); }
++});
++
++test('held required book times out, aborts supported transport and retries without a late overwrite', async () => {
++  const h = harness({ fakeClock: true });
++  try {
++    await h.flush(); const old = h.books[0]; await h.tick(15001);
++    assert.equal(old.signal?.aborted, true); assert.equal(h.loading(), false); assert.ok(h.visible('Retry'));
++    h.press('Retry'); await h.flush(); assert.ok(h.loading()); assert.equal(h.books.length, 2);
++    old.resolve({ data: { ...book(), title: 'OLD' }, error: null }); await h.flush(); assert.ok(!h.visible('Edit memory book'));
++    await h.authorize({ ...book(), title: 'CURRENT' }); assert.ok(h.visible('Edit memory book')); assert.ok(!h.text().includes('OLD'));
++  } finally { h.dispose(); }
++});
++
++test('installed PostgREST response-body wait is included in the required book budget', async () => {
++  const h = harness({ heldBody: true, fakeClock: true });
++  try {
++    await h.flush(); h.books[0].resolve(); await h.flush(); assert.equal(h.bodies.length, 1);
++    await h.tick(15001); assert.ok(h.visible('Retry')); assert.equal(h.loading(), false); assert.equal(h.books[0].signal.aborted, true);
++    h.bodies[0].resolve(JSON.stringify(book())); await h.flush(); assert.ok(!h.visible('Edit memory book')); assert.equal(h.reactions.length, 0);
++  } finally { h.dispose(); }
++});
++
++test('actual private-media authorization keeps its existing20s stage budget and fails honestly', async () => {
++  const h = harness({ actualMedia: true, fakeClock: true });
++  try {
++    await h.flush(); const value = book(); value.pages[0] = { ...value.pages[0], media_type: 'image', media_url: 'https://reader.invalid/storage/v1/object/public/story-media/a/photo.png' };
++    await h.authorize(value); assert.equal(h.media.length, 1); await h.tick(15001); assert.ok(h.loading());
++    await h.tick(5000); assert.equal(h.loading(), false); assert.ok(h.visible('Retry')); assert.ok(!h.visible('Edit memory book')); assert.equal(h.reactions.length, 0);
++  } finally { h.dispose(); }
++});
++
++test('valid delayed auth and book results within their budgets still load real content', async () => {
++  const h = harness({ heldAuth: true, fakeClock: true });
++  try {
++    await h.flush(); await h.tick(11000); assert.ok(h.loading()); h.session.resolve({ data: { session: { user: { id: OWNER } } }, error: null }); await h.flush();
++    await h.tick(14000); assert.ok(h.loading()); await h.authorize(); assert.ok(h.visible('Edit memory book')); assert.equal(h.timerCount, 0);
++  } finally { h.dispose(); }
++});
++
++test('route replacement cancels an old book and keeps late failure from the new reader', async () => {
++  const h = harness({ fakeClock: true });
++  try {
++    await h.flush(); const old = h.books[0]; h.route('book-b'); await h.flush(); assert.equal(old.signal?.aborted, true);
++    await h.authorize(book('book-b')); old.reject(Error('obsolete route failure')); await h.flush();
++    assert.ok(h.visible('Edit memory book')); assert.ok(!h.visible('Retry')); assert.match(h.text(), /Book book-b/);
++  } finally { h.dispose(); }
++});
++
++test('account ABA before commit restarts required authorization instead of stranding the spinner', async () => {
++  const h = harness({ fakeClock: true });
++  try {
++    await h.flush(); const old = h.books[0]; h.account('other-account'); h.account(OWNER); await h.flush();
++    assert.equal(old.signal?.aborted, true); assert.equal(h.books.length, 2);
++    old.resolve({ data: book(), error: null }); await h.flush(); assert.ok(!h.visible('Edit memory book'));
++    await h.authorize(); assert.ok(h.visible('Edit memory book'));
++  } finally { h.dispose(); }
++});
++
++for (const phase of ['auth', 'book', 'media']) test(`unmount retires held ${phase} and clears reader timers`, async () => {
++  const h = harness({ heldAuth: phase === 'auth', heldMedia: phase === 'media', fakeClock: true });
++  await h.flush(); if (phase === 'media') await h.authorize(); h.dispose();
++  assert.equal(h.timerCount, 0);
++  if (phase === 'auth') h.session.resolve({ data: { session: { user: { id: OWNER } } }, error: null });
++  else if (phase === 'book') { assert.equal(h.books[0].signal?.aborted, true); h.books[0].resolve({ data: book(), error: null }); }
++  else h.media[0].resolve([book()]);
++  await h.flush(); assert.equal(h.postUnmountWrites, 0);
++});
++
++
++for (const failure of ['rejection', 'error-result']) test(`initial session ${failure} exposes Retry without a book read`, async () => {
++  const h = harness({ heldAuth: true, fakeClock: true });
++  try {
++    await h.flush();
++    if (failure === 'rejection') h.session.reject(Error('session unavailable'));
++    else h.session.resolve({ data: { session: null }, error: Error('session unavailable') });
++    await h.flush(); assert.ok(h.visible('Retry')); assert.equal(h.loading(), false); assert.equal(h.books.length, 0); assert.equal(h.timerCount, 0);
++  } finally { h.dispose(); }
++});
++
++test('ordinary same-owner auth refresh neither restarts nor cancels the active required book', async () => {
++  const h = harness({ fakeClock: true });
++  try {
++    await h.flush(); const current = h.books[0]; h.account(OWNER); await h.flush();
++    assert.equal(h.books.length, 1); assert.notEqual(current.signal?.aborted, true);
++    await h.authorize(); assert.ok(h.visible('Edit memory book'));
++  } finally { h.dispose(); }
++});
+--- a/tests/quality/memory-media-regressions.cjs
++++ b/tests/quality/memory-media-regressions.cjs
+@@ -8,6 +8,8 @@
+ vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname,'../../shared/memoryStoryPresentation.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module:presentationModule,exports:presentationModule.exports});
+ const creativeModule={exports:{}};
+ vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname,'../../shared/memoryBookCreative.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module:creativeModule,exports:creativeModule.exports});
++const readerModule={exports:{}};
++vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname,'../../shared/memoryReaderRequest.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module:readerModule,exports:readerModule.exports,AbortController,setTimeout,clearTimeout});
+ function deferred() { let resolve, reject; const promise = new Promise((yes, no) => { resolve = yes; reject = no; }); return { promise, resolve, reject }; }
+ function scenario(platform) {
+   const file = platform === 'web' ? 'web/components/MemoryAlbum.tsx' : 'src/screens/profile/MemoryAlbumScreen.tsx';
+@@ -16,7 +18,9 @@
+   const end = source.indexOf('\n  useEffect(() => {', start);
+   assert.ok(start >= 0 && end > start);
+   const request = deferred(), albums = [], errors = [];
++  request.promise.abortSignal = signal => { request.signal = signal; return request.promise; };
+   const scope = {
++    ...readerModule.exports, readerRequest: { current: null }, authScopeRevision: 0,
+     memoryAlbumStoryLayers:presentationModule.exports.memoryAlbumStoryLayers,
+     ...creativeModule.exports,settingsOpen:{current:false},setDesign(){},setCoverArtwork(){},setFilmSettings(){},setPresentationRevision(){},
+     useCallback: fn => fn, authReady: true, ownerId: 'album-owner', uid: 'viewer', viewerId: 'viewer', albumIdParam: 'album-id',

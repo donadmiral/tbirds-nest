@@ -25,12 +25,16 @@ const words = node => Array.isArray(node) ? node.map(words).join('') : typeof no
  * scheduling, native primitives/animation acknowledgement, auth, transport and
  * media delivery are controlled. This proves component state/ownership; it is
  * not a native-pixel test or a diagnosis of the retained iPhone loading delay. */
-function harness({ heldAuth = false, heldMedia = false, heldAnimation = false, reducedMotion = true, platform = 'ios' } = {}) {
+function harness({ heldAuth = false, heldMedia = false, heldBody = false, actualMedia = false, fakeClock = false, heldAnimation = false, reducedMotion = true, platform = 'ios' } = {}) {
   const slots = [], effects = [], books = [], reactions = [], toggles = [], media = [], soundtrackSaves = [], authListeners = new Set(), appListeners = new Set();
-  const animationAcknowledgements = [];
+  const animationAcknowledgements = [], sessions = [], bodies = [];
+  const timers = new Map(); let clock = 0, timerId = 0;
+  const schedule = fakeClock ? (fn, ms = 0) => { const id = ++timerId; timers.set(id, { fn, at: clock + ms }); return id; } : setTimeout;
+  const unschedule = fakeClock ? id => timers.delete(id) : clearTimeout;
   let cursor = 0, dirty = true, mounted = true, tree, owner = OWNER, postUnmountWrites = 0;
   const session = deferred();
-  if (!heldAuth) session.resolve({ data: { session: { user: { id: owner }, access_token: 'synthetic-test-token' } }, error: null });
+  const sessionResult = () => ({ data: { session: { user: { id: owner }, access_token: 'synthetic-test-token' } }, error: null });
+  if (!heldAuth) session.resolve(sessionResult());
   const props = { route: { params: { ownerId: OWNER, albumId: 'book-a' } }, navigation: { goBack() {}, push() {}, navigate() {}, replace() {} } };
   const react = {
     useRef(value) { const i = cursor++; return slots[i] || (slots[i] = { current: value }); },
@@ -82,11 +86,24 @@ function harness({ heldAuth = false, heldMedia = false, heldAnimation = false, r
   }
   const supabase = {
     auth: {
-      getSession: () => session.promise,
+      getSession: () => {
+        const task = sessions.length ? deferred() : session;
+        if (!heldAuth) task.resolve(sessionResult());
+        sessions.push(task); return task.promise;
+      },
       onAuthStateChange(callback) { authListeners.add(callback); return { data: { subscription: { unsubscribe: () => authListeners.delete(callback) } } }; },
     },
     rpc(name, args) {
-      if (name === 'get_memory_book') return queued(books, { args, owner });
+      if (name === 'get_memory_book') {
+        if (!heldBody) return queued(books, { args, owner });
+        // Execute the installed PostgREST parser while response.text is held.
+        const { PostgrestClient } = require('@supabase/postgrest-js');
+        return new PostgrestClient('https://reader.invalid/rest/v1', { fetch: async (_url, init) => {
+          await queued(books, { args, owner, signal: init.signal });
+          return { ok: true, status: 200, statusText: 'OK', headers: new Headers({ 'content-type': 'application/json' }),
+            text: () => queued(bodies, {}) };
+        } }).rpc(name, args);
+      }
       if (name === 'get_memory_albums') return Promise.resolve({ data: { is_owner: true, books: [] }, error: null });
       if (name === 'toggle_story_reaction') return queued(toggles, { args, owner });
       if (name === 'save_memory_book_soundtrack') return queued(soundtrackSaves, { args, owner });
@@ -108,7 +125,13 @@ function harness({ heldAuth = false, heldMedia = false, heldAnimation = false, r
     '@react-navigation/native': { useIsFocused: () => true }, '@expo/vector-icons': { Feather: 'Feather' }, 'expo-image': { Image: 'ExpoImage' },
     'src/services/supabase': { supabase },
     'src/services/contentMedia': {
-      hydrateMemoryAlbumMedia: rows => heldMedia ? queued(media, { rows }) : Promise.resolve(rows),
+      hydrateMemoryAlbumMedia: rows => {
+        if (actualMedia) return load('shared/contentMedia.ts').hydrateContentMedia({
+          auth: { getSession: () => queued(media, { rows, phase: 'hydration-session' }), getUser: async () => { throw Error('Held hydration session must prevent verification'); } },
+          functions: { invoke: async () => { throw Error('Held hydration session must prevent signing'); } },
+        }, 'https://reader.invalid', rows, 'memory_album');
+        return heldMedia ? queued(media, { rows }) : Promise.resolve(rows);
+      },
       hydrateStoryMedia: async rows => rows,
     },
     'src/theme/useTheme': { useTheme: () => ({ t: palette, isDark: false }), themedSheet: fn => fn(palette) },
@@ -136,7 +159,7 @@ function harness({ heldAuth = false, heldMedia = false, heldAnimation = false, r
       throw Error(`Unhandled import ${name} in ${file}`);
     };
     vm.runInNewContext(ts.transpileModule(source, { fileName: absolute, compilerOptions: { jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText,
-      { module, exports: module.exports, require: requireModule, console, Promise, Date, Set, Map, URL, AbortController, setTimeout, clearTimeout,
+      { module, exports: module.exports, require: requireModule, console, Promise, Date, Set, Map, URL, AbortController, setTimeout: schedule, clearTimeout: unschedule,
         setInterval: fn => ({ fn }), clearInterval() {}, requestAnimationFrame: fn => fn() }, { filename: file });
     cache.set(file, module.exports); return module.exports;
   }
@@ -153,7 +176,9 @@ function harness({ heldAuth = false, heldMedia = false, heldAnimation = false, r
   }
   async function flush() { for (let i = 0; i < 5; i++) { render(); await turn(); } render(); }
   const h = {
-    books, reactions, toggles, media, soundtrackSaves, session, flush,
+    books, reactions, toggles, media, soundtrackSaves, session, sessions, bodies, flush,
+    async tick(ms) { clock += ms; for (const [id, timer] of [...timers]) if (timer.at <= clock) { timers.delete(id); timer.fn(); } await flush(); },
+    get timerCount() { return timers.size; },
     commit: render,
     acknowledgeAnimations(finished = true) { animationAcknowledgements.splice(0).forEach(callback => callback({ finished })); },
     visible(label) { return nodes(tree).some(node => node.props?.accessibilityLabel === label || node.type === 'Text' && words(node) === label); },
@@ -360,7 +385,8 @@ test('an old-account mutation cannot apply after ABA before React rerenders', as
     await h.flush(); await h.authorize(); h.reactions[0].resolve({ data: [], error: null }); await h.flush(); await h.open(); const toggling = h.press('Like'); await h.flush();
     h.account('other'); h.account(OWNER);
     h.toggles[0].resolve({ data: { reacted: true }, error: null }); await toggling;
-    await h.flush(); h.refresh(); await h.flush(); await h.authorize();
+    await h.flush(); assert.equal(h.books.length, 2, 'the changed auth scope starts its own fresh authorization'); await h.authorize();
+    assert.ok(h.visible('Open book')); await h.open();
     assert.ok(!h.visible('Liked')); assert.equal(h.button('Loading reaction status').props.disabled, true);
   } finally { h.dispose(); }
 });
@@ -477,5 +503,121 @@ test('ordinary same-book refresh preserves the already opened reader', async () 
     h.refresh(); await h.flush(); assert.ok(h.visible('Page 1 of 2'));
     await h.authorize({ ...book(), title: 'Updated same book' });
     assert.ok(h.visible('Page 1 of 2')); assert.match(h.text(), /Updated same book/);
+  } finally { h.dispose(); }
+});
+
+
+// Required-read recoverability: these clocks control JS only, not UIKit stalls.
+test('held initial session has a bounded reader wait and Retry starts a fresh attempt', async () => {
+  const h = harness({ heldAuth: true, fakeClock: true });
+  try {
+    await h.flush(); await h.tick(12001);
+    assert.equal(h.loading(), false); assert.ok(h.visible('Retry')); assert.equal(h.books.length, 0);
+    h.press('Retry'); await h.flush(); assert.equal(h.sessions.length, 2); assert.ok(h.loading());
+    h.sessions[0].resolve({ data: { session: { user: { id: OWNER } } }, error: null }); await h.flush();
+    assert.equal(h.books.length, 0, 'expired attempt cannot publish a late session');
+    h.sessions[1].resolve({ data: { session: { user: { id: OWNER } } }, error: null }); await h.flush(); await h.authorize();
+    assert.ok(h.visible('Edit memory book')); assert.equal(h.timerCount, 0);
+  } finally { h.dispose(); }
+});
+
+test('authoritative auth event retires initial read timeout and stale rejection', async () => {
+  const h = harness({ heldAuth: true, fakeClock: true });
+  try {
+    await h.flush(); h.account(OWNER); await h.flush(); await h.authorize();
+    h.session.reject(Error('obsolete session failure')); await h.tick(12001);
+    assert.ok(h.visible('Edit memory book')); assert.ok(!h.visible('Retry')); assert.equal(h.timerCount, 0);
+  } finally { h.dispose(); }
+});
+
+test('a later authoritative auth event can recover a timed-out reader', async () => {
+  const h = harness({ heldAuth: true, fakeClock: true });
+  try { await h.flush(); await h.tick(12001); assert.ok(h.visible('Retry')); h.account(OWNER); await h.flush(); await h.authorize(); assert.ok(h.visible('Edit memory book')); }
+  finally { h.dispose(); }
+});
+
+test('held required book times out, aborts supported transport and retries without a late overwrite', async () => {
+  const h = harness({ fakeClock: true });
+  try {
+    await h.flush(); const old = h.books[0]; await h.tick(15001);
+    assert.equal(old.signal?.aborted, true); assert.equal(h.loading(), false); assert.ok(h.visible('Retry'));
+    h.press('Retry'); await h.flush(); assert.ok(h.loading()); assert.equal(h.books.length, 2);
+    old.resolve({ data: { ...book(), title: 'OLD' }, error: null }); await h.flush(); assert.ok(!h.visible('Edit memory book'));
+    await h.authorize({ ...book(), title: 'CURRENT' }); assert.ok(h.visible('Edit memory book')); assert.ok(!h.text().includes('OLD'));
+  } finally { h.dispose(); }
+});
+
+test('installed PostgREST response-body wait is included in the required book budget', async () => {
+  const h = harness({ heldBody: true, fakeClock: true });
+  try {
+    await h.flush(); h.books[0].resolve(); await h.flush(); assert.equal(h.bodies.length, 1);
+    await h.tick(15001); assert.ok(h.visible('Retry')); assert.equal(h.loading(), false); assert.equal(h.books[0].signal.aborted, true);
+    h.bodies[0].resolve(JSON.stringify(book())); await h.flush(); assert.ok(!h.visible('Edit memory book')); assert.equal(h.reactions.length, 0);
+  } finally { h.dispose(); }
+});
+
+test('actual private-media authorization keeps its existing20s stage budget and fails honestly', async () => {
+  const h = harness({ actualMedia: true, fakeClock: true });
+  try {
+    await h.flush(); const value = book(); value.pages[0] = { ...value.pages[0], media_type: 'image', media_url: 'https://reader.invalid/storage/v1/object/public/story-media/a/photo.png' };
+    await h.authorize(value); assert.equal(h.media.length, 1); await h.tick(15001); assert.ok(h.loading());
+    await h.tick(5000); assert.equal(h.loading(), false); assert.ok(h.visible('Retry')); assert.ok(!h.visible('Edit memory book')); assert.equal(h.reactions.length, 0);
+  } finally { h.dispose(); }
+});
+
+test('valid delayed auth and book results within their budgets still load real content', async () => {
+  const h = harness({ heldAuth: true, fakeClock: true });
+  try {
+    await h.flush(); await h.tick(11000); assert.ok(h.loading()); h.session.resolve({ data: { session: { user: { id: OWNER } } }, error: null }); await h.flush();
+    await h.tick(14000); assert.ok(h.loading()); await h.authorize(); assert.ok(h.visible('Edit memory book')); assert.equal(h.timerCount, 0);
+  } finally { h.dispose(); }
+});
+
+test('route replacement cancels an old book and keeps late failure from the new reader', async () => {
+  const h = harness({ fakeClock: true });
+  try {
+    await h.flush(); const old = h.books[0]; h.route('book-b'); await h.flush(); assert.equal(old.signal?.aborted, true);
+    await h.authorize(book('book-b')); old.reject(Error('obsolete route failure')); await h.flush();
+    assert.ok(h.visible('Edit memory book')); assert.ok(!h.visible('Retry')); assert.match(h.text(), /Book book-b/);
+  } finally { h.dispose(); }
+});
+
+test('account ABA before commit restarts required authorization instead of stranding the spinner', async () => {
+  const h = harness({ fakeClock: true });
+  try {
+    await h.flush(); const old = h.books[0]; h.account('other-account'); h.account(OWNER); await h.flush();
+    assert.equal(old.signal?.aborted, true); assert.equal(h.books.length, 2);
+    old.resolve({ data: book(), error: null }); await h.flush(); assert.ok(!h.visible('Edit memory book'));
+    await h.authorize(); assert.ok(h.visible('Edit memory book'));
+  } finally { h.dispose(); }
+});
+
+for (const phase of ['auth', 'book', 'media']) test(`unmount retires held ${phase} and clears reader timers`, async () => {
+  const h = harness({ heldAuth: phase === 'auth', heldMedia: phase === 'media', fakeClock: true });
+  await h.flush(); if (phase === 'media') await h.authorize(); h.dispose();
+  assert.equal(h.timerCount, 0);
+  if (phase === 'auth') h.session.resolve({ data: { session: { user: { id: OWNER } } }, error: null });
+  else if (phase === 'book') { assert.equal(h.books[0].signal?.aborted, true); h.books[0].resolve({ data: book(), error: null }); }
+  else h.media[0].resolve([book()]);
+  await h.flush(); assert.equal(h.postUnmountWrites, 0);
+});
+
+
+for (const failure of ['rejection', 'error-result']) test(`initial session ${failure} exposes Retry without a book read`, async () => {
+  const h = harness({ heldAuth: true, fakeClock: true });
+  try {
+    await h.flush();
+    if (failure === 'rejection') h.session.reject(Error('session unavailable'));
+    else h.session.resolve({ data: { session: null }, error: Error('session unavailable') });
+    await h.flush(); assert.ok(h.visible('Retry')); assert.equal(h.loading(), false); assert.equal(h.books.length, 0); assert.equal(h.timerCount, 0);
+  } finally { h.dispose(); }
+});
+
+test('ordinary same-owner auth refresh neither restarts nor cancels the active required book', async () => {
+  const h = harness({ fakeClock: true });
+  try {
+    await h.flush(); const current = h.books[0]; h.account(OWNER); await h.flush();
+    assert.equal(h.books.length, 1); assert.notEqual(current.signal?.aborted, true);
+    await h.authorize(); assert.ok(h.visible('Edit memory book'));
   } finally { h.dispose(); }
 });

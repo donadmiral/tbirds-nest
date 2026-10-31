@@ -43,6 +43,7 @@ import { memoryPhotoDuration } from '../../../shared/memoryPlayback';
 import { useMemoryPlayback } from '../../hooks/useMemoryPlayback';
 import { useSoundtrackPlayer } from '../../hooks/useSoundtrackPlayer';
 import { createMemorySoundtrackSaveHook } from '../../../shared/useMemorySoundtrackSave';
+import { createMemoryReaderRequest } from '../../../shared/memoryReaderRequest';
 const useMemorySoundtrackSave = createMemorySoundtrackSaveHook({ useEffect, useRef, useState });
 const PAGE_CREAM = '#FBF6EC';
 
@@ -86,19 +87,26 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
   // Who is looking, and who owns the album: the Message button on a video memory DMs the owner.
   const [viewerId, setViewerId] = useState<string | null>(null);
   const [authReady, setAuthReady] = useState(false);
+  const [authScopeRevision, setAuthScopeRevision] = useState(0);
   const [authAttempt, setAuthAttempt] = useState(0);
   const [mediaAttempt, setMediaAttempt] = useState(0);
   const [ownerProfile, setOwnerProfile] = useState<{ full_name: string | null; username: string | null; avatar_url: string | null } | null>(null);
   const viewerRef = useRef<string | null>(null);
   const loadGeneration = useRef(0);
+  const readerRequest = useRef<ReturnType<typeof createMemoryReaderRequest> | null>(null);
   const reactionScope = useRef(emptyReactionScope());
   const [loadError, setLoadError] = useState<string | null>(null);
   useEffect(() => {
     let alive = true, authVersion = 0;
+    const initial = authVersion;
+    const initialRead = createMemoryReaderRequest();
     setLoadError(null);
+    if (!viewerRef.current) setLoading(true);
     const apply = (next: string | null) => {
       if (!alive) return;
       if (viewerRef.current !== next) {
+        readerRequest.current?.cancel();
+        setAuthScopeRevision(revision => revision + 1);
         reactionScope.current = emptyReactionScope();
         setReactionRead({ known: new Set(), pending: !!next });
         loadGeneration.current++; setAlbum(null); setMyStories([]); setPlayingUrl(null); setPicker(false); setSettings(false); setPageActions(null); pendingPageAction.current=null; setCaptionFor(null); setLikedPages(new Set());
@@ -106,10 +114,15 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
       viewerRef.current = next; setViewerId(next); setAuthReady(true);
       if(!next){setLoadError('Sign in to view this album.');setLoading(false);}
     };
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { authVersion++; apply(session?.user.id ?? null); });
-    const initial = authVersion;
-    void supabase.auth.getSession().then(({ data }) => { if (initial === authVersion) apply(data.session?.user.id ?? null); }).catch(() => { if (alive) setLoadError('Your account could not load. Please retry.'); });
-    return () => { alive = false; loadGeneration.current++; reactionScope.current = emptyReactionScope(); subscription.unsubscribe(); };
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => { authVersion++; initialRead.cancel(); apply(session?.user.id ?? null); });
+    // Bound this screen's local wait, not the shared refresh/session operation.
+    void initialRead.read(() => supabase.auth.getSession(), 12000).then(({ data, error }) => {
+      if (error) throw error;
+      if (initial === authVersion) apply(data.session?.user.id ?? null);
+    }).catch(() => {
+      if (alive && initial === authVersion) { setLoadError('Your account could not load. Please retry.'); setLoading(false); }
+    });
+    return () => { alive = false; initialRead.cancel(); readerRequest.current?.cancel(); loadGeneration.current++; reactionScope.current = emptyReactionScope(); subscription.unsubscribe(); };
   }, [authAttempt]);
   useEffect(() => { if (!ownerId) return; (async () => { try { const { data } = await supabase.from('profiles').select('full_name, username, avatar_url').eq('id', ownerId).maybeSingle(); if (data) setOwnerProfile(data); } catch {} })(); }, [ownerId]);
   const ownerName = ownerProfile?.full_name ?? null; const ownerUsername = ownerProfile?.username ?? null; const ownerAvatar = ownerProfile?.avatar_url ?? null;
@@ -152,25 +165,33 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
     route: `${ownerId}:${albumIdParam ?? 'default'}`, canEdit: album?.is_owner === true,
     onConfirmed: (id, selection) => {
       loadGeneration.current += 1;
+      readerRequest.current?.cancel();
       setAlbum((previous) => previous?.id === id && previous.is_owner ? { ...previous, soundtrack: selection } : previous);
     },
   });
 
   const load = useCallback(async () => {
     const generation = ++loadGeneration.current;
+    readerRequest.current?.cancel();
+    const request = createMemoryReaderRequest();
+    readerRequest.current = request;
     const scope = reactionScope.current;
     const readRevision = ++scope.readRevision;
     // A new required read retires the old optional request. If a confirmed
     // soundtrack edit later supersedes this refresh, unknown reactions must
     // remain unavailable rather than wait forever for a discarded response.
     setReactionRead(previous => previous.pending ? { ...previous, pending: false } : previous);
-    if (!ownerId || !viewerId) { setAlbum(null); setLoading(!authReady); if(authReady)setLoadError(!ownerId?'This album is unavailable.':'Sign in to view this album.'); return; }
+    if (!ownerId || !viewerId) { request.cancel(); setAlbum(null); setLoading(!authReady); if(authReady)setLoadError(!ownerId?'This album is unavailable.':'Sign in to view this album.'); return; }
+    setLoadError(null);
     try {
-      const { data, error } = albumIdParam
-        ? await supabase.rpc('get_memory_book', { p_album: albumIdParam })
-        : await supabase.rpc('get_memory_album', { p_owner: ownerId });
+      // Includes SDK session acquisition and response parsing, before fetch starts.
+      const { data, error } = await request.read(() => (albumIdParam
+        ? supabase.rpc('get_memory_book', { p_album: albumIdParam })
+        : supabase.rpc('get_memory_album', { p_owner: ownerId })).abortSignal(request.signal), 15000);
       if (error) throw error;
-      const [hydrated] = data ? await hydrateMemoryAlbumMedia([memoryAlbumStoryLayers(data)]) : [];
+      // Keep media authorization's existing 20s-per-stage allowances. Cancellation
+      // retires this screen's result; shared auth/media operations remain intact.
+      const [hydrated] = data ? await request.read(() => hydrateMemoryAlbumMedia([memoryAlbumStoryLayers(data)])) : [];
       if (generation !== loadGeneration.current || viewerRef.current !== viewerId || reactionScope.current !== scope) return;
       setAlbum(hydrated ?? null); setLoadError(null);
       // A successful refresh may remove a page or revoke its source. Do not
@@ -215,12 +236,12 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
       }
     } catch {
       if (generation === loadGeneration.current) { setAlbum(null); setPlayingUrl(null); setLoadError('The album could not load. Please retry.'); }
-    } finally { if (generation === loadGeneration.current) setLoading(false); }
+    } finally { request.cancel(); if (readerRequest.current === request) readerRequest.current = null; if (generation === loadGeneration.current) setLoading(false); }
   }, [ownerId, albumIdParam, viewerId, authReady]);
 
   useEffect(() => {
     // A route/account change invalidates pending flips and picker responses.
-    bookGeneration.current++; loadGeneration.current++;
+    bookGeneration.current++; loadGeneration.current++; readerRequest.current?.cancel();
     reactionScope.current = emptyReactionScope();
     setLikedPages(new Set()); setReactionRead({ known: new Set(), pending: true });
     coverAnim.stopAnimation(); pageTurn.current?.cancel();
@@ -230,15 +251,15 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
     setMyStories([]); setChosen(new Set()); setAdding(false); setStoriesLoading(false); setMutationError(''); setLoadError(null); setLoading(true);
     const invalidate=()=>{bookGeneration.current++;reactionScope.current=emptyReactionScope();coverAnim.stopAnimation();pageTurn.current?.cancel();};
     return invalidate;
-  }, [ownerId, albumIdParam, viewerId, coverAnim]);
+  }, [ownerId, albumIdParam, viewerId, authScopeRevision, coverAnim]);
 
   useEffect(() => {
     void load();
     const refresh = () => { if (AppState.currentState === 'active') void load(); };
     const sub = AppState.addEventListener('change', state => { if (state === 'active') refresh(); });
     const timer = setInterval(refresh, 240000);
-    return () => { loadGeneration.current++; clearInterval(timer); sub.remove(); };
-  }, [load]);
+    return () => { loadGeneration.current++; readerRequest.current?.cancel(); clearInterval(timer); sub.remove(); };
+  }, [load, authScopeRevision]);
 
   const openSettings=useCallback(()=>{if(!album?.is_owner)return;setTitle(album.title);setSubtitle(album.subtitle??'');setColor(album.cover_color);setDesign(album.cover_design??'keepsake');setCoverStoryId(album.cover_story_id??null);setAud(album.audience);setCoverArtwork(memoryCoverArtwork(album.cover_artwork));setFilmSettings(memoryFilmSettings(album.film_settings));setPresentationRevision(album.presentation_revision);setMutationError('');setSettings(true);},[album]);
   useEffect(() => { let alive=true; setNextBook(null); if (!viewerId || !bookId) return; void supabase.rpc('get_memory_albums',{p_owner:ownerId}).then(({data,error})=>{if(!alive||error)return;const list=((data as MemoryBookshelf|null)?.books??[]).filter((b)=>data?.is_owner||b.count>0);const index=list.findIndex((b)=>b.id===bookId);if(index>=0&&index+1<list.length)setNextBook(list[index+1].id);});return()=>{alive=false;};},[ownerId,bookId,viewerId]);
@@ -361,7 +382,7 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
 
   const retryMedia = () => { setMediaAttempt(value=>value+1); void load(); };
 
-  if (loadError) return <SafeAreaView style={[st.safe, { alignItems: 'center', justifyContent: 'center', padding: 24 }]}><Text style={{color:t.ink.primary,textAlign:'center'}}>{loadError}</Text><TouchableOpacity accessibilityRole="button" onPress={() => {if(!viewerId)setAuthAttempt(value=>value+1);else void load();}} style={{ padding:16 }}><Text style={{color:t.ink.primary,fontWeight:'700'}}>Retry</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={()=>navigation.goBack()} style={{padding:12}}><Text style={{color:t.ink.secondary}}>Back to profile</Text></TouchableOpacity></SafeAreaView>;
+  if (loadError) return <SafeAreaView style={[st.safe, { alignItems: 'center', justifyContent: 'center', padding: 24 }]}><Text style={{color:t.ink.primary,textAlign:'center'}}>{loadError}</Text><TouchableOpacity accessibilityRole="button" onPress={() => {if(!viewerId)setAuthAttempt(value=>value+1);else {setLoading(true);void load();}}} style={{ padding:16 }}><Text style={{color:t.ink.primary,fontWeight:'700'}}>Retry</Text></TouchableOpacity><TouchableOpacity accessibilityRole="button" onPress={()=>navigation.goBack()} style={{padding:12}}><Text style={{color:t.ink.secondary}}>Back to profile</Text></TouchableOpacity></SafeAreaView>;
 
   if (loading) {
     return (

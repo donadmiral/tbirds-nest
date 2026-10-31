@@ -39,10 +39,11 @@ function createFixture(onChange = () => {}) {
     sort_key: 10 - index, is_trending: false,
   }));
   const story = { id: STORY, user_id: PEER, media_type: 'text', media_url: null,
-    thumbnail_url: null, text_content: 'A moment worth remembering.', background_color: '#24354f',
-    text_color: '#ffffff', font_style: 'classic', duration: 8, duration_sec: 8,
+    thumbnail_url: null, caption: 'A moment worth remembering.', duration_sec: 8,
+    text_background: { kind: 'solid', color: '#24354f' }, stickers_json: [],
+    scope: 'global', institution_id: null, affiliation_id: null, views_count: 0,
     created_at: new Date().toISOString(), expires_at: new Date(Date.now() + 86400000).toISOString(),
-    audience: 'everyone', seen: false, stickers: [], text_stickers: [], audio: null,
+    audience: 'everyone', is_viewed: false,
   };
   const rows = {
     profiles, posts, stories: [story],

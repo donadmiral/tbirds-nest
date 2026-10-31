@@ -8,6 +8,8 @@ const presentationModule={exports:{}};
 vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname,'../../shared/memoryStoryPresentation.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module:presentationModule,exports:presentationModule.exports});
 const creativeModule={exports:{}};
 vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname,'../../shared/memoryBookCreative.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module:creativeModule,exports:creativeModule.exports});
+const readerModule={exports:{}};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname,'../../shared/memoryReaderRequest.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module:readerModule,exports:readerModule.exports,AbortController,setTimeout,clearTimeout});
 function deferred() { let resolve, reject; const promise = new Promise((yes, no) => { resolve = yes; reject = no; }); return { promise, resolve, reject }; }
 function scenario(platform) {
   const file = platform === 'web' ? 'web/components/MemoryAlbum.tsx' : 'src/screens/profile/MemoryAlbumScreen.tsx';
@@ -16,7 +18,9 @@ function scenario(platform) {
   const end = source.indexOf('\n  useEffect(() => {', start);
   assert.ok(start >= 0 && end > start);
   const request = deferred(), albums = [], errors = [];
+  request.promise.abortSignal = signal => { request.signal = signal; return request.promise; };
   const scope = {
+    ...readerModule.exports, readerRequest: { current: null }, authScopeRevision: 0,
     memoryAlbumStoryLayers:presentationModule.exports.memoryAlbumStoryLayers,
     ...creativeModule.exports,settingsOpen:{current:false},setDesign(){},setCoverArtwork(){},setFilmSettings(){},setPresentationRevision(){},
     useCallback: fn => fn, authReady: true, ownerId: 'album-owner', uid: 'viewer', viewerId: 'viewer', albumIdParam: 'album-id',

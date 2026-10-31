@@ -1,0 +1,376 @@
+TAP version 13
+# Subtest: web album loader commits authorized media
+ok 1 - web album loader commits authorized media
+  ---
+  duration_ms: 6.991295
+  type: 'test'
+  ...
+# Subtest: web late album read cannot restore an old account's media
+ok 2 - web late album read cannot restore an old account's media
+  ---
+  duration_ms: 2.929945
+  type: 'test'
+  ...
+# Subtest: web failed album authorization clears media and offers retry
+ok 3 - web failed album authorization clears media and offers retry
+  ---
+  duration_ms: 3.223067
+  type: 'test'
+  ...
+# Subtest: native album loader commits authorized media
+ok 4 - native album loader commits authorized media
+  ---
+  duration_ms: 14.841103
+  type: 'test'
+  ...
+# Subtest: native late album read cannot restore an old account's media
+ok 5 - native late album read cannot restore an old account's media
+  ---
+  duration_ms: 11.166997
+  type: 'test'
+  ...
+# Subtest: native failed album authorization clears media and offers retry
+ok 6 - native failed album authorization clears media and offers retry
+  ---
+  duration_ms: 11.104152
+  type: 'test'
+  ...
+# Subtest: held optional reactions do not block the actual authorized reader
+ok 7 - held optional reactions do not block the actual authorized reader
+  ---
+  duration_ms: 236.364636
+  type: 'test'
+  ...
+# Subtest: unknown initial reaction state cannot expose an actionable Like guess
+ok 8 - unknown initial reaction state cannot expose an actionable Like guess
+  ---
+  duration_ms: 167.1503
+  type: 'test'
+  ...
+# Subtest: optional reaction reject cannot discard the authorized book
+ok 9 - optional reaction reject cannot discard the authorized book
+  ---
+  duration_ms: 132.183424
+  type: 'test'
+  ...
+# Subtest: optional reaction error-result cannot discard the authorized book
+ok 10 - optional reaction error-result cannot discard the authorized book
+  ---
+  duration_ms: 135.254518
+  type: 'test'
+  ...
+# Subtest: pending auth cannot dispatch required book or optional reaction reads
+ok 11 - pending auth cannot dispatch required book or optional reaction reads
+  ---
+  duration_ms: 96.892874
+  type: 'test'
+  ...
+# Subtest: pending required book authorization keeps the reader gated
+ok 12 - pending required book authorization keeps the reader gated
+  ---
+  duration_ms: 108.799998
+  type: 'test'
+  ...
+# Subtest: required book rejection still clears the reader and offers retry
+ok 13 - required book rejection still clears the reader and offers retry
+  ---
+  duration_ms: 117.643785
+  type: 'test'
+  ...
+# Subtest: required media rejection still clears the reader and offers retry
+ok 14 - required media rejection still clears the reader and offers retry
+  ---
+  duration_ms: 92.109103
+  type: 'test'
+  ...
+# Subtest: held required media hydration cannot publish a book or start optional reads
+ok 15 - held required media hydration cannot publish a book or start optional reads
+  ---
+  duration_ms: 103.559516
+  type: 'test'
+  ...
+# Subtest: old optional read cannot affect a replacement route that shares a story ID
+ok 16 - old optional read cannot affect a replacement route that shares a story ID
+  ---
+  duration_ms: 110.998707
+  type: 'test'
+  ...
+# Subtest: account ABA invalidates old optional reads before a replacement viewer commit
+ok 17 - account ABA invalidates old optional reads before a replacement viewer commit
+  ---
+  duration_ms: 89.877133
+  type: 'test'
+  ...
+# Subtest: unmount invalidates a pending optional reaction result
+ok 18 - unmount invalidates a pending optional reaction result
+  ---
+  duration_ms: 105.673678
+  type: 'test'
+  ...
+# Subtest: a newer load result wins over the previous optional reaction read
+ok 19 - a newer load result wins over the previous optional reaction read
+  ---
+  duration_ms: 91.362953
+  type: 'test'
+  ...
+# Subtest: an older reaction read preserves a newer successful toggle and other page results
+ok 20 - an older reaction read preserves a newer successful toggle and other page results
+  ---
+  duration_ms: 97.986945
+  type: 'test'
+  ...
+# Subtest: a newer successful unreact removes the stale read membership
+ok 21 - a newer successful unreact removes the stale read membership
+  ---
+  duration_ms: 98.887091
+  type: 'test'
+  ...
+# Subtest: failed toggle leaves the optional authoritative reaction result usable
+ok 22 - failed toggle leaves the optional authoritative reaction result usable
+  ---
+  duration_ms: 93.193075
+  type: 'test'
+  ...
+# Subtest: fresh book identity cannot display old confirmed likes while its optional read is held
+ok 23 - fresh book identity cannot display old confirmed likes while its optional read is held
+  ---
+  duration_ms: 101.480159
+  type: 'test'
+  ...
+# Subtest: empty refreshed book removes old likes before a source returns
+ok 24 - empty refreshed book removes old likes before a source returns
+  ---
+  duration_ms: 78.225487
+  type: 'test'
+  ...
+# Subtest: no-story refreshed book removes old likes before a source returns
+ok 25 - no-story refreshed book removes old likes before a source returns
+  ---
+  duration_ms: 90.393321
+  type: 'test'
+  ...
+# Subtest: a successful old-route toggle cannot leak into a replacement book
+ok 26 - a successful old-route toggle cannot leak into a replacement book
+  ---
+  duration_ms: 90.29904
+  type: 'test'
+  ...
+# Subtest: optional background reject retains confirmed known reaction state
+ok 27 - optional background reject retains confirmed known reaction state
+  ---
+  duration_ms: 79.05697
+  type: 'test'
+  ...
+# Subtest: optional background error-result retains confirmed known reaction state
+ok 28 - optional background error-result retains confirmed known reaction state
+  ---
+  duration_ms: 99.097577
+  type: 'test'
+  ...
+# Subtest: an old-account mutation cannot apply after ABA before React rerenders
+ok 29 - an old-account mutation cannot apply after ABA before React rerenders
+  ---
+  duration_ms: 105.663949
+  type: 'test'
+  ...
+# Subtest: unmounted confirmed reaction completion cannot publish state or errors
+ok 30 - unmounted confirmed reaction completion cannot publish state or errors
+  ---
+  duration_ms: 77.154943
+  type: 'test'
+  ...
+# Subtest: unmounted rejected reaction completion cannot publish state or errors
+ok 31 - unmounted rejected reaction completion cannot publish state or errors
+  ---
+  duration_ms: 91.4544
+  type: 'test'
+  ...
+# Subtest: soundtrack confirmation does not discard a held optional reaction response
+ok 32 - soundtrack confirmation does not discard a held optional reaction response
+  ---
+  duration_ms: 98.632663
+  type: 'test'
+  ...
+# Subtest: soundtrack confirmation invalidating a held refresh cannot strand unknown reactions as loading
+ok 33 - soundtrack confirmation invalidating a held refresh cannot strand unknown reactions as loading
+  ---
+  duration_ms: 83.594562
+  type: 'test'
+  ...
+# Subtest: ios authorized reader entry does not wait for native animation completion
+ok 34 - ios authorized reader entry does not wait for native animation completion
+  ---
+  duration_ms: 94.999813
+  type: 'test'
+  ...
+# Subtest: android authorized reader entry does not wait for native animation completion
+ok 35 - android authorized reader entry does not wait for native animation completion
+  ---
+  duration_ms: 77.801688
+  type: 'test'
+  ...
+# Subtest: reduced-motion reader entry also needs no animation acknowledgement
+ok 36 - reduced-motion reader entry also needs no animation acknowledgement
+  ---
+  duration_ms: 85.249161
+  type: 'test'
+  ...
+# Subtest: an interrupted decorative animation cannot prevent authorized reader entry
+ok 37 - an interrupted decorative animation cannot prevent authorized reader entry
+  ---
+  duration_ms: 83.589985
+  type: 'test'
+  ...
+# Subtest: explicit close returns to the cover and a later press opens the reader again
+ok 38 - explicit close returns to the cover and a later press opens the reader again
+  ---
+  duration_ms: 85.178789
+  type: 'test'
+  ...
+# Subtest: route replacement discards the previous reader entry and any delayed acknowledgement
+ok 39 - route replacement discards the previous reader entry and any delayed acknowledgement
+  ---
+  duration_ms: 103.517107
+  type: 'test'
+  ...
+# Subtest: account replacement hides the old reader until its new authorized book read
+ok 40 - account replacement hides the old reader until its new authorized book read
+  ---
+  duration_ms: 75.482974
+  type: 'test'
+  ...
+# Subtest: unmount rejects late reader-entry animation acknowledgement without a state write
+ok 41 - unmount rejects late reader-entry animation acknowledgement without a state write
+  ---
+  duration_ms: 86.6958
+  type: 'test'
+  ...
+# Subtest: ordinary same-book refresh preserves the already opened reader
+ok 42 - ordinary same-book refresh preserves the already opened reader
+  ---
+  duration_ms: 99.114839
+  type: 'test'
+  ...
+# Subtest: held initial session has a bounded reader wait and Retry starts a fresh attempt
+ok 43 - held initial session has a bounded reader wait and Retry starts a fresh attempt
+  ---
+  duration_ms: 85.015999
+  type: 'test'
+  ...
+# Subtest: authoritative auth event retires initial read timeout and stale rejection
+ok 44 - authoritative auth event retires initial read timeout and stale rejection
+  ---
+  duration_ms: 92.249739
+  type: 'test'
+  ...
+# Subtest: a later authoritative auth event can recover a timed-out reader
+ok 45 - a later authoritative auth event can recover a timed-out reader
+  ---
+  duration_ms: 78.019666
+  type: 'test'
+  ...
+# Subtest: held required book times out, aborts supported transport and retries without a late overwrite
+ok 46 - held required book times out, aborts supported transport and retries without a late overwrite
+  ---
+  duration_ms: 101.665968
+  type: 'test'
+  ...
+# Subtest: installed PostgREST response-body wait is included in the required book budget
+ok 47 - installed PostgREST response-body wait is included in the required book budget
+  ---
+  duration_ms: 125.324519
+  type: 'test'
+  ...
+# Subtest: actual private-media authorization keeps its existing20s stage budget and fails honestly
+ok 48 - actual private-media authorization keeps its existing20s stage budget and fails honestly
+  ---
+  duration_ms: 92.347046
+  type: 'test'
+  ...
+# Subtest: valid delayed auth and book results within their budgets still load real content
+ok 49 - valid delayed auth and book results within their budgets still load real content
+  ---
+  duration_ms: 95.754716
+  type: 'test'
+  ...
+# Subtest: route replacement cancels an old book and keeps late failure from the new reader
+ok 50 - route replacement cancels an old book and keeps late failure from the new reader
+  ---
+  duration_ms: 102.130037
+  type: 'test'
+  ...
+# Subtest: account ABA before commit restarts required authorization instead of stranding the spinner
+ok 51 - account ABA before commit restarts required authorization instead of stranding the spinner
+  ---
+  duration_ms: 82.200281
+  type: 'test'
+  ...
+# Subtest: unmount retires held auth and clears reader timers
+ok 52 - unmount retires held auth and clears reader timers
+  ---
+  duration_ms: 93.438731
+  type: 'test'
+  ...
+# Subtest: unmount retires held book and clears reader timers
+ok 53 - unmount retires held book and clears reader timers
+  ---
+  duration_ms: 110.40709
+  type: 'test'
+  ...
+# Subtest: unmount retires held media and clears reader timers
+ok 54 - unmount retires held media and clears reader timers
+  ---
+  duration_ms: 84.191391
+  type: 'test'
+  ...
+# Subtest: initial session rejection exposes Retry without a book read
+ok 55 - initial session rejection exposes Retry without a book read
+  ---
+  duration_ms: 95.381137
+  type: 'test'
+  ...
+# Subtest: initial session error-result exposes Retry without a book read
+ok 56 - initial session error-result exposes Retry without a book read
+  ---
+  duration_ms: 87.29298
+  type: 'test'
+  ...
+# Subtest: ordinary same-owner auth refresh neither restarts nor cancels the active required book
+ok 57 - ordinary same-owner auth refresh neither restarts nor cancels the active required book
+  ---
+  duration_ms: 90.193911
+  type: 'test'
+  ...
+# Subtest: the actual controlled title input and save callback reproduce the observed suffix after a mid-string backspace edit
+ok 58 - the actual controlled title input and save callback reproduce the observed suffix after a mid-string backspace edit
+  ---
+  duration_ms: 14.853072
+  type: 'test'
+  ...
+# Subtest: the actual title state and creative save preserve an explicitly selected full replacement
+ok 59 - the actual title state and creative save preserve an explicitly selected full replacement
+  ---
+  duration_ms: 14.977799
+  type: 'test'
+  ...
+# Subtest: tests/native/flows/memory-navigation.yaml requires semantic Select All and an exact field-value readback before any save
+ok 60 - tests/native/flows/memory-navigation.yaml requires semantic Select All and an exact field-value readback before any save
+  ---
+  duration_ms: 15.228588
+  type: 'test'
+  ...
+# Subtest: tests/native/audit/flows/memory-cover-settings.yaml requires semantic Select All and an exact field-value readback before any save
+ok 61 - tests/native/audit/flows/memory-cover-settings.yaml requires semantic Select All and an exact field-value readback before any save
+  ---
+  duration_ms: 3.236887
+  type: 'test'
+  ...
+1..61
+# tests 61
+# suites 0
+# pass 61
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5489.360308

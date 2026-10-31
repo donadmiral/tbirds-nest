@@ -25,6 +25,7 @@ const RPC_CASES = {
   get_market_orders: ['market-listingdetail', 'market-offer-cancel'],
   get_story_poll: ['stories-storyviewer'],
   can_comment: ['feed-post'],
+  get_poll: ['feed-post'],
 };
 const TABLE_CASES = {
   clubs: ['profile-mynetwork'], club_members: ['profile-mynetwork'],
@@ -141,6 +142,10 @@ function createReadContracts({ base, audit, session, json, reject, notify }) {
     if (rpc === 'can_comment') {
       valid = exact(body, 'p_post_id') && body.p_post_id === POST;
       data = true; // This seeded public post has no restrictive comment policy.
+    }
+    if (rpc === 'get_poll') {
+      valid = exact(body, 'p_post_id') && body.p_post_id === POST;
+      data = []; // SQL returns zero option rows for the seeded post with no poll.
     }
     if (rpc === 'report_client_error') {
       const report = body?.p_report;

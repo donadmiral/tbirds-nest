@@ -1,0 +1,75 @@
+{
+  "recordedAt": "2026-10-31T23:44:17.263949+00:00",
+  "status": "SOURCE_FIXED_LOCAL_CHECKS_PASS_IPHONE_ACCEPTANCE_PENDING",
+  "findings": [
+    {
+      "id": "READER-REQUIRED-WAIT",
+      "reproduction": "Holding initial auth or the required book promise for120 seconds kept the actual screen on the spinner without Retry.",
+      "change": "Bound initial reader auth wait to12 seconds and full book RPC, including SDK session acquisition and response body, to15 seconds. Show recoverable error and Retry. Global auth/refresh is never cancelled."
+    },
+    {
+      "id": "READER-AUTH-ABA",
+      "reproduction": "Account A to B to A before React commits retired the old request but equal final viewer ID failed to restart loading.",
+      "change": "Track auth scope revision independently of viewer ID. Cancel local ownership and reject stale completion on account, route, unmount or newer request. Ordinary same-owner refresh does not restart reads."
+    }
+  ],
+  "sourceManifest": "source-manifest.json",
+  "patch": "reader-repair.patch",
+  "verification": {
+    "preOutageObserved": {
+      "passed": 65,
+      "failed": 0,
+      "skipped": 0,
+      "breakdown": {
+        "reader": 51,
+        "mediaAuthorization": 6,
+        "saveFlow": 4,
+        "titleEdit": 4
+      },
+      "independentRepeatSameCases": true,
+      "record": "independent-repair-review-restored.json"
+    },
+    "postRestorationFresh": {
+      "passed": 61,
+      "failed": 0,
+      "skipped": 0,
+      "breakdown": {
+        "reader": 51,
+        "mediaAuthorization": 6,
+        "titleEdit": 4
+      },
+      "tap": "restored-source-focused.tap"
+    },
+    "baselineFailureProof": {
+      "readerTests": 51,
+      "oldSourcePassed": 42,
+      "oldSourceFailed": 9,
+      "provenance": "Observed before workspace interruption; no raw TAP recreated."
+    }
+  },
+  "mediaCompatibility": "Retain20-second per-stage media authorization budgets. No15-second overall media hydration budget. No content exposed until authorization succeeds.",
+  "device": {
+    "status": "IN_PROGRESS_NO_ACCEPTANCE_CLAIM",
+    "run": 41253722308,
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41253722308",
+    "consumerCommit": "cd36cf4ea182de90e4097caff6072e00a76785fd",
+    "retainedAppSource": "d46c50f09164c75c7fe8cdba0c3470c272b1ab4e",
+    "retainedAppDoesNotContainThisRepair": true,
+    "required": "Warm tabs to reader and unchanged original memory-reader-controls must both pass. Setup alone is not acceptance."
+  },
+  "limits": [
+    "The observed UIKit/XCTest main-thread stall has no established root cause or verified fix.",
+    "JS timeouts cannot recover a blocked JS event loop.",
+    "Current-source installed device acceptance remains pending user review before a new build.",
+    "No5million-user capacity claim is established by this focused local repair."
+  ],
+  "workspaceRestoration": {
+    "snapshotHandoff": "2026-10-31T20:35:43.664683+00:00",
+    "theseFourFilesRecoveredExactly": true,
+    "laterAppearanceOfferSaveAndAndroidAbiProofFilesMissing": true,
+    "storyAndPollFixtureCorrectionsSurvived": true,
+    "noClaimEarlierFocusedRepairsRemainComplete": true
+  },
+  "newAppBuild": false,
+  "deployment": false
+}

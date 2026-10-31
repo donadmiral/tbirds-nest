@@ -1,0 +1,21 @@
+--- a/tests/native/audit/read-contracts.cjs
++++ b/tests/native/audit/read-contracts.cjs
+@@ -25,6 +25,7 @@
+   get_market_orders: ['market-listingdetail', 'market-offer-cancel'],
+   get_story_poll: ['stories-storyviewer'],
+   can_comment: ['feed-post'],
++  get_poll: ['feed-post'],
+ };
+ const TABLE_CASES = {
+   clubs: ['profile-mynetwork'], club_members: ['profile-mynetwork'],
+@@ -142,6 +143,10 @@
+       valid = exact(body, 'p_post_id') && body.p_post_id === POST;
+       data = true; // This seeded public post has no restrictive comment policy.
+     }
++    if (rpc === 'get_poll') {
++      valid = exact(body, 'p_post_id') && body.p_post_id === POST;
++      data = []; // SQL returns zero option rows for the seeded post with no poll.
++    }
+     if (rpc === 'report_client_error') {
+       const report = body?.p_report;
+       valid = exact(body, 'p_report') && exact(report, 'version,category,source,platform,fatal,appVersion')

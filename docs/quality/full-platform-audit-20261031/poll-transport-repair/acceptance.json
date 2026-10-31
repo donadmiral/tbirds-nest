@@ -1,0 +1,27 @@
+{
+  "recordedAt": "2026-10-31T23:41:55.262793+00:00",
+  "status": "LOCAL_FIX_VERIFIED_DEVICE_RETEST_PENDING",
+  "source": "tests/native/audit/read-contracts.cjs",
+  "sha256": "aa8270ccd4959240f6327ff878e746882c2c0c157ecd86b93b0babf964eb5a4e",
+  "tests": {
+    "command": [
+      "env",
+      "-u",
+      "NODE_TEST_CONTEXT",
+      "node",
+      "--test",
+      "--test-isolation=none",
+      "--test-reporter=tap",
+      "--test-name-pattern=PollCard|get_poll",
+      "tests/quality/native-audit-content-contracts.cjs"
+    ],
+    "passed": 3,
+    "failed": 0,
+    "skipped": 0,
+    "result": "focused-poll.tap"
+  },
+  "fix": "Allow only the actual declared no-poll read for the seeded post with the current audit bearer. Preserve origin, method, case, arguments, ownership and mutation fences.",
+  "deviceBoundary": "Retained installed package predates this fixture. No corrected-package device pass claimed. New builds remain held for user review.",
+  "patch": "poll-only.patch",
+  "productionBackendWrites": false
+}

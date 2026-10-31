@@ -1,0 +1,109 @@
+{
+  "schema": 1,
+  "status": "RECONSTRUCTED_RECORD_OF_OBSERVED_PRE_OUTAGE_VERIFICATION",
+  "reconstructedAtUtc": "2026-10-31 23:38:08 UTC",
+  "recovery": {
+    "exactOriginalReceiptRecovered": false,
+    "reason": "The workspace was restored after an outage; the original receipt and TAP files are absent. No retained exact original receipt string was available to this reviewer. This record is reconstructed from retained conversation messages and actual tool-call results.",
+    "originalReceipt": {
+      "path": "docs/quality/full-platform-audit-20261031/iphone-reader-stall-investigation/independent-repair-review.json",
+      "historicalSha256": "a19dced7f71a3b765e05260183d75b0598051da5331831f07c51a36cb7f3a34b",
+      "historicalBytes": 7457,
+      "availability": "Historical provenance only; original bytes were not recovered here."
+    },
+    "noRerun": true,
+    "noInventedTap": true,
+    "currentWorkspaceSourceVerification": false
+  },
+  "observedIndependentRun": {
+    "command": [
+      "env",
+      "-u",
+      "NODE_TEST_CONTEXT",
+      "node",
+      "--test",
+      "--test-isolation=none",
+      "--test-reporter=tap",
+      "tests/quality/native-memory-album-loading.cjs",
+      "tests/quality/memory-media-regressions.cjs",
+      "tests/quality/native-memory-settings-save-flow.cjs",
+      "tests/quality/native-memory-title-edit.cjs"
+    ],
+    "tests": 65,
+    "passed": 65,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "breakdown": {
+      "readerComponentCases": 51,
+      "mediaAuthorizationCases": 6,
+      "settingsSaveFlowCases": 4,
+      "titleEditCases": 4
+    },
+    "tapDurationMs": 4791.443018,
+    "outerElapsedSeconds": 4.854387592997227,
+    "processExitCode": 0,
+    "observedSourceGuard": "All four frozen candidate inputs and eight relevant dependencies matched their captured SHA-256 values before and after the run. The exact four candidate hashes survive in messages below; the eight additional hash values are not reconstructed.",
+    "countBoundary": "This independent run repeated the owner's 65 cases. It is not 130 unique cases.",
+    "evidenceBasis": "Actual exec/write_stdin result reported exit 0, TAP 1..65, tests/pass 65, fail/cancelled/skipped/todo 0, duration_ms 4791.443018, and the successful before/after hash assertions."
+  },
+  "frozenCandidateSha256": {
+    "src/screens/profile/MemoryAlbumScreen.tsx": "1e110a707c088f12d9d333570f259af530c8324a2d1f1f42dcbef86c2263b557",
+    "shared/memoryReaderRequest.ts": "f94a543372623afa7e02d293f8345e0d60b24dc18fa828b9b38e28f6087c2010",
+    "tests/quality/native-memory-album-loading.cjs": "6e635b6df4600b654d7e2ad3985f39e833abceaf17bb2121c3209205b91d8a79",
+    "tests/quality/memory-media-regressions.cjs": "2f4a59c647a757429ecae7357a74edb1e26e93b68b577fbd5436af822c5da7e7"
+  },
+  "otherInputsObservedUnchanged": [
+    "shared/contentMedia.ts",
+    "src/services/contentMedia.ts",
+    "src/services/supabase.ts",
+    "shared/memoryBookPersistence.ts",
+    "tests/quality/native-memory-settings-save-flow.cjs",
+    "tests/quality/native-memory-title-edit.cjs",
+    "tests/native/audit/flows/memory-cover-settings.yaml",
+    "tests/native/memory-fixture.cjs"
+  ],
+  "repairReviewed": {
+    "authWait": "12-second reader-owned initial account wait. Timeout retires this reader attempt and exposes an honest error/Retry; it does not cancel or shorten Supabase's shared auth/token-refresh operation.",
+    "requiredBookWait": "15-second reader-owned required book query budget, including SDK session acquisition and response-body parsing. Supported query transport receives an AbortSignal.",
+    "mediaAuthorization": "Existing media authorization retains separate 20-second stage bounds. No aggregate 15-second hydration cap and no publication before required authorization/hydration completes.",
+    "cancellation": "Local request ownership prevents deferred dispatch after retirement, consumes late success/rejection, clears owned timers, and retires results on route/account replacement, newer load, soundtrack confirmation and unmount.",
+    "identity": "An explicit auth-scope revision starts a replacement read after synchronous A-to-B-to-A callbacks even when React commits the original final user ID. Same-owner auth refresh does not restart or cancel the current required book query.",
+    "recovery": "Explicit Retry and newer authoritative auth events recover; obsolete initial read success/rejection cannot replace the newer state.",
+    "preservedSave": "saveSettings and openSettings callback text was independently compared with the before source and was byte-identical. Existing save acknowledgment, reload and committed-title behavior remained passing."
+  },
+  "unchangedCallbackTextSha256": {
+    "saveSettings": "b93a407eec3fc59058b6a8bcea3108954266bc6c35b02794962fd47d363de887",
+    "openSettings": "9e640f146d04b277c89b628c0c1e27fa8dfa6b17a5e3d7a0f1ff1daf39bcc216"
+  },
+  "baselineObserved": {
+    "sourceSha256": "27844413189f30e36ebd3137dd5398e689c8393ca9f82469cd4a262351b3adab",
+    "finalReaderTestsAgainstBefore": {
+      "tests": 51,
+      "passed": 42,
+      "failed": 9,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "controlledHeldWait": "Actual-screen probe with controlled auth/book promises remained on a spinner without Retry after 120 seconds; releasing the required result exposed the reader. This was a source-level recoverability reproduction, not an iPhone runtime diagnosis.",
+    "evidenceBasis": "Retained tool result read the original before-tests.tap summary; Native's source-bound held-wait reproduction was independently read before the outage."
+  },
+  "ownerStaticResults": {
+    "scopedLintExitCode": 0,
+    "typescriptExitCode": 0,
+    "attribution": "Reported in the native owner's sealed pre-outage receipt; not independently rerun here.",
+    "historicalOwnerReceiptSha256": "a572eb154c1dfedac23be5c4ee40a84cfc734117e54e8c1d26914642d3bac95c",
+    "historicalSourceManifestSha256": "c51e5d9f60aa53550fbf4a8b6512dffed50401db39c9101c9f51f4e4f0d537ca"
+  },
+  "conclusion": "The exact frozen local repair was independently accepted before the outage, with 65/65 focused cases and unchanged input hashes. This reconstructed record preserves that observed outcome without representing a new test execution or exact recovery of the original evidence files.",
+  "limits": [
+    "Controlled React/native hosts and JavaScript clocks do not reproduce UIKit, Fabric or XCTest scheduling.",
+    "The repair addresses proven indefinite-wait and account-transition recoverability defects. The retained iPhone main-thread stall's cause and cure remain unproven.",
+    "JavaScript deadlines cannot execute while the JavaScript event loop itself is blocked.",
+    "Underlying shared auth/media work may settle later; the repair retires reader acceptance rights and cancels supported book transport only.",
+    "No test was run against the partially restored workspace; no TAP transcript was fabricated.",
+    "No build, CI, provider operation, deployment, ref mutation or new device acceptance occurred during this reconstruction."
+  ]
+}
