@@ -1,0 +1,256 @@
+{
+  "measuredAt": "2026-10-31T03:48:20.421169+00:00",
+  "baseHeadCommit": "341395c68cfc0bf74527bcf23e0dced3813e9225",
+  "baseTree": "ca36583e931756f2d9ea98fdaf3c9869ee4daf8f",
+  "candidateNotYetNativeExecuted": true,
+  "sourceHashes": {
+    "tests/native/backend-fixture.cjs": "07c36f48be48fe28731b7f7d5ecdf003d689f7965b82d68317f6f10d750f748a",
+    "tests/quality/native-ui-fixture.cjs": "30e1e4599ef34bbd54c536e7c0db3e5726cd58c5875369ec3f98665cec2efd88",
+    "tests/native/flows/memory-navigation.yaml": "42a6947e98ceda6e60e7073a486c5317f238f8e478763c30f4eed1e0dd39aeae"
+  },
+  "repairs": [
+    {
+      "file": "tests/native/backend-fixture.cjs",
+      "contract": "my_application_page",
+      "proof": "JobsScreen.loadAll awaits jobsService.getMyApplications, which calls the actual shared/hiring.loadMyApplicationPage helper. Executing that helper with the real Supabase adapter reproduced the missing-contract 501 before repair.",
+      "response": {
+        "applications": [],
+        "has_more": false,
+        "cursor": null
+      },
+      "removedUnusedContract": "get_my_applications_page",
+      "regression": "The real shared helper and real Supabase adapter now return the exact typed page without an unhandled request."
+    },
+    {
+      "file": "tests/native/flows/memory-navigation.yaml",
+      "proof": "The prior iOS run failed Maestro hideKeyboard. The book editor uses keyboardDismissMode=on-drag, and each next command scrolls to its actual control.",
+      "change": "The three hideKeyboard operations are Android-only; iOS uses the existing settings scrolls.",
+      "unchangedSubstantiveCommands": 66,
+      "androidOnlyDismissals": 3,
+      "assertionsRetained": true,
+      "officialBehaviorSource": "https://docs.maestro.dev/reference/commands-available/hidekeyboard"
+    }
+  ],
+  "focusedTests": {
+    "command": "node --test --test-isolation=none tests/quality/native-ui-fixture.cjs tests/quality/native-memory-export.cjs tests/quality/memory-creative-plan.cjs",
+    "passed": 47,
+    "failed": 0,
+    "logSha256": "3a838eb76a7e4fc1fe95ab6b1d18b3777460267ff395725265127467675b0dcb"
+  },
+  "contractAudit": {
+    "passed": true,
+    "actualModules": [
+      "shared/navigationCache.ts",
+      "src/services/navigationDirectory.ts",
+      "src/services/jobsService.ts",
+      "src/services/flagsService.ts",
+      "shared/hiring.ts",
+      "src/services/navigationInbox.ts",
+      "shared/messageReceipts.ts",
+      "src/services/contentMedia.ts",
+      "shared/contentMedia.ts",
+      "shared/memoryMoviePlan.ts",
+      "shared/memoryFilm.ts",
+      "shared/soundtrack.ts",
+      "shared/memoryPlayback.ts",
+      "shared/memoryStoryPresentation.ts",
+      "shared/memoryBookCreative.ts",
+      "shared/memoryBookPersistence.ts"
+    ],
+    "marketTitle": "Travel journal",
+    "jobTitle": "Product designer",
+    "inboxPreview": "Ready for our next adventure?",
+    "bookRevision": 1,
+    "movie": {
+      "version": 1,
+      "settings": {
+        "version": 1,
+        "mode": "automatic",
+        "style": "reflective",
+        "length": "full",
+        "order": "book",
+        "titleCard": true,
+        "originalAudio": true
+      },
+      "scenes": [
+        {
+          "pageId": "a2000000-0000-4000-8000-000000000001",
+          "sourceIndex": 0,
+          "kind": "text",
+          "startSec": 2.4,
+          "durationSec": 3.2,
+          "trimStart": 0,
+          "trimEnd": 3.2,
+          "speed": 1,
+          "needsMetadata": false,
+          "fadeSec": 0.35,
+          "motion": {
+            "fromScale": 1,
+            "toScale": 1,
+            "x": 0,
+            "y": 0
+          }
+        },
+        {
+          "pageId": "a2000000-0000-4000-8000-000000000002",
+          "sourceIndex": 1,
+          "kind": "text",
+          "startSec": 5.6,
+          "durationSec": 3,
+          "trimStart": 0,
+          "trimEnd": 3,
+          "speed": 1,
+          "needsMetadata": false,
+          "fadeSec": 0.35,
+          "motion": {
+            "fromScale": 1,
+            "toScale": 1,
+            "x": 0,
+            "y": 0
+          }
+        }
+      ],
+      "openingSeconds": 2.4,
+      "closingSeconds": 1.6,
+      "durationSec": 10.2,
+      "sourceCount": 2,
+      "selectedCount": 2,
+      "estimated": false
+    },
+    "requests": [
+      {
+        "method": "POST",
+        "path": "/auth/v1/token"
+      },
+      {
+        "method": "POST",
+        "path": "/rest/v1/rpc/get_market_feed"
+      },
+      {
+        "method": "GET",
+        "path": "/rest/v1/saved_listings"
+      },
+      {
+        "method": "GET",
+        "path": "/rest/v1/marketplace_listings"
+      },
+      {
+        "method": "GET",
+        "path": "/rest/v1/job_saves"
+      },
+      {
+        "method": "GET",
+        "path": "/rest/v1/job_applications"
+      },
+      {
+        "method": "POST",
+        "path": "/rest/v1/rpc/my_application_page"
+      },
+      {
+        "method": "GET",
+        "path": "/rest/v1/jobs"
+      },
+      {
+        "method": "GET",
+        "path": "/rest/v1/profiles"
+      },
+      {
+        "method": "GET",
+        "path": "/rest/v1/conversation_members"
+      },
+      {
+        "method": "GET",
+        "path": "/rest/v1/conversation_settings"
+      },
+      {
+        "method": "POST",
+        "path": "/rest/v1/rpc/get_unread_counts"
+      },
+      {
+        "method": "GET",
+        "path": "/rest/v1/conversations"
+      },
+      {
+        "method": "GET",
+        "path": "/rest/v1/profiles"
+      },
+      {
+        "method": "POST",
+        "path": "/rest/v1/rpc/get_memory_albums"
+      },
+      {
+        "method": "POST",
+        "path": "/rest/v1/rpc/get_memory_book"
+      },
+      {
+        "method": "GET",
+        "path": "/rest/v1/memory_album_access"
+      },
+      {
+        "method": "POST",
+        "path": "/rest/v1/rpc/get_memory_book_creative_capabilities"
+      },
+      {
+        "method": "GET",
+        "path": "/auth/v1/user"
+      },
+      {
+        "method": "POST",
+        "path": "/rest/v1/rpc/save_memory_book_creative_presentation"
+      },
+      {
+        "method": "GET",
+        "path": "/auth/v1/user"
+      },
+      {
+        "method": "POST",
+        "path": "/rest/v1/rpc/get_memory_book"
+      },
+      {
+        "method": "GET",
+        "path": "/rest/v1/profiles"
+      },
+      {
+        "method": "POST",
+        "path": "/functions/v1/crisp-bridge"
+      }
+    ],
+    "unhandled": [],
+    "networkForwarded": false,
+    "limits": [
+      "Read and persistence contract audit with actual TypeScript service functions and real Supabase adapters; no native UI or physical-device acceptance.",
+      "Auth store/cache scope injected from the synthetic session. Empty group-avatar branch checked; no group media or payment operation exercised."
+    ]
+  },
+  "contractAuditSourceHashes": {
+    "shared/navigationCache.ts": "3c96b45ecbc04af6c214423d83bca2564659906c1781acf1ab265df53e3969ba",
+    "src/services/navigationDirectory.ts": "60edd15ac276f2a626af2f2b9e71f0ef99ea96ca42fc70888ce2dd33309721d0",
+    "src/services/jobsService.ts": "439631d6d2e448814131d16c986207cec666d85974166bd5480e981e4167fcb1",
+    "src/services/flagsService.ts": "932c5ff7890519386369dd66a21ad65d796c812d2e6afffc84e852e4ae16567e",
+    "shared/hiring.ts": "c5cdc29aaaef718c208f3b4035e12a23982e44da5d44abbaa97d7289a1364f87",
+    "src/services/navigationInbox.ts": "a57af040468d24fb2c889b466d7c43a1b2bdc83b3cf86a1dfb456e3d491c7f96",
+    "shared/messageReceipts.ts": "ca61fb0764d0ad5858ace5a7e16ce179eab68298199bfe981c775c2582cf1007",
+    "src/services/contentMedia.ts": "2921ee6b1642e9bc9b9ad39789d5e941f3b42a09a3d1971df9d1a0b0c10ca2a1",
+    "shared/contentMedia.ts": "a744a17a33a5b0f93be5b84ec943f4a5a05c94059ddd128109077031a2667664",
+    "shared/memoryMoviePlan.ts": "09c0d301bb2f45fce4ca8a9ead27451d847a9f7f2ced31c23dc18ebad06f8377",
+    "shared/memoryFilm.ts": "1bfd023b7adcb55144fcc9473d40d35ce3649edc77812b848a224fa1552fda57",
+    "shared/soundtrack.ts": "8146ca5b15137584aa50dde83ad6faa9412d43f7ba5b2e6e5758896fd2e3e86c",
+    "shared/memoryPlayback.ts": "c89b80997268894ba3309c347d7f2da4f74274c07534211eb52596eb69eebb57",
+    "shared/memoryStoryPresentation.ts": "763cb93b59fc235b8a5c57b713c493664474d4af210f3f73837a734e6e877bf3",
+    "shared/memoryBookCreative.ts": "65155ea7003d9661c0a0bbbc81ac4c20ffebe58157545b77496b5d46b0f51bba",
+    "shared/memoryBookPersistence.ts": "9e3b85448540a28e8910c4a74b5b3a853e94be358b36d5322c960733c12e7070"
+  },
+  "contractAuditScriptSha256": "de8e9ea7761be49c032e88facdde30f04606dd3bb380925e78a8ceb97e58ac29",
+  "screenReview": [
+    "Profile shelf and Private collection label match MemoryAlbumCard.",
+    "Reader page, film pause/read/close, real export-entry labels match MemoryAlbumScreen and MemoryFilm/MemoryMovieExport.",
+    "Cover title/color/inscription/style/postmark/mood/design/save controls match production components.",
+    "Postcard accessibility string and fresh saved revision/reopen expectations match the real persistence helper.",
+    "Settings tab remains under Profile stack and exposes Settings plus Home tab; its profile read and unlinked status contracts are explicitly implemented."
+  ],
+  "scopeLimits": [
+    "This is a contract and flow-source preflight, not a passing native UI run.",
+    "Only exact exercised or reproduced requests are implemented; unknown requests still return 501 and are recorded.",
+    "No permission pregrant, hosted-provider call, Photos save, physical-device or signed-distribution acceptance."
+  ]
+}

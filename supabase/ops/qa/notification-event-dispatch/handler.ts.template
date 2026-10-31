@@ -1,0 +1,71 @@
+import { boundedPushJson, pushResponse, validUuid, waitForPush } from '../../../functions/_shared/pushDelivery.ts';
+
+type Claim = { claimId: string; kind: 'notification' | 'call'; eventId: string };
+type Outcome = 'accepted' | 'skipped' | 'failed' | 'unknown';
+type Dependencies = {
+  projectUrl: string; serviceKey: string; fetch: typeof fetch; deadlineMs?: number;
+  claim: (jobId: string, token: string, signal: AbortSignal) => PromiseLike<{ data: unknown; error: unknown }>;
+  allowed: (jobId: string, claimId: string, signal: AbortSignal) => PromiseLike<{ data: unknown; error: unknown }>;
+  finish: (jobId: string, claimId: string, outcome: Outcome, signal: AbortSignal) => PromiseLike<{ data: unknown; error: unknown }>;
+};
+const QA_ORIGIN = 'https://uaulhuelcfkjwojtymmw.supabase.co';
+const validClaim = (value: unknown): value is Claim => {
+  if (!value || typeof value !== 'object') return false;
+  const claim = value as Claim;
+  return validUuid(claim.claimId) && validUuid(claim.eventId) && ['notification', 'call'].includes(claim.kind);
+};
+
+/** The exposed queue capability can only consume one existing canonical event.
+ * The service credential remains within Edge and its fixed same-project calls. */
+export function createNotificationEventDispatcher(deps: Dependencies) {
+  return async (request: Request): Promise<Response> => {
+    if (request.method !== 'POST') return pushResponse(405, { error: 'Method not allowed' });
+    if (deps.projectUrl !== QA_ORIGIN || deps.serviceKey.length < 32) return pushResponse(503, { error: 'Event dispatcher unavailable' });
+    const signal = AbortSignal.any([request.signal, AbortSignal.timeout(deps.deadlineMs ?? 30_000)]);
+    let jobId: string | null = null, claim: Claim | null = null, outcome: Outcome = 'unknown';
+    try {
+      if (signal.aborted) throw new Error('ABORTED');
+      let body: Record<string, unknown>;
+      try { body = await boundedPushJson(request, signal, 1024); }
+      catch { return pushResponse(401, { error: 'Event authorization required' }); }
+      if (Object.keys(body).sort().join(',') !== 'jobId,token' || !validUuid(body.jobId)
+        || typeof body.token !== 'string' || !/^[a-f0-9]{64}$/.test(body.token)) {
+        return pushResponse(401, { error: 'Event authorization required' });
+      }
+      jobId = body.jobId;
+      const result = await waitForPush(deps.claim(jobId, body.token, signal), signal);
+      if (result.error) throw new Error('CLAIM_UNAVAILABLE');
+      if (!validClaim(result.data)) return pushResponse(401, { error: 'Event authorization unavailable' });
+      claim = result.data;
+      if (signal.aborted) throw new Error('ABORTED');
+      const permission = await waitForPush(deps.allowed(jobId, claim.claimId, signal), signal);
+      if (permission.error) throw new Error('RECHECK_UNAVAILABLE');
+      if (permission.data !== true) { outcome = 'skipped'; throw new Error('EVENT_PAUSED'); }
+      if (signal.aborted) throw new Error('ABORTED');
+      const target = claim.kind === 'call' ? 'send-voip-push' : 'send-push-notification';
+      const payload = claim.kind === 'call' ? { callId: claim.eventId } : { record: { id: claim.eventId } };
+      const response = await waitForPush(deps.fetch(`${QA_ORIGIN}/functions/v1/${target}`, {
+        method: 'POST', redirect: 'error', signal,
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${deps.serviceKey}` },
+        body: JSON.stringify(payload),
+      }), signal);
+      if (!response.ok) { void response.body?.cancel().catch(() => {}); throw new Error('DOWNSTREAM_UNKNOWN'); }
+      const receipt = await boundedPushJson(response, signal, 4096);
+      const count = (key: string) => typeof receipt[key] === 'number' && Number.isSafeInteger(receipt[key]) && Number(receipt[key]) >= 0;
+      if (receipt.skipped === true) outcome = 'skipped';
+      else if (count('accepted') && count('rejected') && count('unknown')) {
+        outcome = Number(receipt.unknown) > 0 ? 'unknown' : Number(receipt.accepted) > 0 ? 'accepted'
+          : Number(receipt.rejected) > 0 ? 'failed' : 'skipped';
+      }
+    } catch { /* A consumed event is never automatically retried after uncertainty. */ }
+    if (jobId && claim) {
+      try {
+        const completionSignal = AbortSignal.timeout(3000);
+        const result = await waitForPush(deps.finish(jobId, claim.claimId, outcome, completionSignal), completionSignal);
+        if (result.error || result.data !== true) return pushResponse(503, { error: 'Inspect the event delivery status before retrying' });
+      } catch { return pushResponse(503, { error: 'Inspect the event delivery status before retrying' }); }
+      return pushResponse(outcome === 'accepted' || outcome === 'skipped' ? 202 : 502, { outcome });
+    }
+    return pushResponse(503, { error: 'Event delivery is temporarily unavailable' });
+  };
+}

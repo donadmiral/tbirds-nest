@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-31T03:44:23.942000Z",
+  "reviewer": "hosted_backend independent review",
+  "baseHead": "341395c68cfc0bf74527bcf23e0dced3813e9225",
+  "scope": "Uncommitted root Android startup permission fix and installed CallKeep facade regression suite; no application-source edits by this reviewer.",
+  "dependency": {
+    "package": "react-native-callkeep",
+    "version": "4.6.1",
+    "lockfileIntegrity": "sha512-N5HaFrTg3p2WFIf0Vdgj0LUu2lsVmY4gDx01k93uEY5c2i/WLjmf3tzYEqZrTjyBl28StcepvdYnUW2L+g23/A=="
+  },
+  "sourceSha256": {
+    "src/services/nativeCallService.ts": "cdbdd19b02d852e6f1743b06d3be19f5b21614dd7d31741b728d043c09d93274",
+    "tests/quality/native-call-event-lifecycle.cjs": "c803f75d62bab5f36a380da7a370c82fdf78d22378aa1b07fba4344da535fb3b",
+    "src/contexts/CallContext.tsx": "3cb5c882300a35d991a29ae69b1b7d78af630c9840460df2a402bf640a0bdc4a",
+    "src/services/callBackgroundTask.ts": "cc3ece1a8d0b77f71451a8f8a46bbebaf741fd4e5797bff36a9eae8098283afb",
+    "node_modules/react-native-callkeep/index.js": "7e81a899deda3cb2963697f23c3578b2e83d32c6ae2c1feb57cb57bc4e7b1f22",
+    "node_modules/react-native-callkeep/actions.js": "3767ce1242d20e06bc5679b9325ef49b42473e8b8a5e14fca56f21b8c04999b7",
+    "node_modules/react-native-callkeep/android/src/main/java/io/wazo/callkeep/RNCallKeepModule.java": "0b75f76df13bcd202523e6505c430ff16c91570bebb95a1620e192944776ab12",
+    "node_modules/react-native-callkeep/android/src/main/java/io/wazo/callkeep/VoiceConnectionService.java": "74187645339aba070283cbbc3c3b7cff8aea5b926f214a4128c94180b844dd02"
+  },
+  "conclusion": "No remaining blocking finding in the reviewed passive-registration change. Emulator and physical-device acceptance remain separate.",
+  "findings": [
+    {
+      "issue": "Android setup prompts during passive session hydration",
+      "status": "resolved in source",
+      "evidence": [
+        "CallKeep index.js _setupAndroid calls checkPhoneAccountPermission and may open phone-account settings.",
+        "RNCallKeepModule.registerPhoneAccount stores settings and registers Telecom account without invoking the permission request path.",
+        "registerEvents sets hasListeners, invokes startObserving and attaches the PhoneAccountHandle.",
+        "VoiceConnectionService.setAvailable(true) also sets initialized, preserving the required terminal setup state."
+      ],
+      "sourceLocations": [
+        "src/services/nativeCallService.ts:139",
+        "src/services/nativeCallService.ts:157",
+        "node_modules/react-native-callkeep/index.js:339",
+        "node_modules/react-native-callkeep/android/src/main/java/io/wazo/callkeep/RNCallKeepModule.java:457",
+        "node_modules/react-native-callkeep/android/src/main/java/io/wazo/callkeep/RNCallKeepModule.java:475",
+        "node_modules/react-native-callkeep/android/src/main/java/io/wazo/callkeep/VoiceConnectionService.java:145"
+      ]
+    },
+    {
+      "issue": "Android cold queued actions could be drained before the initial-events read",
+      "status": "resolved in source after independent review finding",
+      "evidence": [
+        "Native startObserving copies and clears delayedEvents and emits RNCallKeepDidLoadWithEvents. This behavior also applied to the previous setup() path.",
+        "Service now attaches didLoadWithEvents before native registration on Android and iOS; didActivateAudioSession remains iOS-only.",
+        "Regression models registration-time drained events and an empty getInitialEvents cache: answer(A), end(A), answer(B) yields end(A), answer(B) once after owner hydration."
+      ],
+      "sourceLocations": [
+        "node_modules/react-native-callkeep/android/src/main/java/io/wazo/callkeep/RNCallKeepModule.java:213",
+        "src/services/nativeCallService.ts:142",
+        "tests/quality/native-call-event-lifecycle.cjs:195"
+      ]
+    },
+    {
+      "issue": "Registration does not establish permission or enabled phone account",
+      "status": "quiet fallback verified",
+      "evidence": [
+        "Native hasPhoneAccount checks ConnectionService, required permissions, existing PhoneAccount and isEnabled without requesting access.",
+        "prepareForIncomingCall returns false on unavailable or errored account check.",
+        "callBackgroundTask revalidates current recipient/call and uses its notification fallback when native preparation is false.",
+        "Previously enabled accounts remain eligible without prompting."
+      ],
+      "sourceLocations": [
+        "node_modules/react-native-callkeep/android/src/main/java/io/wazo/callkeep/RNCallKeepModule.java:1062",
+        "node_modules/react-native-callkeep/android/src/main/java/io/wazo/callkeep/RNCallKeepModule.java:1308",
+        "src/services/nativeCallService.ts:229",
+        "src/services/callBackgroundTask.ts:84"
+      ]
+    }
+  ],
+  "verification": {
+    "command": "node tests/quality/native-call-event-lifecycle.cjs",
+    "nodeVersion": "24.22.1",
+    "tests": 15,
+    "pass": 15,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "scope": "Actual installed JavaScript facade with mocked native bridge; Java behavior separately inspected.",
+    "additionalChecks": [
+      "Android concurrent setup registers once and never invokes setup/permission/settings/alert paths.",
+      "Failed registration clears partial listeners and retries without prompts.",
+      "iOS retains setup and four listeners."
+    ]
+  },
+  "limitations": [
+    "This local review does not execute Java, Telecom, APNs, FCM, CallKit or a physical phone; full-app emulator rerun and physical-device call acceptance remain separate.",
+    "New Android installs intentionally remain on notification/in-app calling until the user grants phone permissions and enables the managed phone account. No new unsolicited permissions/settings flow is included.",
+    "CallContext explicitly requests RECORD_AUDIO and optionally CAMERA after call initiation/answer, before call RPC/provider creation; it does not request CallKeep phone permissions or enable the Telecom account.",
+    "The fallback still depends on available notification permissions and current authenticated call eligibility.",
+    "No backend mutation, native account activation, external delivery or deployment was performed by this review."
+  ]
+}

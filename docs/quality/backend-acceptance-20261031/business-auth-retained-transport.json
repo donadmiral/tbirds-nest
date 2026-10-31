@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "projectRef": "uaulhuelcfkjwojtymmw",
+  "source": "supabase/ops/qa/business-auth-staged-20261031/04_private_member_signin.sql",
+  "sourceSha256": "ba49c5c8b8545952288ac1885bcf3421d4b42bb21c054d87391b891ed7edb749",
+  "sourceBytes": 7894,
+  "fullyAwaitedInvocation": {
+    "tool": "supabase_apply_migration",
+    "name": "qa_business_auth_04_private_member_signin_20261031",
+    "timeoutRaceUsed": false,
+    "initialYieldMs": 1000,
+    "waitRequestedMs": 10000,
+    "reportedWaitSecondsBeforeInterruption": 2825.7,
+    "terminalToolResultReceived": false,
+    "approvalFormReceived": false,
+    "approvalRejectionReceived": false,
+    "interruptedByParentToRecoverWork": true,
+    "serverCancellationConfirmed": false,
+    "remoteOutcome": "unknown"
+  },
+  "postflight": {
+    "observedAt": "2026-10-31T03:23:43.915436+00:00",
+    "fingerprint": "2f92a9d038364736fa2413bb6d05a160",
+    "expectedSafeStage3Fingerprint": "2f92a9d038364736fa2413bb6d05a160",
+    "stage": "business-auth:66a842a61708dbbe5715352484f9bee0c42665e8d2d3418b1a06e65854723996:stage-3",
+    "catalogRecords": 99,
+    "exactSafeStage3Match": true
+  },
+  "previousIndependentObservation": {
+    "observedAt": "2026-10-31T03:15:53.714246+00:00",
+    "activeMigrationQueries": 0,
+    "stage4Function": null,
+    "musicSchemaPresent": false,
+    "installedStageNames": [
+      "qa_business_auth_01_foundation_20261031",
+      "qa_business_auth_02_private_guards_20261031",
+      "qa_business_auth_03_private_device_20261031"
+    ]
+  },
+  "diagnostic": {
+    "causeProven": false,
+    "officialDocumentation": "https://supabase.com/kb/troubleshooting/sql-confirmations-do-not-appear-in-your-mcp-client-sQf7Kp",
+    "providerBehavior": "Destructive SQL confirmations use an MCP inputRequired form and a server-minted requestState bound to the tool, project, migration name and query hash. The exposed tool schema has no separate approval token parameter.",
+    "nextStep": "Repair or resume the authenticated connector's request/elicitation transport, then independently inspect state before attempting the unchanged reviewed stage again. No client setting, classifier, SQL body or execution bridge was changed."
+  },
+  "actions": {
+    "furtherMutationAttempted": false,
+    "executeSqlDdlSubstitution": false,
+    "notificationCandidateInstalled": false,
+    "productionModified": false
+  }
+}

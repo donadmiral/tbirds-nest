@@ -200,7 +200,7 @@ export default async function DashboardPage() {
   const errors24 = cerr.count ?? 0;
 
   const health = [
-    { label: 'Dashboard data reads', state: 'Succeeded', ok: true, meta: `current page queries completed in ${readsElapsedMs} ms; not a service-wide health check` },
+    { label: 'Dashboard data reads', state: 'Succeeded', ok: true, meta: `current page queries completed in ${Math.round(readsElapsedMs)} ms; not a service-wide health check` },
     { label: 'Daily activity summary', state: statsFresh ? 'Current' : 'Awaiting update', ok: statsFresh, meta: lastStatDay ? 'Last updated ' + lastStatDay : 'The first daily summary is not available yet' },
     { label: 'App errors, 24 hours', state: errors24 === 0 ? 'Clear' : String(errors24), ok: errors24 === 0, meta: 'Reported by the app' },
     { label: 'Enabled features', state: flagRows.filter(f => f.enabled).length + ' of ' + flagRows.length, ok: true, meta: 'Current feature settings' },

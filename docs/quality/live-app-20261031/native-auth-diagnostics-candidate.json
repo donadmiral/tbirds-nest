@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-31T03:53:08.472113Z",
+  "status": "source and local harness accepted; next native run pending",
+  "baseHead": "341395c68cfc0bf74527bcf23e0dced3813e9225",
+  "purpose": "Identify the holder, waiter and auth-storage phase if the observed 5000 ms startup lock warning repeats in the next disposable native UI run.",
+  "scope": "Only the existing synthetic native QA build. Production auth source is unchanged.",
+  "sourceSha256": {
+    "tests/native/auth-diagnostics.cjs": "a3ee0fb82b68e7de2fa6629bd30ff059ad50458c487e577458030296857733eb",
+    "tests/quality/native-auth-diagnostics.cjs": "8a4407a4e45de5ddeeb792d17ca8cd629e93b2ec2013939d99b91ba918f5bc3f",
+    "scripts/quality/native-ui-auth-overlay.cjs": "797b06fd623cc0e2d4786c161afdc5541c815a7fe8036f1622e232317b16fa73",
+    "scripts/quality/prepare-native-ui.cjs": "1cbf2e9bea24cef4d4422d058fa436aae8b14ba8f7557a2335c1a5d7f7d97f88",
+    "scripts/quality/test-ios-app-ui.sh": "4ce0b015d18bdc1a8329003b0ae22899cc2436b9027e28a7ba19d266b8266e58",
+    "scripts/quality/test-android-app-ui.sh": "176c028d219e30d897c3aaafd40e96baa87af291108d6ee390b4e4d6c2590118"
+  },
+  "unchangedProductionAuth": {
+    "file": "src/services/supabase.ts",
+    "sha256": "457ab3f8c8c54aa3a5e770dd1b43f4869a98c7471c9ccffcbe5f9e3901847fee",
+    "identicalToBaseHead": true
+  },
+  "activationGuards": [
+    "prepare-native-ui requires CI=true, the QA project URL, QA app environment and exact synthetic transport key; it refuses existing native projects or Metro config.",
+    "Native diagnostic factory checks QA environment, expected QA URL, exact synthetic key and identity of the installed synthetic fetch before accessing the filesystem.",
+    "Source patch requires exactly one of each of three reviewed anchors and rejects already overlaid source."
+  ],
+  "observedOperations": {
+    "lock": [
+      "requested",
+      "acquired",
+      "released",
+      "settled"
+    ],
+    "storageMethods": [
+      "getItem",
+      "setItem",
+      "removeItem"
+    ],
+    "storagePhases": [
+      "started",
+      "settled"
+    ],
+    "fields": [
+      "numeric operation ID",
+      "numeric lock/storage resource ID",
+      "relative time and wait/hold/operation duration",
+      "unchanged requested timeout",
+      "fixed phase/outcome enumeration",
+      "active lock operation IDs observed at storage start"
+    ],
+    "sensitiveDataExcluded": [
+      "raw storage keys",
+      "raw lock names",
+      "storage values",
+      "session contents",
+      "tokens",
+      "user identifiers",
+      "error text or stack",
+      "callback arguments or resolved values"
+    ]
+  },
+  "semantics": [
+    "The supplied official processLock remains the underlying lock implementation with its original name and timeout arguments.",
+    "Original receiver and callback arguments are forwarded; resolved value references and rejection error objects are preserved.",
+    "Promise settlement observers return their rejection chain so ignored rejected operations are not converted into successful results.",
+    "No auth callback, timeout, refresh policy, network route or provider credential is substituted by the diagnostic."
+  ],
+  "bounds": {
+    "defaultRetainedEvents": 1024,
+    "retention": "First 512 startup events plus most recent 512 events, with dropped-event count.",
+    "resourceIdsPerKind": 32,
+    "overflowResourceId": 0,
+    "trackedOperationsPerActiveMap": 128,
+    "snapshotBatchDelayMs": 250,
+    "diskWritesInFlight": 1,
+    "pendingSnapshots": 1,
+    "pendingPolicy": "Replace with latest snapshot while one serialized write is pending. A failed write does not block the latest snapshot."
+  },
+  "evidenceIntegration": {
+    "disposableOverlay": "src/services/supabase.ts",
+    "overlayManifest": "native-ui-logs/source.json includes original/after hashes and retained exact overlay content.",
+    "diagnosticSourceHashed": true,
+    "helperSourceHashed": true,
+    "workflowTrigger": "New helper native-ui-auth-overlay.cjs matches existing scripts/quality/*native-ui* path filter; workflow itself unchanged.",
+    "artifactFiles": [
+      "native-ui-auth-diagnostics.json",
+      "native-ui-auth-diagnostics-final.json (Android cleanup)"
+    ],
+    "collection": "Both iOS and Android collect trace on successful completion and in cleanup after failures.",
+    "filesystem": "Native expo-file-system/legacy writes, separate from observed AsyncStorage."
+  },
+  "verification": {
+    "command": "node tests/quality/native-auth-diagnostics.cjs",
+    "tests": 11,
+    "pass": 11,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0,
+    "covered": [
+      "Actual pinned processLock preserves exclusion and correlates active holder, queued operation and pending storage.",
+      "Original arguments, receivers, resolved references and rejection objects are retained.",
+      "Timeout/error paths do not run unauthorized work or serialize private error data.",
+      "Snapshot privacy is tested with sentinel lock names, storage keys, session values and errors.",
+      "Bounded startup/latest retention and ID limits.",
+      "Clock or sink failure does not change auth result.",
+      "Production/real-provider/wrong-transport configurations fail closed before filesystem access.",
+      "Stalled and failed disk writes coalesce to one latest snapshot and cannot overwrite out of order.",
+      "Actual disposable preparation verifies source before/after/retained hashes and leaves production file unchanged."
+    ],
+    "shellSyntax": "bash -n passes for both native UI shell scripts",
+    "diffWhitespace": "git diff --check passes"
+  },
+  "reviews": {
+    "nativeAcceptanceAgent": "Final integration review acknowledged no blocker: import order, filesystem paths, success/cleanup extraction, source hashes and workflow trigger.",
+    "root": "Accepted recorder and bounded writer; timings are explicitly diagnostic, not uninstrumented production performance."
+  },
+  "limitations": [
+    "Next Android/iOS emulator execution has not yet produced this trace. These local harness results do not resolve the earlier warning.",
+    "Observer microtasks and native filesystem writes add overhead; trace durations diagnose lock/storage phases and must not be advertised as uninstrumented production performance.",
+    "Numeric IDs correlate SDK lock activity with active auth-storage operations; they do not expose or infer private storage contents or a named high-level auth command.",
+    "Only the auth client storage adapter is observed; unrelated application AsyncStorage use is not globally instrumented.",
+    "A missing or interrupted trace remains missing evidence, not a passing lock diagnosis."
+  ],
+  "hostedWrites": false,
+  "productionDeployment": false
+}

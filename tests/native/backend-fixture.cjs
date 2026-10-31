@@ -70,7 +70,7 @@ function createFixture(onChange = () => {}) {
     'call_sessions', 'call_participants', 'user_push_tokens', 'job_saves', 'job_applications', 'job_recommendations',
     'job_referrals', 'saved_listings', 'business_members', 'business_profiles', 'business_applications',
     'story_views', 'story_reactions', 'story_highlights', 'story_mutes', 'hidden_words', 'support_tickets',
-    'user_devices', 'login_history', 'login_events', 'verification_applications', 'member_strikes', 'memory_album_access']) rows[table] = [];
+    'user_devices', 'login_history', 'login_events', 'verification_applications', 'member_strikes', 'memory_album_access', 'announcements']) rows[table] = [];
   const savedBook = navigationBook();
   let owner = null;
   let sessionCounter = 0;
@@ -159,8 +159,11 @@ function createFixture(onChange = () => {}) {
         cover_artwork: artwork, film_settings: film });
       return { id: savedBook.id, presentation_revision: savedBook.presentation_revision, cover_artwork: artwork, film_settings: film };
     }
+    if (name === 'my_application_page') return { applications: [], has_more: false, cursor: null };
     if (name === 'get_market_feed') return args.p_offset ? [] : rows.marketplace_listings;
     if (name === 'get_unread_counts') return [{ conversation_id: CONVERSATION, unread_count: 1 }];
+    if (name === 'get_context_unread') return { market: 0, jobs: 0, groups: 0,
+      personal: rows.messages.filter(message => message.receiver_id === owner && message.sender_id !== owner && message.read_at === null).length };
     if (name === 'get_catchup_feed') return [{ ...profiles[1], user_id: PEER, story_count: 1, unseen_count: 1,
       latest_story_at: story.created_at, latest_story_id: STORY, has_unseen: true }];
     if (name === 'get_user_stories') return args.p_user_id === PEER ? [story] : [];
@@ -175,10 +178,10 @@ function createFixture(onChange = () => {}) {
       return { liked: post.viewer_liked, likes_count: post.likes_count };
     }
     if (name === 'start_dm_ctx') return CONVERSATION;
-    if (['get_recent_likers', 'get_active_promos', 'get_user_highlights', 'get_my_story_reactions', 'get_story_reactions',
+    if (['get_recent_likers', 'get_active_promos', 'get_trending_stories', 'get_user_highlights', 'get_my_story_reactions', 'get_story_reactions',
       'get_story_viewers', 'get_story_sticker_summary', 'get_my_sticker_response', 'get_communities',
       'get_my_communities', 'get_channels', 'get_my_channels', 'get_market_orders', 'get_my_market_orders',
-      'get_my_applications_page', 'get_story_poll', 'list_playable_sounds'].includes(name)) return [];
+      'get_story_poll', 'list_playable_sounds'].includes(name)) return [];
     if (['mark_story_viewed', 'mark_conversation_read', 'save_push_token', 'save_voip_token', 'record_video_view',
       'record_post_view', 'increment_share_count', 'record_ad_event', 'register_login', 'record_login'].includes(name)) return null;
     return undefined;

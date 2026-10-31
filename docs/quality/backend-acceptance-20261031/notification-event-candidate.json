@@ -1,0 +1,179 @@
+{
+  "version": 1,
+  "scope": "Source-only QA alternative. No deployment or hosted schema change. Synthetic SQL, RPC and HTTP inputs.",
+  "reviewedAgainstCommit": "341395c68cfc0bf74527bcf23e0dced3813e9225",
+  "qaProjectRef": "uaulhuelcfkjwojtymmw",
+  "sourceFiles": {
+    "supabase/ops/qa/notification-event-dispatch/20261031022749_notification_event_dispatch_capabilities.sql": {
+      "bytes": 10807,
+      "sha256": "9a5a7ea2d9acfc9c21185ac5b2654cfebd9d8f5aba29363cd5a5b5616f4bf081"
+    },
+    "supabase/ops/qa/notification-event-dispatch/index.ts.template": {
+      "bytes": 1092,
+      "sha256": "c5486be58e068af37de3f4875234a87e13607e28449f0b494b7b7dab053e4745"
+    },
+    "supabase/ops/qa/notification-event-dispatch/handler.ts.template": {
+      "bytes": 4856,
+      "sha256": "16c815d2b5ac0a9e48c21454b1f7922ce12cee5ca00f7b59825d01c08a9a27f6"
+    },
+    "supabase/ops/qa/notification-event-dispatch/README.md": {
+      "bytes": 9399,
+      "sha256": "3e02a2069c483922e5104bddcaa909d41b4b0b6f140b062e3494e5f8fc8451c3"
+    },
+    "supabase/functions/_shared/pushDelivery.ts": {
+      "bytes": 5157,
+      "sha256": "184cfbc43490c00dd267c0c4079ba6e1478996769d9307a454d9c39f50afbafb"
+    },
+    "supabase/functions/_shared/boundedFetch.ts": {
+      "bytes": 676,
+      "sha256": "81f4fc8ffe55ba99ea50d042f2a6b06cd6d60509721a15eea8820b799dc5f147"
+    },
+    "supabase/functions/send-push-notification/index.ts": {
+      "bytes": 582,
+      "sha256": "f16ae9c6f912eb3779bee8b77a8fdc104986c31d798f1cdc7059c35eebb00f3a"
+    },
+    "supabase/functions/send-push-notification/handler.ts": {
+      "bytes": 8662,
+      "sha256": "20efa926fa16bc269576a1764ac311b690e991509f3e8b6fb043858a6082753a"
+    },
+    "supabase/functions/send-voip-push/index.ts": {
+      "bytes": 2447,
+      "sha256": "6219e2462771be75c6deb144b24784e7b8ca51d684d76e170f8f89454387e5d8"
+    },
+    "supabase/functions/send-voip-push/handler.ts": {
+      "bytes": 10714,
+      "sha256": "61141252dcba332b36d66f634432063475c2e75d3217efe3c1a3fec0a7fffab2"
+    },
+    "tests/quality/notification-event-dispatch.cjs": {
+      "bytes": 7578,
+      "sha256": "896d73b5c6714d4e9f29b7b952e2a837fa88b5f1615eebd7a5f31ecacaa7bdd0"
+    },
+    "supabase/tests/rpc-authorization/test-notification-event-dispatch.mjs": {
+      "bytes": 15276,
+      "sha256": "a61ad88974d9f2aac680d992336f1c1ca47f543712ff563c201c24f797cf2100"
+    },
+    "supabase/tests/rpc-authorization/run-all.mjs": {
+      "bytes": 4201,
+      "sha256": "b8d1149589ddee1fa0a48d7c2d028e50b14c2b90241a78c323af44dfef924fa3"
+    }
+  },
+  "tests": [
+    {
+      "name": "event_sql",
+      "passed": 16,
+      "failed": 0,
+      "skipped": 0,
+      "logSha256": "5e15f78145391582e37f4a51af90eac43e0ed75d35fe545adbea7c3b34d398ae",
+      "cases": [
+        "installation is disabled and does not replay historical events",
+        "private jobs remain inaccessible even though the provider queue stays readable",
+        "queued data contains only an opaque job and one short-lived event capability",
+        "an observed token cannot select another event, recipient, body or SQL operation",
+        "atomic claim and completion fence duplicate requests and stale acknowledgements",
+        "expired and paused event capabilities do not dispatch",
+        "legacy mode enabled after enqueue prevents claiming and after claim prevents forwarding",
+        "pause and expiry after claim prevent a fresh forward but do not prevent final acknowledgement",
+        "deleted notifications and deactivated recipients cannot consume a capability",
+        "canceled calls and revoked initiating sessions cannot consume a capability",
+        "ringing calls map only to the canonical call and never ordinary incoming-call pushes",
+        "current call authorization still rejects a session revoked after the event claim",
+        "group call insertion commits invitations together before one queued call is consumed",
+        "outbox uniqueness prevents re-enqueue and existing legacy mode prevents double dispatch",
+        "queue failure preserves the app event and cannot produce a usable failed capability",
+        "operator retention is bounded, keeps recent jobs and preserves canonical notifications"
+      ]
+    },
+    {
+      "name": "event_handler",
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "logSha256": "954ae394fc9f6cf39c6dc7bf94ebc9bcd2683187cd678198dbc0562eed6f559a",
+      "cases": [
+        "canonical DB claim controls the fixed target and all outgoing fields",
+        "only a canonical call claim selects the call endpoint",
+        "arbitrary routing, recipient, body, credential and SQL fields fail before privileged lookup",
+        "expired, stale and replayed claims never reach the downstream service",
+        "a pause or legacy-mode switch after claim prevents forwarding, but still records the skip",
+        "an unavailable recheck records uncertainty instead of forwarding or reusing the token",
+        "invalid DB receipts cannot choose another target or an arbitrary event",
+        "production and missing service configuration are refused before any claim",
+        "method and body size bounds reject oversized inputs without dispatch",
+        "uncertain provider outcomes remain one-shot and never echo sensitive failure bodies",
+        "recipient skip and provider rejection are persisted with exact terminal outcomes",
+        "failed acknowledgement never reports completion or retries the forward call",
+        "cancellation before lookup or while the claim result is uncertain never forwards",
+        "cancellation during forwarding records uncertainty using an independent acknowledgement deadline"
+      ]
+    },
+    {
+      "name": "existing_push_handlers",
+      "passed": 18,
+      "failed": 0,
+      "skipped": 0,
+      "logSha256": "8cf583fc7d4de28bb015ba8690da149f3145f0cf18c548891beed08d920c70a5",
+      "cases": [
+        "ordinary push refuses anonymous, anon-key and user JWT callers before any database or provider access",
+        "a service webhook can deliver only the stored notification, ignoring forged recipient, type, text and routing",
+        "missing, expired, muted and quiet-hour notifications do not reach a provider",
+        "both Expo token formats work, duplicate registrations send once and unknown badges do not clear the icon",
+        "Expo batches never exceed100, and a revocation prevents later batches",
+        "provider errors and malformed tickets are never counted as delivered or accepted",
+        "DeviceNotRegistered cleanup names the original owner, token and registration timestamp",
+        "call ringing requires a verified nonanonymous user and live caller authorization",
+        "a caller cannot ring someone else call, an ended call or an expired call",
+        "call push respects master/category/quiet preferences and requires the database dispatch claim",
+        "database trigger and client races acquire only one recipient dispatch and produce one ring",
+        "revocation during preparation stops ringing before the provider sees a request",
+        "recipient removal after the claim prevents both trusted and user-initiated rings",
+        "recipient revocation between provider batches stops the later devices",
+        "APNs uses the QA topic, explicit environment, original CallKit UUID and immediate expiration",
+        "missing APNs credentials cannot prevent an eligible Android receiver from ringing",
+        "APNs rejection is reported and does not retry a token against a different environment",
+        "provider timeout is bounded and records an uncertain attempt without blindly sending again"
+      ]
+    }
+  ],
+  "checks": {
+    "denoCompleteEntrypoint": "passed, both templates rendered byte-identically in an isolated tree with their shared dependencies",
+    "denoTlsValidation": "enabled; system CA store",
+    "rootNativeTypeScript": "passed",
+    "handlerTestLint": "zero errors and warnings"
+  },
+  "officialClassifier": {
+    "source": "https://github.com/supabase-community/supabase-mcp/blob/ed5084d1957541c5130f551d5f7e0fee5e3ddfeb/packages/mcp-server-supabase/src/tools/destructive-sql.ts",
+    "sourceSha256": "e350da140fa468ed224fca628885cd6212a78aaf7cb7ae1ff4d8468c0ba52c46",
+    "requiresDestructiveConfirmation": true,
+    "reason": "Explicit bounded operator retention DELETE remains unchanged and visible."
+  },
+  "authorization": {
+    "serviceCredentialInPgNet": false,
+    "canonicalEventOnly": true,
+    "maximumCapabilityAgeSeconds": 120,
+    "maximumCallRingAgeSeconds": 90,
+    "atomicOneUseClaim": true,
+    "legacyModeRecheckedAtClaim": true,
+    "modeAndExpiryRecheckedBeforeForward": true,
+    "currentDownstreamAuthorizationPreserved": true,
+    "finishStillWorksWhilePaused": true,
+    "automaticReplayAfterUncertainty": false,
+    "pgNetTimeoutSeconds": 45,
+    "dispatcherWorkTimeoutSeconds": 30,
+    "completionTimeoutSeconds": 3,
+    "boundedRetentionRows": 500,
+    "minimumRetentionDaysAfterExpiry": 7
+  },
+  "limits": [
+    "An observer of the provider queue can advance the existing authorized event; a queue writer can suppress it. No arbitrary recipient/body/route is accepted.",
+    "A feature switch after the downstream request begins cannot retract it. Mode switching requires pausing, draining, and inspecting in-flight/unknown jobs.",
+    "At-most-once forwarding can lose an attempt after claim if the worker crashes. It intentionally avoids blind replay after an unknown provider outcome.",
+    "The candidate still requires reviewed hosted installation, exact Edge readbacks, request limiting, an operator retention schedule and disposable-event/provider/installed-device acceptance.",
+    "The pending business-auth connector invocation did not return an outcome. No new hosted mutation is authorized by this receipt."
+  ],
+  "state": {
+    "candidateInstalled": false,
+    "candidateEdgeDeployed": false,
+    "dispatchEnabled": false,
+    "productionModified": false
+  }
+}

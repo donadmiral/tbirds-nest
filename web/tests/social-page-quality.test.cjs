@@ -7,7 +7,7 @@ const ts = require('typescript');
 function load(name) {
  const module={exports:{}};
  const js=ts.transpileModule(fs.readFileSync(path.join(__dirname,'../lib/',name),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText;
- vm.runInNewContext(js,{module,exports:module.exports,URL,Date,Map,Set,Error,require:(id)=>{if(id==="../../shared/channelMedia")return require("../../shared/channelMedia.ts");throw new Error(id);}});return module.exports;
+ vm.runInNewContext(js,{module,exports:module.exports,URL,Date,Map,Set,Error,AbortController,require:(id)=>{if(id==="../../shared/channelMedia")return require("../../shared/channelMedia.ts");throw new Error(id);}});return module.exports;
 }
 const {createPagedCollection}=load('socialPages.ts');
 const {channelMediaObject}=load('channelMedia.ts');
@@ -43,4 +43,35 @@ test('channel media parser only accepts canonical first-party storage references
  assert.equal(channelMediaObject(origin+'/storage/v1/object/public/channel-media/c/u/a.jpg',origin).path,'c/u/a.jpg');
  assert.equal(channelMediaObject(origin+'/storage/v1/object/sign/chat-media/u/channel_a.jpg?token=secret',origin).bucket,'chat-media');
  for(const url of ['https://evil.test/storage/v1/object/public/channel-media/c/u/a.jpg',origin+'/storage/v1/object/public/avatars/a.jpg',origin+'/storage/v1/object/public/channel-media/c/%2e%2e%2fa.jpg','javascript:alert(1)'])assert.equal(channelMediaObject(url,origin),null);
+});
+test('warm reader renders all saved pages before refresh and resumes the raw server offset',async()=>{
+ const inputs=[],gate=defer();let hold=true;
+ const memory={items:[{id:'a'},{id:'b'},{id:'c'}],offset:4,asOf:'old-snapshot',hasMore:true};
+ const store=createPagedCollection({key:x=>x.id,size:2,memory,fetchPage:async(offset,size,asOf)=>{inputs.push({offset,size,asOf});if(hold)await gate.promise;return offset===0?[{id:'a'},{id:'b'}]:offset===2?[{id:'b'},{id:'c'}]:[{id:'d'}];}});
+ assert.equal(store.snapshot().items.length,3);const work=store.refresh();assert.equal(store.snapshot().items.length,3);
+ hold=false;gate.resolve();await work;assert.equal(store.snapshot().items.length,3);await store.next();
+ assert.equal(inputs.map(x=>x.offset).join(','),'0,2,4');assert.equal(new Set(inputs.map(x=>x.asOf)).size,1);assert.notEqual(inputs[0].asOf,'old-snapshot');assert.equal(store.snapshot().items.length,4);
+});
+test('rapid foreground refreshes share a read, while a confirmed mutation cancels obsolete work',async()=>{
+ const first=defer(),second=defer(),signals=[];let calls=0;
+ const store=createPagedCollection({key:x=>x.id,memory:{items:[{id:'a',caption:'old'}],offset:1,asOf:'old',hasMore:false},fetchPage:(_o,_s,_a,signal)=>{signals.push(signal);return ++calls===1?first.promise:second.promise;}});
+ const a=store.refresh();assert.equal(store.refresh(),a);assert.equal(store.refresh(),a);assert.equal(calls,1);
+ const b=store.refresh(true);assert.equal(signals[0].aborted,true);second.resolve([{id:'a',caption:'saved'}]);await b;first.resolve([{id:'a',caption:'obsolete'}]);await a;
+ assert.equal(store.snapshot().items[0].caption,'saved');assert.equal(calls,2);
+});
+test('local caption, like and deletion changes survive a delayed multi-page replacement',async()=>{
+ const gate=defer();const initial=[{id:'a',caption:'old',liked:false},{id:'b',caption:'remove'},{id:'c',caption:'third'},{id:'d',caption:'fourth'}];
+ const store=createPagedCollection({key:x=>x.id,size:2,memory:{items:initial,offset:4,asOf:'old',hasMore:true},fetchPage:async offset=>{if(offset===2)await gate.promise;return initial.slice(offset,offset+2).map(x=>({...x}));}});
+ const work=store.refresh();await Promise.resolve();
+ store.setItems(rows=>rows.filter(row=>row.id!=='b').map(row=>row.id==='a'?{...row,caption:'edited while refreshing',liked:true}:row));
+ gate.resolve();await work;
+ assert.equal(store.snapshot().items[0].caption,'edited while refreshing');assert.equal(store.snapshot().items[0].liked,true);assert.equal(store.snapshot().items.some(row=>row.id==='b'),false);assert.equal(store.remember().offset,4);
+});
+test('failed warm refresh preserves content and retry restarts at zero instead of silently continuing an old snapshot',async()=>{
+ let fails=true;const offsets=[];const store=createPagedCollection({key:x=>x.id,size:2,memory:{items:[{id:'old'}],offset:1,asOf:'old',hasMore:false},fetchPage:async offset=>{offsets.push(offset);if(fails)throw Error('offline');return [{id:'fresh'}];}});
+ await store.refresh();assert.equal(store.snapshot().items[0].id,'old');assert.equal(store.snapshot().error,'offline');fails=false;await store.next();assert.equal(offsets.join(','),'0,0');assert.equal(store.snapshot().items[0].id,'fresh');
+});
+test('cancel aborts transport and prevents a late warm refresh from publishing or replacing remembered rows',async()=>{
+ const gate=defer();let signal;const old={id:'kept'};const store=createPagedCollection({key:x=>x.id,memory:{items:[old],offset:1,asOf:'old',hasMore:false},fetchPage:(_o,_s,_a,s)=>{signal=s;return gate.promise;}});
+ const work=store.refresh();store.cancel();assert.equal(signal.aborted,true);gate.resolve([{id:'secret-old-session'}]);await work;assert.equal(store.snapshot().items[0],old);
 });

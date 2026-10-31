@@ -46,7 +46,13 @@ name: Saved memory book, automatic film and cover editing
 - tapOn: Book title
 - eraseText
 - inputText: THE LONG WAY HOME
-- hideKeyboard
+# iOS dismisses through the following real settings scroll (on-drag).
+# Maestro's center-screen hideKeyboard swipe can miss this modal's scroll view.
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
 - scrollUntilVisible:
     element: sage cover color
     direction: DOWN
@@ -59,7 +65,11 @@ name: Saved memory book, automatic film and cover editing
 - tapOn:
     id: memory-cover-inscription
 - inputText: Roads worth remembering
-- hideKeyboard
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
 - scrollUntilVisible:
     element: 'Writing style: Simple'
     direction: DOWN
@@ -72,7 +82,11 @@ name: Saved memory book, automatic film and cover editing
 - tapOn:
     id: memory-cover-postmark
 - inputText: DESERT DAYS
-- hideKeyboard
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - hideKeyboard
 - scrollUntilVisible:
     element: 'Mood: Cinematic'
     direction: DOWN

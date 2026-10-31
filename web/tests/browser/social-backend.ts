@@ -1,6 +1,9 @@
 /** Synthetic browser adapter only. Never imported by the application. No network credentials. */
 import type { FeedRow } from '../../lib/feed';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { MemoryAlbum } from '../../lib/memoryAlbum';
+import { memoryCoverArtwork, memoryFilmSettings } from '../../../shared/memoryBookCreative';
+import { notifyMemoryBookShelfChanged } from '../../lib/memoryBookEvents';
 type FixtureRow = Record<string, unknown>;
 type FixtureError = { message: string };
 type QueryResult = { data: FixtureRow | FixtureRow[] | null; count: number | null; error: FixtureError | null };
@@ -27,7 +30,12 @@ const messages = [{ id: '30000000-0000-4000-8000-000000000001', conversation_id:
 const community = { id: 'community-fixture', name: 'City Walks', description: 'Share routes, small discoveries and the people who make a city.', icon_url: null, cover_color: 'sky', category: null, rules: 'Be respectful. Share original work. Keep conversations on topic.', join_mode: 'open', member_count: 128, is_member: true, my_role: 'owner', my_status: 'active', has_pending: false };
 const channel = { id: 'channel-fixture', name: 'Field Notes', description: 'Updates from the creative process.', icon_url: null, member_count: 64, is_member: true, my_role: 'owner', owner_username: 'avery_lane', audience: 'everyone', replies_enabled: true, my_notification_level: 'all' };
 const uploads = new Map<string, string>();
-type NavigationRead = 'feed' | 'conversations' | 'messages';
+const books = Object.keys(profiles).flatMap((profileId, ownerIndex) => ['Postcards', 'City notes', 'Small wins', 'Weekend journal'].map((title, index):MemoryAlbum => {
+ const pages=Array.from({length:index+3},(_,n)=>({id:`page-${ownerIndex}-${index}-${n}`,story_id:`60000000-0000-4000-8000-${String(ownerIndex*100+index*10+n+1).padStart(12,'0')}`,media_type:'image',media_url:'/coast.svg',thumbnail_url:null,caption:'A memory to keep',taken_at:'2026-08-01T12:00:00Z',sort_order:n}));
+ return {id:`70000000-0000-4000-8000-${String(ownerIndex*10+index+1).padStart(12,'0')}`,user_id:profileId,is_owner:true,can_view:true,title,subtitle:'PLACES · PEOPLE · STORIES',cover_color:['#d4c2a0','#27496c','#c7b49c','#586756'][index],cover_design:['postcard','editorial','field_notes','botanical'][index],audience:index===3?'only_me':'profile',count:pages.length,pages,cover_story_id:pages[0].story_id,cover_page:pages[0],presentation_revision:0,cover_artwork:memoryCoverArtwork(),film_settings:memoryFilmSettings()};
+}));
+const hiddenProfiles=new Set<string>();
+type NavigationRead = 'feed' | 'conversations' | 'messages' | 'profile-posts' | 'books';
 const navigationHolds = new Map<NavigationRead, { promise: Promise<void>; release: () => void }>();
 async function waitNavigationRead(kind: NavigationRead, signal?: AbortSignal) {
   const hold = navigationHolds.get(kind);
@@ -46,10 +54,12 @@ async function waitNavigationRead(kind: NavigationRead, signal?: AbortSignal) {
     item.finishedAt = performance.now();
   }
 }
-export const fixture = { receipt, faults, profiles, owner: () => owner,
+export const fixture = { receipt, faults, profiles, books, owner: () => owner,
   switchOwner(id: string | null) { owner = id; listeners.forEach(listener => listener(id ? 'SIGNED_IN' : 'SIGNED_OUT', session())); window.dispatchEvent(new Event('fixture-owner')); },
   refreshToken() { listeners.forEach(listener => listener('TOKEN_REFRESHED', session())); },
   clear() { receipt.length = 0; },
+  hideProfile(profileId:string) { hiddenProfiles.add(profileId); },
+  renameBook(profileId:string,title:string) { const book=books.find(book=>book.user_id===profileId)!;book.title=title;book.presentation_revision!++;notifyMemoryBookShelfChanged(profileId); },
   holdNavigationReads(kinds: NavigationRead[]) {
     for (const kind of kinds) if (!navigationHolds.has(kind)) {
       let release!: () => void;
@@ -144,10 +154,17 @@ const client = {
     else if (name === 'update_community_settings' || name === 'update_channel_settings') { if(faults.socialWrite) error = {message:'Synthetic settings failure'}; else { const record: FixtureRow = name === 'update_community_settings' ? community : channel; for(const [key,value] of Object.entries(args)) if(!['p_community','p_channel'].includes(key)) record[key.slice(2)] = value; } }
     else if (name === 'get_community_conversation') data = 'community-conversation-fixture';
     else if (name === 'post_channel_poll' && faults.socialWrite) error = {message:'Synthetic poll failure'};
-    else if (name === 'get_profile_posts_page') data = posts.filter(post => post.author_id === args.p_profile_id);
+    else if (name === 'get_profile_posts_page') data = hiddenProfiles.has(String(args.p_profile_id))&&args.p_profile_id!==owner?[]:posts.filter(post => post.author_id === args.p_profile_id).slice(Number(args.p_offset??0),Number(args.p_offset??0)+Number(args.p_limit??20)).map(row=>({...row}));
     else if (name === 'get_feed_visibility') data = (Array.isArray(args.p_ids) ? args.p_ids : []).map((id: string) => ({ post_id: id, snapshot_eligible: true }));
     else if (name === 'get_trending_topics') { data = [{ topic: 'CreativeProcess', post_count: 140 }, { topic: 'CoastalStories', post_count: 82 }, { topic: 'SmallMoments', post_count: 58 }]; if (faults.discovery) error = { message: 'Synthetic discovery failure' }; }
-    else if (name === 'get_memory_albums') data = { is_owner: args.p_owner === owner, books: ['Postcards', 'City notes', 'Small wins', 'Weekend journal'].map((title, index) => ({ id: 'book-' + index, title, subtitle: 'PLACES · PEOPLE · STORIES', cover_color: ['#d4c2a0', '#27496c', '#c7b49c', '#586756'][index], cover_design: ['postcard', 'editorial', 'field_notes', 'botanical'][index], audience: index === 3 ? 'only_me' : 'profile', count: index + 3, cover_page: { media_type: 'image', media_url: '/coast.svg' } })) };
+    else if (name === 'get_memory_albums') data = {is_owner:args.p_owner===owner,books:books.filter(book=>book.user_id===args.p_owner&&(args.p_owner===owner||(!hiddenProfiles.has(String(args.p_owner))&&book.audience==='profile'))).map(book=>({...book,is_owner:book.user_id===owner}))};
+    else if (name === 'get_memory_book') { const book=books.find(book=>book.id===args.p_album);data=book?{...book,is_owner:book.user_id===owner,can_view:book.user_id===owner||book.audience==='profile'}:null; }
+    else if (name === 'get_memory_book_creative_capabilities') data={version:1,supported:true};
+    else if (name === 'save_memory_book_creative_presentation') {
+      const book=books.find(book=>book.id===args.p_album);
+      if(!book||book.user_id!==owner||book.presentation_revision!==args.p_expected_revision){data=null;error={message:'MEMORY_BOOK_CHANGED'};}
+      else {Object.assign(book,{title:args.p_title,subtitle:args.p_subtitle,cover_color:args.p_cover_color,cover_design:args.p_cover_design,cover_story_id:args.p_cover_story_id,cover_artwork:args.p_cover_artwork,film_settings:args.p_film_settings,audience:args.p_audience,presentation_revision:book.presentation_revision!+1});data={id:book.id,presentation_revision:book.presentation_revision,cover_artwork:book.cover_artwork,film_settings:book.film_settings};}
+    }
     else if (name === 'get_profile_insights') data = { views_7d: 12, views_30d: 36 };
     else if (name === 'get_profile_context') data = { mutual_names: [], mutual_count: 0, shared_communities: [] };
     else if (name === 'search_people_page') { data = Object.values(profiles).filter(person => (person.full_name + person.username).toLowerCase().includes(String(args.p_q).toLowerCase())); if(faults.peopleRead) error = {message:'Synthetic people read failure'}; }
@@ -156,6 +173,8 @@ const client = {
     let signal: AbortSignal | undefined;
     const result = Object.assign(Promise.resolve().then(async () => {
       if (name === 'get_feed') await waitNavigationRead('feed', signal);
+      if (name === 'get_profile_posts_page') await waitNavigationRead('profile-posts', signal);
+      if (name === 'get_memory_albums') await waitNavigationRead('books', signal);
       return signal?.aborted ? { data: null, error: { message: 'Synthetic request cancelled' } } : { data, error };
     }), {
       abortSignal(value: AbortSignal) { signal = value; request.cancellable = true; return result; },

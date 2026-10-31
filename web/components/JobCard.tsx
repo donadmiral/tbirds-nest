@@ -8,6 +8,7 @@ import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { createClient } from "@/lib/supabase/client";
 import { type JobRow, type PosterLite } from "@/lib/jobs";
 import { RelativeTime } from "@/components/RelativeTime";
+import { saveJobForSession } from "@/lib/jobsNavigation";
 import styles from "@/app/jobs/JobsWorkspace.module.css";
 
 type JobCardProps = {
@@ -42,10 +43,7 @@ function JobCardContent({ job, initiallySaved, viewerId, onSavedChange }: JobCar
     saving.current = true; setPending(true); setError("");
     const next = !saved; setOptimistic(next);
     try {
-      const { error: failure } = next
-        ? await supabase.from("job_saves").insert({ user_id: viewerId, job_id: job.id })
-        : await supabase.from("job_saves").delete().eq("user_id", viewerId).eq("job_id", job.id);
-      if (failure && failure.code !== "23505") throw failure;
+      await saveJobForSession(supabase, viewerId, job.id, next, () => token === generation.current);
       if (token === generation.current) { onSavedChange?.(next); if (onSavedChange) setOptimistic(null); }
     } catch {
       if (token === generation.current) { setOptimistic(saved); setError("We couldn’t save that change. Try again."); }

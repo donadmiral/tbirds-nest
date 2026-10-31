@@ -1,0 +1,300 @@
+{
+  "cases": [
+    {
+      "duration": 2,
+      "early": {
+        "hz": 879.7825632448254,
+        "rms": 0.14112127865889765,
+        "samples": 14349
+      },
+      "late": {
+        "hz": 876.6666666666666,
+        "rms": 0.14113121941615647,
+        "samples": 14400
+      },
+      "name": "video trim and speed keep looping excerpt and music pitch"
+    },
+    {
+      "afterBoundary": {
+        "hz": 0,
+        "rms": 0,
+        "samples": 0
+      },
+      "duration": 6,
+      "early": {
+        "hz": 876.6666666666666,
+        "rms": 0.14113944628582312,
+        "samples": 14400
+      },
+      "name": "voiceover stops while the remaining video stays present"
+    },
+    {
+      "audio": {
+        "hz": 436.6666666666667,
+        "rms": 0.07057355279306406,
+        "samples": 14400
+      },
+      "name": "original mix level and muted soundtrack are preserved"
+    },
+    {
+      "audio": {
+        "end": 2.2939374999999997,
+        "firstPresentation": 0,
+        "frameInterval": 0,
+        "pcmFrames": 110109,
+        "sampleBuffers": 14
+      },
+      "duration": 2.295,
+      "expectedDuration": 2.25,
+      "name": "2x original pitch and independent looping music stay in sync",
+      "speed": 2,
+      "video": {
+        "end": 2.2666666666666666,
+        "firstPresentation": 0,
+        "frameInterval": 0.033333333333333326,
+        "pcmFrames": 0,
+        "sampleBuffers": 68
+      },
+      "windows": [
+        {
+          "afterExcerpt1760Hz": 4.552527199115481e-05,
+          "at": 0.3,
+          "beforeExcerpt1540Hz": 9.378930412587423e-05,
+          "music660Hz": 0.19934500134522226,
+          "original440Hz": 0.09972103969054533,
+          "samples": 14400,
+          "shiftedMusicAmplitude": 0.0002656408232868188,
+          "shiftedMusicHz": 1320,
+          "shiftedOriginalAmplitude": 0.0005757536587579983,
+          "shiftedOriginalHz": 880
+        },
+        {
+          "afterExcerpt1760Hz": 4.552099780289832e-05,
+          "at": 1.3,
+          "beforeExcerpt1540Hz": 9.451092735442547e-05,
+          "music660Hz": 0.1993467463863889,
+          "original440Hz": 0.09971816513834851,
+          "samples": 14400,
+          "shiftedMusicAmplitude": 0.00026630763060183705,
+          "shiftedMusicHz": 1320,
+          "shiftedOriginalAmplitude": 0.0005748416720296979,
+          "shiftedOriginalHz": 880
+        },
+        {
+          "afterExcerpt1760Hz": 4.5627350130771e-05,
+          "at": 1.9,
+          "beforeExcerpt1540Hz": 9.413087336342346e-05,
+          "music660Hz": 0.19936295385327135,
+          "original440Hz": 0.09973095403559742,
+          "samples": 14400,
+          "shiftedMusicAmplitude": 0.00026621755633437664,
+          "shiftedMusicHz": 1320,
+          "shiftedOriginalAmplitude": 0.0005749982963748899,
+          "shiftedOriginalHz": 880
+        }
+      ]
+    },
+    {
+      "audio": {
+        "end": 3.4972708333333333,
+        "firstPresentation": 0,
+        "frameInterval": 0,
+        "pcmFrames": 167869,
+        "sampleBuffers": 22
+      },
+      "duration": 3.5,
+      "expectedDuration": 3.5,
+      "name": "0.5x original pitch and independent looping music stay in sync",
+      "speed": 0.5,
+      "video": {
+        "end": 3.5,
+        "firstPresentation": 0,
+        "frameInterval": 0.033333333333333326,
+        "pcmFrames": 0,
+        "sampleBuffers": 105
+      },
+      "windows": [
+        {
+          "afterExcerpt1760Hz": 0.00022397282083736763,
+          "at": 0.3,
+          "beforeExcerpt1540Hz": 0.00014723472779853524,
+          "music660Hz": 0.19907791090272683,
+          "original440Hz": 0.0991768356452801,
+          "samples": 14400,
+          "shiftedMusicAmplitude": 0.0008187074087692443,
+          "shiftedMusicHz": 330,
+          "shiftedOriginalAmplitude": 0.0006905015652286121,
+          "shiftedOriginalHz": 220
+        },
+        {
+          "afterExcerpt1760Hz": 0.00022403192375866613,
+          "at": 1.3,
+          "beforeExcerpt1540Hz": 0.0001470225491689648,
+          "music660Hz": 0.19910227277035958,
+          "original440Hz": 0.09916517070611912,
+          "samples": 14400,
+          "shiftedMusicAmplitude": 0.0008175407310951662,
+          "shiftedMusicHz": 330,
+          "shiftedOriginalAmplitude": 0.0006909022243504615,
+          "shiftedOriginalHz": 220
+        },
+        {
+          "afterExcerpt1760Hz": 0.00022119158447946274,
+          "at": 3.15,
+          "beforeExcerpt1540Hz": 0.0001486725881941337,
+          "music660Hz": 0.1990760658855083,
+          "original440Hz": 0.09912386160804895,
+          "samples": 14400,
+          "shiftedMusicAmplitude": 0.0008101551812096234,
+          "shiftedMusicHz": 330,
+          "shiftedOriginalAmplitude": 0.000681041270440117,
+          "shiftedOriginalHz": 220
+        }
+      ]
+    },
+    {
+      "audio": {
+        "hz": 876.6666666666666,
+        "rms": 0.14113121941615647,
+        "samples": 14400
+      },
+      "name": "photo or text artwork becomes a movie with actual audio"
+    },
+    {
+      "name": "invalid audio range is rejected and partial output removed"
+    },
+    {
+      "name": "cancellation stops the native writer and removes temporary movies"
+    }
+  ],
+  "diagnostics": [
+    {
+      "duration": 2.295,
+      "expectedDuration": 2.25,
+      "name": "2x original pitch and independent looping music stay in sync",
+      "speed": 2,
+      "windows": [
+        {
+          "afterExcerpt1760Hz": 4.552527199115481e-05,
+          "at": 0.3,
+          "beforeExcerpt1540Hz": 9.378930412587423e-05,
+          "music660Hz": 0.19934500134522226,
+          "original440Hz": 0.09972103969054533,
+          "samples": 14400,
+          "shiftedMusicAmplitude": 0.0002656408232868188,
+          "shiftedMusicHz": 1320,
+          "shiftedOriginalAmplitude": 0.0005757536587579983,
+          "shiftedOriginalHz": 880
+        },
+        {
+          "afterExcerpt1760Hz": 4.552099780289832e-05,
+          "at": 1.3,
+          "beforeExcerpt1540Hz": 9.451092735442547e-05,
+          "music660Hz": 0.1993467463863889,
+          "original440Hz": 0.09971816513834851,
+          "samples": 14400,
+          "shiftedMusicAmplitude": 0.00026630763060183705,
+          "shiftedMusicHz": 1320,
+          "shiftedOriginalAmplitude": 0.0005748416720296979,
+          "shiftedOriginalHz": 880
+        },
+        {
+          "afterExcerpt1760Hz": 4.5627350130771e-05,
+          "at": 1.9,
+          "beforeExcerpt1540Hz": 9.413087336342346e-05,
+          "music660Hz": 0.19936295385327135,
+          "original440Hz": 0.09973095403559742,
+          "samples": 14400,
+          "shiftedMusicAmplitude": 0.00026621755633437664,
+          "shiftedMusicHz": 1320,
+          "shiftedOriginalAmplitude": 0.0005749982963748899,
+          "shiftedOriginalHz": 880
+        }
+      ]
+    },
+    {
+      "duration": 3.5,
+      "expectedDuration": 3.5,
+      "name": "0.5x original pitch and independent looping music stay in sync",
+      "speed": 0.5,
+      "windows": [
+        {
+          "afterExcerpt1760Hz": 0.00022397282083736763,
+          "at": 0.3,
+          "beforeExcerpt1540Hz": 0.00014723472779853524,
+          "music660Hz": 0.19907791090272683,
+          "original440Hz": 0.0991768356452801,
+          "samples": 14400,
+          "shiftedMusicAmplitude": 0.0008187074087692443,
+          "shiftedMusicHz": 330,
+          "shiftedOriginalAmplitude": 0.0006905015652286121,
+          "shiftedOriginalHz": 220
+        },
+        {
+          "afterExcerpt1760Hz": 0.00022403192375866613,
+          "at": 1.3,
+          "beforeExcerpt1540Hz": 0.0001470225491689648,
+          "music660Hz": 0.19910227277035958,
+          "original440Hz": 0.09916517070611912,
+          "samples": 14400,
+          "shiftedMusicAmplitude": 0.0008175407310951662,
+          "shiftedMusicHz": 330,
+          "shiftedOriginalAmplitude": 0.0006909022243504615,
+          "shiftedOriginalHz": 220
+        },
+        {
+          "afterExcerpt1760Hz": 0.00022119158447946274,
+          "at": 3.15,
+          "beforeExcerpt1540Hz": 0.0001486725881941337,
+          "music660Hz": 0.1990760658855083,
+          "original440Hz": 0.09912386160804895,
+          "samples": 14400,
+          "shiftedMusicAmplitude": 0.0008101551812096234,
+          "shiftedMusicHz": 330,
+          "shiftedOriginalAmplitude": 0.000681041270440117,
+          "shiftedOriginalHz": 220
+        }
+      ]
+    }
+  ],
+  "error": null,
+  "networkUsed": false,
+  "passed": true,
+  "photosWritten": false,
+  "physicalDevice": false,
+  "commit": "1ca98984eec5d0912d510da9e565a84a8d5aacfd",
+  "workflow_run": "41163537257",
+  "architecture": "arm64",
+  "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-26-2",
+  "sources": {
+    "modules/boomerang/ios/StoryVideoComposition.swift": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+    "scripts/quality/StoryAudioExportHarness.swift": "f62d1d285283d6b45a2dc8ab9b55f2e1c47f18a8e44bc3b56631d3f90379d714",
+    "scripts/quality/test-ios-story-audio.sh": "c024ac519360f68b3e2a9b30694439ab7e94fb6c34519ff1bc4d0309c8d61215"
+  },
+  "movies": {
+    "pc-story-export-mixed-speed-2x.mp4": {
+      "sha256": "c8ad3a7c8a0c0aa9e83461cc1e796db5f06a22198714a2e4e4a596d5faff9682",
+      "bytes": 76009
+    },
+    "pc-story-export-original.mp4": {
+      "sha256": "5a95ebe39bb9757c9ffee338441c414f07e72fb37862312fa53c46009cf9da90",
+      "bytes": 99384
+    },
+    "pc-story-export-still.mp4": {
+      "sha256": "45dfe422898f26996f558e8f7c3cd20225a383f0b965c67a10714c55da039fde",
+      "bytes": 66832
+    },
+    "pc-story-export-loop.mp4": {
+      "sha256": "2e61982bc4c8a1adc7e5977f8cd235f50e40204a2543b301ed143ea8f4aaf825",
+      "bytes": 66850
+    },
+    "pc-story-export-voice.mp4": {
+      "sha256": "724813e2670c20b01ed117d47125f04ca40ebabcbc5bf0fe1c921780df56c04a",
+      "bytes": 53584
+    },
+    "pc-story-export-mixed-speed-0.5x.mp4": {
+      "sha256": "5ed828a4633cc0da1b87e8f715a36546cdf0abb1c36c2c29dbb9e11eac3ee9cf",
+      "bytes": 115833
+    }
+  }
+}

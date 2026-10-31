@@ -8,6 +8,7 @@ import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { ArrowLeft, BookOpen, ChevronLeft, ChevronRight, Grid3x3, Pencil, Plus, Settings2, Trash2, X, Check, ArrowUp, ArrowDown, Volume2, VolumeX, Play, Pause } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { notifyMemoryBookShelfChanged } from "@/lib/memoryBookEvents";
 import {
   getMemoryBook, updateMemoryPage, swapMemoryPages, deleteMemoryPage,
   getMyStories, addMemoryPage, getAccessList, setAccess, searchPeople,
@@ -147,6 +148,10 @@ function MemoryAlbumController({ ownerId: albumRef }: { ownerId: string }) {
       setAlbum(null); setLoadError("The album could not load. Please retry.");
     }
   }, [ownerId, uid]);
+  const reloadAfterChange = () => {
+    if (uid) notifyMemoryBookShelfChanged(uid);
+    void load();
+  };
 
   useEffect(() => {
     let live = true;
@@ -295,7 +300,7 @@ function MemoryAlbumController({ ownerId: albumRef }: { ownerId: string }) {
                         </div>}</MemoryStoryFrame>
                       )}
                     </div>
-                    <PageCaption key={page.id + "-cap"} page={page} isOwner={album.is_owner&&!movieActive} onSaved={load} />
+                    <PageCaption key={page.id + "-cap"} page={page} isOwner={album.is_owner&&!movieActive} onSaved={reloadAfterChange} />
                   </div>
                 ) : null}
           </MemoryPageTurn>
@@ -309,10 +314,10 @@ function MemoryAlbumController({ ownerId: albumRef }: { ownerId: string }) {
           </div>
           {album.is_owner && page ? (
             <div className="mt-3 flex items-center justify-center gap-2">
-              <button onClick={async () => { const other = pages[idx - 1]; if (other) { if(await swapMemoryPages(page, other)){ setIdx(idx - 1); load(); }else setMutationError("Page order could not save. Retry."); } }} disabled={turning||idx === 0} className="rounded-full bg-black/5 p-2 text-ink/60 disabled:opacity-30" title="Move earlier"><ArrowUp size={15} /></button>
-              <button onClick={async () => { const other = pages[idx + 1]; if (other) { if(await swapMemoryPages(page, other)){ setIdx(idx + 1); load(); }else setMutationError("Page order could not save. Retry."); } }} disabled={turning||idx >= pages.length - 1} className="rounded-full bg-black/5 p-2 text-ink/60 disabled:opacity-30" title="Move later"><ArrowDown size={15} /></button>
-              <button disabled={turning} onClick={async () => { if(await updateMemoryPage(page.id, { style: page.style === "polaroid" ? "full" : "polaroid" }))load();else setMutationError("Page style could not save. Retry."); }} className="rounded-full bg-black/5 px-3 py-1.5 text-[12px] font-semibold text-ink/60" title="Switch page style">{page.style === "polaroid" ? "Full page" : "Framed page"}</button>
-              <button disabled={turning} onClick={async () => { if (confirm("Remove this memory from the album?")) { if(await deleteMemoryPage(page.id)){setIdx(Math.max(0, idx - 1));load();}else setMutationError("Page could not be removed. Retry."); } }} className="rounded-full bg-black/5 p-2 text-ink/60 hover:text-danger" title="Remove page"><Trash2 size={15} /></button>
+              <button onClick={async () => { const other = pages[idx - 1]; if (other) { if(await swapMemoryPages(page, other)){ setIdx(idx - 1); reloadAfterChange(); }else setMutationError("Page order could not save. Retry."); } }} disabled={turning||idx === 0} className="rounded-full bg-black/5 p-2 text-ink/60 disabled:opacity-30" title="Move earlier"><ArrowUp size={15} /></button>
+              <button onClick={async () => { const other = pages[idx + 1]; if (other) { if(await swapMemoryPages(page, other)){ setIdx(idx + 1); reloadAfterChange(); }else setMutationError("Page order could not save. Retry."); } }} disabled={turning||idx >= pages.length - 1} className="rounded-full bg-black/5 p-2 text-ink/60 disabled:opacity-30" title="Move later"><ArrowDown size={15} /></button>
+              <button disabled={turning} onClick={async () => { if(await updateMemoryPage(page.id, { style: page.style === "polaroid" ? "full" : "polaroid" }))reloadAfterChange();else setMutationError("Page style could not save. Retry."); }} className="rounded-full bg-black/5 px-3 py-1.5 text-[12px] font-semibold text-ink/60" title="Switch page style">{page.style === "polaroid" ? "Full page" : "Framed page"}</button>
+              <button disabled={turning} onClick={async () => { if (confirm("Remove this memory from the album?")) { if(await deleteMemoryPage(page.id)){setIdx(Math.max(0, idx - 1));reloadAfterChange();}else setMutationError("Page could not be removed. Retry."); } }} className="rounded-full bg-black/5 p-2 text-ink/60 hover:text-danger" title="Remove page"><Trash2 size={15} /></button>
             </div>
           ) : null}
         </div>
@@ -320,7 +325,7 @@ function MemoryAlbumController({ ownerId: albumRef }: { ownerId: string }) {
 
       {page&&view==='book'&&memoryPageSoundtrack(page)?<PostSoundtrack key={page.id+':audio'} selection={memoryPageSoundtrack(page)} use="memory_album" active={!filmVisible&&!turning&&!manage&&!adding&&!musicOpen} controls className="mt-4 text-center"/>:null}
       {nextBook&&view==='book'&&idx>=pages.length-1&&<Link href={'/album/'+nextBook.id} className="mx-auto mt-5 block w-fit rounded-full bg-pearl px-5 py-2 text-sm font-semibold text-on-pearl">Next book: {nextBook.title}</Link>}
-      {adding && album.is_owner ? <AddMemories albumId={album.id} onClose={() => { setAdding(false); load(); }} existing={pages} /> : null}
+      {adding && album.is_owner ? <AddMemories albumId={album.id} onChanged={() => notifyMemoryBookShelfChanged(uid!)} onClose={() => { setAdding(false); load(); }} existing={pages} /> : null}
       {manage && album.is_owner ? <ManageAlbum key={`${album.id}:${uid}`} ownerId={uid!} album={album} onClose={() => { setManage(false); load(); }} /> : null}
     </div>
   );
@@ -351,7 +356,7 @@ function PageCaption({ page, isOwner, onSaved }: { page: MemoryPage; isOwner: bo
   );
 }
 
-function AddMemories({ albumId, onClose, existing }: { albumId: string; onClose: () => void; existing: MemoryPage[] }) {
+function AddMemories({ albumId, onClose, onChanged, existing }: { albumId: string; onClose: () => void; onChanged: () => void; existing: MemoryPage[] }) {
   const dialog=useMemoryDialog(true,onClose);
   const [rows, setRows] = useState<Awaited<ReturnType<typeof getMyStories>>>([]);
   const [picked, setPicked] = useState<Set<string>>(new Set());
@@ -393,7 +398,7 @@ function AddMemories({ albumId, onClose, existing }: { albumId: string; onClose:
           </div>
         )}
         <button disabled={picked.size === 0 || busy}
-          onClick={async () => { if(addLock.current)return;addLock.current=true;setBusy(true);setError(null);try{for(const id of picked){if(!await addMemoryPage(id,albumId))throw Error();}onClose();}catch{setError("Some pages could not save. Retry; existing pages will not duplicate.");}finally{addLock.current=false;setBusy(false);} }}
+          onClick={async () => { if(addLock.current)return;addLock.current=true;setBusy(true);setError(null);try{for(const id of picked){if(!await addMemoryPage(id,albumId))throw Error();onChanged();}onClose();}catch{setError("Some pages could not save. Retry; existing pages will not duplicate.");}finally{addLock.current=false;setBusy(false);} }}
           className="mt-4 w-full rounded-md bg-pearl py-2.5 text-sm font-semibold text-on-pearl disabled:opacity-40">
           {busy ? "Adding" : picked.size === 0 ? "Pick stories to add" : "Add " + picked.size + (picked.size === 1 ? " memory" : " memories")}
         </button>
@@ -487,7 +492,7 @@ function ManageAlbum({ album, ownerId, onClose }: { album: MemoryAlbum; ownerId:
         {results.length > 0 ? (
           <div className="mb-2 flex flex-col gap-1">
             {results.map((r) => (
-              <button key={r.id} onClick={async () => { if (await setAccess(r.id, mode, true)) { setList([...list.filter((x) => x.id !== r.id), r]); setQ(""); setResults([]); } else setError("Could not update who can see your books. Retry."); }}
+              <button key={r.id} onClick={async () => { if (await setAccess(r.id, mode, true)) { notifyMemoryBookShelfChanged(ownerId); setList([...list.filter((x) => x.id !== r.id), r]); setQ(""); setResults([]); } else setError("Could not update who can see your books. Retry."); }}
                 className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-black/5">
                 {r.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -506,12 +511,12 @@ function ManageAlbum({ album, ownerId, onClose }: { album: MemoryAlbum; ownerId:
               <img src={displayImageUrl(r.avatar_url, 100) ?? r.avatar_url} alt="" className="h-7 w-7 rounded-full object-cover" />
             ) : <span className="flex h-7 w-7 items-center justify-center rounded-full bg-pearl text-[11px] font-semibold text-on-pearl">{(r.full_name ?? "?").charAt(0)}</span>}
             <span className="text-[13px] text-ink">{r.full_name}</span>
-            <button onClick={async () => { if (await setAccess(r.id, mode, false)) setList(list.filter((x) => x.id !== r.id)); else setError("Could not update who can see your books. Retry."); }} className="ml-auto rounded-full p-1 text-muted hover:text-danger" aria-label="Remove"><X size={14} /></button>
+            <button onClick={async () => { if (await setAccess(r.id, mode, false)) { notifyMemoryBookShelfChanged(ownerId); setList(list.filter((x) => x.id !== r.id)); } else setError("Could not update who can see your books. Retry."); }} className="ml-auto rounded-full p-1 text-muted hover:text-danger" aria-label="Remove"><X size={14} /></button>
           </div>
         ))}
 
         {error&&<p role="alert" className="mt-3 text-sm text-danger">{error}</p>}
-        <button disabled={busy} onClick={async () => {if(saveLock.current)return;saveLock.current=true;setBusy(true);setError('');const expected=epoch.current;const current=()=>sessionValid.current&&expected===epoch.current;try{await saveMemoryCreativeBook(client,{ownerId,albumId:album.id,revision:revision??-1,audience,draft:{title:title.trim()||'Memories',subtitle,color,design,coverStoryId,artwork:coverArtwork,film:filmSettings},isCurrent:current});if(current())onClose();}catch(error){if(current())setError(memoryCreativeSaveError(error));}finally{saveLock.current=false;if(current())setBusy(false);} }}
+        <button disabled={busy} onClick={async () => {if(saveLock.current)return;saveLock.current=true;setBusy(true);setError('');const expected=epoch.current;const current=()=>sessionValid.current&&expected===epoch.current;try{await saveMemoryCreativeBook(client,{ownerId,albumId:album.id,revision:revision??-1,audience,draft:{title:title.trim()||'Memories',subtitle,color,design,coverStoryId,artwork:coverArtwork,film:filmSettings},isCurrent:current});if(current()){notifyMemoryBookShelfChanged(ownerId);onClose();}}catch(error){if(current())setError(memoryCreativeSaveError(error));}finally{saveLock.current=false;if(current())setBusy(false);} }}
           className="mt-4 min-h-12 w-full rounded-2xl bg-[#142642] py-3 text-sm font-semibold text-[#FFFFFF] disabled:opacity-50">{busy?'Saving…':'Save book'}</button>
       </div>
     </div>

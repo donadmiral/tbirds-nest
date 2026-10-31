@@ -20,6 +20,7 @@ import CommunityPage from '../../app/communities/[id]/page';
 import ChannelsPage from '../../app/channels/page';
 import ChannelPage from '../../app/channels/[id]/page';
 import { MessagesApp } from '../../components/MessagesApp';
+import { MemoryAlbumView } from '../../components/MemoryAlbum';
 import { PageHeader } from '../../components/ui';
 import chrome from '../../components/NavigationChrome.module.css';
 import { fixture, OWNER, posts, profiles } from './social-backend';
@@ -39,6 +40,7 @@ function Fixture() {
   else if (pathname === '/settings/profile') content = <EditProfilePage />;
   else if (pathname === '/settings') content = <SettingsPage />;
   else if (profile) content = <PublicProfile key={owner + pathname} username={profile.username} />;
+  else if (pathname.startsWith('/album/')) content = <MemoryAlbumView ownerId={pathname.slice('/album/'.length)} />;
   else if (pathname === '/messages') content = <MessagesApp />;
   else if (pathname === '/communities') content = <CommunitiesPage />;
   else if (pathname.startsWith('/communities/')) content = <CommunityPage key={owner + pathname} />;

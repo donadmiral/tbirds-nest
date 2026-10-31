@@ -1,0 +1,210 @@
+{
+  "archiveSha256": "c537d6d451c8eedac8ff96fcca80ba95fc7b21a8fcb7925530574fe31766127a",
+  "head": "341395c68cfc0bf74527bcf23e0dced3813e9225",
+  "caseCount": 8,
+  "sourceHashesVerified": true,
+  "allMovieHashesAndBytesVerified": true,
+  "ffmpeg": "ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers",
+  "movies": {
+    "pc-story-export-loop.mp4": {
+      "duration": 2.0,
+      "videoCodec": "h264",
+      "audioCodec": "aac",
+      "dimensions": [
+        360,
+        640
+      ],
+      "nominalFrameRate": 30.0,
+      "bytes": 66850,
+      "sha256": "2e61982bc4c8a1adc7e5977f8cd235f50e40204a2543b301ed143ea8f4aaf825"
+    },
+    "pc-story-export-mixed-speed-0.5x.mp4": {
+      "duration": 3.5,
+      "videoCodec": "h264",
+      "audioCodec": "aac",
+      "dimensions": [
+        360,
+        640
+      ],
+      "nominalFrameRate": 30.0,
+      "bytes": 115833,
+      "sha256": "5ed828a4633cc0da1b87e8f715a36546cdf0abb1c36c2c29dbb9e11eac3ee9cf"
+    },
+    "pc-story-export-mixed-speed-2x.mp4": {
+      "duration": 2.295011,
+      "videoCodec": "h264",
+      "audioCodec": "aac",
+      "dimensions": [
+        360,
+        640
+      ],
+      "nominalFrameRate": 30.0,
+      "bytes": 76009,
+      "sha256": "c8ad3a7c8a0c0aa9e83461cc1e796db5f06a22198714a2e4e4a596d5faff9682"
+    },
+    "pc-story-export-original.mp4": {
+      "duration": 3.000499,
+      "videoCodec": "h264",
+      "audioCodec": "aac",
+      "dimensions": [
+        360,
+        640
+      ],
+      "nominalFrameRate": 30.0,
+      "bytes": 99384,
+      "sha256": "5a95ebe39bb9757c9ffee338441c414f07e72fb37862312fa53c46009cf9da90"
+    },
+    "pc-story-export-still.mp4": {
+      "duration": 2.0,
+      "videoCodec": "h264",
+      "audioCodec": "aac",
+      "dimensions": [
+        360,
+        640
+      ],
+      "nominalFrameRate": 30.0,
+      "bytes": 66832,
+      "sha256": "45dfe422898f26996f558e8f7c3cd20225a383f0b965c67a10714c55da039fde"
+    },
+    "pc-story-export-voice.mp4": {
+      "duration": 6.0,
+      "videoCodec": "h264",
+      "audioCodec": "aac",
+      "dimensions": [
+        360,
+        640
+      ],
+      "nominalFrameRate": 30.0,
+      "bytes": 53584,
+      "sha256": "724813e2670c20b01ed117d47125f04ca40ebabcbc5bf0fe1c921780df56c04a"
+    }
+  },
+  "independentMixedMeasurements": [
+    {
+      "name": "mixed-speed-2x",
+      "speed": 2,
+      "expectedDuration": 2.25,
+      "decodedAudioFrames": 110272,
+      "windows": [
+        {
+          "at": 0.3,
+          "samples": 14400,
+          "original440Hz": 0.10002512154004041,
+          "music660Hz": 0.1999714791989694,
+          "shiftedOriginalAmplitude": 4.832943509555354e-06,
+          "shiftedMusicAmplitude": 1.2357401734844383e-06,
+          "beforeExcerpt1540Hz": 6.052959586993549e-07,
+          "afterExcerpt1760Hz": 9.840397500156103e-08
+        },
+        {
+          "at": 1.3,
+          "samples": 14400,
+          "original440Hz": 0.10002188509836696,
+          "music660Hz": 0.19997332516277916,
+          "shiftedOriginalAmplitude": 1.195863981016724e-06,
+          "shiftedMusicAmplitude": 5.180876802539708e-07,
+          "beforeExcerpt1540Hz": 1.0793415980843261e-07,
+          "afterExcerpt1760Hz": 6.168206294955996e-08
+        },
+        {
+          "at": 1.9,
+          "samples": 14400,
+          "original440Hz": 0.100034880781486,
+          "music660Hz": 0.19998936814577772,
+          "shiftedOriginalAmplitude": 4.4513563571999396e-07,
+          "shiftedMusicAmplitude": 6.692100058164514e-07,
+          "beforeExcerpt1540Hz": 2.7718989600103576e-07,
+          "afterExcerpt1760Hz": 2.116704235114065e-07
+        }
+      ],
+      "tracks": {
+        "v:0": {
+          "packets": 68,
+          "first": 0.0,
+          "end": 2.266666
+        },
+        "a:0": {
+          "packets": 101,
+          "first": -0.047891,
+          "end": 2.2950109999999997
+        }
+      },
+      "lateFrameCenterRgb": [
+        20,
+        88,
+        180
+      ]
+    },
+    {
+      "name": "mixed-speed-0.5x",
+      "speed": 0.5,
+      "expectedDuration": 3.5,
+      "decodedAudioFrames": 168229,
+      "windows": [
+        {
+          "at": 0.3,
+          "samples": 14400,
+          "original440Hz": 0.10001605428784575,
+          "music660Hz": 0.19997563534015955,
+          "shiftedOriginalAmplitude": 1.5887627213773433e-06,
+          "shiftedMusicAmplitude": 3.7292968108671865e-06,
+          "beforeExcerpt1540Hz": 3.359393901100876e-07,
+          "afterExcerpt1760Hz": 2.8685606754810564e-07
+        },
+        {
+          "at": 1.3,
+          "samples": 14400,
+          "original440Hz": 0.10000445874271656,
+          "music660Hz": 0.2000010502326796,
+          "shiftedOriginalAmplitude": 5.479545314543974e-07,
+          "shiftedMusicAmplitude": 1.4549694624934069e-06,
+          "beforeExcerpt1540Hz": 1.0658122277468178e-07,
+          "afterExcerpt1760Hz": 4.3842497161383374e-08
+        },
+        {
+          "at": 3.15,
+          "samples": 14400,
+          "original440Hz": 0.09996219508519846,
+          "music660Hz": 0.19997487192832453,
+          "shiftedOriginalAmplitude": 1.0682034833683161e-05,
+          "shiftedMusicAmplitude": 2.1290873769543408e-05,
+          "beforeExcerpt1540Hz": 3.825074120388021e-06,
+          "afterExcerpt1760Hz": 3.1994624117351557e-06
+        }
+      ],
+      "tracks": {
+        "v:0": {
+          "packets": 105,
+          "first": 0.0,
+          "end": 3.5
+        },
+        "a:0": {
+          "packets": 153,
+          "first": -0.047891,
+          "end": 3.498345
+        }
+      },
+      "lateFrameCenterRgb": [
+        20,
+        88,
+        180
+      ]
+    }
+  ],
+  "recordedAt": "2026-10-31T03:22:39.294249+00:00",
+  "testedMerge": "1ca98984eec5d0912d510da9e565a84a8d5aacfd",
+  "tree": "ca36583e931756f2d9ea98fdaf3c9869ee4daf8f",
+  "headAndMergeTreesEqual": true,
+  "workflowRun": 41163537257,
+  "job": 124426344849,
+  "artifactId": 13027969335,
+  "artifactBytes": 409275,
+  "nativeReceipt": "ios-story-341395c6-receipt.json",
+  "nativeReceiptSha256": "d66546a78176bfbcf5abcedcf4997782da76d705ee831e2d6015192c61514088",
+  "result": "All independent assertions passed.",
+  "limits": [
+    "Standalone arm64 iOS 26.2 Simulator encoder receipt; full React Native app capture and navigation are a separate pending gate.",
+    "No physical iPhone, Photos-library save, signed-release or hosted-provider acceptance.",
+    "Cancellation and partial-file cleanup events are asserted by the native harness, not independently inferred from the retained movies."
+  ]
+}

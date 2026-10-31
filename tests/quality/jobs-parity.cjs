@@ -8,10 +8,10 @@ const root = path.resolve(__dirname, '../..');
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const text = node => typeof node === 'string' || typeof node === 'number' ? String(node) : Array.isArray(node) ? node.map(text).join('') : text(node?.props?.children ?? '');
 const deferred = () => { let resolve; const promise = new Promise(yes => { resolve = yes; }); return { promise, resolve }; };
-function compile(file, mocks = {}) {
+function compile(file, mocks = {}, globals = {}) {
   const module = { exports: {} };
   const code = ts.transpileModule(fs.readFileSync(path.join(root, file), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText;
-  vm.runInNewContext(code, { module, exports: module.exports, Date, console, URL, require(name) {
+  vm.runInNewContext(code, { module, exports: module.exports, Date, console, URL, ...globals, require(name) {
     if (name in mocks) return mocks[name];
     if (name.endsWith('/shared/hiring')) return compile('shared/hiring.ts');
     if (name.endsWith('/shared/studioValidation')) return compile('shared/studioValidation.ts');
@@ -122,7 +122,11 @@ function pageHarness(file, read, extraMocks = {}) {
     useMemo(fn, deps) { const i = cursor++; if (!slots[i] || !same(slots[i].deps, deps)) slots[i] = { value: fn(), deps }; return slots[i].value; },
     useCallback(fn, deps) { return hooks.useMemo(() => fn, deps); },
     useEffect(fn, deps) { const i = cursor++; if (!slots[i] || !same(slots[i].deps, deps)) { slots[i]?.cleanup?.(); slots[i] = { deps }; effects.push(() => { slots[i].cleanup = fn(); }); } },
+    useSyncExternalStore(_subscribe, snapshot) { return snapshot(); },
   };
+  hooks.useLayoutEffect = hooks.useEffect;
+  const session = { owner: 'owner', scope: '1:owner', revision: 1, initialized: true };
+  const navigationStore = { getSnapshot: () => session, getServerSnapshot: () => session, subscribe: () => () => {}, cache: { read: () => null, save() {} } };
   const client = {
     auth: { getSession: async () => ({ data: { session: { user: { id: 'owner' } } }, error: null }), onAuthStateChange() { return { data: { subscription: { unsubscribe() {} } } }; } },
     from(table) {
@@ -140,6 +144,7 @@ function pageHarness(file, read, extraMocks = {}) {
     'next/link': { __esModule: true, default: 'Link' }, 'lucide-react': stub,
     './JobsWorkspace.module.css': { __esModule: true, default: stub },
     '@/lib/supabase/client': { createClient: () => client }, '@/lib/jobs': compile('web/lib/jobs.ts'), '@/components/JobCard': { JobCard: 'JobCard' },
+    '@/lib/navigationCache': { getNavigationStore: () => navigationStore }, '@/lib/jobsNavigation': { JOBS_NAVIGATION_KEY: 'jobs:discover', JOB_SAVE_CHANGED: 'pc-job-save-changed' }, '@/lib/withTimeout': { withTimeout: work => Promise.resolve(work) },
     '../../theme/useTheme': { themedSheet: fn => fn(theme), getTheme: () => theme, useTheme: () => ({ isDark: false }) },
     '../../components/SafeArea': { SafeAreaView: 'SafeAreaView', useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) },
     '../../components/skeletons': { JobSkeleton: 'JobSkeleton' }, '../../components/TierName': stub, '../../components/VerifiedBadge': stub,
@@ -152,8 +157,8 @@ function pageHarness(file, read, extraMocks = {}) {
     '@react-navigation/native': { useFocusEffect: fn => hooks.useEffect(fn, [fn]), useNavigation: () => ({ canGoBack: () => true, goBack() {}, navigate() {} }), useRoute: () => ({ params: { job: routeSnapshot } }) },
     '@expo/vector-icons': { Feather: 'Feather', Ionicons: 'Ionicons' }, 'expo-document-picker': stub,
     ...extraMocks,
-  });
-  const render = () => { cursor = 0; tree = mod.default(); effects.splice(0).forEach(fn => fn()); };
+  }, { AbortController, window: { location: { pathname: '/jobs' }, scrollY: 0, scrollTo() {}, addEventListener() {}, removeEventListener() {} }, document: { hidden: false, addEventListener() {}, removeEventListener() {} } });
+  const render = () => { cursor = 0; tree = mod.default(); if (typeof tree?.type === 'function') tree = tree.type(tree.props); effects.splice(0).forEach(fn => fn()); };
   const flush = async () => { for (let n = 0; n < 6; n++) { await new Promise(resolve => setImmediate(resolve)); render(); } };
   return { render, flush, queries, get text() { return text(tree); } };
 }

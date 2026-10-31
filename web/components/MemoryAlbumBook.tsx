@@ -1,23 +1,49 @@
 'use client';
-import {useEffect,useRef,useState} from 'react';
+import {useEffect,useRef,useState,useSyncExternalStore} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
 import {Plus,X,Search,Lock,Globe,Users} from 'lucide-react';
-import {getMemoryBooks,type MemoryBookInfo} from '@/lib/memoryAlbum';
-import {createClient} from '@/lib/supabase/client';
+import {getMemoryBooks,type MemoryBookInfo,type MemoryShelf} from '@/lib/memoryAlbum';
+import {getProfileNavigationStore,profileNavigationKey,safeProfileMemoryRows} from '@/lib/profileNavigation';
+import {memoryBookShelfRevision,onMemoryBookShelfChanged} from '@/lib/memoryBookEvents';
+import {withTimeout} from '@/lib/withTimeout';
 import {memoryCoverMedia,memoryAudienceLabel} from '../../shared/memoryBookDesign';
 import {ResponsiveMemoryBookCover} from './memory/MemoryBookCover';
 import {MemoryBookDesigner} from './memory/MemoryBookDesigner';
 import {useMemoryDialog} from './memory/useMemoryDialog';
-export function MemoryAlbumBook(props:{profileId:string}) { return <MemoryAlbumShelf key={props.profileId} {...props}/>; }
-function MemoryAlbumShelf({profileId}:{profileId:string}) {
- const router=useRouter(),[client]=useState(createClient);
- const [books,setBooks]=useState<MemoryBookInfo[]>([]),[isOwner,setIsOwner]=useState(false),[error,setError]=useState(''),[attempt,setAttempt]=useState(0),[creating,setCreating]=useState(false),[collection,setCollection]=useState(false),[query,setQuery]=useState(''),[filter,setFilter]=useState('All');const epoch=useRef(0),viewer=useRef<string|null|undefined>(undefined);
+export function MemoryAlbumBook(props:{profileId:string}) {
+ const [navigationStore]=useState(getProfileNavigationStore);
+ const session=useSyncExternalStore(navigationStore.subscribe,navigationStore.getSnapshot,navigationStore.getServerSnapshot);
+ return <MemoryAlbumShelf key={`${props.profileId}:${session.revision}`} {...props} navigationStore={navigationStore} session={session}/>;
+}
+type ShelfMemory={revision:number;shelf:MemoryShelf};
+function MemoryAlbumShelf({profileId,navigationStore,session}:{profileId:string;navigationStore:ReturnType<typeof getProfileNavigationStore>;session:ReturnType<ReturnType<typeof getProfileNavigationStore>['getSnapshot']>}) {
+ const router=useRouter();
+ const cacheScope=session.owner===profileId?session.scope:null,cacheKey=profileNavigationKey(profileId,'books');
+ const [initial]=useState(()=>{
+  const memory=navigationStore.cache.read<ShelfMemory>(cacheScope,cacheKey);
+  return memory?.revision===memoryBookShelfRevision(profileId)&&memory.shelf.is_owner?{...memory.shelf,books:safeProfileMemoryRows(memory.shelf.books)}:null;
+ });
+ const [books,setBooks]=useState<MemoryBookInfo[]>(initial?.books??[]),[isOwner,setIsOwner]=useState(initial?.is_owner??false),[error,setError]=useState(''),[attempt,setAttempt]=useState(0),[creating,setCreating]=useState(false),[collection,setCollection]=useState(false),[query,setQuery]=useState(''),[filter,setFilter]=useState('All');const epoch=useRef(0),request=useRef<AbortController|null>(null);
  const dialog=useMemoryDialog(collection,()=>setCollection(false));
- const [loading,setLoading]=useState(true),[loaded,setLoaded]=useState(false);
- useEffect(()=>{const g=++epoch.current;queueMicrotask(()=>{if(g===epoch.current){setLoading(true);setError('');}});void getMemoryBooks(profileId).then(s=>{if(g!==epoch.current)return;setIsOwner(s.is_owner);setBooks(s.books.filter(b=>s.is_owner||b.count>0));setLoaded(true);}).catch(()=>{if(g===epoch.current)setError('Memory books could not load. Retry.');}).finally(()=>{if(g===epoch.current)setLoading(false);});return()=>{epoch.current += 1;};},[profileId,attempt]);
- useEffect(()=>{const {data:{subscription}}=client.auth.onAuthStateChange((_event,session)=>{const next=session?.user.id??null;if(viewer.current===next)return;viewer.current=next;epoch.current += 1;setCreating(false);setCollection(false);setBooks([]);setIsOwner(false);setLoaded(false);setAttempt(x=>x+1);});return()=>subscription.unsubscribe();},[client]);
- useEffect(()=>{const refresh=()=>{if(!document.hidden)setAttempt(x=>x+1);};const timer=setInterval(refresh,240000);window.addEventListener('focus',refresh);document.addEventListener('visibilitychange',refresh);return()=>{clearInterval(timer);window.removeEventListener('focus',refresh);document.removeEventListener('visibilitychange',refresh);};},[]);
+ const [loading,setLoading]=useState(!initial),[loaded,setLoaded]=useState(!!initial);
+ useEffect(()=>{
+  if(!session.initialized)return;
+  const g=++epoch.current,revision=memoryBookShelfRevision(profileId),controller=new AbortController();
+  request.current=controller;
+  const current=()=>g===epoch.current&&navigationStore.getSnapshot().revision===session.revision;
+  queueMicrotask(()=>{if(current()){setLoading(true);setError('');}});
+  void withTimeout(getMemoryBooks(profileId,controller.signal)).then(s=>{
+   if(!current()||revision!==memoryBookShelfRevision(profileId))return;
+   const owner=s.is_owner&&session.owner===profileId;
+   const shelf={is_owner:owner,books:s.books.filter(b=>owner||b.count>0)};
+   setIsOwner(shelf.is_owner);setBooks(shelf.books);setLoaded(true);
+   if(shelf.is_owner)navigationStore.cache.save(cacheScope,cacheKey,{revision,shelf});
+  }).catch(()=>{controller.abort();if(current())setError('Memory books could not load. Retry.');}).finally(()=>{if(request.current===controller)request.current=null;if(current())setLoading(false);});
+  return()=>{epoch.current += 1;controller.abort();if(request.current===controller)request.current=null;};
+ },[profileId,attempt,navigationStore,session.initialized,session.revision,session.owner,cacheScope,cacheKey]);
+ useEffect(()=>onMemoryBookShelfChanged(profileId,()=>{epoch.current++;request.current?.abort();setAttempt(value=>value+1);}),[profileId]);
+ useEffect(()=>{const refresh=()=>{if(!document.hidden&&!request.current)setAttempt(x=>x+1);};const timer=setInterval(refresh,240000);window.addEventListener('focus',refresh);document.addEventListener('visibilitychange',refresh);return()=>{clearInterval(timer);window.removeEventListener('focus',refresh);document.removeEventListener('visibilitychange',refresh);};},[]);
  if(loaded&&!books.length&&!isOwner&&!error)return null;
  const filtered=books.filter(b=>(b.title+' '+(b.subtitle??'')).toLowerCase().includes(query.toLowerCase())&&(filter==='All'||(filter==='Public'?b.audience==='profile':b.audience!=='profile')));
  const card=(b:MemoryBookInfo,audience=false)=><Link key={b.id} href={'/album/'+b.id} onClick={()=>setCollection(false)} aria-label={`${b.title}, ${b.count} memories`} className="group block min-w-0"><span className="block transition-transform duration-200 group-hover:-translate-y-1 motion-reduce:transform-none"><ResponsiveMemoryBookCover artwork={b.cover_artwork} title={b.title} subtitle={b.subtitle} color={b.cover_color} design={b.cover_design} {...memoryCoverMedia(b.cover_page)}/></span><span className="mt-3 block truncate font-display text-lg text-ink">{b.title}</span><span className="mt-1 flex items-center gap-1.5 text-xs text-muted">{audience?<>{b.audience==='only_me'?<Lock size={12}/>:b.audience==='profile'?<Globe size={12}/>:<Users size={12}/>} {memoryAudienceLabel(b.audience)}</>:b.count+' '+(b.count===1?'memory':'memories')}</span></Link>;

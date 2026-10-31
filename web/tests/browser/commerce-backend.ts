@@ -40,14 +40,23 @@ const jobSaves: FixtureRow[] = [{ user_id: OWNER, job_id: jobs[2].id }], listing
 const requests = new Map<string, Order>();
 const receipt: FixtureRow[] = [];
 const faults = { jobsRead: false, jobSave: false, applicationsRead: false, applicationWrite: false, upload: false, marketRead: false, orderLostOnce: false, orderAction: false, offer: false, dm: false, alertsRead: false, alertsWrite: false, auth: false, delayWrite: 0 };
+let jobsReadHold: { promise: Promise<void>; release: () => void } | null = null;
+let jobWriteHold: { promise: Promise<void>; release: () => void } | null = null;
 export const fixture = { receipt, faults, jobs, listings, applications, orders, owner: () => owner,
   switchOwner(id: string | null) { owner = id; listeners.forEach(listener => listener(id ? 'SIGNED_IN' : 'SIGNED_OUT', session())); window.dispatchEvent(new Event('fixture-owner')); },
   clear() { receipt.length = 0; },
+  refreshToken() { listeners.forEach(listener => listener('TOKEN_REFRESHED', session())); },
+  holdJobsReads() { if (!jobsReadHold) { let release!:()=>void; const promise=new Promise<void>(resolve=>{release=resolve;});jobsReadHold={promise,release}; } },
+  releaseJobsReads() { jobsReadHold?.release();jobsReadHold=null; },
+  holdJobWrites() { if(!jobWriteHold){let release!:()=>void;const promise=new Promise<void>(resolve=>{release=resolve;});jobWriteHold={promise,release};} },
+  releaseJobWrites() {jobWriteHold?.release();jobWriteHold=null;},
+  prepareJobsNavigation() { for(let n=0;n<8;n++)jobs.push({...jobs[0],id:`20000000-0000-4000-8000-${String(100+n).padStart(12,'0')}`,title:'Freelance designer '+n,category:'freelance',remote_type:'remote'}); },
 };
 declare global { interface Window { __commerceFixture: typeof fixture } }
 if (typeof window !== 'undefined') window.__commerceFixture = fixture;
 class Query implements PromiseLike<QueryResult> {
   filters: [string, string, unknown][] = []; cols = '*'; options: QueryOptions = {}; one = false; operation = 'select'; values: FixtureRow = {}; maximum = Infinity; sorts: [string, boolean][] = [];
+  signal?: AbortSignal; headers=new Map<string,string>();
   constructor(public table: string) {}
   select(cols = '*', options: QueryOptions = {}) { this.cols = cols; this.options = options; return this; }
   update(value: FixtureRow) { this.operation = 'update'; this.values = value; return this; }
@@ -62,7 +71,8 @@ class Query implements PromiseLike<QueryResult> {
   lte(key: string, value: unknown) { this.filters.push(['lte', key, value]); return this; }
   is() { return this; } gt() { return this; } lt() { return this; } or() { return this; }
   order(key: string, { ascending = false }: { ascending?: boolean } = {}) { this.sorts.push([key, ascending]); return this; }
-  limit(count: number) { this.maximum = count; return this; } range() { return this; } abortSignal() { return this; }
+  limit(count: number) { this.maximum = count; return this; } range() { return this; } abortSignal(signal:AbortSignal) { this.signal=signal;return this; }
+  setHeader(name:string,value:string) { this.headers.set(name.toLowerCase(),value);return this; }
   single() { this.one = true; return this; } maybeSingle() { this.one = true; return this; }
   async execute(): Promise<QueryResult> {
     const initialOwner = owner;
@@ -71,12 +81,23 @@ class Query implements PromiseLike<QueryResult> {
     let rows = all.filter(row => this.filters.every(([op, key, value]) => op === 'eq' ? row[key] === value : op === 'neq' ? row[key] !== value : op === 'in' ? Array.isArray(value) && value.includes(row[key]) : op === 'ilike' ? String(row[key]).toLowerCase().includes(String(value).replace(/[%\\]/g, '').toLowerCase()) : op === 'gte' ? Number(row[key]) >= Number(value) : op === 'lte' ? Number(row[key]) <= Number(value) : true));
     const fail = (message: string) => ({ data: null, count: null, error: { message } });
     if (this.operation === 'select') {
+      if(this.signal&&['jobs','job_saves','profiles'].includes(this.table)) {
+        const read={table:this.table,operation:'navigationRead',owner:initialOwner,authorizationPinned:this.headers.get('authorization')===`Bearer ${session()?.access_token}`,cancellable:true,held:!!jobsReadHold,startedAt:performance.now(),finishedAt:0,aborted:false};receipt.push(read);
+        if(jobsReadHold){
+          rows=structuredClone(rows);const hold=jobsReadHold;let onAbort:(()=>void)|undefined;
+          try{await Promise.race([hold.promise,new Promise<void>(resolve=>{onAbort=()=>{read.aborted=true;resolve();};this.signal?.addEventListener('abort',onAbort,{once:true});if(this.signal?.aborted)onAbort();})]);}
+          finally{if(onAbort)this.signal.removeEventListener('abort',onAbort);}
+        }
+        read.finishedAt=performance.now();if(this.signal.aborted)return fail('Synthetic navigation cancelled');
+      }
       if (this.table === 'jobs' && faults.jobsRead) return fail('Synthetic jobs read failure');
       if (this.table === 'marketplace_listings' && faults.marketRead) return fail('Synthetic listing read failure');
       if (this.table === 'market_alerts' && faults.alertsRead) return fail('Synthetic alerts read failure');
     } else {
-      const write = { table: this.table, operation: this.operation, owner: initialOwner, filters: this.filters, values: this.values, completed: false }; receipt.push(write);
+      const write = { table: this.table, operation: this.operation, owner: initialOwner, filters: this.filters, values: this.values, completed: false, authorizationPinned:this.headers.get('authorization')===`Bearer ${session()?.access_token}`,cancellable:!!this.signal }; receipt.push(write);
+      if(this.table==='job_saves'&&jobWriteHold)await jobWriteHold.promise;
       if (faults.delayWrite) await new Promise(resolve => setTimeout(resolve, faults.delayWrite));
+      if(this.signal?.aborted){write.completed=true;return fail('Synthetic request cancelled');}
       if (initialOwner !== owner) { write.completed = true; return fail('Synthetic account changed'); }
       if (this.table === 'job_saves' && faults.jobSave) { write.completed = true; return fail('Synthetic save failure'); }
       if (this.table === 'job_applications' && faults.applicationWrite) { write.completed = true; return fail('Synthetic application failure'); }

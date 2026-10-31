@@ -38,9 +38,10 @@ export type MemoryBookInfo = { cover_artwork?: import('../../shared/memoryBookCr
 
 export type MemoryShelf = { is_owner: boolean; books: MemoryBookInfo[] };
 
-export async function getMemoryBooks(ownerId: string): Promise<MemoryShelf> {
+export async function getMemoryBooks(ownerId: string, signal?: AbortSignal): Promise<MemoryShelf> {
   const supabase = createClient();
-  const { data, error } = await supabase.rpc("get_memory_albums", { p_owner: ownerId });
+  const query = supabase.rpc("get_memory_albums", { p_owner: ownerId });
+  const { data, error } = await (signal ? query.abortSignal(signal) : query);
   if (error) throw error;
   if (!data) throw new Error("Memory books unavailable");
   const env = data as MemoryShelf | MemoryBookInfo[];

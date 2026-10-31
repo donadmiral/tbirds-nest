@@ -4,6 +4,7 @@ const {chromium}=require('../../node_modules/playwright');
 const {PNG}=require('../../node_modules/pngjs');
 const {compile}=require('./ui-compile.cjs');
 const {runWarmNavigation}=require('./social-navigation.cjs');
+const {runProfileNavigation}=require('./profile-navigation.cjs');
 const repo=path.resolve(__dirname,'../../..'),output='/tmp/platinum-social-browser';
 const artifacts=process.env.PLATINUM_SOCIAL_ARTIFACTS||path.join(repo,'docs/quality/web-design-20261030');
 const executablePath=process.env.PLATINUM_CHROMIUM||'/tmp/platinum-memory-browsers/chrome-linux64/chrome';
@@ -101,6 +102,7 @@ async function main(){
   await check('320px viewport keeps the brand, top actions and post controls inside the viewport',async()=>{await page.setViewportSize({width:320,height:740});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));const account=await page.getByRole('button',{name:'Account menu'}).boundingBox();assert.ok(account.x>=0&&account.x+account.width<=320);const brand=await page.getByRole('link',{name:'Platinum Circles home',exact:true}).boundingBox(),menu=await page.getByRole('button',{name:'All destinations',exact:true}).boundingBox();assert.ok(brand.x+brand.width<=menu.x);await page.screenshot({path:path.join(artifacts,'mobile-320.png'),fullPage:true});});
   await check('Failed sign-out remains visible and never reports a signed-out route',async()=>{await page.getByRole('button',{name:'Account menu'}).click();await page.evaluate(()=>window.__socialFixture.faults.signOut=true);await page.getByRole('button',{name:'Sign out',exact:true}).click();await page.getByRole('alert').filter({hasText:'could not sign you out'}).waitFor();assert.equal(new URL(page.url()).pathname,'/home');await page.evaluate(()=>window.__socialFixture.faults.signOut=false);await page.getByRole('button',{name:'Sign out',exact:true}).click();await page.waitForURL('**/login');});
   await check('Warm Home and Messages retain loaded content, scroll and drafts on every sampled frame during held refreshes',async()=>{await runWarmNavigation(browser,origin,artifacts);});
+  await check('Warm own-profile book returns preserve content and fence account changes, edits and revoked visitor visibility',async()=>{await runProfileNavigation(browser,origin,artifacts);});
   assert.deepEqual(errors,[],'No browser runtime errors');
   const receipt={checkedAt:new Date().toISOString(),runtime:await browser.version(),scope:'Actual public-web modules compiled with synthetic Auth/database, media and Next navigation adapters. No real-provider, hosted authentication or physical-device acceptance.',checks:checks.map(name=>({name,passed:true})),browserErrors:errors};
   await fs.writeFile(path.join(artifacts,'browser-receipt.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify({passed:checks.length,browserErrors:errors.length,artifacts}));

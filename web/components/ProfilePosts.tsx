@@ -35,7 +35,7 @@ export function ProfilePosts({ profileId, authorName, authorUsername, authorAvat
   authorAvatar: string | null;
   authorVerified: boolean;
 }) {
-  const page = useSocialPages<ProfilePostRow>("get_profile_posts_page", { p_profile_id: profileId }, { key: "post_id" });
+  const page = useSocialPages<ProfilePostRow>("get_profile_posts_page", { p_profile_id: profileId }, { key: "post_id", ownProfileId: profileId });
   const posts = page.items;
   const [view, setView] = useState<'posts' | 'media'>('posts');
   const shown = view === 'media' ? posts.filter(p => p.media?.length > 0 || !!p.media_url) : posts;

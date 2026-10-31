@@ -1,0 +1,25 @@
+{
+  "recordedAt": "2026-10-31T03:23:51.149700+00:00",
+  "testedCommit": "341395c68cfc0bf74527bcf23e0dced3813e9225",
+  "environment": "Existing signed-in QA staff session, live Vercel branch deployment and actual hosted QA backend.",
+  "url": "https://admin-web-git-codex-app-quality-20261029-intobank.vercel.app/content/b531613a-9f36-4f86-82e7-f00e54b55f34",
+  "checks": {
+    "dashboard": "Loaded current QA activity and daily analytics.",
+    "staffPostRoute": "Dashboard top-content link stayed in the operations app and opened Post review.",
+    "photo": "Actual staff-authorized photo loaded at1080\u00d71920, with complete=true.",
+    "fullscreen": "Opened the fullscreen image, then closed it. Focus returned to Open photo in full screen.",
+    "video": "Next attachment loaded the saved3-second video trim. Play changed to Pause video preview and displayed its saved Made to keep artwork.",
+    "applicationConsoleErrorsObserved": 0,
+    "browserExtensionErrorEntriesObserved": 12,
+    "savedDataChanges": 0
+  },
+  "screenshot": {
+    "path": "admin-post-review.jpg",
+    "sha256": "6f7ebac9e20372fe71eb1bfde05a8043d59fa8973538d47074c57d413f9576b4",
+    "crop": "Main content and header only; excludes staff account details in the sidebar."
+  },
+  "limits": [
+    "A targeted authenticated QA walkthrough of the current media flow, not a physical-device or full production operations acceptance.",
+    "Browser-extension metadata errors are recorded separately and were not app runtime errors."
+  ]
+}

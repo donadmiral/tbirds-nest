@@ -97,6 +97,47 @@ test('the isolated socket completes actual Phoenix join/heartbeat messages witho
   assert.equal(socket.readyState, FixtureWebSocket.CLOSED);
 });
 
+test('observed Home ancillary requests return the exact synthetic unread and empty-announcement/ranking contracts', async () => {
+  const fixture = createFixture();
+  const client = createClient(origin, 'native-ui-synthetic-no-provider-key', {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }, global: { fetch: fixture.fetch },
+  });
+  await client.auth.signInWithPassword({ email: 'qa.alex@example.invalid', password: 'FixtureOnly-2026!' });
+  const unread = await client.rpc('get_context_unread');
+  assert.equal(unread.error, null);
+  assert.deepEqual(unread.data, { market: 0, jobs: 0, groups: 0, personal: 1 });
+  const announcement = await client.from('announcements').select('id,title,body').eq('active', true)
+    .order('created_at', { ascending: false }).limit(1).maybeSingle();
+  assert.equal(announcement.error, null); assert.equal(announcement.data, null);
+  const ranked = await client.rpc('get_trending_stories', { p_limit: 8 });
+  assert.equal(ranked.error, null); assert.deepEqual(ranked.data, []);
+  const catchup = await client.rpc('get_catchup_feed');
+  assert.equal(catchup.data.length, 1, 'a story exists without claiming a trending-rank snapshot');
+  await client.auth.signOut();
+  await client.auth.signInWithPassword({ email: 'qa.jordan@example.invalid', password: 'FixtureOnly-2026!' });
+  assert.deepEqual((await client.rpc('get_context_unread')).data, { market: 0, jobs: 0, groups: 0, personal: 0 });
+  assert.equal(fixture.receipt.unhandled.length, 0); assert.equal(fixture.receipt.networkForwarded, false);
+  await client.auth.signOut();
+});
+
+test('the Jobs screen application helper reads the versioned empty page through the actual Supabase adapter', async () => {
+  const fs = require('node:fs'), vm = require('node:vm'), ts = require('typescript');
+  const module = { exports: {} };
+  vm.runInNewContext(ts.transpileModule(fs.readFileSync(require.resolve('../../shared/hiring.ts'), 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText, { module, exports: module.exports, Error, Date });
+  const fixture = createFixture();
+  const client = createClient(origin, 'native-ui-synthetic-no-provider-key', {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }, global: { fetch: fixture.fetch },
+  });
+  await client.auth.signInWithPassword({ email: 'qa.alex@example.invalid', password: 'FixtureOnly-2026!' });
+  const page = await module.exports.loadMyApplicationPage(client);
+  assert.deepEqual(page, { applications: [], has_more: false, cursor: null });
+  assert.ok(fixture.receipt.requests.some(request => request.method === 'POST' && request.path === '/rest/v1/rpc/my_application_page'));
+  assert.equal(fixture.receipt.unhandled.length, 0); assert.equal(fixture.receipt.networkForwarded, false);
+  await client.auth.signOut();
+});
+
 test('native book fixtures persist a revisioned owner edit through actual Supabase adapters and a fresh shelf/read', async () => {
   const fixture = createFixture();
   const client = createClient(origin, 'native-ui-synthetic-no-provider-key', {

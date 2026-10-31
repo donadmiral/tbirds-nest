@@ -1,0 +1,21 @@
+import { createClient } from 'npm:@supabase/supabase-js@2.112.3';
+import { boundedFetch } from '../../../functions/_shared/boundedFetch.ts';
+import { createNotificationEventDispatcher } from './handler.ts';
+
+const projectUrl = Deno.env.get('SUPABASE_URL') ?? '';
+const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+const service = createClient(projectUrl, serviceKey, {
+  auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: boundedFetch(fetch) },
+});
+Deno.serve(createNotificationEventDispatcher({
+  projectUrl, serviceKey, fetch: boundedFetch(fetch),
+  claim: (jobId, token, signal) => service.rpc('claim_notification_event_dispatch', {
+    p_job_id: jobId, p_token: token,
+  }).abortSignal(signal),
+  allowed: (jobId, claimId, signal) => service.rpc('notification_event_dispatch_allowed', {
+    p_job_id: jobId, p_claim_id: claimId,
+  }).abortSignal(signal),
+  finish: (jobId, claimId, outcome, signal) => service.rpc('finish_notification_event_dispatch', {
+    p_job_id: jobId, p_claim_id: claimId, p_outcome: outcome,
+  }).abortSignal(signal),
+}));

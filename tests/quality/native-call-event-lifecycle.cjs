@@ -121,3 +121,119 @@ test('VoIP token replay and call replay share one listener without replacing eac
   h.service.registerVoipToken(token => tokens.push('new-' + token));
   assert.deepEqual(tokens, ['push-token', 'new-push-token']); assert.equal(h.voip.size, 3);
 });
+
+// Exercise the installed CallKeep facade as well as our service. Mocking setup()
+// alone missed its Android permission side effect in the full-app emulator.
+function installedCallkeepFixture(options = {}) {
+  const calls = [], events = new Map(), actions = [];
+  let registered = 0;
+  const native = {
+    setup: value => { calls.push(['setup', value]); },
+    checkPhoneAccountPermission: async () => { calls.push(['permissionPrompt']); return false; },
+    openPhoneAccounts: () => { calls.push(['phoneSettings']); },
+    registerPhoneAccount(value) {
+      calls.push(['register', value]);
+      if (options.failRegistration && ++registered === 1) throw Error('registration unavailable');
+    },
+    registerEvents: () => {
+      calls.push(['events']);
+      // Native Android startObserving emits and clears this queue synchronously.
+      if (options.drainedEvents) events.get('RNCallKeepDidLoadWithEvents')?.(options.drainedEvents);
+    },
+    setAvailable: value => { calls.push(['available', value]); },
+    hasPhoneAccount: async () => {
+      calls.push(['accountCheck']);
+      if (options.accountError) throw Error('account unavailable');
+      return options.enabled === true;
+    },
+    getInitialEvents: async () => options.events ?? [],
+    clearInitialEvents: () => { calls.push(['clearEvents']); },
+  };
+  const reactNative = {
+    Platform: { OS: options.platform ?? 'android', Version: 36 }, NativeModules: { RNCallKeep: native },
+    Alert: { alert: () => { calls.push(['alert']); } },
+    NativeEventEmitter: class {
+      addListener(name, callback) {
+        events.set(name, callback);
+        return { remove() { if (events.get(name) === callback) events.delete(name); } };
+      }
+      emit(name, value) { events.get(name)?.(value); }
+    },
+  };
+  const libraryActions = load('node_modules/react-native-callkeep/actions.js', { 'react-native': reactNative });
+  const library = load('node_modules/react-native-callkeep/index.js', { 'react-native': reactNative, './actions': libraryActions });
+  const { nativeCallService: service } = load('src/services/nativeCallService.ts', {
+    'expo-constants': { nativeBuildVersion: '10', appOwnership: 'standalone' },
+    'react-native': reactNative,
+    '../../shared/notificationTap': load('shared/notificationTap.ts', {}),
+    'react-native-callkeep': library,
+    'react-native-voip-push-notification': { default: {} },
+  });
+  return { service, calls, events, actions,
+    attach: () => service.listen({ onAnswer: id => actions.push(['answer', id]), onEnd: id => actions.push(['end', id]) }),
+  };
+}
+
+test('Android sign-in initialization registers once without the installed library permission or settings prompts', async () => {
+  const h = installedCallkeepFixture(); h.attach();
+  assert.deepEqual(await Promise.all([h.service.setup(), h.service.setup()]), [true, true]); await flush();
+  assert.equal(h.calls.filter(row => row[0] === 'register').length, 1);
+  assert.equal(h.calls.filter(row => row[0] === 'events').length, 1);
+  assert.equal(h.calls.filter(row => row[0] === 'available' && row[1] === true).length, 1);
+  assert.equal(h.calls.filter(row => ['setup', 'permissionPrompt', 'phoneSettings', 'alert'].includes(row[0])).length, 0);
+  assert.equal(h.calls.find(row => row[0] === 'register')[1].foregroundService.channelId, 'app.platinumcircles.calls');
+});
+
+test('Android passive initialization still replays and de-duplicates cold answer events', async () => {
+  const h = installedCallkeepFixture({ events: [{ name: 'RNCallKeepPerformAnswerCallAction', data: { callUUID: A } }] });
+  await h.service.setup(); await flush(); h.attach();
+  h.events.get('RNCallKeepPerformAnswerCallAction')({ callUUID: A });
+  assert.deepEqual(h.actions, [['answer', A]]);
+});
+
+test('Android events drained during native registration replay before the initial cache becomes empty', async () => {
+  const h = installedCallkeepFixture({ drainedEvents: [
+    { name: 'RNCallKeepPerformAnswerCallAction', data: { callUUID: A } },
+    { name: 'RNCallKeepPerformEndCallAction', data: { callUUID: A } },
+    { name: 'RNCallKeepPerformAnswerCallAction', data: { callUUID: B } },
+  ] });
+  await h.service.setup(); await flush();
+  assert.deepEqual(h.actions, []);
+  h.attach();
+  h.events.get('RNCallKeepPerformAnswerCallAction')({ callUUID: B });
+  assert.deepEqual(h.actions, [['end', A], ['answer', B]]);
+});
+
+test('Android background preparation falls back quietly when native calling is unavailable', async () => {
+  for (const options of [{ enabled: false }, { accountError: true }]) {
+    const h = installedCallkeepFixture(options);
+    assert.equal(await h.service.prepareForIncomingCall(), false);
+    assert.equal(h.calls.filter(row => row[0] === 'accountCheck').length, 1);
+    assert.equal(h.calls.filter(row => ['permissionPrompt', 'phoneSettings', 'alert'].includes(row[0])).length, 0);
+  }
+});
+
+test('Android previously enabled native accounts remain ready without requesting access again', async () => {
+  const h = installedCallkeepFixture({ enabled: true });
+  assert.equal(await h.service.prepareForIncomingCall(), true);
+  assert.equal(h.calls.filter(row => row[0] === 'accountCheck').length, 1);
+  assert.equal(h.calls.filter(row => ['permissionPrompt', 'phoneSettings', 'alert'].includes(row[0])).length, 0);
+});
+
+test('failed Android registration removes partial listeners and can recover without prompting', async () => {
+  const h = installedCallkeepFixture({ failRegistration: true });
+  assert.equal(await h.service.setup(), false); await flush();
+  assert.equal(h.events.size, 0);
+  assert.equal(await h.service.setup(), true); h.attach();
+  h.events.get('RNCallKeepPerformEndCallAction')({ callUUID: A });
+  assert.deepEqual(h.actions, [['end', A]]);
+});
+
+test('iOS keeps the installed CallKit setup and all four event listeners', async () => {
+  const h = installedCallkeepFixture({ platform: 'ios' });
+  assert.equal(await h.service.setup(), true); await flush();
+  assert.equal(h.calls.filter(row => row[0] === 'setup').length, 1);
+  assert.equal(h.calls.find(row => row[0] === 'setup')[1].appName, 'Platinum Circles');
+  assert.equal(h.calls.filter(row => ['register', 'events', 'permissionPrompt'].includes(row[0])).length, 0);
+  assert.equal(h.events.size, 4);
+});

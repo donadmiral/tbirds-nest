@@ -1,0 +1,12 @@
+{
+  "recordedAt": "2026-10-31T03:55:13.252301+00:00",
+  "originalWorkflowRun": 41163537294,
+  "originalIOSJob": 124426359293,
+  "originalHead": "341395c68cfc0bf74527bcf23e0dced3813e9225",
+  "change": "One stable workflow concurrency-group version update from native-app-ui to native-app-ui-v2, keeping cancel-in-progress true.",
+  "purpose": "Start the already-required repaired app/diagnostic run while preserving the original in-flight iOS runtime baseline. Subsequent v2 source edits still replace obsolete v2 runs.",
+  "isolation": "Each job uses its own disposable hosted runner, simulator/emulator, source manifest and run-scoped artifact. No paid runner tier, test count, permission pregrant or acceptance criterion is changed.",
+  "upstreamReference": "https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency",
+  "verification": "Native acceptance independently reviewed group semantics and run isolation. macOS runner capacity may queue the new job without cancelling the original.",
+  "workflowSha256": "b9c09841733b2800f273d7fa1756425adb8e7da21dfd2c41e4250c2b36ca80d4"
+}

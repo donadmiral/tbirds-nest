@@ -31,5 +31,14 @@
   "conclusion": "Existing project and Apple team identifiers are available. This environment has no observed local Expo/EAS authentication state; the historical build receipt does not establish current signed-build access. Browser authentication availability has not been inspected. Unsigned CI simulator/emulator acceptance can proceed independently.",
   "secretsReadOrRetained": false,
   "paidServicesCreated": false,
-  "signedReleaseCreated": false
+  "signedReleaseCreated": false,
+  "continuationAccessCheck": {
+    "recordedAt": "2026-10-31T03:34:43.302076+00:00",
+    "requestedPage": "https://appstoreconnect.apple.com/apps/6764038613/testflight/ios",
+    "observedToolResult": "aborted by user after4.8s",
+    "pageStateReturned": false,
+    "currentBrowserAuthenticationVerified": false,
+    "signedReleaseOrSubmissionMade": false,
+    "decision": "Continue the already-running simulator/emulator work. Do not infer missing credentials or current Apple build status from an incomplete browser check."
+  }
 }

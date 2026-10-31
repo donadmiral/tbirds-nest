@@ -49,7 +49,8 @@ test('page-turn touch regions leave bottom video and caption controls unobstruct
 
 function webShelf(){
  const src=read('web/components/MemoryAlbumBook.tsx'),start=src.indexOf(' useEffect(()=>'),end=src.indexOf('\n useEffect',start+1),request=deferred(),writes=[],owners=[],loading=[];
- const scope={queueMicrotask,epoch:{current:0},loadedProfile:{current:'owner'},profileId:'owner',attempt:1,setBooks:v=>writes.push(v),setIsOwner:v=>owners.push(v),setLoading:v=>loading.push(v),setLoaded(){},setError(){},getMemoryBooks:()=>request.promise,useEffect:f=>f()};
+ const session={owner:'owner',scope:'1:owner',initialized:true,revision:1};
+ const scope={queueMicrotask,AbortController,request:{current:null},session,navigationStore:{getSnapshot:()=>session,cache:{save(){}}},cacheScope:session.scope,cacheKey:'owner-books',memoryBookShelfRevision:()=>0,withTimeout:x=>x,epoch:{current:0},loadedProfile:{current:'owner'},profileId:'owner',attempt:1,setBooks:v=>writes.push(v),setIsOwner:v=>owners.push(v),setLoading:v=>loading.push(v),setLoaded(){},setError(){},getMemoryBooks:()=>request.promise,useEffect:f=>f()};
  vm.runInNewContext(compile(src.slice(start,end)),scope);return{request,writes,owners,loading};
 }
 test('web shelf retains existing books during a same-profile refresh',async()=>{

@@ -139,11 +139,13 @@ export const nativeCallService = {
         // Subscribe before setup. Native actions can arrive while setup is still pending.
         subscriptions.push(RNCallKeep.addEventListener('answerCall', ({ callUUID }: any) => dispatchNativeAction('answer', callUUID)));
         subscriptions.push(RNCallKeep.addEventListener('endCall', ({ callUUID }: any) => dispatchNativeAction('end', callUUID)));
+        // Android registerEvents drains its cold queue through this event too.
+        // Listening only on iOS would lose that queue before getInitialEvents.
+        subscriptions.push(RNCallKeep.addEventListener('didLoadWithEvents', replayNativeActions));
         if (Platform.OS === 'ios') {
-          subscriptions.push(RNCallKeep.addEventListener('didLoadWithEvents', replayNativeActions));
           subscriptions.push(RNCallKeep.addEventListener('didActivateAudioSession', () => activeEvents?.events.onAudioSessionActivated?.()));
         }
-        await RNCallKeep.setup({
+        const options = {
           ios: { appName: 'Platinum Circles', supportsVideo: true, maximumCallGroups: '1', maximumCallsPerCallGroup: '1' },
           android: {
             alertTitle: 'Calls permission',
@@ -151,7 +153,18 @@ export const nativeCallService = {
             cancelButton: 'Cancel', okButton: 'Allow', additionalPermissions: [],
             foregroundService: { channelId: 'app.platinumcircles.calls', channelName: 'Ongoing calls', notificationTitle: 'Call in progress' },
           },
-        });
+        };
+        if (Platform.OS === 'android') {
+          // The Android setup helper also requests microphone and phone permissions.
+          // Session hydration and background delivery must never open those prompts.
+          // Register the passive integration here. CallContext requests media access
+          // only after the person starts or answers a call.
+          RNCallKeep.registerPhoneAccount(options);
+          RNCallKeep.registerAndroidEvents();
+          RNCallKeep.setAvailable(true);
+        } else {
+          await RNCallKeep.setup(options);
+        }
         setupReady = true;
         // The event may precede listener registration when the OS launched a killed app.
         if (typeof RNCallKeep.getInitialEvents === 'function') {
@@ -217,6 +230,10 @@ export const nativeCallService = {
     if (!loadNatives() || Platform.OS !== 'android') return false;
     try {
       if (!await nativeCallService.setup()) return false;
+      // Registration alone does not mean the person enabled the phone account or
+      // granted its permissions. CallKeep silently drops calls in that state, so
+      // let the caller use the notification fallback without opening OS prompts.
+      if (!await RNCallKeep.hasPhoneAccount()) return false;
       RNCallKeep.setAvailable(true);
       return true;
     } catch (e) {

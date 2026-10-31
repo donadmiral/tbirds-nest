@@ -20,7 +20,7 @@ function files(directory) {
 const source = ['App.tsx', 'index.js', 'app.config.js', 'package-lock.json', ...files('src'), ...files('shared'),
   ...files('modules/boomerang/ios'), ...files('modules/boomerang/android/src/main'), ...files('tests/native'),
   'modules/boomerang/memoryComposition.ts',
-  'scripts/quality/prepare-native-ui.cjs', 'scripts/quality/verify-native-ui.cjs',
+  'scripts/quality/prepare-native-ui.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/verify-native-ui.cjs',
   'scripts/quality/install-native-ui-tools.sh', 'scripts/quality/test-ios-app-ui.sh',
   'scripts/quality/test-android-app-ui.sh', 'scripts/quality/verify-native-ui-memory.py', '.github/workflows/native-app-ui.yml'];
 const hashes = Object.fromEntries(source.map(file => [file, crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')]));
@@ -34,6 +34,10 @@ function overlay(file, value, reason) {
   fs.writeFileSync(path.join('native-ui-logs', retained), value);
   overlays.push({ file, before, after, reason, retained });
 }
+const authSource = 'src/services/supabase.ts';
+const { nativeAuthOverlay } = require('./native-ui-auth-overlay.cjs');
+overlay(authSource, nativeAuthOverlay(fs.readFileSync(authSource, 'utf8')),
+  'Disposable QA-only lock and auth-storage timing observation. Original SDK processLock, timeouts, arguments, results and errors are preserved; no keys or session contents are recorded.');
 const bridges = [
   ['modules/boomerang/ios/BoomerangModule.swift', /Constant\("memoryMovieVersion"\) \{ ([01]) \}/g],
   ['modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt', /"memoryMovieVersion" to ([01])/g],
