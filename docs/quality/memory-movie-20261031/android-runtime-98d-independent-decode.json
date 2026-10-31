@@ -1,0 +1,655 @@
+{
+  "recordedAt": "2026-10-31T02:00:17.848913+00:00",
+  "reviewer": "backend_installation",
+  "scope": "Independent FFprobe/FFmpeg decode of all seven retained final Android memory movies, with numerical pixel, PCM, frequency and PTS checks. The existing instrumentation is not rerun.",
+  "candidateCommit": "98d065f3c6c0086565dcc0e50a45553188302a49",
+  "testedMergeCommit": "148bac62c1eb938070b9bbd81808de118c702fa5",
+  "workflowRun": 41157322277,
+  "job": 124406870295,
+  "artifactZipSha256": "16b302d39c0b5e9eb88dfcdc702b6901e7a1eb945956d3727fa28db8fbfeb5a0",
+  "artifactReceiptSha256": "c0b1d5a6ba8ba08f018a4f54755cc04080717f83840d3098a02dad967021fa24",
+  "deviceReceiptSha256": "804d08f444674be51ee11205b247d76ee63183298fe5386eb035a87b70c7e8e7",
+  "productionSources": {
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab",
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5"
+  },
+  "sourceMatchesCurrentCheckout": {
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": true,
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": true,
+    "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt": true
+  },
+  "runtime": {
+    "emulatorBuild": "Android/sdk_phone64_x86_64/emu64x:15/AE3A.240806.019/12368160:userdebug/test-keys",
+    "sdk": 35,
+    "abi": "x86_64",
+    "media3Version": "1.8.1"
+  },
+  "tools": {
+    "ffmpeg": "ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers",
+    "ffprobe": "ffprobe version 6.1.1-3ubuntu5 Copyright (c) 2007-2023 the FFmpeg developers"
+  },
+  "method": "Decode full audio to floating-point PCM at its native sample rate and explicitly average stereo channels (no default equal-power downmix gain); measure RMS and exact-frequency amplitude using a Hann-windowed complex projection. Decode actual display-oriented RGB pixels. Inspect every video frame PTS; require monotonic timestamps, no faster than bounded30fps, no gap over120ms, and both PCM/video tails within120ms of the requested timeline. Still movies must have expected30fps frame count within2; slowed-video scenes retain their legitimate15fps cadence.",
+  "movies": [
+    {
+      "file": "memory-continuous-music.mp4",
+      "sha256": "1b648887686cdff76dbd29447219f009d32b990e7210b23acea0576ca7a98e94",
+      "expectedSeconds": 5.0,
+      "containerSeconds": 5.08517,
+      "videoSeconds": 5.0,
+      "audioSeconds": 5.08517,
+      "decodedAudioSeconds": 5.085170068027211,
+      "encodedSize": [
+        1280,
+        720
+      ],
+      "rotation": -90,
+      "decodedDisplaySize": [
+        720,
+        1280
+      ],
+      "frames": 149,
+      "firstPts": 0.0,
+      "lastPts": 4.966667,
+      "nominalTailSeconds": 5.000000333333333,
+      "minStepUs": 33333,
+      "maxStepUs": 50000,
+      "audioRate": 44100,
+      "peakPcm": 0.16217879951000214,
+      "spectralWindows": [
+        {
+          "start": 0.2,
+          "end": 0.6,
+          "rms": 0.11285612954872776,
+          "amplitudes": {
+            "220": 1.348633826711739e-07,
+            "440": 0.15949802676605637,
+            "880": 3.030872426881634e-07,
+            "1760": 4.806068781570121e-07
+          }
+        },
+        {
+          "start": 1.05,
+          "end": 1.2,
+          "rms": 0.11272486961344994,
+          "amplitudes": {
+            "220": 6.480202345741757e-07,
+            "440": 3.4202194685061346e-06,
+            "880": 0.15959675299277867,
+            "1760": 2.0506647804215795e-07
+          }
+        },
+        {
+          "start": 1.33,
+          "end": 1.45,
+          "rms": 0.04894154243296879,
+          "amplitudes": {
+            "220": 0.0001337087945757484,
+            "440": 0.0001673638938604718,
+            "880": 0.041575971461126716,
+            "1760": 4.223264513312887e-05
+          }
+        },
+        {
+          "start": 1.7,
+          "end": 2.1,
+          "rms": 0.02808661626723145,
+          "amplitudes": {
+            "220": 9.467515404227009e-08,
+            "440": 0.03975021286392985,
+            "880": 1.1326408272509817e-06,
+            "1760": 1.0154705222776411e-07
+          }
+        },
+        {
+          "start": 3.7,
+          "end": 3.9,
+          "rms": 0.08472889654260701,
+          "amplitudes": {
+            "220": 4.6475213266367057e-07,
+            "440": 0.1199593445257815,
+            "880": 8.307115378722398e-07,
+            "1760": 3.552401104192299e-07
+          }
+        },
+        {
+          "start": 4.15,
+          "end": 4.4,
+          "rms": 0.08436885285301797,
+          "amplitudes": {
+            "220": 2.756207329352186e-07,
+            "440": 7.613164151597288e-07,
+            "880": 0.11923548715889483,
+            "1760": 4.0479206313766856e-07
+          }
+        },
+        {
+          "start": 4.7,
+          "end": 4.9,
+          "rms": 0.08444886912840922,
+          "amplitudes": {
+            "220": 5.355394178428828e-07,
+            "440": 0.1197665123654492,
+            "880": 6.66783156653679e-07,
+            "1760": 3.645322318473283e-07
+          }
+        },
+        {
+          "start": 0.2,
+          "end": 4.9,
+          "rms": 0.07342528868561515,
+          "amplitudes": {
+            "220": 4.663751190714124e-06,
+            "1760": 2.8980748635818153e-06
+          }
+        }
+      ],
+      "pixels": [
+        {
+          "time": 0.5,
+          "point": [
+            360,
+            640
+          ],
+          "rgb": [
+            251,
+            0,
+            0
+          ]
+        },
+        {
+          "time": 2,
+          "point": [
+            360,
+            640
+          ],
+          "rgb": [
+            0,
+            0,
+            251
+          ]
+        },
+        {
+          "time": 4,
+          "point": [
+            360,
+            640
+          ],
+          "rgb": [
+            0,
+            253,
+            0
+          ]
+        }
+      ],
+      "assertionsPassed": true
+    },
+    {
+      "file": "memory-independent-audio.mp4",
+      "sha256": "b6bd40fb705596fae381b53bcfe2d1d39adcb4273be607199f65d9f08abe3341",
+      "expectedSeconds": 5.0,
+      "containerSeconds": 5.0,
+      "videoSeconds": 5.0,
+      "audioSeconds": 4.99229,
+      "decodedAudioSeconds": 4.992290249433107,
+      "encodedSize": [
+        1280,
+        720
+      ],
+      "rotation": -90,
+      "decodedDisplaySize": [
+        720,
+        1280
+      ],
+      "frames": 120,
+      "firstPts": 0.0,
+      "lastPts": 4.966667,
+      "nominalTailSeconds": 5.000000333333333,
+      "minStepUs": 33333,
+      "maxStepUs": 66667,
+      "audioRate": 44100,
+      "peakPcm": 0.23634080588817596,
+      "spectralWindows": [
+        {
+          "start": 0.2,
+          "end": 0.8,
+          "rms": 0.0703465154982791,
+          "amplitudes": {
+            "165": 1.189916443303574e-07,
+            "330": 8.802500313217431e-08,
+            "440": 4.5988440397733726e-08,
+            "660": 1.365764608401605e-07,
+            "880": 5.686198019270638e-06,
+            "1100": 0.09959070411349172
+          }
+        },
+        {
+          "start": 1.2,
+          "end": 1.8,
+          "rms": 0.08033325656614412,
+          "amplitudes": {
+            "165": 3.499236639119661e-05,
+            "330": 0.09414598259284152,
+            "440": 0.04973695223591372,
+            "660": 4.501683039583436e-06,
+            "880": 1.0083877476305207e-05,
+            "1100": 0.024589589048580232
+          }
+        },
+        {
+          "start": 2.2,
+          "end": 2.8,
+          "rms": 0.08611810273629496,
+          "amplitudes": {
+            "165": 5.4539559563107676e-05,
+            "330": 0.04851397325838143,
+            "440": 2.7018683478999486e-05,
+            "660": 1.1112495802700685e-06,
+            "880": 0.09975040699974705,
+            "1100": 0.04970178346796756
+          }
+        },
+        {
+          "start": 3.2,
+          "end": 3.8,
+          "rms": 0.04965006433662018,
+          "amplitudes": {
+            "165": 5.150622373254978e-05,
+            "330": 0.04858468082624751,
+            "440": 1.0005000577407435e-05,
+            "660": 1.930817777450175e-06,
+            "880": 2.333131686471851e-06,
+            "1100": 0.04976944258403138
+          }
+        },
+        {
+          "start": 4.2,
+          "end": 4.8,
+          "rms": 0.07035124097883716,
+          "amplitudes": {
+            "165": 2.287316365404354e-06,
+            "330": 4.640767947152756e-06,
+            "440": 6.590590953651854e-06,
+            "660": 1.3664182594146327e-05,
+            "880": 3.3342948616810944e-05,
+            "1100": 0.0992235013346899
+          }
+        }
+      ],
+      "pixels": [],
+      "assertionsPassed": true
+    },
+    {
+      "file": "memory-local-effects.mp4",
+      "sha256": "97c1adfe7314dc990d6fba0055ad085297ce60ebdf7d2fd0c8c813ecbc05ffc3",
+      "expectedSeconds": 4.0,
+      "containerSeconds": 4.0,
+      "videoSeconds": 4.0,
+      "audioSeconds": 3.993832,
+      "decodedAudioSeconds": 3.9938321995464854,
+      "encodedSize": [
+        1280,
+        720
+      ],
+      "rotation": -90,
+      "decodedDisplaySize": [
+        720,
+        1280
+      ],
+      "frames": 120,
+      "firstPts": 0.0,
+      "lastPts": 3.966667,
+      "nominalTailSeconds": 4.000000333333333,
+      "minStepUs": 33333,
+      "maxStepUs": 33334,
+      "audioRate": 44100,
+      "peakPcm": 0.0,
+      "spectralWindows": [],
+      "pixels": [
+        {
+          "time": 0.7,
+          "point": [
+            110,
+            160
+          ],
+          "rgb": [
+            251,
+            0,
+            0
+          ]
+        },
+        {
+          "time": 2.7,
+          "point": [
+            110,
+            160
+          ],
+          "rgb": [
+            0,
+            253,
+            252
+          ]
+        },
+        {
+          "time": 2.7,
+          "point": [
+            40,
+            150
+          ],
+          "rgb": [
+            0,
+            253,
+            252
+          ]
+        },
+        {
+          "time": 3.4,
+          "point": [
+            110,
+            160
+          ],
+          "rgb": [
+            251,
+            0,
+            0
+          ]
+        },
+        {
+          "time": 2.6,
+          "point": [
+            360,
+            640
+          ],
+          "rgb": [
+            252,
+            254,
+            0
+          ]
+        },
+        {
+          "time": 3.4,
+          "point": [
+            360,
+            640
+          ],
+          "rgb": [
+            251,
+            0,
+            0
+          ]
+        },
+        {
+          "time": 2,
+          "point": [
+            100,
+            300
+          ],
+          "rgb": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "time": 2.1,
+          "point": [
+            100,
+            300
+          ],
+          "rgb": [
+            98,
+            0,
+            0
+          ]
+        },
+        {
+          "time": 3.9,
+          "point": [
+            100,
+            300
+          ],
+          "rgb": [
+            98,
+            0,
+            0
+          ]
+        }
+      ],
+      "assertionsPassed": true
+    },
+    {
+      "file": "memory-one-pass.mp4",
+      "sha256": "d2e3b30c746732a3c1f748e142f810c0553df92d9a615235703151ae20ea7ea6",
+      "expectedSeconds": 3.0,
+      "containerSeconds": 3.0,
+      "videoSeconds": 3.0,
+      "audioSeconds": 2.995374,
+      "decodedAudioSeconds": 2.995374149659864,
+      "encodedSize": [
+        1280,
+        720
+      ],
+      "rotation": -90,
+      "decodedDisplaySize": [
+        720,
+        1280
+      ],
+      "frames": 90,
+      "firstPts": 0.0,
+      "lastPts": 2.966667,
+      "nominalTailSeconds": 3.0000003333333334,
+      "minStepUs": 33333,
+      "maxStepUs": 33334,
+      "audioRate": 44100,
+      "peakPcm": 0.20165535807609558,
+      "spectralWindows": [
+        {
+          "start": 0.2,
+          "end": 0.8,
+          "rms": 0.14105988999038388,
+          "amplitudes": {
+            "440": 0.1994926696436924
+          }
+        },
+        {
+          "start": 1.3,
+          "end": 2.8,
+          "rms": 0.0,
+          "amplitudes": {
+            "440": 0.0,
+            "880": 0.0
+          }
+        }
+      ],
+      "pixels": [],
+      "assertionsPassed": true
+    },
+    {
+      "file": "memory-zero-volume.mp4",
+      "sha256": "e43dcfc1fcde04ba999cd267b56f651d8b8720e88d58fe4b1e7f3b6ff1f33c51",
+      "expectedSeconds": 2.0,
+      "containerSeconds": 2.0,
+      "videoSeconds": 2.0,
+      "audioSeconds": 1.996916,
+      "decodedAudioSeconds": 1.9969160997732427,
+      "encodedSize": [
+        1280,
+        720
+      ],
+      "rotation": -90,
+      "decodedDisplaySize": [
+        720,
+        1280
+      ],
+      "frames": 60,
+      "firstPts": 0.0,
+      "lastPts": 1.966667,
+      "nominalTailSeconds": 2.0000003333333334,
+      "minStepUs": 33333,
+      "maxStepUs": 33334,
+      "audioRate": 44100,
+      "peakPcm": 0.0,
+      "spectralWindows": [
+        {
+          "start": 0.2,
+          "end": 1.8,
+          "rms": 0.0,
+          "amplitudes": {
+            "330": 0.0,
+            "440": 0.0,
+            "880": 0.0
+          }
+        }
+      ],
+      "pixels": [],
+      "assertionsPassed": true
+    },
+    {
+      "file": "memory-cancel-retry.mp4",
+      "sha256": "5b7d1a461d09d41d429f29a1ac5332bb1cc96b9a967b6964dbf5586f82e4092b",
+      "expectedSeconds": 1.0,
+      "containerSeconds": 1.0,
+      "videoSeconds": 1.0,
+      "audioSeconds": 0.998458,
+      "decodedAudioSeconds": 0.9984580498866213,
+      "encodedSize": [
+        1280,
+        720
+      ],
+      "rotation": -90,
+      "decodedDisplaySize": [
+        720,
+        1280
+      ],
+      "frames": 30,
+      "firstPts": 0.0,
+      "lastPts": 0.966667,
+      "nominalTailSeconds": 1.0000003333333334,
+      "minStepUs": 33333,
+      "maxStepUs": 33334,
+      "audioRate": 44100,
+      "peakPcm": 0.0,
+      "spectralWindows": [
+        {
+          "start": 0.2,
+          "end": 0.8,
+          "rms": 0.0,
+          "amplitudes": {
+            "330": 0.0,
+            "440": 0.0
+          }
+        }
+      ],
+      "pixels": [
+        {
+          "time": 0.5,
+          "point": [
+            360,
+            640
+          ],
+          "rgb": [
+            0,
+            253,
+            0
+          ]
+        }
+      ],
+      "assertionsPassed": true
+    },
+    {
+      "file": "memory-muted-original.mp4",
+      "sha256": "76001323acdabd35e673d55c0e69bb7def9f7471b66f4cde3496be47483f9495",
+      "expectedSeconds": 4.0,
+      "containerSeconds": 4.0,
+      "videoSeconds": 4.0,
+      "audioSeconds": 3.993832,
+      "decodedAudioSeconds": 3.9938321995464854,
+      "encodedSize": [
+        1280,
+        720
+      ],
+      "rotation": -90,
+      "decodedDisplaySize": [
+        720,
+        1280
+      ],
+      "frames": 120,
+      "firstPts": 0.0,
+      "lastPts": 3.966667,
+      "nominalTailSeconds": 4.000000333333333,
+      "minStepUs": 33333,
+      "maxStepUs": 33334,
+      "audioRate": 44100,
+      "peakPcm": 0.10218606889247894,
+      "spectralWindows": [
+        {
+          "start": 0.2,
+          "end": 0.8,
+          "rms": 0.0,
+          "amplitudes": {
+            "330": 0.0,
+            "440": 0.0
+          }
+        },
+        {
+          "start": 1.2,
+          "end": 1.8,
+          "rms": 0.07050229761471316,
+          "amplitudes": {
+            "330": 1.3553172604198167e-05,
+            "440": 0.09961062368054713,
+            "880": 5.924730832498628e-07
+          }
+        },
+        {
+          "start": 1.2,
+          "end": 2.8,
+          "rms": 0.05126274008046953,
+          "amplitudes": {
+            "330": 0.0002124270981923629
+          }
+        },
+        {
+          "start": 2.3,
+          "end": 3.8,
+          "rms": 0.0,
+          "amplitudes": {
+            "330": 0.0,
+            "440": 0.0,
+            "880": 0.0
+          }
+        }
+      ],
+      "pixels": [],
+      "assertionsPassed": true
+    }
+  ],
+  "previousFailureComparison": [
+    {
+      "file": "memory-one-pass.mp4",
+      "previousSha256": "d146160f7648f70f164217749afc3ea50ec8b30b5be1a0ba4171c2d89adbb613",
+      "previousFrames": 87,
+      "currentFrames": 90,
+      "previousMaxStepUs": 66667,
+      "currentMaxStepUs": 33334,
+      "previousLastPts": 2.933333,
+      "currentLastPts": 2.966667
+    },
+    {
+      "file": "memory-independent-audio.mp4",
+      "previousSha256": "346f366a4e2c36bfda50558ae7bb1e5e00b85ead2fba2f9e4808aad55d4f21b0",
+      "previousFrames": 117,
+      "currentFrames": 120,
+      "previousMaxStepUs": 133333,
+      "currentMaxStepUs": 66667,
+      "previousLastPts": 4.933333,
+      "currentLastPts": 4.966667
+    }
+  ],
+  "result": "All independent assertions passed.",
+  "limits": [
+    "This is a standalone Android API35 x86_64 production-renderer harness, not a physical Android device or installed full-app UI acceptance.",
+    "Cancellation, deletion and byte-ceiling timing are attested by the separate instrumentation receipt; retained movies alone cannot independently prove those lifecycle events.",
+    "No hosted Supabase, live media provider, licensing or publishing acceptance is implied."
+  ]
+}

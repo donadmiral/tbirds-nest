@@ -26,6 +26,7 @@ jobs:
       PLATINUM_UI_ARTIFACTS: /tmp/platinum-browser-evidence/admin
       STORY_QA_OUTPUT: /tmp/platinum-browser-evidence/video
       MEMORY_QA_OUTPUT: /tmp/platinum-browser-evidence/memory
+      MEMORY_COVER_QA_OUTPUT: /tmp/platinum-browser-evidence/memory-cover
       MUSIC_QA_OUTPUT: /tmp/platinum-browser-evidence/music
       PLATINUM_SOCIAL_ARTIFACTS: /tmp/platinum-browser-evidence/web
       PLATINUM_COMMERCE_ARTIFACTS: /tmp/platinum-browser-evidence/commerce
@@ -80,6 +81,9 @@ jobs:
       - name: Export and decode full memory movies and audio mixes
         if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
         run: node web/tests/browser/memory-movie-export.cjs
+      - name: Exercise book design, persistence, conflicts and account changes
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
+        run: node web/tests/browser/memory-cover-run.cjs
       - name: Verify private original uploads, microphone capture and retained music exports
         if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
         run: node web/tests/browser/music-library-export.cjs
@@ -94,6 +98,8 @@ jobs:
             /tmp/platinum-browser-evidence/video/*.json
             /tmp/platinum-browser-evidence/memory/*.json
             /tmp/platinum-browser-evidence/memory/*.png
+            /tmp/platinum-browser-evidence/memory-cover/*.json
+            /tmp/platinum-browser-evidence/memory-cover/*.png
             /tmp/platinum-browser-evidence/music/*.json
             /tmp/platinum-browser-evidence/music/*.png
             /tmp/platinum-browser-evidence/web/*.png

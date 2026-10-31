@@ -63,6 +63,11 @@ enum MemoryMovieComposition {
     job.temporary.removeAll()
   }
   private static func invalid(_ message: String) -> StoryVideoError { .invalid(message) }
+  private static func encodingFailure(_ error: Error?, stage: String) -> NSError {
+    var info: [String: Any] = [NSLocalizedDescriptionKey: "The memory movie could not finish \(stage)."]
+    if let error { info[NSUnderlyingErrorKey] = error as NSError }
+    return NSError(domain: "MemoryMovieEncoding", code: 1, userInfo: info)
+  }
   private static func size(_ url: URL) throws -> Int { (try FileManager.default.attributesOfItem(atPath: url.path)[.size] as? NSNumber)?.intValue ?? 0 }
   private static func local(_ raw: Any?, output: String? = nil, limit: Int = sourceLimit) throws -> URL {
     guard let raw = raw as? String, let uri = URL(string: raw), uri.isFileURL else { throw invalid("Memory export requires private local media.") }
@@ -249,12 +254,13 @@ enum MemoryMovieComposition {
       }
     }
     let composition = AVMutableComposition()
-    guard let videoTrack = composition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid),
-          let sceneAudioTrack = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid) else { throw invalid("The memory movie tracks could not be created.") }
+    guard let videoTrack = composition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid) else { throw invalid("The memory movie tracks could not be created.") }
+    // A silent book must be a video-only composition. An empty audio track and
+    // mix parameter do not represent silence and can make MP4 export fail.
+    var sceneAudioTrack: AVMutableCompositionTrack?
     var cursor = CMTime.zero, temporaryBytes = 0, expectedAudio = false
-    let audioMix = AVMutableAudioMix(), sceneMix = AVMutableAudioMixInputParameters(track: sceneAudioTrack)
-    sceneMix.setVolume(1, at: .zero); sceneMix.audioTimePitchAlgorithm = .spectral
-    var parameters: [AVAudioMixInputParameters] = [sceneMix]
+    let audioMix = AVMutableAudioMix()
+    var parameters: [AVAudioMixInputParameters] = []
     for (index, scene) in scenes.enumerated() {
       try check(job)
       guard movieLimit-temporaryBytes > 1024 else { throw invalid("The movie’s temporary video exceeds the device export limit.") }
@@ -263,7 +269,8 @@ enum MemoryMovieComposition {
       var childRequest = scene; childRequest["id"] = child; childRequest["outputUri"] = output.absoluteString
       childRequest["memoryFileLengthLimit"] = movieLimit-temporaryBytes
       try attach(job, child: child)
-      _ = try await StoryVideoComposition.make(childRequest, reservation: job.id)
+      do { _ = try await StoryVideoComposition.make(childRequest, reservation: job.id) }
+      catch { throw encodingFailure(error, stage: "memory \(index+1)") }
       try check(job)
       temporaryBytes += try size(output); guard temporaryBytes <= movieLimit else { throw invalid("The movie’s temporary video exceeds the device export limit.") }
       let asset = AVURLAsset(url: output); try attach(job, asset: asset)
@@ -274,7 +281,19 @@ enum MemoryMovieComposition {
       try videoTrack.insertTimeRange(range, of: video, at: cursor)
       if let audio = try await asset.loadTracks(withMediaType: .audio).first {
         let audible = CMTimeRangeGetIntersection(CMTimeRange(start: .zero, duration: expected), otherRange: try await audio.load(.timeRange))
-        if !audible.isEmpty && audible.duration.seconds > 0 { try sceneAudioTrack.insertTimeRange(audible, of: audio, at: CMTimeAdd(cursor,audible.start)); expectedAudio = true }
+        if !audible.isEmpty && audible.duration.seconds > 0 {
+          let track: AVMutableCompositionTrack
+          if let existing = sceneAudioTrack { track = existing }
+          else {
+            guard let created = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid) else { throw invalid("The memory page audio track could not be created.") }
+            track = created
+            sceneAudioTrack = track
+            let mix = AVMutableAudioMixInputParameters(track: track)
+            mix.setVolume(1, at: .zero); mix.audioTimePitchAlgorithm = .spectral
+            parameters.append(mix)
+          }
+          try track.insertTimeRange(audible, of: audio, at: CMTimeAdd(cursor,audible.start)); expectedAudio = true
+        }
       }
       cursor = CMTimeAdd(cursor, expected)
     }
@@ -317,11 +336,12 @@ enum MemoryMovieComposition {
     videoComposition.sourceTrackIDForFrameTiming = kCMPersistentTrackID_Invalid; videoComposition.frameDuration = CMTime(value: 1,timescale: 30)
     videoComposition.colorPrimaries = AVVideoColorPrimaries_ITU_R_709_2; videoComposition.colorTransferFunction = AVVideoTransferFunction_ITU_R_709_2; videoComposition.colorYCbCrMatrix = AVVideoYCbCrMatrix_ITU_R_709_2
     guard let export = AVAssetExportSession(asset: composition,presetName: AVAssetExportPresetHighestQuality), export.supportedFileTypes.contains(.mp4) else { throw invalid("The memory movie encoder is unavailable.") }
-    export.outputURL = destination; export.outputFileType = .mp4; export.videoComposition = videoComposition; export.audioMix = audioMix
+    export.outputURL = destination; export.outputFileType = .mp4; export.videoComposition = videoComposition
+    if !parameters.isEmpty { export.audioMix = audioMix }
     export.timeRange = CMTimeRange(start: .zero,duration: cursor); export.fileLengthLimit = Int64(movieLimit); export.shouldOptimizeForNetworkUse = true
     try attach(job,session: export)
     await withCheckedContinuation { (continuation: CheckedContinuation<Void,Never>) in export.exportAsynchronously { continuation.resume() } }
-    guard export.status == .completed else { throw export.error ?? invalid("The memory movie could not finish.") }
+    guard export.status == .completed else { throw encodingFailure(export.error, stage: "the final encoding") }
     let verified = try await verify(destination,expected: duration,audio: expectedAudio,job: job)
     try check(job)
     return ["uri": request["outputUri"]!, "duration": verified.0, "width": 720, "height": 1280, "bytes": verified.1, "sceneCount": scenes.count, "soundtrackMixed": sound != nil]

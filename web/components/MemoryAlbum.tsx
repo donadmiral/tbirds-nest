@@ -3,7 +3,7 @@ import { SoundtrackPicker } from './SoundtrackPicker';
 
 import { MessageButton } from "@/components/MessageButton";
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { displayImageUrl } from "@/lib/media";
 import Link from "next/link";
 import { ArrowLeft, BookOpen, ChevronLeft, ChevronRight, Grid3x3, Pencil, Plus, Settings2, Trash2, X, Check, ArrowUp, ArrowDown, Volume2, VolumeX, Play, Pause } from "lucide-react";
@@ -403,6 +403,7 @@ function AddMemories({ albumId, onClose, existing }: { albumId: string; onClose:
 }
 
 function ManageAlbum({ album, ownerId, onClose }: { album: MemoryAlbum; ownerId:string; onClose: () => void }) {
+  const editorId=useId();
   const saveLock=useRef(false),epoch=useRef(0),sessionValid=useRef(true);
   const [client]=useState(createClient);
   const dialog=useMemoryDialog(true,()=>{if(!saveLock.current)onClose();});
@@ -441,11 +442,11 @@ function ManageAlbum({ album, ownerId, onClose }: { album: MemoryAlbum; ownerId:
           <button disabled={busy} onClick={()=>{if(!saveLock.current)onClose();}} className="rounded-full p-1.5 text-muted hover:bg-black/5" aria-label="Close"><X size={17} /></button>
         </div>
 
-        <p className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-muted">Title</p>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={30}
+        <label htmlFor={`${editorId}-title`} className="mb-1.5 block text-[12px] font-semibold uppercase tracking-wide text-muted">Title</label>
+        <input id={`${editorId}-title`} value={title} onChange={(e) => setTitle(e.target.value)} maxLength={30}
           className="mb-4 w-full rounded-lg border border-ink/15 px-3 py-2 text-[14px] text-ink outline-none focus:border-ink/40" />
 
-        <label className="mb-4 block text-xs font-semibold text-muted">Subtitle<input value={subtitle} onChange={e=>setSubtitle(e.target.value)} maxLength={120} placeholder="A small line to remember it by" className="mt-2 min-h-11 w-full rounded-xl border border-ink/15 bg-transparent px-3 py-2 text-sm font-normal text-ink"/></label>
+        <label htmlFor={`${editorId}-subtitle`} className="block text-xs font-semibold text-muted">Subtitle</label><input id={`${editorId}-subtitle`} value={subtitle} onChange={e=>setSubtitle(e.target.value)} maxLength={120} placeholder="A small line to remember it by" className="mb-4 mt-2 min-h-11 w-full rounded-xl border border-ink/15 bg-transparent px-3 py-2 text-sm text-ink"/>
         <div className="mx-auto mb-6 w-[174px]"><MemoryBookCover artwork={coverArtwork} title={title||'Memories'} subtitle={subtitle} color={color} design={design} {...memoryCoverMedia(memoryCoverPage(album.pages,coverStoryId))} width={174} height={228}/></div>
         <p className="mb-2 text-xs font-semibold uppercase text-muted">Cover memory</p>
         {album.pages.length ? <div className="mb-5 flex gap-2 overflow-x-auto pb-2">{album.pages.map((pg,i)=><button key={pg.id} aria-label={'Use memory '+(i+1)+' on the cover'} aria-pressed={coverStoryId===pg.story_id} onClick={()=>setCoverStoryId(pg.story_id??null)} className={'relative h-[88px] w-[70px] shrink-0 overflow-hidden rounded-lg border-2 '+(coverStoryId===pg.story_id?'border-ink':'border-transparent')}><MemoryStoryPreview story={{...pg,stickers_json:pg.stickers}}/>{coverStoryId===pg.story_id&&<span className="absolute bottom-1 right-1 rounded-full bg-ink p-1 text-white"><Check size={12}/></span>}</button>)}</div> : <p className="mb-4 text-sm text-muted">Add memories to choose a photo or video cover.</p>}

@@ -523,7 +523,7 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
           <View style={st.sheet}>
             <Text style={st.sheetTitle}>Book settings</Text>
             <ScrollView scrollEnabled={!framing} style={{ flexGrow: 0 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-              <TextInput value={title} onChangeText={setTitle} placeholder="Memories" placeholderTextColor={t.ink.muted} keyboardAppearance={isDark ? "dark" : "light"} style={st.input} maxLength={30} />
+              <TextInput accessibilityLabel="Book title" value={title} onChangeText={setTitle} placeholder="Memories" placeholderTextColor={t.ink.muted} keyboardAppearance={isDark ? "dark" : "light"} style={st.input} maxLength={30} />
               <TextInput accessibilityLabel="Book subtitle" value={subtitle} onChangeText={setSubtitle} placeholder="A small line to remember it by" placeholderTextColor={t.ink.muted} keyboardAppearance={isDark ? "dark" : "light"} style={st.input} maxLength={120} />
               <View style={{alignItems:'center',paddingVertical:18}}><MemoryBookCover artwork={coverArtwork} title={title||'Memories'} subtitle={subtitle} color={color} design={design} {...memoryCoverMedia(memoryCoverPage(pages,coverStoryId))} width={168} height={220}/></View>
               <Text style={st.lbl}>Cover memory</Text>

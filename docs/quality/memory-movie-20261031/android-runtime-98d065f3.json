@@ -1,0 +1,422 @@
+{
+  "recordedAt": "2026-10-31T02:00:59.118304+00:00",
+  "status": "Actual Android production Story+Memory encoder instrumentation passed; all retained media/source hashes and independent decode verified. Memory capability remains0 until product integration acceptance.",
+  "source": {
+    "head": "98d065f3c6c0086565dcc0e50a45553188302a49",
+    "testedMerge": "148bac62c1eb938070b9bbd81808de118c702fa5",
+    "headTree": "c92205338f50da948a84c677329f0045dfabae86",
+    "mergeTree": "c92205338f50da948a84c677329f0045dfabae86",
+    "treesEqual": true,
+    "sha256": {
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab",
+      "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5"
+    },
+    "acceptanceSha256": {
+      "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.gif": "fa09323d645946fc05e54d47d92c2d4171d67cbb93a4a9cc4225495cf00ae674",
+      "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.png": "296c54b04d0a9aa58171e9d22cff9b41b32a66116d3aa1d89bd67cd193082a77",
+      "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.webp": "417af2bcf554708ce2331d3c3558aa0148921e2231ab3e0b9e8989f6a19395f3",
+      "scripts/quality/android-story-export/src/androidTest/assets/memory-static.gif": "72d8dbe3283e3dbe380be331227f69cac8f86144e136fab17c320c43cd008ff9",
+      "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/MemoryMovieExportTest.kt": "692e0629c6ee7a642ed17cd3b00cba8c64d6b6e56854839deabaf8261573bf51",
+      "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/StoryAudioExportTest.kt": "8838f9ec96b6d297bbaa2cb7e80d6399731b53331d2dda4de2de54becd8f21f6"
+    }
+  },
+  "workflow": {
+    "runId": 41157322277,
+    "jobId": 124406870295,
+    "url": "https://github.com/donadmiral/tbirds-nest/actions/runs/41157322277/job/124406870295",
+    "conclusion": "success"
+  },
+  "artifact": {
+    "id": 13025976241,
+    "name": "android-story-audio-export",
+    "sha256": "16b302d39c0b5e9eb88dfcdc702b6901e7a1eb945956d3727fa28db8fbfeb5a0",
+    "postflightSha256": "c0b1d5a6ba8ba08f018a4f54755cc04080717f83840d3098a02dad967021fa24",
+    "junitSha256": "e54a35b0661050d9488bf1b7e427ec652d92e628088db7cfa2dad8d61aec4fd4",
+    "memoryMeasurementsSha256": "804d08f444674be51ee11205b247d76ee63183298fe5386eb035a87b70c7e8e7",
+    "all39Mp4And3PngHashesVerified": true
+  },
+  "runtime": {
+    "androidSdk": 35,
+    "abis": [
+      "x86_64"
+    ],
+    "model": "Android SDK built for x86_64",
+    "build": "Android/sdk_phone64_x86_64/emu64x:15/AE3A.240806.019/12368160:userdebug/test-keys",
+    "media3": "1.8.1",
+    "compiledProductionCopiesVerified": true
+  },
+  "tests": {
+    "total": 39,
+    "passed": 39,
+    "failed": 0,
+    "skipped": 0,
+    "seconds": 98.704,
+    "story": 23,
+    "memory": 16,
+    "exactCaseNamesVerified": true,
+    "names": [
+      "imagePreparationRejectsUnsafeInputsAndPreservesExistingFiles",
+      "aggregateInputBytesAreBoundedWithoutCopyingLargeSources",
+      "sourcePathsRemainConfinedEvenThroughSymlinks",
+      "stillScenesKeepOrderAndContinuousDuckedSoundtrack",
+      "normalizedJpegHonorsExifOrientation",
+      "animatedContainersAreRejectedBeforeStaticPreparation",
+      "sceneArtworkFadeAndMotionUseLocalTime",
+      "movieLimitsAndGainContinuityAreEnforcedBeforeWriting",
+      "outputByteCeilingCancelsAndRemovesTheOwnedFile",
+      "videoPageAndBookAudioPreserveIndependentClocks",
+      "cancellationReleasesWriterBeforeRetryAndBlocksStory",
+      "onePassBookMusicDoesNotShortenSilentTail",
+      "mutedVideoKeepsPageVoiceoverAndSilentCards",
+      "zeroGainBookSelectionEncodesSilence",
+      "cancelAllStopsMovieAndImagePreparation",
+      "normalizedPngIsBoundedAndPreservesTransparency",
+      "trimmingPastShortOriginalAudioProducesAValidSilentMovie",
+      "matrixAlphaAndBiasAreNotDroppedByAFourByFourShortcut",
+      "videoTrimSpeedAndOriginalMixStayAlignedWithIndependentSoundtrack",
+      "cancellationAtTheCompletionBoundaryCannotLeaveARejectedOutput",
+      "onePassVoiceoverEndsInSilenceWithoutShorteningVideo",
+      "invalidInputsCannotOverwriteOrEscapeTheCache",
+      "backgroundCancellationSettlesOnceAndPreservesTheDraftInputs",
+      "soundtrackVolumeAndZeroGainAreEncoded",
+      "fullColorMatrixScaleAndTranslationMatchPixels",
+      "selectedExcerptLoopsThroughActualStillMovie",
+      "originalOnlyAudioIsPreservedAndMeasured",
+      "mutedOriginalDoesNotLeakIntoTheMovie",
+      "unknownLengthContentAndReadableExternalVideoAreStagedAndRemoved",
+      "oversizedUnknownLengthProviderCannotConsumeUnboundedDisk",
+      "verticalTextureOrientationAndBothTranslationDirectionsMatchTheCanvas",
+      "canvasBackgroundAndTimedArtworkMatchDecodedPixels",
+      "cancellationStopsTheWriterCleansThePartialAndAllowsRetry",
+      "fullPortraitResolutionProducesActualVideoAndSoundtrack",
+      "knownLengthProviderDoesNotNeedEofAndCannotHideAnEarlyEnd",
+      "longVoiceoverIsClippedToTheOutputMovie",
+      "blockedContentProviderCanBeCancelledWithoutWaitingForAnotherChunk",
+      "trimmedAndAcceleratedVideoUsesOutputTimeForArtwork",
+      "slowedVideoRepeatsOnlyTheSelectedExcerptThroughItsPartialFinalLoop"
+    ]
+  },
+  "memoryMeasurements": [
+    {
+      "sourceByteLimit": 33554432,
+      "existingOutputPreserved": true,
+      "remoteAndNoncacheOutputRejected": true,
+      "case": "imagePreparationRejectsUnsafeInputsAndPreservesExistingFiles",
+      "passed": true
+    },
+    {
+      "preparedSourceBytes": 566231040,
+      "limitBytes": 536870912,
+      "sourcesPreserved": true,
+      "case": "aggregateInputBytesAreBoundedWithoutCopyingLargeSources",
+      "passed": true
+    },
+    {
+      "externalAndSymlinkRejected": true,
+      "callerSourcesPreserved": true,
+      "case": "sourcePathsRemainConfinedEvenThroughSymlinks",
+      "passed": true
+    },
+    {
+      "containerSeconds": 5.085,
+      "decodedAudioSeconds": 5.085170068027211,
+      "videoFrames": 149,
+      "videoFirstUs": 0,
+      "videoLastUs": 4966666,
+      "minFrameStepUs": 33333,
+      "maxFrameStepUs": 50000,
+      "encodedWidth": 1280,
+      "encodedHeight": 720,
+      "rotationDegrees": 90,
+      "displayedWidth": 720,
+      "displayedHeight": 1280,
+      "amplitudes": [
+        0.15959865166728984,
+        0.15941171299429416,
+        0.05571704101223694,
+        0.039707627919756315,
+        0.11981819536176058,
+        0.11931101671466512,
+        0.11942356549124859
+      ],
+      "expectedAmplitudes": [
+        0.16,
+        0.16,
+        0.04,
+        0.04,
+        0.12,
+        0.12,
+        0.12
+      ],
+      "case": "stillScenesKeepOrderAndContinuousDuckedSoundtrack",
+      "passed": true
+    },
+    {
+      "sourceOrientation": 6,
+      "width": 300,
+      "height": 600,
+      "orientedPixelsVerified": true,
+      "case": "normalizedJpegHonorsExifOrientation",
+      "passed": true
+    },
+    {
+      "twoFrameStaticGifAndMarkerOnlyContainers": [
+        "memory-animated.gif",
+        "memory-animated.png",
+        "memory-animated.webp",
+        "memory-static.gif",
+        "memory-fctl-only.png",
+        "memory-fdat-only.png",
+        "memory-vp8x-only.webp"
+      ],
+      "case": "animatedContainersAreRejectedBeforeStaticPreparation",
+      "passed": true
+    },
+    {
+      "containerSeconds": 4,
+      "decodedAudioSeconds": 3.9938321995464854,
+      "videoFrames": 120,
+      "videoFirstUs": 0,
+      "videoLastUs": 3966666,
+      "minFrameStepUs": 33333,
+      "maxFrameStepUs": 33334,
+      "encodedWidth": 1280,
+      "encodedHeight": 720,
+      "rotationDegrees": 90,
+      "displayedWidth": 720,
+      "displayedHeight": 1280,
+      "fadeInRed": 100,
+      "fadeOutRed": 100,
+      "timedArtworkAndWholeCompositeMotion": true,
+      "case": "sceneArtworkFadeAndMotionUseLocalTime",
+      "passed": true
+    },
+    {
+      "rejected": [
+        "empty",
+        "83-scenes",
+        "duplicate-identities",
+        "duration",
+        "motion",
+        "nonfinite-grade",
+        "aggregate-artwork",
+        "gain-gap",
+        "canvas"
+      ],
+      "allOutputsAbsent": true,
+      "case": "movieLimitsAndGainContinuityAreEnforcedBeforeWriting",
+      "passed": true
+    },
+    {
+      "injectedOutputBytes": 268435457,
+      "partialOutputRemoved": true,
+      "milliseconds": 241,
+      "case": "outputByteCeilingCancelsAndRemovesTheOwnedFile",
+      "passed": true
+    },
+    {
+      "containerSeconds": 5,
+      "decodedAudioSeconds": 4.992290249433107,
+      "videoFrames": 120,
+      "videoFirstUs": 0,
+      "videoLastUs": 4966666,
+      "minFrameStepUs": 33333,
+      "maxFrameStepUs": 66667,
+      "encodedWidth": 1280,
+      "encodedHeight": 720,
+      "rotationDegrees": 90,
+      "displayedWidth": 720,
+      "displayedHeight": 1280,
+      "original330Hz": [
+        3.7610544702938336e-07,
+        0.08579965105407204,
+        0.04755453033554971,
+        0.04757582385500012,
+        6.5508245006331355e-06
+      ],
+      "book1100Hz": [
+        0.0994804568618759,
+        0.024659316449904947,
+        0.04965351218459249,
+        0.04967217083670169,
+        0.09918776095321839
+      ],
+      "case": "videoPageAndBookAudioPreserveIndependentClocks",
+      "passed": true
+    },
+    {
+      "milliseconds": 30,
+      "noPartialOutput": true,
+      "retry": {
+        "containerSeconds": 1,
+        "decodedAudioSeconds": 0.9984580498866213,
+        "videoFrames": 30,
+        "videoFirstUs": 0,
+        "videoLastUs": 966666,
+        "minFrameStepUs": 33333,
+        "maxFrameStepUs": 33334,
+        "encodedWidth": 1280,
+        "encodedHeight": 720,
+        "rotationDegrees": 90,
+        "displayedWidth": 720,
+        "displayedHeight": 1280
+      },
+      "case": "cancellationReleasesWriterBeforeRetryAndBlocksStory",
+      "passed": true
+    },
+    {
+      "containerSeconds": 3,
+      "decodedAudioSeconds": 2.995374149659864,
+      "videoFrames": 90,
+      "videoFirstUs": 0,
+      "videoLastUs": 2966666,
+      "minFrameStepUs": 33333,
+      "maxFrameStepUs": 33334,
+      "encodedWidth": 1280,
+      "encodedHeight": 720,
+      "rotationDegrees": 90,
+      "displayedWidth": 720,
+      "displayedHeight": 1280,
+      "tailRms": 0,
+      "case": "onePassBookMusicDoesNotShortenSilentTail",
+      "passed": true
+    },
+    {
+      "containerSeconds": 4,
+      "decodedAudioSeconds": 3.9938321995464854,
+      "videoFrames": 120,
+      "videoFirstUs": 0,
+      "videoLastUs": 3966666,
+      "minFrameStepUs": 33333,
+      "maxFrameStepUs": 33334,
+      "encodedWidth": 1280,
+      "encodedHeight": 720,
+      "rotationDegrees": 90,
+      "displayedWidth": 720,
+      "displayedHeight": 1280,
+      "voiceover440Hz": 0.09969793713024985,
+      "tailRms": 0,
+      "case": "mutedVideoKeepsPageVoiceoverAndSilentCards",
+      "passed": true
+    },
+    {
+      "containerSeconds": 2,
+      "decodedAudioSeconds": 1.9969160997732427,
+      "videoFrames": 60,
+      "videoFirstUs": 0,
+      "videoLastUs": 1966666,
+      "minFrameStepUs": 33333,
+      "maxFrameStepUs": 33334,
+      "encodedWidth": 1280,
+      "encodedHeight": 720,
+      "rotationDegrees": 90,
+      "displayedWidth": 720,
+      "displayedHeight": 1280,
+      "rms": 0,
+      "case": "zeroGainBookSelectionEncodesSilence",
+      "passed": true
+    },
+    {
+      "movieAndImageOutputsRemoved": true,
+      "sourcePreserved": true,
+      "retryPassed": true,
+      "case": "cancelAllStopsMovieAndImagePreparation",
+      "passed": true
+    },
+    {
+      "sourceWidth": 2880,
+      "sourceHeight": 5120,
+      "width": 1440,
+      "height": 2560,
+      "transparentPixelsPreserved": true,
+      "case": "normalizedPngIsBoundedAndPreservesTransparency",
+      "passed": true
+    }
+  ],
+  "retainedMemoryMovies": [
+    {
+      "name": "memory-cancel-retry.mp4",
+      "bytes": 22694,
+      "sha256": "5b7d1a461d09d41d429f29a1ac5332bb1cc96b9a967b6964dbf5586f82e4092b"
+    },
+    {
+      "name": "memory-continuous-music.mp4",
+      "bytes": 148032,
+      "sha256": "1b648887686cdff76dbd29447219f009d32b990e7210b23acea0576ca7a98e94"
+    },
+    {
+      "name": "memory-independent-audio.mp4",
+      "bytes": 131663,
+      "sha256": "b6bd40fb705596fae381b53bcfe2d1d39adcb4273be607199f65d9f08abe3341"
+    },
+    {
+      "name": "memory-local-effects.mp4",
+      "bytes": 345142,
+      "sha256": "97c1adfe7314dc990d6fba0055ad085297ce60ebdf7d2fd0c8c813ecbc05ffc3"
+    },
+    {
+      "name": "memory-muted-original.mp4",
+      "bytes": 115303,
+      "sha256": "76001323acdabd35e673d55c0e69bb7def9f7471b66f4cde3496be47483f9495"
+    },
+    {
+      "name": "memory-one-pass.mp4",
+      "bytes": 84562,
+      "sha256": "d2e3b30c746732a3c1f748e142f810c0553df92d9a615235703151ae20ea7ea6"
+    },
+    {
+      "name": "memory-zero-volume.mp4",
+      "bytes": 42157,
+      "sha256": "e43dcfc1fcde04ba999cd267b56f651d8b8720e88d58fe4b1e7f3b6ff1f33c51"
+    }
+  ],
+  "normalizedImages": [
+    {
+      "name": "memory-normalized-alpha.png",
+      "bytes": 17279,
+      "sha256": "282066e44f262a6d990764476763db19f2cddeb618effe077881860427167af8"
+    },
+    {
+      "name": "memory-normalized-exif.png",
+      "bytes": 1784,
+      "sha256": "487df57ff2419538e13366be52c559c24c6b9174ec1e54e3192bb68c70688015"
+    },
+    {
+      "name": "memory-prepare-retry.png",
+      "bytes": 6359,
+      "sha256": "d2c62cd92a7a3687cccb18015c25f4f334fb3e49bbeb3bf1261fb32099237b0e"
+    }
+  ],
+  "independentDecode": {
+    "receipt": "android-runtime-98d-independent-decode.json",
+    "sha256": "bcb7e4a200448bf93cd361293ebf8a9f84f090bb8e96b9fb187d41fe757f367d",
+    "reviewer": "backend_installation",
+    "result": "All7 movies passed displayed dimensions, frame cadence/coverage, page order, artwork/fade/motion, independent original pitch and page/book music gains, excerpt continuity and silence."
+  },
+  "specificRepairs": {
+    "threeStillPages": {
+      "beforeFrames": 87,
+      "afterFrames": 90,
+      "seconds": 3
+    },
+    "mixedSlowPageBoundary": {
+      "beforeMaxGapUs": 133333,
+      "afterMaxGapUs": 66667
+    },
+    "watchdog": {
+      "injectedOutputBytes": 268435457,
+      "partialOutputRemoved": true,
+      "milliseconds": 241,
+      "case": "outputByteCeilingCancelsAndRemovesTheOwnedFile",
+      "passed": true
+    },
+    "cancellationMilliseconds": 30
+  },
+  "limits": [
+    "This standalone application compiles and exercises the actual production native engines. It does not prove full React Native view capture, Photos permission/export UX, authenticated backend/provider journeys or physical-device behavior.",
+    "Memory native capability remains0; no Store submission, signed release, QA/production data mutation or music licensing is represented.",
+    "MediaExtractor records rotation90 degrees while FFprobe reports displaymatrix-90 degrees; both decoders produce720x1280 portrait frames. The receipt attests displayed dimensions rather than requiring one raw track orientation.",
+    "The output watchdog test injects sparse growth into the owned file after actual muxer bytes appear; no256MiB movie is claimed."
+  ]
+}

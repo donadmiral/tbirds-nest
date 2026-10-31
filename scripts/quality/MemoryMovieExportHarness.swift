@@ -369,7 +369,14 @@ private enum MemoryMovieFixture {
     results.append(["name":"an unreadable source cannot produce a partial book movie"])
   }
   static func finish(error: Error?) {
-    let receipt: [String: Any] = ["passed":error == nil,"cases":results,"diagnostics":diagnostics,"error":error?.localizedDescription as Any? ?? NSNull(),"physicalDevice":false,"photosWritten":false,"networkUsed":false]
+    func details(_ error: NSError, depth: Int = 0) -> [String: Any] {
+      var value: [String: Any] = ["domain": error.domain, "code": error.code, "description": error.localizedDescription]
+      if let reason = error.localizedFailureReason { value["failureReason"] = reason }
+      if depth < 5, let underlying = error.userInfo[NSUnderlyingErrorKey] as? NSError { value["underlying"] = details(underlying, depth: depth+1) }
+      return value
+    }
+    let receipt: [String: Any] = ["passed":error == nil,"cases":results,"diagnostics":diagnostics,"error":error?.localizedDescription as Any? ?? NSNull(),
+      "errorDetails": error.map { details($0 as NSError) } as Any? ?? NSNull(),"physicalDevice":false,"photosWritten":false,"networkUsed":false]
     do { try files.createDirectory(at:documents,withIntermediateDirectories:true);try JSONSerialization.data(withJSONObject:receipt,options:[.prettyPrinted,.sortedKeys]).write(to:documents.appendingPathComponent("memory-movie-receipt.json"),options:.atomic) }
     catch { print("Could not save memory movie receipt: \(error)");exit(2) }
     print(error == nil ? "MEMORY_MOVIE_EXPORT_PASSED \(results.count)" : "MEMORY_MOVIE_EXPORT_FAILED \(error!.localizedDescription)");exit(error == nil ? 0 : 1)
