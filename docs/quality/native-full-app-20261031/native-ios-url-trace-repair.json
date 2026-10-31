@@ -1,0 +1,195 @@
+{
+  "schemaVersion": 1,
+  "reviewedAtUtc": "2026-10-31T17:33:58.421219Z",
+  "status": "Prepared and independently reviewed; actual Xcode compilation and native log delivery remain required in the next full-app run.",
+  "scope": "A disposable CI-only iOS generated AppDelegate URL boundary observation; no production routing, auth, deadline, assertion, capability or workflow change.",
+  "baseline": {
+    "applicationHead": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+    "testedMerge": "cddbe51a25efbb39b9e91fb822a9821957b9a2bd",
+    "run": 41218724056,
+    "job": 124588620373,
+    "artifact": 13050807476,
+    "artifactBytes": 29611771,
+    "artifactSHA256": "58f7f2c882344c845031f68f3585eca853e224636d44ce53f579daa993a32e35",
+    "ownerReceipt": {
+      "path": "docs/quality/native-full-app-20261031/ios-full-app-b5c9c82b-review.json",
+      "bytes": 18413,
+      "sha256": "64ba606aed31282935bf3e020116576d20804e5f62fbf141f023793b3bb1770b"
+    },
+    "navigationReceipt": {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b-navigation-independent-review.json",
+      "bytes": 30839,
+      "sha256": "40d61e223d81d8aafa0838bd15730524d4d1e9c566ae587a9077cf81d530b12b"
+    },
+    "accountReceipt": {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b-auth-independent-review.json",
+      "bytes": 15208,
+      "sha256": "73283497470ae64c86305cf44d249745f45c0adb7ebec1060848f4aa94395708"
+    }
+  },
+  "observedProblem": {
+    "headingAssertionFailedAtRecordedHostUtc": "2026-10-31T17:09:56.931Z",
+    "nativeSceneActionAtRecordedUtc": "2026-10-31T17:10:09.985Z",
+    "expectedJSURLReceivedAtRecordedUtc": "2026-10-31T17:10:09.991Z",
+    "recordedJSMinusNativeSceneMs": 6,
+    "actualSavedAccountReadback": "Exactly one eventual passed/reloaded/accountCount1 result, after the required timely heading assertion failed.",
+    "missingBoundary": "The scene-action log has no URL match or AppDelegate entry/return timestamps. It cannot alone distinguish upstream delivery/app-main-thread availability from exact handler or JavaScript scheduling.",
+    "causeLimit": "Automation-mode1to0 precedes scene delivery and JS receipt, but neither this sequence nor pinned-source inspection establishes XCTest, OS, React Native, Expo, auth or app-routing causality."
+  },
+  "implementation": {
+    "sourceFiles": {
+      "scripts/quality/native-ui-ios-url-trace.py": "fa37e06f5ee645af3fb29aae3f9e080cba24ab276480ac3a981731ee612fd885",
+      "tests/quality/native-ios-url-trace.cjs": "44e412813aca0f7beae73a1c4959e0056aa9a28af0740ee9d49d6cb72bafb75f",
+      "scripts/quality/test-ios-app-ui.sh": "44cd612cd01f9b2a01208682bc3edcc34288eca8c55079a6357d4469e2c0b1e1",
+      "scripts/quality/prepare-native-ui.cjs": "f72312199ded22f09fcd818b2df01c300175660cbf87b723a08ad52bb7c334ad",
+      "tests/quality/native-auth-diagnostics.cjs": "b929623457a05c3bd236754ecddbf4f70b6bdf850ab093761326d36fd593f808"
+    },
+    "deltaFromPreviousFrozenQACandidate": [
+      {
+        "path": "scripts/quality/test-ios-app-ui.sh",
+        "comparisonCommit": "bdfa5bde6c68ca1e0b0f27b4ca43a5fd269ed0b7",
+        "beforeSHA256": "138f2ac2e8ed32e09f4b6b5ca6e4c4b07a6f1c93b7373767703dbfd97b3f8077",
+        "afterSHA256": "44cd612cd01f9b2a01208682bc3edcc34288eca8c55079a6357d4469e2c0b1e1",
+        "onlyAddedHelperOccurrences": 1,
+        "exactRemovalRestoresFrozenBase": true
+      },
+      {
+        "path": "scripts/quality/prepare-native-ui.cjs",
+        "comparisonCommit": "bdfa5bde6c68ca1e0b0f27b4ca43a5fd269ed0b7",
+        "beforeSHA256": "3aaf404903272008f7f9479f21814981f58548df3366855b6382942af3ce2053",
+        "afterSHA256": "f72312199ded22f09fcd818b2df01c300175660cbf87b723a08ad52bb7c334ad",
+        "onlyAddedHelperOccurrences": 1,
+        "exactRemovalRestoresFrozenBase": true
+      },
+      {
+        "path": "tests/quality/native-auth-diagnostics.cjs",
+        "comparisonCommit": "bdfa5bde6c68ca1e0b0f27b4ca43a5fd269ed0b7",
+        "beforeSHA256": "494fea44421e8e95f88f3b3c8eec1e464157650dc3eabcb5570c3084f407291c",
+        "afterSHA256": "b929623457a05c3bd236754ecddbf4f70b6bdf850ab093761326d36fd593f808",
+        "onlyAddedHelperOccurrences": 2,
+        "exactRemovalRestoresFrozenBase": true
+      }
+    ],
+    "integration": "One Python invocation immediately after successful Expo prebuild and before CocoaPods/Xcode in the existing iOS full-app script.",
+    "fixedGeneratedPath": "ios/PlatinumQA/AppDelegate.swift",
+    "gates": [
+      "CI=true, EXPO_PUBLIC_APP_ENV=qa and the synthetic transport sentinel are required.",
+      "Only fixed paths are accepted; no CLI path override.",
+      "Current-run source.json commit/run and helper SHA must match.",
+      "Exactly one reviewed generated AppDelegate class, URL method, forwarding expression and expected imports are required.",
+      "Existing tracing, duplicate evidence, source symlink, oversized/nonregular input or changed generated anchors fail closed before compilation."
+    ],
+    "forwarding": "Original `return super.application(app, open: url, options: options) || RCTLinkingManager.application(app, open: url, options: options)` remains byte-identical. A defer logs return completion without replacing, duplicating, reordering or awaiting either call.",
+    "runtimeScope": "Only the exact QA bundle and case-insensitive QA scheme are observed. Exact expected URL equality is reduced to a Boolean; differently formatted QA links remain distinguishable without recording their contents.",
+    "records": {
+      "maximumURLs": 16,
+      "maximumRecords": 32,
+      "fields": [
+        "fixed phase",
+        "integer sequence",
+        "numeric Foundation Date epoch milliseconds",
+        "numeric matched Boolean"
+      ],
+      "excluded": [
+        "raw URL",
+        "path/query",
+        "options",
+        "tokens",
+        "session/account values",
+        "native state payload"
+      ]
+    },
+    "preserved": "All original generated Swift bytes restore exactly after removing the observer/import addition. Required flows and their original assertions/deadlines, JavaScript entry/router/account handling and production memoryMovieVersion0 are unchanged.",
+    "nextArtifactProof": "native-ui-logs/ios-url-trace retains complete AppDelegate.before.swift.txt and AppDelegate.after.swift.txt plus source-proof.json binding their hashes, helper/source-manifest hashes and run/commit. Existing app.log collects the numeric native markers.",
+    "sourceEnumeration": "One new explicitly listed helper changes the prior500 original-file expectation to501; the six preparation overlays and nine recorded SDK dependency hashes remain unchanged in structure. The generated Swift proof is separate from source.json originals."
+  },
+  "verification": {
+    "focusedCommand": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-ios-url-trace.cjs tests/quality/native-auth-diagnostics.cjs",
+    "formalCases": 38,
+    "newURLCases": 23,
+    "existingAuthProvenanceCases": 15,
+    "passed": 38,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "coverage": [
+      "Actual Python CLI transforms the installed Expo template and actual repository VoIP plugin output; complete original Swift bytes and forwarding expression are recovered exactly.",
+      "Actual current-run helper/source-hash/environment/path/content failures reject without generated-source mutation.",
+      "Actual iOS shell script with controlled command adapters reaches CocoaPods only after a valid generated-source check; changed forwarding/signature fails before it.",
+      "Generated logger argument/schema/bounds/defer checks cover only numeric safe fields and the original return expression remains unchanged.",
+      "The existing disposable preparation test actually copies/includes/hashes the new helper and preserves original auth/SDK overlay proof."
+    ],
+    "static": {
+      "scopedESLintExit": 0,
+      "pythonAST": true,
+      "bashSyntax": true,
+      "gitDiffCheck": true
+    },
+    "runtimeLimit": "This Linux workspace has no Swift compiler. These are actual source-transform/shell/provenance checks, not Swift execution, UIKit event timing or passing full-native acceptance.",
+    "testAuthoringNote": "A preliminary negative-regex check matched a substring in a permitted diagnostic variable name; the test was corrected to token boundaries. The final38-case output is green; the earlier37/38 output is retained as an authoring-stage harness failure."
+  },
+  "pinnedSourceFindings": {
+    "provenance": {
+      "path": "docs/quality/native-full-app-20261031/native-ios-url-trace/delivery-source-provenance.json",
+      "bytes": 16398,
+      "sha256": "1d5302fe24d6dc0944a16f8baf92f7151c3101975f2d1302e77e9ddceed29b60"
+    },
+    "observedBoundaries": {
+      "path": "docs/quality/native-full-app-20261031/native-ios-url-trace/delivery-observed-boundaries.json",
+      "bytes": 4229,
+      "sha256": "58dfeb9ebb6196ed907bea44155e45c0b9a526faf8fc65419a2edab641b917ac"
+    },
+    "maestroFilesAtVerifiedPinnedCommit": 15,
+    "summary": [
+      "Maestro2.11.0 waits for simctl openurl process completion and ordinary visual settling, not receipt by the app URL delegate. No supported synchronous app-delivery parameter was found in the pinned iOS path.",
+      "React Native0.81.5 native URL forwarding posts a synchronous notification, then emits through a queued callable-JS/runtime-scheduler path. This source structure is not a measurement of the cause or size of the observed delay.",
+      "Expo54.0.37 template forwards through super then RCTLinkingManager with short-circuit OR. Its generated b5 AppDelegate bytes were not retained; the new helper will retain the actual generated before/after bytes."
+    ]
+  },
+  "independentReview": {
+    "path": "docs/quality/native-full-app-20261031/native-ios-url-trace-independent-review.json",
+    "bytes": 9544,
+    "sha256": "2fa4960741426b1f31dc003a34e309be2e24a3e71c2a3c95d1e91e557613b69f"
+  },
+  "retainedOwnerFiles": [
+    {
+      "path": "docs/quality/native-full-app-20261031/native-ios-url-trace/focused.tap",
+      "bytes": 9076,
+      "sha256": "b635af461f0e505baa6881d491b70dc94534e257fc5fb3d8a0776a1b8f054b85"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-ios-url-trace/preliminary-test-selector-failure.tap",
+      "bytes": 10287,
+      "sha256": "7be814c5b29e9985ce558df25fa1692e07b8554b437aef6f98bef25aa110b4c4"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-ios-url-trace/delivery-source-provenance.json",
+      "bytes": 16398,
+      "sha256": "1d5302fe24d6dc0944a16f8baf92f7151c3101975f2d1302e77e9ddceed29b60"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-ios-url-trace/delivery-observed-boundaries.json",
+      "bytes": 4229,
+      "sha256": "58dfeb9ebb6196ed907bea44155e45c0b9a526faf8fc65419a2edab641b917ac"
+    }
+  ],
+  "interpretationForNextRun": [
+    "Early matched native entry/exit followed by late JS receipt would bound delay after the handler; it would not alone identify the RN scheduler or a specific cause.",
+    "Late matched native entry close to JS receipt would bound the delay before/at handler arrival, including OS/scene scheduling or app-main-thread availability; it would not prove OS or Maestro causality.",
+    "Entry without exit distinguishes an incomplete observed handler span, subject to log collection/termination limits.",
+    "Missing native markers do not by themselves prove no URL arrival: scope, count limit, build/source binding and log collection must be checked."
+  ],
+  "limits": [
+    "The unchanged full-native job still has to compile and exercise this generated Swift code.",
+    "Additional synchronous timestamp/log calls add bounded observation overhead and are not timing-neutral.",
+    "Numeric native and JS epoch timestamps are not a calibration against the host Maestro clock.",
+    "No routing workaround, timer change, extra wait, assertion relaxation, app/auth reset, physical-device acceptance or production movie-capability activation is claimed."
+  ],
+  "actions": {
+    "sourcePublished": false,
+    "workflowRerun": false,
+    "workflowCancelled": false,
+    "refsChanged": false,
+    "appleOrExpoAuthentication": false
+  }
+}

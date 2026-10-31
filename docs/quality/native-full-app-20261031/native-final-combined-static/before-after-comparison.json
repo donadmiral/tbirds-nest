@@ -1,0 +1,13 @@
+{
+  "beforeRecordedAtUtc": "2026-10-31T17:32:25.297Z",
+  "afterRecordedAtUtc": "2026-10-31T17:34:07.267Z",
+  "selectedInputCount": 1541,
+  "inputSnapshotSHA256Before": "99790becb2e8fd93296b4d9b1619ced1b2dbf5d1458097e023f31fbc9d4e390f",
+  "inputSnapshotSHA256After": "99790becb2e8fd93296b4d9b1619ced1b2dbf5d1458097e023f31fbc9d4e390f",
+  "guardedProvenanceSHA256Before": "f7152d9124d5ff31dc2605f3d0163dfc5fc11d92bb78263fb30cc6123ead143c",
+  "guardedProvenanceSHA256After": "f7152d9124d5ff31dc2605f3d0163dfc5fc11d92bb78263fb30cc6123ead143c",
+  "allSourceInputsIdentical": true,
+  "allProvenanceFieldsIdentical": true,
+  "changedInputs": [],
+  "allFifteenOwnerFreezeHashesMatched": true
+}

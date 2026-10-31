@@ -1,0 +1,26 @@
+[
+  {
+    "control": "valid",
+    "exitCode": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "control": "trailing-space",
+    "exitCode": 3,
+    "stdout": "/tmp/platinum-v9-combined-static/whitespace-control-trailing-space.txt:1: trailing whitespace.\n+invalid line \n",
+    "stderr": ""
+  },
+  {
+    "control": "space-before-tab",
+    "exitCode": 3,
+    "stdout": "/tmp/platinum-v9-combined-static/whitespace-control-space-before-tab.txt:1: space before tab in indent.\n+ \tinvalid indent\n",
+    "stderr": ""
+  },
+  {
+    "control": "blank-at-eof",
+    "exitCode": 3,
+    "stdout": "/tmp/platinum-v9-combined-static/whitespace-control-blank-at-eof.txt:2: new blank line at EOF.\n",
+    "stderr": ""
+  }
+]

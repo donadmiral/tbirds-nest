@@ -229,7 +229,7 @@ test('disposable preparation retains diagnostic source, original auth hash and e
   const required = ['App.tsx', 'index.js', 'app.config.js', 'package-lock.json', authPath, 'src/navigation/AppNavigator.tsx',
     'modules/boomerang/ios/BoomerangModule.swift', 'modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt',
     'modules/boomerang/memoryComposition.ts', 'tests/native/auth-diagnostics.cjs', 'tests/native/entry.js',
-    'scripts/quality/prepare-native-ui.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-ios-entitlements.py', 'scripts/quality/verify-native-ui.cjs',
+    'scripts/quality/prepare-native-ui.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-ios-entitlements.py', 'scripts/quality/native-ui-ios-url-trace.py', 'scripts/quality/verify-native-ui.cjs',
     'scripts/quality/install-native-ui-tools.sh', 'scripts/quality/run-native-ui-flows.sh', 'scripts/quality/native-ui-flow-results.py', 'scripts/quality/test-ios-app-ui.sh', 'scripts/quality/test-android-app-ui.sh',
     'scripts/quality/native-ui-emulator-diagnostics.py', 'scripts/quality/native-ui-emulator-graphics.py', 'scripts/quality/native-ui-emulator-host-diagnostics.py', 'scripts/quality/verify-native-ui-memory.py', '.github/workflows/native-app-ui.yml'];
   const dependencyFiles = {
@@ -262,7 +262,7 @@ test('disposable preparation retains diagnostic source, original auth hash and e
     const generated = fs.readFileSync(path.join(directory, authPath));
     assert.equal(overlay.after, sha(generated));
     assert.deepEqual(fs.readFileSync(path.join(directory, 'native-ui-logs', overlay.retained)), generated);
-    for (const file of ['tests/native/auth-diagnostics.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-emulator-graphics.py', 'scripts/quality/native-ui-emulator-host-diagnostics.py']) {
+    for (const file of ['tests/native/auth-diagnostics.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-ios-url-trace.py', 'scripts/quality/native-ui-emulator-graphics.py', 'scripts/quality/native-ui-emulator-host-diagnostics.py']) {
       assert.equal(manifest.hashes[file], sha(fs.readFileSync(path.join(root, file))));
     }
     assert.deepEqual(fs.readFileSync(path.join(root, authPath)), originalAuth, 'production source was never changed');

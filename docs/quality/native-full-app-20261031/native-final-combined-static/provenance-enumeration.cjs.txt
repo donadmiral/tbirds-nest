@@ -1,0 +1,130 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const crypto = require('node:crypto');
+const vm = require('node:vm');
+const { createRequire } = require('node:module');
+const root = '/workspace/scratch/f9638ed3020b/platinum-circles';
+const base = 'b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6';
+const phase = process.argv[2];
+if (!['before', 'after'].includes(phase)) throw Error('Expected before or after');
+const outputRoot = '/tmp/platinum-v9-combined-static';
+fs.mkdirSync(outputRoot, { recursive: true });
+const sha = value => crypto.createHash('sha256').update(value).digest('hex');
+const read = file => fs.readFileSync(path.join(root, file));
+const expected = {
+  '.github/workflows/native-app-ui.yml': 'f4c37d8f777628134b86ca91fa9476b59428150d4559d0848533f3e3cd8298f1',
+  'scripts/quality/native-ui-emulator-graphics.py': '7768c98ec1eb3f3afc770dda6f6ece99fe4467bf65ce7e714be9b8b8a7f8ca78',
+  'scripts/quality/native-ui-emulator-host-diagnostics.py': '8abae54231466496604aed4e1d83a1166b099da7da1c6f9f5a22adfb5bd2d8ef',
+  'scripts/quality/native-ui-ios-url-trace.py': 'fa37e06f5ee645af3fb29aae3f9e080cba24ab276480ac3a981731ee612fd885',
+  'scripts/quality/prepare-native-ui.cjs': 'f72312199ded22f09fcd818b2df01c300175660cbf87b723a08ad52bb7c334ad',
+  'scripts/quality/test-android-app-ui.sh': 'e152bfa57b13fe9321703055769ee8f6bbf3ab7457440810a9e777832d15f355',
+  'scripts/quality/test-ios-app-ui.sh': '44cd612cd01f9b2a01208682bc3edcc34288eca8c55079a6357d4469e2c0b1e1',
+  'src/components/memory/MemoryPageTurn.tsx': 'ddf7a604b0a6ecdd1b75910ff393a76c0404bb66ce19c52f0e4597731a502881',
+  'src/screens/profile/MemoryAlbumScreen.tsx': '27844413189f30e36ebd3137dd5398e689c8393ca9f82469cd4a262351b3adab',
+  'tests/quality/memory-page-turn.cjs': 'dc56fe7ee45c59ca07d0d8271d2bab199ddaee7c553b79a4f1ef03b075850a58',
+  'tests/quality/native-auth-diagnostics.cjs': 'b929623457a05c3bd236754ecddbf4f70b6bdf850ab093761326d36fd593f808',
+  'tests/quality/native-emulator-graphics.cjs': 'c93c86747b01214dbe349b5f4e1d5bbd273993c0f4dd98fcb6a048b1c1defab3',
+  'tests/quality/native-emulator-host-diagnostics.cjs': '5d036d76a437cf022e76ea369cb8fa7798c6275b6afb22f11805b0ff85068f0a',
+  'tests/quality/native-ios-url-trace.cjs': '44e412813aca0f7beae73a1c4959e0056aa9a28af0740ee9d49d6cb72bafb75f',
+  'tests/quality/native-memory-album-loading.cjs': 'f07fd6ae9991d5ec798646874ce565cd0c08ca31a88129ef5d01b463bd2c3402',
+};
+const paths = Object.keys(expected).sort();
+const modified = ['.github/workflows/native-app-ui.yml', 'scripts/quality/prepare-native-ui.cjs', 'scripts/quality/test-android-app-ui.sh', 'scripts/quality/test-ios-app-ui.sh', 'src/components/memory/MemoryPageTurn.tsx', 'src/screens/profile/MemoryAlbumScreen.tsx', 'tests/quality/memory-page-turn.cjs', 'tests/quality/native-auth-diagnostics.cjs', 'tests/quality/native-memory-album-loading.cjs'];
+const priorBytes = new Map(modified.map((file, index) => [file, fs.readFileSync('/tmp/platinum-v9-baseline-' + index)]));
+for (const file of paths) if (sha(read(file)) !== expected[file]) throw Error('Owner freeze mismatch: ' + file);
+const lines = name => fs.readFileSync('/tmp/platinum-v9-provenance-' + name + '-' + phase + '.txt', 'utf8').trim().split('\n').filter(Boolean);
+const trackedChanges = lines('tracked'), untracked = lines('untracked');
+const ignoredGenerated = untracked.filter(file => /(?:^|\/)__pycache__\/.*\.pyc$/.test(file));
+const scope = [...new Set([...trackedChanges, ...untracked])].filter(file => !file.startsWith('docs/') && !ignoredGenerated.includes(file)).sort();
+if (JSON.stringify(scope) !== JSON.stringify(paths)) throw Error('Unexpected non-documentation scope: ' + JSON.stringify(scope));
+const tree = fs.readFileSync('/tmp/platinum-v9-provenance-tree.bin', 'utf8').split('\0').filter(Boolean).map(line => {
+  const [meta, file] = line.split('\t');
+  const [mode, type, object] = meta.split(' ');
+  return { mode, type, object, file };
+});
+const treeMap = new Map(tree.map(row => [row.file, row]));
+const blob = bytes => crypto.createHash('sha1').update(Buffer.from('blob ' + bytes.length + '\0')).update(bytes).digest('hex');
+const baselinePath = 'docs/quality/native-full-app-20261031/android-full-app-b5c9c82b-source.json';
+const baselineBytes = read(baselinePath), baseline = JSON.parse(baselineBytes);
+const baselineChecks = Object.entries(baseline.hashes).map(([file, hash]) => {
+  const bytes = priorBytes.get(file) || read(file);
+  return { path: file, matches: sha(bytes) === hash && treeMap.get(file)?.object === blob(bytes) };
+});
+if (baselineChecks.some(row => !row.matches)) throw Error('Literal b5 baseline mismatch');
+const helper = 'scripts/quality/prepare-native-ui.cjs', writes = new Map();
+const resolve = file => {
+  const absolute = path.resolve(root, String(file));
+  if (absolute !== root && !absolute.startsWith(root + path.sep)) throw Error('Out-of-repo access');
+  return absolute;
+};
+const readOnlyFS = {
+  existsSync: file => writes.has(resolve(file)) || fs.existsSync(resolve(file)),
+  readdirSync: (file, options) => fs.readdirSync(resolve(file), options),
+  readFileSync: (file, encoding) => {
+    const absolute = resolve(file), bytes = writes.get(absolute) || fs.readFileSync(absolute);
+    return encoding ? bytes.toString(encoding) : Buffer.from(bytes);
+  },
+  mkdirSync: file => { resolve(file); },
+  writeFileSync: (file, bytes) => { writes.set(resolve(file), Buffer.from(bytes)); },
+};
+const nativeRequire = createRequire(path.join(root, helper));
+const readOnlyRequire = name => {
+  if (name === 'node:fs') return readOnlyFS;
+  if (['node:path', 'node:crypto', './native-ui-auth-overlay.cjs'].includes(name)) return nativeRequire(name);
+  throw Error('Unexpected preparation import: ' + name);
+};
+readOnlyRequire.resolve = nativeRequire.resolve;
+const context = { require: readOnlyRequire, process: { cwd: () => root, env: {
+  CI: 'true', EXPO_PUBLIC_APP_ENV: 'qa', EXPO_PUBLIC_SUPABASE_URL: 'https://uaulhuelcfkjwojtymmw.supabase.co',
+  EXPO_PUBLIC_SUPABASE_ANON_KEY: 'native-ui-synthetic-no-provider-key', GITHUB_SHA: 'LOCAL-FROZEN-V9-NOT-PUBLISHED', GITHUB_RUN_ID: 'LOCAL-READ-ONLY-ENUMERATION',
+} }, console: { log() {} } };
+vm.runInNewContext(read(helper).toString() + '\nglobalThis.originalEnumeration = source;', context, { timeout: 5000, filename: helper });
+const generated = JSON.parse(writes.get(path.join(root, 'native-ui-logs/source.json')).toString());
+const originalList = Array.from(context.originalEnumeration), originals = Object.keys(generated.hashes);
+const dependencyRows = Object.entries(generated.dependencyProvenance).flatMap(([name, value]) => Object.entries(value.files).map(([file, hash]) => ({ path: 'node_modules/' + name + '/' + file, sha256: hash, matchesBaseline: baseline.dependencyProvenance[name]?.files[file] === hash })));
+const overlays = generated.overlays.map(row => ({ ...row, matchesBaseline: JSON.stringify(row) === JSON.stringify(baseline.overlays.find(old => old.file === row.file)), generatedBytesMatchAfter: sha(writes.get(path.join(root, row.file))) === row.after, retainedBytesMatchAfter: sha(writes.get(path.join(root, 'native-ui-logs', row.retained))) === row.after }));
+const runtimeRows = tree.filter(row => ['App.tsx', 'index.js', 'app.config.js'].includes(row.file) || /^(src|shared|modules|tests\/native)\//.test(row.file)).map(row => {
+  const target = path.join(root, row.file), stat = fs.lstatSync(target), bytes = row.mode === '120000' ? Buffer.from(fs.readlinkSync(target)) : read(row.file);
+  const mode = stat.isSymbolicLink() ? '120000' : stat.mode & 0o111 ? '100755' : '100644';
+  return { path: row.file, matchesBaseline: blob(bytes) === row.object && mode === row.mode, sha256: sha(bytes) };
+});
+const runtimeChanged = runtimeRows.filter(row => !row.matchesBaseline).map(row => row.path).sort();
+if (JSON.stringify(runtimeChanged) !== JSON.stringify(['src/components/memory/MemoryPageTurn.tsx', 'src/screens/profile/MemoryAlbumScreen.tsx'])) throw Error('Unexpected runtime delta');
+if (untracked.some(file => /^(src|shared|modules|tests\/native)\//.test(file))) throw Error('Unexpected new runtime source');
+const auth = read('tests/quality/native-auth-diagnostics.cjs').toString();
+const required = auth.slice(auth.indexOf('  const required = ['), auth.indexOf('  const dependencyFiles = {', auth.indexOf('  const required = [')));
+const checked = auth.slice(auth.indexOf("for (const file of ['tests/native/auth-diagnostics.cjs'"), auth.indexOf('assert.deepEqual(fs.readFileSync(path.join(root, authPath))'));
+const helperRows = ['scripts/quality/native-ui-emulator-graphics.py', 'scripts/quality/native-ui-emulator-host-diagnostics.py', 'scripts/quality/native-ui-ios-url-trace.py'].map(file => ({ path: file, originalEnumerationOccurrences: originalList.filter(value => value === file).length, disposableRequiredArrayOccurrences: required.split("'" + file + "'").length - 1, disposableManifestHashAssertionOccurrences: checked.split("'" + file + "'").length - 1, sha256: generated.hashes[file] }));
+if (originalList.length !== 501 || originals.length !== 501 || overlays.length !== 6 || dependencyRows.length !== 9 || paths.length !== 15 || helperRows.some(row => row.originalEnumerationOccurrences !== 1 || row.disposableRequiredArrayOccurrences !== 1 || row.disposableManifestHashAssertionOccurrences !== 1) || overlays.some(row => !row.matchesBaseline || !row.generatedBytesMatchAfter || !row.retainedBytesMatchAfter) || dependencyRows.some(row => !row.matchesBaseline)) throw Error('Provenance count/content mismatch');
+const trackedFiles = fs.readFileSync('/tmp/platinum-v9-provenance-files-' + phase + '.bin', 'utf8').split('\0').filter(Boolean);
+const priorInputPaths = Object.keys(JSON.parse(read('docs/quality/native-full-app-20261031/native-v7-combined-static/inputs.json')));
+const extensions = /\.(?:[cm]?[jt]sx?|json|ya?ml|sh|py|kt|swift|xml|plist|gradle|properties)$/;
+const inputPaths = [...new Set([...priorInputPaths, ...trackedFiles.filter(file => !file.startsWith('docs/') && extensions.test(file)), ...paths, ...originals, ...dependencyRows.map(row => row.path)])].sort();
+const inputs = Object.fromEntries(inputPaths.map(file => [file, sha(read(file))]));
+for (const file of paths) if (sha(read(file)) !== expected[file]) throw Error('Source changed during snapshot: ' + file);
+const changedPaths = paths.map(file => ({ path: file, change: treeMap.has(file) ? 'modified' : 'added', bytes: read(file).length, sha256: expected[file], baselineSHA256: priorBytes.has(file) ? sha(priorBytes.get(file)) : null }));
+const result = {
+  schemaVersion: 1, recordedAtUtc: new Date().toISOString(), phase, base,
+  status: 'LOCAL_STATIC_SOURCE_ENUMERATION_NOT_NATIVE_EXECUTION',
+  method: 'Actual preparation script executed with real source/dependency reads and memory-only writes; no disk overlays, native execution or test groups. Direct shell Git exports bind literal b5 blobs and candidate scope.',
+  baselineManifest: { path: baselinePath, sha256: sha(baselineBytes), originals: Object.keys(baseline.hashes).length },
+  baselineOriginalVerification: { count: baselineChecks.length, allMatch: true },
+  counts: { originals: originalList.length, uniqueOriginals: originals.length, overlays: overlays.length, dependencies: dependencyRows.length, changedNonDocumentationPaths: paths.length, runtimePathsCompared: runtimeRows.length, selectedInputs: inputPaths.length },
+  originalDelta: { added: originals.filter(file => !Object.hasOwn(baseline.hashes, file)), removed: Object.keys(baseline.hashes).filter(file => !Object.hasOwn(generated.hashes, file)), changed: originals.filter(file => Object.hasOwn(baseline.hashes, file) && baseline.hashes[file] !== generated.hashes[file]) },
+  changedPaths, newHelperProvenance: helperRows,
+  runtimeComparison: { count: runtimeRows.length, changedPaths: runtimeChanged, unchangedCount: runtimeRows.length - runtimeChanged.length, newPaths: [], comparisonSHA256: sha(JSON.stringify(runtimeRows)) },
+  hashes: generated.hashes, overlays, dependencyProvenance: generated.dependencyProvenance, dependencyRows,
+  sourceMemoryCapability: generated.sourceMemoryCapability, capabilityMode: generated.capabilityMode,
+  inputSnapshotSHA256: sha(JSON.stringify(inputs, null, 2) + '\n'), ignoredGenerated,
+  allFifteenOwnerFreezeHashesMatched: true, virtualOverlayWriteCount: writes.size,
+};
+fs.writeFileSync(path.join(outputRoot, 'inputs-' + phase + '.json'), JSON.stringify(inputs, null, 2) + '\n');
+fs.writeFileSync(path.join(outputRoot, 'provenance-' + phase + '.json'), JSON.stringify(result, null, 2) + '\n');
+if (phase === 'after') {
+  const beforeInputs = JSON.parse(fs.readFileSync(path.join(outputRoot, 'inputs-before.json')));
+  const before = JSON.parse(fs.readFileSync(path.join(outputRoot, 'provenance-before.json')));
+  const changedInputs = [...new Set([...Object.keys(beforeInputs), ...Object.keys(inputs)])].filter(file => beforeInputs[file] !== inputs[file]);
+  for (const key of ['hashes', 'overlays', 'dependencyProvenance', 'changedPaths', 'runtimeComparison', 'newHelperProvenance']) if (JSON.stringify(before[key]) !== JSON.stringify(result[key])) throw Error('Before/after provenance mismatch: ' + key);
+  if (changedInputs.length) throw Error('Before/after source changes: ' + changedInputs.join(', '));
+}
+console.log(JSON.stringify({ phase, counts: result.counts, originalDelta: result.originalDelta, runtimeComparison: result.runtimeComparison, inputSnapshotSHA256: result.inputSnapshotSHA256, allFifteenOwnerFreezeHashesMatched: true, afterMatchesBefore: phase === 'after' ? true : null }, null, 2));

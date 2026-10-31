@@ -38,6 +38,7 @@ trap cleanup EXIT
 } > native-ui-logs/toolchain.log 2>&1
 npx --no-install expo prebuild --platform ios --no-install \
   --skip-dependency-update react,react-native 2>&1 | tee native-ui-logs/prebuild.log
+python3 scripts/quality/native-ui-ios-url-trace.py
 python3 - <<'PY'
 from pathlib import Path
 import plistlib

@@ -1,0 +1,47 @@
+{
+  "startedAt": "2026-10-31T17:31:18.034322+00:00",
+  "completedAt": "2026-10-31T17:31:18.943384+00:00",
+  "command": [
+    "env",
+    "-u",
+    "NODE_TEST_CONTEXT",
+    "node",
+    "--test",
+    "--test-isolation=none",
+    "--test-reporter=tap",
+    "tests/quality/native-ios-url-trace.cjs"
+  ],
+  "exitCode": 0,
+  "wallSeconds": 0.909068084001774,
+  "nodeVersion": "v24.22.1",
+  "pythonVersion": "Python 3.12.14",
+  "execution": "approved subprocess-enabled local execution; real patcher and shell, temporary fixtures and stubbed provider/build programs",
+  "before": {
+    "scripts/quality/native-ui-ios-url-trace.py": "fa37e06f5ee645af3fb29aae3f9e080cba24ab276480ac3a981731ee612fd885",
+    "tests/quality/native-ios-url-trace.cjs": "44e412813aca0f7beae73a1c4959e0056aa9a28af0740ee9d49d6cb72bafb75f",
+    "scripts/quality/test-ios-app-ui.sh": "44cd612cd01f9b2a01208682bc3edcc34288eca8c55079a6357d4469e2c0b1e1",
+    "scripts/quality/prepare-native-ui.cjs": "f72312199ded22f09fcd818b2df01c300175660cbf87b723a08ad52bb7c334ad",
+    "tests/quality/native-auth-diagnostics.cjs": "b929623457a05c3bd236754ecddbf4f70b6bdf850ab093761326d36fd593f808",
+    "plugins/withVoipPushKit.js": "badab0e2ea3925e85cf7fae8a7e492f01b7af824c3132c937fa2c4a527ffda4a",
+    "node_modules/expo/template.tgz": "f5e34bf1663c4749ccf7d9b3d79b1cd3107087accd5df73cffb9cfe0a213c2b6",
+    "node_modules/expo/package.json": "ba7bb712b504740da353e913fc09a13fcda261811b83ce4c14506f98d2cc7365",
+    "package-lock.json": "647ee46e04dee88a568cafb274dfc3172795efca34eaf8407cd86a8fe3a7ca40"
+  },
+  "after": {
+    "scripts/quality/native-ui-ios-url-trace.py": "fa37e06f5ee645af3fb29aae3f9e080cba24ab276480ac3a981731ee612fd885",
+    "tests/quality/native-ios-url-trace.cjs": "44e412813aca0f7beae73a1c4959e0056aa9a28af0740ee9d49d6cb72bafb75f",
+    "scripts/quality/test-ios-app-ui.sh": "44cd612cd01f9b2a01208682bc3edcc34288eca8c55079a6357d4469e2c0b1e1",
+    "scripts/quality/prepare-native-ui.cjs": "f72312199ded22f09fcd818b2df01c300175660cbf87b723a08ad52bb7c334ad",
+    "tests/quality/native-auth-diagnostics.cjs": "b929623457a05c3bd236754ecddbf4f70b6bdf850ab093761326d36fd593f808",
+    "plugins/withVoipPushKit.js": "badab0e2ea3925e85cf7fae8a7e492f01b7af824c3132c937fa2c4a527ffda4a",
+    "node_modules/expo/template.tgz": "f5e34bf1663c4749ccf7d9b3d79b1cd3107087accd5df73cffb9cfe0a213c2b6",
+    "node_modules/expo/package.json": "ba7bb712b504740da353e913fc09a13fcda261811b83ce4c14506f98d2cc7365",
+    "package-lock.json": "647ee46e04dee88a568cafb274dfc3172795efca34eaf8407cd86a8fe3a7ca40"
+  },
+  "allHashesUnchanged": true,
+  "tap": {
+    "path": "docs/quality/native-full-app-20261031/native-ios-url-trace-independent-review/focused-tests.tap",
+    "bytes": 5326,
+    "sha256": "fdc903c1a801fe29356e6c2c5c310834168d38a52fee190b626c7521ef2cd266"
+  }
+}

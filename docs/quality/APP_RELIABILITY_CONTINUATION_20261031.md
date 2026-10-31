@@ -5,6 +5,34 @@ native acceptance work. It separates implemented changes, observed results and
 remaining release gates. It does not claim that every product feature or every
 physical-device flow is complete.
 
+## Prepared combined repair candidate (v8)
+
+The next candidate is reviewed and frozen across **15 source/test paths**.
+Two production components change: authorized reader entry is immediate, and
+page-turn settlement cannot wait indefinitely for a native animation callback.
+The remaining paths implement the reviewed Android Mesa/host diagnostics,
+QA-only native URL observation, provenance and focused regressions.
+
+The disjoint focused groups total **219 passing formal cases**: 52 existing
+Crashpad/auth/provenance, 25 renderer, 47 host-diagnostic, 42 reader/media,
+30 page-turn and 23 URL-trace cases. The 15 auth/provenance cases rerun with
+the URL helper are already part of the 52, and independent reruns are not added.
+The final combined native TypeScript, scoped ESLint, language syntax and
+whitespace gate passes. All 1,541 selected source/configuration/dependency
+inputs match before and after that gate. The actual preparation inventory has
+501 unique original sources, six overlays and nine installed dependency files.
+Only the two intended production components differ among 496 scoped runtime
+paths. The final receipt and separate 501-source manifest are sealed.
+
+The original native flow commands, required assertions, deadlines, native
+encoders and production movie capability remain unchanged. Android's next
+host-renderer isolation intentionally excludes guest Vulkan. Actual renderer
+selection, generated Swift compilation/log delivery and both complete installed
+journeys remain pending. Repair-cycle progress remains **5 of 6 milestones**.
+
+[Final combined static and provenance gate](native-full-app-20261031/native-final-combined-static-provenance-gate.json) ·
+[Final expected native source manifest](native-full-app-20261031/native-final-combined-source-provenance-manifest.json)
+
 ## Current published repair candidate: b5c9c82b (v7)
 
 Repair-cycle progress: **5 of 6 milestones complete**. The remaining milestone
@@ -160,7 +188,12 @@ pairs; all observed outcomes fulfilled, with maximum wait 0.207 ms, hold
 2.956 ms and storage duration 2.681 ms. Callbacks continued during that window,
 so a continuous whole-JavaScript freeze is not supported. The 182 dropped auth
 events lie in an earlier retained-boundary interval, outside these reader and
-capture windows. Native event-delivery delay remains under investigation.
+capture windows. A native `UIOpenURLAction` scene update appears at
+17:10:09.985 UTC, six recorded milliseconds before the JavaScript listener;
+it does not identify the exact expected URL and these clocks were not
+independently calibrated. This narrows the observed sequence without proving
+the reason for late delivery. Pinned Maestro waits for `simctl openurl` and
+visual settling, not an acknowledgment that the app received the URL.
 
 Earlier supporting results and native failures below belong to `f4c35f32` and
 are not counted as new runtime passes for this source. Milestone 6 remains open.
@@ -289,22 +322,29 @@ delimiters while preserving a turn for equivalent fresh arrays. The duration
 clock cannot guarantee wall-clock progress while JavaScript itself is blocked.
 
 These four production/test source paths are reviewed and frozen, separate from
-the eight Android QA paths. Scoped lint and whitespace checks pass. A full
-frozen-candidate static/provenance gate remains before publication. No fresh
-native success or resolution of the separate capture-link delay is claimed.
+the eight Android QA paths. They are saved at
+`5e6a789eec5e6fc332a5e23548ba3d106809ce3b`; all 26 checkpoint files and 463,639
+bytes were read back and verified. Scoped lint and whitespace checks pass, and
+the final combined static/provenance gate above is green. No fresh native
+success or resolution of the separate capture-link delay is claimed.
 
-A small QA-only native URL-boundary diagnostic is being prepared for the next
-run. It will timestamp entry and deferred exit around the existing generated
-AppDelegate forwarding expression, with bounded numeric/boolean output and
-no raw URL. It must preserve forwarding order, short-circuit behavior, return
-value, route logic and test deadlines, and fail closed if the exact generated
-method differs. No automation-mode or runtime workaround is justified by the
-current correlation alone.
+A small QA-only native URL-boundary diagnostic is now implemented and
+independently reviewed. It timestamps entry and deferred exit around the exact
+generated AppDelegate forwarding expression, with numeric/boolean output and
+no raw URL. The observer is capped at 16 matching-scheme QA calls and 32 records.
+Complete generated before/after Swift bytes and their run/hash proof are retained.
+Forwarding order, short-circuit behavior, return value, route logic and test
+deadlines are preserved; mismatched generated source or provenance stops before
+compilation. Its 23 new focused cases pass independently. Actual Swift compilation
+and simulator log delivery remain next-run gates. No automation-mode or runtime
+workaround is justified by the current correlation alone.
 
 [Reader-entry repair](native-full-app-20261031/native-reader-entry-repair.json) ·
 [Independent reader-entry review](native-full-app-20261031/native-reader-entry-independent-review.json) ·
 [Page-turn completion repair](native-full-app-20261031/native-page-turn-completion-repair.json) ·
-[Independent page-turn review](native-full-app-20261031/native-page-turn-independent-review.json)
+[Independent page-turn review](native-full-app-20261031/native-page-turn-independent-review.json) ·
+[Native URL trace and source investigation](native-full-app-20261031/native-ios-url-trace-repair.json) ·
+[Independent native URL trace review](native-full-app-20261031/native-ios-url-trace-independent-review.json)
 
 ## Previous published repair candidate: f4c35f32 (v6)
 

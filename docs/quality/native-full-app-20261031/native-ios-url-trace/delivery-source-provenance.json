@@ -1,0 +1,367 @@
+{
+  "schemaVersion": 1,
+  "packageLock": {
+    "path": "package-lock.json",
+    "sha256": "647ee46e04dee88a568cafb274dfc3172795efca34eaf8407cd86a8fe3a7ca40",
+    "matchesB5ArtifactOriginal": true
+  },
+  "packages": {
+    "react-native": {
+      "lockedVersion": "0.81.5",
+      "installedVersion": "0.81.5",
+      "resolved": "https://registry.npmjs.org/react-native/-/react-native-0.81.5.tgz",
+      "integrity": "sha512-1w+/oSjEXZjMqsIvmkCRsOc8UBYv163bTWKTI8+1mxztvQPhCRYGTvZ/PL1w16xXHneIj/SLGfxWg2GWN2uexw=="
+    },
+    "expo": {
+      "lockedVersion": "54.0.37",
+      "installedVersion": "54.0.37",
+      "resolved": "https://registry.npmjs.org/expo/-/expo-54.0.37.tgz",
+      "integrity": "sha512-afzbtO4i/K9ZCrzyLgEOaXW56w/yuAK61JkCOMrw/S/VFCAp6YwKWA494X5mIcrVmRAmclv/ec7ga8ndTkzhxw=="
+    },
+    "expo-modules-core": {
+      "lockedVersion": "3.0.30",
+      "installedVersion": "3.0.30",
+      "resolved": "https://registry.npmjs.org/expo-modules-core/-/expo-modules-core-3.0.30.tgz",
+      "integrity": "sha512-a6IrpAn/Jbmwxi9L+hMmXKpNqnkUpoF7WHOpn02rVLyax2J0gB1vvCVE5rNydplEnt41Q6WxQwvcOjZaIkcSUg=="
+    }
+  },
+  "installedSourceFiles": [
+    {
+      "path": "node_modules/react-native/Libraries/LinkingIOS/RCTLinkingManager.mm",
+      "bytes": 6758,
+      "sha256": "315b24e32ce7dce093341ff327168772910170d049b6610e1c3a1d84b174825e",
+      "reviewedLineRanges": [
+        [
+          19,
+          23
+        ],
+        [
+          32,
+          43
+        ],
+        [
+          55,
+          61
+        ],
+        [
+          85,
+          88
+        ]
+      ],
+      "meaning": "Native URL forwarding posts a notification synchronously; the observing module emits url.",
+      "primarySourceUrl": "https://github.com/facebook/react-native/blob/v0.81.5/packages/react-native/Libraries/LinkingIOS/RCTLinkingManager.mm"
+    },
+    {
+      "path": "node_modules/react-native/React/Modules/RCTEventEmitter.m",
+      "bytes": 3550,
+      "sha256": "a2d86486fa5faa47d058ac73651809ae689347cd3f6965a584da6efe3adfbc02",
+      "reviewedLineRanges": [
+        [
+          41,
+          74
+        ]
+      ],
+      "meaning": "Listener-gated event emission invokes the callable JavaScript module.",
+      "primarySourceUrl": "https://github.com/facebook/react-native/blob/v0.81.5/packages/react-native/React/Modules/RCTEventEmitter.m"
+    },
+    {
+      "path": "node_modules/react-native/React/Base/RCTCallableJSModules.m",
+      "bytes": 1475,
+      "sha256": "0b7e388b8b096bc8a4a118dc7bb8e80d2217ebaf7291487ef68811821dee2534",
+      "reviewedLineRanges": [
+        [
+          30,
+          51
+        ]
+      ],
+      "meaning": "Calls the bridge enqueue path or the bridgeless invoker; does not imply immediate JavaScript execution.",
+      "primarySourceUrl": "https://github.com/facebook/react-native/blob/v0.81.5/packages/react-native/React/Base/RCTCallableJSModules.m"
+    },
+    {
+      "path": "node_modules/react-native/ReactCommon/react/runtime/platform/ios/ReactCommon/RCTInstance.mm",
+      "bytes": 23876,
+      "sha256": "fe00b2b7987f793398436e90c98fe2980959a29c74cabce5a95e233e07acf470",
+      "reviewedLineRanges": [
+        [
+          150,
+          160
+        ],
+        [
+          181,
+          188
+        ]
+      ],
+      "meaning": "Bridgeless callable-module invocation reaches ReactInstance.",
+      "primarySourceUrl": "https://github.com/facebook/react-native/blob/v0.81.5/packages/react-native/ReactCommon/react/runtime/platform/ios/ReactCommon/RCTInstance.mm"
+    },
+    {
+      "path": "node_modules/react-native/ReactCommon/react/runtime/ReactInstance.cpp",
+      "bytes": 24817,
+      "sha256": "e38c949df419ee4562f128abb3995eb09e251dc4e4ca6b627168190a9dbfaaa8",
+      "reviewedLineRanges": [
+        [
+          70,
+          93
+        ],
+        [
+          142,
+          155
+        ],
+        [
+          274,
+          334
+        ]
+      ],
+      "meaning": "Module call executes through the buffered runtime executor and runtime scheduler onto the JS thread.",
+      "primarySourceUrl": "https://github.com/facebook/react-native/blob/v0.81.5/packages/react-native/ReactCommon/react/runtime/ReactInstance.cpp"
+    },
+    {
+      "path": "node_modules/expo/ios/AppDelegates/ExpoAppDelegate.swift",
+      "bytes": 10556,
+      "sha256": "02d60c4848d2df3f76e160d60efde619a1e30f5c5b4ed64e75fbedd9a33ee14a",
+      "reviewedLineRanges": [
+        [
+          260,
+          265
+        ]
+      ],
+      "meaning": "Expo delegates URL handling to its subscriber manager.",
+      "packageUrl": "https://registry.npmjs.org/expo/-/expo-54.0.37.tgz"
+    },
+    {
+      "path": "node_modules/expo-modules-core/ios/AppDelegates/ExpoAppDelegateSubscriberManager.swift",
+      "bytes": 17481,
+      "sha256": "7edf0a7bb2f7282ff672d486257ff7fa62af6131163fa9919966465e5ccd5c54",
+      "reviewedLineRanges": [
+        [
+          442,
+          449
+        ]
+      ],
+      "meaning": "Subscriber URL handlers are reduced synchronously.",
+      "packageUrl": "https://registry.npmjs.org/expo-modules-core/-/expo-modules-core-3.0.30.tgz"
+    },
+    {
+      "path": "plugins/withVoipPushKit.js",
+      "bytes": 3664,
+      "sha256": "badab0e2ea3925e85cf7fae8a7e492f01b7af824c3132c937fa2c4a527ffda4a",
+      "reviewedLineRanges": [
+        [
+          39,
+          51
+        ]
+      ],
+      "meaning": "Current injector changes PushKit import, startup and extension; it does not replace the URL method.",
+      "matchesPublishedB5GitBlob": true
+    },
+    {
+      "path": "tests/native/entry.js",
+      "bytes": 4104,
+      "sha256": "826953456afbe130b718cc4c7a2cd8bfdfb584c88d0835291c7dad409d57528e",
+      "reviewedLineRanges": [
+        [
+          32,
+          40
+        ],
+        [
+          48,
+          81
+        ]
+      ],
+      "meaning": "Existing JavaScript receipt and parser/action observations remain unchanged.",
+      "matchesPublishedB5GitBlob": true
+    }
+  ],
+  "expoTemplate": {
+    "packagePath": "node_modules/expo/template.tgz",
+    "packageUrl": "https://registry.npmjs.org/expo/-/expo-54.0.37.tgz",
+    "member": "package/ios/HelloWorld/AppDelegate.swift",
+    "sha256": "614cbb9b09ac561c762a384c658d3c2a0cd28b30cc29b6e72cb25def9783e3d5",
+    "bytes": 2275,
+    "limit": "Installed template source; the actual b5 generated AppDelegate was not retained. New QA preparation will retain it."
+  },
+  "maestro": {
+    "version": "2.11.0",
+    "tag": "cli-2.11.0",
+    "commit": "c8c361be1cc89b2e742f185466a302a22778be6b",
+    "treeSHA256": "5c70e7ae1b034ce3f843bd3902a173ad2318fa1bf36bf74c657cb4e037afd162",
+    "files": [
+      {
+        "path": "maestro-ios-xctest-runner/maestro-driver-iosUITests/maestro_driver_iosUITests.swift",
+        "url": "https://raw.githubusercontent.com/mobile-dev-inc/Maestro/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-ios-xctest-runner/maestro-driver-iosUITests/maestro_driver_iosUITests.swift",
+        "bytes": 5074,
+        "sha256": "c6055665f7fed629f861d8684697518248b468a15d4931c352b7208ecc940cbe",
+        "gitBlob": "e41c4ec88b7b54777dfc4ed93382248c4376f4ac",
+        "matchesPinnedTree": true
+      },
+      {
+        "path": "maestro-client/src/main/java/maestro/drivers/IOSDriver.kt",
+        "url": "https://raw.githubusercontent.com/mobile-dev-inc/Maestro/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-client/src/main/java/maestro/drivers/IOSDriver.kt",
+        "bytes": 27889,
+        "sha256": "f4b0990e891edf7401c0cc163f11247c3a095dcd9d45e8c1977ba605e245a4d3",
+        "gitBlob": "8af50e6b65d983437cdd3f81fe2c20dc0b1a6cb9",
+        "matchesPinnedTree": true
+      },
+      {
+        "path": "maestro-ios-xctest-runner/maestro-driver-iosUITests/Routes/Handlers/TouchRouteHandler.swift",
+        "url": "https://raw.githubusercontent.com/mobile-dev-inc/Maestro/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-ios-xctest-runner/maestro-driver-iosUITests/Routes/Handlers/TouchRouteHandler.swift",
+        "bytes": 1906,
+        "sha256": "a0b652c5b9a559595107790d42e29563e2d9c2b5f997f823b1d3d58bb587941a",
+        "gitBlob": "648b7a1ff4c31cdaacc18e81b8e925a3f36380d3",
+        "matchesPinnedTree": true
+      },
+      {
+        "path": "maestro-ios-xctest-runner/maestro-driver-iosUITests/Routes/Handlers/ViewHierarchyHandler.swift",
+        "url": "https://raw.githubusercontent.com/mobile-dev-inc/Maestro/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-ios-xctest-runner/maestro-driver-iosUITests/Routes/Handlers/ViewHierarchyHandler.swift",
+        "bytes": 20382,
+        "sha256": "cc55cb4523b9208a6852f85851fef57355b105114bf202932d3d0a2f87ac76a8",
+        "gitBlob": "1561f4dcc7c71d2c22ecc489014a1899636505c5",
+        "matchesPinnedTree": true
+      },
+      {
+        "path": "maestro-ios-xctest-runner/maestro-driver-iosUITests/Routes/XCTest/AXClientSwizzler.swift",
+        "url": "https://raw.githubusercontent.com/mobile-dev-inc/Maestro/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-ios-xctest-runner/maestro-driver-iosUITests/Routes/XCTest/AXClientSwizzler.swift",
+        "bytes": 1862,
+        "sha256": "e41e4a66db140f61879f3ea6b766443db608f4ed403f9abb759a0e526fbe46f9",
+        "gitBlob": "31142fc48eb7a5d42c54fd715da215d5d61e693f",
+        "matchesPinnedTree": true
+      },
+      {
+        "path": "maestro-ios-xctest-runner/maestro-driver-iosUITests/Routes/XCTest/RunningApp.swift",
+        "url": "https://raw.githubusercontent.com/mobile-dev-inc/Maestro/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-ios-xctest-runner/maestro-driver-iosUITests/Routes/XCTest/RunningApp.swift",
+        "bytes": 1536,
+        "sha256": "d5bd29106a68cc39e81b1724334fe5d18a530b86e1cb5819105a380ac9295851",
+        "gitBlob": "4c820b765f323a3d156c029defc9a7e1e28bd9b0",
+        "matchesPinnedTree": true
+      },
+      {
+        "path": "maestro-ios-xctest-runner/maestro-driver-iosUITests/Routes/XCTestHTTPServer.swift",
+        "url": "https://raw.githubusercontent.com/mobile-dev-inc/Maestro/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-ios-xctest-runner/maestro-driver-iosUITests/Routes/XCTestHTTPServer.swift",
+        "bytes": 1050,
+        "sha256": "991fb1f783bff1f33c090646cbc752d6061000f3b70a29ff24b44af2e347a871",
+        "gitBlob": "30874d4b493caacb0d181ffd3aa932bb2d74b484",
+        "matchesPinnedTree": true
+      },
+      {
+        "path": "maestro-ios-xctest-runner/maestro-driver-iosUITests/Categories/XCUIApplicationProcess+FBQuiescence.m",
+        "url": "https://raw.githubusercontent.com/mobile-dev-inc/Maestro/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-ios-xctest-runner/maestro-driver-iosUITests/Categories/XCUIApplicationProcess+FBQuiescence.m",
+        "bytes": 4669,
+        "sha256": "a88195c261caa60f51aa80d534aa393550d3e37a589bceaa99a4ea80dd0a902f",
+        "gitBlob": "a31eaea0be647c7ac2393e420fdd0adeac3f17f5",
+        "matchesPinnedTree": true
+      },
+      {
+        "path": "maestro-ios/src/main/java/ios/LocalIOSDevice.kt",
+        "url": "https://raw.githubusercontent.com/mobile-dev-inc/Maestro/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-ios/src/main/java/ios/LocalIOSDevice.kt",
+        "bytes": 4741,
+        "sha256": "4c868cb335898fa95947398ec4998c562fcc16bacd601049e2d0d31296820655",
+        "gitBlob": "afe8c683dc54f0dad201150adc0a0c9e32424028",
+        "matchesPinnedTree": true
+      },
+      {
+        "path": "maestro-ios/src/main/java/ios/xctest/XCTestIOSDevice.kt",
+        "url": "https://raw.githubusercontent.com/mobile-dev-inc/Maestro/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-ios/src/main/java/ios/xctest/XCTestIOSDevice.kt",
+        "bytes": 7402,
+        "sha256": "db6b7ac98723d866cd105a919f9ccfef118a6c59b14d6a561f79e85a57b91188",
+        "gitBlob": "bf5759530c924ef12b85c0906adf3346ab14d933",
+        "matchesPinnedTree": true
+      },
+      {
+        "path": "maestro-ios-driver/src/main/kotlin/device/SimctlIOSDevice.kt",
+        "url": "https://raw.githubusercontent.com/mobile-dev-inc/Maestro/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-ios-driver/src/main/kotlin/device/SimctlIOSDevice.kt",
+        "bytes": 6212,
+        "sha256": "5e683075148b70ec2273c7b85a4f6f77c0b0fbdf228d9ed6eb0e38461f55cf4f",
+        "gitBlob": "2894584cb188ce39131a433a7280becee2c02676",
+        "matchesPinnedTree": true
+      },
+      {
+        "path": "maestro-ios-driver/src/main/kotlin/util/LocalSimulatorUtils.kt",
+        "url": "https://raw.githubusercontent.com/mobile-dev-inc/Maestro/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-ios-driver/src/main/kotlin/util/LocalSimulatorUtils.kt",
+        "bytes": 23135,
+        "sha256": "22ef8443efede84655fc329fac737cf8c64ad62f9e83c22ee3ce7c148ae9ac39",
+        "gitBlob": "2f8c6b2e20ccb4032c1a6d3046ca9e961cba5994",
+        "matchesPinnedTree": true
+      },
+      {
+        "path": "maestro-ios-driver/src/main/kotlin/util/CommandLineUtils.kt",
+        "url": "https://raw.githubusercontent.com/mobile-dev-inc/Maestro/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-ios-driver/src/main/kotlin/util/CommandLineUtils.kt",
+        "bytes": 1864,
+        "sha256": "c786f370eb7387bb226ce00a55caa8b81c7cbbc90c18814ba26f845411aaaf4b",
+        "gitBlob": "2014d0d02e7745a90254062628735000a8187483",
+        "matchesPinnedTree": true
+      },
+      {
+        "path": "maestro-orchestra/src/main/java/maestro/orchestra/yaml/YamlOpenLink.kt",
+        "url": "https://raw.githubusercontent.com/mobile-dev-inc/Maestro/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-orchestra/src/main/java/maestro/orchestra/yaml/YamlOpenLink.kt",
+        "bytes": 515,
+        "sha256": "d01241abd3de9c7d7f5ca6dacdfca6c0b31e411368396382f1ee31bb681a95f3",
+        "gitBlob": "fa0eb54a421855324e269c6159d2527c7c4b0f46",
+        "matchesPinnedTree": true
+      },
+      {
+        "path": "maestro-client/src/main/java/maestro/Maestro.kt",
+        "url": "https://raw.githubusercontent.com/mobile-dev-inc/Maestro/c8c361be1cc89b2e742f185466a302a22778be6b/maestro-client/src/main/java/maestro/Maestro.kt",
+        "bytes": 31759,
+        "sha256": "4b1b2f901f909d850970f3805e52e1b6ccf1895d28aa2b8d51ac054a8bb553fa",
+        "gitBlob": "1f850dce7dda23de26c7ea2a4108f29ce8a00462",
+        "matchesPinnedTree": true
+      }
+    ],
+    "allPinnedGitBlobsVerified": true,
+    "openLinkCompletion": {
+      "chain": [
+        "Maestro.openLink calls driver and then ordinary visual settling",
+        "IOSDriver.openLink delegates link only; appId/autoVerify/browser are not delivery checks",
+        "LocalIOSDevice delegates to SimctlIOSDevice",
+        "LocalSimulatorUtils invokes xcrun simctl openurl",
+        "CommandLineUtils waits for subprocess completion/exit code"
+      ],
+      "reviewedRanges": {
+        "maestro-client/src/main/java/maestro/Maestro.kt": [
+          589,
+          594
+        ],
+        "maestro-client/src/main/java/maestro/drivers/IOSDriver.kt": [
+          451,
+          455
+        ],
+        "maestro-ios/src/main/java/ios/LocalIOSDevice.kt": [
+          117,
+          120
+        ],
+        "maestro-ios-driver/src/main/kotlin/device/SimctlIOSDevice.kt": [
+          109,
+          113
+        ],
+        "maestro-ios-driver/src/main/kotlin/util/LocalSimulatorUtils.kt": [
+          379,
+          389
+        ],
+        "maestro-ios-driver/src/main/kotlin/util/CommandLineUtils.kt": [
+          16,
+          54
+        ]
+      },
+      "yamlFields": [
+        "link",
+        "browser",
+        "autoVerify",
+        "label",
+        "optional"
+      ],
+      "finding": "No iOS URL receipt acknowledgment or direct synchronous delivery option is exposed by this pinned path. Process exit plus a visually settled OS prompt is not app-route acceptance.",
+      "recommendation": "Keep the exact existing Open-prompt handling and mandatory heading assertion unchanged. Do not substitute autoVerify, relaunch, routing workarounds, extra sleeps or longer deadlines."
+    }
+  },
+  "generalPrimaryDocumentation": [
+    {
+      "url": "https://reactnative.dev/docs/0.81/linking",
+      "finding": "A link received by an existing app is delivered through the Linking url event; documented AppDelegate integration forwards to RCTLinkingManager."
+    }
+  ],
+  "limits": [
+    "Package/source inspection and the b5 locked install are not native queue latency measurements.",
+    "No actual b5 generated AppDelegate bytes were in the artifact.",
+    "No private Apple automation-mode implementation was inspected; its log state is not a causal diagnosis."
+  ]
+}
