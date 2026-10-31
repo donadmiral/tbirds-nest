@@ -1,0 +1,402 @@
+{
+  "checkedAt": "2026-10-31T05:37:12.622Z",
+  "runtime": "153.0.8010.12",
+  "scope": "Actual ProfilePage, ProfilePosts, MemoryAlbumBook, MemoryAlbumView and book editor in Chromium. Auth/RPC, media signing and Next routing use synthetic local adapters. Frame samples measure component content presence, not hosted RSC latency, physical-device performance or GPU paint time.",
+  "checks": [
+    {
+      "name": "real book Back restores owner posts and four books on every sampled frame during held refreshes",
+      "passed": true,
+      "frames": 45,
+      "firstProfileFrameMs": 37.90000000002328,
+      "blankProfileFrames": 0,
+      "postsReads": 1,
+      "bookReads": 1
+    },
+    {
+      "name": "actual editor save invalidates off-route shelf revision and returns current title and private visibility",
+      "passed": true,
+      "revision": 1,
+      "audience": "only_me",
+      "pinnedSave": true
+    },
+    {
+      "name": "rapid successful shelf changes cancel the stale read and coalesce to the latest book revision",
+      "passed": true,
+      "mutations": 8,
+      "reads": 2,
+      "staleReadAborted": true
+    },
+    {
+      "name": "A to B to A clears warm content and cancels old transport before fresh results appear",
+      "passed": true,
+      "abortedReads": 2
+    },
+    {
+      "name": "visitor return waits for current visibility and removes revoked posts and books",
+      "passed": true
+    }
+  ],
+  "frames": [
+    {
+      "at": 522.8,
+      "sinceClickMs": 37.90000000002328,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 539.4,
+      "sinceClickMs": 49,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 556.1,
+      "sinceClickMs": 53.40000000002328,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 572.8,
+      "sinceClickMs": 64.5,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 589.4,
+      "sinceClickMs": 79.70000000001164,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 606,
+      "sinceClickMs": 96.30000000004657,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 622.8,
+      "sinceClickMs": 112.70000000001164,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 639.4,
+      "sinceClickMs": 129.20000000001164,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 656.1,
+      "sinceClickMs": 145.80000000004657,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 672.8,
+      "sinceClickMs": 162.5,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 689.4,
+      "sinceClickMs": 179.10000000003492,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 706,
+      "sinceClickMs": 195.80000000004657,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 722.8,
+      "sinceClickMs": 212.5,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 739.4,
+      "sinceClickMs": 229.20000000001164,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 756.1,
+      "sinceClickMs": 245.90000000002328,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 772.7,
+      "sinceClickMs": 262.5,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 789.4,
+      "sinceClickMs": 279.1000000000349,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 806.1,
+      "sinceClickMs": 295.9000000000233,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 822.7,
+      "sinceClickMs": 312.5,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 839.5,
+      "sinceClickMs": 329.20000000001164,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 856.1,
+      "sinceClickMs": 345.9000000000233,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 872.7,
+      "sinceClickMs": 362.5,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 889.4,
+      "sinceClickMs": 379.20000000001164,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 906.1,
+      "sinceClickMs": 395.9000000000233,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 922.8,
+      "sinceClickMs": 412.5,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 939.4,
+      "sinceClickMs": 429.20000000001164,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 956,
+      "sinceClickMs": 445.9000000000233,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 972.7,
+      "sinceClickMs": 462.5,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 989.4,
+      "sinceClickMs": 479.1000000000349,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 1006,
+      "sinceClickMs": 495.80000000004657,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 1022.7,
+      "sinceClickMs": 512.5,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 1039.4,
+      "sinceClickMs": 529.2000000000116,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 1056.1,
+      "sinceClickMs": 545.8000000000466,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 1072.7,
+      "sinceClickMs": 562.6000000000349,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 1089.4,
+      "sinceClickMs": 579.2000000000116,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 1106.1,
+      "sinceClickMs": 595.8000000000466,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 1122.7,
+      "sinceClickMs": 612.5,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 1139.4,
+      "sinceClickMs": 629.2000000000116,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 1156.1,
+      "sinceClickMs": 645.8000000000466,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 1172.8,
+      "sinceClickMs": 662.4000000000233,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 1189.4,
+      "sinceClickMs": 679.2000000000116,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 1206.1,
+      "sinceClickMs": 695.8000000000466,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 1222.7,
+      "sinceClickMs": 712.5,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 1239.4,
+      "sinceClickMs": 729.2000000000116,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    },
+    {
+      "at": 1256,
+      "sinceClickMs": 745.8000000000466,
+      "posts": 1,
+      "books": 4,
+      "loadingPosts": false,
+      "loadingBooks": false
+    }
+  ],
+  "browserErrors": []
+}

@@ -5,13 +5,65 @@ native acceptance work. It separates implemented changes, observed results and
 remaining release gates. It does not claim that every product feature or every
 physical-device flow is complete.
 
+## Current saved checkpoint
+
+Repair-cycle progress: **5 of 6 milestones complete**. The remaining milestone
+is complete installed-app acceptance on iPhone Simulator and Android Emulator.
+This is a milestone count, not a whole-product completion percentage. The
+[review checklist](https://github.com/donadmiral/tbirds-nest/pull/3) and
+[native workflow](https://github.com/donadmiral/tbirds-nest/actions/runs/41173170193)
+remain available independently of the chat connection.
+
+The published source is `e173b2dbcf253342be5683fa85f102aa38065411`. Its tested PR
+merge is `e6ca24e27b00207344eb7989ed53d2305cb04cf3`. Both have tree
+`37ca8db90469d32a2a2d7b3069db54b522926530`. These identities were checked against
+the fetched repository and the CI artifacts.
+
+| Gate on this source | Observed result |
+| --- | --- |
+| Root regression CI | 1,713 passed; no failures or skips |
+| Web and operations CI | 683 and 195 passed |
+| TypeScript and Edge | All three TypeScript stages passed; two Edge TLS cases passed |
+| Backend fixtures | 314 Node and 883 RPC cases passed, with three conditional skips in each mode; all six skips have passing counterparts |
+| Browser UI | 131 scenarios passed; 116 real-Next transition samples retained navigation |
+| Browser media and layouts | CI reported 18 encoded outputs and 288 cover layouts; the artifact retains reports rather than movie binaries |
+| Standalone native encoders | 58 cases passed; artifact/source hashes and 57 media hashes and lengths verified |
+| Swift and Kotlin integration | Both compilation jobs passed |
+| Complete installed native apps | Both required app-flow jobs were still running at the latest status check |
+
+The final local root gate passed all 166 selected files: 1,712 formal cases plus
+the separate successful 33-check auth program. CI counts that program as one
+wrapper case, explaining the 1,713 CI count; overlapping counts are not added
+together. All 43 new timer, tab-ID, content-selector and required-flow cases are
+included.
+
+The current native compile receipt records authenticated CI status and artifact
+metadata, not a fresh download of the compiler archives. The encoder archives
+were downloaded and checked separately. Full native navigation, saved-account
+readback and actual capture remain separate gates. Both navigation and capture
+must pass, even though each is attempted independently to retain useful evidence
+after a failure.
+
+Both exact-source web/admin builds were intentionally ignored by the existing
+build step. The aliases retain the READY web `ab281bca` and admin `26e80ae9`
+deployments, whose complete relevant input sets match this candidate. The hosted
+journeys below remain attached to those unchanged deployed builds.
+
+[Current quality receipt](live-app-20261031/ci-quality-e173b2db.json) ·
+[Current browser receipt](live-app-20261031/browser-quality-e173b2db.json) ·
+[Current deployment binding](live-app-20261031/deployment-review-e173b2db.json) ·
+[Current native compile status](native-full-app-20261031/native-compile-e173b2db-status.json) ·
+[Current native encoder evidence](native-full-app-20261031/native-encoders-e173b2db-source-equivalence.json)
+
+## Preceding checkpoints
+
 The preceding completed type/quality and browser CI checkpoint is
 `26e80ae96647884e7f2764bdbb1884fd5aabcff5`. Its tested PR merge is
 `6373021f8dcbb2bc614039e74937d2acb0ff2d3e`. Both have tree
 `1c10d4cc20fcfd5a0d4e82ba0121c51e90274c03`. Complete native application
 acceptance is tracked separately below.
 
-## Published baseline and verified follow-up candidate
+### Published baseline and follow-up history
 
 The additional native-tab, simulator-storage and cold-web-navigation repairs are
 previously published at `ab281bcaab525331930f6238f97e46c169eee1ee`. The fetched PR merge
@@ -323,6 +375,14 @@ observations are retained without a blanket navigation-speed claim.
 
 ## Native acceptance
 
+The current `e173b2db` standalone encoder jobs passed all 58 cases, and both
+Swift/Kotlin integration compilation jobs passed. Source and fixture hashes,
+archive digests, and 57 retained media hashes and lengths are verified in the
+current receipts linked at the top of this report. Those source-equal outputs
+were not independently decoded again. The complete installed-app workflow is
+still running. The history below explains the defects found and repaired before
+that run; earlier successes and failures remain bound to their named source.
+
 The preceding `26e80ae9` standalone encoder jobs passed 58 CI cases: 11 iOS memory, 8 iOS
 story and 39 Android cases. ZIP digests, 57 retained media hashes and sizes, and
 the recorded implementation/acceptance source hashes were verified against
@@ -604,7 +664,7 @@ controlled Maestro responses verify orchestration rather than native runtime.
 ## Hosted backend status
 
 The latest saved read-only QA business-auth postflight observed private stage 3.
-The catalogue check at 04:48:32 UTC and migration-history follow-up at 04:50:28 UTC
+The catalogue check at 05:44:32 UTC and migration-history follow-up at 05:44:47 UTC
 on 2026-10-31 still matched the expected catalogue fingerprint
 `2f92a9d038364736fa2413bb6d05a160`.
 
@@ -612,12 +672,24 @@ It verified 99 catalogue records, unchanged migration names/versions/SQL hashes,
 no stage 4 private function, no music schema, no notification-event jobs or claim
 function, and no active matching business-auth statement.
 
-[Current read-only postflight](live-app-20261031/backend-stage3-postflight-ab281bca.json)
+[Current read-only postflight](live-app-20261031/backend-stage3-postflight-e173b2db.json)
 
 The next migration invocation never returned a success, error, approval form or
 rejection. Interrupting the local wait did not prove remote cancellation. The
 independent postflight found no stage 4 installation. No alternate SQL bridge,
 confirmation bypass or downstream activation followed.
+
+The unchanged catalogue and zero matching active statements establish the
+observed database state, not a terminal connector outcome or the absence of a
+queued request. The retained attempt has no provider request ID, recoverable
+confirmation state, terminal result, or confirmed remote cancellation. The
+exposed migration tool has no request-state/resume parameter. No approval
+rejection or pending approval is established. The exact stage-4 SQL retains its
+transaction and stage/fingerprint safeguards, but those do not demonstrate safe
+concurrent retry. Another invocation is held pending resolution of the original
+request state; the detailed assessment preserves the conditional next steps.
+
+[Request-state and retry-safety assessment](live-app-20261031/backend-stage4-request-state-assessment.json)
 
 Dependent business Edge rollout and music installation remain held. Commercial
 music licensing remains disabled.

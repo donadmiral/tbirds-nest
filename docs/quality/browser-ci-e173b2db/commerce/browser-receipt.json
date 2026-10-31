@@ -1,0 +1,33 @@
+{
+  "checkedAt": "2026-10-31T05:37:35.131Z",
+  "runtime": "153.0.8010.12",
+  "scope": "Actual Jobs/Market components with synthetic Auth/database and navigation adapters. No hosted authentication, real provider, payment, Storage, or physical-device acceptance.",
+  "checks": [
+    "Jobs uses real named destinations, line icons and independent card actions",
+    "Job search, remote filtering and empty-state reset change actual rendered results",
+    "Failed job save rolls back without navigation; retry updates Saved jobs and unsave removes it",
+    "Cancelling native job sharing does not silently copy the link",
+    "Application review and Escape keep résumé and text local, with focus returned to Review",
+    "Application upload failure retains the draft and repeated confirmation sends only one application",
+    "Application status route and withdrawal require a separate review before the versioned RPC",
+    "Jobs read failures have a working in-place retry",
+    "Market filters validate ranges, Cancel makes no query change, and Apply changes actual listing results",
+    "Saved and Selling views connect to actual records, and saved removal updates the grid",
+    "Market alert failures preserve input, success and removal confirm real adapter writes, and Escape exits",
+    "Product gallery supports keyboard selection and meaningful image descriptions",
+    "Offer editing and cancellation send nothing; a failed send remains reviewable before retry",
+    "Order request review is local and Edit keeps quantity and delivery notes",
+    "Lost order response preserves the immutable request; retry confirms one existing order without payment",
+    "Order actions require review, retain failures, and submit the current order version",
+    "Order history has a working close path and retains the actual event timeline",
+    "Listing reports open a named focused dialog and Cancel makes no report RPC",
+    "Seller actions require review, refuse an unconfirmed update, and confirm one ownership-bound retry",
+    "Switching accounts during an order request clears private drafts and contains the late result",
+    "Signed-out job saving opens the actual sign-in destination",
+    "Market stays readable in Dim with the real appearance control",
+    "Jobs, applications, Market, product and orders fit a 390px screen without horizontal overflow",
+    "Mobile review keeps the footer reachable and native dialog focus contained",
+    "Warm Jobs preserves filters, loaded and empty results, saved changes and account boundaries"
+  ],
+  "browserErrors": []
+}

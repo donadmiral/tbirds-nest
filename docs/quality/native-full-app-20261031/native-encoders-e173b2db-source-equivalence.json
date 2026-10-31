@@ -1,0 +1,460 @@
+{
+  "measuredAt": "2026-10-31T05:42:07.801296+00:00",
+  "headCommit": "e173b2dbcf253342be5683fa85f102aa38065411",
+  "testedMergeCommit": "e6ca24e27b00207344eb7989ed53d2305cb04cf3",
+  "tree": "37ca8db90469d32a2a2d7b3069db54b522926530",
+  "headAndMergeTreesEqual": true,
+  "passedCases": 58,
+  "artifacts": [
+    {
+      "kind": "ios-story",
+      "workflowRun": 41173170142,
+      "jobId": 124455217057,
+      "artifactId": 13032535690,
+      "zipBytes": 409294,
+      "zipSha256": "81488d3469ece281cb044fd720d9abd867d7faa3b16770c919dcda83eaef8d14",
+      "zipDigestVerified": true,
+      "passed": true,
+      "caseCount": 8,
+      "sourceHashChecks": [
+        {
+          "path": "modules/boomerang/ios/StoryVideoComposition.swift",
+          "sha256": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+          "identicalToIndependentlyDecoded341395c6": true
+        },
+        {
+          "path": "scripts/quality/StoryAudioExportHarness.swift",
+          "sha256": "f62d1d285283d6b45a2dc8ab9b55f2e1c47f18a8e44bc3b56631d3f90379d714",
+          "identicalToIndependentlyDecoded341395c6": true
+        },
+        {
+          "path": "scripts/quality/test-ios-story-audio.sh",
+          "sha256": "c024ac519360f68b3e2a9b30694439ab7e94fb6c34519ff1bc4d0309c8d61215",
+          "identicalToIndependentlyDecoded341395c6": true
+        }
+      ],
+      "mediaHashChecks": [
+        {
+          "path": "pc-story-export-mixed-speed-2x.mp4",
+          "sha256": "a87e743e9bef9a8f4bcac75b6138b40c5541b548125d26c8c336b6ca61523021",
+          "bytes": 76009
+        },
+        {
+          "path": "pc-story-export-original.mp4",
+          "sha256": "95f0172aee225c42d08ab64b057332f71a2a95be0a76fae215a6bce18f9a3ac5",
+          "bytes": 99384
+        },
+        {
+          "path": "pc-story-export-still.mp4",
+          "sha256": "8fc7ea3f56a70cccb806d7e9629c3b17e3ff5f7a43a395c5e59981e0d7eb947b",
+          "bytes": 66832
+        },
+        {
+          "path": "pc-story-export-loop.mp4",
+          "sha256": "6f2506809310ead5f46dc1f7e1cd794206d6150a7192097b0642753b68a72562",
+          "bytes": 66850
+        },
+        {
+          "path": "pc-story-export-voice.mp4",
+          "sha256": "9793d06fcdd7faaf29bdad9283590df5f1649347b0e2955399c03b505813636f",
+          "bytes": 53584
+        },
+        {
+          "path": "pc-story-export-mixed-speed-0.5x.mp4",
+          "sha256": "ac01763b1d47d3d40f4dd071d527b62d3075d7f1df20bee8ace5434c57b213a9",
+          "bytes": 115833
+        }
+      ],
+      "instrumentation": null,
+      "retainedReceipt": "ios-story-e173b2db-receipt.json",
+      "receiptSha256": "4c69ab1c03697520538578b0203ff56efb470746c6c14e60a1d24dd327835ed1",
+      "newIndependentDecodePerformed": false
+    },
+    {
+      "kind": "ios-memory",
+      "workflowRun": 41173170142,
+      "jobId": 124455217013,
+      "artifactId": 13032207059,
+      "zipBytes": 411484,
+      "zipSha256": "9b375b78c8bac5704fbd4fecd82b160ca76dddcae7fb55a42994330d2519ffd8",
+      "zipDigestVerified": true,
+      "passed": true,
+      "caseCount": 11,
+      "sourceHashChecks": [
+        {
+          "path": "modules/boomerang/ios/StoryVideoComposition.swift",
+          "sha256": "72fdc3402dd47c7c8e0e9a9fcb55b645b4637360486c672fa4ad578a9b634d07",
+          "identicalToIndependentlyDecoded341395c6": true
+        },
+        {
+          "path": "modules/boomerang/ios/MemoryMovieComposition.swift",
+          "sha256": "920fc4a01277f3712863909ca8188ef7b3a7efa3b4e560d9caeba056addc0d11",
+          "identicalToIndependentlyDecoded341395c6": true
+        },
+        {
+          "path": "scripts/quality/MemoryMovieExportHarness.swift",
+          "sha256": "515ec7ad6e1150a0e7035defb7fcde9699b96067637204137f16a2e5681f874f",
+          "identicalToIndependentlyDecoded341395c6": true
+        },
+        {
+          "path": "scripts/quality/test-ios-memory-movie.sh",
+          "sha256": "fa60a4db91552e78b6181943dd76d105a2354f2934969b95a8ed655985c3c90c",
+          "identicalToIndependentlyDecoded341395c6": true
+        },
+        {
+          "path": "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.gif",
+          "sha256": "fa09323d645946fc05e54d47d92c2d4171d67cbb93a4a9cc4225495cf00ae674",
+          "identicalToIndependentlyDecoded341395c6": true
+        },
+        {
+          "path": "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.png",
+          "sha256": "296c54b04d0a9aa58171e9d22cff9b41b32a66116d3aa1d89bd67cd193082a77",
+          "identicalToIndependentlyDecoded341395c6": true
+        },
+        {
+          "path": "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.webp",
+          "sha256": "417af2bcf554708ce2331d3c3558aa0148921e2231ab3e0b9e8989f6a19395f3",
+          "identicalToIndependentlyDecoded341395c6": true
+        }
+      ],
+      "mediaHashChecks": [
+        {
+          "path": "pc-memory-export-retry.mp4",
+          "sha256": "fff78d6ad3f03f9c5f417dd664607670c6fd05178515a891fe3e3aa7edb19044",
+          "bytes": 8592
+        },
+        {
+          "path": "pc-memory-export-continuous-phase.mp4",
+          "sha256": "d708f6eabe0d7c6bbfab0b8268f6f13b33db31f571e783349a753188a5cee330",
+          "bytes": 105763
+        },
+        {
+          "path": "pc-memory-export-muted.mp4",
+          "sha256": "e44461ad6d0625d09462c522cccf88b961e933bb7353b09110cfc3f1fd706ea1",
+          "bytes": 9566
+        },
+        {
+          "path": "pc-memory-export-voice-once.mp4",
+          "sha256": "7b4e8b02d9a4dc15781a83acbbdd10e33dbe8044d3d44acb9eea70f204ebcd91",
+          "bytes": 56886
+        },
+        {
+          "path": "pc-memory-export-slow-fractional.mp4",
+          "sha256": "606b7e817110be5eae4a8f82ef629c04dbecdd73b7924c153280e3ba1f04c182",
+          "bytes": 152816
+        },
+        {
+          "path": "pc-memory-export-motion.mp4",
+          "sha256": "e8c3369ede4d1ce53df8be3f6d347ac9c59ac7ce6d12e056af1520932e1ec406",
+          "bytes": 55998
+        },
+        {
+          "path": "pc-memory-export-ordered.mp4",
+          "sha256": "841f612d83f4d7cd4fb1c39699825490807cf54f11d68e20611e9da59dac0d19",
+          "bytes": 158806
+        },
+        {
+          "path": "pc-memory-image-transparent.png",
+          "sha256": "79b425574e99705eb363fc04b62fc8723d921fa47b4f4ec344a16b857d59c200",
+          "bytes": 16755
+        },
+        {
+          "path": "pc-memory-image-normalized.png",
+          "sha256": "7d44b3fb311c88598ea26d03d356d736853af96499362e015ea56125075ed48a",
+          "bytes": 42128
+        }
+      ],
+      "instrumentation": null,
+      "retainedReceipt": "ios-memory-e173b2db-receipt.json",
+      "receiptSha256": "cd2ef2ea859733f9ac4b0d11164375c6d49e30011fe3db3e939a64f4e672740c",
+      "newIndependentDecodePerformed": false
+    },
+    {
+      "kind": "android-encoders",
+      "workflowRun": 41173170124,
+      "jobId": 124455216862,
+      "artifactId": 13032087110,
+      "zipBytes": 1451936,
+      "zipSha256": "4fdaa724121e9e56c95bada2c12e3039ca179c11864b433edc46b819fd02d1bc",
+      "zipDigestVerified": true,
+      "passed": true,
+      "caseCount": 39,
+      "sourceHashChecks": [
+        {
+          "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoComposition.kt",
+          "sha256": "8121638c8ab7ff9e76ac903b5a21fbbb3898174b10274df8b02428ca06f6d633",
+          "identicalToIndependentlyDecoded341395c6": true
+        },
+        {
+          "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/StoryVideoEffects.kt",
+          "sha256": "41274ee6340b69443485ba95a8cf49516c31ca283dac897db483967edc4201ab",
+          "identicalToIndependentlyDecoded341395c6": true
+        },
+        {
+          "path": "modules/boomerang/android/src/main/java/expo/modules/boomerang/MemoryMovieComposition.kt",
+          "sha256": "16544d1080678d47805f75e6c129ab65fa0f05c94366dac6ed0970868f753ff5",
+          "identicalToIndependentlyDecoded341395c6": true
+        },
+        {
+          "path": "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.gif",
+          "sha256": "fa09323d645946fc05e54d47d92c2d4171d67cbb93a4a9cc4225495cf00ae674",
+          "identicalToIndependentlyDecoded341395c6": true
+        },
+        {
+          "path": "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.png",
+          "sha256": "296c54b04d0a9aa58171e9d22cff9b41b32a66116d3aa1d89bd67cd193082a77",
+          "identicalToIndependentlyDecoded341395c6": true
+        },
+        {
+          "path": "scripts/quality/android-story-export/src/androidTest/assets/memory-animated.webp",
+          "sha256": "417af2bcf554708ce2331d3c3558aa0148921e2231ab3e0b9e8989f6a19395f3",
+          "identicalToIndependentlyDecoded341395c6": true
+        },
+        {
+          "path": "scripts/quality/android-story-export/src/androidTest/assets/memory-static.gif",
+          "sha256": "72d8dbe3283e3dbe380be331227f69cac8f86144e136fab17c320c43cd008ff9",
+          "identicalToIndependentlyDecoded341395c6": true
+        },
+        {
+          "path": "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/MemoryMovieExportTest.kt",
+          "sha256": "692e0629c6ee7a642ed17cd3b00cba8c64d6b6e56854839deabaf8261573bf51",
+          "identicalToIndependentlyDecoded341395c6": true
+        },
+        {
+          "path": "scripts/quality/android-story-export/src/androidTest/java/expo/modules/boomerang/StoryAudioExportTest.kt",
+          "sha256": "8838f9ec96b6d297bbaa2cb7e80d6399731b53331d2dda4de2de54becd8f21f6",
+          "identicalToIndependentlyDecoded341395c6": true
+        }
+      ],
+      "mediaHashChecks": [
+        {
+          "path": "device/canvas-and-timed-artwork.mp4",
+          "sha256": "a19c052e8c1607ffeaf6f6da3f7d8ecc801d673246a14be29e065fd19063389a",
+          "bytes": 8888
+        },
+        {
+          "path": "device/full-1080x1920-portrait.mp4",
+          "sha256": "8da2ca5eff6d5f76cef95d9c9cac79f3e2f5c0488553206316cc8b230a7e1bbe",
+          "bytes": 50354
+        },
+        {
+          "path": "device/known-length-open-provider.mp4",
+          "sha256": "412c08701d71f0ef5eb000dda3d7e368b49b54ab81154a645119ccc7be94430f",
+          "bytes": 4464
+        },
+        {
+          "path": "device/known-provider-source-original-330hz.mp4",
+          "sha256": "d8fa3156f10a2f4cc214179ee1c225652ba7f9e0b96344a7368bfd0278d8df88",
+          "bytes": 73554
+        },
+        {
+          "path": "device/matrix-alpha-bias.mp4",
+          "sha256": "885a5b2cdec14ec631ffd44e2f9df634b353efc3fe6062b8d0dc0eb84226019c",
+          "bytes": 6990
+        },
+        {
+          "path": "device/matrix-scale-translation.mp4",
+          "sha256": "e9194d74cde18a61d1716e9f4ccf2454af0950ff26d1e49a72dd6119e131b43b",
+          "bytes": 7628
+        },
+        {
+          "path": "device/memory-cancel-retry.mp4",
+          "sha256": "06d06738bf3e4c65cbf2c613fd2e3ccc12ac11122171b5ab1c7849d73754b862",
+          "bytes": 22694
+        },
+        {
+          "path": "device/memory-continuous-music.mp4",
+          "sha256": "adda56ee67725d62837a756bcd073bf06cf102edf9edbb3fe9b7790fd454f28d",
+          "bytes": 147271
+        },
+        {
+          "path": "device/memory-independent-audio.mp4",
+          "sha256": "691227beca33fff6080b262c23741a8545f42dae8b4d891554f4e4811523fa89",
+          "bytes": 131663
+        },
+        {
+          "path": "device/memory-local-effects.mp4",
+          "sha256": "483054814c767d2e3928911028e97409ad23f37e987045c0d2c094b5a0d41e78",
+          "bytes": 345142
+        },
+        {
+          "path": "device/memory-muted-original.mp4",
+          "sha256": "79950b7fa54915236ea41e5bf5f02cecea0f150728faaa1bfc49b396b7cdac78",
+          "bytes": 115303
+        },
+        {
+          "path": "device/memory-one-pass.mp4",
+          "sha256": "41d2d9d05733c120d177b64b78c2dfa60ea94e0041d75ec6faaea36efa5d8d06",
+          "bytes": 84562
+        },
+        {
+          "path": "device/memory-source-original-330hz.mp4",
+          "sha256": "0f31746950fe14031b60f4653cbde44151af0b7b3445f8d81cef00db59384eef",
+          "bytes": 73554
+        },
+        {
+          "path": "device/memory-zero-volume.mp4",
+          "sha256": "99ec9d44c971a49c1386c6093e7b422406e16e12d94477cc410c9b771481c346",
+          "bytes": 42157
+        },
+        {
+          "path": "device/mute-source-original-330hz.mp4",
+          "sha256": "cb50e95ecbec1a377f98c214968f59f90c1e3851668654451443a417e2f56f34",
+          "bytes": 73554
+        },
+        {
+          "path": "device/muted-original.mp4",
+          "sha256": "2244cb76e7983d3f375f0b344afa5f71c941b777c2e0e00f4fee6278848a5f00",
+          "bytes": 38214
+        },
+        {
+          "path": "device/negative-y-orientation.mp4",
+          "sha256": "ae88b5fb12a3587a1b38b30a2d42299d89cfff7f91b483e5448d65c08466f46b",
+          "bytes": 5758
+        },
+        {
+          "path": "device/one-pass-voiceover.mp4",
+          "sha256": "2d03d5ce5bceffbe62bbd83e1d77b37e01baf67460d7fd5adc03b0b39596e12b",
+          "bytes": 23027
+        },
+        {
+          "path": "device/original-only-mix.mp4",
+          "sha256": "0c6ba6563dd961309c2875940b9032bc7525f5ed39c29cf82e735396e5df8322",
+          "bytes": 38564
+        },
+        {
+          "path": "device/original-only-source-original-330hz.mp4",
+          "sha256": "68dc1574a1c43b2e195abf03fa9c9da0ba44d5038ee405ff681d35f492d356af",
+          "bytes": 73554
+        },
+        {
+          "path": "device/positive-y-orientation.mp4",
+          "sha256": "bf4b227d359fadd5dcc120bdca17fb8ad19ef4da9cfd02bbab2bf0287a25546b",
+          "bytes": 5753
+        },
+        {
+          "path": "device/provider-source-original-330hz.mp4",
+          "sha256": "9b81856f02fbcd32af69084f0c2d075dd2053f3fc3001416c944be4253504123",
+          "bytes": 73554
+        },
+        {
+          "path": "device/quarter-volume.mp4",
+          "sha256": "f4f68e861a6a29c89e65e86db36ac27abe6fe995a69fcfbed8c2af64f38a4946",
+          "bytes": 38211
+        },
+        {
+          "path": "device/readable-external-input.mp4",
+          "sha256": "1ed5addcdb8ec6495f10d130e26ed040d4b75480b85d0d5129ad3f14e97377d5",
+          "bytes": 4464
+        },
+        {
+          "path": "device/retry-after-blocked-provider.mp4",
+          "sha256": "6dcae4bb3a164f82064be16509b4a6e2a5ef7856e0ba0e68b1b4ecfe0dc228af",
+          "bytes": 4463
+        },
+        {
+          "path": "device/retry-after-cancel.mp4",
+          "sha256": "389af7a79df34a23a39f75bda826b930b134a4e9120ef557dc4e2c710045040b",
+          "bytes": 4463
+        },
+        {
+          "path": "device/seekable-provider-range.mp4",
+          "sha256": "e285419ad133143d68d6c5c87c2b2b33106bc13999201cd637da1709d1615f17",
+          "bytes": 4464
+        },
+        {
+          "path": "device/selected-excerpt-loop.mp4",
+          "sha256": "66c085554f26cdc1872212a69db5b0cdb2bc1739ccafd4aa6a49b72922aa4198",
+          "bytes": 55882
+        },
+        {
+          "path": "device/slow-mix-source-original-330hz.mp4",
+          "sha256": "542de8b1faf2b416a35ff2ff746687a832a0a6c1a9d3b00b83b556fe6e161a7e",
+          "bytes": 73554
+        },
+        {
+          "path": "device/slow-video-fractional-soundtrack-loop.mp4",
+          "sha256": "e43ab5ddead256b48821bb7128a09dd6e222685edb979b953b5745cdff362b42",
+          "bytes": 78734
+        },
+        {
+          "path": "device/source-original-330hz.mp4",
+          "sha256": "90d303e73e03883eb3bd6999d4014813c76f40c011fe6096a3e0e61f14a362fe",
+          "bytes": 73554
+        },
+        {
+          "path": "device/source-with-short-audio.mp4",
+          "sha256": "20cdca539182141f0b40f7b67119a7a7d4cff5c4ea338bc07775153939585d64",
+          "bytes": 23027
+        },
+        {
+          "path": "device/timed-video-source-original-330hz.mp4",
+          "sha256": "8a64c3b169c013436704e81fa15314639209f1e3f510553d51be0db1519aab12",
+          "bytes": 73554
+        },
+        {
+          "path": "device/trim-after-original-audio.mp4",
+          "sha256": "eca87074b5690a535571a1fbdbc6be8faa5bcc1d376250b7d17e01605e1bd775",
+          "bytes": 4464
+        },
+        {
+          "path": "device/trim-speed-original-mix.mp4",
+          "sha256": "94c1f92540ada3f1cd00c6961ae73b5fa96c6138b1e321bb46fe30bc6f3690e6",
+          "bytes": 20903
+        },
+        {
+          "path": "device/unknown-length-provider-input.mp4",
+          "sha256": "51cfdfe4bff01d285ce5363c86b1203e42a8645e8c660158d6ae436c0a874ad4",
+          "bytes": 38564
+        },
+        {
+          "path": "device/video-output-time-artwork.mp4",
+          "sha256": "2946522e09828a46b27ce7ad355aa957fafa413d3e1c126b38a0d44f54d6cfc4",
+          "bytes": 22216
+        },
+        {
+          "path": "device/voiceover-clipped-to-movie.mp4",
+          "sha256": "8865f23aad439b35be7de46d5b78cf2911cedacd7ee6389194a1335055063f03",
+          "bytes": 29992
+        },
+        {
+          "path": "device/zero-volume.mp4",
+          "sha256": "18418e1e393aa1d0e55316861c6efa6b3075cf060639c532b6031376f252789e",
+          "bytes": 38211
+        },
+        {
+          "path": "device/memory-normalized-alpha.png",
+          "sha256": "282066e44f262a6d990764476763db19f2cddeb618effe077881860427167af8",
+          "bytes": 17279
+        },
+        {
+          "path": "device/memory-normalized-exif.png",
+          "sha256": "487df57ff2419538e13366be52c559c24c6b9174ec1e54e3192bb68c70688015",
+          "bytes": 1784
+        },
+        {
+          "path": "device/memory-prepare-retry.png",
+          "sha256": "d2c62cd92a7a3687cccb18015c25f4f334fb3e49bbeb3bf1261fb32099237b0e",
+          "bytes": 6359
+        }
+      ],
+      "instrumentation": {
+        "cases": 39,
+        "report": "instrumentation-results/connected/debug/TEST-emulator-5556 - 15-_-.xml",
+        "sha256": "62e92ef07aeeb0ee76edadf8fa1480ca4c6f97e42dc81b5023633261851992a7",
+        "alignedMedia3Version": "1.8.1",
+        "components": 10
+      },
+      "retainedReceipt": "android-encoders-e173b2db-receipt.json",
+      "receiptSha256": "39072ac770a2da80fc046bb4099dd2d880015f2df985b8fc4c3b930faebb0b4a",
+      "newIndependentDecodePerformed": false
+    }
+  ],
+  "limits": [
+    "These current native encoder runs passed 58 standalone cases; full-app navigation, same-process account readback and capture remain separate active gates.",
+    "All engine, harness and fixture source hashes checked here match candidate 341395c6 directly, whose independent media decoding is retained separately.",
+    "Current generated files were checked against fresh receipt hashes and byte lengths. No new independent decoding or byte equality to older movies is claimed.",
+    "The Android result is the fresh e173b2db workflow, not a result of the earlier unconfirmed ab281bca retry.",
+    "Synthetic Simulator/Emulator cases do not establish physical-device Photos, external provider, account distribution signing or App Store acceptance."
+  ]
+}
