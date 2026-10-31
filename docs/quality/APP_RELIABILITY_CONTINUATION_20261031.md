@@ -5,9 +5,11 @@ native acceptance work. It separates implemented changes, observed results and
 remaining release gates. It does not claim that every product feature or every
 physical-device flow is complete.
 
-The completed automated CI checkpoint is `341395c68cfc0bf74527bcf23e0dced3813e9225`.
-Its tested PR merge is `1ca98984eec5d0912d510da9e565a84a8d5aacfd`. Both have tree
-`ca36583e931756f2d9ea98fdaf3c9869ee4daf8f`.
+The completed type/quality and browser CI checkpoint is
+`26e80ae96647884e7f2764bdbb1884fd5aabcff5`. Its tested PR merge is
+`6373021f8dcbb2bc614039e74937d2acb0ff2d3e`. Both have tree
+`1c10d4cc20fcfd5a0d4e82ba0121c51e90274c03`. Complete native application
+acceptance is tracked separately below.
 
 ## Changes already implemented
 
@@ -25,9 +27,9 @@ Its tested PR merge is `1ca98984eec5d0912d510da9e565a84a8d5aacfd`. Both have tre
 | Memory books | Cover writing, framing, design, movie settings and revision conflicts have connected UI and backend contracts. Text-only books omit photo-framing controls. Small native screens can scroll the closed cover and reach the editor actions. |
 | Native verification | Disposable iPhone Simulator and Android Emulator workflows build and launch the complete app with its production screens and native modules. Their isolated transport fixture cannot forward external network traffic. |
 
-At that checkpoint, CI passed 1,604 root/native/shared cases, 647 web cases and
+At that checkpoint, CI passed 1,638 root/native/shared cases, 672 web cases and
 195 operations-app cases. The backend Node suite passed 314 cases with three
-conditional skips; isolated SQL TAP invocations passed 867 cases with three
+conditional skips; isolated SQL TAP invocations passed 883 cases with three
 conditional skips. Each conditional skip has a named passing counterpart in the
 retained receipt. These overlapping categories are not combined into a unique
 test total. All 33 committed startup/auth regression checks pass,
@@ -38,17 +40,90 @@ renewal and genuine session replacement.
 The [navigation evidence](navigation-20261031/resumed-navigation-verification.json)
 and [startup follow-up](navigation-20261031/auth-cache-parallel-followup.json)
 retain the commands, source hashes and fixture limits. The current
-[CI receipt](live-app-20261031/ci-quality-341395c6.json) and
-[browser receipt](live-app-20261031/browser-quality-341395c6.json) bind all jobs to
+[CI receipt](live-app-20261031/ci-quality-26e80ae9.json) and
+[browser receipt](live-app-20261031/browser-quality-26e80ae9.json) bind all jobs to
 the matching source tree. Development browser frame
 sampling observed no blank Home or Messages content during the sampled warm
 returns. Those samples are not a physical-device or production latency guarantee.
+
+The current browser run passed 128 UI workflow scenarios, 18 encoded and decoded
+media outputs, and 288 cover layouts with no measured overflow. Its retained
+artifact contains measurements and screenshots, not the exported movies; an
+independent decode of absent artifact movies is not claimed. Home/Messages,
+Jobs and Profile continuity checks retained their expected content across 113,
+44 and 45 destination samples respectively. Nested checks are not counted twice
+in the 128 parent scenarios.
 
 ## Direct checks against the deployed QA app
 
 The existing signed-in QA sessions remained available. The following checks used
 the actual branch deployments and hosted QA data, without replacing browser
 transport or database responses.
+
+Both primary previews are READY for `26e80ae9`, and their branch aliases were
+verified against the exact deployment IDs. A fresh live check on that build kept
+Jobs search `design`, Remote location, Freelance type and Highest Pay sort after
+Home-to-Jobs navigation. Its genuinely empty dataset remained an empty result
+state. Returning from Release gallery to the owner's profile showed both books
+and all seven posts in the first captured accessibility view. These observations
+are ordinary UI sampling, not a frame-by-frame hosted latency benchmark. The
+admin dashboard also showed the rounded data-read label, `395 ms`, correctly
+described as current-page reads rather than service-wide health.
+
+The first cold Jobs-to-Profile transition still displayed only the root loading
+fallback while the server route resolved. That is distinct from the repaired
+warm content caches and led to the additional follow-up below. No
+application-origin console error appeared in the retrieved live log.
+
+[Exact preview binding](live-app-20261031/deployment-review-26e80ae.json) ·
+[Live follow-up receipt](live-app-20261031/live-navigation-followup-26e80ae.json)
+
+![Jobs filters retained after returning from Home](live-app-20261031/jobs-filter-return-live-26e80ae.jpg)
+
+### Cold-route navigation continuity follow-up
+
+The root loading view now restores passive navigation from the current session's
+last committed, server-verified standard app shell. It keeps links usable and
+shows an `Opening page…` status without caching page content or mounting unread
+queries, calls, lightboxes, scroll listeners, or editable search/compose controls.
+The exact owner, scope and revision must still match. Changed or unresolved
+sessions and public/auth/professional/unknown routes use neutral loading. A
+server-verified guest result clears only the captured session's navigation
+snapshot. The temporary avatar accepts only canonical first-party public avatar
+URLs; other locators use initials.
+
+Four production web files implement this change. Fourteen focused cases pass,
+with clean TypeScript and scoped lint. A separate browser probe used the actual
+Next 16.4.3 App Router, proxy, server viewer, async app shell and root loading
+component against a synthetic loopback Supabase server. During a deliberately
+held profile response, all 136 sampled transition frames retained visible
+navigation: 93 outgoing Jobs frames and 43 loading frames. No extra unread query,
+editable fallback input, signed-avatar replay or browser error was observed.
+The fallback Jobs link interrupted the pending Profile route, and releasing the
+late response did not replace Jobs. Collapsed sidebar/content geometry remained
+aligned at 76 pixels during the cold Notifications transition.
+
+An independent touch-emulation check also passed at 390 × 844 and 360 × 800.
+All five navigation links remained within the viewport with no horizontal
+overflow: targets measured 68 × 52 and 62 × 52 CSS pixels respectively, separated
+by four pixels. Each center hit test passed, and Jobs interrupted the held
+Profile response at both widths. The probe dismissed Next's development badge
+through its own preferences after retaining the initial obstruction screenshot;
+no application geometry was altered. Physical Safari and nonzero safe-area
+behavior are outside that check.
+
+This establishes visible and usable navigation during a real router wait. It does
+not claim lower network latency, persistent navigation DOM or a GPU frame-rate
+measurement. The same real-Next probe is now registered as a separate required
+browser CI step, with screenshots, JSON and server logs retained. Existing gates
+and the 20-minute job limit are unchanged. The candidate still requires its
+published-build live check and the first CI execution of that step.
+
+[Follow-up and source hashes](navigation-20261031/cold-shell-followup.json) ·
+[Actual Next routing probe](navigation-20261031/cold-shell-next-browser.json) ·
+[Independent review](live-app-20261031/navigation-loading-independent-review.json) ·
+[Mobile geometry and interaction](navigation-20261031/cold-shell-mobile-independent.json) ·
+[CI registration](navigation-20261031/cold-shell-ci-registration.json)
 
 ### Web navigation and books
 
@@ -163,10 +238,15 @@ observations are retained without a blanket navigation-speed claim.
 
 ## Native acceptance
 
-The current iOS standalone memory and story encoder jobs passed 11 and 8 cases.
-Their retained output and source hashes match the tested commit. Independent
-decoding verified cadence, duration, color and alpha, timed artwork, voiceover
-silence and audio timing/pitch.
+The current standalone encoder jobs passed 58 CI cases: 11 iOS memory, 8 iOS
+story and 39 Android cases. ZIP digests, 57 retained media hashes and sizes, and
+the recorded implementation/acceptance source hashes were verified against
+`26e80ae9` and its identical merge tree. Those encoder and acceptance sources
+equal the preceding `341395c6` sources. The new artifacts were not independently
+decoded again. The earlier independent decoding verified cadence, duration,
+color and alpha, timed artwork, voiceover silence and audio timing/pitch.
+
+[Current encoder receipts and source equivalence](native-full-app-20261031/native-encoders-26e80ae9-source-equivalence.json)
 
 - [iOS memory receipt](native-full-app-20261031/ios-memory-341395c6-receipt.json)
 - [Independent iOS memory decode](native-full-app-20261031/ios-memory-341395c6-independent-decode.json)
@@ -175,11 +255,36 @@ silence and audio timing/pitch.
 
 These standalone checks use the arm64 iOS 26.2 simulator toolchain. The complete
 app acceptance uses an Intel iPhone 16 Simulator running iOS 18.5 and a separate
-Android Emulator. The Android full-app build completed, and the previous
-CallKeep bridge crash no longer occurred. The runtime then exposed an unsolicited
-microphone permission dialog immediately after sign-in. That blocked Home
-acceptance. The iPhone full-app runtime result is still pending. Native
-whole-book export remains gated until the actual full-app capture flow passes.
+Android Emulator. Full Swift and Kotlin integration compiles are green at both
+`341395c6` and `26e80ae9`. Complete-app runtime acceptance remains separate from
+those compiles and the standalone encoders.
+
+The earlier `341395c6` iPhone app built, installed, signed in and passed its Home,
+Latest and For You assertions. The `26e80ae9` Android app also built and passed
+those assertions. Its former CallKeep bridge crash and unsolicited microphone
+prompt no longer blocked Home. Neither run could make the next semantic Market
+tab tap: the icons were visible, but the native accessibility tree omitted the
+whole bottom bar. Book navigation and capture were therefore not reached.
+
+[Native compilation status](native-full-app-20261031/native-compile-26e80ae9-status.json) ·
+[iPhone runtime failure](native-full-app-20261031/ios-full-app-341395c6-failure.json) ·
+[Android runtime failure](native-full-app-20261031/android-full-app-26e80ae9-failure.json)
+
+![Actual iPhone Simulator Home before the tab repair](native-full-app-20261031/ios-341395c6-home.png)
+
+The `26e80ae9` iPhone full-app job stopped during `npm ci` with `ETIMEDOUT`, before
+native preparation, compilation or app runtime. The other iOS dependency install
+completed. An exact-job retry was attempted once; GitHub rejected it because the
+sibling Android job was still running. This is a recorded infrastructure failure,
+not evidence of a new native source defect. Android and the earlier iPhone
+baseline were preserved through completion. The iPhone install step now retries
+the same locked install once only when npm reports the exact observed timeout
+code. Five shell-executed cases distinguish success, retry success, repeated
+timeout, integrity failure and incidental timeout text. Dependency integrity and
+all app assertions remain unchanged.
+
+[iPhone install failure](native-full-app-20261031/ios-full-app-26e80ae9-install-failure.json) ·
+[Bounded install retry](native-full-app-20261031/ios-install-timeout-retry.json)
 
 The Android source follow-up separates passive native registration from media
 permission requests. Microphone/camera access remains tied to an explicit call
@@ -187,25 +292,78 @@ action. Disabled phone accounts use the existing notification fallback. Cold
 Android native events also subscribe before registration drains the queue. The
 focused checks pass 15 native-event cases, 23 calling cases and 19 recipient/access
 cases. Seven new cases execute the installed CallKeep facade. The corrected
-complete-app run must still establish the OS behavior. A separate five-second
-Auth lock warning in the earlier cold start remains under investigation.
+Android complete-app run now establishes the absence of the unsolicited prompt
+in this synthetic sign-in flow; physical incoming-call delivery is still separate.
 
-The disposable follow-up adds bounded timing observation around the unchanged
-SDK lock and its storage adapter. Eleven diagnostic cases pass, including real
-SDK mutual exclusion, redaction and bounded disk writes. The retained trace
-contains numeric operation IDs and timings rather than credentials or session
-contents. Its extra microtasks and disk writes mean it diagnoses phases rather
-than proving uninstrumented production performance. Production Supabase source
-and timeout configuration are unchanged.
+### Bottom navigation geometry repair
 
-[Auth diagnostic candidate](live-app-20261031/native-auth-diagnostics-candidate.json)
+The absolute BottomTabBar was drawn outside an animated parent with zero height.
+The repair gives that parent explicit bounds around the existing floating bar.
+The shown bar position and available content height stay unchanged. Ordinary
+non-absolute bars retain their natural layout. Existing tab labels, roles and
+press handlers remain the acceptance targets.
 
-The next run uses one new stable concurrency group so the already-running iPhone
-baseline can finish alongside the repaired build. Later edits within that group
-still replace obsolete runs. Neither the runner tier nor acceptance assertions
-were relaxed. The original iPhone full-app build needed about 37 minutes, with
-additional preparation and simulator boot time; standalone encoder success is
-not substituted for full-app navigation acceptance.
+Twelve focused actual-component cases pass. A probe compiled the installed React
+Native Yoga implementation and verified the before/after layout at four native
+viewport sizes, plus default and relative tab styles. The iPhone portrait parent
+changes from zero to 108 points while the bar stays at the same screen position.
+The native-driver hide/reveal settings remain; the larger parent changes the
+scale pivot slightly. Corrected native accessibility, touch behavior and animation
+still require the next full Simulator/Emulator run.
+
+[Geometry proof](native-full-app-20261031/native-tab-wrapper-geometry-repair.json) ·
+[Independent native-tab review](live-app-20261031/native-tab-independent-review.json)
+
+### Simulator account persistence
+
+The earlier iPhone run also logged SecureStore failures caused by missing
+entitlements. The disposable simulator build now uses Xcode's local ad-hoc
+signing to generate its simulated application identity. A bounded Mach-O reader
+checks the embedded XML and DER sections before and after the existing re-sign,
+and separately verifies the host signature. This creates no signed physical-device
+release and requires no Apple account login.
+
+The full-app gate now requires successful account-index storage and reloads the
+actual production account store through SecureStore after navigation reaches the
+capture screen. It compares the synthetic account and current session in memory;
+only pass/fail, reload status and account count enter the receipt. The production
+account store is unchanged. The combined focused native checks pass 52 Node
+cases, including six actual-account-store cases, and nine Python parser cases
+invoked by one Node case. TypeScript, scoped lint and shell checks also pass.
+The next Mac runner must establish real Xcode signing and keychain persistence.
+
+[Simulator signing and readback repair](native-full-app-20261031/ios-simulator-keychain-signing-repair.json) ·
+[Independent signing/readback review](native-full-app-20261031/ios-signing-readback-independent-review.json)
+
+### Auth timing investigation
+
+The Android runtime still emitted a five-second Auth lock warning. Its bounded
+trace recorded 22 lock operations and 93 storage operations, all fulfilled with
+no unfinished or dropped operation. Maximum measured lock wait was 293.071 ms,
+hold was 389.205 ms and storage duration was 109.767 ms. That does not explain the
+warning or establish a five-second blocked UI.
+
+Independent review matched the installed Auth and Supabase files to their pinned
+registry archive integrity and confirmed timer cleanup in those sources. The
+next QA trace adds a wall-clock anchor and bounded identities for the timer
+functions observed at lock phases. It reads property descriptors without invoking
+accessors, replacing timers or modifying SDK locking. Fifteen diagnostic cases
+pass, including the actual SDK, redaction, descriptor preservation and bounds.
+The source receipt records installed dependency paths and hashes, not a final
+Metro bundle attestation. Production Supabase source and deadlines are unchanged.
+
+These observations add instrumentation overhead and are diagnostic evidence,
+not an uninstrumented production performance benchmark.
+
+[Auth diagnostic candidate](live-app-20261031/native-auth-diagnostics-candidate.json) ·
+[Independent warning investigation](live-app-20261031/native-auth-warning-26e80ae9-independent-review.json)
+
+Both earlier complete-app runs finished before publishing this repair. The
+existing stable concurrency group remains unchanged. Neither the runner tier
+nor acceptance assertions were relaxed. The original iPhone full-app build needed
+about 37 minutes, with additional preparation and simulator boot time; standalone
+encoder success is not substituted for full-app navigation acceptance. Native
+whole-book export remains gated until the actual full-app capture flow passes.
 
 - [Android full-app failure evidence](native-full-app-20261031/android-full-app-341395c6-failure.json)
 - [Android permission follow-up](native-full-app-20261031/android-permission-followup.json)
@@ -221,8 +379,14 @@ It does not establish physical Photos-library behavior or provider push delivery
 ## Hosted backend status
 
 The QA business-auth installation is safely private at stage 3. The read-only
-postflight at 03:23:43 UTC still matched the expected catalogue fingerprint
+postflight at 04:11:51–04:12:03 UTC still matched the expected catalogue fingerprint
 `2f92a9d038364736fa2413bb6d05a160`.
+
+It verified 99 catalogue records, unchanged migration names/versions/SQL hashes,
+no stage 4 private function, no music schema, no notification-event jobs or claim
+function, and no active matching business-auth statement.
+
+[Current read-only postflight](live-app-20261031/backend-stage3-postflight-26e80ae9.json)
 
 The next migration invocation never returned a success, error, approval form or
 rejection. Interrupting the local wait did not prove remote cancellation. The

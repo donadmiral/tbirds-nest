@@ -21,6 +21,7 @@ function fixture(viewer, profileRead) {
   if (name === 'react/jsx-runtime') return jsx;
   if (name === '@/lib/serverViewer') return { getServerViewer: async () => ({ supabase, user: await viewer }) };
   if (name === 'next/link') return { __esModule: true, default: 'a' };
+  if (name === '@/components/NavigationLoading') return { RememberNavigationChrome: 'RememberNavigationChrome' };
   if (name.endsWith('.module.css')) return { __esModule: true, default: { professionalMain: 'professional-main', skipLink: 'skip-link' } };
   const key = name.split('/').at(-1); return { [key]: key };
  } });
@@ -39,6 +40,7 @@ test('authenticated professional workspace renders without dispatching an unused
  assert.equal(h.queries.length, 0); assert.equal(result.props.className, 'professional-main');
  assert.equal(find(result, 'main').props.children, 'Workspace contents');
  for (const type of ['WebCallLayer', 'GlobalMediaLightbox', 'ScrollMemory']) assert.ok(find(result, type), type);
+ assert.equal(find(result, 'RememberNavigationChrome'), null);
 });
 test('professional branch still waits for the authenticated viewer and preserves the signed-out shell', async () => {
  const auth = deferred(), h = fixture(auth.promise, () => assert.fail('Signed-out shell must not read a private profile'));
@@ -46,6 +48,7 @@ test('professional branch still waits for the authenticated viewer and preserves
  await Promise.resolve(); assert.equal(settled, false); assert.equal(h.queries.length, 0);
  auth.resolve(null); const result = await work;
  assert.ok(find(result, 'header')); assert.equal(find(result, 'WebCallLayer'), null); assert.equal(h.queries.length, 0);
+ assert.equal(find(result, 'RememberNavigationChrome').props.identity, null, 'A verified guest clears remembered chrome without recording an identity.');
 });
 test('standard navigation still reads and renders the authenticated profile rather than falling back while it is pending', async () => {
  const profile = deferred(), h = fixture({ id: 'viewer' }, () => profile.promise);
@@ -55,4 +58,6 @@ test('standard navigation still reads and renders the authenticated profile rath
  profile.resolve({ data: { full_name: 'A member', username: 'member', account_type: 'business', avatar_url: 'avatar', is_verified: true, verified_tier: 'gold' }, error: null });
  const result = await work, nav = find(result, 'Nav'), tabs = find(result, 'MobileTabBar');
  assert.equal(nav.props.name, 'A member'); assert.equal(nav.props.business, true); assert.equal(nav.props.verified, true); assert.equal(tabs.props.userId, 'viewer');
+ const remembered = find(result, 'RememberNavigationChrome').props.identity;
+ assert.equal(remembered.ownerId, 'viewer'); assert.equal(remembered.name, 'A member'); assert.equal(remembered.username, 'member'); assert.equal(remembered.business, true);
 });

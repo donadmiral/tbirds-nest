@@ -1,0 +1,53 @@
+{
+  "observed_at_utc": "2026-10-31T04:09:48.972133+00:00",
+  "head_sha": "26e80ae96647884e7f2764bdbb1884fd5aabcff5",
+  "tested_merge_sha": "6373021f8dcbb2bc614039e74937d2acb0ff2d3e",
+  "tree_sha": "1c10d4cc20fcfd5a0d4e82ba0121c51e90274c03",
+  "environment": "Actual branch previews and existing hosted QA sessions; browser transport unchanged",
+  "web_url": "https://platinum-web-git-codex-app-quality-20261029-intobank.vercel.app/musa",
+  "admin_url": "https://admin-web-git-codex-app-quality-20261029-intobank.vercel.app/dashboard",
+  "deployment_binding_receipt": "deployment-review-26e80ae.json",
+  "jobs": {
+    "journey": "Jobs -> Home -> Jobs",
+    "search": "design",
+    "location": "Remote",
+    "type": "Freelance",
+    "sort": "Highest Pay",
+    "dataset_rows": 0,
+    "first_returned_accessibility_state": "All four filters retained; zero roles shown and No matching roles present, no Loading jobs text",
+    "screenshot": "jobs-filter-return-live-26e80ae.jpg",
+    "limits": "Hosted QA has no job rows. Save and populated-list races are covered separately by component and SDK tests. This UI sampling does not measure every frame or claim a millisecond route latency."
+  },
+  "profile": {
+    "journey": "Own profile -> existing Release gallery -> Back",
+    "books": [
+      "QA memories: 1 memory",
+      "Release gallery: 4 memories"
+    ],
+    "posts": 7,
+    "first_returned_accessibility_state": "Both books and all seven posts present; no empty/loading posts or shelf",
+    "screenshot": "profile-book-return-live-26e80ae.jpg",
+    "limits": "Cold first navigation from Jobs to Profile still showed root Loading without the app shell; warm return succeeded. Captured states are not a frame-by-frame benchmark."
+  },
+  "admin": {
+    "dashboard": "Loaded hosted activity",
+    "data_read_label": "current page queries completed in 395 ms; not a service-wide health check",
+    "rounded_display": true
+  },
+  "console": {
+    "application_origin_errors_in_retrieved_log": 0,
+    "excluded": "chrome-extension:// entries",
+    "query_limit": 150
+  },
+  "writes": "Only local browser search/filter state and navigation. No posts, messages, job saves, moderation, profile edits or book mutations.",
+  "screenshots": {
+    "jobs-filter-return-live-26e80ae.jpg": {
+      "bytes": 79163,
+      "sha256": "f41f59dbca582218a278d5426bb21a8748a9fff3a59e117ccf3581260a9fd6ac"
+    },
+    "profile-book-return-live-26e80ae.jpg": {
+      "bytes": 79687,
+      "sha256": "a43605a5d2ce9c05b8d8975b12f2aa150c2ae28c2715385cbebde978985a0b3f"
+    }
+  }
+}

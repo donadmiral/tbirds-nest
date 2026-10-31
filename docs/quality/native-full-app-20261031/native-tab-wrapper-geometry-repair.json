@@ -1,0 +1,194 @@
+{
+  "measuredAt": "2026-10-31T04:29:25.091625+00:00",
+  "baseCommit": "26e80ae96647884e7f2764bdbb1884fd5aabcff5",
+  "regressionEvidenceCommit": "341395c68cfc0bf74527bcf23e0dced3813e9225",
+  "changedSource": {
+    "path": "src/components/AdaptiveTabBar.tsx",
+    "beforeSha256": "b66924d2f973c3e794cf89897e45f434201b9b9a0c68749229ca7f85e886145b",
+    "afterSha256": "f2a34985aedaf394a0b3462809d7a20c7ecc01ad16bbd6f92eee65a358d8d32f"
+  },
+  "focusedTests": {
+    "file": "tests/quality/native-tab-bar.cjs",
+    "sha256": "1ee00af169ad674068b4760a5119b7ebb94f791de70a29fbb14dd6153e240ce7",
+    "passed": 12,
+    "mechanism": "Transpiles the actual component, renders its actual props and styles, uses the installed RN style flattener, and exercises scroll/reduced-motion effects with a controlled native host."
+  },
+  "nativeGeometryProbe": {
+    "implementation": "Installed React Native Yoga C++ source compiled locally with c++ -std=c++20 -O0",
+    "reactNativeVersion": "0.81.5",
+    "yogaSourceFileCount": 81,
+    "yogaSourceHashManifestSha256": "4eb72d29b4821e697c9d82cf2ad3dcc900834adf4805b4969b54f3d1371dfd66",
+    "probeSourceSha256": "ed13159246aa48950ea6b4c364847efcc0c4797737cb06a0753c82d164a2af23",
+    "matrix": [
+      {
+        "name": "iPhone portrait",
+        "bottomOffset": 44,
+        "before": {
+          "width": 393,
+          "height": 852,
+          "wrapperY": 852,
+          "wrapperHeight": 0,
+          "barYRelativeToWrapper": -108,
+          "barYOnScreen": 744,
+          "barHeight": 64,
+          "barWithinWrapper": false,
+          "contentHeight": 852
+        },
+        "after": {
+          "width": 393,
+          "height": 852,
+          "wrapperY": 744,
+          "wrapperHeight": 108,
+          "barYRelativeToWrapper": 0,
+          "barYOnScreen": 744,
+          "barHeight": 64,
+          "barWithinWrapper": true,
+          "contentHeight": 852
+        }
+      },
+      {
+        "name": "iPhone landscape",
+        "bottomOffset": 31,
+        "before": {
+          "width": 852,
+          "height": 393,
+          "wrapperY": 393,
+          "wrapperHeight": 0,
+          "barYRelativeToWrapper": -95,
+          "barYOnScreen": 298,
+          "barHeight": 64,
+          "barWithinWrapper": false,
+          "contentHeight": 393
+        },
+        "after": {
+          "width": 852,
+          "height": 393,
+          "wrapperY": 298,
+          "wrapperHeight": 95,
+          "barYRelativeToWrapper": 0,
+          "barYOnScreen": 298,
+          "barHeight": 64,
+          "barWithinWrapper": true,
+          "contentHeight": 393
+        }
+      },
+      {
+        "name": "Android compact",
+        "bottomOffset": 26,
+        "before": {
+          "width": 320,
+          "height": 640,
+          "wrapperY": 640,
+          "wrapperHeight": 0,
+          "barYRelativeToWrapper": -90,
+          "barYOnScreen": 550,
+          "barHeight": 64,
+          "barWithinWrapper": false,
+          "contentHeight": 640
+        },
+        "after": {
+          "width": 320,
+          "height": 640,
+          "wrapperY": 550,
+          "wrapperHeight": 90,
+          "barYRelativeToWrapper": 0,
+          "barYOnScreen": 550,
+          "barHeight": 64,
+          "barWithinWrapper": true,
+          "contentHeight": 640
+        }
+      },
+      {
+        "name": "Android gestures",
+        "bottomOffset": 44,
+        "before": {
+          "width": 390,
+          "height": 844,
+          "wrapperY": 844,
+          "wrapperHeight": 0,
+          "barYRelativeToWrapper": -108,
+          "barYOnScreen": 736,
+          "barHeight": 64,
+          "barWithinWrapper": false,
+          "contentHeight": 844
+        },
+        "after": {
+          "width": 390,
+          "height": 844,
+          "wrapperY": 736,
+          "wrapperHeight": 108,
+          "barYRelativeToWrapper": 0,
+          "barYOnScreen": 736,
+          "barHeight": 64,
+          "barWithinWrapper": true,
+          "contentHeight": 844
+        }
+      }
+    ],
+    "normalFlowMatrix": [
+      {
+        "name": "default tab style",
+        "before": {
+          "width": 393,
+          "height": 852,
+          "wrapperY": 788,
+          "wrapperHeight": 64,
+          "barYRelativeToWrapper": 0,
+          "barYOnScreen": 788,
+          "barHeight": 64,
+          "barWithinWrapper": true,
+          "contentHeight": 788
+        },
+        "after": {
+          "width": 393,
+          "height": 852,
+          "wrapperY": 788,
+          "wrapperHeight": 64,
+          "barYRelativeToWrapper": 0,
+          "barYOnScreen": 788,
+          "barHeight": 64,
+          "barWithinWrapper": true,
+          "contentHeight": 788
+        }
+      },
+      {
+        "name": "relative tab style",
+        "before": {
+          "width": 393,
+          "height": 852,
+          "wrapperY": 788,
+          "wrapperHeight": 64,
+          "barYRelativeToWrapper": 0,
+          "barYOnScreen": 788,
+          "barHeight": 64,
+          "barWithinWrapper": true,
+          "contentHeight": 788
+        },
+        "after": {
+          "width": 393,
+          "height": 852,
+          "wrapperY": 788,
+          "wrapperHeight": 64,
+          "barYRelativeToWrapper": 0,
+          "barYOnScreen": 788,
+          "barHeight": 64,
+          "barWithinWrapper": true,
+          "contentHeight": 788
+        }
+      }
+    ]
+  },
+  "unchangedBehavior": [
+    "BottomTabBar descriptors, labels, handlers and children",
+    "always-visible accessibility mode",
+    "pointerEvents box-none",
+    "Floating bar on-screen position and full content height",
+    "Native-driver hide/reveal motion configuration, effect resets and cleanup are retained; the larger parent changes its scale pivot."
+  ],
+  "limits": [
+    "Native Yoga is actual layout computation with reproduced parent/bar style values; it is not a UIKit accessibility or touch acceptance run.",
+    "The next full Simulator/Emulator run must find and tap tabs by their existing semantic labels.",
+    "No production source outside AdaptiveTabBar is changed by this repair.",
+    "The changed parent scale pivot changes the hide/reveal trajectory by up to4.32points for the108point wrapper; shown-state geometry is unchanged, and actual runtime motion remains to be inspected."
+  ]
+}

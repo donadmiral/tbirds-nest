@@ -1,0 +1,179 @@
+{
+  "checkedAt": "2026-10-31T04:04:59.952258+00:00",
+  "commit": "26e80ae96647884e7f2764bdbb1884fd5aabcff5",
+  "repository": "donadmiral/tbirds-nest",
+  "branch": "codex/app-quality-20261029",
+  "worktreeClean": true,
+  "method": "Read-only binding of published Git objects and clean working files to the already-completed final verification receipt; no test rerun by the author for this binding.",
+  "sourceAndTestBindings": {
+    "web/app/jobs/page.tsx": {
+      "receiptSha256": "f74ec110c4ba787a164de9534218a024ec99e2828fa1183e84a3aa7f93ed6f2a",
+      "worktreeSha256": "f74ec110c4ba787a164de9534218a024ec99e2828fa1183e84a3aa7f93ed6f2a",
+      "gitObjectSha256": "f74ec110c4ba787a164de9534218a024ec99e2828fa1183e84a3aa7f93ed6f2a",
+      "matched": true
+    },
+    "web/components/JobCard.tsx": {
+      "receiptSha256": "5c1173389e94440743724b8735e76176d5578f82d1ca2121dfe07a2c9d2768ad",
+      "worktreeSha256": "5c1173389e94440743724b8735e76176d5578f82d1ca2121dfe07a2c9d2768ad",
+      "gitObjectSha256": "5c1173389e94440743724b8735e76176d5578f82d1ca2121dfe07a2c9d2768ad",
+      "matched": true
+    },
+    "web/lib/jobsNavigation.ts": {
+      "receiptSha256": "d38995edadd78fd382029627dc4917f8a123fed1550435e8549ea96749fa4c41",
+      "worktreeSha256": "d38995edadd78fd382029627dc4917f8a123fed1550435e8549ea96749fa4c41",
+      "gitObjectSha256": "d38995edadd78fd382029627dc4917f8a123fed1550435e8549ea96749fa4c41",
+      "matched": true
+    },
+    "web/tests/jobs-navigation.cjs": {
+      "receiptSha256": "6ce5a6e00ac225a6d642346ed2985b8986809e3c647c385b8c6b11431a4ab751",
+      "worktreeSha256": "6ce5a6e00ac225a6d642346ed2985b8986809e3c647c385b8c6b11431a4ab751",
+      "gitObjectSha256": "6ce5a6e00ac225a6d642346ed2985b8986809e3c647c385b8c6b11431a4ab751",
+      "matched": true
+    },
+    "web/tests/browser/jobs-navigation.cjs": {
+      "receiptSha256": "f72e4fb08d9258a6f8416481819f8a3c33f8ff9732ff9c639567fa9dfdbf539a",
+      "worktreeSha256": "f72e4fb08d9258a6f8416481819f8a3c33f8ff9732ff9c639567fa9dfdbf539a",
+      "gitObjectSha256": "f72e4fb08d9258a6f8416481819f8a3c33f8ff9732ff9c639567fa9dfdbf539a",
+      "matched": true
+    },
+    "web/tests/browser/commerce-backend.ts": {
+      "receiptSha256": "30759f859d465d0f06109edf8ec56faee0959eb52600a4fb55e7eb7cc0f587bb",
+      "worktreeSha256": "30759f859d465d0f06109edf8ec56faee0959eb52600a4fb55e7eb7cc0f587bb",
+      "gitObjectSha256": "30759f859d465d0f06109edf8ec56faee0959eb52600a4fb55e7eb7cc0f587bb",
+      "matched": true
+    },
+    "web/tests/browser/commerce-run.cjs": {
+      "receiptSha256": "8891cf24d9b5bb9e0f4906cf109b5ee64bfb24c42a45206f0d1836d6863f6ebb",
+      "worktreeSha256": "8891cf24d9b5bb9e0f4906cf109b5ee64bfb24c42a45206f0d1836d6863f6ebb",
+      "gitObjectSha256": "8891cf24d9b5bb9e0f4906cf109b5ee64bfb24c42a45206f0d1836d6863f6ebb",
+      "matched": true
+    },
+    "tests/quality/jobs-parity.cjs": {
+      "receiptSha256": "6d9e6e1fcd9d2d80af2d177fb9dcfa0e8ed1db278b8f2bbcba6ae48e4e827291",
+      "worktreeSha256": "6d9e6e1fcd9d2d80af2d177fb9dcfa0e8ed1db278b8f2bbcba6ae48e4e827291",
+      "gitObjectSha256": "6d9e6e1fcd9d2d80af2d177fb9dcfa0e8ed1db278b8f2bbcba6ae48e4e827291",
+      "matched": true
+    }
+  },
+  "review": {
+    "reviewer": "/root/hosted_backend",
+    "reportedResult": "No remaining review objection. Reviewer independently ran all final 15 focused cases after same-value ordering refinement and verified published final hashes. Final 25-scenario browser completion closes the noted integration gate.",
+    "findingsResolved": [
+      "Save confirmation from the unmounted previous Jobs instance could be overwritten by the replacement instance stale shortlist read.",
+      "SDK implicit Authorization can rebind to a new same-user session across A to B to A.",
+      "Repeated same-value confirmation must advance ordering even when current membership already matches."
+    ],
+    "beforeEvidence": [
+      "docs/quality/navigation-20261031/warm-jobs-crossmount-before.json",
+      "docs/quality/navigation-20261031/warm-jobs-sdk-aba-before.json"
+    ],
+    "authorFinalEvidence": "docs/quality/navigation-20261031/warm-jobs-followup.json",
+    "independentReviewAcknowledgedAt": "2026-10-31T04:04:59.952290+00:00"
+  },
+  "reportedVerification": {
+    "node": {
+      "passed": 23,
+      "failed": 0,
+      "files": {
+        "web/tests/jobs-navigation.cjs": 15,
+        "tests/quality/jobs-parity.cjs": 8
+      },
+      "invocation": "env -u NODE_TEST_CONTEXT node <file>; actual internal node:test cases executed"
+    },
+    "webTypecheck": {
+      "command": "web/node_modules/.bin/tsc --noEmit --incremental false",
+      "passed": true
+    },
+    "scopedLint": {
+      "passed": true,
+      "errors": 0,
+      "warnings": 0,
+      "files": [
+        "web/app/jobs/page.tsx",
+        "web/components/JobCard.tsx",
+        "web/lib/jobsNavigation.ts",
+        "web/tests/browser/commerce-backend.ts"
+      ]
+    },
+    "browser": {
+      "runtime": "153.0.8010.12",
+      "passedCommerceScenarios": 25,
+      "browserErrors": [],
+      "jobsCases": [
+        {
+          "name": "warm Jobs return retains the exact search/location/category/sort, eight loaded rows and scroll on every observed destination frame",
+          "passed": true,
+          "frames": 43,
+          "firstJobsFrameMs": 51.5,
+          "blankJobsFrames": 0,
+          "heldReads": 3,
+          "extraReadsAfterEightForegroundEvents": 0,
+          "tokenRefreshRetainsState": true
+        },
+        {
+          "name": "confirmed save survives a background response captured before the mutation",
+          "passed": true
+        },
+        {
+          "name": "unsaving on the real shortlist updates the remembered Discover bookmark before its refresh completes",
+          "passed": true
+        },
+        {
+          "name": "an already-dispatched same-session save confirms after route remount and fences the replacement screen older shortlist read",
+          "passed": true,
+          "pinnedWrite": true,
+          "cancellableWrite": true
+        },
+        {
+          "name": "failed warm refresh retains filtered rows and in-place retry recovers",
+          "passed": true
+        },
+        {
+          "name": "A to B to A clears prior filters/results and aborts old reads and a pending save before new-session data renders",
+          "passed": true,
+          "abortedReads": 3,
+          "pendingSaveNotPublished": true
+        },
+        {
+          "name": "a previously loaded empty Jobs dataset retains filters and its empty state on warm return",
+          "passed": true
+        }
+      ],
+      "viewport": {
+        "width": 1586,
+        "height": 992
+      },
+      "sampledJobsFrames": 43,
+      "firstJobsFrameMs": 51.5,
+      "firstSample": {
+        "at": 601.8,
+        "sinceClickMs": 51.5,
+        "search": "design",
+        "scope": "global",
+        "sort": "salary",
+        "category": "Freelance",
+        "rows": 8,
+        "scrollTop": 650,
+        "loading": false
+      },
+      "lastSample": {
+        "at": 1318.5,
+        "sinceClickMs": 728.6000000014901,
+        "search": "design",
+        "scope": "global",
+        "sort": "salary",
+        "category": "Freelance",
+        "rows": 8,
+        "scrollTop": 650,
+        "loading": false
+      }
+    }
+  },
+  "scopeAndLimits": [
+    "Actual JobsPage, JobCard and SavedJobsPage in Chromium with synthetic Auth/database and Next routing. The fixture Home destination is a placeholder.",
+    "The loaded fixture contains 14 jobs, eight matching design + Remote + Freelance. A separate phase verifies a successfully loaded empty dataset, matching the live QA data condition.",
+    "Frames are sampled after the Jobs component is present; they establish filter, row and scroll continuity during held refreshes. They do not measure the hosted sibling-layout/root-loading transition, RSC latency or GPU paint time.",
+    "No job, application, live saved item or other record was created or changed outside the synthetic fixture.",
+    "Native source and music licensing configuration were not changed by this follow-up."
+  ]
+}

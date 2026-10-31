@@ -52,7 +52,24 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci --ignore-scripts --no-fund
+      - name: Install locked dependencies
+        shell: bash
+        run: |
+          set -o pipefail
+          for install_attempt in 1 2; do
+            if npm ci --ignore-scripts --no-fund --color=false 2>&1 | tee "$RUNNER_TEMP/native-ui-npm-install.log"; then
+              exit 0
+            else
+              install_status=$?
+            fi
+            # Retry only the observed transport timeout, once. Integrity,
+            # dependency and configuration errors retain their original failure.
+            if [[ "$install_attempt" == 2 ]] || ! grep -Eq '^npm (error|ERR!) code ETIMEDOUT[[:space:]]*$' "$RUNNER_TEMP/native-ui-npm-install.log"; then
+              exit "$install_status"
+            fi
+            printf '%s\n' 'The dependency download timed out; retrying the same locked install once.'
+            sleep 3
+          done
       - name: Use Java 17 and the locked CocoaPods version
         run: |
           echo "JAVA_HOME=$JAVA_HOME_17_X64" >> "$GITHUB_ENV"

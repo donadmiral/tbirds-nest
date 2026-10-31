@@ -1,5 +1,5 @@
 import React from 'react';
-import { Animated } from 'react-native';
+import { Animated, StyleSheet } from 'react-native';
 import { BottomTabBar, BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
 const anim = new Animated.Value(0);
@@ -24,6 +24,16 @@ export function handleTabBarScroll(e: any) {
 }
 
 export default function AdaptiveTabBar({ keepVisible: alwaysVisible = false, ...props }: BottomTabBarProps & { keepVisible?: boolean }) {
+  const focusedStyle = StyleSheet.flatten(props.descriptors[props.state.routes[props.state.index].key].options.tabBarStyle);
+  const height = focusedStyle && 'height' in focusedStyle ? focusedStyle.height : undefined;
+  const bottom = focusedStyle && 'bottom' in focusedStyle ? focusedStyle.bottom : undefined;
+  const floating = focusedStyle && 'position' in focusedStyle && focusedStyle.position === 'absolute';
+  // The floating bar is absolute, so it cannot size this animated parent.
+  // Give its native accessibility container bounds that include the buttons.
+  const frame = !floating ? undefined : typeof height === 'number' && Number.isFinite(height) && height > 0 &&
+    typeof bottom === 'number' && Number.isFinite(bottom) && bottom >= 0
+    ? { position: 'absolute' as const, left: 0, right: 0, bottom: 0, height: height + bottom }
+    : StyleSheet.absoluteFillObject;
   React.useEffect(() => {
     keepVisible = alwaysVisible;
     anim.stopAnimation();
@@ -41,12 +51,12 @@ export default function AdaptiveTabBar({ keepVisible: alwaysVisible = false, ...
   return (
     <Animated.View
       pointerEvents="box-none"
-      style={alwaysVisible ? undefined : {
+      style={[frame, !alwaysVisible && {
         transform: [
           { translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [0, 150] }) },
           { scale: anim.interpolate({ inputRange: [0, 1], outputRange: [1, 0.92] }) },
         ],
-      }}
+      }]}
     >
       <BottomTabBar {...props} />
     </Animated.View>

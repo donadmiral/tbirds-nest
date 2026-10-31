@@ -7,6 +7,15 @@ const fixture = JSON.parse(fs.readFileSync(path.join(evidence, 'native-ui-receip
 const appLog = fs.readFileSync(path.join(evidence, 'app.log'), 'utf8');
 const nativeBridgeFailures = appLog.split('\n').filter(line => /Exception in HostObject::get|TurboModuleInteropUtils.*ParsingException|com\.facebook\.react\.common\.JavascriptException/.test(line));
 if (nativeBridgeFailures.length) throw new Error('A native bridge crashed in the full app: ' + nativeBridgeFailures[0].slice(0, 500));
+const accountPersistenceFailures = appLog.split('\n').filter(line => /\[accounts\] (?:save|index) failed/.test(line));
+if (accountPersistenceFailures.length || !/\[accounts\] index['",\s]*1(?:\D|$)/.test(appLog)) {
+  throw new Error('The real native account keychain did not confirm a successful one-account index save.');
+}
+const accountReadbacks = fixture.accountReadbacks || [];
+if (accountReadbacks.length !== 1 || accountReadbacks[0].passed !== true
+  || accountReadbacks[0].reloaded !== true || accountReadbacks[0].accountCount !== 1) {
+  throw new Error('The actual native account store did not reload the saved synthetic session from SecureStore.');
+}
 const memory = JSON.parse(fs.readFileSync(path.join(evidence, 'memory-capture/decoded.json'), 'utf8'));
 if (memory.passed !== true || memory.cancelledReaderClosed !== true || memory.cancelledAndCompletedTemporaryFilesRemoved !== true) {
   throw new Error('The complete memory capture, encoded output and cancellation cleanup did not pass.');
@@ -70,6 +79,8 @@ fs.writeFileSync(path.join(evidence, 'receipt.json'), JSON.stringify({ passed: t
   profileMemoryShelfReaderAutomaticFilmAndExportEntry: true,
   ownerCoverAndFilmSettingsSavedAndReopened: true, memoryBookSavedRevision: bookSaves[0].revision,
   nativeBridgeCrashLines: nativeBridgeFailures.length,
+  accountIndexSaved: true, accountPersistenceFailureLines: accountPersistenceFailures.length,
+  savedAccountReloadedThroughSecureStore: true,
   requestCount: fixture.requests.length, screenshots: media,
   repeatedFeedReturns: 5, signedReleaseCreated: false }, null, 2) + '\n');
 console.log('Full native App launched; auth, five tabs, settings, saved memory books, automatic films and real capture passed with no unsupported requests.');

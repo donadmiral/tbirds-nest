@@ -29,6 +29,7 @@ jobs:
       MEMORY_COVER_QA_OUTPUT: /tmp/platinum-browser-evidence/memory-cover
       MUSIC_QA_OUTPUT: /tmp/platinum-browser-evidence/music
       PLATINUM_SOCIAL_ARTIFACTS: /tmp/platinum-browser-evidence/web
+      PLATINUM_SHELL_ARTIFACTS: /tmp/platinum-browser-evidence/shell
       PLATINUM_COMMERCE_ARTIFACTS: /tmp/platinum-browser-evidence/commerce
       PLATINUM_STUDIO_UI_OUTPUT: /tmp/platinum-studio-browser
       PLATINUM_STUDIO_UI_ARTIFACTS: /tmp/platinum-browser-evidence/studio
@@ -67,6 +68,9 @@ jobs:
       - name: Exercise public-web navigation, account changes and recovery
         if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
         run: node web/tests/browser/social-run.cjs
+      - name: Exercise real Next cold-route navigation and held server responses
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
+        run: node web/tests/browser/navigation-loading-next.cjs
       - name: Exercise jobs, application review, market offers and orders
         if: ${{ !cancelled() && steps.checkout.outcome == 'success' && steps.node_setup.outcome == 'success' && steps.dependencies.outcome == 'success' && steps.browser_tools.outcome == 'success' }}
         run: node web/tests/browser/commerce-run.cjs
@@ -104,6 +108,9 @@ jobs:
             /tmp/platinum-browser-evidence/music/*.png
             /tmp/platinum-browser-evidence/web/*.png
             /tmp/platinum-browser-evidence/web/*.json
+            /tmp/platinum-browser-evidence/shell/*.png
+            /tmp/platinum-browser-evidence/shell/*.json
+            /tmp/platinum-browser-evidence/shell/*.log
             /tmp/platinum-browser-evidence/commerce/*.png
             /tmp/platinum-browser-evidence/commerce/*.json
             /tmp/platinum-browser-evidence/studio/*.png

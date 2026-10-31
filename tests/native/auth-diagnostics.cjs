@@ -1,16 +1,21 @@
 /** Timing-only observation for the disposable native UI build. Never imported by the production entry. */
-function createAuthDiagnostics({ now = () => globalThis.performance?.now?.() ?? Date.now(), onChange = () => {}, maxEvents = 1024 } = {}) {
+function createAuthDiagnostics({ now = () => globalThis.performance?.now?.() ?? Date.now(), wallNow = () => Date.now(), timerTarget = globalThis, onChange = () => {}, maxEvents = 1024 } = {}) {
   const capacity = Math.max(16, Math.min(4096, Number.isFinite(maxEvents) ? Math.floor(maxEvents) : 1024));
   const firstCapacity = Math.floor(capacity / 2);
   const events = [], locks = new Map(), storageKeys = new Map();
   const holders = new Map(), waiting = new Map(), storage = new Map();
+  const timerApiIdentities = new WeakMap();
+  let timerApiIdentityCount = 0, timerApiIdentityLimitReached = false, wallClockOriginMs = null;
   let nextOperation = 0, droppedEvents = 0, droppedTracking = 0, lastTime = 0;
   let origin;
   const time = () => {
     try {
       const value = now();
       if (Number.isFinite(value)) {
-        if (origin === undefined) origin = value;
+        if (origin === undefined) {
+          origin = value;
+          try { const wall = wallNow(); if (Number.isFinite(wall)) wallClockOriginMs = wall; } catch { /* Clock observation cannot fail auth. */ }
+        }
         lastTime = Math.max(lastTime, value - origin);
       }
     } catch { /* Observation cannot fail an auth operation. */ }
@@ -26,9 +31,27 @@ function createAuthDiagnostics({ now = () => globalThis.performance?.now?.() ?? 
     else droppedTracking++;
   };
   const activeLockIds = () => [...holders.values()].map(row => row.operationId);
+  const timerApiIdentity = value => {
+    if (timerApiIdentities.has(value)) return timerApiIdentities.get(value);
+    if (timerApiIdentityCount === 32) { timerApiIdentityLimitReached = true; return 0; }
+    const id = ++timerApiIdentityCount; timerApiIdentities.set(value, id); return id;
+  };
+  const timerDescriptor = name => {
+    try {
+      // Do not read the property itself: RN can lazily install a timer via its getter.
+      const descriptor = Object.getOwnPropertyDescriptor(timerTarget, name);
+      if (!descriptor) return { kind: 'missing', id: 0 };
+      if ('value' in descriptor) return typeof descriptor.value === 'function'
+        ? { kind: 'function', id: timerApiIdentity(descriptor.value) } : { kind: 'other', id: 0 };
+      return typeof descriptor.get === 'function'
+        ? { kind: 'getter', id: timerApiIdentity(descriptor.get) } : { kind: 'accessor', id: 0 };
+    } catch { return { kind: 'unavailable', id: 0 }; }
+  };
   const record = row => {
     if (events.length === capacity) { events.splice(firstCapacity, 1); droppedEvents++; }
-    events.push({ ...row, atMs: time() });
+    events.push({ ...row, atMs: time(), ...(row.kind === 'lock' ? { timerApis: {
+      setTimeout: timerDescriptor('setTimeout'), clearTimeout: timerDescriptor('clearTimeout'),
+    } } : {}) });
     try { onChange(); } catch { /* The optional diagnostic sink cannot alter authentication. */ }
   };
   const observe = (result, complete) => {
@@ -93,9 +116,11 @@ function createAuthDiagnostics({ now = () => globalThis.performance?.now?.() ?? 
   function snapshot() {
     const atMs = time();
     return {
-      schemaVersion: 1, mode: 'synthetic-native-auth-timing', atMs,
+      schemaVersion: 1, mode: 'synthetic-native-auth-timing', atMs, wallClockOriginMs,
+      timerApiIdentityCount, timerApiIdentityLimitReached,
       totalOperations: nextOperation, droppedEvents, droppedTracking,
-      events: events.map(row => ({ ...row, ...(row.activeLockOperationIds ? { activeLockOperationIds: [...row.activeLockOperationIds] } : {}) })),
+      events: events.map(row => ({ ...row, ...(row.activeLockOperationIds ? { activeLockOperationIds: [...row.activeLockOperationIds] } : {}),
+        ...(row.timerApis ? { timerApis: { setTimeout: { ...row.timerApis.setTimeout }, clearTimeout: { ...row.timerApis.clearTimeout } } } : {}) })),
       activeLocks: [...holders.values()].map(({ acquiredAt, ...row }) => ({ ...row, holdMs: atMs - acquiredAt })),
       waitingLocks: [...waiting.values()].map(({ requestedAt, ...row }) => ({ ...row, waitMs: atMs - requestedAt })),
       activeStorage: [...storage.values()].map(({ startedAt, ...row }) => ({ ...row, activeLockOperationIds: [...row.activeLockOperationIds], durationMs: atMs - startedAt })),

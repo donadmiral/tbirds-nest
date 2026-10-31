@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-31T04:29:42.767177Z",
+  "scope": "Independent source review and actual focused source/hook/static-render regression. This is an unpublished working-tree candidate based on 26e80ae9, not part of that published CI result.",
+  "baseHeadSha": "26e80ae96647884e7f2764bdbb1884fd5aabcff5",
+  "sourceSha256": {
+    "web/components/AppShell.tsx": "4f213f270c045a835776cb1232190f1be7db7b3af3259deb58e13e951be10950",
+    "web/components/NavigationLoading.tsx": "7a51a46b81fea86c45714ae553b5d53682274d7266ef2b7dca2f40315a5ac27b",
+    "web/lib/navigationChromeMemory.ts": "c0c0459d141b300981ea3efb6fa56397993fbfcf6d2310071caeee282038d2ce",
+    "web/app/loading.tsx": "1a02b8100608be1ba059f996fbf800e68c7883698cdb4be46df4660c1bc9650e",
+    "web/tests/navigation-loading.cjs": "824172954e4851236259f288072b163399756b19590dec4a81e2a57217a02193",
+    "web/tests/app-shell-loading.cjs": "83c76b3a373c8e332f3f8add42685a9ea9317fb494921ce5c9221e3d61a2843c",
+    "web/tests/browser/navigation-loading-next.cjs": "f84762786ccdd76de193d8a6e8590756632abb674498679f8107aebb55e93c46"
+  },
+  "guidanceRead": [
+    "web/AGENTS.md",
+    "web/node_modules/next/AGENTS.md",
+    "web/node_modules/next/dist/docs/01-app/03-api-reference/03-file-conventions/loading.md",
+    "web/node_modules/next/dist/docs/01-app/02-guides/client-side-data-fetching/index.md"
+  ],
+  "verdict": "No remaining source-review objection at these final candidate hashes, including verified-guest invalidation. Final owner Node and actual Next integration receipts were reviewed and source-bound separately from the prior independent focused execution.",
+  "reviewedProperties": [
+    "Only existing server-verified AppShell identity fields are recorded; no page content, private arbitrary fields, JWTs or authorization decisions are cached.",
+    "Both captured/live snapshots require initialized, unchanged, exact owner/scope/revision. Scope replacement, sign-out and A-to-B-to-A reject late writes and reads.",
+    "The no-await recorder checks the render snapshot at layout-effect commit; the sticky changed guard is independent of the root session boundary.",
+    "All current ordinary AppShell layouts are eligible; public/auth/professional/unknown-profile routes remain neutral even with a colliding recorded username.",
+    "Only configured-origin canonical public avatars are replayed; signed, authenticated, query-bearing, opaque or unrelated-origin locators become initials.",
+    "Passive chrome mounts links/status only, with prefetch disabled; it mounts no unread query hooks, call layer, lightbox, scroll manager, editable input or compose action.",
+    "Collapsed width and frame margin agree without owning the global nav-collapsed class or adding storage listeners.",
+    "Loading skip link targets a distinct loading-main-content ID, avoiding retained hidden Suspense content.",
+    "The existing scoped cache expires the record at thirty minutes on read."
+  ],
+  "resolvedDuringReview": [
+    "Explicit reserved-route exclusions added before own-profile matching.",
+    "Broad capability-URL blacklist replaced by a first-party public-avatar allowlist.",
+    "Loading main/skip target separated from ordinary main-content.",
+    "Test loader supplied its actual filename so generic TypeScript is not parsed as JSX."
+  ],
+  "limitations": [
+    "Focused tests use synthetic sessions/cache and actual helper/recorder/rendering boundaries. The real Next owner proof uses one synthetic signed-in account and local HTTP Auth/database; it does not establish hosted authorization or physical-device performance.",
+    "Retained chrome can make navigation available during loading without reducing the server response time itself.",
+    "No source changes, app deployments, hosted writes or branch publication were performed by the reviewer."
+  ],
+  "priorIndependentExecution": {
+    "recordedAt": "2026-10-31T04:20:38.878259Z",
+    "sourceSha256": {
+      "web/components/AppShell.tsx": "4f00396f65738d6f631a63d4112be5913fdca4a42bda638dde27d9f6b6d41d6e",
+      "web/components/NavigationLoading.tsx": "5bc534766188daa8f68be76552f72a30ece72546393a7a3498a4ee0535874766",
+      "web/lib/navigationChromeMemory.ts": "159ea4c09a255108f62accd5fbfff09bbeb5ff6c2d597936328b95d9de01f661",
+      "web/app/loading.tsx": "1a02b8100608be1ba059f996fbf800e68c7883698cdb4be46df4660c1bc9650e",
+      "web/tests/navigation-loading.cjs": "c9f240d30122fa261a6cb8a4ccd95fe0643906ca3885e3613b2bea5bd167c04f"
+    },
+    "focusedVerification": {
+      "command": "node web/tests/navigation-loading.cjs",
+      "tests": 9,
+      "pass": 9,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "diffCheck": "passed"
+    }
+  },
+  "finalDeltaReview": {
+    "verifiedGuest": "The null-identity recorder removes only the exact current initialized, unchanged owner/scope/revision entry. A late captured old-scope guest effect cannot erase a replacement session snapshot. No guest identity is recorded.",
+    "passiveBrand": "Collapsed chrome uses the existing local /logo.png with no active app layer or network authorization change.",
+    "neutralRenderCoverage": "Owner added actual fallback rendering checks for public, auth, professional, unknown-profile and unresolved session cases."
+  },
+  "reviewedOwnerVerification": {
+    "receipt": "docs/quality/navigation-20261031/cold-shell-followup.json",
+    "receiptSha256": "6f4d9d43877de2edd124e2d05b93cb5e9d1c0577dba184f4cb85b2bbc20ff676",
+    "node": {
+      "passed": 14,
+      "failed": 0,
+      "files": {
+        "web/tests/navigation-loading.cjs": 11,
+        "web/tests/app-shell-loading.cjs": 3
+      },
+      "invocation": "env -u NODE_TEST_CONTEXT node <file>; real internal node:test cases"
+    },
+    "webTypecheck": {
+      "command": "node node_modules/typescript/bin/tsc --noEmit --incremental false",
+      "passed": true
+    },
+    "scopedLint": {
+      "files": [
+        "web/app/loading.tsx",
+        "web/components/AppShell.tsx",
+        "web/components/NavigationLoading.tsx",
+        "web/lib/navigationChromeMemory.ts"
+      ],
+      "passed": true,
+      "errors": 0,
+      "warnings": 0
+    },
+    "actualNext": {
+      "receipt": "docs/quality/navigation-20261031/cold-shell-next-browser.json",
+      "receiptSha256": "6128491f3fdb4b26d3e5b8ad429856347da9cebc1636105db171cadc168ca4aa",
+      "checks": [
+        {
+          "name": "cold Jobs to own Profile retains visible passive navigation while actual server AppShell profile response is held",
+          "passed": true,
+          "heldResponses": 1,
+          "observedFrames": 43,
+          "totalTransitionFrames": 136,
+          "framesWithoutChrome": 0,
+          "extraUnreadRequests": 0,
+          "editableInputs": 0,
+          "signedAvatarLocators": 0
+        },
+        {
+          "name": "passive navigation interrupts the held route and late Profile completion does not replace Jobs",
+          "passed": true
+        },
+        {
+          "name": "collapsed sidebar and content geometry stay aligned during a real cold Notifications transition",
+          "passed": true,
+          "sidebarWidth": 76,
+          "sidebarRight": 76,
+          "mainLeft": 76
+        }
+      ],
+      "browserErrors": [],
+      "totalTransitionFrames": 136,
+      "framesWithoutChrome": 0,
+      "outgoingFrames": 93,
+      "verifiedFallbackFrames": 43
+    },
+    "attribution": "Executed by navigation_performance; independently reviewed and hash-bound here, not rerun or counted as a second independent execution."
+  }
+}

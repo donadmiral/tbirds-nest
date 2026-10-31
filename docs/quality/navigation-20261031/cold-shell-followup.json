@@ -1,0 +1,102 @@
+{
+  "checkedAt": "2026-10-31T04:23:54.126498+00:00",
+  "baseCommit": "26e80ae96647884e7f2764bdbb1884fd5aabcff5",
+  "status": "Verified local web candidate; not yet published by this agent.",
+  "finding": "Live first Jobs to Profile and other cold routes could replace the entire sibling AppShell with the root Loading cards. Warm Jobs and own-Profile content caches were independently working.",
+  "changes": [
+    "The root fallback restores navigation-only identity from the last committed server-verified standard AppShell. Server getUser/profile waits and all page authorization remain unchanged.",
+    "Snapshot publication and reads require initialized, not-changed browser identity and the exact owner, scope and revision. Account/session replacement including A to B to A invalidates restoration and late recorder effects.",
+    "A verified guest shell commits a null recorder that removes only its captured current-scope chrome entry; a late guest effect cannot clear a replacement session entry.",
+    "Standard AppShell route prefixes and the recorded own-profile/follows paths opt in. Public/auth/professional destinations, unresolved identity, unknown profiles and standalone post/story/call/write/music routes retain neutral loading.",
+    "Passive desktop/mobile navigation has prefetch=false links, an Opening page status, no search or compose inputs, no unread/status query hooks, and no call/lightbox/scroll layers or cached page/rail content.",
+    "Only canonical first-party public avatars without query/hash/credentials restore; all signed/authenticated/opaque/external avatar locators fall back to initials.",
+    "Collapsed sidebar preference is read passively; its explicit 76px or 248px frame margin does not depend on the old shell global class. The loading skip target has its own unique ID."
+  ],
+  "verification": {
+    "node": {
+      "passed": 14,
+      "failed": 0,
+      "files": {
+        "web/tests/navigation-loading.cjs": 11,
+        "web/tests/app-shell-loading.cjs": 3
+      },
+      "invocation": "env -u NODE_TEST_CONTEXT node <file>; real internal node:test cases"
+    },
+    "webTypecheck": {
+      "command": "node node_modules/typescript/bin/tsc --noEmit --incremental false",
+      "passed": true
+    },
+    "scopedLint": {
+      "files": [
+        "web/app/loading.tsx",
+        "web/components/AppShell.tsx",
+        "web/components/NavigationLoading.tsx",
+        "web/lib/navigationChromeMemory.ts"
+      ],
+      "passed": true,
+      "errors": 0,
+      "warnings": 0
+    },
+    "realNextBrowser": {
+      "command": "env -u NODE_TEST_CONTEXT PLATINUM_CHROMIUM=/tmp/platinum-gate-chrome/chrome-linux64/chrome PLATINUM_SHELL_ARTIFACTS=/tmp/platinum-shell-next-release-qa node web/tests/browser/navigation-loading-next.cjs",
+      "nextVersion": "16.4.3",
+      "runtime": "153.0.8010.12",
+      "checks": [
+        {
+          "name": "cold Jobs to own Profile retains visible passive navigation while actual server AppShell profile response is held",
+          "passed": true,
+          "heldResponses": 1,
+          "observedFrames": 43,
+          "totalTransitionFrames": 136,
+          "framesWithoutChrome": 0,
+          "extraUnreadRequests": 0,
+          "editableInputs": 0,
+          "signedAvatarLocators": 0
+        },
+        {
+          "name": "passive navigation interrupts the held route and late Profile completion does not replace Jobs",
+          "passed": true
+        },
+        {
+          "name": "collapsed sidebar and content geometry stay aligned during a real cold Notifications transition",
+          "passed": true,
+          "sidebarWidth": 76,
+          "sidebarRight": 76,
+          "mainLeft": 76
+        }
+      ],
+      "browserErrors": []
+    }
+  },
+  "sourceSha256": {
+    "web/app/loading.tsx": "1a02b8100608be1ba059f996fbf800e68c7883698cdb4be46df4660c1bc9650e",
+    "web/components/AppShell.tsx": "4f213f270c045a835776cb1232190f1be7db7b3af3259deb58e13e951be10950",
+    "web/components/NavigationLoading.tsx": "7a51a46b81fea86c45714ae553b5d53682274d7266ef2b7dca2f40315a5ac27b",
+    "web/lib/navigationChromeMemory.ts": "c0c0459d141b300981ea3efb6fa56397993fbfcf6d2310071caeee282038d2ce",
+    "web/tests/app-shell-loading.cjs": "83c76b3a373c8e332f3f8add42685a9ea9317fb494921ce5c9221e3d61a2843c",
+    "web/tests/navigation-loading.cjs": "824172954e4851236259f288072b163399756b19590dec4a81e2a57217a02193",
+    "web/tests/browser/navigation-loading-next.cjs": "f84762786ccdd76de193d8a6e8590756632abb674498679f8107aebb55e93c46"
+  },
+  "unchangedAuthSessionAndActiveChromeSha256": {
+    "web/proxy.ts": "312412090e5966dce693c633de8cb71306c2576bdb4d3fbb47298d3656f2d1f2",
+    "web/lib/serverViewer.ts": "63fd078167f92716c7f258fdfe984bbf519588d7c4f9aac26230e5b77d0e9891",
+    "web/lib/navigationCache.ts": "64260f2f9c45c7ed8b8f78d15592e6601ce5f4aa1ba6d197d62ad2a0742d3295",
+    "shared/navigationCache.ts": "3c96b45ecbc04af6c214423d83bca2564659906c1781acf1ab265df53e3969ba",
+    "web/components/NavigationSessionBoundary.tsx": "3f20fc9b6f0ddeb2421210ae06cd6d327a2d674b6f4660670d30280f3fc8572f",
+    "web/components/Nav.tsx": "587a676715e2d592547ec1e6711ec4a137d879ee7d91ea048c2270739b5aa397",
+    "web/components/TopBar.tsx": "f8baeb0a281fd595e1e29528053fa2c027d9ac9821748acbb400849679464a15",
+    "web/components/MobileTabBar.tsx": "ce47efa602487c41e46ced7d072bb87a383b0e238b2c82749ed32e3aceab3c50"
+  },
+  "evidence": [
+    "docs/quality/navigation-20261031/cold-shell-next-browser.json",
+    "docs/quality/navigation-20261031/cold-shell-profile-expanded.png",
+    "docs/quality/navigation-20261031/cold-shell-notifications-collapsed.png"
+  ],
+  "scopeAndLimits": [
+    "Real Next development App Router, proxy, getServerViewer, async AppShell and actual Jobs/Profile/Notifications routes with a loopback synthetic Supabase HTTP backend. No Next routing adapter. No hosted Supabase authorization or data acceptance claim.",
+    "The final cold Jobs-to-Profile probe samples 136 requestAnimationFrame observations: 93 outgoing Jobs frames and 43 verified loading frames, all with visible desktop chrome. This is DOM/geometry observation, not GPU paint.",
+    "The deliberate server hold proves visible usable navigation during the wait. Development compilation and localhost transport do not establish production latency, and the change does not reduce network time or preserve chrome DOM/search state.",
+    "Guest/session/ABA/public-route/late-publication cases run against the real helper, actual recorder hooks and actual fallback rendering; the real Next browser journey uses one synthetic signed-in owner.",
+    "The separate persistent route-group shell remains a possible later improvement; this candidate adds no global server identity cache, auth relaxation, new native code or active app-layer instances."
+  ]
+}

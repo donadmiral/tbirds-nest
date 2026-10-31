@@ -1,0 +1,160 @@
+{
+  "measuredAt": "2026-10-31T04:28:53.187072+00:00",
+  "workflowRun": 41166954949,
+  "attempt": 1,
+  "jobId": 124436466338,
+  "headCommit": "26e80ae96647884e7f2764bdbb1884fd5aabcff5",
+  "testedMergeCommit": "6373021f8dcbb2bc614039e74937d2acb0ff2d3e",
+  "tree": "1c10d4cc20fcfd5a0d4e82ba0121c51e90274c03",
+  "headAndMergeTreesEqual": true,
+  "artifact": {
+    "id": 13029014693,
+    "name": "android-full-app-ui",
+    "bytes": 1615672,
+    "sha256": "5264cf99f68e6f0ce589d5dbad4b2e296e789ad76d828259f1b2431d672b488f"
+  },
+  "sourceProof": {
+    "hashesVerifiedAgainstTestedMerge": 490,
+    "mismatches": [],
+    "retainedOverlayHashesVerified": 6,
+    "sourceMemoryCapability": 0,
+    "capabilityMode": "qa-capability-overlay"
+  },
+  "result": {
+    "passed": false,
+    "nativeBuildSucceeded": true,
+    "buildTimingLines": [
+      "BUILD SUCCESSFUL in 12m 1s"
+    ],
+    "syntheticSignInSucceeded": true,
+    "homePostAssertionPassed": true,
+    "latestAndForYouAssertionsPassed": true,
+    "startupMicrophonePromptBlockedHome": false,
+    "cameraOrMicrophonePregrantInFlow": false,
+    "failureCommand": "tapOn: Market",
+    "failureSequenceNumber": 20,
+    "failureMessage": "Element not found: Text matching regex: Market",
+    "maestroDurationSeconds": 47.374,
+    "memoryNavigationReached": false,
+    "memoryCaptureReached": false
+  },
+  "diagnosis": {
+    "visibleTabs": [
+      "Home",
+      "Market",
+      "Jobs",
+      "Messages",
+      "Profile"
+    ],
+    "appTabLabelsPresentInFailedAccessibilityTree": [],
+    "sameObservedFailureAs": "ios-full-app-341395c6-failure.json",
+    "sourceFinding": "The absolute BottomTabBar is drawn outside its zero-height Animated parent. The pending narrow geometry repair gives its native parent real bounds without changing tab selectors."
+  },
+  "fixture": {
+    "requestCount": 89,
+    "unhandled": [
+      {
+        "method": "POST",
+        "path": "/rest/v1/rpc/home_marketplace_recommendations"
+      },
+      {
+        "method": "POST",
+        "path": "/rest/v1/rpc/home_marketplace_recommendations"
+      }
+    ],
+    "networkForwarded": false,
+    "bookReads": []
+  },
+  "authTiming": {
+    "mode": "synthetic-native-auth-timing",
+    "operationCount": 115,
+    "events": 274,
+    "droppedEvents": 0,
+    "droppedTracking": 0,
+    "locksAcquired": 22,
+    "storageOperationsSettled": 93,
+    "maxWaitMs": 293.0709999999999,
+    "maxHoldMs": 389.20500000000175,
+    "maxStorageMs": 109.76699999999983,
+    "rejectedOperations": 0,
+    "finalActiveLocks": [],
+    "finalWaitingLocks": [],
+    "finalActiveStorage": [],
+    "sdkWarningStillPresent": [
+      "10-31 04:17:50.210  2494  2554 W ReactNativeJS: @supabase/gotrue-js: Lock \"lock:sb-uaulhuelcfkjwojtymmw-auth-token\" acquisition timed out after 5000ms. This may be caused by another operation holding the lock. Consider increasing lockAcquireTimeout or checking for stuck operations."
+    ],
+    "interpretation": "The observed wrapped operations all fulfilled without a 5-second recorded wait. The SDK still emitted a 5-second warning; these timings do not resolve that discrepancy or prove a startup speedup."
+  },
+  "accountPersistence": {
+    "successfulIndexSaveObserved": true,
+    "failureLines": []
+  },
+  "retained": [
+    {
+      "file": "android-26e80ae9-home.png",
+      "bytes": 51671,
+      "sha256": "f8245fe58dec5c0c78fa75b49023339f8e509ad66661f4ab1a18f5a61d3b9400"
+    },
+    {
+      "file": "android-26e80ae9-tab-accessibility-failure.png",
+      "bytes": 51727,
+      "sha256": "b7477a73be442e66c7b6e2bc77cf443e382554ba1a1c9cedab80ed6463bc9174"
+    },
+    {
+      "file": "android-26e80ae9-tab-accessibility-tree.json",
+      "bytes": 172139,
+      "sha256": "80d26824bbd7017c28f736d91c076a04f38cb51ec52e99e9cea32e7d6ec3838f"
+    },
+    {
+      "file": "android-full-app-26e80ae9-source.json",
+      "bytes": 57060,
+      "sha256": "02dc83aec28e438d0157b17255cb794abcf52cf63feaa9c27c36519d0564ce8e"
+    },
+    {
+      "file": "android-26e80ae9-auth-diagnostics.json",
+      "bytes": 38208,
+      "sha256": "441f660e2623715e61a0b282558639662571a194fac3d984c14b55242125ece4"
+    },
+    {
+      "file": "android-26e80ae9-navigation.mp4",
+      "bytes": 2173723,
+      "sha256": "a37f9f89cd08f14f60972ecdde956730e9acdcfe7b13de066123bbe84e712a24"
+    }
+  ],
+  "video": {
+    "programs": [],
+    "streams": [
+      {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 320,
+        "height": 640,
+        "avg_frame_rate": "775125/20603",
+        "duration": "54.941333",
+        "nb_frames": "2067"
+      },
+      {
+        "codec_type": "data",
+        "avg_frame_rate": "0/0",
+        "duration": "54.941333",
+        "nb_frames": "1"
+      },
+      {
+        "codec_type": "data",
+        "avg_frame_rate": "0/0",
+        "duration": "54.941333",
+        "nb_frames": "1"
+      }
+    ],
+    "format": {
+      "duration": "54.941333",
+      "size": "2173723"
+    }
+  },
+  "limits": [
+    "Complete native app with synthetic transports only; no hosted-provider or physical-device acceptance.",
+    "The shared tab accessibility failure prevents book navigation/editor/export and actual capture acceptance.",
+    "Variable-cadence diagnostic recording is not an app frame-rate or latency benchmark.",
+    "Production memoryMovieVersion remains0; only the disposable QA declaration is1."
+  ]
+}

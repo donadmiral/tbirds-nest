@@ -6,6 +6,9 @@ name: Actual native memory capture and encoding
 - extendedWaitUntil:
     visible: Native capture acceptance
     timeout: 30000
+- extendedWaitUntil:
+    visible: Saved account readback passed
+    timeout: 15000
 - tapOn: Open cancellation movie
 - extendedWaitUntil:
     visible: Create memory movie

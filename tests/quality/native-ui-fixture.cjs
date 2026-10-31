@@ -138,6 +138,27 @@ test('the Jobs screen application helper reads the versioned empty page through 
   await client.auth.signOut();
 });
 
+test('the observed Home marketplace helper reads its empty recommendation shelf through the actual Supabase adapter', async () => {
+  const fs = require('node:fs'), vm = require('node:vm'), ts = require('typescript');
+  const module = { exports: {} };
+  vm.runInNewContext(ts.transpileModule(fs.readFileSync(require.resolve('../../shared/marketplaceRecommendations.ts'), 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+  }).outputText, { module, exports: module.exports, Error });
+  const fixture = createFixture();
+  const client = createClient(origin, 'native-ui-synthetic-no-provider-key', {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }, global: { fetch: fixture.fetch },
+  });
+  await client.auth.signInWithPassword({ email: 'qa.alex@example.invalid', password: 'FixtureOnly-2026!' });
+  const recommendations = await module.exports.readMarketplaceRecommendations(client, new AbortController().signal);
+  assert.deepEqual(recommendations, [], 'a marketplace listing does not imply a recommendation snapshot');
+  assert.ok(fixture.receipt.requests.some(request => request.method === 'POST' && request.path === '/rest/v1/rpc/home_marketplace_recommendations'));
+  assert.equal(fixture.receipt.unhandled.length, 0); assert.equal(fixture.receipt.networkForwarded, false);
+  const unknown = await client.rpc('unimplemented_marketplace_recommendations');
+  assert.equal(unknown.status, 501, 'unknown RPCs remain recorded failures');
+  assert.equal(fixture.receipt.unhandled.length, 1);
+  await client.auth.signOut();
+});
+
 test('native book fixtures persist a revisioned owner edit through actual Supabase adapters and a fresh shelf/read', async () => {
   const fixture = createFixture();
   const client = createClient(origin, 'native-ui-synthetic-no-provider-key', {

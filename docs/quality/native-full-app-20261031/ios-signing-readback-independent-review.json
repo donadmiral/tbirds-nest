@@ -1,0 +1,100 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-10-31T04:38:42.037642Z",
+  "reviewer": "hosted_backend independent review",
+  "baseHeadSha": "26e80ae96647884e7f2764bdbb1884fd5aabcff5",
+  "verdict": "Accepted for the v3 disposable native QA run; no source-review blocker found. This does not claim macOS signing or native keychain runtime success.",
+  "reviewedOwnerReceipt": {
+    "path": "docs/quality/native-full-app-20261031/ios-simulator-keychain-signing-repair.json",
+    "sha256": "9153dcb06b67bf05e2753dd544cbf06d782c1c52708e21b6f70e65cb87ceb13c"
+  },
+  "sourceHashes": {
+    "scripts/quality/test-ios-app-ui.sh": "f127d3c3d8d1c558d1c43196410b923e687a58eb348d52abd3517b262f5e83e7",
+    "scripts/quality/native-ui-ios-entitlements.py": "ebec3f0271afaecb372710a2bdc6aa4eb43eec00c736a4923aaed0c317c1f65b",
+    "scripts/quality/prepare-native-ui.cjs": "f12f6d6cba9066e0caf98f4b67d0a93730021a20aa4328f800e14152e79b44af",
+    "scripts/quality/verify-native-ui.cjs": "9ef176d0aeb42e1505d19b5ff49e93042f48f102c9867dc331897a81bc13bbd8",
+    "tests/native/test_simulator_entitlements.py": "807370d2980e90a2558fb74728fbe2400b0c60da05d498020ed602bee8018e41",
+    "tests/quality/native-simulator-entitlements.cjs": "408f6e9725a87bcab3b562abea30dbb5acaec5199c5321e3d79c24a228ac81ac",
+    "tests/quality/native-ui-runtime-diagnostics.cjs": "954c322808f72b77a4383c133edcfe191dade219f9326ddef67cc8255ac8cf5a",
+    "tests/native/account-readback.cjs": "32f49dba2d807f4db7e63a8474c1d5b1e429d05efe90f343c25a12b1aca3ab19",
+    "tests/native/backend-fixture.cjs": "854cbd355bc8e02736997027fce630e22e298a62a3e1bcfb372d0648f0cf2eb9",
+    "tests/native/MemoryCaptureFixtureScreen.tsx": "2733bae6355e06851454cab5e73e7579bff585b23de5aa2b8259acae7f68de2d",
+    "tests/native/flows/memory-capture.yaml": "16966925346646f2280ca0ebdea7ce0c5f2e131d03e9dec3841c69a761f0ba91",
+    "tests/quality/native-account-readback.cjs": "e29c9448c6725e996ad71ccc0b9175c578a69d5011d10dd0ddd6de3912613856"
+  },
+  "unchangedProductionAccountStore": {
+    "path": "src/stores/accountsStore.ts",
+    "sha256": "964d19720cad8c09bd3354d97372cbbca96c1a92d523a4cf61d1778836e8da71",
+    "matchesPublishedBase": true
+  },
+  "signingReview": [
+    "The shell is limited to CI on Intel macOS and builds the iphonesimulator SDK for x86_64 with a local ad-hoc identity. It introduces no Apple account, profile download, team identifier or physical-device signing path.",
+    "A nonempty ad-hoc identity allows normal Xcode product entitlement processing. The parser then inspects the actual generated QA executable rather than constructing an application identity.",
+    "The parser validates the QA Info.plist bundle/platform, a safe executable basename, thin x86_64 Mach-O, load-command/section bounds and PLATFORM_IOSSIMULATOR. It requires generated resolved QA application identity and valid optional keychain-group strings.",
+    "Both simulated XML and DER sections must be nonempty. XML is decoded; DER receives only presence/size/hash checks, explicitly not a semantic validation claim.",
+    "Before/after embedded section hashes and XML dictionaries must match around the existing plain deep ad-hoc re-sign. Deep strict signature verification and Signature=adhoc checks are mandatory.",
+    "Host signature entitlements are inspected separately and restricted to debug-access keys. iOS application/keychain entitlements are not injected into that host signature."
+  ],
+  "readbackReview": [
+    "The helper is reachable only from the disposable capture route and checks QA fixture configuration plus the synthetic owner before reading. The production accountsStore source is unchanged.",
+    "accountsStore.init reloads the secure-storage index and each account through the actual SecureStore adapter, then replaces its in-memory account list. A caught write failure leaving only memory state cannot satisfy the readback.",
+    "The helper requires exactly one persisted account, matching owner and refresh token, matching currentId, and unchanged current owner/token after the await. Failure or session replacement cannot become a passed receipt.",
+    "Readback compares values only in memory. Fixture receipts retain only passed/reloaded booleans and accountCount; extra fields are discarded.",
+    "The actual capture flow waits for the semantic Saved account readback passed status. Final verification requires exactly one passed/reloaded one-account receipt, a successful index-save log, and no caught account save/index failures.",
+    "The existing Expo SecureStore native reader calls SecItemCopyMatching. No in-memory-only storage stub or keychain access-group override is introduced in the runtime app."
+  ],
+  "independentVerification": {
+    "node": {
+      "tests": 15,
+      "pass": 15,
+      "fail": 0,
+      "skipped": 0,
+      "files": {
+        "tests/quality/native-account-readback.cjs": 6,
+        "tests/quality/native-simulator-entitlements.cjs": 6,
+        "tests/quality/native-ui-runtime-diagnostics.cjs": 3
+      },
+      "invocation": "env -u NODE_TEST_CONTEXT node <file>"
+    },
+    "nestedPython": {
+      "file": "tests/native/test_simulator_entitlements.py",
+      "tests": 9,
+      "pass": 9,
+      "note": "Executed within the single Node parser-wrapper case. Not nine additional Node cases."
+    },
+    "shellSyntax": {
+      "command": "bash -n scripts/quality/test-ios-app-ui.sh",
+      "passed": true
+    },
+    "restrictedExecutionNote": "Initial restricted subprocess collection reported spawnSync python3 EPERM even while the Python reader output showed success. The unchanged narrow signing/parser Node file was rerun with approved execution permissions and all six cases passed; no assertions or guards were removed."
+  },
+  "primarySourcesReviewed": [
+    {
+      "path": "/tmp/native-entitlement-primary-sources/ProductPackaging.swift",
+      "sha256": "b0be4244b018e07d81c0b6d17ff70c5ba6af631bedc6597549633c8fcafe5c61",
+      "finding": "Product entitlement task creation requires a nonempty expanded signing identity."
+    },
+    {
+      "path": "/tmp/native-entitlement-primary-sources/ProcessProductEntitlementsTaskAction.swift",
+      "sha256": "145067272e78132a9f691244faee21a19edfb75b56fb83edc952beab81fb17dc",
+      "finding": "Simulator signed host entitlements and simulated application entitlements are distinct; host entitlements are limited to debug access."
+    },
+    {
+      "url": "https://developer.apple.com/documentation/technotes/tn3125-inside-code-signing-provisioning-profiles",
+      "finding": "Apple documents codesign --display --entitlements - --xml for XML entitlement inspection."
+    },
+    {
+      "path": "node_modules/expo-secure-store/ios/SecureStoreModule.swift",
+      "sha256": "971774ffbd6f3351c28bd7487184e74ae12edca1c20d9e52709d4b154746c741",
+      "finding": "getValueWithKeyAsync reaches SecItemCopyMatching; accessGroup is supplied only when present in options."
+    }
+  ],
+  "limits": [
+    "This Linux review executed parser/plist fixtures and the extracted actual Python signing guard, not xcodebuild, codesign or a simulator keychain.",
+    "The prior missing-entitlement cause remains source/log-supported inference because its binary was not retained for inspection.",
+    "A refresh-token change during readback intentionally fails this one-session fixture check conservatively. No production account-switching or logout behavior is changed.",
+    "Readback proves an actual secure-storage reload within the running app; it does not claim an OS reboot, app reinstall, cross-device restore or physical-device persistence test.",
+    "The next full Intel Simulator build must prove generated identity, local signing, installation, launch, semantic navigation and SecureStore readback together."
+  ],
+  "mutationsPerformedByReviewer": "Only this review receipt was written. No production/source edits, signing actions, Apple account access, pushes or hosted writes."
+}

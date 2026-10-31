@@ -14,6 +14,7 @@ const deferred = () => { let resolve, reject; const promise = new Promise((yes, 
 const flush = () => new Promise(resolve => setImmediate(resolve));
 
 test('actual SDK locking keeps mutual exclusion and identifies the holder, waiter and pending storage span', async () => {
+  const timerDescriptors = ['setTimeout', 'clearTimeout'].map(name => Object.getOwnPropertyDescriptor(globalThis, name));
   let now = 0;
   const d = createAuthDiagnostics({ now: () => now });
   const read = deferred(), result = { privateValue: 'must-never-be-recorded' };
@@ -34,6 +35,12 @@ test('actual SDK locking keeps mutual exclusion and identifies the holder, waite
   const final = d.snapshot();
   assert.deepEqual(final.activeLocks, []); assert.deepEqual(final.waitingLocks, []); assert.deepEqual(final.activeStorage, []);
   assert.equal(final.events.filter(row => row.kind === 'lock' && row.phase === 'released').length, 2);
+  for (const name of ['setTimeout', 'clearTimeout']) {
+    const observed = final.events.filter(row => row.kind === 'lock').map(row => row.timerApis[name]);
+    assert.ok(observed.every(value => value.kind === 'function' && value.id > 0));
+    assert.equal(new Set(observed.map(value => value.id)).size, 1);
+  }
+  assert.deepEqual(['setTimeout', 'clearTimeout'].map(name => Object.getOwnPropertyDescriptor(globalThis, name)), timerDescriptors);
   assert.doesNotMatch(JSON.stringify(final), /private-lock-name|private-session-key|must-never-be-recorded/);
 });
 
@@ -108,6 +115,56 @@ test('diagnostic clock and sink errors cannot change auth results', async () => 
   assert.equal(d.snapshot().atMs, 0); assert.deepEqual(d.snapshot().activeLocks, []);
 });
 
+test('timer descriptors identify lazy getters without invoking or changing them', async () => {
+  const target = {}; let getters = 0;
+  for (const name of ['setTimeout', 'clearTimeout']) Object.defineProperty(target, name, { configurable: true, get() { getters++; throw Error('A timer getter must not run during observation'); } });
+  const before = Object.getOwnPropertyDescriptors(target), d = createAuthDiagnostics({ timerTarget: target });
+  const result = {}; assert.equal(await d.wrapLock(processLock)('descriptor-observation', 1000, async () => result), result);
+  assert.equal(getters, 0); assert.deepEqual(Object.getOwnPropertyDescriptors(target), before);
+  const events = d.snapshot().events.filter(row => row.kind === 'lock');
+  assert.deepEqual(events.map(row => row.phase), ['requested', 'acquired', 'released', 'settled']);
+  assert.ok(events.every(row => row.timerApis.setTimeout.kind === 'getter' && row.timerApis.clearTimeout.kind === 'getter'));
+  assert.equal(new Set(events.map(row => row.timerApis.setTimeout.id)).size, 1);
+});
+
+test('timer replacement is visible between lock phases and snapshot mutation cannot rewrite retained evidence', async () => {
+  const target = { setTimeout() {}, clearTimeout() {} }, d = createAuthDiagnostics({ timerTarget: target });
+  const gate = deferred(), lock = d.wrapLock((_name, _timeout, fn) => gate.promise.then(fn));
+  const work = lock('key', 5000, async () => 'ok');
+  target.clearTimeout = function replacement() {};
+  gate.resolve(); assert.equal(await work, 'ok');
+  const events = d.snapshot().events;
+  assert.equal(events[0].timerApis.setTimeout.id, events[1].timerApis.setTimeout.id);
+  assert.notEqual(events[0].timerApis.clearTimeout.id, events[1].timerApis.clearTimeout.id);
+  events[0].timerApis.clearTimeout.id = 999;
+  assert.notEqual(d.snapshot().events[0].timerApis.clearTimeout.id, 999);
+});
+
+test('timer descriptor failures and bounded identity overflow preserve auth behavior', () => {
+  const inaccessible = new Proxy({}, { getOwnPropertyDescriptor() { throw Error('private inspection failure'); } });
+  const failed = createAuthDiagnostics({ timerTarget: inaccessible });
+  assert.equal(failed.wrapLock((_name, _timeout, fn) => fn())('private', 5000, () => 7), 7);
+  assert.equal(failed.snapshot().events[0].timerApis.setTimeout.kind, 'unavailable');
+  const target = {}, d = createAuthDiagnostics({ timerTarget: target, maxEvents: 16 });
+  const lock = d.wrapLock((_name, _timeout, fn) => fn());
+  for (let i = 0; i < 100; i++) { target.setTimeout = () => {}; target.clearTimeout = () => {}; assert.equal(lock('key', 5000, () => i), i); }
+  const snapshot = d.snapshot(); assert.equal(snapshot.timerApiIdentityCount, 32); assert.equal(snapshot.timerApiIdentityLimitReached, true);
+  assert.equal(snapshot.events.length, 16); assert.ok(snapshot.events.every(row => row.timerApis.setTimeout.id <= 32));
+  assert.doesNotMatch(JSON.stringify(failed.snapshot()), /private|failure|stack/);
+});
+
+test('one finite wall-clock anchor pairs with the first monotonic observation without changing relative durations', () => {
+  let now = 100, wall = 1700000000000, calls = 0;
+  const d = createAuthDiagnostics({ now: () => now, wallNow: () => { calls++; return wall; } });
+  const lock = d.wrapLock((_name, _timeout, fn) => fn());
+  assert.equal(lock('key', 5000, () => { now += 25; wall += 900; return 8; }), 8);
+  const snapshot = d.snapshot(); assert.equal(snapshot.wallClockOriginMs, 1700000000000); assert.equal(snapshot.atMs, 25); assert.equal(calls, 1);
+  for (const wallNow of [() => NaN, () => { throw Error('clock failure'); }]) {
+    const bad = createAuthDiagnostics({ now: () => 10, wallNow });
+    assert.equal(bad.wrapLock((_name, _timeout, fn) => fn())('key', 5000, () => 9), 9); assert.equal(bad.snapshot().wallClockOriginMs, null);
+  }
+});
+
 function nativeModule({ env = {}, wrongTransport = false, write } = {}) {
   const callbacks = [], writes = [], fetch = () => {}, fixture = { fetch }, module = { exports: {} };
   let requiredFilesystem = false;
@@ -172,9 +229,14 @@ test('disposable preparation retains diagnostic source, original auth hash and e
   const required = ['App.tsx', 'index.js', 'app.config.js', 'package-lock.json', authPath, 'src/navigation/AppNavigator.tsx',
     'modules/boomerang/ios/BoomerangModule.swift', 'modules/boomerang/android/src/main/java/expo/modules/boomerang/BoomerangModule.kt',
     'modules/boomerang/memoryComposition.ts', 'tests/native/auth-diagnostics.cjs', 'tests/native/entry.js',
-    'scripts/quality/prepare-native-ui.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/verify-native-ui.cjs',
+    'scripts/quality/prepare-native-ui.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-ios-entitlements.py', 'scripts/quality/verify-native-ui.cjs',
     'scripts/quality/install-native-ui-tools.sh', 'scripts/quality/test-ios-app-ui.sh', 'scripts/quality/test-android-app-ui.sh',
     'scripts/quality/verify-native-ui-memory.py', '.github/workflows/native-app-ui.yml'];
+  const dependencyFiles = {
+    '@supabase/supabase-js': ['package.json', 'dist/index.cjs', 'dist/index.mjs'],
+    '@supabase/auth-js': ['package.json', 'src/lib/locks.ts', 'dist/main/index.js', 'dist/module/index.js', 'dist/main/lib/locks.js', 'dist/module/lib/locks.js'],
+  };
+  for (const [name, selected] of Object.entries(dependencyFiles)) required.push(...selected.map(file => 'node_modules/' + name + '/' + file));
   try {
     for (const file of required) {
       fs.mkdirSync(path.dirname(path.join(directory, file)), { recursive: true });
@@ -189,6 +251,12 @@ test('disposable preparation retains diagnostic source, original auth hash and e
     const result = spawnSync(process.execPath, ['scripts/quality/prepare-native-ui.cjs'], { cwd: directory, env, encoding: 'utf8', timeout: 5000 });
     assert.equal(result.status, 0, result.stderr);
     const manifest = JSON.parse(fs.readFileSync(path.join(directory, 'native-ui-logs/source.json')));
+    for (const [name, selected] of Object.entries(dependencyFiles)) {
+      const dependency = manifest.dependencyProvenance[name], installed = JSON.parse(fs.readFileSync(path.join(root, 'node_modules', name, 'package.json')));
+      assert.equal(dependency.installedVersion, installed.version); assert.equal(dependency.matchesLockedVersion, true);
+      assert.ok(dependency.requireEntry.startsWith('node_modules/' + name + '/'));
+      for (const file of selected) assert.equal(dependency.files[file], sha(fs.readFileSync(path.join(root, 'node_modules', name, file))));
+    }
     const overlay = manifest.overlays.find(row => row.file === authPath);
     assert.equal(overlay.before, sha(originalAuth)); assert.equal(manifest.hashes[authPath], sha(originalAuth));
     const generated = fs.readFileSync(path.join(directory, authPath));

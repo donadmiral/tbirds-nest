@@ -1,0 +1,603 @@
+{
+  "schemaVersion": 2,
+  "recordedAt": "2026-10-31T04:09:53.860811Z",
+  "repository": "donadmiral/tbirds-nest",
+  "workflow": {
+    "id": 41166954972,
+    "name": "Browser interaction and video gates",
+    "status": "completed",
+    "conclusion": "success",
+    "run_number": 28,
+    "jobs_url": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/runs/41166954972/jobs",
+    "logs_url": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/runs/41166954972/logs",
+    "workflow_id": 401237884
+  },
+  "runUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41166954972",
+  "sourceBinding": {
+    "headSha": "26e80ae96647884e7f2764bdbb1884fd5aabcff5",
+    "checkoutMergeSha": "6373021f8dcbb2bc614039e74937d2acb0ff2d3e",
+    "headTreeSha": "1c10d4cc20fcfd5a0d4e82ba0121c51e90274c03",
+    "mergeTreeSha": "1c10d4cc20fcfd5a0d4e82ba0121c51e90274c03",
+    "treesIdentical": true,
+    "artifactHeadSha": "26e80ae96647884e7f2764bdbb1884fd5aabcff5",
+    "method": "Commit-specific GitHub workflow discovery, checkout SHA in the job log, identical head/merge tree, artifact head SHA/digest, and retained component hashes verified against Git blobs.",
+    "workflowPath": ".github/workflows/browser-quality.yml",
+    "workflowSha256": "31ea446a79f74a2d53c7c4791d313fa03a3b44aa1cc265a819c238c053296155"
+  },
+  "outcome": "success",
+  "jobs": [
+    {
+      "id": 124436466364,
+      "name": "Connected app, Studio, admin and encoded movies",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "runtime": "153.0.8010.12",
+  "artifact": {
+    "id": 13029616344,
+    "name": "browser-quality-evidence",
+    "size_in_bytes": 9223198,
+    "url": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/artifacts/13029616344",
+    "archive_download_url": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/artifacts/13029616344/zip",
+    "expired": false,
+    "created_at": "2026-10-31T04:09:13Z",
+    "expires_at": "2026-11-07T04:09:12Z",
+    "updated_at": "2026-10-31T04:09:13Z",
+    "digest": "sha256:afedeb5644fdb473ff68a6f893f859a6d01f11c854aec8ad32511ecd432bfd6c",
+    "workflow_run": {
+      "id": 41166954972,
+      "repository_id": 1314826575,
+      "head_repository_id": 1314826575,
+      "head_branch": "codex/app-quality-20261029",
+      "head_sha": "26e80ae96647884e7f2764bdbb1884fd5aabcff5"
+    },
+    "downloadedArchiveSha256": "afedeb5644fdb473ff68a6f893f859a6d01f11c854aec8ad32511ecd432bfd6c",
+    "digestMatchesGitHub": true,
+    "files": 72,
+    "jsonReports": 12,
+    "pngScreenshots": 60,
+    "retainedMovieFiles": 0
+  },
+  "reportSha256": {
+    "admin/browser-receipt.json": "73dd91c75993ae411951ac2016c0f6e55708708d1c18d0069e813e9aabb387a5",
+    "video/browser-receipt.json": "af3c536119c56546054437f39bcb30df4182cac9c9b8307d662b981f4e4629fd",
+    "memory/browser-receipt.json": "5b4795296ddb4317760fb0951044bf2a3c74d3c485b63bda228a37cf82d03f3c",
+    "memory-cover/browser-receipt.json": "3f238227d2ceb261534d89a9c8ecd2e5138133088cf0e1827700bd6ebfce6b19",
+    "memory-cover/latest-gallery.json": "3b8dfe77d6bed0e3a3818947e3147bcc5851ab6ea8e68caa509584abd2ef6e07",
+    "music/browser-receipt.json": "3cafebf1d3b8d3856692252be9d3a7c5735240358c7318ac4f3ddaa8bffd3360",
+    "web/browser-receipt.json": "391c2286c0c6d38ee5111eb303fc07f1976583ff2c8c144adcc3611abc63c255",
+    "web/profile-navigation-frames.json": "0d1d435b39ca4d0be655ddfae6cd82c41eb1ab0a2c1c3695af32b125a359e09f",
+    "web/warm-navigation-frames.json": "170af545945edb645264723b540130337e216a78c2a85d19d55879a707ee4492",
+    "commerce/browser-receipt.json": "681fca79d65048bc02175f1d99ad880ac100896311d860b61dcceae8726f6fb4",
+    "commerce/jobs-navigation-frames.json": "47decf3a14636b1531a166938aa099ae08d2386769534c3eac2447db6bcb0561",
+    "studio/browser-receipt.json": "fbf18eb1e20b4f23d62964c31b24cab6da0c036f295f1d8c0ed0266c00ff0f63"
+  },
+  "uiWorkflows": {
+    "admin": {
+      "checks": 37,
+      "pass": 37,
+      "fail": 0,
+      "skipped": 0,
+      "browserErrors": 0,
+      "receipt": "admin/browser-receipt.json",
+      "scope": "Actual shared admin components, synthetic records and navigation adapter; not authenticated hosted acceptance",
+      "checkedAt": "2026-10-31T04:05:38.089Z"
+    },
+    "web": {
+      "checks": 41,
+      "pass": 41,
+      "fail": 0,
+      "skipped": 0,
+      "browserErrors": 0,
+      "receipt": "web/browser-receipt.json",
+      "scope": "Actual public-web modules compiled with synthetic Auth/database, media and Next navigation adapters. No real-provider, hosted authentication or physical-device acceptance.",
+      "checkedAt": "2026-10-31T04:06:06.335Z"
+    },
+    "commerce": {
+      "checks": 25,
+      "pass": 25,
+      "fail": 0,
+      "skipped": 0,
+      "browserErrors": 0,
+      "receipt": "commerce/browser-receipt.json",
+      "scope": "Actual Jobs/Market components with synthetic Auth/database and navigation adapters. No hosted authentication, real provider, payment, Storage, or physical-device acceptance.",
+      "checkedAt": "2026-10-31T04:06:21.939Z"
+    },
+    "studio": {
+      "checks": 25,
+      "pass": 25,
+      "fail": 0,
+      "skipped": 0,
+      "browserErrors": 0,
+      "receipt": "studio/browser-receipt.json",
+      "scope": "Actual Studio components with synthetic records and RPC adapters. This does not establish authenticated QA, Storage, provider, publishing-worker or physical-device acceptance.",
+      "checkedAt": "2026-10-31T04:06:32.360Z"
+    }
+  },
+  "uiWorkflowTotals": {
+    "checks": 128,
+    "pass": 128,
+    "fail": 0,
+    "skipped": 0,
+    "browserErrors": 0
+  },
+  "media": {
+    "story": {
+      "receipt": "video/browser-receipt.json",
+      "completedCases": 12,
+      "encodedAndDecodedOutputsReportedByCI": 8,
+      "encodedCases": [
+        {
+          "mode": "graded_audio",
+          "bytes": 39267,
+          "mime": "video/webm;codecs=vp9,opus",
+          "codec": "vp9",
+          "width": 1080,
+          "height": 1918,
+          "duration": 1.055599,
+          "hasAudio": true
+        },
+        {
+          "mode": "muted",
+          "bytes": 24269,
+          "mime": "video/webm;codecs=vp9",
+          "codec": "vp9",
+          "width": 1080,
+          "height": 1918,
+          "duration": 1.0792,
+          "hasAudio": false
+        },
+        {
+          "mode": "added_audio",
+          "bytes": 39798,
+          "mime": "video/webm;codecs=vp9,opus",
+          "codec": "vp9",
+          "width": 1080,
+          "height": 1918,
+          "duration": 1.0387,
+          "hasAudio": true
+        },
+        {
+          "mode": "added_only",
+          "bytes": 41510,
+          "mime": "video/webm;codecs=vp9,opus",
+          "codec": "vp9",
+          "width": 1080,
+          "height": 1918,
+          "duration": 1.060399,
+          "hasAudio": true
+        },
+        {
+          "mode": "delayed_start",
+          "bytes": 40765,
+          "mime": "video/webm;codecs=vp9,opus",
+          "codec": "vp9",
+          "width": 1080,
+          "height": 1918,
+          "duration": 1.048299,
+          "hasAudio": true
+        },
+        {
+          "mode": "unadjusted_no_webgl",
+          "bytes": 48783,
+          "mime": "video/webm;codecs=vp9,opus",
+          "codec": "vp9",
+          "width": 1080,
+          "height": 1918,
+          "duration": 1.0215,
+          "hasAudio": true
+        },
+        {
+          "mode": "framed_no_webgl",
+          "bytes": 47781,
+          "mime": "video/webm;codecs=vp9,opus",
+          "codec": "vp9",
+          "width": 1080,
+          "height": 1918,
+          "duration": 1.0247,
+          "hasAudio": true
+        },
+        {
+          "mode": "cover_no_webgl",
+          "bytes": 51074,
+          "mime": "video/webm;codecs=vp9,opus",
+          "codec": "vp9",
+          "width": 1080,
+          "height": 1918,
+          "duration": 1.0386,
+          "hasAudio": true
+        }
+      ],
+      "otherSuccessfulCases": [
+        "bad_added_audio",
+        "oversized_final_chunk",
+        "cancelled",
+        "graded_no_webgl"
+      ]
+    },
+    "memory": {
+      "receipt": "memory/browser-receipt.json",
+      "completedCases": 25,
+      "encodedAndDecodedOutputsReportedByCI": 8,
+      "encodedCases": [
+        {
+          "mode": "original",
+          "bytes": 148872,
+          "codec": "vp9",
+          "duration": 7.0027,
+          "dimensions": [
+            720,
+            1280
+          ]
+        },
+        {
+          "mode": "silent",
+          "bytes": 126753,
+          "codec": "vp9",
+          "duration": 7.001199,
+          "dimensions": [
+            720,
+            1280
+          ]
+        },
+        {
+          "mode": "score",
+          "bytes": 272835,
+          "codec": "vp9",
+          "duration": 7.012099,
+          "dimensions": [
+            720,
+            1280
+          ]
+        },
+        {
+          "mode": "local_once",
+          "bytes": 191248,
+          "codec": "vp9",
+          "duration": 7.001699,
+          "dimensions": [
+            720,
+            1280
+          ]
+        },
+        {
+          "mode": "local_loop",
+          "bytes": 274444,
+          "codec": "vp9",
+          "duration": 7.0097,
+          "dimensions": [
+            720,
+            1280
+          ]
+        },
+        {
+          "mode": "static_images",
+          "bytes": 156008,
+          "codec": "vp9",
+          "duration": 7.0113,
+          "dimensions": [
+            720,
+            1280
+          ]
+        },
+        {
+          "mode": "unadjusted_no_webgl",
+          "bytes": 148910,
+          "codec": "vp9",
+          "duration": 7.0039,
+          "dimensions": [
+            720,
+            1280
+          ]
+        },
+        {
+          "mode": "automatic",
+          "duration": 12.200799,
+          "dimensions": [
+            720,
+            1280
+          ],
+          "titlePixels": 5180,
+          "closingPixels": 9410
+        }
+      ],
+      "otherSuccessfulCases": [
+        "revoked",
+        "changed",
+        "account_roundtrip",
+        "cancel",
+        "call",
+        "hidden",
+        "unmount",
+        "missing",
+        "overflow",
+        "animated_primary",
+        "animated_sticker",
+        "animated_background",
+        "animated_data",
+        "image_inspection_cancel",
+        "graded_no_webgl",
+        "unsupported_composition",
+        "film_entry_exit"
+      ]
+    },
+    "music": {
+      "receipt": "music/browser-receipt.json",
+      "completedCases": 5,
+      "encodedAndDecodedOutputsReportedByCI": 2,
+      "encodedCases": [
+        {
+          "mode": "book",
+          "bytes": 164412,
+          "duration": "6.005700"
+        },
+        {
+          "mode": "retained",
+          "bytes": 104064,
+          "duration": "6.005100"
+        }
+      ],
+      "otherSuccessfulCases": [
+        "revoked_during_export",
+        "microphone_verified",
+        "recording_cancel"
+      ]
+    }
+  },
+  "encodedOutputCountReportedByCI": 18,
+  "memoryCover": {
+    "editorDesignerCases": 5,
+    "cases": [
+      "actual designer creates the chosen owned photo and complete creative documents",
+      "actual editor persists revisions and protects the draft on a conflicting save",
+      "saved cover and album controls fit the mobile viewport",
+      "actual text-only book editor omits photo framing while cover writing remains editable",
+      "actual designer fences A to B to A during a pending create"
+    ],
+    "galleryGroups": 48,
+    "renderedLayouts": 288,
+    "measuredWidths": [
+      144,
+      230
+    ],
+    "maxOverflowOrOverlapPx": {
+      "outerOverflow": 0,
+      "textOverflow": 0,
+      "titleOverflow": 0,
+      "titleOverlap": 0
+    },
+    "consoleErrors": 0,
+    "sourceFilesVerifiedAgainstHead": {
+      "shared/memoryCoverWriting.ts": {
+        "sha256": "226edaf6737692c13c34c56e3d08aa716280b666b7baecf3c2a5f4d64dbea52d",
+        "matchesHeadBlob": true
+      },
+      "shared/memoryBookPersistence.ts": {
+        "sha256": "9e3b85448540a28e8910c4a74b5b3a853e94be358b36d5322c960733c12e7070",
+        "matchesHeadBlob": true
+      },
+      "src/components/memory/MemoryBookCover.tsx": {
+        "sha256": "50a86edb475b9a120d16e6fcda4a63494d4f6e1b5ee0e80e0cb68e52dbf163af",
+        "matchesHeadBlob": true
+      },
+      "src/screens/profile/MemoryAlbumScreen.tsx": {
+        "sha256": "437b2d5c52cf1ad00ce1d322367ac1e41da8857b6d2db6a1c7db263ad4e7f541",
+        "matchesHeadBlob": true
+      },
+      "web/components/memory/MemoryBookCover.tsx": {
+        "sha256": "ed608207e0325914948f3f929a4f15879a960ecff64e6f8be21d848d50c0bbb7",
+        "matchesHeadBlob": true
+      },
+      "web/components/memory/MemoryBookCover.module.css": {
+        "sha256": "569bc3a8b8bf67842e5838907a5e064b416941fd37c6caa8b1e68db0f0afb149",
+        "matchesHeadBlob": true
+      },
+      "web/components/memory/MemoryCreativeControls.tsx": {
+        "sha256": "ae1888dfc43ceac384e5f5540ecd9c2b46db3ab35f3acac81896a103a0aebc20",
+        "matchesHeadBlob": true
+      },
+      "web/components/memory/MemoryBookDesigner.tsx": {
+        "sha256": "c779935599da0f1f21df5e65e0c1f17c8a3799cd0bb09ccf77989a70c8ae7f52",
+        "matchesHeadBlob": true
+      },
+      "web/components/MemoryAlbum.tsx": {
+        "sha256": "4218bb2a9a1621f62e72984e8d62f8f9a9fe7abb198e473bddf6999c9fb829a4",
+        "matchesHeadBlob": true
+      },
+      "web/tests/browser/memory-cover-adapter.ts": {
+        "sha256": "faed035bacbea89dc1f4369ce6123e32c108d16db4d67c019d89061a59eeb947",
+        "matchesHeadBlob": true
+      },
+      "web/tests/browser/memory-cover-fixture.tsx": {
+        "sha256": "39fd7f08bf81c73b77eb1c917b3fbb2f696bbd18f8c18fb4c355191b0cd7fc89",
+        "matchesHeadBlob": true
+      },
+      "web/tests/browser/memory-cover-run.cjs": {
+        "sha256": "3f0f43a5ac19dc42ca60848674d9c42f94a77ca3a42af2ae0c7dfebee2292d1b",
+        "matchesHeadBlob": true
+      }
+    },
+    "scope": "Actual web cover, designer and editor components. Auth/RPC and persistence use a test-only localStorage adapter; this is not hosted Supabase acceptance."
+  },
+  "warmNavigation": {
+    "receipt": "web/warm-navigation-frames.json",
+    "checkedAt": "2026-10-31T04:06:03.359Z",
+    "viewport": {
+      "width": 1586,
+      "height": 992
+    },
+    "scope": "Actual HomeFeed, MessagesApp, navigation cache and scroll logic in Chromium. Auth/database reads and Next routing are synthetic local adapters. requestAnimationFrame samples inspect layout and content paintability; this is not GPU frame-time, real-network or hosted Next-routing measurement.",
+    "probes": [
+      {
+        "destination": "/home",
+        "clickAt": 955.8999999999942,
+        "stoppedAt": 1636.3000000000175,
+        "firstDestinationFrameMs": 84.60000000000582,
+        "sampledFrames": 38,
+        "destinationFrames": 38,
+        "blankContentFrames": 0,
+        "expected": {
+          "posts": 16,
+          "top": 780
+        },
+        "maxFrameIntervalMs": 66.60000000000002,
+        "maxScrollDeviationPx": 0,
+        "expectedDraftSearchAndDetailsPreserved": true
+      },
+      {
+        "destination": "/messages",
+        "clickAt": 1855,
+        "stoppedAt": 3102.7000000000116,
+        "firstDestinationFrameMs": 39,
+        "sampledFrames": 75,
+        "destinationFrames": 75,
+        "blankContentFrames": 0,
+        "expected": {
+          "messages": 34,
+          "top": 247,
+          "draft": "A warm navigation draft stays with this account.",
+          "query": "Jordan",
+          "detailsOpen": false
+        },
+        "maxFrameIntervalMs": 16.799999999999955,
+        "maxScrollDeviationPx": 0,
+        "expectedDraftSearchAndDetailsPreserved": true
+      }
+    ],
+    "sampledFrames": 113,
+    "blankContentFrames": 0,
+    "heldReadDurationsMs": [
+      {
+        "kind": "feed",
+        "durationMs": 713.4,
+        "aborted": false
+      },
+      {
+        "kind": "conversations",
+        "durationMs": 593.4,
+        "aborted": false
+      },
+      {
+        "kind": "messages",
+        "durationMs": 683.4,
+        "aborted": false
+      }
+    ],
+    "browserErrors": 0
+  },
+  "jobsAndProfileContinuity": {
+    "jobs": {
+      "receipt": "commerce/jobs-navigation-frames.json",
+      "checkedAt": "2026-10-31T04:06:21.928Z",
+      "scope": "Actual JobsPage, JobCard and SavedJobsPage components. Auth/database and Next routing use local synthetic adapters; the Home destination is a fixture placeholder. Destination component frames measure restored content and filters, not hosted layout/RSC or GPU transition timing.",
+      "checks": [
+        {
+          "name": "warm Jobs return retains the exact search/location/category/sort, eight loaded rows and scroll on every observed destination frame",
+          "passed": true,
+          "frames": 44,
+          "firstJobsFrameMs": 57.89999999999418,
+          "blankJobsFrames": 0,
+          "heldReads": 3,
+          "extraReadsAfterEightForegroundEvents": 0,
+          "tokenRefreshRetainsState": true
+        },
+        {
+          "name": "confirmed save survives a background response captured before the mutation",
+          "passed": true
+        },
+        {
+          "name": "unsaving on the real shortlist updates the remembered Discover bookmark before its refresh completes",
+          "passed": true
+        },
+        {
+          "name": "an already-dispatched same-session save confirms after route remount and fences the replacement screen older shortlist read",
+          "passed": true,
+          "pinnedWrite": true,
+          "cancellableWrite": true
+        },
+        {
+          "name": "failed warm refresh retains filtered rows and in-place retry recovers",
+          "passed": true
+        },
+        {
+          "name": "A to B to A clears prior filters/results and aborts old reads and a pending save before new-session data renders",
+          "passed": true,
+          "abortedReads": 3,
+          "pendingSaveNotPublished": true
+        },
+        {
+          "name": "a previously loaded empty Jobs dataset retains filters and its empty state on warm return",
+          "passed": true
+        }
+      ],
+      "observedFrames": 44,
+      "firstDestinationFrameMs": 57.89999999999418,
+      "maxObservedFrameIntervalMs": 33.200000000000045,
+      "browserErrors": 0,
+      "countingNote": "These nested checks support one parent workflow scenario; they are not added again to UI workflow totals."
+    },
+    "profile": {
+      "receipt": "web/profile-navigation-frames.json",
+      "checkedAt": "2026-10-31T04:06:06.329Z",
+      "scope": "Actual ProfilePage, ProfilePosts, MemoryAlbumBook, MemoryAlbumView and book editor in Chromium. Auth/RPC, media signing and Next routing use synthetic local adapters. Frame samples measure component content presence, not hosted RSC latency, physical-device performance or GPU paint time.",
+      "checks": [
+        {
+          "name": "real book Back restores owner posts and four books on every sampled frame during held refreshes",
+          "passed": true,
+          "frames": 45,
+          "firstProfileFrameMs": 45.10000000000582,
+          "blankProfileFrames": 0,
+          "postsReads": 1,
+          "bookReads": 1
+        },
+        {
+          "name": "actual editor save invalidates off-route shelf revision and returns current title and private visibility",
+          "passed": true,
+          "revision": 1,
+          "audience": "only_me",
+          "pinnedSave": true
+        },
+        {
+          "name": "rapid successful shelf changes cancel the stale read and coalesce to the latest book revision",
+          "passed": true,
+          "mutations": 8,
+          "reads": 2,
+          "staleReadAborted": true
+        },
+        {
+          "name": "A to B to A clears warm content and cancels old transport before fresh results appear",
+          "passed": true,
+          "abortedReads": 2
+        },
+        {
+          "name": "visitor return waits for current visibility and removes revoked posts and books",
+          "passed": true
+        }
+      ],
+      "observedFrames": 45,
+      "firstDestinationFrameMs": 45.10000000000582,
+      "maxObservedFrameIntervalMs": 33.30000000000007,
+      "browserErrors": 0,
+      "countingNote": "These nested checks support one parent workflow scenario; they are not added again to UI workflow totals."
+    }
+  },
+  "logProvenance": {
+    "jobId": 124436466364,
+    "jobUrl": "https://github.com/donadmiral/tbirds-nest/actions/runs/41166954972/job/124436466364",
+    "logsApiUrl": "https://api.github.com/repos/donadmiral/tbirds-nest/actions/jobs/124436466364/logs",
+    "checkedOutCommit": "6373021f8dcbb2bc614039e74937d2acb0ff2d3e",
+    "normalizedLogSha256": "ed18e0b895df53df73bd462d9df15114ee700f7e844760b24345b27d8673e2e5",
+    "normalization": "UTF-8 log body with timestamp prefixes, ANSI color codes and initial BOM removed."
+  },
+  "limitations": [
+    "Actual app components and exporters run in Chromium with synthetic Auth/database/navigation/media/provider adapters. This is not hosted login, real-provider delivery, payment, Storage or production acceptance.",
+    "Music transport and microphone input are synthetic. No commercial music licensing is enabled or inferred.",
+    "Expected denial/cancellation/unsupported-input cases are successful assertions, not unexpected failures or skipped work.",
+    "CI reports decoding actual encoded outputs. Retained JSON measurements/screenshots are distinguished from movies in the artifact inventory; this receipt does not claim an independent decode of absent movies.",
+    "requestAnimationFrame observations measure component content/layout presence in local fixtures, not GPU frame time, physical-device performance, real-network latency or hosted Next.js routing.",
+    "First-destination timings and maximum observed frame intervals are retained without claiming universally instant navigation or a fixed frame rate.",
+    "Nested Jobs/profile checks are not double-counted in their parent UI workflow scenario totals.",
+    "Physical iPhone behavior, APNs/CallKit/background operation and full native application acceptance require separate evidence."
+  ]
+}

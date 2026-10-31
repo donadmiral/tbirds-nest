@@ -20,10 +20,27 @@ function files(directory) {
 const source = ['App.tsx', 'index.js', 'app.config.js', 'package-lock.json', ...files('src'), ...files('shared'),
   ...files('modules/boomerang/ios'), ...files('modules/boomerang/android/src/main'), ...files('tests/native'),
   'modules/boomerang/memoryComposition.ts',
-  'scripts/quality/prepare-native-ui.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/verify-native-ui.cjs',
+  'scripts/quality/prepare-native-ui.cjs', 'scripts/quality/native-ui-auth-overlay.cjs', 'scripts/quality/native-ui-ios-entitlements.py', 'scripts/quality/verify-native-ui.cjs',
   'scripts/quality/install-native-ui-tools.sh', 'scripts/quality/test-ios-app-ui.sh',
   'scripts/quality/test-android-app-ui.sh', 'scripts/quality/verify-native-ui-memory.py', '.github/workflows/native-app-ui.yml'];
 const hashes = Object.fromEntries(source.map(file => [file, crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')]));
+// Capture installed distributions before overlays; this does not change SDK resolution or code.
+const dependencyFiles = {
+  '@supabase/supabase-js': ['package.json', 'dist/index.cjs', 'dist/index.mjs'],
+  '@supabase/auth-js': ['package.json', 'src/lib/locks.ts', 'dist/main/index.js', 'dist/module/index.js', 'dist/main/lib/locks.js', 'dist/module/lib/locks.js'],
+};
+const lockPackages = JSON.parse(fs.readFileSync('package-lock.json', 'utf8')).packages;
+const dependencyProvenance = Object.fromEntries(Object.entries(dependencyFiles).map(([name, selected]) => {
+  const relativeRoot = 'node_modules/' + name, manifest = JSON.parse(fs.readFileSync(path.join(relativeRoot, 'package.json'), 'utf8'));
+  const locked = lockPackages[relativeRoot];
+  return [name, {
+    installedVersion: manifest.version, lockedVersion: locked?.version ?? null,
+    matchesLockedVersion: manifest.version === locked?.version,
+    requireEntry: path.relative(process.cwd(), require.resolve(name, { paths: [process.cwd()] })).split(path.sep).join('/'),
+    main: manifest.main ?? null, module: manifest.module ?? null,
+    files: Object.fromEntries(selected.map(file => [file, crypto.createHash('sha256').update(fs.readFileSync(path.join(relativeRoot, file))).digest('hex')])),
+  }];
+}));
 const overlays = [];
 fs.mkdirSync('native-ui-logs/overlays', { recursive: true });
 function overlay(file, value, reason) {
@@ -64,5 +81,5 @@ overlay('metro.config.js', "module.exports = require('./tests/native/metro-confi
 overlay('index.js', "require('./tests/native/entry');\n", 'Install the isolated synthetic HTTP/Realtime transport before the actual App imports.');
 fs.writeFileSync('native-ui-logs/source.json', JSON.stringify({ commit: process.env.GITHUB_SHA, workflowRun: process.env.GITHUB_RUN_ID,
   mode: 'Complete production App and screens with isolated synthetic transports and a CI-only capture route',
-  capabilityMode, sourceMemoryCapability: versions[0], overlays, hashes }, null, 2) + '\n');
+  capabilityMode, sourceMemoryCapability: versions[0], overlays, hashes, dependencyProvenance }, null, 2) + '\n');
 console.log('Saved exact production/fixture hashes and explicit disposable overlays; renderer and export service are unchanged.');

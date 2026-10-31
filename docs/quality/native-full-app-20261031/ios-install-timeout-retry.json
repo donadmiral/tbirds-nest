@@ -1,0 +1,43 @@
+{
+  "recordedAt": "2026-10-31T04:21:55.720469+00:00",
+  "baseHead": "26e80ae96647884e7f2764bdbb1884fd5aabcff5",
+  "source": ".github/workflows/native-app-ui.yml",
+  "sourceSha256": "893ef1c3c6ae5976337ab7ecb12d6f8080ad51ddfa3e80995745f409540cddca",
+  "scope": "Exact YAML install step executed under bash -e -o pipefail with a temporary fake npm. No dependency, lockfile, runtime, assertion or production-code change. Android install step unchanged.",
+  "results": [
+    {
+      "name": "first install succeeds",
+      "installAttempts": 1,
+      "exitCode": 0,
+      "passed": true
+    },
+    {
+      "name": "one timeout then success",
+      "installAttempts": 2,
+      "exitCode": 0,
+      "passed": true
+    },
+    {
+      "name": "repeated timeout remains failure",
+      "installAttempts": 2,
+      "exitCode": 196,
+      "passed": true
+    },
+    {
+      "name": "integrity failure does not retry",
+      "installAttempts": 1,
+      "exitCode": 17,
+      "passed": true
+    },
+    {
+      "name": "incidental timeout text does not retry",
+      "installAttempts": 1,
+      "exitCode": 23,
+      "passed": true
+    }
+  ],
+  "limits": [
+    "This checks retry selection, maximum attempts and exit status. It does not claim the next real dependency download will succeed.",
+    "Only npm error code ETIMEDOUT triggers the one retry."
+  ]
+}

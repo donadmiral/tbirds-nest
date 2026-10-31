@@ -1,0 +1,569 @@
+{
+  "checkedAt": "2026-10-31T04:32:52.637Z",
+  "scope": "Targeted mobile touch/geometry check using real Next dev App Router, production proxy/getServerViewer/AppShell/root loading/Jobs/Profile modules; synthetic loopback Auth/database. Frozen production files and original runner unchanged.",
+  "runtime": "153.0.8010.12",
+  "harnessSha256": "ee052225829929eab634f2269cb4935a6dcff3a397d10f1735d2924bd03ce720",
+  "originalRunnerSha256": "f84762786ccdd76de193d8a6e8590756632abb674498679f8107aebb55e93c46",
+  "sourceSha256": {
+    "web/app/loading.tsx": "1a02b8100608be1ba059f996fbf800e68c7883698cdb4be46df4660c1bc9650e",
+    "web/components/AppShell.tsx": "4f213f270c045a835776cb1232190f1be7db7b3af3259deb58e13e951be10950",
+    "web/components/NavigationLoading.tsx": "7a51a46b81fea86c45714ae553b5d53682274d7266ef2b7dca2f40315a5ac27b",
+    "web/lib/navigationChromeMemory.ts": "c0c0459d141b300981ea3efb6fa56397993fbfcf6d2310071caeee282038d2ce",
+    "web/components/NavigationChrome.module.css": "cd182916680767848ce17f7c5e2f5d4599837bdcf7fa749201d3fccd802280d5",
+    "web/components/MobileTabBar.tsx": "ce47efa602487c41e46ced7d072bb87a383b0e238b2c82749ed32e3aceab3c50"
+  },
+  "sourceUnchangedAfterRun": true,
+  "checks": [
+    {
+      "name": "mobile passive navigation fits and interrupts held Profile at 390px",
+      "passed": true,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "heldResponses": 1,
+      "geometry": {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "nav": {
+          "x": 12,
+          "y": 774,
+          "width": 366,
+          "height": 62,
+          "right": 378,
+          "bottom": 836
+        },
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 68,
+          "right": 390,
+          "bottom": 68
+        },
+        "links": [
+          {
+            "label": "Home",
+            "href": "/home",
+            "current": null,
+            "box": {
+              "x": 17,
+              "y": 779,
+              "width": 68,
+              "height": 52,
+              "right": 85,
+              "bottom": 831
+            },
+            "visible": true,
+            "labelBox": {
+              "x": 36.765625,
+              "y": 812.5,
+              "width": 28.46875,
+              "height": 10,
+              "right": 65.234375,
+              "bottom": 822.5
+            },
+            "iconBox": {
+              "x": 40,
+              "y": 787.5,
+              "width": 22,
+              "height": 22,
+              "right": 62,
+              "bottom": 809.5
+            },
+            "centerHitsLink": true,
+            "centerTopElement": "svg",
+            "centerStack": [
+              "svg",
+              "A",
+              "NAV",
+              "DIV"
+            ]
+          },
+          {
+            "label": "Market",
+            "href": "/market",
+            "current": null,
+            "box": {
+              "x": 89,
+              "y": 779,
+              "width": 68,
+              "height": 52,
+              "right": 157,
+              "bottom": 831
+            },
+            "visible": true,
+            "labelBox": {
+              "x": 105.984375,
+              "y": 812.5,
+              "width": 34.015625,
+              "height": 10,
+              "right": 140,
+              "bottom": 822.5
+            },
+            "iconBox": {
+              "x": 112,
+              "y": 787.5,
+              "width": 22,
+              "height": 22,
+              "right": 134,
+              "bottom": 809.5
+            },
+            "centerHitsLink": true,
+            "centerTopElement": "svg",
+            "centerStack": [
+              "svg",
+              "A",
+              "NAV",
+              "DIV"
+            ]
+          },
+          {
+            "label": "Jobs",
+            "href": "/jobs",
+            "current": null,
+            "box": {
+              "x": 161,
+              "y": 779,
+              "width": 68,
+              "height": 52,
+              "right": 229,
+              "bottom": 831
+            },
+            "visible": true,
+            "labelBox": {
+              "x": 183.1875,
+              "y": 812.5,
+              "width": 23.625,
+              "height": 10,
+              "right": 206.8125,
+              "bottom": 822.5
+            },
+            "iconBox": {
+              "x": 184,
+              "y": 787.5,
+              "width": 22,
+              "height": 22,
+              "right": 206,
+              "bottom": 809.5
+            },
+            "centerHitsLink": true,
+            "centerTopElement": "rect",
+            "centerStack": [
+              "rect",
+              "svg",
+              "A",
+              "NAV"
+            ]
+          },
+          {
+            "label": "Messages",
+            "href": "/messages",
+            "current": null,
+            "box": {
+              "x": 233,
+              "y": 779,
+              "width": 68,
+              "height": 52,
+              "right": 301,
+              "bottom": 831
+            },
+            "visible": true,
+            "labelBox": {
+              "x": 242.234375,
+              "y": 812.5,
+              "width": 49.53125,
+              "height": 10,
+              "right": 291.765625,
+              "bottom": 822.5
+            },
+            "iconBox": {
+              "x": 256,
+              "y": 787.5,
+              "width": 22,
+              "height": 22,
+              "right": 278,
+              "bottom": 809.5
+            },
+            "centerHitsLink": true,
+            "centerTopElement": "svg",
+            "centerStack": [
+              "svg",
+              "A",
+              "NAV",
+              "DIV"
+            ]
+          },
+          {
+            "label": "Profile",
+            "href": "/shellfixture",
+            "current": "page",
+            "box": {
+              "x": 305,
+              "y": 779,
+              "width": 68,
+              "height": 52,
+              "right": 373,
+              "bottom": 831
+            },
+            "visible": true,
+            "labelBox": {
+              "x": 323.296875,
+              "y": 812.5,
+              "width": 31.390625,
+              "height": 10,
+              "right": 354.6875,
+              "bottom": 822.5
+            },
+            "iconBox": {
+              "x": 328,
+              "y": 787.5,
+              "width": 22,
+              "height": 22,
+              "right": 350,
+              "bottom": 809.5
+            },
+            "centerHitsLink": true,
+            "centerTopElement": "svg",
+            "centerStack": [
+              "svg",
+              "A",
+              "NAV",
+              "DIV"
+            ]
+          }
+        ],
+        "documentScrollWidth": 390,
+        "bodyScrollWidth": 390,
+        "editableInputs": 0,
+        "signedAvatarLocators": 0
+      },
+      "interruptedTo": "/jobs",
+      "lateProfileRejected": true,
+      "screenshot": "docs/quality/navigation-20261031/cold-shell-mobile-390.png"
+    },
+    {
+      "name": "mobile passive navigation fits and interrupts held Profile at 360px",
+      "passed": true,
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "heldResponses": 1,
+      "geometry": {
+        "viewport": {
+          "width": 360,
+          "height": 800
+        },
+        "nav": {
+          "x": 12,
+          "y": 730,
+          "width": 336,
+          "height": 62,
+          "right": 348,
+          "bottom": 792
+        },
+        "header": {
+          "x": 0,
+          "y": 0,
+          "width": 360,
+          "height": 68,
+          "right": 360,
+          "bottom": 68
+        },
+        "links": [
+          {
+            "label": "Home",
+            "href": "/home",
+            "current": null,
+            "box": {
+              "x": 17,
+              "y": 735,
+              "width": 62,
+              "height": 52,
+              "right": 79,
+              "bottom": 787
+            },
+            "visible": true,
+            "labelBox": {
+              "x": 33.765625,
+              "y": 768.5,
+              "width": 28.46875,
+              "height": 10,
+              "right": 62.234375,
+              "bottom": 778.5
+            },
+            "iconBox": {
+              "x": 37,
+              "y": 743.5,
+              "width": 22,
+              "height": 22,
+              "right": 59,
+              "bottom": 765.5
+            },
+            "centerHitsLink": true,
+            "centerTopElement": "svg",
+            "centerStack": [
+              "svg",
+              "A",
+              "NAV",
+              "DIV"
+            ]
+          },
+          {
+            "label": "Market",
+            "href": "/market",
+            "current": null,
+            "box": {
+              "x": 83,
+              "y": 735,
+              "width": 62,
+              "height": 52,
+              "right": 145,
+              "bottom": 787
+            },
+            "visible": true,
+            "labelBox": {
+              "x": 96.984375,
+              "y": 768.5,
+              "width": 34.015625,
+              "height": 10,
+              "right": 131,
+              "bottom": 778.5
+            },
+            "iconBox": {
+              "x": 103,
+              "y": 743.5,
+              "width": 22,
+              "height": 22,
+              "right": 125,
+              "bottom": 765.5
+            },
+            "centerHitsLink": true,
+            "centerTopElement": "svg",
+            "centerStack": [
+              "svg",
+              "A",
+              "NAV",
+              "DIV"
+            ]
+          },
+          {
+            "label": "Jobs",
+            "href": "/jobs",
+            "current": null,
+            "box": {
+              "x": 149,
+              "y": 735,
+              "width": 62,
+              "height": 52,
+              "right": 211,
+              "bottom": 787
+            },
+            "visible": true,
+            "labelBox": {
+              "x": 168.1875,
+              "y": 768.5,
+              "width": 23.625,
+              "height": 10,
+              "right": 191.8125,
+              "bottom": 778.5
+            },
+            "iconBox": {
+              "x": 169,
+              "y": 743.5,
+              "width": 22,
+              "height": 22,
+              "right": 191,
+              "bottom": 765.5
+            },
+            "centerHitsLink": true,
+            "centerTopElement": "rect",
+            "centerStack": [
+              "rect",
+              "svg",
+              "A",
+              "NAV"
+            ]
+          },
+          {
+            "label": "Messages",
+            "href": "/messages",
+            "current": null,
+            "box": {
+              "x": 215,
+              "y": 735,
+              "width": 62,
+              "height": 52,
+              "right": 277,
+              "bottom": 787
+            },
+            "visible": true,
+            "labelBox": {
+              "x": 221.234375,
+              "y": 768.5,
+              "width": 49.53125,
+              "height": 10,
+              "right": 270.765625,
+              "bottom": 778.5
+            },
+            "iconBox": {
+              "x": 235,
+              "y": 743.5,
+              "width": 22,
+              "height": 22,
+              "right": 257,
+              "bottom": 765.5
+            },
+            "centerHitsLink": true,
+            "centerTopElement": "svg",
+            "centerStack": [
+              "svg",
+              "A",
+              "NAV",
+              "DIV"
+            ]
+          },
+          {
+            "label": "Profile",
+            "href": "/shellfixture",
+            "current": "page",
+            "box": {
+              "x": 281,
+              "y": 735,
+              "width": 62,
+              "height": 52,
+              "right": 343,
+              "bottom": 787
+            },
+            "visible": true,
+            "labelBox": {
+              "x": 296.296875,
+              "y": 768.5,
+              "width": 31.390625,
+              "height": 10,
+              "right": 327.6875,
+              "bottom": 778.5
+            },
+            "iconBox": {
+              "x": 301,
+              "y": 743.5,
+              "width": 22,
+              "height": 22,
+              "right": 323,
+              "bottom": 765.5
+            },
+            "centerHitsLink": true,
+            "centerTopElement": "svg",
+            "centerStack": [
+              "svg",
+              "A",
+              "NAV",
+              "DIV"
+            ]
+          }
+        ],
+        "documentScrollWidth": 360,
+        "bodyScrollWidth": 360,
+        "editableInputs": 0,
+        "signedAvatarLocators": 0
+      },
+      "interruptedTo": "/jobs",
+      "lateProfileRejected": true,
+      "screenshot": "docs/quality/navigation-20261031/cold-shell-mobile-360.png"
+    }
+  ],
+  "browserErrors": [],
+  "blockedOrigins": [],
+  "devIndicatorAccommodations": [
+    {
+      "viewportWidth": 390,
+      "action": "Next Dev Tools > Preferences > Hide Dev Tools for this session",
+      "appSourceOrCSSChanged": false
+    }
+  ],
+  "limits": [
+    "Chromium mobile emulation at two CSS viewports, not a physical iPhone or Safari/WebKit run.",
+    "Safe-area inset is zero in this emulation; native iOS inset behavior is outside this targeted check.",
+    "An initial check caught the Next development badge covering Home. Final acceptance dismisses only that developer badge via its own UI; production app CSS and targets remain unchanged.",
+    "Development compilation and synthetic local transport do not establish production latency or hosted authorization.",
+    "The stale response check deliberately holds and releases one server-verified AppShell profile request per viewport."
+  ],
+  "schemaVersion": 1,
+  "reviewer": "hosted_backend independent targeted mobile check",
+  "baseHeadSha": "26e80ae96647884e7f2764bdbb1884fd5aabcff5",
+  "summary": {
+    "journeys": 2,
+    "passed": 2,
+    "failed": 0,
+    "skipped": 0,
+    "browserErrors": 0,
+    "externalOriginsRequested": 0,
+    "allFiveLinksFit": true,
+    "minimumTargetCssPixels": 48,
+    "actualTargets": {
+      "390": {
+        "width": 68,
+        "height": 52
+      },
+      "360": {
+        "width": 62,
+        "height": 52
+      }
+    },
+    "adjacentGapCssPixels": 4,
+    "horizontalOverflowCssPixels": 0,
+    "centerHitTestsPassed": 10,
+    "touchInterruptionsPassed": 2,
+    "visualReview": "Both final viewport screenshots inspected; five labels/icons remain visible with no app overlap or clipping."
+  },
+  "evidence": {
+    "docs/quality/navigation-20261031/cold-shell-mobile-390.png": {
+      "sha256": "dde7e46973d49255b9317aa7cb3c5a14c3cd98424da83c4a0121945bf202d303",
+      "viewportWidth": 390
+    },
+    "docs/quality/navigation-20261031/cold-shell-mobile-360.png": {
+      "sha256": "ffd70526680653baffcc892341881e264c015a4b3dc05359504eaae8b6850475",
+      "viewportWidth": 360
+    }
+  },
+  "initialAttempt": {
+    "outcome": "Stopped at the Home center hit test because the separate Next development badge overlaid it.",
+    "obscuringElement": "NEXTJS-PORTAL",
+    "appLinkBox": {
+      "x": 17,
+      "y": 779,
+      "width": 68,
+      "height": 52,
+      "right": 85,
+      "bottom": 831
+    },
+    "screenshot": "docs/quality/navigation-20261031/cold-shell-mobile-dev-badge-390.png",
+    "screenshotSha256": "499dfd485774ca958fa72870b40b14cddb5f04cd80dcb0696e24d8cbe2182657",
+    "resolution": "Used Next Dev Tools > Preferences > Hide Dev Tools for this session. No app CSS, target geometry or production file was changed. Final acceptance then passed both widths."
+  },
+  "temporaryHarness": {
+    "path": "/tmp/platinum-shell-mobile-check.cjs",
+    "sha256": "ee052225829929eab634f2269cb4935a6dcff3a397d10f1735d2924bd03ce720",
+    "baseRunner": "web/tests/browser/navigation-loading-next.cjs",
+    "baseRunnerSha256": "f84762786ccdd76de193d8a6e8590756632abb674498679f8107aebb55e93c46",
+    "adaptations": [
+      "Use two fresh touch-enabled contexts at 390x844 and 360x800 with ephemeral loopback origins.",
+      "Hold the actual server AppShell profile request after Jobs-to-own-Profile navigation.",
+      "Inspect real visible mobile navigation geometry, center hit targets, labels/icons and horizontal document bounds.",
+      "Dismiss only the observed Next development badge via its own UI.",
+      "Tap Jobs while Profile is held, release the request, and verify Jobs remains active."
+    ]
+  },
+  "housekeeping": "Next dev automatically changed only the web/AGENTS.md heading from # to ##; that exact heading rewrite was restored after server shutdown.",
+  "sourceSha256AfterRun": {
+    "web/app/loading.tsx": "1a02b8100608be1ba059f996fbf800e68c7883698cdb4be46df4660c1bc9650e",
+    "web/components/AppShell.tsx": "4f213f270c045a835776cb1232190f1be7db7b3af3259deb58e13e951be10950",
+    "web/components/NavigationLoading.tsx": "7a51a46b81fea86c45714ae553b5d53682274d7266ef2b7dca2f40315a5ac27b",
+    "web/lib/navigationChromeMemory.ts": "c0c0459d141b300981ea3efb6fa56397993fbfcf6d2310071caeee282038d2ce",
+    "web/components/NavigationChrome.module.css": "cd182916680767848ce17f7c5e2f5d4599837bdcf7fa749201d3fccd802280d5",
+    "web/components/MobileTabBar.tsx": "ce47efa602487c41e46ced7d072bb87a383b0e238b2c82749ed32e3aceab3c50"
+  }
+}

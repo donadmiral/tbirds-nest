@@ -79,7 +79,7 @@ function createFixture(onChange = () => {}) {
   let delayMs = 0;
   let memoryMode = 'normal';
   const issuedMedia = new Set();
-  const receipt = { mode: 'synthetic-native-ui', networkForwarded: false, requests: [], unhandled: [], mutations: [], media: [], bookReads: [] };
+  const receipt = { mode: 'synthetic-native-ui', networkForwarded: false, requests: [], unhandled: [], mutations: [], media: [], bookReads: [], accountReadbacks: [] };
   const record = (kind, value) => { receipt[kind].push(value); onChange(receipt); };
   const response = (value, status = 200, headers = {}) => new Response(value === null && status === 204 ? null : JSON.stringify(value),
     { status, headers: { 'content-type': 'application/json', 'x-supabase-api-version': '2024-01-01', ...headers } });
@@ -178,7 +178,7 @@ function createFixture(onChange = () => {}) {
       return { liked: post.viewer_liked, likes_count: post.likes_count };
     }
     if (name === 'start_dm_ctx') return CONVERSATION;
-    if (['get_recent_likers', 'get_active_promos', 'get_trending_stories', 'get_user_highlights', 'get_my_story_reactions', 'get_story_reactions',
+    if (['get_recent_likers', 'get_active_promos', 'get_trending_stories', 'home_marketplace_recommendations', 'get_user_highlights', 'get_my_story_reactions', 'get_story_reactions',
       'get_story_viewers', 'get_story_sticker_summary', 'get_my_sticker_response', 'get_communities',
       'get_my_communities', 'get_channels', 'get_my_channels', 'get_market_orders', 'get_my_market_orders',
       'get_story_poll', 'list_playable_sounds'].includes(name)) return [];
@@ -284,6 +284,10 @@ function createFixture(onChange = () => {}) {
       return { key, file: MEDIA[key], mode: memoryMode };
     },
     recordMemoryMedia(event) { record('media', { ...event, owner }); },
+    recordAccountReadback(result) {
+      record('accountReadbacks', { passed: result.passed === true, reloaded: result.reloaded === true,
+        accountCount: Number.isSafeInteger(result.accountCount) ? result.accountCount : -1 });
+    },
     configure({ offline: nextOffline, delayMs: nextDelay, memoryMode: nextMemoryMode } = {}) {
       if (typeof nextOffline === 'boolean') offline = nextOffline;
       if (Number.isFinite(nextDelay)) delayMs = Math.min(15000, Math.max(0, nextDelay));

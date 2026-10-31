@@ -6,6 +6,7 @@ import { WebCallLayer } from "@/components/WebCallLayer";
 import { GlobalMediaLightbox } from "@/components/GlobalMediaLightbox";
 import { ScrollMemory } from "@/components/ScrollMemory";
 import { TopBar } from "@/components/TopBar";
+import { RememberNavigationChrome } from "@/components/NavigationLoading";
 import chrome from "./NavigationChrome.module.css";
 
 export async function AppShell({
@@ -27,6 +28,7 @@ export async function AppShell({
   if (!data.user) {
     return (
       <div className="min-h-screen">
+        <RememberNavigationChrome identity={null} />
         <a href="#main-content" className={chrome.skipLink}>Skip to content</a>
         <header className={chrome.surface + " sticky top-0 z-20 flex items-center justify-between gap-3 border-b px-3 py-3 sm:px-6"}>
           <Link href="/" className="flex items-center gap-3">
@@ -55,6 +57,7 @@ export async function AppShell({
     .maybeSingle();
   return (
     <div className="min-h-screen">
+      <RememberNavigationChrome identity={{ ownerId: data.user.id, name: profile?.full_name ?? "Member", username: profile?.username ?? "", business: profile?.account_type === "business", avatarUrl: profile?.avatar_url ?? null }} />
       <a href="#main-content" className={chrome.skipLink}>Skip to content</a>
       <Nav name={profile?.full_name ?? "Member"} username={profile?.username ?? ""} business={profile?.account_type === "business"} avatarUrl={profile?.avatar_url ?? null} verified={!!profile?.is_verified} tier={profile?.verified_tier ?? null} />
       <MobileTabBar userId={data.user.id} username={profile?.username} name={profile?.full_name} avatarUrl={profile?.avatar_url} business={profile?.account_type === 'business'} />

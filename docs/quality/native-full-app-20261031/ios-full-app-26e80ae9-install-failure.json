@@ -1,0 +1,53 @@
+{
+  "measuredAt": "2026-10-31T04:08:33.098894+00:00",
+  "workflowRun": 41166954949,
+  "attempt": 1,
+  "jobId": 124436466550,
+  "headCommit": "26e80ae96647884e7f2764bdbb1884fd5aabcff5",
+  "testedMergeCommit": "6373021f8dcbb2bc614039e74937d2acb0ff2d3e",
+  "tree": "1c10d4cc20fcfd5a0d4e82ba0121c51e90274c03",
+  "headAndMergeTreesEqual": true,
+  "result": {
+    "passed": false,
+    "phase": "npm ci --ignore-scripts --no-fund",
+    "errorCode": "ETIMEDOUT",
+    "errno": -60,
+    "processExitCode": 196,
+    "nativePreparationStarted": false,
+    "nativeBuildStarted": false,
+    "uiTestsStarted": false,
+    "artifactCreated": false
+  },
+  "diagnosticLines": [
+    "2026-10-31T04:03:33.8855310Z HEAD is now at 6373021 Merge 26e80ae96647884e7f2764bdbb1884fd5aabcff5 into ce4f2f2ebbd7f7669b630caf650fd97cd59297b0",
+    "2026-10-31T04:05:32.5038660Z npm error code ETIMEDOUT",
+    "2026-10-31T04:05:32.5091560Z npm error syscall read",
+    "2026-10-31T04:05:32.5156300Z npm error errno -60",
+    "2026-10-31T04:05:32.5198240Z npm error network read ETIMEDOUT",
+    "2026-10-31T04:05:32.5259470Z npm error network This is a problem related to network connectivity.",
+    "2026-10-31T04:05:32.5312530Z npm error network In most cases you are behind a proxy or have bad network settings.",
+    "2026-10-31T04:05:32.5348350Z npm error network",
+    "2026-10-31T04:05:32.5381580Z npm error network If you are behind a proxy, please make sure that the",
+    "2026-10-31T04:05:32.5407120Z npm error network 'proxy' config is set properly.  See: 'npm help config'",
+    "2026-10-31T04:05:32.5447960Z npm error A complete log of this run can be found in: /Users/runner/.npm/_logs/2026-10-31T04_03_38_546Z-debug-0.log",
+    "2026-10-31T04:05:32.7801220Z ##[error]Process completed with exit code 196.",
+    "2026-10-31T04:05:33.2887700Z No files were found with the provided path: native-ui-logs/. No artifacts will be uploaded."
+  ],
+  "logSha256": "d0910fc666dee01e05f5666b190199bcfba293f27862fa5d14e87bd007112938",
+  "repair": "No source change indicated by this failure. Any failed-iOS-only retry must be coordinated after the active Android run completes; a pending source batch may make the retry unnecessary.",
+  "limits": [
+    "Dependency-installation network failure; no native product failure or runtime acceptance is inferred.",
+    "The existing successful standalone native-encoder evidence remains separately source-bound."
+  ],
+  "retryAttempt": {
+    "requestedBy": "root agent",
+    "tool": "github_rerun_workflow_job",
+    "jobId": 124436466550,
+    "attemptedAtApproximate": "2026-10-31T04:08:00Z",
+    "httpStatus": 403,
+    "message": "The workflow run containing this job is already running",
+    "newAttemptCreated": false,
+    "newJobCreated": false,
+    "authority": "root agent report; single invocation"
+  }
+}
