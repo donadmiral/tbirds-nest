@@ -1,0 +1,230 @@
+TAP version 13
+# Subtest: turn bounds never wrap, including an empty book
+ok 1 - turn bounds never wrap, including an empty book
+  ---
+  duration_ms: 1.140625
+  type: 'test'
+  ...
+# Subtest: short drags cancel, deliberate drags commit, and flicks must move in the intended direction
+ok 2 - short drags cancel, deliberate drags commit, and flicks must move in the intended direction
+  ---
+  duration_ms: 0.168764
+  type: 'test'
+  ...
+# Subtest: rapid navigation stays locked through commit until the new React page is acknowledged
+ok 3 - rapid navigation stays locked through commit until the new React page is acknowledged
+  ---
+  duration_ms: 0.17969
+  type: 'test'
+  ...
+# Subtest: a cancelled, reordered or replaced book rejects its old animation callback
+ok 4 - a cancelled, reordered or replaced book rejects its old animation callback
+  ---
+  duration_ms: 0.223667
+  type: 'test'
+  ...
+# Subtest: front and back hinge angles are continuous and reduced motion has no timed turn
+ok 5 - front and back hinge angles are continuous and reduced motion has no timed turn
+  ---
+  duration_ms: 0.295064
+  type: 'test'
+  ...
+# Subtest: native swipe completes or returns to its starting page, including interrupted gestures
+ok 6 - native swipe completes or returns to its starting page, including interrupted gestures
+  ---
+  duration_ms: 42.93187
+  type: 'test'
+  ...
+# Subtest: native rapid taps, stale callbacks and route changes cannot skip pages
+ok 7 - native rapid taps, stale callbacks and route changes cannot skip pages
+  ---
+  duration_ms: 25.043749
+  type: 'test'
+  ...
+# Subtest: native reduced motion navigates immediately without starting a page animation
+ok 8 - native reduced motion navigates immediately without starting a page animation
+  ---
+  duration_ms: 20.308657
+  type: 'test'
+  ...
+# Subtest: native turn reaches its requested page when the native completion callback never arrives
+not ok 9 - native turn reaches its requested page when the native completion callback never arrives
+  ---
+  duration_ms: 21.589604
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/memory-page-turn.cjs:64:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + []
+    - [
+    -   1
+    - ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 1
+  actual:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/memory-page-turn.cjs:66:75)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: native completion or interruption wins before the duration and leaves no pending timer
+ok 10 - native completion or interruption wins before the duration and leaves no pending timer
+  ---
+  duration_ms: 41.178352
+  type: 'test'
+  ...
+# Subtest: native cancelled swipe unlocks at its settling duration even without native completion
+not ok 11 - native cancelled swipe unlocks at its settling duration even without native completion
+  ---
+  duration_ms: 15.164358
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/memory-page-turn.cjs:73:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    true !== false
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: false
+  actual: true
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/memory-page-turn.cjs:75:84)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: native committed swipe uses its remaining duration and preserves one live media child
+not ok 12 - native committed swipe uses its remaining duration and preserves one live media child
+  ---
+  duration_ms: 18.471955
+  type: 'test'
+  location: '/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/memory-page-turn.cjs:79:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly deep-equal:
+    + actual - expected
+    
+    + []
+    - [
+    -   1
+    - ]
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+    0: 1
+  actual:
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (/workspace/scratch/f9638ed3020b/platinum-circles/tests/quality/memory-page-turn.cjs:82:29)
+    Test.runInAsyncScope (node:async_hooks:227:14)
+    Test.run (node:internal/test_runner/test:1402:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+    Test.postRun (node:internal/test_runner/test:1542:19)
+    Test.run (node:internal/test_runner/test:1467:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:974:7)
+  ...
+# Subtest: native explicit cancellation retires both the duration and late native completion
+ok 13 - native explicit cancellation retires both the duration and late native completion
+  ---
+  duration_ms: 15.916931
+  type: 'test'
+  ...
+# Subtest: native route inactivity retires both the duration and late native completion
+ok 14 - native route inactivity retires both the duration and late native completion
+  ---
+  duration_ms: 13.500605
+  type: 'test'
+  ...
+# Subtest: native book replacement retires both the duration and late native completion
+ok 15 - native book replacement retires both the duration and late native completion
+  ---
+  duration_ms: 23.177397
+  type: 'test'
+  ...
+# Subtest: native external page selection retires both the duration and late native completion
+ok 16 - native external page selection retires both the duration and late native completion
+  ---
+  duration_ms: 13.341968
+  type: 'test'
+  ...
+# Subtest: native reduced motion change retires both the duration and late native completion
+ok 17 - native reduced motion change retires both the duration and late native completion
+  ---
+  duration_ms: 10.868237
+  type: 'test'
+  ...
+# Subtest: native size change retires both the duration and late native completion
+ok 18 - native size change retires both the duration and late native completion
+  ---
+  duration_ms: 11.715492
+  type: 'test'
+  ...
+# Subtest: native unmount retires both the duration and late native completion
+ok 19 - native unmount retires both the duration and late native completion
+  ---
+  duration_ms: 10.685763
+  type: 'test'
+  ...
+# Subtest: native animated sheets keep exactly one live media child and static adjacent previews
+ok 20 - native animated sheets keep exactly one live media child and static adjacent previews
+  ---
+  duration_ms: 9.643035
+  type: 'test'
+  ...
+# Subtest: turning video pages only use an authorized poster or a text fallback on both platforms
+ok 21 - turning video pages only use an authorized poster or a text fallback on both platforms
+  ---
+  duration_ms: 36.37657
+  type: 'test'
+  ...
+# Subtest: cover stamps use the chosen memory date and never invent a trip date
+ok 22 - cover stamps use the chosen memory date and never invent a trip date
+  ---
+  duration_ms: 13.56985
+  type: 'test'
+  ...
+# Subtest: web pointer cancellation and vertical scrolling preserve the current page
+ok 23 - web pointer cancellation and vertical scrolling preserve the current page
+  ---
+  duration_ms: 15.965434
+  type: 'test'
+  ...
+# Subtest: web committed swipe changes one page and preserves the single media child during the hinge
+ok 24 - web committed swipe changes one page and preserves the single media child during the hinge
+  ---
+  duration_ms: 10.970071
+  type: 'test'
+  ...
+# Subtest: web tap and keyboard requests share a lock, and reduced motion commits without a frame
+ok 25 - web tap and keyboard requests share a lock, and reduced motion commits without a frame
+  ---
+  duration_ms: 24.907413
+  type: 'test'
+  ...
+1..25
+# tests 25
+# suites 0
+# pass 22
+# fail 3
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 671.314619

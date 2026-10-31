@@ -261,9 +261,10 @@ export default function MemoryAlbumScreen({ route, navigation }: NativeStackScre
   useEffect(() => { const animation = Animated.timing(motionScale, { toValue: playMode && !reduceMotion ? 1 + photoProgress * .06 : 1, duration: reduceMotion ? 0 : 120, useNativeDriver: true }); animation.start(); return () => animation.stop(); }, [motionScale, playMode, reduceMotion, photoProgress]);
 
   const openBook = useCallback(() => {
-    const generation=bookGeneration.current;
-    Animated.timing(coverAnim, { toValue: 1, duration: reduceMotion ? 0 : 240, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start(({finished}) => {if(finished&&generation===bookGeneration.current)setOpened(true);});
-  }, [coverAnim, reduceMotion]);
+    // Required book/media checks have already passed. Native decoration must
+    // not withhold the authorized reader while its completion is delayed.
+    setOpened(true);
+  }, []);
 
   const closeBook = useCallback(() => {
     bookGeneration.current++;

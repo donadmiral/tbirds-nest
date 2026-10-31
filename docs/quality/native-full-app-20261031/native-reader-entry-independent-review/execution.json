@@ -1,0 +1,44 @@
+{
+  "startedAt": "2026-10-31T17:24:40.168776+00:00",
+  "completedAt": "2026-10-31T17:24:44.239800+00:00",
+  "command": [
+    "env",
+    "-u",
+    "NODE_TEST_CONTEXT",
+    "-u",
+    "PLATINUM_READER_SOURCE",
+    "node",
+    "--test",
+    "--test-isolation=none",
+    "--test-reporter=tap",
+    "tests/quality/native-memory-album-loading.cjs",
+    "tests/quality/memory-media-regressions.cjs"
+  ],
+  "exitCode": 0,
+  "wallSeconds": 4.071033210002497,
+  "nodeVersion": "v24.22.1",
+  "before": {
+    "src/screens/profile/MemoryAlbumScreen.tsx": "27844413189f30e36ebd3137dd5398e689c8393ca9f82469cd4a262351b3adab",
+    "tests/quality/native-memory-album-loading.cjs": "f07fd6ae9991d5ec798646874ce565cd0c08ca31a88129ef5d01b463bd2c3402",
+    "tests/quality/memory-media-regressions.cjs": "526f6a7657b3d7e0fac755da4412c290a48de8cdf03a2f70258b078b92f6749c",
+    "tests/native/memory-fixture.cjs": "9368a168342678a62e4c5aee24bfa2cbeba8d6245c1ff2910fa1494e4724b7d7",
+    "shared/memoryBookTurn.ts": "0a75a513c2b5f9aa3a7fd7cfb28f12cb584251f27227d13a0b1d9a9b46bd8429",
+    "shared/memoryBookDesign.ts": "ece305ccc3149b57877c8227f78d4d21782474f1388a42b9178cf15a9f3d4197",
+    "shared/useMemorySoundtrackSave.ts": "733387723d25b448dc93e05d3b4f42a4669573e222d137b18f0d8dbee0fa5817"
+  },
+  "after": {
+    "src/screens/profile/MemoryAlbumScreen.tsx": "27844413189f30e36ebd3137dd5398e689c8393ca9f82469cd4a262351b3adab",
+    "tests/quality/native-memory-album-loading.cjs": "f07fd6ae9991d5ec798646874ce565cd0c08ca31a88129ef5d01b463bd2c3402",
+    "tests/quality/memory-media-regressions.cjs": "526f6a7657b3d7e0fac755da4412c290a48de8cdf03a2f70258b078b92f6749c",
+    "tests/native/memory-fixture.cjs": "9368a168342678a62e4c5aee24bfa2cbeba8d6245c1ff2910fa1494e4724b7d7",
+    "shared/memoryBookTurn.ts": "0a75a513c2b5f9aa3a7fd7cfb28f12cb584251f27227d13a0b1d9a9b46bd8429",
+    "shared/memoryBookDesign.ts": "ece305ccc3149b57877c8227f78d4d21782474f1388a42b9178cf15a9f3d4197",
+    "shared/useMemorySoundtrackSave.ts": "733387723d25b448dc93e05d3b4f42a4669573e222d137b18f0d8dbee0fa5817"
+  },
+  "allHashesUnchanged": true,
+  "tap": {
+    "path": "docs/quality/native-full-app-20261031/native-reader-entry-independent-review/focused-tests.tap",
+    "bytes": 8894,
+    "sha256": "a53662fb55863c9c56511823becafb031c845ce1b79d2dc904f33c3fd81a9d3f"
+  }
+}

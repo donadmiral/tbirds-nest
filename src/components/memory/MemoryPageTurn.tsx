@@ -1,4 +1,4 @@
-import React,{forwardRef,useCallback,useEffect,useImperativeHandle,useLayoutEffect,useMemo,useRef,useState,type ReactNode} from 'react';
+import React,{forwardRef,useCallback,useImperativeHandle,useLayoutEffect,useMemo,useRef,useState,type ReactNode} from 'react';
 import {Animated,Easing,PanResponder,Platform,StyleSheet,Text,TouchableOpacity,View} from 'react-native';
 import {Image} from 'expo-image';
 import {MemoryBookTurnMachine,memoryTurnDuration,memoryTurnProgress,memoryTurnShouldCommit,type MemoryTurn,type MemoryTurnDirection} from '../../../shared/memoryBookTurn';
@@ -10,21 +10,37 @@ export default forwardRef<MemoryPageTurnHandle,Props>(function MemoryPageTurn({p
  const machine=useRef(new MemoryBookTurnMachine(pageIds,index)).current,progress=useRef(new Animated.Value(0)).current;
  const callbacks=useRef({onCommit,onTurningChange});callbacks.current={onCommit,onTurningChange};
  const live=useRef(true),gesture=useRef<{token:number;direction:MemoryTurnDirection}|null>(null);
+ const pendingSettlement=useRef<(()=>void)|null>(null);
+ const retireSettlement=useCallback(()=>{pendingSettlement.current?.();pendingSettlement.current=null;},[]);
  const [turn,setTurn]=useState<MemoryTurn|null>(null);
- const cancel=useCallback(()=>{machine.cancel();gesture.current=null;progress.stopAnimation();progress.setValue(0);if(live.current){setTurn(null);callbacks.current.onTurningChange(false);}},[machine,progress]);
- const identity=pageIds.join('|');
- useLayoutEffect(()=>{progress.stopAnimation();machine.sync(pageIds,index);if(!machine.turn){progress.setValue(0);setTurn(null);callbacks.current.onTurningChange(false);}},[identity,index,machine,progress]);
- useEffect(()=>{live.current=true;return()=>{live.current=false;machine.cancel();progress.stopAnimation();};},[machine,progress]);
- useEffect(()=>{if(!active)cancel();},[active,cancel]);
- useEffect(()=>{cancel();},[reduceMotion,width,height,cancel]);
+ const cancel=useCallback(()=>{retireSettlement();machine.cancel();gesture.current=null;progress.stopAnimation();progress.setValue(0);if(live.current){setTurn(null);callbacks.current.onTurningChange(false);}},[machine,progress,retireSettlement]);
+ const identity=JSON.stringify(pageIds);
+ useLayoutEffect(()=>{retireSettlement();progress.stopAnimation();machine.sync(JSON.parse(identity) as string[],index);if(!machine.turn){progress.setValue(0);setTurn(null);callbacks.current.onTurningChange(false);}},[identity,index,machine,progress,retireSettlement]);
+ useLayoutEffect(()=>{live.current=true;return()=>{live.current=false;retireSettlement();machine.cancel();progress.stopAnimation();};},[machine,progress,retireSettlement]);
+ useLayoutEffect(()=>{if(!active)cancel();},[active,cancel]);
+ useLayoutEffect(()=>{cancel();},[reduceMotion,width,height,cancel]);
  const settle=useCallback((current:MemoryTurn,commit:boolean)=>{
   if(!machine.settle(current.token))return;
-  Animated.timing(progress,{toValue:commit?1:0,duration:memoryTurnDuration(current.progress,commit,reduceMotion),easing:Easing.out(Easing.cubic),useNativeDriver:true}).start(({finished})=>{
+  retireSettlement();
+  const duration=memoryTurnDuration(current.progress,commit,reduceMotion);
+  let done=false,timer:ReturnType<typeof setTimeout>|undefined;
+  const dispose=()=>{done=true;if(timer!==undefined){clearTimeout(timer);timer=undefined;}if(pendingSettlement.current===dispose)pendingSettlement.current=null;};
+  const finish=(finished:boolean,stopNative=false)=>{
+   if(done)return;
+   dispose();
    if(!live.current||machine.turn?.token!==current.token)return;
+   // Retire both completion paths before stopping native work: stopAnimation
+   // may itself deliver an interrupted callback synchronously or later.
+   if(stopNative)progress.stopAnimation();
    const next=machine.finish(current.token,finished&&commit);
    if(next!==null)callbacks.current.onCommit(next);else{progress.setValue(0);setTurn(null);callbacks.current.onTurningChange(false);}
-  });
- },[machine,progress,reduceMotion]);
+  };
+  pendingSettlement.current=dispose;
+  // The intended visual duration also bounds the control lock. A delayed
+  // native callback cannot leave a completed or cancelled turn inaccessible.
+  timer=setTimeout(()=>finish(true,true),duration);
+  Animated.timing(progress,{toValue:commit?1:0,duration,easing:Easing.out(Easing.cubic),useNativeDriver:true}).start(({finished})=>finish(finished));
+ },[machine,progress,reduceMotion,retireSettlement]);
  const turnPage=useCallback((direction:MemoryTurnDirection)=>{if(!active)return;const next=machine.begin(direction);if(!next)return;progress.setValue(0);setTurn({...next});callbacks.current.onTurningChange(true);if(reduceMotion){const to=machine.finish(next.token,true);if(to!==null)callbacks.current.onCommit(to);}else settle(next,true);},[active,machine,progress,reduceMotion,settle]);
  useImperativeHandle(ref,()=>({turn:turnPage,cancel}),[turnPage,cancel]);
  const swipe=useMemo(()=>PanResponder.create({

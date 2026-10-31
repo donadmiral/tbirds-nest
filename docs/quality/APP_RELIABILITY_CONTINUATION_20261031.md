@@ -263,12 +263,16 @@ did not replace or cancel the completed iPhone run.
 [Independent source/provenance review](native-full-app-20261031/native-v8-qa-scope-independent-review.json) ·
 [Expected native source manifest](native-full-app-20261031/native-v8-source-provenance-manifest.json)
 
-### Reader entry and page-turn repairs under review
+### Reviewed reader entry and page-turn repairs
 
 The iPhone artifact motivates a separate minimal production change: a loaded,
-authorized reader should open on the user's tap without waiting for a
-decorative cover-animation callback. Its actual-screen regression cases are
-being completed independently of the frozen Android QA candidate above.
+authorized reader now opens on the user's tap without waiting for a decorative
+cover-animation callback. The focused bundle passes 42 cases: 36 actual-screen
+cases plus six existing media-authorization regressions. The published screen
+failed four of those 36 screen cases when animation acknowledgement was held
+or interrupted. Existing route/account resets, explicit close, required media
+authorization and same-book refresh behavior remain. Independent review passes
+the same 42 cases; repeated verification is not counted again.
 
 A controlled actual-component check also reproduced an adjacent page-turn
 weakness: withholding native completion strands committed and cancelled turns
@@ -276,11 +280,31 @@ with controls unavailable. This path was not reached by the failed iPhone flow;
 it is a separate reproduced component failure. The proposed repair uses the
 existing intended visual duration as an alternate completion clock, retains
 first-result and ownership fences, and cancels at committed lifecycle changes.
-The final focused set currently passes 30 cases. Independent review found and
-reproduced a passive-cleanup race; layout-phase invalidation and explicit
-pre-passive-cleanup cases now cover it. These source changes remain under
-review and are not on the application branch. No native success or resolution
-of the separate capture-link delay is claimed.
+The final focused set passes 30 cases, including an independent rerun. Executing
+that exact final test file against literal published component bytes gives
+22 passes and eight controlled failures. Independent review found and reproduced
+a passive-cleanup race; layout-phase invalidation and explicit pre-passive-cleanup
+cases now cover it. Content-based identity distinguishes page IDs containing
+delimiters while preserving a turn for equivalent fresh arrays. The duration
+clock cannot guarantee wall-clock progress while JavaScript itself is blocked.
+
+These four production/test source paths are reviewed and frozen, separate from
+the eight Android QA paths. Scoped lint and whitespace checks pass. A full
+frozen-candidate static/provenance gate remains before publication. No fresh
+native success or resolution of the separate capture-link delay is claimed.
+
+A small QA-only native URL-boundary diagnostic is being prepared for the next
+run. It will timestamp entry and deferred exit around the existing generated
+AppDelegate forwarding expression, with bounded numeric/boolean output and
+no raw URL. It must preserve forwarding order, short-circuit behavior, return
+value, route logic and test deadlines, and fail closed if the exact generated
+method differs. No automation-mode or runtime workaround is justified by the
+current correlation alone.
+
+[Reader-entry repair](native-full-app-20261031/native-reader-entry-repair.json) ·
+[Independent reader-entry review](native-full-app-20261031/native-reader-entry-independent-review.json) ·
+[Page-turn completion repair](native-full-app-20261031/native-page-turn-completion-repair.json) ·
+[Independent page-turn review](native-full-app-20261031/native-page-turn-independent-review.json)
 
 ## Previous published repair candidate: f4c35f32 (v6)
 

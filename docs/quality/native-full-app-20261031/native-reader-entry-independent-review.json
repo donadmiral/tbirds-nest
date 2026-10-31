@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "reviewedBy": "hosted_backend",
+  "reviewedAt": "2026-10-31T17:25:40.366037+00:00",
+  "status": "accepted_frozen_local_candidate_native_acceptance_pending",
+  "publishedApplicationHead": "b5c9c82b3b507e0bf6ecc6b9290e34740d32f3f6",
+  "scope": "Independent read-only review and one focused two-file run of the immediate native reader-entry change. No source, flow, provider, CI, report, authentication or ref changes.",
+  "ownerReceipt": {
+    "path": "docs/quality/native-full-app-20261031/native-reader-entry-repair.json",
+    "bytes": 15890,
+    "sha256": "03e158f3521064f5f5e1133be00bf1f171b6b743f855921f2f00cdc731335c7d"
+  },
+  "candidateSources": [
+    {
+      "path": "src/screens/profile/MemoryAlbumScreen.tsx",
+      "bytes": 67855,
+      "sha256": "27844413189f30e36ebd3137dd5398e689c8393ca9f82469cd4a262351b3adab"
+    },
+    {
+      "path": "tests/quality/native-memory-album-loading.cjs",
+      "bytes": 29491,
+      "sha256": "f07fd6ae9991d5ec798646874ce565cd0c08ca31a88129ef5d01b463bd2c3402"
+    }
+  ],
+  "scopeVerification": {
+    "baselineSource": {
+      "path": "docs/quality/native-full-app-20261031/native-reader-entry-repair/MemoryAlbumScreen-b5.tsx.txt",
+      "bytes": 67979,
+      "sha256": "63cf58cdf501ef43c333c9cce04ba3620fb775f1de532e4d92ace987d0d8826f"
+    },
+    "baselineEqualsLiteralPublishedBlob": true,
+    "productionOutsideOpenBookByteIdentical": true,
+    "boundInputsUnchangedDuringExecution": true,
+    "unchangedPublishedFlows": [
+      {
+        "path": "tests/native/flows/navigation.yaml",
+        "bytes": 2565,
+        "sha256": "1a3bb92ad2f80bfe9ba0c1c81829c65edfa1118dbfe10942074deeb9fe51e1f8"
+      },
+      {
+        "path": "tests/native/flows/memory-navigation.yaml",
+        "bytes": 3770,
+        "sha256": "afd1a9deb1842880ca237405019525e75a9787ce84bb8effc7ec870b037b0792"
+      },
+      {
+        "path": "tests/native/flows/memory-capture.yaml",
+        "bytes": 1873,
+        "sha256": "1bb3e4fa89bf9bbc516c43efae25e989a1f8b6d719de58a7723ea896d6eb5bde"
+      }
+    ]
+  },
+  "conclusion": {
+    "blockingFindings": [],
+    "acceptedBehavior": "Pressing Open book or the authorized cover commits opened=true directly. Entry no longer waits for a decorative native animation callback; ordinary rendering still follows React scheduling.",
+    "failureAttribution": "The owner reproduced withheld/interrupted animation acknowledgement failures against the literal b5 component. The earlier iPhone evidence is consistent with delayed entry but does not prove why its callback or later URL delivery was delayed."
+  },
+  "reviewFindings": [
+    {
+      "topic": "Required authorization and media",
+      "finding": "The unchanged screen still returns auth/load errors, loading state and private/absent-book state before exposing its cover/reader. The required book RPC and media hydration must complete before publication; pending auth/book/media and rejected authorization cases remain green."
+    },
+    {
+      "topic": "Immediate action and stable identity",
+      "finding": "openBook now captures only the stable state setter in an empty-dependency useCallback. There is no queued animation completion or retained entry-generation callback that can later reopen a closed, replaced or unmounted reader."
+    },
+    {
+      "topic": "Route and account replacement",
+      "finding": "Existing owner/album/viewer change effects invalidate generations, clear book/media/modal state and reset opened=false. The focused replacement cases require a newly authorized book before the replacement cover is usable; the old opened state does not survive the tested transition."
+    },
+    {
+      "topic": "Close and refresh",
+      "finding": "Explicit close still cancels page turns and resets opened/grid/play state before its existing nonblocking close decoration. Reopening works. An ordinary same-book refresh preserves an opened reader; this change adds no new refresh/reset dependency."
+    },
+    {
+      "topic": "Native animation independence",
+      "finding": "The two platform branches and reduced-motion branch render Page 1 on the first controlled React commit with native acknowledgement withheld. A finished:false decoration cannot block entry. No native callback timeout or assertion deadline is added."
+    },
+    {
+      "topic": "Bounded change",
+      "finding": "Only the openBook block differs from the literal published production screen. All three native flow bytes match b5, retaining the exact content, selectors, required sequence and deadlines. Page-turn completion is reviewed separately; child components are stubbed in this entry harness."
+    }
+  ],
+  "independentExecution": {
+    "command": [
+      "env",
+      "-u",
+      "NODE_TEST_CONTEXT",
+      "-u",
+      "PLATINUM_READER_SOURCE",
+      "node",
+      "--test",
+      "--test-isolation=none",
+      "--test-reporter=tap",
+      "tests/quality/native-memory-album-loading.cjs",
+      "tests/quality/memory-media-regressions.cjs"
+    ],
+    "startedAt": "2026-10-31T17:24:40.168776+00:00",
+    "completedAt": "2026-10-31T17:24:44.239800+00:00",
+    "nodeVersion": "v24.22.1",
+    "exitCode": 0,
+    "counts": {
+      "tests": 42,
+      "pass": 42,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0
+    },
+    "reportedDurationMs": 4008.094277,
+    "wallSeconds": 4.071033210002497,
+    "disjointBreakdown": {
+      "screenComponentCases": 36,
+      "newEntryCasesWithinScreenCases": 9,
+      "existingReactionAuthMediaCasesWithinScreenCases": 27,
+      "extractedNativeAndWebAuthorizationLoaderCases": 6
+    }
+  },
+  "ownerEvidenceInspected": {
+    "baseline": {
+      "counts": {
+        "tests": 36,
+        "pass": 32,
+        "fail": 4,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "testSource": "Final 36-case component file against retained literal b5 screen",
+      "reproducedFailures": [
+        "iOS withheld native acknowledgement",
+        "Android withheld native acknowledgement",
+        "reduced-motion withheld acknowledgement",
+        "interrupted decorative animation"
+      ],
+      "independentlyRerunHere": false
+    },
+    "ownerFinalCounts": {
+      "tests": 42,
+      "pass": 42,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "ownerStaticResults": [
+      {
+        "command": "./node_modules/.bin/tsc --noEmit",
+        "exitCode": 0,
+        "log": "typescript.txt"
+      },
+      {
+        "command": "./node_modules/.bin/eslint src/screens/profile/MemoryAlbumScreen.tsx tests/quality/native-memory-album-loading.cjs",
+        "exitCode": 0,
+        "log": "eslint.txt"
+      },
+      {
+        "command": "git diff --check -- src/screens/profile/MemoryAlbumScreen.tsx tests/quality/native-memory-album-loading.cjs",
+        "exitCode": 0
+      }
+    ],
+    "ownerRetainedFilesHashVerified": true
+  },
+  "limits": [
+    "The actual production screen and shared helpers run in a manual React-hook/native-host harness with controlled auth, responses and media. iOS/Android names select mocked Platform branches; this is not simulator or physical-device timing/pixel acceptance.",
+    "MemoryPageTurn and other child native components are stubs here; the separate page-turn independent review establishes its own controlled completion cases.",
+    "The six media-authorization cases execute extracted native/web loader code. They are not six additional full-screen or hosted backend journeys.",
+    "A synchronous state setter removes the native acknowledgement gate but cannot force React or JavaScript to run while blocked. No frame-rate or absolute end-to-end latency claim follows.",
+    "The earlier b5 native navigation and capture flows remain failed. Eventual account readback succeeded after the capture-heading deadline; this entry repair does not change routing or claim to solve that separate delivery delay.",
+    "Account/session reset behavior is covered only at the existing source and controlled-harness boundaries; this is not a new live multi-account/provider acceptance test."
+  ],
+  "relatedReviews": [
+    {
+      "path": "docs/quality/native-full-app-20261031/native-page-turn-independent-review.json",
+      "sha256": "2d553c9c55ecae3b43d25b2b2e5b0d392c1f44f7afeb1c19d33cb8c73037cedd"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/ios-b5c9c82b-auth-independent-review.json",
+      "sha256": "73283497470ae64c86305cf44d249745f45c0adb7ebec1060848f4aa94395708"
+    }
+  ],
+  "retainedFiles": [
+    {
+      "path": "docs/quality/native-full-app-20261031/native-reader-entry-independent-review/focused-tests.tap",
+      "bytes": 8894,
+      "sha256": "a53662fb55863c9c56511823becafb031c845ce1b79d2dc904f33c3fd81a9d3f"
+    },
+    {
+      "path": "docs/quality/native-full-app-20261031/native-reader-entry-independent-review/execution.json",
+      "bytes": 2318,
+      "sha256": "3186bf3d0a665ea3bf2901f8bdc6c1603459721fc5ea580a767d5db3846ea1ed"
+    }
+  ]
+}

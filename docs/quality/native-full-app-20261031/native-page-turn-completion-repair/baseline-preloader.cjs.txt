@@ -1,0 +1,5 @@
+const fs=require('node:fs'),path=require('node:path');
+const original=fs.readFileSync;
+const target="/workspace/scratch/f9638ed3020b/platinum-circles/src/components/memory/MemoryPageTurn.tsx";
+const baseline=original("/tmp/native-page-turn-b5-source.tsx",'utf8');
+fs.readFileSync=function(file,options){if(typeof file==='string'&&path.resolve(file)===target){if(options==='utf8'||options==='utf-8'||options?.encoding==='utf8'||options?.encoding==='utf-8')return baseline;return Buffer.from(baseline);}return original.apply(this,arguments);};

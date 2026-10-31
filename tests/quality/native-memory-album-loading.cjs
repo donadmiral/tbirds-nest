@@ -25,8 +25,9 @@ const words = node => Array.isArray(node) ? node.map(words).join('') : typeof no
  * scheduling, native primitives/animation acknowledgement, auth, transport and
  * media delivery are controlled. This proves component state/ownership; it is
  * not a native-pixel test or a diagnosis of the retained iPhone loading delay. */
-function harness({ heldAuth = false, heldMedia = false } = {}) {
+function harness({ heldAuth = false, heldMedia = false, heldAnimation = false, reducedMotion = true, platform = 'ios' } = {}) {
   const slots = [], effects = [], books = [], reactions = [], toggles = [], media = [], soundtrackSaves = [], authListeners = new Set(), appListeners = new Set();
+  const animationAcknowledgements = [];
   let cursor = 0, dirty = true, mounted = true, tree, owner = OWNER, postUnmountWrites = 0;
   const session = deferred();
   if (!heldAuth) session.resolve({ data: { session: { user: { id: owner }, access_token: 'synthetic-test-token' } }, error: null });
@@ -59,11 +60,17 @@ function harness({ heldAuth = false, heldMedia = false } = {}) {
   class AnimatedValue { setValue() {} stopAnimation() {} interpolate() { return 1; } }
   const native = Object.fromEntries(['View', 'Text', 'TouchableOpacity', 'Modal', 'TextInput', 'FlatList', 'ActivityIndicator', 'StatusBar', 'ScrollView', 'KeyboardAvoidingView'].map(name => [name, name]));
   Object.assign(native, {
-    AppState: appState, Alert: { alert() {} }, Platform: { OS: 'ios' },
+    AppState: appState, Alert: { alert() {} }, Platform: { OS: platform },
     StyleSheet: { create: value => value, absoluteFill: {}, hairlineWidth: 1 },
     useWindowDimensions: () => ({ width: 393, height: 852 }),
-    AccessibilityInfo: { isReduceMotionEnabled: async () => true, addEventListener: () => ({ remove() {} }) },
-    Animated: { Value: AnimatedValue, View: 'AnimatedView', timing: () => ({ start: callback => callback?.({ finished: true }), stop() {} }) },
+    AccessibilityInfo: { isReduceMotionEnabled: async () => reducedMotion, addEventListener: () => ({ remove() {} }) },
+    Animated: { Value: AnimatedValue, View: 'AnimatedView', timing: () => ({
+      start(callback) {
+        if (typeof callback !== 'function') return;
+        if (heldAnimation) animationAcknowledgements.push(callback);
+        else callback({ finished: true });
+      }, stop() {},
+    }) },
     Easing: { out: value => value, cubic: 1 },
   });
   const palette = { surface: { canvas: '#fff', hairline: '#ddd', scrim: '#333' }, ink: { primary: '#123', secondary: '#567', muted: '#999', inverse: '#fff' }, brand: { base: '#123', tintBg: '#eee' }, status: { danger: '#f00' } };
@@ -147,6 +154,8 @@ function harness({ heldAuth = false, heldMedia = false } = {}) {
   async function flush() { for (let i = 0; i < 5; i++) { render(); await turn(); } render(); }
   const h = {
     books, reactions, toggles, media, soundtrackSaves, session, flush,
+    commit: render,
+    acknowledgeAnimations(finished = true) { animationAcknowledgements.splice(0).forEach(callback => callback({ finished })); },
     visible(label) { return nodes(tree).some(node => node.props?.accessibilityLabel === label || node.type === 'Text' && words(node) === label); },
     loading() { return nodes(tree).some(node => node.type === 'ActivityIndicator'); },
     text() { return nodes(tree).filter(node => node.type === 'Text').map(words).join(' '); },
@@ -383,5 +392,90 @@ test('soundtrack confirmation invalidating a held refresh cannot strand unknown 
     refreshing.resolve({ data: book(), error: null }); initialReactions.resolve({ data: [{ story_id: book().pages[0].story_id }], error: null }); await h.flush(); await h.open();
     assert.equal(h.reactions.length, 1, 'invalidated required response must not start an optional replacement query');
     assert.ok(!h.visible('Loading reaction status')); assert.equal(h.button('Reaction status unavailable').props.disabled, true);
+  } finally { h.dispose(); }
+});
+
+for (const platform of ['ios', 'android']) {
+  test(`${platform} authorized reader entry does not wait for native animation completion`, async () => {
+    const h = harness({ heldAnimation: true, reducedMotion: false, platform });
+    try {
+      await h.flush(); await h.authorize();
+      h.press('Open book'); h.commit();
+      assert.ok(h.visible('Page 1 of 2'), 'the first committed press renders the authorized page without an animation acknowledgement');
+      assert.ok(h.visible('Close memory book')); assert.ok(!h.visible('Open book'));
+    } finally { h.dispose(); }
+  });
+}
+
+test('reduced-motion reader entry also needs no animation acknowledgement', async () => {
+  const h = harness({ heldAnimation: true, reducedMotion: true });
+  try {
+    await h.flush(); await h.authorize(); h.press('Open book'); h.commit();
+    assert.ok(h.visible('Page 1 of 2')); assert.ok(h.visible('Close memory book'));
+  } finally { h.dispose(); }
+});
+
+test('an interrupted decorative animation cannot prevent authorized reader entry', async () => {
+  const h = harness({ heldAnimation: true, reducedMotion: false });
+  try {
+    await h.flush(); await h.authorize(); h.press('Open book');
+    h.acknowledgeAnimations(false); await h.flush();
+    assert.ok(h.visible('Page 1 of 2')); assert.ok(!h.visible('Open book'));
+  } finally { h.dispose(); }
+});
+
+test('explicit close returns to the cover and a later press opens the reader again', async () => {
+  const h = harness({ heldAnimation: true, reducedMotion: false });
+  try {
+    await h.flush(); await h.authorize(); h.press('Open book'); h.acknowledgeAnimations(true); await h.flush();
+    assert.ok(h.visible('Page 1 of 2'));
+    h.press('Close memory book'); await h.flush();
+    assert.ok(h.visible('Open book')); assert.ok(!h.visible('Page 1 of 2'));
+    h.acknowledgeAnimations(true); await h.flush();
+    assert.ok(h.visible('Open book'), 'late decorative acknowledgement cannot undo an explicit close');
+    h.press('Open book'); h.acknowledgeAnimations(true); await h.flush();
+    assert.ok(h.visible('Page 1 of 2'));
+  } finally { h.dispose(); }
+});
+
+test('route replacement discards the previous reader entry and any delayed acknowledgement', async () => {
+  const h = harness({ heldAnimation: true, reducedMotion: false });
+  try {
+    await h.flush(); await h.authorize(); h.press('Open book'); h.commit();
+    h.route('book-b'); await h.flush(); assert.ok(h.loading()); assert.ok(!h.visible('Page 1 of 2'));
+    await h.authorize(book('book-b'));
+    h.acknowledgeAnimations(true); await h.flush();
+    assert.ok(h.visible('Open book')); assert.ok(!h.visible('Page 1 of 2')); assert.match(h.text(), /Book book-b/);
+  } finally { h.dispose(); }
+});
+
+test('account replacement hides the old reader until its new authorized book read', async () => {
+  const h = harness({ heldAnimation: true, reducedMotion: false });
+  try {
+    await h.flush(); await h.authorize(); h.press('Open book'); h.commit();
+    h.account('replacement-viewer'); await h.flush();
+    assert.ok(h.loading()); assert.ok(!h.visible('Page 1 of 2'));
+    h.acknowledgeAnimations(true); await h.flush();
+    assert.ok(!h.visible('Page 1 of 2'));
+    await h.authorize({ ...book(), is_owner: false });
+    assert.ok(h.visible('Open book')); assert.ok(!h.visible('Page 1 of 2')); assert.ok(!h.visible('Edit memory book'));
+  } finally { h.dispose(); }
+});
+
+test('unmount rejects late reader-entry animation acknowledgement without a state write', async () => {
+  const h = harness({ heldAnimation: true, reducedMotion: false });
+  await h.flush(); await h.authorize(); h.press('Open book'); h.dispose();
+  h.acknowledgeAnimations(true); await h.flush();
+  assert.equal(h.postUnmountWrites, 0);
+});
+
+test('ordinary same-book refresh preserves the already opened reader', async () => {
+  const h = harness({ heldAnimation: true, reducedMotion: false });
+  try {
+    await h.flush(); await h.authorize(); h.press('Open book'); h.acknowledgeAnimations(true); await h.flush();
+    assert.ok(h.visible('Page 1 of 2'));
+    h.refresh(); await h.flush(); assert.ok(h.visible('Page 1 of 2'));
+    await h.authorize({ ...book(), title: 'Updated same book' });
+    assert.ok(h.visible('Page 1 of 2')); assert.match(h.text(), /Updated same book/);
   } finally { h.dispose(); }
 });

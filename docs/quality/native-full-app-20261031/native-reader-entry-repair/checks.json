@@ -1,0 +1,138 @@
+{
+  "baseline": {
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-memory-album-loading.cjs",
+    "exitCode": 1,
+    "counts": {
+      "tests": 36,
+      "pass": 32,
+      "fail": 4,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 4350.294859,
+      "results": [
+        "ok 1 - held optional reactions do not block the actual authorized reader",
+        "ok 2 - unknown initial reaction state cannot expose an actionable Like guess",
+        "ok 3 - optional reaction reject cannot discard the authorized book",
+        "ok 4 - optional reaction error-result cannot discard the authorized book",
+        "ok 5 - pending auth cannot dispatch required book or optional reaction reads",
+        "ok 6 - pending required book authorization keeps the reader gated",
+        "ok 7 - required book rejection still clears the reader and offers retry",
+        "ok 8 - required media rejection still clears the reader and offers retry",
+        "ok 9 - held required media hydration cannot publish a book or start optional reads",
+        "ok 10 - old optional read cannot affect a replacement route that shares a story ID",
+        "ok 11 - account ABA invalidates old optional reads before a replacement viewer commit",
+        "ok 12 - unmount invalidates a pending optional reaction result",
+        "ok 13 - a newer load result wins over the previous optional reaction read",
+        "ok 14 - an older reaction read preserves a newer successful toggle and other page results",
+        "ok 15 - a newer successful unreact removes the stale read membership",
+        "ok 16 - failed toggle leaves the optional authoritative reaction result usable",
+        "ok 17 - fresh book identity cannot display old confirmed likes while its optional read is held",
+        "ok 18 - empty refreshed book removes old likes before a source returns",
+        "ok 19 - no-story refreshed book removes old likes before a source returns",
+        "ok 20 - a successful old-route toggle cannot leak into a replacement book",
+        "ok 21 - optional background reject retains confirmed known reaction state",
+        "ok 22 - optional background error-result retains confirmed known reaction state",
+        "ok 23 - an old-account mutation cannot apply after ABA before React rerenders",
+        "ok 24 - unmounted confirmed reaction completion cannot publish state or errors",
+        "ok 25 - unmounted rejected reaction completion cannot publish state or errors",
+        "ok 26 - soundtrack confirmation does not discard a held optional reaction response",
+        "ok 27 - soundtrack confirmation invalidating a held refresh cannot strand unknown reactions as loading",
+        "not ok 28 - ios authorized reader entry does not wait for native animation completion",
+        "not ok 29 - android authorized reader entry does not wait for native animation completion",
+        "not ok 30 - reduced-motion reader entry also needs no animation acknowledgement",
+        "not ok 31 - an interrupted decorative animation cannot prevent authorized reader entry",
+        "ok 32 - explicit close returns to the cover and a later press opens the reader again",
+        "ok 33 - route replacement discards the previous reader entry and any delayed acknowledgement",
+        "ok 34 - account replacement hides the old reader until its new authorized book read",
+        "ok 35 - unmount rejects late reader-entry animation acknowledgement without a state write",
+        "ok 36 - ordinary same-book refresh preserves the already opened reader"
+      ]
+    }
+  },
+  "final": {
+    "command": "env -u NODE_TEST_CONTEXT node --test --test-isolation=none --test-reporter=tap tests/quality/native-memory-album-loading.cjs tests/quality/memory-media-regressions.cjs",
+    "exitCode": 0,
+    "counts": {
+      "tests": 42,
+      "pass": 42,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "duration_ms": 3720.544278,
+      "results": [
+        "ok 1 - web album loader commits authorized media",
+        "ok 2 - web late album read cannot restore an old account's media",
+        "ok 3 - web failed album authorization clears media and offers retry",
+        "ok 4 - native album loader commits authorized media",
+        "ok 5 - native late album read cannot restore an old account's media",
+        "ok 6 - native failed album authorization clears media and offers retry",
+        "ok 7 - held optional reactions do not block the actual authorized reader",
+        "ok 8 - unknown initial reaction state cannot expose an actionable Like guess",
+        "ok 9 - optional reaction reject cannot discard the authorized book",
+        "ok 10 - optional reaction error-result cannot discard the authorized book",
+        "ok 11 - pending auth cannot dispatch required book or optional reaction reads",
+        "ok 12 - pending required book authorization keeps the reader gated",
+        "ok 13 - required book rejection still clears the reader and offers retry",
+        "ok 14 - required media rejection still clears the reader and offers retry",
+        "ok 15 - held required media hydration cannot publish a book or start optional reads",
+        "ok 16 - old optional read cannot affect a replacement route that shares a story ID",
+        "ok 17 - account ABA invalidates old optional reads before a replacement viewer commit",
+        "ok 18 - unmount invalidates a pending optional reaction result",
+        "ok 19 - a newer load result wins over the previous optional reaction read",
+        "ok 20 - an older reaction read preserves a newer successful toggle and other page results",
+        "ok 21 - a newer successful unreact removes the stale read membership",
+        "ok 22 - failed toggle leaves the optional authoritative reaction result usable",
+        "ok 23 - fresh book identity cannot display old confirmed likes while its optional read is held",
+        "ok 24 - empty refreshed book removes old likes before a source returns",
+        "ok 25 - no-story refreshed book removes old likes before a source returns",
+        "ok 26 - a successful old-route toggle cannot leak into a replacement book",
+        "ok 27 - optional background reject retains confirmed known reaction state",
+        "ok 28 - optional background error-result retains confirmed known reaction state",
+        "ok 29 - an old-account mutation cannot apply after ABA before React rerenders",
+        "ok 30 - unmounted confirmed reaction completion cannot publish state or errors",
+        "ok 31 - unmounted rejected reaction completion cannot publish state or errors",
+        "ok 32 - soundtrack confirmation does not discard a held optional reaction response",
+        "ok 33 - soundtrack confirmation invalidating a held refresh cannot strand unknown reactions as loading",
+        "ok 34 - ios authorized reader entry does not wait for native animation completion",
+        "ok 35 - android authorized reader entry does not wait for native animation completion",
+        "ok 36 - reduced-motion reader entry also needs no animation acknowledgement",
+        "ok 37 - an interrupted decorative animation cannot prevent authorized reader entry",
+        "ok 38 - explicit close returns to the cover and a later press opens the reader again",
+        "ok 39 - route replacement discards the previous reader entry and any delayed acknowledgement",
+        "ok 40 - account replacement hides the old reader until its new authorized book read",
+        "ok 41 - unmount rejects late reader-entry animation acknowledgement without a state write",
+        "ok 42 - ordinary same-book refresh preserves the already opened reader"
+      ]
+    }
+  },
+  "static": [
+    {
+      "command": "./node_modules/.bin/tsc --noEmit",
+      "exitCode": 0,
+      "log": "typescript.txt"
+    },
+    {
+      "command": "./node_modules/.bin/eslint src/screens/profile/MemoryAlbumScreen.tsx tests/quality/native-memory-album-loading.cjs",
+      "exitCode": 0,
+      "log": "eslint.txt"
+    },
+    {
+      "command": "git diff --check -- src/screens/profile/MemoryAlbumScreen.tsx tests/quality/native-memory-album-loading.cjs",
+      "exitCode": 0
+    }
+  ],
+  "sourceBindings": [
+    {
+      "path": "src/screens/profile/MemoryAlbumScreen.tsx",
+      "bytes": 67855,
+      "sha256": "27844413189f30e36ebd3137dd5398e689c8393ca9f82469cd4a262351b3adab"
+    },
+    {
+      "path": "tests/quality/native-memory-album-loading.cjs",
+      "bytes": 29491,
+      "sha256": "f07fd6ae9991d5ec798646874ce565cd0c08ca31a88129ef5d01b463bd2c3402"
+    }
+  ]
+}
